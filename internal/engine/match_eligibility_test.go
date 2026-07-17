@@ -52,6 +52,7 @@ func (a *graphSizeAuditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.A
 func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T) {
 	graph := sdk.New()
 	app := matchTestDependency("app", "1.0.0", sdk.PackageTypeApplication, sdk.DependencySourceRegistry)
+	app.FirstParty = true
 	manifest := matchTestDependency("manifest", "1.0.0", sdk.PackageTypeManifest, "")
 	registryRelease := matchTestDependency("registry-package", "1.0.0", "", sdk.DependencySourceRegistry)
 	registryRelease.Relationship = sdk.DependencyRelationshipUnknown

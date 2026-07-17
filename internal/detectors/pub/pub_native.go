@@ -156,6 +156,7 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 			Version:        rootEntry.Version,
 			PackageManager: sdk.PackageManagerPub,
 			Type:           sdk.PackageTypeApplication,
+			FirstParty:     true,
 			Language:       "dart"},
 		})
 

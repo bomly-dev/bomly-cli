@@ -523,6 +523,31 @@ func TestCompareIgnoresApplicationNodes(t *testing.T) {
 	}
 }
 
+func TestNodeIsEnrichable(t *testing.T) {
+	cases := []struct {
+		name string
+		node *Dependency
+		want bool
+	}{
+		{name: "nil node", node: nil, want: false},
+		{name: "manifest node", node: &Dependency{Coordinates: Coordinates{Name: "pom.xml", Type: PackageTypeManifest}}, want: false},
+		{name: "first-party module node", node: &Dependency{Coordinates: Coordinates{Name: "my-module", Version: "1.0.0", Type: PackageTypeApplication, FirstParty: true, PURL: "pkg:maven/com.acme/my-module@1.0.0"}}, want: false},
+		{name: "first-party untyped node", node: &Dependency{Coordinates: Coordinates{Name: "my-root", FirstParty: true}}, want: false},
+		// An application type imported from an SBOM is an artifact kind, not
+		// an ownership signal: without the first-party mark it stays enrichable.
+		{name: "imported application node", node: &Dependency{Coordinates: Coordinates{Name: "bundled-app", Version: "2.0.0", Type: PackageTypeApplication, PURL: "pkg:npm/bundled-app@2.0.0"}}, want: true},
+		{name: "package node", node: &Dependency{Coordinates: Coordinates{Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"}}, want: true},
+		{name: "untyped node", node: &Dependency{Coordinates: Coordinates{Name: "guava", Version: "31.0"}}, want: true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := NodeIsEnrichable(tc.node); got != tc.want {
+				t.Fatalf("NodeIsEnrichable() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestPackageHelpers(t *testing.T) {
 	pkg := &Package{Coordinates: Coordinates{PURL: "pkg:generic/acme/demo@1.0.0",
 		Org:     "acme",

@@ -17,8 +17,10 @@ func TestDependencyRegistryMatchEligible(t *testing.T) {
 		{name: "file", dep: &Dependency{Source: DependencySourceFile}},
 		{name: "git", dep: &Dependency{Source: DependencySourceGit}},
 		{name: "url", dep: &Dependency{Source: DependencySourceURL}},
-		{name: "application regardless of source", dep: &Dependency{Coordinates: Coordinates{Type: PackageTypeApplication}, Source: DependencySourceRegistry}},
+		{name: "first-party application", dep: &Dependency{Coordinates: Coordinates{Type: PackageTypeApplication, FirstParty: true}, Source: DependencySourceRegistry}},
+		{name: "imported application", dep: &Dependency{Coordinates: Coordinates{Type: PackageTypeApplication}, Source: DependencySourceRegistry}, want: true},
 		{name: "manifest regardless of source", dep: &Dependency{Coordinates: Coordinates{Type: PackageTypeManifest}, Source: DependencySourceRegistry}},
+		{name: "first-party untyped", dep: &Dependency{Coordinates: Coordinates{FirstParty: true}, Source: DependencySourceRegistry}},
 		{name: "nil"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

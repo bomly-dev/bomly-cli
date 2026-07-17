@@ -99,7 +99,7 @@ func depGraphFromPNPMLockfile(projectPath string) (pnpmLockfileGraphs, error) {
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: manifest.Version, Type: sdk.PackageTypeApplication}, Source: sdk.DependencySourceProject})
+	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: manifest.Version, Type: sdk.PackageTypeApplication, FirstParty: true}, Source: sdk.DependencySourceProject})
 	depsGraph := sdk.New()
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return pnpmLockfileGraphs{}, fmt.Errorf("add pnpm root node: %w", err)
@@ -210,7 +210,7 @@ func depGraphFromPNPMLockfile(projectPath string) (pnpmLockfileGraphs, error) {
 		if memberName == "" {
 			memberName = filepath.Base(cleanDir)
 		}
-		memberDep := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: memberName, Version: memberManifest.Version, Type: sdk.PackageTypeApplication}, Source: sdk.DependencySourceWorkspace}
+		memberDep := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: memberName, Version: memberManifest.Version, Type: sdk.PackageTypeApplication, FirstParty: true}, Source: sdk.DependencySourceWorkspace}
 		memberNode := sdk.NewDependency(memberDep)
 		if _, exists := depsGraph.Node(memberNode.ID); exists {
 			memberNode = sdk.NewDependencyWithID("workspace:"+cleanDir, memberDep)

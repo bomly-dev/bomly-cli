@@ -289,7 +289,7 @@ func TestMavenPomPositions(t *testing.T) {
 	mustPkg(t, g, "jackson-databind", "2.17.0", func(p *sdk.Dependency) { p.Org = "com.fasterxml.jackson.core" })
 	mustPkg(t, g, "junit", "4.13.2", func(p *sdk.Dependency) { p.Org = "junit" })
 	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.Dependency) { p.Org = "org.apache.commons" })
-	maven.AttachPomPositions(g, dir)
+	maven.AttachPomPositions(g, dir, "pom.xml")
 	jd, _ := g.Node("com.fasterxml.jackson.core:jackson-databind@2.17.0")
 	if jd == nil || len(jd.Locations) == 0 || jd.Locations[0].Position.Line != 9 {
 		t.Errorf("jackson-databind location wrong: %+v", jd)
@@ -321,7 +321,7 @@ func TestMavenPomPositionsResolvePropertiesAfterDependencies(t *testing.T) {
 `)
 	g := sdk.New()
 	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.Dependency) { p.Org = "org.apache.commons" })
-	maven.AttachPomPositions(g, dir)
+	maven.AttachPomPositions(g, dir, "pom.xml")
 
 	lang3, _ := g.Node("org.apache.commons:commons-lang3@3.17.0")
 	if lang3 == nil || len(lang3.Locations) == 0 || lang3.Locations[0].Position.Line != 10 {
@@ -345,11 +345,40 @@ func TestMavenPomPositionsUseArtifactPropertyForManagedDependency(t *testing.T) 
 `)
 	g := sdk.New()
 	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.Dependency) { p.Org = "org.apache.commons" })
-	maven.AttachPomPositions(g, dir)
+	maven.AttachPomPositions(g, dir, "pom.xml")
 
 	lang3, _ := g.Node("org.apache.commons:commons-lang3@3.17.0")
 	if lang3 == nil || len(lang3.Locations) != 1 || lang3.Locations[0].Position.Line != 3 {
 		t.Fatalf("commons-lang3 location = %+v, want artifact property line 3", lang3)
+	}
+}
+
+func TestMavenPomPositionsModuleRelativePath(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, dir, "pom.xml", `<project>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-text</artifactId>
+      <version>1.9</version>
+    </dependency>
+  </dependencies>
+</project>
+`)
+	g := sdk.New()
+	mustPkg(t, g, "commons-text", "1.9", func(p *sdk.Dependency) { p.Org = "org.apache.commons" })
+	maven.AttachPomPositions(g, dir, "core/pom.xml")
+
+	text, _ := g.Node("org.apache.commons:commons-text@1.9")
+	if text == nil || len(text.Locations) == 0 {
+		t.Fatalf("commons-text location missing: %+v", text)
+	}
+	loc := text.Locations[0]
+	if loc.RealPath != "core/pom.xml" || loc.AccessPath != "core/pom.xml" {
+		t.Errorf("location paths = %q / %q, want core/pom.xml", loc.RealPath, loc.AccessPath)
+	}
+	if loc.Position == nil || loc.Position.File != "core/pom.xml" || loc.Position.Line != 6 {
+		t.Errorf("position = %+v, want core/pom.xml line 6", loc.Position)
 	}
 }
 
@@ -365,7 +394,7 @@ func TestGradlePositions(t *testing.T) {
 	mustPkg(t, g, "jackson-databind", "2.17.0")
 	mustPkg(t, g, "spring-core", "6.0.0")
 	mustPkg(t, g, "junit", "4.13.2")
-	gradle.AttachGradlePositions(g, dir)
+	gradle.AttachGradlePositions(g, dir, "")
 
 	cases := map[string]int{"jackson-databind": 2, "spring-core": 3, "junit": 4}
 	for name, wantLine := range cases {
@@ -376,6 +405,29 @@ func TestGradlePositions(t *testing.T) {
 		if p.Locations[0].Position.Line != wantLine {
 			t.Errorf("%s line = %d, want %d", name, p.Locations[0].Position.Line, wantLine)
 		}
+	}
+}
+
+func TestGradlePositionsSubprojectRelDirPrefix(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, dir, "build.gradle", `dependencies {
+    api 'org.slf4j:slf4j-api:2.0.12'
+}
+`)
+	g := sdk.New()
+	mustPkg(t, g, "slf4j-api", "2.0.12")
+	gradle.AttachGradlePositions(g, dir, "lib")
+
+	p, _ := g.Node("slf4j-api@2.0.12")
+	if p == nil || len(p.Locations) == 0 {
+		t.Fatalf("slf4j-api location missing: %+v", p)
+	}
+	loc := p.Locations[0]
+	if loc.RealPath != "lib/build.gradle" || loc.AccessPath != "lib/build.gradle" {
+		t.Errorf("location paths = %q / %q, want lib/build.gradle", loc.RealPath, loc.AccessPath)
+	}
+	if loc.Position == nil || loc.Position.File != "lib/build.gradle" || loc.Position.Line != 2 {
+		t.Errorf("position = %+v, want lib/build.gradle line 2", loc.Position)
 	}
 }
 

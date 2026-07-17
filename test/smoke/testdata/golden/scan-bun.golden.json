@@ -1,25 +1,330 @@
 {
-  "manifest_count": 3,
-  "package_count": 11,
-  "root_manifest": {
-    "kind": "package.json",
-    "path": "apps/api/package.json"
-  },
-  "selected": [
+  "command": "scan",
+  "manifests": [
     {
+      "dependencies": [
+        {
+          "depends_on": [
+            "pkg:npm/%40bomly-fixture/shared@1.0.0",
+            "pkg:npm/is-even@1.0.0"
+          ],
+          "id": "pkg:npm/%40bomly-fixture/api@1.0.0",
+          "licenses": [],
+          "name": "@bomly-fixture/api",
+          "package_ref": "pkg:npm/%40bomly-fixture/api@1.0.0",
+          "purl": "pkg:npm/%40bomly-fixture/api@1.0.0",
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/is-number@7.0.0"
+          ],
+          "id": "pkg:npm/%40bomly-fixture/shared@1.0.0",
+          "licenses": [],
+          "name": "@bomly-fixture/shared",
+          "package_ref": "pkg:npm/%40bomly-fixture/shared@1.0.0",
+          "purl": "pkg:npm/%40bomly-fixture/shared@1.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/is-buffer@1.1.6",
+          "licenses": [],
+          "name": "is-buffer",
+          "package_ref": "pkg:npm/is-buffer@1.1.6",
+          "purl": "pkg:npm/is-buffer@1.1.6",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.6"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/is-odd@0.1.2"
+          ],
+          "id": "pkg:npm/is-even@1.0.0",
+          "licenses": [],
+          "name": "is-even",
+          "package_ref": "pkg:npm/is-even@1.0.0",
+          "purl": "pkg:npm/is-even@1.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/kind-of@3.2.2"
+          ],
+          "id": "pkg:npm/is-number@3.0.0",
+          "licenses": [],
+          "name": "is-number",
+          "package_ref": "pkg:npm/is-number@3.0.0",
+          "purl": "pkg:npm/is-number@3.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/is-number@7.0.0",
+          "licenses": [],
+          "name": "is-number",
+          "package_ref": "pkg:npm/is-number@7.0.0",
+          "purl": "pkg:npm/is-number@7.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "7.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/is-number@3.0.0"
+          ],
+          "id": "pkg:npm/is-odd@0.1.2",
+          "licenses": [],
+          "name": "is-odd",
+          "package_ref": "pkg:npm/is-odd@0.1.2",
+          "purl": "pkg:npm/is-odd@0.1.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.1.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/is-buffer@1.1.6"
+          ],
+          "id": "pkg:npm/kind-of@3.2.2",
+          "licenses": [],
+          "name": "kind-of",
+          "package_ref": "pkg:npm/kind-of@3.2.2",
+          "purl": "pkg:npm/kind-of@3.2.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.2.2"
+        }
+      ],
+      "detector": "bun-detector",
+      "ecosystem": "npm",
+      "kind": "package.json",
+      "package_manager": "bun",
+      "path": "apps/api/package.json",
+      "resolution": {
+        "install_executed": false,
+        "method": "lockfile"
+      },
+      "subproject": "."
+    },
+    {
+      "dependencies": [
+        {
+          "depends_on": [
+            "pkg:npm/is-number@7.0.0",
+            "pkg:npm/left-pad@1.3.0",
+            "pkg:npm/typescript@5.3.3"
+          ],
+          "id": "pkg:npm/example-javascript-bun",
+          "licenses": [],
+          "name": "example-javascript-bun",
+          "package_ref": "pkg:npm/example-javascript-bun",
+          "purl": "pkg:npm/example-javascript-bun"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/is-number@7.0.0",
+          "licenses": [],
+          "name": "is-number",
+          "package_ref": "pkg:npm/is-number@7.0.0",
+          "purl": "pkg:npm/is-number@7.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "7.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/left-pad@1.3.0",
+          "licenses": [],
+          "name": "left-pad",
+          "package_ref": "pkg:npm/left-pad@1.3.0",
+          "purl": "pkg:npm/left-pad@1.3.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.3.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/typescript@5.3.3",
+          "licenses": [],
+          "name": "typescript",
+          "package_ref": "pkg:npm/typescript@5.3.3",
+          "purl": "pkg:npm/typescript@5.3.3",
+          "scopes": [
+            "development"
+          ],
+          "version": "5.3.3"
+        }
+      ],
+      "detector": "bun-detector",
+      "ecosystem": "npm",
+      "kind": "bun.lock",
+      "package_manager": "bun",
+      "path": "bun.lock",
+      "resolution": {
+        "install_executed": false,
+        "method": "lockfile"
+      },
+      "subproject": "."
+    },
+    {
+      "dependencies": [
+        {
+          "depends_on": [
+            "pkg:npm/is-number@7.0.0"
+          ],
+          "id": "pkg:npm/%40bomly-fixture/shared@1.0.0",
+          "licenses": [],
+          "name": "@bomly-fixture/shared",
+          "package_ref": "pkg:npm/%40bomly-fixture/shared@1.0.0",
+          "purl": "pkg:npm/%40bomly-fixture/shared@1.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/is-number@7.0.0",
+          "licenses": [],
+          "name": "is-number",
+          "package_ref": "pkg:npm/is-number@7.0.0",
+          "purl": "pkg:npm/is-number@7.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "7.0.0"
+        }
+      ],
+      "detector": "bun-detector",
+      "ecosystem": "npm",
+      "kind": "package.json",
+      "package_manager": "bun",
+      "path": "packages/shared/package.json",
+      "resolution": {
+        "install_executed": false,
+        "method": "lockfile"
+      },
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "packages": [
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "@bomly-fixture/api",
+      "org": "bomly-fixture",
+      "purl": "pkg:npm/%40bomly-fixture/api@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "@bomly-fixture/shared",
+      "org": "bomly-fixture",
+      "purl": "pkg:npm/%40bomly-fixture/shared@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "example-javascript-bun",
+      "purl": "pkg:npm/example-javascript-bun",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "is-buffer",
+      "purl": "pkg:npm/is-buffer@1.1.6",
+      "version": "1.1.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
       "name": "is-even",
       "purl": "pkg:npm/is-even@1.0.0",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "vulnerabilities": []
     },
     {
+      "ecosystem": "npm",
+      "licenses": [],
       "name": "is-number",
       "purl": "pkg:npm/is-number@3.0.0",
-      "version": "3.0.0"
+      "version": "3.0.0",
+      "vulnerabilities": []
     },
     {
+      "ecosystem": "npm",
+      "licenses": [],
       "name": "is-number",
       "purl": "pkg:npm/is-number@7.0.0",
-      "version": "7.0.0"
+      "version": "7.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "is-odd",
+      "purl": "pkg:npm/is-odd@0.1.2",
+      "version": "0.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "kind-of",
+      "purl": "pkg:npm/kind-of@3.2.2",
+      "version": "3.2.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "left-pad",
+      "purl": "pkg:npm/left-pad@1.3.0",
+      "version": "1.3.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "typescript",
+      "purl": "pkg:npm/typescript@5.3.3",
+      "version": "5.3.3",
+      "vulnerabilities": []
     }
-  ]
+  ],
+  "project": {
+    "ecosystem": "npm",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "bun",
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "v1.0.0",
+    "target_type": "git repository"
+  },
+  "schema_version": "1.0"
 }

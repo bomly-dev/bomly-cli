@@ -148,6 +148,13 @@
     "benchmark_enabled": true
   },
   {
+    "name": "scan-bun",
+    "url": "https://github.com/bomly-dev/example-javascript-bun",
+    "ref": "v1.0.0",
+    "ecosystem": "npm",
+    "benchmark_enabled": true
+  },
+  {
     "name": "scan-gradle",
     "url": "https://github.com/bomly-dev/example-java-gradle",
     "ref": "v1.0.0",

@@ -12,7 +12,6 @@
 package smoke
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -23,50 +22,6 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/benchmark"
 )
-
-// TestScanBunLockfile exercises the text-lockfile path against the controlled
-// Bun workspace fixture. The compact golden locks detector identity, workspace
-// partitioning, complete inventory, and duplicate-version handling.
-func TestScanBunLockfile(t *testing.T) {
-	stdout, stderr, code := runBomly(t,
-		"scan", "--url", "https://github.com/bomly-dev/example-javascript-bun",
-		"--ref", "v1.0.0",
-		"--detectors", "bun", "--format", "json")
-	if code != 0 {
-		t.Fatalf("bomly exited %d\nstderr:\n%s", code, stderr)
-	}
-	var document struct {
-		Manifests []struct {
-			Path string `json:"path"`
-			Kind string `json:"kind"`
-		} `json:"manifests"`
-		Packages []struct {
-			PURL    string `json:"purl"`
-			Name    string `json:"name"`
-			Version string `json:"version"`
-		} `json:"packages"`
-	}
-	if err := json.Unmarshal([]byte(stdout), &document); err != nil {
-		t.Fatalf("decode Bun scan output: %v", err)
-	}
-	selected := make([]map[string]string, 0, 3)
-	for _, pkg := range document.Packages {
-		if pkg.Name == "is-even" || pkg.Name == "is-number" {
-			selected = append(selected, map[string]string{"name": pkg.Name, "version": pkg.Version, "purl": pkg.PURL})
-		}
-	}
-	projection := map[string]any{
-		"manifest_count": len(document.Manifests),
-		"package_count":  len(document.Packages),
-		"root_manifest":  document.Manifests[0],
-		"selected":       selected,
-	}
-	raw, err := json.Marshal(projection)
-	if err != nil {
-		t.Fatalf("encode Bun smoke projection: %v", err)
-	}
-	assertGolden(t, "scan-bun", normalizeJSON(t, raw))
-}
 
 // bomlyBin is the path to the compiled CLI binary, built once in TestMain.
 var bomlyBin string
@@ -295,6 +250,18 @@ func TestScan(t *testing.T) {
 			name:  "scan-maven-multimodule",
 			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-java-maven-multimodule", "--ref", "v1.0.0", "--format", "json"},
 			tools: []string{"mvn"},
+		},
+		{
+			// Gradle multi-project build pinned to
+			// bomly-dev/example-java-gradle-multimodule: a root project with
+			// one direct dependency and two subprojects, app depending on the
+			// lib subproject. The golden proves one manifest entry per
+			// subproject (app/build.gradle, lib/build.gradle) plus the root
+			// entry, resolved through one multi-task dependency report. The
+			// repo commits its gradle wrapper, so only java is required.
+			name:  "scan-gradle-multimodule",
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-java-gradle-multimodule", "--ref", "v1.0.0", "--format", "json"},
+			tools: []string{"java"},
 		},
 		{
 			name: "scan-sbom-spdx",

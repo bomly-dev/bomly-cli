@@ -107,7 +107,7 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 	if workingDir == "" {
 		workingDir = req.ProjectPath
 	}
-	AttachPomPositions(depsGraph, workingDir)
+	AttachPomPositions(depsGraph, workingDir, "pom.xml")
 
 	rootManifest := detectors.InferManifestMetadata(req, evidencePatterns)
 	modules, err := walkPomModules(workingDir)
@@ -165,10 +165,12 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 			matchedIDs[pkg.ID] = struct{}{}
 			// Reactor modules are the project's own applications; typing them
 			// lets downstream views treat their direct dependencies as
-			// top-level even when a sibling module depends on them.
+			// top-level even when a sibling module depends on them, and the
+			// first-party mark keeps enrichment from querying them.
 			if pkg.Type == "" {
 				pkg.Type = sdk.PackageTypeApplication
 			}
+			pkg.FirstParty = true
 			matchedModules = append(matchedModules, moduleEntry{module: module, rootID: pkg.ID})
 		}
 	}
@@ -206,7 +208,7 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 		if err != nil {
 			continue
 		}
-		AttachPomPositions(moduleGraph, filepath.Join(workingDir, filepath.FromSlash(matched.module.Dir)))
+		AttachPomPositions(moduleGraph, filepath.Join(workingDir, filepath.FromSlash(matched.module.Dir)), matched.module.Dir+"/pom.xml")
 		entries = append(entries, sdk.GraphEntry{
 			Graph:    moduleGraph,
 			Manifest: sdk.ManifestMetadata{Path: matched.module.Dir + "/pom.xml", Kind: sdk.ManifestKind("pom.xml")},
@@ -420,6 +422,17 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 		}
 		if err := tgfGraph.AddEdge(fromNode.ID, toNode.ID); err != nil {
 			return nil, fmt.Errorf("add maven dependency %q -> %q: %w", fromNode.ID, toNode.ID, err)
+		}
+	}
+
+	// Every TGF block root is one of the build's own reactor projects (the
+	// single-module project artifact or the aggregator pom), never a fetched
+	// dependency: mark them first-party so enrichment skips them. Reactor
+	// modules consumed by siblings are not graph roots; reactorGraphEntries
+	// marks those when it matches pom-declared coordinates.
+	for _, root := range tgfGraph.Roots() {
+		if root != nil {
+			root.FirstParty = true
 		}
 	}
 

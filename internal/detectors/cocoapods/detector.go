@@ -318,6 +318,7 @@ func rootNode() *sdk.Dependency {
 		Name:           "root",
 		PackageManager: sdk.PackageManagerCocoaPods,
 		Type:           sdk.PackageTypeApplication,
+		FirstParty:     true,
 		Language:       "swift"},
 	})
 

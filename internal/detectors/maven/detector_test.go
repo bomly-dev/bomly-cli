@@ -40,6 +40,16 @@ func TestDepGraphFromMavenTGF(t *testing.T) {
 		t.Fatalf("unexpected root deps: %#v", rootDeps)
 	}
 
+	// The TGF block root is the project's own artifact: first-party, so
+	// enrichment never queries it; its dependencies stay enrichable.
+	rootNode, _ := g.Node("com.example:demo-app@1.0.0")
+	if !rootNode.FirstParty || sdk.NodeIsEnrichable(rootNode) {
+		t.Fatalf("project artifact must be first-party and not enrichable, got %#v", rootNode.Coordinates)
+	}
+	if rootDeps[0].FirstParty || !sdk.NodeIsEnrichable(rootDeps[0]) {
+		t.Fatalf("fetched dependency must stay enrichable, got %#v", rootDeps[0].Coordinates)
+	}
+
 	logbackDeps, err := g.DirectDependencies("ch.qos.logback:logback-classic@1.5.6")
 	if err != nil {
 		t.Fatalf("dependencies(logback-classic) error = %v", err)

@@ -491,6 +491,7 @@ func rootNode() *sdk.Dependency {
 		Name:           "root",
 		PackageManager: sdk.PackageManagerNuGet,
 		Type:           sdk.PackageTypeApplication,
+		FirstParty:     true,
 		Language:       "dotnet"},
 	})
 

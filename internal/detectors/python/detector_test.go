@@ -48,6 +48,15 @@ func TestDepGraphFromPipInspect(t *testing.T) {
 	if g.Size() != 4 {
 		t.Fatalf("expected 4 packages, got %d", g.Size())
 	}
+	// The synthetic "root" node stands for the scanned environment — and
+	// "root" is a real PyPI package name — so it must never be enrichable.
+	rootNode, ok := g.Node("root")
+	if !ok {
+		t.Fatal("expected synthetic root node")
+	}
+	if !rootNode.FirstParty || sdk.NodeIsEnrichable(rootNode) {
+		t.Fatalf("pip-inspect root must be first-party and not enrichable, got %#v", rootNode.Coordinates)
+	}
 }
 
 func TestDepGraphFromPipfileLock(t *testing.T) {

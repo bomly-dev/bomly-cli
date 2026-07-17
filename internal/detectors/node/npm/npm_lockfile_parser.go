@@ -181,7 +181,7 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: rootVersion, Type: sdk.PackageTypeApplication}, Source: sdk.DependencySourceProject})
+	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: rootVersion, Type: sdk.PackageTypeApplication, FirstParty: true}, Source: sdk.DependencySourceProject})
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return npmLockfileGraphs{}, fmt.Errorf("add npm root node: %w", err)
 	}
@@ -235,6 +235,7 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		if member {
 			// Workspace members are local applications, not fetched packages.
 			pkg.Type = sdk.PackageTypeApplication
+			pkg.FirstParty = true
 			pkg.ResolvedURL = ""
 			pkg.Source = sdk.DependencySourceWorkspace
 		}

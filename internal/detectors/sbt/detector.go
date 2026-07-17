@@ -162,6 +162,7 @@ func rootNode() *sdk.Dependency {
 		Name:           "root",
 		PackageManager: sdk.PackageManagerSBT,
 		Type:           sdk.PackageTypeApplication,
+		FirstParty:     true,
 		Language:       "scala"},
 	})
 

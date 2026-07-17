@@ -109,7 +109,7 @@ for protocol-v1 plugins and is derived from graph structure by consumers.
 
 Dependencies **do not** carry `Licenses`, `Vulnerabilities`, or `Scorecard` fields. Detection-time licenses ride along in metadata; matching-stage data lives on the registry package.
 
-Registry matching eligibility is occurrence-based. Ordinary registry releases are eligible even when their `ResolvedURL` points at a custom registry or mirror. Application/manifest nodes and occurrences sourced from project, workspace, link/file, Git, or arbitrary URL references are ineligible but remain in the complete graph and package registry for analysis, auditing, diff, SBOM, and output. An omitted source remains eligible for protocol-v1 and legacy detector compatibility. Before any built-in or external matcher runs, the engine passes it a cloned graph containing only eligible occurrences and eligible-to-eligible edges; the original graph and full registry continue to later stages unchanged.
+Registry matching eligibility is occurrence-based. Ordinary registry releases are eligible even when their `ResolvedURL` points at a custom registry or mirror. First-party/manifest nodes and occurrences sourced from project, workspace, link/file, Git, or arbitrary URL references are ineligible but remain in the complete graph and package registry for analysis, auditing, diff, SBOM, and output. Application type alone is not an ownership signal: an application artifact imported from an SBOM remains eligible unless it is marked first-party or has a non-registry source. An omitted source remains eligible for protocol-v1 and legacy detector compatibility. Before any built-in or external matcher runs, the engine passes it a cloned graph containing only eligible occurrences and eligible-to-eligible edges; the original graph and full registry continue to later stages unchanged.
 
 ## `sdk.Package` — registry artifact (matching)
 
@@ -178,6 +178,8 @@ type Vulnerability struct {
 ```
 
 Matchers (OSV, grype, depsdev, eol, scorecard, and enabled external matcher plugins) write these records onto registry packages by PURL. Reachability is the only field analyzers touch; they annotate it in place.
+
+First-party packages — `application`-typed nodes such as workspace members, reactor modules, and the project's own package — appear in the packages collection **unenriched by design**: `sdk.NodeIsEnrichable` excludes them from every matcher's work list because they are absent from public sources and a coincidental name match would attach someone else's advisories. They keep their PURLs and stay visible in `packages` output and generated SBOMs.
 
 ## `sdk.Finding` — reference-style audit result
 

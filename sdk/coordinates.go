@@ -16,6 +16,14 @@ type Coordinates struct {
 	Name           string         `json:"name,omitempty"`
 	Version        string         `json:"version,omitempty"`
 	Language       Language       `json:"language,omitempty"`
+
+	// FirstParty marks a node as the scanned project's own artifact (its root
+	// package, a workspace member, a reactor module) rather than a consumed
+	// third-party package. Only detectors set it, when synthesizing or matching
+	// nodes they know belong to the build itself; imported documents (SBOM
+	// scans) never do, because a component's declared type is an artifact kind,
+	// not proof of ownership. Enrichment skips first-party nodes.
+	FirstParty bool `json:"first_party,omitempty"`
 }
 
 // QualifiedName returns the package name prefixed with its organization when present.

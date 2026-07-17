@@ -1,0 +1,44 @@
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'demo'
+------------------------------------------------------------
+
+runtimeClasspath - Runtime classpath of source set 'main'.
+\--- org.apache.commons:commons-lang3:3.14.0
+
+> Task :app:dependencies
+
+------------------------------------------------------------
+Project ':app' - The demo application
+------------------------------------------------------------
+
+implementation - Implementation dependencies for the 'main' feature. (n)
++--- project lib (n)
++--- com.google.guava:guava:33.0.0-jre (n)
+\--- org.apache.commons:commons-lang3:3.14.0 (n)
+
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- com.google.guava:guava:33.0.0-jre
+|    \--- com.google.guava:failureaccess:1.0.2
++--- project :lib
+|    \--- org.slf4j:slf4j-api:2.0.12
+\--- org.apache.commons:commons-lang3:3.14.0
+
+testRuntimeClasspath - Test runtime classpath of source set 'test'.
+\--- org.junit.jupiter:junit-jupiter:5.10.2
+     \--- org.junit.jupiter:junit-jupiter-api:5.10.2
+
+> Task :lib:dependencies
+
+------------------------------------------------------------
+Project ':lib'
+------------------------------------------------------------
+
+runtimeClasspath - Runtime classpath of source set 'main'.
+\--- org.slf4j:slf4j-api:2.0.12
+
+(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
+
+BUILD SUCCESSFUL in 1s
+3 actionable tasks: 3 executed

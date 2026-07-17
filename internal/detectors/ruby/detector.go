@@ -179,6 +179,7 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 		Name:           "root",
 		PackageManager: sdk.PackageManagerBundler,
 		Type:           sdk.PackageTypeApplication,
+		FirstParty:     true,
 		Language:       "ruby"},
 	})
 

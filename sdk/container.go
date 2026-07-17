@@ -169,12 +169,39 @@ func addNodeIfMissing(g *Graph, node *Dependency) error {
 	if errors.Is(err, ErrNodeAlreadyExist) {
 		if existing, ok := g.Node(node.ID); ok && existing != nil {
 			existing.Relationship = MergeDependencyRelationship(existing.Relationship, node.Relationship)
+			mergeDependencyLocations(existing, clone.Locations)
+		}
+		return nil
+	}
+	return err
+}
+
+// mergeDependencyLocations appends the locations dst does not already carry.
+func mergeDependencyLocations(dst *Dependency, locations []PackageLocation) {
+	for _, loc := range locations {
+		if !hasDependencyLocation(dst.Locations, loc) {
+			dst.Locations = append(dst.Locations, loc)
 		}
 	}
-	if err != nil && !errors.Is(err, ErrNodeAlreadyExist) {
-		return err
+}
+
+func hasDependencyLocation(existing []PackageLocation, loc PackageLocation) bool {
+	for _, e := range existing {
+		if e.RealPath != loc.RealPath || e.AccessPath != loc.AccessPath {
+			continue
+		}
+		if sourcePositionsEqual(e.Position, loc.Position) {
+			return true
+		}
 	}
-	return nil
+	return false
+}
+
+func sourcePositionsEqual(a, b *SourcePosition) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	return *a == *b
 }
 
 // ConsolidateGraphContainerEntry ensures one entry is present.

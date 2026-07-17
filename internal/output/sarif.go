@@ -502,20 +502,33 @@ func sarifLocationDiffScore(uri string, region *sarifRegion, changedLines map[st
 	return 1
 }
 
+// dependenciesForFinding resolves the finding's dependency refs against every
+// location graph, not only the first graph that knows the ref: entry graphs
+// can hold distinct node instances for the same ref (e.g. a gradle library
+// subproject's `api` dependency also appears in each consuming subproject's
+// graph), and only the declaring module's instance carries manifest
+// locations. Pointer-identical instances shared across graphs are collected
+// once.
 func dependenciesForFinding(f sdk.Finding, options []SARIFOptions) []*sdk.Dependency {
 	if len(options) == 0 || len(options[0].LocationGraphs) == 0 || len(f.DependencyRefs) == 0 {
 		return nil
 	}
 	out := make([]*sdk.Dependency, 0, len(f.DependencyRefs))
+	seen := make(map[*sdk.Dependency]struct{}, len(f.DependencyRefs))
 	for _, ref := range f.DependencyRefs {
 		for _, graph := range options[0].LocationGraphs {
 			if graph == nil {
 				continue
 			}
-			if dep, ok := graph.Node(ref); ok && dep != nil {
-				out = append(out, dep)
-				break
+			dep, ok := graph.Node(ref)
+			if !ok || dep == nil {
+				continue
 			}
+			if _, dup := seen[dep]; dup {
+				continue
+			}
+			seen[dep] = struct{}{}
+			out = append(out, dep)
 		}
 	}
 	return out

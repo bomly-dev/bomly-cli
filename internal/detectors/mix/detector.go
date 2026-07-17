@@ -378,6 +378,7 @@ func rootNode() *sdk.Dependency {
 		Name:           "root",
 		PackageManager: sdk.PackageManagerMix,
 		Type:           sdk.PackageTypeApplication,
+		FirstParty:     true,
 		Language:       "elixir"},
 	})
 

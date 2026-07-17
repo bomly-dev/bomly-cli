@@ -27,10 +27,10 @@ jobs:
           - name: go
             run: 'TestScan/scan-go|TestDiff/diff-go|TestExplain/explain-go|TestAuditScan/(scan-go-enrich|scan-go-audit|scan-go-audit-high)|TestAuditDiffAndExplain/(diff-go-audit|explain-go-enrich)|TestLiteScan/lite-scan-go|TestLiteDiff/lite-diff-go|TestLiteExplain/lite-explain-go'
           - name: node
-            run: 'TestScan/(scan-npm|scan-yarn|scan-pnpm|scan-github-actions)|TestDiff/diff-npm|TestAuditScan/scan-npm-audit'
+            run: 'TestScan/(scan-npm|scan-yarn|scan-pnpm|scan-bun$|scan-github-actions)|TestDiff/diff-npm|TestAuditScan/scan-npm-audit'
             node: true
           - name: java
-            run: 'TestScan/(scan-maven|scan-gradle)'
+            run: 'TestScan/(scan-maven|scan-gradle|scan-recursive-monorepo|scan-java-maven-reachability)'
             java: true
             maven: true
           - name: python
@@ -64,6 +64,8 @@ jobs:
             run: 'TestScan/scan-cpp-conan'
           - name: container
             run: 'TestContainer(Scan|Diff|Explain)|TestContainerAuditScan/container-scan-alpine-audit'
+          - name: plugin
+            run: 'TestPluginWorkflows|TestLiteVersion'
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -119,10 +121,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y maven
 
+      # Mirrors `make smoke` but invokes go test directly: slice patterns may
+      # use $ anchors, which make would expand (e.g. `$|` becomes empty) if
+      # passed through ARGS.
       - name: Run smoke tests
         id: smoke_tests
         continue-on-error: true
-        run: make smoke ARGS="-run '${{ matrix.slice.run }}'"
+        run: go test -tags smoke ./test/smoke/ -v -count=1 -timeout 15m -run '${{ matrix.slice.run }}'
 
       - name: Fail job if smoke tests failed
         if: steps.smoke_tests.outcome == 'failure'

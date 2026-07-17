@@ -4,7 +4,9 @@ package smoke
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -16,6 +18,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 )
 
 var update = flag.Bool("update", false, "update golden files")
@@ -49,10 +52,26 @@ func runBomlyWithEnv(t *testing.T, env []string, args ...string) (stdout, stderr
 	return runBomlyBinaryWithEnv(t, bomlyBin, env, args...)
 }
 
+// bomlyInvocationTimeout bounds a single CLI invocation. Smoke scans hit
+// live networks (git clones, Maven Central, enrichment APIs), and a stalled
+// remote with no per-call deadline would otherwise run until go test's
+// global -timeout kills the whole binary — failing every case in the run
+// (and, in -update mode, aborting the goldens refresh) instead of just the
+// stalled one. The slowest healthy case on CI runs in under 2 minutes, so
+// 5 minutes is stall detection, not a tight budget.
+const bomlyInvocationTimeout = 5 * time.Minute
+
 func runBomlyBinaryWithEnv(t *testing.T, bin string, env []string, args ...string) (stdout, stderr string, exitCode int) {
 	t.Helper()
 
-	cmd := exec.Command(bin, args...)
+	ctx, cancel := context.WithTimeout(context.Background(), bomlyInvocationTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, bin, args...)
+	// Descendants (mvn, gradle daemons) can inherit the stdout/stderr pipes
+	// and keep them open after the CLI is killed; WaitDelay stops Wait from
+	// blocking on those readers forever.
+	cmd.WaitDelay = 10 * time.Second
 	cmd.Env = append(os.Environ(), env...)
 
 	// Isolate plugin/config discovery to a throwaway home directory so the
@@ -77,6 +96,10 @@ func runBomlyBinaryWithEnv(t *testing.T, bin string, env []string, args ...strin
 	cmd.Stderr = &errBuf
 
 	err := cmd.Run()
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		t.Fatalf("bomly %s did not finish within %s (stalled network call?)\nstderr:\n%s",
+			strings.Join(args, " "), bomlyInvocationTimeout, errBuf.String())
+	}
 	exitCode = 0
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {

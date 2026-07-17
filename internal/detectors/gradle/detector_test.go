@@ -189,7 +189,7 @@ testRuntimeClasspath - Test runtime classpath of source set 'test'.
 	if err != nil {
 		t.Fatalf("depGraphFromGradleOutput() error = %v", err)
 	}
-	g := parsed.graph
+	g := parsed.rootGraph
 
 	if g.Size() != 7 {
 		t.Fatalf("expected 7 packages, got %d", g.Size())
@@ -240,7 +240,7 @@ func TestDepGraphFromGradleOutput_UsesResolvedVersion(t *testing.T) {
 		t.Fatalf("depGraphFromGradleOutput() error = %v", err)
 	}
 
-	if _, ok := parsed.graph.Node("org.slf4j:slf4j-api@2.0.12"); !ok {
+	if _, ok := parsed.rootGraph.Node("org.slf4j:slf4j-api@2.0.12"); !ok {
 		t.Fatalf("expected resolved version package to exist")
 	}
 }
@@ -286,10 +286,10 @@ func TestRunDependencies_UsesSettingsGradleRootName(t *testing.T) {
 	if err != nil {
 		t.Fatalf("runDependencies() error = %v", err)
 	}
-	if _, ok := parsed.graph.Node("example-java-gradle"); !ok {
+	if _, ok := parsed.rootGraph.Node("example-java-gradle"); !ok {
 		t.Fatalf("expected settings.gradle root node")
 	}
-	if _, ok := parsed.graph.Node(filepath.Base(projectDir)); ok {
+	if _, ok := parsed.rootGraph.Node(filepath.Base(projectDir)); ok {
 		t.Fatalf("did not expect temp directory root node")
 	}
 }
@@ -427,6 +427,56 @@ OUT
 	}
 	if _, ok := result.Graphs.Entries[0].Graph.Node("org.springframework:spring-core@6.1.1"); !ok {
 		t.Fatal("expected root-only graph from the fallback run")
+	}
+}
+
+// TestResolveGraphMultiTaskFailureFallbackKeepsScope pins the review finding:
+// when the multi-project invocation fails and the detector degrades to the
+// root project, a --scope runtime scan must retry with the scoped
+// --configuration arguments, never a silently unscoped report.
+func TestResolveGraphMultiTaskFailureFallbackKeepsScope(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("shell fixture is unix-only")
+	}
+
+	projectDir := t.TempDir()
+	writeGradleFile(t, projectDir, "settings.gradle", "rootProject.name = 'demo'\ninclude(\":gone\")\n")
+	writeGradleFile(t, projectDir, "build.gradle", "dependencies {}\n")
+	writeGradleFile(t, projectDir, "gone/build.gradle", "")
+	argsLog := filepath.Join(projectDir, "gradle-args.log")
+	script := `#!/bin/sh
+echo "$@" >> ` + argsLog + `
+case "$@" in
+*:gone:dependencies*) echo "Project 'gone' not found" >&2; exit 1 ;;
+esac
+cat <<'OUT'
+runtimeClasspath - Runtime classpath of source set 'main'.
+\--- org.springframework:spring-core:6.1.1
+OUT
+`
+	if err := os.WriteFile(filepath.Join(projectDir, "gradlew"), []byte(script), 0o755); err != nil {
+		t.Fatalf("write gradlew fixture: %v", err)
+	}
+
+	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir, ScopeFilter: sdk.ScopeRuntime})
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	if len(result.Graphs.Entries) != 1 {
+		t.Fatalf("expected root-only fallback single entry, got %d", len(result.Graphs.Entries))
+	}
+
+	recorded, err := os.ReadFile(argsLog)
+	if err != nil {
+		t.Fatalf("read recorded args: %v", err)
+	}
+	invocations := strings.Split(strings.TrimSpace(string(recorded)), "\n")
+	last := invocations[len(invocations)-1]
+	if strings.Contains(last, ":gone:dependencies") {
+		t.Fatalf("fallback invocation still targets the failing subproject: %q", last)
+	}
+	if !strings.Contains(last, "--configuration runtimeClasspath") {
+		t.Fatalf("root-only fallback dropped the requested scope, last invocation: %q", last)
 	}
 }
 

@@ -112,50 +112,36 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 
 	rootManifest := detectors.InferManifestMetadata(req, evidencePatterns)
 	if len(parsed.modules) == 0 {
-		AttachGradlePositions(parsed.graph, workingDir)
+		AttachGradlePositions(parsed.rootGraph, workingDir)
 		return sdk.DetectionResult{
-			Graphs: sdk.SingleGraphContainer(parsed.graph, rootManifest),
+			Graphs: sdk.SingleGraphContainer(parsed.rootGraph, rootManifest),
 		}, nil
 	}
 
-	entries, err := subprojectGraphEntries(parsed, rootManifest, workingDir)
-	if err != nil {
-		logger.Warn("gradle subproject split failed; emitting a single manifest", zap.Error(err))
-		AttachGradlePositions(parsed.graph, workingDir)
-		return sdk.DetectionResult{
-			Graphs: sdk.SingleGraphContainer(parsed.graph, rootManifest),
-		}, nil
-	}
 	logger.Info("gradle detector resolved subprojects", zap.Int("subprojects", len(parsed.modules)))
 	return sdk.DetectionResult{
-		Graphs: &sdk.GraphContainer{Entries: entries},
+		Graphs: &sdk.GraphContainer{Entries: subprojectGraphEntries(parsed, rootManifest, workingDir)},
 	}, nil
 }
 
-// subprojectGraphEntries splits the merged multi-project graph into a root
-// entry (the root project node and its own subtree) plus one entry per
-// subproject seen in the dependency report, each rooted at the subproject's
-// synthesized application node.
-func subprojectGraphEntries(parsed gradleParseResult, rootManifest sdk.ManifestMetadata, workingDir string) ([]sdk.GraphEntry, error) {
-	rootGraph, err := detectors.SubgraphFrom(parsed.graph, parsed.rootID)
-	if err != nil {
-		return nil, fmt.Errorf("extract root project subgraph: %w", err)
-	}
-	AttachGradlePositions(rootGraph, workingDir)
-	entries := []sdk.GraphEntry{{Graph: rootGraph, Manifest: rootManifest}}
+// subprojectGraphEntries builds one manifest entry per parsed project graph: a
+// root entry for the root project plus one entry per subproject seen in the
+// dependency report, each rooted at the subproject's synthesized application
+// node. The parser already gives every project its own graph with
+// project-local node instances, so attaching positions here cannot leak file
+// locations (or scopes) between entries.
+func subprojectGraphEntries(parsed gradleParseResult, rootManifest sdk.ManifestMetadata, workingDir string) []sdk.GraphEntry {
+	AttachGradlePositions(parsed.rootGraph, workingDir)
+	entries := []sdk.GraphEntry{{Graph: parsed.rootGraph, Manifest: rootManifest}}
 
-	for _, moduleRoot := range parsed.modules {
-		moduleGraph, err := detectors.SubgraphFrom(parsed.graph, moduleRoot.rootID)
-		if err != nil {
-			return nil, fmt.Errorf("extract subgraph for %s: %w", moduleRoot.module.ProjectPath, err)
-		}
-		AttachGradlePositions(moduleGraph, filepath.Join(workingDir, filepath.FromSlash(moduleRoot.module.Dir)))
+	for _, moduleEntry := range parsed.modules {
+		AttachGradlePositions(moduleEntry.graph, filepath.Join(workingDir, filepath.FromSlash(moduleEntry.module.Dir)))
 		entries = append(entries, sdk.GraphEntry{
-			Graph:    moduleGraph,
-			Manifest: sdk.ManifestMetadata{Path: moduleRoot.module.Dir + "/" + moduleRoot.module.ManifestFile, Kind: sdk.ManifestKind(moduleRoot.module.ManifestFile)},
+			Graph:    moduleEntry.graph,
+			Manifest: sdk.ManifestMetadata{Path: moduleEntry.module.Dir + "/" + moduleEntry.module.ManifestFile, Kind: sdk.ManifestKind(moduleEntry.module.ManifestFile)},
 		})
 	}
-	return entries, nil
+	return entries
 }
 
 // FallbackDetector returns the configured fallback detector.
@@ -188,6 +174,32 @@ func (d Detector) resolveGraph(ctx context.Context, stderr io.Writer, projectPat
 		return gradleParseResult{}, fmt.Errorf("resolve gradle command: %w", err)
 	}
 
+	parsed, err := d.runScopedThenFull(ctx, stderr, workingDir, verbose, scopeFilter, executable, args, modules)
+	if err == nil || len(modules) == 0 {
+		return parsed, err
+	}
+	// A settings parse can name subprojects the build no longer has (or a
+	// composite/scripted layout the regex walk misread), failing the whole
+	// multi-task invocation. Degrade to the root-only report, keeping the
+	// requested scope so a --scope runtime scan never silently widens.
+	logger.Warn("gradle multi-project dependency report failed; retrying the root project only", zap.Error(err))
+	executable, args, cmdErr := d.commandSpec(workingDir, nil)
+	if cmdErr != nil {
+		return gradleParseResult{}, fmt.Errorf("resolve gradle command: %w", cmdErr)
+	}
+	return d.runScopedThenFull(ctx, stderr, workingDir, verbose, scopeFilter, executable, args, nil)
+}
+
+// runScopedThenFull prefers a scope-restricted dependency report
+// (--configuration) when the scan requests one, degrading to the full report
+// when the scoped invocation fails (e.g. the configuration does not exist in
+// every project). Both the primary multi-project invocation and the root-only
+// fallback go through this ladder so scoped scans stay scoped on every path.
+func (d Detector) runScopedThenFull(ctx context.Context, stderr io.Writer, workingDir string, verbose bool, scopeFilter sdk.Scope, executable string, args []string, modules []gradleModule) (gradleParseResult, error) {
+	logger := d.Logger
+	if logger == nil {
+		logger = zap.NewNop()
+	}
 	if scopedArgs := gradleScopedDependenciesArgs(args, scopeFilter); len(scopedArgs) > 0 {
 		parsed, err := d.runDependencies(ctx, stderr, workingDir, verbose, executable, scopedArgs, modules)
 		if err == nil {
@@ -200,20 +212,7 @@ func (d Detector) resolveGraph(ctx context.Context, stderr io.Writer, projectPat
 			zap.Error(err),
 		)
 	}
-
-	parsed, err := d.runDependencies(ctx, stderr, workingDir, verbose, executable, args, modules)
-	if err == nil || len(modules) == 0 {
-		return parsed, err
-	}
-	// A settings parse can name subprojects the build no longer has (or a
-	// composite/scripted layout the regex walk misread), failing the whole
-	// multi-task invocation. Degrade to the root-only report.
-	logger.Warn("gradle multi-project dependency report failed; retrying the root project only", zap.Error(err))
-	executable, args, cmdErr := d.commandSpec(workingDir, nil)
-	if cmdErr != nil {
-		return gradleParseResult{}, fmt.Errorf("resolve gradle command: %w", cmdErr)
-	}
-	return d.runDependencies(ctx, stderr, workingDir, verbose, executable, args, nil)
+	return d.runDependencies(ctx, stderr, workingDir, verbose, executable, args, modules)
 }
 
 // dependencyReportTasks builds the task list for one gradle invocation that
@@ -257,10 +256,14 @@ func (d Detector) runDependencies(ctx context.Context, stderr io.Writer, working
 	if err != nil {
 		logger.Warn(fmt.Sprintf("Failed to map Gradle output to a dependency graph: %v", err))
 		logger.Debug("gradle output mapping failed", zap.Error(err))
-		return gradleParseResult{}, err
+		return gradleParseResult{}, fmt.Errorf("map gradle dependency output: %w", err)
 	}
 	duration := time.Since(started)
-	logger.Info(fmt.Sprintf("Gradle dependencies detector found %d dependencies in %s", parsed.graph.Size(), logging.FormatDuration(duration)))
+	dependencyCount := parsed.rootGraph.Size()
+	for _, moduleEntry := range parsed.modules {
+		dependencyCount += moduleEntry.graph.Size()
+	}
+	logger.Info(fmt.Sprintf("Gradle dependencies detector found %d dependencies in %s", dependencyCount, logging.FormatDuration(duration)))
 
 	return parsed, nil
 }
@@ -350,19 +353,24 @@ func ensureExecutableGradleWrapper(path string) error {
 	return nil
 }
 
-// gradleParseResult is the outcome of mapping a gradle dependency report:
-// the merged graph, the root project's node ID, and — for multi-project
-// builds — every settings-declared subproject actually seen in the report
-// (via its `Project ':x'` banner or a `project :x` dependency token), each
-// with its synthesized root node ID.
+// gradleParseResult is the outcome of mapping a gradle dependency report into
+// per-project graphs: the root project's own graph and node ID, plus — for
+// multi-project builds — every settings-declared subproject actually seen in
+// the report (via its `Project ':x'` banner or a `project :x` dependency
+// token), each with its own graph rooted at the subproject's synthesized
+// application node. Every project graph owns independent node instances, so
+// scopes and file positions stay project-local (a package that is runtime in
+// :app and test-only in :lib keeps exactly one scope per entry); consolidation
+// later merges shared packages across entries by identity.
 type gradleParseResult struct {
-	graph   *sdk.Graph
-	rootID  string
-	modules []gradleModuleRoot
+	rootGraph *sdk.Graph
+	rootID    string
+	modules   []*gradleModuleEntry
 }
 
-type gradleModuleRoot struct {
+type gradleModuleEntry struct {
 	module gradleModule
+	graph  *sdk.Graph
 	rootID string
 }
 
@@ -380,13 +388,16 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 		rootName = "root"
 	}
 
-	depsGraph := sdk.New()
+	rootGraph := sdk.New()
 	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemMaven,
 		Name:           rootName,
-		PackageManager: sdk.PackageManagerGradle},
+		PackageManager: sdk.PackageManagerGradle,
+		// The root project node is synthesized from the build's own settings
+		// script; it is never a published artifact.
+		FirstParty: true},
 	})
 
-	if err := depsGraph.AddNode(rootNode); err != nil {
+	if err := rootGraph.AddNode(rootNode); err != nil {
 		return gradleParseResult{}, fmt.Errorf("add root node: %w", err)
 	}
 
@@ -394,8 +405,9 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 	for _, module := range modules {
 		moduleByPath[module.ProjectPath] = module
 	}
-	roots := &gradleModuleRoots{graph: depsGraph, byPath: moduleByPath}
+	projects := &gradleProjectGraphs{byPath: moduleByPath}
 
+	currentGraph := rootGraph
 	stack := []string{rootNode.ID}
 	currentScope := sdk.ScopeUnknown
 	for _, line := range strings.Split(strings.ReplaceAll(string(raw), "\r\n", "\n"), "\n") {
@@ -403,20 +415,30 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 		if trimmed == "" {
 			continue
 		}
-		// Per-project banners in a multi-project report switch which root the
-		// following configuration sections attach to.
+		// Per-project banners in a multi-project report switch which project
+		// graph the following configuration sections build into.
 		if gradleRootProjectBanner.MatchString(trimmed) {
+			currentGraph = rootGraph
 			stack = []string{rootNode.ID}
 			currentScope = sdk.ScopeUnknown
 			continue
 		}
 		if match := gradleSubprojectBanner.FindStringSubmatch(trimmed); match != nil {
-			if moduleRootID, err := roots.ensure(match[1]); err != nil {
-				return gradleParseResult{}, err
-			} else if moduleRootID != "" {
-				stack = []string{moduleRootID}
-				currentScope = sdk.ScopeUnknown
+			entry, err := projects.ensure(match[1])
+			if err != nil {
+				return gradleParseResult{}, fmt.Errorf("register subproject graph for banner %q: %w", match[1], err)
 			}
+			if entry != nil {
+				currentGraph = entry.graph
+				stack = []string{entry.rootID}
+			} else {
+				// A banner for a project the settings walk does not know
+				// (e.g. a composite build): attribute its sections to the
+				// root project rather than the previous section's project.
+				currentGraph = rootGraph
+				stack = []string{rootNode.ID}
+			}
+			currentScope = sdk.ScopeUnknown
 			continue
 		}
 		if isGradleConfigurationHeader(trimmed) {
@@ -433,18 +455,29 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 			continue
 		}
 		// `project :x` tokens (colon-less in declared-only listings) become
-		// edges to the subproject's own root node when the settings walk
-		// knows the project, so inter-module dependencies stay real edges
-		// instead of placeholder leaves.
+		// edges to a project-local reference node carrying the section's
+		// scope, so inter-module dependencies survive scope filtering (a
+		// runtime `project :lib` edge stays runtime in :app's entry) without
+		// sharing node instances across entries. The reference and the
+		// module's own root share coordinates, so consolidation merges them
+		// into one package.
 		if projectPath, isProject := gradleProjectRef(token); isProject {
-			if moduleRootID, err := roots.ensure(projectPath); err != nil {
-				return gradleParseResult{}, err
-			} else if moduleRootID != "" {
+			refNode, err := projects.localRefNode(projectPath, currentScope)
+			if err != nil {
+				return gradleParseResult{}, fmt.Errorf("register subproject graph for project reference %q: %w", projectPath, err)
+			}
+			if refNode != nil {
 				stack = stack[:depth+1]
-				if err := depsGraph.AddEdge(stack[len(stack)-1], moduleRootID); err != nil {
-					return gradleParseResult{}, fmt.Errorf("add dependency %q -> %q: %w", stack[len(stack)-1], moduleRootID, err)
+				parentID := stack[len(stack)-1]
+				if existing, ok := currentGraph.Node(refNode.ID); ok {
+					existing.AddScope(currentScope)
+				} else if err := currentGraph.AddNode(refNode); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
+					return gradleParseResult{}, fmt.Errorf("add project reference node %q: %w", refNode.ID, err)
 				}
-				stack = append(stack, moduleRootID)
+				if err := currentGraph.AddEdge(parentID, refNode.ID); err != nil {
+					return gradleParseResult{}, fmt.Errorf("add dependency %q -> %q: %w", parentID, refNode.ID, err)
+				}
+				stack = append(stack, refNode.ID)
 				continue
 			}
 		}
@@ -455,43 +488,36 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 		}
 		stack = stack[:depth+1]
 		parentID := stack[len(stack)-1]
-		if existing, ok := depsGraph.Node(node.ID); ok {
+		if existing, ok := currentGraph.Node(node.ID); ok {
 			existing.AddScope(node.PrimaryScope())
-		} else if err := depsGraph.AddNode(node); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
+		} else if err := currentGraph.AddNode(node); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
 			return gradleParseResult{}, fmt.Errorf("add node %q: %w", node.ID, err)
 		}
-		if err := depsGraph.AddEdge(parentID, node.ID); err != nil {
+		if err := currentGraph.AddEdge(parentID, node.ID); err != nil {
 			return gradleParseResult{}, fmt.Errorf("add dependency %q -> %q: %w", parentID, node.ID, err)
 		}
 
 		stack = append(stack, node.ID)
 	}
 
-	return gradleParseResult{graph: depsGraph, rootID: rootNode.ID, modules: roots.seen}, nil
+	return gradleParseResult{rootGraph: rootGraph, rootID: rootNode.ID, modules: projects.seen}, nil
 }
 
-// gradleModuleRoots lazily synthesizes one application-typed root node per
-// subproject the report actually mentions, so settings entries that never
-// appear in the output add no orphan nodes.
-type gradleModuleRoots struct {
-	graph  *sdk.Graph
-	byPath map[string]gradleModule
-	seen   []gradleModuleRoot
-	ids    map[string]string
+// gradleProjectGraphs lazily creates one graph per subproject the report
+// actually mentions — rooted at the subproject's application-typed node — so
+// settings entries that never appear in the output add no orphan entries, and
+// every project's nodes stay project-local.
+type gradleProjectGraphs struct {
+	byPath  map[string]gradleModule
+	entries map[string]*gradleModuleEntry
+	seen    []*gradleModuleEntry
 }
 
-// ensure returns the root node ID for a gradle project path, creating the
-// node on first sight. Unknown project paths (not declared in settings, e.g.
-// composite builds) return "" so the caller falls back to a placeholder node.
-func (r *gradleModuleRoots) ensure(projectPath string) (string, error) {
-	module, ok := r.byPath[projectPath]
-	if !ok {
-		return "", nil
-	}
-	if id, ok := r.ids[projectPath]; ok {
-		return id, nil
-	}
-	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+// gradleModuleCoordinates is the shared identity for a subproject's root node
+// and every project-local reference node pointing at it; matching coordinates
+// give them one ID, so consolidation merges the faces into a single package.
+func gradleModuleCoordinates(module gradleModule) sdk.Coordinates {
+	return sdk.Coordinates{
 		Ecosystem:      sdk.EcosystemMaven,
 		Org:            module.Group,
 		Name:           module.Name,
@@ -500,16 +526,48 @@ func (r *gradleModuleRoots) ensure(projectPath string) (string, error) {
 		// them and views treat their direct dependencies as top-level.
 		Type:       sdk.PackageTypeApplication,
 		FirstParty: true,
-	}})
-	if err := r.graph.AddNode(node); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
-		return "", fmt.Errorf("add subproject root %q: %w", module.ProjectPath, err)
 	}
-	if r.ids == nil {
-		r.ids = map[string]string{}
+}
+
+// ensure returns the graph entry for a gradle project path, creating the
+// graph with its root node on first sight. Unknown project paths (not
+// declared in settings, e.g. composite builds) return nil so the caller
+// falls back to root attribution or a placeholder node.
+func (p *gradleProjectGraphs) ensure(projectPath string) (*gradleModuleEntry, error) {
+	module, ok := p.byPath[projectPath]
+	if !ok {
+		return nil, nil
 	}
-	r.ids[projectPath] = node.ID
-	r.seen = append(r.seen, gradleModuleRoot{module: module, rootID: node.ID})
-	return node.ID, nil
+	if entry, ok := p.entries[projectPath]; ok {
+		return entry, nil
+	}
+	graph := sdk.New()
+	root := sdk.NewDependency(sdk.Dependency{Coordinates: gradleModuleCoordinates(module)})
+	if err := graph.AddNode(root); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
+		return nil, fmt.Errorf("add subproject root %q: %w", module.ProjectPath, err)
+	}
+	entry := &gradleModuleEntry{module: module, graph: graph, rootID: root.ID}
+	if p.entries == nil {
+		p.entries = map[string]*gradleModuleEntry{}
+	}
+	p.entries[projectPath] = entry
+	p.seen = append(p.seen, entry)
+	return entry, nil
+}
+
+// localRefNode returns a fresh reference node for an inter-project dependency
+// token, scoped to the section it appeared in. The node is a new instance for
+// the current project's graph — never the referenced module's own root — so
+// scopes recorded here cannot leak into the referenced module's entry.
+func (p *gradleProjectGraphs) localRefNode(projectPath string, scope sdk.Scope) (*sdk.Dependency, error) {
+	entry, err := p.ensure(projectPath)
+	if err != nil || entry == nil {
+		return nil, err
+	}
+	return sdk.NewDependency(sdk.Dependency{
+		Coordinates: gradleModuleCoordinates(entry.module),
+		Scopes:      sdk.ScopesOf(scope),
+	}), nil
 }
 
 // gradleProjectRef reports whether a dependency token is an inter-project

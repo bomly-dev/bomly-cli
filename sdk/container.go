@@ -12,6 +12,8 @@ const (
 	ManifestKindNPMLockfile ManifestKind = "npm-lockfile"
 	// ManifestKindPackageJSON identifies npm package.json manifests.
 	ManifestKindPackageJSON ManifestKind = "package.json"
+	// ManifestKindBunLock identifies Bun text lockfiles.
+	ManifestKindBunLock ManifestKind = "bun.lock"
 	// ManifestKindGoMod identifies Go module manifests.
 	ManifestKindGoMod ManifestKind = "go.mod"
 	// ManifestKindGoModule identifies normalized Go module manifests.

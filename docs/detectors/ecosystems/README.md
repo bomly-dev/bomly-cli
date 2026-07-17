@@ -24,7 +24,7 @@ Pick your ecosystem to see the package managers it covers and how each one is de
 | [lua](lua/) | [`luarocks`](lua/luarocks.md) |
 | [maven](maven/) | [`gradle`](maven/gradle.md), [`maven`](maven/maven.md) |
 | [nix](nix/) | [`nix`](nix/nix.md) |
-| [npm](npm/) | [`npm`](npm/npm.md), [`pnpm`](npm/pnpm.md), [`yarn`](npm/yarn.md) |
+| [npm](npm/) | [`bun`](npm/bun.md), [`npm`](npm/npm.md), [`pnpm`](npm/pnpm.md), [`yarn`](npm/yarn.md) |
 | [ocaml](ocaml/) | [`opam`](ocaml/opam.md) |
 | [php](php/) | [`composer`](php/composer.md), [`pear`](php/pear.md) |
 | [portage](portage/) | [`portage`](portage/portage.md) |

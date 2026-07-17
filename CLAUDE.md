@@ -54,7 +54,7 @@ internal/selector/               Generic +/- selector resolver (Resolve, Catalog
 internal/progress/               Live spinner + buffered completed-step renderer (Progress, Child)
 internal/detectors/              Detector contracts (Detector, DetectorDescriptor, ResolveGraphRequest)
 internal/detectors/*             Concrete per-ecosystem detectors (gomod, gradle, maven, npm,
-                                 pnpm, yarn, python, ruby, composer, githubactions, sbom, syft)
+                                 pnpm, yarn, bun, python, ruby, composer, githubactions, sbom, syft)
 internal/engine/                 Pipeline core (pipeline.go, engine.go), Registry wrapper, scope,
                                  graph-container helpers, explain orchestration, diff orchestration
 internal/engine/consolidation/   Cross-subproject graph consolidation, manifest dedup, enrichment

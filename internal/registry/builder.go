@@ -20,6 +20,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/gradle"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/maven"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/mix"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/node/bun"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
@@ -1065,6 +1066,8 @@ var builtInDetectorAliases = map[string][]string{
 	detectors.NamePNPMNative:    {"pnpm-native"},
 	detectors.NameYarn:          {"yarn"},
 	detectors.NameYarnNative:    {"yarn-native"},
+	detectors.NameBun:           {"bun"},
+	detectors.NameBunNative:     {"bun-native"},
 	detectors.NameGradle:        {"gradle"},
 	detectors.NameMaven:         {"maven"},
 	detectors.NameGoMod:         {"go", "gomod"},
@@ -1110,6 +1113,8 @@ var builtInDisplayNames = map[string]string{
 	detectors.NamePNPMNative:    "pnpm Native Detector",
 	detectors.NameYarn:          "Yarn Detector",
 	detectors.NameYarnNative:    "Yarn Native Detector",
+	detectors.NameBun:           "Bun Detector",
+	detectors.NameBunNative:     "Bun Native Detector",
 	detectors.NameGradle:        "Gradle Detector",
 	detectors.NameMaven:         "Maven Detector",
 	detectors.NameGoMod:         "Go Module Detector",
@@ -1174,6 +1179,8 @@ func builtInDetectorsByName(logger *zap.Logger) map[string]sdk.Detector {
 	npmDetector := npm.LockfileDetector{Logger: logger, Fallback: npmNativeDetector}
 	pnpmDetector := pnpm.LockfileDetector{Logger: logger, Fallback: pnpmNativeDetector}
 	yarnDetector := yarn.LockfileDetector{Logger: logger, Fallback: yarnNativeDetector}
+	bunNativeDetector := bun.NativeDetector{Logger: logger, Fallback: syftFallback}
+	bunDetector := bun.LockfileDetector{Logger: logger, Fallback: bunNativeDetector}
 	gradleDetector := gradle.Detector{Logger: logger, Fallback: syftFallback}
 	mavenDetector := maven.Detector{Logger: logger, Fallback: syftFallback}
 	goDetector := gomod.Detector{Logger: logger, Fallback: syftFallback}
@@ -1201,6 +1208,8 @@ func builtInDetectorsByName(logger *zap.Logger) map[string]sdk.Detector {
 		npmDetector.Descriptor().Name:           npmDetector,
 		pnpmDetector.Descriptor().Name:          pnpmDetector,
 		yarnDetector.Descriptor().Name:          yarnDetector,
+		bunDetector.Descriptor().Name:           bunDetector,
+		bunNativeDetector.Descriptor().Name:     bunNativeDetector,
 		gradleDetector.Descriptor().Name:        gradleDetector,
 		mavenDetector.Descriptor().Name:         mavenDetector,
 		goDetector.Descriptor().Name:            goDetector,

@@ -13,7 +13,11 @@
     "ref": "v1.0.0",
     "ecosystem": "npm",
     "tools": ["npm"],
-    "benchmark_enabled": true
+    "benchmark_enabled": true,
+    "adjudicated_relationships": [
+      {"from":"pkg:npm/chokidar@3.3.0","to":"pkg:npm/fsevents@2.1.3","reason":"optional dependency declared by the pinned package lock"},
+      {"from":"pkg:npm/jsonfile@4.0.0","to":"pkg:npm/graceful-fs@4.2.3","reason":"optional dependency declared by the pinned package lock"}
+    ]
   },
   {
     "name": "scan-maven",
@@ -107,7 +111,33 @@
     "ref": "v1.0.0",
     "ecosystem": "npm",
     "tools": ["npm"],
-    "benchmark_enabled": true
+    "benchmark_enabled": true,
+    "adjudicated_relationships": [
+      {"from":"pkg:npm/boom@2.10.1","to":"pkg:npm/hoek@2.16.3","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/boom@4.2.0","to":"pkg:npm/hoek@4.1.0","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/clean-css@3.4.24","to":"pkg:npm/commander@2.8.1","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/clean-css@3.4.24","to":"pkg:npm/source-map@0.4.4","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/clean-css@4.0.7","to":"pkg:npm/source-map@0.5.6","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/cryptiles@2.0.5","to":"pkg:npm/boom@2.10.1","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/fstream@1.0.10","to":"pkg:npm/mkdirp@0.5.1","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/hawk@3.1.3","to":"pkg:npm/boom@2.10.1","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/hawk@3.1.3","to":"pkg:npm/cryptiles@2.0.5","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/hawk@3.1.3","to":"pkg:npm/hoek@2.16.3","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/hawk@3.1.3","to":"pkg:npm/sntp@1.0.9","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/html-minifier@3.3.1","to":"pkg:npm/camel-case@3.0.0","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/html-minifier@3.3.1","to":"pkg:npm/clean-css@4.0.7","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/html-minifier@3.3.1","to":"pkg:npm/commander@2.9.0","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/html-minifier@3.3.1","to":"pkg:npm/he@1.1.1","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/html-minifier@3.3.1","to":"pkg:npm/ncname@1.0.0","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/html-minifier@3.3.1","to":"pkg:npm/param-case@2.1.0","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/html-minifier@3.3.1","to":"pkg:npm/relateurl@0.2.7","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/html-minifier@3.3.1","to":"pkg:npm/uglify-js@2.7.5","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/mocha@3.5.3","to":"pkg:npm/commander@2.9.0","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/mocha@3.5.3","to":"pkg:npm/he@1.1.1","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/sntp@1.0.9","to":"pkg:npm/hoek@2.16.3","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/ws@1.0.1","to":"pkg:npm/ultron@1.0.2","reason":"dependency declared by the pinned Yarn lockfile"},
+      {"from":"pkg:npm/ws@1.1.0","to":"pkg:npm/ultron@1.0.2","reason":"dependency declared by the pinned Yarn lockfile"}
+    ]
   },
   {
     "name": "scan-pnpm",

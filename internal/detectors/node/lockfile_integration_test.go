@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors/node/bun"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
@@ -87,6 +88,69 @@ func graphPackageIDs(g *sdk.Graph) []string {
 		ids[i] = p.ID
 	}
 	return ids
+}
+
+// ---- Bun text lockfiles ---------------------------------------------------
+
+func TestBunLockfileV0Parsing(t *testing.T) {
+	g, err := resolveLockfileGraph(t, bun.LockfileDetector{}, fixture("bun-v0"))
+	if err != nil {
+		t.Fatalf("resolve bun-v0: %v", err)
+	}
+	if g.Size() != 4 {
+		t.Fatalf("expected root and three packages, got %d: %v", g.Size(), graphPackageIDs(g))
+	}
+	requirePackage(t, g, "react", "18.2.0")
+	requirePackage(t, g, "loose-envify", "1.4.0")
+	requirePackage(t, g, "typescript", "5.3.3")
+	requireEdge(t, g, "react", "18.2.0", "loose-envify", "1.4.0")
+	requireScope(t, g, "react", "18.2.0", sdk.ScopeRuntime)
+	requireScope(t, g, "typescript", "5.3.3", sdk.ScopeDevelopment)
+}
+
+func TestBunLockfileV1Workspaces(t *testing.T) {
+	result, err := (bun.LockfileDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: fixture("bun-v1-workspaces")})
+	if err != nil {
+		t.Fatalf("resolve bun-v1-workspaces: %v", err)
+	}
+	if got := len(result.Graphs.Entries); got != 3 {
+		t.Fatalf("expected root and two workspace graph entries, got %d", got)
+	}
+	g, err := result.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatal(err)
+	}
+	web, ok := g.Node("workspace:apps/web")
+	if !ok || web.Name != "@fixture/web" || web.Version != "1.0.0" {
+		t.Fatalf("expected web workspace identity, got %#v", web)
+	}
+	lib, ok := g.Node("workspace:packages/lib")
+	if !ok || lib.Name != "@fixture/lib" || lib.Version != "1.0.0" {
+		t.Fatalf("expected library workspace identity, got %#v", lib)
+	}
+	for _, duplicateID := range []string{"@fixture/web@apps/web", "@fixture/lib@packages/lib"} {
+		if duplicate, exists := g.Node(duplicateID); exists {
+			t.Fatalf("workspace package tuple created duplicate registry node %#v", duplicate)
+		}
+	}
+	requirePackage(t, g, "is-number", "7.0.0")
+	requirePackage(t, g, "left-pad", "1.3.0")
+	requireEdgeByID(t, g, web.ID, lib.ID)
+	requireEdgeByID(t, g, lib.ID, stableID("is-number", "7.0.0"))
+}
+
+func requireEdgeByID(t *testing.T, g *sdk.Graph, fromID, toID string) {
+	t.Helper()
+	dependencies, err := g.DirectDependencies(fromID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, dependency := range dependencies {
+		if dependency.ID == toID {
+			return
+		}
+	}
+	t.Fatalf("expected edge %s → %s", fromID, toID)
 }
 
 // fixture returns the absolute path to a named fixture directory.

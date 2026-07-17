@@ -8,12 +8,24 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestParseNamesDeduplicatesCommaSeparatedValues(t *testing.T) {
 	got := ParseNames("github, syft", "github")
 	if strings.Join(got, ",") != "github,syft" {
 		t.Fatalf("ParseNames() = %#v", got)
+	}
+}
+
+func TestDefaultBaselineSourceRoles(t *testing.T) {
+	sources := defaultBaselineSources()
+	if len(sources) != 3 || sources[0].Role() != "evidence" || sources[1].Role() != "observation" || sources[2].Role() != "observation" {
+		t.Fatalf("source roles = %#v, %#v, %#v", sources[0].Role(), sources[1].Role(), sources[2].Role())
+	}
+	if sources[0].AgreementGroup() != "github" || sources[1].AgreementGroup() != "syft" || sources[2].AgreementGroup() != "syft" {
+		t.Fatalf("agreement groups = %#v, %#v, %#v", sources[0].AgreementGroup(), sources[1].AgreementGroup(), sources[2].AgreementGroup())
 	}
 }
 
@@ -105,6 +117,43 @@ func TestGitHubTokenUsesBenchmarkTokenFirst(t *testing.T) {
 	token, name := githubTokenFromEnv()
 	if token != "benchmark" || name != "BOMLY_BENCHMARK_GITHUB_TOKEN" {
 		t.Fatalf("token source = %q %q", token, name)
+	}
+}
+
+func TestComparisonPolicyClassifiesNonRegistryGraphAndPinnedEdges(t *testing.T) {
+	graph := sdk.New()
+	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{PURL: "pkg:npm/app@1.0.0", Ecosystem: sdk.EcosystemNPM, Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication}, Source: sdk.DependencySourceProject})
+	registry := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{PURL: "pkg:npm/registry@1.0.0", Ecosystem: sdk.EcosystemNPM, Name: "registry", Version: "1.0.0"}, Source: sdk.DependencySourceRegistry})
+	gitDependency := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{PURL: "pkg:npm/git-dependency@1.0.0", Ecosystem: sdk.EcosystemNPM, Name: "git-dependency", Version: "1.0.0"}, Source: sdk.DependencySourceGit})
+	for _, dependency := range []*sdk.Dependency{app, registry, gitDependency} {
+		if err := graph.AddNode(dependency); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, edge := range [][2]string{{app.ID, registry.ID}, {app.ID, gitDependency.ID}} {
+		if err := graph.AddEdge(edge[0], edge[1]); err != nil {
+			t.Fatal(err)
+		}
+	}
+	target := Target{AdjudicatedRelationships: []AdjudicatedRelationship{{From: registry.PURL, To: "pkg:npm/child@1.0.0", Reason: "pinned evidence"}}}
+
+	policy := comparisonPolicy(graph, target)
+	for _, purl := range []string{app.PURL, gitDependency.PURL} {
+		if policy.PackageExtensions[sdk.CanonicalizePackageURL(purl)] == "" {
+			t.Fatalf("missing package extension for %s: %#v", purl, policy.PackageExtensions)
+		}
+	}
+	if _, ok := policy.PackageExtensions[sdk.CanonicalizePackageURL(registry.PURL)]; ok {
+		t.Fatalf("registry release classified as extension: %#v", policy.PackageExtensions)
+	}
+	for _, edge := range []string{
+		relationshipKey(sdk.CanonicalizePackageURL(app.PURL), sdk.CanonicalizePackageURL(registry.PURL)),
+		relationshipKey(sdk.CanonicalizePackageURL(app.PURL), sdk.CanonicalizePackageURL(gitDependency.PURL)),
+		relationshipKey(sdk.CanonicalizePackageURL(registry.PURL), "pkg:npm/child@1.0.0"),
+	} {
+		if policy.RelationshipExtensions[edge] == "" {
+			t.Fatalf("missing relationship extension for %q: %#v", edge, policy.RelationshipExtensions)
+		}
 	}
 }
 

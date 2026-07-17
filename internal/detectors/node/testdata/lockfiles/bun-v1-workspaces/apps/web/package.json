@@ -1,0 +1,8 @@
+{
+  "name": "@fixture/web",
+  "version": "1.0.0",
+  "dependencies": {
+    "@fixture/lib": "workspace:*",
+    "left-pad": "1.3.0"
+  }
+}

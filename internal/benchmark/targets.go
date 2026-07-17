@@ -16,13 +16,22 @@ var embeddedTargets []byte
 
 // Target describes one repository-backed smoke and benchmark case.
 type Target struct {
-	Name             string        `json:"name"`
-	URL              string        `json:"url"`
-	Ref              string        `json:"ref"`
-	Ecosystem        sdk.Ecosystem `json:"ecosystem"`
-	Args             []string      `json:"args,omitempty"`
-	Tools            []string      `json:"tools,omitempty"`
-	BenchmarkEnabled bool          `json:"benchmark_enabled,omitempty"`
+	Name                     string                    `json:"name"`
+	URL                      string                    `json:"url"`
+	Ref                      string                    `json:"ref"`
+	Ecosystem                sdk.Ecosystem             `json:"ecosystem"`
+	Args                     []string                  `json:"args,omitempty"`
+	Tools                    []string                  `json:"tools,omitempty"`
+	BenchmarkEnabled         bool                      `json:"benchmark_enabled,omitempty"`
+	AdjudicatedRelationships []AdjudicatedRelationship `json:"adjudicated_relationships,omitempty"`
+}
+
+// AdjudicatedRelationship records a pinned relationship that is present in
+// repository evidence but absent from a benchmark source.
+type AdjudicatedRelationship struct {
+	From   string `json:"from"`
+	To     string `json:"to"`
+	Reason string `json:"reason"`
 }
 
 // LoadTargets reads targets from path, or from the embedded manifest when path is empty.
@@ -89,6 +98,22 @@ func validateTargets(targets []Target) error {
 			return fmt.Errorf("benchmark target %q ecosystem: %w", target.Name, err)
 		}
 		target.Ecosystem = ecosystem
+		seenRelationships := make(map[string]struct{}, len(target.AdjudicatedRelationships))
+		for _, relationship := range target.AdjudicatedRelationships {
+			from := sdk.CanonicalizePackageURL(relationship.From)
+			to := sdk.CanonicalizePackageURL(relationship.To)
+			if from == "" || to == "" {
+				return fmt.Errorf("benchmark target %q has invalid adjudicated relationship %q -> %q", target.Name, relationship.From, relationship.To)
+			}
+			if strings.TrimSpace(relationship.Reason) == "" {
+				return fmt.Errorf("benchmark target %q adjudicated relationship %q -> %q is missing reason", target.Name, from, to)
+			}
+			key := from + "\x00" + to
+			if _, ok := seenRelationships[key]; ok {
+				return fmt.Errorf("benchmark target %q has duplicate adjudicated relationship %q -> %q", target.Name, from, to)
+			}
+			seenRelationships[key] = struct{}{}
+		}
 	}
 	return nil
 }

@@ -98,6 +98,7 @@ Key helpers:
 - `sdk.NormalizeDependencyIdentity(dep)` — canonical identity for diff matching.
 - `sdk.CanonicalPackageURLFromDependency(dep)` — derive the canonical PURL when the detector didn't supply one.
 - `sdk.RelationshipForPath(path)` — preserve an explicit relationship or derive direct/transitive from a root-to-target path.
+- `dep.RegistryMatchEligible()` — classify whether this occurrence may be sent to external registry enrichment.
 
 An `unknown` relationship means that the package was present in the owning
 manifest but its parent could not be recovered. The component root is attached
@@ -107,6 +108,8 @@ known edges below it remain transitive. An omitted relationship remains valid
 for protocol-v1 plugins and is derived from graph structure by consumers.
 
 Dependencies **do not** carry `Licenses`, `Vulnerabilities`, or `Scorecard` fields. Detection-time licenses ride along in metadata; matching-stage data lives on the registry package.
+
+Registry matching eligibility is occurrence-based. Ordinary registry releases are eligible even when their `ResolvedURL` points at a custom registry or mirror. Application/manifest nodes and occurrences sourced from project, workspace, link/file, Git, or arbitrary URL references are ineligible but remain in the complete graph and package registry for analysis, auditing, diff, SBOM, and output. An omitted source remains eligible for protocol-v1 and legacy detector compatibility. Before any built-in or external matcher runs, the engine passes it a cloned graph containing only eligible occurrences and eligible-to-eligible edges; the original graph and full registry continue to later stages unchanged.
 
 ## `sdk.Package` — registry artifact (matching)
 

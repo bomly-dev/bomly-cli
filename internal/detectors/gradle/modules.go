@@ -40,10 +40,11 @@ var (
 // line-anchored declaration regexes never match commented-out code. It is a
 // lightweight scanner, not a Groovy/Kotlin lexer: single- and double-quoted
 // strings (with backslash escapes) pass through verbatim, triple-quoted
-// multiline strings (Kotlin """raw""" / Groovy '''...''') are blanked down to
-// their newlines — their inner lines would otherwise satisfy the line-anchored
-// regexes, and no legitimate declaration lives inside one — block comments
-// keep their newlines, and everything else is copied as-is.
+// multiline strings (Kotlin """raw""" and the Groovy triple-single-quote
+// form) are blanked down to their newlines — their inner lines would
+// otherwise satisfy the line-anchored regexes, and no legitimate declaration
+// lives inside one — block comments keep their newlines, and everything else
+// is copied as-is.
 func stripGradleComments(body string) string {
 	var out strings.Builder
 	out.Grow(len(body))

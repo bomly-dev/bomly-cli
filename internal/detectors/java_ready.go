@@ -12,7 +12,12 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
-const javaReadyTimeout = 5 * time.Second
+// javaReadyTimeout bounds the `java -version` probe. It is only reached when
+// a java executable exists on PATH (LookPath gates it), so a generous bound
+// costs nothing in the no-java case. 5s proved too tight on loaded CI
+// runners: a slow first JVM start flipped Ready to "not ready", silently
+// degrading maven/gradle/sbt scans to their fallback detectors.
+const javaReadyTimeout = 30 * time.Second
 
 // JavaReady verifies that a Java runtime is available for JVM build tools. It
 // returns nil when a runtime is usable and a non-nil error describing the

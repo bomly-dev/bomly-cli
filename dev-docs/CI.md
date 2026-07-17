@@ -98,6 +98,7 @@ The URL-backed scan cases are defined in the embedded `internal/benchmark/testda
 - `args`: additional Bomly scan arguments
 - `tools`: package managers required for the case
 - `benchmark_enabled`: whether the same target can participate in the local benchmark
+- `adjudicated_relationships`: exact PURL edges independently verified in the pinned repository but omitted by a comparison source; every entry requires a reason
 
 Smoke tests use the pinned `ref`. The local benchmark intentionally does not, because GitHub's SBOM API exports the repository's current default-branch state.
 
@@ -134,7 +135,7 @@ make benchmark ARGS="--repo https://github.com/owner/repo --ecosystem npm"
 
 The command reads the embedded scan-target manifest, clones each selected repository default branch, captures its HEAD SHA, and writes artifacts under `.benchmark-runs/latest`. Custom repositories must be public `https://github.com/<owner>/<repo>` URLs and use the default branch.
 
-Each completed comparison preserves raw and ecosystem-filtered SBOMs, a detailed `bomly diff --sbom` artifact, and `benchmark-summary.json` files at the source, case, and run levels. Scores cover package agreement, comparable dependency edges, and their mean. Packages without PURLs are reported separately and excluded from scoring. Scores are informational: GitHub SBOM `404` responses and missing Syft executables are recorded as unavailable so other comparisons can continue.
+Each completed comparison preserves raw and ecosystem-filtered SBOMs, a detailed `bomly diff --sbom` artifact, an exact `mismatches.json` classification, and `benchmark-summary.json` files at the source, case, and run levels. Evidence sources contribute to the headline correctness score; observational sources such as Syft contribute raw agreement without being treated as ground truth. Multiple serialization formats from one source family remain visible as separate rows and artifacts but receive one aggregate weight. Correctness excludes only graph extensions backed by explicit evidence: non-registry occurrences identified by Bomly's graph model and target-manifest relationships with mandatory reasons. Raw symmetric agreement remains visible alongside correctness, and every excluded package or edge remains listed in the mismatch artifact. Unadjudicated Bomly-only data and all source-only data continue to reduce evidence-source correctness. Packages without PURLs are reported separately and excluded from scoring. Scores are informational: GitHub SBOM `404` responses and missing Syft executables are recorded as unavailable so other comparisons can continue.
 
 GitHub SBOM requests can be unauthenticated, but local unauthenticated runs quickly hit GitHub's low public API rate limit. The benchmark checks token environment variables in this order:
 

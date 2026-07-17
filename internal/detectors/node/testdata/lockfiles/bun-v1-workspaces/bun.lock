@@ -1,0 +1,29 @@
+{
+  // Version 1 text lockfile with trailing commas and workspaces.
+  "lockfileVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "bun-workspace-root",
+      "version": "1.0.0",
+      "dependencies": {"is-number":"7.0.0"},
+      "devDependencies": {"typescript":"5.3.3"},
+    },
+    "apps/web": {
+      "name": "@fixture/web",
+      "version": "1.0.0",
+      "dependencies": {"@fixture/lib":"workspace:*","left-pad":"1.3.0"},
+    },
+    "packages/lib": {
+      "name": "@fixture/lib",
+      "version": "1.0.0",
+      "dependencies": {"is-number":"7.0.0"},
+    },
+  },
+  "packages": {
+    "@fixture/web": ["@fixture/web@workspace:apps/web"],
+    "@fixture/lib": ["@fixture/lib@workspace:packages/lib"],
+    "is-number": ["is-number@7.0.0", "https://registry.npmjs.org/is-number/-/is-number-7.0.0.tgz", {}, "sha512-number"],
+    "left-pad": ["left-pad@1.3.0", "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz", {}, "sha512-left-pad"],
+    "typescript": ["typescript@5.3.3", "https://registry.npmjs.org/typescript/-/typescript-5.3.3.tgz", {}, "sha512-typescript"],
+  },
+}

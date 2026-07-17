@@ -1,0 +1,20 @@
+{
+  "lockfileVersion": 0,
+  "workspaces": {
+    "": {
+      "name": "bun-v0-app",
+      "version": "1.0.0",
+      "dependencies": {
+        "react": "18.2.0"
+      },
+      "devDependencies": {
+        "typescript": "5.3.3"
+      }
+    }
+  },
+  "packages": {
+    "react": ["react@18.2.0", "https://registry.npmjs.org/react/-/react-18.2.0.tgz", {"dependencies":{"loose-envify":"1.4.0"}}, "sha512-react"],
+    "loose-envify": ["loose-envify@1.4.0", "https://registry.npmjs.org/loose-envify/-/loose-envify-1.4.0.tgz", {}, "sha512-loose"],
+    "typescript": ["typescript@5.3.3", "https://registry.npmjs.org/typescript/-/typescript-5.3.3.tgz", {}, "sha512-typescript"]
+  }
+}

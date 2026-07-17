@@ -16,7 +16,7 @@ func syftCatalogerExpressions(req sdk.DetectionRequest) []string {
 
 func syftCatalogerExpressionsForManager(manager sdk.PackageManager) []string {
 	switch manager {
-	case sdk.PackageManagerNPM, sdk.PackageManagerPNPM, sdk.PackageManagerYarn:
+	case sdk.PackageManagerNPM, sdk.PackageManagerPNPM, sdk.PackageManagerYarn, sdk.PackageManagerBun:
 		return []string{"npm"}
 	case sdk.PackageManagerGoMod:
 		return []string{"gomod"}

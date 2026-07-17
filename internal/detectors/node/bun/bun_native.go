@@ -66,7 +66,9 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 		"bun",
 		[]string{"pm", "ls", "--all"},
 		"Bun native detector",
-		func(raw []byte) (*sdk.Graph, error) { return depGraphFromBunPMList(raw, manifest, workingDir, d.Logger) },
+		func(raw []byte) (*sdk.Graph, error) {
+			return depGraphFromBunPMList(raw, manifest, workingDir, d.Logger)
+		},
 	)
 	if err != nil {
 		return sdk.DetectionResult{}, err

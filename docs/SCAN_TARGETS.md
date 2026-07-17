@@ -86,6 +86,12 @@ Scan output distinguishes two kinds of nesting:
 
 The npm, pnpm, cargo, maven, and gradle detectors emit **one manifest entry per module** — `apps/web/package.json`, `crates/api/Cargo.toml`, `core/pom.xml`, `app/build.gradle` — alongside the root manifest, each carrying the module's reachable dependency subtree (a virtual Cargo workspace root emits member entries only). Detectors without per-module emission (sbt, mix, yarn classic, pub, and the node *native* detectors) keep one merged root manifest.
 
+Gradle module discovery has limits worth knowing:
+
+- Subprojects are read from the settings script's **literal `include(...)` declarations** (comment-aware) and literal `project("...").projectDir = file("...")` overrides. Includes built dynamically (loops, variables, convention plugins) are not evaluated.
+- **Composite builds (`includeBuild`) are not expanded** — an included build's dependencies do not appear in the scan.
+- If the multi-project dependency report fails (for example a settings entry names a project the build no longer has), the scan **degrades to the root project only** and logs a warning; module dependencies are absent from that result rather than partially wrong. Scoped scans keep their `--scope` restriction on the fallback.
+
 Every view derives the same hierarchy from the manifests' `subproject` and `path` fields — no extra JSON fields: the interactive components tab shows subproject and module nodes with their manifests, the text report renders a grouped manifest tree, the markdown manifest table carries a Location column, and the MCP compact summary reports `subprojects`/`modules` counts. JSON consumers can group rows the same way: a manifest whose directory sits below its `subproject` directory is a module manifest.
 
 ## Git repository — `--url` and `--ref`

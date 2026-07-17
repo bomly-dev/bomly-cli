@@ -87,9 +87,8 @@ func TestDetectorCommandSpec_MakesUnixWrapperExecutable(t *testing.T) {
 }
 
 func TestDetectorReadyRequiresJava(t *testing.T) {
-	binDir := t.TempDir()
-	writeExecutable(t, binDir, "gradle", successScript())
-	writeExecutable(t, binDir, "java", failingJavaScript())
+	binDir := fakeToolDir(t, "gradle", "java")
+	t.Setenv("BOMLY_FAKE_JAVA_FAIL", "1")
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
@@ -103,8 +102,7 @@ func TestDetectorReadyRequiresJava(t *testing.T) {
 }
 
 func TestDetectorReadyRequiresGradleRunner(t *testing.T) {
-	binDir := t.TempDir()
-	writeExecutable(t, binDir, "java", successScript())
+	binDir := fakeToolDir(t, "java")
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
@@ -119,9 +117,8 @@ func TestDetectorReadyRequiresGradleRunner(t *testing.T) {
 
 func TestDetectorReadyWithWrapperAndJava(t *testing.T) {
 	projectDir := t.TempDir()
-	binDir := t.TempDir()
-	writeExecutable(t, projectDir, "gradlew", successScript())
-	writeExecutable(t, binDir, "java", successScript())
+	copyExecutable(t, fakeGradleBinPath, filepath.Join(projectDir, "gradlew"))
+	binDir := fakeToolDir(t, "java")
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
@@ -268,21 +265,13 @@ func TestGradleRootName_ReadsSettingsGradleKts(t *testing.T) {
 }
 
 func TestRunDependencies_UsesSettingsGradleRootName(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("shell fixture is unix-only")
-	}
-
 	projectDir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(projectDir, "settings.gradle"), []byte("rootProject.name = 'example-java-gradle'\n"), 0o644); err != nil {
 		t.Fatalf("write settings.gradle: %v", err)
 	}
-	gradlePath := filepath.Join(projectDir, "gradle-fixture")
-	script := "#!/bin/sh\ncat <<'OUT'\nruntimeClasspath - Runtime classpath of source set 'main'.\n\\--- org.springframework:spring-core:6.1.1\nOUT\n"
-	if err := os.WriteFile(gradlePath, []byte(script), 0o755); err != nil {
-		t.Fatalf("write gradle fixture: %v", err)
-	}
+	t.Setenv("BOMLY_FAKE_GRADLE_FIXTURE", fakeGradleReportFixture(t, fakeGradleSingleReport))
 
-	parsed, err := (Detector{}).runDependencies(context.Background(), &bytes.Buffer{}, projectDir, false, gradlePath, nil, nil)
+	parsed, err := (Detector{}).runDependencies(context.Background(), &bytes.Buffer{}, projectDir, false, fakeGradleBinPath, nil, nil)
 	if err != nil {
 		t.Fatalf("runDependencies() error = %v", err)
 	}
@@ -295,25 +284,20 @@ func TestRunDependencies_UsesSettingsGradleRootName(t *testing.T) {
 }
 
 func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("shell fixture is unix-only")
-	}
-
 	projectDir := t.TempDir()
 	writeGradleFile(t, projectDir, "settings.gradle", "rootProject.name = 'demo'\ninclude(\":app\", \":lib\")\n")
 	writeGradleFile(t, projectDir, "build.gradle", "group = \"com.acme\"\n")
 	writeGradleFile(t, projectDir, "app/build.gradle", "dependencies {}\n")
 	writeGradleFile(t, projectDir, "lib/build.gradle", "dependencies {}\n")
 
-	fixture, err := os.ReadFile(filepath.Join("testdata", "dependencies-multiproject.txt"))
+	fixturePath, err := filepath.Abs(filepath.Join("testdata", "dependencies-multiproject.txt"))
 	if err != nil {
-		t.Fatalf("read fixture: %v", err)
+		t.Fatalf("resolve fixture path: %v", err)
 	}
 	argsFile := filepath.Join(projectDir, "gradle-args.txt")
-	script := "#!/bin/sh\necho \"$@\" > " + argsFile + "\ncat <<'FIXTURE_EOF'\n" + string(fixture) + "FIXTURE_EOF\n"
-	if err := os.WriteFile(filepath.Join(projectDir, "gradlew"), []byte(script), 0o755); err != nil {
-		t.Fatalf("write gradlew fixture: %v", err)
-	}
+	t.Setenv("BOMLY_FAKE_GRADLE_FIXTURE", fixturePath)
+	t.Setenv("BOMLY_FAKE_GRADLE_ARGS_FILE", argsFile)
+	t.Setenv("PATH", fakeToolDir(t, "gradle"))
 
 	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
@@ -372,17 +356,11 @@ func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
 // TestResolveGraphSingleProjectStillSingleEntry pins the regression contract:
 // a build without subprojects keeps exactly one graph entry.
 func TestResolveGraphSingleProjectStillSingleEntry(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("shell fixture is unix-only")
-	}
-
 	projectDir := t.TempDir()
 	writeGradleFile(t, projectDir, "settings.gradle", "rootProject.name = 'demo'\n")
 	writeGradleFile(t, projectDir, "build.gradle", "dependencies {}\n")
-	script := "#!/bin/sh\ncat <<'OUT'\nruntimeClasspath - Runtime classpath of source set 'main'.\n\\--- org.springframework:spring-core:6.1.1\nOUT\n"
-	if err := os.WriteFile(filepath.Join(projectDir, "gradlew"), []byte(script), 0o755); err != nil {
-		t.Fatalf("write gradlew fixture: %v", err)
-	}
+	t.Setenv("BOMLY_FAKE_GRADLE_FIXTURE", fakeGradleReportFixture(t, fakeGradleSingleReport))
+	t.Setenv("PATH", fakeToolDir(t, "gradle"))
 
 	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
@@ -397,26 +375,13 @@ func TestResolveGraphSingleProjectStillSingleEntry(t *testing.T) {
 // the multi-task invocation fails (e.g. stale settings naming a removed
 // subproject), the detector retries the root-only report.
 func TestResolveGraphMultiTaskFailureRetriesRootOnly(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("shell fixture is unix-only")
-	}
-
 	projectDir := t.TempDir()
 	writeGradleFile(t, projectDir, "settings.gradle", "rootProject.name = 'demo'\ninclude(\":gone\")\n")
 	writeGradleFile(t, projectDir, "build.gradle", "dependencies {}\n")
 	writeGradleFile(t, projectDir, "gone/build.gradle", "")
-	script := `#!/bin/sh
-case "$@" in
-*:gone:dependencies*) echo "Project 'gone' not found" >&2; exit 1 ;;
-esac
-cat <<'OUT'
-runtimeClasspath - Runtime classpath of source set 'main'.
-\--- org.springframework:spring-core:6.1.1
-OUT
-`
-	if err := os.WriteFile(filepath.Join(projectDir, "gradlew"), []byte(script), 0o755); err != nil {
-		t.Fatalf("write gradlew fixture: %v", err)
-	}
+	t.Setenv("BOMLY_FAKE_GRADLE_FAIL_ON", ":gone:dependencies")
+	t.Setenv("BOMLY_FAKE_GRADLE_FIXTURE", fakeGradleReportFixture(t, fakeGradleSingleReport))
+	t.Setenv("PATH", fakeToolDir(t, "gradle"))
 
 	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
@@ -435,28 +400,15 @@ OUT
 // root project, a --scope runtime scan must retry with the scoped
 // --configuration arguments, never a silently unscoped report.
 func TestResolveGraphMultiTaskFailureFallbackKeepsScope(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("shell fixture is unix-only")
-	}
-
 	projectDir := t.TempDir()
 	writeGradleFile(t, projectDir, "settings.gradle", "rootProject.name = 'demo'\ninclude(\":gone\")\n")
 	writeGradleFile(t, projectDir, "build.gradle", "dependencies {}\n")
 	writeGradleFile(t, projectDir, "gone/build.gradle", "")
 	argsLog := filepath.Join(projectDir, "gradle-args.log")
-	script := `#!/bin/sh
-echo "$@" >> ` + argsLog + `
-case "$@" in
-*:gone:dependencies*) echo "Project 'gone' not found" >&2; exit 1 ;;
-esac
-cat <<'OUT'
-runtimeClasspath - Runtime classpath of source set 'main'.
-\--- org.springframework:spring-core:6.1.1
-OUT
-`
-	if err := os.WriteFile(filepath.Join(projectDir, "gradlew"), []byte(script), 0o755); err != nil {
-		t.Fatalf("write gradlew fixture: %v", err)
-	}
+	t.Setenv("BOMLY_FAKE_GRADLE_FAIL_ON", ":gone:dependencies")
+	t.Setenv("BOMLY_FAKE_GRADLE_FIXTURE", fakeGradleReportFixture(t, fakeGradleSingleReport))
+	t.Setenv("BOMLY_FAKE_GRADLE_ARGS_FILE", argsLog)
+	t.Setenv("PATH", fakeToolDir(t, "gradle"))
 
 	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir, ScopeFilter: sdk.ScopeRuntime})
 	if err != nil {
@@ -478,35 +430,4 @@ OUT
 	if !strings.Contains(last, "--configuration runtimeClasspath") {
 		t.Fatalf("root-only fallback dropped the requested scope, last invocation: %q", last)
 	}
-}
-
-func writeExecutable(t *testing.T, dir, name, body string) string {
-	t.Helper()
-	path := filepath.Join(dir, name)
-	if runtime.GOOS == "windows" {
-		path += ".cmd"
-	}
-	if err := os.WriteFile(path, []byte(body), 0o755); err != nil {
-		t.Fatalf("write executable %s: %v", name, err)
-	}
-	if runtime.GOOS != "windows" {
-		if err := os.Chmod(path, 0o755); err != nil {
-			t.Fatalf("chmod executable %s: %v", name, err)
-		}
-	}
-	return path
-}
-
-func successScript() string {
-	if runtime.GOOS == "windows" {
-		return "@echo off\r\necho ok 1>&2\r\n"
-	}
-	return "#!/bin/sh\necho ok >&2\n"
-}
-
-func failingJavaScript() string {
-	if runtime.GOOS == "windows" {
-		return "@echo off\r\necho The operation couldn't be completed. Unable to locate a Java Runtime. 1>&2\r\nexit /b 1\r\n"
-	}
-	return "#!/bin/sh\necho \"The operation couldn't be completed. Unable to locate a Java Runtime.\" >&2\nexit 1\n"
 }

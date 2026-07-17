@@ -1140,6 +1140,7 @@
             ],
             "name": "lodash",
             "purl": "pkg:npm/lodash@4.17.15",
+            "relationship": "direct",
             "scope": "runtime",
             "version": "4.17.15",
             "vulnerabilities": []
@@ -1160,6 +1161,7 @@
             ],
             "name": "lodash",
             "purl": "pkg:npm/lodash@4.17.14",
+            "relationship": "direct",
             "scope": "runtime",
             "version": "4.17.14",
             "vulnerabilities": []
@@ -1188,6 +1190,7 @@
               ],
               "name": "lodash",
               "purl": "pkg:npm/lodash@4.17.15",
+              "relationship": "direct",
               "scope": "runtime",
               "version": "4.17.15",
               "vulnerabilities": []
@@ -1208,6 +1211,7 @@
               ],
               "name": "lodash",
               "purl": "pkg:npm/lodash@4.17.14",
+              "relationship": "direct",
               "scope": "runtime",
               "version": "4.17.14",
               "vulnerabilities": []

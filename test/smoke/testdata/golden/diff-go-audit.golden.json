@@ -243,6 +243,7 @@
             "licenses": [],
             "name": "github.com/google/go-cmp",
             "purl": "pkg:golang/github.com/google/go-cmp@v0.5.2",
+            "relationship": "transitive",
             "scope": "development",
             "version": "v0.5.2",
             "vulnerabilities": []
@@ -265,6 +266,7 @@
             ],
             "name": "github.com/google/uuid",
             "purl": "pkg:golang/github.com/google/uuid@v1.6.0",
+            "relationship": "direct",
             "scope": "runtime",
             "version": "v1.6.0",
             "vulnerabilities": []
@@ -277,6 +279,7 @@
             "licenses": [],
             "name": "golang.org/x/xerrors",
             "purl": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
+            "relationship": "transitive",
             "scope": "development",
             "version": "v0.0.0-20191204190536-9bdfabe68543",
             "vulnerabilities": []
@@ -301,6 +304,7 @@
             ],
             "name": "github.com/google/go-querystring",
             "purl": "pkg:golang/github.com/google/go-querystring@v1.1.0",
+            "relationship": "direct",
             "scope": "runtime",
             "version": "v1.1.0",
             "vulnerabilities": []
@@ -321,6 +325,7 @@
             ],
             "name": "github.com/google/go-querystring",
             "purl": "pkg:golang/github.com/google/go-querystring@v1.0.0",
+            "relationship": "direct",
             "scope": "runtime",
             "version": "v1.0.0",
             "vulnerabilities": []
@@ -335,6 +340,7 @@
             "licenses": [],
             "name": "github.com/bitly/go-simplejson",
             "purl": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
+            "relationship": "transitive",
             "scope": "runtime",
             "version": "v0.5.0",
             "vulnerabilities": []
@@ -357,6 +363,7 @@
             ],
             "name": "github.com/bmizerany/assert",
             "purl": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
+            "relationship": "transitive",
             "scope": "development",
             "version": "v0.0.0-20160611221934-b7ed37b82869",
             "vulnerabilities": []
@@ -369,6 +376,7 @@
             "licenses": [],
             "name": "github.com/davecgh/go-spew",
             "purl": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
+            "relationship": "transitive",
             "scope": "development",
             "version": "v1.1.1",
             "vulnerabilities": []
@@ -381,6 +389,7 @@
             "licenses": [],
             "name": "github.com/fatih/color",
             "purl": "pkg:golang/github.com/fatih/color@v1.7.0",
+            "relationship": "transitive",
             "scope": "runtime",
             "version": "v1.7.0",
             "vulnerabilities": []
@@ -403,6 +412,7 @@
             ],
             "name": "github.com/kr/pretty",
             "purl": "pkg:golang/github.com/kr/pretty@v0.3.1",
+            "relationship": "transitive",
             "scope": "development",
             "version": "v0.3.1",
             "vulnerabilities": []
@@ -415,6 +425,7 @@
             "licenses": [],
             "name": "github.com/kr/text",
             "purl": "pkg:golang/github.com/kr/text@v0.2.0",
+            "relationship": "transitive",
             "scope": "development",
             "version": "v0.2.0",
             "vulnerabilities": []
@@ -427,6 +438,7 @@
             "licenses": [],
             "name": "github.com/mattn/go-colorable",
             "purl": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
+            "relationship": "transitive",
             "scope": "runtime",
             "version": "v0.0.9",
             "vulnerabilities": []
@@ -439,6 +451,7 @@
             "licenses": [],
             "name": "github.com/mattn/go-isatty",
             "purl": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
+            "relationship": "transitive",
             "scope": "runtime",
             "version": "v0.0.4",
             "vulnerabilities": []
@@ -451,6 +464,7 @@
             "licenses": [],
             "name": "github.com/mattn/go-runewidth",
             "purl": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
+            "relationship": "transitive",
             "scope": "runtime",
             "version": "v0.0.4",
             "vulnerabilities": []
@@ -463,6 +477,7 @@
             "licenses": [],
             "name": "github.com/nsf/termbox-go",
             "purl": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
+            "relationship": "transitive",
             "scope": "runtime",
             "version": "v0.0.0-20181027232701-60ab7e3d12ed",
             "vulnerabilities": []
@@ -475,6 +490,7 @@
             "licenses": [],
             "name": "github.com/nwidger/jsoncolor",
             "purl": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
+            "relationship": "transitive",
             "scope": "runtime",
             "version": "v0.0.0-20170215171346-75a6de4340e5",
             "vulnerabilities": []
@@ -487,6 +503,7 @@
             "licenses": [],
             "name": "github.com/pkg/errors",
             "purl": "pkg:golang/github.com/pkg/errors@v0.8.0",
+            "relationship": "transitive",
             "scope": "runtime",
             "version": "v0.8.0",
             "vulnerabilities": []
@@ -499,6 +516,7 @@
             "licenses": [],
             "name": "github.com/pmezard/go-difflib",
             "purl": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
+            "relationship": "transitive",
             "scope": "development",
             "version": "v1.0.0",
             "vulnerabilities": []
@@ -511,6 +529,7 @@
             "licenses": [],
             "name": "github.com/rogpeppe/go-internal",
             "purl": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
+            "relationship": "transitive",
             "scope": "development",
             "version": "v1.9.0",
             "vulnerabilities": []
@@ -533,6 +552,7 @@
             ],
             "name": "github.com/simeji/jid",
             "purl": "pkg:golang/github.com/simeji/jid@v0.7.6",
+            "relationship": "direct",
             "scope": "runtime",
             "version": "v0.7.6",
             "vulnerabilities": []
@@ -555,6 +575,7 @@
             ],
             "name": "github.com/stretchr/testify",
             "purl": "pkg:golang/github.com/stretchr/testify@v1.8.2",
+            "relationship": "transitive",
             "scope": "development",
             "version": "v1.8.2",
             "vulnerabilities": []
@@ -567,6 +588,7 @@
             "licenses": [],
             "name": "gopkg.in/check.v1",
             "purl": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
+            "relationship": "transitive",
             "scope": "development",
             "version": "v0.0.0-20161208181325-20d25e280405",
             "vulnerabilities": []
@@ -579,6 +601,7 @@
             "licenses": [],
             "name": "gopkg.in/yaml.v3",
             "purl": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
+            "relationship": "transitive",
             "scope": "development",
             "version": "v3.0.1",
             "vulnerabilities": []
@@ -597,6 +620,7 @@
               "licenses": [],
               "name": "github.com/google/go-cmp",
               "purl": "pkg:golang/github.com/google/go-cmp@v0.5.2",
+              "relationship": "transitive",
               "scope": "development",
               "version": "v0.5.2",
               "vulnerabilities": []
@@ -619,6 +643,7 @@
               ],
               "name": "github.com/google/uuid",
               "purl": "pkg:golang/github.com/google/uuid@v1.6.0",
+              "relationship": "direct",
               "scope": "runtime",
               "version": "v1.6.0",
               "vulnerabilities": []
@@ -631,6 +656,7 @@
               "licenses": [],
               "name": "golang.org/x/xerrors",
               "purl": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
+              "relationship": "transitive",
               "scope": "development",
               "version": "v0.0.0-20191204190536-9bdfabe68543",
               "vulnerabilities": []
@@ -655,6 +681,7 @@
               ],
               "name": "github.com/google/go-querystring",
               "purl": "pkg:golang/github.com/google/go-querystring@v1.1.0",
+              "relationship": "direct",
               "scope": "runtime",
               "version": "v1.1.0",
               "vulnerabilities": []
@@ -675,6 +702,7 @@
               ],
               "name": "github.com/google/go-querystring",
               "purl": "pkg:golang/github.com/google/go-querystring@v1.0.0",
+              "relationship": "direct",
               "scope": "runtime",
               "version": "v1.0.0",
               "vulnerabilities": []
@@ -693,6 +721,7 @@
               "licenses": [],
               "name": "github.com/bitly/go-simplejson",
               "purl": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
+              "relationship": "transitive",
               "scope": "runtime",
               "version": "v0.5.0",
               "vulnerabilities": []
@@ -715,6 +744,7 @@
               ],
               "name": "github.com/bmizerany/assert",
               "purl": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
+              "relationship": "transitive",
               "scope": "development",
               "version": "v0.0.0-20160611221934-b7ed37b82869",
               "vulnerabilities": []
@@ -727,6 +757,7 @@
               "licenses": [],
               "name": "github.com/davecgh/go-spew",
               "purl": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
+              "relationship": "transitive",
               "scope": "development",
               "version": "v1.1.1",
               "vulnerabilities": []
@@ -739,6 +770,7 @@
               "licenses": [],
               "name": "github.com/fatih/color",
               "purl": "pkg:golang/github.com/fatih/color@v1.7.0",
+              "relationship": "transitive",
               "scope": "runtime",
               "version": "v1.7.0",
               "vulnerabilities": []
@@ -761,6 +793,7 @@
               ],
               "name": "github.com/kr/pretty",
               "purl": "pkg:golang/github.com/kr/pretty@v0.3.1",
+              "relationship": "transitive",
               "scope": "development",
               "version": "v0.3.1",
               "vulnerabilities": []
@@ -773,6 +806,7 @@
               "licenses": [],
               "name": "github.com/kr/text",
               "purl": "pkg:golang/github.com/kr/text@v0.2.0",
+              "relationship": "transitive",
               "scope": "development",
               "version": "v0.2.0",
               "vulnerabilities": []
@@ -785,6 +819,7 @@
               "licenses": [],
               "name": "github.com/mattn/go-colorable",
               "purl": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
+              "relationship": "transitive",
               "scope": "runtime",
               "version": "v0.0.9",
               "vulnerabilities": []
@@ -797,6 +832,7 @@
               "licenses": [],
               "name": "github.com/mattn/go-isatty",
               "purl": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
+              "relationship": "transitive",
               "scope": "runtime",
               "version": "v0.0.4",
               "vulnerabilities": []
@@ -809,6 +845,7 @@
               "licenses": [],
               "name": "github.com/mattn/go-runewidth",
               "purl": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
+              "relationship": "transitive",
               "scope": "runtime",
               "version": "v0.0.4",
               "vulnerabilities": []
@@ -821,6 +858,7 @@
               "licenses": [],
               "name": "github.com/nsf/termbox-go",
               "purl": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
+              "relationship": "transitive",
               "scope": "runtime",
               "version": "v0.0.0-20181027232701-60ab7e3d12ed",
               "vulnerabilities": []
@@ -833,6 +871,7 @@
               "licenses": [],
               "name": "github.com/nwidger/jsoncolor",
               "purl": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
+              "relationship": "transitive",
               "scope": "runtime",
               "version": "v0.0.0-20170215171346-75a6de4340e5",
               "vulnerabilities": []
@@ -845,6 +884,7 @@
               "licenses": [],
               "name": "github.com/pkg/errors",
               "purl": "pkg:golang/github.com/pkg/errors@v0.8.0",
+              "relationship": "transitive",
               "scope": "runtime",
               "version": "v0.8.0",
               "vulnerabilities": []
@@ -857,6 +897,7 @@
               "licenses": [],
               "name": "github.com/pmezard/go-difflib",
               "purl": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
+              "relationship": "transitive",
               "scope": "development",
               "version": "v1.0.0",
               "vulnerabilities": []
@@ -869,6 +910,7 @@
               "licenses": [],
               "name": "github.com/rogpeppe/go-internal",
               "purl": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
+              "relationship": "transitive",
               "scope": "development",
               "version": "v1.9.0",
               "vulnerabilities": []
@@ -891,6 +933,7 @@
               ],
               "name": "github.com/simeji/jid",
               "purl": "pkg:golang/github.com/simeji/jid@v0.7.6",
+              "relationship": "direct",
               "scope": "runtime",
               "version": "v0.7.6",
               "vulnerabilities": []
@@ -913,6 +956,7 @@
               ],
               "name": "github.com/stretchr/testify",
               "purl": "pkg:golang/github.com/stretchr/testify@v1.8.2",
+              "relationship": "transitive",
               "scope": "development",
               "version": "v1.8.2",
               "vulnerabilities": []
@@ -925,6 +969,7 @@
               "licenses": [],
               "name": "gopkg.in/check.v1",
               "purl": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
+              "relationship": "transitive",
               "scope": "development",
               "version": "v0.0.0-20161208181325-20d25e280405",
               "vulnerabilities": []
@@ -937,6 +982,7 @@
               "licenses": [],
               "name": "gopkg.in/yaml.v3",
               "purl": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
+              "relationship": "transitive",
               "scope": "development",
               "version": "v3.0.1",
               "vulnerabilities": []

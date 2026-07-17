@@ -76,6 +76,7 @@
           },
           "name": "alpine:alpine-baselayout",
           "purl": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10",
+          "relationship": "unknown",
           "version": "3.6.5-r0",
           "vulnerabilities": []
         },
@@ -204,6 +205,7 @@
           },
           "name": "alpine:apk-tools",
           "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+          "relationship": "unknown",
           "version": "2.14.4-r1",
           "vulnerabilities": []
         },
@@ -303,6 +305,7 @@
           },
           "name": "alpine:apk-tools",
           "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+          "relationship": "unknown",
           "version": "2.14.4-r1",
           "vulnerabilities": []
         },
@@ -431,6 +434,7 @@
           },
           "name": "alpine:apk-tools",
           "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+          "relationship": "unknown",
           "version": "2.14.4-r1",
           "vulnerabilities": []
         },
@@ -530,6 +534,7 @@
           },
           "name": "alpine:apk-tools",
           "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+          "relationship": "unknown",
           "version": "2.14.4-r1",
           "vulnerabilities": []
         },
@@ -600,6 +605,7 @@
           },
           "name": "alpine:apk-tools",
           "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+          "relationship": "unknown",
           "version": "2.14.4-r1",
           "vulnerabilities": []
         },
@@ -699,6 +705,7 @@
           },
           "name": "alpine:musl-utils",
           "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
+          "relationship": "unknown",
           "version": "1.2.5-r3",
           "vulnerabilities": []
         },
@@ -769,6 +776,7 @@
           },
           "name": "alpine:musl-utils",
           "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
+          "relationship": "unknown",
           "version": "1.2.5-r3",
           "vulnerabilities": []
         },
@@ -868,6 +876,7 @@
           },
           "name": "alpine:ssl_client",
           "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+          "relationship": "unknown",
           "version": "1.36.1-r31",
           "vulnerabilities": []
         },
@@ -967,6 +976,7 @@
           },
           "name": "alpine:ssl_client",
           "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+          "relationship": "unknown",
           "version": "1.36.1-r31",
           "vulnerabilities": []
         },
@@ -1095,6 +1105,7 @@
           },
           "name": "alpine:ssl_client",
           "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+          "relationship": "unknown",
           "version": "1.36.1-r31",
           "vulnerabilities": []
         },
@@ -1194,6 +1205,7 @@
           },
           "name": "alpine:ssl_client",
           "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+          "relationship": "unknown",
           "version": "1.36.1-r31",
           "vulnerabilities": []
         },
@@ -1316,6 +1328,7 @@
               },
               "name": "alpine:alpine-baselayout",
               "purl": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10",
+              "relationship": "unknown",
               "version": "3.6.5-r0",
               "vulnerabilities": []
             },
@@ -1444,6 +1457,7 @@
               },
               "name": "alpine:apk-tools",
               "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+              "relationship": "unknown",
               "version": "2.14.4-r1",
               "vulnerabilities": []
             },
@@ -1543,6 +1557,7 @@
               },
               "name": "alpine:apk-tools",
               "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+              "relationship": "unknown",
               "version": "2.14.4-r1",
               "vulnerabilities": []
             },
@@ -1671,6 +1686,7 @@
               },
               "name": "alpine:apk-tools",
               "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+              "relationship": "unknown",
               "version": "2.14.4-r1",
               "vulnerabilities": []
             },
@@ -1770,6 +1786,7 @@
               },
               "name": "alpine:apk-tools",
               "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+              "relationship": "unknown",
               "version": "2.14.4-r1",
               "vulnerabilities": []
             },
@@ -1840,6 +1857,7 @@
               },
               "name": "alpine:apk-tools",
               "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+              "relationship": "unknown",
               "version": "2.14.4-r1",
               "vulnerabilities": []
             },
@@ -1939,6 +1957,7 @@
               },
               "name": "alpine:musl-utils",
               "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
+              "relationship": "unknown",
               "version": "1.2.5-r3",
               "vulnerabilities": []
             },
@@ -2009,6 +2028,7 @@
               },
               "name": "alpine:musl-utils",
               "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
+              "relationship": "unknown",
               "version": "1.2.5-r3",
               "vulnerabilities": []
             },
@@ -2108,6 +2128,7 @@
               },
               "name": "alpine:ssl_client",
               "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+              "relationship": "unknown",
               "version": "1.36.1-r31",
               "vulnerabilities": []
             },
@@ -2207,6 +2228,7 @@
               },
               "name": "alpine:ssl_client",
               "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+              "relationship": "unknown",
               "version": "1.36.1-r31",
               "vulnerabilities": []
             },
@@ -2335,6 +2357,7 @@
               },
               "name": "alpine:ssl_client",
               "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+              "relationship": "unknown",
               "version": "1.36.1-r31",
               "vulnerabilities": []
             },
@@ -2434,6 +2457,7 @@
               },
               "name": "alpine:ssl_client",
               "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+              "relationship": "unknown",
               "version": "1.36.1-r31",
               "vulnerabilities": []
             },

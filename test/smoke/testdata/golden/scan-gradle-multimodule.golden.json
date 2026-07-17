@@ -55,12 +55,12 @@
           "licenses": [],
           "locations": [
             {
-              "access_path": "build.gradle",
+              "access_path": "app/build.gradle",
               "position": {
-                "file": "build.gradle",
+                "file": "app/build.gradle",
                 "line": 0
               },
-              "real_path": "build.gradle"
+              "real_path": "app/build.gradle"
             }
           ],
           "name": "com.google.guava:guava",
@@ -132,12 +132,12 @@
           "licenses": [],
           "locations": [
             {
-              "access_path": "build.gradle",
+              "access_path": "app/build.gradle",
               "position": {
-                "file": "build.gradle",
+                "file": "app/build.gradle",
                 "line": 0
               },
-              "real_path": "build.gradle"
+              "real_path": "app/build.gradle"
             }
           ],
           "name": "junit:junit",
@@ -265,12 +265,12 @@
           "licenses": [],
           "locations": [
             {
-              "access_path": "build.gradle",
+              "access_path": "lib/build.gradle",
               "position": {
-                "file": "build.gradle",
+                "file": "lib/build.gradle",
                 "line": 0
               },
-              "real_path": "build.gradle"
+              "real_path": "lib/build.gradle"
             }
           ],
           "name": "org.slf4j:slf4j-api",

@@ -367,7 +367,7 @@
             "pkg:deb/debian/libgcc-s1@12.2.0-14%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=gcc-12",
             "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
             "pkg:deb/debian/liblz4-1@1.9.4-1?arch=amd64\u0026distro=debian-12\u0026upstream=lz4",
-            "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+            "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
             "pkg:deb/debian/libstdc%2B%2B6@12.2.0-14%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=gcc-12",
             "pkg:deb/debian/libsystemd0@252.39-1~deb12u2?arch=amd64\u0026distro=debian-12\u0026upstream=systemd",
             "pkg:deb/debian/libudev1@252.39-1~deb12u2?arch=amd64\u0026distro=debian-12\u0026upstream=systemd",
@@ -1225,7 +1225,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "id": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
           "licenses": [
             {
               "type": "declared",
@@ -1305,9 +1305,9 @@
             }
           ],
           "name": "debian:liblzma5",
-          "package_ref": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
-          "purl": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
-          "version": "5.4.1-1"
+          "package_ref": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "purl": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "version": "5.4.1-1+deb12u1"
         },
         {
           "depends_on": [
@@ -1975,7 +1975,7 @@
             "pkg:deb/debian/libcap2@1%3A2.66-4%2Bdeb12u3%2Bb1?arch=amd64\u0026distro=debian-12\u0026upstream=libcap2%401%3A2.66-4%2Bdeb12u3",
             "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
             "pkg:deb/debian/liblz4-1@1.9.4-1?arch=amd64\u0026distro=debian-12\u0026upstream=lz4",
-            "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+            "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
             "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=amd64\u0026distro=debian-12\u0026upstream=libzstd"
           ],
           "id": "pkg:deb/debian/libsystemd0@252.39-1~deb12u2?arch=amd64\u0026distro=debian-12\u0026upstream=systemd",
@@ -2685,7 +2685,7 @@
           "depends_on": [
             "pkg:deb/debian/mawk@1.3.4.20200120-3.1?arch=amd64\u0026distro=debian-12"
           ],
-          "id": "pkg:deb/debian/base-files@12.4%2Bdeb12u14?arch=amd64\u0026distro=debian-12",
+          "id": "pkg:deb/debian/base-files@12.4%2Bdeb12u15?arch=amd64\u0026distro=debian-12",
           "licenses": [
             {
               "type": "concluded",
@@ -2719,13 +2719,13 @@
             }
           ],
           "name": "debian:base-files",
-          "package_ref": "pkg:deb/debian/base-files@12.4%2Bdeb12u14?arch=amd64\u0026distro=debian-12",
-          "purl": "pkg:deb/debian/base-files@12.4%2Bdeb12u14?arch=amd64\u0026distro=debian-12",
-          "version": "12.4+deb12u14"
+          "package_ref": "pkg:deb/debian/base-files@12.4%2Bdeb12u15?arch=amd64\u0026distro=debian-12",
+          "purl": "pkg:deb/debian/base-files@12.4%2Bdeb12u15?arch=amd64\u0026distro=debian-12",
+          "version": "12.4+deb12u15"
         },
         {
           "depends_on": [
-            "pkg:deb/debian/base-files@12.4%2Bdeb12u14?arch=amd64\u0026distro=debian-12",
+            "pkg:deb/debian/base-files@12.4%2Bdeb12u15?arch=amd64\u0026distro=debian-12",
             "pkg:deb/debian/debianutils@5.7-0.5~deb12u1?arch=amd64\u0026distro=debian-12",
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc",
             "pkg:deb/debian/libtinfo6@6.4-4?arch=amd64\u0026distro=debian-12\u0026upstream=ncurses"
@@ -3451,7 +3451,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "id": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
           "licenses": [
             {
               "type": "declared",
@@ -3531,9 +3531,9 @@
             }
           ],
           "name": "debian:liblzma5",
-          "package_ref": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
-          "purl": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
-          "version": "5.4.1-1"
+          "package_ref": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "purl": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "version": "5.4.1-1+deb12u1"
         },
         {
           "depends_on": [
@@ -3541,7 +3541,7 @@
             "pkg:deb/debian/libcap2@1%3A2.66-4%2Bdeb12u3%2Bb1?arch=amd64\u0026distro=debian-12\u0026upstream=libcap2%401%3A2.66-4%2Bdeb12u3",
             "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
             "pkg:deb/debian/liblz4-1@1.9.4-1?arch=amd64\u0026distro=debian-12\u0026upstream=lz4",
-            "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+            "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
             "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=amd64\u0026distro=debian-12\u0026upstream=libzstd"
           ],
           "id": "pkg:deb/debian/libsystemd0@252.39-1~deb12u2?arch=amd64\u0026distro=debian-12\u0026upstream=systemd",
@@ -4198,7 +4198,7 @@
           "depends_on": [
             "pkg:deb/debian/libbz2-1.0@1.0.8-5%2Bb1?arch=amd64\u0026distro=debian-12\u0026upstream=bzip2%401.0.8-5",
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc",
-            "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+            "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
             "pkg:deb/debian/libmd0@1.0.4-2?arch=amd64\u0026distro=debian-12\u0026upstream=libmd",
             "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=amd64\u0026distro=debian-12\u0026upstream=libselinux%403.4-1",
             "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=amd64\u0026distro=debian-12\u0026upstream=libzstd",
@@ -4444,7 +4444,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "id": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
           "licenses": [
             {
               "type": "declared",
@@ -4524,9 +4524,9 @@
             }
           ],
           "name": "debian:liblzma5",
-          "package_ref": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
-          "purl": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
-          "version": "5.4.1-1"
+          "package_ref": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "purl": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "version": "5.4.1-1+deb12u1"
         },
         {
           "depends_on": [
@@ -6063,7 +6063,7 @@
           "depends_on": [
             "pkg:deb/debian/libbz2-1.0@1.0.8-5%2Bb1?arch=amd64\u0026distro=debian-12\u0026upstream=bzip2%401.0.8-5",
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc",
-            "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+            "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
             "pkg:deb/debian/libmd0@1.0.4-2?arch=amd64\u0026distro=debian-12\u0026upstream=libmd",
             "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=amd64\u0026distro=debian-12\u0026upstream=libselinux%403.4-1",
             "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=amd64\u0026distro=debian-12\u0026upstream=libzstd",
@@ -6351,7 +6351,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "id": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
           "licenses": [
             {
               "type": "declared",
@@ -6431,9 +6431,9 @@
             }
           ],
           "name": "debian:liblzma5",
-          "package_ref": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
-          "purl": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
-          "version": "5.4.1-1"
+          "package_ref": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "purl": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "version": "5.4.1-1+deb12u1"
         },
         {
           "depends_on": [
@@ -6740,7 +6740,7 @@
           "depends_on": [
             "pkg:deb/debian/libbz2-1.0@1.0.8-5%2Bb1?arch=amd64\u0026distro=debian-12\u0026upstream=bzip2%401.0.8-5",
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc",
-            "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+            "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
             "pkg:deb/debian/libmd0@1.0.4-2?arch=amd64\u0026distro=debian-12\u0026upstream=libmd",
             "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=amd64\u0026distro=debian-12\u0026upstream=libselinux%403.4-1",
             "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=amd64\u0026distro=debian-12\u0026upstream=libzstd",
@@ -7039,7 +7039,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "id": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
           "licenses": [
             {
               "type": "declared",
@@ -7119,9 +7119,9 @@
             }
           ],
           "name": "debian:liblzma5",
-          "package_ref": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
-          "purl": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
-          "version": "5.4.1-1"
+          "package_ref": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "purl": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "version": "5.4.1-1+deb12u1"
         },
         {
           "depends_on": [
@@ -9571,7 +9571,7 @@
           "depends_on": [
             "pkg:deb/debian/libbz2-1.0@1.0.8-5%2Bb1?arch=amd64\u0026distro=debian-12\u0026upstream=bzip2%401.0.8-5",
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc",
-            "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+            "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
             "pkg:deb/debian/libmd0@1.0.4-2?arch=amd64\u0026distro=debian-12\u0026upstream=libmd",
             "pkg:deb/debian/libselinux1@3.4-1%2Bb6?arch=amd64\u0026distro=debian-12\u0026upstream=libselinux%403.4-1",
             "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=amd64\u0026distro=debian-12\u0026upstream=libzstd",
@@ -9847,7 +9847,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "id": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
           "licenses": [
             {
               "type": "declared",
@@ -9927,9 +9927,9 @@
             }
           ],
           "name": "debian:liblzma5",
-          "package_ref": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
-          "purl": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
-          "version": "5.4.1-1"
+          "package_ref": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "purl": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "version": "5.4.1-1+deb12u1"
         },
         {
           "depends_on": [
@@ -11550,7 +11550,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc"
           ],
-          "id": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "id": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
           "licenses": [
             {
               "type": "declared",
@@ -11630,9 +11630,9 @@
             }
           ],
           "name": "debian:liblzma5",
-          "package_ref": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
-          "purl": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
-          "version": "5.4.1-1"
+          "package_ref": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "purl": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+          "version": "5.4.1-1+deb12u1"
         },
         {
           "depends_on": [
@@ -12008,7 +12008,7 @@
             "pkg:deb/debian/libcap2@1%3A2.66-4%2Bdeb12u3%2Bb1?arch=amd64\u0026distro=debian-12\u0026upstream=libcap2%401%3A2.66-4%2Bdeb12u3",
             "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
             "pkg:deb/debian/liblz4-1@1.9.4-1?arch=amd64\u0026distro=debian-12\u0026upstream=lz4",
-            "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+            "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
             "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=amd64\u0026distro=debian-12\u0026upstream=libzstd"
           ],
           "id": "pkg:deb/debian/libsystemd0@252.39-1~deb12u2?arch=amd64\u0026distro=debian-12\u0026upstream=systemd",
@@ -12675,8 +12675,8 @@
       ],
       "name": "debian:base-files",
       "org": "debian",
-      "purl": "pkg:deb/debian/base-files@12.4%2Bdeb12u14?arch=amd64\u0026distro=debian-12",
-      "version": "12.4+deb12u14",
+      "purl": "pkg:deb/debian/base-files@12.4%2Bdeb12u15?arch=amd64\u0026distro=debian-12",
+      "version": "12.4+deb12u15",
       "vulnerabilities": []
     },
     {
@@ -14343,8 +14343,8 @@
       ],
       "name": "debian:liblzma5",
       "org": "debian",
-      "purl": "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
-      "version": "5.4.1-1",
+      "purl": "pkg:deb/debian/liblzma5@5.4.1-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
+      "version": "5.4.1-1+deb12u1",
       "vulnerabilities": []
     },
     {

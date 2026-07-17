@@ -74,6 +74,7 @@
             "licenses": [],
             "name": "lodash",
             "purl": "pkg:npm/lodash@4.17.21",
+            "relationship": "direct",
             "version": "4.17.21",
             "vulnerabilities": []
           }
@@ -85,6 +86,7 @@
             "licenses": [],
             "name": "my-js-app",
             "purl": "pkg:npm/my-js-app@2.0.0",
+            "relationship": "transitive",
             "version": "2.0.0",
             "vulnerabilities": []
           }
@@ -96,6 +98,7 @@
             "licenses": [],
             "name": "react",
             "purl": "pkg:npm/react@18.2.0",
+            "relationship": "direct",
             "version": "18.2.0",
             "vulnerabilities": []
           }
@@ -109,6 +112,7 @@
             "licenses": [],
             "name": "example.com/app",
             "purl": "pkg:golang/example.com/app@1.0.0",
+            "relationship": "transitive",
             "version": "1.0.0",
             "vulnerabilities": []
           }
@@ -120,6 +124,7 @@
             "licenses": [],
             "name": "github.com/google/uuid",
             "purl": "pkg:golang/github.com/google/uuid@1.6.0",
+            "relationship": "direct",
             "version": "1.6.0",
             "vulnerabilities": []
           }
@@ -131,6 +136,7 @@
             "licenses": [],
             "name": "github.com/pkg/errors",
             "purl": "pkg:golang/github.com/pkg/errors@0.9.1",
+            "relationship": "direct",
             "version": "0.9.1",
             "vulnerabilities": []
           }
@@ -148,6 +154,7 @@
               "licenses": [],
               "name": "lodash",
               "purl": "pkg:npm/lodash@4.17.21",
+              "relationship": "direct",
               "version": "4.17.21",
               "vulnerabilities": []
             }
@@ -159,6 +166,7 @@
               "licenses": [],
               "name": "my-js-app",
               "purl": "pkg:npm/my-js-app@2.0.0",
+              "relationship": "transitive",
               "version": "2.0.0",
               "vulnerabilities": []
             }
@@ -170,6 +178,7 @@
               "licenses": [],
               "name": "react",
               "purl": "pkg:npm/react@18.2.0",
+              "relationship": "direct",
               "version": "18.2.0",
               "vulnerabilities": []
             }
@@ -187,6 +196,7 @@
               "licenses": [],
               "name": "example.com/app",
               "purl": "pkg:golang/example.com/app@1.0.0",
+              "relationship": "transitive",
               "version": "1.0.0",
               "vulnerabilities": []
             }
@@ -198,6 +208,7 @@
               "licenses": [],
               "name": "github.com/google/uuid",
               "purl": "pkg:golang/github.com/google/uuid@1.6.0",
+              "relationship": "direct",
               "version": "1.6.0",
               "vulnerabilities": []
             }
@@ -209,6 +220,7 @@
               "licenses": [],
               "name": "github.com/pkg/errors",
               "purl": "pkg:golang/github.com/pkg/errors@0.9.1",
+              "relationship": "direct",
               "version": "0.9.1",
               "vulnerabilities": []
             }

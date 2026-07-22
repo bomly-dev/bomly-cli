@@ -377,7 +377,7 @@ The `+"`any`"+` token matches every severity, including `+"`unknown`"+`.
 
 ## `+"`--fail-on`"+`
 
-`+"`--fail-on`"+` is the only knob that turns a finding into a non-zero exit code. It accepts one of the severity tokens, or the reachability token `+"`reachable`"+`:
+`+"`--fail-on`"+` is the only knob that turns a finding into a non-zero exit code. It accepts a severity token, the reachability token `+"`reachable`"+`, or the known-exploitation token `+"`exploitable`"+`:
 
 | Token | Matches |
 | --- | --- |
@@ -387,6 +387,7 @@ The `+"`any`"+` token matches every severity, including `+"`unknown`"+`.
 | `+"`high`"+` | findings with severity ≥ high |
 | `+"`critical`"+` | findings with severity = critical |
 | `+"`reachable`"+` | findings where reachability status is `+"`reachable`"+` (experimental — see [REACHABILITY.md](REACHABILITY.md)) |
+| `+"`exploitable`"+` | vulnerability findings marked as known exploited by enrichment data |
 
 Repeat the flag to AND constraints together:
 
@@ -397,10 +398,28 @@ bomly scan --enrich --audit --fail-on high
 # Fail only when a high-or-above finding is also reachable
 bomly scan --enrich --audit --analyze \
   --fail-on high --fail-on reachable
+
+# Fail only on high-or-critical vulnerabilities with known exploitation
+bomly scan --enrich --audit \
+  --fail-on high --fail-on exploitable
 `+"```"+`
 
 Tokens are case-insensitive. An invalid token produces an exit-code 4 (invalid input) with the message:
-`+"`unsupported --fail-on value \"<x>\" (accepted: any, low, medium, high, critical, reachable)`"+`.
+`+"`unsupported --fail-on value \"<x>\" (accepted: any, low, medium, high, critical, reachable, exploitable)`"+`.
+
+## Minimal CI policy
+
+Start with one explicit severity gate:
+
+`+"```bash"+`
+bomly scan --enrich --audit --fail-on high
+`+"```"+`
+
+This fails on high and critical findings while keeping lower-severity findings
+visible in the report. Add license, denied-package, protected-package,
+reachability, or exploitability controls only when your team has defined the
+corresponding review and exception process. A larger policy is not inherently a
+safer policy if nobody owns its exceptions.
 
 ## Exit codes from auditors
 

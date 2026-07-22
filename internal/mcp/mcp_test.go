@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/mcp"
@@ -143,6 +144,33 @@ func TestScanTool_PropagatesScope(t *testing.T) {
 	}
 }
 
+func TestScanTool_PropagatesPolicyArguments(t *testing.T) {
+	adapter := &mockAdapter{scanResult: mcp.ScanRunResult{Response: output.ScanResponse{Command: "scan"}}}
+	c := newTestClient(t, adapter)
+	arguments := map[string]any{
+		"path": "/tmp", "enrich": true, "audit": true, "fail_on": "high",
+		"allow_vulnerability_ids": "GHSA-test", "allow_licenses": "MIT",
+		"deny_licenses": "GPL-3.0-only", "license_exempt_packages": "pkg:npm/example",
+		"deny_packages": "pkg:npm/blocked", "deny_groups": "pkg:maven/com.example",
+		"protected_packages": "react", "typosquat_threshold": "0.91",
+		"typosquat_mode": "fail", "warn_only": true,
+	}
+	if result := callTool(t, c, "bomly_scan", arguments); result.IsError {
+		t.Fatalf("unexpected tool error: %v", result.Content)
+	}
+	want := mcp.ScanRequest{
+		Path: "/tmp", Enrich: true, Audit: true, FailOn: "high",
+		AllowVulnerabilityIDs: "GHSA-test", AllowLicenses: "MIT",
+		DenyLicenses: "GPL-3.0-only", LicenseExemptPackages: "pkg:npm/example",
+		DenyPackages: "pkg:npm/blocked", DenyGroups: "pkg:maven/com.example",
+		ProtectedPackages: "react", TyposquatThreshold: "0.91",
+		TyposquatMode: "fail", WarnOnly: true,
+	}
+	if !reflect.DeepEqual(adapter.scanReq, want) {
+		t.Fatalf("ScanRequest = %#v, want %#v", adapter.scanReq, want)
+	}
+}
+
 func TestScanTool_PropagatesAdapterError(t *testing.T) {
 	adapter := &mockAdapter{scanErr: errors.New("scan failed")}
 	c := newTestClient(t, adapter)
@@ -157,6 +185,33 @@ func TestExplainTool_RequiresPackage(t *testing.T) {
 	result := callTool(t, c, "bomly_explain", nil)
 	if !result.IsError {
 		t.Fatal("expected error when package arg is missing")
+	}
+}
+
+func TestExplainTool_PropagatesPolicyArguments(t *testing.T) {
+	adapter := &mockAdapter{explainResult: mcp.ExplainRunResult{Response: output.ExplainResponse{Command: "explain"}}}
+	c := newTestClient(t, adapter)
+	arguments := map[string]any{
+		"package": "lodash", "audit": true, "fail_on": "medium",
+		"allow_vulnerability_ids": "GHSA-test", "allow_licenses": "Apache-2.0",
+		"deny_licenses": "AGPL-3.0-only", "license_exempt_packages": "pkg:npm/example",
+		"deny_packages": "pkg:npm/blocked", "deny_groups": "pkg:maven/com.example",
+		"protected_packages": "express", "typosquat_threshold": "0.92",
+		"typosquat_mode": "warn", "warn_only": true,
+	}
+	if result := callTool(t, c, "bomly_explain", arguments); result.IsError {
+		t.Fatalf("unexpected tool error: %v", result.Content)
+	}
+	want := mcp.ExplainRequest{
+		Package: "lodash", Audit: true, FailOn: "medium",
+		AllowVulnerabilityIDs: "GHSA-test", AllowLicenses: "Apache-2.0",
+		DenyLicenses: "AGPL-3.0-only", LicenseExemptPackages: "pkg:npm/example",
+		DenyPackages: "pkg:npm/blocked", DenyGroups: "pkg:maven/com.example",
+		ProtectedPackages: "express", TyposquatThreshold: "0.92",
+		TyposquatMode: "warn", WarnOnly: true,
+	}
+	if !reflect.DeepEqual(adapter.explainReq, want) {
+		t.Fatalf("ExplainRequest = %#v, want %#v", adapter.explainReq, want)
 	}
 }
 

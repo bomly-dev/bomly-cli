@@ -13,31 +13,52 @@ import (
 
 // ScanRequest holds per-call overrides for the bomly_scan tool.
 type ScanRequest struct {
-	Path       string `json:"path"`
-	Image      string `json:"image"`
-	URL        string `json:"url"`
-	Ref        string `json:"ref"`
-	Enrich     bool   `json:"enrich"`
-	Audit      bool   `json:"audit"`
-	Analyze    bool   `json:"analyze"`
-	FailOn     string `json:"fail_on"`
-	Ecosystems string `json:"ecosystems"`
-	Scope      string `json:"scope"`
-	Recursive  bool   `json:"recursive"`
-	MaxDepth   int    `json:"max_depth"`
-	Exclude    string `json:"exclude"`
+	Path                  string `json:"path"`
+	Image                 string `json:"image"`
+	URL                   string `json:"url"`
+	Ref                   string `json:"ref"`
+	Enrich                bool   `json:"enrich"`
+	Audit                 bool   `json:"audit"`
+	Analyze               bool   `json:"analyze"`
+	FailOn                string `json:"fail_on"`
+	AllowVulnerabilityIDs string `json:"allow_vulnerability_ids"`
+	AllowLicenses         string `json:"allow_licenses"`
+	DenyLicenses          string `json:"deny_licenses"`
+	LicenseExemptPackages string `json:"license_exempt_packages"`
+	DenyPackages          string `json:"deny_packages"`
+	DenyGroups            string `json:"deny_groups"`
+	ProtectedPackages     string `json:"protected_packages"`
+	TyposquatThreshold    string `json:"typosquat_threshold"`
+	TyposquatMode         string `json:"typosquat_mode"`
+	WarnOnly              bool   `json:"warn_only"`
+	Ecosystems            string `json:"ecosystems"`
+	Scope                 string `json:"scope"`
+	Recursive             bool   `json:"recursive"`
+	MaxDepth              int    `json:"max_depth"`
+	Exclude               string `json:"exclude"`
 }
 
 // ExplainRequest holds per-call overrides for the bomly_explain tool.
 type ExplainRequest struct {
-	Package   string `json:"package"`
-	Path      string `json:"path"`
-	Enrich    bool   `json:"enrich"`
-	Audit     bool   `json:"audit"`
-	Analyze   bool   `json:"analyze"`
-	Recursive bool   `json:"recursive"`
-	MaxDepth  int    `json:"max_depth"`
-	Exclude   string `json:"exclude"`
+	Package               string `json:"package"`
+	Path                  string `json:"path"`
+	Enrich                bool   `json:"enrich"`
+	Audit                 bool   `json:"audit"`
+	Analyze               bool   `json:"analyze"`
+	FailOn                string `json:"fail_on"`
+	AllowVulnerabilityIDs string `json:"allow_vulnerability_ids"`
+	AllowLicenses         string `json:"allow_licenses"`
+	DenyLicenses          string `json:"deny_licenses"`
+	LicenseExemptPackages string `json:"license_exempt_packages"`
+	DenyPackages          string `json:"deny_packages"`
+	DenyGroups            string `json:"deny_groups"`
+	ProtectedPackages     string `json:"protected_packages"`
+	TyposquatThreshold    string `json:"typosquat_threshold"`
+	TyposquatMode         string `json:"typosquat_mode"`
+	WarnOnly              bool   `json:"warn_only"`
+	Recursive             bool   `json:"recursive"`
+	MaxDepth              int    `json:"max_depth"`
+	Exclude               string `json:"exclude"`
 }
 
 // DiffRequest holds per-call overrides for the bomly_diff tool.

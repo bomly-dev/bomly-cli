@@ -262,18 +262,28 @@ func applyCSVOverride(target *[]string, value string) {
 func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (mcp.ScanRunResult, error) {
 	started := time.Now()
 	o, err := a.validatedCloneWithOverrides(mcpOverrides{
-		Path:       req.Path,
-		Image:      req.Image,
-		URL:        req.URL,
-		Ref:        req.Ref,
-		Enrich:     req.Enrich,
-		Audit:      req.Audit,
-		Analyze:    req.Analyze,
-		FailOn:     req.FailOn,
-		Ecosystems: req.Ecosystems,
-		Recursive:  req.Recursive,
-		MaxDepth:   req.MaxDepth,
-		Exclude:    req.Exclude,
+		Path:                  req.Path,
+		Image:                 req.Image,
+		URL:                   req.URL,
+		Ref:                   req.Ref,
+		Enrich:                req.Enrich,
+		Audit:                 req.Audit,
+		Analyze:               req.Analyze,
+		FailOn:                req.FailOn,
+		AllowVulnerabilityIDs: req.AllowVulnerabilityIDs,
+		AllowLicenses:         req.AllowLicenses,
+		DenyLicenses:          req.DenyLicenses,
+		LicenseExemptPackages: req.LicenseExemptPackages,
+		DenyPackages:          req.DenyPackages,
+		DenyGroups:            req.DenyGroups,
+		ProtectedPackages:     req.ProtectedPackages,
+		TyposquatThreshold:    req.TyposquatThreshold,
+		TyposquatMode:         req.TyposquatMode,
+		WarnOnly:              req.WarnOnly,
+		Ecosystems:            req.Ecosystems,
+		Recursive:             req.Recursive,
+		MaxDepth:              req.MaxDepth,
+		Exclude:               req.Exclude,
 	})
 	if err != nil {
 		return mcp.ScanRunResult{}, fmt.Errorf("validate scan request: %w", err)
@@ -357,13 +367,24 @@ func mcpDiagnosticsFromPipeline(pipeResult engine.PipelineResult) []mcp.Diagnost
 func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainRequest) (mcp.ExplainRunResult, error) {
 	started := time.Now()
 	o, err := a.validatedCloneWithOverrides(mcpOverrides{
-		Path:      req.Path,
-		Enrich:    req.Enrich,
-		Audit:     req.Audit,
-		Analyze:   req.Analyze,
-		Recursive: req.Recursive,
-		MaxDepth:  req.MaxDepth,
-		Exclude:   req.Exclude,
+		Path:                  req.Path,
+		Enrich:                req.Enrich,
+		Audit:                 req.Audit,
+		Analyze:               req.Analyze,
+		FailOn:                req.FailOn,
+		AllowVulnerabilityIDs: req.AllowVulnerabilityIDs,
+		AllowLicenses:         req.AllowLicenses,
+		DenyLicenses:          req.DenyLicenses,
+		LicenseExemptPackages: req.LicenseExemptPackages,
+		DenyPackages:          req.DenyPackages,
+		DenyGroups:            req.DenyGroups,
+		ProtectedPackages:     req.ProtectedPackages,
+		TyposquatThreshold:    req.TyposquatThreshold,
+		TyposquatMode:         req.TyposquatMode,
+		WarnOnly:              req.WarnOnly,
+		Recursive:             req.Recursive,
+		MaxDepth:              req.MaxDepth,
+		Exclude:               req.Exclude,
 	})
 	if err != nil {
 		return mcp.ExplainRunResult{}, fmt.Errorf("validate explain request: %w", err)

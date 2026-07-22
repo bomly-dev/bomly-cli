@@ -77,6 +77,16 @@ bomly diff --base main --head HEAD --enrich --audit --json | jq '.findings.intro
 
 JSON output includes Bomly-specific metadata that standard SBOM formats don't carry: reachability tier/status/confidence, audit reasons, and per-finding source.
 
+`bomly explain` returns every deterministic root-to-target path, not only a
+shortest or representative path. Paths are ordered by their stable package-ID
+sequence, and cyclic paths are explicitly marked. This preserves alternate
+workspace and duplicate-version routes that can require different investigation.
+
+`bomly diff` classifies an audit finding by its stable advisory/package identity,
+independent of a package version bump. A finding present on both sides is
+`persisted`; it is not reported as one resolved finding plus one introduced
+finding merely because the affected package version changed.
+
 ## `sarif` — CI security tools
 
 SARIF 2.1.0. Findings only. One result per (rule × package) pair. Includes:

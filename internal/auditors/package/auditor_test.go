@@ -129,11 +129,25 @@ func TestAudit(t *testing.T) {
 			wantFindingCount: 0,
 		},
 		{
-			// When there is no baseline the typosquat check is skipped for all
-			// packages (we have no diff context).
-			name: "no baseline skips typosquat check",
+			// An ordinary scan has no baseline, but configured protected names
+			// still provide the reference set needed for a safe evaluation.
+			name: "no baseline checks configured protected package names",
 			auditor: Auditor{
 				ProtectedPackages:  []string{"github.com/containerd/containerd/api"},
+				TyposquatThreshold: 0.90,
+			},
+			graph:            graphOf(pkgContainerdV2New),
+			baseline:         nil,
+			wantFindingCount: 1,
+			wantFindingIDs: []string{
+				"package:suspicious-package:" + idContainerdV2New,
+			},
+		},
+		{
+			// Without a baseline or configured protected names there is no
+			// reference set, so an ordinary scan produces no typosquat finding.
+			name: "no baseline and no protected names produces no finding",
+			auditor: Auditor{
 				TyposquatThreshold: 0.90,
 			},
 			graph:            graphOf(pkgContainerdV2New),

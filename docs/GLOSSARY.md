@@ -48,7 +48,7 @@ The vocabulary Bomly uses, with one-sentence definitions and pointers to the doc
 
 ## CLI and policy
 
-**`--fail-on`** — Severity token (`any` / `low` / `medium` / `high` / `critical`) or `reachable`. Repeating ANDs constraints together. See [Auditors](AUDITORS.md).
+**`--fail-on`** — Severity token (`any` / `low` / `medium` / `high` / `critical`), `reachable`, or `exploitable`. Repeating ANDs constraints together. See [Auditors](AUDITORS.md).
 
 **Exit code** — `0` success, `1` execution error, `2` policy violation, `3` resolution failure, `4` invalid input. See [Exit codes](EXIT_CODES.md).
 

@@ -86,6 +86,11 @@ func TestRenderComponentDocs_IncludeGeneratedGuides(t *testing.T) {
 		t.Fatalf("matcher overview missing offline guidance:\n%s", matchers)
 	}
 
+	auditors := RenderAuditorsOverviewMarkdown()
+	if !strings.Contains(auditors, "| `exploitable` |") || !strings.Contains(auditors, "## Minimal CI policy") {
+		t.Fatalf("auditor overview missing complete fail-on guidance:\n%s", auditors)
+	}
+
 	tmp := t.TempDir()
 	if err := WriteComponentDocs(tmp); err != nil {
 		t.Fatalf("write component docs: %v", err)

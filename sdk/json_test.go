@@ -121,3 +121,28 @@ func TestPluginRequestResponseRegistryJSON(t *testing.T) {
 		t.Fatalf("audit request registry package = %#v, ok=%v", pkg, ok)
 	}
 }
+
+func TestProtocolV1DetectorDescriptorDefaultsNewOptionalCapabilities(t *testing.T) {
+	legacy := []byte(`{
+		"name":"legacy-detector",
+		"supportedEcosystems":["npm"],
+		"supportedManagers":["npm"],
+		"packageManagerSupport":[{
+			"packageManager":"npm",
+			"evidencePatterns":["package-lock.json"]
+		}]
+	}`)
+	var descriptor DetectorDescriptor
+	if err := json.Unmarshal(legacy, &descriptor); err != nil {
+		t.Fatalf("unmarshal protocol-v1 descriptor: %v", err)
+	}
+	if err := ValidateDetectorDescriptor(&descriptor); err != nil {
+		t.Fatalf("validate protocol-v1 descriptor: %v", err)
+	}
+	if descriptor.PackageManagerSupport[0].MultiModule {
+		t.Fatal("legacy descriptor unexpectedly opted into multi-module discovery")
+	}
+	if descriptor.IgnoredDirectories != nil || descriptor.IgnoredDirectoryMarkers != nil {
+		t.Fatalf("legacy optional capabilities should remain absent: %#v", descriptor)
+	}
+}

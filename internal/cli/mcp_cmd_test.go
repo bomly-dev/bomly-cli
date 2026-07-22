@@ -94,6 +94,9 @@ func TestCloneWithOverridesAppliesPolicyControls(t *testing.T) {
 	if got.TyposquatThreshold != "0.93" || got.TyposquatMode != "fail" {
 		t.Fatalf("typosquat overrides = threshold %q, mode %q", got.TyposquatThreshold, got.TyposquatMode)
 	}
+	if got.Enrich || got.Audit || got.Analyze {
+		t.Fatal("policy-only overrides must not implicitly enable enrich, audit, or analyze")
+	}
 }
 
 func TestValidatedCloneWithOverridesRejectsInvalidCombinations(t *testing.T) {
@@ -110,5 +113,11 @@ func TestValidatedCloneWithOverridesRejectsInvalidCombinations(t *testing.T) {
 	}
 	if _, err := adapter.validatedCloneWithOverrides(mcpOverrides{Recursive: true, MaxDepth: 4}); err != nil {
 		t.Fatalf("expected valid recursive overrides to pass, got %v", err)
+	}
+	if _, err := adapter.validatedCloneWithOverrides(mcpOverrides{TyposquatMode: "bogus"}); err == nil {
+		t.Fatal("expected invalid typosquat mode to fail validation")
+	}
+	if _, err := adapter.validatedCloneWithOverrides(mcpOverrides{TyposquatThreshold: "not-a-number"}); err == nil {
+		t.Fatal("expected non-numeric typosquat threshold to fail validation")
 	}
 }

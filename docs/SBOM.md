@@ -96,6 +96,36 @@ registry (keyed by PURL):
 
 Reachability annotations and other Bomly-specific metadata are emitted in the JSON output (`--json` or `--format json`), not in the standard SBOM formats. See [Output formats](OUTPUT_FORMATS.md).
 
+### Preservation and conversion limits
+
+Bomly preserves component identity (including PURL), dependency edges, roots,
+scope, package type, licenses, digests, CPEs, and the enrichment fields described
+above when the destination format has an equivalent representation. Encoding is
+deterministic when the scan timestamp and document identifiers are fixed.
+
+Some information necessarily becomes less specific during conversion:
+
+- CycloneDX vulnerability records preserve ratings, CWEs, affected component
+  references, descriptions, and advisory URLs. SPDX 2.3 represents each
+  vulnerability as a package security advisory reference, so ratings, affected
+  ranges, fix versions, and descriptions are not carried through an SPDX 2.3
+  round trip.
+- Development scope maps to CycloneDX `excluded`; runtime scope maps to
+  `required`. SPDX stores Bomly's normalized scope in the package comment.
+- Bomly relationship confidence (`direct`, `transitive`, or `unknown`), source
+  provenance, reachability analysis, policy findings, and run diagnostics are
+  report data rather than portable SBOM fields. Use JSON when those distinctions
+  must survive export and import.
+- A CycloneDX document has one metadata component. When an input graph has
+  multiple roots, every root remains in the dependency graph, but only the first
+  deterministic root is selected as that metadata component.
+
+Before treating a generated file as a release artifact, validate it with the
+standard validator required by the receiving system. Bomly's tests parse every
+emitted target back through the corresponding typed codec and exercise
+round-trip identity and edge preservation; receiving systems can impose
+additional profile rules beyond the base format.
+
 ## Format conversion
 
 To convert between formats, run a scan and emit both in one pass:

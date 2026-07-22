@@ -331,6 +331,45 @@ func TestUnmarshalJSON_RoundTripTargets(t *testing.T) {
 	}
 }
 
+func TestMarshalDepGraphJSON_IsDeterministicWithFixedMetadata(t *testing.T) {
+	g := mustGraph(t)
+	options := BuildOptions{
+		DocumentName: "test-doc",
+		DocumentNS:   "https://example.com/spdx/test-doc",
+		ToolName:     "bomly-cli-test",
+		Created:      time.Date(2026, 2, 28, 12, 0, 0, 0, time.UTC),
+		SerialNumber: "urn:uuid:00000000-0000-4000-8000-000000000001",
+	}
+	for _, target := range []Target{TargetSPDX23JSON, TargetCycloneDX16JSON} {
+		first, err := MarshalDepGraphJSON(g, target, options, EncodeOptions{Pretty: true})
+		if err != nil {
+			t.Fatalf("%s first marshal: %v", target, err)
+		}
+		second, err := MarshalDepGraphJSON(g, target, options, EncodeOptions{Pretty: true})
+		if err != nil {
+			t.Fatalf("%s second marshal: %v", target, err)
+		}
+		if !bytes.Equal(first, second) {
+			t.Fatalf("%s output changed across identical encodes", target)
+		}
+
+		doc, err := UnmarshalJSON(first, target)
+		if err != nil {
+			t.Fatalf("%s unmarshal: %v", target, err)
+		}
+		roundTripped, err := ToGraph(doc)
+		if err != nil {
+			t.Fatalf("%s graph conversion: %v", target, err)
+		}
+		if roundTripped.Size() != g.Size() {
+			t.Fatalf("%s graph size = %d, want %d", target, roundTripped.Size(), g.Size())
+		}
+		if got, want := edgeCount(roundTripped), edgeCount(g); got != want {
+			t.Fatalf("%s edge count = %d, want %d", target, got, want)
+		}
+	}
+}
+
 func TestUnmarshalJSON_SPDX23RestoresPackageIdentityFromPURL(t *testing.T) {
 	g := sdk.New()
 	if err := g.AddNode(sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
@@ -629,6 +668,15 @@ func equalStringSlices(left, right []string) bool {
 		}
 	}
 	return true
+}
+
+func edgeCount(graph *sdk.Graph) int {
+	count := 0
+	graph.WalkEdges(func(_, _ *sdk.Dependency) bool {
+		count++
+		return true
+	})
+	return count
 }
 
 func idsOfPackages(packages []*sdk.Dependency) []string {

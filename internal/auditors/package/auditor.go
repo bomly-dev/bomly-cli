@@ -70,7 +70,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 			findings = append(findings, finding(pkg, "denied-group", "Package group is denylisted", sdk.FindingDispositionFail))
 			continue
 		}
-		if _, existed := baseIDs[pkg.ID]; existed || req.BaselineGraph == nil {
+		if _, existed := baseIDs[pkg.ID]; existed {
 			continue
 		}
 		// Skip typosquat check for packages whose name already existed in the

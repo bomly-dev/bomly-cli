@@ -909,7 +909,7 @@ func classifyRelationships(g *sdk.Graph) map[string]string {
 // overviewHeadline renders the one-line headline above the panes. Each
 // chip reports a *delta-scoped* fact. The "audit verdict" chip mirrors
 // `internal/cli/diff_cmd.go:161-165`: FAIL iff at least one *introduced*
-// finding's Disposition gates the exit code (i.e. `output.FailingFindingCount`
+// finding's policy status gates the exit code (i.e. `output.FailingFindingCount`
 // returns > 0). Persisted and resolved findings never gate exit code on
 // their own.
 func (m *DiffModel) overviewHeadline(width int) string {
@@ -941,8 +941,7 @@ func (m *DiffModel) overviewHeadline(width int) string {
 		parts = append(parts, render.Style(fmt.Sprintf("✗ Audit FAIL (%d new, exit 2)", v.FailingIntroduced), render.Red, render.Bold))
 	case "PASS":
 		if v.IntroducedTotal > 0 {
-			// All introduced findings are warn-only.
-			parts = append(parts, render.Style(fmt.Sprintf("⚠ Audit PASS (%d warn-only, exit 0)", v.IntroducedTotal), render.Yellow, render.Bold))
+			parts = append(parts, render.Style(fmt.Sprintf("⚠ Audit PASS (%d non-gating, exit 0)", v.IntroducedTotal), render.Yellow, render.Bold))
 		} else {
 			parts = append(parts, render.Style("✓ Audit PASS (exit 0)", render.Green, render.Bold))
 		}
@@ -1978,10 +1977,10 @@ type auditTabConfig struct {
 // `internal/cli/diff_cmd.go:161-165`:
 //
 //	if audit didn't run                                                → NotEvaluated
-//	if audit ran AND no INTRODUCED finding has a failing Disposition   → Pass
+//	if audit ran AND no INTRODUCED finding has a failing policy status → Pass
 //	if audit ran AND at least one INTRODUCED finding fails policy      → Fail (exit 2)
 //
-// A finding "fails policy" when its Disposition is either empty (the
+// A finding "fails policy" when its policy status is either empty (the
 // auditor didn't set one — historical default = fail) or "fail". See
 // internal/output/types.go::FailingFindingCount. Only the *Introduced*
 // bucket gates the exit code, so resolving or persisting findings does
@@ -1989,10 +1988,12 @@ type auditTabConfig struct {
 type auditVerdict struct {
 	Ran                      bool
 	Total                    int // AuditSummary.Total (Introduced+Persisted with current scan_output.go)
-	FailingIntroduced        int // count of introduced findings with Disposition ∈ {"", "fail"} — gates run-level exit code
+	FailingIntroduced        int // count of introduced findings with policy status in {"", "fail"} — gates run-level exit code
 	FailingIntroducedVuln    int // subset of FailingIntroduced whose finding is vuln-kind
 	FailingIntroducedNonVuln int // subset of FailingIntroduced whose finding is NOT vuln-kind (lives in Findings tab)
-	WarnIntroduced           int // count of introduced findings with Disposition == "warn"
+	WarnIntroduced           int // count of introduced findings with policy status "warn"
+	SuppressedIntroduced     int // count of introduced findings accepted by project policy
+	SuppressedIntroducedVuln int // subset of SuppressedIntroduced whose finding is vulnerability-kind
 	IntroducedTotal          int
 	PersistedTotal           int
 	ResolvedTotal            int
@@ -2029,21 +2030,26 @@ func (m *DiffModel) auditVerdict() auditVerdict {
 	v.IntroducedTotal, v.IntroducedVuln, v.IntroducedNonVuln = classify(m.payload.Audit.Introduced)
 	v.PersistedTotal, v.PersistedVuln, v.PersistedNonVuln = classify(m.payload.Audit.Persisted)
 	v.ResolvedTotal, v.ResolvedVuln, v.ResolvedNonVuln = classify(m.payload.Audit.Resolved)
-	// Disposition gate runs on Introduced ONLY — same as diff_cmd.go:161-165.
+	// The policy gate runs on Introduced ONLY — same as diff_cmd.go:161-165.
 	// We also split the failing count by vuln vs non-vuln so each tab
 	// (Vulnerabilities / Findings) can render an outcome panel that
 	// stays consistent with the rows it's actually showing.
 	for _, f := range m.payload.Audit.Introduced {
-		switch f.Disposition {
-		case "", sdk.FindingDispositionFail:
+		switch f.PolicyStatus {
+		case "", sdk.FindingPolicyStatusFail:
 			v.FailingIntroduced++
 			if isVulnerabilityFinding(f) {
 				v.FailingIntroducedVuln++
 			} else {
 				v.FailingIntroducedNonVuln++
 			}
-		case sdk.FindingDispositionWarn:
+		case sdk.FindingPolicyStatusWarn:
 			v.WarnIntroduced++
+		case sdk.FindingPolicyStatusSuppressed:
+			v.SuppressedIntroduced++
+			if isVulnerabilityFinding(f) {
+				v.SuppressedIntroducedVuln++
+			}
 		}
 	}
 	return v
@@ -2094,9 +2100,10 @@ func (m *DiffModel) findingsOutcomePanels() []listPanel {
 			v.FailingIntroducedVuln, v.FailingIntroducedNonVuln)
 		verdictColor = render.Red
 	case v.IntroducedTotal > 0:
-		verdictBadge = render.Style(" PASS (warn-only) ", render.BgYellow, render.Black, render.Bold)
-		verdictExplain = fmt.Sprintf("%d new finding(s), all Disposition=warn", v.IntroducedTotal)
-		verdictNote = "warn-only findings do not gate the exit code"
+		verdictBadge = render.Style(" PASS (non-gating) ", render.BgYellow, render.Black, render.Bold)
+		verdictExplain = fmt.Sprintf("%d new finding(s): %d warning, %d accepted",
+			v.IntroducedTotal, v.WarnIntroduced, v.SuppressedIntroduced)
+		verdictNote = "Warnings and accepted findings do not gate the exit code"
 		verdictColor = render.Yellow
 	default:
 		verdictBadge = render.Style(" PASS ", render.BgGreen, render.Black, render.Bold)
@@ -2187,9 +2194,10 @@ func (m *DiffModel) vulnsOutcomePanels() []listPanel {
 		verdictNote = "This tab's vulnerabilities would FAIL the audit"
 		verdictColor = render.Red
 	case v.IntroducedVuln > 0:
-		verdictBadge = render.Style(" PASS (warn-only) ", render.BgYellow, render.Black, render.Bold)
-		verdictExplain = fmt.Sprintf("%d new vuln(s), all Disposition=warn", v.IntroducedVuln)
-		verdictNote = "warn-only vulnerabilities do not gate the exit code"
+		verdictBadge = render.Style(" PASS (non-gating) ", render.BgYellow, render.Black, render.Bold)
+		verdictExplain = fmt.Sprintf("%d new vuln(s): %d warning, %d accepted",
+			v.IntroducedVuln, v.IntroducedVuln-v.SuppressedIntroducedVuln, v.SuppressedIntroducedVuln)
+		verdictNote = "Warnings and accepted vulnerabilities do not gate the exit code"
 		verdictColor = render.Yellow
 	default:
 		verdictBadge = render.Style(" PASS ", render.BgGreen, render.Black, render.Bold)
@@ -2200,7 +2208,7 @@ func (m *DiffModel) vulnsOutcomePanels() []listPanel {
 	runLevel := "Run exit code: 0 (PASS)"
 	switch {
 	case v.FailingIntroduced == 0 && v.IntroducedTotal > 0:
-		runLevel = "Run exit code: 0 (warn-only)"
+		runLevel = "Run exit code: 0 (non-gating findings)"
 	case v.FailingIntroduced > 0:
 		runLevel = fmt.Sprintf("Run exit code: 2 (FAIL — %d failing: %d vuln + %d policy)",
 			v.FailingIntroduced, v.FailingIntroducedVuln, v.FailingIntroducedNonVuln)
@@ -2488,7 +2496,7 @@ func auditDeltaDetails(d auditDelta) []string {
 		"",
 		render.Style("Status", render.Bold, render.Cyan),
 		render.Style("  Delta status: ", render.Dim)+statusText(auditStatusLabel(d.status)),
-		render.Style("  Disposition: ", render.Dim)+valueOrDash(string(f.Disposition)),
+		render.Style("  Policy status: ", render.Dim)+valueOrDash(string(f.PolicyStatus)),
 		render.Style("  Severity: ", render.Dim)+severityText(string(f.Severity)),
 		"",
 		render.Style("Classification", render.Bold, render.Magenta),

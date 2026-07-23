@@ -14,7 +14,7 @@ func TestDiffOverviewMarkdownPersistedFailingCountsAsFailing(t *testing.T) {
 	// the Overview status must reflect it as a failure, not a softer warning.
 	payload := output.DiffResponse{
 		Audit: &output.DiffAudit{
-			Persisted: []output.AuditFinding{{ID: "CVE-PERSISTS", Disposition: sdk.FindingDispositionFail}},
+			Persisted: []output.AuditFinding{{ID: "CVE-PERSISTS", PolicyStatus: sdk.FindingPolicyStatusFail}},
 		},
 	}
 	got := strings.Join(diffOverviewMarkdown(payload), "\n")
@@ -26,7 +26,7 @@ func TestDiffOverviewMarkdownPersistedFailingCountsAsFailing(t *testing.T) {
 func TestDiffOverviewMarkdownPersistedWarningsAreWarnings(t *testing.T) {
 	payload := output.DiffResponse{
 		Audit: &output.DiffAudit{
-			Persisted: []output.AuditFinding{{ID: "license:warn", Disposition: sdk.FindingDispositionWarn}},
+			Persisted: []output.AuditFinding{{ID: "license:warn", PolicyStatus: sdk.FindingPolicyStatusWarn}},
 		},
 	}
 	got := strings.Join(diffOverviewMarkdown(payload), "\n")
@@ -146,17 +146,17 @@ func TestPersistedLicenseFindingCountDedupesByPackage(t *testing.T) {
 	}
 }
 
-func TestDiffMarkdownFindingsTableHasLegendNoDisposition(t *testing.T) {
+func TestDiffMarkdownFindingsTableHasLegendNoPolicyStatus(t *testing.T) {
 	payload := output.DiffResponse{
 		Audit: &output.DiffAudit{
 			Introduced: []output.AuditFinding{{
-				ID:          "INVALID-abcd-efgh-ijkl",
-				Kind:        sdk.FindingKindLicense,
-				Auditor:     "license",
-				Severity:    sdk.SeverityWarning,
-				Disposition: sdk.FindingDispositionWarn,
-				Package:     output.FindingPackageRef{Name: "junit", Version: "4.12"},
-				Title:       "Package has invalid SPDX license: non-standard",
+				ID:           "INVALID-abcd-efgh-ijkl",
+				Kind:         sdk.FindingKindLicense,
+				Auditor:      "license",
+				Severity:     sdk.SeverityWarning,
+				PolicyStatus: sdk.FindingPolicyStatusWarn,
+				Package:      output.FindingPackageRef{Name: "junit", Version: "4.12"},
+				Title:        "Package has invalid SPDX license: non-standard",
 			}},
 		},
 	}
@@ -168,8 +168,8 @@ func TestDiffMarkdownFindingsTableHasLegendNoDisposition(t *testing.T) {
 	if !strings.Contains(report, "**Legend:**") {
 		t.Errorf("expected findings legend footnote, got:\n%s", report)
 	}
-	if strings.Contains(report, "Disposition") || strings.Contains(report, "Exploitability") {
-		t.Errorf("findings table should not have Disposition/Exploitability columns, got:\n%s", report)
+	if strings.Contains(report, "PolicyStatus") || strings.Contains(report, "Exploitability") {
+		t.Errorf("findings table should not have PolicyStatus/Exploitability columns, got:\n%s", report)
 	}
 	if !strings.Contains(report, "Package has invalid SPDX license: **non-standard**") {
 		t.Errorf("expected the offending license to be bolded in the findings table, got:\n%s", report)

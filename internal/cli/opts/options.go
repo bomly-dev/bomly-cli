@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/baseline"
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
@@ -24,20 +25,22 @@ import (
 // Options encapsulates the context for executing a CLI command,
 // including configuration, registry, execution target, filters, output format, and cleanup logic.
 type Options struct {
-	ResolvedConfig  config.Resolved
-	registry        *engine.Registry
-	executionTarget sdk.ExecutionTarget
-	subprojects     []sdk.Subproject
-	detectorFilter  sdk.DetectorFilter
-	auditorFilter   sdk.AuditorFilter
-	matcherFilter   sdk.MatcherFilter
-	analyzerFilter  sdk.AnalyzerFilter
-	ecosystemFilter sdk.EcosystemFilter
-	httpProvider    *sdk.HTTPClientProvider
-	Format          output.Format
-	outputPath      string
-	verbose         bool
-	cleanup         func() error
+	ResolvedConfig         config.Resolved
+	registry               *engine.Registry
+	executionTarget        sdk.ExecutionTarget
+	subprojects            []sdk.Subproject
+	detectorFilter         sdk.DetectorFilter
+	auditorFilter          sdk.AuditorFilter
+	matcherFilter          sdk.MatcherFilter
+	analyzerFilter         sdk.AnalyzerFilter
+	ecosystemFilter        sdk.EcosystemFilter
+	httpProvider           *sdk.HTTPClientProvider
+	Format                 output.Format
+	outputPath             string
+	verbose                bool
+	cleanup                func() error
+	findingPolicyResolvers []sdk.FindingPolicyResolver
+	baselineEvaluation     *engine.BaselineEvaluation
 }
 
 type optionsKey struct{}
@@ -138,6 +141,8 @@ func (o *Options) PipelineRequest(scope sdk.Scope, stderr io.Writer) engine.Pipe
 		TyposquatThreshold:         typosquatThreshold,
 		TyposquatMode:              strings.TrimSpace(o.ResolvedConfig.TyposquatMode),
 		WarnOnly:                   o.ResolvedConfig.WarnOnly,
+		FindingPolicyResolvers:     append([]sdk.FindingPolicyResolver(nil), o.findingPolicyResolvers...),
+		BaselineEvaluation:         cloneBaselineEvaluation(o.baselineEvaluation),
 		InstallFirst:               o.ResolvedConfig.InstallFirst,
 		InstallArgs:                append([]string(nil), o.ResolvedConfig.InstallArgs...),
 		Stderr:                     stderr,
@@ -328,21 +333,53 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		return Options{}, err
 	}
 
+	var baselineResult baseline.LoadResult
+	if resolved.Audit {
+		baselineResult, err = baseline.ResolversForTarget(resolved.Baseline, executionTarget, logger)
+		if err != nil {
+			if cleanup != nil {
+				_ = cleanup()
+			}
+			return Options{}, exit.InvalidInputError("%v", err)
+		}
+	}
+
 	return Options{
-		registry:        filteredRegistry,
-		executionTarget: executionTarget,
-		subprojects:     subprojects,
-		detectorFilter:  detectorFilter,
-		auditorFilter:   auditorFilter,
-		matcherFilter:   matcherFilter,
-		analyzerFilter:  analyzerFilter,
-		ecosystemFilter: ecosystemFilter,
-		httpProvider:    httpProvider,
-		ResolvedConfig:  resolved,
-		Format:          format,
-		verbose:         resolved.Verbosity > 0,
-		cleanup:         cleanup,
+		registry:               filteredRegistry,
+		executionTarget:        executionTarget,
+		subprojects:            subprojects,
+		detectorFilter:         detectorFilter,
+		auditorFilter:          auditorFilter,
+		matcherFilter:          matcherFilter,
+		analyzerFilter:         analyzerFilter,
+		ecosystemFilter:        ecosystemFilter,
+		httpProvider:           httpProvider,
+		ResolvedConfig:         resolved,
+		Format:                 format,
+		verbose:                resolved.Verbosity > 0,
+		cleanup:                cleanup,
+		findingPolicyResolvers: baselineResult.Resolvers,
+		baselineEvaluation:     baselineEvaluationFromLoadResult(baselineResult),
 	}, nil
+}
+
+func baselineEvaluationFromLoadResult(result baseline.LoadResult) *engine.BaselineEvaluation {
+	if result.Path == "" {
+		return nil
+	}
+	return &engine.BaselineEvaluation{
+		Path:      result.Path,
+		Entries:   result.Entries,
+		Automatic: result.Automatic,
+	}
+}
+
+func cloneBaselineEvaluation(evaluation *engine.BaselineEvaluation) *engine.BaselineEvaluation {
+	if evaluation == nil {
+		return nil
+	}
+	clone := *evaluation
+	return &clone
 }
 
 func (o *Options) ResolveProjectPath() (string, error) {

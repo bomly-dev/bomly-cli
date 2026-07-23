@@ -51,6 +51,32 @@ func TestRun_ReportsAddedPackageFindingAsIntroduced(t *testing.T) {
 	assertFindingIDs(t, result.Audit.Persisted)
 }
 
+func TestRun_AppliesEachSidesAuditPolicyStatusResolvers(t *testing.T) {
+	react := npmPackage("react", "18.2.0")
+	base := diffTestPipeline(t, graphFixture(t), nil)
+	head := diffTestPipeline(t, graphFixture(t, react), map[string][]sdk.Finding{
+		react.ID: {{ID: "CVE-ADDED", Kind: sdk.FindingKindVulnerability, Source: "osv", PolicyStatus: sdk.FindingPolicyStatusFail}},
+	})
+	headRequest := diffTestRequest()
+	headRequest.FindingPolicyResolvers = []sdk.FindingPolicyResolver{diffPolicyResolver{}}
+	result, err := Run(context.Background(), Request{
+		Base: Target{Pipeline: base, Request: diffTestRequest()},
+		Head: Target{Pipeline: head, Request: headRequest},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Audit.Introduced) != 1 || result.Audit.Introduced[0].PolicyStatus != sdk.FindingPolicyStatusSuppressed {
+		t.Fatalf("introduced findings = %#v", result.Audit.Introduced)
+	}
+}
+
+type diffPolicyResolver struct{}
+
+func (diffPolicyResolver) ResolveFindingPolicy(context.Context, sdk.Finding, *sdk.PackageRegistry) (sdk.FindingPolicyDecision, bool) {
+	return sdk.FindingPolicyDecision{Status: sdk.FindingPolicyStatusSuppressed, Source: "test"}, true
+}
+
 func TestRun_ReportsRemovedPackageFindingAsResolved(t *testing.T) {
 	react := npmPackage("react", "18.2.0")
 	base := diffTestPipeline(t, graphFixture(t, react), map[string][]sdk.Finding{

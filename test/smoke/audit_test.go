@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os/exec"
+	"path/filepath"
 	"testing"
 )
 
@@ -125,6 +127,62 @@ func TestAuditScan(t *testing.T) {
 			assertGolden(t, tc.name, got)
 		})
 	}
+}
+
+func TestFindingBaselineWorkflow(t *testing.T) {
+	requireTool(t, "go")
+	srv := startMockOSV(t)
+	auditEnv := []string{"BOMLY_OSV_API_BASE=" + srv.URL}
+	project := filepath.Join(t.TempDir(), "example-go-gomod")
+	clone := exec.Command("git", "clone", "--depth", "1", "--branch", "v1.0.0",
+		"https://github.com/bomly-dev/example-go-gomod", project)
+	if output, err := clone.CombinedOutput(); err != nil {
+		t.Fatalf("clone pinned baseline fixture: %v\n%s", err, output)
+	}
+	denied := "pkg:golang/golang.org/x/text@v0.3.5"
+	_, stderr, code := runBomlyWithEnv(t, auditEnv,
+		"baseline", "create",
+		"--path", project,
+		"--enrich",
+		"--detectors", "go",
+		"--matchers", "osv",
+		"--auditors", "package",
+		"--deny-package", denied,
+	)
+	if code != 0 {
+		t.Fatalf("baseline create exited %d\nstderr:\n%s", code, stderr)
+	}
+
+	stdout, stderr, code := runBomlyWithEnv(t, auditEnv,
+		"scan",
+		"--path", project,
+		"--format", "json",
+		"--enrich",
+		"--audit",
+		"--detectors", "go",
+		"--matchers", "osv",
+		"--auditors", "package",
+		"--deny-package", denied,
+	)
+	if code != 0 {
+		t.Fatalf("baseline scan exited %d\nstderr:\n%s", code, stderr)
+	}
+	got := normalizeJSON(t, []byte(stdout))
+	var document struct {
+		Findings []struct {
+			RuleID       string `json:"rule_id"`
+			PolicyStatus string `json:"policy_status"`
+		} `json:"findings"`
+	}
+	if err := json.Unmarshal(got, &document); err != nil {
+		t.Fatal(err)
+	}
+	if len(document.Findings) != 1 ||
+		document.Findings[0].RuleID != "denied-package" ||
+		document.Findings[0].PolicyStatus != "suppressed" {
+		t.Fatalf("baseline findings = %#v", document.Findings)
+	}
+	assertGolden(t, "finding-baseline-workflow", got)
 }
 
 // ---------------------------------------------------------------------------

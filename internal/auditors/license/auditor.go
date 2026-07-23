@@ -94,12 +94,12 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 
 		licenses := registryLicenseValues(req.Registry, purl)
 		if len(licenses) == 0 {
-			findings = append(findings, finding(purl, dep.ID, "unknown-license", "Package license is unknown", sdk.FindingDispositionWarn))
+			findings = append(findings, finding(purl, dep.ID, "unknown-license", "Package license is unknown", sdk.FindingPolicyStatusWarn))
 			continue
 		}
 		valid, invalid := spdxexp.ValidateLicenses(licenses)
 		if !valid {
-			findings = append(findings, finding(purl, dep.ID, "invalid-license", "Package has invalid SPDX license: "+strings.Join(invalid, ", "), sdk.FindingDispositionFail))
+			findings = append(findings, finding(purl, dep.ID, "invalid-license", "Package has invalid SPDX license: "+strings.Join(invalid, ", "), sdk.FindingPolicyStatusFail))
 			continue
 		}
 		if len(a.AllowLicenses) > 0 {
@@ -112,7 +112,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 				}
 			}
 			if !allowed {
-				findings = append(findings, finding(purl, dep.ID, "denied-license", "Package license is not allowlisted", sdk.FindingDispositionFail))
+				findings = append(findings, finding(purl, dep.ID, "denied-license", "Package license is not allowlisted", sdk.FindingPolicyStatusFail))
 			}
 			continue
 		}
@@ -123,7 +123,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 					continue
 				}
 				if intersectsLicenseList(used, a.DenyLicenses) {
-					findings = append(findings, finding(purl, dep.ID, "denied-license", "Package license is denylisted", sdk.FindingDispositionFail))
+					findings = append(findings, finding(purl, dep.ID, "denied-license", "Package license is denylisted", sdk.FindingPolicyStatusFail))
 					break
 				}
 			}
@@ -140,17 +140,18 @@ func registryLicenseValues(registry *sdk.PackageRegistry, purl string) []string 
 	return pkg.LicenseValues()
 }
 
-func finding(purl, depID, id, title string, disposition sdk.FindingDisposition) sdk.Finding {
+func finding(purl, depID, id, title string, policyStatus sdk.FindingPolicyStatus) sdk.Finding {
 	prefix, severity := licenseFindingClass(id)
 	f := sdk.Finding{
-		ID:          licenseFindingID(prefix, purl),
-		Kind:        sdk.FindingKindLicense,
-		Title:       title,
-		Severity:    severity,
-		Source:      auditorName,
-		Auditor:     auditorName,
-		Disposition: disposition,
-		PackageRef:  purl,
+		ID:           licenseFindingID(prefix, purl),
+		Kind:         sdk.FindingKindLicense,
+		Title:        title,
+		Severity:     severity,
+		Source:       auditorName,
+		Auditor:      auditorName,
+		RuleID:       id,
+		PolicyStatus: policyStatus,
+		PackageRef:   purl,
 	}
 	if depID != "" {
 		f.DependencyRefs = []string{depID}

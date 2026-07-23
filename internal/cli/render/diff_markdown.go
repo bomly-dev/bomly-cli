@@ -312,7 +312,7 @@ func diffAuditFindingTable(title, status string, findings []output.AuditFinding,
 	for _, finding := range sortDiffAuditFindings(findings) {
 		vuln := output.FindingVulnerabilityInPackages(finding, packages)
 		row := []string{
-			findingIcon(status, string(finding.Disposition)),
+			findingIcon(status, string(finding.PolicyStatus)),
 			status,
 			valueOrDash(finding.Auditor),
 			strings.ToUpper(valueOrDash(string(finding.Severity))),
@@ -364,7 +364,7 @@ func emphasizeFindingTitle(finding output.AuditFinding) string {
 }
 
 // findingIconLegend explains the leading status icon used in the findings
-// tables. The icon encodes the finding's disposition (resolved / failing /
+// tables. The icon encodes the finding's policy status (resolved / failing /
 // warning), which is why a dedicated column is no longer needed.
 func findingIconLegend() []string {
 	return []string{"> **Legend:** ✅ resolved · ❌ failing · ⚠️ warning"}
@@ -372,13 +372,13 @@ func findingIconLegend() []string {
 
 // findingIcon represents whether a Policy Findings row will fail the run
 // (❌), only warn (⚠️), or has been resolved (✅) — purely a function of
-// status/disposition, never of severity. A Low-severity failing finding still
+// delta status and policy status, never severity. A Low-severity failing finding still
 // gets ❌; a Critical-severity warning still gets ⚠️.
-func findingIcon(status, disposition string) string {
+func findingIcon(status, policyStatus string) string {
 	if status == "resolved" {
 		return "✅"
 	}
-	if strings.EqualFold(disposition, "warn") {
+	if strings.EqualFold(policyStatus, "warn") || strings.EqualFold(policyStatus, "suppressed") {
 		return "⚠️"
 	}
 	return "❌"
@@ -387,7 +387,7 @@ func findingIcon(status, disposition string) string {
 func outputAuditFailingCount(findings []output.AuditFinding) int {
 	total := 0
 	for _, finding := range findings {
-		if finding.Disposition == "" || finding.Disposition == "fail" {
+		if finding.PolicyStatus == "" || finding.PolicyStatus == "fail" {
 			total++
 		}
 	}

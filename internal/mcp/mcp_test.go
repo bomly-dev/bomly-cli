@@ -153,7 +153,7 @@ func TestScanTool_PropagatesPolicyArguments(t *testing.T) {
 		"deny_licenses": "GPL-3.0-only", "license_exempt_packages": "pkg:npm/example",
 		"deny_packages": "pkg:npm/blocked", "deny_groups": "pkg:maven/com.example",
 		"protected_packages": "react", "typosquat_threshold": "0.91",
-		"typosquat_mode": "fail", "warn_only": true,
+		"typosquat_mode": "fail", "warn_only": true, "baseline": "security/baseline.json",
 	}
 	if result := callTool(t, c, "bomly_scan", arguments); result.IsError {
 		t.Fatalf("unexpected tool error: %v", result.Content)
@@ -164,7 +164,7 @@ func TestScanTool_PropagatesPolicyArguments(t *testing.T) {
 		DenyLicenses: "GPL-3.0-only", LicenseExemptPackages: "pkg:npm/example",
 		DenyPackages: "pkg:npm/blocked", DenyGroups: "pkg:maven/com.example",
 		ProtectedPackages: "react", TyposquatThreshold: "0.91",
-		TyposquatMode: "fail", WarnOnly: true,
+		TyposquatMode: "fail", WarnOnly: true, Baseline: "security/baseline.json",
 	}
 	if !reflect.DeepEqual(adapter.scanReq, want) {
 		t.Fatalf("ScanRequest = %#v, want %#v", adapter.scanReq, want)
@@ -197,7 +197,7 @@ func TestExplainTool_PropagatesPolicyArguments(t *testing.T) {
 		"deny_licenses": "AGPL-3.0-only", "license_exempt_packages": "pkg:npm/example",
 		"deny_packages": "pkg:npm/blocked", "deny_groups": "pkg:maven/com.example",
 		"protected_packages": "express", "typosquat_threshold": "0.92",
-		"typosquat_mode": "warn", "warn_only": true,
+		"typosquat_mode": "warn", "warn_only": true, "baseline": "none",
 	}
 	if result := callTool(t, c, "bomly_explain", arguments); result.IsError {
 		t.Fatalf("unexpected tool error: %v", result.Content)
@@ -208,7 +208,7 @@ func TestExplainTool_PropagatesPolicyArguments(t *testing.T) {
 		DenyLicenses: "AGPL-3.0-only", LicenseExemptPackages: "pkg:npm/example",
 		DenyPackages: "pkg:npm/blocked", DenyGroups: "pkg:maven/com.example",
 		ProtectedPackages: "express", TyposquatThreshold: "0.92",
-		TyposquatMode: "warn", WarnOnly: true,
+		TyposquatMode: "warn", WarnOnly: true, Baseline: "none",
 	}
 	if !reflect.DeepEqual(adapter.explainReq, want) {
 		t.Fatalf("ExplainRequest = %#v, want %#v", adapter.explainReq, want)

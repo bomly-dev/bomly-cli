@@ -19,8 +19,9 @@ var (
 // MatchResult contains aggregate matcher output after the engine runs all
 // selected matchers for a pipeline stage.
 type MatchResult struct {
-	Registry     *sdk.PackageRegistry
-	MatcherStats []sdk.MatcherStats
+	Registry                    *sdk.PackageRegistry
+	MatcherStats                []sdk.MatcherStats
+	VulnerabilitiesConsolidated int
 }
 
 // Engine orchestrates detector and auditor execution.
@@ -184,6 +185,10 @@ func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (MatchResult, 
 			aggregated.Registry = result.Registry
 			req.Registry = result.Registry
 		}
+	}
+	if aggregated.Registry != nil {
+		before, after := consolidateRegistryVulnerabilities(aggregated.Registry)
+		aggregated.VulnerabilitiesConsolidated = before - after
 	}
 	if len(errs) > 0 {
 		return aggregated, errors.Join(errs...)

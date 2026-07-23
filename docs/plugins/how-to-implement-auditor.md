@@ -46,7 +46,7 @@ func (a *auditor) Audit(ctx context.Context, req *sdk.AuditRequest) (*sdk.AuditR
         ID:          "security-team-policy-example",
         Kind:        sdk.FindingKindPackage,
         PackageRef:  "pkg:npm/lodash@4.17.21",
-        Disposition: sdk.FindingDispositionWarn,
+        PolicyStatus: sdk.FindingPolicyStatusWarn,
         Title:       "Dependency has unusually high meme density",
         Source:      pluginID,
     }
@@ -89,7 +89,7 @@ finding := sdk.Finding{
     Kind:            sdk.FindingKindVulnerability,
     PackageRef:      "pkg:npm/lodash@4.17.21",
     VulnerabilityID: "GHSA-example",
-    Disposition:     sdk.FindingDispositionFail,
+    PolicyStatus:     sdk.FindingPolicyStatusFail,
     Source:          pluginID,
 }
 ```
@@ -178,7 +178,7 @@ bomly scan --path ./my-project --audit --auditors +bomly.examples.auditor.meme-d
 
 - Read `req.Graph` and `req.Registry`; emit reference-style findings.
 - Return `AuditorRuns` with the auditor ID.
-- Use actionable finding summaries and dispositions.
+- Use actionable finding summaries and clear policy statuses.
 - Avoid external network calls unless the plugin explicitly documents them.
 - Wrap errors with useful context and avoid panics.
 - Do not log secrets, tokens, or credentials.

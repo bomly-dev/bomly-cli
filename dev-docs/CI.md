@@ -110,6 +110,7 @@ Bomly runs native Go fuzzing nightly and on demand through the `Fuzz` workflow. 
 
 - Node lockfile parsers for npm, pnpm, and Yarn
 - SPDX/CycloneDX SBOM JSON detection and decoding
+- Finding baseline decoding and validation
 - Cross-matcher vulnerability alias consolidation and evidence preservation
 - SDK package URL canonicalization and transport JSON
 - Managed plugin archive-name and relative-path sanitizers

@@ -267,7 +267,7 @@ func TestAudit_CacheHit_NoHTTPCall(t *testing.T) {
 
 // --- OSV API failure ---
 
-func TestAudit_OSVFailure_NonFatal(t *testing.T) {
+func TestAudit_OSVFailure_ReturnsPartialResultAndWarningError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
@@ -288,19 +288,40 @@ func TestAudit_OSVFailure_NonFatal(t *testing.T) {
 		PURL:      "pkg:npm/lodash@4.17.15",
 		Ecosystem: "npm"},
 	})
+	cachedDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "cached",
+		Version:   "1.0.0",
+		PURL:      "pkg:npm/cached@1.0.0",
+		Ecosystem: "npm"},
+	})
+	cachedPURL := sdk.CanonicalPackageURLFromDependency(cachedDep)
+	if err := audcache.Set(aud.cache, audcache.NewKey(cachedPURL, "", "", ""), []Vulnerability{{
+		ID:      "OSV-CACHED",
+		Summary: "cached evidence",
+	}}); err != nil {
+		t.Fatalf("seed cache: %v", err)
+	}
 	g := sdk.New()
 	if err := g.AddNode(dep); err != nil {
 		t.Fatalf("AddNode: %v", err)
+	}
+	if err := g.AddNode(cachedDep); err != nil {
+		t.Fatalf("AddNode cached dependency: %v", err)
 	}
 
 	result, err := aud.Match(context.Background(), sdk.MatchRequest{
 		Graph:    g,
 		Registry: sdk.NewPackageRegistry(),
 	})
-	if err != nil {
-		t.Fatalf("Match returned error on API failure (should be non-fatal): %v", err)
+	if err == nil || !strings.Contains(err.Error(), "osv batch query") {
+		t.Fatalf("Match error = %v, want contextual batch-query error", err)
 	}
-	_ = result // partial results are acceptable
+	if result.Registry == nil {
+		t.Fatal("Match discarded the partial registry on API failure")
+	}
+	pkg, ok := result.Registry.Get(cachedPURL)
+	if !ok || len(pkg.Vulnerabilities) != 1 || pkg.Vulnerabilities[0].ID != "OSV-CACHED" {
+		t.Fatalf("cached enrichment was not preserved: %#v, found=%t", pkg, ok)
+	}
 }
 
 // --- KEV enrichment ---

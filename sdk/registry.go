@@ -90,20 +90,6 @@ func (r *PackageRegistry) Len() int {
 	return len(r.byPURL)
 }
 
-// ConsolidateVulnerabilities merges alias-equivalent vulnerability records
-// within each package and returns the record counts before and after.
-func (r *PackageRegistry) ConsolidateVulnerabilities() (before, after int) {
-	if r == nil {
-		return 0, 0
-	}
-	for _, pkg := range r.All() {
-		before += len(pkg.Vulnerabilities)
-		pkg.Vulnerabilities = ConsolidateVulnerabilities(pkg.Vulnerabilities)
-		after += len(pkg.Vulnerabilities)
-	}
-	return before, after
-}
-
 // Merge folds every package from other into r.
 func (r *PackageRegistry) Merge(other *PackageRegistry) {
 	if r == nil || other == nil {

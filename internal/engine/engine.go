@@ -187,7 +187,7 @@ func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (MatchResult, 
 		}
 	}
 	if aggregated.Registry != nil {
-		before, after := aggregated.Registry.ConsolidateVulnerabilities()
+		before, after := consolidateRegistryVulnerabilities(aggregated.Registry)
 		aggregated.VulnerabilitiesConsolidated = before - after
 	}
 	if len(errs) > 0 {

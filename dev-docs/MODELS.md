@@ -177,7 +177,14 @@ type Vulnerability struct {
 }
 ```
 
-Matchers (OSV, grype, depsdev, eol, scorecard, and enabled external matcher plugins) write these records onto registry packages by PURL. Reachability is the only field analyzers touch; they annotate it in place.
+Matchers (OSV, grype, depsdev, eol, scorecard, and enabled external matcher
+plugins) write these records onto registry packages by PURL. At the end of
+matching, the engine consolidates records whose `ID` and `Aliases` form one
+transitively connected identity set within a package. Their evidence is unioned,
+the highest severity and conservative fix state are retained, and every
+non-canonical primary ID becomes an alias. `Related` IDs are not identity
+evidence because OSV uses them for associated but distinct vulnerabilities.
+Reachability is the only field analyzers touch; they annotate it in place.
 
 First-party packages — `application`-typed nodes such as workspace members, reactor modules, and the project's own package — appear in the packages collection **unenriched by design**: `sdk.NodeIsEnrichable` excludes them from every matcher's work list because they are absent from public sources and a coincidental name match would attach someone else's advisories. They keep their PURLs and stay visible in `packages` output and generated SBOMs.
 

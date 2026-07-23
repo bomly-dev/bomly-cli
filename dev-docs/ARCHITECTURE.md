@@ -118,6 +118,20 @@ Reachability data lives on `sdk.Vulnerability.Reachability` rather than on `Find
 
 `sdk.Vulnerability` is OSV-aligned (id, aliases, summary, details, severity, affected, references, database_specific) and extended with Bomly's matching-stage fields (CVSS, EPSS, KEV, CWE, FixedVersions, AffectedSymbols, `Reachability`). The OSV matcher maps `internal/matchers/osv/response.go` directly to this shape; grype / depsdev / eol / scorecard and enabled external matchers write the equivalent records.
 
+### Decision: enrichment consolidates alias-equivalent vulnerabilities
+
+Matchers may describe the same package vulnerability under different primary
+advisory IDs, even within a single matcher database. After all selected
+matchers run, the engine consolidates vulnerability records per PURL using the
+transitive closure of `ID` and `Aliases`. The canonical record unions advisory
+IDs and evidence while retaining the highest severity and conservative
+fix/reachability state. OSV `Related` IDs never trigger consolidation because
+they may identify distinct vulnerabilities. This policy belongs at the central
+enrichment boundary so built-in and protocol-v1 external matchers receive the
+same behavior without owning global identity policy. Baseline construction
+repeats the identity normalization defensively for legacy or independently
+constructed registries.
+
 Pipeline plumbing: `engine.PipelineResult` exposes `Graph`, `Registry`, `Findings`, and `RiskScores`. The registry is built right after consolidation (`consolidation.BuildPackageRegistry`) and threaded through match/analyze/audit requests; output helpers (`BuildScanResponse`, `WriteSARIF`, `FindingsFromScan`, `PackagesFromGraph`) all accept `*sdk.PackageRegistry` and re-enrich their projections by resolving `PackageRef` and `VulnerabilityID`. See [`MODELS.md`](MODELS.md) for the full schema reference.
 
 ### Decision: finding policy-status resolution belongs inside audit

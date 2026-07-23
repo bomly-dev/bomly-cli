@@ -212,8 +212,8 @@ func (p *Package) Clone() *Package {
 
 // MergeFrom folds enrichment from src into p in place. Used by the package
 // registry to deduplicate multiple records for the same PURL. Existing typed
-// data on p wins; src contributes anything p is missing, and vulnerability
-// lists are unioned by (Source, ID).
+// data on p wins; src contributes anything p is missing, and alias-equivalent
+// vulnerability records are consolidated.
 func (p *Package) MergeFrom(src *Package) {
 	if p == nil || src == nil {
 		return
@@ -283,28 +283,7 @@ func (p *Package) mergeVulnerabilities(incoming []Vulnerability) {
 	if len(incoming) == 0 {
 		return
 	}
-	idx := make(map[string]int, len(p.Vulnerabilities))
-	for i, v := range p.Vulnerabilities {
-		idx[v.Source+"\x00"+v.ID] = i
-	}
-	for _, v := range incoming {
-		key := v.Source + "\x00" + v.ID
-		if existing, ok := idx[key]; ok {
-			dst := &p.Vulnerabilities[existing]
-			if dst.Reachability == nil && v.Reachability != nil {
-				dst.Reachability = v.Reachability.Clone()
-			}
-			if len(dst.AffectedSymbols) == 0 && len(v.AffectedSymbols) > 0 {
-				dst.AffectedSymbols = make([]AffectedSymbol, 0, len(v.AffectedSymbols))
-				for _, sym := range v.AffectedSymbols {
-					dst.AffectedSymbols = append(dst.AffectedSymbols, sym.Clone())
-				}
-			}
-			continue
-		}
-		p.Vulnerabilities = append(p.Vulnerabilities, v.Clone())
-		idx[key] = len(p.Vulnerabilities) - 1
-	}
+	p.Vulnerabilities = ConsolidateVulnerabilities(append(p.Vulnerabilities, incoming...))
 }
 
 // SetDetectionLicenses stashes detection-time license facts on dep's metadata

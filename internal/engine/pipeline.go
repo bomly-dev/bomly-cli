@@ -389,6 +389,10 @@ func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req Pipeli
 	if matchResult.Registry != nil {
 		result.Registry = matchResult.Registry
 	}
+	if matchResult.VulnerabilitiesConsolidated > 0 {
+		p.Logger.Info("pipeline: alias-equivalent vulnerabilities consolidated",
+			zap.Int("records_removed", matchResult.VulnerabilitiesConsolidated))
+	}
 	if err != nil {
 		result.MatchWarnings = PipelineWarningsFromError(err, "matcher")
 		p.Logger.Warn("pipeline: matcher enrichment error", zap.Error(err))

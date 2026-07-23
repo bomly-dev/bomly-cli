@@ -40,6 +40,39 @@ func TestResolverIsPortableAndVersionSpecific(t *testing.T) {
 	}
 }
 
+func TestNewDocumentConsolidatesAliasEquivalentVulnerabilityFindings(t *testing.T) {
+	const purl = "pkg:golang/golang.org/x/text@v0.3.5"
+	registry := sdk.NewPackageRegistry()
+	registry.Ensure(purl).Vulnerabilities = []sdk.Vulnerability{
+		{ID: "GHSA-ppp9-7jff-5vj2", Aliases: []string{"CVE-2021-38561"}, ParsedSeverity: sdk.SeverityHigh},
+		{ID: "GO-2021-0113", Aliases: []string{"CVE-2021-38561", "GHSA-ppp9-7jff-5vj2"}, ParsedSeverity: sdk.SeverityHigh},
+	}
+	findings := []sdk.Finding{
+		{
+			ID: "GHSA-ppp9-7jff-5vj2", VulnerabilityID: "GHSA-ppp9-7jff-5vj2",
+			Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", RuleID: "advisory",
+			PackageRef: purl, Severity: sdk.SeverityHigh, PolicyStatus: sdk.FindingPolicyStatusFail,
+		},
+		{
+			ID: "GO-2021-0113", VulnerabilityID: "GO-2021-0113",
+			Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", RuleID: "advisory",
+			PackageRef: purl, Severity: sdk.SeverityHigh, PolicyStatus: sdk.FindingPolicyStatusFail,
+		},
+	}
+
+	document := NewDocument(findings, registry)
+	if err := document.Validate(); err != nil {
+		t.Fatalf("generated document must validate: %v", err)
+	}
+	if len(document.Entries) != 1 {
+		t.Fatalf("baseline entries = %d, want 1: %#v", len(document.Entries), document.Entries)
+	}
+	wantIDs := []string{"CVE-2021-38561", "GHSA-ppp9-7jff-5vj2", "GO-2021-0113"}
+	if strings.Join(document.Entries[0].AdvisoryIDs, ",") != strings.Join(wantIDs, ",") {
+		t.Fatalf("advisory IDs = %#v, want %#v", document.Entries[0].AdvisoryIDs, wantIDs)
+	}
+}
+
 func TestResolverDoesNotSuppressChangedPolicyState(t *testing.T) {
 	finding := sdk.Finding{ID: "denied", Kind: sdk.FindingKindPackage, Auditor: "package", RuleID: "denied-package", PackageRef: "pkg:npm/example@1.0.0", Severity: sdk.SeverityWarning, PolicyStatus: sdk.FindingPolicyStatusWarn}
 	resolver, err := NewResolver(NewDocument([]sdk.Finding{finding}, nil))
@@ -108,7 +141,6 @@ func TestDocumentUsesFriendlyPolicyStatusField(t *testing.T) {
 	document := NewDocument([]sdk.Finding{{
 		ID: "rule", Kind: sdk.FindingKindPackage, Auditor: "package",
 		RuleID: "rule", PackageRef: "pkg:npm/example@1.0.0",
-		PolicyStatus: sdk.FindingPolicyStatusFail,
 	}}, nil)
 	data, err := json.Marshal(document)
 	if err != nil {

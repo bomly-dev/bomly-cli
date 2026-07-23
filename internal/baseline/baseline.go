@@ -74,13 +74,17 @@ func (r *Resolver) ResolveFindingPolicy(_ context.Context, finding sdk.Finding, 
 
 // EntryFromFinding constructs a portable entry from a finding and registry.
 func EntryFromFinding(finding sdk.Finding, registry *sdk.PackageRegistry) Entry {
+	policyStatus := finding.PolicyStatus
+	if policyStatus == "" {
+		policyStatus = sdk.FindingPolicyStatusFail
+	}
 	entry := Entry{
 		PackageRef:   strings.TrimSpace(finding.PackageRef),
 		Kind:         finding.Kind,
 		Auditor:      strings.TrimSpace(finding.Auditor),
 		RuleID:       stableRuleID(finding),
 		Severity:     finding.Severity,
-		PolicyStatus: finding.PolicyStatus,
+		PolicyStatus: policyStatus,
 	}
 	if finding.Kind == sdk.FindingKindVulnerability {
 		entry.AdvisoryIDs = advisoryIDs(finding, registry)
@@ -95,19 +99,14 @@ func EntryFromFinding(finding sdk.Finding, registry *sdk.PackageRegistry) Entry 
 // NewDocument constructs a deterministic document from findings.
 func NewDocument(findings []sdk.Finding, registry *sdk.PackageRegistry) Document {
 	entries := make([]Entry, 0, len(findings))
-	seen := map[string]struct{}{}
 	for _, finding := range findings {
 		entry := EntryFromFinding(finding, registry)
 		if entry.PackageRef == "" {
 			continue
 		}
-		key := entryKey(entry)
-		if _, ok := seen[key]; ok {
-			continue
-		}
-		seen[key] = struct{}{}
 		entries = append(entries, entry)
 	}
+	entries = consolidateEntries(entries)
 	sort.Slice(entries, func(i, j int) bool { return entryKey(entries[i]) < entryKey(entries[j]) })
 	return Document{SchemaVersion: SchemaVersion, Entries: entries}
 }
@@ -254,6 +253,71 @@ func documentFromMap(entries map[string]Entry) Document {
 	}
 	sort.Slice(document.Entries, func(i, j int) bool { return entryKey(document.Entries[i]) < entryKey(document.Entries[j]) })
 	return document
+}
+
+func consolidateEntries(entries []Entry) []Entry {
+	consolidated := make([]Entry, 0, len(entries))
+	for _, entry := range entries {
+		matches := make([]int, 0, 1)
+		for idx := range consolidated {
+			if entriesMatch(consolidated[idx], entry) {
+				matches = append(matches, idx)
+			}
+		}
+		if len(matches) == 0 {
+			consolidated = append(consolidated, entry)
+			continue
+		}
+
+		target := matches[0]
+		consolidated[target] = mergeEntries(consolidated[target], entry)
+		for idx := len(matches) - 1; idx > 0; idx-- {
+			merged := matches[idx]
+			consolidated[target] = mergeEntries(consolidated[target], consolidated[merged])
+			consolidated = append(consolidated[:merged], consolidated[merged+1:]...)
+		}
+	}
+	return consolidated
+}
+
+func mergeEntries(base, incoming Entry) Entry {
+	if base.Kind == sdk.FindingKindVulnerability {
+		base.AdvisoryIDs = appendUniqueAdvisoryIDs(base.AdvisoryIDs, incoming.AdvisoryIDs...)
+	}
+	if sdk.SeverityRank(incoming.Severity) > sdk.SeverityRank(base.Severity) {
+		base.Severity = incoming.Severity
+	}
+	baseRank, baseKnown := sdk.FindingPolicyStatusRank(base.PolicyStatus)
+	incomingRank, incomingKnown := sdk.FindingPolicyStatusRank(incoming.PolicyStatus)
+	if incomingKnown && (!baseKnown || incomingRank > baseRank ||
+		(incomingRank == baseRank && base.PolicyStatus == "")) {
+		base.PolicyStatus = incoming.PolicyStatus
+	}
+	if reachabilityRisk(incoming.Reachability) > reachabilityRisk(base.Reachability) {
+		base.Reachability = incoming.Reachability
+	}
+	return base
+}
+
+func appendUniqueAdvisoryIDs(existing []string, values ...string) []string {
+	seen := make(map[string]struct{}, len(existing)+len(values))
+	out := make([]string, 0, len(existing)+len(values))
+	for _, value := range append(existing, values...) {
+		value = strings.TrimSpace(value)
+		key := strings.ToLower(value)
+		if value == "" {
+			continue
+		}
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		out = append(out, value)
+	}
+	sort.Slice(out, func(i, j int) bool {
+		return strings.ToLower(out[i]) < strings.ToLower(out[j])
+	})
+	return out
 }
 
 // ResolvePath resolves a baseline selection for an execution target. The

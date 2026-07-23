@@ -112,6 +112,7 @@ func remediationFixture(t *testing.T) remediationInput {
 		{
 			ID: "license:unknown-license:lib-a@1.0.0", Kind: sdk.FindingKindLicense,
 			Severity: "n/a", Source: "license", Auditor: "license",
+			RuleID:      "unknown-license",
 			Disposition: sdk.FindingDispositionWarn,
 			PackageRef:  "pkg:npm/lib-a@1.0.0", DependencyRefs: []string{nodes[1].ID},
 		},
@@ -189,6 +190,9 @@ func TestBuildRemediationsGroupsAndActions(t *testing.T) {
 	}
 	if out.Informational[0].Classification != ClassificationPolicyOnly {
 		t.Fatalf("license finding classification = %q", out.Informational[0].Classification)
+	}
+	if out.Informational[0].RuleID != "unknown-license" {
+		t.Fatalf("license finding rule ID = %q", out.Informational[0].RuleID)
 	}
 }
 

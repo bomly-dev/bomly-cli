@@ -11,7 +11,8 @@ import (
 )
 
 func TestBaselineInspectJSON(t *testing.T) {
-	path := t.TempDir() + "/baseline.json"
+	project := t.TempDir()
+	path := project + "/.bomly/baseline.json"
 	document := baseline.NewDocument([]sdk.Finding{{ID: "rule", Kind: sdk.FindingKindPackage, Auditor: "package", RuleID: "rule", PackageRef: "pkg:npm/example@1.0.0"}}, nil)
 	if err := baseline.WriteAtomic(path, document, false); err != nil {
 		t.Fatal(err)
@@ -19,7 +20,7 @@ func TestBaselineInspectJSON(t *testing.T) {
 	cmd := newBaselineInspectCmd()
 	var stdout bytes.Buffer
 	cmd.SetOut(&stdout)
-	cmd.SetArgs([]string{path, "--json"})
+	cmd.SetArgs([]string{"--path", project, "--json"})
 	if err := cmd.Execute(); err != nil {
 		t.Fatal(err)
 	}
@@ -39,6 +40,24 @@ func TestBaselineCommandExposesLifecycleOperations(t *testing.T) {
 	for name, found := range want {
 		if !found {
 			t.Errorf("baseline command missing %q", name)
+		}
+	}
+}
+
+func TestBaselineLifecycleCommandsExposeExecutionFlags(t *testing.T) {
+	root, err := newRootCmd("test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, action := range []string{"create", "update", "prune"} {
+		cmd, _, err := root.Find([]string{"baseline", action})
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, name := range []string{"install-first", "install-arg"} {
+			if cmd.Flags().Lookup(name) == nil {
+				t.Errorf("baseline %s missing --%s", action, name)
+			}
 		}
 	}
 }

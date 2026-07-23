@@ -116,6 +116,7 @@ func buildCompactFinding(f sdk.Finding, vuln *sdk.Vulnerability, in remediationI
 		VulnID:         findingVulnID(f),
 		Kind:           string(f.Kind),
 		Severity:       string(f.Severity),
+		RuleID:         f.RuleID,
 		Disposition:    string(f.Disposition),
 		Classification: classifyFinding(f, vuln),
 		Title:          f.Title,

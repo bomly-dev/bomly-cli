@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"path/filepath"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/baseline"
@@ -30,9 +31,11 @@ func newBaselineCmd() *cobra.Command {
 }
 
 func newBaselineWriteCmd(action string) *cobra.Command {
+	description := baselineActionDescription(action)
 	return &cobra.Command{
 		Use:   action,
-		Short: baselineActionDescription(action),
+		Short: description,
+		Long:  description + ".\n\nUse --analyze when the audited CI workflow also uses reachability analysis.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			options, err := commandOptions(cmd)
@@ -114,14 +117,22 @@ func baselineMutationWarningCount(result engine.PipelineResult) int {
 
 func newBaselineInspectCmd() *cobra.Command {
 	var jsonOutput bool
+	var projectPath string
 	cmd := &cobra.Command{
-		Use:   "inspect [path]",
+		Use:   "inspect [baseline]",
 		Short: "Validate and display a finding baseline",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			path := baseline.DefaultRelativePath
+			root := "."
+			if strings.TrimSpace(projectPath) != "" {
+				root = projectPath
+			}
+			path := filepath.Join(root, filepath.FromSlash(baseline.DefaultRelativePath))
 			if len(args) == 1 {
 				path = args[0]
+				if !filepath.IsAbs(path) {
+					path = filepath.Join(root, path)
+				}
 			}
 			document, err := baseline.Load(path)
 			if err != nil {
@@ -136,6 +147,7 @@ func newBaselineInspectCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Render the baseline as JSON")
+	cmd.Flags().StringVar(&projectPath, "path", "", "Project directory used to resolve the default or a relative baseline path")
 	return cmd
 }
 

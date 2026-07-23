@@ -364,6 +364,7 @@ type AuditFinding struct {
 	Reasons         []string               `json:"reasons,omitempty"`
 	Source          string                 `json:"source"`
 	Auditor         string                 `json:"auditor,omitempty"`
+	RuleID          string                 `json:"rule_id,omitempty"`
 	Disposition     sdk.FindingDisposition `json:"disposition,omitempty"`
 	VulnerabilityID string                 `json:"vulnerability_id,omitempty"`
 	DependencyRefs  []string               `json:"dependency_refs,omitempty"`
@@ -396,6 +397,7 @@ func FindingsFromScan(findings []sdk.Finding, registry *sdk.PackageRegistry) []A
 			Reasons:         f.Reasons,
 			Source:          f.Source,
 			Auditor:         f.Auditor,
+			RuleID:          f.RuleID,
 			Disposition:     f.Disposition,
 			VulnerabilityID: f.VulnerabilityID,
 			DependencyRefs:  append([]string(nil), f.DependencyRefs...),

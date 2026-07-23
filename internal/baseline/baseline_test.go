@@ -2,11 +2,16 @@ package baseline
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 func TestResolverIsPortableAndVersionSpecific(t *testing.T) {
@@ -23,14 +28,14 @@ func TestResolverIsPortableAndVersionSpecific(t *testing.T) {
 	aliasFinding := finding
 	aliasFinding.ID = "CVE-2024-1"
 	aliasFinding.VulnerabilityID = "CVE-2024-1"
-	decision, ok := resolver.ResolveFinding(context.Background(), aliasFinding, registry)
-	if !ok || decision.Disposition != sdk.FindingDispositionSuppressed {
+	decision, ok := resolver.ResolveFindingPolicy(context.Background(), aliasFinding, registry)
+	if !ok || decision.Status != sdk.FindingDispositionSuppressed {
 		t.Fatalf("portable alias finding was not suppressed: %#v, %v", decision, ok)
 	}
 
 	otherVersion := aliasFinding
 	otherVersion.PackageRef = "pkg:npm/lodash@4.17.21"
-	if _, ok := resolver.ResolveFinding(context.Background(), otherVersion, registry); ok {
+	if _, ok := resolver.ResolveFindingPolicy(context.Background(), otherVersion, registry); ok {
 		t.Fatal("baseline must not cross package versions")
 	}
 }
@@ -44,7 +49,7 @@ func TestResolverDoesNotSuppressChangedPolicyState(t *testing.T) {
 	escalated := finding
 	escalated.Severity = sdk.SeverityError
 	escalated.Disposition = sdk.FindingDispositionFail
-	if _, ok := resolver.ResolveFinding(context.Background(), escalated, nil); ok {
+	if _, ok := resolver.ResolveFindingPolicy(context.Background(), escalated, nil); ok {
 		t.Fatal("changed severity/disposition must require explicit baseline update")
 	}
 }
@@ -67,6 +72,9 @@ func TestWriteAtomicLoadAndRejectSymlink(t *testing.T) {
 	if err := WriteAtomic(link, document, true); err == nil {
 		t.Fatal("expected symbolic-link destination to be rejected")
 	}
+	if err := WriteAtomic(path, document, false); err == nil {
+		t.Fatal("expected overwrite without replace permission to be rejected")
+	}
 }
 
 func TestUpdateAndPrune(t *testing.T) {
@@ -80,5 +88,104 @@ func TestUpdateAndPrune(t *testing.T) {
 	pruned := Prune(updated, []sdk.Finding{current}, nil)
 	if len(pruned.Entries) != 1 || pruned.Entries[0].RuleID != "current" {
 		t.Fatalf("pruned baseline = %#v", pruned)
+	}
+}
+
+func TestStateCompatibleAllowsSaferReachability(t *testing.T) {
+	expected := Entry{Reachability: sdk.ReachabilityUnknown}
+	if !stateCompatible(expected, Entry{Reachability: sdk.ReachabilityUnreachable}) {
+		t.Fatal("unknown to unreachable should remain accepted")
+	}
+	if stateCompatible(expected, Entry{Reachability: sdk.ReachabilityReachable}) {
+		t.Fatal("unknown to reachable must require explicit acceptance")
+	}
+	if stateCompatible(Entry{Reachability: sdk.ReachabilityUnreachable}, Entry{Reachability: sdk.ReachabilityUnknown}) {
+		t.Fatal("unreachable to unknown must require explicit acceptance")
+	}
+}
+
+func TestDocumentUsesFriendlyPolicyStatusField(t *testing.T) {
+	document := NewDocument([]sdk.Finding{{
+		ID: "rule", Kind: sdk.FindingKindPackage, Auditor: "package",
+		RuleID: "rule", PackageRef: "pkg:npm/example@1.0.0",
+		Disposition: sdk.FindingDispositionFail,
+	}}, nil)
+	data, err := json.Marshal(document)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(data), `"policy_status":"fail"`) || strings.Contains(string(data), `"disposition"`) {
+		t.Fatalf("baseline JSON = %s", data)
+	}
+}
+
+func TestResolvePathSelections(t *testing.T) {
+	root := t.TempDir()
+	sbomPath := filepath.Join(root, "bom.json")
+	if err := os.WriteFile(sbomPath, []byte("{}"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	filesystem := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: root}
+	path, required, ok, err := ResolvePath("auto", filesystem)
+	if err != nil || required || !ok || path != filepath.Join(root, ".bomly", "baseline.json") {
+		t.Fatalf("auto path = %q, required=%v, ok=%v, err=%v", path, required, ok, err)
+	}
+	if _, _, ok, err := ResolvePath("none", filesystem); err != nil || ok {
+		t.Fatalf("none selection: ok=%v, err=%v", ok, err)
+	}
+	path, required, ok, err = ResolvePath("policy/accepted.json", filesystem)
+	if err != nil || !required || !ok || path != filepath.Join(root, "policy", "accepted.json") {
+		t.Fatalf("relative path = %q, required=%v, ok=%v, err=%v", path, required, ok, err)
+	}
+	path, _, _, err = ResolvePath("auto", sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: sbomPath})
+	if err != nil || path != filepath.Join(root, ".bomly", "baseline.json") {
+		t.Fatalf("SBOM-adjacent path = %q, err=%v", path, err)
+	}
+	if _, _, ok, err := ResolvePath("auto", sdk.ExecutionTarget{Kind: sdk.ExecutionTargetContainerImage, Location: "alpine:3"}); err != nil || ok {
+		t.Fatalf("container auto selection: ok=%v, err=%v", ok, err)
+	}
+	if _, _, _, err := ResolvePath("relative.json", sdk.ExecutionTarget{Kind: sdk.ExecutionTargetContainerImage, Location: "alpine:3"}); err == nil {
+		t.Fatal("relative container baseline should be rejected")
+	}
+}
+
+func TestResolversForTargetHandlesOptionalRequiredAndURLPolicies(t *testing.T) {
+	root := t.TempDir()
+	core, observed := observer.New(zap.DebugLevel)
+	logger := zap.New(core)
+	target := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: root}
+	resolvers, err := ResolversForTarget("auto", target, logger)
+	if err != nil || len(resolvers) != 0 {
+		t.Fatalf("optional missing baseline = %d resolvers, %v", len(resolvers), err)
+	}
+	if observed.FilterMessage("baseline: no project policy found").Len() != 1 {
+		t.Fatalf("missing baseline debug logs = %#v", observed.All())
+	}
+	if _, err := ResolversForTarget("required.json", target, logger); err == nil || !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("explicit missing baseline error = %v", err)
+	}
+
+	path := filepath.Join(root, ".bomly", "baseline.json")
+	document := NewDocument([]sdk.Finding{{
+		ID: "rule", Kind: sdk.FindingKindPackage, Auditor: "package",
+		RuleID: "rule", PackageRef: "pkg:npm/example@1.0.0",
+	}}, nil)
+	if err := WriteAtomic(path, document, false); err != nil {
+		t.Fatal(err)
+	}
+	urlTarget := sdk.ExecutionTarget{
+		Kind: sdk.ExecutionTargetGitRepository, Location: root,
+		RepositoryURL: "https://example.test/untrusted.git",
+	}
+	resolvers, err = ResolversForTarget("auto", urlTarget, logger)
+	if err != nil || len(resolvers) != 0 {
+		t.Fatalf("URL auto baseline = %d resolvers, %v", len(resolvers), err)
+	}
+	resolvers, err = ResolversForTarget(path, urlTarget, logger)
+	if err != nil || len(resolvers) != 1 {
+		t.Fatalf("explicit URL baseline = %d resolvers, %v", len(resolvers), err)
+	}
+	if observed.FilterMessage("baseline: project policy loaded").Len() != 1 {
+		t.Fatalf("loaded baseline info logs = %#v", observed.All())
 	}
 }

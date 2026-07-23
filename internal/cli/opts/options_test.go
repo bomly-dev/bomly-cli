@@ -11,6 +11,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
 
@@ -70,6 +71,31 @@ func TestCommandContextResolveExecutionTarget_RejectsMultipleTargets(t *testing.
 	}
 	if !strings.Contains(err.Error(), "--path, --url, and --image cannot be used together") {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestPrepareForExecutionTargetLoadsBaselineOnlyForAudit(t *testing.T) {
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "package.json"), []byte("{\"name\":\"demo\",\"version\":\"1.0.0\"}\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(root, ".bomly"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, ".bomly", "baseline.json"), []byte("{invalid"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg := config.Resolved{Baseline: "auto", Detectors: "npm"}
+	config.ApplyDefaults(&cfg)
+	options := Options{ResolvedConfig: cfg}
+	target := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: root}
+	if _, err := options.PrepareForExecutionTarget(context.Background(), zap.NewNop(), target, nil); err != nil {
+		t.Fatalf("non-audit preparation loaded baseline: %v", err)
+	}
+	cfg.Audit = true
+	options.ResolvedConfig = cfg
+	if _, err := options.PrepareForExecutionTarget(context.Background(), zap.NewNop(), target, nil); err == nil {
+		t.Fatal("audit preparation should reject malformed automatic baseline")
 	}
 }
 

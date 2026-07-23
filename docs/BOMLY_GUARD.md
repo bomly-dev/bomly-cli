@@ -53,7 +53,7 @@ Because the engine is the same `bomly diff` you run locally, the policy you enfo
 
 When a repository commits `.bomly/baseline.json`, each side of the underlying
 diff automatically uses the baseline from that Git tree. Matching findings stay
-in Guard's normal output with disposition `suppressed` but do not fail the job.
+in Guard's normal output with policy status `suppressed` but do not fail the job.
 See [Finding Baselines](BASELINES.md).
 
 ## Package Manager Setup

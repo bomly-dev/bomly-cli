@@ -65,7 +65,7 @@ func (p *Pipeline) RunAuditGraph(ctx context.Context, graph *sdk.Graph, registry
 }
 
 // runAuditStage evaluates policy for graph, applying finding deduplication,
-// warn-only disposition rewriting, stage progress, and Info-level
+// warn-only policy-status rewriting, stage progress, and Info-level
 // start/completion logging. Shared by RunAuditGraph (explain's component
 // audit path) and runAudit (the full-scan audit stage) so the two callers
 // cannot drift out of sync.
@@ -77,14 +77,7 @@ func (p *Pipeline) runAuditStage(ctx context.Context, graph *sdk.Graph, registry
 	p.Logger.Info("pipeline: policy evaluation started", zap.Int("packages", graph.Size()))
 	auditResult, auditWarnings := p.audit(ctx, graph, registry, req)
 	auditResult.Findings = DeduplicateFindings(auditResult.Findings)
-	if req.WarnOnly {
-		for idx := range auditResult.Findings {
-			if auditResult.Findings[idx].Disposition == "" || auditResult.Findings[idx].Disposition == sdk.FindingDispositionFail {
-				auditResult.Findings[idx].Disposition = sdk.FindingDispositionWarn
-			}
-		}
-	}
-	auditResult.Findings = resolveFindingDispositions(ctx, auditResult.Findings, registry, req.FindingDispositionResolvers)
+	auditResult.Findings = applyFindingPolicy(ctx, auditResult.Findings, registry, req)
 	p.Logger.Info("pipeline: policy evaluation completed",
 		zap.Strings("auditor_runs", auditResult.AuditorRuns),
 		zap.Int("findings", len(auditResult.Findings)),
@@ -96,6 +89,17 @@ func (p *Pipeline) runAuditStage(ctx context.Context, graph *sdk.Graph, registry
 		req.Progress.CompleteStage("Evaluating policy", 1)
 	}
 	return auditResult, auditWarnings
+}
+
+func applyFindingPolicy(ctx context.Context, findings []sdk.Finding, registry *sdk.PackageRegistry, req PipelineRequest) []sdk.Finding {
+	if req.WarnOnly {
+		for idx := range findings {
+			if findings[idx].Disposition == "" || findings[idx].Disposition == sdk.FindingDispositionFail {
+				findings[idx].Disposition = sdk.FindingDispositionWarn
+			}
+		}
+	}
+	return resolveFindingPolicyStatuses(ctx, findings, registry, req.FindingPolicyResolvers)
 }
 
 func suppressedFindingCount(findings []sdk.Finding) int {
@@ -406,14 +410,7 @@ func (p *Pipeline) auditComponent(ctx context.Context, g *sdk.Graph, registry *s
 	}
 	result, err := p.engine.Audit(ctx, auditReq)
 	result.Findings = DeduplicateFindings(result.Findings)
-	if req.WarnOnly {
-		for idx := range result.Findings {
-			if result.Findings[idx].Disposition == "" || result.Findings[idx].Disposition == sdk.FindingDispositionFail {
-				result.Findings[idx].Disposition = sdk.FindingDispositionWarn
-			}
-		}
-	}
-	result.Findings = resolveFindingDispositions(ctx, result.Findings, registry, req.FindingDispositionResolvers)
+	result.Findings = applyFindingPolicy(ctx, result.Findings, registry, req)
 	var warnings []PipelineWarning
 	if err != nil {
 		warnings = PipelineWarningsFromError(err, "auditor")

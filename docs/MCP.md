@@ -117,7 +117,7 @@ MCP tool results land in an agent's context window, so they use a compact respon
 
 - **`summary`** — manifest/package counts, `subprojects` and `modules` counts for scans that span nested projects or workspace/reactor members (omitted for flat scans), vulnerable vs clean packages, findings by severity, and whether enrich/audit ran. Clean packages are counted, never listed. The full hierarchy is derived from `manifests[].subproject` + `path` in the complete CLI JSON document.
 - **`remediations`** — ranked groups, each one concrete change and every finding it closes: the direct dependency to change (`target_package`, full identity with org/scope and PURL), the manifest to edit, the version to move to, and an `action` (`direct-bump`, `transitive-override`, `lockfile-refresh`, `no-fix-upstream`, `policy-review`). Transitive cases carry package-manager-specific `override_advice` (npm `overrides`, pnpm `pnpm.overrides` / `pnpm-workspace.yaml`, yarn `resolutions`, Maven `dependencyManagement`, Gradle constraints, `go get` + `go mod tidy`, and so on). Groups are ranked by known-exploited (KEV) first, then severity, EPSS, and fixability.
-- **`informational`** — warn-disposition and policy-only findings, separated from actionable work.
+- **`informational`** — warning and policy-only findings, separated from actionable work.
 - **`diagnostics`** — pipeline warnings (detector fallbacks, matcher failures) so partial results explain themselves.
 - **`truncation`** — explicit counters whenever a cap cut anything; nothing is dropped silently.
 

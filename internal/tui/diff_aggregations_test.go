@@ -564,8 +564,8 @@ func TestAuditVerdict_DispositionGate(t *testing.T) {
 	}
 }
 
-// When introduced findings exist but ALL are warn-only, the verdict is
-// PASS, but the renderer surfaces a "warn-only" badge so the user knows
+// When introduced findings exist but all are warnings, the verdict is
+// PASS, but the renderer surfaces a non-gating badge so the user knows
 // findings were detected even though the exit code is clean.
 func TestAuditVerdict_WarnOnlyIntroducedYieldsPassWithCount(t *testing.T) {
 	m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{
@@ -587,6 +587,25 @@ func TestAuditVerdict_WarnOnlyIntroducedYieldsPassWithCount(t *testing.T) {
 	}
 	if v.WarnIntroduced != 2 {
 		t.Errorf("WarnIntroduced = %d, want 2", v.WarnIntroduced)
+	}
+}
+
+func TestAuditVerdict_SuppressedIntroducedIsCountedAsAccepted(t *testing.T) {
+	m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{
+		Introduced: []output.AuditFinding{{
+			ID:          "S-1",
+			Kind:        sdk.FindingKindVulnerability,
+			Disposition: sdk.FindingDispositionSuppressed,
+		}},
+		AuditSummary: &output.AuditSummary{Total: 1},
+	}}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	v := m.auditVerdict()
+	if v.Verdict() != "PASS" || v.SuppressedIntroduced != 1 || v.SuppressedIntroducedVuln != 1 {
+		t.Fatalf("suppressed verdict = %#v", v)
+	}
+	plain := render.StripANSI(strings.Join(m.findingsOutcomePanels()[0].lines, "\n"))
+	if !strings.Contains(plain, "1 accepted") || strings.Contains(plain, "all Disposition=warn") {
+		t.Fatalf("suppressed outcome copy = %q", plain)
 	}
 }
 
@@ -951,8 +970,8 @@ func TestOverviewHeadline_WarnOnlyIntroducedIsPassWithCount(t *testing.T) {
 	}}
 	m := NewDiff(p, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
 	plain := render.StripANSI(m.overviewHeadline(200))
-	if !strings.Contains(plain, "Audit PASS (2 warn-only, exit 0)") {
-		t.Errorf("warn-only headline expected 'Audit PASS (2 warn-only, exit 0)', got: %q", plain)
+	if !strings.Contains(plain, "Audit PASS (2 non-gating, exit 0)") {
+		t.Errorf("non-gating headline expected 'Audit PASS (2 non-gating, exit 0)', got: %q", plain)
 	}
 }
 

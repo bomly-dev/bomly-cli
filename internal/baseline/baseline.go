@@ -2,6 +2,7 @@
 package baseline
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -12,8 +13,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/sdk"
+	"go.uber.org/zap"
 )
 
 const (
@@ -37,7 +38,7 @@ type Entry struct {
 	RuleID       string                 `json:"rule_id,omitempty"`
 	AdvisoryIDs  []string               `json:"advisory_ids,omitempty"`
 	Severity     sdk.SeverityLevel      `json:"severity,omitempty"`
-	Disposition  sdk.FindingDisposition `json:"disposition,omitempty"`
+	PolicyStatus sdk.FindingDisposition `json:"policy_status,omitempty"`
 	Reachability sdk.ReachabilityStatus `json:"reachability,omitempty"`
 }
 
@@ -52,26 +53,26 @@ func NewResolver(document Document) (*Resolver, error) {
 	return &Resolver{document: document}, nil
 }
 
-// ResolveFinding suppresses a finding when a compatible package entry exists.
-func (r *Resolver) ResolveFinding(_ context.Context, finding sdk.Finding, registry *sdk.PackageRegistry) (engine.FindingDispositionDecision, bool) {
+// ResolveFindingPolicy accepts a finding when a compatible package entry exists.
+func (r *Resolver) ResolveFindingPolicy(_ context.Context, finding sdk.Finding, registry *sdk.PackageRegistry) (sdk.FindingPolicyDecision, bool) {
 	candidate := EntryFromFinding(finding, registry)
 	for _, entry := range r.document.Entries {
 		if entriesMatch(entry, candidate) && stateCompatible(entry, candidate) {
-			return engine.FindingDispositionDecision{Disposition: sdk.FindingDispositionSuppressed, Source: "baseline", Reason: "matched package finding baseline"}, true
+			return sdk.FindingPolicyDecision{Status: sdk.FindingDispositionSuppressed, Source: "baseline", Reason: "matched package finding baseline"}, true
 		}
 	}
-	return engine.FindingDispositionDecision{}, false
+	return sdk.FindingPolicyDecision{}, false
 }
 
 // EntryFromFinding constructs a portable entry from a finding and registry.
 func EntryFromFinding(finding sdk.Finding, registry *sdk.PackageRegistry) Entry {
 	entry := Entry{
-		PackageRef:  strings.TrimSpace(finding.PackageRef),
-		Kind:        finding.Kind,
-		Auditor:     strings.TrimSpace(finding.Auditor),
-		RuleID:      stableRuleID(finding),
-		Severity:    finding.Severity,
-		Disposition: finding.Disposition,
+		PackageRef:   strings.TrimSpace(finding.PackageRef),
+		Kind:         finding.Kind,
+		Auditor:      strings.TrimSpace(finding.Auditor),
+		RuleID:       stableRuleID(finding),
+		Severity:     finding.Severity,
+		PolicyStatus: finding.Disposition,
 	}
 	if finding.Kind == sdk.FindingKindVulnerability {
 		entry.AdvisoryIDs = advisoryIDs(finding, registry)
@@ -113,10 +114,10 @@ func (d Document) Validate() error {
 		if !strings.HasPrefix(strings.TrimSpace(entry.PackageRef), "pkg:") || entry.Kind == "" || strings.TrimSpace(entry.Auditor) == "" {
 			return fmt.Errorf("baseline entry %d is missing package_ref, kind, or auditor", idx)
 		}
-		switch entry.Disposition {
+		switch entry.PolicyStatus {
 		case "", sdk.FindingDispositionFail, sdk.FindingDispositionWarn, sdk.FindingDispositionSuppressed:
 		default:
-			return fmt.Errorf("baseline entry %d has unsupported disposition %q", idx, entry.Disposition)
+			return fmt.Errorf("baseline entry %d has unsupported policy_status %q", idx, entry.PolicyStatus)
 		}
 		if entry.Severity != "" && sdk.ParseSeverityLevel(string(entry.Severity)) != entry.Severity {
 			return fmt.Errorf("baseline entry %d has unsupported severity %q", idx, entry.Severity)
@@ -153,7 +154,7 @@ func Load(path string) (Document, error) {
 		return Document{}, fmt.Errorf("read baseline %q: %w", path, err)
 	}
 	var document Document
-	decoder := json.NewDecoder(strings.NewReader(string(data)))
+	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&document); err != nil {
 		return Document{}, fmt.Errorf("parse baseline %q: %w", path, err)
@@ -169,7 +170,15 @@ func Load(path string) (Document, error) {
 }
 
 // ResolversForTarget discovers or loads the selected baseline for target.
-func ResolversForTarget(selection string, target sdk.ExecutionTarget) ([]engine.FindingDispositionResolver, error) {
+func ResolversForTarget(selection string, target sdk.ExecutionTarget, logger *zap.Logger) ([]sdk.FindingPolicyResolver, error) {
+	if logger == nil {
+		logger = zap.NewNop()
+	}
+	if (strings.TrimSpace(selection) == "" || strings.EqualFold(strings.TrimSpace(selection), "auto")) &&
+		target.Kind == sdk.ExecutionTargetGitRepository && strings.TrimSpace(target.RepositoryURL) != "" {
+		logger.Debug("baseline: automatic project policy ignored for URL target")
+		return nil, nil
+	}
 	path, required, ok, err := ResolvePath(selection, target)
 	if err != nil || !ok {
 		return nil, err
@@ -177,6 +186,7 @@ func ResolversForTarget(selection string, target sdk.ExecutionTarget) ([]engine.
 	document, err := Load(path)
 	if err != nil {
 		if !required && errors.Is(err, os.ErrNotExist) {
+			logger.Debug("baseline: no project policy found", zap.String("path", path))
 			return nil, nil
 		}
 		return nil, err
@@ -185,7 +195,10 @@ func ResolversForTarget(selection string, target sdk.ExecutionTarget) ([]engine.
 	if err != nil {
 		return nil, err
 	}
-	return []engine.FindingDispositionResolver{resolver}, nil
+	logger.Info("baseline: project policy loaded",
+		zap.String("path", path),
+		zap.Int("entries", len(document.Entries)))
+	return []sdk.FindingPolicyResolver{resolver}, nil
 }
 
 // Update returns a document that accepts all current entries while retaining
@@ -333,22 +346,26 @@ func stateCompatible(expected, actual Entry) bool {
 	if expected.Severity != "" && sdk.SeverityRank(actual.Severity) > sdk.SeverityRank(expected.Severity) {
 		return false
 	}
-	if expected.Disposition != "" && expected.Disposition != sdk.FindingDispositionSuppressed && dispositionRank(actual.Disposition) > dispositionRank(expected.Disposition) {
-		return false
+	if expected.PolicyStatus != "" && expected.PolicyStatus != sdk.FindingDispositionSuppressed {
+		actualRank, actualKnown := sdk.FindingPolicyStatusRank(actual.PolicyStatus)
+		expectedRank, expectedKnown := sdk.FindingPolicyStatusRank(expected.PolicyStatus)
+		if !actualKnown || !expectedKnown || actualRank > expectedRank {
+			return false
+		}
 	}
-	return expected.Reachability == "" || expected.Reachability == actual.Reachability
+	return expected.Reachability == "" || reachabilityRisk(actual.Reachability) <= reachabilityRisk(expected.Reachability)
 }
 
-func dispositionRank(disposition sdk.FindingDisposition) int {
-	switch disposition {
-	case sdk.FindingDispositionSuppressed:
-		return 0
-	case sdk.FindingDispositionWarn:
+func reachabilityRisk(status sdk.ReachabilityStatus) int {
+	switch status {
+	case sdk.ReachabilityUnreachable:
 		return 1
-	case "", sdk.FindingDispositionFail:
+	case "", sdk.ReachabilityUnknown:
 		return 2
+	case sdk.ReachabilityReachable:
+		return 3
 	default:
-		return 2
+		return 4
 	}
 }
 

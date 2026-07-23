@@ -281,8 +281,8 @@ func TestPipeline_DoesNotEnableDetectorEnrichmentForAuditOnly(t *testing.T) {
 			Ecosystem:               EcosystemNPM,
 		}},
 		AuditEnabled: true,
-		FindingDispositionResolvers: []FindingDispositionResolver{
-			fixedDispositionResolver{disposition: sdk.FindingDispositionSuppressed},
+		FindingPolicyResolvers: []sdk.FindingPolicyResolver{
+			fixedPolicyResolver{status: sdk.FindingDispositionSuppressed},
 		},
 	})
 	if err != nil {
@@ -565,8 +565,8 @@ func TestPipeline_Run_DeduplicatesAuditFindings(t *testing.T) {
 			Ecosystem:               EcosystemNPM,
 		}},
 		AuditEnabled: true,
-		FindingDispositionResolvers: []FindingDispositionResolver{
-			fixedDispositionResolver{disposition: sdk.FindingDispositionSuppressed},
+		FindingPolicyResolvers: []sdk.FindingPolicyResolver{
+			fixedPolicyResolver{status: sdk.FindingDispositionSuppressed},
 		},
 	})
 	if err != nil {
@@ -618,7 +618,8 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 		},
 	})
 
-	result, err := NewPipeline(registry, zap.NewNop()).RunExplain(context.Background(), ExplainRequest{
+	pipeline := NewPipeline(registry, zap.NewNop())
+	request := ExplainRequest{
 		Query: "dep",
 		Pipeline: PipelineRequest{
 			Subprojects: []Subproject{{
@@ -630,11 +631,12 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 			}},
 			EnrichEnabled: true,
 			AuditEnabled:  true,
-			FindingDispositionResolvers: []FindingDispositionResolver{
-				fixedDispositionResolver{disposition: sdk.FindingDispositionSuppressed},
+			FindingPolicyResolvers: []sdk.FindingPolicyResolver{
+				fixedPolicyResolver{status: sdk.FindingDispositionSuppressed},
 			},
 		},
-	})
+	}
+	result, err := pipeline.RunExplain(context.Background(), request)
 	if err != nil {
 		t.Fatalf("RunExplain() error = %v", err)
 	}
@@ -656,6 +658,16 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 	}
 	if result.FocusedGraph == nil || result.FocusedGraph.Size() != 2 {
 		t.Fatalf("expected focused graph with path packages, got %#v", result.FocusedGraph)
+	}
+
+	request.Pipeline.FindingPolicyResolvers = nil
+	request.Pipeline.WarnOnly = true
+	warnOnly, err := pipeline.RunExplain(context.Background(), request)
+	if err != nil {
+		t.Fatalf("RunExplain(warn-only) error = %v", err)
+	}
+	if len(warnOnly.Findings) != 1 || warnOnly.Findings[0].Disposition != sdk.FindingDispositionWarn {
+		t.Fatalf("explain warn-only findings = %#v", warnOnly.Findings)
 	}
 }
 

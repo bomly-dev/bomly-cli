@@ -124,6 +124,7 @@ func newRootCmd(version string) (*cobra.Command, error) {
 			opts.FlagGroupTarget,
 			opts.FlagGroupAnalysis,
 			opts.FlagGroupSelectors,
+			opts.FlagGroupExecution,
 		); err != nil {
 			return nil, err
 		}

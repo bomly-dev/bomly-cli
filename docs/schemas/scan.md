@@ -39,6 +39,7 @@ Complete reference for the `bomly scan` JSON output.
 | `reasons` | Array<`string`> | |
 | `source` | `string` | |
 | `auditor` | `string` | |
+| `rule_id` | `string` | |
 | `disposition` | `string` | |
 | `vulnerability_id` | `string` | |
 | `dependency_refs` | Array<`string`> | |

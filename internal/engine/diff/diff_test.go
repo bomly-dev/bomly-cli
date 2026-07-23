@@ -58,7 +58,7 @@ func TestRun_AppliesEachSidesAuditDispositionResolvers(t *testing.T) {
 		react.ID: {{ID: "CVE-ADDED", Kind: sdk.FindingKindVulnerability, Source: "osv", Disposition: sdk.FindingDispositionFail}},
 	})
 	headRequest := diffTestRequest()
-	headRequest.FindingDispositionResolvers = []engine.FindingDispositionResolver{diffDispositionResolver{}}
+	headRequest.FindingPolicyResolvers = []sdk.FindingPolicyResolver{diffPolicyResolver{}}
 	result, err := Run(context.Background(), Request{
 		Base: Target{Pipeline: base, Request: diffTestRequest()},
 		Head: Target{Pipeline: head, Request: headRequest},
@@ -71,10 +71,10 @@ func TestRun_AppliesEachSidesAuditDispositionResolvers(t *testing.T) {
 	}
 }
 
-type diffDispositionResolver struct{}
+type diffPolicyResolver struct{}
 
-func (diffDispositionResolver) ResolveFinding(context.Context, sdk.Finding, *sdk.PackageRegistry) (engine.FindingDispositionDecision, bool) {
-	return engine.FindingDispositionDecision{Disposition: sdk.FindingDispositionSuppressed, Source: "test"}, true
+func (diffPolicyResolver) ResolveFindingPolicy(context.Context, sdk.Finding, *sdk.PackageRegistry) (sdk.FindingPolicyDecision, bool) {
+	return sdk.FindingPolicyDecision{Status: sdk.FindingDispositionSuppressed, Source: "test"}, true
 }
 
 func TestRun_ReportsRemovedPackageFindingAsResolved(t *testing.T) {

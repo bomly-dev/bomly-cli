@@ -197,7 +197,7 @@ type Finding struct {
     Source      string             // osv | grype | license | package | ...
     Auditor     string             // which auditor emitted it
     RuleID      string             // stable auditor rule, independent of project occurrence
-    Disposition FindingDisposition // fail | warn | suppressed
+    Disposition FindingDisposition // fail | warn | suppressed; empty defaults to fail
 
     // References (the whole point of "reference-style")
     PackageRef      string         // PURL → resolve via registry.Get
@@ -208,6 +208,11 @@ type Finding struct {
     VexStatus, VEXJustification string
 }
 ```
+
+`Disposition` is the established SDK and structured-output field name. User
+interfaces describe it as the finding's **policy status**: fail, warning, or
+accepted (`suppressed`). An omitted machine value retains the historical
+failing behavior.
 
 Findings carry **no** CVSS/EPSS/KEV/CWE/fix-state/reachability fields. Consumers (JSON output, SARIF, render, TUI) resolve those by following `PackageRef` and `VulnerabilityID` into the registry. This eliminates the ~25-field duplication the old `Finding` shape had.
 

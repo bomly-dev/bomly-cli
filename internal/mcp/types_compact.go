@@ -68,6 +68,7 @@ type CompactFinding struct {
 	Kind           string          `json:"kind"`
 	Aliases        []string        `json:"aliases,omitempty"`
 	Severity       string          `json:"severity,omitempty"`
+	RuleID         string          `json:"rule_id,omitempty"`
 	Disposition    string          `json:"disposition,omitempty"`
 	Classification string          `json:"classification"`
 	Package        PackageIdentity `json:"package"`

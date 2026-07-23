@@ -65,14 +65,20 @@ type sarifRuleProperties struct {
 }
 
 type sarifResult struct {
-	RuleID              string            `json:"ruleId"`
-	Level               string            `json:"level"`
-	Message             sarifMessage      `json:"message"`
-	Locations           []sarifLocation   `json:"locations"`
-	BaselineState       string            `json:"baselineState,omitempty"`
-	PartialFingerprints map[string]string `json:"partialFingerprints,omitempty"`
-	CodeFlows           []sarifCodeFlow   `json:"codeFlows,omitempty"`
-	Properties          *sarifProperties  `json:"properties,omitempty"`
+	RuleID              string             `json:"ruleId"`
+	Level               string             `json:"level"`
+	Message             sarifMessage       `json:"message"`
+	Locations           []sarifLocation    `json:"locations"`
+	BaselineState       string             `json:"baselineState,omitempty"`
+	PartialFingerprints map[string]string  `json:"partialFingerprints,omitempty"`
+	CodeFlows           []sarifCodeFlow    `json:"codeFlows,omitempty"`
+	Properties          *sarifProperties   `json:"properties,omitempty"`
+	Suppressions        []sarifSuppression `json:"suppressions,omitempty"`
+}
+
+type sarifSuppression struct {
+	Kind          string `json:"kind"`
+	Justification string `json:"justification"`
 }
 
 type sarifLocation struct {
@@ -125,6 +131,7 @@ type sarifThreadFlowLocation struct {
 // these fields give consumers everything needed to triage a finding
 // without parsing the parallel JSON output.
 type sarifProperties struct {
+	RuleID                 string               `json:"rule_id,omitempty"`
 	PackageRef             string               `json:"package_ref,omitempty"`
 	DependencyRefs         []string             `json:"dependency_refs,omitempty"`
 	LocationURIs           []string             `json:"location_uris,omitempty"`
@@ -223,6 +230,12 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 			BaselineState:       sarifBaselineState(options),
 			PartialFingerprints: sarifPartialFingerprints(f, locationURIs, locations),
 		}
+		if f.Disposition == sdk.FindingDispositionSuppressed {
+			result.Suppressions = []sarifSuppression{{
+				Kind:          "external",
+				Justification: "Accepted by the project finding baseline",
+			}}
+		}
 		props := sarifPropertiesFromFinding(f, locationURIs)
 		if vuln != nil {
 			props = mergeSARIFProperties(props, sarifPropertiesFromVulnerability(vuln, includeReachability))
@@ -260,7 +273,8 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 }
 
 func sarifPropertiesEmpty(props sarifProperties) bool {
-	return props.PackageRef == "" &&
+	return props.RuleID == "" &&
+		props.PackageRef == "" &&
 		len(props.DependencyRefs) == 0 &&
 		len(props.LocationURIs) == 0 &&
 		props.FixedIn == "" &&
@@ -615,6 +629,7 @@ func firstNonEmpty(values ...string) string {
 
 func sarifPropertiesFromFinding(f sdk.Finding, locationURIs []string) sarifProperties {
 	return sarifProperties{
+		RuleID:         f.RuleID,
 		PackageRef:     f.PackageRef,
 		DependencyRefs: append([]string(nil), f.DependencyRefs...),
 		LocationURIs:   append([]string(nil), locationURIs...),

@@ -85,6 +85,9 @@
                 },
                 "type": "array"
               },
+              "rule_id": {
+                "type": "string"
+              },
               "severity": {
                 "type": "string"
               },
@@ -160,6 +163,9 @@
                 },
                 "type": "array"
               },
+              "rule_id": {
+                "type": "string"
+              },
               "severity": {
                 "type": "string"
               },
@@ -234,6 +240,9 @@
                   "type": "string"
                 },
                 "type": "array"
+              },
+              "rule_id": {
+                "type": "string"
               },
               "severity": {
                 "type": "string"

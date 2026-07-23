@@ -61,7 +61,7 @@ jobs:
         # matrices in sync when adding smoke tests.
         slice:
           - name: go
-            run: 'TestScan$/scan-go$|TestDiff/diff-go|TestExplain/explain-go|TestAuditScan/(scan-go-enrich|scan-go-audit)|TestAuditDiffAndExplain/(diff-go-audit|explain-go-enrich)|TestLiteScan/lite-scan-go|TestLiteDiff/lite-diff-go|TestLiteExplain/lite-explain-go'
+            run: 'TestScan$/scan-go$|TestDiff/diff-go|TestExplain/explain-go|TestAuditScan/(scan-go-enrich|scan-go-audit)|TestAuditDiffAndExplain/(diff-go-audit|explain-go-enrich)|TestFindingBaselineWorkflow|TestLiteScan/lite-scan-go|TestLiteDiff/lite-diff-go|TestLiteExplain/lite-explain-go'
           - name: go-reachability
             run: 'TestScan$/scan-go-reachability'
           - name: node

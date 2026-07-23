@@ -86,6 +86,9 @@
             },
             "type": "array"
           },
+          "rule_id": {
+            "type": "string"
+          },
           "severity": {
             "type": "string"
           },

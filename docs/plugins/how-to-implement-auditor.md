@@ -178,7 +178,7 @@ bomly scan --path ./my-project --audit --auditors +bomly.examples.auditor.meme-d
 
 - Read `req.Graph` and `req.Registry`; emit reference-style findings.
 - Return `AuditorRuns` with the auditor ID.
-- Use actionable finding summaries and dispositions.
+- Use actionable finding summaries and clear policy statuses.
 - Avoid external network calls unless the plugin explicitly documents them.
 - Wrap errors with useful context and avoid panics.
 - Do not log secrets, tokens, or credentials.

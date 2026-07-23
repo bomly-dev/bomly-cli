@@ -151,6 +151,29 @@ func TestDispositionToSARIFLevel(t *testing.T) {
 	}
 }
 
+func TestWriteSARIFMarksAcceptedFindingAsSuppressed(t *testing.T) {
+	findings := []sdk.Finding{{
+		ID: "package:denied:example", RuleID: "denied-package",
+		Kind: sdk.FindingKindPackage, PackageRef: "pkg:npm/example@1.0.0",
+		Title: "Denied package", Disposition: sdk.FindingDispositionSuppressed,
+	}}
+	var buf bytes.Buffer
+	if err := WriteSARIF(&buf, findings, nil, "bomly", "test"); err != nil {
+		t.Fatal(err)
+	}
+	var doc sarifLog
+	if err := json.Unmarshal(buf.Bytes(), &doc); err != nil {
+		t.Fatal(err)
+	}
+	result := doc.Runs[0].Results[0]
+	if len(result.Suppressions) != 1 || result.Suppressions[0].Kind != "external" {
+		t.Fatalf("SARIF suppressions = %#v", result.Suppressions)
+	}
+	if result.Properties == nil || result.Properties.RuleID != "denied-package" {
+		t.Fatalf("SARIF properties = %#v", result.Properties)
+	}
+}
+
 // TestSARIFLevelIgnoresSeverity locks in the point that job impact and
 // severity are orthogonal: a Low-severity finding that fails the build is
 // still "error", and a Critical one that's only a warning is still "warning".

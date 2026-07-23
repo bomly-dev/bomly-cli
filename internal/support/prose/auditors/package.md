@@ -15,9 +15,9 @@ Both checks are name-based, so this auditor needs no enrichment and runs fully o
 | `--deny-group <group>` | `policy.deny_groups` | Fail on any package in this group/namespace (e.g. a Maven groupId). Repeatable. |
 | `--protected-package <name>` | `policy.protected_packages` | A trusted name; lookalikes within the threshold are flagged as possible typosquats. Repeatable. |
 | `--typosquat-threshold <0..1>` | `policy.typosquat_threshold` | Similarity score above which a name is treated as a lookalike. Default `0.90`. Higher = stricter (fewer matches). |
-| `--typosquat-mode <warn\|fail>` | `policy.typosquat_mode` | Disposition for a typosquat finding. `warn` (default) records a warning; `fail` makes it count toward the exit code. |
+| `--typosquat-mode <warn\|fail>` | `policy.typosquat_mode` | Policy status for a typosquat finding. `warn` (default) records a warning; `fail` makes it count toward the exit code. |
 
-`--typosquat-mode` controls only the *disposition* of typosquat findings, not how names are compared. The two accepted values are `warn` (the default) and `fail`. Note that even in `fail` mode a finding still has to match `--fail-on` to change the exit code, so a typical strict gate is `--typosquat-mode fail --fail-on any`.
+`--typosquat-mode` controls only the *policy status* of typosquat findings, not how names are compared. The two accepted values are `warn` (the default) and `fail`. Note that even in `fail` mode a finding still has to match `--fail-on` to change the exit code, so a typical strict gate is `--typosquat-mode fail --fail-on any`.
 
 ## Examples
 

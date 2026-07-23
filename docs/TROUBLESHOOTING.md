@@ -129,6 +129,22 @@ ANSI escapes are auto-stripped when stdout is not a TTY, but some CI runners rep
 NO_COLOR=1 bomly scan
 ```
 
+## Controlling the startup animation
+
+`bomly --help` plays a short (~2s) logo animation when stderr is an interactive terminal. A random variant plays each run; pin a favorite with `BOMLY_LOGO` (`reveal`, `rain`, `glitch`, or `slide`):
+
+```bash
+BOMLY_LOGO=rain bomly --help
+```
+
+To skip the animation and print a static logo instead:
+
+```bash
+BOMLY_NO_ANIMATION=1 bomly --help
+```
+
+The animation is also skipped automatically when `CI` or `BOMLY_QUIET` is set, and `NO_COLOR` switches to a plain uncolored logo. When stderr is not a terminal (pipes, redirects), no logo is printed at all.
+
 ## Need more detail
 
 Re-run with `-v` (INFO) or `-vv` (DEBUG). DEBUG logs include exact subprocess command lines, cache keys, and per-package decisions, which is usually enough to file a useful bug report.

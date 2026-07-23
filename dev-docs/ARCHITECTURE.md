@@ -298,6 +298,14 @@ The detect stage resolves subprojects concurrently (`resolveAll` fans out to per
 - Each detector's public `ResolveGraph` rebinds `d.Logger = req.DetectorLogger(d.Logger)` on its value-receiver copy, so every private helper inherits the scoped logger with no signature churn and no shared mutable state.
 - The console encoder enables `NameKey`/`EncodeName` so the subproject scope renders as a prefix. Logs remain real-time (not buffered per subproject) because `-vv` is used precisely to watch slow or hung detectors.
 
+### Decision: startup banner frames are procedural; gating is env-var-only
+
+The help-path startup banner (`internal/cli/render/logo.go`) is a frame-based animation in the style of GitHub Copilot CLI's banner: the art itself changes per frame. Four variants exist — `reveal` (a boundary sweeps left to right with a scramble band), `rain` (matrix-style green code glyphs fall down the logo silhouette), `glitch` (the full logo is visible from frame one but corrupted, and the noise density decays to zero), and `slide` (rows enter alternately from the left and right edges). A random variant plays each run; `BOMLY_LOGO=<name>` pins one. All variants share the finale (finished art, tagline fading in), the frame budget (28 frames × 70ms ≈ 2s), and the cell/run-grouping renderer. Three choices worth recording:
+
+- **Frames are generated procedurally, not stored as files.** Copilot ships ~20 hand-drawn frame files plus a position→color-role→theme mapping layer. At our scale (6×42 cells, a handful of visual roles) that indirection is over-engineering: frames are computed from the final art with a deterministic FNV-1a hash (stable across runs, so tests assert exact frame properties per variant), and styling uses lightweight run-grouped style constants — consecutive same-style cells share one escape sequence. Only variant *selection* is random; frame content is deterministic.
+- **Gating is env-var-only (`NO_COLOR`, `BOMLY_NO_ANIMATION`, `CI`, `BOMLY_QUIET`), deliberately not a config key.** Cobra's `execute()` returns `flag.ErrHelp` right after flag parsing, *before* the `PersistentPreRunE` chain where `options.ResolveConfig` runs — so on `bomly --help` / `bomly <cmd> --help` (the banner's primary path) resolved config simply does not exist yet. A `logo.animate` config key would silently work only for bare `bomly` and `bomly help <cmd>`, which is a trap. When animation is gated off but stderr is a TTY, the static final frame prints instead (plain under `NO_COLOR`, colored otherwise); non-TTY stderr prints nothing.
+- **The animation leaves cursor visibility unchanged.** Hiding the cursor would make the animation slightly cleaner, but a process-level interrupt can bypass deferred cleanup and leave the user's shell cursor hidden. Avoiding that terminal-state mutation keeps interruption safe without introducing signal handling into the render package.
+
 ## Build Modes
 
 Syft and Grype each support two build modes:

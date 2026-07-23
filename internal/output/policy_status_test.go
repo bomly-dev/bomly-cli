@@ -10,9 +10,9 @@ import (
 // findings remain visible without affecting the policy exit status.
 func TestFailingFindingCountKeepsSuppressedFindingNonBlocking(t *testing.T) {
 	findings := []sdk.Finding{
-		{ID: "fail", Disposition: sdk.FindingDispositionFail},
-		{ID: "warn", Disposition: sdk.FindingDispositionWarn},
-		{ID: "suppressed", Disposition: sdk.FindingDispositionSuppressed},
+		{ID: "fail", PolicyStatus: sdk.FindingPolicyStatusFail},
+		{ID: "warn", PolicyStatus: sdk.FindingPolicyStatusWarn},
+		{ID: "suppressed", PolicyStatus: sdk.FindingPolicyStatusSuppressed},
 	}
 	if got := FailingFindingCount(findings); got != 1 {
 		t.Fatalf("FailingFindingCount() = %d, want 1", got)

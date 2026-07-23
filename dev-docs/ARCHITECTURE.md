@@ -67,7 +67,7 @@ Stage summary:
 3. Detection resolves a dependency graph per package manager and then consolidates the per-subproject graphs into the single graph and package registry the rest of the pipeline uses. When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it; all detector results pass through the shared SDK scope filter, and consolidation is the tail of this stage rather than a separate step.
 4. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
 5. Analyzers run when `--analyze` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See [`../docs/REACHABILITY.md`](../docs/REACHABILITY.md) for ecosystem coverage and tier semantics.
-6. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. As the final part of that same audit stage, neutral policy-status resolvers may change only `Finding.Disposition`; they never remove or rewrite finding evidence. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
+6. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. As the final part of that same audit stage, neutral policy-status resolvers may change only `Finding.PolicyStatus`; they never remove or rewrite finding evidence. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
 7. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
 8. Output rendering emits text, JSON, SARIF, or SBOM documents.
 
@@ -114,7 +114,7 @@ Reachability data lives on `sdk.Vulnerability.Reachability` rather than on `Find
 
 1. **`sdk.Dependency`** (`sdk/dependency.go`) is a detection-time graph node. It carries identity (`ID`, `Name`, `Version`, `PURL`), detection metadata (`Scopes`, `Locations`, `FoundBy`), an optional direct/transitive/unknown `Relationship`, occurrence `Source`, edges through the `Graph`, and a `PackageRef` (PURL) that links to a matching artifact. It does **not** carry licenses, vulnerabilities, or scorecard data.
 2. **`sdk.Package`** (`sdk/package.go`) is a matching artifact keyed by PURL on a `sdk.PackageRegistry`. It carries `Licenses`, `Vulnerabilities` (OSV-aligned `sdk.Vulnerability`), `Scorecard`, `EOL`, and similar enrichment. There is one entry per unique PURL across the whole pipeline, so 50 dependencies referencing the same package share one set of CVEs and one license decision.
-3. **`sdk.Finding`** (`sdk/vulnerability.go`) is a reference-style audit result. It carries policy fields (`Severity`, `Disposition`, `Reasons`, `Auditor`, stable `RuleID`) plus the references `PackageRef` (PURL) and, for vulnerability findings, `VulnerabilityID`. It does **not** copy CVSS / EPSS / KEV / CWE — consumers resolve those by following the references back into the registry.
+3. **`sdk.Finding`** (`sdk/vulnerability.go`) is a reference-style audit result. It carries policy fields (`Severity`, `PolicyStatus`, `Reasons`, `Auditor`, stable `RuleID`) plus the references `PackageRef` (PURL) and, for vulnerability findings, `VulnerabilityID`. It does **not** copy CVSS / EPSS / KEV / CWE — consumers resolve those by following the references back into the registry.
 
 `sdk.Vulnerability` is OSV-aligned (id, aliases, summary, details, severity, affected, references, database_specific) and extended with Bomly's matching-stage fields (CVSS, EPSS, KEV, CWE, FixedVersions, AffectedSymbols, `Reachability`). The OSV matcher maps `internal/matchers/osv/response.go` directly to this shape; grype / depsdev / eol / scorecard and enabled external matchers write the equivalent records.
 
@@ -134,12 +134,16 @@ The first resolver is the package-specific finding baseline under
 kind, auditor, and advisory aliases or stable rule ID. It intentionally contains
 no dependency occurrence or project identity, so a baseline is portable across
 projects. Discovery happens during normal target preparation: scan and explain
-read a trusted local project tree, while local Git diff independently reads the
-base and head trees. Automatic loading is disabled for URL targets; callers
-must supply their own baseline explicitly. Output receives ordinary findings
-whose policy status may be `suppressed`; the compatibility field remains
-`Finding.Disposition`, and no baseline-specific output model or pipeline stage
-exists.
+read the materialized project tree, including repositories cloned through
+`--url`, while Git diff independently reads the base and head trees. A detected
+baseline is logged with its path, entry count, selection mode, and target kind;
+each evaluation logs findings evaluated and accepted. Output receives ordinary
+findings whose policy status may be `suppressed` through
+`Finding.PolicyStatus` / `policy_status`, and no baseline-specific output model
+or pipeline stage exists. Renaming the earlier finding field is an intentional
+breaking output-contract change and advances the CLI output schema to `2.0`;
+the compact MCP schema advances to `mcp/2`. Protocol-v1 decoding still accepts
+the earlier wire field from existing external auditor plugins.
 
 ### Decision: registry matching eligibility is an occurrence-level engine boundary
 

@@ -282,7 +282,7 @@ func TestPipeline_DoesNotEnableDetectorEnrichmentForAuditOnly(t *testing.T) {
 		}},
 		AuditEnabled: true,
 		FindingPolicyResolvers: []sdk.FindingPolicyResolver{
-			fixedPolicyResolver{status: sdk.FindingDispositionSuppressed},
+			fixedPolicyResolver{status: sdk.FindingPolicyStatusSuppressed},
 		},
 	})
 	if err != nil {
@@ -566,7 +566,7 @@ func TestPipeline_Run_DeduplicatesAuditFindings(t *testing.T) {
 		}},
 		AuditEnabled: true,
 		FindingPolicyResolvers: []sdk.FindingPolicyResolver{
-			fixedPolicyResolver{status: sdk.FindingDispositionSuppressed},
+			fixedPolicyResolver{status: sdk.FindingPolicyStatusSuppressed},
 		},
 	})
 	if err != nil {
@@ -578,8 +578,8 @@ func TestPipeline_Run_DeduplicatesAuditFindings(t *testing.T) {
 	if result.Findings[0].Source != "grype" {
 		t.Fatalf("expected grype finding to win, got %#v", result.Findings[0])
 	}
-	if result.Findings[0].Disposition != sdk.FindingDispositionSuppressed {
-		t.Fatalf("expected scan audit disposition resolver to suppress finding, got %#v", result.Findings[0])
+	if result.Findings[0].PolicyStatus != sdk.FindingPolicyStatusSuppressed {
+		t.Fatalf("expected scan audit policy resolver to suppress finding, got %#v", result.Findings[0])
 	}
 }
 
@@ -632,7 +632,7 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 			EnrichEnabled: true,
 			AuditEnabled:  true,
 			FindingPolicyResolvers: []sdk.FindingPolicyResolver{
-				fixedPolicyResolver{status: sdk.FindingDispositionSuppressed},
+				fixedPolicyResolver{status: sdk.FindingPolicyStatusSuppressed},
 			},
 		},
 	}
@@ -653,8 +653,8 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 	if len(result.Targets[0].Findings) != 1 || len(result.Findings) != 1 {
 		t.Fatalf("expected component audit findings, target=%#v all=%#v", result.Targets[0].Findings, result.Findings)
 	}
-	if result.Findings[0].Disposition != sdk.FindingDispositionSuppressed || result.Targets[0].Findings[0].Disposition != sdk.FindingDispositionSuppressed {
-		t.Fatalf("explain findings did not apply audit disposition resolver: target=%#v all=%#v", result.Targets[0].Findings, result.Findings)
+	if result.Findings[0].PolicyStatus != sdk.FindingPolicyStatusSuppressed || result.Targets[0].Findings[0].PolicyStatus != sdk.FindingPolicyStatusSuppressed {
+		t.Fatalf("explain findings did not apply audit policy resolver: target=%#v all=%#v", result.Targets[0].Findings, result.Findings)
 	}
 	if result.FocusedGraph == nil || result.FocusedGraph.Size() != 2 {
 		t.Fatalf("expected focused graph with path packages, got %#v", result.FocusedGraph)
@@ -666,7 +666,7 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 	if err != nil {
 		t.Fatalf("RunExplain(warn-only) error = %v", err)
 	}
-	if len(warnOnly.Findings) != 1 || warnOnly.Findings[0].Disposition != sdk.FindingDispositionWarn {
+	if len(warnOnly.Findings) != 1 || warnOnly.Findings[0].PolicyStatus != sdk.FindingPolicyStatusWarn {
 		t.Fatalf("explain warn-only findings = %#v", warnOnly.Findings)
 	}
 }

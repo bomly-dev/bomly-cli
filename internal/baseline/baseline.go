@@ -32,20 +32,28 @@ type Document struct {
 
 // Entry identifies one package finding that may be suppressed.
 type Entry struct {
-	PackageRef   string                 `json:"package_ref"`
-	Kind         sdk.FindingKind        `json:"kind"`
-	Auditor      string                 `json:"auditor"`
-	RuleID       string                 `json:"rule_id,omitempty"`
-	AdvisoryIDs  []string               `json:"advisory_ids,omitempty"`
-	Severity     sdk.SeverityLevel      `json:"severity,omitempty"`
-	PolicyStatus sdk.FindingDisposition `json:"policy_status,omitempty"`
-	Reachability sdk.ReachabilityStatus `json:"reachability,omitempty"`
+	PackageRef   string                  `json:"package_ref"`
+	Kind         sdk.FindingKind         `json:"kind"`
+	Auditor      string                  `json:"auditor"`
+	RuleID       string                  `json:"rule_id,omitempty"`
+	AdvisoryIDs  []string                `json:"advisory_ids,omitempty"`
+	Severity     sdk.SeverityLevel       `json:"severity,omitempty"`
+	PolicyStatus sdk.FindingPolicyStatus `json:"policy_status,omitempty"`
+	Reachability sdk.ReachabilityStatus  `json:"reachability,omitempty"`
 }
 
 // Resolver applies a validated baseline during the audit stage.
 type Resolver struct{ document Document }
 
-// NewResolver validates document and constructs a disposition resolver.
+// LoadResult describes a baseline discovered for one execution target.
+type LoadResult struct {
+	Resolvers []sdk.FindingPolicyResolver
+	Path      string
+	Entries   int
+	Automatic bool
+}
+
+// NewResolver validates document and constructs a policy-status resolver.
 func NewResolver(document Document) (*Resolver, error) {
 	if err := document.Validate(); err != nil {
 		return nil, err
@@ -58,7 +66,7 @@ func (r *Resolver) ResolveFindingPolicy(_ context.Context, finding sdk.Finding, 
 	candidate := EntryFromFinding(finding, registry)
 	for _, entry := range r.document.Entries {
 		if entriesMatch(entry, candidate) && stateCompatible(entry, candidate) {
-			return sdk.FindingPolicyDecision{Status: sdk.FindingDispositionSuppressed, Source: "baseline", Reason: "matched package finding baseline"}, true
+			return sdk.FindingPolicyDecision{Status: sdk.FindingPolicyStatusSuppressed, Source: "baseline", Reason: "matched package finding baseline"}, true
 		}
 	}
 	return sdk.FindingPolicyDecision{}, false
@@ -72,7 +80,7 @@ func EntryFromFinding(finding sdk.Finding, registry *sdk.PackageRegistry) Entry 
 		Auditor:      strings.TrimSpace(finding.Auditor),
 		RuleID:       stableRuleID(finding),
 		Severity:     finding.Severity,
-		PolicyStatus: finding.Disposition,
+		PolicyStatus: finding.PolicyStatus,
 	}
 	if finding.Kind == sdk.FindingKindVulnerability {
 		entry.AdvisoryIDs = advisoryIDs(finding, registry)
@@ -115,7 +123,7 @@ func (d Document) Validate() error {
 			return fmt.Errorf("baseline entry %d is missing package_ref, kind, or auditor", idx)
 		}
 		switch entry.PolicyStatus {
-		case "", sdk.FindingDispositionFail, sdk.FindingDispositionWarn, sdk.FindingDispositionSuppressed:
+		case "", sdk.FindingPolicyStatusFail, sdk.FindingPolicyStatusWarn, sdk.FindingPolicyStatusSuppressed:
 		default:
 			return fmt.Errorf("baseline entry %d has unsupported policy_status %q", idx, entry.PolicyStatus)
 		}
@@ -170,35 +178,38 @@ func Load(path string) (Document, error) {
 }
 
 // ResolversForTarget discovers or loads the selected baseline for target.
-func ResolversForTarget(selection string, target sdk.ExecutionTarget, logger *zap.Logger) ([]sdk.FindingPolicyResolver, error) {
+func ResolversForTarget(selection string, target sdk.ExecutionTarget, logger *zap.Logger) (LoadResult, error) {
 	if logger == nil {
 		logger = zap.NewNop()
 	}
-	if (strings.TrimSpace(selection) == "" || strings.EqualFold(strings.TrimSpace(selection), "auto")) &&
-		target.Kind == sdk.ExecutionTargetGitRepository && strings.TrimSpace(target.RepositoryURL) != "" {
-		logger.Debug("baseline: automatic project policy ignored for URL target")
-		return nil, nil
-	}
+	automatic := strings.TrimSpace(selection) == "" || strings.EqualFold(strings.TrimSpace(selection), "auto")
 	path, required, ok, err := ResolvePath(selection, target)
 	if err != nil || !ok {
-		return nil, err
+		return LoadResult{}, err
 	}
 	document, err := Load(path)
 	if err != nil {
 		if !required && errors.Is(err, os.ErrNotExist) {
 			logger.Debug("baseline: no project policy found", zap.String("path", path))
-			return nil, nil
+			return LoadResult{}, nil
 		}
-		return nil, err
+		return LoadResult{}, err
 	}
 	resolver, err := NewResolver(document)
 	if err != nil {
-		return nil, err
+		return LoadResult{}, err
 	}
-	logger.Info("baseline: project policy loaded",
+	logger.Info("baseline: project policy detected and enabled",
 		zap.String("path", path),
-		zap.Int("entries", len(document.Entries)))
-	return []sdk.FindingPolicyResolver{resolver}, nil
+		zap.Int("entries", len(document.Entries)),
+		zap.Bool("automatic", automatic),
+		zap.String("target_kind", string(target.Kind)))
+	return LoadResult{
+		Resolvers: []sdk.FindingPolicyResolver{resolver},
+		Path:      path,
+		Entries:   len(document.Entries),
+		Automatic: automatic,
+	}, nil
 }
 
 // Update returns a document that accepts all current entries while retaining
@@ -346,7 +357,7 @@ func stateCompatible(expected, actual Entry) bool {
 	if expected.Severity != "" && sdk.SeverityRank(actual.Severity) > sdk.SeverityRank(expected.Severity) {
 		return false
 	}
-	if expected.PolicyStatus != "" && expected.PolicyStatus != sdk.FindingDispositionSuppressed {
+	if expected.PolicyStatus != "" && expected.PolicyStatus != sdk.FindingPolicyStatusSuppressed {
 		actualRank, actualKnown := sdk.FindingPolicyStatusRank(actual.PolicyStatus)
 		expectedRank, expectedKnown := sdk.FindingPolicyStatusRank(expected.PolicyStatus)
 		if !actualKnown || !expectedKnown || actualRank > expectedRank {

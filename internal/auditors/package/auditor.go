@@ -63,11 +63,11 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 			continue
 		}
 		if deniedPackage(pkg, a.DenyPackages) {
-			findings = append(findings, finding(pkg, "denied-package", "Package is denylisted", sdk.FindingDispositionFail))
+			findings = append(findings, finding(pkg, "denied-package", "Package is denylisted", sdk.FindingPolicyStatusFail))
 			continue
 		}
 		if deniedGroup(pkg, a.DenyGroups) {
-			findings = append(findings, finding(pkg, "denied-group", "Package group is denylisted", sdk.FindingDispositionFail))
+			findings = append(findings, finding(pkg, "denied-group", "Package group is denylisted", sdk.FindingPolicyStatusFail))
 			continue
 		}
 		if _, existed := baseIDs[pkg.ID]; existed {
@@ -80,11 +80,11 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 			continue
 		}
 		if protected, score, ok := closestProtectedName(pkg.DisplayName(), baseNames, threshold); ok {
-			disposition := sdk.FindingDispositionWarn
+			policyStatus := sdk.FindingPolicyStatusWarn
 			if strings.EqualFold(strings.TrimSpace(a.TyposquatMode), "fail") {
-				disposition = sdk.FindingDispositionFail
+				policyStatus = sdk.FindingPolicyStatusFail
 			}
-			f := finding(pkg, "suspicious-package", fmt.Sprintf("Package name is %.2f similar to protected package %s", score, protected), disposition)
+			f := finding(pkg, "suspicious-package", fmt.Sprintf("Package name is %.2f similar to protected package %s", score, protected), policyStatus)
 			f.Reasons = []string{"possible-typosquat"}
 			findings = append(findings, f)
 		}
@@ -92,7 +92,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 	return sdk.AuditResult{Findings: findings}, nil
 }
 
-func finding(pkg *sdk.Dependency, id, title string, disposition sdk.FindingDisposition) sdk.Finding {
+func finding(pkg *sdk.Dependency, id, title string, policyStatus sdk.FindingPolicyStatus) sdk.Finding {
 	purl := pkg.PackageRef
 	if purl == "" {
 		purl = sdk.CanonicalPackageURLFromDependency(pkg)
@@ -101,20 +101,20 @@ func finding(pkg *sdk.Dependency, id, title string, disposition sdk.FindingDispo
 		ID:             fmt.Sprintf("%s:%s:%s", auditorName, id, pkg.ID),
 		Kind:           sdk.FindingKindPackage,
 		Title:          title,
-		Severity:       packageFindingSeverity(disposition),
+		Severity:       packageFindingSeverity(policyStatus),
 		Source:         auditorName,
 		Auditor:        auditorName,
 		RuleID:         id,
-		Disposition:    disposition,
+		PolicyStatus:   policyStatus,
 		PackageRef:     purl,
 		DependencyRefs: []string{pkg.ID},
 	}
 }
 
-// packageFindingSeverity maps a finding's disposition to a GitHub-aligned
+// packageFindingSeverity maps a finding's policy status to a GitHub-aligned
 // severity: a policy failure is an Error, an advisory finding is a Warning.
-func packageFindingSeverity(disposition sdk.FindingDisposition) sdk.SeverityLevel {
-	if disposition == sdk.FindingDispositionWarn {
+func packageFindingSeverity(policyStatus sdk.FindingPolicyStatus) sdk.SeverityLevel {
+	if policyStatus == sdk.FindingPolicyStatusWarn {
 		return sdk.SeverityWarning
 	}
 	return sdk.SeverityError

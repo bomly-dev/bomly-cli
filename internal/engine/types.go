@@ -32,6 +32,7 @@ type PipelineRequest struct {
 	TyposquatMode              string
 	WarnOnly                   bool
 	FindingPolicyResolvers     []sdk.FindingPolicyResolver
+	BaselineEvaluation         *BaselineEvaluation
 	BaselineGraph              *sdk.Graph
 	InstallFirst               bool
 	InstallArgs                []string
@@ -39,6 +40,13 @@ type PipelineRequest struct {
 	Stderr                     io.Writer
 	Verbose                    bool
 	Progress                   ProgressReporter
+}
+
+// BaselineEvaluation identifies the baseline used during policy evaluation.
+type BaselineEvaluation struct {
+	Path      string
+	Entries   int
+	Automatic bool
 }
 
 // ProgressReporter receives coarse pipeline progress events.

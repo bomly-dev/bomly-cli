@@ -531,34 +531,34 @@ func TestAuditVerdict_PersistedOnlyIsPass(t *testing.T) {
 	}
 }
 
-// Disposition gate: an introduced finding with Disposition="warn" must NOT
+// PolicyStatus gate: an introduced finding with PolicyStatus="warn" must NOT
 // trip the FAIL exit; only "" (unset, historically = fail) or "fail" do.
 // Mirrors output.FailingFindingCount in internal/output/types.go.
-func TestAuditVerdict_DispositionGate(t *testing.T) {
+func TestAuditVerdict_PolicyStatusGate(t *testing.T) {
 	cases := []struct {
-		name        string
-		disposition sdk.FindingDisposition
-		wantFail    bool
+		name         string
+		policyStatus sdk.FindingPolicyStatus
+		wantFail     bool
 	}{
-		{"empty disposition (legacy default = fail)", "", true},
-		{"explicit fail", sdk.FindingDispositionFail, true},
-		{"warn does not gate exit code", sdk.FindingDispositionWarn, false},
-		{"unknown disposition treated as non-failing", sdk.FindingDisposition("informational"), false},
+		{"empty policyStatus (legacy default = fail)", "", true},
+		{"explicit fail", sdk.FindingPolicyStatusFail, true},
+		{"warn does not gate exit code", sdk.FindingPolicyStatusWarn, false},
+		{"unknown policyStatus treated as non-failing", sdk.FindingPolicyStatus("informational"), false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{
 				Introduced: []output.AuditFinding{{
 					ID: "X-1", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityHigh, Source: "osv",
-					Disposition: tc.disposition,
+					PolicyStatus: tc.policyStatus,
 				}},
 				AuditSummary: &output.AuditSummary{High: 1, Total: 1},
 			}}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
 			v := m.auditVerdict()
 			gotFail := v.Verdict() == "FAIL"
 			if gotFail != tc.wantFail {
-				t.Errorf("Disposition=%q → Verdict=%q (FailingIntroduced=%d), want fail=%v",
-					tc.disposition, v.Verdict(), v.FailingIntroduced, tc.wantFail)
+				t.Errorf("PolicyStatus=%q → Verdict=%q (FailingIntroduced=%d), want fail=%v",
+					tc.policyStatus, v.Verdict(), v.FailingIntroduced, tc.wantFail)
 			}
 		})
 	}
@@ -570,8 +570,8 @@ func TestAuditVerdict_DispositionGate(t *testing.T) {
 func TestAuditVerdict_WarnOnlyIntroducedYieldsPassWithCount(t *testing.T) {
 	m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
-			{ID: "W-1", Disposition: sdk.FindingDispositionWarn},
-			{ID: "W-2", Disposition: sdk.FindingDispositionWarn},
+			{ID: "W-1", PolicyStatus: sdk.FindingPolicyStatusWarn},
+			{ID: "W-2", PolicyStatus: sdk.FindingPolicyStatusWarn},
 		},
 		AuditSummary: &output.AuditSummary{Total: 2},
 	}}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
@@ -593,9 +593,9 @@ func TestAuditVerdict_WarnOnlyIntroducedYieldsPassWithCount(t *testing.T) {
 func TestAuditVerdict_SuppressedIntroducedIsCountedAsAccepted(t *testing.T) {
 	m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{{
-			ID:          "S-1",
-			Kind:        sdk.FindingKindVulnerability,
-			Disposition: sdk.FindingDispositionSuppressed,
+			ID:           "S-1",
+			Kind:         sdk.FindingKindVulnerability,
+			PolicyStatus: sdk.FindingPolicyStatusSuppressed,
 		}},
 		AuditSummary: &output.AuditSummary{Total: 1},
 	}}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
@@ -604,7 +604,7 @@ func TestAuditVerdict_SuppressedIntroducedIsCountedAsAccepted(t *testing.T) {
 		t.Fatalf("suppressed verdict = %#v", v)
 	}
 	plain := render.StripANSI(strings.Join(m.findingsOutcomePanels()[0].lines, "\n"))
-	if !strings.Contains(plain, "1 accepted") || strings.Contains(plain, "all Disposition=warn") {
+	if !strings.Contains(plain, "1 accepted") || strings.Contains(plain, "all PolicyStatus=warn") {
 		t.Fatalf("suppressed outcome copy = %q", plain)
 	}
 }
@@ -911,12 +911,12 @@ func TestFindingsTableLines_PackageOtherRowAbsorbsUnknownRules(t *testing.T) {
 
 // ---- overviewHeadline ------------------------------------------------------
 
-// TestOverviewHeadline_FailReflectsIntroducedDisposition: the audit chip
-// reads FailingIntroduced (introduced findings whose Disposition gates
+// TestOverviewHeadline_FailReflectsIntroducedPolicyStatus: the audit chip
+// reads FailingIntroduced (introduced findings whose PolicyStatus gates
 // the exit code). The fixture has 2 introduced findings, both with the
-// default empty Disposition, so both count as failing → "Audit FAIL (2
+// default empty PolicyStatus, so both count as failing → "Audit FAIL (2
 // introduced, exit 2)".
-func TestOverviewHeadline_FailReflectsIntroducedDisposition(t *testing.T) {
+func TestOverviewHeadline_FailReflectsIntroducedPolicyStatus(t *testing.T) {
 	m := newFixtureDiffModel()
 	plain := render.StripANSI(m.overviewHeadline(200))
 	for _, want := range []string{
@@ -963,8 +963,8 @@ func TestOverviewHeadline_ResolvedOnlyIsPass(t *testing.T) {
 func TestOverviewHeadline_WarnOnlyIntroducedIsPassWithCount(t *testing.T) {
 	p := output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
-			{ID: "W-1", Disposition: sdk.FindingDispositionWarn},
-			{ID: "W-2", Disposition: sdk.FindingDispositionWarn},
+			{ID: "W-1", PolicyStatus: sdk.FindingPolicyStatusWarn},
+			{ID: "W-2", PolicyStatus: sdk.FindingPolicyStatusWarn},
 		},
 		AuditSummary: &output.AuditSummary{Total: 2},
 	}}
@@ -1292,15 +1292,15 @@ func TestVulnsOutcomePanels_NotEvaluated(t *testing.T) {
 func TestAuditVerdict_FailingSplitByKind(t *testing.T) {
 	payload := output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
-			// 2 failing vulns (empty Disposition = fail).
+			// 2 failing vulns (empty PolicyStatus = fail).
 			{ID: "CVE-1", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability"},
-			{ID: "CVE-2", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", Disposition: sdk.FindingDispositionFail},
+			{ID: "CVE-2", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", PolicyStatus: sdk.FindingPolicyStatusFail},
 			// 1 warn vuln — counted in WarnIntroduced, not FailingIntroduced*.
-			{ID: "CVE-3", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", Disposition: sdk.FindingDispositionWarn},
+			{ID: "CVE-3", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", PolicyStatus: sdk.FindingPolicyStatusWarn},
 			// 1 failing license-kind finding.
 			{ID: "license:denied-license:pkg@1", Kind: sdk.FindingKindLicense, Auditor: "license"},
 			// 1 warn license-kind finding.
-			{ID: "license:unknown-license:pkg@2", Kind: sdk.FindingKindLicense, Auditor: "license", Disposition: sdk.FindingDispositionWarn},
+			{ID: "license:unknown-license:pkg@2", Kind: sdk.FindingKindLicense, Auditor: "license", PolicyStatus: sdk.FindingPolicyStatusWarn},
 		},
 	}}
 	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})

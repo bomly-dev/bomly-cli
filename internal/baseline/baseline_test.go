@@ -19,7 +19,7 @@ func TestResolverIsPortableAndVersionSpecific(t *testing.T) {
 	purl := "pkg:npm/lodash@4.17.20"
 	pkg := registry.Ensure(purl)
 	pkg.Vulnerabilities = []sdk.Vulnerability{{ID: "GHSA-1", Aliases: []string{"CVE-2024-1"}, ParsedSeverity: sdk.SeverityHigh}}
-	finding := sdk.Finding{ID: "GHSA-1", VulnerabilityID: "GHSA-1", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", RuleID: "advisory", PackageRef: purl, Severity: sdk.SeverityHigh, Disposition: sdk.FindingDispositionFail}
+	finding := sdk.Finding{ID: "GHSA-1", VulnerabilityID: "GHSA-1", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", RuleID: "advisory", PackageRef: purl, Severity: sdk.SeverityHigh, PolicyStatus: sdk.FindingPolicyStatusFail}
 
 	resolver, err := NewResolver(NewDocument([]sdk.Finding{finding}, registry))
 	if err != nil {
@@ -29,7 +29,7 @@ func TestResolverIsPortableAndVersionSpecific(t *testing.T) {
 	aliasFinding.ID = "CVE-2024-1"
 	aliasFinding.VulnerabilityID = "CVE-2024-1"
 	decision, ok := resolver.ResolveFindingPolicy(context.Background(), aliasFinding, registry)
-	if !ok || decision.Status != sdk.FindingDispositionSuppressed {
+	if !ok || decision.Status != sdk.FindingPolicyStatusSuppressed {
 		t.Fatalf("portable alias finding was not suppressed: %#v, %v", decision, ok)
 	}
 
@@ -41,16 +41,16 @@ func TestResolverIsPortableAndVersionSpecific(t *testing.T) {
 }
 
 func TestResolverDoesNotSuppressChangedPolicyState(t *testing.T) {
-	finding := sdk.Finding{ID: "denied", Kind: sdk.FindingKindPackage, Auditor: "package", RuleID: "denied-package", PackageRef: "pkg:npm/example@1.0.0", Severity: sdk.SeverityWarning, Disposition: sdk.FindingDispositionWarn}
+	finding := sdk.Finding{ID: "denied", Kind: sdk.FindingKindPackage, Auditor: "package", RuleID: "denied-package", PackageRef: "pkg:npm/example@1.0.0", Severity: sdk.SeverityWarning, PolicyStatus: sdk.FindingPolicyStatusWarn}
 	resolver, err := NewResolver(NewDocument([]sdk.Finding{finding}, nil))
 	if err != nil {
 		t.Fatal(err)
 	}
 	escalated := finding
 	escalated.Severity = sdk.SeverityError
-	escalated.Disposition = sdk.FindingDispositionFail
+	escalated.PolicyStatus = sdk.FindingPolicyStatusFail
 	if _, ok := resolver.ResolveFindingPolicy(context.Background(), escalated, nil); ok {
-		t.Fatal("changed severity/disposition must require explicit baseline update")
+		t.Fatal("changed severity or policy status must require explicit baseline update")
 	}
 }
 
@@ -108,13 +108,13 @@ func TestDocumentUsesFriendlyPolicyStatusField(t *testing.T) {
 	document := NewDocument([]sdk.Finding{{
 		ID: "rule", Kind: sdk.FindingKindPackage, Auditor: "package",
 		RuleID: "rule", PackageRef: "pkg:npm/example@1.0.0",
-		Disposition: sdk.FindingDispositionFail,
+		PolicyStatus: sdk.FindingPolicyStatusFail,
 	}}, nil)
 	data, err := json.Marshal(document)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(data), `"policy_status":"fail"`) || strings.Contains(string(data), `"disposition"`) {
+	if !strings.Contains(string(data), `"policy_status":"fail"`) || strings.Contains(string(data), `"policyStatus"`) {
 		t.Fatalf("baseline JSON = %s", data)
 	}
 }
@@ -154,9 +154,9 @@ func TestResolversForTargetHandlesOptionalRequiredAndURLPolicies(t *testing.T) {
 	core, observed := observer.New(zap.DebugLevel)
 	logger := zap.New(core)
 	target := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: root}
-	resolvers, err := ResolversForTarget("auto", target, logger)
-	if err != nil || len(resolvers) != 0 {
-		t.Fatalf("optional missing baseline = %d resolvers, %v", len(resolvers), err)
+	result, err := ResolversForTarget("auto", target, logger)
+	if err != nil || len(result.Resolvers) != 0 {
+		t.Fatalf("optional missing baseline = %d resolvers, %v", len(result.Resolvers), err)
 	}
 	if observed.FilterMessage("baseline: no project policy found").Len() != 1 {
 		t.Fatalf("missing baseline debug logs = %#v", observed.All())
@@ -177,15 +177,19 @@ func TestResolversForTargetHandlesOptionalRequiredAndURLPolicies(t *testing.T) {
 		Kind: sdk.ExecutionTargetGitRepository, Location: root,
 		RepositoryURL: "https://example.test/untrusted.git",
 	}
-	resolvers, err = ResolversForTarget("auto", urlTarget, logger)
-	if err != nil || len(resolvers) != 0 {
-		t.Fatalf("URL auto baseline = %d resolvers, %v", len(resolvers), err)
+	result, err = ResolversForTarget("auto", urlTarget, logger)
+	if err != nil || len(result.Resolvers) != 1 || !result.Automatic || result.Entries != 1 || result.Path != path {
+		t.Fatalf("URL auto baseline = %#v, %v", result, err)
 	}
-	resolvers, err = ResolversForTarget(path, urlTarget, logger)
-	if err != nil || len(resolvers) != 1 {
-		t.Fatalf("explicit URL baseline = %d resolvers, %v", len(resolvers), err)
+	result, err = ResolversForTarget(path, urlTarget, logger)
+	if err != nil || len(result.Resolvers) != 1 || result.Automatic {
+		t.Fatalf("explicit URL baseline = %#v, %v", result, err)
 	}
-	if observed.FilterMessage("baseline: project policy loaded").Len() != 1 {
+	logs := observed.FilterMessage("baseline: project policy detected and enabled")
+	if logs.Len() != 2 {
 		t.Fatalf("loaded baseline info logs = %#v", observed.All())
+	}
+	if got := logs.All()[0].ContextMap()["entries"]; got != int64(1) {
+		t.Fatalf("baseline log entries = %#v", got)
 	}
 }

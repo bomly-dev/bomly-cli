@@ -77,11 +77,11 @@ func (p *Pipeline) runAuditStage(ctx context.Context, graph *sdk.Graph, registry
 	p.Logger.Info("pipeline: policy evaluation started", zap.Int("packages", graph.Size()))
 	auditResult, auditWarnings := p.audit(ctx, graph, registry, req)
 	auditResult.Findings = DeduplicateFindings(auditResult.Findings)
-	auditResult.Findings = applyFindingPolicy(ctx, auditResult.Findings, registry, req)
+	auditResult.Findings = p.applyFindingPolicy(ctx, auditResult.Findings, registry, req)
 	p.Logger.Info("pipeline: policy evaluation completed",
 		zap.Strings("auditor_runs", auditResult.AuditorRuns),
 		zap.Int("findings", len(auditResult.Findings)),
-		zap.Int("suppressed", suppressedFindingCount(auditResult.Findings)),
+		zap.Int("accepted", acceptedFindingCount(auditResult.Findings)),
 		zap.Int("warnings", len(auditWarnings)),
 		zap.Duration("duration", time.Since(started)),
 	)
@@ -91,21 +91,41 @@ func (p *Pipeline) runAuditStage(ctx context.Context, graph *sdk.Graph, registry
 	return auditResult, auditWarnings
 }
 
+func (p *Pipeline) applyFindingPolicy(ctx context.Context, findings []sdk.Finding, registry *sdk.PackageRegistry, req PipelineRequest) []sdk.Finding {
+	beforeAccepted := acceptedFindingCount(findings)
+	started := time.Now()
+	resolved := applyFindingPolicy(ctx, findings, registry, req)
+	if req.BaselineEvaluation != nil {
+		accepted := acceptedFindingCount(resolved) - beforeAccepted
+		if accepted < 0 {
+			accepted = 0
+		}
+		p.Logger.Info("baseline: policy evaluation completed",
+			zap.String("path", req.BaselineEvaluation.Path),
+			zap.Int("entries", req.BaselineEvaluation.Entries),
+			zap.Bool("automatic", req.BaselineEvaluation.Automatic),
+			zap.Int("findings_evaluated", len(findings)),
+			zap.Int("findings_accepted", accepted),
+			zap.Duration("duration", time.Since(started)))
+	}
+	return resolved
+}
+
 func applyFindingPolicy(ctx context.Context, findings []sdk.Finding, registry *sdk.PackageRegistry, req PipelineRequest) []sdk.Finding {
 	if req.WarnOnly {
 		for idx := range findings {
-			if findings[idx].Disposition == "" || findings[idx].Disposition == sdk.FindingDispositionFail {
-				findings[idx].Disposition = sdk.FindingDispositionWarn
+			if findings[idx].PolicyStatus == "" || findings[idx].PolicyStatus == sdk.FindingPolicyStatusFail {
+				findings[idx].PolicyStatus = sdk.FindingPolicyStatusWarn
 			}
 		}
 	}
 	return resolveFindingPolicyStatuses(ctx, findings, registry, req.FindingPolicyResolvers)
 }
 
-func suppressedFindingCount(findings []sdk.Finding) int {
+func acceptedFindingCount(findings []sdk.Finding) int {
 	total := 0
 	for _, finding := range findings {
-		if finding.Disposition == sdk.FindingDispositionSuppressed {
+		if finding.PolicyStatus == sdk.FindingPolicyStatusSuppressed {
 			total++
 		}
 	}
@@ -410,7 +430,7 @@ func (p *Pipeline) auditComponent(ctx context.Context, g *sdk.Graph, registry *s
 	}
 	result, err := p.engine.Audit(ctx, auditReq)
 	result.Findings = DeduplicateFindings(result.Findings)
-	result.Findings = applyFindingPolicy(ctx, result.Findings, registry, req)
+	result.Findings = p.applyFindingPolicy(ctx, result.Findings, registry, req)
 	var warnings []PipelineWarning
 	if err != nil {
 		warnings = PipelineWarningsFromError(err, "auditor")

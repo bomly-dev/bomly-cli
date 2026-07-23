@@ -203,7 +203,7 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 			ID:               f.ID,
 			ShortDescription: sarifMessage{Text: f.Title},
 			FullDescription:  sarifReasonsMessage(f.Reasons),
-			DefaultConfig:    sarifRuleConfig{Level: dispositionToSARIFLevel(f.Disposition)},
+			DefaultConfig:    sarifRuleConfig{Level: policyStatusToSARIFLevel(f.PolicyStatus)},
 			HelpURI:          helpURI,
 		}
 		if help := sarifHelpMessage(f.Reasons, helpURI); help != nil {
@@ -224,13 +224,13 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 		locations, locationURIs := sarifLocationsForFinding(f, includeReachability, options)
 		result := sarifResult{
 			RuleID:              f.ID,
-			Level:               dispositionToSARIFLevel(f.Disposition),
+			Level:               policyStatusToSARIFLevel(f.PolicyStatus),
 			Message:             sarifMessage{Text: msgText},
 			Locations:           locations,
 			BaselineState:       sarifBaselineState(options),
 			PartialFingerprints: sarifPartialFingerprints(f, locationURIs, locations),
 		}
-		if f.Disposition == sdk.FindingDispositionSuppressed {
+		if f.PolicyStatus == sdk.FindingPolicyStatusSuppressed {
 			result.Suppressions = []sarifSuppression{{
 				Kind:          "external",
 				Justification: "Accepted by the project finding baseline",
@@ -728,7 +728,7 @@ func sarifPropertiesFromVulnerability(v *sdk.Vulnerability, includeReachability 
 	return props
 }
 
-// dispositionToSARIFLevel maps a finding's disposition to a SARIF level. The
+// policyStatusToSARIFLevel maps a finding's policy status to a SARIF level. The
 // level reflects whether the finding blocks the job — error for a failing
 // finding, warning for an advisory one, and note for a suppressed one — never
 // the underlying severity band.
@@ -737,15 +737,15 @@ func sarifPropertiesFromVulnerability(v *sdk.Vulnerability, includeReachability 
 // the build still surfaces as "error" here, and a Critical one that's merely
 // a warning still surfaces as "warning": job impact and severity are
 // orthogonal, and GitHub's level/badge should track the former.
-func dispositionToSARIFLevel(disposition sdk.FindingDisposition) string {
-	switch disposition {
-	case sdk.FindingDispositionWarn:
+func policyStatusToSARIFLevel(policyStatus sdk.FindingPolicyStatus) string {
+	switch policyStatus {
+	case sdk.FindingPolicyStatusWarn:
 		return "warning"
-	case sdk.FindingDispositionSuppressed:
+	case sdk.FindingPolicyStatusSuppressed:
 		return "note"
 	default:
-		// FindingDispositionFail, and "" (findings with no explicit
-		// disposition are treated as failing — see FailingFindingCount).
+		// FindingPolicyStatusFail and "" both map to error; findings with no
+		// explicit policy status are treated as failing by FailingFindingCount.
 		return "error"
 	}
 }

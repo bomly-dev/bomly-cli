@@ -42,7 +42,7 @@ Complete reference for the `bomly explain` JSON output.
 | `source` | `string` | |
 | `auditor` | `string` | |
 | `rule_id` | `string` | |
-| `disposition` | `string` | |
+| `policy_status` | `string` | |
 | `vulnerability_id` | `string` | |
 | `dependency_refs` | Array<`string`> | |
 

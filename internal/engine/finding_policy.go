@@ -32,7 +32,7 @@ func resolveFindingPolicyStatuses(ctx context.Context, findings []sdk.Finding, r
 			}
 		}
 		if matched {
-			out[idx].Disposition = selected.Status
+			out[idx].PolicyStatus = selected.Status
 		}
 	}
 	return out

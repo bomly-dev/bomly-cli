@@ -45,7 +45,7 @@ func buildRemediations(in remediationInput) remediationOutput {
 		compact, ancestor := buildCompactFinding(f, vuln, in)
 		classification := compact.Classification
 
-		// Warn-disposition findings are informational — except cheap wins
+		// Warning-status findings are informational — except cheap wins
 		// (fix available), which agents should still see as actionable.
 		if !findingFails(f) && classification != ClassificationFixAvailable {
 			if len(informational) < maxInformational {
@@ -117,7 +117,7 @@ func buildCompactFinding(f sdk.Finding, vuln *sdk.Vulnerability, in remediationI
 		Kind:           string(f.Kind),
 		Severity:       string(f.Severity),
 		RuleID:         f.RuleID,
-		Disposition:    string(f.Disposition),
+		PolicyStatus:   string(f.PolicyStatus),
 		Classification: classifyFinding(f, vuln),
 		Title:          f.Title,
 		Package:        packageIdentityFromRegistry(in.Registry, f.PackageRef),

@@ -133,20 +133,20 @@ func TestWriteSARIF_EmptyFindingsEncodeArrayFields(t *testing.T) {
 	}
 }
 
-func TestDispositionToSARIFLevel(t *testing.T) {
+func TestPolicyStatusToSARIFLevel(t *testing.T) {
 	tests := []struct {
-		disposition sdk.FindingDisposition
-		level       string
+		policyStatus sdk.FindingPolicyStatus
+		level        string
 	}{
-		{sdk.FindingDispositionFail, "error"},
-		{sdk.FindingDispositionWarn, "warning"},
-		{sdk.FindingDispositionSuppressed, "note"},
-		{"", "error"}, // unset disposition is treated as failing, like FailingFindingCount
+		{sdk.FindingPolicyStatusFail, "error"},
+		{sdk.FindingPolicyStatusWarn, "warning"},
+		{sdk.FindingPolicyStatusSuppressed, "note"},
+		{"", "error"}, // unset policy status is treated as failing, like FailingFindingCount
 	}
 	for _, tt := range tests {
-		got := dispositionToSARIFLevel(tt.disposition)
+		got := policyStatusToSARIFLevel(tt.policyStatus)
 		if got != tt.level {
-			t.Errorf("dispositionToSARIFLevel(%q) = %q, want %q", tt.disposition, got, tt.level)
+			t.Errorf("policyStatusToSARIFLevel(%q) = %q, want %q", tt.policyStatus, got, tt.level)
 		}
 	}
 }
@@ -155,7 +155,7 @@ func TestWriteSARIFMarksAcceptedFindingAsSuppressed(t *testing.T) {
 	findings := []sdk.Finding{{
 		ID: "package:denied:example", RuleID: "denied-package",
 		Kind: sdk.FindingKindPackage, PackageRef: "pkg:npm/example@1.0.0",
-		Title: "Denied package", Disposition: sdk.FindingDispositionSuppressed,
+		Title: "Denied package", PolicyStatus: sdk.FindingPolicyStatusSuppressed,
 	}}
 	var buf bytes.Buffer
 	if err := WriteSARIF(&buf, findings, nil, "bomly", "test"); err != nil {
@@ -179,8 +179,8 @@ func TestWriteSARIFMarksAcceptedFindingAsSuppressed(t *testing.T) {
 // still "error", and a Critical one that's only a warning is still "warning".
 func TestSARIFLevelIgnoresSeverity(t *testing.T) {
 	findings := []sdk.Finding{
-		{ID: "fail-low", PackageRef: sarifTestPURL, Title: "x", Severity: sdk.SeverityLow, Disposition: sdk.FindingDispositionFail},
-		{ID: "warn-critical", PackageRef: sarifTestPURL, Title: "y", Severity: sdk.SeverityCritical, Disposition: sdk.FindingDispositionWarn},
+		{ID: "fail-low", PackageRef: sarifTestPURL, Title: "x", Severity: sdk.SeverityLow, PolicyStatus: sdk.FindingPolicyStatusFail},
+		{ID: "warn-critical", PackageRef: sarifTestPURL, Title: "y", Severity: sdk.SeverityCritical, PolicyStatus: sdk.FindingPolicyStatusWarn},
 	}
 	var buf bytes.Buffer
 	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0"); err != nil {
@@ -218,13 +218,13 @@ func TestWriteSARIF_SecuritySeverityAndFormattedHelp(t *testing.T) {
 			},
 		},
 		{
-			ID:          "INVALID-abcd-efgh-ijkl",
-			Kind:        sdk.FindingKindLicense,
-			PackageRef:  sarifTestPURL,
-			Title:       "Package has invalid SPDX license: non-standard",
-			Severity:    sdk.SeverityWarning,
-			Disposition: sdk.FindingDispositionWarn,
-			Source:      "license",
+			ID:           "INVALID-abcd-efgh-ijkl",
+			Kind:         sdk.FindingKindLicense,
+			PackageRef:   sarifTestPURL,
+			Title:        "Package has invalid SPDX license: non-standard",
+			Severity:     sdk.SeverityWarning,
+			PolicyStatus: sdk.FindingPolicyStatusWarn,
+			Source:       "license",
 		},
 	}
 

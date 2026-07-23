@@ -4,8 +4,8 @@ Finding baselines let a project keep known package findings visible without
 letting those findings fail an audit. Bomly automatically looks for
 `.bomly/baseline.json` when `scan`, `diff`, or `explain` runs against a project.
 A matching finding is still emitted with the same package, advisory, severity,
-and reasons, but its policy status becomes `suppressed`. For compatibility,
-machine-readable output continues to call this field `disposition`.
+and reasons, but its policy status becomes `suppressed`. Machine-readable
+findings expose the status as `policy_status`.
 
 ## Create and maintain a baseline
 
@@ -41,10 +41,13 @@ resolved independently in the materialized base and head trees, so each side
 uses the baseline committed with that project state. The merge base selected by
 Bomly Guard is simply the diff's base tree.
 
-Automatic discovery is disabled for `--url` targets because the downloaded
-repository is not a trusted policy source. Use an explicit absolute baseline
-path to apply your own policy, or `--baseline none` to make that intent clear.
-At `-v`, Bomly logs the baseline path and entry count when a policy is loaded.
+Automatic discovery also applies to `--url` targets, using the baseline
+committed in the checked-out repository. Use `--baseline none` when that
+project policy should not participate in evaluation, or provide an explicit
+path to use a different baseline. At `-v`, Bomly logs every detected baseline
+with its path, entry count, selection mode, and target kind. Audit completion
+logs include the baseline path, entries, findings evaluated, and findings
+accepted, including when those counts are zero.
 
 Container targets have no reliable project root, so they require an absolute
 baseline path. For a standalone SBOM file, automatic discovery starts beside
@@ -95,10 +98,11 @@ finding recorded as `unknown` stays suppressed if analysis later proves it
 ## Output and automation
 
 Baselines do not add report sections or collections. Findings remain in their
-normal scan, explain, and diff locations. JSON and MCP retain the existing
-`disposition` machine field; text, Markdown, and the TUI call it the policy
-status; SARIF marks the result as externally suppressed at note level; and
+normal scan, explain, and diff locations. JSON and MCP expose the
+`policy_status` field; text, Markdown, and the TUI call it the policy status;
+SARIF marks the result as externally suppressed at note level; and
 Bomly Guard continues consuming the ordinary diff output and exit status.
+The field rename is reflected by CLI output schema version `2.0`.
 
 Baseline failures do not hide pipeline diagnostics. A malformed explicitly
 selected file fails before the audit runs. An automatically discovered baseline

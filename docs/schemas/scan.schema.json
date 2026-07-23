@@ -48,9 +48,6 @@
             },
             "type": "array"
           },
-          "disposition": {
-            "type": "string"
-          },
           "id": {
             "type": "string"
           },
@@ -79,6 +76,9 @@
               "name"
             ],
             "type": "object"
+          },
+          "policy_status": {
+            "type": "string"
           },
           "reasons": {
             "items": {

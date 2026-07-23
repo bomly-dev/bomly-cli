@@ -8,7 +8,7 @@ import (
 )
 
 // SchemaVersion is the current CLI output schema version.
-const SchemaVersion = "1.0"
+const SchemaVersion = "2.0"
 
 // Metadata captures execution metadata shared by all command outputs.
 type Metadata struct {
@@ -356,18 +356,18 @@ func (p FindingPackageRef) DisplayLabel() string {
 // (join to packages[].vulnerabilities), and the introducing graph nodes by
 // dependency_refs (join to manifests[].dependencies ids).
 type AuditFinding struct {
-	ID              string                 `json:"id"`
-	Kind            sdk.FindingKind        `json:"kind"`
-	Severity        sdk.SeverityLevel      `json:"severity"`
-	Package         FindingPackageRef      `json:"package"`
-	Title           string                 `json:"title"`
-	Reasons         []string               `json:"reasons,omitempty"`
-	Source          string                 `json:"source"`
-	Auditor         string                 `json:"auditor,omitempty"`
-	RuleID          string                 `json:"rule_id,omitempty"`
-	Disposition     sdk.FindingDisposition `json:"disposition,omitempty"`
-	VulnerabilityID string                 `json:"vulnerability_id,omitempty"`
-	DependencyRefs  []string               `json:"dependency_refs,omitempty"`
+	ID              string                  `json:"id"`
+	Kind            sdk.FindingKind         `json:"kind"`
+	Severity        sdk.SeverityLevel       `json:"severity"`
+	Package         FindingPackageRef       `json:"package"`
+	Title           string                  `json:"title"`
+	Reasons         []string                `json:"reasons,omitempty"`
+	Source          string                  `json:"source"`
+	Auditor         string                  `json:"auditor,omitempty"`
+	RuleID          string                  `json:"rule_id,omitempty"`
+	PolicyStatus    sdk.FindingPolicyStatus `json:"policy_status,omitempty"`
+	VulnerabilityID string                  `json:"vulnerability_id,omitempty"`
+	DependencyRefs  []string                `json:"dependency_refs,omitempty"`
 }
 
 // AuditSummary aggregates finding counts by severity.
@@ -398,7 +398,7 @@ func FindingsFromScan(findings []sdk.Finding, registry *sdk.PackageRegistry) []A
 			Source:          f.Source,
 			Auditor:         f.Auditor,
 			RuleID:          f.RuleID,
-			Disposition:     f.Disposition,
+			PolicyStatus:    f.PolicyStatus,
 			VulnerabilityID: f.VulnerabilityID,
 			DependencyRefs:  append([]string(nil), f.DependencyRefs...),
 		}
@@ -507,7 +507,7 @@ func lookupVulnerability(pkg *sdk.Package, vulnID, fallbackID string) *sdk.Vulne
 func FailingFindingCount(findings []sdk.Finding) int {
 	total := 0
 	for _, finding := range findings {
-		if finding.Disposition == "" || finding.Disposition == sdk.FindingDispositionFail {
+		if finding.PolicyStatus == "" || finding.PolicyStatus == sdk.FindingPolicyStatusFail {
 			total++
 		}
 	}

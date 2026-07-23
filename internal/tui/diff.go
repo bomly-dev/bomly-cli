@@ -2035,17 +2035,17 @@ func (m *DiffModel) auditVerdict() auditVerdict {
 	// (Vulnerabilities / Findings) can render an outcome panel that
 	// stays consistent with the rows it's actually showing.
 	for _, f := range m.payload.Audit.Introduced {
-		switch f.Disposition {
-		case "", sdk.FindingDispositionFail:
+		switch f.PolicyStatus {
+		case "", sdk.FindingPolicyStatusFail:
 			v.FailingIntroduced++
 			if isVulnerabilityFinding(f) {
 				v.FailingIntroducedVuln++
 			} else {
 				v.FailingIntroducedNonVuln++
 			}
-		case sdk.FindingDispositionWarn:
+		case sdk.FindingPolicyStatusWarn:
 			v.WarnIntroduced++
-		case sdk.FindingDispositionSuppressed:
+		case sdk.FindingPolicyStatusSuppressed:
 			v.SuppressedIntroduced++
 			if isVulnerabilityFinding(f) {
 				v.SuppressedIntroducedVuln++
@@ -2496,7 +2496,7 @@ func auditDeltaDetails(d auditDelta) []string {
 		"",
 		render.Style("Status", render.Bold, render.Cyan),
 		render.Style("  Delta status: ", render.Dim)+statusText(auditStatusLabel(d.status)),
-		render.Style("  Policy status: ", render.Dim)+valueOrDash(string(f.Disposition)),
+		render.Style("  Policy status: ", render.Dim)+valueOrDash(string(f.PolicyStatus)),
 		render.Style("  Severity: ", render.Dim)+severityText(string(f.Severity)),
 		"",
 		render.Style("Classification", render.Bold, render.Magenta),

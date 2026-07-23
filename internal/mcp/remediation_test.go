@@ -112,9 +112,9 @@ func remediationFixture(t *testing.T) remediationInput {
 		{
 			ID: "license:unknown-license:lib-a@1.0.0", Kind: sdk.FindingKindLicense,
 			Severity: "n/a", Source: "license", Auditor: "license",
-			RuleID:      "unknown-license",
-			Disposition: sdk.FindingDispositionWarn,
-			PackageRef:  "pkg:npm/lib-a@1.0.0", DependencyRefs: []string{nodes[1].ID},
+			RuleID:       "unknown-license",
+			PolicyStatus: sdk.FindingPolicyStatusWarn,
+			PackageRef:   "pkg:npm/lib-a@1.0.0", DependencyRefs: []string{nodes[1].ID},
 		},
 	}
 
@@ -184,7 +184,7 @@ func TestBuildRemediationsGroupsAndActions(t *testing.T) {
 		t.Fatalf("no-fix classification wrong: %#v", noFix.Fixes[0])
 	}
 
-	// The warn-disposition license finding is informational.
+	// The warning-status license finding is informational.
 	if len(out.Informational) != 1 || out.Informational[0].Kind != string(sdk.FindingKindLicense) {
 		t.Fatalf("informational bucket wrong: %#v", out.Informational)
 	}
@@ -401,13 +401,13 @@ func TestClassifyFindingMatrix(t *testing.T) {
 
 func TestWarnWithFixAvailableStaysActionable(t *testing.T) {
 	in := remediationFixture(t)
-	// Downgrade the lib-a vulnerability finding to warn disposition: a fix
+	// Downgrade the lib-a vulnerability finding to warning status: a fix
 	// is available, so it must still surface as a remediation (cheap win),
-	// carrying its disposition.
-	in.Findings[0].Disposition = sdk.FindingDispositionWarn
+	// carrying its policy status.
+	in.Findings[0].PolicyStatus = sdk.FindingPolicyStatusWarn
 	out := buildRemediations(in)
 	direct := groupByAction(t, out.Remediations, ActionDirectBump)
-	if len(direct.Fixes) != 1 || direct.Fixes[0].Disposition != string(sdk.FindingDispositionWarn) {
+	if len(direct.Fixes) != 1 || direct.Fixes[0].PolicyStatus != string(sdk.FindingPolicyStatusWarn) {
 		t.Fatalf("warn+fix_available should stay actionable: %#v", direct)
 	}
 }

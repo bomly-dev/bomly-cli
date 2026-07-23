@@ -105,15 +105,15 @@ func TestSeverityRankGitHubLevels(t *testing.T) {
 
 func TestFindingPolicyStatusRank(t *testing.T) {
 	tests := []struct {
-		status FindingDisposition
+		status FindingPolicyStatus
 		rank   int
 		known  bool
 	}{
 		{"", 3, true},
-		{FindingDispositionFail, 3, true},
-		{FindingDispositionWarn, 2, true},
-		{FindingDispositionSuppressed, 1, true},
-		{FindingDisposition("invalid"), 0, false},
+		{FindingPolicyStatusFail, 3, true},
+		{FindingPolicyStatusWarn, 2, true},
+		{FindingPolicyStatusSuppressed, 1, true},
+		{FindingPolicyStatus("invalid"), 0, false},
 	}
 	for _, test := range tests {
 		rank, known := FindingPolicyStatusRank(test.status)

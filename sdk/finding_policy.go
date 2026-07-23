@@ -5,7 +5,7 @@ import "context"
 // FindingPolicyDecision is a resolver's proposed policy status for one
 // finding. Source and Reason provide diagnostic provenance.
 type FindingPolicyDecision struct {
-	Status FindingDisposition
+	Status FindingPolicyStatus
 	Source string
 	Reason string
 }
@@ -19,13 +19,13 @@ type FindingPolicyResolver interface {
 // FindingPolicyStatusRank returns the enforcement rank for a finding policy
 // status. An omitted status retains the historical fail behavior. The boolean
 // is false for unknown values.
-func FindingPolicyStatusRank(status FindingDisposition) (int, bool) {
+func FindingPolicyStatusRank(status FindingPolicyStatus) (int, bool) {
 	switch status {
-	case FindingDispositionSuppressed:
+	case FindingPolicyStatusSuppressed:
 		return 1, true
-	case FindingDispositionWarn:
+	case FindingPolicyStatusWarn:
 		return 2, true
-	case "", FindingDispositionFail:
+	case "", FindingPolicyStatusFail:
 		return 3, true
 	default:
 		return 0, false

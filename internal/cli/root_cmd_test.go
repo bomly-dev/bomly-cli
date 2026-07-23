@@ -1391,8 +1391,8 @@ func TestRoot_WhyCommand_JSONOutput(t *testing.T) {
 	if got := payload["command"]; got != "explain" {
 		t.Fatalf("expected command explain, got %#v", got)
 	}
-	if got := payload["schema_version"]; got != "1.0" {
-		t.Fatalf("expected schema version 1.0, got %#v", got)
+	if got := payload["schema_version"]; got != "2.0" {
+		t.Fatalf("expected schema version 2.0, got %#v", got)
 	}
 }
 

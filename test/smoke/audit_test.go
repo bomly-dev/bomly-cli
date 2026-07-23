@@ -170,8 +170,8 @@ func TestFindingBaselineWorkflow(t *testing.T) {
 	got := normalizeJSON(t, []byte(stdout))
 	var document struct {
 		Findings []struct {
-			RuleID      string `json:"rule_id"`
-			Disposition string `json:"disposition"`
+			RuleID       string `json:"rule_id"`
+			PolicyStatus string `json:"policy_status"`
 		} `json:"findings"`
 	}
 	if err := json.Unmarshal(got, &document); err != nil {
@@ -179,7 +179,7 @@ func TestFindingBaselineWorkflow(t *testing.T) {
 	}
 	if len(document.Findings) != 1 ||
 		document.Findings[0].RuleID != "denied-package" ||
-		document.Findings[0].Disposition != "suppressed" {
+		document.Findings[0].PolicyStatus != "suppressed" {
 		t.Fatalf("baseline findings = %#v", document.Findings)
 	}
 	assertGolden(t, "finding-baseline-workflow", got)

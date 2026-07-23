@@ -14,7 +14,6 @@
       "dependency_refs": [
         "pkg:golang/golang.org/x/text@v0.3.5"
       ],
-      "disposition": "suppressed",
       "id": "package:denied-package:pkg:golang/golang.org/x/text@v0.3.5",
       "kind": "package",
       "package": {
@@ -23,6 +22,7 @@
         "purl": "pkg:golang/golang.org/x/text@v0.3.5",
         "version": "v0.3.5"
       },
+      "policy_status": "suppressed",
       "rule_id": "denied-package",
       "severity": "error",
       "source": "package",
@@ -241,5 +241,5 @@
     "path": "\u003cnormalized\u003e",
     "target_type": "filesystem"
   },
-  "schema_version": "1.0"
+  "schema_version": "2.0"
 }

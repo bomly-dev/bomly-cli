@@ -42,7 +42,7 @@ func findingIDs(findings []sdk.Finding) []string {
 func findingKinds(findings []sdk.Finding) map[string]string {
 	out := make(map[string]string, len(findings))
 	for _, f := range findings {
-		out[f.ID] = string(f.Disposition)
+		out[f.ID] = string(f.PolicyStatus)
 	}
 	return out
 }
@@ -71,7 +71,7 @@ func TestAudit(t *testing.T) {
 		baseline         *sdk.Graph
 		wantFindingCount int
 		wantFindingIDs   []string
-		wantDisposition  map[string]string // finding ID → disposition
+		wantPolicyStatus map[string]string // finding ID → policy status
 	}{
 		{
 			// Core regression: a version bump of an existing package must never
@@ -157,7 +157,7 @@ func TestAudit(t *testing.T) {
 		{
 			// An explicitly denied package triggers a fail finding regardless of
 			// baseline presence.
-			name: "denied package is flagged with fail disposition",
+			name: "denied package is flagged with fail policy status",
 			auditor: Auditor{
 				DenyPackages: []string{"pkg:golang/github.com/evil/malware"},
 			},
@@ -167,13 +167,13 @@ func TestAudit(t *testing.T) {
 				"package:denied-package:" + idDenied,
 			},
 			wantFindingCount: 1,
-			wantDisposition: map[string]string{
-				"package:denied-package:" + idDenied: string(sdk.FindingDispositionFail),
+			wantPolicyStatus: map[string]string{
+				"package:denied-package:" + idDenied: string(sdk.FindingPolicyStatusFail),
 			},
 		},
 		{
 			// An explicitly denied group triggers a fail finding.
-			name: "denied group is flagged with fail disposition",
+			name: "denied group is flagged with fail policy status",
 			auditor: Auditor{
 				DenyGroups: []string{"pkg:golang/github.com/blocked"},
 			},
@@ -183,13 +183,13 @@ func TestAudit(t *testing.T) {
 				"package:denied-group:" + idDeniedGroup,
 			},
 			wantFindingCount: 1,
-			wantDisposition: map[string]string{
-				"package:denied-group:" + idDeniedGroup: string(sdk.FindingDispositionFail),
+			wantPolicyStatus: map[string]string{
+				"package:denied-group:" + idDeniedGroup: string(sdk.FindingPolicyStatusFail),
 			},
 		},
 		{
-			// TyposquatMode "fail" escalates disposition to fail.
-			name: "typosquat mode fail escalates disposition",
+			// TyposquatMode "fail" escalates policy status to fail.
+			name: "typosquat mode fail escalates policy status",
 			auditor: Auditor{
 				ProtectedPackages:  []string{"github.com/containerd/containerd/api"},
 				TyposquatThreshold: 0.90,
@@ -198,8 +198,8 @@ func TestAudit(t *testing.T) {
 			graph:            graphOf(pkgContainerdV2New),
 			baseline:         sdk.New(),
 			wantFindingCount: 1,
-			wantDisposition: map[string]string{
-				"package:suspicious-package:" + idContainerdV2New: string(sdk.FindingDispositionFail),
+			wantPolicyStatus: map[string]string{
+				"package:suspicious-package:" + idContainerdV2New: string(sdk.FindingPolicyStatusFail),
 			},
 		},
 		{
@@ -239,11 +239,11 @@ func TestAudit(t *testing.T) {
 			}
 			for _, finding := range result.Findings {
 				wantSeverity := sdk.SeverityError
-				if finding.Disposition == sdk.FindingDispositionWarn {
+				if finding.PolicyStatus == sdk.FindingPolicyStatusWarn {
 					wantSeverity = sdk.SeverityWarning
 				}
 				if finding.Severity != wantSeverity {
-					t.Errorf("finding %q severity = %q, want %q (disposition %q)", finding.ID, finding.Severity, wantSeverity, finding.Disposition)
+					t.Errorf("finding %q severity = %q, want %q (policy status %q)", finding.ID, finding.Severity, wantSeverity, finding.PolicyStatus)
 				}
 			}
 			for _, wantID := range tc.wantFindingIDs {
@@ -258,13 +258,13 @@ func TestAudit(t *testing.T) {
 					t.Errorf("expected finding %q not present; got: %v", wantID, findingIDs(result.Findings))
 				}
 			}
-			if tc.wantDisposition != nil {
+			if tc.wantPolicyStatus != nil {
 				dispositions := findingKinds(result.Findings)
-				for wantID, wantDisp := range tc.wantDisposition {
+				for wantID, wantDisp := range tc.wantPolicyStatus {
 					if got, ok := dispositions[wantID]; !ok {
 						t.Errorf("finding %q not present", wantID)
 					} else if got != wantDisp {
-						t.Errorf("finding %q disposition = %q, want %q", wantID, got, wantDisp)
+						t.Errorf("finding %q policy status = %q, want %q", wantID, got, wantDisp)
 					}
 				}
 			}

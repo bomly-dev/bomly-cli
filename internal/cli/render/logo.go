@@ -66,10 +66,6 @@ func StartupLogo(w io.Writer) {
 	frameLines := bomlyLogoFrameLineCount()
 	_, _ = io.WriteString(file, strings.Repeat("\n", frameLines))
 	_, _ = io.WriteString(file, fmt.Sprintf("\x1b[%dA", frameLines))
-	_, _ = io.WriteString(file, "\x1b[?25l")
-	defer func() {
-		_, _ = io.WriteString(file, "\x1b[?25h")
-	}()
 
 	for idx, frame := range frames {
 		if idx > 0 {

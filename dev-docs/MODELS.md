@@ -180,9 +180,10 @@ type Vulnerability struct {
 Matchers (OSV, grype, depsdev, eol, scorecard, and enabled external matcher
 plugins) write these records onto registry packages by PURL. At the end of
 matching, the engine consolidates records whose `ID` and `Aliases` form one
-transitively connected identity set within a package. Their evidence is unioned,
-the highest severity and conservative fix state are retained, and every
-non-canonical primary ID becomes an alias. `Related` IDs are not identity
+transitively connected identity set within a package. The record with the
+broadest populated metadata becomes the base, the remaining evidence is
+unioned, the highest severity and conservative fix state are retained, and
+every non-canonical primary ID becomes an alias. `Related` IDs are not identity
 evidence because OSV uses them for associated but distinct vulnerabilities.
 Reachability is the only field analyzers touch; they annotate it in place.
 

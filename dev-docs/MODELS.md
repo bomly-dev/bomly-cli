@@ -177,7 +177,15 @@ type Vulnerability struct {
 }
 ```
 
-Matchers (OSV, grype, depsdev, eol, scorecard, and enabled external matcher plugins) write these records onto registry packages by PURL. Reachability is the only field analyzers touch; they annotate it in place.
+Matchers (OSV, grype, depsdev, eol, scorecard, and enabled external matcher
+plugins) write these records onto registry packages by PURL. At the end of
+matching, the engine consolidates records whose `ID` and `Aliases` form one
+transitively connected identity set within a package. The record with the
+broadest populated metadata becomes the base, the remaining evidence is
+unioned, the highest severity and conservative fix state are retained, and
+every non-canonical primary ID becomes an alias. `Related` IDs are not identity
+evidence because OSV uses them for associated but distinct vulnerabilities.
+Reachability is the only field analyzers touch; they annotate it in place.
 
 First-party packages — `application`-typed nodes such as workspace members, reactor modules, and the project's own package — appear in the packages collection **unenriched by design**: `sdk.NodeIsEnrichable` excludes them from every matcher's work list because they are absent from public sources and a coincidental name match would attach someone else's advisories. They keep their PURLs and stay visible in `packages` output and generated SBOMs.
 
@@ -196,7 +204,8 @@ type Finding struct {
     Reasons     []string
     Source      string             // osv | grype | license | package | ...
     Auditor     string             // which auditor emitted it
-    Disposition FindingDisposition // pass | fail | warn
+    RuleID      string             // stable auditor rule, independent of project occurrence
+    PolicyStatus FindingPolicyStatus // fail | warn | suppressed; empty defaults to fail
 
     // References (the whole point of "reference-style")
     PackageRef      string         // PURL → resolve via registry.Get
@@ -207,6 +216,10 @@ type Finding struct {
     VexStatus, VEXJustification string
 }
 ```
+
+`PolicyStatus` is the SDK field name and `policy_status` is its structured-output
+key. User interfaces describe the values as fail, warning, or accepted
+(`suppressed`). An omitted value retains the historical failing behavior.
 
 Findings carry **no** CVSS/EPSS/KEV/CWE/fix-state/reachability fields. Consumers (JSON output, SARIF, render, TUI) resolve those by following `PackageRef` and `VulnerabilityID` into the registry. This eliminates the ~25-field duplication the old `Finding` shape had.
 

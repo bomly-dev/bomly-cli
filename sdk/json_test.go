@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 )
 
@@ -37,6 +38,38 @@ func TestGraphJSONRoundTrip(t *testing.T) {
 	}
 	if len(deps) != 1 || deps[0].ID != dep.ID {
 		t.Fatalf("decoded dependencies = %#v, want %q", deps, dep.ID)
+	}
+}
+
+func TestFindingSuppressedPolicyStatusAndRuleIDJSONRoundTrip(t *testing.T) {
+	input := Finding{ID: "finding", Kind: FindingKindPackage, RuleID: "denied-package", PolicyStatus: FindingPolicyStatusSuppressed}
+	data, err := json.Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var output Finding
+	if err := json.Unmarshal(data, &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.RuleID != input.RuleID || output.PolicyStatus != FindingPolicyStatusSuppressed {
+		t.Fatalf("finding round trip = %#v", output)
+	}
+}
+
+func TestFindingAcceptsProtocolV1LegacyPolicyStatusField(t *testing.T) {
+	var finding Finding
+	if err := json.Unmarshal([]byte(`{"id":"finding","disposition":"warn"}`), &finding); err != nil {
+		t.Fatal(err)
+	}
+	if finding.PolicyStatus != FindingPolicyStatusWarn {
+		t.Fatalf("legacy policy status = %q, want warn", finding.PolicyStatus)
+	}
+	data, err := json.Marshal(finding)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(data), `"disposition"`) || !strings.Contains(string(data), `"policy_status":"warn"`) {
+		t.Fatalf("current finding JSON = %s", data)
 	}
 }
 

@@ -103,6 +103,27 @@ func TestSeverityRankGitHubLevels(t *testing.T) {
 	}
 }
 
+func TestFindingPolicyStatusRank(t *testing.T) {
+	tests := []struct {
+		status FindingPolicyStatus
+		rank   int
+		known  bool
+	}{
+		{"", 3, true},
+		{FindingPolicyStatusFail, 3, true},
+		{FindingPolicyStatusWarn, 2, true},
+		{FindingPolicyStatusSuppressed, 1, true},
+		{FindingPolicyStatus("invalid"), 0, false},
+	}
+	for _, test := range tests {
+		rank, known := FindingPolicyStatusRank(test.status)
+		if rank != test.rank || known != test.known {
+			t.Errorf("FindingPolicyStatusRank(%q) = (%d, %v), want (%d, %v)",
+				test.status, rank, known, test.rank, test.known)
+		}
+	}
+}
+
 func TestMatchesConstraints(t *testing.T) {
 	highReachable := Vulnerability{
 		ParsedSeverity: SeverityHigh,

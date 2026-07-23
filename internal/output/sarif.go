@@ -65,14 +65,20 @@ type sarifRuleProperties struct {
 }
 
 type sarifResult struct {
-	RuleID              string            `json:"ruleId"`
-	Level               string            `json:"level"`
-	Message             sarifMessage      `json:"message"`
-	Locations           []sarifLocation   `json:"locations"`
-	BaselineState       string            `json:"baselineState,omitempty"`
-	PartialFingerprints map[string]string `json:"partialFingerprints,omitempty"`
-	CodeFlows           []sarifCodeFlow   `json:"codeFlows,omitempty"`
-	Properties          *sarifProperties  `json:"properties,omitempty"`
+	RuleID              string             `json:"ruleId"`
+	Level               string             `json:"level"`
+	Message             sarifMessage       `json:"message"`
+	Locations           []sarifLocation    `json:"locations"`
+	BaselineState       string             `json:"baselineState,omitempty"`
+	PartialFingerprints map[string]string  `json:"partialFingerprints,omitempty"`
+	CodeFlows           []sarifCodeFlow    `json:"codeFlows,omitempty"`
+	Properties          *sarifProperties   `json:"properties,omitempty"`
+	Suppressions        []sarifSuppression `json:"suppressions,omitempty"`
+}
+
+type sarifSuppression struct {
+	Kind          string `json:"kind"`
+	Justification string `json:"justification"`
 }
 
 type sarifLocation struct {
@@ -125,6 +131,7 @@ type sarifThreadFlowLocation struct {
 // these fields give consumers everything needed to triage a finding
 // without parsing the parallel JSON output.
 type sarifProperties struct {
+	RuleID                 string               `json:"rule_id,omitempty"`
 	PackageRef             string               `json:"package_ref,omitempty"`
 	DependencyRefs         []string             `json:"dependency_refs,omitempty"`
 	LocationURIs           []string             `json:"location_uris,omitempty"`
@@ -196,7 +203,7 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 			ID:               f.ID,
 			ShortDescription: sarifMessage{Text: f.Title},
 			FullDescription:  sarifReasonsMessage(f.Reasons),
-			DefaultConfig:    sarifRuleConfig{Level: dispositionToSARIFLevel(f.Disposition)},
+			DefaultConfig:    sarifRuleConfig{Level: policyStatusToSARIFLevel(f.PolicyStatus)},
 			HelpURI:          helpURI,
 		}
 		if help := sarifHelpMessage(f.Reasons, helpURI); help != nil {
@@ -217,11 +224,17 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 		locations, locationURIs := sarifLocationsForFinding(f, includeReachability, options)
 		result := sarifResult{
 			RuleID:              f.ID,
-			Level:               dispositionToSARIFLevel(f.Disposition),
+			Level:               policyStatusToSARIFLevel(f.PolicyStatus),
 			Message:             sarifMessage{Text: msgText},
 			Locations:           locations,
 			BaselineState:       sarifBaselineState(options),
 			PartialFingerprints: sarifPartialFingerprints(f, locationURIs, locations),
+		}
+		if f.PolicyStatus == sdk.FindingPolicyStatusSuppressed {
+			result.Suppressions = []sarifSuppression{{
+				Kind:          "external",
+				Justification: "Accepted by the project finding baseline",
+			}}
 		}
 		props := sarifPropertiesFromFinding(f, locationURIs)
 		if vuln != nil {
@@ -260,7 +273,8 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 }
 
 func sarifPropertiesEmpty(props sarifProperties) bool {
-	return props.PackageRef == "" &&
+	return props.RuleID == "" &&
+		props.PackageRef == "" &&
 		len(props.DependencyRefs) == 0 &&
 		len(props.LocationURIs) == 0 &&
 		props.FixedIn == "" &&
@@ -615,6 +629,7 @@ func firstNonEmpty(values ...string) string {
 
 func sarifPropertiesFromFinding(f sdk.Finding, locationURIs []string) sarifProperties {
 	return sarifProperties{
+		RuleID:         f.RuleID,
 		PackageRef:     f.PackageRef,
 		DependencyRefs: append([]string(nil), f.DependencyRefs...),
 		LocationURIs:   append([]string(nil), locationURIs...),
@@ -713,21 +728,24 @@ func sarifPropertiesFromVulnerability(v *sdk.Vulnerability, includeReachability 
 	return props
 }
 
-// dispositionToSARIFLevel maps a finding's disposition to a SARIF level. The
+// policyStatusToSARIFLevel maps a finding's policy status to a SARIF level. The
 // level reflects whether the finding blocks the job — error for a failing
-// finding, warning for an advisory one — never the underlying severity band.
+// finding, warning for an advisory one, and note for a suppressed one — never
+// the underlying severity band.
 // Severity is reported separately via security-severity for vulnerabilities
 // (see sarifRulePropertiesForFinding), so a Low-severity finding that fails
 // the build still surfaces as "error" here, and a Critical one that's merely
 // a warning still surfaces as "warning": job impact and severity are
 // orthogonal, and GitHub's level/badge should track the former.
-func dispositionToSARIFLevel(disposition sdk.FindingDisposition) string {
-	switch disposition {
-	case sdk.FindingDispositionWarn:
+func policyStatusToSARIFLevel(policyStatus sdk.FindingPolicyStatus) string {
+	switch policyStatus {
+	case sdk.FindingPolicyStatusWarn:
 		return "warning"
+	case sdk.FindingPolicyStatusSuppressed:
+		return "note"
 	default:
-		// FindingDispositionFail, and "" (findings with no explicit
-		// disposition are treated as failing — see FailingFindingCount).
+		// FindingPolicyStatusFail and "" both map to error; findings with no
+		// explicit policy status are treated as failing by FailingFindingCount.
 		return "error"
 	}
 }

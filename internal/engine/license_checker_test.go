@@ -106,3 +106,40 @@ func TestEngineMatch_RunsMultipleMatchersWithoutOverwritingExistingLicenses(t *t
 		t.Fatalf("expected first matcher to fill the gap and second to preserve it, got %#v", values)
 	}
 }
+
+func TestEngineMatchConsolidatesAliasEquivalentVulnerabilitiesAcrossMatchers(t *testing.T) {
+	registry := newTestRegistry()
+	const purl = "pkg:golang/golang.org/x/text@v0.3.5"
+
+	registry.registerMatcher(fakeMatcher{
+		name: "first",
+		run: func(reg *sdk.PackageRegistry) {
+			reg.Ensure(purl).Vulnerabilities = append(reg.Ensure(purl).Vulnerabilities, sdk.Vulnerability{
+				ID: "GHSA-ppp9-7jff-5vj2", Aliases: []string{"CVE-2021-38561"}, Source: "first",
+			})
+		},
+	})
+	registry.registerMatcher(fakeMatcher{
+		name: "second",
+		run: func(reg *sdk.PackageRegistry) {
+			reg.Ensure(purl).Vulnerabilities = append(reg.Ensure(purl).Vulnerabilities, sdk.Vulnerability{
+				ID: "GO-2021-0113", Aliases: []string{"CVE-2021-38561", "GHSA-ppp9-7jff-5vj2"}, Source: "second",
+			})
+		},
+	})
+
+	result, err := NewEngine(registry).Match(context.Background(), MatchRequest{
+		Graph:    sdk.New(),
+		Registry: sdk.NewPackageRegistry(),
+	})
+	if err != nil {
+		t.Fatalf("Match() error = %v", err)
+	}
+	pkg, ok := result.Registry.Get(purl)
+	if !ok || len(pkg.Vulnerabilities) != 1 {
+		t.Fatalf("package vulnerabilities = %#v", pkg)
+	}
+	if result.VulnerabilitiesConsolidated != 1 {
+		t.Fatalf("consolidated count = %d, want 1", result.VulnerabilitiesConsolidated)
+	}
+}

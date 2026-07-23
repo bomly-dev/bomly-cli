@@ -75,6 +75,7 @@ internal/analyzers/*             Reachability analyzers (govulncheck — Go;
                                  registry packages, and never abort the
                                  pipeline on failure
 internal/auditors/*              Policy evaluators (policy, noop)
+internal/baseline                Portable package-finding baseline and audit policy-status resolver
 internal/sbom/                   SPDX 2.3 / CycloneDX codec
 internal/benchmark/              Hidden local dependency-graph benchmark, baseline scoring,
                                  and embedded smoke/benchmark repository presets
@@ -88,7 +89,7 @@ internal/testutil/               Test helpers (fake binary builder)
 
 **`bomly explain`** is implemented by `newExplainCmd` in `internal/cli/explain_cmd.go`.
 
-**Scan pipeline order**: `runtimePreparation → subprojectDiscovery (root-only by default; --recursive walks nested dirs) → detect (per-package-manager chains; resolve + consolidate into one graph) → scopeFilter → match (license enrichment) → analyze (reachability, when --analyze is set) → audit → format`. Consolidation is the tail of the detect stage (`runDetect` = `runResolve` + `runConsolidate`), not a separate stage.
+**Scan pipeline order**: `runtimePreparation → subprojectDiscovery (root-only by default; --recursive walks nested dirs) → detect (per-package-manager chains; resolve + consolidate into one graph) → scopeFilter → match (license enrichment) → analyze (reachability, when --analyze is set) → audit (including finding policy-status resolution) → format`. Consolidation is the tail of the detect stage (`runDetect` = `runResolve` + `runConsolidate`), not a separate stage.
 
 Runtime preparation is owned by `internal/engine` and is reached through CLI option helpers before pipeline execution. The CLI resolves raw targets and flags but must not discover subprojects with a separate registry.
 
@@ -96,6 +97,7 @@ Runtime preparation is owned by `internal/engine` and is reached through CLI opt
 
 - `internal/detectors/*` and `internal/analyzers/*` must not import `internal/engine`, `internal/engine/*`, or `internal/registry`. Analyzers depend only on `sdk` and the vendored library that backs their runner.
 - `sdk` owns neutral identifiers that would otherwise create import cycles.
+- `internal/baseline` owns the baseline document and matching implementation. It depends on `sdk` policy contracts and must not be imported by `sdk` or `internal/engine`.
 - `internal/registry` owns package-manager discovery, support lookups, and built-in wiring in `builder.go`. Do not create a separate `registrybuilder` package.
 - `internal/engine` (pipeline core) may import `internal/engine/consolidation`, `internal/engine/explain`, `internal/detectors`, and `internal/registry`.
 - `internal/engine` subpackages (`consolidation`, `diff`, `explain`, `scan`) must not import `internal/cli`.

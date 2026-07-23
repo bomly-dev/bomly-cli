@@ -85,8 +85,8 @@ func TestSubprojectProgressChildren_UsesGitIdentityWhenConcreteTargetIsFilesyste
 func TestDiffPolicyOutcomeProgressChild_ReportsIntroducedOutcome(t *testing.T) {
 	child := diffPolicyOutcomeProgressChild(&diffengine.Audit{
 		Introduced: []sdk.Finding{
-			{Disposition: sdk.FindingDispositionFail},
-			{Disposition: sdk.FindingDispositionWarn},
+			{PolicyStatus: sdk.FindingPolicyStatusFail},
+			{PolicyStatus: sdk.FindingPolicyStatusWarn},
 		},
 	})
 	if child.Icon != progress.CrossMark {
@@ -102,7 +102,7 @@ func TestDiffPolicyOutcomeProgressChild_PersistedFindingsAlsoFail(t *testing.T) 
 	// it must gate the run exactly like an introduced one.
 	child := diffPolicyOutcomeProgressChild(&diffengine.Audit{
 		Persisted: []sdk.Finding{
-			{Disposition: sdk.FindingDispositionFail},
+			{PolicyStatus: sdk.FindingPolicyStatusFail},
 		},
 	})
 	if child.Icon != progress.CrossMark {

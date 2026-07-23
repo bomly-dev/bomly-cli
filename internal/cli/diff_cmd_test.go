@@ -81,7 +81,7 @@ func TestDiffPolicyExit_PersistedFailingFindingsAlsoFailTheJob(t *testing.T) {
 	// fail --fail-on any, since the finding is tied to a package this diff
 	// actually changed.
 	err := diffPolicyExit(true, &diffengine.Audit{
-		Persisted: []sdk.Finding{{ID: "CVE-PERSISTS", Disposition: sdk.FindingDispositionFail}},
+		Persisted: []sdk.Finding{{ID: "CVE-PERSISTS", PolicyStatus: sdk.FindingPolicyStatusFail}},
 	})
 	if err == nil {
 		t.Fatal("expected a policy violation error for a failing persisted finding")
@@ -90,7 +90,7 @@ func TestDiffPolicyExit_PersistedFailingFindingsAlsoFailTheJob(t *testing.T) {
 
 func TestDiffPolicyExit_PersistedWarningsDoNotFailTheJob(t *testing.T) {
 	err := diffPolicyExit(true, &diffengine.Audit{
-		Persisted: []sdk.Finding{{ID: "license:warn", Disposition: sdk.FindingDispositionWarn}},
+		Persisted: []sdk.Finding{{ID: "license:warn", PolicyStatus: sdk.FindingPolicyStatusWarn}},
 	})
 	if err != nil {
 		t.Fatalf("expected no policy violation for a warning-only persisted finding, got %v", err)
@@ -99,7 +99,7 @@ func TestDiffPolicyExit_PersistedWarningsDoNotFailTheJob(t *testing.T) {
 
 func TestDiffPolicyExit_NoAuditNoExit(t *testing.T) {
 	if err := diffPolicyExit(false, &diffengine.Audit{
-		Persisted: []sdk.Finding{{ID: "x", Disposition: sdk.FindingDispositionFail}},
+		Persisted: []sdk.Finding{{ID: "x", PolicyStatus: sdk.FindingPolicyStatusFail}},
 	}); err != nil {
 		t.Fatalf("expected no exit error when audit is disabled, got %v", err)
 	}
@@ -215,7 +215,7 @@ func TestRenderDiffMarkdownIncludesPatchedVersionsByDefault(t *testing.T) {
 				VulnerabilityID: "OSV-123",
 				Severity:        "high",
 				Auditor:         "vulnerability",
-				Disposition:     "fail",
+				PolicyStatus:    "fail",
 				Package:         output.FindingPackageRef{Name: "react", Version: "18.2.0", Purl: "pkg:npm/react@18.2.0"},
 				Title:           "Prototype pollution in react",
 			}},
@@ -258,11 +258,11 @@ func TestRenderDiffMarkdownRendersScopedPolicyPayloadDirectly(t *testing.T) {
 		},
 		Audit: &output.DiffAudit{
 			Introduced: []output.AuditFinding{{
-				ID:          "license:unknown",
-				Auditor:     "license",
-				Disposition: "warn",
-				Package:     output.FindingPackageRef{Name: "new-package", Version: "1.0.0"},
-				Title:       "Package license is unknown",
+				ID:           "license:unknown",
+				Auditor:      "license",
+				PolicyStatus: "warn",
+				Package:      output.FindingPackageRef{Name: "new-package", Version: "1.0.0"},
+				Title:        "Package license is unknown",
 			}},
 			Persisted: []output.AuditFinding{
 				{ID: "CVE-REACT", Auditor: "vulnerability", Severity: "medium", Package: output.FindingPackageRef{Name: "react", Version: "18.2.1"}, Title: "React finding"},

@@ -123,6 +123,7 @@ type mcpOverrides struct {
 	TyposquatThreshold    string
 	TyposquatMode         string
 	WarnOnly              bool
+	Baseline              string
 	Ecosystems            string
 	SBOM                  bool
 	Recursive             bool
@@ -151,6 +152,7 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	applyStringOverride(&clone.ResolvedConfig.TyposquatThreshold, o.TyposquatThreshold)
 	applyStringOverride(&clone.ResolvedConfig.TyposquatMode, o.TyposquatMode)
 	applyStringOverride(&clone.ResolvedConfig.Ecosystems, o.Ecosystems)
+	applyStringOverride(&clone.ResolvedConfig.Baseline, o.Baseline)
 	if o.Enrich {
 		clone.ResolvedConfig.Enrich = true
 	}
@@ -190,6 +192,7 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	applyStringOverride(&resolved.TyposquatThreshold, o.TyposquatThreshold)
 	applyStringOverride(&resolved.TyposquatMode, o.TyposquatMode)
 	applyStringOverride(&resolved.Ecosystems, o.Ecosystems)
+	applyStringOverride(&resolved.Baseline, o.Baseline)
 	if o.Enrich {
 		resolved.Enrich = true
 	}
@@ -280,6 +283,7 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (m
 		TyposquatThreshold:    req.TyposquatThreshold,
 		TyposquatMode:         req.TyposquatMode,
 		WarnOnly:              req.WarnOnly,
+		Baseline:              req.Baseline,
 		Ecosystems:            req.Ecosystems,
 		Recursive:             req.Recursive,
 		MaxDepth:              req.MaxDepth,
@@ -382,6 +386,7 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 		TyposquatThreshold:    req.TyposquatThreshold,
 		TyposquatMode:         req.TyposquatMode,
 		WarnOnly:              req.WarnOnly,
+		Baseline:              req.Baseline,
 		Recursive:             req.Recursive,
 		MaxDepth:              req.MaxDepth,
 		Exclude:               req.Exclude,
@@ -456,6 +461,7 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (m
 		TyposquatThreshold:    req.TyposquatThreshold,
 		TyposquatMode:         req.TyposquatMode,
 		WarnOnly:              req.WarnOnly,
+		Baseline:              req.Baseline,
 		Recursive:             req.Recursive,
 		MaxDepth:              req.MaxDepth,
 		Exclude:               req.Exclude,

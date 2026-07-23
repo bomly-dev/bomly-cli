@@ -42,6 +42,7 @@ type Resolved struct {
 	TyposquatThreshold    string   `doc:"Similarity threshold for typosquatting detection" env:"BOMLY_TYPOSQUAT_THRESHOLD" default:"0.90"`
 	TyposquatMode         string   `doc:"Typosquatting policy mode: warn or fail" env:"BOMLY_TYPOSQUAT_MODE" default:"warn"`
 	WarnOnly              bool     `doc:"Downgrade failing findings to warnings" env:"BOMLY_WARN_ONLY"`
+	Baseline              string   `doc:"Finding baseline selection: auto, none, or a file path" env:"BOMLY_BASELINE" default:"auto"`
 	Analyzers             string   `doc:"Reachability analyzer selectors; supports +name and -name modifiers" env:"BOMLY_ANALYZERS"`
 	Format                string   `doc:"Primary output format: text, json, markdown, sarif, spdx, or cyclonedx. SBOM formats are scan-only" env:"BOMLY_FORMAT"`
 	Outputs               []string `doc:"Additional output target(s) as <format> or <format>=<path>. Repeatable; supports text, json, markdown, sarif, spdx, and cyclonedx" env:"BOMLY_OUTPUT"`
@@ -142,6 +143,7 @@ type PolicyFile struct {
 	TyposquatThreshold    *string     `yaml:"typosquat_threshold,omitempty" resolved:"TyposquatThreshold" legacy:"typosquat_threshold"`
 	TyposquatMode         *string     `yaml:"typosquat_mode,omitempty" resolved:"TyposquatMode" legacy:"typosquat_mode"`
 	WarnOnly              *bool       `yaml:"warn_only,omitempty" resolved:"WarnOnly" legacy:"warn_only"`
+	Baseline              *string     `yaml:"baseline,omitempty" resolved:"Baseline" legacy:"baseline"`
 }
 
 // OutputFile configures report rendering.

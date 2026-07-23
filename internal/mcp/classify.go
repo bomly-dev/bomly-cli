@@ -28,7 +28,7 @@ func classifyFinding(f sdk.Finding, vuln *sdk.Vulnerability) string {
 }
 
 // findingFails mirrors output.FailingFindingCount semantics: an empty
-// disposition counts as failing.
+// policy status counts as failing.
 func findingFails(f sdk.Finding) bool {
-	return f.Disposition == "" || f.Disposition == sdk.FindingDispositionFail
+	return f.PolicyStatus == "" || f.PolicyStatus == sdk.FindingPolicyStatusFail
 }

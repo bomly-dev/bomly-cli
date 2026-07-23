@@ -14,6 +14,7 @@ Task-oriented walkthroughs.
 - [SBOM Formats](SBOM.md) — SPDX vs. CycloneDX, write and ingest
 - [CI Integration](CI_INTEGRATION.md) — GitHub Actions, GitLab, Jenkins, Azure, CircleCI
 - [Bomly Guard](BOMLY_GUARD.md) — the turnkey GitHub Action for PR dependency review
+- [Finding Baselines](BASELINES.md) — keep accepted package findings visible without failing audits
 - [Interactive TUI](TUI.md) — keybindings and tabs for `--interactive`
 - [Troubleshooting](TROUBLESHOOTING.md) — common errors and fixes
 

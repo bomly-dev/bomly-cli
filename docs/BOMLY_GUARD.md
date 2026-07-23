@@ -51,6 +51,11 @@ On a `pull_request` event the action:
 
 Because the engine is the same `bomly diff` you run locally, the policy you enforce on your machine is the policy the action enforces on PRs.
 
+When a repository commits `.bomly/baseline.json`, each side of the underlying
+diff automatically uses the baseline from that Git tree. Matching findings stay
+in Guard's normal output with policy status `suppressed` but do not fail the job.
+See [Finding Baselines](BASELINES.md).
+
 ## Package Manager Setup
 
 Bomly Guard installs the Bomly CLI. It does not install project package managers.

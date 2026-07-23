@@ -580,9 +580,6 @@
             },
             "type": "array"
           },
-          "disposition": {
-            "type": "string"
-          },
           "id": {
             "type": "string"
           },
@@ -612,11 +609,17 @@
             ],
             "type": "object"
           },
+          "policy_status": {
+            "type": "string"
+          },
           "reasons": {
             "items": {
               "type": "string"
             },
             "type": "array"
+          },
+          "rule_id": {
+            "type": "string"
           },
           "severity": {
             "type": "string"
@@ -1866,9 +1869,6 @@
                   },
                   "type": "array"
                 },
-                "disposition": {
-                  "type": "string"
-                },
                 "id": {
                   "type": "string"
                 },
@@ -1898,11 +1898,17 @@
                   ],
                   "type": "object"
                 },
+                "policy_status": {
+                  "type": "string"
+                },
                 "reasons": {
                   "items": {
                     "type": "string"
                   },
                   "type": "array"
+                },
+                "rule_id": {
+                  "type": "string"
                 },
                 "severity": {
                   "type": "string"

@@ -141,6 +141,7 @@ policy:
   typosquat_threshold: "0.90"
   typosquat_mode: warn                    # warn | fail
   warn_only: false
+  baseline: auto                          # auto | none | path
 ```
 
 Bomly merges configuration from these sources, in increasing precedence:

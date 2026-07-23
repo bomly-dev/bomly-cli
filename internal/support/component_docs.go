@@ -462,6 +462,7 @@ policy:
   typosquat_threshold: "0.90"
   typosquat_mode: warn                    # warn | fail
   warn_only: false
+  baseline: auto                          # auto | none | path
 `+"```"+`
 
 Bomly merges configuration from these sources, in increasing precedence:
@@ -473,6 +474,14 @@ Bomly merges configuration from these sources, in increasing precedence:
 5. CLI flags.
 
 So a checked-in `+"`.bomly/config.yaml`"+` defines the team policy, and a CLI flag still overrides it for a one-off run. Every key is listed in [CONFIG_REFERENCE.md](CONFIG_REFERENCE.md).
+
+## Finding baselines
+
+A project may commit `+"`.bomly/baseline.json`"+` to suppress accepted package
+findings without removing them from reports. Disposition resolution is part of
+auditing: auditors first emit ordinary findings, then the audit stage marks
+compatible entries `+"`suppressed`"+`. It never removes a finding or suppresses
+pipeline diagnostics. See [Finding Baselines](BASELINES.md).
 
 ## See also
 

@@ -18,7 +18,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"sort"
 	"strings"
 	"time"
 )
@@ -29,6 +28,8 @@ const (
 	spdxVersion  = "2.0.7"
 	spdxURL      = "https://github.com/spdx/tools-java/releases/download/v2.0.7/tools-java-2.0.7.zip"
 	spdxSHA256   = "2dc63c3399c5178058b1be8a3de6f13b9f24981cd86c4292ef98f4a7e90de36d"
+	spdxJarName  = "tools-java-2.0.7-jar-with-dependencies.jar"
+	maxSPDXJar   = 128 << 20
 	cdxVersion   = "0.32.0"
 	cdxURL       = "https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.32.0/cyclonedx-linux-x64"
 	cdxSHA256    = "454879e6a4a405c8a13bff49b8982adcb0596f3019b26b0811c66e4d7f0783e1"
@@ -216,39 +217,39 @@ func extractSPDXJar(archivePath, destination string) (string, error) {
 		return "", fmt.Errorf("open SPDX validator archive: %w", err)
 	}
 	defer reader.Close()
-	var candidates []string
-	for _, entry := range reader.File {
-		if entry.FileInfo().IsDir() || !strings.HasSuffix(entry.Name, "-jar-with-dependencies.jar") {
-			continue
-		}
-		candidates = append(candidates, entry.Name)
-	}
-	sort.Strings(candidates)
-	if len(candidates) != 1 {
-		return "", fmt.Errorf("SPDX validator archive contains %d executable jars", len(candidates))
-	}
-	entryPath := candidates[0]
 	var source *zip.File
 	for _, entry := range reader.File {
-		if entry.Name == entryPath {
-			source = entry
-			break
+		if entry.FileInfo().IsDir() || entry.Name != spdxJarName {
+			continue
 		}
+		if source != nil {
+			return "", errors.New("SPDX validator archive contains duplicate executable jars")
+		}
+		source = entry
+	}
+	if source == nil {
+		return "", fmt.Errorf("SPDX validator archive does not contain root entry %q", spdxJarName)
+	}
+	if source.UncompressedSize64 > maxSPDXJar {
+		return "", fmt.Errorf("SPDX validator jar is %d bytes, limit %d", source.UncompressedSize64, maxSPDXJar)
 	}
 	input, err := source.Open()
 	if err != nil {
 		return "", fmt.Errorf("open SPDX validator jar: %w", err)
 	}
 	defer input.Close()
-	jarPath := filepath.Join(destination, filepath.Base(entryPath))
+	jarPath := filepath.Join(destination, spdxJarName)
 	output, err := os.OpenFile(jarPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o600)
 	if err != nil {
 		return "", fmt.Errorf("create SPDX validator jar: %w", err)
 	}
-	_, copyErr := io.Copy(output, input)
+	written, copyErr := io.Copy(output, io.LimitReader(input, maxSPDXJar+1))
 	closeErr := output.Close()
 	if copyErr != nil {
 		return "", fmt.Errorf("extract SPDX validator jar: %w", copyErr)
+	}
+	if written > maxSPDXJar {
+		return "", fmt.Errorf("SPDX validator jar exceeds %d-byte extraction limit", maxSPDXJar)
 	}
 	if closeErr != nil {
 		return "", fmt.Errorf("close SPDX validator jar: %w", closeErr)

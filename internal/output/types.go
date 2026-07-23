@@ -8,7 +8,7 @@ import (
 )
 
 // SchemaVersion is the current CLI output schema version.
-const SchemaVersion = "2.0"
+const SchemaVersion = "1.0"
 
 // Metadata captures execution metadata shared by all command outputs.
 type Metadata struct {

@@ -75,7 +75,7 @@
   "query": {
     "name": "golang.org/x/text"
   },
-  "schema_version": "2.0",
+  "schema_version": "1.0",
   "targets": [
     {
       "audit_summary": {

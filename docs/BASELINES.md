@@ -102,7 +102,7 @@ normal scan, explain, and diff locations. JSON and MCP expose the
 `policy_status` field; text, Markdown, and the TUI call it the policy status;
 SARIF marks the result as externally suppressed at note level; and
 Bomly Guard continues consuming the ordinary diff output and exit status.
-The field rename is reflected by CLI output schema version `2.0`.
+The CLI output schema identifier remains `1.0`.
 
 Baseline failures do not hide pipeline diagnostics. A malformed explicitly
 selected file fails before the audit runs. An automatically discovered baseline

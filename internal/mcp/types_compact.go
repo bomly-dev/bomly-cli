@@ -3,7 +3,7 @@ package mcp
 // CompactSchemaVersion tags the agent-facing MCP response shapes. It is
 // versioned independently of the CLI JSON schema: MCP responses are compact
 // projections sized for tool-result limits, not the full document contract.
-const CompactSchemaVersion = "mcp/2"
+const CompactSchemaVersion = "mcp/1"
 
 // Compact response caps. Anything cut by a cap is counted in TruncationInfo —
 // never silently dropped.

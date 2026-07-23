@@ -554,5 +554,5 @@
     "path": "\u003cnormalized\u003e",
     "target_type": "container image"
   },
-  "schema_version": "2.0"
+  "schema_version": "1.0"
 }

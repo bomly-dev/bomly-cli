@@ -111,7 +111,7 @@ as CLI flags.
 
 ## Compact Responses And Drill-Down
 
-MCP tool results land in an agent's context window, so they use a compact response shape (`schema_version: "mcp/2"`), sized for tool-result limits and versioned independently of the CLI JSON documents in [JSON Schemas](SCHEMAS.md). A realistic enriched scan that serializes to megabytes as a full document comes back as a few KB of actionable data.
+MCP tool results land in an agent's context window, so they use a compact response shape (`schema_version: "mcp/1"`), sized for tool-result limits and versioned independently of the CLI JSON documents in [JSON Schemas](SCHEMAS.md). A realistic enriched scan that serializes to megabytes as a full document comes back as a few KB of actionable data.
 
 `bomly_scan` returns:
 

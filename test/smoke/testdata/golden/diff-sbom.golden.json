@@ -232,7 +232,7 @@
     ],
     "vulnerabilities": {}
   },
-  "schema_version": "2.0",
+  "schema_version": "1.0",
   "summary": {
     "added_manifest_count": 0,
     "added_package_count": 3,

@@ -141,9 +141,9 @@ each evaluation logs findings evaluated and accepted. Output receives ordinary
 findings whose policy status may be `suppressed` through
 `Finding.PolicyStatus` / `policy_status`, and no baseline-specific output model
 or pipeline stage exists. Renaming the earlier finding field is an intentional
-breaking output-contract change and advances the CLI output schema to `2.0`;
-the compact MCP schema advances to `mcp/2`. Protocol-v1 decoding still accepts
-the earlier wire field from existing external auditor plugins.
+breaking output-contract change while the CLI output schema identifier remains
+`1.0` and the compact MCP schema remains `mcp/1`. Protocol-v1 decoding still
+accepts the earlier wire field from existing external auditor plugins.
 
 ### Decision: registry matching eligibility is an occurrence-level engine boundary
 

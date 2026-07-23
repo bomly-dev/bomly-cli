@@ -7,7 +7,7 @@ EXE_SUFFIX=$(if $(filter Windows_NT,$(OS)),.exe,)
 GOLANGCI_LINT=$(GOPATH_BIN)/golangci-lint$(EXE_SUFFIX)
 FUZZTIME?=60s
 
-.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test fuzz run generate docs-config docs-schema docs-schema-md docs-support-matrix docs-components smoke benchmark benchmark-report licenses
+.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test fuzz run generate docs-config docs-schema docs-schema-md docs-support-matrix docs-components smoke benchmark benchmark-samples benchmark-report licenses
 
 build: build-full build-lite
 
@@ -43,6 +43,10 @@ smoke:
 
 benchmark: build-full
 	bin/$(BINARY_NAME)$(EXE_SUFFIX) benchmark $(if $(ARGS),$(ARGS),)
+
+benchmark-samples: build-lite
+	go run ./internal/tools/benchmarkrun -output .benchmark-runs/performance -case canonical-sbom-scan -samples 5 -network-state offline -- \
+		./bin/$(BINARY_NAME)-lite$(EXE_SUFFIX) scan --sbom --path test/smoke/testdata/sboms/go.spdx.json --detectors sbom --format json
 
 benchmark-report:
 	go run ./internal/tools/benchmarkreport

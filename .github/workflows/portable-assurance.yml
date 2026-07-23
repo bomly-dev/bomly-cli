@@ -1,0 +1,96 @@
+name: Portable stability assurance
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  portable:
+    name: Portable suite (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Repeat portable suite twice
+        shell: bash
+        run: |
+          set -euo pipefail
+          for iteration in 1 2; do
+            echo "portable suite iteration ${iteration}"
+            go test ./... -count=1
+          done
+
+  linux-stability:
+    name: Linux repeated stability
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Set up Java
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Repeat Java suites ten times
+        run: |
+          set -euo pipefail
+          for iteration in $(seq 1 10); do
+            echo "Java suite iteration ${iteration}"
+            go test ./internal/detectors/gradle ./internal/detectors/maven ./internal/detectors/sbt ./internal/analyzers/jvmreach -count=1
+          done
+
+      - name: Repeat complete suite five times
+        run: |
+          set -euo pipefail
+          for iteration in $(seq 1 5); do
+            echo "complete suite iteration ${iteration}"
+            go test ./... -count=1
+          done
+
+      - name: Cross-build release targets
+        run: |
+          set -euo pipefail
+          targets=(
+            "linux amd64"
+            "linux arm64"
+            "darwin amd64"
+            "darwin arm64"
+            "windows amd64"
+            "windows arm64"
+          )
+          for target in "${targets[@]}"; do
+            read -r target_os target_arch <<<"${target}"
+            suffix=""
+            if [[ "${target_os}" == "windows" ]]; then
+              suffix=".exe"
+            fi
+            echo "cross-build ${target_os}/${target_arch}"
+            GOOS="${target_os}" GOARCH="${target_arch}" CGO_ENABLED=0 \
+              go build -o "bin/bomly-${target_os}-${target_arch}${suffix}" ./cmd/bomly
+            GOOS="${target_os}" GOARCH="${target_arch}" CGO_ENABLED=0 \
+              go build -tags "bomly_external_syft,bomly_external_grype" \
+              -o "bin/bomly-lite-${target_os}-${target_arch}${suffix}" ./cmd/bomly
+          done

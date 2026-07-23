@@ -126,7 +126,7 @@ func (d Document) Validate() error {
 		default:
 			return fmt.Errorf("baseline entry %d has unsupported policy_status %q", idx, entry.PolicyStatus)
 		}
-		if entry.Severity != "" && sdk.ParseSeverityLevel(string(entry.Severity)) != entry.Severity {
+		if !validBaselineSeverity(entry.Severity) {
 			return fmt.Errorf("baseline entry %d has unsupported severity %q", idx, entry.Severity)
 		}
 		switch entry.Reachability {
@@ -152,6 +152,24 @@ func (d Document) Validate() error {
 		seen[key] = struct{}{}
 	}
 	return nil
+}
+
+func validBaselineSeverity(severity sdk.SeverityLevel) bool {
+	switch severity {
+	case "",
+		sdk.SeverityUnknown,
+		sdk.SeverityLevel("n/a"),
+		sdk.SeverityLow,
+		sdk.SeverityMedium,
+		sdk.SeverityHigh,
+		sdk.SeverityCritical,
+		sdk.SeverityNote,
+		sdk.SeverityWarning,
+		sdk.SeverityError:
+		return true
+	default:
+		return false
+	}
 }
 
 // Load reads and validates a baseline document.

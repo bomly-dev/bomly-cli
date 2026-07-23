@@ -154,6 +154,41 @@ func TestDocumentUsesFriendlyPolicyStatusField(t *testing.T) {
 	}
 }
 
+func TestDocumentRejectsUnsupportedSeverity(t *testing.T) {
+	document := NewDocument([]sdk.Finding{{
+		ID: "rule", Kind: sdk.FindingKindPackage, Auditor: "package",
+		RuleID: "rule", PackageRef: "pkg:npm/example@1.0.0",
+	}}, nil)
+	document.Entries[0].Severity = sdk.SeverityLevel("urgent")
+	if err := document.Validate(); err == nil || !strings.Contains(err.Error(), `unsupported severity "urgent"`) {
+		t.Fatalf("Validate() error = %v", err)
+	}
+}
+
+func TestDocumentAcceptsFindingSeverityVocabulary(t *testing.T) {
+	for _, severity := range []sdk.SeverityLevel{
+		"",
+		sdk.SeverityUnknown,
+		sdk.SeverityLevel("n/a"),
+		sdk.SeverityLow,
+		sdk.SeverityMedium,
+		sdk.SeverityHigh,
+		sdk.SeverityCritical,
+		sdk.SeverityNote,
+		sdk.SeverityWarning,
+		sdk.SeverityError,
+	} {
+		document := NewDocument([]sdk.Finding{{
+			ID: "rule", Kind: sdk.FindingKindPackage, Auditor: "package",
+			RuleID: "rule", PackageRef: "pkg:npm/example@1.0.0",
+		}}, nil)
+		document.Entries[0].Severity = severity
+		if err := document.Validate(); err != nil {
+			t.Errorf("severity %q rejected: %v", severity, err)
+		}
+	}
+}
+
 func TestResolvePathSelections(t *testing.T) {
 	root := t.TempDir()
 	sbomPath := filepath.Join(root, "bom.json")

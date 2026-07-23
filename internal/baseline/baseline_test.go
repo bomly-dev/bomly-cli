@@ -1,11 +1,14 @@
 package baseline
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -224,4 +227,205 @@ func TestResolversForTargetHandlesOptionalRequiredAndURLPolicies(t *testing.T) {
 	if got := logs.All()[0].ContextMap()["entries"]; got != int64(1) {
 		t.Fatalf("baseline log entries = %#v", got)
 	}
+	fields := logs.All()[0].ContextMap()
+	if fields["automatic"] != true || fields["target_kind"] != string(sdk.ExecutionTargetGitRepository) ||
+		fields["path"] != path {
+		t.Fatalf("baseline discovery log fields = %#v", fields)
+	}
+	if explicit := logs.All()[1].ContextMap(); explicit["automatic"] != false {
+		t.Fatalf("explicit baseline discovery log fields = %#v", explicit)
+	}
+}
+
+func TestLoadRejectsMalformedAndUnsupportedDocuments(t *testing.T) {
+	validEntry := `{"package_ref":"pkg:npm/example@1.0.0","kind":"package","auditor":"package","rule_id":"rule"}`
+	tests := map[string]string{
+		"invalid JSON":       `{`,
+		"trailing JSON":      `{"schema_version":"bomly.finding-baseline/v1","entries":[]} {}`,
+		"unknown field":      `{"schema_version":"bomly.finding-baseline/v1","entries":[],"extra":true}`,
+		"unsupported schema": `{"schema_version":"v2","entries":[]}`,
+		"missing package":    `{"schema_version":"bomly.finding-baseline/v1","entries":[{"kind":"package","auditor":"package","rule_id":"rule"}]}`,
+		"missing rule":       `{"schema_version":"bomly.finding-baseline/v1","entries":[{"package_ref":"pkg:npm/example@1.0.0","kind":"package","auditor":"package"}]}`,
+		"missing advisory":   `{"schema_version":"bomly.finding-baseline/v1","entries":[{"package_ref":"pkg:npm/example@1.0.0","kind":"vulnerability","auditor":"vulnerability"}]}`,
+		"unsupported status": `{"schema_version":"bomly.finding-baseline/v1","entries":[` + strings.TrimSuffix(validEntry, "}") + `,"policy_status":"ignored"}]}`,
+		"unsupported reach":  `{"schema_version":"bomly.finding-baseline/v1","entries":[` + strings.TrimSuffix(validEntry, "}") + `,"reachability":"maybe"}]}`,
+		"duplicate rule":     `{"schema_version":"bomly.finding-baseline/v1","entries":[` + validEntry + `,` + validEntry + `]}`,
+		"overlapping advisories": `{"schema_version":"bomly.finding-baseline/v1","entries":[` +
+			`{"package_ref":"pkg:npm/example@1.0.0","kind":"vulnerability","auditor":"vulnerability","advisory_ids":["ADV-1","SHARED"]},` +
+			`{"package_ref":"pkg:npm/example@1.0.0","kind":"vulnerability","auditor":"vulnerability","advisory_ids":["shared","ADV-2"]}]}`,
+	}
+	for name, contents := range tests {
+		t.Run(name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "baseline.json")
+			if err := os.WriteFile(path, []byte(contents), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := Load(path); err == nil {
+				t.Fatalf("Load() accepted %s:\n%s", name, contents)
+			}
+		})
+	}
+}
+
+func TestNewDocumentIsDeterministicAcrossFindingOrder(t *testing.T) {
+	findings := []sdk.Finding{
+		{ID: "b", Kind: sdk.FindingKindPackage, Auditor: "package", RuleID: "b", PackageRef: "pkg:npm/b@1.0.0"},
+		{ID: "a", Kind: sdk.FindingKindPackage, Auditor: "package", RuleID: "a", PackageRef: "pkg:npm/a@1.0.0"},
+		{ID: "c", Kind: sdk.FindingKindPackage, Auditor: "package", RuleID: "c", PackageRef: "pkg:npm/c@1.0.0"},
+	}
+	want, err := json.Marshal(NewDocument(findings, nil))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, order := range permutations(len(findings)) {
+		reordered := make([]sdk.Finding, 0, len(findings))
+		for _, idx := range order {
+			reordered = append(reordered, findings[idx])
+		}
+		got, err := json.Marshal(NewDocument(reordered, nil))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(got, want) {
+			t.Fatalf("finding order %v changed document:\nwant %s\ngot  %s", order, want, got)
+		}
+	}
+}
+
+func TestUpdateAndPruneConsolidateAliasComponentsWithoutUnsafeAdditions(t *testing.T) {
+	const purl = "pkg:npm/example@1.0.0"
+	registry := sdk.NewPackageRegistry()
+	registry.Ensure(purl).Vulnerabilities = []sdk.Vulnerability{{
+		ID: "ADV-NEW", Aliases: []string{"ADV-OLD", "CVE-2026-1000"},
+	}}
+	existing := Document{SchemaVersion: SchemaVersion, Entries: []Entry{{
+		PackageRef: purl, Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability",
+		AdvisoryIDs: []string{"ADV-OLD"}, PolicyStatus: sdk.FindingPolicyStatusFail,
+	}}}
+	current := []sdk.Finding{{
+		ID: "ADV-NEW", VulnerabilityID: "ADV-NEW", Kind: sdk.FindingKindVulnerability,
+		Auditor: "vulnerability", RuleID: "advisory", PackageRef: purl,
+		PolicyStatus: sdk.FindingPolicyStatusFail,
+	}}
+
+	updated := Update(existing, current, registry)
+	if err := updated.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	if len(updated.Entries) != 1 || !slices.Contains(updated.Entries[0].AdvisoryIDs, "ADV-NEW") ||
+		!slices.Contains(updated.Entries[0].AdvisoryIDs, "ADV-OLD") {
+		t.Fatalf("updated aliases = %#v", updated.Entries)
+	}
+
+	unaccepted := append(current, sdk.Finding{
+		ID: "new-rule", Kind: sdk.FindingKindPackage, Auditor: "package",
+		RuleID: "new-rule", PackageRef: "pkg:npm/new@1.0.0",
+	})
+	pruned := Prune(existing, unaccepted, registry)
+	if len(pruned.Entries) != 1 || pruned.Entries[0].Kind != sdk.FindingKindVulnerability {
+		t.Fatalf("prune added an unaccepted finding: %#v", pruned.Entries)
+	}
+}
+
+func TestWriteAtomicValidationFailurePreservesExistingDocument(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "baseline.json")
+	valid := NewDocument([]sdk.Finding{{
+		ID: "rule", Kind: sdk.FindingKindPackage, Auditor: "package",
+		RuleID: "rule", PackageRef: "pkg:npm/example@1.0.0",
+	}}, nil)
+	if err := WriteAtomic(path, valid, false); err != nil {
+		t.Fatal(err)
+	}
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	invalid := valid
+	invalid.SchemaVersion = "unsupported"
+	if err := WriteAtomic(path, invalid, true); err == nil {
+		t.Fatal("WriteAtomic() accepted invalid replacement")
+	}
+	after, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(after, before) {
+		t.Fatalf("failed replacement changed baseline:\nbefore: %s\nafter: %s", before, after)
+	}
+}
+
+func FuzzLoad(f *testing.F) {
+	seeds := []string{
+		`{"schema_version":"bomly.finding-baseline/v1","entries":[]}`,
+		`{"schema_version":"bomly.finding-baseline/v1","entries":[{"package_ref":"pkg:npm/example@1.0.0","kind":"package","auditor":"package","rule_id":"rule"}]}`,
+		`{"schema_version":"bomly.finding-baseline/v1","entries":[{"package_ref":"pkg:npm/example@1.0.0","kind":"vulnerability","auditor":"vulnerability","advisory_ids":["ADV-1","CVE-1"]}]}`,
+		`{"schema_version":"bomly.finding-baseline/v1","entries":[],"unknown":true}`,
+		`{`,
+	}
+	for _, seed := range seeds {
+		f.Add([]byte(seed))
+	}
+	f.Fuzz(func(t *testing.T, data []byte) {
+		if len(data) > 64<<10 {
+			return
+		}
+		path := filepath.Join(t.TempDir(), "baseline.json")
+		if err := os.WriteFile(path, data, 0o600); err != nil {
+			t.Fatal(err)
+		}
+		document, err := Load(path)
+		repeated, repeatedErr := Load(path)
+		if (err == nil) != (repeatedErr == nil) {
+			t.Fatalf("Load() changed success state: first=%v second=%v", err, repeatedErr)
+		}
+		if err != nil && err.Error() != repeatedErr.Error() {
+			t.Fatalf("Load() changed validation error:\nfirst:  %v\nsecond: %v", err, repeatedErr)
+		}
+		if err != nil {
+			return
+		}
+		if fmt.Sprint(repeated) != fmt.Sprint(document) {
+			t.Fatalf("repeated Load() changed document:\nfirst:  %#v\nsecond: %#v", document, repeated)
+		}
+		if err := document.Validate(); err != nil {
+			t.Fatalf("Load() returned invalid document: %v", err)
+		}
+		encoded, err := json.Marshal(document)
+		if err != nil {
+			t.Fatal(err)
+		}
+		roundTripPath := filepath.Join(t.TempDir(), "roundtrip.json")
+		if err := os.WriteFile(roundTripPath, encoded, 0o600); err != nil {
+			t.Fatal(err)
+		}
+		roundTrip, err := Load(roundTripPath)
+		if err != nil {
+			t.Fatalf("valid document failed round trip: %v", err)
+		}
+		if fmt.Sprint(roundTrip) != fmt.Sprint(document) {
+			t.Fatalf("round trip changed document:\nfirst:  %#v\nsecond: %#v", document, roundTrip)
+		}
+	})
+}
+
+func permutations(size int) [][]int {
+	var out [][]int
+	var visit func([]int, []int)
+	visit = func(prefix, remaining []int) {
+		if len(remaining) == 0 {
+			out = append(out, slices.Clone(prefix))
+			return
+		}
+		for idx, value := range remaining {
+			next := append(slices.Clone(prefix), value)
+			tail := append(slices.Clone(remaining[:idx]), remaining[idx+1:]...)
+			visit(next, tail)
+		}
+	}
+	remaining := make([]int, size)
+	for idx := range size {
+		remaining[idx] = idx
+	}
+	visit(nil, remaining)
+	return out
 }

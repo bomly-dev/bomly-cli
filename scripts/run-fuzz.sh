@@ -8,6 +8,7 @@ targets=(
   "github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm FuzzDepGraphFromPNPMLockfile"
   "github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn FuzzDepGraphFromYarnLockfile"
   "github.com/bomly-dev/bomly-cli/internal/sbom FuzzUnmarshalAutoJSON"
+  "github.com/bomly-dev/bomly-cli/internal/baseline FuzzLoad"
   "github.com/bomly-dev/bomly-cli/sdk FuzzCanonicalizePackageURL"
   "github.com/bomly-dev/bomly-cli/sdk FuzzGraphJSON"
   "github.com/bomly-dev/bomly-cli/sdk FuzzPackageRegistryJSON"

@@ -76,7 +76,7 @@ equivalent identifiers can match across enrichment sources.
       "kind": "package",
       "auditor": "package",
       "rule_id": "denied-package",
-      "severity": "error",
+      "severity": "high",
       "policy_status": "fail"
     }
   ]

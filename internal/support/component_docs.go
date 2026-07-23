@@ -779,7 +779,7 @@ func auditorBehavior(name string) auditorDocBehavior {
 			RequiresEnrich: false,
 			PolicyFlags:    []string{"--deny-package", "--deny-group", "--protected-package", "--typosquat-threshold", "--typosquat-mode"},
 			Reasons:        []string{"denied package", "denied group", "typosquat of protected package"},
-			Notes:          "Name-based, so it needs no enrichment and runs fully offline. Declare the packages you trust with `--protected-package`; Bomly flags lookalikes within `--typosquat-threshold`. `--typosquat-mode` controls how aggressively names are compared.",
+			Notes:          "Name-based, so it needs no enrichment and runs fully offline. Declare the packages you trust with `--protected-package`; Bomly flags lookalikes within `--typosquat-threshold`. `--typosquat-mode` sets finding policy status, while `--fail-on` controls whether a matching finding changes the exit code.",
 		}
 	default:
 		return auditorDocBehavior{

@@ -67,10 +67,14 @@ func TestCloneWithOverridesAppliesPolicyControls(t *testing.T) {
 		TyposquatThreshold:    "0.93",
 		TyposquatMode:         "fail",
 		WarnOnly:              true,
+		Baseline:              "security/baseline.json",
 	})
 	got := clone.GetConfig()
 	if !got.WarnOnly {
 		t.Fatal("expected warn-only override")
+	}
+	if got.Baseline != "security/baseline.json" {
+		t.Fatalf("baseline override = %q", got.Baseline)
 	}
 	assertStrings := func(name string, got, want []string) {
 		t.Helper()

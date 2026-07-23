@@ -104,6 +104,7 @@ func finding(pkg *sdk.Dependency, id, title string, disposition sdk.FindingDispo
 		Severity:       packageFindingSeverity(disposition),
 		Source:         auditorName,
 		Auditor:        auditorName,
+		RuleID:         id,
 		Disposition:    disposition,
 		PackageRef:     purl,
 		DependencyRefs: []string{pkg.ID},

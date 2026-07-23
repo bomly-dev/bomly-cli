@@ -378,7 +378,7 @@ func findingIcon(status, disposition string) string {
 	if status == "resolved" {
 		return "✅"
 	}
-	if strings.EqualFold(disposition, "warn") {
+	if strings.EqualFold(disposition, "warn") || strings.EqualFold(disposition, "suppressed") {
 		return "⚠️"
 	}
 	return "❌"

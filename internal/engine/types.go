@@ -8,36 +8,37 @@ import (
 
 // PipelineRequest defines input for a full pipeline run.
 type PipelineRequest struct {
-	ProjectPath                string
-	ExecutionTarget            sdk.ExecutionTarget
-	Subprojects                []sdk.Subproject
-	EnrichEnabled              bool
-	MatchEnabled               bool
-	AuditEnabled               bool
-	AnalyzeReachabilityEnabled bool
-	ScopeFilter                sdk.Scope
-	AuditorFilter              sdk.AuditorFilter
-	MatcherFilter              sdk.MatcherFilter
-	AnalyzerFilter             sdk.AnalyzerFilter
-	DetectorFilter             sdk.DetectorFilter
-	FailOn                     []sdk.FailOnConstraint
-	AllowVulnerabilityIDs      []string
-	AllowLicenses              []string
-	DenyLicenses               []string
-	LicenseExemptPackages      []string
-	DenyPackages               []string
-	DenyGroups                 []string
-	ProtectedPackages          []string
-	TyposquatThreshold         float64
-	TyposquatMode              string
-	WarnOnly                   bool
-	BaselineGraph              *sdk.Graph
-	InstallFirst               bool
-	InstallArgs                []string
-	CoreVersion                string
-	Stderr                     io.Writer
-	Verbose                    bool
-	Progress                   ProgressReporter
+	ProjectPath                 string
+	ExecutionTarget             sdk.ExecutionTarget
+	Subprojects                 []sdk.Subproject
+	EnrichEnabled               bool
+	MatchEnabled                bool
+	AuditEnabled                bool
+	AnalyzeReachabilityEnabled  bool
+	ScopeFilter                 sdk.Scope
+	AuditorFilter               sdk.AuditorFilter
+	MatcherFilter               sdk.MatcherFilter
+	AnalyzerFilter              sdk.AnalyzerFilter
+	DetectorFilter              sdk.DetectorFilter
+	FailOn                      []sdk.FailOnConstraint
+	AllowVulnerabilityIDs       []string
+	AllowLicenses               []string
+	DenyLicenses                []string
+	LicenseExemptPackages       []string
+	DenyPackages                []string
+	DenyGroups                  []string
+	ProtectedPackages           []string
+	TyposquatThreshold          float64
+	TyposquatMode               string
+	WarnOnly                    bool
+	FindingDispositionResolvers []FindingDispositionResolver
+	BaselineGraph               *sdk.Graph
+	InstallFirst                bool
+	InstallArgs                 []string
+	CoreVersion                 string
+	Stderr                      io.Writer
+	Verbose                     bool
+	Progress                    ProgressReporter
 }
 
 // ProgressReporter receives coarse pipeline progress events.

@@ -196,7 +196,8 @@ type Finding struct {
     Reasons     []string
     Source      string             // osv | grype | license | package | ...
     Auditor     string             // which auditor emitted it
-    Disposition FindingDisposition // pass | fail | warn
+    RuleID      string             // stable auditor rule, independent of project occurrence
+    Disposition FindingDisposition // fail | warn | suppressed
 
     // References (the whole point of "reference-style")
     PackageRef      string         // PURL → resolve via registry.Get

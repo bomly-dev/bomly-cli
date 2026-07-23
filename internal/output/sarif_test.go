@@ -140,6 +140,7 @@ func TestDispositionToSARIFLevel(t *testing.T) {
 	}{
 		{sdk.FindingDispositionFail, "error"},
 		{sdk.FindingDispositionWarn, "warning"},
+		{sdk.FindingDispositionSuppressed, "note"},
 		{"", "error"}, // unset disposition is treated as failing, like FailingFindingCount
 	}
 	for _, tt := range tests {

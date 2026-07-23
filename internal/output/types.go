@@ -501,6 +501,7 @@ func lookupVulnerability(pkg *sdk.Package, vulnID, fallbackID string) *sdk.Vulne
 }
 
 // FailingFindingCount reports how many findings should fail policy evaluation.
+// Warning and suppressed findings remain reportable but do not gate execution.
 func FailingFindingCount(findings []sdk.Finding) int {
 	total := 0
 	for _, finding := range findings {

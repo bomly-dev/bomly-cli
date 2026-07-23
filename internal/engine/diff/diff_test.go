@@ -51,6 +51,32 @@ func TestRun_ReportsAddedPackageFindingAsIntroduced(t *testing.T) {
 	assertFindingIDs(t, result.Audit.Persisted)
 }
 
+func TestRun_AppliesEachSidesAuditDispositionResolvers(t *testing.T) {
+	react := npmPackage("react", "18.2.0")
+	base := diffTestPipeline(t, graphFixture(t), nil)
+	head := diffTestPipeline(t, graphFixture(t, react), map[string][]sdk.Finding{
+		react.ID: {{ID: "CVE-ADDED", Kind: sdk.FindingKindVulnerability, Source: "osv", Disposition: sdk.FindingDispositionFail}},
+	})
+	headRequest := diffTestRequest()
+	headRequest.FindingDispositionResolvers = []engine.FindingDispositionResolver{diffDispositionResolver{}}
+	result, err := Run(context.Background(), Request{
+		Base: Target{Pipeline: base, Request: diffTestRequest()},
+		Head: Target{Pipeline: head, Request: headRequest},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Audit.Introduced) != 1 || result.Audit.Introduced[0].Disposition != sdk.FindingDispositionSuppressed {
+		t.Fatalf("introduced findings = %#v", result.Audit.Introduced)
+	}
+}
+
+type diffDispositionResolver struct{}
+
+func (diffDispositionResolver) ResolveFinding(context.Context, sdk.Finding, *sdk.PackageRegistry) (engine.FindingDispositionDecision, bool) {
+	return engine.FindingDispositionDecision{Disposition: sdk.FindingDispositionSuppressed, Source: "test"}, true
+}
+
 func TestRun_ReportsRemovedPackageFindingAsResolved(t *testing.T) {
 	react := npmPackage("react", "18.2.0")
 	base := diffTestPipeline(t, graphFixture(t, react), map[string][]sdk.Finding{

@@ -40,6 +40,21 @@ func TestGraphJSONRoundTrip(t *testing.T) {
 	}
 }
 
+func TestFindingSuppressedDispositionAndRuleIDJSONRoundTrip(t *testing.T) {
+	input := Finding{ID: "finding", Kind: FindingKindPackage, RuleID: "denied-package", Disposition: FindingDispositionSuppressed}
+	data, err := json.Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var output Finding
+	if err := json.Unmarshal(data, &output); err != nil {
+		t.Fatal(err)
+	}
+	if output.RuleID != input.RuleID || output.Disposition != FindingDispositionSuppressed {
+		t.Fatalf("finding round trip = %#v", output)
+	}
+}
+
 func TestPackageRegistryJSONRoundTrip(t *testing.T) {
 	registry := NewPackageRegistry()
 	pkg := registry.Ensure("pkg:npm/react@18.2.0")

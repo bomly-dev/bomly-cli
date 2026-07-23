@@ -149,6 +149,7 @@ func finding(purl, depID, id, title string, disposition sdk.FindingDisposition) 
 		Severity:    severity,
 		Source:      auditorName,
 		Auditor:     auditorName,
+		RuleID:      id,
 		Disposition: disposition,
 		PackageRef:  purl,
 	}

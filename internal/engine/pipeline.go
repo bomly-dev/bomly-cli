@@ -84,9 +84,11 @@ func (p *Pipeline) runAuditStage(ctx context.Context, graph *sdk.Graph, registry
 			}
 		}
 	}
+	auditResult.Findings = resolveFindingDispositions(ctx, auditResult.Findings, registry, req.FindingDispositionResolvers)
 	p.Logger.Info("pipeline: policy evaluation completed",
 		zap.Strings("auditor_runs", auditResult.AuditorRuns),
 		zap.Int("findings", len(auditResult.Findings)),
+		zap.Int("suppressed", suppressedFindingCount(auditResult.Findings)),
 		zap.Int("warnings", len(auditWarnings)),
 		zap.Duration("duration", time.Since(started)),
 	)
@@ -94,6 +96,16 @@ func (p *Pipeline) runAuditStage(ctx context.Context, graph *sdk.Graph, registry
 		req.Progress.CompleteStage("Evaluating policy", 1)
 	}
 	return auditResult, auditWarnings
+}
+
+func suppressedFindingCount(findings []sdk.Finding) int {
+	total := 0
+	for _, finding := range findings {
+		if finding.Disposition == sdk.FindingDispositionSuppressed {
+			total++
+		}
+	}
+	return total
 }
 
 // runDetect is the detection stage: it resolves each subproject's graph and then
@@ -394,6 +406,14 @@ func (p *Pipeline) auditComponent(ctx context.Context, g *sdk.Graph, registry *s
 	}
 	result, err := p.engine.Audit(ctx, auditReq)
 	result.Findings = DeduplicateFindings(result.Findings)
+	if req.WarnOnly {
+		for idx := range result.Findings {
+			if result.Findings[idx].Disposition == "" || result.Findings[idx].Disposition == sdk.FindingDispositionFail {
+				result.Findings[idx].Disposition = sdk.FindingDispositionWarn
+			}
+		}
+	}
+	result.Findings = resolveFindingDispositions(ctx, result.Findings, registry, req.FindingDispositionResolvers)
 	var warnings []PipelineWarning
 	if err != nil {
 		warnings = PipelineWarningsFromError(err, "auditor")

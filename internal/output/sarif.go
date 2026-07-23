@@ -715,7 +715,8 @@ func sarifPropertiesFromVulnerability(v *sdk.Vulnerability, includeReachability 
 
 // dispositionToSARIFLevel maps a finding's disposition to a SARIF level. The
 // level reflects whether the finding blocks the job — error for a failing
-// finding, warning for an advisory one — never the underlying severity band.
+// finding, warning for an advisory one, and note for a suppressed one — never
+// the underlying severity band.
 // Severity is reported separately via security-severity for vulnerabilities
 // (see sarifRulePropertiesForFinding), so a Low-severity finding that fails
 // the build still surfaces as "error" here, and a Critical one that's merely
@@ -725,6 +726,8 @@ func dispositionToSARIFLevel(disposition sdk.FindingDisposition) string {
 	switch disposition {
 	case sdk.FindingDispositionWarn:
 		return "warning"
+	case sdk.FindingDispositionSuppressed:
+		return "note"
 	default:
 		// FindingDispositionFail, and "" (findings with no explicit
 		// disposition are treated as failing — see FailingFindingCount).

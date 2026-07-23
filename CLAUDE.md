@@ -75,6 +75,7 @@ internal/analyzers/*             Reachability analyzers (govulncheck — Go;
                                  registry packages, and never abort the
                                  pipeline on failure
 internal/auditors/*              Policy evaluators (policy, noop)
+internal/baseline                Portable package-finding baseline and audit disposition resolver
 internal/sbom/                   SPDX 2.3 / CycloneDX codec
 internal/benchmark/              Hidden local dependency-graph benchmark, baseline scoring,
                                  and embedded smoke/benchmark repository presets
@@ -88,7 +89,7 @@ internal/testutil/               Test helpers (fake binary builder)
 
 **`bomly explain`** is implemented by `newExplainCmd` in `internal/cli/explain_cmd.go`.
 
-**Scan pipeline order**: `runtimePreparation → subprojectDiscovery (root-only by default; --recursive walks nested dirs) → detect (per-package-manager chains; resolve + consolidate into one graph) → scopeFilter → match (license enrichment) → analyze (reachability, when --analyze is set) → audit → format`. Consolidation is the tail of the detect stage (`runDetect` = `runResolve` + `runConsolidate`), not a separate stage.
+**Scan pipeline order**: `runtimePreparation → subprojectDiscovery (root-only by default; --recursive walks nested dirs) → detect (per-package-manager chains; resolve + consolidate into one graph) → scopeFilter → match (license enrichment) → analyze (reachability, when --analyze is set) → audit (including finding disposition resolution) → format`. Consolidation is the tail of the detect stage (`runDetect` = `runResolve` + `runConsolidate`), not a separate stage.
 
 Runtime preparation is owned by `internal/engine` and is reached through CLI option helpers before pipeline execution. The CLI resolves raw targets and flags but must not discover subprojects with a separate registry.
 

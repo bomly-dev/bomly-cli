@@ -91,6 +91,7 @@ func bindAnalysisFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 	flags.StringVar(&cfg.TyposquatThreshold, "typosquat-threshold", "", "Similarity threshold for typosquatting detection")
 	flags.StringVar(&cfg.TyposquatMode, "typosquat-mode", "", "Typosquatting policy mode: warn or fail")
 	flags.BoolVar(&cfg.WarnOnly, "warn-only", false, "Downgrade failing findings to warnings")
+	flags.StringVar(&cfg.Baseline, "baseline", "", "Finding baseline: auto, none, or a project-relative/absolute file path")
 }
 
 func bindSelectorFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
@@ -197,6 +198,9 @@ func applyFlagOverrides(dst *config.Resolved, flags config.Resolved, cmd *cobra.
 	}
 	if flagChanged(cmd, "warn-only") {
 		dst.WarnOnly = flags.WarnOnly
+	}
+	if flagChanged(cmd, "baseline") {
+		dst.Baseline = flags.Baseline
 	}
 	if flagChanged(cmd, "analyzers") {
 		dst.Analyzers = flags.Analyzers

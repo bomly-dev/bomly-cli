@@ -31,6 +31,7 @@ type ScanRequest struct {
 	TyposquatThreshold    string `json:"typosquat_threshold"`
 	TyposquatMode         string `json:"typosquat_mode"`
 	WarnOnly              bool   `json:"warn_only"`
+	Baseline              string `json:"baseline"`
 	Ecosystems            string `json:"ecosystems"`
 	Scope                 string `json:"scope"`
 	Recursive             bool   `json:"recursive"`
@@ -56,6 +57,7 @@ type ExplainRequest struct {
 	TyposquatThreshold    string `json:"typosquat_threshold"`
 	TyposquatMode         string `json:"typosquat_mode"`
 	WarnOnly              bool   `json:"warn_only"`
+	Baseline              string `json:"baseline"`
 	Recursive             bool   `json:"recursive"`
 	MaxDepth              int    `json:"max_depth"`
 	Exclude               string `json:"exclude"`
@@ -82,6 +84,7 @@ type DiffRequest struct {
 	TyposquatThreshold    string `json:"typosquat_threshold"`
 	TyposquatMode         string `json:"typosquat_mode"`
 	WarnOnly              bool   `json:"warn_only"`
+	Baseline              string `json:"baseline"`
 	Recursive             bool   `json:"recursive"`
 	MaxDepth              int    `json:"max_depth"`
 	Exclude               string `json:"exclude"`

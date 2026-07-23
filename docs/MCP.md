@@ -105,7 +105,7 @@ MCP coverage matches Bomly CLI coverage: `bomly_scan`, `bomly_explain`, and `bom
 The policy arguments shared by scan, explain, and diff are `fail_on`,
 `allow_vulnerability_ids`, `allow_licenses`, `deny_licenses`,
 `license_exempt_packages`, `deny_packages`, `deny_groups`, `protected_packages`,
-`typosquat_threshold`, `typosquat_mode`, and `warn_only`. Per-call values layer
+`typosquat_threshold`, `typosquat_mode`, `warn_only`, and `baseline`. Per-call values layer
 over the server's resolved configuration and are validated with the same rules
 as CLI flags.
 

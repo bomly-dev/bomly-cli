@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/baseline"
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
@@ -24,20 +25,21 @@ import (
 // Options encapsulates the context for executing a CLI command,
 // including configuration, registry, execution target, filters, output format, and cleanup logic.
 type Options struct {
-	ResolvedConfig  config.Resolved
-	registry        *engine.Registry
-	executionTarget sdk.ExecutionTarget
-	subprojects     []sdk.Subproject
-	detectorFilter  sdk.DetectorFilter
-	auditorFilter   sdk.AuditorFilter
-	matcherFilter   sdk.MatcherFilter
-	analyzerFilter  sdk.AnalyzerFilter
-	ecosystemFilter sdk.EcosystemFilter
-	httpProvider    *sdk.HTTPClientProvider
-	Format          output.Format
-	outputPath      string
-	verbose         bool
-	cleanup         func() error
+	ResolvedConfig              config.Resolved
+	registry                    *engine.Registry
+	executionTarget             sdk.ExecutionTarget
+	subprojects                 []sdk.Subproject
+	detectorFilter              sdk.DetectorFilter
+	auditorFilter               sdk.AuditorFilter
+	matcherFilter               sdk.MatcherFilter
+	analyzerFilter              sdk.AnalyzerFilter
+	ecosystemFilter             sdk.EcosystemFilter
+	httpProvider                *sdk.HTTPClientProvider
+	Format                      output.Format
+	outputPath                  string
+	verbose                     bool
+	cleanup                     func() error
+	findingDispositionResolvers []engine.FindingDispositionResolver
 }
 
 type optionsKey struct{}
@@ -116,32 +118,33 @@ func (o *Options) PipelineRequest(scope sdk.Scope, stderr io.Writer) engine.Pipe
 	failOn, _ := sdk.ParseFailOnList(o.ResolvedConfig.FailOn)
 	typosquatThreshold, _ := strconv.ParseFloat(strings.TrimSpace(o.ResolvedConfig.TyposquatThreshold), 64)
 	return engine.PipelineRequest{
-		ProjectPath:                o.executionTarget.Location,
-		ExecutionTarget:            o.executionTarget,
-		Subprojects:                o.Subprojects(),
-		EnrichEnabled:              o.ResolvedConfig.Enrich,
-		AuditEnabled:               o.ResolvedConfig.Audit,
-		AnalyzeReachabilityEnabled: o.ResolvedConfig.Analyze,
-		ScopeFilter:                scope,
-		AuditorFilter:              o.auditorFilter,
-		MatcherFilter:              o.matcherFilter,
-		AnalyzerFilter:             o.analyzerFilter,
-		DetectorFilter:             o.detectorFilter,
-		FailOn:                     failOn,
-		AllowVulnerabilityIDs:      append([]string(nil), o.ResolvedConfig.AllowVulnerabilityIDs...),
-		AllowLicenses:              append([]string(nil), o.ResolvedConfig.AllowLicenses...),
-		DenyLicenses:               append([]string(nil), o.ResolvedConfig.DenyLicenses...),
-		LicenseExemptPackages:      append([]string(nil), o.ResolvedConfig.LicenseExemptPackages...),
-		DenyPackages:               append([]string(nil), o.ResolvedConfig.DenyPackages...),
-		DenyGroups:                 append([]string(nil), o.ResolvedConfig.DenyGroups...),
-		ProtectedPackages:          append([]string(nil), o.ResolvedConfig.ProtectedPackages...),
-		TyposquatThreshold:         typosquatThreshold,
-		TyposquatMode:              strings.TrimSpace(o.ResolvedConfig.TyposquatMode),
-		WarnOnly:                   o.ResolvedConfig.WarnOnly,
-		InstallFirst:               o.ResolvedConfig.InstallFirst,
-		InstallArgs:                append([]string(nil), o.ResolvedConfig.InstallArgs...),
-		Stderr:                     stderr,
-		Verbose:                    o.Verbose(),
+		ProjectPath:                 o.executionTarget.Location,
+		ExecutionTarget:             o.executionTarget,
+		Subprojects:                 o.Subprojects(),
+		EnrichEnabled:               o.ResolvedConfig.Enrich,
+		AuditEnabled:                o.ResolvedConfig.Audit,
+		AnalyzeReachabilityEnabled:  o.ResolvedConfig.Analyze,
+		ScopeFilter:                 scope,
+		AuditorFilter:               o.auditorFilter,
+		MatcherFilter:               o.matcherFilter,
+		AnalyzerFilter:              o.analyzerFilter,
+		DetectorFilter:              o.detectorFilter,
+		FailOn:                      failOn,
+		AllowVulnerabilityIDs:       append([]string(nil), o.ResolvedConfig.AllowVulnerabilityIDs...),
+		AllowLicenses:               append([]string(nil), o.ResolvedConfig.AllowLicenses...),
+		DenyLicenses:                append([]string(nil), o.ResolvedConfig.DenyLicenses...),
+		LicenseExemptPackages:       append([]string(nil), o.ResolvedConfig.LicenseExemptPackages...),
+		DenyPackages:                append([]string(nil), o.ResolvedConfig.DenyPackages...),
+		DenyGroups:                  append([]string(nil), o.ResolvedConfig.DenyGroups...),
+		ProtectedPackages:           append([]string(nil), o.ResolvedConfig.ProtectedPackages...),
+		TyposquatThreshold:          typosquatThreshold,
+		TyposquatMode:               strings.TrimSpace(o.ResolvedConfig.TyposquatMode),
+		WarnOnly:                    o.ResolvedConfig.WarnOnly,
+		FindingDispositionResolvers: append([]engine.FindingDispositionResolver(nil), o.findingDispositionResolvers...),
+		InstallFirst:                o.ResolvedConfig.InstallFirst,
+		InstallArgs:                 append([]string(nil), o.ResolvedConfig.InstallArgs...),
+		Stderr:                      stderr,
+		Verbose:                     o.Verbose(),
 	}
 }
 
@@ -328,20 +331,29 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		return Options{}, err
 	}
 
+	resolvers, err := baseline.ResolversForTarget(resolved.Baseline, executionTarget)
+	if err != nil {
+		if cleanup != nil {
+			_ = cleanup()
+		}
+		return Options{}, exit.InvalidInputError("%v", err)
+	}
+
 	return Options{
-		registry:        filteredRegistry,
-		executionTarget: executionTarget,
-		subprojects:     subprojects,
-		detectorFilter:  detectorFilter,
-		auditorFilter:   auditorFilter,
-		matcherFilter:   matcherFilter,
-		analyzerFilter:  analyzerFilter,
-		ecosystemFilter: ecosystemFilter,
-		httpProvider:    httpProvider,
-		ResolvedConfig:  resolved,
-		Format:          format,
-		verbose:         resolved.Verbosity > 0,
-		cleanup:         cleanup,
+		registry:                    filteredRegistry,
+		executionTarget:             executionTarget,
+		subprojects:                 subprojects,
+		detectorFilter:              detectorFilter,
+		auditorFilter:               auditorFilter,
+		matcherFilter:               matcherFilter,
+		analyzerFilter:              analyzerFilter,
+		ecosystemFilter:             ecosystemFilter,
+		httpProvider:                httpProvider,
+		ResolvedConfig:              resolved,
+		Format:                      format,
+		verbose:                     resolved.Verbosity > 0,
+		cleanup:                     cleanup,
+		findingDispositionResolvers: resolvers,
 	}, nil
 }
 

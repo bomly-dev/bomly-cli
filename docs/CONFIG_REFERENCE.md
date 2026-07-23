@@ -41,6 +41,7 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | `policy.typosquat_threshold` | `BOMLY_TYPOSQUAT_THRESHOLD` | `string` | 0.90 | Similarity threshold for typosquatting detection |
 | `policy.typosquat_mode` | `BOMLY_TYPOSQUAT_MODE` | `string` | warn | Typosquatting policy mode: warn or fail |
 | `policy.warn_only` | `BOMLY_WARN_ONLY` | `bool` | - | Downgrade failing findings to warnings |
+| `policy.baseline` | `BOMLY_BASELINE` | `string` | auto | Finding baseline selection: auto, none, or a file path |
 | `components.analyzers` | `BOMLY_ANALYZERS` | `string` | - | Reachability analyzer selectors; supports +name and -name modifiers |
 | `output.format` | `BOMLY_FORMAT` | `string` | - | Primary output format: text, json, markdown, sarif, spdx, or cyclonedx. SBOM formats are scan-only |
 | `output.outputs` | `BOMLY_OUTPUT` | `[]string` | - | Additional output target(s) as <format> or <format>=<path>. Repeatable; supports text, json, markdown, sarif, spdx, and cyclonedx |
@@ -98,6 +99,7 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 | `analyzers` | `components.analyzers` |
 | `audit` | `pipeline.audit` |
 | `auditors` | `components.auditors` |
+| `baseline` | `policy.baseline` |
 | `config` | `--config` |
 | `container` | `target.container` |
 | `deny_groups` | `policy.deny_groups` |
@@ -212,6 +214,8 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 #   typosquat_mode: warn
 #   Downgrade failing findings to warnings
 #   warn_only: false
+#   Finding baseline selection: auto, none, or a file path
+#   baseline: auto
 # output:
 #   Primary output format: text, json, markdown, sarif, spdx, or cyclonedx. SBOM formats are scan-only
 #   format: ""

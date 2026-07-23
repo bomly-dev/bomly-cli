@@ -115,6 +115,19 @@ func newRootCmd(version string) (*cobra.Command, error) {
 	mcpCmd := newMcpCmd()
 	versionCmd := newVersionCmd(version)
 	benchmarkCmd := newBenchmarkCmd()
+	baselineCmd := newBaselineCmd()
+	for _, child := range baselineCmd.Commands() {
+		if child.Name() == "inspect" {
+			continue
+		}
+		if err := opts.BindCommandFlagGroups(child, &options.ResolvedConfig,
+			opts.FlagGroupTarget,
+			opts.FlagGroupAnalysis,
+			opts.FlagGroupSelectors,
+		); err != nil {
+			return nil, err
+		}
+	}
 
 	root.AddCommand(explainCmd)
 	root.AddCommand(scanCmd)
@@ -123,6 +136,7 @@ func newRootCmd(version string) (*cobra.Command, error) {
 	root.AddCommand(mcpCmd)
 	root.AddCommand(versionCmd)
 	root.AddCommand(benchmarkCmd)
+	root.AddCommand(baselineCmd)
 
 	setHelpFuncRecursive(root, startupLogoHelpFunc(root))
 

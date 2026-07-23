@@ -147,6 +147,12 @@
       "group": "operations"
     },
     {
+      "slug": "baselines",
+      "title": "Finding baselines",
+      "description": "Keep accepted package findings visible without failing audits.",
+      "group": "operations"
+    },
+    {
       "slug": "mcp",
       "title": "MCP server",
       "description": "Connect Bomly's dependency graph tools to Claude Code, Cursor, VS Code, or another MCP client.",

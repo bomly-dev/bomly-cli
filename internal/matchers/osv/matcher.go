@@ -288,15 +288,20 @@ func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResul
 		}
 		results, err := a.client.QueryBatch(queries)
 		if err != nil {
-			// Non-fatal: return what we have with a warning.
+			// Return partial enrichment together with the error. The engine
+			// degrades matcher failures into pipeline warnings while preserving
+			// any cache-backed evidence already collected.
 			a.logger.Warn("osv: batch query failed", zap.Error(err))
 			if a.config.Stderr != nil {
 				if _, werr := fmt.Fprintf(a.config.Stderr, "warn: osv query failed: %v\n", err); werr != nil {
-					return sdk.MatchResult{}, werr
+					return sdk.MatchResult{}, fmt.Errorf("osv write query warning: %w", werr)
 				}
 			}
 			applyPackageVulnerabilityEnrichment(req.Registry, deps, enriched)
-			return sdk.MatchResult{Registry: req.Registry, MatcherStats: osvMatcherStats(enriched, stats.requestedPackages)}, nil
+			return sdk.MatchResult{
+				Registry:     req.Registry,
+				MatcherStats: osvMatcherStats(enriched, stats.requestedPackages),
+			}, fmt.Errorf("osv batch query: %w", err)
 		}
 
 		for i, result := range results {

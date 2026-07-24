@@ -85,3 +85,66 @@ func TestCloneAuditorDescriptorDeepCopiesSlices(t *testing.T) {
 		t.Fatal("auditor clone shares backing arrays with the original descriptor")
 	}
 }
+
+func TestProtocolV1DetectorSnapshotDefaultsAbsentOptionalCapabilities(t *testing.T) {
+	snapshot := RuntimeDescriptorSnapshot{
+		ID:               "legacy-detector",
+		Kind:             plugschema.PluginKindDetector,
+		PluginAPIVersion: plugschema.PluginAPIVersion,
+		DetectorDescriptor: &plugschema.DetectorDescriptor{
+			Name: "legacy-detector",
+			PackageManagerSupport: []plugschema.PackageManagerSupport{
+				plugschema.Support(plugschema.PackageManagerNPM, "package.json"),
+			},
+		},
+	}
+	normalized := normalizeRuntimeSnapshot(snapshot)
+	if err := validateRuntimeSnapshot(normalized); err != nil {
+		t.Fatalf("legacy protocol-v1 snapshot rejected: %v", err)
+	}
+	descriptor := normalized.DetectorDescriptor
+	if descriptor.SupportsInstallFirst ||
+		len(descriptor.IgnoredDirectories) != 0 ||
+		len(descriptor.IgnoredDirectoryMarkers) != 0 {
+		t.Fatalf("absent optional capabilities did not retain safe defaults: %#v", descriptor)
+	}
+}
+
+func TestRuntimeSnapshotRejectsUnadvertisedOrMalformedRole(t *testing.T) {
+	tests := []struct {
+		name     string
+		snapshot RuntimeDescriptorSnapshot
+	}{
+		{
+			name: "detector kind without detector descriptor",
+			snapshot: RuntimeDescriptorSnapshot{
+				ID: "broken", Kind: plugschema.PluginKindDetector,
+				PluginAPIVersion:  plugschema.PluginAPIVersion,
+				MatcherDescriptor: &plugschema.MatcherDescriptor{Name: "broken"},
+			},
+		},
+		{
+			name: "matcher kind with malformed descriptor",
+			snapshot: RuntimeDescriptorSnapshot{
+				ID: "broken", Kind: plugschema.PluginKindMatcher,
+				PluginAPIVersion:  plugschema.PluginAPIVersion,
+				MatcherDescriptor: &plugschema.MatcherDescriptor{},
+			},
+		},
+		{
+			name: "unknown API version",
+			snapshot: RuntimeDescriptorSnapshot{
+				ID: "broken", Kind: plugschema.PluginKindMatcher,
+				PluginAPIVersion:  "bomly.plugin.v999",
+				MatcherDescriptor: &plugschema.MatcherDescriptor{Name: "broken"},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if err := validateRuntimeSnapshot(normalizeRuntimeSnapshot(test.snapshot)); err == nil {
+				t.Fatalf("validateRuntimeSnapshot accepted %#v", test.snapshot)
+			}
+		})
+	}
+}

@@ -26,13 +26,67 @@ jobs:
           cache-dependency-path: go.sum
 
       - name: Repeat portable suite twice
+        id: portable-tests
         shell: bash
         run: |
           set -euo pipefail
+          completed=0
+          failed=0
           for iteration in 1 2; do
             echo "portable suite iteration ${iteration}"
-            go test ./... -count=1
+            if go test ./... -count=1; then
+              completed="${iteration}"
+            else
+              failed="${iteration}"
+              break
+            fi
           done
+          echo "completed=${completed}" >> "${GITHUB_OUTPUT}"
+          echo "failed=${failed}" >> "${GITHUB_OUTPUT}"
+          if [[ "${failed}" != "0" ]]; then
+            exit 1
+          fi
+
+      - name: Explain this platform result
+        if: always()
+        shell: bash
+        env:
+          TEST_RESULT: ${{ steps.portable-tests.outcome }}
+          COMPLETED: ${{ steps.portable-tests.outputs.completed }}
+          FAILED: ${{ steps.portable-tests.outputs.failed }}
+        run: |
+          set -euo pipefail
+          completed="${COMPLETED:-0}"
+          failed="${FAILED:-0}"
+          if [[ "${TEST_RESULT}" == "success" ]]; then
+            result="Passed"
+            icon="✅"
+          else
+            result="Failed"
+            icon="❌"
+          fi
+          if [[ "${failed}" == "0" ]]; then
+            failed_display="—"
+          else
+            failed_display="${failed}"
+          fi
+          {
+            echo "## ${icon} ${RUNNER_OS}/${RUNNER_ARCH}: ${result}"
+            echo
+            echo "The complete Go test suite was scheduled twice on this platform. Each run used \`-count=1\` so Go did not reuse test results."
+            echo
+            echo "| Planned runs | Completed runs | Failed run |"
+            echo "|---:|---:|---:|"
+            echo "| 2 | ${completed} | ${failed_display} |"
+            echo
+            echo "### Need more detail?"
+            echo
+            echo "Open the **Repeat portable suite twice** step to find the failing package and test. To reproduce the same check locally:"
+            echo
+            echo '```sh'
+            echo "go test ./... -count=1"
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"
 
   linux-stability:
     name: Linux repeated stability
@@ -55,24 +109,53 @@ jobs:
           java-version: "21"
 
       - name: Repeat Java suites ten times
+        id: java-tests
         run: |
           set -euo pipefail
+          completed=0
+          failed=0
           for iteration in $(seq 1 10); do
             echo "Java suite iteration ${iteration}"
-            go test ./internal/detectors/gradle ./internal/detectors/maven ./internal/detectors/sbt ./internal/analyzers/jvmreach -count=1
+            if go test ./internal/detectors/gradle ./internal/detectors/maven ./internal/detectors/sbt ./internal/analyzers/jvmreach -count=1; then
+              completed="${iteration}"
+            else
+              failed="${iteration}"
+              break
+            fi
           done
+          echo "completed=${completed}" >> "${GITHUB_OUTPUT}"
+          echo "failed=${failed}" >> "${GITHUB_OUTPUT}"
+          if [[ "${failed}" != "0" ]]; then
+            exit 1
+          fi
 
       - name: Repeat complete suite five times
+        id: complete-tests
         run: |
           set -euo pipefail
+          completed=0
+          failed=0
           for iteration in $(seq 1 5); do
             echo "complete suite iteration ${iteration}"
-            go test ./... -count=1
+            if go test ./... -count=1; then
+              completed="${iteration}"
+            else
+              failed="${iteration}"
+              break
+            fi
           done
+          echo "completed=${completed}" >> "${GITHUB_OUTPUT}"
+          echo "failed=${failed}" >> "${GITHUB_OUTPUT}"
+          if [[ "${failed}" != "0" ]]; then
+            exit 1
+          fi
 
       - name: Cross-build release targets
+        id: release-builds
         run: |
           set -euo pipefail
+          completed=0
+          failed=""
           targets=(
             "linux amd64"
             "linux arm64"
@@ -88,9 +171,135 @@ jobs:
               suffix=".exe"
             fi
             echo "cross-build ${target_os}/${target_arch}"
-            GOOS="${target_os}" GOARCH="${target_arch}" CGO_ENABLED=0 \
-              go build -o "bin/bomly-${target_os}-${target_arch}${suffix}" ./cmd/bomly
-            GOOS="${target_os}" GOARCH="${target_arch}" CGO_ENABLED=0 \
+            if GOOS="${target_os}" GOARCH="${target_arch}" CGO_ENABLED=0 \
+              go build -o "bin/bomly-${target_os}-${target_arch}${suffix}" ./cmd/bomly; then
+              completed=$((completed + 1))
+            else
+              failed="${target_os}/${target_arch} full"
+              break
+            fi
+            if GOOS="${target_os}" GOARCH="${target_arch}" CGO_ENABLED=0 \
               go build -tags "bomly_external_syft,bomly_external_grype" \
-              -o "bin/bomly-lite-${target_os}-${target_arch}${suffix}" ./cmd/bomly
+              -o "bin/bomly-lite-${target_os}-${target_arch}${suffix}" ./cmd/bomly; then
+              completed=$((completed + 1))
+            else
+              failed="${target_os}/${target_arch} lite"
+              break
+            fi
           done
+          echo "completed=${completed}" >> "${GITHUB_OUTPUT}"
+          echo "failed=${failed}" >> "${GITHUB_OUTPUT}"
+          if [[ -n "${failed}" ]]; then
+            exit 1
+          fi
+
+      - name: Explain Linux stability result
+        if: always()
+        env:
+          JAVA_RESULT: ${{ steps.java-tests.outcome }}
+          JAVA_COMPLETED: ${{ steps.java-tests.outputs.completed }}
+          JAVA_FAILED: ${{ steps.java-tests.outputs.failed }}
+          COMPLETE_RESULT: ${{ steps.complete-tests.outcome }}
+          COMPLETE_COMPLETED: ${{ steps.complete-tests.outputs.completed }}
+          COMPLETE_FAILED: ${{ steps.complete-tests.outputs.failed }}
+          BUILD_RESULT: ${{ steps.release-builds.outcome }}
+          BUILD_COMPLETED: ${{ steps.release-builds.outputs.completed }}
+          BUILD_FAILED: ${{ steps.release-builds.outputs.failed }}
+        run: |
+          set -euo pipefail
+          if [[ "${JAVA_RESULT}" == "success" && "${COMPLETE_RESULT}" == "success" && "${BUILD_RESULT}" == "success" ]]; then
+            result="Passed"
+            icon="✅"
+          else
+            result="Failed"
+            icon="❌"
+          fi
+          show_failure() {
+            if [[ -z "${1:-}" || "${1}" == "0" ]]; then
+              printf "—"
+            else
+              printf "%s" "${1}"
+            fi
+          }
+          {
+            echo "## ${icon} Linux stability and release builds: ${result}"
+            echo
+            echo "This job repeats the areas most likely to reveal intermittent failures, then checks that every release binary can be built."
+            echo
+            echo "| Check | Planned | Completed | Failed at |"
+            echo "|---|---:|---:|---|"
+            echo "| Java detector tests | 10 runs | ${JAVA_COMPLETED:-0} | $(show_failure "${JAVA_FAILED:-0}") |"
+            echo "| Complete test suite | 5 runs | ${COMPLETE_COMPLETED:-0} | $(show_failure "${COMPLETE_FAILED:-0}") |"
+            echo "| Release binaries | 12 builds | ${BUILD_COMPLETED:-0} | $(show_failure "${BUILD_FAILED:-}") |"
+            echo
+            echo "The release check builds full and lite binaries for Linux, macOS, and Windows on amd64 and arm64."
+            echo
+            echo "### Need more detail?"
+            echo
+            echo "Open the failed step for the test name or release target. Reproduce the test checks with:"
+            echo
+            echo '```sh'
+            echo "go test ./internal/detectors/gradle ./internal/detectors/maven ./internal/detectors/sbt ./internal/analyzers/jvmreach -count=1"
+            echo "go test ./... -count=1"
+            echo '```'
+            echo
+            echo "For a failed release build, use the operating system, architecture, and variant shown in the table with the build command from **Cross-build release targets**."
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  summary:
+    name: Explain overall result
+    if: always()
+    needs:
+      - portable
+      - linux-stability
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summarize workflow
+        env:
+          PORTABLE_RESULT: ${{ needs.portable.result }}
+          STABILITY_RESULT: ${{ needs.linux-stability.result }}
+        run: |
+          set -euo pipefail
+          if [[ "${PORTABLE_RESULT}" == "success" && "${STABILITY_RESULT}" == "success" ]]; then
+            result="Passed"
+            icon="✅"
+          else
+            result="Failed"
+            icon="❌"
+          fi
+          if [[ "${PORTABLE_RESULT}" == "success" ]]; then
+            portable_label="Passed"
+          else
+            portable_label="Failed"
+          fi
+          if [[ "${STABILITY_RESULT}" == "success" ]]; then
+            stability_label="Passed"
+          else
+            stability_label="Failed"
+          fi
+          {
+            echo "# ${icon} Portable stability assurance: ${result}"
+            echo
+            echo "This workflow checked that the test suite is repeatable across supported development platforms and that release binaries build for every target."
+            echo
+            echo "| Area | Result | What ran |"
+            echo "|---|---|---|"
+            echo "| Linux, macOS, and Windows | ${portable_label} | Complete suite twice on each platform |"
+            echo "| Linux stability and release builds | ${stability_label} | Java tests 10 times, complete suite 5 times, and 12 release builds |"
+            echo
+            echo "Each job has its own summary with completed counts and the exact point of failure."
+            echo
+            echo "## Need more detail?"
+            echo
+            echo "Show only failed logs:"
+            echo
+            echo '```sh'
+            echo "gh run view ${GITHUB_RUN_ID} --log-failed"
+            echo '```'
+            echo
+            echo "After fixing a problem, rerun only the failed jobs:"
+            echo
+            echo '```sh'
+            echo "gh run rerun ${GITHUB_RUN_ID} --failed"
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"

@@ -50,3 +50,23 @@ from GitHub Actions. It:
 This workflow is separate from normal pull request checks because it performs
 many repeated test runs. Use it before closing a broad assurance effort or
 when investigating platform-specific or intermittent failures.
+
+## Reading a portable run
+
+Open the workflow run's **Summary** page first. The overall section explains
+what ran and whether each area passed. Each platform also has a short section
+showing how many test runs completed and which run failed, if any. The Linux
+section does the same for repeated tests and release builds.
+
+If something fails, open the named job and failed step for the test or build
+output. To show only failed logs with the GitHub CLI, run:
+
+```sh
+gh run view RUN_ID --log-failed
+```
+
+After fixing the problem, rerun only the failed jobs:
+
+```sh
+gh run rerun RUN_ID --failed
+```

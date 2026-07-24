@@ -9,6 +9,8 @@ import (
 func TestCloneDetectorDescriptorDeepCopiesDiscoveryFields(t *testing.T) {
 	original := &plugschema.DetectorDescriptor{
 		Name:                    "example",
+		Aliases:                 []string{"example-alias"},
+		Tags:                    []string{"dependency-detection"},
 		IgnoredDirectories:      []string{"node_modules"},
 		IgnoredDirectoryMarkers: []string{"pyvenv.cfg"},
 		PackageManagerSupport: []plugschema.PackageManagerSupport{
@@ -30,7 +32,56 @@ func TestCloneDetectorDescriptorDeepCopiesDiscoveryFields(t *testing.T) {
 	// Mutating the clone's slices must not touch the original.
 	clone.IgnoredDirectories[0] = "mutated"
 	clone.IgnoredDirectoryMarkers[0] = "mutated"
-	if original.IgnoredDirectories[0] != "node_modules" || original.IgnoredDirectoryMarkers[0] != "pyvenv.cfg" {
+	clone.Aliases[0] = "mutated"
+	clone.Tags[0] = "mutated"
+	clone.PackageManagerSupport[0].EvidencePatterns[0] = "mutated"
+	if original.IgnoredDirectories[0] != "node_modules" ||
+		original.IgnoredDirectoryMarkers[0] != "pyvenv.cfg" ||
+		original.Aliases[0] != "example-alias" ||
+		original.Tags[0] != "dependency-detection" ||
+		original.PackageManagerSupport[0].EvidencePatterns[0] != "package.json" {
 		t.Fatal("clone shares backing arrays with the original descriptor")
+	}
+}
+
+func TestCloneMatcherDescriptorDeepCopiesSlices(t *testing.T) {
+	original := &plugschema.MatcherDescriptor{
+		Name:                "matcher",
+		Aliases:             []string{"matcher-alias"},
+		Tags:                []string{"vulnerability"},
+		SupportedEcosystems: []plugschema.Ecosystem{plugschema.EcosystemNPM},
+		SupportedManagers:   []plugschema.PackageManager{plugschema.PackageManagerNPM},
+	}
+	clone := cloneMatcherDescriptor(original)
+	clone.Aliases[0] = "mutated"
+	clone.Tags[0] = "mutated"
+	clone.SupportedEcosystems[0] = plugschema.EcosystemGo
+	clone.SupportedManagers[0] = plugschema.PackageManagerGoMod
+	if original.Aliases[0] != "matcher-alias" ||
+		original.Tags[0] != "vulnerability" ||
+		original.SupportedEcosystems[0] != plugschema.EcosystemNPM ||
+		original.SupportedManagers[0] != plugschema.PackageManagerNPM {
+		t.Fatal("matcher clone shares backing arrays with the original descriptor")
+	}
+}
+
+func TestCloneAuditorDescriptorDeepCopiesSlices(t *testing.T) {
+	original := &plugschema.AuditorDescriptor{
+		Name:                "auditor",
+		Aliases:             []string{"auditor-alias"},
+		Tags:                []string{"policy"},
+		SupportedEcosystems: []plugschema.Ecosystem{plugschema.EcosystemNPM},
+		SupportedManagers:   []plugschema.PackageManager{plugschema.PackageManagerNPM},
+	}
+	clone := cloneAuditorDescriptor(original)
+	clone.Aliases[0] = "mutated"
+	clone.Tags[0] = "mutated"
+	clone.SupportedEcosystems[0] = plugschema.EcosystemGo
+	clone.SupportedManagers[0] = plugschema.PackageManagerGoMod
+	if original.Aliases[0] != "auditor-alias" ||
+		original.Tags[0] != "policy" ||
+		original.SupportedEcosystems[0] != plugschema.EcosystemNPM ||
+		original.SupportedManagers[0] != plugschema.PackageManagerNPM {
+		t.Fatal("auditor clone shares backing arrays with the original descriptor")
 	}
 }

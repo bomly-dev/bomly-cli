@@ -859,6 +859,7 @@ func cloneDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugsch
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.PackageManagerSupport = clonePackageManagerSupport(descriptor.PackageManagerSupport)
+	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
 	copyValue.Tags = append([]string(nil), descriptor.Tags...)
 	copyValue.FallbackDetectors = append([]string(nil), descriptor.FallbackDetectors...)
 	copyValue.IgnoredDirectories = append([]string(nil), descriptor.IgnoredDirectories...)
@@ -952,5 +953,7 @@ func cloneAuditorDescriptor(descriptor *plugschema.AuditorDescriptor) *plugschem
 	copyValue := *descriptor
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
+	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
+	copyValue.Tags = append([]string(nil), descriptor.Tags...)
 	return &copyValue
 }

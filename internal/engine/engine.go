@@ -147,11 +147,15 @@ func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (MatchResult, 
 	}
 	req = prepared
 	if req.Graph == nil || (req.Graph.Size() == 0 && (originalGraphSize > 0 || hadTarget)) {
-		return MatchResult{Registry: req.Registry}, nil
+		result := MatchResult{Registry: req.Registry}
+		finalizeMatchResult(&result)
+		return result, nil
 	}
 	matcherList := e.registry.Matchers(req)
 	if len(matcherList) == 0 {
-		return MatchResult{Registry: req.Registry}, fmt.Errorf("%w for ecosystem %q, and package manager %q", ErrNoMatcher, req.Ecosystem, req.PackageManager)
+		result := MatchResult{Registry: req.Registry}
+		finalizeMatchResult(&result)
+		return result, fmt.Errorf("%w for ecosystem %q, and package manager %q", ErrNoMatcher, req.Ecosystem, req.PackageManager)
 	}
 
 	aggregated := MatchResult{
@@ -186,14 +190,20 @@ func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (MatchResult, 
 			req.Registry = result.Registry
 		}
 	}
-	if aggregated.Registry != nil {
-		before, after := consolidateRegistryVulnerabilities(aggregated.Registry)
-		aggregated.VulnerabilitiesConsolidated = before - after
-	}
+	finalizeMatchResult(&aggregated)
 	if len(errs) > 0 {
 		return aggregated, errors.Join(errs...)
 	}
 	return aggregated, nil
+}
+
+func finalizeMatchResult(result *MatchResult) {
+	if result == nil || result.Registry == nil {
+		return
+	}
+	before, after := consolidateRegistryVulnerabilities(result.Registry)
+	result.VulnerabilitiesConsolidated = before - after
+	derivePackageRemediations(result.Registry)
 }
 
 func matcherStats(descriptor sdk.MatcherDescriptor, stats sdk.MatcherStats) sdk.MatcherStats {

@@ -235,6 +235,10 @@
       "matched": true,
       "name": "golang.org/x/text",
       "purl": "pkg:golang/golang.org/x/text@v0.3.5",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "v0.3.5",
       "vulnerabilities": [
         {

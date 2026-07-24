@@ -9,7 +9,7 @@ import (
 
 func registerDiffTool(s *server.MCPServer, mcpCtx Context) {
 	tool := mcplib.NewTool("bomly_diff",
-		mcplib.WithDescription("Compare dependency state between two targets and answer: what does head fix vs base, what does it introduce, and what remains open after merge? By default base and head are Git refs; set image to diff container tags/digests, or sbom to diff two SBOM files. With enrich+audit the response carries a security delta (introduced / resolved / persisted findings, keyed by advisory id independent of version bumps) plus remediation groups for everything still open. Compact by design; use bomly_explain on the head checkout for full advisory detail of one package."),
+		mcplib.WithDescription("Compare dependencies between two targets. With enrich=true, the response includes possible remediation for vulnerable packages on the head side. With audit=true, it also shows introduced, resolved, and unchanged policy findings. Use bomly_explain for full details about one package."),
 		mcplib.WithString("base",
 			mcplib.Required(),
 			mcplib.Description("Base to compare: a Git ref (e.g. main, HEAD~1, a SHA), a container tag/digest when image is set, or an SBOM file path when sbom is true"),

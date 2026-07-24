@@ -19,6 +19,9 @@ bomly scan . --format json | jq .
 # List every package that has at least one vulnerability
 bomly scan . --enrich --format json | jq '.packages[] | select(.vulnerabilities | length > 0) | .purl'
 
+# Show packages with a complete version recommendation
+bomly scan . --enrich --format json | jq '.packages[] | select(.remediation.status == "complete") | {purl, recommended_version: .remediation.recommended_version}'
+
 # Write the document to a file for a later step
 bomly scan . --format json --output scan.json
 ```
@@ -30,7 +33,7 @@ bomly scan . --format json --output scan.json
 Every document carries a `schema_version` and a `command`, then the three top-level collections:
 
 - **`manifests[]`** — detection-stage results, one entry per discovered project, each holding lean `dependencies[]` (identity, `scopes`, `depends_on`, and a `package_ref` into `packages`).
-- **`packages[]`** — matching-stage artifacts, deduplicated by PURL, carrying the enrichment: `licenses`, `vulnerabilities` (OSV-aligned, with CVSS/EPSS/reachability), `scorecard`, and `eol`.
+- **`packages[]`** — matching-stage artifacts, deduplicated by PURL, carrying the enrichment: `licenses`, `vulnerabilities` (OSV-aligned, with CVSS/EPSS/reachability), `remediation`, `scorecard`, and `eol`. `remediation` is a small fix-evidence summary; it is not a command or an instruction to change files.
 - **`findings[]`** — reference-style audit results that point back at the other collections rather than copying data inline: `package` is an identity-only ref (join `packages` by `purl`), `vulnerability_id` names the advisory inside `packages[].vulnerabilities`, and `dependency_refs` lists the introducing `manifests[].dependencies` ids.
 
 Enrichment lives once, in `packages`, and is resolved by PURL — so a CVE that affects a package shared by 50 dependencies appears a single time. `bomly diff` documents carry the same `packages` collection (the PURL-deduplicated union of the base and head states, head winning on conflict) so audit findings in the diff join the same way. See the per-command pages for the exact field-by-field breakdown.
@@ -42,6 +45,6 @@ Enrichment lives once, in `packages`, and is resolved by PURL — so a CVE that 
 
 ## Limitations
 
-- A field is only populated when the corresponding stage ran: `vulnerabilities`, `scorecard`, and `eol` are present only with `--enrich`; `findings` only with `--audit`; `reachability` only with `--analyze`.
+- A field is only populated when the corresponding stage ran: `vulnerabilities`, `remediation`, `scorecard`, and `eol` are present only with `--enrich`; `findings` only with `--audit`; `reachability` only with `--analyze`.
 - An empty `vulnerabilities`/`findings` array means *nothing was reported under the options you ran with* — not a guarantee that the package is safe. In particular, reachability tiers are best-effort; a `tier: none`/unreachable result is a triage signal, not proof of safety (see [Reachability](REACHABILITY.md)).
 - JSON output may contain absolute filesystem paths from the scanned target. Treat a scan document as potentially sensitive before publishing it.

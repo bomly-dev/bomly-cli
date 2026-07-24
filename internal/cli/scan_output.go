@@ -69,15 +69,21 @@ func matcherRan(name string, statSets ...[]sdk.MatcherStats) bool {
 	return false
 }
 
-func explainPackageRef(pkg *sdk.Dependency, registry *sdk.PackageRegistry) output.PackageRef {
+func explainPackageRef(pkg *sdk.Dependency, registry *sdk.PackageRegistry) output.ExplainDependency {
 	ref := output.PackageFromDependencyAndRegistry(pkg, registry)
 	if pkg == nil {
-		return ref
+		return output.ExplainDependency{PackageRef: ref}
+	}
+	result := output.ExplainDependency{PackageRef: ref}
+	if registry != nil && pkg.PURL != "" {
+		if matched, ok := registry.Get(pkg.PURL); ok && matched != nil {
+			result.Remediation = matched.Remediation.Clone()
+		}
 	}
 	if legacyID := pkg.StableID(); legacyID != "" {
-		ref.ID = legacyID
+		result.ID = legacyID
 	}
-	return ref
+	return result
 }
 
 func explainPathsWithStableIDs(paths []output.DependencyPath) []output.DependencyPath {

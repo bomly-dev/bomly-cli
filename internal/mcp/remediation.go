@@ -81,7 +81,7 @@ func buildRemediations(in remediationInput) remediationOutput {
 	out := make([]RemediationGroup, 0, len(groups))
 	for _, key := range groupKeys {
 		group := groups[key]
-		finalizeGroup(group)
+		finalizeGroup(group, in.Registry)
 		out = append(out, *group)
 	}
 	rankGroups(out)
@@ -215,27 +215,26 @@ func remediationGroupKey(action string, ancestor ancestorTarget, compact Compact
 
 // finalizeGroup computes the recommended version and recommendation text
 // once the group's findings are complete.
-func finalizeGroup(group *RemediationGroup) {
+func finalizeGroup(group *RemediationGroup, registry *sdk.PackageRegistry) {
 	sortCompactFindings(group.Fixes)
 	ids := make([]string, 0, len(group.Fixes))
-	minSafe := ""
 	for _, fix := range group.Fixes {
 		ids = append(ids, fix.VulnID)
-		minSafe = higherVersion(minSafe, fix.FixedIn)
 	}
+	recommendedVersion := groupRecommendedVersion(group.Fixes, registry)
 	label := strings.Join(ids, ", ")
 
 	switch group.Action {
 	case ActionDirectBump:
 		// The structured fields say it all for a direct bump; prose is only
 		// added when no single safe version could be computed.
-		group.RecommendedVersion = minSafe
-		if minSafe == "" {
+		group.RecommendedVersion = recommendedVersion
+		if recommendedVersion == "" {
 			group.Recommendation = fmt.Sprintf("Upgrade `%s` in %s to address %s; no single safe version was computed.",
 				group.TargetPackage.Name, valueOr(group.ManifestPath, "its manifest"), label)
 		}
 	case ActionTransitiveOverride, ActionLockfileRefresh:
-		group.RecommendedVersion = minSafe
+		group.RecommendedVersion = recommendedVersion
 		group.OverrideAdvice = groupOverrideAdvice(group)
 		verb := "override the transitive version"
 		if group.Action == ActionLockfileRefresh {
@@ -257,6 +256,105 @@ func finalizeGroup(group *RemediationGroup) {
 	case ActionPolicyReview:
 		group.Recommendation = "Policy finding: requires review, not fixed by a version upgrade."
 	}
+}
+
+// groupRecommendedVersion uses the shared package remediation summary only
+// when every fix in the group belongs to one affected package with complete
+// evidence. Parent grouping and policy findings must not invent a version.
+func groupRecommendedVersion(fixes []CompactFinding, registry *sdk.PackageRegistry) string {
+	if len(fixes) == 0 || registry == nil {
+		return ""
+	}
+	purl := fixes[0].Package.Purl
+	if purl == "" {
+		return ""
+	}
+	for _, fix := range fixes[1:] {
+		if fix.Package.Purl != purl {
+			return ""
+		}
+	}
+	pkg, ok := registry.Get(purl)
+	if !ok || pkg == nil || pkg.Remediation == nil ||
+		pkg.Remediation.Status != sdk.PackageRemediationComplete {
+		return ""
+	}
+	return pkg.Remediation.RecommendedVersion
+}
+
+// remediationFindings joins enriched vulnerabilities with optional audit
+// findings. Enrichment supplies complete vulnerability coverage; audit
+// findings overlay policy fields without filtering out unaudited advisories.
+func remediationFindings(registry *sdk.PackageRegistry, auditFindings []sdk.Finding) []sdk.Finding {
+	used := make([]bool, len(auditFindings))
+	result := make([]sdk.Finding, 0, len(auditFindings))
+	if registry != nil {
+		for _, pkg := range registry.All() {
+			if pkg == nil {
+				continue
+			}
+			for _, vulnerability := range pkg.Vulnerabilities {
+				finding := sdk.Finding{
+					ID:              vulnerability.ID,
+					Kind:            sdk.FindingKindVulnerability,
+					Title:           firstNonEmpty(vulnerability.Title, vulnerability.Summary, vulnerability.ID),
+					Severity:        vulnerability.ParsedSeverity,
+					Source:          vulnerability.Source,
+					Auditor:         "enrichment",
+					PackageRef:      pkg.PURL,
+					VulnerabilityID: vulnerability.ID,
+				}
+				for idx, candidate := range auditFindings {
+					if used[idx] || candidate.Kind != sdk.FindingKindVulnerability ||
+						candidate.PackageRef != pkg.PURL ||
+						!findingIdentifiesVulnerability(candidate, vulnerability) {
+						continue
+					}
+					finding = candidate.Clone()
+					if finding.ID == "" {
+						finding.ID = vulnerability.ID
+					}
+					if finding.Title == "" {
+						finding.Title = firstNonEmpty(vulnerability.Title, vulnerability.Summary, vulnerability.ID)
+					}
+					if finding.Severity == "" {
+						finding.Severity = vulnerability.ParsedSeverity
+					}
+					if finding.Source == "" {
+						finding.Source = vulnerability.Source
+					}
+					if finding.VulnerabilityID == "" {
+						finding.VulnerabilityID = vulnerability.ID
+					}
+					used[idx] = true
+					break
+				}
+				result = append(result, finding)
+			}
+		}
+	}
+	for idx, finding := range auditFindings {
+		if !used[idx] {
+			result = append(result, finding.Clone())
+		}
+	}
+	return result
+}
+
+func findingIdentifiesVulnerability(finding sdk.Finding, vulnerability sdk.Vulnerability) bool {
+	identity := strings.ToLower(strings.TrimSpace(findingVulnID(finding)))
+	if identity == "" {
+		return false
+	}
+	if strings.EqualFold(strings.TrimSpace(vulnerability.ID), identity) {
+		return true
+	}
+	for _, alias := range vulnerability.Aliases {
+		if strings.EqualFold(strings.TrimSpace(alias), identity) {
+			return true
+		}
+	}
+	return false
 }
 
 // rankGroups orders remediation groups most-urgent first: known-exploited

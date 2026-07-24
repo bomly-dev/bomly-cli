@@ -3474,6 +3474,10 @@
       "matched": true,
       "name": "algo-httpserv",
       "purl": "pkg:npm/algo-httpserv@1.1.1",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "1.1.1",
       "vulnerabilities": [
         {
@@ -3553,6 +3557,10 @@
       "matched": true,
       "name": "ansi-regex",
       "purl": "pkg:npm/ansi-regex@3.0.0",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "3.0.0",
       "vulnerabilities": [
         {
@@ -3636,6 +3644,10 @@
       "matched": true,
       "name": "ansi-regex",
       "purl": "pkg:npm/ansi-regex@4.1.0",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "4.1.0",
       "vulnerabilities": [
         {
@@ -3764,6 +3776,10 @@
       "matched": true,
       "name": "async",
       "purl": "pkg:npm/async@2.6.3",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "2.6.3",
       "vulnerabilities": [
         {
@@ -3877,6 +3893,10 @@
       "matched": true,
       "name": "brace-expansion",
       "purl": "pkg:npm/brace-expansion@1.1.11",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "1.1.11",
       "vulnerabilities": [
         {
@@ -4094,6 +4114,10 @@
       "matched": true,
       "name": "braces",
       "purl": "pkg:npm/braces@3.0.2",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "3.0.2",
       "vulnerabilities": [
         {
@@ -4320,6 +4344,10 @@
       "matched": true,
       "name": "debug",
       "purl": "pkg:npm/debug@3.2.6",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "3.2.6",
       "vulnerabilities": [
         {
@@ -4427,6 +4455,9 @@
       "matched": true,
       "name": "dicer",
       "purl": "pkg:npm/dicer@0.2.5",
+      "remediation": {
+        "status": "unavailable"
+      },
       "version": "0.2.5",
       "vulnerabilities": [
         {
@@ -4491,6 +4522,10 @@
       "matched": true,
       "name": "diff",
       "purl": "pkg:npm/diff@3.5.0",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "3.5.0",
       "vulnerabilities": [
         {
@@ -4777,6 +4812,10 @@
       "matched": true,
       "name": "glob-parent",
       "purl": "pkg:npm/glob-parent@5.1.1",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "5.1.1",
       "vulnerabilities": [
         {
@@ -5206,6 +5245,10 @@
       "matched": true,
       "name": "js-yaml",
       "purl": "pkg:npm/js-yaml@3.13.0",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "3.13.0",
       "vulnerabilities": [
         {
@@ -5467,6 +5510,10 @@
       "matched": true,
       "name": "js-yaml",
       "purl": "pkg:npm/js-yaml@3.13.1",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "3.13.1",
       "vulnerabilities": [
         {
@@ -5792,6 +5839,10 @@
       "matched": true,
       "name": "lodash",
       "purl": "pkg:npm/lodash@4.17.15",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "4.17.15",
       "vulnerabilities": [
         {
@@ -6231,6 +6282,10 @@
       "matched": true,
       "name": "marked",
       "purl": "pkg:npm/marked@0.3.19",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "0.3.19",
       "vulnerabilities": [
         {
@@ -6431,6 +6486,10 @@
       "matched": true,
       "name": "minimatch",
       "purl": "pkg:npm/minimatch@3.0.4",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "3.0.4",
       "vulnerabilities": [
         {
@@ -6715,6 +6774,10 @@
       "matched": true,
       "name": "minimist",
       "purl": "pkg:npm/minimist@0.0.10",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "0.0.10",
       "vulnerabilities": [
         {
@@ -6867,6 +6930,10 @@
       "matched": true,
       "name": "minimist",
       "purl": "pkg:npm/minimist@1.2.5",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "1.2.5",
       "vulnerabilities": [
         {
@@ -7220,6 +7287,10 @@
       "matched": true,
       "name": "picomatch",
       "purl": "pkg:npm/picomatch@2.2.2",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "2.2.2",
       "vulnerabilities": [
         {
@@ -7385,6 +7456,10 @@
       "matched": true,
       "name": "qs",
       "purl": "pkg:npm/qs@6.9.1",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "6.9.1",
       "vulnerabilities": [
         {
@@ -7677,6 +7752,10 @@
       "matched": true,
       "name": "semver",
       "purl": "pkg:npm/semver@5.7.1",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "5.7.1",
       "vulnerabilities": [
         {
@@ -7971,6 +8050,10 @@
       "matched": true,
       "name": "underscore",
       "purl": "pkg:npm/underscore@1.9.2",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "1.9.2",
       "vulnerabilities": [
         {
@@ -8153,6 +8236,10 @@
       "matched": true,
       "name": "uuid",
       "purl": "pkg:npm/uuid@3.4.0",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "3.4.0",
       "vulnerabilities": [
         {
@@ -8326,6 +8413,10 @@
       "matched": true,
       "name": "y18n",
       "purl": "pkg:npm/y18n@4.0.0",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete"
+      },
       "version": "4.0.0",
       "vulnerabilities": [
         {

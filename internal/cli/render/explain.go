@@ -15,7 +15,7 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 
 	// Key-value header block
 	ecosystem := ecosystemFromPURL(target.Dependency.Purl)
-	pkgLabel := explainPackageDisplayName(target.Dependency)
+	pkgLabel := explainPackageDisplayName(target.Dependency.PackageRef)
 	scope := ValueOrDash(target.Dependency.Scope)
 	directLabel := "no"
 	for _, path := range target.Paths {

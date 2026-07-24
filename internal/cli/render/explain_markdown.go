@@ -31,7 +31,7 @@ func explainTargetsMarkdown(payload output.ExplainResponse) []string {
 	rows := make([][]string, 0, len(payload.Targets))
 	for _, target := range payload.Targets {
 		rows = append(rows, []string{
-			ValueOrDash(markdownPackageDisplayName(target.Dependency)),
+			ValueOrDash(markdownPackageDisplayName(target.Dependency.PackageRef)),
 			ValueOrDash(target.Project.Name),
 			ValueOrDash(target.Detector),
 			fmt.Sprintf("%d", len(target.Paths)),
@@ -47,7 +47,7 @@ func explainPathsMarkdown(payload output.ExplainResponse) []string {
 	lines := make([]string, 0)
 	for _, target := range payload.Targets {
 		if len(payload.Targets) > 1 {
-			lines = append(lines, fmt.Sprintf("### `%s`", markdownInline(markdownPackageDisplayName(target.Dependency))), "")
+			lines = append(lines, fmt.Sprintf("### `%s`", markdownInline(markdownPackageDisplayName(target.Dependency.PackageRef))), "")
 		}
 		if len(target.Paths) == 0 {
 			lines = append(lines, "No dependency paths found.", "")
@@ -70,7 +70,7 @@ func explainImpactMarkdown(payload output.ExplainResponse) []string {
 	lines := make([]string, 0)
 	for _, target := range payload.Targets {
 		if len(payload.Targets) > 1 {
-			lines = append(lines, fmt.Sprintf("### `%s`", markdownInline(markdownPackageDisplayName(target.Dependency))), "")
+			lines = append(lines, fmt.Sprintf("### `%s`", markdownInline(markdownPackageDisplayName(target.Dependency.PackageRef))), "")
 		}
 		lines = append(lines,
 			fmt.Sprintf("- Vulnerabilities: %d", len(target.Dependency.Vulnerabilities)),

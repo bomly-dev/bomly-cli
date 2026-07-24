@@ -7,7 +7,7 @@ Bomly's domain model standardizes around three pipeline stages — detection, ma
 | Stage      | Type                | Lives in                 | Identity     | Purpose                                                  |
 |------------|---------------------|--------------------------|--------------|----------------------------------------------------------|
 | Detection  | `sdk.Dependency`    | per-manifest `sdk.Graph` | `Dependency.ID` (stable within manifest) | One node per dependency instance; carries scope, locations, edges |
-| Matching   | `sdk.Package`       | `sdk.PackageRegistry`    | `Package.PURL` (canonical) | One artifact per unique PURL; carries licenses, vulnerabilities, scorecard, EOL |
+| Matching   | `sdk.Package`       | `sdk.PackageRegistry`    | `Package.PURL` (canonical) | One artifact per unique PURL; carries licenses, vulnerabilities, remediation, scorecard, EOL |
 | Audit      | `sdk.Finding`       | `engine.PipelineResult.Findings` | `Finding.ID` + `Finding.PackageRef` + `Finding.VulnerabilityID` | Reference-style policy outcome with no inlined vuln fields |
 
 Vulnerabilities themselves are OSV-aligned `sdk.Vulnerability` records owned by the registry; analyzers annotate them in place with reachability.
@@ -123,6 +123,7 @@ type Package struct {
     Digests         []Digest
     Licenses        []PackageLicense
     Vulnerabilities []Vulnerability       // OSV-aligned
+    Remediation     *PackageRemediation   // derived from vulnerability fix evidence
     Scorecard       *PackageScorecard
     EOL             *PackageEOL
     Copyright       string
@@ -141,6 +142,23 @@ Registry API (`sdk/registry.go`):
 - `reg.All()` — iterate. `reg.Len()` — count.
 
 Built by `consolidation.BuildPackageRegistry(consolidated)` right after the consolidation stage; threaded through match/analyze/audit and into the output layer via `PipelineResult.Registry`.
+
+`Package.Remediation` is a small summary derived by the engine after all
+matcher results have been consolidated. It is absent when a package has no
+vulnerabilities:
+
+- `complete` means every vulnerability has usable fix evidence and
+  `RecommendedVersion` is the lowest package version known to address all of
+  them.
+- `partial` means some fix evidence exists but it does not support one complete
+  recommendation.
+- `unavailable` means every vulnerability explicitly reports no fix or
+  won't-fix.
+- `unknown` means evidence is missing or contradictory.
+
+The summary is derived data, not matcher policy. The engine replaces any
+incoming value after matching. Derivation does not inspect manifests or the
+dependency graph, make network calls, run commands, or write files.
 
 ## `sdk.Vulnerability` — OSV-aligned
 

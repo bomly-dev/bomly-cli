@@ -137,9 +137,10 @@ type TruncationInfo struct {
 }
 
 // CompactScanResponse is the bomly_scan tool result: remediation-grouped
-// actionable findings plus counts of everything omitted. For the complete
-// JSON document use the CLI (`bomly scan --format json`); for full advisory
-// detail on one package use bomly_explain.
+// enriched vulnerabilities, optional audit information, and counts of
+// everything omitted. For the complete JSON document use the CLI
+// (`bomly scan --format json`); for full advisory detail on one package use
+// bomly_explain.
 type CompactScanResponse struct {
 	SchemaVersion string             `json:"schema_version"`
 	Command       string             `json:"command"`

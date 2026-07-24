@@ -10,7 +10,7 @@ Complete reference for the `bomly explain` JSON output.
 | `command` | `string` | |
 | `project` | [`ProjectDescriptor`](#projectdescriptor) | |
 | `query` | [`ExplainQuery`](#explainquery) | |
-| `dependency` | [`PackageRef`](#packageref) | |
+| `dependency` | [`ExplainDependency`](#explaindependency) | |
 | `paths` | Array<[`DependencyPath`](#dependencypath)> | |
 | `findings` | Array<[`AuditFinding`](#auditfinding)> | |
 | `audit_summary` | [`AuditSummary`](#auditsummary) | |
@@ -110,6 +110,24 @@ Complete reference for the `bomly explain` JSON output.
 | `percentile` | `number` | |
 | `date` | `string` | |
 
+### `ExplainDependency`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | |
+| `version` | `string` | |
+| `scope` | `string` | |
+| `purl` | `string` | |
+| `id` | `string` | |
+| `metadata` | `object` | |
+| `locations` | Array<[`LocationRef`](#locationref)> | |
+| `licenses` | Array<[`LicenseRef`](#licenseref)> | |
+| `vulnerabilities` | Array<[`VulnerabilityRef`](#vulnerabilityref)> | |
+| `scorecard` | [`PackageScorecard`](#packagescorecard) | |
+| `relationship` | `string` | |
+| `direct` | `boolean` | |
+| `remediation` | [`PackageRemediation`](#packageremediation) | |
+
 ### `ExplainQuery`
 
 | Field | Type | Description |
@@ -123,7 +141,7 @@ Complete reference for the `bomly explain` JSON output.
 | `project` | [`ProjectDescriptor`](#projectdescriptor) | |
 | `detector` | `string` | |
 | `package_manager` | `string` | |
-| `dependency` | [`PackageRef`](#packageref) | |
+| `dependency` | [`ExplainDependency`](#explaindependency) | |
 | `paths` | Array<[`DependencyPath`](#dependencypath)> | |
 | `findings` | Array<[`AuditFinding`](#auditfinding)> | |
 | `audit_summary` | [`AuditSummary`](#auditsummary) | |
@@ -203,6 +221,13 @@ Complete reference for the `bomly explain` JSON output.
 | `scorecard` | [`PackageScorecard`](#packagescorecard) | |
 | `relationship` | `string` | |
 | `direct` | `boolean` | |
+
+### `PackageRemediation`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | |
+| `recommended_version` | `string` | |
 
 ### `PackageScorecard`
 

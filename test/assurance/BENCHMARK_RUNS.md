@@ -1,29 +1,52 @@
-# Benchmark run evidence
+# Measuring speed and stability
 
-`make benchmark-samples` records a deterministic, offline canonical scan as
-five isolated cold samples and five shared-cache warm samples. Raw stdout,
-stderr, caches, and the machine-readable run manifest are written beneath the
-ignored `.benchmark-runs` directory.
+`make benchmark-samples` measures the same offline Bomly scan ten times:
 
-The `bomly.benchmark-run/v1` manifest records:
+- five runs start with an empty cache;
+- five runs share a cache, like repeated scans normally do.
 
-- repository revision and dirty state;
-- executable path, version output, and SHA-256;
-- UTC timestamps, runtime, operating system, architecture, CPU count, and
-  hostname;
-- cache and network state, command, arguments, and working directory;
-- exit status, command-stage duration, peak resident memory, output byte
-  counts, raw hashes, normalized hashes, and raw artifact paths per sample;
-- cold and warm medians, means, standard deviations, median absolute
-  deviations, approximate 95% confidence intervals, peak memory, and median
-  output bytes.
+Running the same scan several times gives a more useful result than timing it
+once. It also shows whether Bomly returns the same result every time.
 
-Only stable invariants gate the runner: successful exit status, identical
-normalized output within each cache mode, and an optional explicit output-size
-cap. Wall-clock time, memory, and confidence intervals are evidence rather than
-merge thresholds.
+The command saves its files under `.benchmark-runs`, which Git ignores. These
+files include the raw command output, errors, caches, and a report named
+`bomly.benchmark-run/v1`.
 
-Normalization is separately versioned as
-`bomly.benchmark-normalization/v1`. It removes only documented volatile JSON
-timestamp and duration fields before hashing and never changes the retained
-raw samples.
+## What the report contains
+
+The report includes:
+
+- the repository revision and whether local files had changed;
+- the Bomly executable's path, version, and SHA-256 checksum;
+- the operating system, processor architecture, CPU count, and hostname;
+- the exact command, working directory, cache setting, and network setting;
+- whether each run succeeded;
+- the time, peak memory, and output size for each run;
+- checksums used to compare the raw and normalized output;
+- summary numbers showing the typical result and how much the samples varied.
+
+The command fails when Bomly exits with an error, when repeated runs produce
+different normalized output, or when an optional output-size limit is
+exceeded. It does not fail simply because one machine ran more slowly or used
+more memory. Timing and memory measurements are evidence for people to review,
+not fixed pass-or-fail limits.
+
+Some JSON fields, such as timestamps and durations, naturally change on every
+run. The comparison removes only those documented fields before calculating a
+checksum. This comparison format is named
+`bomly.benchmark-normalization/v1`. The saved raw output is never changed.
+
+## Checking supported systems
+
+The `Portable stability assurance` workflow runs only when someone starts it
+from GitHub Actions. It:
+
+- runs the complete test suite twice on Linux, macOS, and Windows;
+- runs the Java-related tests ten times to catch intermittent failures;
+- runs the complete Linux test suite five more times;
+- builds both Bomly binaries for every supported Linux, macOS, and Windows
+  processor target.
+
+This workflow is separate from normal pull request checks because it performs
+many repeated test runs. Use it before closing a broad assurance effort or
+when investigating platform-specific or intermittent failures.

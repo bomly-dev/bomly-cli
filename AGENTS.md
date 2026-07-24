@@ -10,6 +10,7 @@ make build-lite          # go build -tags "bomly_external_syft,bomly_external_gr
 make test                # go test ./...
 make smoke               # end-to-end smoke tests against real repos/containers (slow, needs network)
 make smoke ARGS="-update" # regenerate golden files for smoke tests
+make fuzz FUZZTIME=5s    # run every registered fuzz target with a short per-target budget
 make benchmark           # run the hidden local dependency-graph benchmark
 make benchmark-report    # analyze local benchmark artifacts with Copilot CLI
 make run ARGS="scan"    # go run ./cmd/bomly <ARGS>
@@ -153,6 +154,15 @@ Core passes these env vars. Plugin discovery: `~/.bomly/plugins/bomly-*` overrid
 - Generated docs are part of the contract: update `docs/CONFIG_REFERENCE.md`, `docs/schemas/*`, and `docs/SUPPORT_MATRIX.md` via `make generate` when their source packages change.
 - Fake binaries (npm, go, Gradle, plugin) are built in `TestMain` — see `internal/cli/root_test_main_test.go`.
 - No test conditionally skipped without a recorded reason.
+
+### Fuzz tests
+
+- Every new or materially changed pure in-process parser for untrusted repository, configuration, baseline, SBOM, SDK, plugin, or analyzer data must have a native Go fuzz target.
+- Bound fuzz input before parsing. Use `testutil.MaxFuzzInputSize` unless the format needs a documented tighter limit.
+- Seed valid, malformed, and truncated inputs. Assert that parsing never panics and that repeated parsing has deterministic success or failure; graph producers must also call `testutil.RequireFuzzGraphValid`.
+- Register every new fuzz target in `scripts/run-fuzz.sh` so both `make fuzz` and the scheduled `.github/workflows/fuzz.yml` workflow execute it.
+- When a parser is command-backed, delegated entirely to the standard library, or otherwise unsuitable for native fuzzing, record the exclusion and reason in `test/assurance/PARSER_FUZZING.md`.
+- When fuzz targets or their runner manifest change, run the focused target and `make fuzz FUZZTIME=5s`.
 
 ## Feature Checklist
 

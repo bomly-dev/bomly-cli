@@ -111,6 +111,7 @@ func TestGradleIncludedProjectPaths(t *testing.T) {
 		want []string
 	}{
 		{"Groovy line", "include ':app', ':shared'\n", []string{":app", ":shared"}},
+		{"Groovy line with Windows endings", "include ':app', ':shared'\r\n", []string{":app", ":shared"}},
 		{"Kotlin single line", "include(\":app\", \":shared\")\n", []string{":app", ":shared"}},
 		{"Kotlin multiline", "include(\n  \":app\",\n  \":nested:shared\",\n)\n", []string{":app", ":nested:shared"}},
 		{"deduplicated", "include ':app'\ninclude(\":app\")\n", []string{":app"}},

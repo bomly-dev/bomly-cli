@@ -214,23 +214,46 @@ jobs:
             result="Failed"
             icon="❌"
           fi
+          show_result() {
+            case "${1}" in
+              success) printf "Passed" ;;
+              failure) printf "Failed" ;;
+              cancelled) printf "Cancelled" ;;
+              skipped) printf "Skipped" ;;
+              *) printf "Not run" ;;
+            esac
+          }
+          show_completed() {
+            case "${1}" in
+              success|failure) printf "%s" "${2:-0}" ;;
+              *) printf "—" ;;
+            esac
+          }
           show_failure() {
-            if [[ -z "${1:-}" || "${1}" == "0" ]]; then
-              printf "—"
-            else
-              printf "%s" "${1}"
-            fi
+            case "${1}" in
+              success) printf "—" ;;
+              failure)
+                if [[ -z "${2:-}" || "${2}" == "0" ]]; then
+                  printf "See step log"
+                else
+                  printf "%s" "${2}"
+                fi
+                ;;
+              cancelled) printf "Cancelled" ;;
+              skipped) printf "Skipped" ;;
+              *) printf "Not run" ;;
+            esac
           }
           {
             echo "## ${icon} Linux stability and release builds: ${result}"
             echo
             echo "This job repeats the areas most likely to reveal intermittent failures, then checks that every release binary can be built."
             echo
-            echo "| Check | Planned | Completed | Failed at |"
-            echo "|---|---:|---:|---|"
-            echo "| Java detector tests | 10 runs | ${JAVA_COMPLETED:-0} | $(show_failure "${JAVA_FAILED:-0}") |"
-            echo "| Complete test suite | 5 runs | ${COMPLETE_COMPLETED:-0} | $(show_failure "${COMPLETE_FAILED:-0}") |"
-            echo "| Release binaries | 12 builds | ${BUILD_COMPLETED:-0} | $(show_failure "${BUILD_FAILED:-}") |"
+            echo "| Check | Result | Planned | Completed | Failed at |"
+            echo "|---|---|---:|---:|---|"
+            echo "| Java detector tests | $(show_result "${JAVA_RESULT}") | 10 runs | $(show_completed "${JAVA_RESULT}" "${JAVA_COMPLETED:-}") | $(show_failure "${JAVA_RESULT}" "${JAVA_FAILED:-}") |"
+            echo "| Complete test suite | $(show_result "${COMPLETE_RESULT}") | 5 runs | $(show_completed "${COMPLETE_RESULT}" "${COMPLETE_COMPLETED:-}") | $(show_failure "${COMPLETE_RESULT}" "${COMPLETE_FAILED:-}") |"
+            echo "| Release binaries | $(show_result "${BUILD_RESULT}") | 12 builds | $(show_completed "${BUILD_RESULT}" "${BUILD_COMPLETED:-}") | $(show_failure "${BUILD_RESULT}" "${BUILD_FAILED:-}") |"
             echo
             echo "The release check builds full and lite binaries for Linux, macOS, and Windows on amd64 and arm64."
             echo

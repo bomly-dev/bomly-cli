@@ -48,7 +48,7 @@ jobs:
         if: always()
         env:
           VALIDATION_RESULT: ${{ steps.validate.outcome }}
-          EVIDENCE_RESULT: ${{ steps.evidence.outcome }}
+          EVIDENCE_ARTIFACT_ID: ${{ steps.evidence.outputs.artifact-id }}
         run: |
           set -euo pipefail
           if [[ "${VALIDATION_RESULT}" == "success" ]]; then
@@ -58,12 +58,17 @@ jobs:
             result="Failed"
             icon="❌"
           fi
+          if [[ -n "${EVIDENCE_ARTIFACT_ID}" ]]; then
+            evidence="Uploaded (artifact ID \`${EVIDENCE_ARTIFACT_ID}\`)"
+          else
+            evidence="Not produced"
+          fi
           {
             printf '# SBOM compatibility check: %s %s\n\n' "${icon}" "${result}"
             printf 'Bomly generated SPDX 2.3 and CycloneDX 1.6 files, then asked the official validators to check them.\n\n'
             printf -- '- **Revision:** `%s`\n' "${GITHUB_SHA}"
             printf -- '- **Validation:** `%s`\n' "${VALIDATION_RESULT}"
-            printf -- '- **Evidence upload:** `%s`\n\n' "${EVIDENCE_RESULT}"
+            printf -- '- **Evidence:** %s\n\n' "${evidence}"
           } >> "${GITHUB_STEP_SUMMARY}"
 
           manifest="sbom-assurance-artifacts/run-manifest.json"

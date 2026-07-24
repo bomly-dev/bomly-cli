@@ -41,11 +41,15 @@ checksum. This comparison format is named
 The `Portable stability assurance` workflow runs only when someone starts it
 from GitHub Actions. It:
 
-- runs the complete test suite twice on Linux, macOS, and Windows;
-- runs the Java-related tests ten times to catch intermittent failures;
-- runs the complete Linux test suite five more times;
+- runs the Go unit tests twice on Linux, macOS, and Windows;
+- runs the Java-related unit tests ten times to catch intermittent failures;
+- runs all Go unit tests on Linux five more times;
 - builds both Bomly binaries for every supported Linux, macOS, and Windows
   processor target.
+
+The test steps use `go test`; they do not run the smoke tests against real
+repositories or services. Apart from the repeated unit tests, the only other
+check is whether all release binaries can be built.
 
 This workflow is separate from normal pull request checks because it performs
 many repeated test runs. Use it before closing a broad assurance effort or

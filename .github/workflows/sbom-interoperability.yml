@@ -31,13 +31,95 @@ jobs:
         run: make build-lite
 
       - name: Generate and validate canonical SBOMs
+        id: validate
         run: go run ./internal/tools/sbomassurance -bomly ./bin/bomly-lite -output sbom-assurance-artifacts
 
       - name: Upload assurance evidence
+        id: evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sbom-interoperability-${{ github.run_id }}
           path: sbom-assurance-artifacts/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
+
+      - name: Explain the result
+        if: always()
+        env:
+          VALIDATION_RESULT: ${{ steps.validate.outcome }}
+          EVIDENCE_ARTIFACT_ID: ${{ steps.evidence.outputs.artifact-id }}
+        run: |
+          set -euo pipefail
+          if [[ "${VALIDATION_RESULT}" == "success" ]]; then
+            result="Passed"
+            icon="✅"
+          else
+            result="Failed"
+            icon="❌"
+          fi
+          if [[ -n "${EVIDENCE_ARTIFACT_ID}" ]]; then
+            evidence="Uploaded (artifact ID \`${EVIDENCE_ARTIFACT_ID}\`)"
+          else
+            evidence="Not produced"
+          fi
+          {
+            printf '# SBOM compatibility check: %s %s\n\n' "${icon}" "${result}"
+            printf 'Bomly generated SPDX 2.3 and CycloneDX 1.6 files, then asked the official validators to check them.\n\n'
+            printf -- '- **Revision:** `%s`\n' "${GITHUB_SHA}"
+            printf -- '- **Validation:** `%s`\n' "${VALIDATION_RESULT}"
+            printf -- '- **Evidence:** %s\n\n' "${evidence}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+          manifest="sbom-assurance-artifacts/run-manifest.json"
+          if [[ -f "${manifest}" ]]; then
+            {
+              printf '## Validators\n\n'
+              printf '| Validator | Version | Result | Time |\n'
+              printf '|---|---:|---|---:|\n'
+              jq -r '
+                . as $run
+                | .validators[]
+                | . as $validator
+                | ($run.commands[]
+                    | select(
+                        (.executable == "java" and $validator.name == "spdx-tools-java")
+                        or
+                        (.executable | endswith("cyclonedx-cli") and $validator.name == "cyclonedx-cli")
+                      )
+                  ) as $command
+                | "| \($validator.name) | \($validator.version) | "
+                  + (if $command.exit_code == 0 then "Passed" else "Failed (exit \($command.exit_code))" end)
+                  + " | \($command.duration_ms) ms |"
+              ' "${manifest}"
+              printf '\n## Generated files\n\n'
+              printf '| Format | Size | SHA-256 |\n'
+              printf '|---|---:|---|\n'
+              jq -r '.artifacts[] | "| \(.format) | \(.bytes) bytes | `\(.sha256)` |"' "${manifest}"
+              printf '\n## Validator messages\n\n'
+              jq -r '
+                .commands[]
+                | select(.executable == "java" or (.executable | endswith("cyclonedx-cli")))
+                | (if .executable == "java" then "SPDX" else "CycloneDX" end) as $name
+                | [(.stdout // ""), (.stderr // "")]
+                | map(select(length > 0))
+                | join("\n")
+                | gsub("\r"; "")
+                | gsub("\n+$"; "")
+                | (if length == 0 then "No messages" else gsub("\n"; "<br>") end) as $message
+                | "- **\($name):** \($message)"
+              ' "${manifest}"
+            } >> "${GITHUB_STEP_SUMMARY}"
+          else
+            printf '\nNo run report was created. Open the failed build or validation step first.\n' >> "${GITHUB_STEP_SUMMARY}"
+          fi
+
+          {
+            printf '\n## Need more detail?\n\n'
+            printf 'Download the saved files with:\n\n'
+            printf '```bash\n'
+            printf 'gh run download %s -n sbom-interoperability-%s -D sbom-assurance-artifacts\n' "${GITHUB_RUN_ID}" "${GITHUB_RUN_ID}"
+            printf 'jq . sbom-assurance-artifacts/run-manifest.json\n'
+            printf '```\n\n'
+            printf 'The report contains every command, exit code, duration, validator message, version, and checksum. The full command output is also available in the **Generate and validate canonical SBOMs** step log.\n'
+          } >> "${GITHUB_STEP_SUMMARY}"

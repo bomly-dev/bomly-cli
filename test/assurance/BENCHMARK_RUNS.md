@@ -41,12 +41,36 @@ checksum. This comparison format is named
 The `Portable stability assurance` workflow runs only when someone starts it
 from GitHub Actions. It:
 
-- runs the complete test suite twice on Linux, macOS, and Windows;
-- runs the Java-related tests ten times to catch intermittent failures;
-- runs the complete Linux test suite five more times;
+- runs the Go unit tests twice on Linux, macOS, and Windows;
+- runs the Java-related unit tests ten times to catch intermittent failures;
+- runs all Go unit tests on Linux five more times;
 - builds both Bomly binaries for every supported Linux, macOS, and Windows
   processor target.
+
+The test steps use `go test`; they do not run the smoke tests against real
+repositories or services. Apart from the repeated unit tests, the only other
+check is whether all release binaries can be built.
 
 This workflow is separate from normal pull request checks because it performs
 many repeated test runs. Use it before closing a broad assurance effort or
 when investigating platform-specific or intermittent failures.
+
+## Reading a portable run
+
+Open the workflow run's **Summary** page first. The overall section explains
+what ran and whether each area passed. Each platform also has a short section
+showing how many test runs completed and which run failed, if any. The Linux
+section does the same for repeated tests and release builds.
+
+If something fails, open the named job and failed step for the test or build
+output. To show only failed logs with the GitHub CLI, run:
+
+```sh
+gh run view RUN_ID --log-failed
+```
+
+After fixing the problem, rerun only the failed jobs:
+
+```sh
+gh run rerun RUN_ID --failed
+```

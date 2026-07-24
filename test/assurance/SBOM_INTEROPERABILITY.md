@@ -13,6 +13,20 @@ separate from normal tests because it downloads the validators and takes
 longer to run. Bomly never downloads or installs these tools during normal CLI
 use.
 
+## Reading the result
+
+Open the workflow run's **Summary** page first. It shows:
+
+- whether validation passed;
+- the version and result of each validator;
+- the size and checksum of each generated file;
+- any messages returned by the validators.
+
+If validation fails, open the **Generate and validate canonical SBOMs** step
+to see its full output. The summary also provides a command that downloads the
+saved evidence. The downloaded `run-manifest.json` records every command, exit
+code, duration, validator message, version, and checksum.
+
 ## What the workflow saves
 
 The workflow uploads the generated SBOM files and a report named

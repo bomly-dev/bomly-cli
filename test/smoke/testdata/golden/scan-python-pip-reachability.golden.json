@@ -421,7 +421,7 @@
     ],
     "analyzer_stats": {
       "pyreach": {
-        "reachable": 32,
+        "reachable": 34,
         "unreachable": 7
       }
     },
@@ -1483,7 +1483,142 @@
       "name": "pyasn1",
       "purl": "pkg:pypi/pyasn1@0.6.3",
       "version": "0.6.3",
-      "vulnerabilities": []
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2026-59885",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-8ppf-4f7h-5ppj",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "medium",
+            "hops": 1,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2026-59886",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-hm4w-wwcw-mr6r",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "medium",
+            "hops": 1,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
     },
     {
       "ecosystem": "python",

@@ -34,7 +34,7 @@ type mavenProject struct {
 
 var (
 	gradleParenthesizedInclude = regexp.MustCompile(`(?s)\binclude\s*\((.*?)\)`)
-	gradleLineInclude          = regexp.MustCompile(`(?m)^\s*include\s+([^\r\n]+)$`)
+	gradleLineInclude          = regexp.MustCompile(`(?m)^[\t ]*include[\t ]+([^\r\n]+)`)
 	gradleQuotedValue          = regexp.MustCompile(`["']([^"']+)["']`)
 	gradleProjectDir           = regexp.MustCompile(`(?m)project\s*\(\s*["']([^"']+)["']\s*\)\.projectDir\s*=\s*file\s*\(\s*["']([^"']+)["']\s*\)`)
 	gradleGroup                = regexp.MustCompile(`(?m)^\s*group\s*=\s*["']([^"']+)["']`)

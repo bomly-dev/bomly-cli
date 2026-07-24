@@ -89,9 +89,10 @@ func BuildCompactDiff(run DiffRunResult) CompactDiffResponse {
 	response.SecurityDelta.Persisted = compactFindingList(run.Persisted, headInput, trunc)
 	response.SecurityDelta.Resolved = compactFindingList(run.Resolved, baseInput, trunc)
 
-	// Remediation context covers everything still open after merge.
+	// Remediation context covers every enriched head vulnerability. Audit
+	// findings overlay policy status for findings that remain open after merge.
 	open := append(append([]sdk.Finding{}, run.Introduced...), run.Persisted...)
-	headInput.Findings = open
+	headInput.Findings = remediationFindings(run.HeadRegistry, open)
 	remediation := buildRemediations(headInput)
 	response.Remediations = remediation.Remediations
 	mergeTruncation(trunc, remediation.Truncation)

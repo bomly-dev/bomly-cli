@@ -59,6 +59,7 @@ func remediationFixture(t *testing.T) remediationInput {
 	registry := sdk.NewPackageRegistry()
 	registry.Add(&sdk.Package{
 		Coordinates: sdk.Coordinates{PURL: "pkg:npm/lib-a@1.0.0", Name: "lib-a", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM},
+		Remediation: &sdk.PackageRemediation{Status: sdk.PackageRemediationComplete, RecommendedVersion: "1.2.0"},
 		Vulnerabilities: []sdk.Vulnerability{{
 			ID: "GHSA-liba", Aliases: []string{"CVE-2026-1111"}, Source: "osv",
 			ParsedSeverity: sdk.SeverityHigh, FixState: sdk.FixStateFixed, FixedIn: "1.2.0",
@@ -66,6 +67,7 @@ func remediationFixture(t *testing.T) remediationInput {
 	})
 	registry.Add(&sdk.Package{
 		Coordinates: sdk.Coordinates{PURL: "pkg:npm/@scope/deep@2.0.0", Org: "scope", Name: "deep", Version: "2.0.0", Ecosystem: sdk.EcosystemNPM},
+		Remediation: &sdk.PackageRemediation{Status: sdk.PackageRemediationComplete, RecommendedVersion: "2.1.0"},
 		Vulnerabilities: []sdk.Vulnerability{{
 			ID: "GHSA-deep", Source: "osv",
 			ParsedSeverity: sdk.SeverityMedium, FixState: sdk.FixStateFixed, FixedIn: "2.1.0",
@@ -75,6 +77,7 @@ func remediationFixture(t *testing.T) remediationInput {
 	})
 	registry.Add(&sdk.Package{
 		Coordinates: sdk.Coordinates{PURL: "pkg:npm/legacy@0.1.0", Name: "legacy", Version: "0.1.0", Ecosystem: sdk.EcosystemNPM},
+		Remediation: &sdk.PackageRemediation{Status: sdk.PackageRemediationUnavailable},
 		Vulnerabilities: []sdk.Vulnerability{{
 			ID: "GHSA-legacy", Source: "osv",
 			ParsedSeverity: sdk.SeverityCritical, FixState: sdk.FixStateNotFixed,
@@ -217,6 +220,10 @@ func TestBuildRemediationsSameFixClosesMultipleFindings(t *testing.T) {
 			ID: "GHSA-liba2", Source: "osv",
 			ParsedSeverity: sdk.SeverityLow, FixState: sdk.FixStateFixed, FixedIn: "1.3.0",
 		})
+		pkg.Remediation = &sdk.PackageRemediation{
+			Status:             sdk.PackageRemediationComplete,
+			RecommendedVersion: "1.3.0",
+		}
 	}
 	in.Findings = append(in.Findings, sdk.Finding{
 		ID: "GHSA-liba2", VulnerabilityID: "GHSA-liba2", Kind: sdk.FindingKindVulnerability,
@@ -305,6 +312,7 @@ func TestCompactScanSizeStaysUnderBudget(t *testing.T) {
 		purl := fmt.Sprintf("pkg:npm/extra-%02d@1.0.0", i)
 		in.Registry.Add(&sdk.Package{
 			Coordinates: sdk.Coordinates{PURL: purl, Name: fmt.Sprintf("extra-%02d", i), Version: "1.0.0", Ecosystem: sdk.EcosystemNPM},
+			Remediation: &sdk.PackageRemediation{Status: sdk.PackageRemediationComplete, RecommendedVersion: "1.1.0"},
 			Vulnerabilities: []sdk.Vulnerability{{
 				ID: fmt.Sprintf("GHSA-extra-%02d", i), Source: "osv",
 				ParsedSeverity: sdk.SeverityHigh, FixState: sdk.FixStateFixed, FixedIn: "1.1.0",
@@ -369,6 +377,78 @@ func TestBuildCompactScanWithoutAuditReturnsInventory(t *testing.T) {
 	}
 	if compact.Summary.TotalPackages != 5 {
 		t.Fatalf("total packages = %d, want 5", compact.Summary.TotalPackages)
+	}
+}
+
+func TestBuildCompactScanEnrichedWithoutAuditReturnsRemediation(t *testing.T) {
+	in := remediationFixture(t)
+	run := ScanRunResult{
+		Response: output.ScanResponse{
+			Manifests: in.Manifests,
+			Packages:  output.PackagesFromRegistry(in.Registry),
+		},
+		Graph:     in.Graph,
+		Registry:  in.Registry,
+		EnrichRan: true,
+	}
+
+	compact := BuildCompactScan(run)
+	if len(compact.Remediations) != 3 {
+		t.Fatalf("enriched scan remediation groups = %d, want 3: %#v",
+			len(compact.Remediations), compact.Remediations)
+	}
+	if len(compact.Packages) != 0 {
+		t.Fatalf("enriched scan returned plain inventory instead of remediation: %#v", compact.Packages)
+	}
+	if !compact.Summary.EnrichRan || compact.Summary.AuditRan {
+		t.Fatalf("summary flags wrong: %#v", compact.Summary)
+	}
+}
+
+func TestRemediationFindingsOverlayAuditWithoutFilteringEnrichment(t *testing.T) {
+	in := remediationFixture(t)
+	audit := in.Findings[0].Clone()
+	audit.VulnerabilityID = "cve-2026-1111"
+	audit.PolicyStatus = sdk.FindingPolicyStatusWarn
+	audit.Reasons = []string{"accepted during rollout"}
+
+	findings := remediationFindings(in.Registry, []sdk.Finding{audit})
+	if len(findings) != 3 {
+		t.Fatalf("joined findings = %d, want all 3 enriched vulnerabilities: %#v", len(findings), findings)
+	}
+	var overlaid *sdk.Finding
+	for idx := range findings {
+		if findings[idx].PackageRef == audit.PackageRef {
+			overlaid = &findings[idx]
+			break
+		}
+	}
+	if overlaid == nil || overlaid.PolicyStatus != sdk.FindingPolicyStatusWarn ||
+		len(overlaid.Reasons) != 1 {
+		t.Fatalf("audit policy was not overlaid: %#v", overlaid)
+	}
+	overlaid.Reasons[0] = "changed"
+	if audit.Reasons[0] != "accepted during rollout" {
+		t.Fatalf("overlay mutated audit input: %#v", audit)
+	}
+}
+
+func TestGroupRecommendedVersionRequiresOneCompleteAffectedPackage(t *testing.T) {
+	in := remediationFixture(t)
+	libA, _ := in.Registry.Get("pkg:npm/lib-a@1.0.0")
+	libA.Remediation = &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial}
+	if got := groupRecommendedVersion([]CompactFinding{{
+		Package: PackageIdentity{Purl: libA.PURL},
+	}}, in.Registry); got != "" {
+		t.Fatalf("partial package produced recommended version %q", got)
+	}
+
+	deep, _ := in.Registry.Get("pkg:npm/@scope/deep@2.0.0")
+	if got := groupRecommendedVersion([]CompactFinding{
+		{Package: PackageIdentity{Purl: libA.PURL}},
+		{Package: PackageIdentity{Purl: deep.PURL}},
+	}, in.Registry); got != "" {
+		t.Fatalf("multi-package group produced recommended version %q", got)
 	}
 }
 

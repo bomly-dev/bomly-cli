@@ -306,6 +306,36 @@ func vulnsForDependency(registry *sdk.PackageRegistry, dep *sdk.Dependency) []sd
 	return pkg.Vulnerabilities
 }
 
+func remediationForPURL(registry *sdk.PackageRegistry, purl string) *sdk.PackageRemediation {
+	if registry == nil || strings.TrimSpace(purl) == "" {
+		return nil
+	}
+	pkg, ok := registry.Get(purl)
+	if !ok || pkg == nil {
+		return nil
+	}
+	return pkg.Remediation.Clone()
+}
+
+func remediationDetailLines(remediation *sdk.PackageRemediation) []string {
+	if remediation == nil {
+		return nil
+	}
+	status := string(remediation.Status)
+	if status != "" {
+		status = strings.ToUpper(status[:1]) + status[1:]
+	}
+	lines := []string{
+		render.Style("  Remediation status: ", render.Dim) + valueOrDash(status),
+	}
+	if remediation.RecommendedVersion != "" {
+		lines = append(lines,
+			render.Style("  Recommended version: ", render.Dim)+remediation.RecommendedVersion,
+		)
+	}
+	return lines
+}
+
 // licensesForDependency returns the matching-stage licenses for a dependency
 // when the registry has them; otherwise it falls back to the detection-time
 // licenses stashed on the dependency.

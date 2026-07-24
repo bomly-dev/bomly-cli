@@ -73,6 +73,46 @@ func TestWriteSARIF_ValidDocument(t *testing.T) {
 	}
 }
 
+func TestWriteSARIFIgnoresPackageRemediationSummary(t *testing.T) {
+	registry := sdk.NewPackageRegistry()
+	pkg := registry.Add(&sdk.Package{
+		Coordinates: sdk.Coordinates{PURL: sarifTestPURL, Name: "lodash", Version: "4.17.15"},
+		Vulnerabilities: []sdk.Vulnerability{{
+			ID:            "CVE-2021-23337",
+			FixedIn:       "4.17.21",
+			FixedVersions: []string{"4.17.21"},
+			FixState:      sdk.FixStateFixed,
+		}},
+	})
+	findings := []sdk.Finding{{
+		ID:              "CVE-2021-23337",
+		Kind:            sdk.FindingKindVulnerability,
+		PackageRef:      sarifTestPURL,
+		VulnerabilityID: "CVE-2021-23337",
+		Title:           "Prototype pollution in lodash",
+		Severity:        sdk.SeverityHigh,
+	}}
+
+	var without bytes.Buffer
+	if err := WriteSARIF(&without, findings, registry, "bomly", "test"); err != nil {
+		t.Fatalf("WriteSARIF() without remediation error = %v", err)
+	}
+	pkg.Remediation = &sdk.PackageRemediation{
+		Status:             sdk.PackageRemediationComplete,
+		RecommendedVersion: "4.17.21",
+	}
+	var with bytes.Buffer
+	if err := WriteSARIF(&with, findings, registry, "bomly", "test"); err != nil {
+		t.Fatalf("WriteSARIF() with remediation error = %v", err)
+	}
+	if with.String() != without.String() {
+		t.Fatalf("package remediation changed SARIF\nwithout: %s\nwith: %s", without.String(), with.String())
+	}
+	if !strings.Contains(with.String(), `"fixed_in": "4.17.21"`) {
+		t.Fatalf("existing vulnerability fix properties disappeared: %s", with.String())
+	}
+}
+
 func TestWriteSARIF_RuleDeduplication(t *testing.T) {
 	findings := []sdk.Finding{
 		{ID: "CVE-2021-23337", PackageRef: sarifTestPURL, Title: "Pollution", Severity: sdk.SeverityHigh, Source: "osv"},

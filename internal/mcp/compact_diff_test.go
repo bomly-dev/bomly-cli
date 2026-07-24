@@ -52,8 +52,8 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 		t.Fatalf("resolved classification should come from base registry: %#v", compact.SecurityDelta.Resolved[0])
 	}
 	// Remediations cover what is still open after merge: introduced + persisted.
-	if len(compact.Remediations) != 2 {
-		t.Fatalf("expected 2 remediation groups for open findings, got %#v", compact.Remediations)
+	if len(compact.Remediations) != 3 {
+		t.Fatalf("expected all 3 enriched vulnerabilities in remediation, got %#v", compact.Remediations)
 	}
 	direct := groupByAction(t, compact.Remediations, ActionDirectBump)
 	if direct.TargetPackage.Name != "lib-a" {
@@ -68,6 +68,32 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 	}
 }
 
+func TestBuildCompactDiffEnrichedWithoutAuditReturnsHeadRemediation(t *testing.T) {
+	in := remediationFixture(t)
+	compact := BuildCompactDiff(DiffRunResult{
+		Response: output.DiffResponse{
+			Comparison: output.DiffComparison{Base: "main", Head: "feature"},
+		},
+		HeadGraph:     in.Graph,
+		HeadRegistry:  in.Registry,
+		HeadManifests: in.Manifests,
+		EnrichRan:     true,
+	})
+
+	if len(compact.Remediations) != 3 {
+		t.Fatalf("enriched diff remediation groups = %d, want 3: %#v",
+			len(compact.Remediations), compact.Remediations)
+	}
+	if compact.Summary.AuditRan || !compact.Summary.EnrichRan {
+		t.Fatalf("summary flags wrong: %#v", compact.Summary)
+	}
+	if len(compact.SecurityDelta.Introduced) != 0 ||
+		len(compact.SecurityDelta.Resolved) != 0 ||
+		len(compact.SecurityDelta.Persisted) != 0 {
+		t.Fatalf("unaudited diff invented policy deltas: %#v", compact.SecurityDelta)
+	}
+}
+
 func TestBuildCompactExplainAttachesRemediationAndDetail(t *testing.T) {
 	in := remediationFixture(t)
 	deepVulns := output.VulnerabilityRefsFromPackageVulnerabilities(mustRegistryVulns(t, in.Registry, "pkg:npm/@scope/deep@2.0.0"))
@@ -77,12 +103,12 @@ func TestBuildCompactExplainAttachesRemediationAndDetail(t *testing.T) {
 			Query:   output.ExplainQuery{Name: "@scope/deep"},
 			Targets: []output.ExplainTargetResponse{{
 				PackageManager: sdk.PackageManagerNPM,
-				Dependency: output.PackageRef{
+				Dependency: output.ExplainDependency{PackageRef: output.PackageRef{
 					Name:            "@scope/deep",
 					Version:         "2.0.0",
 					Purl:            "pkg:npm/@scope/deep@2.0.0",
 					Vulnerabilities: deepVulns,
-				},
+				}},
 				Paths: []output.DependencyPath{{
 					Relationship: "transitive",
 					Packages: []output.PackageRef{
@@ -125,6 +151,36 @@ func TestBuildCompactExplainAttachesRemediationAndDetail(t *testing.T) {
 	}
 	if match.ManifestPath != "" {
 		t.Fatalf("fixture manifest has no purls; expected empty manifest path, got %q", match.ManifestPath)
+	}
+}
+
+func TestBuildCompactExplainEnrichedWithoutAuditReturnsRemediation(t *testing.T) {
+	in := remediationFixture(t)
+	const purl = "pkg:npm/@scope/deep@2.0.0"
+	run := ExplainRunResult{
+		Response: output.ExplainResponse{
+			Targets: []output.ExplainTargetResponse{{
+				Dependency: output.ExplainDependency{PackageRef: output.PackageRef{
+					Name:            "@scope/deep",
+					Version:         "2.0.0",
+					Purl:            purl,
+					Vulnerabilities: output.VulnerabilityRefsFromPackageVulnerabilities(mustRegistryVulns(t, in.Registry, purl)),
+				}},
+			}},
+		},
+		Graph:     in.Graph,
+		Registry:  in.Registry,
+		Manifests: in.Manifests,
+		EnrichRan: true,
+	}
+
+	compact := BuildCompactExplain("@scope/deep", run)
+	if len(compact.Matches) != 1 || len(compact.Matches[0].Remediations) != 1 {
+		t.Fatalf("enriched explain omitted remediation: %#v", compact.Matches)
+	}
+	if compact.Matches[0].Remediations[0].RecommendedVersion != "2.1.0" {
+		t.Fatalf("recommended version did not use package context: %#v",
+			compact.Matches[0].Remediations[0])
 	}
 }
 

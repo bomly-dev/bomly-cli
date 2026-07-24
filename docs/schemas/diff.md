@@ -307,6 +307,13 @@ Complete reference for the `bomly diff` JSON output.
 | `relationship` | `string` | |
 | `direct` | `boolean` | |
 
+### `PackageRemediation`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | |
+| `recommended_version` | `string` | |
+
 ### `PackageScorecard`
 
 | Field | Type | Description |
@@ -384,6 +391,7 @@ Complete reference for the `bomly diff` JSON output.
 | `vulnerabilities` | Array<[`VulnerabilityRef`](#vulnerabilityref)> | |
 | `scorecard` | [`PackageScorecard`](#packagescorecard) | |
 | `eol` | [`PackageEOL`](#packageeol) | |
+| `remediation` | [`PackageRemediation`](#packageremediation) | |
 | `cpes` | Array<`string`> | |
 | `digests` | Array<[`Digest`](#digest)> | |
 | `metadata` | `object` | |

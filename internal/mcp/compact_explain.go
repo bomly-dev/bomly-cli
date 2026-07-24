@@ -39,7 +39,8 @@ type CompactExplainResponse struct {
 
 // BuildCompactExplain projects an explain run into the agent-facing shape.
 // The full ExplainResponse target payloads stay the source of paths and
-// package identity; the raw findings/graph/registry attach remediation.
+// package identity; registry vulnerabilities supply remediation and audit
+// findings optionally overlay policy information.
 func BuildCompactExplain(query string, run ExplainRunResult) CompactExplainResponse {
 	response := CompactExplainResponse{
 		SchemaVersion: CompactSchemaVersion,
@@ -55,7 +56,7 @@ func BuildCompactExplain(query string, run ExplainRunResult) CompactExplainRespo
 			// The full PackageRef — including its Vulnerabilities with
 			// descriptions, references, CVSS, and affected ranges — IS the
 			// drill-down payload this tool exists for.
-			Package:        target.Dependency,
+			Package:        target.Dependency.PackageRef,
 			PackageManager: target.PackageManager.Name(),
 		}
 		match.Paths, match.Direct = compactExplainPaths(target.Paths, trunc)
@@ -63,8 +64,9 @@ func BuildCompactExplain(query string, run ExplainRunResult) CompactExplainRespo
 			match.ManifestPath = manifest.Path
 		}
 
+		findings := remediationFindings(run.Registry, run.Findings)
 		remediation := buildRemediations(remediationInput{
-			Findings:            findingsForPackage(run.Findings, target.Dependency.Purl),
+			Findings:            findingsForPackage(findings, target.Dependency.Purl),
 			Graph:               run.Graph,
 			Registry:            run.Registry,
 			Manifests:           run.Manifests,

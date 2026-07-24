@@ -1320,6 +1320,7 @@ type flatComponentChange struct {
 	afterVer     string
 	maxSeverity  string // worst severity across pkgRef.Vulnerabilities
 	relationship string // root/direct/transitive — looked up in head/base graph
+	remediation  *sdk.PackageRemediation
 }
 
 func (m *DiffModel) collectComponentChanges() []flatComponentChange {
@@ -1360,6 +1361,7 @@ func (m *DiffModel) collectComponentChanges() []flatComponentChange {
 				status: "added", pkgName: render.DiffPackageDisplayName(change.Package),
 				pkgRef: change.Package, maxSeverity: maxSeverity(change.Package.Vulnerabilities),
 				relationship: pickRel("added", change.Package.ID),
+				remediation:  remediationForPURL(m.headRegistry, change.Package.Purl),
 			})
 		}
 		for _, change := range mf.Changed {
@@ -1370,6 +1372,7 @@ func (m *DiffModel) collectComponentChanges() []flatComponentChange {
 				beforeVer: change.Before.Version, afterVer: change.After.Version,
 				maxSeverity:  maxSeverity(change.After.Vulnerabilities),
 				relationship: pickRel("changed", change.After.ID),
+				remediation:  remediationForPURL(m.headRegistry, change.After.Purl),
 			})
 		}
 		for _, change := range mf.Removed {
@@ -1378,6 +1381,7 @@ func (m *DiffModel) collectComponentChanges() []flatComponentChange {
 				status: "removed", pkgName: render.DiffPackageDisplayName(change.Package),
 				pkgRef: change.Package, maxSeverity: maxSeverity(change.Package.Vulnerabilities),
 				relationship: pickRel("removed", change.Package.ID),
+				remediation:  remediationForPURL(m.baseRegistry, change.Package.Purl),
 			})
 		}
 	}
@@ -1692,14 +1696,17 @@ func componentChangeDetails(c flatComponentChange) []string {
 		render.Style("  Scope: ", render.Dim) + valueOrDash(c.pkgRef.Scope),
 		render.Style("  Relationship: ", render.Dim) + valueOrDash(c.relationship),
 		render.Style("  Ecosystem: ", render.Dim) + valueOrDash(c.ecosystem),
+	}
+	lines = append(lines, remediationDetailLines(c.remediation)...)
+	lines = append(lines,
 		"",
 		render.Style("Manifest", render.Bold, render.Magenta),
-		render.Style("  Path: ", render.Dim) + valueOrDash(c.manifest.Path),
-		render.Style("  Kind: ", render.Dim) + valueOrDash(string(c.manifest.Kind)),
-		render.Style("  Subproject: ", render.Dim) + valueOrDash(c.manifest.Subproject),
-		render.Style("  Package manager: ", render.Dim) + valueOrDash(c.manifest.PackageManager.Name()),
-		render.Style("  Manifest status: ", render.Dim) + statusText(c.manifest.Status),
-	}
+		render.Style("  Path: ", render.Dim)+valueOrDash(c.manifest.Path),
+		render.Style("  Kind: ", render.Dim)+valueOrDash(string(c.manifest.Kind)),
+		render.Style("  Subproject: ", render.Dim)+valueOrDash(c.manifest.Subproject),
+		render.Style("  Package manager: ", render.Dim)+valueOrDash(c.manifest.PackageManager.Name()),
+		render.Style("  Manifest status: ", render.Dim)+statusText(c.manifest.Status),
+	)
 
 	if c.status == "changed" {
 		lines = append(lines,

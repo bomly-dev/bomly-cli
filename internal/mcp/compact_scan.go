@@ -12,8 +12,9 @@ const scanHint = "This is a compact remediation-focused view. Use bomly_explain 
 
 // BuildCompactScan projects a full scan run into the agent-facing compact
 // response: ranked remediation groups, informational findings, coverage
-// counts, and pipeline diagnostics. Without audit it returns a summary plus
-// a capped package inventory.
+// counts, and pipeline diagnostics. Enriched vulnerabilities produce
+// remediation even without audit; an unenriched, unaudited run returns a
+// summary plus a capped package inventory.
 func BuildCompactScan(run ScanRunResult) CompactScanResponse {
 	response := CompactScanResponse{
 		SchemaVersion: CompactSchemaVersion,
@@ -50,7 +51,7 @@ func BuildCompactScan(run ScanRunResult) CompactScanResponse {
 		AuditRan:           run.AuditRan,
 	}
 
-	if !run.AuditRan {
+	if !run.AuditRan && !run.EnrichRan {
 		inventory, omitted := packageInventory(run.Response.Manifests)
 		response.Packages = inventory
 		if omitted > 0 {
@@ -64,7 +65,7 @@ func BuildCompactScan(run ScanRunResult) CompactScanResponse {
 	}
 
 	result := buildRemediations(remediationInput{
-		Findings:            run.Findings,
+		Findings:            remediationFindings(run.Registry, run.Findings),
 		Graph:               run.Graph,
 		Registry:            run.Registry,
 		Manifests:           run.Response.Manifests,

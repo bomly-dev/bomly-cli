@@ -338,8 +338,10 @@ func assertExplainAndDiffAccounting(
 		targetResponse := output.ExplainTargetResponse{
 			Project:        output.ProjectDescriptor{Name: "fixture", Path: "/repo"},
 			PackageManager: sdk.PackageManagerNPM,
-			Dependency:     output.PackageFromDependencyAndRegistry(target, registry),
-			Paths:          paths,
+			Dependency: output.ExplainDependency{
+				PackageRef: output.PackageFromDependencyAndRegistry(target, registry),
+			},
+			Paths: paths,
 		}
 		response := output.BuildExplainResponse(
 			output.ProjectDescriptor{Name: "fixture", Path: "/repo"},

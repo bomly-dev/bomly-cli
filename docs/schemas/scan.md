@@ -176,6 +176,13 @@ Complete reference for the `bomly scan` JSON output.
 | `release_date` | `string` | |
 | `supported` | `boolean` | |
 
+### `PackageRemediation`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | |
+| `recommended_version` | `string` | |
+
 ### `PackageScorecard`
 
 | Field | Type | Description |
@@ -298,6 +305,7 @@ Complete reference for the `bomly scan` JSON output.
 | `vulnerabilities` | Array<[`VulnerabilityRef`](#vulnerabilityref)> | |
 | `scorecard` | [`PackageScorecard`](#packagescorecard) | |
 | `eol` | [`PackageEOL`](#packageeol) | |
+| `remediation` | [`PackageRemediation`](#packageremediation) | |
 | `cpes` | Array<`string`> | |
 | `digests` | Array<[`Digest`](#digest)> | |
 | `metadata` | `object` | |

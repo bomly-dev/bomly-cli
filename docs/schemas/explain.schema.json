@@ -105,6 +105,20 @@
         "relationship": {
           "type": "string"
         },
+        "remediation": {
+          "properties": {
+            "recommended_version": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "status"
+          ],
+          "type": "object"
+        },
         "scope": {
           "type": "string"
         },
@@ -1390,6 +1404,20 @@
               },
               "relationship": {
                 "type": "string"
+              },
+              "remediation": {
+                "properties": {
+                  "recommended_version": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status"
+                ],
+                "type": "object"
               },
               "scope": {
                 "type": "string"

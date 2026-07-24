@@ -65,7 +65,7 @@ Stage summary:
 1. Runtime preparation builds the filtered registry and execution plan.
 2. Subproject discovery finds supported package-manager roots for the target. By default only the execution-target root is inspected; `--recursive` walks nested directories (bounded by `--max-depth`, `--exclude`, and built-in ignore rules) and plans one subproject per directory-and-package-manager pair, with workspace-expanding managers pruned below ancestors that already cover them.
 3. Detection resolves a dependency graph per package manager and then consolidates the per-subproject graphs into the single graph and package registry the rest of the pipeline uses. When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it; all detector results pass through the shared SDK scope filter, and consolidation is the tail of this stage rather than a separate step.
-4. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
+4. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records. After matcher results are consolidated, the engine derives a small package remediation summary from the fix evidence already on each vulnerable package.
 5. Analyzers run when `--analyze` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See [`../docs/REACHABILITY.md`](../docs/REACHABILITY.md) for ecosystem coverage and tier semantics.
 6. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. As the final part of that same audit stage, neutral policy-status resolvers may change only `Finding.PolicyStatus`; they never remove or rewrite finding evidence. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
 7. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
@@ -132,6 +132,22 @@ enrichment boundary so built-in and protocol-v1 external matchers receive the
 same behavior without owning global identity policy. Baseline construction
 repeats the identity normalization defensively for legacy or independently
 constructed registries.
+
+### Decision: package remediation is derived enrichment
+
+After vulnerability consolidation, the engine derives
+`sdk.Package.Remediation` from each package's vulnerability fix evidence. The
+summary reports whether the evidence is complete, partial, unavailable, or
+unknown. A recommended version is present only when every vulnerability has a
+usable version and those versions can be compared.
+
+This remains part of matching rather than becoming a pipeline stage.
+Detectors, matchers, and protocol-v1 plugins do not own the result, and the
+engine overwrites any incoming value. The derivation is read-only: it makes no
+network calls, does not inspect manifests or dependency relationships, and
+does not apply changes. JSON keeps the summary on the PURL-keyed package.
+MCP uses the same summary when it can safely name one group-level recommended
+version, while preserving its existing bounded relationship and policy view.
 
 Pipeline plumbing: `engine.PipelineResult` exposes `Graph`, `Registry`, `Findings`, and `RiskScores`. The registry is built right after consolidation (`consolidation.BuildPackageRegistry`) and threaded through match/analyze/audit requests; output helpers (`BuildScanResponse`, `WriteSARIF`, `FindingsFromScan`, `PackagesFromGraph`) all accept `*sdk.PackageRegistry` and re-enrich their projections by resolving `PackageRef` and `VulnerabilityID`. See [`MODELS.md`](MODELS.md) for the full schema reference.
 

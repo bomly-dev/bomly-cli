@@ -418,6 +418,20 @@
           "purl": {
             "type": "string"
           },
+          "remediation": {
+            "properties": {
+              "recommended_version": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "type": "object"
+          },
           "scorecard": {
             "properties": {
               "aggregateScore": {

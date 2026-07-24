@@ -33,7 +33,7 @@ flowchart TD
 
 1. **Discover** — Bomly inspects the target root and finds every supported package-manager root (a `go.mod`, a `package-lock.json`, a `pom.xml`, and so on). With `--recursive` it also walks nested directories, discovering independent subprojects in a monorepo while workspace-aware managers (npm workspaces, Maven reactors, …) keep expanding their own modules from the root. See [Scan targets](SCAN_TARGETS.md#recursive-discovery----recursive).
 2. **Detect** — For each root, a [detector](DETECTORS.md) reads the lockfile, manifest, or SBOM and resolves a dependency graph. Per-subproject graphs are then *consolidated* into one graph and one deduplicated package set for the rest of the run. `--scope` narrows the graph to runtime or development dependencies here.
-3. **Match** — When you pass `--enrich`, [matchers](MATCHERS.md) add data to published registry packages: known vulnerabilities, licenses, end-of-life status, and project health scores. Project roots, workspace members, and local/file/Git/URL artifacts remain in the graph and reports but are not queried as if they were registry releases.
+3. **Match** — When you pass `--enrich`, [matchers](MATCHERS.md) add data to published registry packages: known vulnerabilities, licenses, end-of-life status, and project health scores. Bomly then summarizes the available vulnerability fix evidence on each affected package. Project roots, workspace members, and local/file/Git/URL artifacts remain in the graph and reports but are not queried as if they were registry releases.
 4. **Analyze** — When you pass `--analyze`, [reachability](REACHABILITY.md) analysis runs on top of the matched data to flag whether a vulnerability is actually reachable from your code.
 5. **Audit** — When you pass `--audit`, [auditors](AUDITORS.md) evaluate policy (severity thresholds, license rules, denied packages) against the enriched data and produce findings. As part of this same step, configured policy-status rules may mark a finding non-gating without removing it. Combine `--enrich --audit` to gate on fresh external data in one run.
 6. **Render** — Bomly emits the result as text, JSON, SARIF, or an SBOM. See [Output formats](OUTPUT_FORMATS.md) and [SBOM formats](SBOM.md).
@@ -45,7 +45,7 @@ flowchart TD
 Bomly keeps three kinds of data separate, which is why the same fact never appears twice in the output:
 
 - **Dependencies** are detection-time graph nodes. Each is one instance of a dependency in a manifest, carrying its scope, where it was found, and its edges to other dependencies. A dependency points at a package by its PURL but does not itself hold license or vulnerability data.
-- **Packages** are deduplicated artifacts keyed by [PURL](GLOSSARY.md). There is one package per unique PURL across the whole scan, and it owns the enrichment: licenses, vulnerabilities, scorecard, and EOL. If 50 dependencies all reference `react@18.2.0`, they share one package — and one set of CVEs.
+- **Packages** are deduplicated artifacts keyed by [PURL](GLOSSARY.md). There is one package per unique PURL across the whole scan, and it owns the enrichment: licenses, vulnerabilities, remediation status, scorecard, and EOL. If 50 dependencies all reference `react@18.2.0`, they share one package — and one set of CVEs.
 - **Findings** are reference-style audit results. A finding names a policy outcome and points back at a package (and, for a vulnerability, at a specific advisory) rather than copying that data inline.
 
 ```mermaid

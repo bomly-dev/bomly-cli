@@ -153,6 +153,7 @@ Core passes these env vars. Plugin discovery: `~/.bomly/plugins/bomly-*` overrid
 - Generated docs are part of the contract: update `docs/CONFIG_REFERENCE.md`, `docs/schemas/*`, and `docs/SUPPORT_MATRIX.md` via `make generate` when their source packages change.
 - Fake binaries (npm, go, Gradle, plugin) are built in `TestMain` — see `internal/cli/root_test_main_test.go`.
 - No test conditionally skipped without a recorded reason.
+- Use plain language in documentation and user-facing text. Prefer short, direct sentences; explain necessary technical terms when they first appear.
 
 ## Feature Checklist
 

@@ -88,6 +88,81 @@ func (e *PackageEOL) Clone() *PackageEOL {
 	return new(*e)
 }
 
+// PackageRemediationStatus describes how completely vulnerability enrichment
+// identifies a safe package version.
+type PackageRemediationStatus string
+
+const (
+	// PackageRemediationComplete means every vulnerability has usable fix
+	// evidence and one recommended package version can address all of them.
+	PackageRemediationComplete PackageRemediationStatus = "complete"
+	// PackageRemediationPartial means fix evidence exists, but it cannot produce
+	// one complete package recommendation.
+	PackageRemediationPartial PackageRemediationStatus = "partial"
+	// PackageRemediationUnavailable means every vulnerability explicitly reports
+	// that no fix is available.
+	PackageRemediationUnavailable PackageRemediationStatus = "unavailable"
+	// PackageRemediationUnknown means fix evidence is missing or contradictory.
+	PackageRemediationUnknown PackageRemediationStatus = "unknown"
+)
+
+// RemediationAction identifies the user action suggested for one or more
+// occurrences of an enriched vulnerable package.
+type RemediationAction string
+
+const (
+	// RemediationActionDirectBump suggests updating a directly declared package.
+	RemediationActionDirectBump RemediationAction = "direct-bump"
+	// RemediationActionTransitiveOverride suggests using a package-manager
+	// override for a transitive package.
+	RemediationActionTransitiveOverride RemediationAction = "transitive-override"
+	// RemediationActionLockfileRefresh suggests asking the package manager to
+	// resolve a newer transitive package version.
+	RemediationActionLockfileRefresh RemediationAction = "lockfile-refresh"
+	// RemediationActionNoFixUpstream reports that every vulnerability explicitly
+	// lacks an upstream fix.
+	RemediationActionNoFixUpstream RemediationAction = "no-fix-upstream"
+	// RemediationActionManualReview reports that available evidence cannot
+	// support a safe, concrete automated suggestion.
+	RemediationActionManualReview RemediationAction = "manual-review"
+)
+
+// PackageRemediationSuggestion describes one occurrence-scoped action for the
+// containing package. AffectedDependencyRefs identify occurrences of the
+// vulnerable package. SuggestedActionDependencyRef identifies the direct
+// dependency or manifest anchor the suggested action targets.
+type PackageRemediationSuggestion struct {
+	AffectedDependencyRefs       []string          `json:"affected_dependency_refs"`
+	SuggestedActionDependencyRef string            `json:"suggested_action_dependency_ref,omitempty"`
+	ManifestPath                 string            `json:"manifest_path,omitempty"`
+	Action                       RemediationAction `json:"action"`
+	OverrideAdvice               string            `json:"override_advice,omitempty"`
+}
+
+// PackageRemediation summarizes the fix evidence already present on a
+// package's enriched vulnerabilities.
+type PackageRemediation struct {
+	Status             PackageRemediationStatus       `json:"status"`
+	RecommendedVersion string                         `json:"recommended_version,omitempty"`
+	Suggestions        []PackageRemediationSuggestion `json:"suggestions,omitempty"`
+}
+
+// Clone returns a copy of the package remediation summary.
+func (r *PackageRemediation) Clone() *PackageRemediation {
+	if r == nil {
+		return nil
+	}
+	clone := *r
+	if len(r.Suggestions) > 0 {
+		clone.Suggestions = make([]PackageRemediationSuggestion, len(r.Suggestions))
+		for idx, suggestion := range r.Suggestions {
+			clone.Suggestions[idx] = suggestion
+			clone.Suggestions[idx].AffectedDependencyRefs = cloneStrings(suggestion.AffectedDependencyRefs)
+		}
+	}
+	return &clone
+}
+
 // Package describes one matching artifact: the PURL-keyed, deduplicated record
 // produced by the matching stage. Many Dependency nodes (across manifests and
 // subprojects) reference a single Package by PURL. A Package holds only
@@ -101,12 +176,13 @@ type Package struct {
 	Copyright   string `json:"copyright,omitempty"`
 	ResolvedURL string `json:"resolved_url,omitempty"`
 
-	CPEs            []string          `json:"cpes,omitempty"`
-	Digests         []Digest          `json:"digests,omitempty"`
-	Licenses        []PackageLicense  `json:"licenses,omitempty"`
-	Vulnerabilities []Vulnerability   `json:"vulnerabilities,omitempty"`
-	Scorecard       *PackageScorecard `json:"scorecard,omitempty"`
-	EOL             *PackageEOL       `json:"eol,omitempty"`
+	CPEs            []string            `json:"cpes,omitempty"`
+	Digests         []Digest            `json:"digests,omitempty"`
+	Licenses        []PackageLicense    `json:"licenses,omitempty"`
+	Vulnerabilities []Vulnerability     `json:"vulnerabilities,omitempty"`
+	Scorecard       *PackageScorecard   `json:"scorecard,omitempty"`
+	EOL             *PackageEOL         `json:"eol,omitempty"`
+	Remediation     *PackageRemediation `json:"remediation,omitempty"`
 
 	// Matched indicates that this package was successfully matched by one or
 	// more external enrichment sources.
@@ -206,6 +282,7 @@ func (p *Package) Clone() *Package {
 	}
 	clone.Scorecard = p.Scorecard.Clone()
 	clone.EOL = p.EOL.Clone()
+	clone.Remediation = p.Remediation.Clone()
 	clone.Metadata = cloneAnyMap(p.Metadata)
 	return &clone
 }

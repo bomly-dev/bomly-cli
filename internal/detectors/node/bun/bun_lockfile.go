@@ -49,12 +49,13 @@ func (d LockfileDetector) Applicable(_ context.Context, req sdk.DetectionRequest
 // Descriptor describes the Bun lockfile detector.
 func (d LockfileDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		IgnoredDirectories:  []string{"node_modules", "dist"},
-		Name:                detectors.NameBun,
-		Technique:           sdk.LockfileTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemNPM},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerBun},
-		Tags:                []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
+		IgnoredDirectories:      []string{"node_modules", "dist"},
+		Name:                    detectors.NameBun,
+		RemediationCapabilities: bunLockfileRemediationCapabilities(),
+		Technique:               sdk.LockfileTechnique,
+		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemNPM},
+		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerBun},
+		Tags:                    []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
 	}
 }
 

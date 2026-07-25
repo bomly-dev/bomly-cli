@@ -97,13 +97,14 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 // Descriptor describes the Go CLI-backed detector.
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		IgnoredDirectories:   []string{"vendor"},
-		Name:                 detectors.NameGoMod,
-		Technique:            sdk.BuildToolTechnique,
-		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemGo},
-		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerGoMod},
-		Tags:                 []string{"graph-resolution", "component-targeting", "module-graph"},
-		SupportsInstallFirst: true,
+		IgnoredDirectories:      []string{"vendor"},
+		Name:                    detectors.NameGoMod,
+		RemediationCapabilities: goModRemediationCapabilities(),
+		Technique:               sdk.BuildToolTechnique,
+		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemGo},
+		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerGoMod},
+		Tags:                    []string{"graph-resolution", "component-targeting", "module-graph"},
+		SupportsInstallFirst:    true,
 	}
 }
 

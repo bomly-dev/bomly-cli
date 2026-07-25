@@ -96,6 +96,12 @@ bomly scan --detectors +bomly.examples.detector.bun-lock
 
 Pass the bare detector name to filter to only that detector, `+"`+name`"+` to add it on top of defaults, or `+"`-name`"+` to remove it.
 
+## Remediation hints
+
+After vulnerability enrichment, supporting detectors may describe package-manager strategies for the dependency occurrences they found. Each detector declares its own capability and owns its package-manager advice. Registry wiring does not add remediation support for it. Bomly's central remediation component validates those read-only hints and chooses the final suggestion. Detectors never choose a fix version or change manifests and lockfiles.
+
+Each package-manager page lists the strategies its built-in detectors understand. External detector plugins can advertise the same optional capability. Older protocol-v1 plugins keep working without it.
+
 ## Network behavior
 
 Detectors differ in whether they run subprocesses, and those that do may invoke build tools that download packages from registries. The marketing claim "Bomly is offline-safe by default" is precise: **matchers** make zero outbound calls without `+"`--enrich`"+`. **Detectors** may invoke build tools that download packages on your behalf during normal graph resolution.
@@ -583,15 +589,16 @@ func renderEcosystemReadme(ecosystem sdk.Ecosystem, entries []registry.PackageMa
 	_, _ = fmt.Fprintf(&b, "# %s\n\n", titleWords(string(ecosystem)))
 	b.WriteString(generatedBanner + "\n\n")
 	_, _ = fmt.Fprintf(&b, "Package managers Bomly recognizes in the `%s` ecosystem:\n\n", ecosystem)
-	b.WriteString("| Package manager | Detector chain | Evidence patterns | Install-first support |\n")
-	b.WriteString("| --- | --- | --- | --- |\n")
+	b.WriteString("| Package manager | Detector chain | Evidence patterns | Remediation hints | Install-first support |\n")
+	b.WriteString("| --- | --- | --- | --- | --- |\n")
 	for _, entry := range entries {
 		name := entry.Manager.Name()
-		_, _ = fmt.Fprintf(&b, "| [`%s`](%s.md) | %s | %s | %s |\n",
+		_, _ = fmt.Fprintf(&b, "| [`%s`](%s.md) | %s | %s | %s | %s |\n",
 			name,
 			name,
 			codeList(entry.Detectors),
 			codeListOrDash(entry.EvidencePatterns),
+			remediationActionsForChain(entry.Detectors, entry.Manager, false),
 			yesNo(chainSupportsInstallFirst(entry.Detectors)),
 		)
 	}
@@ -599,9 +606,41 @@ func renderEcosystemReadme(ecosystem sdk.Ecosystem, entries []registry.PackageMa
 	b.WriteString("- Each package-manager page documents the exact commands Bomly runs (if any), the network behavior, and the lockfile or manifest formats supported.\n")
 	b.WriteString("- Bomly tries detector chains from left to right. Later detectors in the chain are fallbacks Bomly uses when the preferred detector cannot produce graph data.\n")
 	b.WriteString("- Install-first support means `--install-first` can run the package manager's normal install command before graph resolution. This downloads packages and modifies the filesystem; see [docs/DETECTORS.md](../../../DETECTORS.md#install-first).\n")
+	b.WriteString("- Remediation hints are read-only package-manager guidance used during `--enrich`. Detectors do not choose the final action or change project files.\n")
+	for _, action := range remediationActionsForEntries(entries) {
+		switch action {
+		case sdk.RemediationActionDirectBump:
+			b.WriteString("  - `direct-bump` means the detector knows how to update a package declared directly in the project.\n")
+		case sdk.RemediationActionTransitiveOverride:
+			b.WriteString("  - `transitive-override` means the detector knows how to pin an indirect package with the package manager's override feature.\n")
+		case sdk.RemediationActionLockfileRefresh:
+			b.WriteString("  - `lockfile-refresh` means the detector knows how to ask the package manager to resolve a newer indirect package version.\n")
+		}
+	}
 	b.WriteString("- Each package-manager page also lists the directories its detectors declare as ignored during recursive discovery (`--recursive`) and whether the chain resolves nested workspace/reactor modules from a root manifest (multi-module); see [docs/SCAN_TARGETS.md](../../../SCAN_TARGETS.md#recursive-discovery----recursive).\n")
 	b.WriteString("- Syft-backed entries provide broad compatibility, especially for containers and ecosystems without native Bomly graph resolution.\n")
 	return b.String()
+}
+
+func remediationActionsForEntries(entries []registry.PackageManagerSupport) []sdk.RemediationAction {
+	seen := map[sdk.RemediationAction]struct{}{}
+	for _, entry := range entries {
+		for _, action := range remediationActionsForDetectorChain(entry.Detectors, entry.Manager) {
+			seen[action] = struct{}{}
+		}
+	}
+	ordered := []sdk.RemediationAction{
+		sdk.RemediationActionDirectBump,
+		sdk.RemediationActionTransitiveOverride,
+		sdk.RemediationActionLockfileRefresh,
+	}
+	result := make([]sdk.RemediationAction, 0, len(seen))
+	for _, action := range ordered {
+		if _, ok := seen[action]; ok {
+			result = append(result, action)
+		}
+	}
+	return result
 }
 
 func renderPackageManagerMarkdown(ecosystem sdk.Ecosystem, entry registry.PackageManagerSupport) string {
@@ -620,12 +659,90 @@ func renderPackageManagerMarkdown(ecosystem sdk.Ecosystem, entry registry.Packag
 	_, _ = fmt.Fprintf(&b, "| Ignored directory markers | %s |\n", codeListOrDash(chainIgnoredDirectoryMarkers(entry.Detectors)))
 	_, _ = fmt.Fprintf(&b, "| Multi-module resolution | %s |\n", yesNo(chainSupportsMultiModule(entry.Detectors, entry.Manager)))
 	_, _ = fmt.Fprintf(&b, "| Install-first support | %s |\n", yesNo(chainSupportsInstallFirst(entry.Detectors)))
+	_, _ = fmt.Fprintf(&b, "| Remediation hints | %s |\n", remediationActionsForChain(entry.Detectors, entry.Manager, true))
 	_, _ = fmt.Fprintf(&b, "| Native command hints | %s |\n", commandHintsForChain(entry.Detectors))
+	b.WriteString(remediationActionFootnotes(entry.Detectors, entry.Manager))
 	if prose := loadProse("detectors", name); prose != "" {
 		b.WriteString("\n")
 		b.WriteString(prose)
 	}
 	return b.String()
+}
+
+func remediationActionsForChain(detectorNames []string, manager sdk.PackageManager, footnotes bool) string {
+	capabilities := remediationActionsForDetectorChain(detectorNames, manager)
+	if len(capabilities) == 0 {
+		return "None"
+	}
+	actions := make([]string, 0, len(capabilities))
+	for _, action := range capabilities {
+		value := "`" + string(action) + "`"
+		if footnotes {
+			value += "[^" + string(action) + "]"
+		}
+		actions = append(actions, value)
+	}
+	return strings.Join(actions, ", ")
+}
+
+func remediationActionFootnotes(detectorNames []string, manager sdk.PackageManager) string {
+	actions := remediationActionsForDetectorChain(detectorNames, manager)
+	if len(actions) == 0 {
+		return ""
+	}
+	var b strings.Builder
+	b.WriteString("\n")
+	for _, action := range actions {
+		switch action {
+		case sdk.RemediationActionDirectBump:
+			b.WriteString("[^direct-bump]: Update a package declared directly in the project.\n")
+		case sdk.RemediationActionTransitiveOverride:
+			b.WriteString("[^transitive-override]: Pin an indirect package with the package manager's override feature.\n")
+		case sdk.RemediationActionLockfileRefresh:
+			b.WriteString("[^lockfile-refresh]: Ask the package manager to resolve a newer indirect package version.\n")
+		}
+	}
+	return b.String()
+}
+
+func remediationActionsForDetectorChain(detectorNames []string, manager sdk.PackageManager) []sdk.RemediationAction {
+	byName := builtinDetectorsByName()
+	seen := make(map[sdk.RemediationAction]struct{})
+	for _, detectorName := range detectorNames {
+		detector, ok := byName[detectorName]
+		if !ok {
+			continue
+		}
+		for _, capability := range detector.Descriptor().RemediationCapabilities {
+			if !containsPackageManager(capability.SupportedManagers, manager) {
+				continue
+			}
+			for _, action := range capability.Actions {
+				seen[action] = struct{}{}
+			}
+		}
+	}
+	ordered := []sdk.RemediationAction{
+		sdk.RemediationActionDirectBump,
+		sdk.RemediationActionTransitiveOverride,
+		sdk.RemediationActionLockfileRefresh,
+	}
+	result := make([]sdk.RemediationAction, 0, len(seen))
+	for _, action := range ordered {
+		if _, ok := seen[action]; ok {
+			result = append(result, action)
+		}
+	}
+	return result
+}
+
+func containsPackageManager(managers []sdk.PackageManager, target sdk.PackageManager) bool {
+	for _, manager := range managers {
+		if manager == target {
+			return true
+		}
+	}
+	return false
 }
 
 func writeMatcherDocs(outputDir string) error {

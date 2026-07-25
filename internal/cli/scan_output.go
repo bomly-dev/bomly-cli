@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"slices"
 	"sort"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
@@ -69,15 +70,46 @@ func matcherRan(name string, statSets ...[]sdk.MatcherStats) bool {
 	return false
 }
 
-func explainPackageRef(pkg *sdk.Dependency, registry *sdk.PackageRegistry) output.PackageRef {
+func explainPackageRef(pkg *sdk.Dependency, registry *sdk.PackageRegistry) output.ExplainDependency {
 	ref := output.PackageFromDependencyAndRegistry(pkg, registry)
 	if pkg == nil {
-		return ref
+		return output.ExplainDependency{PackageRef: ref}
+	}
+	result := output.ExplainDependency{PackageRef: ref}
+	if registry != nil && pkg.PURL != "" {
+		if matched, ok := registry.Get(pkg.PURL); ok && matched != nil {
+			result.Remediation = matched.Remediation.Clone()
+			if result.Remediation != nil {
+				result.Remediation.Suggestions = remediationSuggestionsForDependency(
+					result.Remediation.Suggestions,
+					pkg.ID,
+				)
+			}
+		}
 	}
 	if legacyID := pkg.StableID(); legacyID != "" {
-		ref.ID = legacyID
+		result.ID = legacyID
 	}
-	return ref
+	return result
+}
+
+func remediationSuggestionsForDependency(
+	suggestions []sdk.PackageRemediationSuggestion,
+	dependencyRef string,
+) []sdk.PackageRemediationSuggestion {
+	if dependencyRef == "" {
+		return nil
+	}
+	filtered := make([]sdk.PackageRemediationSuggestion, 0, len(suggestions))
+	for _, suggestion := range suggestions {
+		if !slices.Contains(suggestion.AffectedDependencyRefs, dependencyRef) {
+			continue
+		}
+		clone := suggestion
+		clone.AffectedDependencyRefs = append([]string(nil), suggestion.AffectedDependencyRefs...)
+		filtered = append(filtered, clone)
+	}
+	return filtered
 }
 
 func explainPathsWithStableIDs(paths []output.DependencyPath) []output.DependencyPath {

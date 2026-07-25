@@ -41,13 +41,14 @@ func (d NativeDetector) Applicable(_ context.Context, req sdk.DetectionRequest) 
 // Descriptor describes the Bun CLI fallback detector.
 func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		IgnoredDirectories:   []string{"node_modules", "dist"},
-		Name:                 detectors.NameBunNative,
-		Technique:            sdk.BuildToolTechnique,
-		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemNPM},
-		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerBun},
-		Tags:                 []string{"installed-inventory", "component-targeting", "scope-annotation"},
-		SupportsInstallFirst: true,
+		IgnoredDirectories:      []string{"node_modules", "dist"},
+		Name:                    detectors.NameBunNative,
+		RemediationCapabilities: bunNativeRemediationCapabilities(),
+		Technique:               sdk.BuildToolTechnique,
+		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemNPM},
+		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerBun},
+		Tags:                    []string{"installed-inventory", "component-targeting", "scope-annotation"},
+		SupportsInstallFirst:    true,
 	}
 }
 

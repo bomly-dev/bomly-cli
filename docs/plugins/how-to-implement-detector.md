@@ -96,6 +96,36 @@ func (d *detector) Install(context.Context, *sdk.DetectRequest) (*sdk.InstallRes
 
 Use `Install` only for install-first detectors that prepare dependencies before graph resolution. Do not install package managers themselves; Bomly assumes required package managers already exist.
 
+### Add optional remediation hints
+
+If the detector knows package-manager strategies, advertise them in its
+descriptor:
+
+```go
+RemediationCapabilities: []sdk.RemediationCapability{{
+    SupportedManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+    Actions: []sdk.RemediationAction{
+        sdk.RemediationActionDirectBump,
+        sdk.RemediationActionTransitiveOverride,
+    },
+}},
+```
+
+Then optionally implement:
+
+```go
+func (d *detector) RemediationHints(
+    ctx context.Context,
+    req *sdk.RemediationHintRequest,
+) (*sdk.RemediationHintResponse, error)
+```
+
+Return hints only for dependency IDs and manifest paths produced by that
+detector. Hints may list supported strategies and plain-language
+package-manager advice. They must not choose a fix version, edit files, run
+commands, or make network calls. Bomly validates the hints and chooses the
+final action. If the capability is absent, Bomly does not call this method.
+
 ## Build The Graph
 
 Use SDK graph helpers instead of constructing graph internals by hand:
@@ -172,4 +202,5 @@ bomly scan --path ./my-project --detectors +bomly.examples.detector.bun-lock
 - Avoid panics in normal flow.
 - Do not log secrets, tokens, or credentials.
 - Keep network calls explicit and explain them in the plugin README.
+- Keep remediation hints read-only and within the advertised capabilities.
 - Add local unit tests for parsing and graph construction.

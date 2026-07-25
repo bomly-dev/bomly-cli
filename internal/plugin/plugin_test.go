@@ -262,6 +262,61 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 	if _, ok := graph.Node("example.com/runtime@v1.0.0"); !ok {
 		t.Fatalf("expected plugin detector to receive runtime scope, got %s", graph.PrettyString())
 	}
+	if len(detectors[0].Descriptor().RemediationCapabilities) != 0 {
+		t.Fatalf("legacy detector unexpectedly advertises remediation: %#v", detectors[0].Descriptor())
+	}
+	provider, ok := detectors[0].(sdk.DetectorRemediationProvider)
+	if !ok {
+		t.Fatalf("external detector wrapper does not implement optional provider: %T", detectors[0])
+	}
+	hints, err := provider.RemediationHints(context.Background(), sdk.RemediationHintRequest{})
+	if err != nil || len(hints.Hints) != 0 {
+		t.Fatalf("legacy detector remediation call = %#v, %v", hints, err)
+	}
+}
+
+func TestExternalDetectorProvidesAdvertisedRemediationHints(t *testing.T) {
+	root := t.TempDir()
+	binaryPath := filepath.Join(t.TempDir(), executableName("bomly-plugin-remediation"))
+	if err := testutil.BuildGoBinary(t, binaryPath, fakeRemediationDetectorPluginSource("acme.detector.remediation")); err != nil {
+		t.Fatalf("build fake remediation plugin: %v", err)
+	}
+	if _, err := managedplugin.Install(context.Background(), root, binaryPath, managedplugin.InstallOptions{DevBinary: true}); err != nil {
+		t.Fatalf("Install() error = %v", err)
+	}
+	if _, err := managedplugin.Enable(root, "acme.detector.remediation"); err != nil {
+		t.Fatalf("Enable() error = %v", err)
+	}
+
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
+	reg.Build()
+	if err := managedplugin.RegisterRuntimePlugins(context.Background(), reg, root); err != nil {
+		t.Fatalf("RegisterRuntimePlugins() error = %v", err)
+	}
+	var detector sdk.Detector
+	for _, candidate := range reg.AllDetectors() {
+		if candidate.Descriptor().Name == "acme.detector.remediation" {
+			detector = candidate
+			break
+		}
+	}
+	if detector == nil {
+		t.Fatal("external remediation detector was not registered")
+	}
+	provider, ok := detector.(sdk.DetectorRemediationProvider)
+	if !ok {
+		t.Fatalf("registered detector does not implement DetectorRemediationProvider: %T", detector)
+	}
+	response, err := provider.RemediationHints(context.Background(), sdk.RemediationHintRequest{})
+	if err != nil {
+		t.Fatalf("RemediationHints() error = %v", err)
+	}
+	if len(response.Hints) != 1 ||
+		response.Hints[0].DependencyRef != "example.com/demo@v1.0.0" ||
+		len(response.Hints[0].Strategies) != 1 ||
+		response.Hints[0].Strategies[0].Action != sdk.RemediationActionLockfileRefresh {
+		t.Fatalf("RemediationHints() = %#v", response)
+	}
 }
 
 func TestExternalMatcherReceivesAndReturnsRegistry(t *testing.T) {
@@ -462,6 +517,63 @@ func (d *detector) Applicable(context.Context, *schemav1.DetectRequest) (*schema
 
 func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*schemav1.DetectResponse, error) {
 	return &schemav1.DetectResponse{}, nil
+}
+
+func main() {
+	schemav1.ServeDetector(&detector{})
+}
+`
+}
+
+func fakeRemediationDetectorPluginSource(id string) string {
+	return `package main
+
+import (
+	"context"
+	schemav1 "github.com/bomly-dev/bomly-cli/sdk"
+)
+
+type detector struct{}
+
+func (d *detector) Descriptor(context.Context) (*schemav1.DetectorDescriptor, error) {
+	return &schemav1.DetectorDescriptor{
+		Name: "` + id + `",
+		Tags: []string{"dependency-detection"},
+		RemediationCapabilities: []schemav1.RemediationCapability{{
+			SupportedManagers: []schemav1.PackageManager{schemav1.PackageManagerGoMod},
+			Actions: []schemav1.RemediationAction{schemav1.RemediationActionLockfileRefresh},
+		}},
+	}, nil
+}
+
+func (d *detector) PackageManagerSupport(context.Context) ([]schemav1.PackageManagerSupport, error) {
+	return []schemav1.PackageManagerSupport{schemav1.Support(schemav1.PackageManagerGoMod, "go.mod")}, nil
+}
+
+func (d *detector) Ready(context.Context, *schemav1.DetectRequest) (*schemav1.ReadyResponse, error) {
+	return &schemav1.ReadyResponse{Ready: true}, nil
+}
+
+func (d *detector) Applicable(context.Context, *schemav1.DetectRequest) (*schemav1.ApplicableResponse, error) {
+	return &schemav1.ApplicableResponse{Applicable: true}, nil
+}
+
+func (d *detector) Detect(context.Context, *schemav1.DetectRequest) (*schemav1.DetectResponse, error) {
+	return &schemav1.DetectResponse{}, nil
+}
+
+func (d *detector) RemediationHints(
+	context.Context,
+	*schemav1.RemediationHintRequest,
+) (*schemav1.RemediationHintResponse, error) {
+	return &schemav1.RemediationHintResponse{Hints: []schemav1.RemediationHint{{
+		DependencyRef: "example.com/demo@v1.0.0",
+		ManifestPath: "go.mod",
+		Strategies: []schemav1.RemediationStrategyHint{{
+			Action: schemav1.RemediationActionLockfileRefresh,
+			Advice: "refresh go.sum",
+		}},
+	}}}, nil
 }
 
 func main() {

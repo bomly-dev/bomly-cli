@@ -3474,6 +3474,20 @@
       "matched": true,
       "name": "algo-httpserv",
       "purl": "pkg:npm/algo-httpserv@1.1.1",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "affected_dependency_refs": [
+              "pkg:npm/algo-httpserv@1.1.1"
+            ],
+            "manifest_path": "package-lock.json",
+            "suggested_action_dependency_ref": "pkg:npm/algo-httpserv@1.1.1"
+          }
+        ]
+      },
       "version": "1.1.1",
       "vulnerabilities": [
         {
@@ -3553,6 +3567,21 @@
       "matched": true,
       "name": "ansi-regex",
       "purl": "pkg:npm/ansi-regex@3.0.0",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/ansi-regex@3.0.0"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/mocha@7.2.0"
+          }
+        ]
+      },
       "version": "3.0.0",
       "vulnerabilities": [
         {
@@ -3636,6 +3665,21 @@
       "matched": true,
       "name": "ansi-regex",
       "purl": "pkg:npm/ansi-regex@4.1.0",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/ansi-regex@4.1.0"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/mocha@7.2.0"
+          }
+        ]
+      },
       "version": "4.1.0",
       "vulnerabilities": [
         {
@@ -3764,6 +3808,21 @@
       "matched": true,
       "name": "async",
       "purl": "pkg:npm/async@2.6.3",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/async@2.6.3"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/larvitreqparser@0.2.1"
+          }
+        ]
+      },
       "version": "2.6.3",
       "vulnerabilities": [
         {
@@ -3877,6 +3936,21 @@
       "matched": true,
       "name": "brace-expansion",
       "purl": "pkg:npm/brace-expansion@1.1.11",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/brace-expansion@1.1.11"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/mocha@7.2.0"
+          }
+        ]
+      },
       "version": "1.1.11",
       "vulnerabilities": [
         {
@@ -4094,6 +4168,21 @@
       "matched": true,
       "name": "braces",
       "purl": "pkg:npm/braces@3.0.2",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/braces@3.0.2"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/mocha@7.2.0"
+          }
+        ]
+      },
       "version": "3.0.2",
       "vulnerabilities": [
         {
@@ -4320,6 +4409,21 @@
       "matched": true,
       "name": "debug",
       "purl": "pkg:npm/debug@3.2.6",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/debug@3.2.6"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/mocha@7.2.0"
+          }
+        ]
+      },
       "version": "3.2.6",
       "vulnerabilities": [
         {
@@ -4427,6 +4531,19 @@
       "matched": true,
       "name": "dicer",
       "purl": "pkg:npm/dicer@0.2.5",
+      "remediation": {
+        "status": "unavailable",
+        "suggestions": [
+          {
+            "action": "no-fix-upstream",
+            "affected_dependency_refs": [
+              "pkg:npm/dicer@0.2.5"
+            ],
+            "manifest_path": "package-lock.json",
+            "suggested_action_dependency_ref": "pkg:npm/larvitreqparser@0.2.1"
+          }
+        ]
+      },
       "version": "0.2.5",
       "vulnerabilities": [
         {
@@ -4491,6 +4608,21 @@
       "matched": true,
       "name": "diff",
       "purl": "pkg:npm/diff@3.5.0",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/diff@3.5.0"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/mocha@7.2.0"
+          }
+        ]
+      },
       "version": "3.5.0",
       "vulnerabilities": [
         {
@@ -4777,6 +4909,21 @@
       "matched": true,
       "name": "glob-parent",
       "purl": "pkg:npm/glob-parent@5.1.1",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/glob-parent@5.1.1"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/mocha@7.2.0"
+          }
+        ]
+      },
       "version": "5.1.1",
       "vulnerabilities": [
         {
@@ -5206,6 +5353,20 @@
       "matched": true,
       "name": "js-yaml",
       "purl": "pkg:npm/js-yaml@3.13.0",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "affected_dependency_refs": [
+              "pkg:npm/js-yaml@3.13.0"
+            ],
+            "manifest_path": "package-lock.json",
+            "suggested_action_dependency_ref": "pkg:npm/js-yaml@3.13.0"
+          }
+        ]
+      },
       "version": "3.13.0",
       "vulnerabilities": [
         {
@@ -5467,6 +5628,21 @@
       "matched": true,
       "name": "js-yaml",
       "purl": "pkg:npm/js-yaml@3.13.1",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/js-yaml@3.13.1"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/mocha@7.2.0"
+          }
+        ]
+      },
       "version": "3.13.1",
       "vulnerabilities": [
         {
@@ -5792,6 +5968,20 @@
       "matched": true,
       "name": "lodash",
       "purl": "pkg:npm/lodash@4.17.15",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "affected_dependency_refs": [
+              "pkg:npm/lodash@4.17.15"
+            ],
+            "manifest_path": "package-lock.json",
+            "suggested_action_dependency_ref": "pkg:npm/lodash@4.17.15"
+          }
+        ]
+      },
       "version": "4.17.15",
       "vulnerabilities": [
         {
@@ -6231,6 +6421,20 @@
       "matched": true,
       "name": "marked",
       "purl": "pkg:npm/marked@0.3.19",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "affected_dependency_refs": [
+              "pkg:npm/marked@0.3.19"
+            ],
+            "manifest_path": "package-lock.json",
+            "suggested_action_dependency_ref": "pkg:npm/marked@0.3.19"
+          }
+        ]
+      },
       "version": "0.3.19",
       "vulnerabilities": [
         {
@@ -6431,6 +6635,21 @@
       "matched": true,
       "name": "minimatch",
       "purl": "pkg:npm/minimatch@3.0.4",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/minimatch@3.0.4"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/mocha@7.2.0"
+          }
+        ]
+      },
       "version": "3.0.4",
       "vulnerabilities": [
         {
@@ -6715,6 +6934,21 @@
       "matched": true,
       "name": "minimist",
       "purl": "pkg:npm/minimist@0.0.10",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/minimist@0.0.10"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/to@0.2.9"
+          }
+        ]
+      },
       "version": "0.0.10",
       "vulnerabilities": [
         {
@@ -6867,6 +7101,21 @@
       "matched": true,
       "name": "minimist",
       "purl": "pkg:npm/minimist@1.2.5",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/minimist@1.2.5"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/mocha@7.2.0"
+          }
+        ]
+      },
       "version": "1.2.5",
       "vulnerabilities": [
         {
@@ -7220,6 +7469,21 @@
       "matched": true,
       "name": "picomatch",
       "purl": "pkg:npm/picomatch@2.2.2",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/picomatch@2.2.2"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/mocha@7.2.0"
+          }
+        ]
+      },
       "version": "2.2.2",
       "vulnerabilities": [
         {
@@ -7385,6 +7649,21 @@
       "matched": true,
       "name": "qs",
       "purl": "pkg:npm/qs@6.9.1",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/qs@6.9.1"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/larvitreqparser@0.2.1"
+          }
+        ]
+      },
       "version": "6.9.1",
       "vulnerabilities": [
         {
@@ -7677,6 +7956,20 @@
       "matched": true,
       "name": "semver",
       "purl": "pkg:npm/semver@5.7.1",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "affected_dependency_refs": [
+              "pkg:npm/semver@5.7.1"
+            ],
+            "manifest_path": "package-lock.json",
+            "suggested_action_dependency_ref": "pkg:npm/semver@5.7.1"
+          }
+        ]
+      },
       "version": "5.7.1",
       "vulnerabilities": [
         {
@@ -7971,6 +8264,21 @@
       "matched": true,
       "name": "underscore",
       "purl": "pkg:npm/underscore@1.9.2",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/underscore@1.9.2"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/to@0.2.9"
+          }
+        ]
+      },
       "version": "1.9.2",
       "vulnerabilities": [
         {
@@ -8153,6 +8461,21 @@
       "matched": true,
       "name": "uuid",
       "purl": "pkg:npm/uuid@3.4.0",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/uuid@3.4.0"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/larvitbase@3.1.3"
+          }
+        ]
+      },
       "version": "3.4.0",
       "vulnerabilities": [
         {
@@ -8326,6 +8649,21 @@
       "matched": true,
       "name": "y18n",
       "purl": "pkg:npm/y18n@4.0.0",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:npm/y18n@4.0.0"
+            ],
+            "manifest_path": "package-lock.json",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:npm/mocha@7.2.0"
+          }
+        ]
+      },
       "version": "4.0.0",
       "vulnerabilities": [
         {

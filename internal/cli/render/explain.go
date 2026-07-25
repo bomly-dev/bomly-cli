@@ -15,7 +15,7 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 
 	// Key-value header block
 	ecosystem := ecosystemFromPURL(target.Dependency.Purl)
-	pkgLabel := explainPackageDisplayName(target.Dependency)
+	pkgLabel := explainPackageDisplayName(target.Dependency.PackageRef)
 	scope := ValueOrDash(target.Dependency.Scope)
 	directLabel := "no"
 	for _, path := range target.Paths {
@@ -102,6 +102,11 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 			if _, err := fmt.Fprintln(w, strings.TrimRight(line, " ")); err != nil {
 				return fmt.Errorf("write explain vulnerability entry: %w", err)
 			}
+		}
+	}
+	if section := remediationText(explainRemediationPackages(target)); section != "" {
+		if _, err := fmt.Fprintln(w, "\n"+section); err != nil {
+			return fmt.Errorf("write explain remediation: %w", err)
 		}
 	}
 

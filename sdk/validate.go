@@ -28,6 +28,28 @@ func ValidateDetectorDescriptor(descriptor *DetectorDescriptor) error {
 			return fmt.Errorf("detector descriptor fallback detectors must not contain empty values")
 		}
 	}
+	for _, capability := range descriptor.RemediationCapabilities {
+		if len(capability.SupportedManagers) == 0 {
+			return fmt.Errorf("detector descriptor remediation capability must include a package manager")
+		}
+		for _, manager := range capability.SupportedManagers {
+			if strings.TrimSpace(manager.Name()) == "" {
+				return fmt.Errorf("detector descriptor remediation capability managers must not contain empty values")
+			}
+		}
+		if len(capability.Actions) == 0 {
+			return fmt.Errorf("detector descriptor remediation capability must include an action")
+		}
+		for _, action := range capability.Actions {
+			switch action {
+			case RemediationActionDirectBump,
+				RemediationActionTransitiveOverride,
+				RemediationActionLockfileRefresh:
+			default:
+				return fmt.Errorf("detector descriptor remediation capability action %q is invalid", action)
+			}
+		}
+	}
 	return nil
 }
 

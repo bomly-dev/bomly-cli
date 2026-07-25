@@ -2,6 +2,7 @@ package registry
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -128,7 +129,15 @@ type detectorWithDescriptor struct {
 }
 
 func (d detectorWithDescriptor) Descriptor() sdk.DetectorDescriptor {
-	return d.descriptor
+	return d.descriptor.Clone()
+}
+
+type remediationDetectorWithDescriptor struct {
+	detectorWithDescriptor
+}
+
+func (d remediationDetectorWithDescriptor) RemediationHints(ctx context.Context, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
+	return forwardRemediationHints(ctx, d.Detector, req)
 }
 
 type fallbackDetectorWithDescriptor struct {
@@ -136,11 +145,19 @@ type fallbackDetectorWithDescriptor struct {
 }
 
 func (d fallbackDetectorWithDescriptor) FallbackDetector() sdk.Detector {
-	fallback := d.Detector.(sdk.FallbackDetector).FallbackDetector()
-	if fallback == nil {
-		return nil
-	}
-	return detectorWithDecoratedDescriptor(fallback, decorateDetectorDescriptor(fallback.Descriptor()))
+	return decoratedFallbackDetector(d.Detector)
+}
+
+type fallbackRemediationDetectorWithDescriptor struct {
+	detectorWithDescriptor
+}
+
+func (d fallbackRemediationDetectorWithDescriptor) FallbackDetector() sdk.Detector {
+	return decoratedFallbackDetector(d.Detector)
+}
+
+func (d fallbackRemediationDetectorWithDescriptor) RemediationHints(ctx context.Context, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
+	return forwardRemediationHints(ctx, d.Detector, req)
 }
 
 type installFirstDetectorWithDescriptor struct {
@@ -151,20 +168,63 @@ func (d installFirstDetectorWithDescriptor) Install(ctx context.Context, req sdk
 	return d.Detector.(sdk.InstallFirstDetector).Install(ctx, req)
 }
 
+type installFirstRemediationDetectorWithDescriptor struct {
+	detectorWithDescriptor
+}
+
+func (d installFirstRemediationDetectorWithDescriptor) Install(ctx context.Context, req sdk.DetectionRequest) error {
+	return d.Detector.(sdk.InstallFirstDetector).Install(ctx, req)
+}
+
+func (d installFirstRemediationDetectorWithDescriptor) RemediationHints(ctx context.Context, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
+	return forwardRemediationHints(ctx, d.Detector, req)
+}
+
 type fallbackInstallFirstDetectorWithDescriptor struct {
 	detectorWithDescriptor
 }
 
 func (d fallbackInstallFirstDetectorWithDescriptor) FallbackDetector() sdk.Detector {
-	fallback := d.Detector.(sdk.FallbackDetector).FallbackDetector()
+	return decoratedFallbackDetector(d.Detector)
+}
+
+func (d fallbackInstallFirstDetectorWithDescriptor) Install(ctx context.Context, req sdk.DetectionRequest) error {
+	return d.Detector.(sdk.InstallFirstDetector).Install(ctx, req)
+}
+
+type fallbackInstallFirstRemediationDetectorWithDescriptor struct {
+	detectorWithDescriptor
+}
+
+func (d fallbackInstallFirstRemediationDetectorWithDescriptor) FallbackDetector() sdk.Detector {
+	return decoratedFallbackDetector(d.Detector)
+}
+
+func (d fallbackInstallFirstRemediationDetectorWithDescriptor) Install(ctx context.Context, req sdk.DetectionRequest) error {
+	return d.Detector.(sdk.InstallFirstDetector).Install(ctx, req)
+}
+
+func (d fallbackInstallFirstRemediationDetectorWithDescriptor) RemediationHints(ctx context.Context, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
+	return forwardRemediationHints(ctx, d.Detector, req)
+}
+
+func decoratedFallbackDetector(detector sdk.Detector) sdk.Detector {
+	fallback := detector.(sdk.FallbackDetector).FallbackDetector()
 	if fallback == nil {
 		return nil
 	}
 	return detectorWithDecoratedDescriptor(fallback, decorateDetectorDescriptor(fallback.Descriptor()))
 }
 
-func (d fallbackInstallFirstDetectorWithDescriptor) Install(ctx context.Context, req sdk.DetectionRequest) error {
-	return d.Detector.(sdk.InstallFirstDetector).Install(ctx, req)
+func forwardRemediationHints(ctx context.Context, detector sdk.Detector, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
+	provider, ok := detector.(sdk.DetectorRemediationProvider)
+	if !ok {
+		return sdk.RemediationHintResponse{}, fmt.Errorf(
+			"detector %q does not implement remediation hints",
+			detector.Descriptor().Name,
+		)
+	}
+	return provider.RemediationHints(ctx, req)
 }
 
 type auditorWithDescriptor struct {
@@ -224,12 +284,12 @@ func (r *Registry) RegisterDetectorWithOptions(detector sdk.Detector, options Co
 		return
 	}
 	descriptor := decorateDetectorDescriptor(detector.Descriptor())
-	r.detectors = append(r.detectors, detectorWithDecoratedDescriptor(detector, descriptor))
-	r.setDefaultEnabled(sdk.PluginKindDetector, descriptor.Name, options.DefaultEnabled)
 	origin := options.Origin
 	if origin == "" {
 		origin = sdk.CoreOrigin
 	}
+	r.detectors = append(r.detectors, detectorWithDecoratedDescriptor(detector, descriptor))
+	r.setDefaultEnabled(sdk.PluginKindDetector, descriptor.Name, options.DefaultEnabled)
 	r.detectorOrigins[descriptor.Name] = origin
 }
 
@@ -1027,13 +1087,22 @@ func detectorWithDecoratedDescriptor(detector sdk.Detector, descriptor sdk.Detec
 	base := detectorWithDescriptor{Detector: detector, descriptor: descriptor}
 	_, hasFallback := detector.(sdk.FallbackDetector)
 	_, hasInstall := detector.(sdk.InstallFirstDetector)
+	_, hasRemediation := detector.(sdk.DetectorRemediationProvider)
 	switch {
+	case hasFallback && hasInstall && hasRemediation:
+		return fallbackInstallFirstRemediationDetectorWithDescriptor{detectorWithDescriptor: base}
 	case hasFallback && hasInstall:
 		return fallbackInstallFirstDetectorWithDescriptor{detectorWithDescriptor: base}
+	case hasFallback && hasRemediation:
+		return fallbackRemediationDetectorWithDescriptor{detectorWithDescriptor: base}
 	case hasFallback:
 		return fallbackDetectorWithDescriptor{detectorWithDescriptor: base}
+	case hasInstall && hasRemediation:
+		return installFirstRemediationDetectorWithDescriptor{detectorWithDescriptor: base}
 	case hasInstall:
 		return installFirstDetectorWithDescriptor{detectorWithDescriptor: base}
+	case hasRemediation:
+		return remediationDetectorWithDescriptor{detectorWithDescriptor: base}
 	default:
 		return base
 	}

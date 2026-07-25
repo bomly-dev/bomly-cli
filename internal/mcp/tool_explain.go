@@ -9,7 +9,7 @@ import (
 
 func registerExplainTool(s *server.MCPServer, mcpCtx Context) {
 	tool := mcplib.NewTool("bomly_explain",
-		mcplib.WithDescription("Explain one package: root-to-target dependency paths, and — with enrich/audit — the FULL advisory detail (descriptions, references, CVSS, affected ranges) plus concrete fix context (which direct dependency to change, in which manifest, to which version, including override advice for transitive cases). This is the drill-down companion to bomly_scan: scan first for the compact overview, then explain each package you intend to fix. Pass enrich=true and audit=true to get advisories and remediation."),
+		mcplib.WithDescription("Explain why one package is present and show its dependency paths. With enrich=true, the response adds full vulnerability details and possible remediation. With audit=true (requires enrich=true), it also adds policy results. Use this after bomly_scan to inspect each affected package."),
 		mcplib.WithString("package",
 			mcplib.Required(),
 			mcplib.Description("Package name, qualified name (org/name), or PURL to find"),

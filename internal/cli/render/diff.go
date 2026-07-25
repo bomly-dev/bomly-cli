@@ -15,6 +15,9 @@ func Diff(w io.Writer, payload output.DiffResponse) error {
 	var lines []string
 	lines = append(lines, dependencyTextSections(payload.Results.Dependencies)...)
 	lines = append(lines, findingsSummaryLine(payload.Audit)...)
+	if section := remediationText(diffRemediationPackages(payload)); section != "" {
+		lines = append(lines, "", section)
+	}
 	for _, line := range lines {
 		if _, err := fmt.Fprintln(w, line); err != nil {
 			return err

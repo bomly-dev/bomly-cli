@@ -14,4 +14,5 @@ Bomly uses this chain when it finds `cabal` evidence.
 | Ignored directory markers | - |
 | Multi-module resolution | No |
 | Install-first support | No |
+| Remediation hints | None |
 | Native command hints | `syft for bomly-lite` |

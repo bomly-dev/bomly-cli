@@ -1117,6 +1117,20 @@
       "name": "com.h2database:h2",
       "org": "com.h2database",
       "purl": "pkg:maven/com.h2database/h2@1.3.176",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "affected_dependency_refs": [
+              "pkg:maven/com.h2database/h2@1.3.176"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/com.h2database/h2@1.3.176"
+          }
+        ]
+      },
       "version": "1.3.176",
       "vulnerabilities": [
         {
@@ -1284,6 +1298,21 @@
       "name": "com.orientechnologies:orientdb-core",
       "org": "com.orientechnologies",
       "purl": "pkg:maven/com.orientechnologies/orientdb-core@2.1.9",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:maven/com.orientechnologies/orientdb-core@2.1.9"
+            ],
+            "manifest_path": "pom.xml",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:maven/com.orientechnologies/orientdb-server@2.1.9"
+          }
+        ]
+      },
       "version": "2.1.9",
       "vulnerabilities": [
         {
@@ -1416,6 +1445,21 @@
       "name": "commons-collections:commons-collections",
       "org": "commons-collections",
       "purl": "pkg:maven/commons-collections/commons-collections@3.2.1",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:maven/commons-collections/commons-collections@3.2.1"
+            ],
+            "manifest_path": "pom.xml",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator"
+          }
+        ]
+      },
       "version": "3.2.1",
       "vulnerabilities": [
         {
@@ -1560,6 +1604,21 @@
       "name": "commons-fileupload:commons-fileupload",
       "org": "commons-fileupload",
       "purl": "pkg:maven/commons-fileupload/commons-fileupload@1.3.3",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:maven/commons-fileupload/commons-fileupload@1.3.3"
+            ],
+            "manifest_path": "pom.xml",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:maven/org.apache.struts/struts2-core@2.5.13"
+          }
+        ]
+      },
       "version": "1.3.3",
       "vulnerabilities": [
         {
@@ -1713,6 +1772,21 @@
       "name": "commons-io:commons-io",
       "org": "commons-io",
       "purl": "pkg:maven/commons-io/commons-io@2.5",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:maven/commons-io/commons-io@2.5"
+            ],
+            "manifest_path": "pom.xml",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:maven/org.apache.struts/struts2-core@2.5.13"
+          }
+        ]
+      },
       "version": "2.5",
       "vulnerabilities": [
         {
@@ -1874,6 +1948,19 @@
       "name": "io.netty:netty",
       "org": "io.netty",
       "purl": "pkg:maven/io.netty/netty@3.7.0.final",
+      "remediation": {
+        "status": "partial",
+        "suggestions": [
+          {
+            "action": "manual-review",
+            "affected_dependency_refs": [
+              "pkg:maven/io.netty/netty@3.7.0.final"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1"
+          }
+        ]
+      },
       "version": "3.7.0.final",
       "vulnerabilities": [
         {
@@ -2579,6 +2666,20 @@
       "name": "junit:junit",
       "org": "junit",
       "purl": "pkg:maven/junit/junit@4.12",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "affected_dependency_refs": [
+              "pkg:maven/junit/junit@4.12"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/junit/junit@4.12"
+          }
+        ]
+      },
       "version": "4.12",
       "vulnerabilities": [
         {
@@ -2664,6 +2765,19 @@
       "name": "log4j:log4j",
       "org": "log4j",
       "purl": "pkg:maven/log4j/log4j@1.2.15",
+      "remediation": {
+        "status": "partial",
+        "suggestions": [
+          {
+            "action": "manual-review",
+            "affected_dependency_refs": [
+              "pkg:maven/log4j/log4j@1.2.15"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1"
+          }
+        ]
+      },
       "version": "1.2.15",
       "vulnerabilities": [
         {
@@ -3028,6 +3142,20 @@
       "name": "net.bull.javamelody:javamelody-core",
       "org": "net.bull.javamelody",
       "purl": "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "affected_dependency_refs": [
+              "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0"
+          }
+        ]
+      },
       "version": "1.59.0",
       "vulnerabilities": [
         {
@@ -3271,6 +3399,19 @@
       "name": "net.jpountz.lz4:lz4",
       "org": "net.jpountz.lz4",
       "purl": "pkg:maven/net.jpountz.lz4/lz4@1.2.0",
+      "remediation": {
+        "status": "unavailable",
+        "suggestions": [
+          {
+            "action": "no-fix-upstream",
+            "affected_dependency_refs": [
+              "pkg:maven/net.jpountz.lz4/lz4@1.2.0"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1"
+          }
+        ]
+      },
       "version": "1.2.0",
       "vulnerabilities": [
         {
@@ -3432,6 +3573,21 @@
       "name": "org.apache.commons:commons-lang3",
       "org": "org.apache.commons",
       "purl": "pkg:maven/org.apache.commons/commons-lang3@3.6",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:maven/org.apache.commons/commons-lang3@3.6"
+            ],
+            "manifest_path": "pom.xml",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:maven/org.apache.struts/struts2-core@2.5.13"
+          }
+        ]
+      },
       "version": "3.6",
       "vulnerabilities": [
         {
@@ -3548,6 +3704,21 @@
       "name": "org.apache.jackrabbit:jackrabbit-jcr-commons",
       "org": "org.apache.jackrabbit",
       "purl": "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@1.4",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@1.4"
+            ],
+            "manifest_path": "pom.xml",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator"
+          }
+        ]
+      },
       "version": "1.4",
       "vulnerabilities": [
         {
@@ -3648,6 +3819,19 @@
       "name": "org.apache.kafka:kafka_2.11",
       "org": "org.apache.kafka",
       "purl": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
+      "remediation": {
+        "status": "unavailable",
+        "suggestions": [
+          {
+            "action": "no-fix-upstream",
+            "affected_dependency_refs": [
+              "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1"
+          }
+        ]
+      },
       "version": "0.9.0.1",
       "vulnerabilities": [
         {
@@ -3737,6 +3921,21 @@
       "name": "org.apache.santuario:xmlsec",
       "org": "org.apache.santuario",
       "purl": "pkg:maven/org.apache.santuario/xmlsec@1.5.1",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:maven/org.apache.santuario/xmlsec@1.5.1"
+            ],
+            "manifest_path": "pom.xml",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final"
+          }
+        ]
+      },
       "version": "1.5.1",
       "vulnerabilities": [
         {
@@ -4081,6 +4280,19 @@
       "name": "org.apache.sling:org.apache.sling.api",
       "org": "org.apache.sling",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.api@2.0.4-incubator",
+      "remediation": {
+        "status": "partial",
+        "suggestions": [
+          {
+            "action": "manual-review",
+            "affected_dependency_refs": [
+              "pkg:maven/org.apache.sling/org.apache.sling.api@2.0.4-incubator"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator"
+          }
+        ]
+      },
       "version": "2.0.4-incubator",
       "vulnerabilities": [
         {
@@ -4306,6 +4518,20 @@
       "name": "org.apache.sling:org.apache.sling.engine",
       "org": "org.apache.sling",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "affected_dependency_refs": [
+              "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator"
+          }
+        ]
+      },
       "version": "2.0.4-incubator",
       "vulnerabilities": [
         {
@@ -4422,6 +4648,19 @@
       "name": "org.apache.struts:struts2-core",
       "org": "org.apache.struts",
       "purl": "pkg:maven/org.apache.struts/struts2-core@2.5.13",
+      "remediation": {
+        "status": "partial",
+        "suggestions": [
+          {
+            "action": "manual-review",
+            "affected_dependency_refs": [
+              "pkg:maven/org.apache.struts/struts2-core@2.5.13"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/org.apache.struts/struts2-core@2.5.13"
+          }
+        ]
+      },
       "version": "2.5.13",
       "vulnerabilities": [
         {
@@ -5377,6 +5616,21 @@
       "name": "org.apache.zookeeper:zookeeper",
       "org": "org.apache.zookeeper",
       "purl": "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "affected_dependency_refs": [
+              "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6"
+            ],
+            "manifest_path": "pom.xml",
+            "override_advice": "\u003cnormalized\u003e",
+            "suggested_action_dependency_ref": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1"
+          }
+        ]
+      },
       "version": "3.4.6",
       "vulnerabilities": [
         {
@@ -5713,6 +5967,19 @@
       "name": "org.keycloak:keycloak-saml-core",
       "org": "org.keycloak",
       "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
+      "remediation": {
+        "status": "partial",
+        "suggestions": [
+          {
+            "action": "manual-review",
+            "affected_dependency_refs": [
+              "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final"
+          }
+        ]
+      },
       "version": "1.8.1.final",
       "vulnerabilities": [
         {
@@ -6122,6 +6389,19 @@
       "name": "org.springframework:spring-beans",
       "org": "org.springframework",
       "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
+      "remediation": {
+        "status": "partial",
+        "suggestions": [
+          {
+            "action": "manual-review",
+            "affected_dependency_refs": [
+              "pkg:maven/org.springframework/spring-beans@3.1.1.release"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.release"
+          }
+        ]
+      },
       "version": "3.1.1.release",
       "vulnerabilities": [
         {
@@ -6287,6 +6567,19 @@
       "name": "org.springframework:spring-context",
       "org": "org.springframework",
       "purl": "pkg:maven/org.springframework/spring-context@3.1.1.release",
+      "remediation": {
+        "status": "partial",
+        "suggestions": [
+          {
+            "action": "manual-review",
+            "affected_dependency_refs": [
+              "pkg:maven/org.springframework/spring-context@3.1.1.release"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.release"
+          }
+        ]
+      },
       "version": "3.1.1.release",
       "vulnerabilities": [
         {
@@ -6480,6 +6773,19 @@
       "name": "org.springframework:spring-core",
       "org": "org.springframework",
       "purl": "pkg:maven/org.springframework/spring-core@3.1.1.release",
+      "remediation": {
+        "status": "partial",
+        "suggestions": [
+          {
+            "action": "manual-review",
+            "affected_dependency_refs": [
+              "pkg:maven/org.springframework/spring-core@3.1.1.release"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.release"
+          }
+        ]
+      },
       "version": "3.1.1.release",
       "vulnerabilities": [
         {
@@ -6876,6 +7182,19 @@
       "name": "org.springframework:spring-expression",
       "org": "org.springframework",
       "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
+      "remediation": {
+        "status": "partial",
+        "suggestions": [
+          {
+            "action": "manual-review",
+            "affected_dependency_refs": [
+              "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.release"
+          }
+        ]
+      },
       "version": "3.1.1.release",
       "vulnerabilities": [
         {
@@ -7159,6 +7478,19 @@
       "name": "org.springframework:spring-web",
       "org": "org.springframework",
       "purl": "pkg:maven/org.springframework/spring-web@3.1.1.release",
+      "remediation": {
+        "status": "partial",
+        "suggestions": [
+          {
+            "action": "manual-review",
+            "affected_dependency_refs": [
+              "pkg:maven/org.springframework/spring-web@3.1.1.release"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.release"
+          }
+        ]
+      },
       "version": "3.1.1.release",
       "vulnerabilities": [
         {
@@ -7759,6 +8091,19 @@
       "name": "org.xerial.snappy:snappy-java",
       "org": "org.xerial.snappy",
       "purl": "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7",
+      "remediation": {
+        "status": "partial",
+        "suggestions": [
+          {
+            "action": "manual-review",
+            "affected_dependency_refs": [
+              "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7"
+            ],
+            "manifest_path": "pom.xml",
+            "suggested_action_dependency_ref": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1"
+          }
+        ]
+      },
       "version": "1.1.1.7",
       "vulnerabilities": [
         {

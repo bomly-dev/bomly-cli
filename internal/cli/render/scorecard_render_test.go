@@ -27,14 +27,14 @@ func TestExplain_OmitsScorecardFromCompactText(t *testing.T) {
 	// The compact text format does not include scorecard blocks; that detail
 	// is available in JSON and Markdown output formats.
 	target := output.ExplainTargetResponse{
-		Dependency: output.PackageRef{
+		Dependency: output.ExplainDependency{PackageRef: output.PackageRef{
 			Name:    "logrus",
 			Version: "v1.9.0",
 			Scorecard: newTestScorecard("github.com/sirupsen/logrus", 8.2,
 				sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 9, Reason: "branch protection enabled"},
 				sdk.PackageScorecardCheck{Name: "Code-Review", Score: 2, Reason: "missing reviews"},
 			),
-		},
+		}},
 	}
 	var buf bytes.Buffer
 	if err := Explain(&buf, target); err != nil {
@@ -53,7 +53,7 @@ func TestExplain_OmitsScorecardFromCompactText(t *testing.T) {
 func TestExplain_OmitsScorecardWhenNil(t *testing.T) {
 	t.Parallel()
 	target := output.ExplainTargetResponse{
-		Dependency: output.PackageRef{Name: "logrus", Version: "v1.9.0"},
+		Dependency: output.ExplainDependency{PackageRef: output.PackageRef{Name: "logrus", Version: "v1.9.0"}},
 	}
 	var buf bytes.Buffer
 	if err := Explain(&buf, target); err != nil {

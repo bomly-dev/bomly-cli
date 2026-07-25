@@ -40,6 +40,7 @@ type CompactDiffResponse struct {
 	Summary       CompactDiffSummary    `json:"summary"`
 	SecurityDelta SecurityDelta         `json:"security_delta"`
 	Remediations  []RemediationGroup    `json:"remediations,omitempty"`
+	Informational []CompactFinding      `json:"informational,omitempty"`
 	Diagnostics   []Diagnostic          `json:"diagnostics,omitempty"`
 	Truncation    *TruncationInfo       `json:"truncation,omitempty"`
 	Hint          string                `json:"hint,omitempty"`
@@ -89,11 +90,13 @@ func BuildCompactDiff(run DiffRunResult) CompactDiffResponse {
 	response.SecurityDelta.Persisted = compactFindingList(run.Persisted, headInput, trunc)
 	response.SecurityDelta.Resolved = compactFindingList(run.Resolved, baseInput, trunc)
 
-	// Remediation context covers everything still open after merge.
+	// Remediation context covers every enriched head vulnerability. Audit
+	// findings overlay policy status for findings that remain open after merge.
 	open := append(append([]sdk.Finding{}, run.Introduced...), run.Persisted...)
-	headInput.Findings = open
+	headInput.Findings = remediationFindings(run.HeadRegistry, open, run.AuditRan)
 	remediation := buildRemediations(headInput)
 	response.Remediations = remediation.Remediations
+	response.Informational = remediation.Informational
 	mergeTruncation(trunc, remediation.Truncation)
 
 	if trunc.OmittedFindings > 0 || trunc.OmittedGroups > 0 || trunc.OmittedPackages > 0 || trunc.OmittedPaths > 0 {

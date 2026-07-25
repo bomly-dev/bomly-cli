@@ -141,6 +141,26 @@ func (d externalDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReq
 	return *resp, nil
 }
 
+func (d externalDetector) RemediationHints(ctx context.Context, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
+	if d.info.DetectorDescriptor == nil || len(d.info.DetectorDescriptor.RemediationCapabilities) == 0 {
+		return sdk.RemediationHintResponse{}, nil
+	}
+	ctx = launchContext(ctx, d.launchCtx)
+	client, err := startPlugin(ctx, d.info.Entrypoint, d.info.ID)
+	if err != nil {
+		return sdk.RemediationHintResponse{}, fmt.Errorf("start external detector remediation hints %s: %w", d.info.ID, err)
+	}
+	defer client.Close()
+	resp, err := client.Raw().DetectorRemediationHints(ctx, &req)
+	if err != nil {
+		return sdk.RemediationHintResponse{}, fmt.Errorf("run external detector remediation hints %s: %w", d.info.ID, err)
+	}
+	if resp == nil {
+		return sdk.RemediationHintResponse{}, nil
+	}
+	return *resp, nil
+}
+
 func newExternalDetector(info Info, ctx context.Context) sdk.Detector {
 	return externalDetector{info: info, launchCtx: launchContext(ctx, nil)}
 }

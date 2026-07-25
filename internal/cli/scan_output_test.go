@@ -1,9 +1,13 @@
 package cli
 
 import (
+	"encoding/json"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
+	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -47,5 +51,80 @@ func TestReportOptionsFromPipelineResultsDisabledOmitsAnalyzerMetadata(t *testin
 	})
 	if options.ReachabilityEnabled || len(options.AnalyzerRuns) > 0 || len(options.AnalyzerStats) > 0 {
 		t.Fatalf("disabled options should be empty: %#v", options)
+	}
+}
+
+func TestExplainPackageRefPlacesRemediationOnlyOnFocusedDependency(t *testing.T) {
+	const purl = "pkg:npm/example@1.0.0"
+	dependency := sdk.NewDependency(sdk.Dependency{
+		Coordinates: sdk.Coordinates{
+			PURL:    purl,
+			Name:    "example",
+			Version: "1.0.0",
+		},
+	})
+	registry := sdk.NewPackageRegistry()
+	registry.Add(&sdk.Package{
+		Coordinates: dependency.Coordinates,
+		Remediation: &sdk.PackageRemediation{
+			Status:             sdk.PackageRemediationComplete,
+			RecommendedVersion: "1.2.0",
+			Suggestions: []sdk.PackageRemediationSuggestion{
+				{
+					AffectedDependencyRefs:       []string{dependency.ID},
+					SuggestedActionDependencyRef: dependency.ID,
+					Action:                       sdk.RemediationActionDirectBump,
+				},
+				{
+					AffectedDependencyRefs: []string{"other-occurrence"},
+					Action:                 sdk.RemediationActionManualReview,
+				},
+			},
+		},
+	})
+
+	focused := explainPackageRef(dependency, registry)
+	if focused.Remediation == nil || focused.Remediation.RecommendedVersion != "1.2.0" {
+		t.Fatalf("focused remediation = %#v", focused.Remediation)
+	}
+	if len(focused.Remediation.Suggestions) != 1 ||
+		focused.Remediation.Suggestions[0].Action != sdk.RemediationActionDirectBump {
+		t.Fatalf("focused remediation suggestions = %#v", focused.Remediation.Suggestions)
+	}
+	paths := explainPathsWithStableIDs([]output.DependencyPath{{
+		Packages: []output.PackageRef{
+			output.PackageFromGraphPackage(dependency),
+		},
+	}})
+	pathData, err := json.Marshal(paths)
+	if err != nil {
+		t.Fatalf("Marshal(paths) error = %v", err)
+	}
+	if strings.Contains(string(pathData), `"remediation"`) {
+		t.Fatalf("path package repeated remediation: %s", pathData)
+	}
+
+	data, err := json.Marshal(output.BuildExplainResponse(
+		output.ProjectDescriptor{Name: "demo"},
+		"example",
+		[]output.ExplainTargetResponse{{
+			Dependency: focused,
+			Paths:      paths,
+		}},
+		time.Now(),
+	))
+	if err != nil {
+		t.Fatalf("Marshal() error = %v", err)
+	}
+	if got := strings.Count(string(data), `"remediation"`); got != 2 {
+		t.Fatalf("remediation occurrence count = %d, want flattened and target dependency only: %s", got, data)
+	}
+	encoded := string(data)
+	if !strings.Contains(encoded, `"affected_dependency_refs"`) ||
+		!strings.Contains(encoded, `"suggested_action_dependency_ref"`) {
+		t.Fatalf("explain remediation used unclear dependency reference names: %s", data)
+	}
+	if strings.Contains(encoded, `"target_dependency_ref"`) {
+		t.Fatalf("explain remediation retained obsolete dependency reference name: %s", data)
 	}
 }

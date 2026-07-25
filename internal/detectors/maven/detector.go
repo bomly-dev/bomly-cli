@@ -76,13 +76,14 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 // Descriptor describes the Maven graph detector.
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		IgnoredDirectories:   []string{"target"},
-		Name:                 detectors.NameMaven,
-		Technique:            sdk.BuildToolTechnique,
-		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemMaven},
-		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerMaven},
-		Tags:                 []string{"graph-resolution", "component-targeting", "wrapper-detection"},
-		SupportsInstallFirst: true,
+		IgnoredDirectories:      []string{"target"},
+		Name:                    detectors.NameMaven,
+		RemediationCapabilities: mavenRemediationCapabilities(),
+		Technique:               sdk.BuildToolTechnique,
+		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemMaven},
+		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerMaven},
+		Tags:                    []string{"graph-resolution", "component-targeting", "wrapper-detection"},
+		SupportsInstallFirst:    true,
 	}
 }
 

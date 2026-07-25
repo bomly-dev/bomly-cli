@@ -162,7 +162,7 @@ type ExplainResponse struct {
 	Command       string                  `json:"command"`
 	Project       ProjectDescriptor       `json:"project"`
 	Query         ExplainQuery            `json:"query"`
-	Dependency    PackageRef              `json:"dependency,omitempty"`
+	Dependency    ExplainDependency       `json:"dependency,omitempty"`
 	Paths         []DependencyPath        `json:"paths,omitempty"`
 	Findings      []AuditFinding          `json:"findings,omitempty"`
 	AuditSummary  *AuditSummary           `json:"audit_summary,omitempty"`
@@ -180,7 +180,7 @@ type ExplainTargetResponse struct {
 	Project        ProjectDescriptor  `json:"project"`
 	Detector       string             `json:"detector,omitempty"`
 	PackageManager sdk.PackageManager `json:"package_manager,omitempty"`
-	Dependency     PackageRef         `json:"dependency"`
+	Dependency     ExplainDependency  `json:"dependency"`
 	Paths          []DependencyPath   `json:"paths"`
 	Findings       []AuditFinding     `json:"findings,omitempty"`
 	AuditSummary   *AuditSummary      `json:"audit_summary,omitempty"`

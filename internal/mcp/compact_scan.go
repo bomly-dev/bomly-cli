@@ -12,8 +12,9 @@ const scanHint = "This is a compact remediation-focused view. Use bomly_explain 
 
 // BuildCompactScan projects a full scan run into the agent-facing compact
 // response: ranked remediation groups, informational findings, coverage
-// counts, and pipeline diagnostics. Without audit it returns a summary plus
-// a capped package inventory.
+// counts, and pipeline diagnostics. Enriched vulnerabilities produce
+// remediation even without audit; an unenriched, unaudited run returns a
+// summary plus a capped package inventory.
 func BuildCompactScan(run ScanRunResult) CompactScanResponse {
 	response := CompactScanResponse{
 		SchemaVersion: CompactSchemaVersion,
@@ -50,21 +51,13 @@ func BuildCompactScan(run ScanRunResult) CompactScanResponse {
 		AuditRan:           run.AuditRan,
 	}
 
-	if !run.AuditRan {
-		inventory, omitted := packageInventory(run.Response.Manifests)
-		response.Packages = inventory
-		if omitted > 0 {
-			response.Truncation = &TruncationInfo{
-				Truncated:       true,
-				OmittedPackages: omitted,
-				Note:            "package inventory capped; run `bomly scan --format json -o <file>` via the CLI for the full list",
-			}
-		}
+	if !run.AuditRan && !run.EnrichRan {
+		addPackageInventory(&response, run.Response.Manifests)
 		return response
 	}
 
 	result := buildRemediations(remediationInput{
-		Findings:            run.Findings,
+		Findings:            remediationFindings(run.Registry, run.Findings, run.AuditRan),
 		Graph:               run.Graph,
 		Registry:            run.Registry,
 		Manifests:           run.Response.Manifests,
@@ -75,20 +68,44 @@ func BuildCompactScan(run ScanRunResult) CompactScanResponse {
 	response.Truncation = result.Truncation
 
 	severityCounts := map[string]int{}
-	actionable := 0
+	actionableFindings := map[string]CompactFinding{}
 	for _, group := range result.Remediations {
-		actionable += len(group.Fixes)
 		for _, fix := range group.Fixes {
-			severityCounts[severityBucket(fix.Severity)]++
+			actionableFindings[compactFindingKey(fix)] = fix
 		}
 	}
+	informationalFindings := map[string]CompactFinding{}
 	for _, fix := range result.Informational {
+		informationalFindings[compactFindingKey(fix)] = fix
+	}
+	for _, fix := range actionableFindings {
+		severityCounts[severityBucket(fix.Severity)]++
+	}
+	for _, fix := range informationalFindings {
 		severityCounts[severityBucket(fix.Severity)]++
 	}
 	response.Summary.FindingsBySeverity = severityCounts
-	response.Summary.Actionable = actionable
-	response.Summary.Informational = len(result.Informational)
+	response.Summary.Actionable = len(actionableFindings)
+	response.Summary.Informational = len(informationalFindings)
+	if !run.AuditRan && len(vulnerablePackages) == 0 {
+		addPackageInventory(&response, run.Response.Manifests)
+	}
 	return response
+}
+
+func addPackageInventory(response *CompactScanResponse, manifests []output.ScanManifest) {
+	if response == nil {
+		return
+	}
+	inventory, omitted := packageInventory(manifests)
+	response.Packages = inventory
+	if omitted > 0 {
+		response.Truncation = &TruncationInfo{
+			Truncated:       true,
+			OmittedPackages: omitted,
+			Note:            "package inventory capped; run `bomly scan --format json -o <file>` via the CLI for the full list",
+		}
+	}
 }
 
 func severityBucket(severity string) string {

@@ -306,6 +306,86 @@ func vulnsForDependency(registry *sdk.PackageRegistry, dep *sdk.Dependency) []sd
 	return pkg.Vulnerabilities
 }
 
+func remediationForPURL(
+	registry *sdk.PackageRegistry,
+	purl string,
+	dependencyRefs ...string,
+) *sdk.PackageRemediation {
+	purl = strings.TrimSpace(purl)
+	if registry == nil || purl == "" {
+		return nil
+	}
+	pkg, ok := registry.Get(purl)
+	if !ok || pkg == nil {
+		return nil
+	}
+	remediation := pkg.Remediation.Clone()
+	if remediation == nil || len(dependencyRefs) == 0 {
+		return remediation
+	}
+	allowed := make(map[string]struct{}, len(dependencyRefs))
+	for _, ref := range dependencyRefs {
+		if ref = strings.TrimSpace(ref); ref != "" {
+			allowed[ref] = struct{}{}
+		}
+	}
+	filtered := make([]sdk.PackageRemediationSuggestion, 0, len(remediation.Suggestions))
+	for _, suggestion := range remediation.Suggestions {
+		include := false
+		for _, ref := range suggestion.AffectedDependencyRefs {
+			if _, ok := allowed[ref]; ok {
+				include = true
+				break
+			}
+		}
+		if include {
+			filtered = append(filtered, suggestion)
+		}
+	}
+	remediation.Suggestions = filtered
+	return remediation
+}
+
+func remediationSectionLines(remediation *sdk.PackageRemediation) []string {
+	if remediation == nil {
+		return nil
+	}
+	lines := []string{
+		render.Style("Remediation Suggestion", render.Bold, render.Cyan),
+		"",
+		render.Style("  Fix status: ", render.Dim) + render.RemediationStatusLabel(remediation.Status),
+	}
+	if remediation.RecommendedVersion != "" {
+		lines = append(lines,
+			render.Style("  Recommended version: ", render.Dim)+remediation.RecommendedVersion,
+		)
+	}
+	for _, suggestion := range remediation.Suggestions {
+		lines = append(lines,
+			render.Style("  Suggested action: ", render.Dim)+remediationActionLabel(suggestion.Action),
+		)
+		if suggestion.ManifestPath != "" {
+			lines = append(lines,
+				render.Style("  Manifest: ", render.Dim)+suggestion.ManifestPath,
+			)
+		}
+		if suggestion.OverrideAdvice != "" {
+			lines = append(lines,
+				render.Style("  Manager advice: ", render.Dim)+suggestion.OverrideAdvice,
+			)
+		}
+	}
+	return lines
+}
+
+func remediationActionLabel(action sdk.RemediationAction) string {
+	value := strings.ReplaceAll(strings.TrimSpace(string(action)), "-", " ")
+	if value == "" {
+		return "-"
+	}
+	return strings.ToUpper(value[:1]) + value[1:]
+}
+
 // licensesForDependency returns the matching-stage licenses for a dependency
 // when the registry has them; otherwise it falls back to the detection-time
 // licenses stashed on the dependency.

@@ -16,6 +16,10 @@ func TestCloneDetectorDescriptorDeepCopiesDiscoveryFields(t *testing.T) {
 		PackageManagerSupport: []plugschema.PackageManagerSupport{
 			plugschema.Support(plugschema.PackageManagerNPM, "package.json").WithMultiModule(),
 		},
+		RemediationCapabilities: []plugschema.RemediationCapability{{
+			SupportedManagers: []plugschema.PackageManager{plugschema.PackageManagerNPM},
+			Actions:           []plugschema.RemediationAction{plugschema.RemediationActionDirectBump},
+		}},
 	}
 	clone := cloneDetectorDescriptor(original)
 
@@ -35,11 +39,15 @@ func TestCloneDetectorDescriptorDeepCopiesDiscoveryFields(t *testing.T) {
 	clone.Aliases[0] = "mutated"
 	clone.Tags[0] = "mutated"
 	clone.PackageManagerSupport[0].EvidencePatterns[0] = "mutated"
+	clone.RemediationCapabilities[0].SupportedManagers[0] = plugschema.PackageManagerGoMod
+	clone.RemediationCapabilities[0].Actions[0] = plugschema.RemediationActionLockfileRefresh
 	if original.IgnoredDirectories[0] != "node_modules" ||
 		original.IgnoredDirectoryMarkers[0] != "pyvenv.cfg" ||
 		original.Aliases[0] != "example-alias" ||
 		original.Tags[0] != "dependency-detection" ||
-		original.PackageManagerSupport[0].EvidencePatterns[0] != "package.json" {
+		original.PackageManagerSupport[0].EvidencePatterns[0] != "package.json" ||
+		original.RemediationCapabilities[0].SupportedManagers[0] != plugschema.PackageManagerNPM ||
+		original.RemediationCapabilities[0].Actions[0] != plugschema.RemediationActionDirectBump {
 		t.Fatal("clone shares backing arrays with the original descriptor")
 	}
 }
@@ -105,7 +113,8 @@ func TestProtocolV1DetectorSnapshotDefaultsAbsentOptionalCapabilities(t *testing
 	descriptor := normalized.DetectorDescriptor
 	if descriptor.SupportsInstallFirst ||
 		len(descriptor.IgnoredDirectories) != 0 ||
-		len(descriptor.IgnoredDirectoryMarkers) != 0 {
+		len(descriptor.IgnoredDirectoryMarkers) != 0 ||
+		len(descriptor.RemediationCapabilities) != 0 {
 		t.Fatalf("absent optional capabilities did not retain safe defaults: %#v", descriptor)
 	}
 }

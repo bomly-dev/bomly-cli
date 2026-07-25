@@ -84,7 +84,8 @@ The confirmation prompt prevents accidental exits mid-scroll. Press `y` to confi
 
 ## Tips
 
-- Run with `--enrich --audit` to see vulnerability and finding views populated. Without `--enrich`, the Vulnerabilities and Findings tabs will be empty.
+- Run with `--enrich` to populate vulnerability details. Add `--audit` to populate policy findings.
+- When enrichment finds vulnerability fix evidence, select a package in the Components view. Its details pane shows a **Remediation Suggestion** section directly below **Vulnerabilities**. Fix status is shown as **Complete fix available**, **Partial fix available**, **No fix available**, or **Fix availability unknown**. The section may also include a recommended version, suggested actions, and package-manager advice. A suggestion is not a guarantee: viewing it does not change manifests or lockfiles, and you should check compatibility and test the project before applying an upgrade.
 - Use `Search` (`/`) to narrow a large monorepo quickly: `/api` shows only packages with `api` in the name.
 - Combine the Severity filter (`v`) with the Findings tab to triage the highest-impact items first.
 

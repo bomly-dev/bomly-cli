@@ -46,13 +46,14 @@ func (d LockfileDetector) Applicable(ctx context.Context, req sdk.DetectionReque
 // Descriptor describes the Yarn detector.
 func (d LockfileDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		IgnoredDirectories:   []string{"node_modules", "dist"},
-		Name:                 detectors.NameYarn,
-		Technique:            sdk.LockfileTechnique,
-		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemNPM},
-		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerYarn},
-		Tags:                 []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
-		SupportsInstallFirst: true,
+		IgnoredDirectories:      []string{"node_modules", "dist"},
+		Name:                    detectors.NameYarn,
+		RemediationCapabilities: yarnLockfileRemediationCapabilities(),
+		Technique:               sdk.LockfileTechnique,
+		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemNPM},
+		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerYarn},
+		Tags:                    []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
+		SupportsInstallFirst:    true,
 	}
 }
 

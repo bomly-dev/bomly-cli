@@ -90,13 +90,14 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 // Descriptor describes the Cargo detector.
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		IgnoredDirectories:   []string{"target"},
-		Name:                 detectors.NameCargo,
-		Technique:            sdk.LockfileTechnique,
-		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemRust},
-		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerCargo},
-		Tags:                 []string{"graph-resolution", "component-targeting", "module-graph", "scope-annotation"},
-		SupportsInstallFirst: true,
+		IgnoredDirectories:      []string{"target"},
+		Name:                    detectors.NameCargo,
+		RemediationCapabilities: cargoRemediationCapabilities(),
+		Technique:               sdk.LockfileTechnique,
+		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemRust},
+		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerCargo},
+		Tags:                    []string{"graph-resolution", "component-targeting", "module-graph", "scope-annotation"},
+		SupportsInstallFirst:    true,
 	}
 }
 

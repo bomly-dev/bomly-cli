@@ -46,13 +46,14 @@ func (d LockfileDetector) Applicable(ctx context.Context, req sdk.DetectionReque
 // Descriptor describes the pnpm detector.
 func (d LockfileDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		IgnoredDirectories:   []string{"node_modules", "dist"},
-		Name:                 detectors.NamePNPM,
-		Technique:            sdk.LockfileTechnique,
-		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemNPM},
-		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerPNPM},
-		Tags:                 []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
-		SupportsInstallFirst: true,
+		IgnoredDirectories:      []string{"node_modules", "dist"},
+		Name:                    detectors.NamePNPM,
+		RemediationCapabilities: pnpmLockfileRemediationCapabilities(),
+		Technique:               sdk.LockfileTechnique,
+		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemNPM},
+		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerPNPM},
+		Tags:                    []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
+		SupportsInstallFirst:    true,
 	}
 }
 

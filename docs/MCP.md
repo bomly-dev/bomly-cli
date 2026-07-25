@@ -95,9 +95,9 @@ Bomly registers four MCP tools.
 
 | Tool | Use it for | Required arguments | Optional arguments | Enrichment behavior |
 | --- | --- | --- | --- | --- |
-| `bomly_scan` | Scan a path, Git URL, container image, or SBOM and get a compact, remediation-grouped summary of what needs fixing. | None | `path`, `image`, `url`, `ref`, `enrich`, `audit`, `analyze`, policy arguments, `ecosystems`, `scope`, `recursive`, `max_depth`, `exclude` | Calls external matchers only when `enrich` is true. Pass `enrich` and `audit` together for a security review. |
-| `bomly_explain` | Drill into one package: dependency paths, full advisory detail, and concrete fix context. | `package` | `path`, `enrich`, `audit`, `analyze`, policy arguments, `recursive`, `max_depth`, `exclude` | Calls external matchers only when `enrich` is true. |
-| `bomly_diff` | Branch-aware security delta between two Git refs, container tags/digests, or SBOM files: what head fixes, introduces, and leaves open after merge. | `base`, `head` | `path`, `image`, `sbom`, `enrich`, `audit`, `analyze`, policy arguments, `recursive`, `max_depth`, `exclude` | Calls external matchers only when `enrich` is true. |
+| `bomly_scan` | Scan a path, Git URL, container image, or SBOM and return a compact dependency summary. | None | `path`, `image`, `url`, `ref`, `enrich`, `audit`, `analyze`, policy arguments, `ecosystems`, `scope`, `recursive`, `max_depth`, `exclude` | `enrich` adds vulnerabilities and remediation. `audit` adds policy results and requires `enrich`. |
+| `bomly_explain` | Show why one package is present, with full advisory details when enriched. | `package` | `path`, `enrich`, `audit`, `analyze`, policy arguments, `recursive`, `max_depth`, `exclude` | `enrich` adds vulnerabilities and remediation. `audit` adds policy results and requires `enrich`. |
+| `bomly_diff` | Compare dependencies between Git refs, container images, or SBOM files. | `base`, `head` | `path`, `image`, `sbom`, `enrich`, `audit`, `analyze`, policy arguments, `recursive`, `max_depth`, `exclude` | `enrich` adds head-side remediation. `audit` adds the policy finding delta and requires `enrich`. |
 | `bomly_plugins` | List built-in and installed external plugins with their enabled state. | None | None | Does not enrich package data. |
 
 MCP coverage matches Bomly CLI coverage: `bomly_scan`, `bomly_explain`, and `bomly_diff` use the same detector, matcher, auditor, and analyzer registry as the CLI. See [Support Matrix](SUPPORT_MATRIX.md) for the current ecosystem and package-manager list.
@@ -115,9 +115,14 @@ MCP tool results land in an agent's context window, so they use a compact respon
 
 `bomly_scan` returns:
 
-- **`summary`** — manifest/package counts, `subprojects` and `modules` counts for scans that span nested projects or workspace/reactor members (omitted for flat scans), vulnerable vs clean packages, findings by severity, and whether enrich/audit ran. Clean packages are counted, never listed. The full hierarchy is derived from `manifests[].subproject` + `path` in the complete CLI JSON document.
-- **`remediations`** — ranked groups, each one concrete change and every finding it closes: the direct dependency to change (`target_package`, full identity with org/scope and PURL), the manifest to edit, the version to move to, and an `action` (`direct-bump`, `transitive-override`, `lockfile-refresh`, `no-fix-upstream`, `policy-review`). Transitive cases carry package-manager-specific `override_advice` (npm `overrides`, pnpm `pnpm.overrides` / `pnpm-workspace.yaml`, yarn `resolutions`, Maven `dependencyManagement`, Gradle constraints, `go get` + `go mod tidy`, and so on). Groups are ranked by known-exploited (KEV) first, then severity, EPSS, and fixability.
-- **`informational`** — warning and policy-only findings, separated from actionable work.
+- **`summary`** — manifest/package counts, `subprojects` and `modules` counts for scans that span nested projects or workspace/reactor members (omitted for flat scans), vulnerable vs clean packages, findings by severity, and whether enrich/audit ran. A clean non-audited scan also returns a capped package inventory. The full hierarchy is derived from `manifests[].subproject` + `path` in the complete CLI JSON document.
+- **`remediations`** — possible changes for vulnerable packages. Each group names the package and, when known, the manifest to update. Bomly sorts the most urgent groups first. `recommended_version` appears only when the available data supports one complete recommendation.
+  - `direct-bump` means updating a package declared directly in the project.
+  - `transitive-override` means pinning an indirect package with the package manager's override feature.
+  - `lockfile-refresh` means asking the package manager to resolve a newer indirect package version.
+  - `no-fix-upstream` means the advisory source says no fixed version exists.
+  - `manual-review` means the available data does not support a specific change.
+- **`informational`** — findings that do not currently require a change. This includes warning-only findings and vulnerabilities allowed by audit policy or below the selected failure threshold.
 - **`diagnostics`** — pipeline warnings (detector fallbacks, matcher failures) so partial results explain themselves.
 - **`truncation`** — explicit counters whenever a cap cut anything; nothing is dropped silently.
 
@@ -125,10 +130,14 @@ Each finding carries advisory identifiers (`vuln_id`, aliases), severity, classi
 
 For the omitted detail:
 
-- **One package**: call `bomly_explain` with `enrich` (and `audit` for remediation context). Its response carries the package's full advisory records — descriptions, references, CVSS, affected ranges — bounded to that package.
+- **One package**: call `bomly_explain` with `enrich`. Its response carries the package's full advisory records and remediation context, bounded to that package. Add `audit` when you also need policy results; `audit` requires `enrich`.
 - **The complete document**: run the CLI (`bomly scan --format json -o <file>`). The MCP server intentionally never returns the full scan document; it does not fit tool-result limits on real projects.
 
-`bomly_diff` returns the same finding shape bucketed into a `security_delta` — `introduced` (new on head), `resolved` (closed when head merges), `persisted` (still open after merge) — keyed by advisory id independent of version bumps, plus remediation groups for everything still open. By default `base` and `head` are Git refs; set `image` to diff two container tags/digests, or `sbom: true` to diff two SBOM file paths (SPDX or CycloneDX), mirroring the CLI's `--image` and `--sbom` diff modes.
+With `enrich`, `bomly_diff` returns remediation groups for vulnerable packages
+on the head side. With `audit` (which requires `enrich`), it also returns findings bucketed into a
+`security_delta`: `introduced`, `resolved`, and `persisted`. By default `base`
+and `head` are Git refs; set `image` to compare two container tags or digests,
+or `sbom: true` to compare two SBOM files.
 
 ## Example Prompts
 

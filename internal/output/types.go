@@ -107,6 +107,19 @@ type PackageRef struct {
 	Direct *bool `json:"direct,omitempty"`
 }
 
+// ExplainDependency is the focused package in explain output. Remediation is
+// intentionally attached here rather than to PackageRef so dependency-path
+// entries and diff package changes do not repeat package-level enrichment.
+type ExplainDependency struct {
+	PackageRef
+	Remediation *sdk.PackageRemediation `json:"remediation,omitempty"`
+}
+
+func (p ExplainDependency) withoutReachability() ExplainDependency {
+	p.PackageRef = p.PackageRef.withoutReachability()
+	return p
+}
+
 // LocationRef points at where a package was declared in a lockfile
 // or manifest. Detectors populate this when their input format makes
 // position cheaply recoverable; consumers (SARIF / explain output /
@@ -577,19 +590,20 @@ func (d ScanDependency) PrimaryScope() string {
 // enrichment (licenses, vulnerabilities, scorecard, EOL, CPEs, digests) that
 // manifest dependencies reference by package_ref.
 type ScanPackageEntry struct {
-	Purl            string                `json:"purl"`
-	Name            string                `json:"name,omitempty"`
-	Org             string                `json:"org,omitempty"`
-	Version         string                `json:"version,omitempty"`
-	Ecosystem       string                `json:"ecosystem,omitempty"`
-	Matched         bool                  `json:"matched,omitempty"`
-	Licenses        []LicenseRef          `json:"licenses"`
-	Vulnerabilities []VulnerabilityRef    `json:"vulnerabilities"`
-	Scorecard       *sdk.PackageScorecard `json:"scorecard,omitempty"`
-	EOL             *sdk.PackageEOL       `json:"eol,omitempty"`
-	CPEs            []string              `json:"cpes,omitempty"`
-	Digests         []sdk.Digest          `json:"digests,omitempty"`
-	Metadata        map[string]any        `json:"metadata,omitempty"`
+	Purl            string                  `json:"purl"`
+	Name            string                  `json:"name,omitempty"`
+	Org             string                  `json:"org,omitempty"`
+	Version         string                  `json:"version,omitempty"`
+	Ecosystem       string                  `json:"ecosystem,omitempty"`
+	Matched         bool                    `json:"matched,omitempty"`
+	Licenses        []LicenseRef            `json:"licenses"`
+	Vulnerabilities []VulnerabilityRef      `json:"vulnerabilities"`
+	Scorecard       *sdk.PackageScorecard   `json:"scorecard,omitempty"`
+	EOL             *sdk.PackageEOL         `json:"eol,omitempty"`
+	Remediation     *sdk.PackageRemediation `json:"remediation,omitempty"`
+	CPEs            []string                `json:"cpes,omitempty"`
+	Digests         []sdk.Digest            `json:"digests,omitempty"`
+	Metadata        map[string]any          `json:"metadata,omitempty"`
 }
 
 func (p ScanPackageEntry) withoutReachability() ScanPackageEntry {
@@ -681,6 +695,7 @@ func PackagesFromRegistry(registry *sdk.PackageRegistry) []ScanPackageEntry {
 			Vulnerabilities: VulnerabilityRefsFromPackageVulnerabilities(pkg.Vulnerabilities),
 			Scorecard:       pkg.Scorecard.Clone(),
 			EOL:             pkg.EOL.Clone(),
+			Remediation:     pkg.Remediation.Clone(),
 			CPEs:            append([]string(nil), pkg.CPEs...),
 			Digests:         append([]sdk.Digest(nil), pkg.Digests...),
 			Metadata:        cloneRefMetadata(pkg.Metadata),

@@ -100,6 +100,10 @@ type DetectorDescriptor struct {
 	PackageManagerSupport []PackageManagerSupport `json:"packageManagerSupport,omitempty"`
 	FallbackDetectors     []string                `json:"fallbackDetectors,omitempty"`
 	SupportsInstallFirst  bool                    `json:"supportsInstallFirst,omitempty"`
+	// RemediationCapabilities advertises optional, read-only support for
+	// package-manager-specific remediation strategies. Core calls the optional
+	// provider only when this list is non-empty.
+	RemediationCapabilities []RemediationCapability `json:"remediationCapabilities,omitempty"`
 	// IgnoredDirectories lists directory basename globs (Go
 	// path.Match syntax) that recursive subproject discovery must not descend
 	// into because they hold third-party installs, vendored dependencies, or
@@ -112,6 +116,71 @@ type DetectorDescriptor struct {
 	// regardless of its name (e.g. "pyvenv.cfg" identifies a Python
 	// virtualenv). Optional; omitted by older plugins.
 	IgnoredDirectoryMarkers []string `json:"ignoredDirectoryMarkers,omitempty"`
+}
+
+// Clone returns a deep copy of the detector descriptor.
+func (d DetectorDescriptor) Clone() DetectorDescriptor {
+	clone := d
+	clone.Aliases = append([]string(nil), d.Aliases...)
+	clone.Tags = append([]string(nil), d.Tags...)
+	clone.SupportedEcosystems = append([]Ecosystem(nil), d.SupportedEcosystems...)
+	clone.SupportedManagers = append([]PackageManager(nil), d.SupportedManagers...)
+	clone.FallbackDetectors = append([]string(nil), d.FallbackDetectors...)
+	clone.IgnoredDirectories = append([]string(nil), d.IgnoredDirectories...)
+	clone.IgnoredDirectoryMarkers = append([]string(nil), d.IgnoredDirectoryMarkers...)
+	clone.PackageManagerSupport = make([]PackageManagerSupport, len(d.PackageManagerSupport))
+	for idx, support := range d.PackageManagerSupport {
+		clone.PackageManagerSupport[idx] = support
+		clone.PackageManagerSupport[idx].EvidencePatterns = append([]string(nil), support.EvidencePatterns...)
+	}
+	clone.RemediationCapabilities = make([]RemediationCapability, len(d.RemediationCapabilities))
+	for idx, capability := range d.RemediationCapabilities {
+		clone.RemediationCapabilities[idx] = capability
+		clone.RemediationCapabilities[idx].SupportedManagers = append([]PackageManager(nil), capability.SupportedManagers...)
+		clone.RemediationCapabilities[idx].Actions = append([]RemediationAction(nil), capability.Actions...)
+	}
+	return clone
+}
+
+// RemediationCapability advertises the occurrence-scoped strategies for which
+// a detector can provide package-manager-specific evidence. Capabilities do
+// not grant authority to choose final remediation or modify a project.
+type RemediationCapability struct {
+	SupportedManagers []PackageManager    `json:"supportedManagers,omitempty"`
+	Actions           []RemediationAction `json:"actions,omitempty"`
+}
+
+// RemediationHintRequest supplies completed detection and enrichment evidence
+// to an optional detector remediation provider.
+type RemediationHintRequest struct {
+	ProjectPath string           `json:"projectPath,omitempty"`
+	Detection   DetectionResult  `json:"detection"`
+	Registry    *PackageRegistry `json:"registry,omitempty"`
+}
+
+// RemediationStrategyHint is read-only detector evidence that a strategy is
+// available for one occurrence. Advice is detector-owned, action-specific
+// package-manager guidance. For example, a transitive-override hint can
+// explain the manager's override syntax, while a lockfile-refresh hint can
+// provide the normal refresh command. Core validates and bounds this text,
+// then retains authority over the final action.
+type RemediationStrategyHint struct {
+	Action RemediationAction `json:"action"`
+	Advice string            `json:"advice,omitempty"`
+}
+
+// RemediationHint contributes package-manager evidence for one detected
+// dependency occurrence.
+type RemediationHint struct {
+	DependencyRef string                    `json:"dependencyRef"`
+	ManifestPath  string                    `json:"manifestPath,omitempty"`
+	Strategies    []RemediationStrategyHint `json:"strategies,omitempty"`
+}
+
+// RemediationHintResponse contains optional read-only detector evidence.
+type RemediationHintResponse struct {
+	Hints       []RemediationHint `json:"hints,omitempty"`
+	Diagnostics []string          `json:"diagnostics,omitempty"`
 }
 
 // PackageManagerSupport records package-manager discovery metadata for a
@@ -163,6 +232,12 @@ type Detector interface {
 	Ready(context.Context, DetectionRequest) error
 	Applicable(context.Context, DetectionRequest) (bool, error)
 	ResolveGraph(context.Context, DetectionRequest) (DetectionResult, error)
+}
+
+// DetectorRemediationProvider optionally contributes read-only
+// package-manager evidence after vulnerability enrichment.
+type DetectorRemediationProvider interface {
+	RemediationHints(context.Context, RemediationHintRequest) (RemediationHintResponse, error)
 }
 
 // FallbackDetector optionally provides a fallback detector that should run when

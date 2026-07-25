@@ -48,13 +48,14 @@ func (d NativeDetector) Applicable(ctx context.Context, req sdk.DetectionRequest
 // Descriptor describes the Yarn CLI fallback detector.
 func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		IgnoredDirectories:   []string{"node_modules", "dist"},
-		Name:                 detectors.NameYarnNative,
-		Technique:            sdk.BuildToolTechnique,
-		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemNPM},
-		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerYarn},
-		Tags:                 []string{"graph-resolution", "component-targeting"},
-		SupportsInstallFirst: true,
+		IgnoredDirectories:      []string{"node_modules", "dist"},
+		Name:                    detectors.NameYarnNative,
+		RemediationCapabilities: yarnNativeRemediationCapabilities(),
+		Technique:               sdk.BuildToolTechnique,
+		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemNPM},
+		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerYarn},
+		Tags:                    []string{"graph-resolution", "component-targeting"},
+		SupportsInstallFirst:    true,
 	}
 }
 

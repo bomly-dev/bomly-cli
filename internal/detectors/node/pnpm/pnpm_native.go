@@ -48,13 +48,14 @@ func (d NativeDetector) Applicable(ctx context.Context, req sdk.DetectionRequest
 // Descriptor describes the pnpm CLI fallback detector.
 func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		IgnoredDirectories:   []string{"node_modules", "dist"},
-		Name:                 detectors.NamePNPMNative,
-		Technique:            sdk.BuildToolTechnique,
-		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemNPM},
-		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerPNPM},
-		Tags:                 []string{"graph-resolution", "component-targeting"},
-		SupportsInstallFirst: true,
+		IgnoredDirectories:      []string{"node_modules", "dist"},
+		Name:                    detectors.NamePNPMNative,
+		RemediationCapabilities: pnpmNativeRemediationCapabilities(),
+		Technique:               sdk.BuildToolTechnique,
+		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemNPM},
+		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerPNPM},
+		Tags:                    []string{"graph-resolution", "component-targeting"},
+		SupportsInstallFirst:    true,
 	}
 }
 

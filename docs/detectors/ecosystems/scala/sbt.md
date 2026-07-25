@@ -14,4 +14,5 @@ Bomly uses this chain when it finds `sbt` evidence.
 | Ignored directory markers | - |
 | Multi-module resolution | Yes |
 | Install-first support | No |
+| Remediation hints | None |
 | Native command hints | `sbt` |

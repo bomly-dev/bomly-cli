@@ -27,7 +27,7 @@ flowchart TD
     D --> E[Discover and index subprojects]
     E --> F[Run detector chains with requested scope]
     F --> G[Consolidate graph]
-    G --> H[Optional package enrichment]
+    G --> H[Optional package enrichment and remediation derivation]
     H --> I[Optional policy evaluation]
     I --> J[Render report or SBOM]
 ```
@@ -52,7 +52,7 @@ flowchart LR
     A[Runtime preparation]
     B[Subproject discovery]
     C[Detection: detector chains + graph consolidation]
-    F[Matchers]
+    F[Matchers: enrich, consolidate vulnerabilities, derive remediation]
     F2[Analyzers]
     G[Auditors]
     H[Output rendering]
@@ -65,7 +65,7 @@ Stage summary:
 1. Runtime preparation builds the filtered registry and execution plan.
 2. Subproject discovery finds supported package-manager roots for the target. By default only the execution-target root is inspected; `--recursive` walks nested directories (bounded by `--max-depth`, `--exclude`, and built-in ignore rules) and plans one subproject per directory-and-package-manager pair, with workspace-expanding managers pruned below ancestors that already cover them.
 3. Detection resolves a dependency graph per package manager and then consolidates the per-subproject graphs into the single graph and package registry the rest of the pipeline uses. When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it; all detector results pass through the shared SDK scope filter, and consolidation is the tail of this stage rather than a separate step.
-4. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
+4. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records. After vulnerability consolidation, `internal/remediation` derives package fix status and version, validates optional read-only detector hints, and creates occurrence-specific vulnerability suggestions. This is the tail of enrichment, not a separate stage.
 5. Analyzers run when `--analyze` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See [`../docs/REACHABILITY.md`](../docs/REACHABILITY.md) for ecosystem coverage and tier semantics.
 6. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. As the final part of that same audit stage, neutral policy-status resolvers may change only `Finding.PolicyStatus`; they never remove or rewrite finding evidence. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
 7. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
@@ -133,6 +133,45 @@ same behavior without owning global identity policy. Baseline construction
 repeats the identity normalization defensively for legacy or independently
 constructed registries.
 
+### Decision: vulnerability remediation is derived enrichment
+
+After vulnerability consolidation, `internal/remediation` replaces
+`sdk.Package.Remediation` with one canonical result. Package-level status is
+`complete`, `partial`, `unavailable`, or `unknown`. A recommended version is
+present only when every vulnerability has usable, compatible fix evidence.
+When versions can be compared, the recommendation must be newer than the
+installed package.
+
+The same component joins that package evidence to the complete detected graph
+and creates occurrence-specific suggestions. It selects only
+`direct-bump`, `transitive-override`, `lockfile-refresh`,
+`no-fix-upstream`, or `manual-review`. Unknown-parent and non-registry
+occurrences always use `manual-review`. Workspaces, aliases, duplicate
+versions, and separate manifests remain distinct through affected dependency
+references and manifest paths. Each suggestion separately names the dependency
+or manifest anchor that its action targets. When a legacy detector leaves
+relationship metadata empty,
+core infers direct or transitive placement from the shortest path to a real
+project root. A synthetic manifest root is never accepted as executable parent
+evidence.
+
+Detectors may advertise optional remediation capabilities and provide
+read-only occurrence hints after enrichment. Built-in and external detectors
+use the same additive protocol-v1 contract. Core validates each dependency
+ref, manifest path, package manager, and advertised strategy. Hints may explain
+manager syntax, but they cannot choose the version or final action. Each
+detector implementation owns its capability declaration and advice; registry
+wiring does not infer either one. Native and fallback implementations declare
+their support separately even when their package-manager syntax is identical.
+Plugins that omit the capability are not called and remain compatible.
+
+This work stays inside enrichment because it applies only to vulnerabilities.
+License and package-policy findings remain audit results; they do not receive
+remediation suggestions. Analysis and audit may add reachability
+or policy information to output, but neither changes canonical remediation.
+Derivation performs no additional network calls, subprocess execution, or
+filesystem writes.
+
 Pipeline plumbing: `engine.PipelineResult` exposes `Graph`, `Registry`, `Findings`, and `RiskScores`. The registry is built right after consolidation (`consolidation.BuildPackageRegistry`) and threaded through match/analyze/audit requests; output helpers (`BuildScanResponse`, `WriteSARIF`, `FindingsFromScan`, `PackagesFromGraph`) all accept `*sdk.PackageRegistry` and re-enrich their projections by resolving `PackageRef` and `VulnerabilityID`. See [`MODELS.md`](MODELS.md) for the full schema reference.
 
 ### Decision: finding policy-status resolution belongs inside audit
@@ -182,7 +221,7 @@ recoverable graph condition into a warning.
 
 The `--format json` `findings[]` projection now mirrors `sdk.Finding` exactly: an identity-only package ref (display name, org, version, purl), `vulnerability_id`, and `dependency_refs` — no embedded package object and no flat advisory copies. Advisory data lives once in `packages[]` and consumers join by PURL, the way SARIF always did; text/markdown/TUI renderers were converted to the same join. `DiffResponse` gained a `packages[]` collection (PURL-deduplicated union of base and head registries, head wins) so diff audit findings resolve the same way. Rationale: the embedded copies made findings-heavy scan JSON ~10x larger than the data it contained (issue #245) and let the projection drift from the domain model.
 
-The MCP server does not return the CLI JSON documents at all. Tool results land in an agent's context window and MCP clients truncate large results to errors, so `bomly_scan` / `bomly_diff` / `bomly_explain` return compact projections (`schema_version "mcp/1"`, `internal/mcp/types_compact.go`) built from the pipeline's domain data: findings classified by actionability, grouped by the concrete remediation that closes them (direct bump / transitive override with per-package-manager advice / lockfile refresh / no fix upstream), ranked KEV → severity → EPSS → fixability, and hard-capped with explicit truncation counters. `bomly_explain` is the bounded drill-down (full advisory detail for one package); the CLI is the artifact channel for complete documents. The former `bomly_vuln_fix_context` tool was folded into these responses. Shortest dependency paths come from a bounded upward BFS over `Graph.Dependents`, never `CollectPathsTo` (all simple paths is exponential on dense graphs).
+The MCP server does not return the CLI JSON documents at all. Tool results land in an agent's context window and MCP clients truncate large results to errors, so `bomly_scan` / `bomly_diff` / `bomly_explain` return compact projections (`schema_version "mcp/1"`, `internal/mcp/types_compact.go`) built from the pipeline's domain data. MCP projects canonical package remediation suggestions; it does not select actions, versions, or package-manager advice. Groups are ranked KEV → severity → EPSS → fixability and hard-capped with explicit truncation counters. Audit may overlay policy status on matching vulnerability entries but cannot create or change suggestions. `bomly_explain` is the bounded drill-down (full advisory detail for one package); the CLI is the artifact channel for complete documents. The former `bomly_vuln_fix_context` tool was folded into these responses. Shortest dependency paths come from a bounded upward BFS over `Graph.Dependents`, never `CollectPathsTo` (all simple paths is exponential on dense graphs).
 
 ### Decision: Recursive discovery prunes native multi-module roots per package manager
 

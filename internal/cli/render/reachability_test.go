@@ -157,7 +157,7 @@ func TestDiffTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 func TestExplainTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 	target := output.ExplainTargetResponse{
 		Project: output.ProjectDescriptor{Name: "demo"},
-		Dependency: output.PackageRef{
+		Dependency: output.ExplainDependency{PackageRef: output.PackageRef{
 			Name: "lib",
 			Vulnerabilities: []output.VulnerabilityRef{{
 				ID:           "CVE-2024-0001",
@@ -165,7 +165,7 @@ func TestExplainTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 				Severity:     "high",
 				Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
 			}},
-		},
+		}},
 		Findings: []output.AuditFinding{{
 			ID:              "CVE-2024-0001",
 			VulnerabilityID: "CVE-2024-0001",

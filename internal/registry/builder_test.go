@@ -76,6 +76,32 @@ func TestBuildScanRegistryKeepsNativeDetectorFirstForNativeManagers(t *testing.T
 	}
 }
 
+func TestBuildScanRegistryAdvertisesBuiltInRemediationCapabilities(t *testing.T) {
+	builtins := NewRegistry(Configs{}, *zap.NewNop())
+	builtins.Build()
+
+	detectors := builtins.Detectors(sdk.DetectionRequest{
+		Ecosystem:      sdk.EcosystemNPM,
+		PackageManager: sdk.PackageManagerNPM,
+	})
+	if len(detectors) == 0 {
+		t.Fatal("expected npm detector")
+	}
+	capabilities := detectors[0].Descriptor().RemediationCapabilities
+	if len(capabilities) == 0 {
+		t.Fatal("npm detector did not advertise remediation capabilities")
+	}
+	if !slices.Contains(capabilities[0].Actions, sdk.RemediationActionDirectBump) ||
+		!slices.Contains(capabilities[0].Actions, sdk.RemediationActionTransitiveOverride) {
+		t.Fatalf("npm remediation capabilities = %#v", capabilities)
+	}
+	capabilities[0].Actions[0] = sdk.RemediationActionLockfileRefresh
+	fresh := detectors[0].Descriptor().RemediationCapabilities
+	if len(fresh) == 0 || fresh[0].Actions[0] == sdk.RemediationActionLockfileRefresh {
+		t.Fatalf("detector descriptor shared remediation capability slices: %#v", fresh)
+	}
+}
+
 func TestBuildScanRegistryRegistersContainerDiscoveryPlanForSyft(t *testing.T) {
 	builtins := NewRegistry(Configs{}, *zap.NewNop())
 	builtins.Build()

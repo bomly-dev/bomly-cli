@@ -42,6 +42,7 @@ func (d PipDetector) Descriptor() sdk.DetectorDescriptor {
 		IgnoredDirectories:      []string{"__pycache__"},
 		IgnoredDirectoryMarkers: []string{"pyvenv.cfg"},
 		Name:                    detectors.NamePip,
+		RemediationCapabilities: pipRemediationCapabilities(),
 		Technique:               sdk.BuildToolTechnique,
 		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemPython},
 		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerPip},

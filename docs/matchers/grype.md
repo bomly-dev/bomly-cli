@@ -46,6 +46,16 @@ Grype reads from a local vulnerability database that it syncs on first use and r
 
 The DB sync is the only network call Grype makes. Once synced, matching is local. Bomly's enrichment cache does not wrap Grype calls -- Grype manages its own cache.
 
+## OS packages (apk / dpkg / rpm)
+
+Grype matches OS packages through per-distro advisory namespaces, so a package only matches when Bomly can tell Grype which distro it came from. Bomly reads that from the `distro=` PURL qualifier Syft records while cataloguing the image (plus the `upstream=` qualifier, so advisories filed against a source package -- an Alpine origin package, a Debian source package, a source RPM -- match the binary packages built from it).
+
+```bash
+bomly scan --image alpine:3.20 --enrich --matchers grype
+```
+
+That qualifier is present for container-image scans and for SBOMs generated from an image. A hand-written PURL without it (`pkg:apk/openssl@3.0.8-r0`) has no distro to match against and reports nothing -- there is no distro-independent advisory feed for OS packages to fall back on.
+
 ## Output fields
 
 Each `vulnerabilities[]` entry on a package carries:
@@ -80,6 +90,6 @@ GRYPE_DB_AUTO_UPDATE=false bomly-lite scan --enrich
 ## Limitations
 
 - **Grype's container-image strength does not transfer to source scans.** Grype was designed to scan container images; on source trees, OSV-class matching is usually equal or better.
-- **Linux distro matching** (Alpine apk, Debian dpkg, RHEL rpm) is Grype's strongest suit and a primary reason to keep it in the default matcher set for container scans.
+- **Linux distro matching** (Alpine apk, Debian dpkg, RHEL rpm) is Grype's strongest suit and a primary reason to keep it in the default matcher set for container scans. It needs the distro the package came from; see [OS packages](#os-packages-apk--dpkg--rpm) for when that is available.
 - **`bomly-lite` requires the right `grype` version on `PATH`.** The full `bomly` binary pins a known-compatible version; the lite binary uses whatever is installed and may exhibit different behavior.
 - **DB freshness is your responsibility in offline environments.** A multi-day-old DB will miss new advisories.

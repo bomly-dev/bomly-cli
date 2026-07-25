@@ -122,9 +122,9 @@ func graphPkgToGrypePkg(p *sdk.Package) grypepkg.Package {
 //
 // apk, dpkg, and rpm are typed here but currently reach Grype without a distro
 // (graphPkgToGrypePkg sets no Distro, and FindMatches gets an empty package
-// Context), and Grype's OS matchers are distro-namespace driven. They are
-// listed because the mapping exists; matching them needs the distro plumbed
-// through first.
+// Context), and Grype's OS matchers are distro-namespace driven, so they match
+// nothing today — see issue #316. They are listed because the mapping exists;
+// the declaration becomes accurate once the distro is plumbed through.
 var supportedEcosystems = []sdk.Ecosystem{
 	sdk.EcosystemNPM,
 	sdk.EcosystemMaven,

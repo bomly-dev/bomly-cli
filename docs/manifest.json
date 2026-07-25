@@ -141,6 +141,12 @@
       "group": "operations"
     },
     {
+      "slug": "ci-readiness",
+      "title": "CI-readiness hints",
+      "description": "Spot package-manager, lockfile-format, and install-policy mismatches that fail CI regardless of findings.",
+      "group": "operations"
+    },
+    {
       "slug": "bomly-guard",
       "title": "Bomly Guard",
       "description": "The turnkey GitHub Action that gates pull requests on dependency changes via `bomly diff`.",

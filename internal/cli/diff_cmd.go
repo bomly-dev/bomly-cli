@@ -149,6 +149,8 @@ func newDiffCmd() *cobra.Command {
 			allResults := append(append([]sdk.DetectionResult{}, diffResult.Base.ResolveResults...), diffResult.Head.ResolveResults...)
 			resolutionWarnings = append(resolutionWarnings, diffResult.Base.DetectorWarnings...)
 			resolutionWarnings = append(resolutionWarnings, diffResult.Head.DetectorWarnings...)
+			resolutionWarnings = append(resolutionWarnings, diffResult.Base.CIWarnings...)
+			resolutionWarnings = append(resolutionWarnings, diffResult.Head.CIWarnings...)
 			detectionChildren := detectorProgressChildren(allResults)
 			detectionChildren = append(detectionChildren, warningProgressChildren(resolutionWarnings)...)
 			prog.CompleteStep("Detected Dependencies", detectionChildren)

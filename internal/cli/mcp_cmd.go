@@ -345,6 +345,7 @@ func mcpDiagnosticsFromPipeline(pipeResult engine.PipelineResult) []mcp.Diagnost
 		}
 	}
 	appendWarnings("detect", pipeResult.DetectorWarnings)
+	appendWarnings("ci-readiness", pipeResult.CIWarnings)
 	appendWarnings("match", pipeResult.MatchWarnings)
 	appendWarnings("analyze", pipeResult.AnalyzeWarnings)
 	appendWarnings("audit", pipeResult.AuditWarnings)

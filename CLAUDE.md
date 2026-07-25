@@ -81,6 +81,8 @@ internal/sbom/                   SPDX 2.3 / CycloneDX codec
 internal/benchmark/              Hidden local dependency-graph benchmark, baseline scoring,
                                  and embedded smoke/benchmark repository presets
 internal/output/                 Text, JSON, SARIF 2.1.0, SBOM rendering + schema generation
+internal/engine/ciready/         CI-readiness inspection: package-manager, lockfile-format, and
+                                 install-policy mismatch hints (Inspector, Diagnostic)
 internal/engine/diff/            Diff pipeline orchestration and audit delta classification
 internal/engine/explain/         Dependency path traversal (explain command)
 internal/engine/scan/            Scan command pipeline API
@@ -90,7 +92,7 @@ internal/testutil/               Test helpers (fake binary builder)
 
 **`bomly explain`** is implemented by `newExplainCmd` in `internal/cli/explain_cmd.go`.
 
-**Scan pipeline order**: `runtimePreparation → subprojectDiscovery (root-only by default; --recursive walks nested dirs) → detect (per-package-manager chains; resolve + consolidate into one graph) → scopeFilter → match (package enrichment, vulnerability consolidation, and remediation derivation) → analyze (reachability, when --analyze is set) → audit (including finding policy-status resolution) → format`. Consolidation is the tail of detect (`runDetect` = `runResolve` + `runConsolidate`), and remediation derivation is the tail of enrichment; neither is a separate stage.
+**Scan pipeline order**: `runtimePreparation → subprojectDiscovery (root-only by default; --recursive walks nested dirs) → detect (per-package-manager chains; resolve + consolidate into one graph) → ciReadiness (local package-manager/lockfile/install-gate hints) → scopeFilter → match (package enrichment, vulnerability consolidation, and remediation derivation) → analyze (reachability, when --analyze is set) → audit (including finding policy-status resolution) → format`. Consolidation is the tail of detect (`runDetect` = `runResolve` + `runConsolidate`), and remediation derivation is the tail of enrichment; neither is a separate stage.
 
 Runtime preparation is owned by `internal/engine` and is reached through CLI option helpers before pipeline execution. The CLI resolves raw targets and flags but must not discover subprojects with a separate registry.
 
@@ -101,8 +103,8 @@ Runtime preparation is owned by `internal/engine` and is reached through CLI opt
 - `internal/baseline` owns the baseline document and matching implementation. It depends on `sdk` policy contracts and must not be imported by `sdk` or `internal/engine`.
 - `internal/remediation` owns canonical vulnerability remediation decisions. Detectors may supply validated read-only strategy hints, but they do not choose final actions or versions.
 - `internal/registry` owns package-manager discovery, support lookups, and built-in wiring in `builder.go`. Do not create a separate `registrybuilder` package.
-- `internal/engine` (pipeline core) may import `internal/engine/consolidation`, `internal/engine/explain`, `internal/detectors`, and `internal/registry`.
-- `internal/engine` subpackages (`consolidation`, `diff`, `explain`, `scan`) must not import `internal/cli`.
+- `internal/engine` (pipeline core) may import `internal/engine/ciready`, `internal/engine/consolidation`, `internal/engine/explain`, `internal/detectors`, and `internal/registry`.
+- `internal/engine` subpackages (`ciready`, `consolidation`, `diff`, `explain`, `scan`) must not import `internal/cli`.
 - `internal/config`, `internal/selector`, `internal/progress`, `internal/cli/render`, `internal/tui` must not import `internal/cli`. They are downstream of cobra wiring; cli consumes them, not the reverse.
 - `internal/tui` may import `internal/cli/render` (for ANSI primitives, text helpers, and shared sort/format helpers used by both the TUI and the text reports).
 - `cmd/bomly/main.go` is the only file outside `internal/cli` that imports `internal/cli`.

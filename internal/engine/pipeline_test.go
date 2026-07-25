@@ -3,6 +3,8 @@ package engine
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -1016,5 +1018,47 @@ func TestPipelineWarningsFromError_JoinedErrors(t *testing.T) {
 	}
 	if warnings[1].Source != "grype" || warnings[1].Message != "not ready" {
 		t.Errorf("warning[1] = %+v", warnings[1])
+	}
+}
+
+func TestPipeline_Run_ReportsCIReadinessHints(t *testing.T) {
+	dir := t.TempDir()
+	// minimumReleaseAge is detected from config alone, so the hint does not
+	// depend on which package managers happen to be on the test machine's PATH.
+	if err := os.WriteFile(filepath.Join(dir, "pnpm-workspace.yaml"), []byte("packages:\n  - packages/*\nminimumReleaseAge: 1440\n"), 0o600); err != nil {
+		t.Fatalf("write pnpm-workspace.yaml: %v", err)
+	}
+
+	registry := newTestRegistry()
+	graph := sdk.New()
+	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "pnpm-lockfile", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerPNPM}},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "pnpm-lock.yaml", Kind: "pnpm-lock.yaml"})},
+	})
+
+	pipeline := NewPipeline(registry, zap.NewNop())
+	result, err := pipeline.Run(context.Background(), PipelineRequest{
+		Subprojects: []Subproject{{
+			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: dir},
+			RelativePath:            ".",
+			PrimaryDetector:         "pnpm-lockfile",
+			DetectedPackageManagers: []PackageManager{PackageManagerPNPM},
+			Ecosystem:               EcosystemNPM,
+		}},
+	})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if len(result.CIWarnings) != 1 {
+		t.Fatalf("expected 1 ci-readiness warning, got %+v", result.CIWarnings)
+	}
+	if result.CIWarnings[0].Source != "pnpm" || !strings.Contains(result.CIWarnings[0].Message, "minimumReleaseAge=1440") {
+		t.Fatalf("unexpected ci-readiness warning: %+v", result.CIWarnings[0])
+	}
+	if len(result.DetectorWarnings) != 0 {
+		t.Fatalf("ci-readiness hints must not be reported as detector warnings: %+v", result.DetectorWarnings)
 	}
 }

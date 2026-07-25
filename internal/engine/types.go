@@ -78,13 +78,16 @@ type PipelineResult struct {
 	Findings         []sdk.Finding
 	RiskScores       []sdk.RiskScore
 	DetectorWarnings []PipelineWarning
-	AuditWarnings    []PipelineWarning
-	MatchWarnings    []PipelineWarning
-	AnalyzeWarnings  []PipelineWarning
-	MatcherStats     []sdk.MatcherStats
-	AuditorRuns      []string
-	AnalyzerRuns     []string
-	AuditorFindings  map[string]int
-	AnalyzerStats    map[string]sdk.ReachabilityStats
-	PartialErrors    error
+	// CIWarnings are CI-readiness hints: package-manager, lockfile-format, and
+	// install-policy mismatches that break a CI install regardless of findings.
+	CIWarnings      []PipelineWarning
+	AuditWarnings   []PipelineWarning
+	MatchWarnings   []PipelineWarning
+	AnalyzeWarnings []PipelineWarning
+	MatcherStats    []sdk.MatcherStats
+	AuditorRuns     []string
+	AnalyzerRuns    []string
+	AuditorFindings map[string]int
+	AnalyzerStats   map[string]sdk.ReachabilityStats
+	PartialErrors   error
 }

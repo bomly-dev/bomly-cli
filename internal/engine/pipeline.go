@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/engine/ciready"
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
 	"github.com/bomly-dev/bomly-cli/internal/remediation"
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -52,6 +53,7 @@ func (p *Pipeline) RunPreAudit(ctx context.Context, req PipelineRequest) (Pipeli
 	if err := p.runDetect(ctx, &result, req); err != nil {
 		return result, err
 	}
+	p.runCIReadiness(ctx, &result, req)
 	p.runMatch(ctx, &result, req)
 	p.runAnalyze(ctx, &result, req)
 	return result, nil
@@ -196,6 +198,28 @@ func fallbackWarningMessage(result sdk.DetectionResult) string {
 	}
 	fmt.Fprintf(&b, "%s — fell back to %s (transitive dependencies may be missing)", reason, result.DetectorName)
 	return b.String()
+}
+
+// runCIReadiness inspects package-manager configuration around each subproject
+// for mismatches and install gates that fail a CI install even when no
+// vulnerability remains (lockfile format vs the manager on PATH, a Corepack or
+// engines pin CI enforces, pnpm's minimumReleaseAge). It is read-only,
+// network-free, and never fails the pipeline.
+func (p *Pipeline) runCIReadiness(ctx context.Context, result *PipelineResult, req PipelineRequest) {
+	started := time.Now()
+	diagnostics := ciready.Inspector{Logger: p.Logger}.Inspect(ctx, req.Subprojects)
+	for _, diagnostic := range diagnostics {
+		p.Logger.Warn("pipeline: ci-readiness hint",
+			zap.String("source", diagnostic.Source),
+			zap.String("message", diagnostic.Message),
+		)
+		result.CIWarnings = append(result.CIWarnings, PipelineWarning{Source: diagnostic.Source, Message: diagnostic.Message})
+	}
+	p.Logger.Info("pipeline: ci-readiness inspection completed",
+		zap.Int("subprojects", len(req.Subprojects)),
+		zap.Int("hints", len(diagnostics)),
+		zap.Duration("duration", time.Since(started)),
+	)
 }
 
 func (p *Pipeline) runConsolidate(result *PipelineResult) error {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/config"
+	"github.com/bomly-dev/bomly-cli/internal/engine"
 )
 
 func TestApplyStringOverride(t *testing.T) {
@@ -123,5 +124,22 @@ func TestValidatedCloneWithOverridesRejectsInvalidCombinations(t *testing.T) {
 	}
 	if _, err := adapter.validatedCloneWithOverrides(mcpOverrides{TyposquatThreshold: "not-a-number"}); err == nil {
 		t.Fatal("expected non-numeric typosquat threshold to fail validation")
+	}
+}
+
+func TestMCPDiagnosticsFromPipelineTagsCIReadinessStage(t *testing.T) {
+	diagnostics := mcpDiagnosticsFromPipeline(engine.PipelineResult{
+		DetectorWarnings: []engine.PipelineWarning{{Source: "npm-native", Message: "fell back"}},
+		CIWarnings:       []engine.PipelineWarning{{Source: "pnpm", Message: "pnpm-lock.yaml is format version 9.0"}},
+	})
+	var stages []string
+	for _, diagnostic := range diagnostics {
+		stages = append(stages, diagnostic.Stage+"/"+diagnostic.Source)
+	}
+	if len(diagnostics) != 2 {
+		t.Fatalf("expected 2 diagnostics, got %v", stages)
+	}
+	if diagnostics[1].Stage != "ci-readiness" || diagnostics[1].Source != "pnpm" {
+		t.Fatalf("unexpected ci-readiness diagnostic: %+v", diagnostics[1])
 	}
 }

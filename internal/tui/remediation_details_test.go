@@ -33,8 +33,8 @@ func TestComponentDetailsShowPackageRemediation(t *testing.T) {
 	}, listPackageRow{displayName: "package-lock.json"})
 	plain := render.StripANSI(strings.Join(lines, "\n"))
 	for _, want := range []string{
-		"Remediation",
-		"Remediation status: Complete",
+		"Remediation Suggestion",
+		"Fix status: Complete fix available",
 		"Recommended version: 1.2.0",
 		"Suggested action: Direct bump",
 		"Manifest: package-lock.json",
@@ -44,13 +44,13 @@ func TestComponentDetailsShowPackageRemediation(t *testing.T) {
 		}
 	}
 	vulnerabilitiesIndex := strings.Index(plain, "Vulnerabilities")
-	remediationIndex := strings.Index(plain, "Remediation\n")
+	remediationIndex := strings.Index(plain, "Remediation Suggestion\n")
 	licensesIndex := strings.Index(plain, "Licenses")
 	if vulnerabilitiesIndex < 0 || remediationIndex <= vulnerabilitiesIndex ||
 		licensesIndex <= remediationIndex {
 		t.Fatalf("remediation section must follow vulnerabilities and precede licenses:\n%s", plain)
 	}
-	assertOneBlankBeforeSection(t, lines, "Remediation")
+	assertOneBlankBeforeSection(t, lines, "Remediation Suggestion")
 	assertOneBlankBeforeSection(t, lines, "Licenses (0)")
 }
 
@@ -68,16 +68,16 @@ func TestDiffComponentDetailsShowPackageRemediation(t *testing.T) {
 		},
 	})
 	plain := render.StripANSI(strings.Join(lines, "\n"))
-	if !strings.Contains(plain, "Remediation status: Unavailable") {
+	if !strings.Contains(plain, "Fix status: No fix available") {
 		t.Fatalf("diff component details omitted remediation:\n%s", plain)
 	}
 	if strings.Contains(plain, "Recommended version:") {
 		t.Fatalf("unavailable remediation displayed a recommendation:\n%s", plain)
 	}
-	if vulnerabilitiesIndex, remediationIndex := strings.Index(plain, "Vulnerabilities"), strings.Index(plain, "Remediation\n"); vulnerabilitiesIndex < 0 || remediationIndex <= vulnerabilitiesIndex {
+	if vulnerabilitiesIndex, remediationIndex := strings.Index(plain, "Vulnerabilities"), strings.Index(plain, "Remediation Suggestion\n"); vulnerabilitiesIndex < 0 || remediationIndex <= vulnerabilitiesIndex {
 		t.Fatalf("diff remediation section must follow vulnerabilities:\n%s", plain)
 	}
-	assertOneBlankBeforeSection(t, lines, "Remediation")
+	assertOneBlankBeforeSection(t, lines, "Remediation Suggestion")
 }
 
 func assertOneBlankBeforeSection(t *testing.T, lines []string, section string) {

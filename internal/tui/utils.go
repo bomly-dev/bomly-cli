@@ -350,14 +350,10 @@ func remediationSectionLines(remediation *sdk.PackageRemediation) []string {
 	if remediation == nil {
 		return nil
 	}
-	status := string(remediation.Status)
-	if status != "" {
-		status = strings.ToUpper(status[:1]) + status[1:]
-	}
 	lines := []string{
-		render.Style("Remediation", render.Bold, render.Cyan),
+		render.Style("Remediation Suggestion", render.Bold, render.Cyan),
 		"",
-		render.Style("  Remediation status: ", render.Dim) + valueOrDash(status),
+		render.Style("  Fix status: ", render.Dim) + render.RemediationStatusLabel(remediation.Status),
 	}
 	if remediation.RecommendedVersion != "" {
 		lines = append(lines,

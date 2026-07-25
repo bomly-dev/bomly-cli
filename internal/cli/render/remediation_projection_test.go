@@ -49,7 +49,7 @@ func TestExplainTextAndMarkdownShowRemediationAfterVulnerabilities(t *testing.T)
 	}
 	textValue := text.String()
 	for _, want := range []string{
-		"1 remediation suggestion for 1 of 1 vulnerable package",
+		"1 fix suggestion for 1 of 1 vulnerable package",
 		"Run again with --format json to see remediation details",
 	} {
 		if !strings.Contains(textValue, want) {
@@ -61,14 +61,14 @@ func TestExplainTextAndMarkdownShowRemediationAfterVulnerabilities(t *testing.T)
 			t.Fatalf("text remediation summary included detail %q:\n%s", unwanted, textValue)
 		}
 	}
-	if vulnerabilityIndex, remediationIndex := strings.Index(strings.ToLower(textValue), "vulnerabilities"), strings.Index(strings.ToLower(textValue), "remediation suggestion"); vulnerabilityIndex < 0 || remediationIndex <= vulnerabilityIndex {
+	if vulnerabilityIndex, remediationIndex := strings.Index(strings.ToLower(textValue), "vulnerabilities"), strings.Index(strings.ToLower(textValue), "fix suggestion"); vulnerabilityIndex < 0 || remediationIndex <= vulnerabilityIndex {
 		t.Fatalf("text remediation summary must follow vulnerabilities:\n%s", textValue)
 	}
 
 	markdownValue := markdown.String()
 	for _, want := range []string{
 		"## Remediation",
-		"1 remediation suggestion for 1 of 1 vulnerable package",
+		"1 fix suggestion for 1 of 1 vulnerable package",
 		"9.9.9",
 		"Direct bump",
 		"example@1.0.0",
@@ -115,7 +115,7 @@ func TestScanTextSummaryFollowsEnrichmentAndMarkdownShowsDetails(t *testing.T) {
 		t.Fatalf("ScanMarkdown() error = %v", err)
 	}
 	wantTextBlock := "✓ Enriched via Example Matcher\n\n" +
-		"✓ 1 remediation suggestion for 1 of 1 vulnerable package.\n" +
+		"✓ 1 fix suggestion for 1 of 1 vulnerable package.\n" +
 		"  Run again with --format json to see remediation details.\n\n"
 	if !strings.Contains(text, wantTextBlock) {
 		t.Fatalf("text remediation summary is not separated from enrichment:\n%s", text)
@@ -127,7 +127,7 @@ func TestScanTextSummaryFollowsEnrichmentAndMarkdownShowsDetails(t *testing.T) {
 	}
 	for _, want := range []string{
 		"## Remediation",
-		"1 remediation suggestion for 1 of 1 vulnerable package",
+		"1 fix suggestion for 1 of 1 vulnerable package",
 		"example@1.0.0",
 		"Direct bump",
 	} {
@@ -167,7 +167,7 @@ func TestDiffTextAndMarkdownShowHeadRemediationAfterFindings(t *testing.T) {
 		t.Fatalf("DiffMarkdown() error = %v", err)
 	}
 	for _, want := range []string{
-		"1 remediation suggestion for 1 of 1 vulnerable package",
+		"1 fix suggestion for 1 of 1 vulnerable package",
 		"Run again with --format json to see remediation details",
 	} {
 		if !strings.Contains(text.String(), want) {
@@ -179,7 +179,7 @@ func TestDiffTextAndMarkdownShowHeadRemediationAfterFindings(t *testing.T) {
 	}
 	for _, want := range []string{
 		"## Remediation",
-		"1 remediation suggestion for 1 of 1 vulnerable package",
+		"1 fix suggestion for 1 of 1 vulnerable package",
 		"example@1.0.0",
 	} {
 		if !strings.Contains(markdown.String(), want) {
@@ -226,7 +226,7 @@ func TestRemediationTextSummarizesAllSuggestionsAndPointsToJSON(t *testing.T) {
 
 	text := remediationText(pkg)
 	for _, want := range []string{
-		"22 remediation suggestions for 1 of 1 vulnerable package",
+		"22 fix suggestions for 1 of 1 vulnerable package",
 		"Run again with --format json to see remediation details",
 	} {
 		if !strings.Contains(text, want) {
@@ -237,6 +237,77 @@ func TestRemediationTextSummarizesAllSuggestionsAndPointsToJSON(t *testing.T) {
 		if strings.Contains(text, unwanted) {
 			t.Fatalf("remediation text included suggestion detail %q:\n%s", unwanted, text)
 		}
+	}
+}
+
+func TestRemediationSummaryCountsOnlyConcreteFixSuggestions(t *testing.T) {
+	packages := []output.ScanPackageEntry{
+		remediationReportEntry(
+			"complete",
+			sdk.PackageRemediationComplete,
+			sdk.RemediationActionDirectBump,
+		),
+		remediationReportEntry(
+			"partial",
+			sdk.PackageRemediationPartial,
+			sdk.RemediationActionManualReview,
+		),
+		remediationReportEntry(
+			"unavailable",
+			sdk.PackageRemediationUnavailable,
+			sdk.RemediationActionNoFixUpstream,
+		),
+		remediationReportEntry(
+			"unknown",
+			sdk.PackageRemediationUnknown,
+			sdk.RemediationActionManualReview,
+		),
+	}
+
+	text := StripANSI(remediationText(packages))
+	if !strings.Contains(text, "1 fix suggestion for 1 of 4 vulnerable packages") {
+		t.Fatalf("text summary counted non-fix guidance:\n%s", text)
+	}
+
+	markdown := strings.Join(remediationMarkdown(packages), "\n")
+	for _, want := range []string{
+		"1 fix suggestion for 1 of 4 vulnerable packages",
+		"Complete fix available",
+		"Partial fix available",
+		"No fix available",
+		"Fix availability unknown",
+	} {
+		if !strings.Contains(markdown, want) {
+			t.Fatalf("Markdown remediation missing %q:\n%s", want, markdown)
+		}
+	}
+
+	nonFixText := StripANSI(remediationText(packages[1:]))
+	if !strings.Contains(nonFixText, "No fix suggestions available for 3 vulnerable packages") {
+		t.Fatalf("non-fix summary is misleading:\n%s", nonFixText)
+	}
+	if strings.Contains(nonFixText, "✓") {
+		t.Fatalf("non-fix summary used a success mark:\n%s", nonFixText)
+	}
+}
+
+func remediationReportEntry(
+	name string,
+	status sdk.PackageRemediationStatus,
+	action sdk.RemediationAction,
+) output.ScanPackageEntry {
+	return output.ScanPackageEntry{
+		Purl:            "pkg:npm/" + name + "@1.0.0",
+		Name:            name,
+		Version:         "1.0.0",
+		Vulnerabilities: []output.VulnerabilityRef{{ID: "GHSA-" + name}},
+		Remediation: &sdk.PackageRemediation{
+			Status: status,
+			Suggestions: []sdk.PackageRemediationSuggestion{{
+				AffectedDependencyRefs: []string{name + "@1.0.0"},
+				Action:                 action,
+			}},
+		},
 	}
 }
 

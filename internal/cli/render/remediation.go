@@ -11,7 +11,8 @@ import (
 
 type remediationReport struct {
 	vulnerablePackages int
-	coveredPackages    int
+	fixablePackages    int
+	fixSuggestions     int
 	rows               []remediationRow
 }
 
@@ -40,8 +41,8 @@ func buildRemediationReport(packages []output.ScanPackageEntry) remediationRepor
 		if pkg.Remediation == nil || len(pkg.Remediation.Suggestions) == 0 {
 			continue
 		}
-		report.coveredPackages++
 		label := remediationPackageLabel(pkg)
+		hasFixSuggestion := false
 		for _, suggestion := range pkg.Remediation.Suggestions {
 			report.rows = append(report.rows, remediationRow{
 				packageLabel:       label,
@@ -52,9 +53,28 @@ func buildRemediationReport(packages []output.ScanPackageEntry) remediationRepor
 				manifestPath:       suggestion.ManifestPath,
 				advice:             suggestion.OverrideAdvice,
 			})
+			if pkg.Remediation.Status == sdk.PackageRemediationComplete &&
+				isConcreteFixAction(suggestion.Action) {
+				report.fixSuggestions++
+				hasFixSuggestion = true
+			}
+		}
+		if hasFixSuggestion {
+			report.fixablePackages++
 		}
 	}
 	return report
+}
+
+func isConcreteFixAction(action sdk.RemediationAction) bool {
+	switch action {
+	case sdk.RemediationActionDirectBump,
+		sdk.RemediationActionTransitiveOverride,
+		sdk.RemediationActionLockfileRefresh:
+		return true
+	default:
+		return false
+	}
 }
 
 func remediationPackageLabel(pkg output.ScanPackageEntry) string {
@@ -71,11 +91,18 @@ func remediationPackageLabel(pkg output.ScanPackageEntry) string {
 }
 
 func remediationSummary(report remediationReport) string {
+	if report.fixSuggestions == 0 {
+		return fmt.Sprintf(
+			"No fix suggestions available for %d vulnerable %s.",
+			report.vulnerablePackages,
+			pluralWord(report.vulnerablePackages, "package", "packages"),
+		)
+	}
 	return fmt.Sprintf(
 		"%d %s for %d of %d vulnerable %s.",
-		len(report.rows),
-		pluralWord(len(report.rows), "remediation suggestion", "remediation suggestions"),
-		report.coveredPackages,
+		report.fixSuggestions,
+		pluralWord(report.fixSuggestions, "fix suggestion", "fix suggestions"),
+		report.fixablePackages,
 		report.vulnerablePackages,
 		pluralWord(report.vulnerablePackages, "package", "packages"),
 	)
@@ -93,7 +120,13 @@ func remediationText(packages []output.ScanPackageEntry) string {
 	if len(report.rows) == 0 {
 		return ""
 	}
-	return Style("✓ "+remediationSummary(report), Green) + "\n" +
+	icon := Style("✓", Green)
+	summaryStyle := Green
+	if report.fixSuggestions == 0 {
+		icon = Style("ℹ", Cyan)
+		summaryStyle = Cyan
+	}
+	return icon + " " + Style(remediationSummary(report), summaryStyle) + "\n" +
 		Style("  Run again with --format json to see remediation details.", Dim)
 }
 
@@ -102,12 +135,16 @@ func remediationMarkdown(packages []output.ScanPackageEntry) []string {
 	if len(report.rows) == 0 {
 		return nil
 	}
-	lines := []string{"✅ " + remediationSummary(report), ""}
+	icon := "✅"
+	if report.fixSuggestions == 0 {
+		icon = "ℹ️"
+	}
+	lines := []string{icon + " " + remediationSummary(report), ""}
 	rows := make([][]string, 0, len(report.rows))
 	for _, row := range report.rows {
 		rows = append(rows, []string{
 			row.packageLabel,
-			remediationStatusLabel(row.status),
+			RemediationStatusLabel(row.status),
 			ValueOrDash(row.recommendedVersion),
 			remediationActionText(row.action),
 			ValueOrDash(row.actionTarget),
@@ -121,12 +158,20 @@ func remediationMarkdown(packages []output.ScanPackageEntry) []string {
 	)...)
 }
 
-func remediationStatusLabel(status sdk.PackageRemediationStatus) string {
-	value := strings.TrimSpace(string(status))
-	if value == "" {
-		return "-"
+// RemediationStatusLabel describes package fix coverage in plain language.
+func RemediationStatusLabel(status sdk.PackageRemediationStatus) string {
+	switch status {
+	case sdk.PackageRemediationComplete:
+		return "Complete fix available"
+	case sdk.PackageRemediationPartial:
+		return "Partial fix available"
+	case sdk.PackageRemediationUnavailable:
+		return "No fix available"
+	case sdk.PackageRemediationUnknown:
+		return "Fix availability unknown"
+	default:
+		return "Fix availability unknown"
 	}
-	return strings.ToUpper(value[:1]) + value[1:]
 }
 
 func remediationActionText(action sdk.RemediationAction) string {

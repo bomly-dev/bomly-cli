@@ -159,6 +159,14 @@ vulnerabilities:
   won't-fix.
 - `unknown` means evidence is missing or contradictory.
 
+Machine-readable output keeps these compact enum values. Human-facing
+surfaces render them as `Complete fix available`, `Partial fix available`,
+`No fix available`, and `Fix availability unknown`. Summary counts include
+only complete packages with a concrete `direct-bump`,
+`transitive-override`, or `lockfile-refresh` suggestion. Manual review and
+no-fix guidance remain visible in detailed output but are not counted as fix
+suggestions.
+
 `Suggestions` joins that package result to dependency occurrences:
 
 ```go

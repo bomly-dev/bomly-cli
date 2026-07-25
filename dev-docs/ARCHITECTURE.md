@@ -369,6 +369,13 @@ Python build-tool inspection can accidentally read the wrong environment: `pip i
 
 The smoke/benchmark Python targets rely on the fast-paths for determinism: `scan-python-poetry` uses the committed `poetry.lock` fast-path, and `scan-python-pip` commits a `requirements.lock`. The venv isolation remains the correctness backstop for real-world pip projects scanned without a committed lock.
 
+Two consequences of inspecting an environment rather than reading a manifest:
+
+- **Shape is reconstructed, not reported.** `pip inspect` returns a flat installed set. Edges come from each distribution's `requires_dist`; the direct set comes from the names the project's own requirements files declare, plus the installer's `REQUESTED` marker for what those files cannot name (`-r` includes, environments populated by another front-end). Anything left without a parent is re-parented onto the root so the graph keeps a single root. Treating every installed distribution as direct — the pre-fix behavior — reported pure transitives as top-level dependencies.
+- **`pip inspect` needs pip ≥ 22.2.** `python -m venv` seeds the virtualenv from the ambient interpreter, so an old system Python yields a venv that cannot inspect itself. Bomly upgrades pip inside its own temp venv (isolated, and already network-bound for the install); if that cannot run, the detector fails with the pip version and the requirement named, which surfaces through the fallback notice instead of a bare `exit status 1`.
+
+Python roots are named, not labeled `root`: `pyproject.toml`'s project name, else the subproject directory, else the scanned repository, else the project directory. Bomly's own `bomly-git-*` clone directories are never used — they are random per run.
+
 ### Decision: detector fallbacks are loud, annotated degradations
 
 When a build-tool-primary detector (Maven, Gradle, Go, …) cannot produce a graph and its `sdk.FallbackDetector` succeeds instead, the scan silently loses transitive resolution — the exact capability the primary exists for. That degradation is now first-class provenance rather than a Debug-only log line:

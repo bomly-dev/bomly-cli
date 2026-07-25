@@ -114,7 +114,7 @@ resolution.
 | --- | --- | --- |
 | Lockfile parser | `+"`npm-detector`"+`, `+"`pnpm-detector`"+`, `+"`bundler-detector`"+`, `+"`composer-detector`"+`, `+"`nuget-detector`"+`, `+"`github-actions-detector`"+`, SBOM ingest | None — pure file parse |
 | Lockfile-first hybrid | `+"`cargo-detector`"+`, `+"`poetry-detector`"+`, `+"`uv-detector`"+` | None when the lockfile is present; the build-tool fallback uses `+"`--locked`"+` / `+"`--no-sync`"+` to stay offline |
-| `+"`pip inspect`"+` | `+"`pip-detector`"+`, `+"`pipenv-detector`"+` | None — reads the local Python environment |
+| `+"`pip inspect`"+` | `+"`pip-detector`"+`, `+"`pipenv-detector`"+` | None when a lockfile is present; otherwise **may download** while populating the isolated environment it inspects |
 | Build-tool primary | `+"`go-detector`"+`, `+"`maven-detector`"+`, `+"`gradle-detector`"+`, `+"`sbt-native-detector`"+` | **May download** uncached artifacts during normal resolution |
 
 The build-tool-primary detectors invoke commands you would already run locally (`+"`go list`"+`, `+"`mvn dependency:tree`"+`, `+"`gradle dependencies`"+`, `+"`sbt dependencyTree`"+`). Whether they hit the network is a property of those tools and your local cache state, not a Bomly choice. To keep these scans fully offline, pre-warm the local cache (`+"`go mod download`"+`, `+"`mvn dependency:go-offline`"+`, etc.) or commit a lockfile when the ecosystem supports one.

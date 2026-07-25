@@ -45,9 +45,29 @@ func main() {
 		}
 		return
 	}
+	if len(args) >= 3 && args[0] == "-m" && args[1] == "pip" && args[2] == "--version" {
+		version := os.Getenv("BOMLY_FAKE_PIP_VERSION")
+		if version == "" {
+			version = "24.0"
+		}
+		if strings.Contains(os.Args[0], "bomly-pyvenv-") {
+			if upgraded := os.Getenv("BOMLY_FAKE_PIP_UPGRADED_VERSION"); upgraded != "" {
+				if _, err := os.Stat(os.Getenv("BOMLY_FAKE_PYTHON_UPGRADE_LOG")); err == nil {
+					version = upgraded
+				}
+			}
+		}
+		fmt.Printf("pip %s from /fake/pip (python 3.12)\n", version)
+		return
+	}
 	if len(args) >= 3 && args[0] == "-m" && args[1] == "pip" && args[2] == "install" {
-		if logPath := os.Getenv("BOMLY_FAKE_PYTHON_INSTALL_LOG"); logPath != "" {
-			_ = os.WriteFile(logPath, []byte(strings.Join(args, " ")), 0o644)
+		logPath := os.Getenv("BOMLY_FAKE_PYTHON_INSTALL_LOG")
+		joined := strings.Join(args, " ")
+		if strings.Contains(joined, "--upgrade pip") {
+			logPath = os.Getenv("BOMLY_FAKE_PYTHON_UPGRADE_LOG")
+		}
+		if logPath != "" {
+			_ = os.WriteFile(logPath, []byte(joined), 0o644)
 		}
 		return
 	}
@@ -84,7 +104,7 @@ func TestPipDetectorDoesNotReturnAmbientPipAuditEnvironment(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(projectDir, "requirements.txt"), []byte("fastapi==0.139.0\nPyJWT==1.7.1\necdsa==0.19.2\nurllib3==1.26.5\n"), 0o644); err != nil {
 		t.Fatalf("write requirements.txt: %v", err)
 	}
-	installLog := setupFakePython(t, ambientPipAuditInspect, projectRequirementsInspect)
+	logs := setupFakePython(t, ambientPipAuditInspect, projectRequirementsInspect)
 	t.Cleanup(func() { _ = os.RemoveAll(pythonVenvDir(projectDir)) })
 
 	result, err := (PipDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
@@ -103,7 +123,7 @@ func TestPipDetectorDoesNotReturnAmbientPipAuditEnvironment(t *testing.T) {
 	if _, ok := graph.Node("pip-audit@2.9.0"); ok {
 		t.Fatalf("ambient pip-audit dependency leaked into project graph: %s", graph.PrettyString())
 	}
-	if raw, err := os.ReadFile(installLog); err != nil || !strings.Contains(string(raw), "pip install -r requirements.txt") {
+	if raw, err := os.ReadFile(logs.install); err != nil || !strings.Contains(string(raw), "pip install -r requirements.txt") {
 		t.Fatalf("expected isolated pip install to run, log=%q err=%v", string(raw), err)
 	}
 	resolution := result.Graphs.Entries[0].Manifest.Resolution
@@ -169,7 +189,14 @@ func TestPoetryAndUVFailWithoutLockfile(t *testing.T) {
 	}
 }
 
-func setupFakePython(t *testing.T, ambientInspect, venvInspect string) string {
+// fakePythonLogs records where the fake interpreter writes the commands it was
+// asked to run, so tests can assert which install steps actually happened.
+type fakePythonLogs struct {
+	install string
+	upgrade string
+}
+
+func setupFakePython(t *testing.T, ambientInspect, venvInspect string) fakePythonLogs {
 	t.Helper()
 	binDir := t.TempDir()
 	binaryName := "python"
@@ -179,10 +206,78 @@ func setupFakePython(t *testing.T, ambientInspect, venvInspect string) string {
 	if err := testutil.BuildGoBinary(t, filepath.Join(binDir, binaryName), fakePythonSource); err != nil {
 		t.Fatalf("build fake python: %v", err)
 	}
-	installLog := filepath.Join(t.TempDir(), "install.log")
+	logDir := t.TempDir()
+	logs := fakePythonLogs{
+		install: filepath.Join(logDir, "install.log"),
+		upgrade: filepath.Join(logDir, "upgrade.log"),
+	}
 	t.Setenv("PATH", binDir)
 	t.Setenv("BOMLY_FAKE_AMBIENT_INSPECT", ambientInspect)
 	t.Setenv("BOMLY_FAKE_VENV_INSPECT", venvInspect)
-	t.Setenv("BOMLY_FAKE_PYTHON_INSTALL_LOG", installLog)
-	return installLog
+	t.Setenv("BOMLY_FAKE_PYTHON_INSTALL_LOG", logs.install)
+	t.Setenv("BOMLY_FAKE_PYTHON_UPGRADE_LOG", logs.upgrade)
+	return logs
+}
+
+// TestPipDetectorUpgradesPipTooOldForInspect covers issue #274: `pip inspect`
+// landed in pip 22.2, and a venv seeded from an old ambient interpreter
+// (macOS system Python 3.9 ships pip 21.x) inherits its pip.
+func TestPipDetectorUpgradesPipTooOldForInspect(t *testing.T) {
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "requirements.txt"), []byte("fastapi==0.139.0\n"), 0o644); err != nil {
+		t.Fatalf("write requirements.txt: %v", err)
+	}
+	logs := setupFakePython(t, ambientPipAuditInspect, projectRequirementsInspect)
+	t.Setenv("BOMLY_FAKE_PIP_VERSION", "21.2.4")
+	t.Setenv("BOMLY_FAKE_PIP_UPGRADED_VERSION", "25.1.1")
+	t.Cleanup(func() { _ = os.RemoveAll(pythonVenvDir(projectDir)) })
+
+	if _, err := (PipDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir}); err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	raw, err := os.ReadFile(logs.upgrade)
+	if err != nil || !strings.Contains(string(raw), "pip install --upgrade pip") {
+		t.Fatalf("expected pip to be upgraded inside the venv, log=%q err=%v", string(raw), err)
+	}
+}
+
+// TestPipDetectorReportsUnsupportedPipVersion asserts the failure names the
+// version and the requirement instead of a bare "exit status 1".
+func TestPipDetectorReportsUnsupportedPipVersion(t *testing.T) {
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "requirements.txt"), []byte("fastapi==0.139.0\n"), 0o644); err != nil {
+		t.Fatalf("write requirements.txt: %v", err)
+	}
+	setupFakePython(t, ambientPipAuditInspect, projectRequirementsInspect)
+	// The upgrade "succeeds" but leaves pip at the same version, e.g. an
+	// offline mirror pinning an old release.
+	t.Setenv("BOMLY_FAKE_PIP_VERSION", "21.2.4")
+	t.Cleanup(func() { _ = os.RemoveAll(pythonVenvDir(projectDir)) })
+
+	_, err := (PipDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	if err == nil {
+		t.Fatal("expected ResolveGraph to fail on a pip too old for `pip inspect`")
+	}
+	for _, want := range []string{"21.2.4", "22.2", "pip inspect"} {
+		if !strings.Contains(err.Error(), want) {
+			t.Fatalf("error %q does not mention %q", err, want)
+		}
+	}
+}
+
+func TestPipSupportsInspect(t *testing.T) {
+	tests := map[string]bool{
+		"21.2.4":     false,
+		"22.1.2":     false,
+		"22.2":       true,
+		"22.3.1":     true,
+		"25.1.1":     true,
+		"":           true,
+		"weird-fork": true,
+	}
+	for version, want := range tests {
+		if got := pipSupportsInspect(version); got != want {
+			t.Errorf("pipSupportsInspect(%q) = %v, want %v", version, got, want)
+		}
+	}
 }

@@ -812,6 +812,7 @@ func detectorDescriptorEqual(left, right *plugschema.DetectorDescriptor) bool {
 	return componentDescriptorEqual(componentFromDetectorDescriptor(*left), componentFromDetectorDescriptor(*right)) &&
 		left.Technique == right.Technique &&
 		packageManagerSupportEqual(left.PackageManagerSupport, right.PackageManagerSupport) &&
+		remediationCapabilitiesEqual(left.RemediationCapabilities, right.RemediationCapabilities) &&
 		slices.Equal(left.FallbackDetectors, right.FallbackDetectors) &&
 		left.SupportsInstallFirst == right.SupportsInstallFirst
 }
@@ -855,16 +856,21 @@ func cloneDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugsch
 	if descriptor == nil {
 		return nil
 	}
-	copyValue := *descriptor
-	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
-	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
-	copyValue.PackageManagerSupport = clonePackageManagerSupport(descriptor.PackageManagerSupport)
-	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
-	copyValue.Tags = append([]string(nil), descriptor.Tags...)
-	copyValue.FallbackDetectors = append([]string(nil), descriptor.FallbackDetectors...)
-	copyValue.IgnoredDirectories = append([]string(nil), descriptor.IgnoredDirectories...)
-	copyValue.IgnoredDirectoryMarkers = append([]string(nil), descriptor.IgnoredDirectoryMarkers...)
+	copyValue := descriptor.Clone()
 	return &copyValue
+}
+
+func remediationCapabilitiesEqual(left, right []plugschema.RemediationCapability) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for idx := range left {
+		if !slices.Equal(left[idx].SupportedManagers, right[idx].SupportedManagers) ||
+			!slices.Equal(left[idx].Actions, right[idx].Actions) {
+			return false
+		}
+	}
+	return true
 }
 
 func normalizeDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugschema.DetectorDescriptor {

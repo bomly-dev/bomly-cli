@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
+	"github.com/bomly-dev/bomly-cli/internal/remediation"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
@@ -301,14 +302,71 @@ func (p *Pipeline) runMatch(ctx context.Context, result *PipelineResult, req Pip
 		zap.Int("eligible_packages", eligible),
 		zap.Int("excluded_packages", result.Graph.Size()-eligible))
 	p.match(ctx, result, req)
+	if req.EnrichEnabled {
+		detectors := remediationDetectorsByName(p.Registry.AllDetectors())
+		for _, warning := range remediation.Derive(ctx, remediation.Input{
+			ProjectPath: req.ProjectPath,
+			Registry:    result.Registry,
+			Manifests:   result.Consolidated.Manifests,
+			Detections:  result.ResolveResults,
+			Detectors:   detectors,
+		}) {
+			result.MatchWarnings = append(result.MatchWarnings, PipelineWarning{
+				Source:  warning.Source,
+				Message: warning.Message,
+			})
+			p.Logger.Warn("pipeline: detector remediation evidence rejected",
+				zap.String("detector", warning.Source),
+				zap.String("reason", warning.Message))
+		}
+	}
+	remediationPackages, remediationSuggestions := remediationCounts(result.Registry)
 	p.Logger.Info("pipeline: enrichment completed",
 		zap.Int("matchers", len(result.MatcherStats)),
 		zap.Int("warnings", len(result.MatchWarnings)),
+		zap.Int("remediation_packages", remediationPackages),
+		zap.Int("remediation_suggestions", remediationSuggestions),
 		zap.Duration("duration", time.Since(started)),
 	)
 	if req.Progress != nil {
 		req.Progress.CompleteStage("Enriching packages", 1)
 	}
+}
+
+func remediationCounts(registry *sdk.PackageRegistry) (packages, suggestions int) {
+	if registry == nil {
+		return 0, 0
+	}
+	for _, pkg := range registry.All() {
+		if pkg == nil || pkg.Remediation == nil {
+			continue
+		}
+		packages++
+		suggestions += len(pkg.Remediation.Suggestions)
+	}
+	return packages, suggestions
+}
+
+func remediationDetectorsByName(detectors []sdk.Detector) map[string]sdk.Detector {
+	result := make(map[string]sdk.Detector)
+	var add func(sdk.Detector)
+	add = func(detector sdk.Detector) {
+		if detector == nil {
+			return
+		}
+		name := detector.Descriptor().Name
+		if _, exists := result[name]; exists {
+			return
+		}
+		result[name] = detector
+		if provider, ok := detector.(sdk.FallbackDetector); ok {
+			add(provider.FallbackDetector())
+		}
+	}
+	for _, detector := range detectors {
+		add(detector)
+	}
+	return result
 }
 
 // runAnalyze runs the reachability analyzer stage when --analyze is

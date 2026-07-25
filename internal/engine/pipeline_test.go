@@ -19,6 +19,18 @@ func (f fakeFallbackDetector) FallbackDetector() Detector {
 	return f.fallback
 }
 
+type fakeRemediationDetector struct {
+	fakeDetector
+	hints sdk.RemediationHintResponse
+}
+
+func (f fakeRemediationDetector) RemediationHints(
+	context.Context,
+	sdk.RemediationHintRequest,
+) (sdk.RemediationHintResponse, error) {
+	return f.hints, nil
+}
+
 type recordingProgress struct {
 	details []string
 }
@@ -530,6 +542,99 @@ func TestPipeline_Run_ProducesConsolidatedResult(t *testing.T) {
 	}
 	if result.Graph.Size() == 0 {
 		t.Fatal("expected non-empty consolidated graph")
+	}
+}
+
+func TestPipeline_Run_DerivesCanonicalRemediationAtEndOfEnrichment(t *testing.T) {
+	const purl = "pkg:npm/react@18.2.0"
+	registry := newTestRegistry()
+	graph := sdk.New()
+	root := sdk.NewDependencyWithID("app", sdk.Dependency{
+		Coordinates: sdk.Coordinates{
+			Name:           "app",
+			Type:           sdk.PackageTypeApplication,
+			PackageManager: sdk.PackageManagerNPM,
+		},
+		Relationship: sdk.DependencyRelationshipDirect,
+		Source:       sdk.DependencySourceProject,
+	})
+	dependency := sdk.NewDependencyWithID("react", sdk.Dependency{
+		Coordinates: sdk.Coordinates{
+			Name:           "react",
+			Version:        "18.2.0",
+			PURL:           purl,
+			PackageManager: sdk.PackageManagerNPM,
+		},
+		Relationship: sdk.DependencyRelationshipDirect,
+		Source:       sdk.DependencySourceRegistry,
+		PackageRef:   purl,
+	})
+	for _, node := range []*sdk.Dependency{root, dependency} {
+		if err := graph.AddNode(node); err != nil {
+			t.Fatalf("AddNode(%s) error = %v", node.ID, err)
+		}
+	}
+	if err := graph.AddEdge(root.ID, dependency.ID); err != nil {
+		t.Fatalf("AddEdge() error = %v", err)
+	}
+	registry.registerDetector(fakeRemediationDetector{
+		fakeDetector: fakeDetector{
+			descriptor: DetectorDescriptor{
+				Name:                "npm-detector",
+				SupportedEcosystems: []Ecosystem{EcosystemNPM},
+				SupportedManagers:   []PackageManager{PackageManagerNPM},
+				RemediationCapabilities: []sdk.RemediationCapability{{
+					SupportedManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+					Actions:           []sdk.RemediationAction{sdk.RemediationActionDirectBump},
+				}},
+			},
+			result: ResolveGraphResult{Graphs: SingleGraphContainer(
+				graph,
+				sdk.ManifestMetadata{Path: "/repo/package-lock.json", Kind: "package-lock.json"},
+			)},
+		},
+		hints: sdk.RemediationHintResponse{Hints: []sdk.RemediationHint{{
+			DependencyRef: dependency.ID,
+			ManifestPath:  "/repo/package-lock.json",
+			Strategies: []sdk.RemediationStrategyHint{{
+				Action: sdk.RemediationActionDirectBump,
+			}},
+		}}},
+	})
+	registry.registerMatcher(fakeMatcher{
+		name: "vulnerability-matcher",
+		run: func(packages *sdk.PackageRegistry) {
+			packages.Ensure(purl).Vulnerabilities = []sdk.Vulnerability{{
+				ID:      "GHSA-example",
+				FixedIn: "19.0.0",
+			}}
+		},
+	})
+
+	result, err := NewPipeline(registry, zap.NewNop()).Run(context.Background(), PipelineRequest{
+		ExecutionTarget: ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
+		Subprojects: []Subproject{{
+			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
+			RelativePath:            ".",
+			PrimaryDetector:         "npm-detector",
+			DetectedPackageManagers: []PackageManager{PackageManagerNPM},
+			Ecosystem:               EcosystemNPM,
+		}},
+		EnrichEnabled: true,
+	})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	pkg, ok := result.Registry.Get(purl)
+	if !ok || pkg.Remediation == nil {
+		t.Fatalf("canonical remediation missing: %#v", pkg)
+	}
+	if pkg.Remediation.Status != sdk.PackageRemediationComplete ||
+		pkg.Remediation.RecommendedVersion != "19.0.0" ||
+		len(pkg.Remediation.Suggestions) != 1 ||
+		pkg.Remediation.Suggestions[0].Action != sdk.RemediationActionDirectBump ||
+		pkg.Remediation.Suggestions[0].ManifestPath != "package-lock.json" {
+		t.Fatalf("canonical remediation = %#v; warnings = %#v", pkg.Remediation, result.MatchWarnings)
 	}
 }
 

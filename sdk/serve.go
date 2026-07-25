@@ -37,6 +37,12 @@ type DetectorInstaller interface {
 	Install(context.Context, *DetectRequest) (*InstallResponse, error)
 }
 
+// ServedDetectorRemediationProvider optionally supplies read-only,
+// package-manager-specific remediation evidence.
+type ServedDetectorRemediationProvider interface {
+	RemediationHints(context.Context, *RemediationHintRequest) (*RemediationHintResponse, error)
+}
+
 // ServedMatcher is the matcher interface implemented by external matcher
 // plugins. Matchers read the dependency graph and PURL-keyed package registry,
 // then return the registry with package enrichment such as licenses,
@@ -66,6 +72,7 @@ type Client interface {
 	DetectorApplicable(context.Context, *DetectRequest) (*ApplicableResponse, error)
 	DetectorInstall(context.Context, *DetectRequest) (*InstallResponse, error)
 	Detect(context.Context, *DetectRequest) (*DetectResponse, error)
+	DetectorRemediationHints(context.Context, *RemediationHintRequest) (*RemediationHintResponse, error)
 	MatcherDescriptor(context.Context) (*MatcherDescriptor, error)
 	MatcherReady(context.Context, *MatchRequest) (*ReadyResponse, error)
 	MatcherApplicable(context.Context, *MatchRequest) (*ApplicableResponse, error)
@@ -153,6 +160,7 @@ type pluginServiceServer interface {
 	DetectorApplicable(context.Context, *wrapperspb.BytesValue) (*wrapperspb.BytesValue, error)
 	DetectorInstall(context.Context, *wrapperspb.BytesValue) (*wrapperspb.BytesValue, error)
 	Detect(context.Context, *wrapperspb.BytesValue) (*wrapperspb.BytesValue, error)
+	DetectorRemediationHints(context.Context, *wrapperspb.BytesValue) (*wrapperspb.BytesValue, error)
 	MatcherDescriptor(context.Context, *emptypb.Empty) (*wrapperspb.BytesValue, error)
 	MatcherReady(context.Context, *wrapperspb.BytesValue) (*wrapperspb.BytesValue, error)
 	MatcherApplicable(context.Context, *wrapperspb.BytesValue) (*wrapperspb.BytesValue, error)
@@ -253,6 +261,23 @@ func (s *serviceServer) DetectorInstall(ctx context.Context, in *wrapperspb.Byte
 			return detector.Install(ctx, req)
 		}
 		return &InstallResponse{}, nil
+	})
+}
+
+func (s *serviceServer) DetectorRemediationHints(ctx context.Context, in *wrapperspb.BytesValue) (*wrapperspb.BytesValue, error) {
+	if s.detector == nil {
+		return nil, status.Error(codes.Unimplemented, "detector not implemented")
+	}
+	provider, ok := s.detector.(ServedDetectorRemediationProvider)
+	if !ok {
+		return nil, status.Error(codes.Unimplemented, "detector remediation hints not implemented")
+	}
+	req, err := unmarshalPayload[RemediationHintRequest](in)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "decode detector remediation hint request: %v", err)
+	}
+	return marshalResponse(ctx, func(ctx context.Context) (*RemediationHintResponse, error) {
+		return provider.RemediationHints(ctx, req)
 	})
 }
 
@@ -410,6 +435,10 @@ func (c *serviceClient) DetectorInstall(ctx context.Context, req *DetectRequest)
 	return invokeJSON[DetectRequest, InstallResponse](ctx, c.conn, "/bomly.plugin.v1.Plugin/DetectorInstall", req)
 }
 
+func (c *serviceClient) DetectorRemediationHints(ctx context.Context, req *RemediationHintRequest) (*RemediationHintResponse, error) {
+	return invokeJSON[RemediationHintRequest, RemediationHintResponse](ctx, c.conn, "/bomly.plugin.v1.Plugin/DetectorRemediationHints", req)
+}
+
 func (c *serviceClient) Match(ctx context.Context, req *MatchRequest) (*MatchResponse, error) {
 	return invokeJSON[MatchRequest, MatchResponse](ctx, c.conn, "/bomly.plugin.v1.Plugin/Match", req)
 }
@@ -461,6 +490,7 @@ func registerPluginService(server *grpc.Server, impl *serviceServer) {
 			{MethodName: "DetectorApplicable", Handler: detectorApplicableHandler},
 			{MethodName: "DetectorInstall", Handler: detectorInstallHandler},
 			{MethodName: "Detect", Handler: detectHandler},
+			{MethodName: "DetectorRemediationHints", Handler: detectorRemediationHintsHandler},
 			{MethodName: "MatcherDescriptor", Handler: matcherDescriptorHandler},
 			{MethodName: "MatcherReady", Handler: matcherReadyHandler},
 			{MethodName: "MatcherApplicable", Handler: matcherApplicableHandler},
@@ -522,6 +552,12 @@ func detectorApplicableHandler(srv interface{}, ctx context.Context, dec func(an
 func detectorInstallHandler(srv interface{}, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
 	return bytesHandler(srv, ctx, dec, interceptor, "/bomly.plugin.v1.Plugin/DetectorInstall", func(ctx context.Context, req *wrapperspb.BytesValue) (*wrapperspb.BytesValue, error) {
 		return srv.(*serviceServer).DetectorInstall(ctx, req)
+	})
+}
+
+func detectorRemediationHintsHandler(srv interface{}, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
+	return bytesHandler(srv, ctx, dec, interceptor, "/bomly.plugin.v1.Plugin/DetectorRemediationHints", func(ctx context.Context, req *wrapperspb.BytesValue) (*wrapperspb.BytesValue, error) {
+		return srv.(*serviceServer).DetectorRemediationHints(ctx, req)
 	})
 }
 

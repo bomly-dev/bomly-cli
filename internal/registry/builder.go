@@ -128,7 +128,14 @@ type detectorWithDescriptor struct {
 }
 
 func (d detectorWithDescriptor) Descriptor() sdk.DetectorDescriptor {
-	return d.descriptor
+	return d.descriptor.Clone()
+}
+
+func (d detectorWithDescriptor) RemediationHints(ctx context.Context, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
+	if provider, ok := d.Detector.(sdk.DetectorRemediationProvider); ok {
+		return provider.RemediationHints(ctx, req)
+	}
+	return detectors.RemediationHints(req, d.descriptor.RemediationCapabilities), nil
 }
 
 type fallbackDetectorWithDescriptor struct {
@@ -140,7 +147,11 @@ func (d fallbackDetectorWithDescriptor) FallbackDetector() sdk.Detector {
 	if fallback == nil {
 		return nil
 	}
-	return detectorWithDecoratedDescriptor(fallback, decorateDetectorDescriptor(fallback.Descriptor()))
+	descriptor := decorateDetectorDescriptor(fallback.Descriptor())
+	if len(descriptor.RemediationCapabilities) == 0 {
+		descriptor.RemediationCapabilities = detectors.RemediationCapabilities(descriptor.SupportedManagers)
+	}
+	return detectorWithDecoratedDescriptor(fallback, descriptor)
 }
 
 type installFirstDetectorWithDescriptor struct {
@@ -160,7 +171,11 @@ func (d fallbackInstallFirstDetectorWithDescriptor) FallbackDetector() sdk.Detec
 	if fallback == nil {
 		return nil
 	}
-	return detectorWithDecoratedDescriptor(fallback, decorateDetectorDescriptor(fallback.Descriptor()))
+	descriptor := decorateDetectorDescriptor(fallback.Descriptor())
+	if len(descriptor.RemediationCapabilities) == 0 {
+		descriptor.RemediationCapabilities = detectors.RemediationCapabilities(descriptor.SupportedManagers)
+	}
+	return detectorWithDecoratedDescriptor(fallback, descriptor)
 }
 
 func (d fallbackInstallFirstDetectorWithDescriptor) Install(ctx context.Context, req sdk.DetectionRequest) error {
@@ -224,12 +239,15 @@ func (r *Registry) RegisterDetectorWithOptions(detector sdk.Detector, options Co
 		return
 	}
 	descriptor := decorateDetectorDescriptor(detector.Descriptor())
-	r.detectors = append(r.detectors, detectorWithDecoratedDescriptor(detector, descriptor))
-	r.setDefaultEnabled(sdk.PluginKindDetector, descriptor.Name, options.DefaultEnabled)
 	origin := options.Origin
 	if origin == "" {
 		origin = sdk.CoreOrigin
 	}
+	if origin != sdk.ExternalOrigin && len(descriptor.RemediationCapabilities) == 0 {
+		descriptor.RemediationCapabilities = detectors.RemediationCapabilities(descriptor.SupportedManagers)
+	}
+	r.detectors = append(r.detectors, detectorWithDecoratedDescriptor(detector, descriptor))
+	r.setDefaultEnabled(sdk.PluginKindDetector, descriptor.Name, options.DefaultEnabled)
 	r.detectorOrigins[descriptor.Name] = origin
 }
 

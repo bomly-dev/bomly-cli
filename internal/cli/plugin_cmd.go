@@ -722,12 +722,8 @@ func cloneDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugsch
 	if descriptor == nil {
 		return nil
 	}
-	copyValue := *descriptor
-	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
-	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
+	copyValue := descriptor.Clone()
 	copyValue.PackageManagerSupport = completeDetectorPackageManagerSupport(descriptor.SupportedManagers, descriptor.PackageManagerSupport)
-	copyValue.Tags = append([]string(nil), descriptor.Tags...)
-	copyValue.FallbackDetectors = append([]string(nil), descriptor.FallbackDetectors...)
 	return &copyValue
 }
 
@@ -833,6 +829,9 @@ func renderPluginInfo(w io.Writer, info managedplugin.Info) error {
 	if managers := pluginInfoPackageManagers(info); len(managers) > 0 {
 		lines = append(lines, [2]string{"Package Managers", joinPackageManagers(managers)})
 	}
+	if capabilities := pluginInfoRemediationCapabilities(info); len(capabilities) > 0 {
+		lines = append(lines, [2]string{"Remediation", strings.Join(capabilities, "; ")})
+	}
 	if languages := pluginInfoLanguages(info); len(languages) > 0 {
 		lines = append(lines, [2]string{"Languages", joinLanguages(languages)})
 	}
@@ -863,6 +862,28 @@ func renderPluginInfo(w io.Writer, info managedplugin.Info) error {
 		}
 	}
 	return nil
+}
+
+func pluginInfoRemediationCapabilities(info managedplugin.Info) []string {
+	if info.Kind != plugschema.PluginKindDetector || info.DetectorDescriptor == nil {
+		return nil
+	}
+	items := make([]string, 0, len(info.DetectorDescriptor.RemediationCapabilities))
+	for _, capability := range info.DetectorDescriptor.RemediationCapabilities {
+		managers := joinPackageManagers(capability.SupportedManagers)
+		actions := make([]string, 0, len(capability.Actions))
+		for _, action := range capability.Actions {
+			if value := strings.TrimSpace(string(action)); value != "" {
+				actions = append(actions, value)
+			}
+		}
+		sort.Strings(actions)
+		if managers != "" && len(actions) > 0 {
+			items = append(items, managers+": "+strings.Join(actions, ", "))
+		}
+	}
+	sort.Strings(items)
+	return items
 }
 
 func pluginInfoEcosystems(info managedplugin.Info) []plugschema.Ecosystem {

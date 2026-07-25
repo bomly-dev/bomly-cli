@@ -465,3 +465,29 @@ func TestExtractSeverity_CVSSVectorTakesPrecedenceOverGHSAText(t *testing.T) {
 		t.Fatalf("extractSeverity() = %q, want %q (CVSS should win)", got, sdk.SeverityLow)
 	}
 }
+
+// Every ecosystem the descriptor claims must have an OSV ecosystem name to go
+// with it, so the declared coverage and the query mapping cannot drift apart.
+// The reverse does not hold: OS ecosystems are queried by PURL rather than by
+// name, so they are declared without appearing in ecosystemToOSV.
+func TestDeclaredEcosystemsAreQueryable(t *testing.T) {
+	viaPURL := map[sdk.Ecosystem]bool{
+		sdk.EcosystemAPK:  true,
+		sdk.EcosystemDPKG: true,
+		sdk.EcosystemRPM:  true,
+	}
+
+	declared := (&Matcher{}).Descriptor().SupportedEcosystems
+	if len(declared) == 0 {
+		t.Fatal("OSV should declare the ecosystems osv.dev covers")
+	}
+
+	for _, eco := range declared {
+		if viaPURL[eco] {
+			continue
+		}
+		if ecosystemToOSV(string(eco)) == "" {
+			t.Errorf("descriptor declares %q but ecosystemToOSV has no name for it", eco)
+		}
+	}
+}

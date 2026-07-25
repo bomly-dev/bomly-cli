@@ -1112,7 +1112,7 @@ func renderPluginListTables(items []managedplugin.Info, kindFilter pluginKindFil
 		appendTable("Detectors", []string{"ECOSYSTEMS", "PACKAGE MANAGERS", "NAME", "TYPE", "STATE"}, detectorPluginRows(detectors))
 	}
 	if kindFilter.includes(plugschema.PluginKindMatcher) {
-		appendTable("Matchers", []string{"NAME", "TYPE", "STATE"}, basicPluginRows(matchers))
+		appendTable("Matchers", []string{"ECOSYSTEMS", "NAME", "TYPE", "STATE"}, matcherPluginRows(matchers))
 	}
 	if kindFilter.includes(plugschema.PluginKindAuditor) {
 		appendTable("Auditors", []string{"NAME", "TYPE", "STATE"}, basicPluginRows(auditors))
@@ -1133,6 +1133,19 @@ func detectorPluginRows(items []managedplugin.Info) [][]string {
 		rows = append(rows, []string{
 			nonEmptyString(summarizePluginListValue(pluginDetectorEcosystems(info), 6), "-"),
 			nonEmptyString(summarizePluginListValue(pluginDetectorPackageManagers(info), 6), "-"),
+			pluginListName(info),
+			colorPluginType(pluginTypeValue(info), info),
+			colorPluginState(pluginStateValue(info)),
+		})
+	}
+	return rows
+}
+
+func matcherPluginRows(items []managedplugin.Info) [][]string {
+	rows := make([][]string, 0, len(items))
+	for _, info := range items {
+		rows = append(rows, []string{
+			nonEmptyString(summarizePluginListValue(pluginMatcherEcosystems(info), 6), "-"),
 			pluginListName(info),
 			colorPluginType(pluginTypeValue(info), info),
 			colorPluginState(pluginStateValue(info)),
@@ -1405,6 +1418,30 @@ func pluginAnalyzerEcosystems(info managedplugin.Info) string {
 		if !containsPluginValue(items, name) {
 			items = append(items, name)
 		}
+	}
+	sort.Strings(items)
+	return strings.Join(items, ", ")
+}
+
+// pluginMatcherEcosystems lists the ecosystems a matcher can enrich. Matchers
+// that are not ecosystem-bound declare nothing, which reads as "all" rather
+// than an empty cell.
+func pluginMatcherEcosystems(info managedplugin.Info) string {
+	if info.MatcherDescriptor == nil {
+		return ""
+	}
+	items := make([]string, 0, len(info.MatcherDescriptor.SupportedEcosystems))
+	for _, ecosystem := range info.MatcherDescriptor.SupportedEcosystems {
+		name := strings.TrimSpace(string(ecosystem))
+		if name == "" {
+			continue
+		}
+		if !containsPluginValue(items, name) {
+			items = append(items, name)
+		}
+	}
+	if len(items) == 0 {
+		return "all"
 	}
 	sort.Strings(items)
 	return strings.Join(items, ", ")

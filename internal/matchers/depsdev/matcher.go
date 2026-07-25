@@ -138,6 +138,19 @@ func (c *Checker) Descriptor() sdk.MatcherDescriptor {
 		DisplayName: "deps.dev License Matcher",
 		Aliases:     []string{"deps.dev"},
 		Tags:        []string{"license-enrichment", "batch-http"},
+		// Kept in step with depsDevSystem, which is the set of ecosystems
+		// deps.dev exposes a package system for. Packages from anything else
+		// are skipped, so declaring the list keeps the generated docs and
+		// `bomly plugins list` honest instead of implying full coverage.
+		SupportedEcosystems: []sdk.Ecosystem{
+			sdk.EcosystemNPM,
+			sdk.EcosystemMaven,
+			sdk.EcosystemGo,
+			sdk.EcosystemPython,
+			sdk.EcosystemDotNet,
+			sdk.EcosystemRuby,
+			sdk.EcosystemRust,
+		},
 	}
 }
 

@@ -125,8 +125,13 @@ func New(config Config) (*Matcher, error) {
 // Descriptor returns the matcher registration metadata.
 func (m *Matcher) Descriptor() sdk.MatcherDescriptor {
 	return sdk.MatcherDescriptor{
-		Name:                "scorecard",
-		DisplayName:         "OpenSSF Scorecard",
+		Name:        "scorecard",
+		DisplayName: "OpenSSF Scorecard",
+		// nil means all ecosystems, and that is the honest answer: this matcher
+		// is bounded by whether a package resolves to a github.com source repo
+		// (see resolveRepo in reporesolve.go), not by ecosystem. Any package
+		// carrying a repository_url qualifier or a GitHub resolved URL works,
+		// so an ecosystem list would be wrong in both directions.
 		SupportedEcosystems: nil,
 		Tags:                []string{"project-posture"},
 	}

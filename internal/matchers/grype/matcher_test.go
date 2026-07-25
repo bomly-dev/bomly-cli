@@ -22,8 +22,20 @@ func TestDescriptor_Name(t *testing.T) {
 	if d.Name != "grype" {
 		t.Errorf("Descriptor.Name = %q, want %q", d.Name, "grype")
 	}
-	if d.SupportedEcosystems != nil {
-		t.Error("SupportedEcosystems should be nil (all ecosystems)")
+	// Builtin mode matches a bounded set — see supportedEcosystems in
+	// builtin.go. External mode declares nil instead.
+	if len(d.SupportedEcosystems) == 0 {
+		t.Fatal("SupportedEcosystems should list the ecosystems builtin mode can match")
+	}
+	found := false
+	for _, eco := range d.SupportedEcosystems {
+		if eco == sdk.EcosystemNPM {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("SupportedEcosystems = %v, expected it to include npm", d.SupportedEcosystems)
 	}
 }
 

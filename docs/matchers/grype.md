@@ -12,6 +12,7 @@ Uses Grype vulnerability matching against the resolved dependency graph.
 | Uses network | No |
 | Cache behavior | Relies on Grype's local vulnerability database behavior. |
 | Output fields | vulnerability ID, severity, CVSS, fixed version, fix state, EPSS, CWE, known exploitation, risk score, references |
+| Ecosystems | `npm`, `maven`, `scala`, `go`, `python`, `dotnet`, `ruby`, `rust`, `dart`, `elixir`, `erlang`, `php`, `swift`, `haskell`, `r`, `lua`, `cpp`, `ocaml`, `prolog`, `conda`, `nix`, `terraform`, `wordpress`, `alpm`, `apk`, `dpkg`, `rpm`, `portage`, `homebrew`, `github-actions` |
 
 ## User notes
 

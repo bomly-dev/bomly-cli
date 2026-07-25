@@ -186,9 +186,46 @@ func (a *Matcher) Descriptor() sdk.MatcherDescriptor {
 	return sdk.MatcherDescriptor{
 		Name:        "osv",
 		DisplayName: "OSV",
-		// nil SupportedEcosystems means all ecosystems; OSV handles ecosystem
-		// selection internally via PURL or name+ecosystem queries.
-		SupportedEcosystems: nil,
+		// OSV.dev publishes the ecosystems it covers, and that list is finite:
+		// https://google.github.io/osv.dev/data/#covered-ecosystems
+		//
+		// Bomly will happily query OSV for anything (buildQuery prefers a PURL,
+		// and every ecosystem produces one), but a query for an ecosystem OSV
+		// does not index comes back empty, so declaring the intersection is
+		// what actually tells a reader where they get advisories.
+		//
+		// Excluded on purpose: cpp, because OSV's C/C++ coverage is git and
+		// OSS-Fuzz based rather than a Conan package ecosystem. Julia,
+		// Bitnami, Android, and the Linux kernel are covered by OSV but have
+		// no Bomly ecosystem to map onto.
+		//
+		// erlang, haskell, r, ocaml, and dpkg are listed because OSV indexes
+		// them, but they return nothing today: we emit a PURL type OSV does
+		// not recognise (pkg:erlang rather than pkg:hex, pkg:dpkg rather than
+		// pkg:deb, and so on) and the name-based fallback below is
+		// unreachable. See issue #317.
+		SupportedEcosystems: []sdk.Ecosystem{
+			sdk.EcosystemNPM,
+			sdk.EcosystemMaven,
+			sdk.EcosystemScala,
+			sdk.EcosystemGo,
+			sdk.EcosystemPython,
+			sdk.EcosystemDotNet,
+			sdk.EcosystemRuby,
+			sdk.EcosystemRust,
+			sdk.EcosystemPHP,
+			sdk.EcosystemDart,
+			sdk.EcosystemSwift,
+			sdk.EcosystemElixir,
+			sdk.EcosystemErlang,
+			sdk.EcosystemHaskell,
+			sdk.EcosystemR,
+			sdk.EcosystemOCaml,
+			sdk.EcosystemGitHub,
+			sdk.EcosystemAPK,
+			sdk.EcosystemDPKG,
+			sdk.EcosystemRPM,
+		},
 	}
 }
 
@@ -490,6 +527,11 @@ func buildQuery(dep *sdk.Dependency, purl string) (cache.Key, BatchQuery, bool) 
 
 // ecosystemToOSV maps Bomly ecosystem identifiers to OSV ecosystem names.
 // See: https://ossf.github.io/osv-schema/#affectedpackage-field
+//
+// Currently unreachable: buildQuery only consults this when the PURL is empty,
+// and the caller skips those packages before buildQuery runs. Kept and
+// extended so the mapping is correct for whenever the fallback is revived —
+// see issue #317.
 func ecosystemToOSV(eco string) string {
 	switch eco {
 	case "npm":
@@ -516,6 +558,16 @@ func ecosystemToOSV(eco string) string {
 		return "Hackage"
 	case "r":
 		return "CRAN"
+	case "scala":
+		// Scala artifacts publish to Maven Central.
+		return "Maven"
+	case "elixir", "erlang":
+		// Both publish to Hex.
+		return "Hex"
+	case "ocaml":
+		return "opam"
+	case "github-actions":
+		return "GitHub Actions"
 	default:
 		return ""
 	}

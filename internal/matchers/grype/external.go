@@ -358,3 +358,9 @@ func jsonCWEs(values []grypeJSONCWE) []sdk.CWE {
 	}
 	return out
 }
+
+// supportedEcosystems is nil in external mode: the graph is handed to the grype
+// CLI as an SPDX document, so coverage is whatever that binary derives from the
+// PURLs rather than anything this package maps. nil reads as "all ecosystems",
+// which is the honest answer here.
+var supportedEcosystems []sdk.Ecosystem

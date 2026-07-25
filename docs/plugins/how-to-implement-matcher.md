@@ -30,6 +30,15 @@ func (m *matcher) Descriptor(context.Context) (*sdk.MatcherDescriptor, error) {
         DisplayName: "ClearlyDefined License Matcher",
         Aliases:     []string{"clearlydefined", "licenses"},
         Tags:        []string{"license-enrichment", "http", "cache"},
+        // Declare the ecosystems your matcher can actually enrich. Leave this
+        // empty only when the matcher works for every ecosystem — an empty
+        // list reads as "all". `bomly plugins list` and the generated docs
+        // show whatever you put here.
+        SupportedEcosystems: []sdk.Ecosystem{
+            sdk.EcosystemNPM,
+            sdk.EcosystemMaven,
+            sdk.EcosystemGo,
+        },
     }, nil
 }
 

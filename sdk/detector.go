@@ -159,8 +159,11 @@ type RemediationHintRequest struct {
 }
 
 // RemediationStrategyHint is read-only detector evidence that a strategy is
-// available for one occurrence. Advice may explain manager-specific syntax;
-// the central remediation component retains the final decision.
+// available for one occurrence. Advice is detector-owned, action-specific
+// package-manager guidance. For example, a transitive-override hint can
+// explain the manager's override syntax, while a lockfile-refresh hint can
+// provide the normal refresh command. Core validates and bounds this text,
+// then retains authority over the final action.
 type RemediationStrategyHint struct {
 	Action RemediationAction `json:"action"`
 	Advice string            `json:"advice,omitempty"`

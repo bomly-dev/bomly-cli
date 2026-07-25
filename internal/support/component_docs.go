@@ -599,7 +599,7 @@ func renderEcosystemReadme(ecosystem sdk.Ecosystem, entries []registry.PackageMa
 			name,
 			codeList(entry.Detectors),
 			codeListOrDash(entry.EvidencePatterns),
-			remediationActionsForManager(entry.Manager),
+			remediationActionsForManager(entry.Manager, false),
 			yesNo(chainSupportsInstallFirst(entry.Detectors)),
 		)
 	}
@@ -608,9 +608,42 @@ func renderEcosystemReadme(ecosystem sdk.Ecosystem, entries []registry.PackageMa
 	b.WriteString("- Bomly tries detector chains from left to right. Later detectors in the chain are fallbacks Bomly uses when the preferred detector cannot produce graph data.\n")
 	b.WriteString("- Install-first support means `--install-first` can run the package manager's normal install command before graph resolution. This downloads packages and modifies the filesystem; see [docs/DETECTORS.md](../../../DETECTORS.md#install-first).\n")
 	b.WriteString("- Remediation hints are read-only package-manager guidance used during `--enrich`. Detectors do not choose the final action or change project files.\n")
+	for _, action := range remediationActionsForEntries(entries) {
+		switch action {
+		case sdk.RemediationActionDirectBump:
+			b.WriteString("  - `direct-bump` means the detector knows how to update a package declared directly in the project.\n")
+		case sdk.RemediationActionTransitiveOverride:
+			b.WriteString("  - `transitive-override` means the detector knows how to pin an indirect package with the package manager's override feature.\n")
+		case sdk.RemediationActionLockfileRefresh:
+			b.WriteString("  - `lockfile-refresh` means the detector knows how to ask the package manager to resolve a newer indirect package version.\n")
+		}
+	}
 	b.WriteString("- Each package-manager page also lists the directories its detectors declare as ignored during recursive discovery (`--recursive`) and whether the chain resolves nested workspace/reactor modules from a root manifest (multi-module); see [docs/SCAN_TARGETS.md](../../../SCAN_TARGETS.md#recursive-discovery----recursive).\n")
 	b.WriteString("- Syft-backed entries provide broad compatibility, especially for containers and ecosystems without native Bomly graph resolution.\n")
 	return b.String()
+}
+
+func remediationActionsForEntries(entries []registry.PackageManagerSupport) []sdk.RemediationAction {
+	seen := map[sdk.RemediationAction]struct{}{}
+	for _, entry := range entries {
+		for _, capability := range detectors.RemediationCapabilities([]sdk.PackageManager{entry.Manager}) {
+			for _, action := range capability.Actions {
+				seen[action] = struct{}{}
+			}
+		}
+	}
+	ordered := []sdk.RemediationAction{
+		sdk.RemediationActionDirectBump,
+		sdk.RemediationActionTransitiveOverride,
+		sdk.RemediationActionLockfileRefresh,
+	}
+	result := make([]sdk.RemediationAction, 0, len(seen))
+	for _, action := range ordered {
+		if _, ok := seen[action]; ok {
+			result = append(result, action)
+		}
+	}
+	return result
 }
 
 func renderPackageManagerMarkdown(ecosystem sdk.Ecosystem, entry registry.PackageManagerSupport) string {
@@ -629,8 +662,9 @@ func renderPackageManagerMarkdown(ecosystem sdk.Ecosystem, entry registry.Packag
 	_, _ = fmt.Fprintf(&b, "| Ignored directory markers | %s |\n", codeListOrDash(chainIgnoredDirectoryMarkers(entry.Detectors)))
 	_, _ = fmt.Fprintf(&b, "| Multi-module resolution | %s |\n", yesNo(chainSupportsMultiModule(entry.Detectors, entry.Manager)))
 	_, _ = fmt.Fprintf(&b, "| Install-first support | %s |\n", yesNo(chainSupportsInstallFirst(entry.Detectors)))
-	_, _ = fmt.Fprintf(&b, "| Remediation hints | %s |\n", remediationActionsForManager(entry.Manager))
+	_, _ = fmt.Fprintf(&b, "| Remediation hints | %s |\n", remediationActionsForManager(entry.Manager, true))
 	_, _ = fmt.Fprintf(&b, "| Native command hints | %s |\n", commandHintsForChain(entry.Detectors))
+	b.WriteString(remediationActionFootnotes(entry.Manager))
 	if prose := loadProse("detectors", name); prose != "" {
 		b.WriteString("\n")
 		b.WriteString(prose)
@@ -638,16 +672,40 @@ func renderPackageManagerMarkdown(ecosystem sdk.Ecosystem, entry registry.Packag
 	return b.String()
 }
 
-func remediationActionsForManager(manager sdk.PackageManager) string {
+func remediationActionsForManager(manager sdk.PackageManager, footnotes bool) string {
 	capabilities := detectors.RemediationCapabilities([]sdk.PackageManager{manager})
 	if len(capabilities) == 0 || len(capabilities[0].Actions) == 0 {
 		return "None"
 	}
 	actions := make([]string, 0, len(capabilities[0].Actions))
 	for _, action := range capabilities[0].Actions {
-		actions = append(actions, "`"+string(action)+"`")
+		value := "`" + string(action) + "`"
+		if footnotes {
+			value += "[^" + string(action) + "]"
+		}
+		actions = append(actions, value)
 	}
 	return strings.Join(actions, ", ")
+}
+
+func remediationActionFootnotes(manager sdk.PackageManager) string {
+	capabilities := detectors.RemediationCapabilities([]sdk.PackageManager{manager})
+	if len(capabilities) == 0 || len(capabilities[0].Actions) == 0 {
+		return ""
+	}
+	var b strings.Builder
+	b.WriteString("\n")
+	for _, action := range capabilities[0].Actions {
+		switch action {
+		case sdk.RemediationActionDirectBump:
+			b.WriteString("[^direct-bump]: Update a package declared directly in the project.\n")
+		case sdk.RemediationActionTransitiveOverride:
+			b.WriteString("[^transitive-override]: Pin an indirect package with the package manager's override feature.\n")
+		case sdk.RemediationActionLockfileRefresh:
+			b.WriteString("[^lockfile-refresh]: Ask the package manager to resolve a newer indirect package version.\n")
+		}
+	}
+	return b.String()
 }
 
 func writeMatcherDocs(outputDir string) error {

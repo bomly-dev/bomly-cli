@@ -14,8 +14,11 @@ Bomly uses this chain when it finds `bun` evidence.
 | Ignored directory markers | - |
 | Multi-module resolution | Yes |
 | Install-first support | Yes |
-| Remediation hints | `direct-bump`, `lockfile-refresh` |
+| Remediation hints | `direct-bump`[^direct-bump], `lockfile-refresh`[^lockfile-refresh] |
 | Native command hints | `syft for bomly-lite` |
+
+[^direct-bump]: Update a package declared directly in the project.
+[^lockfile-refresh]: Ask the package manager to resolve a newer indirect package version.
 
 ## How `bun` resolves
 

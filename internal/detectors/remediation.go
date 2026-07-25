@@ -29,9 +29,10 @@ func RemediationCapabilities(managers []sdk.PackageManager) []sdk.RemediationCap
 	return capabilities
 }
 
-// RemediationHints derives read-only package-manager strategy evidence for a
-// built-in detector result. It never reads or writes project files, executes a
-// subprocess, or performs network I/O.
+// RemediationHints is the shared implementation behind built-in detector
+// providers. It returns detector-owned strategy advice through the public SDK
+// hint contract. It never reads or writes project files, executes a subprocess,
+// or performs network I/O.
 func RemediationHints(
 	request sdk.RemediationHintRequest,
 	capabilities []sdk.RemediationCapability,
@@ -89,14 +90,15 @@ func RemediationHints(
 				if _, ok := actions[action]; !ok {
 					continue
 				}
-				strategy := sdk.RemediationStrategyHint{Action: action}
-				if action == sdk.RemediationActionTransitiveOverride {
-					strategy.Advice = overrideAdvice(
+				strategy := sdk.RemediationStrategyHint{
+					Action: action,
+					Advice: managerRemediationAdvice(
 						manager,
+						action,
 						dependency.DisplayName(),
 						pkg.Remediation.RecommendedVersion,
 						entry.Manifest.Path,
-					)
+					),
 				}
 				hint.Strategies = append(hint.Strategies, strategy)
 			}
@@ -143,7 +145,22 @@ func remediationActions(manager sdk.PackageManager) []sdk.RemediationAction {
 	}
 }
 
-func overrideAdvice(manager sdk.PackageManager, name, version, manifestPath string) string {
+func managerRemediationAdvice(
+	manager sdk.PackageManager,
+	action sdk.RemediationAction,
+	name, version, manifestPath string,
+) string {
+	switch action {
+	case sdk.RemediationActionTransitiveOverride:
+		return transitiveOverrideAdvice(manager, name, version, manifestPath)
+	case sdk.RemediationActionLockfileRefresh:
+		return lockfileRefreshAdvice(manager, name, version)
+	default:
+		return ""
+	}
+}
+
+func transitiveOverrideAdvice(manager sdk.PackageManager, name, version, manifestPath string) string {
 	manifest := strings.TrimSpace(manifestPath)
 	if manifest == "" {
 		manifest = "the project manifest"
@@ -167,6 +184,19 @@ func overrideAdvice(manager sdk.PackageManager, name, version, manifestPath stri
 		return fmt.Sprintf(`add gem %q, ">= %s" to the Gemfile and run bundle update %s`, name, version, name)
 	case sdk.PackageManagerComposer:
 		return fmt.Sprintf(`require %q: %q in %s and run composer update %s`, name, "^"+version, manifest, name)
+	default:
+		return ""
+	}
+}
+
+func lockfileRefreshAdvice(manager sdk.PackageManager, name, version string) string {
+	switch manager {
+	case sdk.PackageManagerGoMod:
+		return fmt.Sprintf("run go get %s@v%s && go mod tidy", name, strings.TrimPrefix(version, "v"))
+	case sdk.PackageManagerCargo:
+		return fmt.Sprintf("run cargo update -p %s --precise %s", name, version)
+	case sdk.PackageManagerBun:
+		return fmt.Sprintf("run bun update %s@%s", name, version)
 	default:
 		return ""
 	}

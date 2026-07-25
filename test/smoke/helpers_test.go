@@ -490,6 +490,17 @@ func normalizePackageRemediationVersions(node any) {
 			if _, exists := remediation["recommended_version"]; exists {
 				remediation["recommended_version"] = "<normalized>"
 			}
+			if suggestions, ok := remediation["suggestions"].([]any); ok {
+				for _, rawSuggestion := range suggestions {
+					suggestion, ok := rawSuggestion.(map[string]any)
+					if !ok {
+						continue
+					}
+					if _, exists := suggestion["override_advice"]; exists {
+						suggestion["override_advice"] = "<normalized>"
+					}
+				}
+			}
 		}
 		for _, child := range v {
 			normalizePackageRemediationVersions(child)

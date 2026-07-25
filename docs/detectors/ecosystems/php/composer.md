@@ -14,8 +14,11 @@ Bomly uses this chain when it finds `composer` evidence.
 | Ignored directory markers | - |
 | Multi-module resolution | No |
 | Install-first support | Yes |
-| Remediation hints | `direct-bump`, `transitive-override` |
+| Remediation hints | `direct-bump`[^direct-bump], `transitive-override`[^transitive-override] |
 | Native command hints | `composer`, `syft for bomly-lite` |
+
+[^direct-bump]: Update a package declared directly in the project.
+[^transitive-override]: Pin an indirect package with the package manager's override feature.
 
 ## How `composer` resolves
 

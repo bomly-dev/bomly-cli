@@ -3,8 +3,12 @@ package remediation
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
+	"strings"
 	"testing"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
@@ -96,6 +100,53 @@ func TestDerivePackageRemediation(t *testing.T) {
 				FixedVersions: []string{"release-a", "1.2.6"},
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
+		},
+		{
+			name:           "unparseable installed version cannot prove an upgrade",
+			currentVersion: "1:2.0",
+			vulnerabilities: []sdk.Vulnerability{{
+				ID:      "VULN-1",
+				FixedIn: "1.5.0",
+			}},
+			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
+		},
+		{
+			name:           "distribution installed version cannot prove an upgrade",
+			currentVersion: "2:1.2.3-1ubuntu1",
+			vulnerabilities: []sdk.Vulnerability{{
+				ID:      "VULN-1",
+				FixedIn: "2.0.0",
+			}},
+			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
+		},
+		{
+			name: "unparseable fix evidence is not a version",
+			vulnerabilities: []sdk.Vulnerability{{
+				ID:      "VULN-1",
+				FixedIn: "see advisory",
+			}},
+			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
+		},
+		{
+			name:           "prerelease-only fix is not recommended",
+			currentVersion: "1.0.0",
+			vulnerabilities: []sdk.Vulnerability{{
+				ID:      "VULN-1",
+				FixedIn: "2.0.0-rc.1",
+			}},
+			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
+		},
+		{
+			name:           "stable fix is preferred over prerelease",
+			currentVersion: "1.0.0",
+			vulnerabilities: []sdk.Vulnerability{{
+				ID:            "VULN-1",
+				FixedVersions: []string{"2.0.0-rc.1", "2.0.0"},
+			}},
+			want: &sdk.PackageRemediation{
+				Status:             sdk.PackageRemediationComplete,
+				RecommendedVersion: "2.0.0",
+			},
 		},
 		{
 			name: "mixed fix and missing evidence",
@@ -231,6 +282,12 @@ func (d remediationTestDetector) RemediationHints(
 	if request.Detection.Graphs != nil && len(request.Detection.Graphs.Entries) > 0 {
 		request.Detection.Graphs.Entries[0].Manifest.Path = "mutated"
 	}
+	if len(request.Detection.SubprojectInfo.DetectedPackageManagers) > 0 {
+		request.Detection.SubprojectInfo.DetectedPackageManagers[0] = sdk.PackageManagerGoMod
+	}
+	if len(request.Detection.SubprojectInfo.PlannedDetectors) > 0 {
+		request.Detection.SubprojectInfo.PlannedDetectors[0] = "mutated"
+	}
 	return d.response, d.err
 }
 
@@ -280,6 +337,10 @@ func TestDeriveBuildsCanonicalOccurrenceSuggestions(t *testing.T) {
 
 	detection := sdk.DetectionResult{
 		DetectorName: "test-detector",
+		SubprojectInfo: sdk.Subproject{
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			PlannedDetectors:        []string{"test-detector"},
+		},
 		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 			Graph:    graph,
 			Manifest: sdk.ManifestMetadata{Path: manifestPath},
@@ -354,6 +415,10 @@ func TestDeriveBuildsCanonicalOccurrenceSuggestions(t *testing.T) {
 	}
 	if detection.Graphs.Entries[0].Manifest.Path != manifestPath {
 		t.Fatalf("detector mutated detection input: %#v", detection.Graphs.Entries[0].Manifest)
+	}
+	if detection.SubprojectInfo.DetectedPackageManagers[0] != sdk.PackageManagerNPM ||
+		detection.SubprojectInfo.PlannedDetectors[0] != "test-detector" {
+		t.Fatalf("detector mutated subproject input: %#v", detection.SubprojectInfo)
 	}
 
 	assertSuggestion(t, registry, "pkg:npm/direct@1.0.0", sdk.RemediationActionDirectBump, "direct", "")
@@ -507,6 +572,134 @@ func TestInferredPlacementUsesRealProjectRootsOnly(t *testing.T) {
 	}
 }
 
+func TestInferredPlacementCollapsesEqualLengthDiamondPaths(t *testing.T) {
+	graph := sdk.New()
+	root := testDependency("root", "", "", sdk.DependencySourceProject)
+	if err := graph.AddNode(root); err != nil {
+		t.Fatal(err)
+	}
+	previous := []string{root.ID}
+	for layer := 0; layer < 20; layer++ {
+		current := []string{
+			fmt.Sprintf("a-%02d", layer),
+			fmt.Sprintf("b-%02d", layer),
+		}
+		for _, id := range current {
+			node := testDependency(id, "pkg:npm/"+id+"@1.0.0", "", sdk.DependencySourceRegistry)
+			if err := graph.AddNode(node); err != nil {
+				t.Fatal(err)
+			}
+			for _, parent := range previous {
+				if err := graph.AddEdge(parent, id); err != nil {
+					t.Fatal(err)
+				}
+			}
+		}
+		previous = current
+	}
+	target := testDependency("target", "pkg:npm/target@1.0.0", "", sdk.DependencySourceRegistry)
+	if err := graph.AddNode(target); err != nil {
+		t.Fatal(err)
+	}
+	for _, parent := range previous {
+		if err := graph.AddEdge(parent, target.ID); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	relationship, directTarget, ok := inferredPlacement(graph, target.ID)
+	if !ok || relationship != sdk.DependencyRelationshipTransitive || directTarget != "a-00" {
+		t.Fatalf("diamond placement = (%q, %q, %t)", relationship, directTarget, ok)
+	}
+}
+
+func TestValidateHintsSanitizesAndBoundsAdvice(t *testing.T) {
+	graph := sdk.New()
+	dependency := testDependency(
+		"dependency",
+		"pkg:npm/dependency@1.0.0",
+		sdk.DependencyRelationshipTransitive,
+		sdk.DependencySourceRegistry,
+	)
+	if err := graph.AddNode(dependency); err != nil {
+		t.Fatal(err)
+	}
+	detection := sdk.DetectionResult{
+		DetectorName: "test-detector",
+		Graphs: sdk.SingleGraphContainer(
+			graph,
+			sdk.ManifestMetadata{Path: "package-lock.json"},
+		),
+	}
+	descriptor := sdk.DetectorDescriptor{
+		Name:              "test-detector",
+		SupportedManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+		RemediationCapabilities: []sdk.RemediationCapability{{
+			SupportedManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Actions:           []sdk.RemediationAction{sdk.RemediationActionTransitiveOverride},
+		}},
+	}
+	rawAdvice := "\x1b[31m" + strings.Repeat("x", maxDetectorAdviceRunes+100) + "\nspoofed"
+	validated, rejected := validateHints(detection, descriptor, []sdk.RemediationHint{{
+		DependencyRef: dependency.ID,
+		ManifestPath:  "package-lock.json",
+		Strategies: []sdk.RemediationStrategyHint{{
+			Action: sdk.RemediationActionTransitiveOverride,
+			Advice: rawAdvice,
+		}},
+	}})
+	if len(rejected) != 0 || len(validated) != 1 {
+		t.Fatalf("validateHints() = %#v, %#v", validated, rejected)
+	}
+	advice := validated[0].strategies[sdk.RemediationActionTransitiveOverride]
+	if utf8.RuneCountInString(advice) > maxDetectorAdviceRunes {
+		t.Fatalf("advice has %d runes", utf8.RuneCountInString(advice))
+	}
+	for _, r := range advice {
+		if unicode.IsControl(r) {
+			t.Fatalf("advice contains control character %U: %q", r, advice)
+		}
+	}
+}
+
+func TestCollectHintsBoundsAndSanitizesDiagnostics(t *testing.T) {
+	diagnostics := make([]string, maxDetectorDiagnostics+5)
+	for idx := range diagnostics {
+		diagnostics[idx] = fmt.Sprintf("\x1b[31mdiagnostic-%02d %s", idx,
+			strings.Repeat("x", maxDetectorDiagnosticRunes))
+	}
+	detection := sdk.DetectionResult{DetectorName: "test-detector"}
+	detector := remediationTestDetector{
+		descriptor: sdk.DetectorDescriptor{
+			Name: "test-detector",
+			RemediationCapabilities: []sdk.RemediationCapability{{
+				SupportedManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+				Actions:           []sdk.RemediationAction{sdk.RemediationActionDirectBump},
+			}},
+		},
+		response: sdk.RemediationHintResponse{Diagnostics: diagnostics},
+	}
+	_, warnings := collectHints(context.Background(), Input{
+		Registry:   sdk.NewPackageRegistry(),
+		Detections: []sdk.DetectionResult{detection},
+		Detectors:  map[string]sdk.Detector{"test-detector": detector},
+	})
+	if len(warnings) != maxDetectorDiagnostics+1 {
+		t.Fatalf("warnings = %d, want %d: %#v",
+			len(warnings), maxDetectorDiagnostics+1, warnings)
+	}
+	for _, warning := range warnings {
+		if utf8.RuneCountInString(warning.Message) > maxDetectorDiagnosticRunes {
+			t.Fatalf("warning has %d runes: %q", utf8.RuneCountInString(warning.Message), warning.Message)
+		}
+		for _, r := range warning.Message {
+			if unicode.IsControl(r) {
+				t.Fatalf("warning contains control character %U: %q", r, warning.Message)
+			}
+		}
+	}
+}
+
 func overrideHint(dependencyRef, manifestPath string) sdk.RemediationHint {
 	return sdk.RemediationHint{
 		DependencyRef: dependencyRef,
@@ -577,6 +770,113 @@ func TestDeriveRejectsUnadvertisedAndUnknownHints(t *testing.T) {
 		t.Fatalf("Derive() warnings = %#v, want 2", warnings)
 	}
 	assertSuggestion(t, registry, dependency.PackageRef, sdk.RemediationActionManualReview, dependency.ID, "")
+}
+
+func TestDeriveResolvesRebasedHintAndWarnsWhenManifestResolutionFails(t *testing.T) {
+	const (
+		purl         = "pkg:npm/example@1.0.0"
+		manifestPath = "package-lock.json"
+	)
+	detectionGraph := sdk.New()
+	rawDependency := sdk.NewDependencyWithID("raw-lockfile-id", sdk.Dependency{
+		Coordinates: sdk.Coordinates{
+			PURL: purl, Name: "example", Version: "1.0.0",
+			PackageManager: sdk.PackageManagerNPM,
+		},
+		ID:           "raw-lockfile-id",
+		Relationship: sdk.DependencyRelationshipDirect,
+		Source:       sdk.DependencySourceRegistry,
+	})
+	if err := detectionGraph.AddNode(rawDependency); err != nil {
+		t.Fatal(err)
+	}
+	detection := sdk.DetectionResult{
+		DetectorName: "test-detector",
+		Graphs: sdk.SingleGraphContainer(
+			detectionGraph,
+			sdk.ManifestMetadata{Path: manifestPath},
+		),
+	}
+	detector := remediationTestDetector{
+		descriptor: sdk.DetectorDescriptor{
+			Name:              "test-detector",
+			SupportedManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			RemediationCapabilities: []sdk.RemediationCapability{{
+				SupportedManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+				Actions:           []sdk.RemediationAction{sdk.RemediationActionDirectBump},
+			}},
+		},
+		response: sdk.RemediationHintResponse{Hints: []sdk.RemediationHint{{
+			DependencyRef: rawDependency.ID,
+			ManifestPath:  manifestPath,
+			Strategies: []sdk.RemediationStrategyHint{{
+				Action: sdk.RemediationActionDirectBump,
+			}},
+		}}},
+	}
+
+	newRegistry := func() *sdk.PackageRegistry {
+		registry := sdk.NewPackageRegistry()
+		registry.Add(&sdk.Package{
+			Coordinates: sdk.Coordinates{
+				PURL: purl, Name: "example", Version: "1.0.0",
+			},
+			Vulnerabilities: []sdk.Vulnerability{{ID: "VULN-1", FixedIn: "1.2.0"}},
+		})
+		return registry
+	}
+
+	t.Run("rebased dependency id", func(t *testing.T) {
+		consolidated := sdk.New()
+		rebased := testDependency(
+			purl,
+			purl,
+			sdk.DependencyRelationshipDirect,
+			sdk.DependencySourceRegistry,
+		)
+		if err := consolidated.AddNode(rebased); err != nil {
+			t.Fatal(err)
+		}
+		registry := newRegistry()
+		warnings := Derive(context.Background(), Input{
+			Registry: registry,
+			Manifests: []sdk.ConsolidatedManifest{{
+				DetectorName: detection.DetectorName,
+				Entry: sdk.GraphEntry{
+					Graph: consolidated, Manifest: sdk.ManifestMetadata{Path: manifestPath},
+				},
+			}},
+			Detections: []sdk.DetectionResult{detection},
+			Detectors:  map[string]sdk.Detector{"test-detector": detector},
+		})
+		if len(warnings) != 0 {
+			t.Fatalf("Derive() warnings = %#v", warnings)
+		}
+		assertSuggestion(t, registry, purl, sdk.RemediationActionDirectBump, purl, "")
+	})
+
+	t.Run("unresolved consolidated manifest", func(t *testing.T) {
+		registry := newRegistry()
+		warnings := Derive(context.Background(), Input{
+			Registry: registry,
+			Manifests: []sdk.ConsolidatedManifest{{
+				DetectorName: detection.DetectorName,
+				Entry: sdk.GraphEntry{
+					Graph: sdk.New(), Manifest: sdk.ManifestMetadata{Path: manifestPath},
+				},
+			}},
+			Detections: []sdk.DetectionResult{detection},
+			Detectors:  map[string]sdk.Detector{"test-detector": detector},
+		})
+		if len(warnings) != 1 ||
+			!strings.Contains(warnings[0].Message, "consolidated manifest could not be resolved") {
+			t.Fatalf("Derive() warnings = %#v", warnings)
+		}
+		pkg, _ := registry.Get(purl)
+		if pkg.Remediation == nil || len(pkg.Remediation.Suggestions) != 0 {
+			t.Fatalf("unresolved hint produced suggestions: %#v", pkg.Remediation)
+		}
+	})
 }
 
 func TestDeriveFallsBackToManualReviewWhenProviderFails(t *testing.T) {

@@ -5,9 +5,17 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/bomly-dev/bomly-cli/sdk"
+)
+
+const (
+	maxDetectorAdviceRunes     = 512
+	maxDetectorDiagnosticRunes = 512
+	maxDetectorDiagnostics     = 20
 )
 
 // Input contains the completed detection and enrichment evidence used to
@@ -72,7 +80,9 @@ func derivePackageRemediation(currentVersion string, vulnerabilities []sdk.Vulne
 		return nil
 	}
 
-	current, _ := semver.NewVersion(strings.TrimSpace(currentVersion))
+	currentText := strings.TrimSpace(currentVersion)
+	current, currentErr := semver.NewVersion(currentText)
+	currentComparable := currentText == "" || currentErr == nil
 	evidence := make([]vulnerabilityEvidence, 0, len(vulnerabilities))
 	hasFixEvidence := false
 	allUnavailable := true
@@ -91,6 +101,9 @@ func derivePackageRemediation(currentVersion string, vulnerabilities []sdk.Vulne
 	}
 	if !hasFixEvidence {
 		return &sdk.PackageRemediation{Status: sdk.PackageRemediationUnknown}
+	}
+	if !currentComparable {
+		return &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial}
 	}
 
 	versions := make([]string, 0, len(evidence))
@@ -126,8 +139,12 @@ func remediationEvidenceForVulnerability(
 			contradictory:  true,
 		}
 	}
+	var comparable bool
+	values, comparable = stableComparableVersions(values)
+	if !comparable || len(values) == 0 {
+		return vulnerabilityEvidence{hasFixEvidence: true}
+	}
 	if current != nil {
-		var comparable bool
 		values, comparable = versionsNewerThan(values, current)
 		if !comparable || len(values) == 0 {
 			return vulnerabilityEvidence{hasFixEvidence: true}
@@ -166,6 +183,20 @@ func preferredFixVersions(vulnerability sdk.Vulnerability) []string {
 		}
 	}
 	return uniqueSortedVersions(fixed)
+}
+
+func stableComparableVersions(values []string) ([]string, bool) {
+	stable := make([]string, 0, len(values))
+	for _, value := range values {
+		candidate, err := semver.NewVersion(strings.TrimSpace(value))
+		if err != nil {
+			return nil, false
+		}
+		if candidate.Prerelease() == "" {
+			stable = append(stable, value)
+		}
+	}
+	return stable, true
 }
 
 func versionsNewerThan(values []string, current *semver.Version) ([]string, bool) {
@@ -212,23 +243,14 @@ func selectComparableVersion(values []string, highest bool) (string, bool) {
 	if selected == "" {
 		return "", false
 	}
-	if len(values) == 1 {
-		return selected, true
-	}
-
 	selectedSemver, err := semver.NewVersion(selected)
-	if err != nil {
-		for _, value := range values[1:] {
-			if strings.TrimSpace(value) != selected {
-				return "", false
-			}
-		}
-		return selected, true
+	if err != nil || selectedSemver.Prerelease() != "" {
+		return "", false
 	}
 	for _, value := range values[1:] {
 		candidate := strings.TrimSpace(value)
 		candidateSemver, err := semver.NewVersion(candidate)
-		if err != nil {
+		if err != nil || candidateSemver.Prerelease() != "" {
 			return "", false
 		}
 		comparison := candidateSemver.Compare(selectedSemver)
@@ -266,13 +288,25 @@ func collectHints(ctx context.Context, in Input) ([]validatedHint, []Warning) {
 			Registry:    cloneRegistry(in.Registry),
 		})
 		if err != nil {
-			warnings = append(warnings, Warning{Source: detection.DetectorName, Message: err.Error()})
+			warnings = append(warnings, Warning{
+				Source:  detection.DetectorName,
+				Message: sanitizeProviderText(err.Error(), maxDetectorDiagnosticRunes),
+			})
 			continue
 		}
-		for _, diagnostic := range response.Diagnostics {
-			if message := strings.TrimSpace(diagnostic); message != "" {
+		for _, diagnostic := range response.Diagnostics[:min(len(response.Diagnostics), maxDetectorDiagnostics)] {
+			if message := sanitizeProviderText(diagnostic, maxDetectorDiagnosticRunes); message != "" {
 				warnings = append(warnings, Warning{Source: detection.DetectorName, Message: message})
 			}
+		}
+		if len(response.Diagnostics) > maxDetectorDiagnostics {
+			warnings = append(warnings, Warning{
+				Source: detection.DetectorName,
+				Message: fmt.Sprintf(
+					"detector returned %d additional remediation diagnostics that were omitted",
+					len(response.Diagnostics)-maxDetectorDiagnostics,
+				),
+			})
 		}
 		validated, rejected := validateHints(detection, descriptor, response.Hints)
 		for idx := range validated {
@@ -286,6 +320,16 @@ func collectHints(ctx context.Context, in Input) ([]validatedHint, []Warning) {
 				validated[idx].sourceDependencyRef,
 			)
 			if !ok {
+				warnings = append(warnings, Warning{
+					Source: detection.DetectorName,
+					Message: sanitizeProviderText(
+						fmt.Sprintf(
+							"ignored remediation hint for dependency %q because its consolidated manifest could not be resolved",
+							validated[idx].sourceDependencyRef,
+						),
+						maxDetectorDiagnosticRunes,
+					),
+				})
 				validated[idx].dependencyRef = ""
 				continue
 			}
@@ -298,7 +342,10 @@ func collectHints(ctx context.Context, in Input) ([]validatedHint, []Warning) {
 			}
 		}
 		for _, message := range rejected {
-			warnings = append(warnings, Warning{Source: detection.DetectorName, Message: message})
+			warnings = append(warnings, Warning{
+				Source:  detection.DetectorName,
+				Message: sanitizeProviderText(message, maxDetectorDiagnosticRunes),
+			})
 		}
 	}
 	return hints, warnings
@@ -345,7 +392,7 @@ func validateHints(
 			case sdk.RemediationActionDirectBump,
 				sdk.RemediationActionTransitiveOverride,
 				sdk.RemediationActionLockfileRefresh:
-				strategies[strategy.Action] = strings.TrimSpace(strategy.Advice)
+				strategies[strategy.Action] = sanitizeProviderText(strategy.Advice, maxDetectorAdviceRunes)
 			default:
 				rejected = append(rejected, fmt.Sprintf("ignored detector-owned remediation decision %q for dependency %q", strategy.Action, dependencyRef))
 			}
@@ -360,6 +407,21 @@ func validateHints(
 		}
 	}
 	return valid, rejected
+}
+
+func sanitizeProviderText(value string, maxRunes int) string {
+	value = strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) {
+			return ' '
+		}
+		return r
+	}, value)
+	value = strings.Join(strings.Fields(value), " ")
+	if maxRunes <= 0 || utf8.RuneCountInString(value) <= maxRunes {
+		return value
+	}
+	runes := []rune(value)
+	return strings.TrimSpace(string(runes[:maxRunes]))
 }
 
 func detectionOccurrences(
@@ -662,18 +724,13 @@ func selectAction(
 		if advice, ok := hint.strategies[sdk.RemediationActionTransitiveOverride]; ok {
 			return sdk.RemediationActionTransitiveOverride, targetRef, advice
 		}
-		if _, ok := hint.strategies[sdk.RemediationActionLockfileRefresh]; ok {
-			return sdk.RemediationActionLockfileRefresh, targetRef, ""
+		if advice, ok := hint.strategies[sdk.RemediationActionLockfileRefresh]; ok {
+			return sdk.RemediationActionLockfileRefresh, targetRef, advice
 		}
 	default:
 		return sdk.RemediationActionManualReview, targetRef, ""
 	}
 	return sdk.RemediationActionManualReview, targetRef, ""
-}
-
-type placementState struct {
-	nodeID string
-	path   []string
 }
 
 func inferredPlacement(
@@ -687,53 +744,61 @@ func inferredPlacement(
 		return sdk.DependencyRelationshipUnknown, dependencyID, false
 	}
 
-	queue := []placementState{{nodeID: dependencyID, path: []string{dependencyID}}}
+	currentLayer := map[string][]string{dependencyID: {dependencyID}}
 	bestDistance := map[string]int{dependencyID: 0}
-	var candidates []placementState
-	shortest := -1
-	for len(queue) > 0 {
-		state := queue[0]
-		queue = queue[1:]
-		distance := len(state.path) - 1
-		if shortest >= 0 && distance > shortest {
-			continue
+	for distance := 0; len(currentLayer) > 0; distance++ {
+		nodeIDs := make([]string, 0, len(currentLayer))
+		for nodeID := range currentLayer {
+			nodeIDs = append(nodeIDs, nodeID)
 		}
-		parents, err := graph.Dependents(state.nodeID)
-		if err != nil {
-			continue
-		}
-		if len(parents) == 0 {
-			root, _ := graph.Node(state.nodeID)
-			if executableRoot(root) && len(state.path) >= 2 {
-				shortest = distance
-				candidates = append(candidates, state)
-			}
-			continue
-		}
-		for _, parent := range parents {
-			if parent == nil {
+		sort.Slice(nodeIDs, func(i, j int) bool {
+			return pathLess(currentLayer[nodeIDs[i]], currentLayer[nodeIDs[j]])
+		})
+
+		for _, nodeID := range nodeIDs {
+			parents, err := graph.Dependents(nodeID)
+			if err != nil || len(parents) != 0 {
 				continue
 			}
-			nextDistance := distance + 1
-			if previous, seen := bestDistance[parent.ID]; seen && previous < nextDistance {
+			root, _ := graph.Node(nodeID)
+			path := currentLayer[nodeID]
+			if executableRoot(root) && len(path) >= 2 {
+				if len(path) == 2 {
+					return sdk.DependencyRelationshipDirect, dependencyID, true
+				}
+				return sdk.DependencyRelationshipTransitive, path[len(path)-2], true
+			}
+		}
+
+		nextLayer := map[string][]string{}
+		for _, nodeID := range nodeIDs {
+			parents, err := graph.Dependents(nodeID)
+			if err != nil {
 				continue
 			}
-			bestDistance[parent.ID] = nextDistance
-			path := append(append([]string(nil), state.path...), parent.ID)
-			queue = append(queue, placementState{nodeID: parent.ID, path: path})
+			for _, parent := range parents {
+				if parent == nil {
+					continue
+				}
+				nextDistance := distance + 1
+				if previous, seen := bestDistance[parent.ID]; seen && previous < nextDistance {
+					continue
+				}
+				candidatePath := append(append([]string(nil), currentLayer[nodeID]...), parent.ID)
+				if existing, ok := nextLayer[parent.ID]; ok && !pathLess(candidatePath, existing) {
+					continue
+				}
+				bestDistance[parent.ID] = nextDistance
+				nextLayer[parent.ID] = candidatePath
+			}
 		}
+		currentLayer = nextLayer
 	}
-	if len(candidates) == 0 {
-		return sdk.DependencyRelationshipUnknown, dependencyID, false
-	}
-	sort.Slice(candidates, func(i, j int) bool {
-		return strings.Join(candidates[i].path, "\x00") < strings.Join(candidates[j].path, "\x00")
-	})
-	path := candidates[0].path
-	if len(path) == 2 {
-		return sdk.DependencyRelationshipDirect, dependencyID, true
-	}
-	return sdk.DependencyRelationshipTransitive, path[len(path)-2], true
+	return sdk.DependencyRelationshipUnknown, dependencyID, false
+}
+
+func pathLess(left, right []string) bool {
+	return strings.Join(left, "\x00") < strings.Join(right, "\x00")
 }
 
 func executableRoot(dependency *sdk.Dependency) bool {
@@ -758,6 +823,14 @@ func cloneRegistry(registry *sdk.PackageRegistry) *sdk.PackageRegistry {
 
 func cloneDetectionResult(result sdk.DetectionResult) sdk.DetectionResult {
 	clone := result
+	clone.SubprojectInfo.DetectedPackageManagers = append(
+		[]sdk.PackageManager(nil),
+		result.SubprojectInfo.DetectedPackageManagers...,
+	)
+	clone.SubprojectInfo.PlannedDetectors = append(
+		[]string(nil),
+		result.SubprojectInfo.PlannedDetectors...,
+	)
 	if result.Graphs == nil {
 		return clone
 	}

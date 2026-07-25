@@ -64,7 +64,7 @@ func BuildCompactExplain(query string, run ExplainRunResult) CompactExplainRespo
 			match.ManifestPath = manifest.Path
 		}
 
-		findings := remediationFindings(run.Registry, run.Findings)
+		findings := remediationFindings(run.Registry, run.Findings, run.AuditRan)
 		remediation := buildRemediations(remediationInput{
 			Findings:            findingsForPackage(findings, target.Dependency.Purl),
 			Graph:               run.Graph,

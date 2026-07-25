@@ -39,14 +39,18 @@ type remediationOutput struct {
 // decisions in internal/remediation.
 func buildRemediations(in remediationInput) remediationOutput {
 	trunc := &TruncationInfo{}
+	visibleFindings := map[string]struct{}{}
+	omittedFindings := map[string]struct{}{}
 	var informational []CompactFinding
 	findingsByPackage := make(map[string][]CompactFinding)
 
 	for _, f := range in.Findings {
 		vuln := lookupFindingVulnerability(in.Registry, f)
 		compact, _ := buildCompactFinding(f, vuln, in)
-		if f.Kind != sdk.FindingKindVulnerability || f.PackageRef == "" {
-			appendInformational(&informational, compact, trunc)
+		if f.Kind != sdk.FindingKindVulnerability || f.PackageRef == "" ||
+			f.PolicyStatus == sdk.FindingPolicyStatusWarn ||
+			f.PolicyStatus == sdk.FindingPolicyStatusSuppressed {
+			appendInformational(&informational, compact, visibleFindings, omittedFindings)
 			continue
 		}
 		findingsByPackage[f.PackageRef] = append(findingsByPackage[f.PackageRef], compact)
@@ -65,7 +69,7 @@ func buildRemediations(in remediationInput) remediationOutput {
 		}
 		if packageRemediation == nil || len(packageRemediation.Suggestions) == 0 {
 			for _, fix := range fixes {
-				appendInformational(&informational, fix, trunc)
+				appendInformational(&informational, fix, visibleFindings, omittedFindings)
 			}
 			delete(findingsByPackage, pkg.PURL)
 			continue
@@ -73,26 +77,38 @@ func buildRemediations(in remediationInput) remediationOutput {
 		for _, suggestion := range packageRemediation.Suggestions {
 			if len(groups) >= maxRemediationGroups {
 				trunc.OmittedGroups++
-				trunc.OmittedFindings += len(fixes)
+				recordCompactFindings(omittedFindings, fixes)
 				continue
 			}
 			group := canonicalRemediationGroup(pkg, packageRemediation, suggestion, fixes, in)
 			if len(group.Fixes) > maxFindingsPerGroup {
-				trunc.OmittedFindings += len(group.Fixes) - maxFindingsPerGroup
+				recordCompactFindings(omittedFindings, group.Fixes[maxFindingsPerGroup:])
 				group.Fixes = append([]CompactFinding(nil), group.Fixes[:maxFindingsPerGroup]...)
 			}
+			recordCompactFindings(visibleFindings, group.Fixes)
 			finalizeCanonicalGroup(&group)
 			groups = append(groups, group)
 		}
 		delete(findingsByPackage, pkg.PURL)
 	}
-	for _, fixes := range findingsByPackage {
+	leftoverPackageRefs := make([]string, 0, len(findingsByPackage))
+	for packageRef := range findingsByPackage {
+		leftoverPackageRefs = append(leftoverPackageRefs, packageRef)
+	}
+	sort.Strings(leftoverPackageRefs)
+	for _, packageRef := range leftoverPackageRefs {
+		fixes := findingsByPackage[packageRef]
+		sortCompactFindings(fixes)
 		for _, fix := range fixes {
-			appendInformational(&informational, fix, trunc)
+			appendInformational(&informational, fix, visibleFindings, omittedFindings)
 		}
 	}
 	rankGroups(groups)
 	sortCompactFindings(informational)
+	for key := range visibleFindings {
+		delete(omittedFindings, key)
+	}
+	trunc.OmittedFindings = len(omittedFindings)
 
 	if trunc.OmittedFindings == 0 && trunc.OmittedGroups == 0 {
 		trunc = nil
@@ -103,12 +119,34 @@ func buildRemediations(in remediationInput) remediationOutput {
 	return remediationOutput{Remediations: groups, Informational: informational, Truncation: trunc}
 }
 
-func appendInformational(findings *[]CompactFinding, finding CompactFinding, trunc *TruncationInfo) {
+func appendInformational(
+	findings *[]CompactFinding,
+	finding CompactFinding,
+	visible map[string]struct{},
+	omitted map[string]struct{},
+) {
 	if len(*findings) < maxInformational {
 		*findings = append(*findings, finding)
+		visible[compactFindingKey(finding)] = struct{}{}
 		return
 	}
-	trunc.OmittedFindings++
+	omitted[compactFindingKey(finding)] = struct{}{}
+}
+
+func recordCompactFindings(target map[string]struct{}, findings []CompactFinding) {
+	for _, finding := range findings {
+		target[compactFindingKey(finding)] = struct{}{}
+	}
+}
+
+func compactFindingKey(finding CompactFinding) string {
+	return strings.Join([]string{
+		finding.Package.Purl,
+		finding.Package.Label(),
+		finding.Kind,
+		finding.RuleID,
+		finding.VulnID,
+	}, "\x00")
 }
 
 func packagesWithRemediation(registry *sdk.PackageRegistry) []*sdk.Package {
@@ -301,9 +339,14 @@ func finalizeCanonicalGroup(group *RemediationGroup) {
 }
 
 // remediationFindings joins enriched vulnerabilities with optional audit
-// findings. Enrichment supplies complete vulnerability coverage; audit
-// findings overlay policy fields without filtering out unaudited advisories.
-func remediationFindings(registry *sdk.PackageRegistry, auditFindings []sdk.Finding) []sdk.Finding {
+// findings. Enrichment supplies complete vulnerability coverage. When audit
+// ran, enriched vulnerabilities omitted by policy remain visible with a
+// suppressed status instead of resurfacing as actionable suggestions.
+func remediationFindings(
+	registry *sdk.PackageRegistry,
+	auditFindings []sdk.Finding,
+	auditRan bool,
+) []sdk.Finding {
 	used := make([]bool, len(auditFindings))
 	result := make([]sdk.Finding, 0, len(auditFindings))
 	if registry != nil {
@@ -321,6 +364,9 @@ func remediationFindings(registry *sdk.PackageRegistry, auditFindings []sdk.Find
 					Auditor:         "enrichment",
 					PackageRef:      pkg.PURL,
 					VulnerabilityID: vulnerability.ID,
+				}
+				if auditRan {
+					finding.PolicyStatus = sdk.FindingPolicyStatusSuppressed
 				}
 				for idx, candidate := range auditFindings {
 					if used[idx] || candidate.Kind != sdk.FindingKindVulnerability ||

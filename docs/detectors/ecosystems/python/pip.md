@@ -14,8 +14,11 @@ Bomly uses this chain when it finds `pip` evidence.
 | Ignored directory markers | `pyvenv.cfg` |
 | Multi-module resolution | No |
 | Install-first support | Yes |
-| Remediation hints | `direct-bump`, `transitive-override` |
+| Remediation hints | `direct-bump`[^direct-bump], `transitive-override`[^transitive-override] |
 | Native command hints | `pip`, `syft for bomly-lite` |
+
+[^direct-bump]: Update a package declared directly in the project.
+[^transitive-override]: Pin an indirect package with the package manager's override feature.
 
 ## How `pip` resolves
 

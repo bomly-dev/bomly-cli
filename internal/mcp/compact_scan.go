@@ -57,7 +57,7 @@ func BuildCompactScan(run ScanRunResult) CompactScanResponse {
 	}
 
 	result := buildRemediations(remediationInput{
-		Findings:            remediationFindings(run.Registry, run.Findings),
+		Findings:            remediationFindings(run.Registry, run.Findings, run.AuditRan),
 		Graph:               run.Graph,
 		Registry:            run.Registry,
 		Manifests:           run.Response.Manifests,
@@ -68,19 +68,25 @@ func BuildCompactScan(run ScanRunResult) CompactScanResponse {
 	response.Truncation = result.Truncation
 
 	severityCounts := map[string]int{}
-	actionable := 0
+	actionableFindings := map[string]CompactFinding{}
 	for _, group := range result.Remediations {
-		actionable += len(group.Fixes)
 		for _, fix := range group.Fixes {
-			severityCounts[severityBucket(fix.Severity)]++
+			actionableFindings[compactFindingKey(fix)] = fix
 		}
 	}
+	informationalFindings := map[string]CompactFinding{}
 	for _, fix := range result.Informational {
+		informationalFindings[compactFindingKey(fix)] = fix
+	}
+	for _, fix := range actionableFindings {
+		severityCounts[severityBucket(fix.Severity)]++
+	}
+	for _, fix := range informationalFindings {
 		severityCounts[severityBucket(fix.Severity)]++
 	}
 	response.Summary.FindingsBySeverity = severityCounts
-	response.Summary.Actionable = actionable
-	response.Summary.Informational = len(result.Informational)
+	response.Summary.Actionable = len(actionableFindings)
+	response.Summary.Informational = len(informationalFindings)
 	if !run.AuditRan && len(vulnerablePackages) == 0 {
 		addPackageInventory(&response, run.Response.Manifests)
 	}

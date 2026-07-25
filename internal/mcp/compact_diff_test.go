@@ -51,9 +51,11 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 	if compact.SecurityDelta.Resolved[0].Classification != ClassificationFixAvailable {
 		t.Fatalf("resolved classification should come from base registry: %#v", compact.SecurityDelta.Resolved[0])
 	}
-	// Remediations cover what is still open after merge: introduced + persisted.
-	if len(compact.Remediations) != 3 {
-		t.Fatalf("expected all 3 enriched vulnerabilities in remediation, got %#v", compact.Remediations)
+	// Remediations cover the introduced and persisted findings that audit kept
+	// actionable. The enriched legacy advisory was omitted by audit policy, so
+	// it remains visible as suppressed information.
+	if len(compact.Remediations) != 2 {
+		t.Fatalf("expected 2 actionable remediations, got %#v", compact.Remediations)
 	}
 	direct := groupByAction(t, compact.Remediations, ActionDirectBump)
 	if direct.TargetPackage.Name != "lib-a" {
@@ -62,6 +64,12 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 	transitive := groupByAction(t, compact.Remediations, ActionTransitiveOverride)
 	if transitive.TargetPackage.Name != "lib-b" {
 		t.Fatalf("transitive group must target ancestor: %#v", transitive.TargetPackage)
+	}
+	if len(compact.Informational) != 1 ||
+		compact.Informational[0].Package.Name != "legacy" ||
+		compact.Informational[0].PolicyStatus != string(sdk.FindingPolicyStatusSuppressed) {
+		t.Fatalf("audit-omitted vulnerability was not retained as informational: %#v",
+			compact.Informational)
 	}
 	if compact.SchemaVersion != CompactSchemaVersion || compact.Command != "diff" {
 		t.Fatalf("header wrong: %#v", compact)
@@ -182,6 +190,51 @@ func TestBuildCompactExplainEnrichedWithoutAuditReturnsRemediation(t *testing.T)
 		t.Fatalf("recommended version did not use package context: %#v",
 			compact.Matches[0].Remediations[0])
 	}
+}
+
+func TestBuildCompactExplainTreatsAuditOmissionAsSuppressed(t *testing.T) {
+	in := remediationFixture(t)
+	const purl = "pkg:npm/lib-a@1.0.0"
+	pkg, ok := in.Registry.Get(purl)
+	if !ok {
+		t.Fatal("lib-a package missing")
+	}
+	compact := BuildCompactExplain("lib-a", ExplainRunResult{
+		Response: output.ExplainResponse{
+			Targets: []output.ExplainTargetResponse{{
+				Dependency: output.ExplainDependency{
+					PackageRef: output.PackageRef{
+						Name:            "lib-a",
+						Version:         "1.0.0",
+						Purl:            purl,
+						Vulnerabilities: output.VulnerabilityRefsFromPackageVulnerabilities(pkg.Vulnerabilities),
+					},
+					Remediation: pkg.Remediation.Clone(),
+				},
+			}},
+		},
+		// Audit omitted lib-a as if the advisory were allowed or below
+		// --fail-on. Other findings are irrelevant to the focused package.
+		Findings:  append([]sdk.Finding(nil), in.Findings[1:]...),
+		Graph:     in.Graph,
+		Registry:  in.Registry,
+		Manifests: in.Manifests,
+		AuditRan:  true,
+	})
+	if len(compact.Matches) != 1 {
+		t.Fatalf("matches = %#v", compact.Matches)
+	}
+	match := compact.Matches[0]
+	if len(match.Remediations) != 0 {
+		t.Fatalf("audit-suppressed explain finding became actionable: %#v", match.Remediations)
+	}
+	for _, finding := range match.Findings {
+		if finding.Kind == string(sdk.FindingKindVulnerability) &&
+			finding.PolicyStatus == string(sdk.FindingPolicyStatusSuppressed) {
+			return
+		}
+	}
+	t.Fatalf("audit-suppressed explain finding = %#v", match.Findings)
 }
 
 func mustRegistryVulns(t *testing.T, registry *sdk.PackageRegistry, purl string) []sdk.Vulnerability {

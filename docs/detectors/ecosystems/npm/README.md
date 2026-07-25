@@ -17,5 +17,8 @@ Package managers Bomly recognizes in the `npm` ecosystem:
 - Bomly tries detector chains from left to right. Later detectors in the chain are fallbacks Bomly uses when the preferred detector cannot produce graph data.
 - Install-first support means `--install-first` can run the package manager's normal install command before graph resolution. This downloads packages and modifies the filesystem; see [docs/DETECTORS.md](../../../DETECTORS.md#install-first).
 - Remediation hints are read-only package-manager guidance used during `--enrich`. Detectors do not choose the final action or change project files.
+  - `direct-bump` means the detector knows how to update a package declared directly in the project.
+  - `transitive-override` means the detector knows how to pin an indirect package with the package manager's override feature.
+  - `lockfile-refresh` means the detector knows how to ask the package manager to resolve a newer indirect package version.
 - Each package-manager page also lists the directories its detectors declare as ignored during recursive discovery (`--recursive`) and whether the chain resolves nested workspace/reactor modules from a root manifest (multi-module); see [docs/SCAN_TARGETS.md](../../../SCAN_TARGETS.md#recursive-discovery----recursive).
 - Syft-backed entries provide broad compatibility, especially for containers and ecosystems without native Bomly graph resolution.

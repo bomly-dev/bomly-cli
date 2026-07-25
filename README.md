@@ -184,14 +184,19 @@ Add Bomly to an MCP-aware agent such as Claude Code, Cursor, VS Code, or a custo
 
 ## Configure and Extend
 
-Bomly reads configuration from global config, project config, `BOMLY_*` environment variables, and CLI flags, with later sources taking precedence:
+Bomly reads configuration from your user config, an explicitly selected
+config file, `BOMLY_*` environment variables, and CLI flags, with later
+sources taking precedence:
 
 1. `~/.bomly/config.yaml`
-2. `<project>/.bomly/config.yaml`
+2. `--config <path>` or `BOMLY_CONFIG`
 3. `BOMLY_*` environment variables
 4. CLI flags
 
-Use `--config <path>` to add an explicit config file. See the generated [Config Reference](docs/CONFIG_REFERENCE.md).
+Repository config files are never loaded automatically. A project may keep
+its shared configuration at `.bomly/config.yaml`, but you must trust it
+explicitly with `--config .bomly/config.yaml` or `BOMLY_CONFIG`. See the
+generated [Config Reference](docs/CONFIG_REFERENCE.md).
 
 Managed plugins let you add detectors, matchers, and auditors without forking Bomly:
 

@@ -53,7 +53,7 @@ type Resolved struct {
 	Matchers              string   `doc:"Matcher selectors; supports +name and -name modifiers" env:"BOMLY_MATCHERS"`
 	InstallFirst          bool     `doc:"Run detector-specific dependency installation before resolving graphs" env:"BOMLY_INSTALL_FIRST"`
 	InstallArgs           []string `doc:"Additional detector-specific install arguments" env:"BOMLY_INSTALL_ARGS"`
-	Config                string   `doc:"Explicit YAML config file path" env:"BOMLY_CONFIG"`
+	Config                string   `doc:"Explicit YAML config file path; repository config files are never loaded automatically" env:"BOMLY_CONFIG"`
 	Quiet                 bool     `doc:"Suppress all non-error output" env:"BOMLY_QUIET"`
 	Verbosity             int      `doc:"Verbosity level (0=normal, 1=verbose, 2+=debug)" env:"BOMLY_VERBOSE"`
 	LoadedFiles           []string

@@ -24,7 +24,7 @@ const (
 
 func bindFlagOptions(cmd *cobra.Command, cfg *config.Resolved) error {
 	flags := cmd.PersistentFlags()
-	flags.StringVar(&cfg.Config, "config", "", "YAML config file path")
+	flags.StringVar(&cfg.Config, "config", "", "Explicit YAML config file path (repository config is not loaded automatically)")
 	flags.BoolVarP(&cfg.Quiet, "quiet", "q", false, "Suppress non-error stderr output")
 	flags.CountVarP(&cfg.Verbosity, "verbose", "v", "Increase verbosity (-v = info, -vv = debug)")
 

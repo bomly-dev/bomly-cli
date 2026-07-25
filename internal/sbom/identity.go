@@ -15,11 +15,17 @@ func parsePURL(value string) *packageurl.PackageURL {
 // whose spec name differs from the Bomly ecosystem name. Without these, a PURL
 // Bomly itself emitted would not round-trip through SBOM ingest: ParseEcosystem
 // only knows Bomly's own identifiers.
+//
+// Types that two ecosystems share are deliberately absent. pkg:hex is emitted
+// for both Elixir (mix) and Erlang (rebar), and nothing in the PURL says which;
+// since the standard codecs do not carry Component.Ecosystem — CycloneDX drops
+// it and SPDX rebuilds it from the PURL — guessing here would relabel every
+// round-tripped Erlang dependency as Elixir, and packageManagerForPURLType
+// would then call it Mix. Leaving it unknown keeps the ambiguity visible.
 var purlTypeEcosystems = map[string]sdk.Ecosystem{
 	"golang": sdk.EcosystemGo,
-	// Elixir and Erlang share pkg:hex; Elixir is the far more common source of
-	// a hex PURL, and the component's own ecosystem field wins when present.
-	"hex":       sdk.EcosystemElixir,
+	// pkg:otp, unlike pkg:hex, names exactly one ecosystem.
+	"otp":       sdk.EcosystemErlang,
 	"hackage":   sdk.EcosystemHaskell,
 	"cran":      sdk.EcosystemR,
 	"opam":      sdk.EcosystemOCaml,
@@ -33,8 +39,9 @@ var purlTypeEcosystems = map[string]sdk.Ecosystem{
 	"conan":     sdk.EcosystemCPP,
 	"cocoapods": sdk.EcosystemSwift,
 	"swift":     sdk.EcosystemSwift,
-	// pkg:maven covers Scala too, but Java is the overwhelmingly common case
-	// and there is nothing in the PURL to tell them apart.
+	// pkg:maven covers Scala too and is ambiguous in the same way as pkg:hex,
+	// but ParseEcosystem already resolved it to maven before this table
+	// existed; dropping it now would regress every Java SBOM to unknown.
 	"maven":         sdk.EcosystemMaven,
 	"githubactions": sdk.EcosystemGitHub,
 }

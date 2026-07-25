@@ -476,22 +476,41 @@ func TestDeclaredEcosystemsAreQueryable(t *testing.T) {
 		t.Fatal("OSV should declare the ecosystems osv.dev covers")
 	}
 
+	// Coverage is per package manager, not per ecosystem: erlang is covered
+	// through rebar (pkg:hex) while OTP applications shipped with the runtime
+	// are not in OSV at all, so one queryable manager is what the declaration
+	// actually claims.
 	for _, eco := range declared {
-		dep := &sdk.Dependency{Coordinates: sdk.Coordinates{
-			Name:      "example",
-			Version:   "1.0.0",
-			Ecosystem: eco,
-		}}
-		purl := sdk.CanonicalPackageURLFromDependency(dep)
-		if purl == "" {
-			t.Errorf("descriptor declares %q but it produces no canonical PURL", eco)
+		var managers []sdk.PackageManager
+		for _, manager := range sdk.AllPackageManagers() {
+			if manager.Ecosystem() == eco {
+				managers = append(managers, manager)
+			}
+		}
+		if len(managers) == 0 {
+			t.Errorf("descriptor declares %q but no package manager resolves to it", eco)
 			continue
 		}
-		if osvResolvesPURL(purl) {
-			continue
+
+		queryable := false
+		for _, manager := range managers {
+			dep := &sdk.Dependency{Coordinates: sdk.Coordinates{
+				Name:           "example",
+				Version:        "1.0.0",
+				Ecosystem:      eco,
+				PackageManager: manager,
+			}}
+			purl := sdk.CanonicalPackageURLFromDependency(dep)
+			if purl == "" {
+				t.Errorf("descriptor declares %q but %q produces no canonical PURL", eco, manager)
+				continue
+			}
+			if osvResolvesPURL(purl) || ecosystemToOSV(string(eco)) != "" {
+				queryable = true
+			}
 		}
-		if ecosystemToOSV(string(eco)) == "" {
-			t.Errorf("descriptor declares %q but %q is not an OSV PURL type and ecosystemToOSV has no name for it", eco, purl)
+		if !queryable {
+			t.Errorf("descriptor declares %q but none of its package managers produce an OSV PURL type, and ecosystemToOSV has no name for it", eco)
 		}
 	}
 }
@@ -520,6 +539,50 @@ func TestBuildQueryFallsBackWhenPURLTypeIsNotOSVIndexed(t *testing.T) {
 	}
 	if query.Version != "4.0.1" {
 		t.Errorf("Version = %q, want %q", query.Version, "4.0.1")
+	}
+}
+
+// OTP applications are discovered from *.app manifests and ship with the
+// runtime rather than resolving from Hex. Querying them as Hex packages — by
+// PURL or by name — risks a false advisory match on a name collision, so they
+// must stay on their own unindexed pkg:otp identity. Rebar dependencies do
+// resolve from Hex and must keep matching.
+func TestBuildQueryDoesNotQueryOTPApplicationsAsHex(t *testing.T) {
+	otp := &sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name:           "kernel",
+		Version:        "9.2",
+		Ecosystem:      sdk.EcosystemErlang,
+		PackageManager: sdk.PackageManagerOTP,
+	}}
+	purl := sdk.CanonicalPackageURLFromDependency(otp)
+	if purl != "pkg:otp/kernel@9.2" {
+		t.Fatalf("OTP PURL = %q, want %q", purl, "pkg:otp/kernel@9.2")
+	}
+
+	_, query, ok := buildQuery(otp, purl)
+	if !ok {
+		t.Fatal("expected a query to be built")
+	}
+	var purlPkg PurlPackage
+	if err := json.Unmarshal(query.Package, &purlPkg); err != nil {
+		t.Fatalf("expected PurlPackage JSON, got a name query: %v", err)
+	}
+	if purlPkg.Purl != "pkg:otp/kernel@9.2" {
+		t.Errorf("PURL = %q, want %q", purlPkg.Purl, "pkg:otp/kernel@9.2")
+	}
+
+	rebar := &sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name:           "cowboy",
+		Version:        "2.10.0",
+		Ecosystem:      sdk.EcosystemErlang,
+		PackageManager: sdk.PackageManagerRebar,
+	}}
+	rebarPURL := sdk.CanonicalPackageURLFromDependency(rebar)
+	if rebarPURL != "pkg:hex/cowboy@2.10.0" {
+		t.Fatalf("rebar PURL = %q, want %q", rebarPURL, "pkg:hex/cowboy@2.10.0")
+	}
+	if !osvResolvesPURL(rebarPURL) {
+		t.Error("rebar dependencies resolve from Hex and must stay queryable")
 	}
 }
 

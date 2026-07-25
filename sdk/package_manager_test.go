@@ -146,8 +146,11 @@ func TestPackageURLTypeForValuesUsesSpecTypes(t *testing.T) {
 		want      string
 	}{
 		{EcosystemErlang, PackageManagerRebar, "hex"},
-		{EcosystemErlang, PackageManagerOTP, "hex"},
 		{EcosystemElixir, PackageManagerMix, "hex"},
+		// OTP applications ship with the runtime rather than resolving from
+		// Hex, so they must not be claimed as Hex packages: a name collision
+		// with a real Hex package would produce a false advisory match.
+		{EcosystemErlang, PackageManagerOTP, "otp"},
 		{EcosystemHaskell, PackageManagerCabal, "hackage"},
 		{EcosystemHaskell, PackageManagerStack, "hackage"},
 		{EcosystemR, PackageManagerRPackage, "cran"},
@@ -181,27 +184,38 @@ func TestPackageURLTypeForValuesUsesSpecTypes(t *testing.T) {
 }
 
 // The package manager is not always populated (SBOM ingest, syft-sourced
-// container packages), so the ecosystem alone has to be enough to reach a purl
-// type in the spec. CocoaPods is the one exception: it shares the swift
-// ecosystem, and swift is itself a valid purl type.
+// container packages), so for ecosystems backed by a single registry the
+// ecosystem alone has to be enough to reach a purl type in the spec.
+//
+// The exceptions are the ecosystems that span two registries, where the
+// package manager is the only thing that says which one applies: swift covers
+// SwiftPM and CocoaPods, erlang covers Hex and OTP. Guessing for those would
+// name a registry the package may not be published to.
 func TestPackageURLTypeForEcosystemAlone(t *testing.T) {
+	multiRegistry := map[Ecosystem]bool{
+		EcosystemSwift:  true,
+		EcosystemErlang: true,
+	}
 	specTypes := map[string]bool{
 		"apk": true, "cargo": true, "cocoapods": true, "composer": true,
 		"conan": true, "cran": true, "deb": true, "gem": true,
 		"githubactions": true, "golang": true, "hackage": true, "hex": true,
-		"maven": true, "npm": true, "nuget": true, "opam": true,
+		"maven": true, "npm": true, "nuget": true, "opam": true, "otp": true,
 		"pub": true, "pypi": true, "rpm": true, "swift": true,
 	}
 
 	for _, manager := range AllPackageManagers() {
 		ecosystem := manager.Ecosystem()
+		if multiRegistry[ecosystem] {
+			continue
+		}
 		withManager := PackageURLTypeForValues(ecosystem, manager)
 		if !specTypes[withManager] {
 			// Ecosystems Bomly reports but the purl spec has no type for
 			// (conda, homebrew, nix, ...) are out of scope here.
 			continue
 		}
-		if got := PackageURLTypeForValues(ecosystem); got != withManager && ecosystem != EcosystemSwift {
+		if got := PackageURLTypeForValues(ecosystem); got != withManager {
 			t.Errorf("PackageURLTypeForValues(%q) = %q, want %q (as with manager %q)", ecosystem, got, withManager, manager)
 		}
 	}

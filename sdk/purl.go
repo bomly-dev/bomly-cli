@@ -92,6 +92,12 @@ func buildPackageURLFallback(purlType, namespace, name, version string) string {
 // name needs an explicit case here — without one we emit a type that is not in
 // the purl spec, and consumers keyed on the type (OSV, SBOM ingest) silently
 // fail to match. See issue #317.
+//
+// Ecosystems that span more than one registry are the exception: erlang covers
+// both Hex (rebar) and OTP (*.app), so it is mapped at the package-manager
+// level only. A bare erlang value with no manager to disambiguate keeps the
+// non-spec pkg:erlang rather than guessing a registry the package may not be
+// published to.
 func PackageURLTypeForValues(values ...any) string {
 	for _, value := range values {
 		normalized := strings.ToLower(strings.TrimSpace(packageURLTypeValue(value)))
@@ -113,9 +119,16 @@ func PackageURLTypeForValues(values ...any) string {
 			return "githubactions"
 		case "conan", "cpp":
 			return "conan"
-		case "mix", "hex", "elixir", "erlang", "rebar", "otp":
-			// Elixir and Erlang both publish to Hex.
+		case "mix", "hex", "elixir", "rebar":
+			// Elixir (mix) and Erlang (rebar) both resolve from Hex.
 			return "hex"
+		case "otp":
+			// OTP applications are discovered from *.app manifests. They ship
+			// with the runtime or the release rather than resolving from Hex,
+			// so they get their own type — the same one Syft emits for them.
+			// Claiming Hex here would let a name collision with a real Hex
+			// package produce a false advisory match.
+			return "otp"
 		case "haskell", "cabal", "stack", "hackage":
 			return "hackage"
 		case "r", "r-package", "cran":

@@ -607,9 +607,12 @@ func ecosystemToOSV(eco string) string {
 	case "scala":
 		// Scala artifacts publish to Maven Central.
 		return "Maven"
-	case "elixir", "erlang":
-		// Both publish to Hex.
+	case "elixir":
 		return "Hex"
+	// Deliberately absent: erlang. It spans Hex (rebar) and OTP (*.app), and
+	// only the PURL says which — rebar dependencies already carry pkg:hex and
+	// match on that. Naming Hex here would query OTP runtime applications as
+	// Hex packages, where a name collision produces a false advisory match.
 	case "ocaml":
 		return "opam"
 	case "github-actions":

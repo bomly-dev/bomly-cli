@@ -4,17 +4,18 @@
 
 Package managers Bomly recognizes in the `npm` ecosystem:
 
-| Package manager | Detector chain | Evidence patterns | Install-first support |
-| --- | --- | --- | --- |
-| [`bun`](bun.md) | `bun-detector`, `bun-native-detector`, `syft-detector` | `bun.lock`, `bun.lockb` | Yes |
-| [`npm`](npm.md) | `npm-detector`, `npm-native-detector`, `syft-detector` | `npm-shrinkwrap.json`, `package-lock.json`, `package.json` | Yes |
-| [`pnpm`](pnpm.md) | `pnpm-detector`, `pnpm-native-detector`, `syft-detector` | `pnpm-lock.yaml`, `package.json` | Yes |
-| [`yarn`](yarn.md) | `yarn-detector`, `yarn-native-detector`, `syft-detector` | `yarn.lock`, `package.json` | Yes |
+| Package manager | Detector chain | Evidence patterns | Remediation hints | Install-first support |
+| --- | --- | --- | --- | --- |
+| [`bun`](bun.md) | `bun-detector`, `bun-native-detector`, `syft-detector` | `bun.lock`, `bun.lockb` | `direct-bump`, `lockfile-refresh` | Yes |
+| [`npm`](npm.md) | `npm-detector`, `npm-native-detector`, `syft-detector` | `npm-shrinkwrap.json`, `package-lock.json`, `package.json` | `direct-bump`, `transitive-override` | Yes |
+| [`pnpm`](pnpm.md) | `pnpm-detector`, `pnpm-native-detector`, `syft-detector` | `pnpm-lock.yaml`, `package.json` | `direct-bump`, `transitive-override` | Yes |
+| [`yarn`](yarn.md) | `yarn-detector`, `yarn-native-detector`, `syft-detector` | `yarn.lock`, `package.json` | `direct-bump`, `transitive-override` | Yes |
 
 ## How to read this
 
 - Each package-manager page documents the exact commands Bomly runs (if any), the network behavior, and the lockfile or manifest formats supported.
 - Bomly tries detector chains from left to right. Later detectors in the chain are fallbacks Bomly uses when the preferred detector cannot produce graph data.
 - Install-first support means `--install-first` can run the package manager's normal install command before graph resolution. This downloads packages and modifies the filesystem; see [docs/DETECTORS.md](../../../DETECTORS.md#install-first).
+- Remediation hints are read-only package-manager guidance used during `--enrich`. Detectors do not choose the final action or change project files.
 - Each package-manager page also lists the directories its detectors declare as ignored during recursive discovery (`--recursive`) and whether the chain resolves nested workspace/reactor modules from a root manifest (multi-module); see [docs/SCAN_TARGETS.md](../../../SCAN_TARGETS.md#recursive-discovery----recursive).
 - Syft-backed entries provide broad compatibility, especially for containers and ecosystems without native Bomly graph resolution.

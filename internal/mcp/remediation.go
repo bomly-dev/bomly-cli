@@ -17,6 +17,9 @@ type remediationInput struct {
 	Graph     *sdk.Graph
 	Registry  *sdk.PackageRegistry
 	Manifests []output.ScanManifest
+	// FocusedRemediation limits explain projections to suggestions already
+	// filtered for the focused dependency occurrence.
+	FocusedRemediation *sdk.PackageRemediation
 	// IncludeReachability gates the reachability field on compact findings
 	// (only meaningful when the analyze stage ran).
 	IncludeReachability bool
@@ -30,61 +33,65 @@ type remediationOutput struct {
 	Truncation    *TruncationInfo
 }
 
-// buildRemediations classifies findings into actionable remediation groups
-// ("this one change closes these N findings") and informational entries,
-// applying the compact caps. Grouping key: the direct dependency to change
-// plus the manifest that declares it.
+// buildRemediations projects canonical package remediation suggestions into
+// compact groups and keeps audit-only findings informational. It does not
+// choose actions or package-manager advice; enrichment already made those
+// decisions in internal/remediation.
 func buildRemediations(in remediationInput) remediationOutput {
 	trunc := &TruncationInfo{}
-	groups := map[string]*RemediationGroup{}
-	var groupKeys []string
 	var informational []CompactFinding
+	findingsByPackage := make(map[string][]CompactFinding)
 
 	for _, f := range in.Findings {
 		vuln := lookupFindingVulnerability(in.Registry, f)
-		compact, ancestor := buildCompactFinding(f, vuln, in)
-		classification := compact.Classification
-
-		// Warning-status findings are informational — except cheap wins
-		// (fix available), which agents should still see as actionable.
-		if !findingFails(f) && classification != ClassificationFixAvailable {
-			if len(informational) < maxInformational {
-				informational = append(informational, compact)
-			} else {
-				trunc.OmittedFindings++
-			}
+		compact, _ := buildCompactFinding(f, vuln, in)
+		if f.Kind != sdk.FindingKindVulnerability || f.PackageRef == "" {
+			appendInformational(&informational, compact, trunc)
 			continue
 		}
+		findingsByPackage[f.PackageRef] = append(findingsByPackage[f.PackageRef], compact)
+	}
 
-		action := remediationAction(f, vuln, compact, ancestor, ancestor.packageManager)
-		key := remediationGroupKey(action, ancestor, compact)
-		group, ok := groups[key]
-		if !ok {
+	var groups []RemediationGroup
+	for _, pkg := range packagesWithRemediation(in.Registry) {
+		fixes := findingsByPackage[pkg.PURL]
+		if len(fixes) == 0 {
+			continue
+		}
+		sortCompactFindings(fixes)
+		packageRemediation := pkg.Remediation
+		if in.FocusedRemediation != nil {
+			packageRemediation = in.FocusedRemediation
+		}
+		if packageRemediation == nil || len(packageRemediation.Suggestions) == 0 {
+			for _, fix := range fixes {
+				appendInformational(&informational, fix, trunc)
+			}
+			delete(findingsByPackage, pkg.PURL)
+			continue
+		}
+		for _, suggestion := range packageRemediation.Suggestions {
 			if len(groups) >= maxRemediationGroups {
 				trunc.OmittedGroups++
-				trunc.OmittedFindings++
+				trunc.OmittedFindings += len(fixes)
 				continue
 			}
-			group = &RemediationGroup{Action: action, TargetPackage: ancestor.identity}
-			group.ManifestPath = ancestor.manifestPath
-			group.PackageManager = ancestor.packageManager
-			groups[key] = group
-			groupKeys = append(groupKeys, key)
+			group := canonicalRemediationGroup(pkg, packageRemediation, suggestion, fixes, in)
+			if len(group.Fixes) > maxFindingsPerGroup {
+				trunc.OmittedFindings += len(group.Fixes) - maxFindingsPerGroup
+				group.Fixes = append([]CompactFinding(nil), group.Fixes[:maxFindingsPerGroup]...)
+			}
+			finalizeCanonicalGroup(&group)
+			groups = append(groups, group)
 		}
-		if len(group.Fixes) >= maxFindingsPerGroup {
-			trunc.OmittedFindings++
-			continue
+		delete(findingsByPackage, pkg.PURL)
+	}
+	for _, fixes := range findingsByPackage {
+		for _, fix := range fixes {
+			appendInformational(&informational, fix, trunc)
 		}
-		group.Fixes = append(group.Fixes, compact)
 	}
-
-	out := make([]RemediationGroup, 0, len(groups))
-	for _, key := range groupKeys {
-		group := groups[key]
-		finalizeGroup(group)
-		out = append(out, *group)
-	}
-	rankGroups(out)
+	rankGroups(groups)
 	sortCompactFindings(informational)
 
 	if trunc.OmittedFindings == 0 && trunc.OmittedGroups == 0 {
@@ -93,7 +100,92 @@ func buildRemediations(in remediationInput) remediationOutput {
 		trunc.Truncated = true
 		trunc.Note = "response was capped; re-scan a narrower path or use bomly_explain per package for the rest"
 	}
-	return remediationOutput{Remediations: out, Informational: informational, Truncation: trunc}
+	return remediationOutput{Remediations: groups, Informational: informational, Truncation: trunc}
+}
+
+func appendInformational(findings *[]CompactFinding, finding CompactFinding, trunc *TruncationInfo) {
+	if len(*findings) < maxInformational {
+		*findings = append(*findings, finding)
+		return
+	}
+	trunc.OmittedFindings++
+}
+
+func packagesWithRemediation(registry *sdk.PackageRegistry) []*sdk.Package {
+	if registry == nil {
+		return nil
+	}
+	packages := registry.All()
+	sort.SliceStable(packages, func(i, j int) bool {
+		return packages[i].PURL < packages[j].PURL
+	})
+	return packages
+}
+
+func canonicalRemediationGroup(
+	pkg *sdk.Package,
+	packageRemediation *sdk.PackageRemediation,
+	suggestion sdk.PackageRemediationSuggestion,
+	fixes []CompactFinding,
+	in remediationInput,
+) RemediationGroup {
+	target := packageIdentityFromRegistry(in.Registry, pkg.PURL)
+	targetRef := suggestion.TargetDependencyRef
+	if targetRef == "" && len(suggestion.DependencyRefs) > 0 {
+		targetRef = suggestion.DependencyRefs[0]
+	}
+	if in.Graph != nil {
+		if dependency, ok := in.Graph.Node(targetRef); ok {
+			target = packageIdentityFromDependency(dependency)
+		}
+	}
+	group := RemediationGroup{
+		Action:         string(suggestion.Action),
+		TargetPackage:  target,
+		ManifestPath:   suggestion.ManifestPath,
+		OverrideAdvice: suggestion.OverrideAdvice,
+		Fixes:          compactFixesForSuggestion(fixes, suggestion, in.Graph),
+	}
+	if manifest := manifestForDependency(in.Manifests, targetRef); manifest != nil {
+		group.PackageManager = manifest.PackageManager.Name()
+		if group.ManifestPath == "" {
+			group.ManifestPath = manifest.Path
+		}
+	}
+	if packageRemediation.Status == sdk.PackageRemediationComplete {
+		group.RecommendedVersion = packageRemediation.RecommendedVersion
+	}
+	return group
+}
+
+func compactFixesForSuggestion(
+	fixes []CompactFinding,
+	suggestion sdk.PackageRemediationSuggestion,
+	graph *sdk.Graph,
+) []CompactFinding {
+	out := append([]CompactFinding(nil), fixes...)
+	if graph == nil || len(suggestion.DependencyRefs) == 0 {
+		return out
+	}
+	dependency, ok := graph.Node(suggestion.DependencyRefs[0])
+	if !ok || dependency == nil {
+		return out
+	}
+	for idx := range out {
+		out[idx].Direct = nil
+		out[idx].ShortestPath = nil
+		if dependency.Relationship == sdk.DependencyRelationshipUnknown {
+			continue
+		}
+		path := shortestPathToRoot(graph, dependency.ID)
+		if len(path) == 0 {
+			continue
+		}
+		direct := dependency.Relationship == sdk.DependencyRelationshipDirect
+		out[idx].Direct = &direct
+		out[idx].ShortestPath = pathLabels(path)
+	}
+	return out
 }
 
 // ancestorTarget identifies the direct dependency an agent should change to
@@ -172,91 +264,115 @@ func buildCompactFinding(f sdk.Finding, vuln *sdk.Vulnerability, in remediationI
 	return compact, ancestor
 }
 
-// remediationAction decides what kind of change closes the finding: a direct
-// version bump, a declarative override on the transitive dependency, a
-// lockfile refresh for managers without overrides, a policy review, or —
-// when upstream has released nothing — no fix at all.
-func remediationAction(f sdk.Finding, vuln *sdk.Vulnerability, compact CompactFinding, ancestor ancestorTarget, packageManager string) string {
-	if f.Kind != sdk.FindingKindVulnerability {
-		return ActionPolicyReview
-	}
-	if ancestor.unresolvedParent {
-		return ActionManualReview
-	}
-	switch compact.Classification {
-	case ClassificationWontFix, ClassificationNoFixUpstream, ClassificationUnknown:
-		if vuln == nil || maxFixedInVersion([]sdk.Vulnerability{*vuln}) == "" {
-			return ActionNoFixUpstream
-		}
-	}
-	if ancestor.direct {
-		return ActionDirectBump
-	}
-	if _, supported := overrideAdvice(packageManager, compact.Package, "x", ""); supported {
-		return ActionTransitiveOverride
-	}
-	return ActionLockfileRefresh
-}
-
-func remediationGroupKey(action string, ancestor ancestorTarget, compact CompactFinding) string {
-	target := ancestor.identity.Purl
-	if target == "" {
-		target = ancestor.identity.Label()
-	}
-	if action == ActionNoFixUpstream || action == ActionManualReview || action == ActionPolicyReview {
-		// No-fix and policy groups key on the affected package itself.
-		target = compact.Package.Purl
-		if target == "" {
-			target = compact.Package.Label()
-		}
-	}
-	return action + "\x00" + ancestor.manifestPath + "\x00" + target
-}
-
-// finalizeGroup computes the recommended version and recommendation text
-// once the group's findings are complete.
-func finalizeGroup(group *RemediationGroup) {
+// finalizeCanonicalGroup adds presentation prose to canonical structured
+// data. It does not choose or alter the action, version, or manager advice.
+func finalizeCanonicalGroup(group *RemediationGroup) {
 	sortCompactFindings(group.Fixes)
 	ids := make([]string, 0, len(group.Fixes))
-	minSafe := ""
 	for _, fix := range group.Fixes {
 		ids = append(ids, fix.VulnID)
-		minSafe = higherVersion(minSafe, fix.FixedIn)
 	}
 	label := strings.Join(ids, ", ")
 
 	switch group.Action {
 	case ActionDirectBump:
-		// The structured fields say it all for a direct bump; prose is only
-		// added when no single safe version could be computed.
-		group.RecommendedVersion = minSafe
-		if minSafe == "" {
-			group.Recommendation = fmt.Sprintf("Upgrade `%s` in %s to address %s; no single safe version was computed.",
-				group.TargetPackage.Name, valueOr(group.ManifestPath, "its manifest"), label)
+		if group.RecommendedVersion != "" {
+			group.Recommendation = fmt.Sprintf(
+				"Update `%s` to %s in %s.",
+				group.TargetPackage.Name,
+				group.RecommendedVersion,
+				valueOr(group.ManifestPath, "its manifest"),
+			)
 		}
 	case ActionTransitiveOverride, ActionLockfileRefresh:
-		group.RecommendedVersion = minSafe
-		group.OverrideAdvice = groupOverrideAdvice(group)
-		verb := "override the transitive version"
-		if group.Action == ActionLockfileRefresh {
-			verb = "refresh the resolved version"
-		}
-		detail := ""
 		if group.OverrideAdvice != "" {
-			detail = ": " + group.OverrideAdvice
+			group.Recommendation = group.OverrideAdvice
+		} else {
+			group.Recommendation = fmt.Sprintf(
+				"Refresh the resolved version in %s.",
+				valueOr(group.ManifestPath, "the owning manifest"),
+			)
 		}
-		group.Recommendation = fmt.Sprintf(
-			"Introduced via direct dependency `%s@%s` in %s: %s%s. Alternatively upgrade `%s` to a release that pulls a patched version.",
-			group.TargetPackage.Name, group.TargetPackage.Version, valueOr(group.ManifestPath, "its manifest"),
-			verb, detail, group.TargetPackage.Name)
 	case ActionNoFixUpstream:
-		group.Recommendation = fmt.Sprintf(
-			"No fixed version released for %s. Remove or replace the dependency, or acknowledge via allow_vulnerability_ids.", label)
+		group.Recommendation = fmt.Sprintf("No fixed version is available upstream for %s.", label)
 	case ActionManualReview:
-		group.Recommendation = "The dependency is real, but its declaring parent could not be recovered. Review the owning manifest before selecting a change."
-	case ActionPolicyReview:
-		group.Recommendation = "Policy finding: requires review, not fixed by a version upgrade."
+		group.Recommendation = "Review the package and owning manifest; available evidence does not support a concrete change."
 	}
+}
+
+// remediationFindings joins enriched vulnerabilities with optional audit
+// findings. Enrichment supplies complete vulnerability coverage; audit
+// findings overlay policy fields without filtering out unaudited advisories.
+func remediationFindings(registry *sdk.PackageRegistry, auditFindings []sdk.Finding) []sdk.Finding {
+	used := make([]bool, len(auditFindings))
+	result := make([]sdk.Finding, 0, len(auditFindings))
+	if registry != nil {
+		for _, pkg := range registry.All() {
+			if pkg == nil {
+				continue
+			}
+			for _, vulnerability := range pkg.Vulnerabilities {
+				finding := sdk.Finding{
+					ID:              vulnerability.ID,
+					Kind:            sdk.FindingKindVulnerability,
+					Title:           firstNonEmpty(vulnerability.Title, vulnerability.Summary, vulnerability.ID),
+					Severity:        vulnerability.ParsedSeverity,
+					Source:          vulnerability.Source,
+					Auditor:         "enrichment",
+					PackageRef:      pkg.PURL,
+					VulnerabilityID: vulnerability.ID,
+				}
+				for idx, candidate := range auditFindings {
+					if used[idx] || candidate.Kind != sdk.FindingKindVulnerability ||
+						candidate.PackageRef != pkg.PURL ||
+						!findingIdentifiesVulnerability(candidate, vulnerability) {
+						continue
+					}
+					finding = candidate.Clone()
+					if finding.ID == "" {
+						finding.ID = vulnerability.ID
+					}
+					if finding.Title == "" {
+						finding.Title = firstNonEmpty(vulnerability.Title, vulnerability.Summary, vulnerability.ID)
+					}
+					if finding.Severity == "" {
+						finding.Severity = vulnerability.ParsedSeverity
+					}
+					if finding.Source == "" {
+						finding.Source = vulnerability.Source
+					}
+					if finding.VulnerabilityID == "" {
+						finding.VulnerabilityID = vulnerability.ID
+					}
+					used[idx] = true
+					break
+				}
+				result = append(result, finding)
+			}
+		}
+	}
+	for idx, finding := range auditFindings {
+		if !used[idx] {
+			result = append(result, finding.Clone())
+		}
+	}
+	return result
+}
+
+func findingIdentifiesVulnerability(finding sdk.Finding, vulnerability sdk.Vulnerability) bool {
+	identity := strings.ToLower(strings.TrimSpace(findingVulnID(finding)))
+	if identity == "" {
+		return false
+	}
+	if strings.EqualFold(strings.TrimSpace(vulnerability.ID), identity) {
+		return true
+	}
+	for _, alias := range vulnerability.Aliases {
+		if strings.EqualFold(strings.TrimSpace(alias), identity) {
+			return true
+		}
+	}
+	return false
 }
 
 // rankGroups orders remediation groups most-urgent first: known-exploited
@@ -281,7 +397,7 @@ func rankGroups(groups []RemediationGroup) {
 			return 0
 		case ActionTransitiveOverride, ActionLockfileRefresh:
 			return 1
-		case ActionManualReview, ActionPolicyReview:
+		case ActionManualReview:
 			return 2
 		default: // no-fix-upstream last — nothing to do right now
 			return 3
@@ -307,41 +423,6 @@ func rankGroups(groups []RemediationGroup) {
 		}
 		return groups[i].TargetPackage.Label() < groups[j].TargetPackage.Label()
 	})
-}
-
-// groupOverrideAdvice renders package-manager-specific override advice for
-// each distinct fixable package in the group (capped at three). Multiple
-// advisories on the same package collapse to its highest fixed version.
-func groupOverrideAdvice(group *RemediationGroup) string {
-	versionByPackage := map[string]string{}
-	var order []string
-	for _, fix := range group.Fixes {
-		if fix.FixedIn == "" {
-			continue
-		}
-		key := fix.Package.Label()
-		if _, ok := versionByPackage[key]; !ok {
-			order = append(order, key)
-		}
-		versionByPackage[key] = higherVersion(versionByPackage[key], fix.FixedIn)
-	}
-	var advices []string
-	rendered := map[string]PackageIdentity{}
-	for _, fix := range group.Fixes {
-		key := fix.Package.Label()
-		if _, ok := rendered[key]; ok {
-			continue
-		}
-		rendered[key] = fix.Package
-	}
-	for _, key := range order {
-		advice, _ := overrideAdvice(group.PackageManager, rendered[key], versionByPackage[key], group.ManifestPath)
-		advices = append(advices, advice)
-		if len(advices) == 3 {
-			break
-		}
-	}
-	return strings.Join(advices, "; ")
 }
 
 func sortCompactFindings(findings []CompactFinding) {
@@ -598,20 +679,6 @@ func capStrings(values []string, limit int) []string {
 		return append([]string(nil), values...)
 	}
 	return append([]string(nil), values[:limit]...)
-}
-
-func affectedPackagesLabel(fixes []CompactFinding) string {
-	seen := map[string]struct{}{}
-	var labels []string
-	for _, fix := range fixes {
-		label := "`" + fix.Package.Label() + "`"
-		if _, ok := seen[label]; ok {
-			continue
-		}
-		seen[label] = struct{}{}
-		labels = append(labels, label)
-	}
-	return strings.Join(labels, ", ")
 }
 
 func valueOr(value, fallback string) string {

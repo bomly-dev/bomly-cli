@@ -106,12 +106,29 @@ func TestFindingVulnerabilityInPackagesJoinsByPurlAndAlias(t *testing.T) {
 
 func TestPackagesFromRegistryUsesEcosystemNativeNames(t *testing.T) {
 	registry := scopedNPMRegistry(t)
+	pkg, ok := registry.Get("pkg:npm/@tailwindcss/postcss@4.0.0")
+	if !ok {
+		t.Fatal("scoped package missing from fixture")
+	}
+	pkg.Remediation = &sdk.PackageRemediation{
+		Status:             sdk.PackageRemediationComplete,
+		RecommendedVersion: "4.0.1",
+	}
 	packages := PackagesFromRegistry(registry)
 	if len(packages) != 1 {
 		t.Fatalf("expected one package, got %d", len(packages))
 	}
 	if packages[0].Name != "@tailwindcss/postcss" || packages[0].Org != "tailwindcss" {
 		t.Fatalf("scoped identity mangled: got name=%q org=%q", packages[0].Name, packages[0].Org)
+	}
+	if packages[0].Remediation == nil ||
+		packages[0].Remediation.Status != sdk.PackageRemediationComplete ||
+		packages[0].Remediation.RecommendedVersion != "4.0.1" {
+		t.Fatalf("remediation projection missing: %#v", packages[0].Remediation)
+	}
+	packages[0].Remediation.RecommendedVersion = "9.0.0"
+	if pkg.Remediation.RecommendedVersion != "4.0.1" {
+		t.Fatalf("package projection mutated registry remediation: %#v", pkg.Remediation)
 	}
 }
 

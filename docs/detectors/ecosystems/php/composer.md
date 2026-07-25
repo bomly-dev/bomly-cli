@@ -14,6 +14,7 @@ Bomly uses this chain when it finds `composer` evidence.
 | Ignored directory markers | - |
 | Multi-module resolution | No |
 | Install-first support | Yes |
+| Remediation hints | `direct-bump`, `transitive-override` |
 | Native command hints | `composer`, `syft for bomly-lite` |
 
 ## How `composer` resolves

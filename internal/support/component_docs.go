@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
@@ -95,6 +96,12 @@ bomly scan --detectors +bomly.examples.detector.bun-lock
 `+"```"+`
 
 Pass the bare detector name to filter to only that detector, `+"`+name`"+` to add it on top of defaults, or `+"`-name`"+` to remove it.
+
+## Remediation hints
+
+After vulnerability enrichment, supporting detectors may describe package-manager strategies for the dependency occurrences they found. Bomly's central remediation component validates those read-only hints and chooses the final suggestion. Detectors never choose a fix version or change manifests and lockfiles.
+
+Each package-manager page lists the strategies its built-in detectors understand. External detector plugins can advertise the same optional capability. Older protocol-v1 plugins keep working without it.
 
 ## Network behavior
 
@@ -583,15 +590,16 @@ func renderEcosystemReadme(ecosystem sdk.Ecosystem, entries []registry.PackageMa
 	_, _ = fmt.Fprintf(&b, "# %s\n\n", titleWords(string(ecosystem)))
 	b.WriteString(generatedBanner + "\n\n")
 	_, _ = fmt.Fprintf(&b, "Package managers Bomly recognizes in the `%s` ecosystem:\n\n", ecosystem)
-	b.WriteString("| Package manager | Detector chain | Evidence patterns | Install-first support |\n")
-	b.WriteString("| --- | --- | --- | --- |\n")
+	b.WriteString("| Package manager | Detector chain | Evidence patterns | Remediation hints | Install-first support |\n")
+	b.WriteString("| --- | --- | --- | --- | --- |\n")
 	for _, entry := range entries {
 		name := entry.Manager.Name()
-		_, _ = fmt.Fprintf(&b, "| [`%s`](%s.md) | %s | %s | %s |\n",
+		_, _ = fmt.Fprintf(&b, "| [`%s`](%s.md) | %s | %s | %s | %s |\n",
 			name,
 			name,
 			codeList(entry.Detectors),
 			codeListOrDash(entry.EvidencePatterns),
+			remediationActionsForManager(entry.Manager),
 			yesNo(chainSupportsInstallFirst(entry.Detectors)),
 		)
 	}
@@ -599,6 +607,7 @@ func renderEcosystemReadme(ecosystem sdk.Ecosystem, entries []registry.PackageMa
 	b.WriteString("- Each package-manager page documents the exact commands Bomly runs (if any), the network behavior, and the lockfile or manifest formats supported.\n")
 	b.WriteString("- Bomly tries detector chains from left to right. Later detectors in the chain are fallbacks Bomly uses when the preferred detector cannot produce graph data.\n")
 	b.WriteString("- Install-first support means `--install-first` can run the package manager's normal install command before graph resolution. This downloads packages and modifies the filesystem; see [docs/DETECTORS.md](../../../DETECTORS.md#install-first).\n")
+	b.WriteString("- Remediation hints are read-only package-manager guidance used during `--enrich`. Detectors do not choose the final action or change project files.\n")
 	b.WriteString("- Each package-manager page also lists the directories its detectors declare as ignored during recursive discovery (`--recursive`) and whether the chain resolves nested workspace/reactor modules from a root manifest (multi-module); see [docs/SCAN_TARGETS.md](../../../SCAN_TARGETS.md#recursive-discovery----recursive).\n")
 	b.WriteString("- Syft-backed entries provide broad compatibility, especially for containers and ecosystems without native Bomly graph resolution.\n")
 	return b.String()
@@ -620,12 +629,25 @@ func renderPackageManagerMarkdown(ecosystem sdk.Ecosystem, entry registry.Packag
 	_, _ = fmt.Fprintf(&b, "| Ignored directory markers | %s |\n", codeListOrDash(chainIgnoredDirectoryMarkers(entry.Detectors)))
 	_, _ = fmt.Fprintf(&b, "| Multi-module resolution | %s |\n", yesNo(chainSupportsMultiModule(entry.Detectors, entry.Manager)))
 	_, _ = fmt.Fprintf(&b, "| Install-first support | %s |\n", yesNo(chainSupportsInstallFirst(entry.Detectors)))
+	_, _ = fmt.Fprintf(&b, "| Remediation hints | %s |\n", remediationActionsForManager(entry.Manager))
 	_, _ = fmt.Fprintf(&b, "| Native command hints | %s |\n", commandHintsForChain(entry.Detectors))
 	if prose := loadProse("detectors", name); prose != "" {
 		b.WriteString("\n")
 		b.WriteString(prose)
 	}
 	return b.String()
+}
+
+func remediationActionsForManager(manager sdk.PackageManager) string {
+	capabilities := detectors.RemediationCapabilities([]sdk.PackageManager{manager})
+	if len(capabilities) == 0 || len(capabilities[0].Actions) == 0 {
+		return "None"
+	}
+	actions := make([]string, 0, len(capabilities[0].Actions))
+	for _, action := range capabilities[0].Actions {
+		actions = append(actions, "`"+string(action)+"`")
+	}
+	return strings.Join(actions, ", ")
 }
 
 func writeMatcherDocs(outputDir string) error {

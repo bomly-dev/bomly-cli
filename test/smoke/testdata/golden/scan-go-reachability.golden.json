@@ -235,6 +235,20 @@
       "matched": true,
       "name": "golang.org/x/text",
       "purl": "pkg:golang/golang.org/x/text@v0.3.5",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "dependency_refs": [
+              "pkg:golang/golang.org/x/text@v0.3.5"
+            ],
+            "manifest_path": "go.mod",
+            "target_dependency_ref": "pkg:golang/golang.org/x/text@v0.3.5"
+          }
+        ]
+      },
       "version": "v0.3.5",
       "vulnerabilities": [
         {
@@ -373,6 +387,21 @@
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
             "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
           ],
           "data_source": "\u003cnormalized\u003e",
           "description": "\u003cnormalized\u003e",

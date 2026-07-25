@@ -7,7 +7,7 @@ Bomly's domain model standardizes around three pipeline stages — detection, ma
 | Stage      | Type                | Lives in                 | Identity     | Purpose                                                  |
 |------------|---------------------|--------------------------|--------------|----------------------------------------------------------|
 | Detection  | `sdk.Dependency`    | per-manifest `sdk.Graph` | `Dependency.ID` (stable within manifest) | One node per dependency instance; carries scope, locations, edges |
-| Matching   | `sdk.Package`       | `sdk.PackageRegistry`    | `Package.PURL` (canonical) | One artifact per unique PURL; carries licenses, vulnerabilities, scorecard, EOL |
+| Matching   | `sdk.Package`       | `sdk.PackageRegistry`    | `Package.PURL` (canonical) | One artifact per unique PURL; carries licenses, vulnerabilities, remediation, scorecard, EOL |
 | Audit      | `sdk.Finding`       | `engine.PipelineResult.Findings` | `Finding.ID` + `Finding.PackageRef` + `Finding.VulnerabilityID` | Reference-style policy outcome with no inlined vuln fields |
 
 Vulnerabilities themselves are OSV-aligned `sdk.Vulnerability` records owned by the registry; analyzers annotate them in place with reachability.
@@ -123,6 +123,7 @@ type Package struct {
     Digests         []Digest
     Licenses        []PackageLicense
     Vulnerabilities []Vulnerability       // OSV-aligned
+    Remediation     *PackageRemediation   // derived from vulnerability fix evidence
     Scorecard       *PackageScorecard
     EOL             *PackageEOL
     Copyright       string
@@ -141,6 +142,52 @@ Registry API (`sdk/registry.go`):
 - `reg.All()` — iterate. `reg.Len()` — count.
 
 Built by `consolidation.BuildPackageRegistry(consolidated)` right after the consolidation stage; threaded through match/analyze/audit and into the output layer via `PipelineResult.Registry`.
+
+`Package.Remediation` is canonical vulnerability guidance derived by
+`internal/remediation` after all matcher results and alias-equivalent
+vulnerabilities have been consolidated. It is absent when a package has no
+vulnerabilities:
+
+- `complete` means every vulnerability has usable fix evidence and
+  `RecommendedVersion` is the lowest package version known to address all of
+  them. When the installed version can be compared, the recommendation is
+  always newer.
+- `partial` means some fix evidence exists but it does not support one complete
+  recommendation. This includes fix evidence that is incomparable with or not
+  newer than the installed version.
+- `unavailable` means every vulnerability explicitly reports no fix or
+  won't-fix.
+- `unknown` means evidence is missing or contradictory.
+
+`Suggestions` joins that package result to dependency occurrences:
+
+```go
+type PackageRemediationSuggestion struct {
+    DependencyRefs      []string
+    TargetDependencyRef string
+    ManifestPath        string
+    Action              RemediationAction
+    OverrideAdvice      string
+}
+```
+
+`DependencyRefs` identifies the affected occurrences. `TargetDependencyRef`
+identifies the direct dependency or manifest anchor a user would act on.
+Suggestions are grouped only when action, target, manifest, and advice match.
+This preserves workspaces, aliases, duplicate versions, and separate
+manifests.
+
+The central component chooses `direct-bump`, `transitive-override`,
+`lockfile-refresh`, `no-fix-upstream`, or `manual-review`. Unknown-parent and
+non-registry occurrences always require manual review. Detector hints can
+confirm a package-manager strategy and supply manager advice, but cannot choose
+the package version or final action. When an older detector omits relationship
+metadata, core may infer placement from the shortest path to a real project
+root. Synthetic manifest ownership is never treated as a safe parent.
+
+This is derived data, not matcher, detector, or audit policy. The engine
+replaces any incoming value after matching. Derivation makes no additional
+network calls, runs no commands, and writes no files.
 
 ## `sdk.Vulnerability` — OSV-aligned
 

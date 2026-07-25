@@ -1,5 +1,7 @@
 package mcp
 
+import "github.com/bomly-dev/bomly-cli/sdk"
+
 // CompactSchemaVersion tags the agent-facing MCP response shapes. It is
 // versioned independently of the CLI JSON schema: MCP responses are compact
 // projections sized for tool-result limits, not the full document contract.
@@ -83,12 +85,11 @@ type CompactFinding struct {
 
 // Remediation actions for RemediationGroup.Action.
 const (
-	ActionDirectBump         = "direct-bump"
-	ActionTransitiveOverride = "transitive-override"
-	ActionLockfileRefresh    = "lockfile-refresh"
-	ActionNoFixUpstream      = "no-fix-upstream"
-	ActionManualReview       = "manual-review"
-	ActionPolicyReview       = "policy-review"
+	ActionDirectBump         = string(sdk.RemediationActionDirectBump)
+	ActionTransitiveOverride = string(sdk.RemediationActionTransitiveOverride)
+	ActionLockfileRefresh    = string(sdk.RemediationActionLockfileRefresh)
+	ActionNoFixUpstream      = string(sdk.RemediationActionNoFixUpstream)
+	ActionManualReview       = string(sdk.RemediationActionManualReview)
 )
 
 // RemediationGroup is the integrated fix context: one concrete change (bump
@@ -106,7 +107,8 @@ type RemediationGroup struct {
 }
 
 // CompactSummary tells the agent what the scan covered and what the compact
-// response omitted (clean packages are counted, not listed).
+// response omitted. Clean, non-audited scans may also return a capped package
+// inventory.
 type CompactSummary struct {
 	Manifests int `json:"manifests"`
 	// Subprojects counts independently discovered nested directories and
@@ -137,9 +139,10 @@ type TruncationInfo struct {
 }
 
 // CompactScanResponse is the bomly_scan tool result: remediation-grouped
-// actionable findings plus counts of everything omitted. For the complete
-// JSON document use the CLI (`bomly scan --format json`); for full advisory
-// detail on one package use bomly_explain.
+// enriched vulnerabilities, optional audit information, and counts of
+// everything omitted. For the complete JSON document use the CLI
+// (`bomly scan --format json`); for full advisory detail on one package use
+// bomly_explain.
 type CompactScanResponse struct {
 	SchemaVersion string             `json:"schema_version"`
 	Command       string             `json:"command"`

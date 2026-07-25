@@ -14,6 +14,7 @@ Bomly uses this chain when it finds `yarn` evidence.
 | Ignored directory markers | - |
 | Multi-module resolution | Yes |
 | Install-first support | Yes |
+| Remediation hints | `direct-bump`, `transitive-override` |
 | Native command hints | `yarn`, `syft for bomly-lite` |
 
 ## How `yarn` resolves

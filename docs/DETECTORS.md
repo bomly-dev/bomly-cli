@@ -55,6 +55,12 @@ bomly scan --detectors +bomly.examples.detector.bun-lock
 
 Pass the bare detector name to filter to only that detector, `+name` to add it on top of defaults, or `-name` to remove it.
 
+## Remediation hints
+
+After vulnerability enrichment, supporting detectors may describe package-manager strategies for the dependency occurrences they found. Bomly's central remediation component validates those read-only hints and chooses the final suggestion. Detectors never choose a fix version or change manifests and lockfiles.
+
+Each package-manager page lists the strategies its built-in detectors understand. External detector plugins can advertise the same optional capability. Older protocol-v1 plugins keep working without it.
+
 ## Network behavior
 
 Detectors differ in whether they run subprocesses, and those that do may invoke build tools that download packages from registries. The marketing claim "Bomly is offline-safe by default" is precise: **matchers** make zero outbound calls without `--enrich`. **Detectors** may invoke build tools that download packages on your behalf during normal graph resolution.

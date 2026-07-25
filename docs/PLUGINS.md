@@ -173,6 +173,30 @@ Detector plugins can also shape recursive discovery (`--recursive`) through thre
 
 All three are optional and older plugins that omit them keep working unchanged.
 
+### Optional remediation hints
+
+A detector plugin may also explain which package-manager remediation strategies
+it understands. Add `RemediationCapabilities` to the detector descriptor and
+implement `sdk.ServedDetectorRemediationProvider`.
+
+The provider runs after vulnerability enrichment. It receives the detector's
+own result and the enriched package registry. It may return occurrence-scoped
+strategy hints and plain-language package-manager advice. For example, an npm
+detector may advertise `direct-bump` and `transitive-override`.
+
+The provider must be read-only. It must not:
+
+- choose the recommended fix version;
+- decide the final remediation action;
+- edit files or run package-manager commands;
+- make additional network requests.
+
+Bomly validates every hint against the detector's graph, manifest paths, and
+advertised capabilities. The central remediation component chooses the final
+suggestion. Invalid hints become warnings and fall back to `manual-review`.
+Protocol-v1 plugins that do not advertise this capability are not called and
+continue to work unchanged.
+
 ## Configuration And Proxy Support
 
 Bomly passes the active plugin API version, the explicit `BOMLY_CONFIG` path when one was provided, proxy settings, and the enabled plugin's own config to managed plugin subprocesses.

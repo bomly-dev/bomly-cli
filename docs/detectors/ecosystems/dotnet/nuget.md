@@ -14,6 +14,7 @@ Bomly uses this chain when it finds `nuget` evidence.
 | Ignored directory markers | - |
 | Multi-module resolution | No |
 | Install-first support | No |
+| Remediation hints | None |
 | Native command hints | `dotnet`, `syft for bomly-lite` |
 
 ## How `nuget` resolves

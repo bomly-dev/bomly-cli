@@ -14,6 +14,7 @@ Bomly uses this chain when it finds `pip` evidence.
 | Ignored directory markers | `pyvenv.cfg` |
 | Multi-module resolution | No |
 | Install-first support | Yes |
+| Remediation hints | `direct-bump`, `transitive-override` |
 | Native command hints | `pip`, `syft for bomly-lite` |
 
 ## How `pip` resolves

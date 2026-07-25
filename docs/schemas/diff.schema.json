@@ -418,6 +418,50 @@
           "purl": {
             "type": "string"
           },
+          "remediation": {
+            "properties": {
+              "recommended_version": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "suggestions": {
+                "items": {
+                  "properties": {
+                    "action": {
+                      "type": "string"
+                    },
+                    "dependency_refs": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "manifest_path": {
+                      "type": "string"
+                    },
+                    "override_advice": {
+                      "type": "string"
+                    },
+                    "target_dependency_ref": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "dependency_refs",
+                    "action"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "type": "object"
+          },
           "scorecard": {
             "properties": {
               "aggregateScore": {

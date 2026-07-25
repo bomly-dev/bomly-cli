@@ -222,7 +222,7 @@ func TestExplainTool_ReturnsCompactJSONResult(t *testing.T) {
 				Command: "explain",
 				Query:   output.ExplainQuery{Name: "lodash"},
 				Targets: []output.ExplainTargetResponse{{
-					Dependency: output.PackageRef{Name: "lodash", Version: "4.17.20", Purl: "pkg:npm/lodash@4.17.20"},
+					Dependency: output.ExplainDependency{PackageRef: output.PackageRef{Name: "lodash", Version: "4.17.20", Purl: "pkg:npm/lodash@4.17.20"}},
 					Paths: []output.DependencyPath{{
 						Relationship: "direct",
 						Packages: []output.PackageRef{

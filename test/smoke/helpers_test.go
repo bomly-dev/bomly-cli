@@ -202,6 +202,7 @@ func normalizeJSON(t *testing.T, raw []byte) []byte {
 	// database is refreshed. Keep stable identifiers and reachability details so
 	// smoke tests still prove matching and analysis behavior.
 	normalizeAdvisoryFeedFields(obj)
+	normalizePackageRemediationVersions(obj)
 
 	// Normalize synthetic project IDs (e.g. pkg:maven/bomly-git-NNNNNN) that
 	// are derived from a non-deterministic hash of the temp clone directory.
@@ -476,6 +477,27 @@ func scrubAdvisoryFeedMap(m map[string]any) {
 			"type": "<normalized>",
 			"url":  "<normalized>",
 		}}
+	}
+}
+
+// normalizePackageRemediationVersions keeps the derived status in smoke
+// goldens while scrubbing the recommended version sourced from live advisory
+// feeds. The recommendation can change as those feeds publish new fixes.
+func normalizePackageRemediationVersions(node any) {
+	switch v := node.(type) {
+	case map[string]any:
+		if remediation, ok := v["remediation"].(map[string]any); ok {
+			if _, exists := remediation["recommended_version"]; exists {
+				remediation["recommended_version"] = "<normalized>"
+			}
+		}
+		for _, child := range v {
+			normalizePackageRemediationVersions(child)
+		}
+	case []any:
+		for _, child := range v {
+			normalizePackageRemediationVersions(child)
+		}
 	}
 }
 

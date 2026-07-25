@@ -14,6 +14,7 @@ Bomly uses this chain when it finds `gomod` evidence.
 | Ignored directory markers | - |
 | Multi-module resolution | No |
 | Install-first support | Yes |
+| Remediation hints | `direct-bump`, `lockfile-refresh` |
 | Native command hints | `go`, `syft for bomly-lite` |
 
 ## How `gomod` resolves

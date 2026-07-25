@@ -309,7 +309,7 @@ func TestBuildExplainResponseFlattensSingleTarget(t *testing.T) {
 	started := time.Now().Add(-1 * time.Second)
 	targets := []output.ExplainTargetResponse{{
 		Project:    output.ProjectDescriptor{Name: "demo"},
-		Dependency: output.PackageRef{Name: "react", ID: "react@18.2.0"},
+		Dependency: output.ExplainDependency{PackageRef: output.PackageRef{Name: "react", ID: "react@18.2.0"}},
 		Paths:      []output.DependencyPath{{Relationship: "direct"}},
 	}}
 
@@ -325,7 +325,7 @@ func TestBuildExplainResponseFlattensSingleTarget(t *testing.T) {
 func TestBuildExplainResponseGatesReachability(t *testing.T) {
 	targets := []output.ExplainTargetResponse{{
 		Project: output.ProjectDescriptor{Name: "demo"},
-		Dependency: output.PackageRef{
+		Dependency: output.ExplainDependency{PackageRef: output.PackageRef{
 			Name: "react",
 			ID:   "react@18.2.0",
 			Vulnerabilities: []output.VulnerabilityRef{{
@@ -333,7 +333,7 @@ func TestBuildExplainResponseGatesReachability(t *testing.T) {
 				Source:       "osv",
 				Reachability: &sdk.Reachability{Status: sdk.ReachabilityReachable, Tier: sdk.TierPackage},
 			}},
-		},
+		}},
 		Paths: []output.DependencyPath{{Packages: []output.PackageRef{{
 			Name: "react",
 			ID:   "react@18.2.0",

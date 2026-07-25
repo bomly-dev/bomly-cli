@@ -14,6 +14,7 @@ Bomly uses this chain when it finds `bun` evidence.
 | Ignored directory markers | - |
 | Multi-module resolution | Yes |
 | Install-first support | Yes |
+| Remediation hints | `direct-bump`, `lockfile-refresh` |
 | Native command hints | `syft for bomly-lite` |
 
 ## How `bun` resolves

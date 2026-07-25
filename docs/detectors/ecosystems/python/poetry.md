@@ -14,6 +14,7 @@ Bomly uses this chain when it finds `poetry` evidence.
 | Ignored directory markers | `pyvenv.cfg` |
 | Multi-module resolution | No |
 | Install-first support | Yes |
+| Remediation hints | `direct-bump`, `transitive-override` |
 | Native command hints | `poetry`, `syft for bomly-lite` |
 
 ## How `poetry` resolves

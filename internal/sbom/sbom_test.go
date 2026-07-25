@@ -729,6 +729,115 @@ func mustSyftJSONFixture(t *testing.T) []byte {
 	return []byte(strings.TrimSpace(out.String()))
 }
 
+// A PURL Bomly emitted must name an ecosystem Bomly recognises when it is read
+// back in. ParseEcosystem only knows Bomly's own identifiers, so every purl
+// type whose spec name differs from the ecosystem name (pkg:deb for dpkg,
+// pkg:cran for r, ...) needs an entry in purlTypeEcosystems. See issue #317.
+func TestEcosystemFromPURLTypeRoundTripsEmittedPURLs(t *testing.T) {
+	// pkg:hex is emitted for both Elixir (mix) and Erlang (rebar) and nothing
+	// in the PURL says which, so it is deliberately left unresolved rather
+	// than guessed. Everything else must round-trip.
+	ambiguous := map[string]bool{"hex": true}
+
+	for _, manager := range sdk.AllPackageManagers() {
+		ecosystem := manager.Ecosystem()
+		if ecosystem == sdk.EcosystemUnknown {
+			continue
+		}
+		purlType := sdk.PackageURLTypeForValues(ecosystem, manager)
+		if ambiguous[purlType] {
+			continue
+		}
+		got := ecosystemFromPURLType(purlType)
+		if got == sdk.EcosystemUnknown {
+			t.Errorf("ecosystemFromPURLType(%q) = unknown; %q packages would lose their ecosystem on SBOM ingest", purlType, ecosystem)
+		}
+	}
+}
+
+// The standard codecs do not carry Component.Ecosystem — CycloneDX drops it and
+// SPDX rebuilds it from the PURL — so a change to the emitted purl type can
+// silently relabel a package on the way back in. OTP applications must survive
+// as Erlang, and a Hex dependency must not come back as the wrong ecosystem.
+func TestEncodeDecodeRoundTripPreservesErlangIdentity(t *testing.T) {
+	targets := []Target{TargetSPDX23JSON, TargetCycloneDX16JSON}
+
+	cases := []struct {
+		name          string
+		manager       sdk.PackageManager
+		depName       string
+		version       string
+		wantPURL      string
+		wantEcosystem sdk.Ecosystem
+	}{{
+		name:          "otp application",
+		manager:       sdk.PackageManagerOTP,
+		depName:       "kernel",
+		version:       "9.2",
+		wantPURL:      "pkg:otp/kernel@9.2",
+		wantEcosystem: sdk.EcosystemErlang,
+	}, {
+		// pkg:hex cannot say whether it came from rebar or mix, so the only
+		// correct answer on the way back in is "unknown" — never a confident
+		// mislabel as Elixir.
+		name:          "rebar dependency",
+		manager:       sdk.PackageManagerRebar,
+		depName:       "cowboy",
+		version:       "2.10.0",
+		wantPURL:      "pkg:hex/cowboy@2.10.0",
+		wantEcosystem: sdk.EcosystemUnknown,
+	}}
+
+	for _, tc := range cases {
+		for _, target := range targets {
+			t.Run(tc.name+"/"+string(target), func(t *testing.T) {
+				dep := sdk.NewDependencyRef(tc.depName, tc.version)
+				dep.Ecosystem = sdk.EcosystemErlang
+				dep.PackageManager = tc.manager
+				dep.PURL = dep.CanonicalPURL()
+				if dep.PURL != tc.wantPURL {
+					t.Fatalf("emitted PURL = %q, want %q", dep.PURL, tc.wantPURL)
+				}
+
+				g := sdk.New()
+				if err := g.AddNode(dep); err != nil {
+					t.Fatalf("add node: %v", err)
+				}
+
+				out, err := MarshalDepGraphJSON(g, target, BuildOptions{
+					DocumentName: "erlang-round-trip",
+					DocumentNS:   "https://example.com/sbom/erlang-round-trip",
+					ToolName:     "bomly-cli-test",
+					Created:      time.Date(2026, 2, 28, 12, 0, 0, 0, time.UTC),
+				}, EncodeOptions{})
+				if err != nil {
+					t.Fatalf("marshal %s: %v", target, err)
+				}
+
+				doc, err := UnmarshalJSON(out, target)
+				if err != nil {
+					t.Fatalf("unmarshal %s: %v", target, err)
+				}
+				decoded, err := ToGraph(doc)
+				if err != nil {
+					t.Fatalf("to graph: %v", err)
+				}
+
+				node, ok := decoded.Node(tc.wantPURL)
+				if !ok {
+					t.Fatalf("decoded graph has no node %q", tc.wantPURL)
+				}
+				if node.Ecosystem != tc.wantEcosystem {
+					t.Errorf("ecosystem = %q, want %q", node.Ecosystem, tc.wantEcosystem)
+				}
+				if tc.wantEcosystem == sdk.EcosystemUnknown && node.PackageManager == sdk.PackageManagerMix {
+					t.Errorf("ambiguous pkg:hex must not be labelled %q", sdk.PackageManagerMix)
+				}
+			})
+		}
+	}
+}
+
 // SBOM component names are the ecosystem-native ones. This matters beyond
 // document correctness: external grype mode feeds this SPDX document to the
 // grype CLI, which searches its DB by the name it reads. See issue #319.

@@ -11,11 +11,47 @@ func parsePURL(value string) *packageurl.PackageURL {
 	return sdk.ParsePackageURL(strings.TrimSpace(value))
 }
 
+// purlTypeEcosystems inverts sdk.PackageURLTypeForValues for the purl types
+// whose spec name differs from the Bomly ecosystem name. Without these, a PURL
+// Bomly itself emitted would not round-trip through SBOM ingest: ParseEcosystem
+// only knows Bomly's own identifiers.
+//
+// Types that two ecosystems share are deliberately absent. pkg:hex is emitted
+// for both Elixir (mix) and Erlang (rebar), and nothing in the PURL says which;
+// since the standard codecs do not carry Component.Ecosystem — CycloneDX drops
+// it and SPDX rebuilds it from the PURL — guessing here would relabel every
+// round-tripped Erlang dependency as Elixir, and packageManagerForPURLType
+// would then call it Mix. Leaving it unknown keeps the ambiguity visible.
+var purlTypeEcosystems = map[string]sdk.Ecosystem{
+	"golang": sdk.EcosystemGo,
+	// pkg:otp, unlike pkg:hex, names exactly one ecosystem.
+	"otp":       sdk.EcosystemErlang,
+	"hackage":   sdk.EcosystemHaskell,
+	"cran":      sdk.EcosystemR,
+	"opam":      sdk.EcosystemOCaml,
+	"deb":       sdk.EcosystemDPKG,
+	"cargo":     sdk.EcosystemRust,
+	"nuget":     sdk.EcosystemDotNet,
+	"pypi":      sdk.EcosystemPython,
+	"gem":       sdk.EcosystemRuby,
+	"composer":  sdk.EcosystemPHP,
+	"pub":       sdk.EcosystemDart,
+	"conan":     sdk.EcosystemCPP,
+	"cocoapods": sdk.EcosystemSwift,
+	"swift":     sdk.EcosystemSwift,
+	// pkg:maven covers Scala too and is ambiguous in the same way as pkg:hex,
+	// but ParseEcosystem already resolved it to maven before this table
+	// existed; dropping it now would regress every Java SBOM to unknown.
+	"maven":         sdk.EcosystemMaven,
+	"githubactions": sdk.EcosystemGitHub,
+}
+
 func ecosystemFromPURLType(purlType string) sdk.Ecosystem {
 	normalized := strings.ToLower(strings.TrimSpace(purlType))
+	if ecosystem, ok := purlTypeEcosystems[normalized]; ok {
+		return ecosystem
+	}
 	switch normalized {
-	case "golang":
-		return sdk.EcosystemGo
 	case "":
 		return sdk.EcosystemUnknown
 	default:

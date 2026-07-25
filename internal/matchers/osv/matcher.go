@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
@@ -198,12 +199,6 @@ func (a *Matcher) Descriptor() sdk.MatcherDescriptor {
 		// OSS-Fuzz based rather than a Conan package ecosystem. Julia,
 		// Bitnami, Android, and the Linux kernel are covered by OSV but have
 		// no Bomly ecosystem to map onto.
-		//
-		// erlang, haskell, r, ocaml, and dpkg are listed because OSV indexes
-		// them, but they return nothing today: we emit a PURL type OSV does
-		// not recognise (pkg:erlang rather than pkg:hex, pkg:dpkg rather than
-		// pkg:deb, and so on) and the name-based fallback below is
-		// unreachable. See issue #317.
 		SupportedEcosystems: []sdk.Ecosystem{
 			sdk.EcosystemNPM,
 			sdk.EcosystemMaven,
@@ -505,8 +500,14 @@ func buildQuery(dep *sdk.Dependency, purl string) (cache.Key, BatchQuery, bool) 
 		return cache.Key{}, BatchQuery{}, false
 	}
 
-	// Prefer PURL
-	if purl != "" {
+	ecosystem := ecosystemToOSV(string(dep.Ecosystem))
+
+	// Prefer the PURL, but only when OSV can actually resolve its type. A PURL
+	// whose type OSV does not index comes back empty rather than erroring, so
+	// the package looks clean rather than unchecked; a name + ecosystem query
+	// at least gives it a chance. With no ecosystem name to fall back to, the
+	// PURL is still the best (and only) thing we have. See issue #317.
+	if purl != "" && (ecosystem == "" || osvResolvesPURL(purl)) {
 		key := cache.NewKey(purl, "", "", "")
 		purlPkg := PurlPackage{Purl: purl}
 		raw, _ := json.Marshal(purlPkg)
@@ -514,7 +515,6 @@ func buildQuery(dep *sdk.Dependency, purl string) (cache.Key, BatchQuery, bool) 
 	}
 
 	// Fall back to name + ecosystem + version
-	ecosystem := ecosystemToOSV(string(dep.Ecosystem))
 	if ecosystem == "" {
 		return cache.Key{}, BatchQuery{}, false
 	}
@@ -523,19 +523,64 @@ func buildQuery(dep *sdk.Dependency, purl string) (cache.Key, BatchQuery, bool) 
 	// "group:artifact" for Maven), and the bare Name would both query the wrong
 	// package and collide in the cache with the same-named unscoped one.
 	name := dep.EcosystemName()
+	if name == "" {
+		return cache.Key{}, BatchQuery{}, false
+	}
+
 	key := cache.NewKey("", name, ecosystem, dep.Version)
 	namePkg := NamePackage{Name: name, Ecosystem: ecosystem}
 	raw, _ := json.Marshal(namePkg)
 	return key, BatchQuery{Package: raw, Version: dep.Version}, true
 }
 
+// osvPURLTypes are the package-url types OSV resolves to one of its indexed
+// ecosystems. Anything outside this set (cocoapods, conan, generic, ...) has no
+// OSV ecosystem behind it, so a PURL query for it can only ever come back empty.
+//
+// See https://google.github.io/osv.dev/data/#covered-ecosystems.
+//
+// Distro types (deb, rpm, apk) additionally need the distro namespace to match
+// — pkg:deb/debian/curl@... resolves, pkg:deb/curl@... does not. Container and
+// image scans get that namespace from the upstream PURL; a bare dpkg package
+// with no PURL of its own cannot be matched, and there is no name+ecosystem
+// fallback for it either since OSV keys Debian advisories by release
+// ("Debian:12") rather than by distro alone.
+var osvPURLTypes = map[string]struct{}{
+	"apk":           {},
+	"cargo":         {},
+	"composer":      {},
+	"cran":          {},
+	"deb":           {},
+	"gem":           {},
+	"githubactions": {},
+	"golang":        {},
+	"hackage":       {},
+	"hex":           {},
+	"maven":         {},
+	"npm":           {},
+	"nuget":         {},
+	"opam":          {},
+	"pub":           {},
+	"pypi":          {},
+	"rpm":           {},
+	"swift":         {},
+}
+
+// osvResolvesPURL reports whether OSV indexes the package-url type of purl.
+func osvResolvesPURL(purl string) bool {
+	parsed := sdk.ParsePackageURL(purl)
+	if parsed == nil {
+		return false
+	}
+	_, ok := osvPURLTypes[strings.ToLower(strings.TrimSpace(parsed.Type))]
+	return ok
+}
+
 // ecosystemToOSV maps Bomly ecosystem identifiers to OSV ecosystem names.
 // See: https://ossf.github.io/osv-schema/#affectedpackage-field
 //
-// Currently unreachable: buildQuery only consults this when the PURL is empty,
-// and the caller skips those packages before buildQuery runs. Kept and
-// extended so the mapping is correct for whenever the fallback is revived —
-// see issue #317.
+// Reached from buildQuery whenever the canonical PURL's type is not one OSV
+// indexes, which is the only way a package with a PURL can still be queried.
 func ecosystemToOSV(eco string) string {
 	switch eco {
 	case "npm":
@@ -565,9 +610,12 @@ func ecosystemToOSV(eco string) string {
 	case "scala":
 		// Scala artifacts publish to Maven Central.
 		return "Maven"
-	case "elixir", "erlang":
-		// Both publish to Hex.
+	case "elixir":
 		return "Hex"
+	// Deliberately absent: erlang. It spans Hex (rebar) and OTP (*.app), and
+	// only the PURL says which — rebar dependencies already carry pkg:hex and
+	// match on that. Naming Hex here would query OTP runtime applications as
+	// Hex packages, where a name collision produces a false advisory match.
 	case "ocaml":
 		return "opam"
 	case "github-actions":

@@ -762,6 +762,72 @@ func TestCommandContextInitialize_RepositoryConfigCannotGrantAuthorityImplicitly
 	}
 }
 
+func TestCommandContextInitialize_ExplicitConfigCanSelectPrivateNetworkSettings(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
+
+	configDir := t.TempDir()
+	configPath := filepath.Join(configDir, "trusted.yaml")
+	writeConfigFile(t, configPath, map[string]any{
+		"network": map[string]any{
+			"proxy": map[string]any{
+				"url":      "http://proxy.internal.test:8080",
+				"no_proxy": "advisories.internal.test,127.0.0.0/8",
+			},
+			"ca_cert_file": "private-ca.pem",
+		},
+		"matchers": map[string]any{
+			"osv": map[string]any{
+				"api_base": "http://127.0.0.1:8081",
+			},
+			"scorecard": map[string]any{
+				"api_base": "https://scorecard.internal.test",
+			},
+		},
+		"plugins": map[string]any{
+			"private.matcher": map[string]any{
+				"endpoint": "https://advisories.internal.test",
+			},
+		},
+	})
+
+	options := &Options{}
+	root := newTestRootCommand(t)
+	if err := options.Bind(root); err != nil {
+		t.Fatalf("Bind() error = %v", err)
+	}
+	if err := root.ParseFlags([]string{"--config", configPath}); err != nil {
+		t.Fatalf("ParseFlags() error = %v", err)
+	}
+	if err := options.ResolveConfig(root); err != nil {
+		t.Fatalf("ResolveConfig() error = %v", err)
+	}
+
+	got := options.GetConfig()
+	if got.HTTPProxy != "http://proxy.internal.test:8080" {
+		t.Fatalf("HTTP proxy = %q", got.HTTPProxy)
+	}
+	if got.HTTPNoProxy != "advisories.internal.test,127.0.0.0/8" {
+		t.Fatalf("HTTP no-proxy = %q", got.HTTPNoProxy)
+	}
+	if got.HTTPCACertFile != filepath.Join(configDir, "private-ca.pem") {
+		t.Fatalf("HTTP CA certificate = %q", got.HTTPCACertFile)
+	}
+	if got.OsvAPIBase != "http://127.0.0.1:8081" {
+		t.Fatalf("OSV API base = %q", got.OsvAPIBase)
+	}
+	if got.ScorecardAPIBase != "https://scorecard.internal.test" {
+		t.Fatalf("Scorecard API base = %q", got.ScorecardAPIBase)
+	}
+	if got.Plugins["private.matcher"]["endpoint"] != "https://advisories.internal.test" {
+		t.Fatalf("plugin config = %#v", got.Plugins)
+	}
+	if len(got.LoadedFiles) != 1 || got.LoadedFiles[0] != configPath {
+		t.Fatalf("loaded files = %#v, want explicit config", got.LoadedFiles)
+	}
+}
+
 func TestCommandContextInitialize_ConfigSelection(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)

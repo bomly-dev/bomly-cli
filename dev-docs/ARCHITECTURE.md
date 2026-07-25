@@ -443,6 +443,22 @@ Permitted enrichment-time services:
 
 Installed external matcher plugins may use their own documented services.
 
+**Custom network settings are trusted authority.** The OSV and Scorecard base
+URLs may point to public, private, loopback, or plain HTTP services. Proxy
+destinations and additional CA files have the same reach. Bomly supports these
+choices for self-hosted services and enterprise networks; it does not apply a
+private-network block. Only the user config is loaded automatically. A
+repository config must be selected with `--config` or `BOMLY_CONFIG`, and
+network-specific environment variables are also explicit inputs.
+
+The shared SDK HTTP client follows Go's normal redirect rules. Redirects are
+allowed because custom services commonly use them, but sensitive headers are
+not forwarded to a different hostname. Proxy and endpoint passwords must not
+appear in errors or logs. Configured PEM certificates extend the system trust
+roots for the current process rather than replacing them. The executable
+assurance matrix is recorded in
+[`test/assurance/NETWORK_BOUNDARIES.md`](../test/assurance/NETWORK_BOUNDARIES.md).
+
 **Native plugins are trusted processes, not sandboxes.** Installation verifies
 the managed artifact and records it disabled by default. Enabling a plugin
 authorizes a native process with the same user-level filesystem, network,

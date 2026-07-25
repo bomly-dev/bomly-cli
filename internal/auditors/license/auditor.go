@@ -30,6 +30,9 @@ type Auditor struct {
 
 func (a Auditor) Descriptor() sdk.AuditorDescriptor {
 	return sdk.AuditorDescriptor{
+		// No SupportedEcosystems: policy is evaluated over SPDX license
+		// expressions, whichever ecosystem produced them. Discovering the license
+		// is the matchers' job.
 		Name: auditorName,
 	}
 }

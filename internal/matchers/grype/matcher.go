@@ -37,9 +37,13 @@ func appendOrMergeVulnerability(existing []sdk.Vulnerability, entry sdk.Vulnerab
 // Descriptor returns the registration metadata for the Grype matcher.
 func (a Matcher) Descriptor() sdk.MatcherDescriptor {
 	return sdk.MatcherDescriptor{
-		Name:                matcherName,
-		DisplayName:         "Grype",
-		SupportedEcosystems: nil, // nil = all ecosystems
+		Name:        matcherName,
+		DisplayName: "Grype",
+		// Build-tag specific: builtin mode maps a fixed set of ecosystems onto
+		// Syft package types, while external mode hands the graph to the grype
+		// CLI and is unbounded. See supportedEcosystems in builtin.go and
+		// external.go.
+		SupportedEcosystems: supportedEcosystems,
 	}
 }
 

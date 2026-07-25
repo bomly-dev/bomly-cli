@@ -69,8 +69,13 @@ func TestPluginList_KindFilterMatchers(t *testing.T) {
 		t.Fatalf("expected matcher section in output, got:\n%s", text)
 	}
 	matcherHeader := tableHeaderLine(t, render.StripANSI(text), "NAME")
-	assertInOrder(t, matcherHeader, []string{"NAME", "TYPE", "STATE"})
-	for _, omitted := range []string{"ECOSYSTEMS", "PACKAGE MANAGERS", "VERSION"} {
+	assertInOrder(t, matcherHeader, []string{"ECOSYSTEMS", "NAME", "TYPE", "STATE"})
+	// A matcher that declares no ecosystems is not ecosystem-bound, which the
+	// table shows as "all" rather than leaving the cell empty.
+	if !strings.Contains(render.StripANSI(text), "all") {
+		t.Fatalf("expected unrestricted matchers to render ecosystems as %q, got:\n%s", "all", text)
+	}
+	for _, omitted := range []string{"PACKAGE MANAGERS", "VERSION"} {
 		if strings.Contains(text, omitted) {
 			t.Fatalf("expected matcher table to omit %q, got:\n%s", omitted, text)
 		}

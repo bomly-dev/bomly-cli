@@ -13,6 +13,7 @@ Fetches package metadata from deps.dev to improve license coverage.
 | Cache behavior | Uses Bomly's matcher cache; cache failures are non-fatal. |
 | Output fields | license value, license source, matched package flag |
 | Tags | `license-enrichment`, `batch-http` |
+| Ecosystems | `npm`, `maven`, `go`, `python`, `dotnet`, `ruby`, `rust` |
 
 ## User notes
 
@@ -20,7 +21,7 @@ Run with `--enrich` when you want license metadata from deps.dev.
 
 ## What `depsdev-license-matcher` does
 
-`depsdev-license-matcher` fetches package metadata from [deps.dev](https://deps.dev) (Google's open package metadata service) and attaches license information to packages that the detector did not resolve a license for. deps.dev coverage is strongest for npm, Go, Maven, NuGet, PyPI, Cargo, and RubyGems.
+`depsdev-license-matcher` fetches package metadata from [deps.dev](https://deps.dev) (Google's open package metadata service) and attaches license information to packages that the detector did not resolve a license for. It covers the ecosystems listed in the table above; packages from any other ecosystem are skipped.
 
 ## When to use it
 

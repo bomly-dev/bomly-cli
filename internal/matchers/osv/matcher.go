@@ -186,8 +186,12 @@ func (a *Matcher) Descriptor() sdk.MatcherDescriptor {
 	return sdk.MatcherDescriptor{
 		Name:        "osv",
 		DisplayName: "OSV",
-		// nil SupportedEcosystems means all ecosystems; OSV handles ecosystem
-		// selection internally via PURL or name+ecosystem queries.
+		// nil means all ecosystems, and that is accurate here rather than a
+		// placeholder. buildQuery prefers a canonical PURL, and every ecosystem
+		// produces one (sdk.PackageURLTypeForValues falls back to "generic"),
+		// so OSV.dev decides what it recognises. The ecosystemToOSV switch is
+		// only the fallback for packages without a PURL; declaring its 12
+		// entries here would under-claim what the matcher really queries.
 		SupportedEcosystems: nil,
 	}
 }

@@ -22,6 +22,9 @@ type Auditor struct {
 
 func (a Auditor) Descriptor() sdk.AuditorDescriptor {
 	return sdk.AuditorDescriptor{
+		// No SupportedEcosystems: deny rules match on package name and group,
+		// and the typosquat corpus is the baseline graph itself rather than a
+		// per-ecosystem package list.
 		Name: auditorName,
 	}
 }

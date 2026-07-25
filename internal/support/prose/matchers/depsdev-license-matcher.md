@@ -1,6 +1,6 @@
 ## What `depsdev-license-matcher` does
 
-`depsdev-license-matcher` fetches package metadata from [deps.dev](https://deps.dev) (Google's open package metadata service) and attaches license information to packages that the detector did not resolve a license for. deps.dev coverage is strongest for npm, Go, Maven, NuGet, PyPI, Cargo, and RubyGems.
+`depsdev-license-matcher` fetches package metadata from [deps.dev](https://deps.dev) (Google's open package metadata service) and attaches license information to packages that the detector did not resolve a license for. It covers the ecosystems listed in the table above; packages from any other ecosystem are skipped.
 
 ## When to use it
 

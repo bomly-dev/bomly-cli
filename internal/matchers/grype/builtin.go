@@ -115,6 +115,38 @@ func graphPkgToGrypePkg(p *sdk.Package) grypepkg.Package {
 	}
 }
 
+// supportedEcosystems lists what builtin mode can match. It mirrors the
+// ecosystemToSyftType switch below: an ecosystem missing from that switch
+// reaches Grype as an unknown package type and matches nothing, so declaring
+// the set keeps the generated docs and `bomly plugins list` honest.
+//
+// apk, dpkg, and rpm are typed here but currently reach Grype without a distro
+// (graphPkgToGrypePkg sets no Distro, and FindMatches gets an empty package
+// Context), and Grype's OS matchers are distro-namespace driven. They are
+// listed because the mapping exists; matching them needs the distro plumbed
+// through first.
+var supportedEcosystems = []sdk.Ecosystem{
+	sdk.EcosystemNPM,
+	sdk.EcosystemMaven,
+	sdk.EcosystemScala,
+	sdk.EcosystemGo,
+	sdk.EcosystemPython,
+	sdk.EcosystemDotNet,
+	sdk.EcosystemRuby,
+	sdk.EcosystemRust,
+	sdk.EcosystemDart,
+	sdk.EcosystemElixir,
+	sdk.EcosystemErlang,
+	sdk.EcosystemPHP,
+	sdk.EcosystemSwift,
+	sdk.EcosystemHaskell,
+	sdk.EcosystemR,
+	sdk.EcosystemLua,
+	sdk.EcosystemAPK,
+	sdk.EcosystemDPKG,
+	sdk.EcosystemRPM,
+}
+
 func ecosystemToSyftType(ecosystem string) syftPkg.Type {
 	switch strings.ToLower(ecosystem) {
 	case "npm", "nodejs":

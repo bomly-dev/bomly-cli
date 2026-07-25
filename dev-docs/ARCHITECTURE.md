@@ -104,9 +104,38 @@ Analyzers exist as a contract (`sdk.Analyzer`) and ship four built-in implementa
 
 Bomly's YAML files use strict nested groups such as `target`, `analysis`, `policy`, `network.proxy`, and `matchers.osv`, while `config.Resolved` remains flat. Nesting keeps customer-authored files readable without spreading YAML organization through the CLI and engine. Each YAML leaf maps back to one flat runtime field, and layered files preserve explicit zero values, including empty lists. Unknown keys and the former flat YAML keys fail with migration guidance so typos cannot silently disable requested behavior.
 
+### Decision: repository configuration requires explicit trust
+
+Bomly automatically loads the user-controlled `~/.bomly/config.yaml`, but it
+never automatically loads `.bomly/config.yaml` from a scan target. A repository
+configuration file may select a target, enable network-backed enrichment,
+enable package-manager execution, configure plugins, or choose output paths.
+Loading it merely because a user scans an untrusted checkout would let the
+checkout grant itself those permissions.
+
+Users can trust and load a repository configuration file with
+`--config .bomly/config.yaml` or `BOMLY_CONFIG=.bomly/config.yaml`. When both are
+set, the command-line flag selects the file. Environment values and other flags
+continue to override values from the selected files. An explicitly selected
+file must exist and must be a regular file so configuration mistakes fail
+clearly instead of silently falling back.
+
+Automatic finding-baseline discovery is separate. Baselines use a narrow,
+versioned policy-status contract: they cannot change targets, start network or
+package-manager activity, load plugins, or choose output paths. Their automatic
+selection remains visible in logs and run statistics.
+
 ### Decision: Reachability annotates vulnerabilities, not findings
 
 Reachability data lives on `sdk.Vulnerability.Reachability` rather than on `Finding.Reachability` because `--analyze` must be useful without `--audit`. Matchers populate the OSV-aligned `Vulnerability` record on the PURL-keyed registry package; the analyzer enriches it in place; the output layer resolves the analyzer's annotation by `(Finding.PackageRef, Finding.VulnerabilityID)` when emitting SARIF and the JSON `Finding` projection. This keeps a single source of truth (the registry) and removes the per-manifest sync that the old graph-mutating model required.
+
+### Decision: external lookups use `Coordinates.EcosystemName()`, never the bare `Name`
+
+`Coordinates` stores identity as `Org` + `Name` following the PURL namespace/name split, so `Name` alone is `postcss` for both `postcss` and `@tailwindcss/postcss`. Anything that leaves the process under a name — Grype's DB search, the OSV name-keyed query, name-derived cache keys, SBOM component names, the bare specifiers `jsreach` matches imports against — must use `EcosystemName()`, which rebuilds the ecosystem-native form (`@org/name` for npm, `org:name` for the Maven family, `org/name` for Go, Composer, Swift, and GitHub Actions).
+
+Rejoining is opt-in per ecosystem and every other ecosystem keeps the bare `Name`, because `Org` is only sometimes part of the package name. For OS packages it is the distro that shipped the package (`pkg:apk/alpine/libcrypto3` → `Org: "alpine"`) while Grype's distro-namespace matchers query `libcrypto3`, so a blanket join would trade the npm false positives for missing every OS advisory — the exact data the distro/upstream plumbing below exists to reach. Adding an ecosystem to the join list is a claim about how its advisory databases key packages, and belongs with a test.
+
+This is a correctness boundary, not a formatting preference. Grype searches its DB strictly by the name it is handed and reconstructs a namespace only for Java (from the PURL, in its own resolver), so the bare name made every scoped npm package inherit the same-named unscoped package's advisories, attached to the scoped PURL, with remediation pointing at versions that do not exist for it (issue #319). `DisplayName()` produces a similar string but stays presentation-only and is explicitly not an identity; `QualifiedName()` is the internal `org:name` key. Prefer the PURL wherever a lookup accepts one — `EcosystemName` is for the interfaces that only take a name.
 
 ### Decision: Three-collection domain model — dependencies, packages, findings
 
@@ -256,6 +285,27 @@ Subproject discovery inspects only the execution-target root unless `--recursive
 ### Decision: Reachability analyzers derive local hierarchy closures
 
 Tier-3 source analyzers discover local workspace and module hierarchies from declarative project files while the consolidated detector graph remains the source of truth for external package edges. `jsreach` follows package-name imports across npm, Yarn, and pnpm workspace members. `jvmreach` follows source namespace imports across Maven `<modules>` and standard Gradle `include` declarations. This keeps hierarchy traversal automatic, avoids package-manager installation or network activity during reachability analysis, and prevents unused sibling projects from widening the reachable set.
+
+### Decision: Grype OS-package distro comes from the PURL, not pipeline plumbing
+
+Grype's OS matchers (apk, dpkg, rpm, portage, pacman) are distro-namespace
+driven: a package that reaches them without a distro matches nothing, and
+because Bomly passes no CPEs and leaves `UseCPEs` false the stock matcher does
+not pick up the slack — container OS packages came back clean rather than
+unchecked (issue #316). The builtin matcher
+(`internal/matchers/grype/purl_builtin.go`) derives the distro, and the upstream
+source package, from the `distro=` and `upstream=` PURL qualifiers Syft records,
+mirroring Grype's own PURL provider.
+
+The alternative was carrying the detected `linux.Release` from the Syft detector
+through the graph container, consolidation, and the match stage into
+`grypepkg.Context`. The PURL is the better carrier: it is already the registry
+key so nothing new has to be threaded through four stages, it survives SBOM
+input where no live distro detection is possible, and it keeps a per-package
+distro (correct for a graph consolidated from more than one image) instead of a
+single scan-wide one. The cost is that OS matching depends on the qualifier
+being present — true for image scans and for SBOMs produced from them, false
+for hand-written PURLs, which is documented in `docs/matchers/grype.md`.
 
 ### Decision: Scorecard matcher reads precomputed runs, not the library
 

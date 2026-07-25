@@ -104,14 +104,28 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 // graphPkgToGrypePkg builds a Grype package from a registry package, using the
 // canonical PURL as the correlation ID so matches can be mapped back to the
 // registry.
+//
+// The name must be the ecosystem-native one: Grype searches its DB strictly by
+// the name it is handed and never reconstructs a namespace from the PURL
+// (except for Java, where its own resolver does), so passing the bare Name
+// would query "postcss" for "@tailwindcss/postcss" and attach every postcss
+// advisory to the scoped package.
+//
+// Distro and upstream (origin) packages are derived from the PURL qualifiers
+// Syft records for OS packages — Grype's OS matchers are distro-namespace
+// driven and match nothing without them. See purl_builtin.go.
 func graphPkgToGrypePkg(p *sdk.Package) grypepkg.Package {
+	syftType := ecosystemToSyftType(string(p.Ecosystem))
+	name := p.EcosystemName()
 	return grypepkg.Package{
-		ID:       grypepkg.ID(p.PURL),
-		Name:     p.Name,
-		Version:  p.Version,
-		PURL:     p.PURL,
-		Type:     ecosystemToSyftType(string(p.Ecosystem)),
-		Language: ecosystemToSyftLanguage(string(p.Ecosystem)),
+		ID:        grypepkg.ID(p.PURL),
+		Name:      name,
+		Version:   p.Version,
+		PURL:      p.PURL,
+		Type:      syftType,
+		Language:  ecosystemToSyftLanguage(string(p.Ecosystem)),
+		Distro:    distroFromPURL(p.PURL),
+		Upstreams: upstreamsFromPURL(p.PURL, name, syftType),
 	}
 }
 
@@ -123,12 +137,12 @@ func graphPkgToGrypePkg(p *sdk.Package) grypepkg.Package {
 // This is every Bomly ecosystem Syft has a package type for. Only sbom (not a
 // package ecosystem) and snap (no Syft type) are absent.
 //
-// The OS-level entries — alpm, apk, dpkg, rpm, portage, homebrew — are typed
-// correctly but currently reach Grype without a distro (graphPkgToGrypePkg
-// sets no Distro, and FindMatches gets an empty package Context), and Grype's
-// OS matchers are distro-namespace driven, so they match nothing today. See
-// issue #316; the declaration becomes fully accurate once the distro is
-// plumbed through.
+// The OS-level entries — alpm, apk, dpkg, rpm, portage, homebrew — are matched
+// through Grype's distro-namespace matchers, which need the distro the package
+// came from. graphPkgToGrypePkg derives it (plus the upstream source package)
+// from the PURL qualifiers Syft records, so those ecosystems only match when
+// the PURL carries a `distro=` qualifier — true for image scans and for SBOMs
+// produced from one, not for a bare `pkg:apk/openssl@3.0.8-r0`.
 var supportedEcosystems = []sdk.Ecosystem{
 	sdk.EcosystemNPM,
 	sdk.EcosystemMaven,

@@ -40,6 +40,23 @@ flowchart TD
 
 `bomly explain` reuses the detect and match stages, then traces the dependency paths that pull in a given package. `bomly diff` runs the pipeline against two states and reports what changed.
 
+## Configuration trust
+
+Bomly automatically loads your user configuration from
+`~/.bomly/config.yaml`. It does not automatically load `.bomly/config.yaml`
+from a repository because a complete configuration file can enable network
+access, package-manager commands, plugins, and file output.
+
+To trust a repository configuration, select it explicitly:
+
+```sh
+bomly scan --config .bomly/config.yaml
+```
+
+You can also set `BOMLY_CONFIG`. If both are present, `--config` wins. Other
+environment values and command-line flags continue to override values read
+from configuration files.
+
 ## Domain model
 
 Bomly keeps three kinds of data separate, which is why the same fact never appears twice in the output:

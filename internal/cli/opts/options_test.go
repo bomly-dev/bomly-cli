@@ -335,7 +335,7 @@ func TestCSVCompletionFunc_CompletesCommaSeparatedValues(t *testing.T) {
 	}
 }
 
-func TestCommandContextInitialize_LoadsConfigHierarchy(t *testing.T) {
+func TestCommandContextInitialize_LoadsUserAndExplicitConfig(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
 	t.Setenv("USERPROFILE", tempHome)
@@ -407,8 +407,13 @@ func TestCommandContextInitialize_LoadsConfigHierarchy(t *testing.T) {
 	if got.Verbosity == 0 {
 		t.Fatal("expected verbosity value from home config")
 	}
-	if len(got.LoadedFiles) != 3 {
-		t.Fatalf("expected 3 loaded config files, got %#v", got.LoadedFiles)
+	if len(got.LoadedFiles) != 2 {
+		t.Fatalf("expected user and explicit config files, got %#v", got.LoadedFiles)
+	}
+	for _, loaded := range got.LoadedFiles {
+		if loaded == filepath.Join(projectDir, ".bomly", "config.yaml") {
+			t.Fatalf("automatically loaded repository config %q", loaded)
+		}
 	}
 }
 
@@ -511,17 +516,17 @@ func TestCommandContextInitialize_AppliesConfigPrecedence(t *testing.T) {
 	if got.Auditors != "policy-auditor" {
 		t.Fatalf("expected explicit config auditors override, got %q", got.Auditors)
 	}
-	if got.Matchers != "osv" {
-		t.Fatalf("expected project config matchers override, got %q", got.Matchers)
+	if got.Matchers != "" {
+		t.Fatalf("repository config unexpectedly selected matchers %q", got.Matchers)
 	}
-	if got.Detectors != "go-detector" {
-		t.Fatalf("expected project config detectors override home config, got %q", got.Detectors)
+	if got.Detectors != "syft-detector" {
+		t.Fatalf("expected user config detector, got %q", got.Detectors)
 	}
 	if got.OsvAPIBase != "https://api.osv.dev" {
 		t.Fatalf("expected default OSV API base, got %q", got.OsvAPIBase)
 	}
-	if len(got.LoadedFiles) != 3 {
-		t.Fatalf("expected 3 loaded config files, got %#v", got.LoadedFiles)
+	if len(got.LoadedFiles) != 2 {
+		t.Fatalf("expected user and explicit config files, got %#v", got.LoadedFiles)
 	}
 }
 
@@ -618,7 +623,7 @@ func TestCommandContextInitialize_RejectsQuietAndVerboseTogether(t *testing.T) {
 	}
 }
 
-func TestCommandContextInitialize_ProjectConfigUsesSelectedPath(t *testing.T) {
+func TestCommandContextInitialize_RequiresExplicitProjectConfig(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
 	t.Setenv("USERPROFILE", tempHome)
@@ -630,6 +635,105 @@ func TestCommandContextInitialize_ProjectConfigUsesSelectedPath(t *testing.T) {
 	writeConfigFile(t, filepath.Join(projectDir, ".bomly", "config.yaml"), map[string]any{
 		"components": map[string]any{
 			"ecosystems": "go",
+		},
+	})
+
+	configPath := filepath.Join(projectDir, ".bomly", "config.yaml")
+	tests := []struct {
+		name       string
+		args       []string
+		wantConfig bool
+	}{
+		{
+			name: "path does not authorize repository config",
+			args: []string{"--path", projectDir},
+		},
+		{
+			name:       "config flag authorizes repository config",
+			args:       []string{"--path", projectDir, "--config", configPath},
+			wantConfig: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			options := &Options{ResolvedConfig: config.Resolved{Path: projectDir}}
+			root := newTestRootCommand(t)
+			if err := options.Bind(root); err != nil {
+				t.Fatalf("Bind() error = %v", err)
+			}
+			if err := BindCommandFlagGroups(root, &options.ResolvedConfig, FlagGroupTarget); err != nil {
+				t.Fatalf("BindCommandFlagGroups() error = %v", err)
+			}
+			if err := root.ParseFlags(tt.args); err != nil {
+				t.Fatalf("ParseFlags() error = %v", err)
+			}
+			if err := options.ResolveConfig(root); err != nil {
+				t.Fatalf("ResolveConfig() error = %v", err)
+			}
+
+			got := options.GetConfig()
+			if tt.wantConfig {
+				if got.Ecosystems != "go" {
+					t.Fatalf("explicit project config ecosystems = %q, want go", got.Ecosystems)
+				}
+				if len(got.LoadedFiles) != 1 || got.LoadedFiles[0] != configPath {
+					t.Fatalf("loaded files = %#v, want explicit project config", got.LoadedFiles)
+				}
+				return
+			}
+			if got.Ecosystems != "" {
+				t.Fatalf("implicitly loaded project config ecosystems %q", got.Ecosystems)
+			}
+			if len(got.LoadedFiles) != 0 {
+				t.Fatalf("implicitly loaded config files %#v", got.LoadedFiles)
+			}
+		})
+	}
+}
+
+func TestCommandContextInitialize_RepositoryConfigCannotGrantAuthorityImplicitly(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
+
+	projectDir := t.TempDir()
+	configDir := filepath.Join(projectDir, ".bomly")
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
+		t.Fatalf("mkdir project config dir: %v", err)
+	}
+	writeConfigFile(t, filepath.Join(configDir, "config.yaml"), map[string]any{
+		"target": map[string]any{
+			"url": "https://attacker.example/repository.git",
+		},
+		"pipeline": map[string]any{
+			"enrich":        true,
+			"install_first": true,
+			"install_args":  []string{"--unsafe"},
+		},
+		"components": map[string]any{
+			"detectors": "+attacker.detector",
+			"matchers":  "+attacker.matcher",
+		},
+		"output": map[string]any{
+			"outputs": []string{"json=/tmp/attacker-output.json"},
+		},
+		"network": map[string]any{
+			"proxy": map[string]any{
+				"url": "http://attacker.example:8080",
+			},
+			"ca_cert_file": "attacker-ca.pem",
+		},
+		"matchers": map[string]any{
+			"osv": map[string]any{
+				"api_base":  "http://127.0.0.1:8080",
+				"cache_dir": "/tmp/attacker-cache",
+			},
+		},
+		"plugins": map[string]any{
+			"attacker.matcher": map[string]any{
+				"endpoint": "http://127.0.0.1:9090",
+			},
 		},
 	})
 
@@ -645,11 +749,114 @@ func TestCommandContextInitialize_ProjectConfigUsesSelectedPath(t *testing.T) {
 		t.Fatalf("ParseFlags() error = %v", err)
 	}
 	if err := options.ResolveConfig(root); err != nil {
-		t.Fatalf("initialize() error = %v", err)
+		t.Fatalf("ResolveConfig() error = %v", err)
 	}
 
-	if got := options.GetConfig().Ecosystems; got != "go" {
-		t.Fatalf("expected project config ecosystems, got %q", got)
+	got := options.GetConfig()
+	if got.URL != "" || got.Enrich || got.InstallFirst ||
+		len(got.InstallArgs) != 0 || got.Detectors != "" || got.Matchers != "" ||
+		len(got.Outputs) != 0 || got.HTTPProxy != "" ||
+		got.OsvAPIBase != "https://api.osv.dev" || got.OsvCacheDir != "" ||
+		len(got.Plugins) != 0 || len(got.LoadedFiles) != 0 {
+		t.Fatalf("repository config granted authority without --config: %#v", got)
+	}
+}
+
+func TestCommandContextInitialize_ConfigSelection(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
+
+	envConfig := filepath.Join(t.TempDir(), "env.yaml")
+	writeConfigFile(t, envConfig, map[string]any{
+		"components": map[string]any{"ecosystems": "npm"},
+	})
+	flagConfig := filepath.Join(t.TempDir(), "flag.yaml")
+	writeConfigFile(t, flagConfig, map[string]any{
+		"components": map[string]any{"ecosystems": "go"},
+	})
+	t.Setenv("BOMLY_CONFIG", envConfig)
+
+	tests := []struct {
+		name       string
+		args       []string
+		wantConfig string
+		wantValue  string
+	}{
+		{
+			name:       "environment selects config",
+			wantConfig: envConfig,
+			wantValue:  "npm",
+		},
+		{
+			name:       "flag overrides environment selection",
+			args:       []string{"--config", flagConfig},
+			wantConfig: flagConfig,
+			wantValue:  "go",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			options := &Options{}
+			root := newTestRootCommand(t)
+			if err := options.Bind(root); err != nil {
+				t.Fatalf("Bind() error = %v", err)
+			}
+			if err := root.ParseFlags(tt.args); err != nil {
+				t.Fatalf("ParseFlags() error = %v", err)
+			}
+			if err := options.ResolveConfig(root); err != nil {
+				t.Fatalf("ResolveConfig() error = %v", err)
+			}
+			got := options.GetConfig()
+			if got.Config != tt.wantConfig || got.Ecosystems != tt.wantValue {
+				t.Fatalf("config/value = %q/%q, want %q/%q", got.Config, got.Ecosystems, tt.wantConfig, tt.wantValue)
+			}
+			if len(got.LoadedFiles) != 1 || got.LoadedFiles[0] != tt.wantConfig {
+				t.Fatalf("loaded files = %#v, want %q", got.LoadedFiles, tt.wantConfig)
+			}
+		})
+	}
+}
+
+func TestCommandContextInitialize_RejectsInvalidExplicitConfig(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
+
+	tests := []struct {
+		name      string
+		path      string
+		wantError string
+	}{
+		{
+			name:      "missing file",
+			path:      filepath.Join(t.TempDir(), "missing.yaml"),
+			wantError: "resolve config path",
+		},
+		{
+			name:      "directory",
+			path:      t.TempDir(),
+			wantError: "must be a regular file",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			options := &Options{}
+			root := newTestRootCommand(t)
+			if err := options.Bind(root); err != nil {
+				t.Fatalf("Bind() error = %v", err)
+			}
+			if err := root.ParseFlags([]string{"--config", tt.path}); err != nil {
+				t.Fatalf("ParseFlags() error = %v", err)
+			}
+			err := options.ResolveConfig(root)
+			if err == nil || !strings.Contains(err.Error(), tt.wantError) {
+				t.Fatalf("ResolveConfig() error = %v, want %q", err, tt.wantError)
+			}
+		})
 	}
 }
 

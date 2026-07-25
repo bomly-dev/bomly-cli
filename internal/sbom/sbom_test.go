@@ -837,3 +837,44 @@ func TestEncodeDecodeRoundTripPreservesErlangIdentity(t *testing.T) {
 		}
 	}
 }
+
+// SBOM component names are the ecosystem-native ones. This matters beyond
+// document correctness: external grype mode feeds this SPDX document to the
+// grype CLI, which searches its DB by the name it reads. See issue #319.
+func TestFromDepGraph_ComponentNamesAreEcosystemNative(t *testing.T) {
+	g := sdk.New()
+	nodes := []*sdk.Dependency{
+		sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+			Ecosystem: sdk.EcosystemNPM, Org: "tailwindcss", Name: "postcss", Version: "4.3.3",
+		}}),
+		sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+			Ecosystem: sdk.EcosystemNPM, Name: "postcss", Version: "8.5.16",
+		}}),
+		sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+			Ecosystem: sdk.EcosystemMaven, Org: "com.example", Name: "demo", Version: "1.2.3",
+		}}),
+	}
+	for _, n := range nodes {
+		if err := g.AddNode(n); err != nil {
+			t.Fatalf("add node %s: %v", n.ID, err)
+		}
+	}
+
+	doc, err := FromDepGraph(g, BuildOptions{})
+	if err != nil {
+		t.Fatalf("FromDepGraph: %v", err)
+	}
+
+	got := make(map[string]bool, len(doc.Components))
+	for _, c := range doc.Components {
+		got[c.Name] = true
+	}
+	for _, want := range []string{"@tailwindcss/postcss", "postcss", "com.example:demo"} {
+		if !got[want] {
+			t.Errorf("missing component name %q; got %v", want, got)
+		}
+	}
+	if got["tailwindcss:postcss"] {
+		t.Error("scoped npm component emitted with a colon-joined name")
+	}
+}

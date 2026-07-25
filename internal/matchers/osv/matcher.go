@@ -519,7 +519,10 @@ func buildQuery(dep *sdk.Dependency, purl string) (cache.Key, BatchQuery, bool) 
 		return cache.Key{}, BatchQuery{}, false
 	}
 
-	name := strings.TrimSpace(dep.Name)
+	// OSV keys packages by their ecosystem-native name ("@scope/name" for npm,
+	// "group:artifact" for Maven), and the bare Name would both query the wrong
+	// package and collide in the cache with the same-named unscoped one.
+	name := dep.EcosystemName()
 	if name == "" {
 		return cache.Key{}, BatchQuery{}, false
 	}

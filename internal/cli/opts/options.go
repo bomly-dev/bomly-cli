@@ -164,7 +164,14 @@ func (o *Options) ResolveConfig(cmd *cobra.Command) error {
 	resolved := o.ResolvedConfig
 	config.ApplyDefaults(&resolved)
 
-	configPaths, err := o.configLoadPaths()
+	envValues := config.Resolved{}
+	config.ApplyEnvOverrides(&envValues)
+	explicitConfig := envValues.Config
+	if flagChanged(cmd, "config") {
+		explicitConfig = flagValues.Config
+	}
+
+	configPaths, err := o.configLoadPaths(explicitConfig)
 	if err != nil {
 		return err
 	}
@@ -541,8 +548,8 @@ func (o *Options) Close() error {
 	return o.cleanup()
 }
 
-func (o *Options) configLoadPaths() ([]string, error) {
-	paths := make([]string, 0, 3)
+func (o *Options) configLoadPaths(explicitConfig string) ([]string, error) {
+	paths := make([]string, 0, 2)
 
 	homePath, err := config.UserConfigPath()
 	if err != nil {
@@ -552,50 +559,24 @@ func (o *Options) configLoadPaths() ([]string, error) {
 		paths = append(paths, homePath)
 	}
 
-	projectPath, err := o.projectConfigPathForLoading()
-	if err != nil {
-		return nil, err
-	}
-	if projectPath != "" && projectPath != homePath {
-		paths = append(paths, projectPath)
-	}
-
-	if strings.TrimSpace(o.ResolvedConfig.Config) != "" {
-		explicitPath, err := system.Abs(o.ResolvedConfig.Config)
+	if strings.TrimSpace(explicitConfig) != "" {
+		explicitPath, err := system.Abs(explicitConfig)
 		if err != nil {
-			return nil, exit.InvalidInputError("resolve config path %q: %v", o.ResolvedConfig.Config, err)
+			return nil, exit.InvalidInputError("resolve config path %q: %v", explicitConfig, err)
 		}
-		if explicitPath != homePath && explicitPath != projectPath {
+		info, err := os.Stat(explicitPath)
+		if err != nil {
+			return nil, exit.InvalidInputError("resolve config path %q: %v", explicitConfig, err)
+		}
+		if !info.Mode().IsRegular() {
+			return nil, exit.InvalidInputError("config path %q must be a regular file", explicitConfig)
+		}
+		if explicitPath != homePath {
 			paths = append(paths, explicitPath)
 		}
 	}
 
 	return paths, nil
-}
-
-func (o *Options) projectConfigPathForLoading() (string, error) {
-	if strings.TrimSpace(o.ResolvedConfig.URL) != "" || strings.TrimSpace(o.ResolvedConfig.Image) != "" {
-		return "", nil
-	}
-
-	projectRoot := strings.TrimSpace(o.ResolvedConfig.Path)
-	if projectRoot == "" {
-		cwd, err := system.Getwd()
-		if err != nil {
-			return "", fmt.Errorf("resolve cwd for config discovery: %w", err)
-		}
-		projectRoot = cwd
-	}
-
-	absPath, err := system.Abs(projectRoot)
-	if err != nil {
-		return "", exit.InvalidInputError("resolve project config path %q: %v", projectRoot, err)
-	}
-	info, err := os.Stat(absPath)
-	if err == nil && !info.IsDir() {
-		absPath = filepath.Dir(absPath)
-	}
-	return filepath.Join(absPath, ".bomly", "config.yaml"), nil
 }
 
 func (o *Options) resolveExecutionTarget(logger *zap.Logger) (sdk.ExecutionTarget, string, func() error, error) {

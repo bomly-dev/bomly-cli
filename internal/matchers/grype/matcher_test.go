@@ -10,6 +10,7 @@ import (
 	"time"
 
 	v6dist "github.com/anchore/grype/grype/db/v6/distribution"
+	grypeName "github.com/anchore/grype/grype/db/v6/name"
 	grypematch "github.com/anchore/grype/grype/match"
 	grypepkg "github.com/anchore/grype/grype/pkg"
 	grypevuln "github.com/anchore/grype/grype/vulnerability"
@@ -128,6 +129,103 @@ func TestGraphPkgToGrypePkg_FieldMapping(t *testing.T) {
 	}
 	if string(gp.ID) != "pkg:npm/lodash@4.17.15" {
 		t.Errorf("ID = %q, want PURL as correlation id", gp.ID)
+	}
+}
+
+// Grype searches its DB by the name it is handed, so a scoped npm package must
+// arrive as "@scope/name" — the bare name would query the unscoped package and
+// attach its advisories to the scoped one. See issue #319.
+func TestGraphPkgToGrypePkg_EcosystemNativeName(t *testing.T) {
+	cases := []struct {
+		name string
+		pkg  sdk.Coordinates
+		want string
+	}{
+		{
+			name: "npm scoped",
+			pkg:  sdk.Coordinates{Org: "tailwindcss", Name: "postcss", Version: "4.3.3", PURL: "pkg:npm/%40tailwindcss/postcss@4.3.3", Ecosystem: sdk.EcosystemNPM},
+			want: "@tailwindcss/postcss",
+		},
+		{
+			name: "npm unscoped",
+			pkg:  sdk.Coordinates{Name: "postcss", Version: "8.5.16", PURL: "pkg:npm/postcss@8.5.16", Ecosystem: sdk.EcosystemNPM},
+			want: "postcss",
+		},
+		{
+			name: "go module path",
+			pkg:  sdk.Coordinates{Org: "github.com/spf13", Name: "cobra", Version: "v1.8.0", PURL: "pkg:golang/github.com/spf13/cobra@v1.8.0", Ecosystem: sdk.EcosystemGo},
+			want: "github.com/spf13/cobra",
+		},
+		// OS packages carry the distro in Org. Grype's distro-namespace
+		// matchers query the bare name, so joining would miss every OS
+		// advisory — see the distro/upstream plumbing in purl_builtin.go.
+		{
+			name: "apk keeps bare name",
+			pkg:  sdk.Coordinates{Org: "alpine", Name: "libcrypto3", Version: "3.0.8-r0", PURL: "pkg:apk/alpine/libcrypto3@3.0.8-r0?arch=x86_64&distro=alpine-3.17.2&upstream=openssl", Ecosystem: sdk.EcosystemAPK},
+			want: "libcrypto3",
+		},
+		{
+			name: "dpkg keeps bare name",
+			pkg:  sdk.Coordinates{Org: "debian", Name: "libc6", Version: "2.31-13", PURL: "pkg:deb/debian/libc6@2.31-13?arch=amd64&distro=debian-11", Ecosystem: sdk.EcosystemDPKG},
+			want: "libc6",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := graphPkgToGrypePkg(&sdk.Package{Coordinates: tc.pkg}).Name; got != tc.want {
+				t.Errorf("Name = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+// Closes the loop on the mapping above: grypeName.PackageNames is what the
+// matchers hand to the DB search, so this asserts the scoped package is looked
+// up under its own name only and never under the unscoped "postcss".
+func TestGrypeSearchNamesKeepNPMScope(t *testing.T) {
+	scoped := graphPkgToGrypePkg(&sdk.Package{Coordinates: sdk.Coordinates{
+		Org: "tailwindcss", Name: "postcss", Version: "4.3.3",
+		PURL: "pkg:npm/%40tailwindcss/postcss@4.3.3", Ecosystem: sdk.EcosystemNPM,
+	}})
+
+	names := grypeName.PackageNames(scoped)
+	if len(names) != 1 || names[0] != "@tailwindcss/postcss" {
+		t.Fatalf("PackageNames() = %v, want [@tailwindcss/postcss]", names)
+	}
+	for _, n := range names {
+		if n == "postcss" {
+			t.Errorf("scoped package searched under unscoped name %q", n)
+		}
+	}
+}
+
+// The ecosystem-native name and the distro/upstream plumbing have to hold at
+// the same time: an OS package must reach Grype under its bare name *and* keep
+// the distro its advisories are namespaced by.
+func TestGraphPkgToGrypePkg_OSPackageKeepsBareNameAndDistro(t *testing.T) {
+	gp := graphPkgToGrypePkg(&sdk.Package{Coordinates: sdk.Coordinates{
+		Org: "alpine", Name: "libcrypto3", Version: "3.0.8-r0",
+		PURL:      "pkg:apk/alpine/libcrypto3@3.0.8-r0?arch=x86_64&distro=alpine-3.17.2&upstream=openssl",
+		Ecosystem: sdk.EcosystemAPK,
+	}})
+
+	if gp.Name != "libcrypto3" {
+		t.Errorf("Name = %q, want libcrypto3", gp.Name)
+	}
+	if gp.Distro == nil {
+		t.Fatal("Distro = nil, want alpine-3.17.2")
+	}
+	if got := gp.Distro.Name(); got != "alpine" {
+		t.Errorf("distro name = %q, want alpine", got)
+	}
+	if len(gp.Upstreams) != 1 || gp.Upstreams[0].Name != "openssl" {
+		t.Errorf("Upstreams = %v, want [{openssl }]", gp.Upstreams)
+	}
+	// The upstream is resolved against the package's own name; a joined name
+	// would stop matching it against the upstream= qualifier.
+	if names := grypeName.PackageNames(gp); len(names) != 1 || names[0] != "libcrypto3" {
+		t.Errorf("PackageNames() = %v, want [libcrypto3]", names)
 	}
 }
 

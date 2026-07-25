@@ -63,7 +63,11 @@ Each package-manager page lists the strategies its built-in detectors understand
 
 ## Network behavior
 
-Detectors differ in whether they run subprocesses, and those that do may invoke build tools that download packages from registries. The marketing claim "Bomly is offline-safe by default" is precise: **matchers** make zero outbound calls without `--enrich`. **Detectors** may invoke build tools that download packages on your behalf during normal graph resolution.
+Detectors differ in whether they run subprocesses, and those that do may
+invoke build tools that download packages from registries. Network-backed
+**matchers** make no requests without `--enrich`. **Detectors** have separate
+behavior and may invoke build tools that download packages during normal graph
+resolution.
 
 | Detector class | Examples | Network during normal scan |
 | --- | --- | --- |

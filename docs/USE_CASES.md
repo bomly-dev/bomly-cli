@@ -63,11 +63,11 @@ This check is name-based and needs no enrichment, so it runs fully offline. See 
 
 ## Scan offline / air-gapped
 
-**Goal:** analyze dependencies with zero outbound network calls.
+**Goal:** analyze dependencies without contacting enrichment services.
 
 ```bash
-bomly scan                         # native detectors + lockfiles, no network
-bomly scan --sbom --path sbom.json # audit an SBOM you already have
+bomly scan                         # matcher network is off; detector behavior varies
+bomly scan --sbom --path sbom.json # read an SBOM you already have
 ```
 
 Without `--enrich`, matchers make **zero** outbound HTTP calls. Note that some build-tool detectors (Go, Maven, Gradle) may fetch packages during normal resolution — pre-warm the local cache or commit a lockfile to stay fully offline. See [Detectors → Network behavior](DETECTORS.md#network-behavior).

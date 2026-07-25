@@ -122,17 +122,31 @@ Every built-in is an implementation of the same contract an external plugin impl
 | Auditor         | Available | Evaluate policy and emit findings                                |
 | Analyzer        | Planned   | Annotate reachability for a language                             |
 
-External plugins run as sandboxed, versioned binaries and are disabled until you explicitly enable them. See [Plugins](PLUGINS.md) for the trust model, installation, and authoring guides.
+External plugins run as separate, versioned native processes and are disabled
+until you explicitly enable them. They are not operating-system sandboxes.
+Once enabled, they have the same user-level privileges as Bomly. See
+[Plugins](PLUGINS.md) for the trust model, installation, and authoring guides.
 
 ## Network behavior
 
-**Bomly is offline-safe by default.** A plain `bomly scan` reads files on disk and makes no network calls of its own.
+**Network-backed matchers are off by default.** A plain `bomly scan` does not
+contact matcher services. Target cloning and detector subprocesses are
+separate boundaries:
 
 - **Matchers** only run when you pass `--enrich`. `--audit` evaluates data that is already present and never triggers enrichment on its own.
 - **Detectors** vary: lockfile parsers (npm, pnpm, Yarn, Bun text lockfiles, Composer, Bundler, NuGet, GitHub Actions, SBOM ingest, …) are pure file readers and make no network calls. Build-tool–backed detectors shell out to the package manager when their deterministic file parser cannot resolve the project. Bun prefers `bun.lock`, then uses `bun pm ls --all` for the installed tree, and finally falls back to Syft; displayed child edges are preserved and unprovable hoisted parent relationships remain explicitly `unknown`. Install-first is never implicit.
+- **Remote targets** require network access when you pass `--url`; Bomly clones the requested Git repository before scanning it.
 - `--install-first` is the explicit opt-in that lets supporting detectors run their install command (`npm install`, `pip install`, …) before resolving; this downloads packages by design.
 
-When enrichment is enabled, the **only** services Bomly's built-in matchers contact are OSV, CISA KEV, deps.dev, ClearlyDefined, endoflife.date, and OpenSSF Scorecard. No telemetry, no credentials sent. External plugin matchers may contact their own documented services once you install and enable them. See [Detectors → Network behavior](DETECTORS.md#network-behavior) and [Matchers](MATCHERS.md).
+When enrichment is enabled, Bomly's built-in HTTP matchers may contact OSV,
+CISA KEV, deps.dev, and OpenSSF Scorecard. Bundled Grype downloads its
+vulnerability database on first use; the lite build leaves database management
+to the external `grype` command. Bomly sends no telemetry or credentials to
+its built-in services. External plugin matchers, including ClearlyDefined and
+endoflife.date integrations, may contact their documented services once you
+install and enable them. See
+[Detectors → Network behavior](DETECTORS.md#network-behavior) and
+[Matchers](MATCHERS.md).
 
 ## Build variants
 

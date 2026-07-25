@@ -104,7 +104,11 @@ Each package-manager page lists the strategies its built-in detectors understand
 
 ## Network behavior
 
-Detectors differ in whether they run subprocesses, and those that do may invoke build tools that download packages from registries. The marketing claim "Bomly is offline-safe by default" is precise: **matchers** make zero outbound calls without `+"`--enrich`"+`. **Detectors** may invoke build tools that download packages on your behalf during normal graph resolution.
+Detectors differ in whether they run subprocesses, and those that do may
+invoke build tools that download packages from registries. Network-backed
+**matchers** make no requests without `+"`--enrich`"+`. **Detectors** have separate
+behavior and may invoke build tools that download packages during normal graph
+resolution.
 
 | Detector class | Examples | Network during normal scan |
 | --- | --- | --- |
@@ -227,7 +231,12 @@ func RenderMatchersOverviewMarkdown() string {
 
 Matchers enrich packages after Bomly has built a dependency graph. They attach vulnerabilities, license metadata, and lifecycle signals to packages already in the graph.
 
-Bomly is **offline-safe by default**. Matchers that use the network only run when you opt in with `+"`--enrich`"+`. A scan without `+"`--enrich`"+` makes zero outbound HTTP calls.
+Bomly does not run network-backed matchers unless you opt in with `+"`--enrich`"+`.
+This matcher rule does not mean every plain scan is network-free: `+"`--url`"+`
+clones a repository, and some detectors run a build tool that may download
+dependencies while resolving the graph. See
+[Network behavior](ARCHITECTURE.md#network-behavior) for those separate
+boundaries.
 
 ## Categories
 
@@ -275,7 +284,12 @@ When `+"`--enrich`"+` is set, Bomly may call:
 - `+"`api.cisa.gov`"+` — CISA Known Exploited Vulnerabilities catalog
 - `+"`api.deps.dev`"+` — Google's deps.dev package metadata
 
-These are the **only** hosts Bomly's built-in matchers contact during enrichment. No telemetry. No data exfiltration. No credentials sent. External plugin matchers may contact their own documented services after you install and enable them. See [docs/ARCHITECTURE.md](ARCHITECTURE.md) for the full network model.
+The OpenSSF Scorecard matcher also calls `+"`api.scorecard.dev`"+`. Bundled
+Grype downloads its vulnerability database on first use. The lite build leaves
+database management to the external `+"`grype`"+` command. Bomly sends no
+telemetry or credentials to its built-in matcher services. External plugin
+matchers may contact other services after you install and enable them. See
+[Architecture](ARCHITECTURE.md#network-behavior) for the full network model.
 
 ## Cache
 

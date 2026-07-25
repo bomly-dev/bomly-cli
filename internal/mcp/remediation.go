@@ -168,9 +168,9 @@ func canonicalRemediationGroup(
 	in remediationInput,
 ) RemediationGroup {
 	target := packageIdentityFromRegistry(in.Registry, pkg.PURL)
-	targetRef := suggestion.TargetDependencyRef
-	if targetRef == "" && len(suggestion.DependencyRefs) > 0 {
-		targetRef = suggestion.DependencyRefs[0]
+	targetRef := suggestion.SuggestedActionDependencyRef
+	if targetRef == "" && len(suggestion.AffectedDependencyRefs) > 0 {
+		targetRef = suggestion.AffectedDependencyRefs[0]
 	}
 	if in.Graph != nil {
 		if dependency, ok := in.Graph.Node(targetRef); ok {
@@ -202,10 +202,10 @@ func compactFixesForSuggestion(
 	graph *sdk.Graph,
 ) []CompactFinding {
 	out := append([]CompactFinding(nil), fixes...)
-	if graph == nil || len(suggestion.DependencyRefs) == 0 {
+	if graph == nil || len(suggestion.AffectedDependencyRefs) == 0 {
 		return out
 	}
-	dependency, ok := graph.Node(suggestion.DependencyRefs[0])
+	dependency, ok := graph.Node(suggestion.AffectedDependencyRefs[0])
 	if !ok || dependency == nil {
 		return out
 	}

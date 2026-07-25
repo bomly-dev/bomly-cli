@@ -432,7 +432,7 @@
                     "action": {
                       "type": "string"
                     },
-                    "dependency_refs": {
+                    "affected_dependency_refs": {
                       "items": {
                         "type": "string"
                       },
@@ -444,12 +444,12 @@
                     "override_advice": {
                       "type": "string"
                     },
-                    "target_dependency_ref": {
+                    "suggested_action_dependency_ref": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "dependency_refs",
+                    "affected_dependency_refs",
                     "action"
                   ],
                   "type": "object"

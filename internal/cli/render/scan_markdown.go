@@ -37,6 +37,9 @@ func ScanMarkdown(w io.Writer, payload output.ScanResponse) error {
 			{Title: "Manifests", Lines: scanManifestMarkdown},
 			{Title: "Dependency Inventory", Lines: scanInventoryMarkdown},
 			{Title: "Policy Findings", Lines: scanFindingsMarkdown},
+			{Title: "Remediation", Optional: true, Lines: func(payload output.ScanResponse) []string {
+				return remediationMarkdown(payload.Packages)
+			}},
 		},
 	}, payload)
 }

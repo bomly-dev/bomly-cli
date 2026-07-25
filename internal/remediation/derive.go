@@ -695,11 +695,11 @@ func deriveSuggestions(
 		}
 		sort.Strings(refs)
 		pkg.Remediation.Suggestions = append(pkg.Remediation.Suggestions, sdk.PackageRemediationSuggestion{
-			DependencyRefs:      refs,
-			TargetDependencyRef: key.targetRef,
-			ManifestPath:        key.manifest,
-			Action:              key.action,
-			OverrideAdvice:      key.advice,
+			AffectedDependencyRefs:       refs,
+			SuggestedActionDependencyRef: key.targetRef,
+			ManifestPath:                 key.manifest,
+			Action:                       key.action,
+			OverrideAdvice:               key.advice,
 		})
 	}
 }

@@ -128,15 +128,15 @@ const (
 )
 
 // PackageRemediationSuggestion describes one occurrence-scoped action for the
-// containing package. DependencyRefs identify affected occurrences, while
-// TargetDependencyRef identifies the direct dependency or manifest anchor a
-// user would act on.
+// containing package. AffectedDependencyRefs identify occurrences of the
+// vulnerable package. SuggestedActionDependencyRef identifies the direct
+// dependency or manifest anchor the suggested action targets.
 type PackageRemediationSuggestion struct {
-	DependencyRefs      []string          `json:"dependency_refs"`
-	TargetDependencyRef string            `json:"target_dependency_ref,omitempty"`
-	ManifestPath        string            `json:"manifest_path,omitempty"`
-	Action              RemediationAction `json:"action"`
-	OverrideAdvice      string            `json:"override_advice,omitempty"`
+	AffectedDependencyRefs       []string          `json:"affected_dependency_refs"`
+	SuggestedActionDependencyRef string            `json:"suggested_action_dependency_ref,omitempty"`
+	ManifestPath                 string            `json:"manifest_path,omitempty"`
+	Action                       RemediationAction `json:"action"`
+	OverrideAdvice               string            `json:"override_advice,omitempty"`
 }
 
 // PackageRemediation summarizes the fix evidence already present on a
@@ -157,7 +157,7 @@ func (r *PackageRemediation) Clone() *PackageRemediation {
 		clone.Suggestions = make([]PackageRemediationSuggestion, len(r.Suggestions))
 		for idx, suggestion := range r.Suggestions {
 			clone.Suggestions[idx] = suggestion
-			clone.Suggestions[idx].DependencyRefs = cloneStrings(suggestion.DependencyRefs)
+			clone.Suggestions[idx].AffectedDependencyRefs = cloneStrings(suggestion.AffectedDependencyRefs)
 		}
 	}
 	return &clone

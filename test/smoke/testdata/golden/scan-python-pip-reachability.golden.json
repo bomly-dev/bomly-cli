@@ -477,11 +477,11 @@
         "suggestions": [
           {
             "action": "direct-bump",
-            "dependency_refs": [
+            "affected_dependency_refs": [
               "pkg:pypi/django@1.11.29"
             ],
             "manifest_path": "requirements.txt",
-            "target_dependency_ref": "pkg:pypi/django@1.11.29"
+            "suggested_action_dependency_ref": "pkg:pypi/django@1.11.29"
           }
         ]
       },
@@ -991,12 +991,12 @@
         "suggestions": [
           {
             "action": "transitive-override",
-            "dependency_refs": [
+            "affected_dependency_refs": [
               "pkg:pypi/idna@2.8"
             ],
             "manifest_path": "requirements.txt",
             "override_advice": "\u003cnormalized\u003e",
-            "target_dependency_ref": "pkg:pypi/requests@2.21.0"
+            "suggested_action_dependency_ref": "pkg:pypi/requests@2.21.0"
           }
         ]
       },
@@ -1156,11 +1156,11 @@
         "suggestions": [
           {
             "action": "direct-bump",
-            "dependency_refs": [
+            "affected_dependency_refs": [
               "pkg:pypi/jinja2@2.10.1"
             ],
             "manifest_path": "requirements.txt",
-            "target_dependency_ref": "pkg:pypi/jinja2@2.10.1"
+            "suggested_action_dependency_ref": "pkg:pypi/jinja2@2.10.1"
           }
         ]
       },
@@ -1531,12 +1531,12 @@
         "suggestions": [
           {
             "action": "transitive-override",
-            "dependency_refs": [
+            "affected_dependency_refs": [
               "pkg:pypi/pyasn1@0.6.3"
             ],
             "manifest_path": "requirements.txt",
             "override_advice": "\u003cnormalized\u003e",
-            "target_dependency_ref": "pkg:pypi/rsa@3.4"
+            "suggested_action_dependency_ref": "pkg:pypi/rsa@3.4"
           }
         ]
       },
@@ -1696,11 +1696,11 @@
         "suggestions": [
           {
             "action": "direct-bump",
-            "dependency_refs": [
+            "affected_dependency_refs": [
               "pkg:pypi/pyjwt@0.4.2"
             ],
             "manifest_path": "requirements.txt",
-            "target_dependency_ref": "pkg:pypi/pyjwt@0.4.2"
+            "suggested_action_dependency_ref": "pkg:pypi/pyjwt@0.4.2"
           }
         ]
       },
@@ -2068,11 +2068,11 @@
         "suggestions": [
           {
             "action": "direct-bump",
-            "dependency_refs": [
+            "affected_dependency_refs": [
               "pkg:pypi/pyyaml@5.3"
             ],
             "manifest_path": "requirements.txt",
-            "target_dependency_ref": "pkg:pypi/pyyaml@5.3"
+            "suggested_action_dependency_ref": "pkg:pypi/pyyaml@5.3"
           }
         ]
       },
@@ -2230,11 +2230,11 @@
         "suggestions": [
           {
             "action": "direct-bump",
-            "dependency_refs": [
+            "affected_dependency_refs": [
               "pkg:pypi/requests@2.21.0"
             ],
             "manifest_path": "requirements.txt",
-            "target_dependency_ref": "pkg:pypi/requests@2.21.0"
+            "suggested_action_dependency_ref": "pkg:pypi/requests@2.21.0"
           }
         ]
       },
@@ -2535,11 +2535,11 @@
         "suggestions": [
           {
             "action": "direct-bump",
-            "dependency_refs": [
+            "affected_dependency_refs": [
               "pkg:pypi/rsa@3.4"
             ],
             "manifest_path": "requirements.txt",
-            "target_dependency_ref": "pkg:pypi/rsa@3.4"
+            "suggested_action_dependency_ref": "pkg:pypi/rsa@3.4"
           }
         ]
       },
@@ -2729,11 +2729,11 @@
         "suggestions": [
           {
             "action": "direct-bump",
-            "dependency_refs": [
+            "affected_dependency_refs": [
               "pkg:pypi/urllib3@1.24.1"
             ],
             "manifest_path": "requirements.txt",
-            "target_dependency_ref": "pkg:pypi/urllib3@1.24.1"
+            "suggested_action_dependency_ref": "pkg:pypi/urllib3@1.24.1"
           }
         ]
       },

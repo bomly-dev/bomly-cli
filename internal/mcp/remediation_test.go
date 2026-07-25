@@ -50,10 +50,10 @@ func remediationFixture(t *testing.T) remediationInput {
 			Status:             sdk.PackageRemediationComplete,
 			RecommendedVersion: "1.2.0",
 			Suggestions: []sdk.PackageRemediationSuggestion{{
-				DependencyRefs:      []string{nodes[1].ID},
-				TargetDependencyRef: nodes[1].ID,
-				ManifestPath:        "package.json",
-				Action:              sdk.RemediationActionDirectBump,
+				AffectedDependencyRefs:       []string{nodes[1].ID},
+				SuggestedActionDependencyRef: nodes[1].ID,
+				ManifestPath:                 "package.json",
+				Action:                       sdk.RemediationActionDirectBump,
 			}},
 		},
 		Vulnerabilities: []sdk.Vulnerability{{
@@ -67,11 +67,11 @@ func remediationFixture(t *testing.T) remediationInput {
 			Status:             sdk.PackageRemediationComplete,
 			RecommendedVersion: "2.1.0",
 			Suggestions: []sdk.PackageRemediationSuggestion{{
-				DependencyRefs:      []string{nodes[3].ID},
-				TargetDependencyRef: nodes[2].ID,
-				ManifestPath:        "package.json",
-				Action:              sdk.RemediationActionTransitiveOverride,
-				OverrideAdvice:      `add "overrides": {"@scope/deep": "2.1.0"} to package.json and run npm install`,
+				AffectedDependencyRefs:       []string{nodes[3].ID},
+				SuggestedActionDependencyRef: nodes[2].ID,
+				ManifestPath:                 "package.json",
+				Action:                       sdk.RemediationActionTransitiveOverride,
+				OverrideAdvice:               `add "overrides": {"@scope/deep": "2.1.0"} to package.json and run npm install`,
 			}},
 		},
 		Vulnerabilities: []sdk.Vulnerability{{
@@ -86,10 +86,10 @@ func remediationFixture(t *testing.T) remediationInput {
 		Remediation: &sdk.PackageRemediation{
 			Status: sdk.PackageRemediationUnavailable,
 			Suggestions: []sdk.PackageRemediationSuggestion{{
-				DependencyRefs:      []string{nodes[4].ID},
-				TargetDependencyRef: nodes[4].ID,
-				ManifestPath:        "package.json",
-				Action:              sdk.RemediationActionNoFixUpstream,
+				AffectedDependencyRefs:       []string{nodes[4].ID},
+				SuggestedActionDependencyRef: nodes[4].ID,
+				ManifestPath:                 "package.json",
+				Action:                       sdk.RemediationActionNoFixUpstream,
 			}},
 		},
 		Vulnerabilities: []sdk.Vulnerability{{
@@ -238,10 +238,10 @@ func TestBuildRemediationsSameFixClosesMultipleFindings(t *testing.T) {
 			Status:             sdk.PackageRemediationComplete,
 			RecommendedVersion: "1.3.0",
 			Suggestions: []sdk.PackageRemediationSuggestion{{
-				DependencyRefs:      append([]string(nil), in.Findings[0].DependencyRefs...),
-				TargetDependencyRef: in.Findings[0].DependencyRefs[0],
-				ManifestPath:        "package.json",
-				Action:              sdk.RemediationActionDirectBump,
+				AffectedDependencyRefs:       append([]string(nil), in.Findings[0].DependencyRefs...),
+				SuggestedActionDependencyRef: in.Findings[0].DependencyRefs[0],
+				ManifestPath:                 "package.json",
+				Action:                       sdk.RemediationActionDirectBump,
 			}},
 		}
 	}

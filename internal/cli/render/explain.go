@@ -104,6 +104,11 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 			}
 		}
 	}
+	if section := remediationText(explainRemediationPackages(target)); section != "" {
+		if _, err := fmt.Fprintln(w, section); err != nil {
+			return fmt.Errorf("write explain remediation: %w", err)
+		}
+	}
 
 	return nil
 }

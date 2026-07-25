@@ -20,6 +20,8 @@ type MarkdownReport[T any] struct {
 type MarkdownSection[T any] struct {
 	Title string
 	Lines func(T) []string
+	// Optional omits the heading when Lines returns no visible content.
+	Optional bool
 }
 
 func writeMarkdownReport[T any](w io.Writer, report MarkdownReport[T], payload T) error {
@@ -28,12 +30,19 @@ func writeMarkdownReport[T any](w io.Writer, report MarkdownReport[T], payload T
 		lines = appendMarkdownBlock(lines, report.Intro(payload)...)
 	}
 	for _, section := range report.Sections {
+		var sectionLines []string
+		if section.Lines != nil {
+			sectionLines = section.Lines(payload)
+		}
+		if section.Optional && len(trimTrailingMarkdownBlanks(sectionLines)) == 0 {
+			continue
+		}
 		lines = append(lines, "## "+section.Title, "")
 		if section.Lines == nil {
 			lines = append(lines, "_No details._", "")
 			continue
 		}
-		lines = appendMarkdownBlock(lines, section.Lines(payload)...)
+		lines = appendMarkdownBlock(lines, sectionLines...)
 	}
 	return writeMarkdownLines(w, lines)
 }

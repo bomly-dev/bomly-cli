@@ -163,16 +163,19 @@ vulnerabilities:
 
 ```go
 type PackageRemediationSuggestion struct {
-    DependencyRefs      []string
-    TargetDependencyRef string
-    ManifestPath        string
-    Action              RemediationAction
-    OverrideAdvice      string
+    AffectedDependencyRefs    []string
+    SuggestedActionDependencyRef string
+    ManifestPath              string
+    Action                    RemediationAction
+    OverrideAdvice            string
 }
 ```
 
-`DependencyRefs` identifies the affected occurrences. `TargetDependencyRef`
-identifies the direct dependency or manifest anchor a user would act on.
+`AffectedDependencyRefs` identifies occurrences of the vulnerable package.
+`SuggestedActionDependencyRef` identifies the direct dependency or manifest
+anchor the suggested action targets. For a direct dependency, the affected and
+target references are normally the same. For a transitive dependency, the
+target may be its nearest direct parent.
 Suggestions are grouped only when action, target, manifest, and advice match.
 This preserves workspaces, aliases, duplicate versions, and separate
 manifests.

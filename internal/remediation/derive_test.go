@@ -519,11 +519,11 @@ func TestDeriveGroupsEquivalentOccurrencesWithoutCollapsingManifests(t *testing.
 		t.Fatalf("suggestions = %#v, want one group per manifest", pkg.Remediation.Suggestions)
 	}
 	if got := pkg.Remediation.Suggestions[0]; got.ManifestPath != "package-lock.json" ||
-		!reflect.DeepEqual(got.DependencyRefs, []string{"alias-example", "example"}) {
+		!reflect.DeepEqual(got.AffectedDependencyRefs, []string{"alias-example", "example"}) {
 		t.Fatalf("root manifest suggestion = %#v", got)
 	}
 	if got := pkg.Remediation.Suggestions[1]; got.ManifestPath != "packages/web/package-lock.json" ||
-		!reflect.DeepEqual(got.DependencyRefs, []string{"workspace-example"}) {
+		!reflect.DeepEqual(got.AffectedDependencyRefs, []string{"workspace-example"}) {
 		t.Fatalf("workspace manifest suggestion = %#v", got)
 	}
 }
@@ -962,7 +962,7 @@ func assertSuggestion(
 		t.Fatalf("package %q suggestions = %#v", purl, pkg.Remediation.Suggestions)
 	}
 	suggestion := pkg.Remediation.Suggestions[0]
-	if suggestion.Action != action || suggestion.TargetDependencyRef != targetRef ||
+	if suggestion.Action != action || suggestion.SuggestedActionDependencyRef != targetRef ||
 		suggestion.OverrideAdvice != advice {
 		t.Fatalf("package %q suggestion = %#v, want action %q target %q advice %q", purl, suggestion, action, targetRef, advice)
 	}

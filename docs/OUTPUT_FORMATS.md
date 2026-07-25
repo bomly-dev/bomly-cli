@@ -34,11 +34,14 @@ Constraints:
 
 ## `text` — human-readable
 
-The default. Groups packages by ecosystem and edge depth, summarizes finding counts by severity, and links to the explain path for any flagged package. Color and box-drawing are auto-disabled when stdout is not a TTY.
+The default. Groups packages by ecosystem and edge depth, summarizes finding counts by severity, and links to the explain path for any flagged package. With `--enrich`, it also summarizes remediation coverage and lists suggested actions after vulnerabilities or findings. The table shows up to 20 suggestions and points to JSON when more are available. Color and box-drawing are auto-disabled when stdout is not a TTY.
 
 ```bash
 bomly scan --enrich --audit
 ```
+
+Markdown reports include the same remediation summary and the complete
+suggestion table.
 
 ## `json` — structured
 
@@ -57,6 +60,11 @@ registry (licenses, vulnerabilities, scorecard, EOL, CPEs, digests) keyed by
 PURL; and `findings` is the reference-style audit output. Resolve a finding or a
 dependency to its enrichment by matching `package_ref`/`package.purl` into
 `packages`.
+
+For remediation suggestions, `affected_dependency_refs` names occurrences of
+the vulnerable package. `suggested_action_dependency_ref` names the dependency or
+manifest anchor that the suggested action targets. These can differ for a
+transitive package.
 
 Pipe into `jq` for common queries:
 

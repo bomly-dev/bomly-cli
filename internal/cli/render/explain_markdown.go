@@ -20,8 +20,26 @@ func ExplainMarkdown(w io.Writer, payload output.ExplainResponse) error {
 			{Title: "Targets", Lines: explainTargetsMarkdown},
 			{Title: "Dependency Paths", Lines: explainPathsMarkdown},
 			{Title: "Impact Assessment", Lines: explainImpactMarkdown},
+			{Title: "Remediation", Lines: explainRemediationMarkdown, Optional: true},
 		},
 	}, payload)
+}
+
+func explainRemediationMarkdown(payload output.ExplainResponse) []string {
+	if len(payload.Targets) == 0 {
+		return nil
+	}
+	var lines []string
+	for _, target := range payload.Targets {
+		if len(payload.Targets) > 1 {
+			lines = append(lines, fmt.Sprintf("### `%s`", markdownInline(markdownPackageDisplayName(target.Dependency.PackageRef))), "")
+		}
+		lines = append(lines, remediationMarkdown(explainRemediationPackages(target))...)
+		if len(payload.Targets) > 1 {
+			lines = append(lines, "")
+		}
+	}
+	return trimTrailingMarkdownBlanks(lines)
 }
 
 func explainTargetsMarkdown(payload output.ExplainResponse) []string {

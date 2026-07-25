@@ -24,6 +24,9 @@ func DiffMarkdown(w io.Writer, payload output.DiffResponse) error {
 			{Title: "License Changes", Lines: diffLicenseMarkdown},
 			{Title: "Project Posture", Lines: diffPostureMarkdown},
 			{Title: "Policy Findings", Lines: diffPolicyFindingsMarkdown},
+			{Title: "Remediation", Optional: true, Lines: func(payload output.DiffResponse) []string {
+				return remediationMarkdown(diffRemediationPackages(payload))
+			}},
 		},
 	}, payload)
 }

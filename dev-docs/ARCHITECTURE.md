@@ -147,8 +147,10 @@ and creates occurrence-specific suggestions. It selects only
 `direct-bump`, `transitive-override`, `lockfile-refresh`,
 `no-fix-upstream`, or `manual-review`. Unknown-parent and non-registry
 occurrences always use `manual-review`. Workspaces, aliases, duplicate
-versions, and separate manifests remain distinct through dependency refs and
-manifest paths. When a legacy detector leaves relationship metadata empty,
+versions, and separate manifests remain distinct through affected dependency
+references and manifest paths. Each suggestion separately names the dependency
+or manifest anchor that its action targets. When a legacy detector leaves
+relationship metadata empty,
 core infers direct or transitive placement from the shortest path to a real
 project root. A synthetic manifest root is never accepted as executable parent
 evidence.

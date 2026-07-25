@@ -114,6 +114,10 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 			b.WriteString(section)
 		}
 	}
+	if section := remediationText(output.PackagesFromRegistry(registry)); section != "" {
+		b.WriteString("\n\n")
+		b.WriteString(section)
+	}
 
 	return b.String()
 }

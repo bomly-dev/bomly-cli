@@ -13,10 +13,10 @@ func TestPackageRemediationCloneAndJSON(t *testing.T) {
 			Status:             PackageRemediationComplete,
 			RecommendedVersion: "1.2.0",
 			Suggestions: []PackageRemediationSuggestion{{
-				DependencyRefs:      []string{"dependency-a", "dependency-b"},
-				TargetDependencyRef: "dependency-a",
-				ManifestPath:        "package-lock.json",
-				Action:              RemediationActionDirectBump,
+				AffectedDependencyRefs:       []string{"dependency-a", "dependency-b"},
+				SuggestedActionDependencyRef: "dependency-a",
+				ManifestPath:                 "package-lock.json",
+				Action:                       RemediationActionDirectBump,
 			}},
 		},
 	}
@@ -26,11 +26,11 @@ func TestPackageRemediationCloneAndJSON(t *testing.T) {
 		t.Fatal("Clone() reused the remediation pointer")
 	}
 	clone.Remediation.RecommendedVersion = "2.0.0"
-	clone.Remediation.Suggestions[0].DependencyRefs[0] = "mutated"
+	clone.Remediation.Suggestions[0].AffectedDependencyRefs[0] = "mutated"
 	if original.Remediation.RecommendedVersion != "1.2.0" {
 		t.Fatalf("Clone() mutated original remediation: %#v", original.Remediation)
 	}
-	if original.Remediation.Suggestions[0].DependencyRefs[0] != "dependency-a" {
+	if original.Remediation.Suggestions[0].AffectedDependencyRefs[0] != "dependency-a" {
 		t.Fatalf("Clone() shared suggestion dependency refs: %#v", original.Remediation)
 	}
 
@@ -44,6 +44,14 @@ func TestPackageRemediationCloneAndJSON(t *testing.T) {
 	}
 	if !strings.Contains(jsonValue, `"action":"direct-bump"`) {
 		t.Fatalf("Marshal() omitted remediation suggestion: %s", data)
+	}
+	if !strings.Contains(jsonValue, `"affected_dependency_refs":["dependency-a","dependency-b"]`) ||
+		!strings.Contains(jsonValue, `"suggested_action_dependency_ref":"dependency-a"`) {
+		t.Fatalf("Marshal() used unclear remediation references: %s", data)
+	}
+	if strings.Contains(jsonValue, `"dependency_refs"`) ||
+		strings.Contains(jsonValue, `"target_dependency_ref"`) {
+		t.Fatalf("Marshal() retained obsolete remediation reference names: %s", data)
 	}
 }
 

@@ -2956,7 +2956,6 @@ func componentDetails(graphValue *sdk.Graph, registry *sdk.PackageRegistry, row 
 		render.Style("  Relationship: ", render.Dim) + statusText(row.relationship),
 		render.Style("  PURL: ", render.Dim) + valueOrDash(row.purl),
 	}
-	lines = append(lines, remediationDetailLines(remediationForPURL(registry, row.purl, row.id))...)
 	lines = append(lines, "")
 
 	appendPackages := func(title string, packages []*sdk.Dependency) {
@@ -3028,6 +3027,7 @@ func componentDetails(graphValue *sdk.Graph, registry *sdk.PackageRegistry, row 
 		}
 	}
 	lines = append(lines, "")
+	lines = append(lines, remediationSectionLines(remediationForPURL(registry, row.purl, row.id))...)
 
 	// Licenses section
 	licenses := licensesForDependency(registry, pkg)

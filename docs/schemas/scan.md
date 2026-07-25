@@ -188,8 +188,8 @@ Complete reference for the `bomly scan` JSON output.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `dependency_refs` | Array<`string`> | |
-| `target_dependency_ref` | `string` | |
+| `affected_dependency_refs` | Array<`string`> | |
+| `suggested_action_dependency_ref` | `string` | |
 | `manifest_path` | `string` | |
 | `action` | `string` | |
 | `override_advice` | `string` | |

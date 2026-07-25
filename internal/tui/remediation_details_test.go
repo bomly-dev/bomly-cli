@@ -18,9 +18,9 @@ func TestComponentDetailsShowPackageRemediation(t *testing.T) {
 			Status:             sdk.PackageRemediationComplete,
 			RecommendedVersion: "1.2.0",
 			Suggestions: []sdk.PackageRemediationSuggestion{{
-				DependencyRefs: []string{"example@1.0.0"},
-				ManifestPath:   "package-lock.json",
-				Action:         sdk.RemediationActionDirectBump,
+				AffectedDependencyRefs: []string{"example@1.0.0"},
+				ManifestPath:           "package-lock.json",
+				Action:                 sdk.RemediationActionDirectBump,
 			}},
 		},
 	})
@@ -33,6 +33,7 @@ func TestComponentDetailsShowPackageRemediation(t *testing.T) {
 	}, listPackageRow{displayName: "package-lock.json"})
 	plain := render.StripANSI(strings.Join(lines, "\n"))
 	for _, want := range []string{
+		"Remediation",
 		"Remediation status: Complete",
 		"Recommended version: 1.2.0",
 		"Suggested action: Direct bump",
@@ -41,6 +42,13 @@ func TestComponentDetailsShowPackageRemediation(t *testing.T) {
 		if !strings.Contains(plain, want) {
 			t.Fatalf("component details missing %q:\n%s", want, plain)
 		}
+	}
+	vulnerabilitiesIndex := strings.Index(plain, "Vulnerabilities")
+	remediationIndex := strings.Index(plain, "Remediation\n")
+	licensesIndex := strings.Index(plain, "Licenses")
+	if vulnerabilitiesIndex < 0 || remediationIndex <= vulnerabilitiesIndex ||
+		licensesIndex <= remediationIndex {
+		t.Fatalf("remediation section must follow vulnerabilities and precede licenses:\n%s", plain)
 	}
 }
 
@@ -63,6 +71,9 @@ func TestDiffComponentDetailsShowPackageRemediation(t *testing.T) {
 	}
 	if strings.Contains(plain, "Recommended version:") {
 		t.Fatalf("unavailable remediation displayed a recommendation:\n%s", plain)
+	}
+	if vulnerabilitiesIndex, remediationIndex := strings.Index(plain, "Vulnerabilities"), strings.Index(plain, "Remediation\n"); vulnerabilitiesIndex < 0 || remediationIndex <= vulnerabilitiesIndex {
+		t.Fatalf("diff remediation section must follow vulnerabilities:\n%s", plain)
 	}
 }
 

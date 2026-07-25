@@ -241,11 +241,11 @@
         "suggestions": [
           {
             "action": "direct-bump",
-            "dependency_refs": [
+            "affected_dependency_refs": [
               "pkg:golang/golang.org/x/text@v0.3.5"
             ],
             "manifest_path": "go.mod",
-            "target_dependency_ref": "pkg:golang/golang.org/x/text@v0.3.5"
+            "suggested_action_dependency_ref": "pkg:golang/golang.org/x/text@v0.3.5"
           }
         ]
       },

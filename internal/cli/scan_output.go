@@ -102,11 +102,11 @@ func remediationSuggestionsForDependency(
 	}
 	filtered := make([]sdk.PackageRemediationSuggestion, 0, len(suggestions))
 	for _, suggestion := range suggestions {
-		if !slices.Contains(suggestion.DependencyRefs, dependencyRef) {
+		if !slices.Contains(suggestion.AffectedDependencyRefs, dependencyRef) {
 			continue
 		}
 		clone := suggestion
-		clone.DependencyRefs = append([]string(nil), suggestion.DependencyRefs...)
+		clone.AffectedDependencyRefs = append([]string(nil), suggestion.AffectedDependencyRefs...)
 		filtered = append(filtered, clone)
 	}
 	return filtered

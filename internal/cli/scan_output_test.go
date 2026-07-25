@@ -71,12 +71,13 @@ func TestExplainPackageRefPlacesRemediationOnlyOnFocusedDependency(t *testing.T)
 			RecommendedVersion: "1.2.0",
 			Suggestions: []sdk.PackageRemediationSuggestion{
 				{
-					DependencyRefs: []string{dependency.ID},
-					Action:         sdk.RemediationActionDirectBump,
+					AffectedDependencyRefs:       []string{dependency.ID},
+					SuggestedActionDependencyRef: dependency.ID,
+					Action:                       sdk.RemediationActionDirectBump,
 				},
 				{
-					DependencyRefs: []string{"other-occurrence"},
-					Action:         sdk.RemediationActionManualReview,
+					AffectedDependencyRefs: []string{"other-occurrence"},
+					Action:                 sdk.RemediationActionManualReview,
 				},
 			},
 		},
@@ -117,5 +118,13 @@ func TestExplainPackageRefPlacesRemediationOnlyOnFocusedDependency(t *testing.T)
 	}
 	if got := strings.Count(string(data), `"remediation"`); got != 2 {
 		t.Fatalf("remediation occurrence count = %d, want flattened and target dependency only: %s", got, data)
+	}
+	encoded := string(data)
+	if !strings.Contains(encoded, `"affected_dependency_refs"`) ||
+		!strings.Contains(encoded, `"suggested_action_dependency_ref"`) {
+		t.Fatalf("explain remediation used unclear dependency reference names: %s", data)
+	}
+	if strings.Contains(encoded, `"target_dependency_ref"`) {
+		t.Fatalf("explain remediation retained obsolete dependency reference name: %s", data)
 	}
 }

@@ -332,7 +332,7 @@ func remediationForPURL(
 	filtered := make([]sdk.PackageRemediationSuggestion, 0, len(remediation.Suggestions))
 	for _, suggestion := range remediation.Suggestions {
 		include := false
-		for _, ref := range suggestion.DependencyRefs {
+		for _, ref := range suggestion.AffectedDependencyRefs {
 			if _, ok := allowed[ref]; ok {
 				include = true
 				break
@@ -346,7 +346,7 @@ func remediationForPURL(
 	return remediation
 }
 
-func remediationDetailLines(remediation *sdk.PackageRemediation) []string {
+func remediationSectionLines(remediation *sdk.PackageRemediation) []string {
 	if remediation == nil {
 		return nil
 	}
@@ -355,6 +355,9 @@ func remediationDetailLines(remediation *sdk.PackageRemediation) []string {
 		status = strings.ToUpper(status[:1]) + status[1:]
 	}
 	lines := []string{
+		"",
+		render.Style("Remediation", render.Bold, render.Cyan),
+		"",
 		render.Style("  Remediation status: ", render.Dim) + valueOrDash(status),
 	}
 	if remediation.RecommendedVersion != "" {

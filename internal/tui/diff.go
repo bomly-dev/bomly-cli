@@ -1697,7 +1697,6 @@ func componentChangeDetails(c flatComponentChange) []string {
 		render.Style("  Relationship: ", render.Dim) + valueOrDash(c.relationship),
 		render.Style("  Ecosystem: ", render.Dim) + valueOrDash(c.ecosystem),
 	}
-	lines = append(lines, remediationDetailLines(c.remediation)...)
 	lines = append(lines,
 		"",
 		render.Style("Manifest", render.Bold, render.Magenta),
@@ -1729,6 +1728,7 @@ func componentChangeDetails(c flatComponentChange) []string {
 		lines = append(lines, renderLicenseList(c.pkgRef.Licenses)...)
 		lines = append(lines, renderVulnList(c.pkgRef.Vulnerabilities)...)
 	}
+	lines = append(lines, remediationSectionLines(c.remediation)...)
 	return lines
 }
 

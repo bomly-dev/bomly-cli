@@ -85,7 +85,7 @@ The confirmation prompt prevents accidental exits mid-scroll. Press `y` to confi
 ## Tips
 
 - Run with `--enrich` to populate vulnerability details. Add `--audit` to populate policy findings.
-- When enrichment finds vulnerability fix evidence, select a package in the Components view to see its status, recommended version, suggested action, and package-manager advice when available. This guidance is read-only: viewing it does not change manifests or lockfiles. Check compatibility and test the project before applying an upgrade.
+- When enrichment finds vulnerability fix evidence, select a package in the Components view. Its details pane shows a **Remediation** section directly below **Vulnerabilities**. The section includes status, a recommended version, suggested actions, and package-manager advice when available. This guidance is read-only: viewing it does not change manifests or lockfiles. Check compatibility and test the project before applying an upgrade.
 - Use `Search` (`/`) to narrow a large monorepo quickly: `/api` shows only packages with `api` in the name.
 - Combine the Severity filter (`v`) with the Findings tab to triage the highest-impact items first.
 

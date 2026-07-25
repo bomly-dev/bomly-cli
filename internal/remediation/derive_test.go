@@ -681,7 +681,7 @@ func TestCollectHintsBoundsAndSanitizesDiagnostics(t *testing.T) {
 	}
 	_, warnings := collectHints(context.Background(), Input{
 		Registry:   sdk.NewPackageRegistry(),
-		Detections: []sdk.DetectionResult{detection},
+		Detections: []sdk.DetectionResult{detection, detection},
 		Detectors:  map[string]sdk.Detector{"test-detector": detector},
 	})
 	if len(warnings) != maxDetectorDiagnostics+1 {
@@ -697,6 +697,10 @@ func TestCollectHintsBoundsAndSanitizesDiagnostics(t *testing.T) {
 				t.Fatalf("warning contains control character %U: %q", r, warning.Message)
 			}
 		}
+	}
+	if !strings.Contains(warnings[len(warnings)-1].Message, "30 additional") {
+		t.Fatalf("omission summary = %q, want 30 additional warnings",
+			warnings[len(warnings)-1].Message)
 	}
 }
 

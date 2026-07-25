@@ -55,6 +55,50 @@ type detectedOccurrence struct {
 	canonicalRef string
 }
 
+type warningAccumulator struct {
+	warnings []Warning
+	counts   map[string]int
+	omitted  map[string]int
+}
+
+func newWarningAccumulator() *warningAccumulator {
+	return &warningAccumulator{
+		counts:  map[string]int{},
+		omitted: map[string]int{},
+	}
+}
+
+func (a *warningAccumulator) add(source, message string) {
+	message = sanitizeProviderText(message, maxDetectorDiagnosticRunes)
+	if message == "" {
+		return
+	}
+	if a.counts[source] >= maxDetectorDiagnostics {
+		a.omitted[source]++
+		return
+	}
+	a.counts[source]++
+	a.warnings = append(a.warnings, Warning{Source: source, Message: message})
+}
+
+func (a *warningAccumulator) result() []Warning {
+	sources := make([]string, 0, len(a.omitted))
+	for source := range a.omitted {
+		sources = append(sources, source)
+	}
+	sort.Strings(sources)
+	for _, source := range sources {
+		a.warnings = append(a.warnings, Warning{
+			Source: source,
+			Message: fmt.Sprintf(
+				"detector returned %d additional remediation warnings that were omitted",
+				a.omitted[source],
+			),
+		})
+	}
+	return a.warnings
+}
+
 // Derive replaces every package remediation value with canonical status,
 // version, and occurrence suggestions derived from completed enrichment.
 // Detector providers contribute read-only package-manager evidence; they
@@ -264,7 +308,7 @@ func selectComparableVersion(values []string, highest bool) (string, bool) {
 
 func collectHints(ctx context.Context, in Input) ([]validatedHint, []Warning) {
 	var hints []validatedHint
-	var warnings []Warning
+	warnings := newWarningAccumulator()
 	for _, detection := range in.Detections {
 		detector := in.Detectors[detection.DetectorName]
 		if detector == nil {
@@ -276,10 +320,10 @@ func collectHints(ctx context.Context, in Input) ([]validatedHint, []Warning) {
 		}
 		provider, ok := detector.(sdk.DetectorRemediationProvider)
 		if !ok {
-			warnings = append(warnings, Warning{
-				Source:  detection.DetectorName,
-				Message: "detector advertises remediation capabilities but does not implement the provider",
-			})
+			warnings.add(
+				detection.DetectorName,
+				"detector advertises remediation capabilities but does not implement the provider",
+			)
 			continue
 		}
 		response, err := provider.RemediationHints(ctx, sdk.RemediationHintRequest{
@@ -288,25 +332,11 @@ func collectHints(ctx context.Context, in Input) ([]validatedHint, []Warning) {
 			Registry:    cloneRegistry(in.Registry),
 		})
 		if err != nil {
-			warnings = append(warnings, Warning{
-				Source:  detection.DetectorName,
-				Message: sanitizeProviderText(err.Error(), maxDetectorDiagnosticRunes),
-			})
+			warnings.add(detection.DetectorName, err.Error())
 			continue
 		}
-		for _, diagnostic := range response.Diagnostics[:min(len(response.Diagnostics), maxDetectorDiagnostics)] {
-			if message := sanitizeProviderText(diagnostic, maxDetectorDiagnosticRunes); message != "" {
-				warnings = append(warnings, Warning{Source: detection.DetectorName, Message: message})
-			}
-		}
-		if len(response.Diagnostics) > maxDetectorDiagnostics {
-			warnings = append(warnings, Warning{
-				Source: detection.DetectorName,
-				Message: fmt.Sprintf(
-					"detector returned %d additional remediation diagnostics that were omitted",
-					len(response.Diagnostics)-maxDetectorDiagnostics,
-				),
-			})
+		for _, diagnostic := range response.Diagnostics {
+			warnings.add(detection.DetectorName, diagnostic)
 		}
 		validated, rejected := validateHints(detection, descriptor, response.Hints)
 		for idx := range validated {
@@ -320,16 +350,13 @@ func collectHints(ctx context.Context, in Input) ([]validatedHint, []Warning) {
 				validated[idx].sourceDependencyRef,
 			)
 			if !ok {
-				warnings = append(warnings, Warning{
-					Source: detection.DetectorName,
-					Message: sanitizeProviderText(
-						fmt.Sprintf(
-							"ignored remediation hint for dependency %q because its consolidated manifest could not be resolved",
-							validated[idx].sourceDependencyRef,
-						),
-						maxDetectorDiagnosticRunes,
+				warnings.add(
+					detection.DetectorName,
+					fmt.Sprintf(
+						"ignored remediation hint for dependency %q because its consolidated manifest could not be resolved",
+						validated[idx].sourceDependencyRef,
 					),
-				})
+				)
 				validated[idx].dependencyRef = ""
 				continue
 			}
@@ -342,13 +369,10 @@ func collectHints(ctx context.Context, in Input) ([]validatedHint, []Warning) {
 			}
 		}
 		for _, message := range rejected {
-			warnings = append(warnings, Warning{
-				Source:  detection.DetectorName,
-				Message: sanitizeProviderText(message, maxDetectorDiagnosticRunes),
-			})
+			warnings.add(detection.DetectorName, message)
 		}
 	}
-	return hints, warnings
+	return hints, warnings.result()
 }
 
 func validateHints(
@@ -798,7 +822,12 @@ func inferredPlacement(
 }
 
 func pathLess(left, right []string) bool {
-	return strings.Join(left, "\x00") < strings.Join(right, "\x00")
+	for idx := 0; idx < min(len(left), len(right)); idx++ {
+		if left[idx] != right[idx] {
+			return left[idx] < right[idx]
+		}
+	}
+	return len(left) < len(right)
 }
 
 func executableRoot(dependency *sdk.Dependency) bool {

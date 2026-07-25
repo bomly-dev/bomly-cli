@@ -116,8 +116,13 @@ MCP tool results land in an agent's context window, so they use a compact respon
 `bomly_scan` returns:
 
 - **`summary`** — manifest/package counts, `subprojects` and `modules` counts for scans that span nested projects or workspace/reactor members (omitted for flat scans), vulnerable vs clean packages, findings by severity, and whether enrich/audit ran. A clean non-audited scan also returns a capped package inventory. The full hierarchy is derived from `manifests[].subproject` + `path` in the complete CLI JSON document.
-- **`remediations`** — ranked groups projected from the canonical package remediation data created during enrichment. Each group identifies the affected package, its relationship to the project, and the manifest when known. Suggested actions are `direct-bump`, `transitive-override`, `lockfile-refresh`, `no-fix-upstream`, or `manual-review`; supported transitive overrides may include package-manager-specific `override_advice`. Groups rank known-exploited issues first, then severity, EPSS, and fixability. `recommended_version` appears only when one affected package has a complete package-level recommendation. MCP does not choose actions or manager advice. When audit also runs, matching policy status is added without hiding enriched vulnerabilities that did not produce a finding.
-- **`informational`** — warning and policy-only findings, separated from actionable work.
+- **`remediations`** — possible changes for vulnerable packages. Each group names the package and, when known, the manifest to update. Bomly sorts the most urgent groups first. `recommended_version` appears only when the available data supports one complete recommendation.
+  - `direct-bump` means updating a package declared directly in the project.
+  - `transitive-override` means pinning an indirect package with the package manager's override feature.
+  - `lockfile-refresh` means asking the package manager to resolve a newer indirect package version.
+  - `no-fix-upstream` means the advisory source says no fixed version exists.
+  - `manual-review` means the available data does not support a specific change.
+- **`informational`** — findings that do not currently require a change. This includes warning-only findings and vulnerabilities allowed by audit policy or below the selected failure threshold.
 - **`diagnostics`** — pipeline warnings (detector fallbacks, matcher failures) so partial results explain themselves.
 - **`truncation`** — explicit counters whenever a cap cut anything; nothing is dropped silently.
 

@@ -78,13 +78,20 @@ accessors exist for the three things callers actually want:
 | --- | --- | --- |
 | `QualifiedName()` | `org:name` for everything | Internal keying and IDs (`StableID`) where only uniqueness matters. |
 | `DisplayName()` | `@org/name`, `org/name`, `org:name` | Presentation only — text reports, JSON `name` fields. Never an identity key. |
-| `EcosystemName()` | `@org/name` (npm), `org:name` (Maven family), `org/name` (everything else) | Anything that leaves the process: advisory-database lookups, cache keys derived from a name, SBOM component names, names handed to Grype/Syft. |
+| `EcosystemName()` | `@org/name` (npm), `org:name` (Maven family), `org/name` (Go, Composer, Swift, GitHub Actions), bare `name` everywhere else | Anything that leaves the process: advisory-database lookups, cache keys derived from a name, SBOM component names, names handed to Grype/Syft. |
 
 `EcosystemName` exists because the bare `Name` silently collides across scopes:
 querying Grype or OSV for `@tailwindcss/postcss` under `postcss` returns every
 postcss advisory and attaches it to the scoped package (issue #319). Prefer the
 PURL when a lookup accepts one; reach for `EcosystemName` when it only accepts a
 name.
+
+Joining is **opt-in per ecosystem** and everything else keeps the bare `Name`,
+because `Org` is not always part of the package name. For OS packages `Org` is
+the distro that shipped it — `pkg:apk/alpine/libcrypto3` gives `Org: "alpine"` —
+and Grype's distro-namespace matchers query `libcrypto3`, so joining would miss
+every OS advisory. Adding an ecosystem to the join list means asserting that its
+advisory databases key on the namespaced form.
 
 ## `sdk.Dependency` — detection node
 

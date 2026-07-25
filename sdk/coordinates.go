@@ -51,11 +51,20 @@ func (i Coordinates) DisplayName() string {
 
 // EcosystemName returns the package name in the form its ecosystem uses as an
 // identity: "@org/name" for npm, "org:name" for Maven-family coordinates, and
-// "org/name" for every other namespaced ecosystem (Go, Composer, Swift, GitHub
-// Actions). This is the name external advisory databases, SBOM documents, and
-// scanners such as Grype and Syft key on, so anything building a lookup for a
-// package must derive it from here rather than from the bare Name — Name alone
-// drops the npm scope and matches the unscoped package's advisories.
+// "org/name" for the path-style namespaced ecosystems (Go, Composer, Swift,
+// GitHub Actions). This is the name external advisory databases, SBOM
+// documents, and scanners such as Grype and Syft key on, so anything building a
+// lookup for a package must derive it from here rather than from the bare Name
+// — Name alone drops the npm scope and matches the unscoped package's
+// advisories.
+//
+// Joining is opt-in per ecosystem, and everything else keeps the bare Name,
+// because Org is not always part of the package name. For OS packages Org is
+// the distro that shipped the package (`Org: "alpine"` from
+// `pkg:apk/alpine/libcrypto3`), and Grype's distro-namespace matchers query
+// `libcrypto3`; joining would miss every OS advisory. The same holds for any
+// other ecosystem whose PURL namespace names a vendor or channel rather than
+// part of the package's own identity.
 func (i Coordinates) EcosystemName() string {
 	org := strings.TrimSpace(i.Org)
 	name := strings.TrimSpace(i.Name)
@@ -67,8 +76,10 @@ func (i Coordinates) EcosystemName() string {
 		return "@" + strings.TrimPrefix(org, "@") + "/" + name
 	case EcosystemMaven, EcosystemScala:
 		return org + ":" + name
-	default:
+	case EcosystemGo, EcosystemPHP, EcosystemSwift, EcosystemGitHub:
 		return org + "/" + name
+	default:
+		return name
 	}
 }
 
@@ -88,6 +99,10 @@ func (i Coordinates) displayEcosystem() Ecosystem {
 			return EcosystemMaven
 		case string(EcosystemScala), "sbt":
 			return EcosystemScala
+		case string(EcosystemSwift), "swiftpm":
+			return EcosystemSwift
+		case string(EcosystemGitHub), "githubactions":
+			return EcosystemGitHub
 		}
 	}
 	return i.Ecosystem

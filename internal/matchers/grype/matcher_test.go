@@ -156,6 +156,19 @@ func TestGraphPkgToGrypePkg_EcosystemNativeName(t *testing.T) {
 			pkg:  sdk.Coordinates{Org: "github.com/spf13", Name: "cobra", Version: "v1.8.0", PURL: "pkg:golang/github.com/spf13/cobra@v1.8.0", Ecosystem: sdk.EcosystemGo},
 			want: "github.com/spf13/cobra",
 		},
+		// OS packages carry the distro in Org. Grype's distro-namespace
+		// matchers query the bare name, so joining would miss every OS
+		// advisory — see the distro/upstream plumbing in purl_builtin.go.
+		{
+			name: "apk keeps bare name",
+			pkg:  sdk.Coordinates{Org: "alpine", Name: "libcrypto3", Version: "3.0.8-r0", PURL: "pkg:apk/alpine/libcrypto3@3.0.8-r0?arch=x86_64&distro=alpine-3.17.2&upstream=openssl", Ecosystem: sdk.EcosystemAPK},
+			want: "libcrypto3",
+		},
+		{
+			name: "dpkg keeps bare name",
+			pkg:  sdk.Coordinates{Org: "debian", Name: "libc6", Version: "2.31-13", PURL: "pkg:deb/debian/libc6@2.31-13?arch=amd64&distro=debian-11", Ecosystem: sdk.EcosystemDPKG},
+			want: "libc6",
+		},
 	}
 
 	for _, tc := range cases {
@@ -184,6 +197,35 @@ func TestGrypeSearchNamesKeepNPMScope(t *testing.T) {
 		if n == "postcss" {
 			t.Errorf("scoped package searched under unscoped name %q", n)
 		}
+	}
+}
+
+// The ecosystem-native name and the distro/upstream plumbing have to hold at
+// the same time: an OS package must reach Grype under its bare name *and* keep
+// the distro its advisories are namespaced by.
+func TestGraphPkgToGrypePkg_OSPackageKeepsBareNameAndDistro(t *testing.T) {
+	gp := graphPkgToGrypePkg(&sdk.Package{Coordinates: sdk.Coordinates{
+		Org: "alpine", Name: "libcrypto3", Version: "3.0.8-r0",
+		PURL:      "pkg:apk/alpine/libcrypto3@3.0.8-r0?arch=x86_64&distro=alpine-3.17.2&upstream=openssl",
+		Ecosystem: sdk.EcosystemAPK,
+	}})
+
+	if gp.Name != "libcrypto3" {
+		t.Errorf("Name = %q, want libcrypto3", gp.Name)
+	}
+	if gp.Distro == nil {
+		t.Fatal("Distro = nil, want alpine-3.17.2")
+	}
+	if got := gp.Distro.Name(); got != "alpine" {
+		t.Errorf("distro name = %q, want alpine", got)
+	}
+	if len(gp.Upstreams) != 1 || gp.Upstreams[0].Name != "openssl" {
+		t.Errorf("Upstreams = %v, want [{openssl }]", gp.Upstreams)
+	}
+	// The upstream is resolved against the package's own name; a joined name
+	// would stop matching it against the upstream= qualifier.
+	if names := grypeName.PackageNames(gp); len(names) != 1 || names[0] != "libcrypto3" {
+		t.Errorf("PackageNames() = %v, want [libcrypto3]", names)
 	}
 }
 

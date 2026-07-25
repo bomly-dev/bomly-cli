@@ -49,6 +49,12 @@ func TestCoordinatesEcosystemName(t *testing.T) {
 		{"composer", Coordinates{Ecosystem: EcosystemPHP, Org: "monolog", Name: "monolog"}, "monolog/monolog"},
 		{"swift", Coordinates{Ecosystem: EcosystemSwift, Org: "github.com/apple", Name: "swift-nio"}, "github.com/apple/swift-nio"},
 		{"github actions", Coordinates{Ecosystem: EcosystemGitHub, Org: "actions", Name: "checkout"}, "actions/checkout"},
+		// OS packages carry the distro in Org; it is not part of the name the
+		// distro-namespace advisories are keyed under.
+		{"apk keeps bare name", Coordinates{Ecosystem: EcosystemAPK, Org: "alpine", Name: "libcrypto3"}, "libcrypto3"},
+		{"dpkg keeps bare name", Coordinates{Ecosystem: EcosystemDPKG, Org: "debian", Name: "bash"}, "bash"},
+		{"rpm keeps bare name", Coordinates{Ecosystem: EcosystemRPM, Org: "redhat", Name: "openssl"}, "openssl"},
+		{"conan keeps bare name", Coordinates{Ecosystem: EcosystemCPP, Org: "bincrafters", Name: "openssl"}, "openssl"},
 		{"no org", Coordinates{Ecosystem: EcosystemPython, Name: "requests"}, "requests"},
 		{"no name", Coordinates{Ecosystem: EcosystemNPM, Org: "scope"}, "scope"},
 	}

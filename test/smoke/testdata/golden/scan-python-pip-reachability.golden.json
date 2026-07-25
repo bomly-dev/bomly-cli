@@ -471,6 +471,20 @@
       "matched": true,
       "name": "django",
       "purl": "pkg:pypi/django@1.11.29",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "dependency_refs": [
+              "pkg:pypi/django@1.11.29"
+            ],
+            "manifest_path": "requirements.txt",
+            "target_dependency_ref": "pkg:pypi/django@1.11.29"
+          }
+        ]
+      },
       "version": "1.11.29",
       "vulnerabilities": [
         {
@@ -971,6 +985,21 @@
       "matched": true,
       "name": "idna",
       "purl": "pkg:pypi/idna@2.8",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "dependency_refs": [
+              "pkg:pypi/idna@2.8"
+            ],
+            "manifest_path": "requirements.txt",
+            "override_advice": "\u003cnormalized\u003e",
+            "target_dependency_ref": "pkg:pypi/requests@2.21.0"
+          }
+        ]
+      },
       "version": "2.8",
       "vulnerabilities": [
         {
@@ -1121,6 +1150,20 @@
       "matched": true,
       "name": "jinja2",
       "purl": "pkg:pypi/jinja2@2.10.1",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "dependency_refs": [
+              "pkg:pypi/jinja2@2.10.1"
+            ],
+            "manifest_path": "requirements.txt",
+            "target_dependency_ref": "pkg:pypi/jinja2@2.10.1"
+          }
+        ]
+      },
       "version": "2.10.1",
       "vulnerabilities": [
         {
@@ -1482,6 +1525,21 @@
       "matched": true,
       "name": "pyasn1",
       "purl": "pkg:pypi/pyasn1@0.6.3",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "transitive-override",
+            "dependency_refs": [
+              "pkg:pypi/pyasn1@0.6.3"
+            ],
+            "manifest_path": "requirements.txt",
+            "override_advice": "\u003cnormalized\u003e",
+            "target_dependency_ref": "pkg:pypi/rsa@3.4"
+          }
+        ]
+      },
       "version": "0.6.3",
       "vulnerabilities": [
         {
@@ -1632,6 +1690,20 @@
       "matched": true,
       "name": "pyjwt",
       "purl": "pkg:pypi/pyjwt@0.4.2",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "dependency_refs": [
+              "pkg:pypi/pyjwt@0.4.2"
+            ],
+            "manifest_path": "requirements.txt",
+            "target_dependency_ref": "pkg:pypi/pyjwt@0.4.2"
+          }
+        ]
+      },
       "version": "0.4.2",
       "vulnerabilities": [
         {
@@ -1990,6 +2062,20 @@
       "matched": true,
       "name": "pyyaml",
       "purl": "pkg:pypi/pyyaml@5.3",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "dependency_refs": [
+              "pkg:pypi/pyyaml@5.3"
+            ],
+            "manifest_path": "requirements.txt",
+            "target_dependency_ref": "pkg:pypi/pyyaml@5.3"
+          }
+        ]
+      },
       "version": "5.3",
       "vulnerabilities": [
         {
@@ -2138,6 +2224,20 @@
       "matched": true,
       "name": "requests",
       "purl": "pkg:pypi/requests@2.21.0",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "dependency_refs": [
+              "pkg:pypi/requests@2.21.0"
+            ],
+            "manifest_path": "requirements.txt",
+            "target_dependency_ref": "pkg:pypi/requests@2.21.0"
+          }
+        ]
+      },
       "version": "2.21.0",
       "vulnerabilities": [
         {
@@ -2429,6 +2529,20 @@
       "matched": true,
       "name": "rsa",
       "purl": "pkg:pypi/rsa@3.4",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "dependency_refs": [
+              "pkg:pypi/rsa@3.4"
+            ],
+            "manifest_path": "requirements.txt",
+            "target_dependency_ref": "pkg:pypi/rsa@3.4"
+          }
+        ]
+      },
       "version": "3.4",
       "vulnerabilities": [
         {
@@ -2609,6 +2723,20 @@
       "matched": true,
       "name": "urllib3",
       "purl": "pkg:pypi/urllib3@1.24.1",
+      "remediation": {
+        "recommended_version": "\u003cnormalized\u003e",
+        "status": "complete",
+        "suggestions": [
+          {
+            "action": "direct-bump",
+            "dependency_refs": [
+              "pkg:pypi/urllib3@1.24.1"
+            ],
+            "manifest_path": "requirements.txt",
+            "target_dependency_ref": "pkg:pypi/urllib3@1.24.1"
+          }
+        ]
+      },
       "version": "1.24.1",
       "vulnerabilities": [
         {

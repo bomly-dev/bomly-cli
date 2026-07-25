@@ -3577,7 +3577,7 @@
               "pkg:npm/ansi-regex@3.0.0"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"ansi-regex\": \"3.0.1\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/mocha@7.2.0"
           }
         ]
@@ -3675,7 +3675,7 @@
               "pkg:npm/ansi-regex@4.1.0"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"ansi-regex\": \"4.1.1\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/mocha@7.2.0"
           }
         ]
@@ -3818,7 +3818,7 @@
               "pkg:npm/async@2.6.3"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"async\": \"2.6.4\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/larvitreqparser@0.2.1"
           }
         ]
@@ -3946,7 +3946,7 @@
               "pkg:npm/brace-expansion@1.1.11"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"brace-expansion\": \"1.1.16\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/mocha@7.2.0"
           }
         ]
@@ -4178,7 +4178,7 @@
               "pkg:npm/braces@3.0.2"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"braces\": \"3.0.3\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/mocha@7.2.0"
           }
         ]
@@ -4419,7 +4419,7 @@
               "pkg:npm/debug@3.2.6"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"debug\": \"3.2.7\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/mocha@7.2.0"
           }
         ]
@@ -4618,7 +4618,7 @@
               "pkg:npm/diff@3.5.0"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"diff\": \"3.5.1\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/mocha@7.2.0"
           }
         ]
@@ -4919,7 +4919,7 @@
               "pkg:npm/glob-parent@5.1.1"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"glob-parent\": \"5.1.2\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/mocha@7.2.0"
           }
         ]
@@ -5638,7 +5638,7 @@
               "pkg:npm/js-yaml@3.13.1"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"js-yaml\": \"3.15.0\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/mocha@7.2.0"
           }
         ]
@@ -6645,7 +6645,7 @@
               "pkg:npm/minimatch@3.0.4"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"minimatch\": \"3.1.4\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/mocha@7.2.0"
           }
         ]
@@ -6944,7 +6944,7 @@
               "pkg:npm/minimist@0.0.10"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"minimist\": \"0.2.4\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/to@0.2.9"
           }
         ]
@@ -7111,7 +7111,7 @@
               "pkg:npm/minimist@1.2.5"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"minimist\": \"1.2.6\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/mocha@7.2.0"
           }
         ]
@@ -7479,7 +7479,7 @@
               "pkg:npm/picomatch@2.2.2"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"picomatch\": \"2.3.2\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/mocha@7.2.0"
           }
         ]
@@ -7659,7 +7659,7 @@
               "pkg:npm/qs@6.9.1"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"qs\": \"6.14.2\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/larvitreqparser@0.2.1"
           }
         ]
@@ -8274,7 +8274,7 @@
               "pkg:npm/underscore@1.9.2"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"underscore\": \"1.13.8\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/to@0.2.9"
           }
         ]
@@ -8471,7 +8471,7 @@
               "pkg:npm/uuid@3.4.0"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"uuid\": \"11.1.1\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/larvitbase@3.1.3"
           }
         ]
@@ -8659,7 +8659,7 @@
               "pkg:npm/y18n@4.0.0"
             ],
             "manifest_path": "package-lock.json",
-            "override_advice": "add \"overrides\": {\"y18n\": \"4.0.1\"} to package.json and run npm install",
+            "override_advice": "\u003cnormalized\u003e",
             "target_dependency_ref": "pkg:npm/mocha@7.2.0"
           }
         ]

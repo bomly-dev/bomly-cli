@@ -186,13 +186,40 @@ func (a *Matcher) Descriptor() sdk.MatcherDescriptor {
 	return sdk.MatcherDescriptor{
 		Name:        "osv",
 		DisplayName: "OSV",
-		// nil means all ecosystems, and that is accurate here rather than a
-		// placeholder. buildQuery prefers a canonical PURL, and every ecosystem
-		// produces one (sdk.PackageURLTypeForValues falls back to "generic"),
-		// so OSV.dev decides what it recognises. The ecosystemToOSV switch is
-		// only the fallback for packages without a PURL; declaring its 12
-		// entries here would under-claim what the matcher really queries.
-		SupportedEcosystems: nil,
+		// OSV.dev publishes the ecosystems it covers, and that list is finite:
+		// https://google.github.io/osv.dev/data/#covered-ecosystems
+		//
+		// Bomly will happily query OSV for anything (buildQuery prefers a PURL,
+		// and every ecosystem produces one), but a query for an ecosystem OSV
+		// does not index comes back empty, so declaring the intersection is
+		// what actually tells a reader where they get advisories.
+		//
+		// Excluded on purpose: cpp, because OSV's C/C++ coverage is git and
+		// OSS-Fuzz based rather than a Conan package ecosystem. Julia,
+		// Bitnami, Android, and the Linux kernel are covered by OSV but have
+		// no Bomly ecosystem to map onto.
+		SupportedEcosystems: []sdk.Ecosystem{
+			sdk.EcosystemNPM,
+			sdk.EcosystemMaven,
+			sdk.EcosystemScala,
+			sdk.EcosystemGo,
+			sdk.EcosystemPython,
+			sdk.EcosystemDotNet,
+			sdk.EcosystemRuby,
+			sdk.EcosystemRust,
+			sdk.EcosystemPHP,
+			sdk.EcosystemDart,
+			sdk.EcosystemSwift,
+			sdk.EcosystemElixir,
+			sdk.EcosystemErlang,
+			sdk.EcosystemHaskell,
+			sdk.EcosystemR,
+			sdk.EcosystemOCaml,
+			sdk.EcosystemGitHub,
+			sdk.EcosystemAPK,
+			sdk.EcosystemDPKG,
+			sdk.EcosystemRPM,
+		},
 	}
 }
 
@@ -520,6 +547,16 @@ func ecosystemToOSV(eco string) string {
 		return "Hackage"
 	case "r":
 		return "CRAN"
+	case "scala":
+		// Scala artifacts publish to Maven Central.
+		return "Maven"
+	case "elixir", "erlang":
+		// Both publish to Hex.
+		return "Hex"
+	case "ocaml":
+		return "opam"
+	case "github-actions":
+		return "GitHub Actions"
 	default:
 		return ""
 	}

@@ -12,6 +12,7 @@ Looks up package vulnerabilities in OSV and annotates matching packages.
 | Uses network | Yes |
 | Cache behavior | Uses Bomly's matcher cache; cache failures are warnings, not scan failures. |
 | Output fields | vulnerability ID, severity, aliases, CVSS, fixed version, references, KEV signal |
+| Ecosystems | `npm`, `maven`, `scala`, `go`, `python`, `dotnet`, `ruby`, `rust`, `php`, `dart`, `swift`, `elixir`, `erlang`, `haskell`, `r`, `ocaml`, `github-actions`, `apk`, `dpkg`, `rpm` |
 
 ## User notes
 

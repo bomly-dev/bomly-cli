@@ -466,28 +466,82 @@ func TestExtractSeverity_CVSSVectorTakesPrecedenceOverGHSAText(t *testing.T) {
 	}
 }
 
-// Every ecosystem the descriptor claims must have an OSV ecosystem name to go
-// with it, so the declared coverage and the query mapping cannot drift apart.
-// The reverse does not hold: OS ecosystems are queried by PURL rather than by
-// name, so they are declared without appearing in ecosystemToOSV.
+// Every ecosystem the descriptor claims must produce a query OSV can actually
+// resolve — a PURL whose type OSV indexes, or a name + ecosystem pair. A
+// declared ecosystem that produces neither returns empty results rather than
+// erroring, so it looks clean rather than unchecked. See issue #317.
 func TestDeclaredEcosystemsAreQueryable(t *testing.T) {
-	viaPURL := map[sdk.Ecosystem]bool{
-		sdk.EcosystemAPK:  true,
-		sdk.EcosystemDPKG: true,
-		sdk.EcosystemRPM:  true,
-	}
-
 	declared := (&Matcher{}).Descriptor().SupportedEcosystems
 	if len(declared) == 0 {
 		t.Fatal("OSV should declare the ecosystems osv.dev covers")
 	}
 
 	for _, eco := range declared {
-		if viaPURL[eco] {
+		dep := &sdk.Dependency{Coordinates: sdk.Coordinates{
+			Name:      "example",
+			Version:   "1.0.0",
+			Ecosystem: eco,
+		}}
+		purl := sdk.CanonicalPackageURLFromDependency(dep)
+		if purl == "" {
+			t.Errorf("descriptor declares %q but it produces no canonical PURL", eco)
+			continue
+		}
+		if osvResolvesPURL(purl) {
 			continue
 		}
 		if ecosystemToOSV(string(eco)) == "" {
-			t.Errorf("descriptor declares %q but ecosystemToOSV has no name for it", eco)
+			t.Errorf("descriptor declares %q but %q is not an OSV PURL type and ecosystemToOSV has no name for it", eco, purl)
 		}
+	}
+}
+
+// A PURL type OSV does not index must not be sent as a PURL query when a name +
+// ecosystem query is available: OSV answers the unknown type with an empty
+// result rather than an error.
+func TestBuildQueryFallsBackWhenPURLTypeIsNotOSVIndexed(t *testing.T) {
+	dep := &sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name:      "AFNetworking",
+		Version:   "4.0.1",
+		Ecosystem: sdk.EcosystemSwift,
+		PURL:      "pkg:cocoapods/AFNetworking@4.0.1",
+	}}
+
+	_, query, ok := buildQuery(dep, sdk.CanonicalPackageURLFromDependency(dep))
+	if !ok {
+		t.Fatal("expected a query to be built")
+	}
+	var namePkg NamePackage
+	if err := json.Unmarshal(query.Package, &namePkg); err != nil {
+		t.Fatalf("expected NamePackage JSON: %v", err)
+	}
+	if namePkg.Ecosystem != "SwiftURL" {
+		t.Errorf("Ecosystem = %q, want %q", namePkg.Ecosystem, "SwiftURL")
+	}
+	if query.Version != "4.0.1" {
+		t.Errorf("Version = %q, want %q", query.Version, "4.0.1")
+	}
+}
+
+// When neither the PURL type nor the ecosystem is known to OSV, keep sending
+// the PURL: it costs one slot in a batch we are already making, and dropping
+// the package would lose the only signal we have.
+func TestBuildQueryKeepsPURLWhenNoEcosystemName(t *testing.T) {
+	dep := &sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name:      "zlib",
+		Version:   "1.3",
+		Ecosystem: sdk.EcosystemCPP,
+	}}
+
+	_, query, ok := buildQuery(dep, sdk.CanonicalPackageURLFromDependency(dep))
+	if !ok {
+		t.Fatal("expected a query to be built")
+	}
+	var purlPkg PurlPackage
+	if err := json.Unmarshal(query.Package, &purlPkg); err != nil {
+		t.Fatalf("expected PurlPackage JSON: %v", err)
+	}
+	if purlPkg.Purl != "pkg:conan/zlib@1.3" {
+		t.Errorf("PURL = %q, want %q", purlPkg.Purl, "pkg:conan/zlib@1.3")
 	}
 }

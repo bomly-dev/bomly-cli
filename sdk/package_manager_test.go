@@ -135,6 +135,78 @@ func TestPackageURLTypeForGitHubActions(t *testing.T) {
 	}
 }
 
+// Every declared ecosystem must resolve to a type that exists in the purl spec.
+// Without an explicit case the fallback returns the Bomly identifier verbatim,
+// which produced pkg:erlang / pkg:haskell / pkg:r / pkg:ocaml / pkg:dpkg and
+// made those packages unmatchable downstream. See issue #317.
+func TestPackageURLTypeForValuesUsesSpecTypes(t *testing.T) {
+	cases := []struct {
+		ecosystem Ecosystem
+		manager   PackageManager
+		want      string
+	}{
+		{EcosystemErlang, PackageManagerRebar, "hex"},
+		{EcosystemErlang, PackageManagerOTP, "hex"},
+		{EcosystemElixir, PackageManagerMix, "hex"},
+		{EcosystemHaskell, PackageManagerCabal, "hackage"},
+		{EcosystemHaskell, PackageManagerStack, "hackage"},
+		{EcosystemR, PackageManagerRPackage, "cran"},
+		{EcosystemOCaml, PackageManagerOpam, "opam"},
+		{EcosystemDPKG, PackageManagerDPKG, "deb"},
+
+		// Regression guards for the ecosystems that already mapped correctly.
+		{EcosystemNPM, PackageManagerNPM, "npm"},
+		{EcosystemGo, PackageManagerGoMod, "golang"},
+		{EcosystemPython, PackageManagerPip, "pypi"},
+		{EcosystemMaven, PackageManagerMaven, "maven"},
+		{EcosystemScala, PackageManagerSBT, "maven"},
+		{EcosystemRust, PackageManagerCargo, "cargo"},
+		{EcosystemRuby, PackageManagerBundler, "gem"},
+		{EcosystemPHP, PackageManagerComposer, "composer"},
+		{EcosystemDotNet, PackageManagerNuGet, "nuget"},
+		{EcosystemDart, PackageManagerPub, "pub"},
+		{EcosystemSwift, PackageManagerSwiftPM, "swift"},
+		{EcosystemSwift, PackageManagerCocoaPods, "cocoapods"},
+		{EcosystemCPP, PackageManagerConan, "conan"},
+		{EcosystemAPK, PackageManagerAPK, "apk"},
+		{EcosystemRPM, PackageManagerRPM, "rpm"},
+		{EcosystemGitHub, PackageManagerGitHubActions, "githubactions"},
+	}
+
+	for _, tc := range cases {
+		if got := PackageURLTypeForValues(tc.ecosystem, tc.manager); got != tc.want {
+			t.Errorf("PackageURLTypeForValues(%q, %q) = %q, want %q", tc.ecosystem, tc.manager, got, tc.want)
+		}
+	}
+}
+
+// The package manager is not always populated (SBOM ingest, syft-sourced
+// container packages), so the ecosystem alone has to be enough to reach a purl
+// type in the spec. CocoaPods is the one exception: it shares the swift
+// ecosystem, and swift is itself a valid purl type.
+func TestPackageURLTypeForEcosystemAlone(t *testing.T) {
+	specTypes := map[string]bool{
+		"apk": true, "cargo": true, "cocoapods": true, "composer": true,
+		"conan": true, "cran": true, "deb": true, "gem": true,
+		"githubactions": true, "golang": true, "hackage": true, "hex": true,
+		"maven": true, "npm": true, "nuget": true, "opam": true,
+		"pub": true, "pypi": true, "rpm": true, "swift": true,
+	}
+
+	for _, manager := range AllPackageManagers() {
+		ecosystem := manager.Ecosystem()
+		withManager := PackageURLTypeForValues(ecosystem, manager)
+		if !specTypes[withManager] {
+			// Ecosystems Bomly reports but the purl spec has no type for
+			// (conda, homebrew, nix, ...) are out of scope here.
+			continue
+		}
+		if got := PackageURLTypeForValues(ecosystem); got != withManager && ecosystem != EcosystemSwift {
+			t.Errorf("PackageURLTypeForValues(%q) = %q, want %q (as with manager %q)", ecosystem, got, withManager, manager)
+		}
+	}
+}
+
 func TestAllPackageManagersReturnsCopy(t *testing.T) {
 	managers := AllPackageManagers()
 	if len(managers) == 0 {

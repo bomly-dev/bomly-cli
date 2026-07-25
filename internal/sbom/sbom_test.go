@@ -728,3 +728,21 @@ func mustSyftJSONFixture(t *testing.T) []byte {
 	}
 	return []byte(strings.TrimSpace(out.String()))
 }
+
+// A PURL Bomly emitted must name an ecosystem Bomly recognises when it is read
+// back in. ParseEcosystem only knows Bomly's own identifiers, so every purl
+// type whose spec name differs from the ecosystem name (pkg:deb for dpkg,
+// pkg:cran for r, ...) needs an entry in purlTypeEcosystems. See issue #317.
+func TestEcosystemFromPURLTypeRoundTripsEmittedPURLs(t *testing.T) {
+	for _, manager := range sdk.AllPackageManagers() {
+		ecosystem := manager.Ecosystem()
+		if ecosystem == sdk.EcosystemUnknown {
+			continue
+		}
+		purlType := sdk.PackageURLTypeForValues(ecosystem, manager)
+		got := ecosystemFromPURLType(purlType)
+		if got == sdk.EcosystemUnknown {
+			t.Errorf("ecosystemFromPURLType(%q) = unknown; %q packages would lose their ecosystem on SBOM ingest", purlType, ecosystem)
+		}
+	}
+}

@@ -82,26 +82,48 @@ func buildPackageURLFallback(purlType, namespace, name, version string) string {
 }
 
 // PackageURLTypeForValues maps ecosystem/build-system values to a package-url type.
+//
+// The explicit switch below is the authority: it is consulted for every value
+// before the loose fallback runs, so the most specific mapping wins regardless
+// of the order the caller passes ecosystem / package manager / package type in.
+// The fallback then returns the first non-empty value verbatim, which is only
+// correct where the Bomly identifier happens to be the purl type as well (npm,
+// maven, apk, rpm, ...). Any ecosystem whose purl type differs from its Bomly
+// name needs an explicit case here — without one we emit a type that is not in
+// the purl spec, and consumers keyed on the type (OSV, SBOM ingest) silently
+// fail to match. See issue #317.
 func PackageURLTypeForValues(values ...any) string {
 	for _, value := range values {
 		normalized := strings.ToLower(strings.TrimSpace(packageURLTypeValue(value)))
 		switch normalized {
-		case "nuget":
+		case "nuget", "dotnet":
 			return "nuget"
-		case "cargo":
+		case "cargo", "rust":
 			return "cargo"
-		case "pub":
+		case "pub", "dart":
 			return "pub"
 		case "cocoapods":
+			// Deliberately no "swift" case: swift is itself a purl type, and
+			// adding one here would beat cocoapods whenever the ecosystem is
+			// checked before the package manager.
 			return "cocoapods"
 		case "swiftpm":
 			return "swift"
 		case "github-actions", "githubactions":
 			return "githubactions"
-		case "conan":
+		case "conan", "cpp":
 			return "conan"
-		case "mix", "hex":
+		case "mix", "hex", "elixir", "erlang", "rebar", "otp":
+			// Elixir and Erlang both publish to Hex.
 			return "hex"
+		case "haskell", "cabal", "stack", "hackage":
+			return "hackage"
+		case "r", "r-package", "cran":
+			return "cran"
+		case "ocaml", "opam":
+			return "opam"
+		case "dpkg", "deb":
+			return "deb"
 		case "sbt", "scala":
 			return "maven"
 		case "ruby", "gem", "rubygems", "bundler":

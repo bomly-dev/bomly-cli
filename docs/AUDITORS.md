@@ -147,12 +147,15 @@ policy:
 Bomly merges configuration from these sources, in increasing precedence:
 
 1. User-level `~/.bomly/config.yaml` — your defaults across every project.
-2. Repo-level `<project>/.bomly/config.yaml` — committed policy shared by the team (the usual home for a compliance policy).
-3. `--config <path>` — an explicit file.
-4. `BOMLY_*` environment variables.
-5. CLI flags.
+2. `--config <path>` or `BOMLY_CONFIG` — an explicitly trusted file.
+3. `BOMLY_*` environment variables.
+4. CLI flags.
 
-So a checked-in `.bomly/config.yaml` defines the team policy, and a CLI flag still overrides it for a one-off run. Every key is listed in [CONFIG_REFERENCE.md](CONFIG_REFERENCE.md).
+Repository config files are never loaded automatically. A team may commit
+`.bomly/config.yaml`, but each invocation must select it explicitly with
+`--config .bomly/config.yaml` or `BOMLY_CONFIG`. When both are set,
+`--config` wins. Every key is listed in
+[CONFIG_REFERENCE.md](CONFIG_REFERENCE.md).
 
 ## Finding baselines
 

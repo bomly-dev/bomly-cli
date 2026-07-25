@@ -5,11 +5,11 @@
 Bomly resolves configuration in the following order, with later sources overriding earlier ones:
 
 1. `~/.bomly/config.yaml`
-2. `<project>/.bomly/config.yaml`
+2. `--config <path>` or `BOMLY_CONFIG`
 3. `BOMLY_*` environment variables
 4. CLI flags
 
-`--config <path>` adds an explicit config file to the load list before environment variables and flags are applied.
+Repository config files are never loaded automatically. Select a trusted project file explicitly, for example `--config .bomly/config.yaml` or `BOMLY_CONFIG=.bomly/config.yaml`. When both are set, `--config` wins.
 
 YAML files use the nested keys documented below. Unknown keys and the former flat keys are rejected so configuration mistakes fail fast.
 
@@ -151,7 +151,7 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 ## Example Configuration
 
 ```yaml
-# ~/.bomly/config.yaml or .bomly/config.yaml
+# ~/.bomly/config.yaml, or a trusted file selected with --config
 # target:
 #   Filesystem path to scan
 #   path: ""

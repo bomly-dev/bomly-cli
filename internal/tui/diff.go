@@ -1728,7 +1728,10 @@ func componentChangeDetails(c flatComponentChange) []string {
 		lines = append(lines, renderLicenseList(c.pkgRef.Licenses)...)
 		lines = append(lines, renderVulnList(c.pkgRef.Vulnerabilities)...)
 	}
-	lines = append(lines, remediationSectionLines(c.remediation)...)
+	if remediationLines := remediationSectionLines(c.remediation); len(remediationLines) > 0 {
+		lines = append(lines, "")
+		lines = append(lines, remediationLines...)
+	}
 	return lines
 }
 

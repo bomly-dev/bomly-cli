@@ -109,6 +109,10 @@ func markdownTableSeparators(count int) []string {
 
 func markdownTableCell(value string) string {
 	value = markdownText(value)
+	// Quotes are safe in Markdown table text and are much easier to read than
+	// their HTML entities. Keep angle brackets and ampersands escaped.
+	value = strings.ReplaceAll(value, "&#34;", `"`)
+	value = strings.ReplaceAll(value, "&#39;", "'")
 	value = strings.ReplaceAll(value, "\r\n", " ")
 	value = strings.ReplaceAll(value, "\n", " ")
 	value = strings.ReplaceAll(value, "|", "\\|")

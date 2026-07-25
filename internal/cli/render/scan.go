@@ -98,6 +98,11 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 			fmt.Fprintf(&b, "\n%s %s\n", checkmark, Style("Enriched via "+strings.Join(sources, ", "), Green))
 		}
 	}
+	if section := remediationText(output.PackagesFromRegistry(registry)); section != "" {
+		b.WriteString("\n")
+		b.WriteString(section)
+		b.WriteString("\n")
+	}
 
 	// Top-level dependencies (direct only) — blank line before the section.
 	if table := renderDirectDepsTable(g, registry); table != "" {
@@ -114,11 +119,6 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 			b.WriteString(section)
 		}
 	}
-	if section := remediationText(output.PackagesFromRegistry(registry)); section != "" {
-		b.WriteString("\n\n")
-		b.WriteString(section)
-	}
-
 	return b.String()
 }
 

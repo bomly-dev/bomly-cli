@@ -34,7 +34,7 @@ Constraints:
 
 ## `text` — human-readable
 
-The default. Groups packages by ecosystem and edge depth, summarizes finding counts by severity, and links to the explain path for any flagged package. With `--enrich`, it also summarizes remediation coverage and lists suggested actions after vulnerabilities or findings. The table shows up to 20 suggestions and points to JSON when more are available. Color and box-drawing are auto-disabled when stdout is not a TTY.
+The default. Groups packages by ecosystem and edge depth, summarizes finding counts by severity, and links to the explain path for any flagged package. With `--enrich`, it adds a short remediation summary directly below the enrichment line and points to JSON for the details. Color and box-drawing are auto-disabled when stdout is not a TTY.
 
 ```bash
 bomly scan --enrich --audit

@@ -3027,7 +3027,10 @@ func componentDetails(graphValue *sdk.Graph, registry *sdk.PackageRegistry, row 
 		}
 	}
 	lines = append(lines, "")
-	lines = append(lines, remediationSectionLines(remediationForPURL(registry, row.purl, row.id))...)
+	if remediationLines := remediationSectionLines(remediationForPURL(registry, row.purl, row.id)); len(remediationLines) > 0 {
+		lines = append(lines, remediationLines...)
+		lines = append(lines, "")
+	}
 
 	// Licenses section
 	licenses := licensesForDependency(registry, pkg)

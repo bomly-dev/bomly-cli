@@ -355,7 +355,6 @@ func remediationSectionLines(remediation *sdk.PackageRemediation) []string {
 		status = strings.ToUpper(status[:1]) + status[1:]
 	}
 	lines := []string{
-		"",
 		render.Style("Remediation", render.Bold, render.Cyan),
 		"",
 		render.Style("  Remediation status: ", render.Dim) + valueOrDash(status),

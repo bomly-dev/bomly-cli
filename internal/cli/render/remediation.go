@@ -4,13 +4,10 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
-
-const maxTextRemediationSuggestions = 20
 
 type remediationReport struct {
 	vulnerablePackages int
@@ -96,41 +93,8 @@ func remediationText(packages []output.ScanPackageEntry) string {
 	if len(report.rows) == 0 {
 		return ""
 	}
-
-	var b strings.Builder
-	fmt.Fprintln(&b, Style("Remediation", Bold))
-	fmt.Fprintln(&b, Style("✓ "+remediationSummary(report), Green))
-
-	var table strings.Builder
-	writer := tabwriter.NewWriter(&table, 0, 4, 2, ' ', 0)
-	fmt.Fprintln(writer, "  VULNERABLE PACKAGE\tSTATUS\tRECOMMENDED VERSION\tACTION\tSUGGESTED ACTION FOR\tMANIFEST")
-	limit := min(len(report.rows), maxTextRemediationSuggestions)
-	for _, row := range report.rows[:limit] {
-		fmt.Fprintf(
-			writer,
-			"  %s\t%s\t%s\t%s\t%s\t%s\n",
-			row.packageLabel,
-			remediationStatusLabel(row.status),
-			ValueOrDash(row.recommendedVersion),
-			remediationActionText(row.action),
-			ValueOrDash(row.actionTarget),
-			ValueOrDash(row.manifestPath),
-		)
-		if row.advice != "" {
-			fmt.Fprintf(writer, "    Advice: %s\t\t\t\t\t\n", row.advice)
-		}
-	}
-	_ = writer.Flush()
-	b.WriteString(table.String())
-	if omitted := len(report.rows) - limit; omitted > 0 {
-		fmt.Fprintf(
-			&b,
-			"  … %d more %s not shown. Run again with --format json to see every suggestion.\n",
-			omitted,
-			pluralWord(omitted, "suggestion is", "suggestions are"),
-		)
-	}
-	return strings.TrimRight(b.String(), "\n")
+	return Style("✓ "+remediationSummary(report), Green) + "\n" +
+		Style("  Run again with --format json to see remediation details.", Dim)
 }
 
 func remediationMarkdown(packages []output.ScanPackageEntry) []string {

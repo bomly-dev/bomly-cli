@@ -50,6 +50,8 @@ func TestComponentDetailsShowPackageRemediation(t *testing.T) {
 		licensesIndex <= remediationIndex {
 		t.Fatalf("remediation section must follow vulnerabilities and precede licenses:\n%s", plain)
 	}
+	assertOneBlankBeforeSection(t, lines, "Remediation")
+	assertOneBlankBeforeSection(t, lines, "Licenses (0)")
 }
 
 func TestDiffComponentDetailsShowPackageRemediation(t *testing.T) {
@@ -75,6 +77,25 @@ func TestDiffComponentDetailsShowPackageRemediation(t *testing.T) {
 	if vulnerabilitiesIndex, remediationIndex := strings.Index(plain, "Vulnerabilities"), strings.Index(plain, "Remediation\n"); vulnerabilitiesIndex < 0 || remediationIndex <= vulnerabilitiesIndex {
 		t.Fatalf("diff remediation section must follow vulnerabilities:\n%s", plain)
 	}
+	assertOneBlankBeforeSection(t, lines, "Remediation")
+}
+
+func assertOneBlankBeforeSection(t *testing.T, lines []string, section string) {
+	t.Helper()
+	plain := make([]string, len(lines))
+	for idx, line := range lines {
+		plain[idx] = render.StripANSI(line)
+	}
+	for idx, line := range plain {
+		if line != section {
+			continue
+		}
+		if idx < 2 || plain[idx-1] != "" || plain[idx-2] == "" {
+			t.Fatalf("%s must have exactly one blank line before it:\n%s", section, strings.Join(plain, "\n"))
+		}
+		return
+	}
+	t.Fatalf("section %q not found:\n%s", section, strings.Join(plain, "\n"))
 }
 
 func TestCollectComponentChangesUsesRegistryForEachSide(t *testing.T) {

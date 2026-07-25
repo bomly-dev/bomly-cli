@@ -30,6 +30,7 @@ func TestExplainTextAndMarkdownShowRemediationAfterVulnerabilities(t *testing.T)
 					SuggestedActionDependencyRef: "example@1.0.0",
 					ManifestPath:                 "package-lock.json",
 					Action:                       sdk.RemediationActionDirectBump,
+					OverrideAdvice:               `add "overrides": {"example": "9.9.9"} to package.json`,
 				}},
 			},
 		},
@@ -46,62 +47,92 @@ func TestExplainTextAndMarkdownShowRemediationAfterVulnerabilities(t *testing.T)
 	}); err != nil {
 		t.Fatalf("ExplainMarkdown() error = %v", err)
 	}
-	for name, value := range map[string]string{
-		"text":     text.String(),
-		"markdown": markdown.String(),
+	textValue := text.String()
+	for _, want := range []string{
+		"1 remediation suggestion for 1 of 1 vulnerable package",
+		"Run again with --format json to see remediation details",
 	} {
-		for _, want := range []string{
-			"Remediation",
-			"1 remediation suggestion for 1 of 1 vulnerable package",
-			"9.9.9",
-			"Direct bump",
-			"example@1.0.0",
-			"package-lock.json",
-		} {
-			if !strings.Contains(value, want) {
-				t.Fatalf("%s remediation output missing %q:\n%s", name, want, value)
-			}
+		if !strings.Contains(textValue, want) {
+			t.Fatalf("text remediation summary missing %q:\n%s", want, textValue)
 		}
-		vulnerabilityIndex := strings.Index(strings.ToLower(value), "vulnerabilities")
-		remediationIndex := strings.Index(strings.ToLower(value), "remediation")
-		if vulnerabilityIndex < 0 || remediationIndex <= vulnerabilityIndex {
-			t.Fatalf("%s remediation must follow vulnerabilities:\n%s", name, value)
+	}
+	for _, unwanted := range []string{"Direct bump", "9.9.9", "package-lock.json"} {
+		if strings.Contains(textValue, unwanted) {
+			t.Fatalf("text remediation summary included detail %q:\n%s", unwanted, textValue)
 		}
+	}
+	if vulnerabilityIndex, remediationIndex := strings.Index(strings.ToLower(textValue), "vulnerabilities"), strings.Index(strings.ToLower(textValue), "remediation suggestion"); vulnerabilityIndex < 0 || remediationIndex <= vulnerabilityIndex {
+		t.Fatalf("text remediation summary must follow vulnerabilities:\n%s", textValue)
+	}
+
+	markdownValue := markdown.String()
+	for _, want := range []string{
+		"## Remediation",
+		"1 remediation suggestion for 1 of 1 vulnerable package",
+		"9.9.9",
+		"Direct bump",
+		"example@1.0.0",
+		"package-lock.json",
+		`add "overrides": {"example": "9.9.9"} to package.json`,
+	} {
+		if !strings.Contains(markdownValue, want) {
+			t.Fatalf("Markdown remediation output missing %q:\n%s", want, markdownValue)
+		}
+	}
+	if strings.Contains(markdownValue, "&#34;") {
+		t.Fatalf("Markdown remediation advice encoded quotes:\n%s", markdownValue)
 	}
 }
 
-func TestScanTextAndMarkdownShowRemediationAfterFindings(t *testing.T) {
+func TestScanTextSummaryFollowsEnrichmentAndMarkdownShowsDetails(t *testing.T) {
 	const purl = "pkg:npm/example@1.0.0"
 	registry := sdk.NewPackageRegistry()
 	registry.Add(remediationTestPackage(purl))
 	graph := sdk.New()
-	if err := graph.AddNode(&sdk.Dependency{
-		ID:          "example@1.0.0",
-		Coordinates: sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
-	}); err != nil {
+	if err := graph.AddNode(sdk.NewDependencyRefWithID("project", "project", "")); err != nil {
+		t.Fatalf("AddNode(project) error = %v", err)
+	}
+	dependency := sdk.NewDependency(sdk.Dependency{
+		ID:           "example@1.0.0",
+		Coordinates:  sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
+		Relationship: sdk.DependencyRelationshipDirect,
+	})
+	if err := graph.AddNode(dependency); err != nil {
 		t.Fatalf("AddNode() error = %v", err)
 	}
+	if err := graph.AddEdge("project", dependency.ID); err != nil {
+		t.Fatalf("AddEdge() error = %v", err)
+	}
 
-	text := Scan(graph, registry, nil, nil, true, false, false, nil, nil, nil)
+	text := StripANSI(Scan(graph, registry, nil, []sdk.MatcherStats{{
+		Name:        "example",
+		DisplayName: "Example Matcher",
+	}}, true, false, false, nil, nil, nil))
 	var markdown bytes.Buffer
 	if err := ScanMarkdown(&markdown, output.ScanResponse{
 		Packages: output.PackagesFromRegistry(registry),
 	}); err != nil {
 		t.Fatalf("ScanMarkdown() error = %v", err)
 	}
-	for name, value := range map[string]string{
-		"text":     text,
-		"markdown": markdown.String(),
+	wantTextBlock := "✓ Enriched via Example Matcher\n\n" +
+		"✓ 1 remediation suggestion for 1 of 1 vulnerable package.\n" +
+		"  Run again with --format json to see remediation details.\n\n"
+	if !strings.Contains(text, wantTextBlock) {
+		t.Fatalf("text remediation summary is not separated from enrichment:\n%s", text)
+	}
+	for _, unwanted := range []string{"Direct bump", "package-lock.json", "Recommended version"} {
+		if strings.Contains(text, unwanted) {
+			t.Fatalf("text remediation summary included detail %q:\n%s", unwanted, text)
+		}
+	}
+	for _, want := range []string{
+		"## Remediation",
+		"1 remediation suggestion for 1 of 1 vulnerable package",
+		"example@1.0.0",
+		"Direct bump",
 	} {
-		for _, want := range []string{
-			"Remediation",
-			"1 remediation suggestion for 1 of 1 vulnerable package",
-			"example@1.0.0",
-			"Direct bump",
-		} {
-			if !strings.Contains(value, want) {
-				t.Fatalf("%s remediation output missing %q:\n%s", name, want, value)
-			}
+		if !strings.Contains(markdown.String(), want) {
+			t.Fatalf("Markdown remediation output missing %q:\n%s", want, markdown.String())
 		}
 	}
 	if policyIndex, remediationIndex := strings.Index(markdown.String(), "## Policy Findings"), strings.Index(markdown.String(), "## Remediation"); policyIndex < 0 || remediationIndex <= policyIndex {
@@ -135,18 +166,24 @@ func TestDiffTextAndMarkdownShowHeadRemediationAfterFindings(t *testing.T) {
 	if err := DiffMarkdown(&markdown, payload); err != nil {
 		t.Fatalf("DiffMarkdown() error = %v", err)
 	}
-	for name, value := range map[string]string{
-		"text":     text.String(),
-		"markdown": markdown.String(),
+	for _, want := range []string{
+		"1 remediation suggestion for 1 of 1 vulnerable package",
+		"Run again with --format json to see remediation details",
 	} {
-		for _, want := range []string{
-			"Remediation",
-			"1 remediation suggestion for 1 of 1 vulnerable package",
-			"example@1.0.0",
-		} {
-			if !strings.Contains(value, want) {
-				t.Fatalf("%s remediation output missing %q:\n%s", name, want, value)
-			}
+		if !strings.Contains(text.String(), want) {
+			t.Fatalf("text remediation output missing %q:\n%s", want, text.String())
+		}
+	}
+	if strings.Contains(text.String(), "example@1.0.0") {
+		t.Fatalf("text remediation output included suggestion rows:\n%s", text.String())
+	}
+	for _, want := range []string{
+		"## Remediation",
+		"1 remediation suggestion for 1 of 1 vulnerable package",
+		"example@1.0.0",
+	} {
+		if !strings.Contains(markdown.String(), want) {
+			t.Fatalf("Markdown remediation output missing %q:\n%s", want, markdown.String())
 		}
 	}
 	if policyIndex, remediationIndex := strings.Index(markdown.String(), "## Policy Findings"), strings.Index(markdown.String(), "## Remediation"); policyIndex < 0 || remediationIndex <= policyIndex {
@@ -170,11 +207,11 @@ func TestRemediationOutputIsOmittedWithoutSuggestions(t *testing.T) {
 	}
 }
 
-func TestRemediationTextCapsTableAndPointsToJSON(t *testing.T) {
+func TestRemediationTextSummarizesAllSuggestionsAndPointsToJSON(t *testing.T) {
 	pkg := output.PackagesFromRegistry(func() *sdk.PackageRegistry {
 		registry := sdk.NewPackageRegistry()
 		value := remediationTestPackage("pkg:npm/example@1.0.0")
-		value.Remediation.Suggestions = make([]sdk.PackageRemediationSuggestion, maxTextRemediationSuggestions+2)
+		value.Remediation.Suggestions = make([]sdk.PackageRemediationSuggestion, 22)
 		for idx := range value.Remediation.Suggestions {
 			value.Remediation.Suggestions[idx] = sdk.PackageRemediationSuggestion{
 				AffectedDependencyRefs:       []string{"example@1.0.0"},
@@ -190,11 +227,15 @@ func TestRemediationTextCapsTableAndPointsToJSON(t *testing.T) {
 	text := remediationText(pkg)
 	for _, want := range []string{
 		"22 remediation suggestions for 1 of 1 vulnerable package",
-		"2 more suggestions are not shown",
-		"Run again with --format json to see every suggestion",
+		"Run again with --format json to see remediation details",
 	} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("remediation text missing %q:\n%s", want, text)
+		}
+	}
+	for _, unwanted := range []string{"Direct bump", "package-lock.json", "example@1.0.0"} {
+		if strings.Contains(text, unwanted) {
+			t.Fatalf("remediation text included suggestion detail %q:\n%s", unwanted, text)
 		}
 	}
 }

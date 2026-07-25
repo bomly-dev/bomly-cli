@@ -77,6 +77,29 @@ A nested `go.mod` is an independent Go module by language semantics, so every ne
 
 Like the ignore rules, multi-module expansion is declared by each detector (`sdk.PackageManagerSupport.MultiModule`), so external detector plugins can opt their package manager into pruning.
 
+### When nothing is discovered
+
+A scan that finds no subprojects exits 5 ("nothing to evaluate") with a discovery probe: the manifest evidence that exists under the target, which package manager owns it, and why each candidate was skipped.
+
+```txt
+Nothing to evaluate: no subprojects discovered for execution target with the applied filters;
+  discovery probe: found package.json at web (npm) — skipped: not scanned without --recursive
+```
+
+The skip reasons name the setting to change:
+
+| Reason | What to do |
+| --- | --- |
+| `not scanned without --recursive` | The manifest is in a nested directory; add `--recursive`. |
+| `below --max-depth N` | Raise `--max-depth` (or use `--max-depth 0`). |
+| `excluded by --exclude <pattern>` | Drop or narrow that `--exclude` pattern. |
+| `excluded by --ecosystems <list>` | The candidate's ecosystem is outside the `--ecosystems` selection. |
+| `detector filter excludes every <pm> detector (...)` | `--detectors` / `--exclude-detectors` removed every detector that could handle it. |
+| `no detector registered for <pm>` | Bomly has no detector for that package manager (see [Support matrix](SUPPORT_MATRIX.md)). |
+| `<detector> not ready (...)` | The candidate is in scope but no detector in its chain can run here — install the named tool or use a committed-lockfile detector. |
+
+The probe walks at most 3 levels below the target and reports at most 8 candidates; deeper or extra evidence is elided with `…`.
+
 ## Subprojects and modules in scan output
 
 Scan output distinguishes two kinds of nesting:

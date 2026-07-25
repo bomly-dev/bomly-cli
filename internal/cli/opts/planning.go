@@ -49,7 +49,7 @@ func PlanSubprojects(registryValue *engine.Registry, req Request) ([]sdk.Subproj
 			req.DetectorFilter,
 		)
 		if !ok {
-			return nil, noSubprojectsError(req)
+			return nil, noSubprojectsError(registryValue, req)
 		}
 		return []sdk.Subproject{subproject}, nil
 	}
@@ -65,7 +65,7 @@ func PlanSubprojects(registryValue *engine.Registry, req Request) ([]sdk.Subproj
 func planContainerSubprojects(registryValue *engine.Registry, req Request) ([]sdk.Subproject, error) {
 	plans := registryValue.DiscoveryPlans()
 	if len(plans) == 0 {
-		return nil, noSubprojectsError(req)
+		return nil, noSubprojectsError(registryValue, req)
 	}
 
 	subprojects := make([]sdk.Subproject, 0, len(plans))
@@ -101,7 +101,7 @@ func planContainerSubprojects(registryValue *engine.Registry, req Request) ([]sd
 	}
 
 	if len(subprojects) == 0 {
-		return nil, noSubprojectsError(req)
+		return nil, noSubprojectsError(registryValue, req)
 	}
 	sortSubprojects(subprojects)
 	return subprojects, nil
@@ -124,7 +124,7 @@ func planFilesystemSubprojects(registryValue *engine.Registry, req Request) ([]s
 			req.EcosystemFilter,
 		)
 		if len(subprojects) == 0 {
-			return nil, noSubprojectsError(req)
+			return nil, noSubprojectsError(registryValue, req)
 		}
 		return subprojects, nil
 	}
@@ -149,7 +149,7 @@ func planFilesystemSubprojects(registryValue *engine.Registry, req Request) ([]s
 		subprojects = append(subprojects, subproject)
 	}
 	if len(subprojects) == 0 {
-		return nil, noSubprojectsError(req)
+		return nil, noSubprojectsError(registryValue, req)
 	}
 	sortSubprojects(subprojects)
 	return subprojects, nil
@@ -564,7 +564,7 @@ func sortSubprojects(subprojects []sdk.Subproject) {
 	})
 }
 
-func noSubprojectsError(req Request) error {
+func noSubprojectsError(registryValue *engine.Registry, req Request) error {
 	var hints []string
 
 	if len(req.DetectorFilter.Include) > 0 {
@@ -574,20 +574,10 @@ func noSubprojectsError(req Request) error {
 		hints = append(hints, fmt.Sprintf("--exclude-detectors %s", strings.Join(req.DetectorFilter.Exclude, ",")))
 	}
 	if len(req.EcosystemFilter.Include) > 0 {
-		names := make([]string, 0, len(req.EcosystemFilter.Include))
-		for _, e := range req.EcosystemFilter.Include {
-			names = append(names, string(e))
-		}
-		sort.Strings(names)
-		hints = append(hints, fmt.Sprintf("--ecosystems %s", strings.Join(names, ",")))
+		hints = append(hints, fmt.Sprintf("--ecosystems %s", strings.Join(sortedEcosystemNames(req.EcosystemFilter.Include, ""), ",")))
 	}
 	if len(req.EcosystemFilter.Exclude) > 0 {
-		names := make([]string, 0, len(req.EcosystemFilter.Exclude))
-		for _, e := range req.EcosystemFilter.Exclude {
-			names = append(names, "-"+string(e))
-		}
-		sort.Strings(names)
-		hints = append(hints, fmt.Sprintf("--ecosystems %s", strings.Join(names, ",")))
+		hints = append(hints, fmt.Sprintf("--ecosystems %s", strings.Join(sortedEcosystemNames(req.EcosystemFilter.Exclude, "-"), ",")))
 	}
 
 	// Wrap as a "nothing to evaluate" exit (5), distinct from a resolution
@@ -601,7 +591,9 @@ func noSubprojectsError(req Request) error {
 	if len(hints) > 0 {
 		err = fmt.Errorf("%w (active filters: %s)", err, strings.Join(hints, ", "))
 	}
-	findings, truncated := describeDiscoveryFindings(req.ExecutionTarget, discoveryRulesFor(nil, req))
+	diagnostics := newDiscoveryDiagnostics(registryValue, req)
+	defer diagnostics.close()
+	findings, truncated := describeDiscoveryFindings(req.ExecutionTarget, discoveryRulesFor(registryValue, req), diagnostics)
 	if probe := renderDiscoveryProbe(req.ExecutionTarget, findings, truncated); len(probe) > 0 {
 		err = fmt.Errorf("%w; discovery probe: %s", err, strings.Join(probe, "; "))
 	}
@@ -641,11 +633,13 @@ const (
 
 // discoveryFinding is one piece of manifest evidence surfaced by the
 // diagnostic discovery probe: which manifest pattern exists, in which
-// root-relative directory, and which package manager it belongs to.
+// root-relative directory, which package manager it belongs to, and — when
+// the probe runs with request context — why discovery skipped it.
 type discoveryFinding struct {
 	RelativePath string
 	Manager      sdk.PackageManager
 	Evidence     string
+	SkipReason   string
 }
 
 // DescribeDiscovery probes a filesystem execution target for known manifest
@@ -654,14 +648,16 @@ type discoveryFinding struct {
 // exist, where, and which package manager they belong to. Returns nil for
 // non-filesystem targets.
 func DescribeDiscovery(target sdk.ExecutionTarget) []string {
-	findings, truncated := describeDiscoveryFindings(target, builtinDiscoveryRules())
+	findings, truncated := describeDiscoveryFindings(target, builtinDiscoveryRules(), nil)
 	return renderDiscoveryProbe(target, findings, truncated)
 }
 
 // describeDiscoveryFindings walks the target (bounded by
 // discoveryProbeMaxDepth / discoveryProbeMaxLines and the shared skip rules)
 // and returns the manifest evidence it saw, plus whether output was truncated.
-func describeDiscoveryFindings(target sdk.ExecutionTarget, rules discoveryRules) ([]discoveryFinding, bool) {
+// A non-nil diagnostics annotates each finding with the reason discovery
+// skipped it.
+func describeDiscoveryFindings(target sdk.ExecutionTarget, rules discoveryRules, diagnostics *discoveryDiagnostics) ([]discoveryFinding, bool) {
 	if strings.TrimSpace(target.Location) == "" {
 		return nil, false
 	}
@@ -705,7 +701,12 @@ func describeDiscoveryFindings(target sdk.ExecutionTarget, rules discoveryRules)
 		}
 		for idx, manager := range managers {
 			evidence := firstEvidenceInDir(path, registry.EvidencePatternsForPackageManager(manager))
-			findings = append(findings, discoveryFinding{RelativePath: rel, Manager: manager, Evidence: evidence})
+			findings = append(findings, discoveryFinding{
+				RelativePath: rel,
+				Manager:      manager,
+				Evidence:     evidence,
+				SkipReason:   diagnostics.skipReason(path, rel, manager),
+			})
 			if len(findings) >= discoveryProbeMaxLines {
 				if idx < len(managers)-1 {
 					truncated = true
@@ -738,7 +739,11 @@ func renderDiscoveryProbe(target sdk.ExecutionTarget, findings []discoveryFindin
 	}
 	lines := make([]string, 0, len(findings)+1)
 	for _, finding := range findings {
-		lines = append(lines, fmt.Sprintf("found %s at %s (%s)", valueOrPattern(finding.Evidence, "manifest evidence"), finding.RelativePath, finding.Manager.Name()))
+		line := fmt.Sprintf("found %s at %s (%s)", valueOrPattern(finding.Evidence, "manifest evidence"), finding.RelativePath, finding.Manager.Name())
+		if finding.SkipReason != "" {
+			line += " — skipped: " + finding.SkipReason
+		}
+		lines = append(lines, line)
 	}
 	if truncated {
 		lines = append(lines, "…")

@@ -87,9 +87,6 @@ func TestGovulncheckDescriptorAndRunnerHelpers(t *testing.T) {
 	if isVulnsFound(errors.New("exit status 1")) || isVulnsFound(nil) {
 		t.Fatal("non-vulnerability errors must not match")
 	}
-	if got := truncateStderr("abcdef", 3); got != "abc..." {
-		t.Fatalf("truncateStderr = %q", got)
-	}
 	if got := NewRunner(nil).Name(); got != "library" {
 		t.Fatalf("runner name = %q, want library", got)
 	}

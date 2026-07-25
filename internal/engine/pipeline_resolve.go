@@ -246,7 +246,6 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 			p.Logger.Debug("pipeline: running detector install-first",
 				zap.String("detector", descriptor.Name),
 				zap.String("subproject", req.Subproject.RelativePath),
-				zap.Strings("install_args", req.InstallArgs),
 			)
 			if err := installer.Install(ctx, req); err != nil {
 				return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: install-first failed: %w", descriptor.Name, err), progress)

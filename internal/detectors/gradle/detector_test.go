@@ -96,8 +96,9 @@ func TestDetectorReadyRequiresJava(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected detector to be not ready without a usable Java runtime")
 	}
-	if !strings.Contains(err.Error(), "Unable to locate a Java Runtime") {
-		t.Fatalf("expected Java runtime reason, got %q", err)
+	if !strings.Contains(err.Error(), "diagnostic bytes:") ||
+		strings.Contains(err.Error(), "Unable to locate a Java Runtime") {
+		t.Fatalf("expected secret-safe Java runtime reason, got %q", err)
 	}
 }
 

@@ -50,7 +50,7 @@ func (d Detector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
 	} else if _, _, err := d.commandSpec(workingDir, nil); err != nil {
 		return detectors.CommandNotReadyError(executableName, err)
 	}
-	return detectors.JavaReady(ctx)
+	return detectors.JavaReady(ctx, req.DetectorLogger(d.Logger))
 }
 
 // Applicable returns true when the project looks like a Gradle build.
@@ -251,8 +251,8 @@ func (d Detector) runDependencies(ctx context.Context, stderr io.Writer, working
 		}
 		logger.Warn(fmt.Sprintf("Gradle dependencies detector failed: %v", err))
 		fields := []zap.Field{zap.Error(err)}
-		if commandStderr.String() != "" {
-			fields = append(fields, zap.String("stderr", commandStderr.String()))
+		if commandStderr.ByteCount() > 0 {
+			fields = append(fields, zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		}
 		logger.Debug("gradle dependencies detector failure details", fields...)
 		return gradleParseResult{}, fmt.Errorf("run gradle dependencies: %w", err)
@@ -754,7 +754,7 @@ func (d Detector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	cmd.Stderr = commandStderr
 	started := time.Now()
 	logger.Info("Gradle detector running install-first step")
-	logger.Debug("running gradle detector install-first", zap.String("working_dir", workingDir), zap.String("executable", executable), zap.Strings("args", args))
+	logger.Debug("running gradle detector install-first", logging.CommandFields(executable, args, workingDir)...)
 	if err := cmd.Run(); err != nil {
 		if errors.Is(cmdCtx.Err(), context.DeadlineExceeded) {
 			err = fmt.Errorf("timed out after %s: %w", detectors.BuildToolTimeout, err)

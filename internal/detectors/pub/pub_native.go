@@ -57,15 +57,17 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	d.Logger = req.DetectorLogger(d.Logger)
 	logger := d.logger()
 	workingDir := d.workingDir(req.ProjectPath)
+	executable := "dart"
+	args := []string{"pub", "deps", "--json"}
 
-	cmd := system.Command("dart", "pub", "deps", "--json")
+	cmd := system.Command(executable, args...)
 	cmd.Dir = workingDir
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = logging.NewCommandStderr(req.Stderr, req.Verbose)
 
 	started := time.Now()
-	logger.Debug("running pub native detector", zap.String("working_dir", workingDir))
+	logger.Debug("running pub native detector", logging.CommandFields(executable, args, workingDir)...)
 	if err := cmd.Run(); err != nil {
 		logger.Debug("dart pub deps failed", zap.Error(err))
 		return sdk.DetectionResult{}, fmt.Errorf("dart pub deps: %w", err)

@@ -129,8 +129,8 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	raw, err := cmd.Output()
 	if err != nil {
 		fields := []zap.Field{zap.Error(err)}
-		if commandStderr.String() != "" {
-			fields = append(fields, zap.String("stderr", commandStderr.String()))
+		if commandStderr.ByteCount() > 0 {
+			fields = append(fields, zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		}
 		logger.Debug("cargo detector failure details", fields...)
 		return sdk.DetectionResult{}, fmt.Errorf("run cargo metadata: %w", err)
@@ -650,6 +650,10 @@ func trimTomlString(value string) string {
 
 // Install prepares Cargo dependencies before graph resolution.
 func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
+	logger := d.Logger
+	if logger == nil {
+		logger = zap.NewNop()
+	}
 	cargoPath, err := cargoExecLookPath("cargo")
 	if err != nil {
 		return fmt.Errorf("resolve cargo executable: %w", err)
@@ -658,6 +662,7 @@ func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
 	cmd := cargoExecCommand(cargoPath, args...)
 	cmd.Dir = d.workingDir(req.ProjectPath)
 	cmd.Stderr = logging.NewCommandStderr(req.Stderr, req.Verbose)
+	logger.Debug("running cargo detector install-first", logging.CommandFields(cargoPath, args, cmd.Dir)...)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("run cargo fetch: %w", err)
 	}

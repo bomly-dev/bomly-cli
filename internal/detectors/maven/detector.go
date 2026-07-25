@@ -57,7 +57,7 @@ func (d Detector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
 	if _, _, err := d.resolveRunner(detectors.RequestWorkingDir(req)); err != nil {
 		return detectors.CommandNotReadyError("mvn", err)
 	}
-	return detectors.JavaReady(ctx)
+	return detectors.JavaReady(ctx, req.DetectorLogger(d.Logger))
 }
 
 // Applicable reports whether the project looks like a Maven project.
@@ -254,8 +254,8 @@ func (d Detector) resolveGraph(ctx context.Context, stderr io.Writer, projectPat
 		}
 		logger.Warn(fmt.Sprintf("Maven dependencies detector failed: %v", err))
 		fields := []zap.Field{zap.Error(err)}
-		if commandStderr.String() != "" {
-			fields = append(fields, zap.String("stderr", commandStderr.String()))
+		if commandStderr.ByteCount() > 0 {
+			fields = append(fields, zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		}
 		logger.Debug("maven dependencies detector failure details", fields...)
 		return nil, fmt.Errorf("run maven dependency tree: %w", err)
@@ -596,7 +596,7 @@ func (d Detector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	cmd.Stderr = commandStderr
 	started := time.Now()
 	logger.Info("Maven detector running install-first step")
-	logger.Debug("running maven detector install-first", zap.String("working_dir", cmd.Dir), zap.String("executable", executable), zap.Strings("args", args))
+	logger.Debug("running maven detector install-first", logging.CommandFields(executable, args, cmd.Dir)...)
 	if err := cmd.Run(); err != nil {
 		if errors.Is(cmdCtx.Err(), context.DeadlineExceeded) {
 			err = fmt.Errorf("timed out after %s: %w", detectors.BuildToolTimeout, err)

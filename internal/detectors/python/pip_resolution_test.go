@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/testutil"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
@@ -113,7 +114,7 @@ func TestPipDetectorDoesNotReturnAmbientPipAuditEnvironment(t *testing.T) {
 }
 
 func TestSanitizeCommandRedactsCredentials(t *testing.T) {
-	got := sanitizeCommand([]string{"python", "-m", "pip", "install", "--password", "secret", "--index-url=https://user:token@example.com/simple"})
+	got := logging.SanitizeArgs([]string{"python", "-m", "pip", "install", "--password", "secret", "--index-url=https://user:token@example.com/simple"})
 	joined := strings.Join(got, " ")
 	if strings.Contains(joined, "secret") || strings.Contains(joined, "token") {
 		t.Fatalf("credentials were not redacted: %v", got)

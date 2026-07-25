@@ -3,8 +3,10 @@ package hashicorp
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 
+	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/hashicorp/go-hclog"
 	hplugin "github.com/hashicorp/go-plugin"
@@ -20,14 +22,24 @@ type Client struct {
 func Start(ctx context.Context, executable string, env []string, verbosity int) (*Client, error) {
 	cmd := exec.CommandContext(ctx, executable)
 	cmd.Env = append(cmd.Env, env...)
+	workingDir, _ := os.Getwd()
+	eventLogger := pluginLogger(verbosity)
+	eventLogger.Debug("starting plugin subprocess",
+		"executable", executable,
+		"args", logging.SanitizeArgs(cmd.Args[1:]),
+		"working_dir", workingDir,
+	)
 	client := hplugin.NewClient(&hplugin.ClientConfig{
 		HandshakeConfig:  sdk.HandshakeConfig(),
 		AllowedProtocols: []hplugin.Protocol{hplugin.ProtocolGRPC},
 		Cmd:              cmd,
-		Logger:           pluginLogger(verbosity),
-		Plugins:          sdk.ClientPluginMap(),
-		Managed:          true,
-		GRPCDialOptions:  nil,
+		// Plugin stderr is arbitrary process output and may contain secrets.
+		// Keep go-plugin's stderr logger disabled; core logs only bounded,
+		// structured lifecycle information.
+		Logger:          hclog.NewNullLogger(),
+		Plugins:         sdk.ClientPluginMap(),
+		Managed:         true,
+		GRPCDialOptions: nil,
 	})
 
 	rpcClient, err := client.Client()

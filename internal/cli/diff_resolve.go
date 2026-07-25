@@ -25,13 +25,13 @@ func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, prog *prog
 	if repoCleanup != nil {
 		defer func() { _ = repoCleanup() }()
 	}
-	if err := git.VerifyRef(repoRoot, baseRef); err != nil {
+	if err := git.VerifyRef(logger, repoRoot, baseRef); err != nil {
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, nil, exit.InvalidInputError("verify --base %q: %v", baseRef, err)
 	}
-	if err := git.VerifyRef(repoRoot, headRef); err != nil {
+	if err := git.VerifyRef(logger, repoRoot, headRef); err != nil {
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, nil, exit.InvalidInputError("verify --head %q: %v", headRef, err)
 	}
-	changedLines, err := git.ChangedLineRanges(repoRoot, baseRef, headRef)
+	changedLines, err := git.ChangedLineRanges(logger, repoRoot, baseRef, headRef)
 	if err != nil && logger != nil {
 		logger.Warn("diff: changed line ranges unavailable", zap.Error(err))
 	}
@@ -76,7 +76,7 @@ func resolveDiffRepo(options *opts.Options, prog *progress.Progress, logger *zap
 	if err != nil {
 		return "", nil, "", err
 	}
-	repoRoot, err := git.FindRepoRoot(selectedPath)
+	repoRoot, err := git.FindRepoRoot(logger, selectedPath)
 	if err != nil {
 		return "", nil, "", exit.InvalidInputError("resolve local git repository: %v", err)
 	}

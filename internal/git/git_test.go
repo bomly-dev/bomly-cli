@@ -11,7 +11,7 @@ import (
 func TestResolveCommitWithSHA(t *testing.T) {
 	repoDir, headSHA, _ := createGitRepoWithFeatureBranch(t)
 
-	resolved, err := resolveCommit(repoDir, headSHA)
+	resolved, err := resolveCommit(nil, repoDir, headSHA)
 	if err != nil {
 		t.Fatalf("resolveCommit() error = %v", err)
 	}
@@ -25,11 +25,11 @@ func TestResolveCommitWithRemoteTrackingBranch(t *testing.T) {
 	cloneDir := filepath.Join(t.TempDir(), "clone")
 	runGitCommand(t, "", "clone", "--quiet", sourceRepo, cloneDir)
 
-	if err := VerifyRef(cloneDir, "feature"); err != nil {
+	if err := VerifyRef(nil, cloneDir, "feature"); err != nil {
 		t.Fatalf("VerifyRef() error = %v", err)
 	}
 
-	resolved, err := resolveCommit(cloneDir, "feature")
+	resolved, err := resolveCommit(nil, cloneDir, "feature")
 	if err != nil {
 		t.Fatalf("resolveCommit() error = %v", err)
 	}
@@ -41,7 +41,7 @@ func TestResolveCommitWithRemoteTrackingBranch(t *testing.T) {
 func TestResolveCommitWithMissingRef(t *testing.T) {
 	repoDir, _, _ := createGitRepoWithFeatureBranch(t)
 
-	_, err := resolveCommit(repoDir, "missing-branch")
+	_, err := resolveCommit(nil, repoDir, "missing-branch")
 	if err == nil {
 		t.Fatal("resolveCommit() error = nil, want error")
 	}

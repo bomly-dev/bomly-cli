@@ -126,11 +126,11 @@ func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
 
 	started := time.Now()
 	logger.Info("Composer detector running install-first step")
-	logger.Debug("running composer detector install-first", zap.String("working_dir", cmd.Dir), zap.String("executable", composerPath), zap.Strings("args", args))
+	logger.Debug("running composer detector install-first", logging.CommandFields(composerPath, args, cmd.Dir)...)
 	if err := cmd.Run(); err != nil {
 		fields := []zap.Field{zap.Error(err)}
-		if commandStderr.String() != "" {
-			fields = append(fields, zap.String("stderr", commandStderr.String()))
+		if commandStderr.ByteCount() > 0 {
+			fields = append(fields, zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		}
 		logger.Debug("composer detector install-first failure details", fields...)
 		return fmt.Errorf("run composer install: %w", err)

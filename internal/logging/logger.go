@@ -1,7 +1,6 @@
 package logging
 
 import (
-	"bytes"
 	"encoding/json"
 	"io"
 	"strings"
@@ -242,40 +241,31 @@ func cloneFieldValue(value any) any {
 	}
 }
 
-// CommandStderr captures subprocess stderr and only mirrors it when verbose mode is enabled.
+// CommandStderr counts subprocess stderr without retaining or mirroring its
+// contents. Arbitrary tool diagnostics may contain credentials.
 type CommandStderr struct {
-	buffer  bytes.Buffer
-	visible io.Writer
-	verbose bool
+	bytes int64
 }
 
-// NewCommandStderr creates a subprocess stderr writer for the selected verbosity.
-func NewCommandStderr(visible io.Writer, verbose bool) *CommandStderr {
-	return &CommandStderr{visible: visible, verbose: verbose}
+// NewCommandStderr creates a secret-safe subprocess stderr counter. The
+// parameters remain for call-site compatibility; stderr is never mirrored.
+func NewCommandStderr(_ io.Writer, _ bool) *CommandStderr {
+	return &CommandStderr{}
 }
 
-// Write records stderr output and mirrors it when verbose mode is enabled.
+// Write records only the number of stderr bytes.
 func (w *CommandStderr) Write(p []byte) (int, error) {
 	if w == nil {
 		return len(p), nil
 	}
-
-	if _, err := w.buffer.Write(p); err != nil {
-		return 0, err
-	}
-	if !w.verbose || w.visible == nil {
-		return len(p), nil
-	}
-	if _, err := w.visible.Write(p); err != nil {
-		return 0, err
-	}
+	w.bytes += int64(len(p))
 	return len(p), nil
 }
 
-// String returns the captured stderr contents with surrounding whitespace trimmed.
-func (w *CommandStderr) String() string {
+// ByteCount returns the number of bytes written to subprocess stderr.
+func (w *CommandStderr) ByteCount() int64 {
 	if w == nil {
-		return ""
+		return 0
 	}
-	return strings.TrimSpace(w.buffer.String())
+	return w.bytes
 }

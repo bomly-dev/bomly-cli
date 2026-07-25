@@ -148,6 +148,9 @@ install and enable them. See
 [Detectors → Network behavior](DETECTORS.md#network-behavior) and
 [Matchers](MATCHERS.md).
 
+For the complete permission model, input limits, plugin trust boundary, and
+documented residual risks, see [Security and Trust Boundaries](SECURITY.md).
+
 ## Build variants
 
 Bomly ships in two variants. The full binary (`bomly`) links the Syft and Grype libraries directly and needs no external tools. The lite binary (`bomly-lite`) shells out to `syft` and `grype` on your `PATH` for a smaller download. Both behave the same from the command line. See [Installation](INSTALLATION.md) for which to pick.

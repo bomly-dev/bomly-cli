@@ -25,6 +25,30 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const (
+	// Plugin archives contain one native executable plus a small manifest and
+	// supporting files. These limits allow large statically linked binaries
+	// without allowing an archive to consume unbounded local resources.
+	maxPluginDownloadBytes        int64 = 256 << 20
+	maxPluginArchiveEntries             = 4096
+	maxPluginArchiveEntryBytes    int64 = 256 << 20
+	maxPluginArchiveExpandedBytes int64 = 512 << 20
+)
+
+type archiveLimits struct {
+	maxEntries       int
+	maxEntryBytes    int64
+	maxExpandedBytes int64
+}
+
+func defaultArchiveLimits() archiveLimits {
+	return archiveLimits{
+		maxEntries:       maxPluginArchiveEntries,
+		maxEntryBytes:    maxPluginArchiveEntryBytes,
+		maxExpandedBytes: maxPluginArchiveExpandedBytes,
+	}
+}
+
 // Install installs a managed plugin from a local archive, local dev binary, or direct URL.
 func Install(ctx context.Context, root, source string, opts InstallOptions) (*InstallResult, error) {
 	if root == "" {
@@ -196,6 +220,9 @@ func installRemoteArchive(ctx context.Context, tempDir, source string, opts Inst
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return Manifest{}, "", fmt.Errorf("download plugin archive: unexpected status %s", resp.Status)
 	}
+	if err := validateDownloadContentLength(resp.ContentLength, maxPluginDownloadBytes); err != nil {
+		return Manifest{}, "", fmt.Errorf("download plugin archive: %w", err)
+	}
 	downloadName := strings.TrimSpace(opts.githubReleaseAssetName)
 	if downloadName == "" {
 		downloadName = filenameFromContentDisposition(resp.Header.Get("Content-Disposition"))
@@ -213,7 +240,7 @@ func installRemoteArchive(ctx context.Context, tempDir, source string, opts Inst
 	}
 	archivePath := file.Name()
 	defer func() { _ = os.Remove(archivePath) }()
-	if _, err := io.Copy(file, resp.Body); err != nil {
+	if _, err := copyDownloadWithLimit(file, resp.Body, resp.ContentLength, maxPluginDownloadBytes); err != nil {
 		_ = file.Close()
 		return Manifest{}, "", fmt.Errorf("write downloaded plugin archive: %w", err)
 	}
@@ -221,6 +248,35 @@ func installRemoteArchive(ctx context.Context, tempDir, source string, opts Inst
 		return Manifest{}, "", fmt.Errorf("close downloaded plugin archive: %w", err)
 	}
 	return installArchiveAtPath(ctx, tempDir, archivePath, source, opts.Checksum, opts.InsecureSkipChecksum)
+}
+
+func copyDownloadWithLimit(dst io.Writer, src io.Reader, contentLength, limit int64) (int64, error) {
+	if err := validateDownloadContentLength(contentLength, limit); err != nil {
+		return 0, err
+	}
+	written, err := io.CopyN(dst, src, limit)
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			return written, nil
+		}
+		return written, err
+	}
+	var probe [1]byte
+	count, probeErr := src.Read(probe[:])
+	if count > 0 {
+		return written, fmt.Errorf("plugin archive download exceeds the %d-byte limit", limit)
+	}
+	if probeErr != nil && !errors.Is(probeErr, io.EOF) {
+		return written, probeErr
+	}
+	return written, nil
+}
+
+func validateDownloadContentLength(contentLength, limit int64) error {
+	if contentLength > limit {
+		return fmt.Errorf("plugin archive download exceeds the %d-byte limit", limit)
+	}
+	return nil
 }
 
 func safeDownloadArchiveName(name string) string {
@@ -330,41 +386,71 @@ func installArchiveAtPath(ctx context.Context, tempDir, archivePath, source, exp
 }
 
 func extractArchive(archivePath, targetDir string) error {
+	limits := defaultArchiveLimits()
 	switch {
 	case strings.HasSuffix(strings.ToLower(archivePath), ".zip"):
-		return extractZipArchive(archivePath, targetDir)
+		return extractZipArchive(archivePath, targetDir, limits)
 	case strings.HasSuffix(strings.ToLower(archivePath), ".tar.gz"), strings.HasSuffix(strings.ToLower(archivePath), ".tgz"):
-		return extractTarGzArchive(archivePath, targetDir)
+		return extractTarGzArchive(archivePath, targetDir, limits)
 	default:
 		return fmt.Errorf("unsupported plugin archive format for %q", archivePath)
 	}
 }
 
-func extractZipArchive(archivePath, targetDir string) error {
+func extractZipArchive(archivePath, targetDir string, limits archiveLimits) error {
 	reader, err := zip.OpenReader(archivePath)
 	if err != nil {
 		return fmt.Errorf("open plugin zip archive: %w", err)
 	}
 	defer func() { _ = reader.Close() }()
+	if err := validateZipArchiveLimits(reader.File, limits); err != nil {
+		return err
+	}
+	budget := newArchiveExtractionBudget(limits)
 	for _, file := range reader.File {
-		if err := extractArchiveEntry(file.Name, targetDir, file.Mode(), func(dst string) error {
+		if err := budget.beginEntry(file.Name, file.UncompressedSize64); err != nil {
+			return err
+		}
+		expanded, err := extractArchiveEntry(file.Name, targetDir, file.Mode(), func(dst string) (int64, error) {
 			if file.FileInfo().IsDir() {
-				return os.MkdirAll(dst, 0o755)
+				return 0, os.MkdirAll(dst, 0o755)
 			}
 			rc, err := file.Open()
 			if err != nil {
-				return fmt.Errorf("open archive file %q: %w", file.Name, err)
+				return 0, fmt.Errorf("open archive file %q: %w", file.Name, err)
 			}
 			defer func() { _ = rc.Close() }()
-			return writeArchiveFile(dst, rc, file.Mode())
-		}); err != nil {
+			return writeArchiveFile(dst, rc, file.Mode(), file.Name, budget.writeLimit())
+		})
+		if err != nil {
+			return err
+		}
+		if err := budget.addExpanded(file.Name, expanded); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func extractTarGzArchive(archivePath, targetDir string) error {
+func validateZipArchiveLimits(files []*zip.File, limits archiveLimits) error {
+	if len(files) > limits.maxEntries {
+		return fmt.Errorf("plugin archive contains %d entries; limit is %d", len(files), limits.maxEntries)
+	}
+	var expanded uint64
+	for _, file := range files {
+		size := file.UncompressedSize64
+		if size > uint64(limits.maxEntryBytes) {
+			return fmt.Errorf("plugin archive entry %q exceeds the %d-byte expanded size limit", file.Name, limits.maxEntryBytes)
+		}
+		if size > uint64(limits.maxExpandedBytes)-expanded {
+			return fmt.Errorf("plugin archive expanded size exceeds the %d-byte limit", limits.maxExpandedBytes)
+		}
+		expanded += size
+	}
+	return nil
+}
+
+func extractTarGzArchive(archivePath, targetDir string, limits archiveLimits) error {
 	cleanArchivePath, err := filepath.Abs(archivePath)
 	if err != nil {
 		return fmt.Errorf("resolve plugin tar.gz archive: %w", err)
@@ -380,6 +466,7 @@ func extractTarGzArchive(archivePath, targetDir string) error {
 	}
 	defer func() { _ = gzr.Close() }()
 	tr := tar.NewReader(gzr)
+	budget := newArchiveExtractionBudget(limits)
 	for {
 		header, err := tr.Next()
 		if errors.Is(err, io.EOF) {
@@ -393,55 +480,124 @@ func extractTarGzArchive(archivePath, targetDir string) error {
 		default:
 			return fmt.Errorf("plugin archive entry %q uses unsupported type", header.Name)
 		}
-		if err := extractArchiveEntry(header.Name, targetDir, os.FileMode(header.Mode), func(dst string) error {
+		if header.Size < 0 {
+			return fmt.Errorf("plugin archive entry %q has a negative size", header.Name)
+		}
+		if err := budget.beginEntry(header.Name, uint64(header.Size)); err != nil {
+			return err
+		}
+		expanded, err := extractArchiveEntry(header.Name, targetDir, os.FileMode(header.Mode), func(dst string) (int64, error) {
 			if header.FileInfo().IsDir() {
-				return os.MkdirAll(dst, 0o755)
+				return 0, os.MkdirAll(dst, 0o755)
 			}
-			return writeArchiveFile(dst, tr, os.FileMode(header.Mode))
-		}); err != nil {
+			return writeArchiveFile(dst, tr, os.FileMode(header.Mode), header.Name, budget.writeLimit())
+		})
+		if err != nil {
+			return err
+		}
+		if err := budget.addExpanded(header.Name, expanded); err != nil {
 			return err
 		}
 	}
 }
 
-func extractArchiveEntry(name, targetDir string, mode os.FileMode, write func(string) error) error {
+type archiveExtractionBudget struct {
+	limits   archiveLimits
+	entries  int
+	expanded int64
+}
+
+func newArchiveExtractionBudget(limits archiveLimits) *archiveExtractionBudget {
+	return &archiveExtractionBudget{limits: limits}
+}
+
+func (b *archiveExtractionBudget) beginEntry(name string, declaredSize uint64) error {
+	b.entries++
+	if b.entries > b.limits.maxEntries {
+		return fmt.Errorf("plugin archive contains more than %d entries", b.limits.maxEntries)
+	}
+	if declaredSize > uint64(b.limits.maxEntryBytes) {
+		return fmt.Errorf("plugin archive entry %q exceeds the %d-byte expanded size limit", name, b.limits.maxEntryBytes)
+	}
+	if declaredSize > uint64(b.limits.maxExpandedBytes-b.expanded) {
+		return fmt.Errorf("plugin archive expanded size exceeds the %d-byte limit", b.limits.maxExpandedBytes)
+	}
+	return nil
+}
+
+func (b *archiveExtractionBudget) writeLimit() int64 {
+	remaining := b.limits.maxExpandedBytes - b.expanded
+	if remaining < b.limits.maxEntryBytes {
+		return remaining
+	}
+	return b.limits.maxEntryBytes
+}
+
+func (b *archiveExtractionBudget) addExpanded(name string, size int64) error {
+	if size < 0 || size > b.writeLimit() {
+		return fmt.Errorf("plugin archive entry %q exceeds the extraction limits", name)
+	}
+	b.expanded += size
+	return nil
+}
+
+func extractArchiveEntry(name, targetDir string, mode os.FileMode, write func(string) (int64, error)) (int64, error) {
 	if strings.TrimSpace(name) == "" || strings.TrimSpace(name) == "." {
-		return nil
+		return 0, nil
 	}
 	destination, err := pathInPluginDir(targetDir, name)
 	if err != nil {
-		return fmt.Errorf("plugin archive entry %q escapes the extraction directory", name)
+		return 0, fmt.Errorf("plugin archive entry %q escapes the extraction directory", name)
 	}
 	rel, err := filepath.Rel(targetDir, destination)
 	if err != nil {
-		return fmt.Errorf("resolve plugin archive entry %q: %w", name, err)
+		return 0, fmt.Errorf("resolve plugin archive entry %q: %w", name, err)
 	}
 	if rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
-		return fmt.Errorf("plugin archive entry %q escapes the extraction directory", name)
+		return 0, fmt.Errorf("plugin archive entry %q escapes the extraction directory", name)
 	}
 	if err := os.MkdirAll(filepath.Dir(destination), 0o755); err != nil {
-		return fmt.Errorf("create plugin archive parent for %q: %w", name, err)
+		return 0, fmt.Errorf("create plugin archive parent for %q: %w", name, err)
 	}
 	// Symlinks would make the lexical containment checks above vulnerable to writes outside targetDir.
 	if mode&os.ModeSymlink != 0 {
-		return fmt.Errorf("plugin archive entry %q uses unsupported symlink mode", name)
+		return 0, fmt.Errorf("plugin archive entry %q uses unsupported symlink mode", name)
 	}
 	return write(destination)
 }
 
-func writeArchiveFile(path string, reader io.Reader, mode os.FileMode) error {
+func writeArchiveFile(path string, reader io.Reader, mode os.FileMode, entryName string, limit int64) (int64, error) {
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode.Perm())
 	if err != nil {
-		return fmt.Errorf("create plugin archive file %q: %w", path, err)
+		return 0, fmt.Errorf("create plugin archive file %q: %w", path, err)
 	}
-	if _, err := io.Copy(file, reader); err != nil {
+	removePartial := true
+	defer func() {
+		if removePartial {
+			_ = file.Close()
+			_ = os.Remove(path)
+		}
+	}()
+	written, err := io.CopyN(file, reader, limit)
+	if err != nil && !errors.Is(err, io.EOF) {
 		_ = file.Close()
-		return fmt.Errorf("write plugin archive file %q: %w", path, err)
+		return written, fmt.Errorf("write plugin archive file %q: %w", path, err)
+	}
+	if err == nil {
+		var probe [1]byte
+		count, probeErr := reader.Read(probe[:])
+		if count > 0 {
+			return written, fmt.Errorf("plugin archive entry %q exceeds the %d-byte expanded size limit", entryName, limit)
+		}
+		if probeErr != nil && !errors.Is(probeErr, io.EOF) {
+			return written, fmt.Errorf("write plugin archive file %q: %w", path, probeErr)
+		}
 	}
 	if err := file.Close(); err != nil {
-		return fmt.Errorf("close plugin archive file %q: %w", path, err)
+		return written, fmt.Errorf("close plugin archive file %q: %w", path, err)
 	}
-	return nil
+	removePartial = false
+	return written, nil
 }
 
 func isRemoteURL(raw string) bool {

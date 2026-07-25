@@ -1,6 +1,9 @@
 package render
 
 import (
+	"bytes"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
@@ -80,5 +83,30 @@ func TestParseOutputSpecsRejectsMultipleStdoutTargets(t *testing.T) {
 	_, err := ParseOutputSpecs([]string{"json", "spdx"})
 	if err == nil {
 		t.Fatal("expected multiple stdout outputs to be rejected")
+	}
+}
+
+func TestWriteOutputDocumentWritesOnlyToExplicitDestination(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "nested", "report.json")
+	var stdout bytes.Buffer
+
+	err := WriteOutputDocument(&stdout, OutputSpec{
+		Format: output.FormatJSON,
+		Label:  "json",
+		Path:   path,
+	}, []byte(`{"ok":true}`))
+	if err != nil {
+		t.Fatalf("WriteOutputDocument() error = %v", err)
+	}
+	if stdout.Len() != 0 {
+		t.Fatalf("file output also wrote to stdout: %q", stdout.String())
+	}
+	got, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read explicit output: %v", err)
+	}
+	if string(got) != "{\"ok\":true}\n" {
+		t.Fatalf("output = %q", got)
 	}
 }

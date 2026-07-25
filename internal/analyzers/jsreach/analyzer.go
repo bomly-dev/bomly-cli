@@ -507,35 +507,37 @@ func computeReachablePackageHopsFromSeeds(g *model.Graph, imports map[string]int
 }
 
 func importedPackageDepth(pkg *model.Dependency, imports map[string]int) int {
-	best := 0
-	found := false
-	for _, candidate := range []string{pkg.QualifiedName(), pkg.Name} {
-		if depth, ok := imports[strings.TrimSpace(candidate)]; ok && (!found || depth < best) {
-			best = depth
-			found = true
-		}
+	if depth, ok := imports[importSpecifier(pkg)]; ok {
+		return depth
 	}
-	return best
+	return 0
 }
 
-// isPackageImported reports whether pkg's npm name (or qualified
-// scoped name) appears in the runner's bare-specifier import set.
-// Used as the seed predicate for the transitive walk.
+// isPackageImported reports whether pkg's npm name appears in the runner's
+// bare-specifier import set. Used as the seed predicate for the transitive
+// walk.
 func isPackageImported(pkg *model.Dependency, imports map[string]int) bool {
 	if pkg == nil || len(imports) == 0 {
 		return false
 	}
-	candidates := []string{pkg.QualifiedName(), pkg.Name}
-	for _, candidate := range candidates {
-		candidate = strings.TrimSpace(candidate)
-		if candidate == "" {
-			continue
-		}
-		if _, ok := imports[candidate]; ok {
-			return true
-		}
+	specifier := importSpecifier(pkg)
+	if specifier == "" {
+		return false
 	}
-	return false
+	_, ok := imports[specifier]
+	return ok
+}
+
+// importSpecifier returns the bare specifier a source file would import pkg
+// by. It must be the ecosystem-native name: the bare Name drops the scope, so
+// "@tailwindcss/postcss" would be seeded as reachable by any `import "postcss"`
+// in the project, and QualifiedName's "tailwindcss:postcss" is not a specifier
+// any module resolver ever produces.
+func importSpecifier(pkg *model.Dependency) string {
+	if pkg == nil {
+		return ""
+	}
+	return strings.TrimSpace(pkg.EcosystemName())
 }
 
 func annotateProjectUnknown(req model.AnalyzeRequest, projectRoot, reason string, now time.Time) int {

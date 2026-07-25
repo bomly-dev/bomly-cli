@@ -153,11 +153,12 @@ func TestAnalyzerDegradesToUnknownOnRunnerError(t *testing.T) {
 func TestAnalyzerScopedPackageMatching(t *testing.T) {
 	projectDir := newNPMProjectDir(t)
 	g, reg := newSeed()
-	dep := addNPMDep(t, g, reg, projectDir, "@scope", "scope/pkg", "1.0.0", model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"})
+	dep := addNPMDep(t, g, reg, projectDir, "scope", "pkg", "1.0.0", model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"})
 
 	a := Analyzer{Runner: &fakeRunner{
+		// The runner reports the bare specifier a source file imports.
 		result: RunnerResult{
-			ImportedPackages: map[string]struct{}{dep.QualifiedName(): {}}, // QualifiedName
+			ImportedPackages: map[string]struct{}{"@scope/pkg": {}},
 			EntryPoints:      []string{filepath.Join(projectDir, "index.js")},
 			SourceFiles:      1,
 		},
@@ -168,6 +169,29 @@ func TestAnalyzerScopedPackageMatching(t *testing.T) {
 	r := reachOf(t, reg, dep)
 	if r == nil || r.Status != model.ReachabilityReachable {
 		t.Errorf("scoped package not reached: %+v", r)
+	}
+}
+
+// A scoped package must not be seeded by an import of the same-named unscoped
+// package: "@scope/pkg" and "pkg" are unrelated packages on the registry.
+func TestAnalyzerScopedPackageNotSeededByUnscopedImport(t *testing.T) {
+	projectDir := newNPMProjectDir(t)
+	g, reg := newSeed()
+	dep := addNPMDep(t, g, reg, projectDir, "scope", "pkg", "1.0.0", model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"})
+
+	a := Analyzer{Runner: &fakeRunner{
+		result: RunnerResult{
+			ImportedPackages: map[string]struct{}{"pkg": {}},
+			EntryPoints:      []string{filepath.Join(projectDir, "index.js")},
+			SourceFiles:      1,
+		},
+	}}
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
+		t.Fatal(err)
+	}
+	r := reachOf(t, reg, dep)
+	if r == nil || r.Status == model.ReachabilityReachable {
+		t.Errorf("scoped package seeded by unscoped import: %+v", r)
 	}
 }
 

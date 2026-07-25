@@ -26,7 +26,7 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 	g.WalkNodes(func(pkg *sdk.Dependency) bool {
 		component := Component{
 			ID:             pkg.ID,
-			Name:           pkg.QualifiedName(),
+			Name:           pkg.EcosystemName(),
 			Version:        pkg.Version,
 			Scope:          string(pkg.PrimaryScope()),
 			PURL:           pkg.PURL,

@@ -346,7 +346,9 @@ func versionRequestFromPackage(pkg *sdk.Package) (versionRequest, cache.Key, boo
 		}
 	}
 	if versionKey, ok := versionKeyFromPackage(pkg); ok {
-		return versionRequest{VersionKey: versionKey}, cache.NewKey("", pkg.Name, string(pkg.Ecosystem), pkg.Version), true
+		// Key on the resolved deps.dev name, not the bare one: "postcss" and
+		// "@tailwindcss/postcss" share a Name and would otherwise collide.
+		return versionRequest{VersionKey: versionKey}, cache.NewKey("", versionKey.Name, string(pkg.Ecosystem), pkg.Version), true
 	}
 	return versionRequest{}, cache.Key{}, false
 }

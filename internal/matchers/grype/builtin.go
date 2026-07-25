@@ -105,20 +105,27 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 // canonical PURL as the correlation ID so matches can be mapped back to the
 // registry.
 //
+// The name must be the ecosystem-native one: Grype searches its DB strictly by
+// the name it is handed and never reconstructs a namespace from the PURL
+// (except for Java, where its own resolver does), so passing the bare Name
+// would query "postcss" for "@tailwindcss/postcss" and attach every postcss
+// advisory to the scoped package.
+//
 // Distro and upstream (origin) packages are derived from the PURL qualifiers
 // Syft records for OS packages — Grype's OS matchers are distro-namespace
 // driven and match nothing without them. See purl_builtin.go.
 func graphPkgToGrypePkg(p *sdk.Package) grypepkg.Package {
 	syftType := ecosystemToSyftType(string(p.Ecosystem))
+	name := p.EcosystemName()
 	return grypepkg.Package{
 		ID:        grypepkg.ID(p.PURL),
-		Name:      p.Name,
+		Name:      name,
 		Version:   p.Version,
 		PURL:      p.PURL,
 		Type:      syftType,
 		Language:  ecosystemToSyftLanguage(string(p.Ecosystem)),
 		Distro:    distroFromPURL(p.PURL),
-		Upstreams: upstreamsFromPURL(p.PURL, p.Name, syftType),
+		Upstreams: upstreamsFromPURL(p.PURL, name, syftType),
 	}
 }
 

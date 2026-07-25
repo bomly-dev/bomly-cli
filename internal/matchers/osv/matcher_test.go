@@ -71,6 +71,33 @@ func TestBuildQuery_NameEcosystemVersion(t *testing.T) {
 	}
 }
 
+// OSV keys npm packages by their scoped name, and the cache key must separate
+// a scoped package from the same-named unscoped one. See issue #319.
+func TestBuildQuery_NameFallbackKeepsNPMScope(t *testing.T) {
+	scoped := &sdk.Dependency{Coordinates: sdk.Coordinates{Org: "tailwindcss", Name: "postcss", Version: "4.3.3", Ecosystem: "npm"}}
+	unscoped := &sdk.Dependency{Coordinates: sdk.Coordinates{Name: "postcss", Version: "4.3.3", Ecosystem: "npm"}}
+
+	scopedKey, scopedQuery, ok := buildQuery(scoped, "")
+	if !ok {
+		t.Fatal("expected query to be built for scoped package")
+	}
+	var namePkg NamePackage
+	if err := json.Unmarshal(scopedQuery.Package, &namePkg); err != nil {
+		t.Fatalf("expected NamePackage JSON: %v", err)
+	}
+	if namePkg.Name != "@tailwindcss/postcss" {
+		t.Errorf("Name = %q, want %q", namePkg.Name, "@tailwindcss/postcss")
+	}
+
+	unscopedKey, _, ok := buildQuery(unscoped, "")
+	if !ok {
+		t.Fatal("expected query to be built for unscoped package")
+	}
+	if scopedKey == unscopedKey {
+		t.Error("scoped and unscoped packages share a cache key")
+	}
+}
+
 func TestBuildQuery_SkipsNoVersion(t *testing.T) {
 	dep := &sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lodash", Ecosystem: "npm"}}
 	_, _, ok := buildQuery(dep, "")

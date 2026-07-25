@@ -57,7 +57,7 @@ Pass the bare detector name to filter to only that detector, `+name` to add it o
 
 ## Remediation hints
 
-After vulnerability enrichment, supporting detectors may describe package-manager strategies for the dependency occurrences they found. Bomly's central remediation component validates those read-only hints and chooses the final suggestion. Detectors never choose a fix version or change manifests and lockfiles.
+After vulnerability enrichment, supporting detectors may describe package-manager strategies for the dependency occurrences they found. Each detector declares its own capability and owns its package-manager advice. Registry wiring does not add remediation support for it. Bomly's central remediation component validates those read-only hints and chooses the final suggestion. Detectors never choose a fix version or change manifests and lockfiles.
 
 Each package-manager page lists the strategies its built-in detectors understand. External detector plugins can advertise the same optional capability. Older protocol-v1 plugins keep working without it.
 

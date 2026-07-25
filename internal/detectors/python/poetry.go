@@ -41,6 +41,7 @@ func (d PoetryDetector) Descriptor() sdk.DetectorDescriptor {
 		IgnoredDirectories:      []string{"__pycache__"},
 		IgnoredDirectoryMarkers: []string{"pyvenv.cfg"},
 		Name:                    detectors.NamePoetry,
+		RemediationCapabilities: poetryRemediationCapabilities(),
 		Technique:               sdk.BuildToolTechnique,
 		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemPython},
 		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerPoetry},

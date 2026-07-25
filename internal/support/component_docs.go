@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
@@ -99,7 +98,7 @@ Pass the bare detector name to filter to only that detector, `+"`+name`"+` to ad
 
 ## Remediation hints
 
-After vulnerability enrichment, supporting detectors may describe package-manager strategies for the dependency occurrences they found. Bomly's central remediation component validates those read-only hints and chooses the final suggestion. Detectors never choose a fix version or change manifests and lockfiles.
+After vulnerability enrichment, supporting detectors may describe package-manager strategies for the dependency occurrences they found. Each detector declares its own capability and owns its package-manager advice. Registry wiring does not add remediation support for it. Bomly's central remediation component validates those read-only hints and chooses the final suggestion. Detectors never choose a fix version or change manifests and lockfiles.
 
 Each package-manager page lists the strategies its built-in detectors understand. External detector plugins can advertise the same optional capability. Older protocol-v1 plugins keep working without it.
 
@@ -599,7 +598,7 @@ func renderEcosystemReadme(ecosystem sdk.Ecosystem, entries []registry.PackageMa
 			name,
 			codeList(entry.Detectors),
 			codeListOrDash(entry.EvidencePatterns),
-			remediationActionsForManager(entry.Manager, false),
+			remediationActionsForChain(entry.Detectors, entry.Manager, false),
 			yesNo(chainSupportsInstallFirst(entry.Detectors)),
 		)
 	}
@@ -626,10 +625,8 @@ func renderEcosystemReadme(ecosystem sdk.Ecosystem, entries []registry.PackageMa
 func remediationActionsForEntries(entries []registry.PackageManagerSupport) []sdk.RemediationAction {
 	seen := map[sdk.RemediationAction]struct{}{}
 	for _, entry := range entries {
-		for _, capability := range detectors.RemediationCapabilities([]sdk.PackageManager{entry.Manager}) {
-			for _, action := range capability.Actions {
-				seen[action] = struct{}{}
-			}
+		for _, action := range remediationActionsForDetectorChain(entry.Detectors, entry.Manager) {
+			seen[action] = struct{}{}
 		}
 	}
 	ordered := []sdk.RemediationAction{
@@ -662,9 +659,9 @@ func renderPackageManagerMarkdown(ecosystem sdk.Ecosystem, entry registry.Packag
 	_, _ = fmt.Fprintf(&b, "| Ignored directory markers | %s |\n", codeListOrDash(chainIgnoredDirectoryMarkers(entry.Detectors)))
 	_, _ = fmt.Fprintf(&b, "| Multi-module resolution | %s |\n", yesNo(chainSupportsMultiModule(entry.Detectors, entry.Manager)))
 	_, _ = fmt.Fprintf(&b, "| Install-first support | %s |\n", yesNo(chainSupportsInstallFirst(entry.Detectors)))
-	_, _ = fmt.Fprintf(&b, "| Remediation hints | %s |\n", remediationActionsForManager(entry.Manager, true))
+	_, _ = fmt.Fprintf(&b, "| Remediation hints | %s |\n", remediationActionsForChain(entry.Detectors, entry.Manager, true))
 	_, _ = fmt.Fprintf(&b, "| Native command hints | %s |\n", commandHintsForChain(entry.Detectors))
-	b.WriteString(remediationActionFootnotes(entry.Manager))
+	b.WriteString(remediationActionFootnotes(entry.Detectors, entry.Manager))
 	if prose := loadProse("detectors", name); prose != "" {
 		b.WriteString("\n")
 		b.WriteString(prose)
@@ -672,13 +669,13 @@ func renderPackageManagerMarkdown(ecosystem sdk.Ecosystem, entry registry.Packag
 	return b.String()
 }
 
-func remediationActionsForManager(manager sdk.PackageManager, footnotes bool) string {
-	capabilities := detectors.RemediationCapabilities([]sdk.PackageManager{manager})
-	if len(capabilities) == 0 || len(capabilities[0].Actions) == 0 {
+func remediationActionsForChain(detectorNames []string, manager sdk.PackageManager, footnotes bool) string {
+	capabilities := remediationActionsForDetectorChain(detectorNames, manager)
+	if len(capabilities) == 0 {
 		return "None"
 	}
-	actions := make([]string, 0, len(capabilities[0].Actions))
-	for _, action := range capabilities[0].Actions {
+	actions := make([]string, 0, len(capabilities))
+	for _, action := range capabilities {
 		value := "`" + string(action) + "`"
 		if footnotes {
 			value += "[^" + string(action) + "]"
@@ -688,14 +685,14 @@ func remediationActionsForManager(manager sdk.PackageManager, footnotes bool) st
 	return strings.Join(actions, ", ")
 }
 
-func remediationActionFootnotes(manager sdk.PackageManager) string {
-	capabilities := detectors.RemediationCapabilities([]sdk.PackageManager{manager})
-	if len(capabilities) == 0 || len(capabilities[0].Actions) == 0 {
+func remediationActionFootnotes(detectorNames []string, manager sdk.PackageManager) string {
+	actions := remediationActionsForDetectorChain(detectorNames, manager)
+	if len(actions) == 0 {
 		return ""
 	}
 	var b strings.Builder
 	b.WriteString("\n")
-	for _, action := range capabilities[0].Actions {
+	for _, action := range actions {
 		switch action {
 		case sdk.RemediationActionDirectBump:
 			b.WriteString("[^direct-bump]: Update a package declared directly in the project.\n")
@@ -706,6 +703,46 @@ func remediationActionFootnotes(manager sdk.PackageManager) string {
 		}
 	}
 	return b.String()
+}
+
+func remediationActionsForDetectorChain(detectorNames []string, manager sdk.PackageManager) []sdk.RemediationAction {
+	byName := builtinDetectorsByName()
+	seen := make(map[sdk.RemediationAction]struct{})
+	for _, detectorName := range detectorNames {
+		detector, ok := byName[detectorName]
+		if !ok {
+			continue
+		}
+		for _, capability := range detector.Descriptor().RemediationCapabilities {
+			if !containsPackageManager(capability.SupportedManagers, manager) {
+				continue
+			}
+			for _, action := range capability.Actions {
+				seen[action] = struct{}{}
+			}
+		}
+	}
+	ordered := []sdk.RemediationAction{
+		sdk.RemediationActionDirectBump,
+		sdk.RemediationActionTransitiveOverride,
+		sdk.RemediationActionLockfileRefresh,
+	}
+	result := make([]sdk.RemediationAction, 0, len(seen))
+	for _, action := range ordered {
+		if _, ok := seen[action]; ok {
+			result = append(result, action)
+		}
+	}
+	return result
+}
+
+func containsPackageManager(managers []sdk.PackageManager, target sdk.PackageManager) bool {
+	for _, manager := range managers {
+		if manager == target {
+			return true
+		}
+	}
+	return false
 }
 
 func writeMatcherDocs(outputDir string) error {

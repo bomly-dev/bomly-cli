@@ -41,6 +41,7 @@ func (d UVDetector) Descriptor() sdk.DetectorDescriptor {
 		IgnoredDirectories:      []string{"__pycache__"},
 		IgnoredDirectoryMarkers: []string{"pyvenv.cfg"},
 		Name:                    detectors.NameUV,
+		RemediationCapabilities: uvRemediationCapabilities(),
 		Technique:               sdk.BuildToolTechnique,
 		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemPython},
 		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerUV},

@@ -157,8 +157,11 @@ Detectors may advertise optional remediation capabilities and provide
 read-only occurrence hints after enrichment. Built-in and external detectors
 use the same additive protocol-v1 contract. Core validates each dependency
 ref, manifest path, package manager, and advertised strategy. Hints may explain
-manager syntax, but they cannot choose the version or final action. Plugins
-that omit the capability are not called and remain compatible.
+manager syntax, but they cannot choose the version or final action. Each
+detector implementation owns its capability declaration and advice; registry
+wiring does not infer either one. Native and fallback implementations declare
+their support separately even when their package-manager syntax is identical.
+Plugins that omit the capability are not called and remain compatible.
 
 This work stays inside enrichment because it applies only to vulnerabilities.
 License and package-policy findings remain audit results; they do not receive

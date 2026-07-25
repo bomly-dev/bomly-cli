@@ -198,6 +198,12 @@ func (a *Matcher) Descriptor() sdk.MatcherDescriptor {
 		// OSS-Fuzz based rather than a Conan package ecosystem. Julia,
 		// Bitnami, Android, and the Linux kernel are covered by OSV but have
 		// no Bomly ecosystem to map onto.
+		//
+		// erlang, haskell, r, ocaml, and dpkg are listed because OSV indexes
+		// them, but they return nothing today: we emit a PURL type OSV does
+		// not recognise (pkg:erlang rather than pkg:hex, pkg:dpkg rather than
+		// pkg:deb, and so on) and the name-based fallback below is
+		// unreachable. See issue #317.
 		SupportedEcosystems: []sdk.Ecosystem{
 			sdk.EcosystemNPM,
 			sdk.EcosystemMaven,
@@ -521,6 +527,11 @@ func buildQuery(dep *sdk.Dependency, purl string) (cache.Key, BatchQuery, bool) 
 
 // ecosystemToOSV maps Bomly ecosystem identifiers to OSV ecosystem names.
 // See: https://ossf.github.io/osv-schema/#affectedpackage-field
+//
+// Currently unreachable: buildQuery only consults this when the PURL is empty,
+// and the caller skips those packages before buildQuery runs. Kept and
+// extended so the mapping is correct for whenever the fallback is revived —
+// see issue #317.
 func ecosystemToOSV(eco string) string {
 	switch eco {
 	case "npm":

@@ -559,6 +559,11 @@ before extraction. Tar streams are checked before each entry is written and
 again while bytes are copied, so a false size header cannot bypass the limit.
 Partial over-limit files are removed.
 
+Plugin JSON is bounded before decoding. `bomly-plugin.json` and
+`bomly-plugin.runtime.json` each have a 1 MiB limit. The shared
+`installed.json` database has a 16 MiB limit so a large plugin collection
+remains practical without allowing an unbounded read.
+
 ## Plugin Selection
 
 External plugins are not executed ad hoc from CLI handlers. Runtime preparation loads enabled installed plugins into the engine registry before filtering and subproject planning.

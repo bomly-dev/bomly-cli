@@ -26,6 +26,10 @@ const (
 	EnvPluginAPIVersion = "BOMLY_PLUGIN_API_VERSION"
 	// EnvPluginConfig is passed to managed plugin subprocesses.
 	EnvPluginConfig = "BOMLY_CONFIG"
+
+	maxPluginManifestBytes        int64 = 1 << 20
+	maxPluginRuntimeSnapshotBytes int64 = 1 << 20
+	maxInstalledPluginDBBytes     int64 = 16 << 20
 )
 
 // LaunchOptions carries launch context for managed external plugins.
@@ -276,7 +280,7 @@ func pathInPluginDir(root, relativePath string) (string, error) {
 
 func loadInstalledDB(root string) (InstalledDB, error) {
 	path := installedDBPath(root)
-	data, err := os.ReadFile(path)
+	data, err := readFileWithLimit(path, "installed plugin database", maxInstalledPluginDBBytes)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return InstalledDB{SchemaVersion: plugschema.InstalledPluginsSchemaVersion}, nil
@@ -335,7 +339,7 @@ func runtimeSnapshotPath(dir string) string {
 }
 
 func readManifest(dir string) (Manifest, error) {
-	data, err := os.ReadFile(manifestPath(dir))
+	data, err := readFileWithLimit(manifestPath(dir), "plugin manifest", maxPluginManifestBytes)
 	if err != nil {
 		return Manifest{}, fmt.Errorf("read plugin manifest: %w", err)
 	}
@@ -359,7 +363,7 @@ func writeManifest(dir string, manifest Manifest) error {
 }
 
 func readRuntimeSnapshot(dir string) (RuntimeDescriptorSnapshot, error) {
-	data, err := os.ReadFile(runtimeSnapshotPath(dir))
+	data, err := readFileWithLimit(runtimeSnapshotPath(dir), "plugin runtime descriptor snapshot", maxPluginRuntimeSnapshotBytes)
 	if err != nil {
 		return RuntimeDescriptorSnapshot{}, fmt.Errorf("read plugin runtime descriptor snapshot: %w", err)
 	}
@@ -369,6 +373,38 @@ func readRuntimeSnapshot(dir string) (RuntimeDescriptorSnapshot, error) {
 	}
 	snapshot = normalizeRuntimeSnapshot(snapshot)
 	return snapshot, validateRuntimeSnapshot(snapshot)
+}
+
+func readFileWithLimit(path, description string, limit int64) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = file.Close() }()
+
+	info, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+	if info.Size() > limit {
+		return nil, fmt.Errorf("%s exceeds the %s limit", description, byteLimitLabel(limit))
+	}
+	data, err := io.ReadAll(io.LimitReader(file, limit+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) > limit {
+		return nil, fmt.Errorf("%s exceeds the %s limit", description, byteLimitLabel(limit))
+	}
+	return data, nil
+}
+
+func byteLimitLabel(limit int64) string {
+	const mebibyte = int64(1 << 20)
+	if limit >= mebibyte && limit%mebibyte == 0 {
+		return fmt.Sprintf("%d MiB", limit/mebibyte)
+	}
+	return fmt.Sprintf("%d-byte", limit)
 }
 
 func writeRuntimeSnapshot(dir string, snapshot RuntimeDescriptorSnapshot) error {

@@ -163,7 +163,9 @@ A project may commit `.bomly/baseline.json` to suppress accepted package
 findings without removing them from reports. Policy-status resolution is part of
 auditing: auditors first emit ordinary findings, then the audit stage marks
 compatible entries `suppressed`. It never removes a finding or suppresses
-pipeline diagnostics. See [Finding Baselines](BASELINES.md).
+pipeline diagnostics. Automatic discovery rejects symbolic links at the
+conventional baseline path; an explicit `--baseline <path>` remains a
+trusted user-selected path. See [Finding Baselines](BASELINES.md).
 
 ## See also
 

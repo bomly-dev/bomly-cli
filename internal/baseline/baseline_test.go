@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -269,6 +270,91 @@ func TestResolversForTargetHandlesOptionalRequiredAndURLPolicies(t *testing.T) {
 	}
 	if explicit := logs.All()[1].ContextMap(); explicit["automatic"] != false {
 		t.Fatalf("explicit baseline discovery log fields = %#v", explicit)
+	}
+}
+
+func TestResolversForTargetRejectsSymlinksOnlyForAutomaticSelection(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symlink creation requires elevated privileges on Windows")
+	}
+
+	document := NewDocument([]sdk.Finding{{
+		ID: "rule", Kind: sdk.FindingKindPackage, Auditor: "package",
+		RuleID: "rule", PackageRef: "pkg:npm/example@1.0.0",
+	}}, nil)
+	for _, targetKind := range []sdk.ExecutionTargetKind{
+		sdk.ExecutionTargetFilesystem,
+		sdk.ExecutionTargetGitRepository,
+	} {
+		t.Run(string(targetKind)+"/file symlink", func(t *testing.T) {
+			root := t.TempDir()
+			outside := filepath.Join(t.TempDir(), "baseline.json")
+			if err := WriteAtomic(outside, document, false); err != nil {
+				t.Fatal(err)
+			}
+			baselineDir := filepath.Join(root, ".bomly")
+			if err := os.MkdirAll(baselineDir, 0o755); err != nil {
+				t.Fatal(err)
+			}
+			link := filepath.Join(baselineDir, "baseline.json")
+			if err := os.Symlink(outside, link); err != nil {
+				t.Fatal(err)
+			}
+			target := sdk.ExecutionTarget{Kind: targetKind, Location: root}
+
+			if _, err := ResolversForTarget("auto", target, nil); err == nil ||
+				!strings.Contains(err.Error(), "uses symbolic link") {
+				t.Fatalf("automatic symlink error = %v", err)
+			}
+			result, err := ResolversForTarget(link, target, nil)
+			if err != nil || len(result.Resolvers) != 1 || result.Automatic {
+				t.Fatalf("explicit trusted symlink = %#v, %v", result, err)
+			}
+		})
+
+		t.Run(string(targetKind)+"/directory symlink", func(t *testing.T) {
+			root := t.TempDir()
+			outsideDir := t.TempDir()
+			if err := WriteAtomic(filepath.Join(outsideDir, "baseline.json"), document, false); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.Symlink(outsideDir, filepath.Join(root, ".bomly")); err != nil {
+				t.Fatal(err)
+			}
+			target := sdk.ExecutionTarget{Kind: targetKind, Location: root}
+
+			if _, err := ResolversForTarget("", target, nil); err == nil ||
+				!strings.Contains(err.Error(), "uses symbolic link") {
+				t.Fatalf("automatic directory symlink error = %v", err)
+			}
+		})
+	}
+}
+
+func TestResolversForTargetAllowsUserSelectedSymlinkAsProjectRoot(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symlink creation requires elevated privileges on Windows")
+	}
+
+	realRoot := t.TempDir()
+	document := NewDocument([]sdk.Finding{{
+		ID: "rule", Kind: sdk.FindingKindPackage, Auditor: "package",
+		RuleID: "rule", PackageRef: "pkg:npm/example@1.0.0",
+	}}, nil)
+	if err := WriteAtomic(filepath.Join(realRoot, ".bomly", "baseline.json"), document, false); err != nil {
+		t.Fatal(err)
+	}
+	linkRoot := filepath.Join(t.TempDir(), "project")
+	if err := os.Symlink(realRoot, linkRoot); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := ResolversForTarget("auto", sdk.ExecutionTarget{
+		Kind:     sdk.ExecutionTargetFilesystem,
+		Location: linkRoot,
+	}, nil)
+	if err != nil || len(result.Resolvers) != 1 {
+		t.Fatalf("automatic baseline through selected project root = %#v, %v", result, err)
 	}
 }
 

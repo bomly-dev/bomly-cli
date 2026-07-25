@@ -204,6 +204,11 @@ func ResolversForTarget(selection string, target sdk.ExecutionTarget, logger *za
 	if err != nil || !ok {
 		return LoadResult{}, err
 	}
+	if automatic {
+		if err := validateAutomaticPath(target, path); err != nil {
+			return LoadResult{}, err
+		}
+	}
 	document, err := Load(path)
 	if err != nil {
 		if !required && errors.Is(err, os.ErrNotExist) {
@@ -227,6 +232,48 @@ func ResolversForTarget(selection string, target sdk.ExecutionTarget, logger *za
 		Entries:   len(document.Entries),
 		Automatic: automatic,
 	}, nil
+}
+
+func validateAutomaticPath(target sdk.ExecutionTarget, path string) error {
+	root := baselineRoot(target)
+	absoluteRoot, err := filepath.Abs(root)
+	if err != nil {
+		return fmt.Errorf("resolve automatic baseline root %q: %w", root, err)
+	}
+	absolutePath, err := filepath.Abs(path)
+	if err != nil {
+		return fmt.Errorf("resolve automatic baseline path %q: %w", path, err)
+	}
+	relative, err := filepath.Rel(absoluteRoot, absolutePath)
+	if err != nil {
+		return fmt.Errorf("check automatic baseline path %q: %w", path, err)
+	}
+	if relative == ".." || strings.HasPrefix(relative, ".."+string(os.PathSeparator)) || filepath.IsAbs(relative) {
+		return fmt.Errorf("automatic baseline path %q escapes the project root", path)
+	}
+
+	current := absoluteRoot
+	for _, component := range strings.Split(relative, string(os.PathSeparator)) {
+		if component == "" || component == "." {
+			continue
+		}
+		current = filepath.Join(current, component)
+		info, err := os.Lstat(current)
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		if err != nil {
+			return fmt.Errorf("inspect automatic baseline path %q: %w", current, err)
+		}
+		if info.Mode()&os.ModeSymlink != 0 {
+			return fmt.Errorf(
+				"automatic baseline path %q uses symbolic link %q; use --baseline none to disable it or --baseline <path> to select a trusted file",
+				path,
+				current,
+			)
+		}
+	}
+	return nil
 }
 
 // Update returns a document that accepts all current entries while retaining
@@ -346,10 +393,7 @@ func ResolvePath(selection string, target sdk.ExecutionTarget) (path string, req
 		if target.Kind != sdk.ExecutionTargetFilesystem && target.Kind != sdk.ExecutionTargetGitRepository {
 			return "", false, false, nil
 		}
-		root := target.Location
-		if info, statErr := os.Stat(root); statErr == nil && !info.IsDir() {
-			root = filepath.Dir(root)
-		}
+		root := baselineRoot(target)
 		return filepath.Join(root, filepath.FromSlash(DefaultRelativePath)), false, true, nil
 	}
 	if strings.EqualFold(selection, "none") {
@@ -358,14 +402,19 @@ func ResolvePath(selection string, target sdk.ExecutionTarget) (path string, req
 	if filepath.IsAbs(selection) {
 		return filepath.Clean(selection), true, true, nil
 	}
-	root := target.Location
-	if info, statErr := os.Stat(root); statErr == nil && !info.IsDir() {
-		root = filepath.Dir(root)
-	}
+	root := baselineRoot(target)
 	if strings.TrimSpace(root) == "" || target.Kind == sdk.ExecutionTargetContainerImage {
 		return "", false, false, fmt.Errorf("relative baseline path requires a filesystem or git project target")
 	}
 	return filepath.Join(root, filepath.Clean(selection)), true, true, nil
+}
+
+func baselineRoot(target sdk.ExecutionTarget) string {
+	root := target.Location
+	if info, err := os.Stat(root); err == nil && !info.IsDir() {
+		return filepath.Dir(root)
+	}
+	return root
 }
 
 // WriteAtomic writes a validated baseline without exposing a partial file.

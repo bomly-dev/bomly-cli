@@ -63,7 +63,7 @@ This check is name-based and needs no enrichment, so it runs fully offline. See 
 
 ## Scan offline / air-gapped
 
-**Goal:** analyze dependencies with zero outbound network calls.
+**Goal:** analyze dependencies without contacting enrichment services.
 
 ```bash
 bomly scan                         # matcher network is off; detector behavior varies

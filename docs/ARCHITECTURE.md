@@ -139,11 +139,12 @@ separate boundaries:
 - `--install-first` is the explicit opt-in that lets supporting detectors run their install command (`npm install`, `pip install`, …) before resolving; this downloads packages by design.
 
 When enrichment is enabled, Bomly's built-in HTTP matchers may contact OSV,
-CISA KEV, deps.dev, and OpenSSF Scorecard. Grype may update its vulnerability
-database from its own distribution service. Bomly sends no telemetry or
-credentials to these services. External plugin matchers, including
-ClearlyDefined and endoflife.date integrations, may contact their documented
-services once you install and enable them. See
+CISA KEV, deps.dev, and OpenSSF Scorecard. Bundled Grype downloads its
+vulnerability database on first use; the lite build leaves database management
+to the external `grype` command. Bomly sends no telemetry or credentials to
+its built-in services. External plugin matchers, including ClearlyDefined and
+endoflife.date integrations, may contact their documented services once you
+install and enable them. See
 [Detectors → Network behavior](DETECTORS.md#network-behavior) and
 [Matchers](MATCHERS.md).
 

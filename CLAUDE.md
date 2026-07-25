@@ -114,7 +114,7 @@ Detector chains are explicit in `internal/registry/support.go` and `internal/reg
 - No package-manager installation logic — assume PMs exist.
 - Plugin protocol is versioned `v1` (gRPC). Do not break the `Metadata` / role descriptor contract.
 - No secrets or credentials in logs, ever.
-- Network calls (`--enrich`) permitted only to: `api.osv.dev`, CISA KEV, `api.clearlydefined.io`, `api.deps.dev`, `endoflife.date`, `api.scorecard.dev`. `--audit` evaluates existing data and must not trigger external matcher calls silently.
+- Matcher network calls require `--enrich`. Built-in matchers may contact `api.osv.dev`, CISA KEV, `api.deps.dev`, `api.scorecard.dev`, and Grype's database service (`grype.anchore.io/databases`, plus the archive URL it returns). Installed external matcher plugins such as ClearlyDefined and endoflife.date may contact their documented services during enrichment. `--audit` evaluates existing data and must not trigger matcher calls. Remote Git targets and build-tool detectors have separate, explicit network behavior.
 - Record architecture decisions in `dev-docs/ARCHITECTURE.md` (the contributor deep-dive). `docs/ARCHITECTURE.md` is the public, user-facing overview.
 - Standard library + Cobra + existing deps only — no new dependencies without discussion.
 

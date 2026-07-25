@@ -55,12 +55,12 @@ When `--enrich` is set, Bomly may call:
 - `api.cisa.gov` — CISA Known Exploited Vulnerabilities catalog
 - `api.deps.dev` — Google's deps.dev package metadata
 
-The OpenSSF Scorecard matcher also calls `api.scorecard.dev`. Grype manages
-its own vulnerability database and may download or update that database during
-enrichment. Bomly sends no telemetry or credentials to its built-in matcher
-services. External plugin matchers may contact other services after you
-install and enable them. See [Architecture](ARCHITECTURE.md#network-behavior)
-for the full network model.
+The OpenSSF Scorecard matcher also calls `api.scorecard.dev`. Bundled
+Grype downloads its vulnerability database on first use. The lite build leaves
+database management to the external `grype` command. Bomly sends no
+telemetry or credentials to its built-in matcher services. External plugin
+matchers may contact other services after you install and enable them. See
+[Architecture](ARCHITECTURE.md#network-behavior) for the full network model.
 
 ## Cache
 

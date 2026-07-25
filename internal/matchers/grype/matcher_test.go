@@ -10,6 +10,7 @@ import (
 	"time"
 
 	v6dist "github.com/anchore/grype/grype/db/v6/distribution"
+	grypeName "github.com/anchore/grype/grype/db/v6/name"
 	grypematch "github.com/anchore/grype/grype/match"
 	grypepkg "github.com/anchore/grype/grype/pkg"
 	grypevuln "github.com/anchore/grype/grype/vulnerability"
@@ -128,6 +129,61 @@ func TestGraphPkgToGrypePkg_FieldMapping(t *testing.T) {
 	}
 	if string(gp.ID) != "pkg:npm/lodash@4.17.15" {
 		t.Errorf("ID = %q, want PURL as correlation id", gp.ID)
+	}
+}
+
+// Grype searches its DB by the name it is handed, so a scoped npm package must
+// arrive as "@scope/name" — the bare name would query the unscoped package and
+// attach its advisories to the scoped one. See issue #319.
+func TestGraphPkgToGrypePkg_EcosystemNativeName(t *testing.T) {
+	cases := []struct {
+		name string
+		pkg  sdk.Coordinates
+		want string
+	}{
+		{
+			name: "npm scoped",
+			pkg:  sdk.Coordinates{Org: "tailwindcss", Name: "postcss", Version: "4.3.3", PURL: "pkg:npm/%40tailwindcss/postcss@4.3.3", Ecosystem: sdk.EcosystemNPM},
+			want: "@tailwindcss/postcss",
+		},
+		{
+			name: "npm unscoped",
+			pkg:  sdk.Coordinates{Name: "postcss", Version: "8.5.16", PURL: "pkg:npm/postcss@8.5.16", Ecosystem: sdk.EcosystemNPM},
+			want: "postcss",
+		},
+		{
+			name: "go module path",
+			pkg:  sdk.Coordinates{Org: "github.com/spf13", Name: "cobra", Version: "v1.8.0", PURL: "pkg:golang/github.com/spf13/cobra@v1.8.0", Ecosystem: sdk.EcosystemGo},
+			want: "github.com/spf13/cobra",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := graphPkgToGrypePkg(&sdk.Package{Coordinates: tc.pkg}).Name; got != tc.want {
+				t.Errorf("Name = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+// Closes the loop on the mapping above: grypeName.PackageNames is what the
+// matchers hand to the DB search, so this asserts the scoped package is looked
+// up under its own name only and never under the unscoped "postcss".
+func TestGrypeSearchNamesKeepNPMScope(t *testing.T) {
+	scoped := graphPkgToGrypePkg(&sdk.Package{Coordinates: sdk.Coordinates{
+		Org: "tailwindcss", Name: "postcss", Version: "4.3.3",
+		PURL: "pkg:npm/%40tailwindcss/postcss@4.3.3", Ecosystem: sdk.EcosystemNPM,
+	}})
+
+	names := grypeName.PackageNames(scoped)
+	if len(names) != 1 || names[0] != "@tailwindcss/postcss" {
+		t.Fatalf("PackageNames() = %v, want [@tailwindcss/postcss]", names)
+	}
+	for _, n := range names {
+		if n == "postcss" {
+			t.Errorf("scoped package searched under unscoped name %q", n)
+		}
 	}
 }
 

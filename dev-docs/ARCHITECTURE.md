@@ -129,6 +129,12 @@ selection remains visible in logs and run statistics.
 
 Reachability data lives on `sdk.Vulnerability.Reachability` rather than on `Finding.Reachability` because `--analyze` must be useful without `--audit`. Matchers populate the OSV-aligned `Vulnerability` record on the PURL-keyed registry package; the analyzer enriches it in place; the output layer resolves the analyzer's annotation by `(Finding.PackageRef, Finding.VulnerabilityID)` when emitting SARIF and the JSON `Finding` projection. This keeps a single source of truth (the registry) and removes the per-manifest sync that the old graph-mutating model required.
 
+### Decision: external lookups use `Coordinates.EcosystemName()`, never the bare `Name`
+
+`Coordinates` stores identity as `Org` + `Name` following the PURL namespace/name split, so `Name` alone is `postcss` for both `postcss` and `@tailwindcss/postcss`. Anything that leaves the process under a name — Grype's DB search, the OSV name-keyed query, name-derived cache keys, SBOM component names, the bare specifiers `jsreach` matches imports against — must use `EcosystemName()`, which rebuilds the ecosystem-native form (`@org/name` for npm, `org:name` for the Maven family, `org/name` otherwise).
+
+This is a correctness boundary, not a formatting preference. Grype searches its DB strictly by the name it is handed and reconstructs a namespace only for Java (from the PURL, in its own resolver), so the bare name made every scoped npm package inherit the same-named unscoped package's advisories, attached to the scoped PURL, with remediation pointing at versions that do not exist for it (issue #319). `DisplayName()` produces a similar string but stays presentation-only and is explicitly not an identity; `QualifiedName()` is the internal `org:name` key. Prefer the PURL wherever a lookup accepts one — `EcosystemName` is for the interfaces that only take a name.
+
 ### Decision: Three-collection domain model — dependencies, packages, findings
 
 `sdk` separates three pipeline concerns that the original model conflated:

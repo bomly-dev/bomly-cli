@@ -49,6 +49,29 @@ func (i Coordinates) DisplayName() string {
 	}
 }
 
+// EcosystemName returns the package name in the form its ecosystem uses as an
+// identity: "@org/name" for npm, "org:name" for Maven-family coordinates, and
+// "org/name" for every other namespaced ecosystem (Go, Composer, Swift, GitHub
+// Actions). This is the name external advisory databases, SBOM documents, and
+// scanners such as Grype and Syft key on, so anything building a lookup for a
+// package must derive it from here rather than from the bare Name — Name alone
+// drops the npm scope and matches the unscoped package's advisories.
+func (i Coordinates) EcosystemName() string {
+	org := strings.TrimSpace(i.Org)
+	name := strings.TrimSpace(i.Name)
+	if org == "" || name == "" {
+		return qualifiedName(org, name)
+	}
+	switch i.displayEcosystem() {
+	case EcosystemNPM:
+		return "@" + strings.TrimPrefix(org, "@") + "/" + name
+	case EcosystemMaven, EcosystemScala:
+		return org + ":" + name
+	default:
+		return org + "/" + name
+	}
+}
+
 // displayEcosystem resolves the effective ecosystem for display formatting,
 // falling back to the package-manager name when Ecosystem is unset (e.g.
 // pnpm/yarn graphs that only carry a manager identifier).
@@ -61,6 +84,10 @@ func (i Coordinates) displayEcosystem() Ecosystem {
 			return EcosystemGo
 		case string(EcosystemPHP), "composer", "packagist":
 			return EcosystemPHP
+		case string(EcosystemMaven), "gradle":
+			return EcosystemMaven
+		case string(EcosystemScala), "sbt":
+			return EcosystemScala
 		}
 	}
 	return i.Ecosystem

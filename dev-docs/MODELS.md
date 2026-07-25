@@ -66,6 +66,26 @@ subproject (or the project when `"."`); `dir(manifest.path)` nested beneath it
 every module entry that reaches them; the PURL-keyed registry counts each
 package once.
 
+## `sdk.Coordinates` — shared identity, and its three names
+
+`Coordinates` (embedded by both `Dependency` and `Package`) splits a package's
+identity into `Org` + `Name`, mirroring the PURL namespace/name split: npm's
+`@tailwindcss/postcss` is stored as `Org: "tailwindcss"`, `Name: "postcss"`.
+The bare `Name` is therefore **never** a package identity on its own, and three
+accessors exist for the three things callers actually want:
+
+| Accessor | Form | Use it for |
+| --- | --- | --- |
+| `QualifiedName()` | `org:name` for everything | Internal keying and IDs (`StableID`) where only uniqueness matters. |
+| `DisplayName()` | `@org/name`, `org/name`, `org:name` | Presentation only — text reports, JSON `name` fields. Never an identity key. |
+| `EcosystemName()` | `@org/name` (npm), `org:name` (Maven family), `org/name` (everything else) | Anything that leaves the process: advisory-database lookups, cache keys derived from a name, SBOM component names, names handed to Grype/Syft. |
+
+`EcosystemName` exists because the bare `Name` silently collides across scopes:
+querying Grype or OSV for `@tailwindcss/postcss` under `postcss` returns every
+postcss advisory and attaches it to the scoped package (issue #319). Prefer the
+PURL when a lookup accepts one; reach for `EcosystemName` when it only accepts a
+name.
+
 ## `sdk.Dependency` — detection node
 
 ```go

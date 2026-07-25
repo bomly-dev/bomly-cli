@@ -176,6 +176,17 @@ Network enrichment is opt-in via `enrich` for `bomly_scan`, `bomly_explain`, and
 
 ## Troubleshooting
 
+### A Tool Reports Only A Short Failure Category
+
+MCP tool errors use short messages such as `scan pipeline failed` or
+`diff target resolution failed`. Bomly does not send raw internal errors to the
+MCP client because they can contain local paths, command output, URLs, or
+credentials.
+
+Run the server with `bomly -vv mcp serve` and reproduce the request to inspect
+the safe stage logs on stderr. The MCP client must keep stdout reserved for the
+protocol.
+
 ### `spawn bomly ENOENT`
 
 Your MCP client cannot find `bomly` on `PATH`. Run:

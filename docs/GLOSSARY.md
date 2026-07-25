@@ -40,7 +40,9 @@ The vocabulary Bomly uses, with one-sentence definitions and pointers to the doc
 
 ## Network and caching
 
-**Offline-safe** — A run with no `--enrich` makes zero outbound HTTP calls.
+**Offline-safe matcher run** — A run with no `--enrich`; network-backed
+matchers make no requests. Remote targets and build-tool detectors have
+separate network behavior.
 
 **Enrichment** — Network calls to public data sources, gated by `--enrich`. See [Matchers](MATCHERS.md).
 

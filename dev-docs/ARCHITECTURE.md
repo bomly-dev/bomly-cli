@@ -396,6 +396,10 @@ See [CI and Release Pipeline](CI.md) for workflow details and release mechanics.
 
 **Detector network behavior is per-implementation.** Lockfile-parser detectors (npm, pnpm, yarn, Composer, Bundler, NuGet, GitHub Actions, SBOM ingest, …) are pure file parsers and make no network calls. Build-tool primary detectors (`go-detector`, `maven-detector`, `gradle-detector`, `sbt-native-detector`) shell out to the build tool, which may download packages from registries during normal resolution — this is the build tool's behavior, not Bomly's. Hybrid detectors (`cargo`, `poetry`, `uv`) prefer the lockfile and use `--locked`/`--no-sync` flags on the build-tool fallback to stay offline. See [DETECTORS.md → Network behavior](../docs/DETECTORS.md#network-behavior).
 
+**Target materialization is a separate network boundary.** `--url` explicitly
+authorizes Bomly to clone the requested Git repository before the scan
+pipeline starts. Matcher gating does not suppress that clone.
+
 `--install-first` is the explicit opt-in: it tells supporting detectors to run their normal install command (`npm install`, `pip install`, `composer install`, etc.) before resolving the graph. This downloads packages by design.
 
 Permitted enrichment-time services:
@@ -404,6 +408,15 @@ Permitted enrichment-time services:
 - CISA KEV
 - deps.dev
 - OpenSSF Scorecard
+- Grype's vulnerability database distribution service
+
+Installed external matcher plugins may use their own documented services.
+
+**Native plugins are trusted processes, not sandboxes.** Installation verifies
+the managed artifact and records it disabled by default. Enabling a plugin
+authorizes a native process with the same user-level filesystem, network,
+environment, and subprocess privileges as Bomly. Protocol validation limits
+the data core accepts from that process; it does not restrict host access.
 
 Cache failures are non-fatal. The command should warn and continue rather than failing hard.
 

@@ -82,7 +82,7 @@ func TestRenderComponentDocs_IncludeGeneratedGuides(t *testing.T) {
 	}
 
 	matchers := RenderMatchersOverviewMarkdown()
-	if !strings.Contains(matchers, "offline-safe by default") {
+	if !strings.Contains(matchers, "does not run network-backed matchers unless you opt in") {
 		t.Fatalf("matcher overview missing offline guidance:\n%s", matchers)
 	}
 

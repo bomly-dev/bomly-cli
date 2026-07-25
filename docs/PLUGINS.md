@@ -60,6 +60,11 @@ bomly plugins enable <plugin-id>
 
 Treat `bomly plugins enable` as the trust decision. When enabled, a plugin runs with the same user-level privileges as the Bomly process. It can read and write files, make network connections, spawn child processes, and access environment variables available to that user.
 
+Bomly does not place enabled plugins in an operating-system sandbox. The
+plugin protocol limits what Bomly accepts as a detector, matcher, or auditor
+result, but it cannot restrict what the native plugin process does on the
+host.
+
 Repository-declared plugins are never executed automatically. The host must explicitly install and enable the plugin before it can run.
 
 ## Try The Example Plugins

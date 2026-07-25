@@ -120,11 +120,15 @@ func graphPkgToGrypePkg(p *sdk.Package) grypepkg.Package {
 // reaches Grype as an unknown package type and matches nothing, so declaring
 // the set keeps the generated docs and `bomly plugins list` honest.
 //
-// apk, dpkg, and rpm are typed here but currently reach Grype without a distro
-// (graphPkgToGrypePkg sets no Distro, and FindMatches gets an empty package
-// Context), and Grype's OS matchers are distro-namespace driven, so they match
-// nothing today — see issue #316. They are listed because the mapping exists;
-// the declaration becomes accurate once the distro is plumbed through.
+// This is every Bomly ecosystem Syft has a package type for. Only sbom (not a
+// package ecosystem) and snap (no Syft type) are absent.
+//
+// The OS-level entries — alpm, apk, dpkg, rpm, portage, homebrew — are typed
+// correctly but currently reach Grype without a distro (graphPkgToGrypePkg
+// sets no Distro, and FindMatches gets an empty package Context), and Grype's
+// OS matchers are distro-namespace driven, so they match nothing today. See
+// issue #316; the declaration becomes fully accurate once the distro is
+// plumbed through.
 var supportedEcosystems = []sdk.Ecosystem{
 	sdk.EcosystemNPM,
 	sdk.EcosystemMaven,
@@ -142,9 +146,20 @@ var supportedEcosystems = []sdk.Ecosystem{
 	sdk.EcosystemHaskell,
 	sdk.EcosystemR,
 	sdk.EcosystemLua,
+	sdk.EcosystemCPP,
+	sdk.EcosystemOCaml,
+	sdk.EcosystemProlog,
+	sdk.EcosystemConda,
+	sdk.EcosystemNix,
+	sdk.EcosystemTerraform,
+	sdk.EcosystemWordPress,
+	sdk.EcosystemALPM,
 	sdk.EcosystemAPK,
 	sdk.EcosystemDPKG,
 	sdk.EcosystemRPM,
+	sdk.EcosystemPortage,
+	sdk.EcosystemHomebrew,
+	sdk.EcosystemGitHub,
 }
 
 func ecosystemToSyftType(ecosystem string) syftPkg.Type {
@@ -183,6 +198,28 @@ func ecosystemToSyftType(ecosystem string) syftPkg.Type {
 		return syftPkg.Rpkg
 	case "lua":
 		return syftPkg.LuaRocksPkg
+	case "cpp", "conan":
+		return syftPkg.ConanPkg
+	case "ocaml", "opam":
+		return syftPkg.OpamPkg
+	case "prolog":
+		return syftPkg.SwiplPackPkg
+	case "alpm":
+		return syftPkg.AlpmPkg
+	case "conda":
+		return syftPkg.CondaPkg
+	case "nix":
+		return syftPkg.NixPkg
+	case "portage":
+		return syftPkg.PortagePkg
+	case "homebrew":
+		return syftPkg.HomebrewPkg
+	case "terraform":
+		return syftPkg.TerraformPkg
+	case "wordpress":
+		return syftPkg.WordpressPluginPkg
+	case "github-actions", "githubactions":
+		return syftPkg.GithubActionPkg
 	default:
 		return syftPkg.UnknownPkg
 	}
@@ -218,7 +255,16 @@ func ecosystemToSyftLanguage(ecosystem string) syftPkg.Language {
 		return syftPkg.R
 	case "lua":
 		return syftPkg.Lua
+	case "cpp", "conan":
+		return syftPkg.CPP
+	case "ocaml", "opam":
+		return syftPkg.OCaml
+	case "prolog":
+		return syftPkg.Swipl
 	default:
+		// OS and platform package types (alpm, conda, nix, portage, homebrew,
+		// terraform, wordpress, github-actions) have no Syft language — they
+		// are matched by package type and distro namespace instead.
 		return syftPkg.UnknownLanguage
 	}
 }

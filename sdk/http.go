@@ -151,7 +151,15 @@ func proxyFunc(config HTTPClientConfig) (func(*http.Request) (*url.URL, error), 
 	}
 	noProxy := strings.TrimSpace(config.NoProxy)
 	if proxyURL == "" {
-		return http.ProxyFromEnvironment, nil
+		if noProxy == "" {
+			return http.ProxyFromEnvironment, nil
+		}
+		envProxy := httpproxy.FromEnvironment()
+		envProxy.NoProxy = noProxy
+		urlProxy := envProxy.ProxyFunc()
+		return func(req *http.Request) (*url.URL, error) {
+			return urlProxy(req.URL)
+		}, nil
 	}
 	parsed, err := parseProxyURL(proxyURL)
 	if err != nil {

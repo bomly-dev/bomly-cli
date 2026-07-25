@@ -41,6 +41,25 @@ func TestNewHTTPClientNoProxyBypass(t *testing.T) {
 	}
 }
 
+func TestNewHTTPClientNoProxyAppliesToStandardProxyFallback(t *testing.T) {
+	t.Setenv("HTTP_PROXY", "http://standard-proxy.example:8080")
+	t.Setenv("HTTPS_PROXY", "http://standard-proxy.example:8080")
+	t.Setenv("ALL_PROXY", "")
+	t.Setenv("NO_PROXY", "")
+
+	client, err := NewHTTPClient(HTTPClientConfig{NoProxy: ".corp.example"})
+	if err != nil {
+		t.Fatalf("NewHTTPClient() error = %v", err)
+	}
+	if proxyURL := proxyForRequest(t, client, "http://service.corp.example/v1"); proxyURL != nil {
+		t.Fatalf("proxy = %v, want BOMLY_HTTP_NO_PROXY bypass", proxyURL)
+	}
+	proxyURL := proxyForRequest(t, client, "http://service.example/v1")
+	if proxyURL == nil || proxyURL.String() != "http://standard-proxy.example:8080" {
+		t.Fatalf("proxy = %v, want standard environment proxy", proxyURL)
+	}
+}
+
 func TestNewHTTPClientBuildsProxyFromHostPort(t *testing.T) {
 	client, err := NewHTTPClient(HTTPClientConfig{
 		ProxyType:     "socks5",

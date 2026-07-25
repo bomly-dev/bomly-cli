@@ -22,7 +22,7 @@ Bomly only fills packages that do not already have license data. Detector-resolv
 
 ## Cache and network
 
-The matcher batches version lookups through deps.dev and caches responses for 24 hours under `~/.bomly/cache/licenses/depsdev/`. Cache failures are non-fatal: Bomly logs a warning and still applies the API response.
+The matcher batches version lookups through deps.dev and caches responses for 24 hours under `~/.bomly/cache/licenses/depsdev/`. Each successful batch response is limited to 16 MiB. Cache failures are non-fatal: Bomly logs a warning and still applies the API response. Failed HTTP responses report the status code without including the server's response body in the error.
 
 ## CI recipe
 

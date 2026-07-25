@@ -9,9 +9,12 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
+
+const maxSBOMFileBytes int64 = 256 << 20
 
 // Detector resolves graphs from explicit SBOM files using Bomly's first-party decoders.
 type Detector struct {
@@ -70,8 +73,11 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	if sbomPath == "" {
 		sbomPath = req.ProjectPath
 	}
-	data, err := os.ReadFile(sbomPath)
+	data, err := system.ReadFileLimit(sbomPath, maxSBOMFileBytes)
 	if err != nil {
+		if errors.Is(err, system.ErrFileTooLarge) {
+			return sdk.DetectionResult{}, fmt.Errorf("sbom file %q exceeds the 256 MiB limit", sbomPath)
+		}
 		return sdk.DetectionResult{}, fmt.Errorf("read sbom file %q: %w", sbomPath, err)
 	}
 

@@ -125,6 +125,27 @@ versioned policy-status contract: they cannot change targets, start network or
 package-manager activity, load plugins, or choose output paths. Their automatic
 selection remains visible in logs and run statistics.
 
+### Decision: untrusted documents have input limits
+
+Bomly bounds large documents before decoding them. YAML configuration files are
+limited to 4 MiB. Finding baselines are limited to 16 MiB and 10,000 entries.
+Explicit SBOM inputs are limited to 256 MiB. Successful deps.dev batch responses
+are limited to 16 MiB, and failed responses expose only the HTTP status rather
+than including an upstream response body in errors.
+
+The shared file reader checks both the size reported when the file is opened and
+the bytes actually read. This keeps the limit in place if a file grows during
+the read. Baseline duplicate checks use an index keyed by package finding
+identity so validation remains linear as the document approaches its entry
+limit.
+
+Two inputs remain intentionally outside these limits. Cache entries are local
+files written by Bomly from already bounded requests and responses, so a
+per-entry read limit is a low-risk follow-up. Git clone size is delegated to Git
+because remote repository scanning is an explicit operation and repositories do
+not have a useful universal size limit. Both are recorded as residual resource
+risks rather than implied to be bounded.
+
 ### Decision: Reachability annotates vulnerabilities, not findings
 
 Reachability data lives on `sdk.Vulnerability.Reachability` rather than on `Finding.Reachability` because `--analyze` must be useful without `--audit`. Matchers populate the OSV-aligned `Vulnerability` record on the PURL-keyed registry package; the analyzer enriches it in place; the output layer resolves the analyzer's annotation by `(Finding.PackageRef, Finding.VulnerabilityID)` when emitting SARIF and the JSON `Finding` projection. This keeps a single source of truth (the registry) and removes the per-manifest sync that the old graph-mutating model required.

@@ -108,3 +108,5 @@ Baseline failures do not hide pipeline diagnostics. A malformed explicitly
 selected file fails before the audit runs. An automatically discovered baseline
 is loaded only for audited commands, so a malformed file cannot break a plain
 inventory scan; audited commands fail closed rather than silently ignoring it.
+Bomly rejects baseline files larger than 16 MiB and baseline documents with
+more than 10,000 entries.

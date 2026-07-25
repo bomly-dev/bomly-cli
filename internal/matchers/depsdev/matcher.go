@@ -33,7 +33,8 @@ const (
 
 	// deps.dev versionbatch currently returns at most 100 responses. Keeping
 	// request chunks at that size avoids silently dropping later package lookups.
-	maxBatchRequests = 100
+	maxBatchRequests       = 100
+	maxResponseBytes int64 = 16 << 20
 )
 
 // Config configures the deps.dev license matcher.
@@ -276,11 +277,10 @@ func (c *Checker) fetchBatch(ctx context.Context, items []pending, stats *checkS
 	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
-		data, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
-		return fmt.Errorf("deps.dev: batch request failed with status %d: %s", resp.StatusCode, strings.TrimSpace(string(data)))
+		return fmt.Errorf("deps.dev: batch request failed with status %d", resp.StatusCode)
 	}
 
-	rawBody, err := io.ReadAll(resp.Body)
+	rawBody, err := readResponseLimit(resp.Body, resp.ContentLength, maxResponseBytes)
 	if err != nil {
 		return fmt.Errorf("deps.dev: read batch response: %w", err)
 	}
@@ -321,6 +321,27 @@ func (c *Checker) fetchBatch(ctx context.Context, items []pending, stats *checkS
 		}
 	}
 	return nil
+}
+
+func readResponseLimit(body io.Reader, contentLength, maxBytes int64) ([]byte, error) {
+	if contentLength > maxBytes {
+		return nil, fmt.Errorf("response exceeds the %s limit", byteLimitLabel(maxBytes))
+	}
+	data, err := io.ReadAll(io.LimitReader(body, maxBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) > maxBytes {
+		return nil, fmt.Errorf("response exceeds the %s limit", byteLimitLabel(maxBytes))
+	}
+	return data, nil
+}
+
+func byteLimitLabel(size int64) string {
+	if size > 0 && size%(1<<20) == 0 {
+		return fmt.Sprintf("%d MiB", size/(1<<20))
+	}
+	return fmt.Sprintf("%d-byte", size)
 }
 
 func applyLicenses(pkg *sdk.Package, values []string) int {

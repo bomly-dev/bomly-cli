@@ -299,6 +299,21 @@ func TestLoadFileRejectsLegacyAndUnknownKeys(t *testing.T) {
 	}
 }
 
+func TestLoadFileRejectsOversizedFile(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	if err := os.WriteFile(path, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Truncate(path, maxConfigFileBytes+1); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadFile(path)
+	if err == nil || !strings.Contains(err.Error(), "exceeds the 4 MiB limit") {
+		t.Fatalf("LoadFile() error = %v", err)
+	}
+}
+
 func TestApplyFileConfigMergesPluginConfigsByID(t *testing.T) {
 	resolved := Resolved{}
 	ApplyFileConfig(&resolved, File{Plugins: map[string]map[string]any{

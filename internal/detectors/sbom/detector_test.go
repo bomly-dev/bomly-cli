@@ -134,6 +134,21 @@ func TestDetectorResolveGraph_RejectsUnsupportedOrMalformedJSON(t *testing.T) {
 	}
 }
 
+func TestDetectorResolveGraph_RejectsOversizedSBOM(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "input.json")
+	if err := os.WriteFile(path, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Truncate(path, maxSBOMFileBytes+1); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := (Detector{}).ResolveGraph(context.Background(), requestForSBOMPath(path))
+	if err == nil || !strings.Contains(err.Error(), "exceeds the 256 MiB limit") {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+}
+
 func resolveFixture(t *testing.T, path string) sdk.DetectionResult {
 	t.Helper()
 	detector := Detector{}

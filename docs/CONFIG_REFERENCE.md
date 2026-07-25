@@ -11,6 +11,8 @@ Bomly resolves configuration in the following order, with later sources overridi
 
 Repository config files are never loaded automatically. Select a trusted project file explicitly, for example `--config .bomly/config.yaml` or `BOMLY_CONFIG=.bomly/config.yaml`. When both are set, `--config` wins.
 
+Bomly rejects configuration files larger than 4 MiB before parsing them.
+
 YAML files use the nested keys documented below. Unknown keys and the former flat keys are rejected so configuration mistakes fail fast.
 
 ---

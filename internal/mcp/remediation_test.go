@@ -431,6 +431,27 @@ func TestBuildCompactScanEnrichedWithoutAuditReturnsRemediation(t *testing.T) {
 	}
 }
 
+func TestBuildCompactScanEnrichedCleanProjectReturnsInventory(t *testing.T) {
+	in := remediationFixture(t)
+	run := ScanRunResult{
+		Response:  output.ScanResponse{Manifests: in.Manifests},
+		Registry:  sdk.NewPackageRegistry(),
+		EnrichRan: true,
+	}
+
+	compact := BuildCompactScan(run)
+	if len(compact.Packages) != 5 {
+		t.Fatalf("clean enriched scan inventory = %#v, want 5 packages", compact.Packages)
+	}
+	if len(compact.Remediations) != 0 || len(compact.Informational) != 0 {
+		t.Fatalf("clean enriched scan returned findings: %#v", compact)
+	}
+	if !compact.Summary.EnrichRan || compact.Summary.AuditRan ||
+		compact.Summary.VulnerablePackages != 0 || compact.Summary.CleanPackages != 5 {
+		t.Fatalf("clean enriched summary = %#v", compact.Summary)
+	}
+}
+
 func TestRemediationFindingsOverlayAuditWithoutFilteringEnrichment(t *testing.T) {
 	in := remediationFixture(t)
 	audit := in.Findings[0].Clone()

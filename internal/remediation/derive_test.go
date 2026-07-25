@@ -59,6 +59,45 @@ func TestDerivePackageRemediation(t *testing.T) {
 			},
 		},
 		{
+			name:           "selects fix from current release line",
+			currentVersion: "1.2.5",
+			vulnerabilities: []sdk.Vulnerability{{
+				ID:            "VULN-1",
+				FixedVersions: []string{"0.2.4", "1.2.6"},
+			}},
+			want: &sdk.PackageRemediation{
+				Status:             sdk.PackageRemediationComplete,
+				RecommendedVersion: "1.2.6",
+			},
+		},
+		{
+			name:           "does not recommend a downgrade",
+			currentVersion: "1.2.5",
+			vulnerabilities: []sdk.Vulnerability{{
+				ID:            "VULN-1",
+				FixedVersions: []string{"0.2.4", "1.2.4"},
+			}},
+			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
+		},
+		{
+			name:           "does not recommend installed version",
+			currentVersion: "1.2.5",
+			vulnerabilities: []sdk.Vulnerability{{
+				ID:      "VULN-1",
+				FixedIn: "1.2.5",
+			}},
+			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
+		},
+		{
+			name:           "current version requires comparable fixes",
+			currentVersion: "1.2.5",
+			vulnerabilities: []sdk.Vulnerability{{
+				ID:            "VULN-1",
+				FixedVersions: []string{"release-a", "1.2.6"},
+			}},
+			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
+		},
+		{
 			name: "mixed fix and missing evidence",
 			vulnerabilities: []sdk.Vulnerability{
 				{ID: "VULN-1", FixedIn: "1.2.0"},

@@ -52,15 +52,7 @@ func BuildCompactScan(run ScanRunResult) CompactScanResponse {
 	}
 
 	if !run.AuditRan && !run.EnrichRan {
-		inventory, omitted := packageInventory(run.Response.Manifests)
-		response.Packages = inventory
-		if omitted > 0 {
-			response.Truncation = &TruncationInfo{
-				Truncated:       true,
-				OmittedPackages: omitted,
-				Note:            "package inventory capped; run `bomly scan --format json -o <file>` via the CLI for the full list",
-			}
-		}
+		addPackageInventory(&response, run.Response.Manifests)
 		return response
 	}
 
@@ -89,7 +81,25 @@ func BuildCompactScan(run ScanRunResult) CompactScanResponse {
 	response.Summary.FindingsBySeverity = severityCounts
 	response.Summary.Actionable = actionable
 	response.Summary.Informational = len(result.Informational)
+	if !run.AuditRan && len(vulnerablePackages) == 0 {
+		addPackageInventory(&response, run.Response.Manifests)
+	}
 	return response
+}
+
+func addPackageInventory(response *CompactScanResponse, manifests []output.ScanManifest) {
+	if response == nil {
+		return
+	}
+	inventory, omitted := packageInventory(manifests)
+	response.Packages = inventory
+	if omitted > 0 {
+		response.Truncation = &TruncationInfo{
+			Truncated:       true,
+			OmittedPackages: omitted,
+			Note:            "package inventory capped; run `bomly scan --format json -o <file>` via the CLI for the full list",
+		}
+	}
 }
 
 func severityBucket(severity string) string {

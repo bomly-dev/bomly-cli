@@ -29,7 +29,7 @@ func TestComponentDetailsShowPackageRemediation(t *testing.T) {
 		id:          "example@1.0.0",
 		displayName: "example",
 		version:     "1.0.0",
-		purl:        purl,
+		purl:        " " + purl + " ",
 	}, listPackageRow{displayName: "package-lock.json"})
 	plain := render.StripANSI(strings.Join(lines, "\n"))
 	for _, want := range []string{
@@ -63,6 +63,74 @@ func TestDiffComponentDetailsShowPackageRemediation(t *testing.T) {
 	}
 	if strings.Contains(plain, "Recommended version:") {
 		t.Fatalf("unavailable remediation displayed a recommendation:\n%s", plain)
+	}
+}
+
+func TestCollectComponentChangesUsesRegistryForEachSide(t *testing.T) {
+	const (
+		addedPURL   = "pkg:npm/added@1.0.0"
+		changedPURL = "pkg:npm/changed@2.0.0"
+		removedPURL = "pkg:npm/removed@1.0.0"
+	)
+	baseRegistry := sdk.NewPackageRegistry()
+	headRegistry := sdk.NewPackageRegistry()
+	addRemediationPackage := func(
+		registry *sdk.PackageRegistry,
+		purl string,
+		status sdk.PackageRemediationStatus,
+		version string,
+	) {
+		registry.Add(&sdk.Package{
+			Coordinates: sdk.Coordinates{PURL: purl},
+			Remediation: &sdk.PackageRemediation{
+				Status:             status,
+				RecommendedVersion: version,
+			},
+		})
+	}
+	addRemediationPackage(headRegistry, addedPURL, sdk.PackageRemediationComplete, "1.1.0")
+	addRemediationPackage(baseRegistry, addedPURL, sdk.PackageRemediationUnavailable, "")
+	addRemediationPackage(headRegistry, changedPURL, sdk.PackageRemediationPartial, "")
+	addRemediationPackage(baseRegistry, changedPURL, sdk.PackageRemediationComplete, "9.0.0")
+	addRemediationPackage(baseRegistry, removedPURL, sdk.PackageRemediationUnavailable, "")
+	addRemediationPackage(headRegistry, removedPURL, sdk.PackageRemediationComplete, "9.0.0")
+
+	model := &DiffModel{
+		payload: output.DiffResponse{Results: output.DiffResults{
+			Manifests: []output.DiffManifestResult{{
+				Added: []output.DiffPackageChange{{
+					Package: output.PackageRef{Purl: addedPURL},
+				}},
+				Changed: []output.DiffChangedPackage{{
+					Before: output.PackageRef{Purl: "pkg:npm/changed@1.0.0"},
+					After:  output.PackageRef{Purl: changedPURL},
+				}},
+				Removed: []output.DiffPackageChange{{
+					Package: output.PackageRef{Purl: removedPURL},
+				}},
+			}},
+		}},
+		baseRegistry: baseRegistry,
+		headRegistry: headRegistry,
+	}
+
+	changes := model.collectComponentChanges()
+	if len(changes) != 3 {
+		t.Fatalf("component changes = %#v, want added, changed, and removed", changes)
+	}
+	byStatus := make(map[string]*sdk.PackageRemediation, len(changes))
+	for _, change := range changes {
+		byStatus[change.status] = change.remediation
+	}
+	if got := byStatus["added"]; got == nil ||
+		got.Status != sdk.PackageRemediationComplete || got.RecommendedVersion != "1.1.0" {
+		t.Fatalf("added remediation = %#v, want head complete 1.1.0", got)
+	}
+	if got := byStatus["changed"]; got == nil || got.Status != sdk.PackageRemediationPartial {
+		t.Fatalf("changed remediation = %#v, want head partial", got)
+	}
+	if got := byStatus["removed"]; got == nil || got.Status != sdk.PackageRemediationUnavailable {
+		t.Fatalf("removed remediation = %#v, want base unavailable", got)
 	}
 }
 

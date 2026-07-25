@@ -72,12 +72,12 @@ func derivePackageRemediation(currentVersion string, vulnerabilities []sdk.Vulne
 		return nil
 	}
 
-	_ = currentVersion
+	current, _ := semver.NewVersion(strings.TrimSpace(currentVersion))
 	evidence := make([]vulnerabilityEvidence, 0, len(vulnerabilities))
 	hasFixEvidence := false
 	allUnavailable := true
 	for _, vulnerability := range vulnerabilities {
-		item := remediationEvidenceForVulnerability(vulnerability, nil)
+		item := remediationEvidenceForVulnerability(vulnerability, current)
 		evidence = append(evidence, item)
 		hasFixEvidence = hasFixEvidence || item.hasFixEvidence
 		allUnavailable = allUnavailable && item.unavailable

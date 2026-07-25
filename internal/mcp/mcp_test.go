@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/mcp"
@@ -96,6 +97,44 @@ func TestNewServer_RegistersFourTools(t *testing.T) {
 		if !names[want] {
 			t.Errorf("tool %q not registered", want)
 		}
+	}
+}
+
+func TestToolDescriptionsExplainRemediationWorkflow(t *testing.T) {
+	c := newTestClient(t, &mockAdapter{})
+	toolsResult, err := c.ListTools(context.Background(), mcplib.ListToolsRequest{})
+	if err != nil {
+		t.Fatalf("ListTools: %v", err)
+	}
+	wantByTool := map[string][]string{
+		"bomly_scan": {
+			"direct-bump",
+			"override_advice",
+			"known-exploited",
+			"enrich=true with audit=true",
+			"use bomly_explain",
+		},
+		"bomly_explain": {
+			"dependency paths",
+			"requires enrich=true",
+			"after bomly_scan",
+		},
+		"bomly_diff": {
+			"override_advice",
+			"persisted policy findings",
+			"requires enrich=true",
+		},
+	}
+	for _, tool := range toolsResult.Tools {
+		for _, want := range wantByTool[tool.Name] {
+			if !strings.Contains(tool.Description, want) {
+				t.Errorf("%s description missing %q: %q", tool.Name, want, tool.Description)
+			}
+		}
+		delete(wantByTool, tool.Name)
+	}
+	if len(wantByTool) != 0 {
+		t.Fatalf("tools missing from description check: %#v", wantByTool)
 	}
 }
 

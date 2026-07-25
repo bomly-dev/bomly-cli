@@ -311,7 +311,8 @@ func remediationForPURL(
 	purl string,
 	dependencyRefs ...string,
 ) *sdk.PackageRemediation {
-	if registry == nil || strings.TrimSpace(purl) == "" {
+	purl = strings.TrimSpace(purl)
+	if registry == nil || purl == "" {
 		return nil
 	}
 	pkg, ok := registry.Get(purl)

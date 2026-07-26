@@ -22,6 +22,7 @@ The inspected graph is accepted only when declared packages are present in the v
   - A valid Pipenv-managed virtualenv, **or**
   - A committed `Pipfile.lock`.
 - For `--install-first`: `pipenv` on `PATH`.
+- Inspecting a Pipenv virtualenv needs **pip 22.2 or newer** inside it (`pip inspect` does not exist before that). Older environments fall back to parsing `Pipfile.lock`.
 
 ## `--install-first`
 

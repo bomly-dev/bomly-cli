@@ -377,6 +377,14 @@ Python build-tool inspection can accidentally read the wrong environment: `pip i
 
 The smoke/benchmark Python targets rely on the fast-paths for determinism: `scan-python-poetry` uses the committed `poetry.lock` fast-path, and `scan-python-pip` commits a `requirements.lock`. The venv isolation remains the correctness backstop for real-world pip projects scanned without a committed lock.
 
+Two consequences of inspecting an environment rather than reading a manifest:
+
+- **Shape is reconstructed, not reported.** `pip inspect` returns a flat installed set. Edges come from each distribution's `requires_dist`; the direct set comes from what the project declares by name, plus the installer's `REQUESTED` marker for what those declarations cannot name (`-r` includes, environments populated by another front-end). Anything the root cannot reach is re-parented onto it, so a `requires_dist` cycle cannot strand a component. Treating every installed distribution as direct — the pre-fix behavior — reported pure transitives as top-level dependencies.
+- **Declarations are hand-authored files only.** `directPythonDeclarations` reads requirements files, the dependency tables of `pyproject.toml`, and the `Pipfile`. Lockfiles — including `requirements.lock` — are excluded on purpose: they record the resolved closure, where a transitive package appears exactly like a direct one. Since the inspect path is shared by pip, Poetry, uv, and Pipenv, admitting `poetry.lock` or `uv.lock` here would recreate the all-direct bug for those detectors. This is a deliberately narrower question than `declaredPythonDependencies`, which asks only whether a package belongs to the project at all (used to keep declared tool packages).
+- **`pip inspect` needs pip ≥ 22.2.** `python -m venv` seeds the virtualenv from the ambient interpreter, so an old system Python yields a venv that cannot inspect itself. Bomly diagnoses this before the install and fails with the pip version and the requirement named, which surfaces through the fallback notice instead of a bare `exit status 1`. It does not upgrade pip: installing package managers is out of scope (see Non-Negotiables), and mutating the environment before resolution would add an unpinned network write to every scan.
+
+Python roots are named, not labeled `root`: `pyproject.toml`'s project name, else the subproject directory, else the scanned repository, else the project directory. Bomly's own `bomly-git-*` clone directories are never used — they are random per run, which would make remote-target output non-deterministic.
+
 ### Decision: detector fallbacks are loud, annotated degradations
 
 When a build-tool-primary detector (Maven, Gradle, Go, …) cannot produce a graph and its `sdk.FallbackDetector` succeeds instead, the scan silently loses transitive resolution — the exact capability the primary exists for. That degradation is now first-class provenance rather than a Debug-only log line:

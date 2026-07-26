@@ -49,6 +49,29 @@
           "version": "1.7.1"
         },
         {
+          "depends_on": [
+            "pkg:pypi/colorama@0.4.6",
+            "pkg:pypi/django@1.7.1",
+            "pkg:pypi/feedparser@6.0.8",
+            "pkg:pypi/iniconfig@2.3.0",
+            "pkg:pypi/packaging@26.2",
+            "pkg:pypi/pluggy@1.6.0",
+            "pkg:pypi/pyasn1@0.6.3",
+            "pkg:pypi/pygments@2.20.0",
+            "pkg:pypi/pyjwt@0.4.2",
+            "pkg:pypi/pytest@9.0.3",
+            "pkg:pypi/pyyaml@5.3",
+            "pkg:pypi/requests@2.2.1",
+            "pkg:pypi/rsa@3.4",
+            "pkg:pypi/sgmllib3k@1.0.0"
+          ],
+          "id": "pkg:pypi/example-python-pipenv",
+          "licenses": [],
+          "name": "example-python-pipenv",
+          "package_ref": "pkg:pypi/example-python-pipenv",
+          "purl": "pkg:pypi/example-python-pipenv"
+        },
+        {
           "depends_on": [],
           "id": "pkg:pypi/feedparser@6.0.8",
           "licenses": [],
@@ -273,29 +296,6 @@
           "version": "2.2.1"
         },
         {
-          "depends_on": [
-            "pkg:pypi/colorama@0.4.6",
-            "pkg:pypi/django@1.7.1",
-            "pkg:pypi/feedparser@6.0.8",
-            "pkg:pypi/iniconfig@2.3.0",
-            "pkg:pypi/packaging@26.2",
-            "pkg:pypi/pluggy@1.6.0",
-            "pkg:pypi/pyasn1@0.6.3",
-            "pkg:pypi/pygments@2.20.0",
-            "pkg:pypi/pyjwt@0.4.2",
-            "pkg:pypi/pytest@9.0.3",
-            "pkg:pypi/pyyaml@5.3",
-            "pkg:pypi/requests@2.2.1",
-            "pkg:pypi/rsa@3.4",
-            "pkg:pypi/sgmllib3k@1.0.0"
-          ],
-          "id": "pkg:pypi/root",
-          "licenses": [],
-          "name": "root",
-          "package_ref": "pkg:pypi/root",
-          "purl": "pkg:pypi/root"
-        },
-        {
           "depends_on": [],
           "id": "pkg:pypi/rsa@3.4",
           "licenses": [],
@@ -370,6 +370,13 @@
       "name": "django",
       "purl": "pkg:pypi/django@1.7.1",
       "version": "1.7.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "python",
+      "licenses": [],
+      "name": "example-python-pipenv",
+      "purl": "pkg:pypi/example-python-pipenv",
       "vulnerabilities": []
     },
     {
@@ -450,13 +457,6 @@
       "name": "requests",
       "purl": "pkg:pypi/requests@2.2.1",
       "version": "2.2.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "root",
-      "purl": "pkg:pypi/root",
       "vulnerabilities": []
     },
     {

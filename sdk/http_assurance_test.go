@@ -182,6 +182,45 @@ func TestHTTPClientFollowsRedirectToPrivateDestinationWithoutForwardingCredentia
 	}
 }
 
+func TestHTTPClientPreservesCredentialsOnSameHostRedirect(t *testing.T) {
+	var redirectedAuthorization string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/start":
+			username, password, ok := r.BasicAuth()
+			if !ok || username != "agent" || password != "redirect-secret" {
+				t.Errorf("origin credentials = %q/%q/%t", username, password, ok)
+			}
+			http.Redirect(w, r, "/advisories", http.StatusFound)
+		case "/advisories":
+			redirectedAuthorization = r.Header.Get("Authorization")
+			w.WriteHeader(http.StatusNoContent)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	client, err := NewHTTPClient(HTTPClientConfig{
+		ProxyURL: "http://unused-proxy.invalid",
+		NoProxy:  "*",
+		Timeout:  5 * time.Second,
+	})
+	if err != nil {
+		t.Fatalf("NewHTTPClient() error = %v", err)
+	}
+	endpoint := strings.Replace(server.URL, "http://", "http://agent:redirect-secret@", 1) + "/start"
+	resp, err := client.Get(endpoint)
+	if err != nil {
+		t.Fatalf("GET redirected endpoint: %v", err)
+	}
+	_, _ = io.Copy(io.Discard, resp.Body)
+	_ = resp.Body.Close()
+	if redirectedAuthorization == "" {
+		t.Fatal("redirected Authorization header is empty, want same-host credentials")
+	}
+}
+
 func TestHTTPClientTransportErrorDoesNotExposeEndpointPassword(t *testing.T) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {

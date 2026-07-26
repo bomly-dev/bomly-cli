@@ -153,7 +153,9 @@ supported, including private-network destinations. These are trusted settings:
 use the user config, a file selected with `--config` or `BOMLY_CONFIG`, or the
 documented environment variables. Repository config is not loaded
 automatically. Bomly follows normal redirects and does not block private
-addresses so self-hosted services and enterprise proxies can work.
+addresses so self-hosted services and enterprise proxies can work. This also
+means a trusted HTTPS endpoint may redirect to HTTP; Bomly does not add a
+downgrade block.
 
 ## Build variants
 

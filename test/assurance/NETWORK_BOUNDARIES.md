@@ -24,14 +24,14 @@ setting takes precedence over the standard variables.
 
 | Boundary | Expected behavior | Main coverage |
 |---|---|---|
-| Explicit proxy | Requests use the selected HTTP, HTTPS, or SOCKS5 proxy | `sdk/http_test.go`, `sdk/http_assurance_test.go` |
-| Proxy bypass | Matching hosts, domains, IP ranges, and CIDRs connect directly | `sdk/http_assurance_test.go` |
-| Additional CA | The configured PEM chain is added to the system trust roots | `sdk/http_assurance_test.go` |
-| Custom endpoint | OSV and Scorecard use the selected base URL | matcher tests under `internal/matchers` |
-| Private destination | Loopback and private destinations are allowed when selected | `sdk/http_assurance_test.go` |
-| Redirect | Normal Go redirect rules apply; credentials are not forwarded to a different hostname | `sdk/http_assurance_test.go` |
-| Error safety | Transport and config errors do not expose endpoint or proxy passwords | `sdk/http_test.go`, `sdk/http_assurance_test.go`, `internal/config/validate_test.go` |
-| Shared transport | Built-in matchers and managed plugin operations reuse the configured proxy and CA behavior | `internal/registry/builder_test.go`, `internal/plugin/http_test.go` |
+| Explicit proxy | Requests use the selected HTTP, HTTPS, or SOCKS5 proxy | `TestHTTPClientRoutesRequestsThroughExplicitProxy`, `TestNewHTTPClientBuildsProxyFromHostPort` |
+| Proxy bypass | Matching hosts, domains, IP ranges, and CIDRs connect directly | `TestHTTPClientBypassesExplicitProxyForNoProxyDestination`, `TestHTTPClientNoProxyMatchesHostsAndNetworks` |
+| Additional CA | The configured PEM chain is added to the system trust roots | `TestHTTPClientTrustsConfiguredAdditionalCA`, `TestCommandContextInitialize_ExplicitConfigResolvesRelativeCAPathAndPrivateNetworkSettings` |
+| Custom endpoint | OSV and Scorecard use the selected base URL | `TestMatcherMatchEnrichesRegistry`, `TestMatch_AttachesScorecardToPackages` |
+| Private destination | Loopback and private destinations are allowed when selected | `TestHTTPClientFollowsRedirectToPrivateDestinationWithoutForwardingCredentials`, `TestCommandContextInitialize_ExplicitConfigResolvesRelativeCAPathAndPrivateNetworkSettings` |
+| Redirect | Same-host credentials are preserved; credentials are removed when the hostname changes | `TestHTTPClientPreservesCredentialsOnSameHostRedirect`, `TestHTTPClientFollowsRedirectToPrivateDestinationWithoutForwardingCredentials` |
+| Error safety | Transport and config errors do not expose endpoint or proxy passwords | `TestHTTPClientTransportErrorDoesNotExposeEndpointPassword`, `TestNewHTTPClientRedactsCredentialsInInvalidProxy`, `TestValidateRedactsCredentialsInInvalidHTTPProxy` |
+| Shared transport | Built-in matchers and managed plugin operations reuse the configured proxy and CA behavior | `TestRegistryHTTPClientProviderReusesTransport`, `TestHTTPClientFromLaunchContextUsesSharedProvider` |
 
 Run the focused suite with:
 
@@ -41,9 +41,11 @@ go test ./sdk ./internal/config ./internal/registry ./internal/plugin ./internal
 
 ## Intentional limits
 
-Bomly does not block private-network destinations or cross-host redirects.
-That would prevent self-hosted advisory services and enterprise proxies from
-working. Use only endpoints, proxy servers, and CA files that you trust.
+Bomly does not block private-network destinations, cross-host redirects, or
+redirects from HTTPS to HTTP. These behaviors support self-hosted advisory
+services and enterprise proxies, but an HTTP redirect sends later requests
+without transport encryption. Use only endpoints, proxy servers, and CA files
+that you trust.
 
 An additional CA expands trust for the current Bomly process. It does not
 replace the operating system roots. Redirects use Go's standard limit of ten

@@ -762,7 +762,7 @@ func TestCommandContextInitialize_RepositoryConfigCannotGrantAuthorityImplicitly
 	}
 }
 
-func TestCommandContextInitialize_ExplicitConfigCanSelectPrivateNetworkSettings(t *testing.T) {
+func TestCommandContextInitialize_ExplicitConfigResolvesRelativeCAPathAndPrivateNetworkSettings(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
 	t.Setenv("USERPROFILE", tempHome)
@@ -811,6 +811,7 @@ func TestCommandContextInitialize_ExplicitConfigCanSelectPrivateNetworkSettings(
 	if got.HTTPNoProxy != "advisories.internal.test,127.0.0.0/8" {
 		t.Fatalf("HTTP no-proxy = %q", got.HTTPNoProxy)
 	}
+	// CA paths are resolved from the selected config file, not the process CWD.
 	if got.HTTPCACertFile != filepath.Join(configDir, "private-ca.pem") {
 		t.Fatalf("HTTP CA certificate = %q", got.HTTPCACertFile)
 	}

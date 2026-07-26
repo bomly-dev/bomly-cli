@@ -1,51 +1,33 @@
-# Execution boundary assurance
+# Execution Boundary Assurance
 
-These tests check the boundaries where Bomly can run another program or pass
-data to code outside the main process.
+Bomly can start package managers and enabled native plugins. MCP can request
+the same operations as the CLI. These tests separate the controls Bomly
+enforces from authority delegated to a program the user selected.
 
-## Managed plugins
+| Boundary | Regression evidence | What the evidence proves |
+| --- | --- | --- |
+| Managed plugin environment | `TestPluginEnvIncludesProxyAndPluginConfig`, `TestPluginEnvForwardsStandardProxyEnvWhenBomlyProxyUnset`, `TestPluginEnvDoesNotForwardUnrelatedHostEnvironment`, `TestPluginEnvOnlyWritesSelectedPluginConfig` | Managed plugins receive protocol identity, selected plugin config, and configured or standard proxy settings. Unrelated host values such as cloud tokens and database URLs are not copied. |
+| Plugin lifecycle | `TestInstallDevBinaryVerifyEnableDisableAndUninstall`, `TestPrepareLoadsAndRunsExternalDetector`, `TestExternalMatcherReceivesAndReturnsRegistry` | Installation leaves a plugin disabled. Disabled plugins do not join runtime planning; an explicitly enabled plugin can run through its advertised contract. |
+| Protocol and fallback behavior | `TestProtocolV1DetectorSnapshotDefaultsAbsentOptionalCapabilities`, `TestRuntimeSnapshotRejectsUnadvertisedOrMalformedRole`, `TestResolveDetectors_FallbackAnnotatesResult`, `TestPipeline_RunRecordsFallbackWarning` | Older plugins work without optional capabilities. Invalid roles fail, and detector failure uses the normal fallback path. |
+| MCP default authority | `TestToolsDoNotEnableNetworkOrAnalysisByDefault` | Scan, explain, and diff requests do not enable enrichment, audit, or analysis unless their own fields request it. Hostile path, package, and Git text does not panic or silently grant those permissions. |
+| MCP response size | `TestCompactScanInventoryCapIsDeterministicAndCounted`, `TestCompactScanCapsDiagnosticsWithVisibleMarker`, `TestCompactRemediationCapsAliasesAndFindingsWithCounters`, `TestCompactScanSizeStaysUnderBudget` | Compact results stay within configured collection caps and report omitted data. |
+| Central remediation dependencies | `TestRemediationPackageDependencyBoundaries/central_derivation` | `go list -deps -json` checks the complete `internal/remediation` package and its transitive Bomly package graph. It cannot directly import network, OS, process, system, or cache packages, and cannot reach Git, plugins, system execution, or matcher caches transitively. The direct `os` prohibition is deliberately strict: even environment reads are rejected so this policy package cannot quietly gain ambient host authority. |
+| Detector hint dependencies | `TestRemediationPackageDependencyBoundaries/detector_hint_packages` | Each package that owns built-in hints is checked at package granularity. Hint-owning detector packages cannot directly import networking, Git, matcher cache, plugin, or central remediation packages and cannot reach Bomly's Git, cache, plugin, or policy packages transitively. Detector packages legitimately retain `internal/system` and `os/exec` for their separate graph-resolution role. |
+| Remediation data contract | `TestExternalDetectorProvidesAdvertisedRemediationHints`, `TestDerivePackageRemediation`, `TestDerivePackageRemediationsOverwritesAndIsIdempotent`, `TestValidateHintsSanitizesAndBoundsAdvice`, `TestCollectHintsBoundsAndSanitizesDiagnostics`, `TestDeriveRejectsUnadvertisedAndUnknownHints` | Core passes cloned data, validates occurrence references and advertised strategies, bounds provider text, and chooses status, version, and action centrally. Returned hints cannot authorize writes or execution. |
+| Subprocess diagnostics | `TestSanitizeArgsRedactsCredentialValuesAndURLUserinfo`, `TestSanitizeArgsDoesNotTreatOrdinaryAuthoredFlagsAsCredentials`, `TestNewConsoleAndCommandStderr`, `TestCommandStderrNilAndHidden`, `TestInstallLogsReproducibleCommandWithoutCredentials` in PR #334 | Debug logs retain executable, credential-sanitized arguments, and working directory. Arbitrary subprocess stderr is counted but not retained or mirrored. |
 
-Managed plugins are native programs. Enabling one gives it the same user
-permissions as Bomly. Bomly limits what it sends to the plugin process:
+## Residual Authority
 
-- protocol identity and the selected plugin ID;
-- only that plugin's configuration, in a temporary file;
-- configured proxy and CA settings, or the standard proxy variables;
-- no unrelated host variables such as cloud tokens or database credentials.
-
-Tests also confirm that disabled plugins do not join runtime planning, enabled
-plugins can run through the detector and matcher contracts, malformed runtime
-descriptors are rejected, failures use the normal detector fallback path, and
-older protocol-v1 plugins work without optional remediation capabilities.
-
-## MCP tools
-
-MCP scan, explain, and diff calls leave enrichment, auditing, and analysis off
-unless the request enables them. Input containing path traversal text, control
-characters, or unusual package and Git references must not panic or silently
-enable those operations. Compact responses remain bounded by their configured
-caps and report how much data was omitted.
-
-MCP is not a sandbox. A requested local path, Git URL, image, plugin, or
+MCP is not a sandbox. A requested path, Git URL, image, plugin, or
 package-manager operation has the same authority it has in the CLI.
 
-## Remediation guidance
+An enabled external plugin is a native process with the user's privileges. The
+protocol constrains data Bomly accepts from it; it cannot prevent that process
+from reading files, writing files, using the network, or starting another
+program.
 
-Canonical remediation is read-only enrichment. The central derivation code and
-built-in detector hint implementations do not import network, process, cache,
-or filesystem packages and do not call write methods.
-
-Detector hints are untrusted evidence. Core passes cloned graph and registry
-data, validates every occurrence and advertised strategy, bounds provider text,
-and chooses the final status, version, and action itself. An enabled external
-plugin is still native code and can use its process permissions independently;
-the SDK's read-only provider contract is an architectural rule, not an operating
-system sandbox.
-
-## Subprocess logging
-
-Debug logs for package-manager and analysis commands should identify the
-executable, arguments, and working directory so the command can be reproduced.
-Credential-bearing arguments and output must be redacted before logging.
-Assurance for this rule is completed only when every command runner uses the
-shared redaction boundary.
+Detector packages combine read-only hint methods with package-manager graph
+resolution. Their package dependency graphs therefore include process and
+filesystem helpers by design. The SDK provider contract, cloned requests, and
+core validation enforce hint behavior inside Bomly; they are architecture
+controls, not an operating-system sandbox for enabled native plugins.

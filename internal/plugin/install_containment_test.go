@@ -46,7 +46,7 @@ func TestExtractZipArchiveRejectsEscapingAndSymlinkEntries(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			err = extractZipArchive(archivePath, t.TempDir())
+			err = extractZipArchive(archivePath, t.TempDir(), defaultArchiveLimits())
 			if err == nil {
 				t.Fatalf("extractZipArchive() accepted unsafe entry %q", tc.path)
 			}
@@ -103,7 +103,7 @@ func TestExtractTarGzArchiveRejectsEscapingLinksAndSpecialFiles(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			err := extractTarGzArchive(archivePath, t.TempDir())
+			err := extractTarGzArchive(archivePath, t.TempDir(), defaultArchiveLimits())
 			if err == nil {
 				t.Fatalf("extractTarGzArchive() accepted unsafe entry %q", tc.path)
 			}

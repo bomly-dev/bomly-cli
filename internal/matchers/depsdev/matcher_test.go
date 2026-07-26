@@ -390,19 +390,6 @@ func TestDescriptorEcosystemsMatchSupportedSystems(t *testing.T) {
 	}
 }
 
-func TestReadResponseLimit(t *testing.T) {
-	data, err := readResponseLimit(strings.NewReader("1234"), -1, 4)
-	if err != nil || string(data) != "1234" {
-		t.Fatalf("exact-limit response = %q, %v", data, err)
-	}
-	if _, err := readResponseLimit(strings.NewReader("12345"), -1, 4); err == nil || !strings.Contains(err.Error(), "4-byte limit") {
-		t.Fatalf("streaming over-limit error = %v", err)
-	}
-	if _, err := readResponseLimit(strings.NewReader(""), 5, 4); err == nil || !strings.Contains(err.Error(), "4-byte limit") {
-		t.Fatalf("declared over-limit error = %v", err)
-	}
-}
-
 func TestFetchBatchRejectsOversizedResponse(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Length", strconv.FormatInt(maxResponseBytes+1, 10))

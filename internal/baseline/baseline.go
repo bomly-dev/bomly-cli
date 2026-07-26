@@ -152,13 +152,14 @@ func (d Document) Validate() error {
 		if _, ok := seen[key]; ok {
 			return fmt.Errorf("baseline contains duplicate entry %q", key)
 		}
-		for _, matchKey := range entryMatchKeys(entry) {
+		matchKeys := entryMatchKeys(entry)
+		for _, matchKey := range matchKeys {
 			if prior, ok := matched[matchKey]; ok {
 				return fmt.Errorf("baseline entries %d and %d identify the same package finding", prior, idx)
 			}
 		}
 		seen[key] = struct{}{}
-		for _, matchKey := range entryMatchKeys(entry) {
+		for _, matchKey := range matchKeys {
 			matched[matchKey] = idx
 		}
 	}
@@ -182,13 +183,14 @@ func entryMatchKeys(entry Entry) []entryMatchKey {
 		base.identity = entry.RuleID
 		return []entryMatchKey{base}
 	}
+	// A missing advisory list deliberately produces no keys, matching the old
+	// pairwise loops. Validate rejects that shape before reaching this helper.
 	keys := make([]entryMatchKey, 0, len(entry.AdvisoryIDs))
 	seen := make(map[string]struct{}, len(entry.AdvisoryIDs))
 	for _, advisoryID := range entry.AdvisoryIDs {
-		identity := strings.ToLower(advisoryID)
-		if identity == "" {
-			continue
-		}
+		// Advisory identifiers are ASCII. Folding only A-Z makes that contract
+		// explicit and avoids implying locale-sensitive identifier matching.
+		identity := foldASCII(advisoryID)
 		if _, ok := seen[identity]; ok {
 			continue
 		}
@@ -198,6 +200,16 @@ func entryMatchKeys(entry Entry) []entryMatchKey {
 		keys = append(keys, key)
 	}
 	return keys
+}
+
+func foldASCII(value string) string {
+	folded := []byte(value)
+	for idx, char := range folded {
+		if char >= 'A' && char <= 'Z' {
+			folded[idx] = char + ('a' - 'A')
+		}
+	}
+	return string(folded)
 }
 
 func validBaselineSeverity(severity sdk.SeverityLevel) bool {
@@ -222,7 +234,7 @@ func validBaselineSeverity(severity sdk.SeverityLevel) bool {
 func Load(path string) (Document, error) {
 	data, err := system.ReadFileLimit(path, maxBaselineFileBytes)
 	if err != nil {
-		if errors.Is(err, system.ErrFileTooLarge) {
+		if errors.Is(err, system.ErrInputTooLarge) {
 			return Document{}, fmt.Errorf("baseline %q exceeds the 16 MiB limit", path)
 		}
 		return Document{}, fmt.Errorf("read baseline %q: %w", path, err)

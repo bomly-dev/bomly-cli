@@ -7,8 +7,38 @@ import (
 	"os"
 )
 
-// ErrFileTooLarge reports that a file exceeds a caller-provided size limit.
-var ErrFileTooLarge = errors.New("file exceeds size limit")
+// ErrInputTooLarge reports that input exceeds a caller-provided size limit.
+var ErrInputTooLarge = errors.New("input too large")
+
+// ByteLimitLabel formats a byte limit for user-facing messages.
+func ByteLimitLabel(size int64) string {
+	if size > 0 && size%(1<<30) == 0 {
+		return fmt.Sprintf("%d GiB", size/(1<<30))
+	}
+	if size > 0 && size%(1<<20) == 0 {
+		return fmt.Sprintf("%d MiB", size/(1<<20))
+	}
+	if size > 0 && size%(1<<10) == 0 {
+		return fmt.Sprintf("%d KiB", size/(1<<10))
+	}
+	return fmt.Sprintf("%d bytes", size)
+}
+
+// ReadLimit reads input while enforcing maxBytes. A negative declaredSize
+// means the size is not known before reading.
+func ReadLimit(input io.Reader, declaredSize, maxBytes int64) ([]byte, error) {
+	if declaredSize > maxBytes {
+		return nil, inputTooLargeError(maxBytes)
+	}
+	data, err := io.ReadAll(io.LimitReader(input, maxBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) > maxBytes {
+		return nil, inputTooLargeError(maxBytes)
+	}
+	return data, nil
+}
 
 // ReadFileLimit reads at most maxBytes from path.
 //
@@ -21,15 +51,13 @@ func ReadFileLimit(path string, maxBytes int64) ([]byte, error) {
 	}
 	defer func() { _ = file.Close() }()
 
-	if info, statErr := file.Stat(); statErr == nil && info.Size() > maxBytes {
-		return nil, fmt.Errorf("%w: maximum is %d bytes", ErrFileTooLarge, maxBytes)
+	declaredSize := int64(-1)
+	if info, statErr := file.Stat(); statErr == nil {
+		declaredSize = info.Size()
 	}
-	data, err := io.ReadAll(io.LimitReader(file, maxBytes+1))
-	if err != nil {
-		return nil, err
-	}
-	if int64(len(data)) > maxBytes {
-		return nil, fmt.Errorf("%w: maximum is %d bytes", ErrFileTooLarge, maxBytes)
-	}
-	return data, nil
+	return ReadLimit(file, declaredSize, maxBytes)
+}
+
+func inputTooLargeError(maxBytes int64) error {
+	return fmt.Errorf("%w: %s limit exceeded", ErrInputTooLarge, ByteLimitLabel(maxBytes))
 }

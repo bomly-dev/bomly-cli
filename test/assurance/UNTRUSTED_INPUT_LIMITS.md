@@ -8,13 +8,17 @@ or service. These limits stop one input from consuming memory without a bound.
 | YAML configuration | 4 MiB | Before YAML decoding |
 | Finding baseline | 16 MiB and 10,000 entries | Before JSON decoding and validation |
 | Explicit SBOM | 256 MiB | Before format detection and JSON decoding |
+| Successful OSV vulnerability response | 4 MiB | Before JSON decoding |
+| Successful OSV batch response | 64 MiB | Before JSON decoding |
+| Successful CISA KEV response | 32 MiB | Before JSON decoding |
+| Successful Scorecard project response | 4 MiB | Before JSON decoding |
 | Successful deps.dev batch response | 16 MiB | Before JSON decoding |
 
 Tests cover an input at the limit and an input over it. File-backed readers
 check the size when the file is opened and also stop after reading one byte past
 the limit. The second check matters when a file grows while Bomly reads it.
-Failed deps.dev responses report the HTTP status but do not include the response
-body in the returned error.
+Failed matcher responses report the HTTP status but do not include the response
+body in returned errors or logs.
 
 ## Known residual limits
 

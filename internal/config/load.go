@@ -48,7 +48,7 @@ func LoadFile(path string) (*File, error) {
 		if os.IsNotExist(err) {
 			return nil, nil
 		}
-		if errors.Is(err, system.ErrFileTooLarge) {
+		if errors.Is(err, system.ErrInputTooLarge) {
 			return nil, fmt.Errorf("config file %q exceeds the 4 MiB limit", path)
 		}
 		return nil, err

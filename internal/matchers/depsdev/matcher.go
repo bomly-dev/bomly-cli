@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -17,6 +16,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/matchers"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/cache"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
@@ -280,7 +280,7 @@ func (c *Checker) fetchBatch(ctx context.Context, items []pending, stats *checkS
 		return fmt.Errorf("deps.dev: batch request failed with status %d", resp.StatusCode)
 	}
 
-	rawBody, err := readResponseLimit(resp.Body, resp.ContentLength, maxResponseBytes)
+	rawBody, err := system.ReadLimit(resp.Body, resp.ContentLength, maxResponseBytes)
 	if err != nil {
 		return fmt.Errorf("deps.dev: read batch response: %w", err)
 	}
@@ -321,27 +321,6 @@ func (c *Checker) fetchBatch(ctx context.Context, items []pending, stats *checkS
 		}
 	}
 	return nil
-}
-
-func readResponseLimit(body io.Reader, contentLength, maxBytes int64) ([]byte, error) {
-	if contentLength > maxBytes {
-		return nil, fmt.Errorf("response exceeds the %s limit", byteLimitLabel(maxBytes))
-	}
-	data, err := io.ReadAll(io.LimitReader(body, maxBytes+1))
-	if err != nil {
-		return nil, err
-	}
-	if int64(len(data)) > maxBytes {
-		return nil, fmt.Errorf("response exceeds the %s limit", byteLimitLabel(maxBytes))
-	}
-	return data, nil
-}
-
-func byteLimitLabel(size int64) string {
-	if size > 0 && size%(1<<20) == 0 {
-		return fmt.Sprintf("%d MiB", size/(1<<20))
-	}
-	return fmt.Sprintf("%d-byte", size)
 }
 
 func applyLicenses(pkg *sdk.Package, values []string) int {

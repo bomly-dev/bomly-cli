@@ -130,8 +130,11 @@ selection remains visible in logs and run statistics.
 Bomly bounds large documents before decoding them. YAML configuration files are
 limited to 4 MiB. Finding baselines are limited to 16 MiB and 10,000 entries.
 Explicit SBOM inputs are limited to 256 MiB. Successful deps.dev batch responses
-are limited to 16 MiB, and failed responses expose only the HTTP status rather
-than including an upstream response body in errors.
+are limited to 16 MiB. OSV vulnerability and batch responses are limited to
+4 MiB and 64 MiB. CISA KEV responses are limited to 32 MiB, and Scorecard
+project responses are limited to 4 MiB. Failed matcher responses expose only
+the HTTP status rather than including an upstream response body in errors or
+logs.
 
 The shared file reader checks both the size reported when the file is opened and
 the bytes actually read. This keeps the limit in place if a file grows during

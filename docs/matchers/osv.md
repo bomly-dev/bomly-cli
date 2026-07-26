@@ -43,6 +43,10 @@ bomly scan --enrich
 Cache directory (Unix/macOS): `~/.bomly/cache/{osv,osv-vulns,kev}/`.
 
 Cache failures are logged at WARN and never abort the scan.
+OSV batch responses are limited to 64 MiB, individual advisory responses to
+4 MiB, and KEV catalog responses to 32 MiB. Larger responses fail with a clear
+size error. Failed HTTP responses report the status without including the
+remote response body in errors or logs.
 
 ## Output fields
 

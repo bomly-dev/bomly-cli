@@ -1,7 +1,6 @@
 package opts
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -79,8 +78,54 @@ func TestDiscoveryProbeExplainsNonRecursiveSkip(t *testing.T) {
 	writeEvidenceFile(t, root, "web/package.json")
 
 	msg := probeErrorFor(t, root, nil)
-	if !strings.Contains(msg, "package.json at web (npm) — skipped: not scanned without --recursive") {
-		t.Fatalf("expected nested candidate skip reason, got %q", msg)
+	// One shared reason is stated once in the section header, not repeated on
+	// every candidate line.
+	if !strings.Contains(msg, "all skipped: not scanned without --recursive") {
+		t.Fatalf("expected hoisted skip reason, got %q", msg)
+	}
+	if !strings.Contains(msg, "- web/package.json (npm)") {
+		t.Fatalf("expected candidate line, got %q", msg)
+	}
+}
+
+func TestDiscoveryProbeKeepsPerCandidateReasonsWhenTheyDiffer(t *testing.T) {
+	root := t.TempDir()
+	writeEvidenceFile(t, root, "go.mod")
+	writeEvidenceFile(t, root, "web/package.json")
+
+	msg := probeErrorFor(t, root, func(req *Request) {
+		req.EcosystemFilter = sdk.EcosystemFilter{Exclude: []sdk.Ecosystem{sdk.EcosystemGo}}
+	})
+	if strings.Contains(msg, "all skipped:") {
+		t.Fatalf("expected per-candidate reasons when they differ, got %q", msg)
+	}
+	if !strings.Contains(msg, fmt.Sprintf("- go.mod (gomod) — skipped: excluded by --ecosystems -%s", sdk.EcosystemGo)) {
+		t.Fatalf("expected ecosystem reason on the root candidate, got %q", msg)
+	}
+	if !strings.Contains(msg, "- web/package.json (npm) — skipped: not scanned without --recursive") {
+		t.Fatalf("expected recursion reason on the nested candidate, got %q", msg)
+	}
+}
+
+func TestNoSubprojectsErrorReportsWhatWasSearched(t *testing.T) {
+	root := t.TempDir()
+	writeEvidenceFile(t, root, "web/package.json")
+
+	msg := probeErrorFor(t, root, func(req *Request) {
+		req.Recursive = true
+		req.MaxDepth = 2
+		req.ExcludeGlobs = []string{"web"}
+		req.DetectorFilter = sdk.DetectorFilter{Include: []string{"gomod"}}
+	})
+	for _, want := range []string{
+		"\n  target: " + root,
+		"\n  search: recursive discovery, max depth 2, 1 exclude pattern(s)",
+		"\n  active filters: --detectors gomod",
+		"\n  manifest candidates found (depth <= 3)",
+	} {
+		if !strings.Contains(msg, want) {
+			t.Fatalf("expected %q in report, got %q", want, msg)
+		}
 	}
 }
 
@@ -113,72 +158,13 @@ func TestDiscoveryProbeExplainsMaxDepthSkip(t *testing.T) {
 	}
 }
 
-// notReadyDetector reports a fixed readiness failure, standing in for a
-// detector whose toolchain is missing from PATH.
-type notReadyDetector struct {
-	name string
-	err  error
-}
-
-func (d notReadyDetector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{Name: d.name}
-}
-func (d notReadyDetector) PackageManagerSupport() []sdk.PackageManagerSupport { return nil }
-func (d notReadyDetector) Ready(context.Context, sdk.DetectionRequest) error  { return d.err }
-func (d notReadyDetector) Applicable(context.Context, sdk.DetectionRequest) (bool, error) {
-	return true, nil
-}
-func (d notReadyDetector) ResolveGraph(context.Context, sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	return sdk.DetectionResult{}, nil
-}
-
-func TestReadinessSkipReasonNamesEveryUnusableChainLink(t *testing.T) {
-	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
-	reg.Build()
-	reg.RegisterDetector(notReadyDetector{name: "fake-npm-native", err: errors.New("npm not on PATH")})
-	reg.RegisterDetector(notReadyDetector{name: "fake-npm", err: errors.New("no committed lockfile")})
-
-	diagnostics := newDiscoveryDiagnostics(reg, Request{Registry: reg})
-	defer diagnostics.close()
-
-	subproject := sdk.Subproject{
-		ExecutionTarget:  sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: t.TempDir()},
-		RelativePath:     ".",
-		PlannedDetectors: []string{"fake-npm-native", "fake-npm"},
-	}
-	got := diagnostics.readinessSkipReason(subproject, sdk.PackageManagerNPM)
-	want := "fake-npm-native not ready (npm not on PATH); fake-npm not ready (no committed lockfile)"
-	if got != want {
-		t.Fatalf("readinessSkipReason() = %q, want %q", got, want)
-	}
-}
-
-func TestReadinessSkipReasonStaysSilentWhenAnyDetectorIsReady(t *testing.T) {
-	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
-	reg.Build()
-	reg.RegisterDetector(notReadyDetector{name: "fake-npm-native", err: errors.New("npm not on PATH")})
-	reg.RegisterDetector(notReadyDetector{name: "fake-npm"})
-
-	diagnostics := newDiscoveryDiagnostics(reg, Request{Registry: reg})
-	defer diagnostics.close()
-
-	subproject := sdk.Subproject{
-		ExecutionTarget:  sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: t.TempDir()},
-		RelativePath:     ".",
-		PlannedDetectors: []string{"fake-npm-native", "fake-npm"},
-	}
-	if got := diagnostics.readinessSkipReason(subproject, sdk.PackageManagerNPM); got != "" {
-		t.Fatalf("expected no reason when a fallback is ready, got %q", got)
-	}
-}
-
 func TestDescribeDiscoveryOmitsSkipReasons(t *testing.T) {
 	root := t.TempDir()
 	writeEvidenceFile(t, root, "web/package.json")
 
 	lines := DescribeDiscovery(sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: root})
 	joined := strings.Join(lines, "\n")
-	if !strings.Contains(joined, "package.json at web") {
+	if !strings.Contains(joined, "web/package.json (npm)") {
 		t.Fatalf("expected probe evidence, got %q", joined)
 	}
 	// DescribeDiscovery has no request context to replay, so it must not

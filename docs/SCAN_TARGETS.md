@@ -79,14 +79,19 @@ Like the ignore rules, multi-module expansion is declared by each detector (`sdk
 
 ### When nothing is discovered
 
-A scan that finds no subprojects exits 5 ("nothing to evaluate") with a discovery probe: the manifest evidence that exists under the target, which package manager owns it, and why each candidate was skipped.
+A scan that finds no subprojects exits 5 ("nothing to evaluate") with a short report: what was searched, which filters were active, every manifest candidate the probe found, and why each was skipped.
 
 ```txt
-Nothing to evaluate: no subprojects discovered for execution target with the applied filters;
-  discovery probe: found package.json at web (npm) — skipped: not scanned without --recursive
+Nothing to evaluate: no subprojects discovered for execution target with the applied filters
+  target: /home/me/monorepo
+  search: target root only (no --recursive)
+  manifest candidates found (depth <= 3) — all skipped: not scanned without --recursive
+    - api/go.mod (gomod)
+    - web/package.json (npm)
+  hint: manifests exist in subdirectories (e.g. api); retry with --recursive
 ```
 
-The skip reasons name the setting to change:
+When candidates were skipped for different reasons, each line carries its own (`- web/package.json (npm) — skipped: excluded by --ecosystems go`). The reasons name the setting to change:
 
 | Reason | What to do |
 | --- | --- |
@@ -96,9 +101,10 @@ The skip reasons name the setting to change:
 | `excluded by --ecosystems <list>` | The candidate's ecosystem is outside the `--ecosystems` selection. |
 | `detector filter excludes every <pm> detector (...)` | `--detectors` / `--exclude-detectors` removed every detector that could handle it. |
 | `no detector registered for <pm>` | Bomly has no detector for that package manager (see [Support matrix](SUPPORT_MATRIX.md)). |
-| `<detector> not ready (...)` | The candidate is in scope but no detector in its chain can run here — install the named tool or use a committed-lockfile detector. |
 
-The probe walks at most 3 levels below the target and reports at most 8 candidates; deeper or extra evidence is elided with `…`.
+The probe walks at most 3 levels below the target and reports at most 8 candidates; anything beyond that is elided with `… more candidates not shown`.
+
+A missing toolchain is a different failure: the manifest *is* discovered, and the scan fails at resolution (exit 3) with `subproject web (javascript/npm): no usable detector: npm-native not ready (npm not on PATH); npm not ready (no committed lockfile)`. Install the named tool, commit a lockfile, or select a detector that reads committed files.
 
 ## Subprojects and modules in scan output
 

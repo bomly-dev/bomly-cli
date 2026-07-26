@@ -29,7 +29,7 @@ func TestReadFileWithLimitRejectsOverBoundary(t *testing.T) {
 	}
 
 	_, err := readFileWithLimit(path, "test metadata", 4)
-	if err == nil || !strings.Contains(err.Error(), "test metadata exceeds the 4-byte limit") {
+	if err == nil || !strings.Contains(err.Error(), "test metadata exceeds a limit of 4 bytes") {
 		t.Fatalf("readFileWithLimit() error = %v", err)
 	}
 }
@@ -46,7 +46,7 @@ func TestPluginJSONReadersRejectOversizedFiles(t *testing.T) {
 			name:        "manifest",
 			filename:    "bomly-plugin.json",
 			limit:       maxPluginManifestBytes,
-			description: "plugin manifest exceeds the 1 MiB limit",
+			description: "plugin manifest exceeds a limit of 1 MiB",
 			read: func(dir string) error {
 				_, err := readManifest(dir)
 				return err
@@ -56,7 +56,7 @@ func TestPluginJSONReadersRejectOversizedFiles(t *testing.T) {
 			name:        "runtime snapshot",
 			filename:    "bomly-plugin.runtime.json",
 			limit:       maxPluginRuntimeSnapshotBytes,
-			description: "plugin runtime descriptor snapshot exceeds the 1 MiB limit",
+			description: "plugin runtime descriptor snapshot exceeds a limit of 1 MiB",
 			read: func(dir string) error {
 				_, err := readRuntimeSnapshot(dir)
 				return err
@@ -66,7 +66,7 @@ func TestPluginJSONReadersRejectOversizedFiles(t *testing.T) {
 			name:        "installed database",
 			filename:    "installed.json",
 			limit:       maxInstalledPluginDBBytes,
-			description: "installed plugin database exceeds the 16 MiB limit",
+			description: "installed plugin database exceeds a limit of 16 MiB",
 			read: func(dir string) error {
 				_, err := loadInstalledDB(dir)
 				return err

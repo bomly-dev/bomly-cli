@@ -436,6 +436,8 @@ func validateZipArchiveLimits(files []*zip.File, limits archiveLimits) error {
 	if len(files) > limits.maxEntries {
 		return fmt.Errorf("plugin archive contains %d entries; limit is %d", len(files), limits.maxEntries)
 	}
+	// ZIP sizes are untrusted metadata and only provide an early rejection.
+	// writeArchiveFile and archiveExtractionBudget enforce the real byte stream.
 	var expanded uint64
 	for _, file := range files {
 		size := file.UncompressedSize64
@@ -580,7 +582,6 @@ func writeArchiveFile(path string, reader io.Reader, mode os.FileMode, entryName
 	}()
 	written, err := io.CopyN(file, reader, limit)
 	if err != nil && !errors.Is(err, io.EOF) {
-		_ = file.Close()
 		return written, fmt.Errorf("write plugin archive file %q: %w", path, err)
 	}
 	if err == nil {

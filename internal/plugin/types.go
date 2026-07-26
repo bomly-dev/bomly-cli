@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/registry"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	plugschema "github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -376,35 +377,11 @@ func readRuntimeSnapshot(dir string) (RuntimeDescriptorSnapshot, error) {
 }
 
 func readFileWithLimit(path, description string, limit int64) ([]byte, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
+	data, err := system.ReadFileLimit(path, limit)
+	if errors.Is(err, system.ErrInputTooLarge) {
+		return nil, fmt.Errorf("%s exceeds a limit of %s: %w", description, system.ByteLimitLabel(limit), err)
 	}
-	defer func() { _ = file.Close() }()
-
-	info, err := file.Stat()
-	if err != nil {
-		return nil, err
-	}
-	if info.Size() > limit {
-		return nil, fmt.Errorf("%s exceeds the %s limit", description, byteLimitLabel(limit))
-	}
-	data, err := io.ReadAll(io.LimitReader(file, limit+1))
-	if err != nil {
-		return nil, err
-	}
-	if int64(len(data)) > limit {
-		return nil, fmt.Errorf("%s exceeds the %s limit", description, byteLimitLabel(limit))
-	}
-	return data, nil
-}
-
-func byteLimitLabel(limit int64) string {
-	const mebibyte = int64(1 << 20)
-	if limit >= mebibyte && limit%mebibyte == 0 {
-		return fmt.Sprintf("%d MiB", limit/mebibyte)
-	}
-	return fmt.Sprintf("%d-byte", limit)
+	return data, err
 }
 
 func writeRuntimeSnapshot(dir string, snapshot RuntimeDescriptorSnapshot) error {

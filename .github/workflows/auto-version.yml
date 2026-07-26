@@ -108,7 +108,16 @@ jobs:
         run: |
           set -euo pipefail
           sed -i -E "s/^var version = \"[^\"]+\"/var version = \"${VERSION}\"/" cmd/bomly/main.go
-          git diff -- cmd/bomly/main.go
+
+          # The npm wrapper and the MCP Registry entry both name a release
+          # version. The release workflow re-derives them from the tag, so this
+          # is about keeping the committed files readable and honest.
+          jq --arg v "${VERSION}" '.version = $v' npm/package.json > npm/package.json.tmp
+          mv npm/package.json.tmp npm/package.json
+          jq --arg v "${VERSION}" '.version = $v | .packages[0].version = $v' server.json > server.json.tmp
+          mv server.json.tmp server.json
+
+          git diff -- cmd/bomly/main.go npm/package.json server.json
 
       - name: Commit version bump and tag
         shell: bash
@@ -120,7 +129,7 @@ jobs:
           git config user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
           git config user.email "${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
 
-          git add cmd/bomly/main.go
+          git add cmd/bomly/main.go npm/package.json server.json
           git commit -m "chore(release): ${TAG} [skip ci]"
           git tag -a "${TAG}" -m "Release ${TAG}"
 

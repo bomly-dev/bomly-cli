@@ -1,0 +1,49 @@
+{
+  "name": "bomly-mcp",
+  "version": "0.20.1",
+  "description": "Run the Bomly MCP server with npx. Downloads the matching Bomly CLI release binary and starts `bomly mcp serve`.",
+  "mcpName": "io.github.bomly-dev/bomly-cli",
+  "license": "Apache-2.0",
+  "author": "Ahmed ElMallah <ahmed@bomly.dev>",
+  "homepage": "https://bomly.dev/cli",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bomly-dev/bomly-cli.git",
+    "directory": "npm"
+  },
+  "bugs": {
+    "url": "https://github.com/bomly-dev/bomly-cli/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "sbom",
+    "dependencies",
+    "cyclonedx",
+    "spdx",
+    "bomly"
+  ],
+  "bin": {
+    "bomly-mcp": "bin/bomly-mcp.js"
+  },
+  "files": [
+    "bin/",
+    "scripts/",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "scripts": {
+    "postinstall": "node scripts/postinstall.js"
+  }
+}

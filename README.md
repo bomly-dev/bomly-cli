@@ -180,6 +180,12 @@ Bomly can run as a local MCP server so AI agents can call the same dependency gr
 bomly mcp serve
 ```
 
+If you have not installed the CLI, the `bomly-mcp` npm wrapper starts the same server:
+
+```bash
+npx -y bomly-mcp
+```
+
 Add Bomly to an MCP-aware agent such as Claude Code, Cursor, VS Code, or a custom tool, and the agent receives structured JSON it can summarize or reason over. See [MCP Server](docs/MCP.md) for setup recipes and the tool reference.
 
 ## Configure and Extend

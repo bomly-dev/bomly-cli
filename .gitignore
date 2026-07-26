@@ -27,3 +27,8 @@ qodana.yaml
 
 # Local scratch notes (not tracked)
 /notes
+
+# npm wrapper artifacts (the binary is fetched by its postinstall step)
+/npm/vendor
+/npm/node_modules
+/npm/*.tgz

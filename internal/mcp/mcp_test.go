@@ -340,8 +340,11 @@ func TestToolErrorLogsDoNotExposeAdapterDetails(t *testing.T) {
 	if context["tool"] != "scan" || context["category"] != string(mcp.ToolErrorPipeline) {
 		t.Fatalf("log context = %#v", context)
 	}
+	if context["cause_type"] != "*errors.errorString" {
+		t.Fatalf("cause type = %#v, want *errors.errorString", context["cause_type"])
+	}
 	if strings.Contains(entries[0].Message, secret) ||
-		strings.Contains(context["error_type"].(string), secret) {
+		strings.Contains(context["cause_type"].(string), secret) {
 		t.Fatalf("server log exposed adapter detail: %#v", entries[0])
 	}
 }

@@ -256,9 +256,11 @@ MCP tool failures expose only stable categories such as request validation,
 target preparation, target resolution, pipeline execution, and plugin
 inventory. Raw adapter errors never cross the protocol boundary because they
 may contain local paths, command output, URLs, or credentials. The server logs
-the tool, category, and Go error type without the arbitrary error text.
-Detailed stage logs remain available at debug verbosity from the component
-that produced the failure.
+the tool, category, and unwrapped Go cause type without the arbitrary cause
+text. Detailed stage logs remain available at debug verbosity only when the
+component that produced the failure emits them independently. Validation
+messages intentionally remain generic because otherwise a rejected path, URL,
+or other user value could be copied into the protocol response.
 
 ### Decision: Recursive discovery prunes native multi-module roots per package manager
 

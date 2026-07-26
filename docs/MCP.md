@@ -184,8 +184,15 @@ MCP client because they can contain local paths, command output, URLs, or
 credentials.
 
 Run the server with `bomly -vv mcp serve` and reproduce the request to inspect
-the safe stage logs on stderr. The MCP client must keep stdout reserved for the
-protocol.
+the safe stage logs emitted independently by the component that failed. The
+MCP error log itself records only the stable category and the Go type of the
+unwrapped cause, never the cause text. The MCP client must keep stdout reserved
+for the protocol.
+
+Request validation uses the same short category instead of echoing the rejected
+value. This keeps paths, URLs, and other user input out of the protocol and
+logs, but it also means an agent may need to inspect the tool schema or retry
+with fewer options to identify an invalid combination.
 
 ### `spawn bomly ENOENT`
 

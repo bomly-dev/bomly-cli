@@ -239,11 +239,15 @@ func toolErrorResult(mcpCtx Context, tool string, err error) *mcplib.CallToolRes
 	if errors.As(err, &categorized) {
 		kind = categorized.kind
 	}
+	cause := errors.Unwrap(err)
+	if cause == nil {
+		cause = err
+	}
 	if mcpCtx.Logger != nil {
 		mcpCtx.Logger.Warn("mcp: tool request failed",
 			zap.String("tool", tool),
 			zap.String("category", publicToolErrorCategory(kind)),
-			zap.String("error_type", fmt.Sprintf("%T", err)),
+			zap.String("cause_type", fmt.Sprintf("%T", cause)),
 		)
 	}
 	return mcplib.NewToolResultError(publicToolError(tool, kind))

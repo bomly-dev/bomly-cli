@@ -111,9 +111,9 @@ func (d baseDetector) resolveGraph(req sdk.DetectionRequest, detectorName string
 		return nil, fmt.Errorf("run %s: %w", detectorName, err)
 	}
 
-	declared, err := declaredPythonDependencies(cmd.Dir)
+	declared, err := directPythonDeclarations(cmd.Dir)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("collect declared dependencies for %s: %w", detectorName, err)
 	}
 	depsGraph, err := depGraphFromPipInspect(out.Bytes(), pythonSyntheticRoot(pythonRootName(req, cmd.Dir)), declared)
 	if err != nil {
@@ -284,25 +284,53 @@ func pipDirectDependency(pkg pipInspectPackage, declared map[string]struct{}) bo
 	return isDeclared
 }
 
-// attachOrphansToRoot wires every package that no other package depends on to
-// the root, so a distribution whose parent metadata is missing (or whose only
-// parent was filtered out) stays reachable instead of dangling as a second
-// graph root.
+// attachOrphansToRoot wires every package the root cannot reach back to the
+// root, so a distribution whose parent metadata is missing (or whose only
+// parent was filtered out) stays in the tree instead of dangling as a second
+// graph root. Reachability is what matters, not parent count: `requires_dist`
+// cycles are legal, and a mutually-dependent pair has parents while still
+// being unreachable from the root.
 func attachOrphansToRoot(depsGraph *sdk.Graph, rootID string) error {
 	if depsGraph == nil {
 		return nil
 	}
+	reachable := make(map[string]struct{}, depsGraph.Size())
+	markReachable := func(fromID string) {
+		queue := []string{fromID}
+		reachable[fromID] = struct{}{}
+		for len(queue) > 0 {
+			current := queue[0]
+			queue = queue[1:]
+			children, err := depsGraph.DirectDependencies(current)
+			if err != nil {
+				continue
+			}
+			for _, child := range children {
+				if child == nil {
+					continue
+				}
+				if _, seen := reachable[child.ID]; seen {
+					continue
+				}
+				reachable[child.ID] = struct{}{}
+				queue = append(queue, child.ID)
+			}
+		}
+	}
+
+	markReachable(rootID)
 	for _, node := range depsGraph.Nodes() {
-		if node == nil || node.ID == rootID {
+		if node == nil {
 			continue
 		}
-		parents, err := depsGraph.Dependents(node.ID)
-		if err != nil || len(parents) > 0 {
+		if _, ok := reachable[node.ID]; ok {
 			continue
 		}
 		if err := depsGraph.AddEdge(rootID, node.ID); err != nil {
 			return fmt.Errorf("add direct dependency %q: %w", node.ID, err)
 		}
+		// The newly attached package brings its own subtree back with it.
+		markReachable(node.ID)
 	}
 	return nil
 }
@@ -467,6 +495,123 @@ func filterPythonToolPackages(depsGraph *sdk.Graph, projectPath, rootName string
 		}
 	}
 	return depsGraph, nil
+}
+
+// directPythonDeclarations returns the normalized names a project declares as
+// its own dependencies. Only hand-authored declarations count: requirements
+// files the user writes, the dependency tables of pyproject.toml, and the
+// Pipfile.
+//
+// Lockfiles are deliberately excluded, including `requirements.lock`. They
+// record the resolved closure — every transitive package appears as a record
+// just like a direct one — so counting them as declarations would mark the
+// whole environment direct, which is the bug this set exists to fix. Note this
+// differs from declaredPythonDependencies, which answers the looser question
+// of whether a package belongs to the project at all.
+func directPythonDeclarations(projectPath string) (map[string]struct{}, error) {
+	declared := make(map[string]struct{})
+	if projectPath == "" {
+		return declared, nil
+	}
+	for _, name := range []string{"requirements.txt", "requirements-dev.txt", "requirements.in"} {
+		if err := collectRequirementFileDependencies(filepath.Join(projectPath, name), declared); err != nil {
+			return nil, err
+		}
+	}
+	collectPyprojectDeclarations(filepath.Join(projectPath, "pyproject.toml"), declared)
+	collectPipfileDeclarations(filepath.Join(projectPath, "Pipfile"), declared)
+	return declared, nil
+}
+
+// collectPyprojectDeclarations reads the dependency tables of pyproject.toml:
+// PEP 621 ([project] dependencies / optional-dependencies), PEP 735
+// ([dependency-groups]), Poetry ([tool.poetry] dependencies, dev-dependencies,
+// group.*.dependencies), and uv ([tool.uv] dev-dependencies). Parse failures
+// are non-fatal — a project with an unreadable manifest still gets a graph,
+// just without the declaration hint.
+func collectPyprojectDeclarations(path string, declared map[string]struct{}) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return
+	}
+	var doc map[string]any
+	if _, err := toml.Decode(string(raw), &doc); err != nil {
+		return
+	}
+
+	if project, ok := doc["project"].(map[string]any); ok {
+		addRequirementList(project["dependencies"], declared)
+		if optional, ok := project["optional-dependencies"].(map[string]any); ok {
+			for _, group := range optional {
+				addRequirementList(group, declared)
+			}
+		}
+	}
+	if groups, ok := doc["dependency-groups"].(map[string]any); ok {
+		for _, group := range groups {
+			addRequirementList(group, declared)
+		}
+	}
+
+	tool, _ := doc["tool"].(map[string]any)
+	if poetry, ok := tool["poetry"].(map[string]any); ok {
+		addDependencyTableKeys(poetry["dependencies"], declared)
+		addDependencyTableKeys(poetry["dev-dependencies"], declared)
+		if groups, ok := poetry["group"].(map[string]any); ok {
+			for _, group := range groups {
+				groupTable, _ := group.(map[string]any)
+				addDependencyTableKeys(groupTable["dependencies"], declared)
+			}
+		}
+	}
+	if uv, ok := tool["uv"].(map[string]any); ok {
+		addRequirementList(uv["dev-dependencies"], declared)
+	}
+}
+
+// collectPipfileDeclarations reads a Pipfile's [packages] and [dev-packages]
+// tables. Pipfile.lock is not read here: it is a lockfile.
+func collectPipfileDeclarations(path string, declared map[string]struct{}) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return
+	}
+	var doc map[string]any
+	if _, err := toml.Decode(string(raw), &doc); err != nil {
+		return
+	}
+	addDependencyTableKeys(doc["packages"], declared)
+	addDependencyTableKeys(doc["dev-packages"], declared)
+}
+
+// addRequirementList records the package names in an array of PEP 508
+// requirement strings, skipping non-string entries such as PEP 735
+// `{include-group = "..."}` tables.
+func addRequirementList(value any, declared map[string]struct{}) {
+	items, ok := value.([]any)
+	if !ok {
+		return
+	}
+	for _, item := range items {
+		if requirement, ok := item.(string); ok {
+			addDeclaredPythonName(requirementName(requirement), declared)
+		}
+	}
+}
+
+// addDependencyTableKeys records the keys of a name-to-constraint dependency
+// table, dropping Poetry's "python" interpreter-version marker.
+func addDependencyTableKeys(value any, declared map[string]struct{}) {
+	table, ok := value.(map[string]any)
+	if !ok {
+		return
+	}
+	for name := range table {
+		if strings.EqualFold(strings.TrimSpace(name), "python") {
+			continue
+		}
+		addDeclaredPythonName(name, declared)
+	}
 }
 
 func declaredPythonDependencies(projectPath string) (map[string]struct{}, error) {

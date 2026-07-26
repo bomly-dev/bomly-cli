@@ -110,19 +110,23 @@ const (
 
 var pipVersionPattern = regexp.MustCompile(`pip\s+(\d+)\.(\d+)`)
 
-// ensurePipInspectSupport makes the freshly created virtualenv usable by
-// `pip inspect`. `python -m venv` seeds the venv with the ambient
+// verifyPipInspectSupport reports whether the freshly created virtualenv can
+// be inspected at all. `python -m venv` seeds the venv with the ambient
 // interpreter's pip, so an old system Python (macOS ships 3.9 with pip 21.x)
-// produces a venv that cannot inspect itself. The venv is isolated and we are
-// about to reach the network for the install anyway, so upgrade pip in place;
-// when that cannot be done, fail with the version and the requirement spelled
-// out instead of a bare "exit status 1" later.
-func ensurePipInspectSupport(ctx context.Context, base baseDetector, req sdk.DetectionRequest, detectorName, venvPython string) error {
+// produces a venv whose pip has no `inspect` command and exits non-zero with a
+// message that says nothing about the version.
+//
+// Bomly diagnoses this rather than fixing it: installing or upgrading a
+// package manager is out of scope, and the check runs before the install so a
+// doomed resolution costs nothing. The detector's fallback still produces a
+// graph; the difference is that the degradation notice now names the pip
+// version and the minimum instead of reporting "exit status 1".
+func verifyPipInspectSupport(base baseDetector, req sdk.DetectionRequest, detectorName, venvPython string) error {
 	logger := base.Logger
 	if logger == nil {
 		logger = zap.NewNop()
 	}
-	version, err := readPipVersion(base, req, detectorName, venvPython)
+	version, err := readPipVersion(base, req, detectorName, venvPython, logger)
 	if err != nil {
 		// An unreadable version is not itself fatal: let the install and
 		// inspect steps report whatever is actually wrong.
@@ -133,25 +137,15 @@ func ensurePipInspectSupport(ctx context.Context, base baseDetector, req sdk.Det
 		logger.Debug("isolated environment pip supports inspect", zap.String("detector", detectorName), zap.String("pip_version", version))
 		return nil
 	}
-	logger.Info(fmt.Sprintf("%s upgrading pip in the isolated virtualenv (pip %s predates `pip inspect`, added in pip %s)", detectorName, version, minPipInspectLabel))
-	if err := base.install(ctx, req, detectorName+" (pip upgrade)", []string{venvPython, "-m", "pip", "install", "--upgrade", "pip"}); err != nil {
-		return fmt.Errorf("isolated environment has pip %s, but `pip inspect` requires pip %s or newer; upgrading pip in the virtualenv failed: %w", version, minPipInspectLabel, err)
-	}
-	upgraded, err := readPipVersion(base, req, detectorName, venvPython)
-	if err != nil {
-		logger.Debug("could not re-read pip version after upgrade", zap.String("detector", detectorName), zap.Error(err))
-		return nil
-	}
-	if !pipSupportsInspect(upgraded) {
-		return fmt.Errorf("isolated environment has pip %s, but `pip inspect` requires pip %s or newer; upgrade pip or run Bomly with a newer Python interpreter on PATH", upgraded, minPipInspectLabel)
-	}
-	logger.Info(fmt.Sprintf("%s upgraded pip to %s in the isolated virtualenv", detectorName, upgraded))
-	return nil
+	return fmt.Errorf("isolated environment has pip %s, but `pip inspect` requires pip %s or newer; upgrade pip for that interpreter (python -m pip install --upgrade pip) or put a newer Python on PATH", version, minPipInspectLabel)
 }
 
 // readPipVersion returns the version string reported by `python -m pip
 // --version` for the given interpreter (e.g. "21.2.4").
-func readPipVersion(base baseDetector, req sdk.DetectionRequest, detectorName, venvPython string) (string, error) {
+func readPipVersion(base baseDetector, req sdk.DetectionRequest, detectorName, venvPython string, logger *zap.Logger) (string, error) {
+	if logger == nil {
+		logger = zap.NewNop()
+	}
 	command := []string{venvPython, "-m", "pip", "--version"}
 	cmd := system.Command(command[0], command[1:]...)
 	cmd.Dir = base.workingDir(req.ProjectPath)
@@ -159,6 +153,7 @@ func readPipVersion(base baseDetector, req sdk.DetectionRequest, detectorName, v
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = logging.NewCommandStderr(req.Stderr, req.Verbose)
+	logger.Debug("checking isolated environment pip version", zap.String("detector", detectorName), zap.String("working_dir", cmd.Dir), zap.String("executable", command[0]), zap.Strings("args", command[1:]))
 	if err := cmd.Run(); err != nil {
 		return "", fmt.Errorf("run %s pip --version: %w", detectorName, err)
 	}

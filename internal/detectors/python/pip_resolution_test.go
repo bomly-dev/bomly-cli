@@ -50,24 +50,12 @@ func main() {
 		if version == "" {
 			version = "24.0"
 		}
-		if strings.Contains(os.Args[0], "bomly-pyvenv-") {
-			if upgraded := os.Getenv("BOMLY_FAKE_PIP_UPGRADED_VERSION"); upgraded != "" {
-				if _, err := os.Stat(os.Getenv("BOMLY_FAKE_PYTHON_UPGRADE_LOG")); err == nil {
-					version = upgraded
-				}
-			}
-		}
 		fmt.Printf("pip %s from /fake/pip (python 3.12)\n", version)
 		return
 	}
 	if len(args) >= 3 && args[0] == "-m" && args[1] == "pip" && args[2] == "install" {
-		logPath := os.Getenv("BOMLY_FAKE_PYTHON_INSTALL_LOG")
-		joined := strings.Join(args, " ")
-		if strings.Contains(joined, "--upgrade pip") {
-			logPath = os.Getenv("BOMLY_FAKE_PYTHON_UPGRADE_LOG")
-		}
-		if logPath != "" {
-			_ = os.WriteFile(logPath, []byte(joined), 0o644)
+		if logPath := os.Getenv("BOMLY_FAKE_PYTHON_INSTALL_LOG"); logPath != "" {
+			_ = os.WriteFile(logPath, []byte(strings.Join(args, " ")), 0o644)
 		}
 		return
 	}
@@ -193,7 +181,6 @@ func TestPoetryAndUVFailWithoutLockfile(t *testing.T) {
 // asked to run, so tests can assert which install steps actually happened.
 type fakePythonLogs struct {
 	install string
-	upgrade string
 }
 
 func setupFakePython(t *testing.T, ambientInspect, venvInspect string) fakePythonLogs {
@@ -206,51 +193,25 @@ func setupFakePython(t *testing.T, ambientInspect, venvInspect string) fakePytho
 	if err := testutil.BuildGoBinary(t, filepath.Join(binDir, binaryName), fakePythonSource); err != nil {
 		t.Fatalf("build fake python: %v", err)
 	}
-	logDir := t.TempDir()
-	logs := fakePythonLogs{
-		install: filepath.Join(logDir, "install.log"),
-		upgrade: filepath.Join(logDir, "upgrade.log"),
-	}
+	logs := fakePythonLogs{install: filepath.Join(t.TempDir(), "install.log")}
 	t.Setenv("PATH", binDir)
 	t.Setenv("BOMLY_FAKE_AMBIENT_INSPECT", ambientInspect)
 	t.Setenv("BOMLY_FAKE_VENV_INSPECT", venvInspect)
 	t.Setenv("BOMLY_FAKE_PYTHON_INSTALL_LOG", logs.install)
-	t.Setenv("BOMLY_FAKE_PYTHON_UPGRADE_LOG", logs.upgrade)
 	return logs
 }
 
-// TestPipDetectorUpgradesPipTooOldForInspect covers issue #274: `pip inspect`
+// TestPipDetectorReportsUnsupportedPipVersion covers issue #274: `pip inspect`
 // landed in pip 22.2, and a venv seeded from an old ambient interpreter
-// (macOS system Python 3.9 ships pip 21.x) inherits its pip.
-func TestPipDetectorUpgradesPipTooOldForInspect(t *testing.T) {
-	projectDir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(projectDir, "requirements.txt"), []byte("fastapi==0.139.0\n"), 0o644); err != nil {
-		t.Fatalf("write requirements.txt: %v", err)
-	}
-	logs := setupFakePython(t, ambientPipAuditInspect, projectRequirementsInspect)
-	t.Setenv("BOMLY_FAKE_PIP_VERSION", "21.2.4")
-	t.Setenv("BOMLY_FAKE_PIP_UPGRADED_VERSION", "25.1.1")
-	t.Cleanup(func() { _ = os.RemoveAll(pythonVenvDir(projectDir)) })
-
-	if _, err := (PipDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir}); err != nil {
-		t.Fatalf("ResolveGraph() error = %v", err)
-	}
-	raw, err := os.ReadFile(logs.upgrade)
-	if err != nil || !strings.Contains(string(raw), "pip install --upgrade pip") {
-		t.Fatalf("expected pip to be upgraded inside the venv, log=%q err=%v", string(raw), err)
-	}
-}
-
-// TestPipDetectorReportsUnsupportedPipVersion asserts the failure names the
-// version and the requirement instead of a bare "exit status 1".
+// (macOS system Python 3.9 ships pip 21.x) inherits its pip. Bomly diagnoses
+// that instead of installing anything, so the failure must name the version
+// and the requirement rather than surfacing a bare "exit status 1".
 func TestPipDetectorReportsUnsupportedPipVersion(t *testing.T) {
 	projectDir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(projectDir, "requirements.txt"), []byte("fastapi==0.139.0\n"), 0o644); err != nil {
 		t.Fatalf("write requirements.txt: %v", err)
 	}
-	setupFakePython(t, ambientPipAuditInspect, projectRequirementsInspect)
-	// The upgrade "succeeds" but leaves pip at the same version, e.g. an
-	// offline mirror pinning an old release.
+	logs := setupFakePython(t, ambientPipAuditInspect, projectRequirementsInspect)
 	t.Setenv("BOMLY_FAKE_PIP_VERSION", "21.2.4")
 	t.Cleanup(func() { _ = os.RemoveAll(pythonVenvDir(projectDir)) })
 
@@ -262,6 +223,12 @@ func TestPipDetectorReportsUnsupportedPipVersion(t *testing.T) {
 		if !strings.Contains(err.Error(), want) {
 			t.Fatalf("error %q does not mention %q", err, want)
 		}
+	}
+	// The environment is diagnosed before anything is installed: Bomly never
+	// installs or upgrades a package manager, and a doomed resolution should
+	// not spend a network round trip first.
+	if raw, err := os.ReadFile(logs.install); err == nil {
+		t.Fatalf("expected no install to run for an uninspectable environment, got %q", string(raw))
 	}
 }
 

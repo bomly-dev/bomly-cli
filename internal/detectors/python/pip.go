@@ -146,7 +146,9 @@ func (d PipDetector) installIsolatedPipEnvironment(ctx context.Context, req sdk.
 	if err != nil {
 		return nil, err
 	}
-	if err := ensurePipInspectSupport(ctx, d.base(), req, "pip detector", venvPython); err != nil {
+	// Check before installing: an environment that cannot be inspected makes
+	// the install pointless, and failing here keeps the reason in the error.
+	if err := verifyPipInspectSupport(d.base(), req, "pip detector", venvPython); err != nil {
 		return nil, err
 	}
 	command := []string{venvPython, "-m", "pip", "install", "-r", requirementsFile}

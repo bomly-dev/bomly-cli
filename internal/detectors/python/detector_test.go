@@ -119,6 +119,107 @@ func TestDepGraphFromPipInspectAttachesOrphans(t *testing.T) {
 	}
 }
 
+// TestDepGraphFromPipInspectAttachesCycles covers a component that depends on
+// itself: requires_dist cycles are legal, so every member has a parent while
+// the component as a whole is unreachable from the root.
+func TestDepGraphFromPipInspectAttachesCycles(t *testing.T) {
+	raw := []byte(`{
+  "installed": [
+    {"metadata": {"name": "flask", "version": "3.1.1", "requires_dist": []}, "requested": true},
+    {"metadata": {"name": "left", "version": "1.0.0", "requires_dist": ["right"]}},
+    {"metadata": {"name": "right", "version": "1.0.0", "requires_dist": ["left"]}}
+  ]
+}`)
+
+	root := pythonSyntheticRoot("")
+	g, err := depGraphFromPipInspect(raw, root, nil)
+	if err != nil {
+		t.Fatalf("depGraphFromPipInspect() error = %v", err)
+	}
+	if roots := g.Roots(); len(roots) != 1 || roots[0].ID != root.ID {
+		t.Fatalf("expected a single graph root, got %s", g.PrettyString())
+	}
+	for _, member := range []string{"left@1.0.0", "right@1.0.0"} {
+		paths, err := g.CollectPathsTo(member)
+		if err != nil || len(paths) == 0 {
+			t.Fatalf("cycle member %s is unreachable from the root (err=%v): %s", member, err, g.PrettyString())
+		}
+	}
+}
+
+// TestDirectPythonDeclarationsExcludesLockfiles guards the direct-dependency
+// signal shared by the pip / Poetry / uv / Pipenv inspect paths: a lockfile
+// records the whole resolved closure, so counting its entries as declarations
+// would mark every transitive package direct — the bug in #273.
+func TestDirectPythonDeclarationsExcludesLockfiles(t *testing.T) {
+	dir := t.TempDir()
+	files := map[string]string{
+		"pyproject.toml": `[project]
+name = "demo-app"
+dependencies = ["requests>=2", "flask"]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[dependency-groups]
+dev = ["ruff", {include-group = "test"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+httpx = "^0.27"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^7.0"
+
+[tool.uv]
+dev-dependencies = ["mypy>=1.0"]
+`,
+		"Pipfile": `[packages]
+boto3 = "*"
+
+[dev-packages]
+black = "*"
+`,
+		"poetry.lock": `[[package]]
+name = "certifi"
+version = "2024.8.30"
+
+[[package]]
+name = "urllib3"
+version = "2.2.3"
+`,
+		"uv.lock": `[[package]]
+name = "idna"
+version = "3.10"
+`,
+		"Pipfile.lock":         `{"default": {"charset-normalizer": {"version": "==3.4.0"}}}`,
+		"requirements.lock":    "click==8.1.8\n    # via flask\nmarkupsafe==3.0.2\n    # via jinja2\n",
+		"requirements.txt":     "flask==3.1.1\n",
+		"requirements-dev.txt": "pytest==8.3.3\n",
+	}
+	for name, content := range files {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o644); err != nil {
+			t.Fatalf("write %s: %v", name, err)
+		}
+	}
+
+	declared, err := directPythonDeclarations(dir)
+	if err != nil {
+		t.Fatalf("directPythonDeclarations() error = %v", err)
+	}
+	for _, want := range []string{"flask", "requests", "pytest", "ruff", "httpx", "sphinx", "mypy", "boto3", "black"} {
+		if _, ok := declared[want]; !ok {
+			t.Errorf("expected %q to be a direct declaration, got %v", want, declared)
+		}
+	}
+	// Lockfile records, and Poetry's interpreter marker, are not declarations.
+	for _, unwanted := range []string{"certifi", "urllib3", "idna", "charset-normalizer", "click", "markupsafe", "python"} {
+		if _, ok := declared[unwanted]; ok {
+			t.Errorf("%q came from a lockfile (or is the python marker) and must not count as a direct declaration", unwanted)
+		}
+	}
+}
+
 // TestPythonProjectName covers issue #272: a requirements.txt project has no
 // declared name, so the directory is the closest thing to one.
 func TestPythonProjectName(t *testing.T) {

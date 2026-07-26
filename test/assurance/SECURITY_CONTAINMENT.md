@@ -2,20 +2,20 @@
 
 This assurance slice checks where Bomly reads and writes files when it handles
 repository content and generated artifacts. The tests focus on boundaries that
-must remain stable:
+must remain stable.
 
-- a requested Git ref is materialized in a temporary checkout without changing
-  the source repository;
-- repository symlinks remain symlinks during materialization, and recursive
-  project discovery does not follow symlinked directories;
-- plugin ZIP and tar archives cannot use absolute paths, parent traversal,
-  links, or special files to write outside their temporary extraction
-  directory;
-- automatic baseline selection uses the conventional path inside the
-  materialized target, malformed baseline documents fail closed, and baseline
-  replacement does not expose partial data;
-- untrusted package identity text is hashed before it becomes a cache filename;
-- generated output is written only to the path the user explicitly selected.
+## Behaviors under test
+
+| Boundary | Expected behavior | Main coverage |
+|---|---|---|
+| Git materialization | A requested commit is copied to a temporary checkout without changing the source repository | `TestCloneTempMaterializesRequestedCommitWithoutChangingSource` |
+| Repository symlinks | Materialization preserves links, while recursive discovery does not follow linked directories | `TestMaterializeLocalRefKeepsRepositorySymlinksAsSymlinks`, `TestPlanSubprojectsRecursiveDoesNotFollowSymlinkedDirs` |
+| Plugin ZIP extraction | Absolute paths, parent traversal, and symbolic links cannot write outside the extraction directory | `TestExtractZipArchiveRejectsEscapingAndSymlinkEntries` |
+| Plugin tar extraction | Absolute paths, parent traversal, links, and special files cannot write outside the extraction directory | `TestExtractTarGzArchiveRejectsEscapingLinksAndSpecialFiles` |
+| Automatic baseline | The conventional project baseline is resolved for filesystem and materialized Git targets, and invalid documents fail closed | `TestResolversForTargetHandlesOptionalRequiredAndURLPolicies`, `TestLoadRejectsMalformedAndUnsupportedDocuments` |
+| Baseline replacement | A rejected replacement leaves the existing baseline intact | `TestWriteAtomicValidationFailurePreservesExistingDocument` |
+| Cache filename | Untrusted package identity text is hashed before it becomes a cache filename | `TestFileCache_HostileIdentityCannotEscapeCacheDirectory` |
+| Generated output | Output is written only to the destination the user selected | `TestWriteOutputDocumentWritesOnlyToExplicitDestination` |
 
 Explicit paths are authority boundaries, not project sandboxes. A user may
 choose an output, cache, config, or baseline path outside the scanned project.

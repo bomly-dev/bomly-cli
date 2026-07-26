@@ -222,7 +222,7 @@ func planRecursiveFilesystemSubprojects(registryValue *engine.Registry, req Requ
 		zap.Duration("duration", time.Since(start)))
 
 	if len(seen) == 0 {
-		return nil, noSubprojectsError(req)
+		return nil, noSubprojectsError(registryValue, req)
 	}
 	subprojects := make([]sdk.Subproject, 0, len(seen))
 	for _, subproject := range seen {

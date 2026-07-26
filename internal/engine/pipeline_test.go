@@ -197,8 +197,64 @@ func TestResolveDetectors_IncludesReadyReasonWhenDetectorNotReady(t *testing.T) 
 	if err == nil {
 		t.Fatal("expected detector readiness error")
 	}
-	if !strings.Contains(err.Error(), "detector maven-detector: not ready: java runtime is unavailable") {
+	// A chain that never started reports one actionable line naming each link
+	// and what it needs, not a joined list of per-detector errors.
+	if !strings.Contains(err.Error(), "no usable detector: maven-detector not ready (java runtime is unavailable") {
 		t.Fatalf("expected readiness reason in error, got %v", err)
+	}
+}
+
+// TestResolveDetectors_SummarizesEveryUnreadyChainLink covers the fallback
+// chain: when neither the primary nor its fallback can run, both are named.
+func TestResolveDetectors_SummarizesEveryUnreadyChainLink(t *testing.T) {
+	registry := newTestRegistry()
+	notReady := false
+	registry.registerDetector(fakeFallbackDetector{
+		fakeDetector: fakeDetector{
+			descriptor:  DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+			ready:       &notReady,
+			readyReason: "npm not on PATH",
+		},
+		fallback: fakeDetector{
+			descriptor:  DetectorDescriptor{Name: "npm-lockfile", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+			ready:       &notReady,
+			readyReason: "no committed lockfile",
+		},
+	})
+
+	pipeline := NewPipeline(registry, zap.NewNop())
+	req := ResolveGraphRequest{Ecosystem: EcosystemNPM, PackageManager: PackageManagerNPM}
+	_, err := pipeline.resolveDetectors(context.Background(), req, registry.Detectors(req), nil)
+	if err == nil {
+		t.Fatal("expected detector readiness error")
+	}
+	want := "no usable detector: npm-native not ready (npm not on PATH); npm-lockfile not ready (no committed lockfile)"
+	if err.Error() != want {
+		t.Fatalf("resolveDetectors() error = %q, want %q", err, want)
+	}
+}
+
+// TestResolveDetectors_KeepsRunFailuresVerbatim proves the summary is scoped
+// to readiness: a detector that ran and failed explains itself better than a
+// "no usable detector" line would.
+func TestResolveDetectors_KeepsRunFailuresVerbatim(t *testing.T) {
+	registry := newTestRegistry()
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		err:        errors.New("npm ls: exit status 1"),
+	})
+
+	pipeline := NewPipeline(registry, zap.NewNop())
+	req := ResolveGraphRequest{Ecosystem: EcosystemNPM, PackageManager: PackageManagerNPM}
+	_, err := pipeline.resolveDetectors(context.Background(), req, registry.Detectors(req), nil)
+	if err == nil {
+		t.Fatal("expected detector resolution error")
+	}
+	if strings.Contains(err.Error(), "no usable detector") {
+		t.Fatalf("expected the run failure verbatim, got %v", err)
+	}
+	if !strings.Contains(err.Error(), "npm ls: exit status 1") {
+		t.Fatalf("expected the underlying failure in the error, got %v", err)
 	}
 }
 

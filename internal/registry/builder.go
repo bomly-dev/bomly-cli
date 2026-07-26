@@ -3,7 +3,6 @@ package registry
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -34,6 +33,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/sbt"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/swiftpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/syft"
+	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/depsdev"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/grype"
 	osvmatcher "github.com/bomly-dev/bomly-cli/internal/matchers/osv"
@@ -390,19 +390,10 @@ func (r *Registry) registerScorecardMatcher() {
 		r.RegisterMatcherWithOptions(matcher, ComponentOptions{DefaultEnabled: false})
 	}
 	r.logger.Debug("scorecard matcher configured",
-		zap.String("api_base", endpointForLog(scoreCfg.APIBase)),
+		zap.String("api_base", logging.SanitizeURL(scoreCfg.APIBase)),
 		zap.String("cache_dir", scoreCfg.CacheDir),
 		zap.Duration("cache_ttl", scoreCfg.CacheTTL),
 	)
-}
-
-func endpointForLog(value string) string {
-	parsed, err := url.Parse(value)
-	if err != nil {
-		return "[invalid URL]"
-	}
-	parsed.User = nil
-	return parsed.String()
 }
 
 func (r *Registry) httpClientProvider() *sdk.HTTPClientProvider {

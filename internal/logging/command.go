@@ -65,7 +65,15 @@ func CommandFields(executable string, args []string, workingDir string) []zap.Fi
 // fails closed when URL parsing fails. Query values are not inspected, so
 // callers must not use this helper as a general query-string redactor.
 func SanitizeURL(value string) string {
-	return redactURLUserinfo(value)
+	if !strings.Contains(value, "://") {
+		return value
+	}
+	parsed, err := url.Parse(value)
+	if err != nil {
+		return redactedArgument
+	}
+	parsed.User = nil
+	return parsed.String()
 }
 
 func sensitiveFlag(value string) bool {

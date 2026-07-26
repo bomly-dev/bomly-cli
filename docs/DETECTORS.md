@@ -61,6 +61,10 @@ After vulnerability enrichment, supporting detectors may describe package-manage
 
 Each package-manager page lists the strategies its built-in detectors understand. External detector plugins can advertise the same optional capability. Older protocol-v1 plugins keep working without it.
 
+## Resolution warnings
+
+A detector can resolve a perfectly good graph from a project whose package-manager configuration will still break an install somewhere else — a lockfile format the pinned manager will not keep, an install policy that rejects freshly published versions. Detectors record those as resolution warnings on the manifest they resolved, so the graph is still produced and the problem is still reported. See [CI-readiness warnings](CI_READINESS.md) for the checks and where the warnings surface.
+
 ## Network behavior
 
 Detectors differ in whether they run subprocesses, and those that do may
@@ -180,4 +184,5 @@ bomly scan --image ghcr.io/example/app:latest
 
 - [Ecosystem guides](detectors/ecosystems/) — generated per-ecosystem detector chains, evidence patterns, and `PATH` requirements
 - [Support matrix](SUPPORT_MATRIX.md) — generated overview of every supported ecosystem
+- [CI-readiness warnings](CI_READINESS.md) — the package-manager mismatches detectors report alongside the graph
 - [Plugins](PLUGINS.md) — author and install external detectors

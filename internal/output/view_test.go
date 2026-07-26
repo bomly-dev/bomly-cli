@@ -1,7 +1,9 @@
 package output_test
 
 import (
+	"encoding/json"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -1020,4 +1022,80 @@ func scanPackageByName(t *testing.T, packages []output.ScanPackageEntry, name st
 	}
 	t.Fatalf("package %q not found in %#v", name, packages)
 	return output.ScanPackageEntry{}
+}
+
+func TestBuildScanResponseCarriesDetectorWarningsIntoJSON(t *testing.T) {
+	graph := sdk.New()
+	if err := graph.AddNode(sdk.NewDependencyRef("react", "18.2.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+	warnings := []sdk.DetectorWarning{
+		{
+			Type:     sdk.DetectorWarningPackageManager,
+			Code:     sdk.DetectorWarningCodeLockfileFormat,
+			Source:   "pnpm",
+			Manifest: "pnpm-lock.yaml",
+			Message:  "pnpm-lock.yaml is format version 6.0",
+		},
+		{
+			Type:       sdk.DetectorWarningResolutionFailure,
+			Source:     "maven-detector",
+			Subproject: "services/api",
+			Message:    "not ready: java executable not found on PATH",
+		},
+	}
+	consolidated := sdk.ConsolidatedGraph{
+		Manifests: []sdk.ConsolidatedManifest{{
+			DetectorName: "pnpm-lockfile",
+			Entry: sdk.GraphEntry{
+				Graph:    graph,
+				Manifest: sdk.ManifestMetadata{Path: "pnpm-lock.yaml", Kind: "pnpm-lock.yaml"},
+			},
+		}},
+	}
+
+	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, nil, nil, time.Now(),
+		output.ReportOptions{DetectorWarnings: warnings})
+	if len(response.Warnings) != 2 {
+		t.Fatalf("expected both warnings on the response, got %+v", response.Warnings)
+	}
+
+	encoded, err := json.Marshal(response)
+	if err != nil {
+		t.Fatalf("marshal response: %v", err)
+	}
+	for _, want := range []string{
+		`"warnings"`,
+		`"type":"package-manager"`,
+		`"code":"lockfile-format-mismatch"`,
+		`"source":"pnpm"`,
+		`"manifest":"pnpm-lock.yaml"`,
+		`"type":"resolution-failure"`,
+		`"subproject":"services/api"`,
+	} {
+		if !strings.Contains(string(encoded), want) {
+			t.Fatalf("scan JSON is missing %s: %s", want, encoded)
+		}
+	}
+}
+
+func TestBuildScanResponseOmitsWarningsWhenClean(t *testing.T) {
+	graph := sdk.New()
+	if err := graph.AddNode(sdk.NewDependencyRef("react", "18.2.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+	consolidated := sdk.ConsolidatedGraph{
+		Manifests: []sdk.ConsolidatedManifest{{
+			DetectorName: "pnpm-lockfile",
+			Entry:        sdk.GraphEntry{Graph: graph, Manifest: sdk.ManifestMetadata{Path: "pnpm-lock.yaml"}},
+		}},
+	}
+	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, nil, nil, time.Now())
+	encoded, err := json.Marshal(response)
+	if err != nil {
+		t.Fatalf("marshal response: %v", err)
+	}
+	if strings.Contains(string(encoded), `"warnings"`) {
+		t.Fatalf("a clean scan must not emit a warnings key: %s", encoded)
+	}
 }

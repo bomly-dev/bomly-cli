@@ -13,7 +13,7 @@ Task-oriented walkthroughs.
 - [Output Formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM
 - [SBOM Formats](SBOM.md) — SPDX vs. CycloneDX, write and ingest
 - [CI Integration](CI_INTEGRATION.md) — GitHub Actions, GitLab, Jenkins, Azure, CircleCI
-- [CI-Readiness Hints](CI_READINESS.md) — package-manager, lockfile-format, and install-policy mismatches that fail CI on their own
+- [CI-Readiness Warnings](CI_READINESS.md) — package-manager, lockfile-format, and install-policy mismatches that fail CI on their own
 - [Bomly Guard](BOMLY_GUARD.md) — the turnkey GitHub Action for PR dependency review
 - [Finding Baselines](BASELINES.md) — keep accepted package findings visible without failing audits
 - [Interactive TUI](TUI.md) — keybindings and tabs for `--interactive`

@@ -90,7 +90,7 @@ func newExplainCmd() *cobra.Command {
 			resolved := explainResult.ResolveResults
 			detectionChildren := detectorProgressChildren(resolved)
 			detectionChildren = append(detectionChildren, warningProgressChildren(explainResult.DetectorWarnings)...)
-			detectionChildren = append(detectionChildren, warningProgressChildren(explainResult.CIWarnings)...)
+			detectionChildren = append(detectionChildren, warningProgressChildren(explainResult.ResolutionWarnings)...)
 			prog.CompleteStep("Detected Dependencies", detectionChildren)
 			prog.Advance("Finding dependency paths")
 			if len(explainResult.MatcherStats) > 0 || len(explainResult.MatchWarnings) > 0 {

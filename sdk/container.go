@@ -68,6 +68,11 @@ type ResolutionMetadata struct {
 	// Fallback records that a fallback detector produced this graph after the
 	// planned primary detector failed (not routine applicability hand-off).
 	Fallback *ResolutionFallback `json:"fallback,omitempty"`
+	// Warnings records non-blocking problems the detector found while
+	// resolving this manifest. The graph itself is sound; the warnings
+	// describe project configuration that will degrade or break an install
+	// elsewhere — typically in CI.
+	Warnings []ResolutionWarning `json:"warnings,omitempty"`
 }
 
 // ResolutionFallback identifies the primary detector that failed before a
@@ -75,6 +80,35 @@ type ResolutionMetadata struct {
 type ResolutionFallback struct {
 	From   string `json:"from"`
 	Reason string `json:"reason,omitempty"`
+}
+
+// ResolutionWarningCode is the stable machine-readable key for a resolution
+// warning. Messages are written for humans and may be reworded; consumers that
+// branch on a warning must match on the code.
+type ResolutionWarningCode string
+
+const (
+	// ResolutionWarningLockfileFormat means the committed lockfile's format
+	// version disagrees with the package-manager version the project declares,
+	// so the manager that runs in CI will refuse or rewrite the lockfile.
+	ResolutionWarningLockfileFormat ResolutionWarningCode = "lockfile-format-mismatch"
+	// ResolutionWarningPackageManager means the project pins one package
+	// manager but commits another manager's lockfile.
+	ResolutionWarningPackageManager ResolutionWarningCode = "package-manager-mismatch"
+	// ResolutionWarningEngines means a declared engines constraint contradicts
+	// another declaration in the same project.
+	ResolutionWarningEngines ResolutionWarningCode = "engines-constraint-mismatch"
+	// ResolutionWarningInstallGate means an install policy rejects versions by
+	// age or publish date, so a freshly published fix version cannot install.
+	ResolutionWarningInstallGate ResolutionWarningCode = "install-policy-gate"
+)
+
+// ResolutionWarning is one non-blocking problem found while resolving a
+// manifest. Source names the tool or config the warning is about (e.g. "pnpm").
+type ResolutionWarning struct {
+	Code    ResolutionWarningCode `json:"code"`
+	Source  string                `json:"source,omitempty"`
+	Message string                `json:"message"`
 }
 
 // GraphEntry describes one manifest-scoped dependency graph. Detection-time

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strconv"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
@@ -84,6 +85,8 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 	AttachPackageLockPositionsForName(graphs.graph, workingDir, graphs.lockfileName)
 
 	rootManifest := detectors.InferManifestMetadata(req, npmManifestMetadataPatterns)
+	node.AttachResolutionWarnings(&rootManifest, node.ResolutionWarnings(workingDir, sdk.PackageManagerNPM,
+		node.LockfileFormat{File: graphs.lockfileName, Version: strconv.Itoa(graphs.lockfileVersion)}))
 	if len(graphs.modules) == 0 {
 		return sdk.DetectionResult{
 			Graphs: sdk.SingleGraphContainer(graphs.graph, rootManifest),

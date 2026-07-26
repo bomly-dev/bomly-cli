@@ -3,8 +3,6 @@ package engine
 import (
 	"context"
 	"errors"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -1021,28 +1019,85 @@ func TestPipelineWarningsFromError_JoinedErrors(t *testing.T) {
 	}
 }
 
-func TestPipeline_Run_ReportsCIReadinessHints(t *testing.T) {
-	dir := t.TempDir()
-	// minimumReleaseAge is detected from config alone, so the hint does not
-	// depend on which package managers happen to be on the test machine's PATH.
-	if err := os.WriteFile(filepath.Join(dir, "pnpm-workspace.yaml"), []byte("packages:\n  - packages/*\nminimumReleaseAge: 1440\n"), 0o600); err != nil {
-		t.Fatalf("write pnpm-workspace.yaml: %v", err)
-	}
-
+func TestPipeline_Run_CollectsResolutionWarningsFromManifests(t *testing.T) {
 	registry := newTestRegistry()
 	graph := sdk.New()
 	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
+	warning := sdk.ResolutionWarning{
+		Code:    sdk.ResolutionWarningInstallGate,
+		Source:  "pnpm",
+		Message: "pnpm-workspace.yaml sets minimumReleaseAge=1440 (24h)",
+	}
+	manifest := sdk.ManifestMetadata{
+		Path:       "pnpm-lock.yaml",
+		Kind:       "pnpm-lock.yaml",
+		Resolution: &sdk.ResolutionMetadata{Warnings: []sdk.ResolutionWarning{warning}},
+	}
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "pnpm-lockfile", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerPNPM}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "pnpm-lock.yaml", Kind: "pnpm-lock.yaml"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(graph, manifest)},
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
 	result, err := pipeline.Run(context.Background(), PipelineRequest{
 		Subprojects: []Subproject{{
-			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: dir},
+			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
+			RelativePath:            "apps/web",
+			PrimaryDetector:         "pnpm-lockfile",
+			DetectedPackageManagers: []PackageManager{PackageManagerPNPM},
+			Ecosystem:               EcosystemNPM,
+		}},
+	})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if len(result.ResolutionWarnings) != 1 {
+		t.Fatalf("expected 1 resolution warning, got %+v", result.ResolutionWarnings)
+	}
+	got := result.ResolutionWarnings[0]
+	if got.Source != "pnpm" || got.Message != "subproject apps/web: "+warning.Message {
+		t.Fatalf("unexpected resolution warning: %+v", got)
+	}
+	// Resolution warnings are advisory: they must not be reported as detector
+	// warnings, which mean degraded coverage and block baseline writes.
+	if len(result.DetectorWarnings) != 0 {
+		t.Fatalf("expected no detector warnings, got %+v", result.DetectorWarnings)
+	}
+	// The warning also stays on the manifest so it reaches JSON output.
+	manifests := result.Consolidated.Manifests
+	if len(manifests) != 1 || manifests[0].Entry.Manifest.Resolution == nil ||
+		len(manifests[0].Entry.Manifest.Resolution.Warnings) != 1 {
+		t.Fatalf("expected the warning to survive consolidation on the manifest: %+v", manifests)
+	}
+}
+
+func TestPipeline_Run_DeduplicatesRepeatedResolutionWarnings(t *testing.T) {
+	registry := newTestRegistry()
+	graph := sdk.New()
+	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+	warning := sdk.ResolutionWarning{Code: sdk.ResolutionWarningInstallGate, Source: "pnpm", Message: ".npmrc sets before=2026-01-01"}
+	entry := func(path string) sdk.GraphEntry {
+		return sdk.GraphEntry{Graph: graph, Manifest: sdk.ManifestMetadata{
+			Path:       path,
+			Resolution: &sdk.ResolutionMetadata{Warnings: []sdk.ResolutionWarning{warning}},
+		}}
+	}
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "pnpm-lockfile", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerPNPM}},
+		result: ResolveGraphResult{Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{
+			entry("pnpm-lock.yaml"),
+			entry("packages/api/package.json"),
+		}}},
+	})
+
+	pipeline := NewPipeline(registry, zap.NewNop())
+	result, err := pipeline.Run(context.Background(), PipelineRequest{
+		Subprojects: []Subproject{{
+			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
 			RelativePath:            ".",
 			PrimaryDetector:         "pnpm-lockfile",
 			DetectedPackageManagers: []PackageManager{PackageManagerPNPM},
@@ -1052,13 +1107,7 @@ func TestPipeline_Run_ReportsCIReadinessHints(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Run() error = %v", err)
 	}
-	if len(result.CIWarnings) != 1 {
-		t.Fatalf("expected 1 ci-readiness warning, got %+v", result.CIWarnings)
-	}
-	if result.CIWarnings[0].Source != "pnpm" || !strings.Contains(result.CIWarnings[0].Message, "minimumReleaseAge=1440") {
-		t.Fatalf("unexpected ci-readiness warning: %+v", result.CIWarnings[0])
-	}
-	if len(result.DetectorWarnings) != 0 {
-		t.Fatalf("ci-readiness hints must not be reported as detector warnings: %+v", result.DetectorWarnings)
+	if len(result.ResolutionWarnings) != 1 {
+		t.Fatalf("expected the repeated warning to collapse to 1, got %+v", result.ResolutionWarnings)
 	}
 }

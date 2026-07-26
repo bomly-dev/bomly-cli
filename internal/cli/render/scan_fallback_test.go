@@ -136,3 +136,61 @@ func TestScanMarkdownEscapesUntrustedFallbackText(t *testing.T) {
 		t.Fatalf("expected escaped script tag in markdown output, got:\n%s", rendered)
 	}
 }
+
+func resolutionWarningManifests() []output.ScanManifest {
+	warning := model.ResolutionWarning{
+		Code:    model.ResolutionWarningInstallGate,
+		Source:  "pnpm",
+		Message: "pnpm-workspace.yaml sets minimumReleaseAge=1440 (24h); versions published inside that window are rejected at install",
+	}
+	return []output.ScanManifest{
+		{Path: "pnpm-lock.yaml", Resolution: &model.ResolutionMetadata{Warnings: []model.ResolutionWarning{warning}}},
+		{Path: "packages/api/package.json", Resolution: &model.ResolutionMetadata{Warnings: []model.ResolutionWarning{warning}}},
+		{Path: "packages/web/package.json"},
+	}
+}
+
+func TestResolutionWarningNotices_GroupsRepeatedWarnings(t *testing.T) {
+	notices := ResolutionWarningNotices(resolutionWarningManifests())
+	if len(notices) != 1 {
+		t.Fatalf("expected the shared warning to collapse to 1 notice, got %#v", notices)
+	}
+	if !strings.Contains(notices[0], "minimumReleaseAge=1440") {
+		t.Fatalf("notice lost its message: %q", notices[0])
+	}
+	if !strings.Contains(notices[0], "pnpm-lock.yaml, packages/api/package.json") {
+		t.Fatalf("notice should name the manifests it came from: %q", notices[0])
+	}
+	if got := ResolutionWarningNotices(resolutionWarningManifests()[2:]); got != nil {
+		t.Fatalf("expected nil for manifests without warnings, got %#v", got)
+	}
+}
+
+func TestResolutionWarningNotices_CollapsesEmbeddedNewlines(t *testing.T) {
+	manifests := []output.ScanManifest{{
+		Path: "pnpm-lock.yaml",
+		Resolution: &model.ResolutionMetadata{Warnings: []model.ResolutionWarning{{
+			Code:    model.ResolutionWarningEngines,
+			Message: "engines mismatch\n\n✗ injected line",
+		}}},
+	}}
+	notices := ResolutionWarningNotices(manifests)
+	if len(notices) != 1 {
+		t.Fatalf("expected 1 notice, got %#v", notices)
+	}
+	if strings.Contains(notices[0], "\n") {
+		t.Fatalf("notice must stay single-line: %q", notices[0])
+	}
+}
+
+func TestScanRendersResolutionWarningNotices(t *testing.T) {
+	g := model.New()
+	if err := g.AddNode(model.NewDependencyRef("react", "18.2.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+	manifests := resolutionWarningManifests()
+	out := Scan(g, nil, nil, nil, false, false, false, nil, manifests, ResolutionWarningNotices(manifests))
+	if !strings.Contains(out, "minimumReleaseAge=1440") {
+		t.Fatalf("scan report is missing the resolution warning:\n%s", out)
+	}
+}

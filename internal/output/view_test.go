@@ -1,7 +1,9 @@
 package output_test
 
 import (
+	"encoding/json"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -1020,4 +1022,48 @@ func scanPackageByName(t *testing.T, packages []output.ScanPackageEntry, name st
 	}
 	t.Fatalf("package %q not found in %#v", name, packages)
 	return output.ScanPackageEntry{}
+}
+
+func TestBuildScanResponseCarriesResolutionWarningsIntoJSON(t *testing.T) {
+	graph := sdk.New()
+	if err := graph.AddNode(sdk.NewDependencyRef("react", "18.2.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+	warning := sdk.ResolutionWarning{
+		Code:    sdk.ResolutionWarningLockfileFormat,
+		Source:  "pnpm",
+		Message: "pnpm-lock.yaml is format version 6.0",
+	}
+	consolidated := sdk.ConsolidatedGraph{
+		Manifests: []sdk.ConsolidatedManifest{{
+			DetectorName: "pnpm-lockfile",
+			Entry: sdk.GraphEntry{
+				Graph: graph,
+				Manifest: sdk.ManifestMetadata{
+					Path:       "pnpm-lock.yaml",
+					Kind:       "pnpm-lock.yaml",
+					Resolution: &sdk.ResolutionMetadata{Warnings: []sdk.ResolutionWarning{warning}},
+				},
+			},
+		}},
+	}
+
+	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, nil, nil, time.Now(), output.ReportOptions{})
+	if len(response.Manifests) != 1 || response.Manifests[0].Resolution == nil {
+		t.Fatalf("expected resolution metadata on the manifest, got %+v", response.Manifests)
+	}
+	got := response.Manifests[0].Resolution.Warnings
+	if len(got) != 1 || got[0] != warning {
+		t.Fatalf("unexpected resolution warnings: %+v", got)
+	}
+
+	encoded, err := json.Marshal(response.Manifests[0])
+	if err != nil {
+		t.Fatalf("marshal manifest: %v", err)
+	}
+	for _, want := range []string{`"warnings"`, `"code":"lockfile-format-mismatch"`, `"source":"pnpm"`} {
+		if !strings.Contains(string(encoded), want) {
+			t.Fatalf("manifest JSON is missing %s: %s", want, encoded)
+		}
+	}
 }

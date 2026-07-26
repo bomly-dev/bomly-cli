@@ -123,7 +123,7 @@ MCP tool results land in an agent's context window, so they use a compact respon
   - `no-fix-upstream` means the advisory source says no fixed version exists.
   - `manual-review` means the available data does not support a specific change.
 - **`informational`** — findings that do not currently require a change. This includes warning-only findings and vulnerabilities allowed by audit policy or below the selected failure threshold.
-- **`diagnostics`** — pipeline warnings (detector fallbacks, matcher failures) so partial results explain themselves, plus [CI-readiness hints](CI_READINESS.md) under the `ci-readiness` stage: package-manager, lockfile-format, and install-policy mismatches that fail a CI install even after the vulnerability is fixed.
+- **`diagnostics`** — pipeline warnings (detector fallbacks, matcher failures) so partial results explain themselves, plus the [CI-readiness warnings](CI_READINESS.md) detectors record while resolving: package-manager, lockfile-format, and install-policy mismatches that fail a CI install even after the vulnerability is fixed.
 - **`truncation`** — explicit counters whenever a cap cut anything; nothing is dropped silently.
 
 Each finding carries advisory identifiers (`vuln_id`, aliases), severity, classification (`fix_available`, `no_fix_upstream`, `wont_fix`, `policy_only`), the shortest dependency path, and KEV/EPSS/reachability signals — but no descriptions, reference URLs, or CVSS vectors.

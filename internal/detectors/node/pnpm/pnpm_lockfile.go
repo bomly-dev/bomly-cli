@@ -79,6 +79,8 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 	AttachPnpmLockPositions(graphs.graph, workingDir)
 
 	rootManifest := detectors.InferManifestMetadata(req, pnpmManifestMetadataPatterns)
+	node.AttachResolutionWarnings(&rootManifest, node.ResolutionWarnings(workingDir, sdk.PackageManagerPNPM,
+		node.LockfileFormat{File: "pnpm-lock.yaml", Version: graphs.lockfileVersion}))
 	if len(graphs.modules) == 0 {
 		return sdk.DetectionResult{
 			Graphs: sdk.SingleGraphContainer(graphs.graph, rootManifest),

@@ -273,6 +273,15 @@ Complete reference for the `bomly scan` JSON output.
 | `install_command` | Array<`string`> | |
 | `install_working_dir` | `string` | |
 | `fallback` | [`ResolutionFallback`](#resolutionfallback) | |
+| `warnings` | Array<[`ResolutionWarning`](#resolutionwarning)> | |
+
+### `ResolutionWarning`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `code` | `string` | |
+| `source` | `string` | |
+| `message` | `string` | |
 
 ### `ScanDependency`
 

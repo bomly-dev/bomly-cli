@@ -411,3 +411,111 @@ func (d *installRecorderDetector) Install(context.Context, sdk.DetectionRequest)
 	d.called++
 	return nil
 }
+
+// resolveTestManifests resolves a project and returns the manifest metadata the
+// detector recorded, so tests can assert on resolution warnings.
+func resolveTestManifests(t *testing.T, detector sdk.Detector, projectDir string) []sdk.ManifestMetadata {
+	t.Helper()
+	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	if result.Graphs == nil {
+		t.Fatal("ResolveGraph() returned no graphs")
+	}
+	manifests := make([]sdk.ManifestMetadata, 0, len(result.Graphs.Entries))
+	for _, entry := range result.Graphs.Entries {
+		manifests = append(manifests, entry.Manifest)
+	}
+	return manifests
+}
+
+func TestPNPMLockfileDetectorRecordsResolutionWarnings(t *testing.T) {
+	projectDir := t.TempDir()
+	// pnpm 6.0 lockfile with an pnpm 11 pin: pnpm 11 migrates the format, so a
+	// frozen-lockfile CI install fails even though this parse succeeds.
+	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "packageManager": "pnpm@11.0.0"
+}`), 0o644); err != nil {
+		t.Fatalf("write package.json: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(projectDir, "pnpm-lock.yaml"), []byte(`lockfileVersion: '6.0'
+dependencies:
+  react:
+    specifier: ^18.2.0
+    version: 18.2.0
+packages:
+  /react@18.2.0:
+    dev: false
+`), 0o644); err != nil {
+		t.Fatalf("write pnpm-lock.yaml: %v", err)
+	}
+
+	manifests := resolveTestManifests(t, pnpm.LockfileDetector{}, projectDir)
+	if len(manifests) == 0 || manifests[0].Resolution == nil {
+		t.Fatalf("expected resolution metadata on the root manifest, got %+v", manifests)
+	}
+	warnings := manifests[0].Resolution.Warnings
+	if len(warnings) != 1 || warnings[0].Code != sdk.ResolutionWarningLockfileFormat || warnings[0].Source != "pnpm" {
+		t.Fatalf("unexpected resolution warnings: %+v", warnings)
+	}
+}
+
+func TestYarnLockfileDetectorRecordsBerryFormatWarning(t *testing.T) {
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "packageManager": "yarn@1.22.22",
+  "dependencies": {"react": "^18.2.0"}
+}`), 0o644); err != nil {
+		t.Fatalf("write package.json: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(projectDir, "yarn.lock"), []byte(`__metadata:
+  version: 8
+  cacheKey: 10
+
+"react@npm:^18.2.0":
+  version: 18.2.0
+`), 0o644); err != nil {
+		t.Fatalf("write yarn.lock: %v", err)
+	}
+
+	manifests := resolveTestManifests(t, yarn.LockfileDetector{}, projectDir)
+	if len(manifests) == 0 || manifests[0].Resolution == nil {
+		t.Fatalf("expected resolution metadata on the manifest, got %+v", manifests)
+	}
+	warnings := manifests[0].Resolution.Warnings
+	if len(warnings) != 1 || warnings[0].Code != sdk.ResolutionWarningLockfileFormat {
+		t.Fatalf("unexpected resolution warnings: %+v", warnings)
+	}
+}
+
+func TestLockfileDetectorsLeaveCleanProjectsUnannotated(t *testing.T) {
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "packageManager": "npm@10.9.0"
+}`), 0o644); err != nil {
+		t.Fatalf("write package.json: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(projectDir, "package-lock.json"), []byte(`{
+  "name": "demo-app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "demo-app", "dependencies": {"react": "^18.2.0"}},
+    "node_modules/react": {"version": "18.2.0"}
+  }
+}`), 0o644); err != nil {
+		t.Fatalf("write package-lock.json: %v", err)
+	}
+
+	for _, manifest := range resolveTestManifests(t, npm.LockfileDetector{}, projectDir) {
+		if manifest.Resolution != nil && len(manifest.Resolution.Warnings) > 0 {
+			t.Fatalf("expected no resolution warnings for a consistent project, got %+v", manifest.Resolution.Warnings)
+		}
+	}
+}

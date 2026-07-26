@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/internal/engine/ciready"
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
 	"github.com/bomly-dev/bomly-cli/internal/remediation"
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -53,7 +52,6 @@ func (p *Pipeline) RunPreAudit(ctx context.Context, req PipelineRequest) (Pipeli
 	if err := p.runDetect(ctx, &result, req); err != nil {
 		return result, err
 	}
-	p.runCIReadiness(ctx, &result, req)
 	p.runMatch(ctx, &result, req)
 	p.runAnalyze(ctx, &result, req)
 	return result, nil
@@ -158,7 +156,56 @@ func (p *Pipeline) runResolve(ctx context.Context, result *PipelineResult, req P
 		p.Logger.Warn("pipeline: partial resolution failures", zap.Error(resolveErr))
 	}
 	result.DetectorWarnings = append(result.DetectorWarnings, p.fallbackWarnings(resolveResults)...)
+	result.ResolutionWarnings = p.resolutionWarnings(resolveResults)
 	return nil
+}
+
+// resolutionWarnings collects the non-blocking warnings detectors recorded on
+// the manifests they resolved — package-manager pins that disagree with the
+// committed lockfile, install policy gates — into the pipeline warning channel,
+// and logs each one so `-v` shows them when progress output is off (`-q`) or
+// the run has no terminal. The warnings also travel on the manifests
+// themselves, which is how they reach JSON output. Duplicates (a repo-root
+// config shared by several manifests) are reported once. Like fallbackWarnings,
+// this runs single-goroutine after resolveAll returns.
+func (p *Pipeline) resolutionWarnings(results []sdk.DetectionResult) []PipelineWarning {
+	var warnings []PipelineWarning
+	seen := make(map[string]struct{})
+	for _, result := range results {
+		if result.Graphs == nil {
+			continue
+		}
+		for _, entry := range result.Graphs.Entries {
+			if entry.Manifest.Resolution == nil {
+				continue
+			}
+			for _, warning := range entry.Manifest.Resolution.Warnings {
+				message := resolutionWarningMessage(result.SubprojectInfo, warning)
+				key := warning.Source + "\x00" + message
+				if _, ok := seen[key]; ok {
+					continue
+				}
+				seen[key] = struct{}{}
+				p.Logger.Warn("pipeline: resolution warning",
+					zap.String("code", string(warning.Code)),
+					zap.String("source", warning.Source),
+					zap.String("detector", result.DetectorName),
+					zap.String("subproject", result.SubprojectInfo.RelativePath),
+					zap.String("manifest", entry.Manifest.Path),
+					zap.String("message", warning.Message),
+				)
+				warnings = append(warnings, PipelineWarning{Source: warning.Source, Message: message})
+			}
+		}
+	}
+	return warnings
+}
+
+func resolutionWarningMessage(subproject sdk.Subproject, warning sdk.ResolutionWarning) string {
+	if rel := strings.TrimSpace(subproject.RelativePath); rel != "" && rel != "." {
+		return "subproject " + rel + ": " + warning.Message
+	}
+	return warning.Message
 }
 
 // fallbackWarnings converts fallback annotations recorded during parallel
@@ -198,28 +245,6 @@ func fallbackWarningMessage(result sdk.DetectionResult) string {
 	}
 	fmt.Fprintf(&b, "%s — fell back to %s (transitive dependencies may be missing)", reason, result.DetectorName)
 	return b.String()
-}
-
-// runCIReadiness inspects package-manager configuration around each subproject
-// for mismatches and install gates that fail a CI install even when no
-// vulnerability remains (lockfile format vs the manager on PATH, a Corepack or
-// engines pin CI enforces, pnpm's minimumReleaseAge). It is read-only,
-// network-free, and never fails the pipeline.
-func (p *Pipeline) runCIReadiness(ctx context.Context, result *PipelineResult, req PipelineRequest) {
-	started := time.Now()
-	diagnostics := ciready.Inspector{Logger: p.Logger}.Inspect(ctx, req.Subprojects)
-	for _, diagnostic := range diagnostics {
-		p.Logger.Warn("pipeline: ci-readiness hint",
-			zap.String("source", diagnostic.Source),
-			zap.String("message", diagnostic.Message),
-		)
-		result.CIWarnings = append(result.CIWarnings, PipelineWarning{Source: diagnostic.Source, Message: diagnostic.Message})
-	}
-	p.Logger.Info("pipeline: ci-readiness inspection completed",
-		zap.Int("subprojects", len(req.Subprojects)),
-		zap.Int("hints", len(diagnostics)),
-		zap.Duration("duration", time.Since(started)),
-	)
 }
 
 func (p *Pipeline) runConsolidate(result *PipelineResult) error {

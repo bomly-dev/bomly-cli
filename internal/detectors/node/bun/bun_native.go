@@ -74,8 +74,10 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
+	manifestMetadata := detectors.InferManifestMetadata(req, []string{"package.json", "bun.lock", "bun.lockb"})
+	node.AttachResolutionWarnings(&manifestMetadata, node.ResolutionWarnings(d.base().ProjectDir(req.ProjectPath), sdk.PackageManagerBun, node.LockfileFormat{}))
 	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(graph, detectors.InferManifestMetadata(req, []string{"package.json", "bun.lock", "bun.lockb"})),
+		Graphs: sdk.SingleGraphContainer(graph, manifestMetadata),
 	}, nil
 }
 

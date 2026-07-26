@@ -78,16 +78,18 @@ type PipelineResult struct {
 	Findings         []sdk.Finding
 	RiskScores       []sdk.RiskScore
 	DetectorWarnings []PipelineWarning
-	// CIWarnings are CI-readiness hints: package-manager, lockfile-format, and
-	// install-policy mismatches that break a CI install regardless of findings.
-	CIWarnings      []PipelineWarning
-	AuditWarnings   []PipelineWarning
-	MatchWarnings   []PipelineWarning
-	AnalyzeWarnings []PipelineWarning
-	MatcherStats    []sdk.MatcherStats
-	AuditorRuns     []string
-	AnalyzerRuns    []string
-	AuditorFindings map[string]int
-	AnalyzerStats   map[string]sdk.ReachabilityStats
-	PartialErrors   error
+	// ResolutionWarnings are the non-blocking warnings detectors recorded while
+	// resolving a manifest: package-manager, lockfile-format, and install-policy
+	// mismatches that break a CI install regardless of findings. They are kept
+	// apart from DetectorWarnings because they do not mean degraded coverage.
+	ResolutionWarnings []PipelineWarning
+	AuditWarnings      []PipelineWarning
+	MatchWarnings      []PipelineWarning
+	AnalyzeWarnings    []PipelineWarning
+	MatcherStats       []sdk.MatcherStats
+	AuditorRuns        []string
+	AnalyzerRuns       []string
+	AuditorFindings    map[string]int
+	AnalyzerStats      map[string]sdk.ReachabilityStats
+	PartialErrors      error
 }

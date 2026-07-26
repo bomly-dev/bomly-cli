@@ -52,26 +52,24 @@ flowchart LR
     A[Runtime preparation]
     B[Subproject discovery]
     C[Detection: detector chains + graph consolidation]
-    D[CI-readiness inspection]
     F[Matchers: enrich, consolidate vulnerabilities, derive remediation]
     F2[Analyzers]
     G[Auditors]
     H[Output rendering]
 
-    A --> B --> C --> D --> F --> F2 --> G --> H
+    A --> B --> C --> F --> F2 --> G --> H
 ```
 
 Stage summary:
 
 1. Runtime preparation builds the filtered registry and execution plan.
 2. Subproject discovery finds supported package-manager roots for the target. By default only the execution-target root is inspected; `--recursive` walks nested directories (bounded by `--max-depth`, `--exclude`, and built-in ignore rules) and plans one subproject per directory-and-package-manager pair, with workspace-expanding managers pruned below ancestors that already cover them.
-3. Detection resolves a dependency graph per package manager and then consolidates the per-subproject graphs into the single graph and package registry the rest of the pipeline uses. When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it; all detector results pass through the shared SDK scope filter, and consolidation is the tail of this stage rather than a separate step.
-4. CI-readiness inspection (`internal/engine/ciready`) reads each subproject's package-manager configuration and compares it with the managers on `PATH`. It emits `PipelineResult.CIWarnings`, never findings, and never fails the run. See [`../docs/CI_READINESS.md`](../docs/CI_READINESS.md).
-5. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records. After vulnerability consolidation, `internal/remediation` derives package fix status and version, validates optional read-only detector hints, and creates occurrence-specific vulnerability suggestions. This is the tail of enrichment, not a separate stage.
-6. Analyzers run when `--analyze` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See [`../docs/REACHABILITY.md`](../docs/REACHABILITY.md) for ecosystem coverage and tier semantics.
-7. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. As the final part of that same audit stage, neutral policy-status resolvers may change only `Finding.PolicyStatus`; they never remove or rewrite finding evidence. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
-8. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
-9. Output rendering emits text, JSON, SARIF, or SBOM documents.
+3. Detection resolves a dependency graph per package manager and then consolidates the per-subproject graphs into the single graph and package registry the rest of the pipeline uses. Detectors may also record non-blocking `ResolutionWarning`s on the manifests they resolve (see the CI-readiness decision below). When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it; all detector results pass through the shared SDK scope filter, and consolidation is the tail of this stage rather than a separate step.
+4. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records. After vulnerability consolidation, `internal/remediation` derives package fix status and version, validates optional read-only detector hints, and creates occurrence-specific vulnerability suggestions. This is the tail of enrichment, not a separate stage.
+5. Analyzers run when `--analyze` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See [`../docs/REACHABILITY.md`](../docs/REACHABILITY.md) for ecosystem coverage and tier semantics.
+6. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. As the final part of that same audit stage, neutral policy-status resolvers may change only `Finding.PolicyStatus`; they never remove or rewrite finding evidence. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
+7. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
+8. Output rendering emits text, JSON, SARIF, or SBOM documents.
 
 `bomly explain` reuses the same detection (resolution + consolidation) and matching stages, then performs dependency path selection in its explain orchestration before optional component audit.
 
@@ -254,17 +252,17 @@ The `--format json` `findings[]` projection now mirrors `sdk.Finding` exactly: a
 
 The MCP server does not return the CLI JSON documents at all. Tool results land in an agent's context window and MCP clients truncate large results to errors, so `bomly_scan` / `bomly_diff` / `bomly_explain` return compact projections (`schema_version "mcp/1"`, `internal/mcp/types_compact.go`) built from the pipeline's domain data. MCP projects canonical package remediation suggestions; it does not select actions, versions, or package-manager advice. Groups are ranked KEV → severity → EPSS → fixability and hard-capped with explicit truncation counters. Audit may overlay policy status on matching vulnerability entries but cannot create or change suggestions. `bomly_explain` is the bounded drill-down (full advisory detail for one package); the CLI is the artifact channel for complete documents. The former `bomly_vuln_fix_context` tool was folded into these responses. Shortest dependency paths come from a bounded upward BFS over `Graph.Dependents`, never `CollectPathsTo` (all simple paths is exponential on dense graphs).
 
-### Decision: CI-readiness hints are a warning channel, not findings
+### Decision: CI-readiness problems are resolution warnings, not a pipeline stage
 
-Issue #245 surfaced CI failures that were never vulnerabilities: a lockfile written by pnpm 11 against a CI that runs pnpm 9, and a pnpm `minimumReleaseAge` gate that rejects a freshly published fix version. `internal/engine/ciready` inspects that class of problem after detection (`Pipeline.runCIReadiness`) and reports it through `PipelineResult.CIWarnings` — the same `PipelineWarning` shape detector fallbacks use, surfaced as ⚠ progress children on the CLI and as `Diagnostic{Stage: "ci-readiness"}` on MCP responses.
+Issue #245 surfaced CI failures that were never vulnerabilities: a lockfile written by pnpm 11 against a project that pins pnpm 9, and a pnpm `minimumReleaseAge` gate that rejects a freshly published fix version. These are detected by the Node detectors while they resolve (`internal/detectors/node/resolution_warnings.go`) and recorded as `sdk.ResolutionWarning`s on the manifest, next to the fallback provenance that already lives in `ResolutionMetadata`.
 
-Deliberate boundaries:
+**Why not `Ready`, and why not a stage.** The knowledge belongs with the detectors — `Ready` is where "is this toolchain usable here" already lives, and it receives the same per-subproject working directory a separate stage would have had to reconstruct. But `Ready` cannot carry this: its verdict is binary and a non-nil error routes the subproject to `resolveFallback`, so reporting a lockfile-format mismatch through it would demote a perfectly good lockfile parser to Syft over an advisory-only condition. Its plugin transport has the same gap — `ReadyResponse.Reason` is dropped when `Ready` is true. A dedicated pipeline stage was rejected outright: it duplicated detector knowledge, re-derived the working directory, and made a cross-cutting concern look like a phase of the run. What remained is the third option: the detector already parsed the lockfile and already knows the manager, so the finding is a *resolution* output, returned with the graph.
 
-- **Warnings, not findings.** These are facts about the developer's toolchain, not about a package, so they have no PURL to hang off and must never gate an exit code. They are also excluded from `baselineMutationWarningCount`: a manager mismatch is not degraded scan coverage and must not block a baseline write.
-- **Always on, no flag.** The check is a few file reads plus one `<manager> --version` per manager already referenced by the project, with results cached per run. Gating it behind a flag would mean nobody discovers it in the CI runs that need it most.
-- **PATH is the CI proxy.** Comparing against the tooling on the machine running Bomly is what makes the hint actionable in CI, and it is why the pin check goes quiet under Corepack (where `pnpm --version` already reports the pinned version). Comparisons are by major version so routine patch drift stays silent.
-- **Node only, initially.** npm/pnpm/Yarn/Bun version the manager, the lockfile format, and the install policy independently, which is what produces the failure mode. Other ecosystems can be added as separate check sets behind the same `Inspector`.
-- **Best-effort and silent on failure.** Unreadable or unparseable inputs are skipped: detectors already report malformed lockfiles, and a diagnostics channel that duplicates parse errors trains users to ignore it.
+**Warnings, not findings, and separate from `DetectorWarnings`.** These are facts about the developer's toolchain, not about a package, so they have no PURL and must never gate an exit code. They are collected into `PipelineResult.ResolutionWarnings` rather than `DetectorWarnings` specifically so `baselineMutationWarningCount` ignores them: a manager mismatch is not degraded scan coverage and must not block a baseline write.
+
+**Every surface, because `-q` exists.** The warning rides the manifest, so it reaches scan JSON at `manifests[].resolution.warnings` (with a stable `code`; messages are for humans and may be reworded), the text and Markdown reports above the summary, the progress stream as ⚠ children, `-v` logs, and MCP diagnostics under the `detect` stage. Progress alone was not enough: `-q` silences it and CI runs have no TTY.
+
+**Committed files only — no `--version` probe.** `pnpm`/`yarn` on `PATH` are frequently Corepack shims, and invoking one can download the pinned manager on demand and mutate Corepack's cache, which would mean a plain scan contacts a registry without `--enrich`. Comparing what the repository declares is also the more accurate question, since CI installs from the repository, not from this machine's `PATH`. The trade-off is accepted deliberately: a project that pins nothing gets no version comparison, and a laptop-versus-CI skew is not reported. Reading CI workflow files for setup-node/`pnpm/action-setup` pins would recover some of that and is left as a follow-up.
 
 ### Decision: Recursive discovery prunes native multi-module roots per package manager
 
@@ -441,7 +439,7 @@ vulnerability data and does not trigger network enrichment.
 
 **Detector network behavior is per-implementation.** Lockfile-parser detectors (npm, pnpm, yarn, Composer, Bundler, NuGet, GitHub Actions, SBOM ingest, …) are pure file parsers and make no network calls. Build-tool primary detectors (`go-detector`, `maven-detector`, `gradle-detector`, `sbt-native-detector`) shell out to the build tool, which may download packages from registries during normal resolution — this is the build tool's behavior, not Bomly's. Hybrid detectors (`cargo`, `poetry`, `uv`) prefer the lockfile and use `--locked`/`--no-sync` flags on the build-tool fallback to stay offline. See [DETECTORS.md → Network behavior](../docs/DETECTORS.md#network-behavior).
 
-**CI-readiness inspection is local-only.** `internal/engine/ciready` reads manifests, lockfiles, `pnpm-workspace.yaml`, and `.npmrc`, and runs `<manager> --version` for package managers already on `PATH`. It never installs, resolves, or contacts a registry.
+**CI-readiness warnings read committed files only.** The Node detectors' resolution warnings inspect `package.json`, the lockfile they already parsed, `pnpm-workspace.yaml`, and `.npmrc`. They execute no package manager: `pnpm`/`yarn` on `PATH` are frequently Corepack shims, and running even `--version` can download the pinned manager on demand, which would put a registry call in a plain scan.
 
 **Target materialization is a separate network boundary.** `--url` explicitly
 authorizes Bomly to clone the requested Git repository before the scan
@@ -480,7 +478,6 @@ Cache failures are non-fatal. The command should warn and continue rather than f
 | `internal/baseline`   | Portable package-finding baseline codec and audit policy-status resolver                         |
 | `internal/analyzers`  | Reachability analyzers (govulncheck for Go, jsreach for JS/TS, pyreach for Python, jvmreach for JVM languages) that annotate `sdk.Vulnerability.Reachability` on registry packages |
 | `internal/matchers`   | Matcher contracts plus shared enrichment helpers used by built-in matchers                      |
-| `internal/engine/ciready` | CI-readiness inspection: package-manager, lockfile-format, and install-policy mismatch hints |
 | `internal/engine/diff` | Diff pipeline orchestration and audit delta classification                                    |
 | `internal/engine/explain` | Dependency path traversal                                                                   |
 | `internal/engine/scan` | Scan command pipeline API                                                                    |

@@ -23,22 +23,20 @@ A scan flows through an ordered set of stages. Each stage hands its output to th
 flowchart TD
     A[Discover subprojects]
     B[Detect: resolve + consolidate graph]
-    B2[Check CI readiness]
     C[Match: enrich packages]
     D[Analyze: reachability]
     E[Audit: evaluate policy]
     F[Render output]
 
-    A --> B --> B2 --> C --> D --> E --> F
+    A --> B --> C --> D --> E --> F
 ```
 
 1. **Discover** — Bomly inspects the target root and finds every supported package-manager root (a `go.mod`, a `package-lock.json`, a `pom.xml`, and so on). With `--recursive` it also walks nested directories, discovering independent subprojects in a monorepo while workspace-aware managers (npm workspaces, Maven reactors, …) keep expanding their own modules from the root. See [Scan targets](SCAN_TARGETS.md#recursive-discovery----recursive).
-2. **Detect** — For each root, a [detector](DETECTORS.md) reads the lockfile, manifest, or SBOM and resolves a dependency graph. Per-subproject graphs are then *consolidated* into one graph and one deduplicated package set for the rest of the run. `--scope` narrows the graph to runtime or development dependencies here.
-3. **Check CI readiness** — Alongside detection, Bomly compares each project's package-manager setup — lockfile format, Corepack pin, `engines`, install age gates — against the tooling on `PATH` and reports [CI-readiness hints](CI_READINESS.md) for mismatches that break a CI install regardless of findings. The check is read-only, network-free, and never fails a scan.
-4. **Match** — When you pass `--enrich`, [matchers](MATCHERS.md) add data to published registry packages: known vulnerabilities, licenses, end-of-life status, and project health scores. Bomly then derives one remediation result from the vulnerability and dependency evidence. It reports fix availability, a recommended version when the evidence is complete, and occurrence-specific actions when a detector supports the package-manager strategy. Project roots, workspace members, and local/file/Git/URL artifacts remain in the graph and reports but are not queried as if they were registry releases.
-5. **Analyze** — When you pass `--analyze`, [reachability](REACHABILITY.md) analysis runs on top of the matched data to flag whether a vulnerability is actually reachable from your code.
-6. **Audit** — When you pass `--audit`, [auditors](AUDITORS.md) evaluate policy (severity thresholds, license rules, denied packages) against the enriched data and produce findings. As part of this same step, configured policy-status rules may mark a finding non-gating without removing it. Combine `--enrich --audit` to gate on fresh external data in one run.
-7. **Render** — Bomly emits the result as text, JSON, SARIF, or an SBOM. See [Output formats](OUTPUT_FORMATS.md) and [SBOM formats](SBOM.md).
+2. **Detect** — For each root, a [detector](DETECTORS.md) reads the lockfile, manifest, or SBOM and resolves a dependency graph. Per-subproject graphs are then *consolidated* into one graph and one deduplicated package set for the rest of the run. `--scope` narrows the graph to runtime or development dependencies here. A detector that resolves a sound graph from a project whose package-manager configuration will still break an install elsewhere records that as a [CI-readiness warning](CI_READINESS.md) on the manifest, alongside the graph.
+3. **Match** — When you pass `--enrich`, [matchers](MATCHERS.md) add data to published registry packages: known vulnerabilities, licenses, end-of-life status, and project health scores. Bomly then derives one remediation result from the vulnerability and dependency evidence. It reports fix availability, a recommended version when the evidence is complete, and occurrence-specific actions when a detector supports the package-manager strategy. Project roots, workspace members, and local/file/Git/URL artifacts remain in the graph and reports but are not queried as if they were registry releases.
+4. **Analyze** — When you pass `--analyze`, [reachability](REACHABILITY.md) analysis runs on top of the matched data to flag whether a vulnerability is actually reachable from your code.
+5. **Audit** — When you pass `--audit`, [auditors](AUDITORS.md) evaluate policy (severity thresholds, license rules, denied packages) against the enriched data and produce findings. As part of this same step, configured policy-status rules may mark a finding non-gating without removing it. Combine `--enrich --audit` to gate on fresh external data in one run.
+6. **Render** — Bomly emits the result as text, JSON, SARIF, or an SBOM. See [Output formats](OUTPUT_FORMATS.md) and [SBOM formats](SBOM.md).
 
 `bomly explain` reuses the detect and match stages, then traces the dependency paths that pull in a given package. `bomly diff` runs the pipeline against two states and reports what changed.
 

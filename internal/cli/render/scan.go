@@ -34,15 +34,16 @@ func ScanGraphDisplayName(g *sdk.Graph, fallback string) string {
 // findings (e.g. unknown-license) are suppressed unless "any" is present.
 // manifests are the scan manifests the run produced; when they span
 // subprojects or modules a grouped manifest tree is rendered after the
-// scopes line. fallbackNotices are pre-computed FallbackNotices lines.
-func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, matcherStats []sdk.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, manifests []output.ScanManifest, fallbackNotices []string) string {
+// scopes line. notices are pre-computed warning lines (FallbackNotices plus
+// ResolutionWarningNotices) rendered above the summary.
+func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, matcherStats []sdk.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, manifests []output.ScanManifest, notices []string) string {
 	var b strings.Builder
 
 	if g == nil {
 		return "(empty graph)"
 	}
 
-	for _, notice := range fallbackNotices {
+	for _, notice := range notices {
 		fmt.Fprintf(&b, "%s\n", Style("⚠ "+notice, Yellow))
 	}
 
@@ -126,6 +127,80 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 // fallback notice; monorepos where one missing toolchain affects many
 // modules would otherwise print one path per module.
 const maxFallbackNoticePaths = 5
+
+// ResolutionWarningNotices returns one line per distinct resolution warning
+// recorded on the scanned manifests: package-manager pins that disagree with
+// the committed lockfile, lockfile formats the pinned manager will not keep,
+// and install policy gates. These reach the report (not just the progress
+// stream) so `-q` and non-terminal CI runs still see them.
+//
+// Warnings repeated across manifests — a repo-root config every module shares —
+// collapse to one line, and each line names the manifests it came from.
+func ResolutionWarningNotices(manifests []output.ScanManifest) []string {
+	type group struct {
+		message string
+		paths   []string
+	}
+	var groups []*group
+	index := make(map[string]int)
+	for _, m := range manifests {
+		if m.Resolution == nil {
+			continue
+		}
+		for _, warning := range m.Resolution.Warnings {
+			// Messages embed values read from scanned repository content
+			// (version pins, config values); collapse embedded newlines so a
+			// crafted value cannot inject extra lines into rendered output.
+			message := collapseWhitespace(warning.Message)
+			if message == "" {
+				continue
+			}
+			path := collapseWhitespace(m.Path)
+			if idx, ok := index[message]; ok {
+				groups[idx].paths = append(groups[idx].paths, path)
+				continue
+			}
+			index[message] = len(groups)
+			groups = append(groups, &group{message: message, paths: []string{path}})
+		}
+	}
+	if len(groups) == 0 {
+		return nil
+	}
+	notices := make([]string, 0, len(groups))
+	for _, g := range groups {
+		notice := g.message
+		if paths := noticePathList(g.paths); paths != "" {
+			notice += " (" + paths + ")"
+		}
+		notices = append(notices, notice)
+	}
+	return notices
+}
+
+// noticePathList renders a capped, comma-separated manifest path list for a
+// notice, dropping empty paths and counting the overflow.
+func noticePathList(paths []string) string {
+	kept := make([]string, 0, len(paths))
+	for _, path := range paths {
+		if path != "" {
+			kept = append(kept, path)
+		}
+	}
+	if len(kept) == 0 {
+		return ""
+	}
+	overflow := 0
+	if len(kept) > maxFallbackNoticePaths {
+		overflow = len(kept) - maxFallbackNoticePaths
+		kept = kept[:maxFallbackNoticePaths]
+	}
+	list := strings.Join(kept, ", ")
+	if overflow > 0 {
+		list += fmt.Sprintf(", +%d more", overflow)
+	}
+	return list
+}
 
 // FallbackNotices returns one human-readable line per (primary detector,
 // reason, fallback detector) group that resolved at least one manifest via a

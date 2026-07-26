@@ -142,7 +142,7 @@
     },
     {
       "slug": "ci-readiness",
-      "title": "CI-readiness hints",
+      "title": "CI-readiness warnings",
       "description": "Spot package-manager, lockfile-format, and install-policy mismatches that fail CI regardless of findings.",
       "group": "operations"
     },

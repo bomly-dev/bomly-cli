@@ -127,10 +127,10 @@ func TestValidatedCloneWithOverridesRejectsInvalidCombinations(t *testing.T) {
 	}
 }
 
-func TestMCPDiagnosticsFromPipelineTagsCIReadinessStage(t *testing.T) {
+func TestMCPDiagnosticsFromPipelineIncludesResolutionWarnings(t *testing.T) {
 	diagnostics := mcpDiagnosticsFromPipeline(engine.PipelineResult{
-		DetectorWarnings: []engine.PipelineWarning{{Source: "npm-native", Message: "fell back"}},
-		CIWarnings:       []engine.PipelineWarning{{Source: "pnpm", Message: "pnpm-lock.yaml is format version 9.0"}},
+		DetectorWarnings:   []engine.PipelineWarning{{Source: "npm-native", Message: "fell back"}},
+		ResolutionWarnings: []engine.PipelineWarning{{Source: "pnpm", Message: "pnpm-lock.yaml is format version 9.0"}},
 	})
 	var stages []string
 	for _, diagnostic := range diagnostics {
@@ -139,7 +139,7 @@ func TestMCPDiagnosticsFromPipelineTagsCIReadinessStage(t *testing.T) {
 	if len(diagnostics) != 2 {
 		t.Fatalf("expected 2 diagnostics, got %v", stages)
 	}
-	if diagnostics[1].Stage != "ci-readiness" || diagnostics[1].Source != "pnpm" {
-		t.Fatalf("unexpected ci-readiness diagnostic: %+v", diagnostics[1])
+	if diagnostics[1].Stage != "detect" || diagnostics[1].Source != "pnpm" {
+		t.Fatalf("unexpected resolution-warning diagnostic: %+v", diagnostics[1])
 	}
 }

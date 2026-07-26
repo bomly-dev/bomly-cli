@@ -41,7 +41,11 @@ executable, working directory, and arguments after removing recognized
 credential-shaped values and URL user information. This is a deliberately
 bounded redactor, not a promise that arbitrary argument text is secret-free.
 Arbitrary subprocess stderr is counted, not printed, because it may contain
-credentials.
+credentials. This rule also covers Java readiness checks and local Git
+revision and diff commands. When one fails, Bomly reports the exit status and
+diagnostic byte count, but not the tool's exact message. This loses some
+troubleshooting detail in exchange for one consistent subprocess-output
+boundary.
 
 ## Files and Resource Limits
 

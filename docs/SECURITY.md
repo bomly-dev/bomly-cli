@@ -30,15 +30,18 @@ redirect. Errors and logs do not include configured endpoint or proxy
 credentials.
 
 Trusted configuration may select a custom endpoint on a public or private
-network, including plain HTTP. Bomly does not block private addresses, pin DNS
-answers, or prevent DNS rebinding. Selecting that endpoint grants Bomly
-permission to contact it.
+network, including plain HTTP. Standard redirects may also move an HTTPS
+request to HTTP. Bomly does not block private addresses, pin DNS answers,
+prevent DNS rebinding, or block that downgrade. Selecting the endpoint grants
+Bomly permission to follow those standard redirect rules.
 
 Host package managers, Git, container tools, and registries keep ownership of
-their own credentials and network behavior. Bomly does not copy those
-credentials into command logs. At debug verbosity, subprocess logs show the
-executable, sanitized arguments, and working directory. Arbitrary subprocess
-stderr is counted, not printed, because it may contain credentials.
+their own credentials and network behavior. At debug verbosity, Bomly logs the
+executable, working directory, and arguments after removing recognized
+credential-shaped values and URL user information. This is a deliberately
+bounded redactor, not a promise that arbitrary argument text is secret-free.
+Arbitrary subprocess stderr is counted, not printed, because it may contain
+credentials.
 
 ## Files and Resource Limits
 
@@ -46,9 +49,9 @@ Bomly treats repository files, SBOMs, baselines, plugin packages, and remote
 responses as untrusted input.
 
 - Recursive discovery does not follow directory symlinks.
-- Automatically discovered baselines cannot be symlinks. A user-selected
-  baseline may be a symlink because selecting its path is an explicit trust
-  decision.
+- Automatically discovered baseline symlinks are ignored with a warning. A
+  user-selected baseline may be a symlink because selecting its path is an
+  explicit trust decision.
 - Archive extraction rejects paths, links, and special files that could escape
   the plugin directory. Plugin downloads, archive entries, expanded files, and
   plugin metadata have fixed size limits.
@@ -88,8 +91,9 @@ plugin automatically.
 MCP tools use the same command options and pipeline gates as the CLI. Policy
 fields do not implicitly enable enrichment or analysis. Compact MCP responses
 have size caps and truncation counts. Tool failures return stable error
-categories; detailed internal errors stay in local logs without credential
-values.
+categories. Local MCP error logs contain the category and unwrapped Go cause
+type, not the raw cause text. Components may also emit their own safe stage
+logs independently.
 
 The MCP server is a local process. Your MCP host controls who can start it,
 which directories it can reach, and whether additional operating-system

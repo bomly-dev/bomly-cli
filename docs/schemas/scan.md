@@ -13,6 +13,7 @@ Complete reference for the `bomly scan` JSON output.
 | `packages` | Array<[`ScanPackageEntry`](#scanpackageentry)> | |
 | `findings` | Array<[`AuditFinding`](#auditfinding)> | |
 | `audit_summary` | [`AuditSummary`](#auditsummary) | |
+| `warnings` | Array<[`DetectorWarning`](#detectorwarning)> | |
 | `metadata` | [`Metadata`](#metadata) | |
 
 ## Types
@@ -88,6 +89,17 @@ Complete reference for the `bomly scan` JSON output.
 |-------|------|-------------|
 | `sink` | [`AffectedSymbol`](#affectedsymbol) | |
 | `frames` | Array<[`CallFrame`](#callframe)> | |
+
+### `DetectorWarning`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | `string` | |
+| `code` | `string` | |
+| `source` | `string` | |
+| `subproject` | `string` | |
+| `manifest` | `string` | |
+| `message` | `string` | |
 
 ### `Digest`
 
@@ -273,15 +285,6 @@ Complete reference for the `bomly scan` JSON output.
 | `install_command` | Array<`string`> | |
 | `install_working_dir` | `string` | |
 | `fallback` | [`ResolutionFallback`](#resolutionfallback) | |
-| `warnings` | Array<[`ResolutionWarning`](#resolutionwarning)> | |
-
-### `ResolutionWarning`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `code` | `string` | |
-| `source` | `string` | |
-| `message` | `string` | |
 
 ### `ScanDependency`
 

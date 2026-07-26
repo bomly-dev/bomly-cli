@@ -14,6 +14,7 @@ targets=(
   "github.com/bomly-dev/bomly-cli/internal/detectors/githubactions FuzzParseWorkflowRefs"
   "github.com/bomly-dev/bomly-cli/internal/detectors/gomod FuzzDepGraphFromGoList"
   "github.com/bomly-dev/bomly-cli/internal/detectors/mix FuzzDepGraphFromMixLock"
+  "github.com/bomly-dev/bomly-cli/internal/detectors/node FuzzPackageManagerWarnings"
   "github.com/bomly-dev/bomly-cli/internal/detectors/node/npm FuzzDepGraphFromNPMLockfile"
   "github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm FuzzDepGraphFromPNPMLockfile"
   "github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn FuzzDepGraphFromYarnLockfile"

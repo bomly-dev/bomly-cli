@@ -85,8 +85,7 @@ func newScanCmd() *cobra.Command {
 			}
 			resolved := pipeResult.ResolveResults
 			detectionChildren := detectorProgressChildren(resolved)
-			detectionChildren = append(detectionChildren, warningProgressChildren(pipeResult.DetectorWarnings)...)
-			detectionChildren = append(detectionChildren, warningProgressChildren(pipeResult.ResolutionWarnings)...)
+			detectionChildren = append(detectionChildren, detectorWarningProgressChildren(pipeResult.DetectorWarnings)...)
 			prog.CompleteStep("Detected Dependencies", detectionChildren)
 			if len(pipeResult.MatcherStats) > 0 || len(pipeResult.MatchWarnings) > 0 {
 				prog.CompleteStep("Enriched packages", matchProgressChildren(pipeResult.MatcherStats, pipeResult.MatchWarnings))
@@ -112,7 +111,7 @@ func newScanCmd() *cobra.Command {
 			// Notices ride the report itself, not just the progress stream, so
 			// -q and non-terminal CI runs still surface degraded resolution and
 			// CI-readiness problems.
-			notices := append(render.FallbackNotices(scanManifests), render.ResolutionWarningNotices(scanManifests)...)
+			notices := render.WarningNotices(payload.Warnings)
 			textRenderer := func(w io.Writer) error {
 				if _, err := io.WriteString(w, render.Scan(selectedGraph, pipeResult.Registry, findings, pipeResult.MatcherStats, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit, commandCtx.ResolvedConfig.Analyze, commandCtx.ResolvedConfig.FailOn, scanManifests, notices)); err != nil {
 					return fmt.Errorf("write scan text output: %w", err)

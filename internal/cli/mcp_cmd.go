@@ -331,8 +331,9 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (m
 	}, nil
 }
 
-// mcpDiagnosticsFromPipeline maps pipeline warnings (and manifest resolution
-// fallbacks) to MCP diagnostics so internal/mcp never imports internal/engine.
+// mcpDiagnosticsFromPipeline maps pipeline warnings to MCP diagnostics so
+// internal/mcp never imports internal/engine. Detection warnings already carry
+// fallback provenance, so there is no separate manifest pass.
 func mcpDiagnosticsFromPipeline(pipeResult engine.PipelineResult) []mcp.Diagnostic {
 	var diagnostics []mcp.Diagnostic
 	appendWarnings := func(stage string, warnings []engine.PipelineWarning) {
@@ -344,28 +345,16 @@ func mcpDiagnosticsFromPipeline(pipeResult engine.PipelineResult) []mcp.Diagnost
 			})
 		}
 	}
-	appendWarnings("detect", pipeResult.DetectorWarnings)
-	appendWarnings("detect", pipeResult.ResolutionWarnings)
+	for _, warning := range pipeResult.DetectorWarnings {
+		diagnostics = append(diagnostics, mcp.Diagnostic{
+			Stage:   "detect",
+			Source:  warning.Source,
+			Message: warning.Message,
+		})
+	}
 	appendWarnings("match", pipeResult.MatchWarnings)
 	appendWarnings("analyze", pipeResult.AnalyzeWarnings)
 	appendWarnings("audit", pipeResult.AuditWarnings)
-	for _, manifest := range pipeResult.Consolidated.Manifests {
-		resolution := manifest.Entry.Manifest.Resolution
-		if resolution == nil || resolution.Fallback == nil {
-			continue
-		}
-		message := fmt.Sprintf("manifest %s resolved via fallback detector %s (primary %s failed",
-			manifest.Entry.Manifest.Path, manifest.DetectorName, resolution.Fallback.From)
-		if resolution.Fallback.Reason != "" {
-			message += ": " + resolution.Fallback.Reason
-		}
-		message += ")"
-		diagnostics = append(diagnostics, mcp.Diagnostic{
-			Stage:   "detect",
-			Source:  manifest.DetectorName,
-			Message: message,
-		})
-	}
 	return diagnostics
 }
 

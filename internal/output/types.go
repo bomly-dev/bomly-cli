@@ -22,6 +22,10 @@ type Metadata struct {
 // ReportOptions controls optional experimental data in structured command
 // outputs.
 type ReportOptions struct {
+	// DetectorWarnings are the detection-stage warnings the run produced. They
+	// are surfaced in the response document so a consumer reading JSON sees the
+	// same problems the progress stream showed.
+	DetectorWarnings    []sdk.DetectorWarning
 	ReachabilityEnabled bool
 	ScorecardEnabled    bool
 	AnalyzerRuns        []string

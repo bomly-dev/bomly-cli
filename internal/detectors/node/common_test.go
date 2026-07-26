@@ -412,27 +412,20 @@ func (d *installRecorderDetector) Install(context.Context, sdk.DetectionRequest)
 	return nil
 }
 
-// resolveTestManifests resolves a project and returns the manifest metadata the
-// detector recorded, so tests can assert on resolution warnings.
-func resolveTestManifests(t *testing.T, detector sdk.Detector, projectDir string) []sdk.ManifestMetadata {
+// resolveTestWarnings resolves a project and returns the warnings the detector
+// reported alongside its graphs.
+func resolveTestWarnings(t *testing.T, detector sdk.Detector, projectDir string) []sdk.DetectorWarning {
 	t.Helper()
 	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
-	if result.Graphs == nil {
-		t.Fatal("ResolveGraph() returned no graphs")
-	}
-	manifests := make([]sdk.ManifestMetadata, 0, len(result.Graphs.Entries))
-	for _, entry := range result.Graphs.Entries {
-		manifests = append(manifests, entry.Manifest)
-	}
-	return manifests
+	return result.Warnings
 }
 
-func TestPNPMLockfileDetectorRecordsResolutionWarnings(t *testing.T) {
+func TestPNPMLockfileDetectorReportsPackageManagerWarnings(t *testing.T) {
 	projectDir := t.TempDir()
-	// pnpm 6.0 lockfile with an pnpm 11 pin: pnpm 11 migrates the format, so a
+	// A pnpm 6.0 lockfile with a pnpm 11 pin: pnpm 11 migrates the format, so a
 	// frozen-lockfile CI install fails even though this parse succeeds.
 	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
   "name": "demo-app",
@@ -453,17 +446,22 @@ packages:
 		t.Fatalf("write pnpm-lock.yaml: %v", err)
 	}
 
-	manifests := resolveTestManifests(t, pnpm.LockfileDetector{}, projectDir)
-	if len(manifests) == 0 || manifests[0].Resolution == nil {
-		t.Fatalf("expected resolution metadata on the root manifest, got %+v", manifests)
+	warnings := resolveTestWarnings(t, pnpm.LockfileDetector{}, projectDir)
+	if len(warnings) != 1 {
+		t.Fatalf("expected 1 warning, got %+v", warnings)
 	}
-	warnings := manifests[0].Resolution.Warnings
-	if len(warnings) != 1 || warnings[0].Code != sdk.ResolutionWarningLockfileFormat || warnings[0].Source != "pnpm" {
-		t.Fatalf("unexpected resolution warnings: %+v", warnings)
+	if warnings[0].Type != sdk.DetectorWarningPackageManager ||
+		warnings[0].Code != sdk.DetectorWarningCodeLockfileFormat ||
+		warnings[0].Source != "pnpm" ||
+		warnings[0].Manifest != "pnpm-lock.yaml" {
+		t.Fatalf("unexpected warning: %+v", warnings[0])
+	}
+	if warnings[0].DegradesCoverage() {
+		t.Fatal("a package-manager warning must not claim degraded coverage")
 	}
 }
 
-func TestYarnLockfileDetectorRecordsBerryFormatWarning(t *testing.T) {
+func TestYarnLockfileDetectorReportsBerryFormatWarning(t *testing.T) {
 	projectDir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
   "name": "demo-app",
@@ -483,17 +481,13 @@ func TestYarnLockfileDetectorRecordsBerryFormatWarning(t *testing.T) {
 		t.Fatalf("write yarn.lock: %v", err)
 	}
 
-	manifests := resolveTestManifests(t, yarn.LockfileDetector{}, projectDir)
-	if len(manifests) == 0 || manifests[0].Resolution == nil {
-		t.Fatalf("expected resolution metadata on the manifest, got %+v", manifests)
-	}
-	warnings := manifests[0].Resolution.Warnings
-	if len(warnings) != 1 || warnings[0].Code != sdk.ResolutionWarningLockfileFormat {
-		t.Fatalf("unexpected resolution warnings: %+v", warnings)
+	warnings := resolveTestWarnings(t, yarn.LockfileDetector{}, projectDir)
+	if len(warnings) != 1 || warnings[0].Code != sdk.DetectorWarningCodeLockfileFormat {
+		t.Fatalf("unexpected warnings: %+v", warnings)
 	}
 }
 
-func TestLockfileDetectorsLeaveCleanProjectsUnannotated(t *testing.T) {
+func TestLockfileDetectorsLeaveConsistentProjectsUnannotated(t *testing.T) {
 	projectDir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
   "name": "demo-app",
@@ -513,9 +507,7 @@ func TestLockfileDetectorsLeaveCleanProjectsUnannotated(t *testing.T) {
 		t.Fatalf("write package-lock.json: %v", err)
 	}
 
-	for _, manifest := range resolveTestManifests(t, npm.LockfileDetector{}, projectDir) {
-		if manifest.Resolution != nil && len(manifest.Resolution.Warnings) > 0 {
-			t.Fatalf("expected no resolution warnings for a consistent project, got %+v", manifest.Resolution.Warnings)
-		}
+	if warnings := resolveTestWarnings(t, npm.LockfileDetector{}, projectDir); len(warnings) != 0 {
+		t.Fatalf("expected no warnings for a consistent project, got %+v", warnings)
 	}
 }

@@ -16,6 +16,7 @@ endpoints after every successful parse.
 | SBOM | automatic SPDX, CycloneDX, and Syft JSON decoding |
 | Analyzer output | govulncheck JSON stream, esbuild metafile |
 | Node lockfiles | npm, pnpm, Yarn, Bun |
+| Node project configuration | package.json, pnpm-workspace.yaml, and .npmrc behind the package-manager warning checks |
 | Python lockfiles | Poetry, uv, Pipenv |
 | Other lockfiles and manifests | Cargo, CocoaPods, Composer, Conan, Go list, Mix, NuGet lock and packages.config, Pub, Bundler, SwiftPM |
 | Workflow manifests | GitHub Actions workflow references |

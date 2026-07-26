@@ -34,8 +34,8 @@ func ScanGraphDisplayName(g *sdk.Graph, fallback string) string {
 // findings (e.g. unknown-license) are suppressed unless "any" is present.
 // manifests are the scan manifests the run produced; when they span
 // subprojects or modules a grouped manifest tree is rendered after the
-// scopes line. notices are pre-computed warning lines (FallbackNotices plus
-// ResolutionWarningNotices) rendered above the summary.
+// scopes line. notices are pre-computed WarningNotices lines rendered above the
+// summary.
 func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, matcherStats []sdk.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, manifests []output.ScanManifest, notices []string) string {
 	var b strings.Builder
 
@@ -123,46 +123,37 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 	return b.String()
 }
 
-// maxFallbackNoticePaths caps how many manifest paths are named in a single
-// fallback notice; monorepos where one missing toolchain affects many
-// modules would otherwise print one path per module.
-const maxFallbackNoticePaths = 5
+// maxNoticePaths caps how many files are named in a single warning notice.
+const maxNoticePaths = 5
 
-// ResolutionWarningNotices returns one line per distinct resolution warning
-// recorded on the scanned manifests: package-manager pins that disagree with
-// the committed lockfile, lockfile formats the pinned manager will not keep,
-// and install policy gates. These reach the report (not just the progress
-// stream) so `-q` and non-terminal CI runs still see them.
+// WarningNotices returns one line per distinct detection warning the run
+// produced: resolution failures, detector fallbacks, and package-manager
+// misconfiguration. These reach the report itself, not just the progress
+// stream, so `-q` and non-terminal CI runs still see them.
 //
 // Warnings repeated across manifests — a repo-root config every module shares —
-// collapse to one line, and each line names the manifests it came from.
-func ResolutionWarningNotices(manifests []output.ScanManifest) []string {
+// collapse to one line naming the files they came from. Message and file text
+// originate in scanned repository content, so both are passed through
+// SanitizeUntrusted before rendering.
+func WarningNotices(warnings []sdk.DetectorWarning) []string {
 	type group struct {
 		message string
 		paths   []string
 	}
 	var groups []*group
 	index := make(map[string]int)
-	for _, m := range manifests {
-		if m.Resolution == nil {
+	for _, warning := range warnings {
+		message := SanitizeUntrusted(warning.Message)
+		if message == "" {
 			continue
 		}
-		for _, warning := range m.Resolution.Warnings {
-			// Messages embed values read from scanned repository content
-			// (version pins, config values); collapse embedded newlines so a
-			// crafted value cannot inject extra lines into rendered output.
-			message := collapseWhitespace(warning.Message)
-			if message == "" {
-				continue
-			}
-			path := collapseWhitespace(m.Path)
-			if idx, ok := index[message]; ok {
-				groups[idx].paths = append(groups[idx].paths, path)
-				continue
-			}
-			index[message] = len(groups)
-			groups = append(groups, &group{message: message, paths: []string{path}})
+		path := SanitizeUntrusted(warning.Manifest)
+		if idx, ok := index[message]; ok {
+			groups[idx].paths = append(groups[idx].paths, path)
+			continue
 		}
+		index[message] = len(groups)
+		groups = append(groups, &group{message: message, paths: []string{path}})
 	}
 	if len(groups) == 0 {
 		return nil
@@ -178,101 +169,36 @@ func ResolutionWarningNotices(manifests []output.ScanManifest) []string {
 	return notices
 }
 
-// noticePathList renders a capped, comma-separated manifest path list for a
-// notice, dropping empty paths and counting the overflow.
+// noticePathList renders a capped, comma-separated file list for a notice,
+// dropping empty and duplicate entries and counting the overflow. Monorepos
+// where one missing toolchain affects many modules would otherwise print one
+// path per module.
 func noticePathList(paths []string) string {
 	kept := make([]string, 0, len(paths))
+	seen := make(map[string]struct{}, len(paths))
 	for _, path := range paths {
-		if path != "" {
-			kept = append(kept, path)
+		if path == "" {
+			continue
 		}
+		if _, ok := seen[path]; ok {
+			continue
+		}
+		seen[path] = struct{}{}
+		kept = append(kept, path)
 	}
 	if len(kept) == 0 {
 		return ""
 	}
 	overflow := 0
-	if len(kept) > maxFallbackNoticePaths {
-		overflow = len(kept) - maxFallbackNoticePaths
-		kept = kept[:maxFallbackNoticePaths]
+	if len(kept) > maxNoticePaths {
+		overflow = len(kept) - maxNoticePaths
+		kept = kept[:maxNoticePaths]
 	}
 	list := strings.Join(kept, ", ")
 	if overflow > 0 {
 		list += fmt.Sprintf(", +%d more", overflow)
 	}
 	return list
-}
-
-// FallbackNotices returns one human-readable line per (primary detector,
-// reason, fallback detector) group that resolved at least one manifest via a
-// fallback detector after its planned primary failed, e.g. "maven-detector
-// unavailable (not ready: java executable not found on PATH) — resolved
-// pom.xml with syft-detector; transitive dependencies may be missing".
-// Manifests sharing the same fallback cause are grouped into a single line
-// instead of one per manifest. Returns nil when no manifest carries fallback
-// provenance.
-func FallbackNotices(manifests []output.ScanManifest) []string {
-	type group struct {
-		from, reason, detector string
-		paths                  []string
-	}
-	var groups []*group
-	index := make(map[string]int)
-	for _, m := range manifests {
-		if m.Resolution == nil || m.Resolution.Fallback == nil {
-			continue
-		}
-		fallback := m.Resolution.Fallback
-		// Reason and Path may originate from scanned repository content
-		// (subprocess error text, file names); collapse embedded newlines so
-		// a crafted value cannot inject extra lines into rendered output.
-		from := collapseWhitespace(fallback.From)
-		reason := collapseWhitespace(fallback.Reason)
-		detector := collapseWhitespace(m.Detector)
-		path := collapseWhitespace(m.Path)
-		key := from + "\x00" + reason + "\x00" + detector
-		if idx, ok := index[key]; ok {
-			groups[idx].paths = append(groups[idx].paths, path)
-			continue
-		}
-		index[key] = len(groups)
-		groups = append(groups, &group{from: from, reason: reason, detector: detector, paths: []string{path}})
-	}
-
-	if len(groups) == 0 {
-		return nil
-	}
-	notices := make([]string, 0, len(groups))
-	for _, g := range groups {
-		var b strings.Builder
-		fmt.Fprintf(&b, "%s unavailable", g.from)
-		if g.reason != "" {
-			fmt.Fprintf(&b, " (%s)", g.reason)
-		}
-		paths := g.paths
-		overflow := 0
-		if len(paths) > maxFallbackNoticePaths {
-			overflow = len(paths) - maxFallbackNoticePaths
-			paths = paths[:maxFallbackNoticePaths]
-		}
-		pathList := strings.Join(paths, ", ")
-		if overflow > 0 {
-			pathList += fmt.Sprintf(", +%d more", overflow)
-		}
-		if len(g.paths) == 1 {
-			fmt.Fprintf(&b, " — resolved %s with %s; transitive dependencies may be missing", pathList, g.detector)
-		} else {
-			fmt.Fprintf(&b, " — resolved %d manifests with %s (%s); transitive dependencies may be missing", len(g.paths), g.detector, pathList)
-		}
-		notices = append(notices, b.String())
-	}
-	return notices
-}
-
-// collapseWhitespace trims and folds runs of whitespace (including
-// newlines) into single spaces, so untrusted, multi-line input cannot inject
-// extra lines into single-line rendered output.
-func collapseWhitespace(value string) string {
-	return strings.Join(strings.Fields(value), " ")
 }
 
 // renderManifestHierarchy renders the grouped manifest tree shown when a

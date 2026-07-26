@@ -71,25 +71,25 @@ type PipelineWarning struct {
 
 // PipelineResult contains the full output of a pipeline run.
 type PipelineResult struct {
-	ResolveResults   []sdk.DetectionResult
-	Consolidated     sdk.ConsolidatedGraph
-	Graph            *sdk.Graph
-	Registry         *sdk.PackageRegistry
-	Findings         []sdk.Finding
-	RiskScores       []sdk.RiskScore
-	DetectorWarnings []PipelineWarning
-	// ResolutionWarnings are the non-blocking warnings detectors recorded while
-	// resolving a manifest: package-manager, lockfile-format, and install-policy
-	// mismatches that break a CI install regardless of findings. They are kept
-	// apart from DetectorWarnings because they do not mean degraded coverage.
-	ResolutionWarnings []PipelineWarning
-	AuditWarnings      []PipelineWarning
-	MatchWarnings      []PipelineWarning
-	AnalyzeWarnings    []PipelineWarning
-	MatcherStats       []sdk.MatcherStats
-	AuditorRuns        []string
-	AnalyzerRuns       []string
-	AuditorFindings    map[string]int
-	AnalyzerStats      map[string]sdk.ReachabilityStats
-	PartialErrors      error
+	ResolveResults []sdk.DetectionResult
+	Consolidated   sdk.ConsolidatedGraph
+	Graph          *sdk.Graph
+	Registry       *sdk.PackageRegistry
+	Findings       []sdk.Finding
+	RiskScores     []sdk.RiskScore
+	// DetectorWarnings are every non-fatal detection problem in one list:
+	// resolution failures and detector fallbacks the engine observed, plus the
+	// package-manager warnings detectors reported alongside their graphs. Each
+	// carries a type, so consumers that care only about degraded coverage filter
+	// on DetectorWarning.DegradesCoverage rather than on the list being empty.
+	DetectorWarnings []sdk.DetectorWarning
+	AuditWarnings    []PipelineWarning
+	MatchWarnings    []PipelineWarning
+	AnalyzeWarnings  []PipelineWarning
+	MatcherStats     []sdk.MatcherStats
+	AuditorRuns      []string
+	AnalyzerRuns     []string
+	AuditorFindings  map[string]int
+	AnalyzerStats    map[string]sdk.ReachabilityStats
+	PartialErrors    error
 }

@@ -81,6 +81,11 @@ type DetectionResult struct {
 	// failure, e.g. "not ready: java executable not found on PATH".
 	FallbackReason string          `json:"fallbackReason,omitempty"`
 	Graphs         *GraphContainer `json:"graphs,omitempty"`
+	// Warnings are non-fatal problems the detector found while resolving: the
+	// graphs above are usable, but something about the project will break or
+	// degrade an install elsewhere. The engine fills in each warning's
+	// Subproject and surfaces them alongside the ones it observes itself.
+	Warnings []DetectorWarning `json:"warnings,omitempty"`
 }
 
 // ConsolidatedGraph returns a single graph view for the resolve result.

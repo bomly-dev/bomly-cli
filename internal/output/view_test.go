@@ -1024,46 +1024,78 @@ func scanPackageByName(t *testing.T, packages []output.ScanPackageEntry, name st
 	return output.ScanPackageEntry{}
 }
 
-func TestBuildScanResponseCarriesResolutionWarningsIntoJSON(t *testing.T) {
+func TestBuildScanResponseCarriesDetectorWarningsIntoJSON(t *testing.T) {
 	graph := sdk.New()
 	if err := graph.AddNode(sdk.NewDependencyRef("react", "18.2.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
-	warning := sdk.ResolutionWarning{
-		Code:    sdk.ResolutionWarningLockfileFormat,
-		Source:  "pnpm",
-		Message: "pnpm-lock.yaml is format version 6.0",
+	warnings := []sdk.DetectorWarning{
+		{
+			Type:     sdk.DetectorWarningPackageManager,
+			Code:     sdk.DetectorWarningCodeLockfileFormat,
+			Source:   "pnpm",
+			Manifest: "pnpm-lock.yaml",
+			Message:  "pnpm-lock.yaml is format version 6.0",
+		},
+		{
+			Type:       sdk.DetectorWarningResolutionFailure,
+			Source:     "maven-detector",
+			Subproject: "services/api",
+			Message:    "not ready: java executable not found on PATH",
+		},
 	}
 	consolidated := sdk.ConsolidatedGraph{
 		Manifests: []sdk.ConsolidatedManifest{{
 			DetectorName: "pnpm-lockfile",
 			Entry: sdk.GraphEntry{
-				Graph: graph,
-				Manifest: sdk.ManifestMetadata{
-					Path:       "pnpm-lock.yaml",
-					Kind:       "pnpm-lock.yaml",
-					Resolution: &sdk.ResolutionMetadata{Warnings: []sdk.ResolutionWarning{warning}},
-				},
+				Graph:    graph,
+				Manifest: sdk.ManifestMetadata{Path: "pnpm-lock.yaml", Kind: "pnpm-lock.yaml"},
 			},
 		}},
 	}
 
-	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, nil, nil, time.Now(), output.ReportOptions{})
-	if len(response.Manifests) != 1 || response.Manifests[0].Resolution == nil {
-		t.Fatalf("expected resolution metadata on the manifest, got %+v", response.Manifests)
-	}
-	got := response.Manifests[0].Resolution.Warnings
-	if len(got) != 1 || got[0] != warning {
-		t.Fatalf("unexpected resolution warnings: %+v", got)
+	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, nil, nil, time.Now(),
+		output.ReportOptions{DetectorWarnings: warnings})
+	if len(response.Warnings) != 2 {
+		t.Fatalf("expected both warnings on the response, got %+v", response.Warnings)
 	}
 
-	encoded, err := json.Marshal(response.Manifests[0])
+	encoded, err := json.Marshal(response)
 	if err != nil {
-		t.Fatalf("marshal manifest: %v", err)
+		t.Fatalf("marshal response: %v", err)
 	}
-	for _, want := range []string{`"warnings"`, `"code":"lockfile-format-mismatch"`, `"source":"pnpm"`} {
+	for _, want := range []string{
+		`"warnings"`,
+		`"type":"package-manager"`,
+		`"code":"lockfile-format-mismatch"`,
+		`"source":"pnpm"`,
+		`"manifest":"pnpm-lock.yaml"`,
+		`"type":"resolution-failure"`,
+		`"subproject":"services/api"`,
+	} {
 		if !strings.Contains(string(encoded), want) {
-			t.Fatalf("manifest JSON is missing %s: %s", want, encoded)
+			t.Fatalf("scan JSON is missing %s: %s", want, encoded)
 		}
+	}
+}
+
+func TestBuildScanResponseOmitsWarningsWhenClean(t *testing.T) {
+	graph := sdk.New()
+	if err := graph.AddNode(sdk.NewDependencyRef("react", "18.2.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+	consolidated := sdk.ConsolidatedGraph{
+		Manifests: []sdk.ConsolidatedManifest{{
+			DetectorName: "pnpm-lockfile",
+			Entry:        sdk.GraphEntry{Graph: graph, Manifest: sdk.ManifestMetadata{Path: "pnpm-lock.yaml"}},
+		}},
+	}
+	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, nil, nil, time.Now())
+	encoded, err := json.Marshal(response)
+	if err != nil {
+		t.Fatalf("marshal response: %v", err)
+	}
+	if strings.Contains(string(encoded), `"warnings"`) {
+		t.Fatalf("a clean scan must not emit a warnings key: %s", encoded)
 	}
 }

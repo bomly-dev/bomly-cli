@@ -22,7 +22,7 @@ func ScanMarkdown(w io.Writer, payload output.ScanResponse) error {
 			if project != "" {
 				lines = append(lines, fmt.Sprintf("Project: `%s`", markdownInline(project)))
 			}
-			if notices := append(FallbackNotices(payload.Manifests), ResolutionWarningNotices(payload.Manifests)...); len(notices) > 0 {
+			if notices := WarningNotices(payload.Warnings); len(notices) > 0 {
 				if len(lines) > 0 {
 					lines = append(lines, "")
 				}

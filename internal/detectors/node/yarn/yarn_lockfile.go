@@ -76,10 +76,10 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 
 	workingDir := d.base().ProjectDir(req.ProjectPath)
 	manifest := detectors.InferManifestMetadata(req, yarnManifestMetadataPatterns)
-	node.AttachResolutionWarnings(&manifest, node.ResolutionWarnings(workingDir, sdk.PackageManagerYarn,
-		node.LockfileFormat{File: "yarn.lock", Version: yarnLockfileFormat(workingDir)}))
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, manifest),
+		Warnings: node.PackageManagerWarnings(workingDir, sdk.PackageManagerYarn,
+			node.LockfileFormat{File: "yarn.lock", Version: yarnLockfileFormat(workingDir)}),
 	}, nil
 }
 

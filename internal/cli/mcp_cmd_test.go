@@ -6,6 +6,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestApplyStringOverride(t *testing.T) {
@@ -127,19 +128,24 @@ func TestValidatedCloneWithOverridesRejectsInvalidCombinations(t *testing.T) {
 	}
 }
 
-func TestMCPDiagnosticsFromPipelineIncludesResolutionWarnings(t *testing.T) {
+func TestMCPDiagnosticsFromPipelineIncludesDetectorWarnings(t *testing.T) {
 	diagnostics := mcpDiagnosticsFromPipeline(engine.PipelineResult{
-		DetectorWarnings:   []engine.PipelineWarning{{Source: "npm-native", Message: "fell back"}},
-		ResolutionWarnings: []engine.PipelineWarning{{Source: "pnpm", Message: "pnpm-lock.yaml is format version 9.0"}},
+		DetectorWarnings: []sdk.DetectorWarning{
+			{Type: sdk.DetectorWarningFallback, Source: "maven-detector", Message: "maven-detector unavailable"},
+			{Type: sdk.DetectorWarningPackageManager, Source: "pnpm", Message: "pnpm-lock.yaml is format version 9.0"},
+		},
+		MatchWarnings: []engine.PipelineWarning{{Source: "osv", Message: "timeout"}},
 	})
-	var stages []string
-	for _, diagnostic := range diagnostics {
-		stages = append(stages, diagnostic.Stage+"/"+diagnostic.Source)
+	if len(diagnostics) != 3 {
+		t.Fatalf("expected 3 diagnostics, got %+v", diagnostics)
 	}
-	if len(diagnostics) != 2 {
-		t.Fatalf("expected 2 diagnostics, got %v", stages)
-	}
-	if diagnostics[1].Stage != "detect" || diagnostics[1].Source != "pnpm" {
-		t.Fatalf("unexpected resolution-warning diagnostic: %+v", diagnostics[1])
+	for idx, want := range []struct{ stage, source string }{
+		{"detect", "maven-detector"},
+		{"detect", "pnpm"},
+		{"match", "osv"},
+	} {
+		if diagnostics[idx].Stage != want.stage || diagnostics[idx].Source != want.source {
+			t.Fatalf("diagnostic[%d] = %+v, want stage %q source %q", idx, diagnostics[idx], want.stage, want.source)
+		}
 	}
 }

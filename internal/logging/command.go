@@ -31,6 +31,10 @@ func SanitizeArgs(args []string) []string {
 			sanitized[index] = flag + "=" + redactURLUserinfo(value)
 			continue
 		}
+		if strings.Contains(argument, "://") {
+			sanitized[index] = redactURLUserinfo(argument)
+			continue
+		}
 		if sensitiveFlag(argument) {
 			sanitized[index] = argument
 			redactNext = true
@@ -42,6 +46,8 @@ func SanitizeArgs(args []string) []string {
 }
 
 // CommandFields returns the standard secret-safe DEBUG fields for a subprocess.
+// Args are sanitized. The executable must be a resolved binary path or name,
+// not a command string containing arguments or credentials.
 func CommandFields(executable string, args []string, workingDir string) []zap.Field {
 	if strings.TrimSpace(workingDir) == "" {
 		if current, err := os.Getwd(); err == nil {
@@ -55,13 +61,15 @@ func CommandFields(executable string, args []string, workingDir string) []zap.Fi
 	}
 }
 
-// SanitizeURL removes user information from a URL before it is logged.
+// SanitizeURL removes user information from a URL before it is logged. It
+// fails closed when URL parsing fails. Query values are not inspected, so
+// callers must not use this helper as a general query-string redactor.
 func SanitizeURL(value string) string {
 	return redactURLUserinfo(value)
 }
 
 func sensitiveFlag(value string) bool {
-	if value == "" || value[0] != '-' {
+	if value == "" {
 		return false
 	}
 	parts := strings.FieldsFunc(strings.ToLower(value), func(r rune) bool {
@@ -70,11 +78,13 @@ func sensitiveFlag(value string) bool {
 	for _, part := range parts {
 		switch part {
 		case "password", "passwd", "token", "authtoken", "secret",
-			"credential", "credentials", "apikey", "key", "username", "login":
+			"credential", "credentials", "apikey", "username", "login",
+			"auth", "authorization", "bearer", "pat", "passphrase", "pass",
+			"pwd", "header":
 			return true
 		}
 	}
-	return false
+	return len(parts) == 1 && parts[0] == "key"
 }
 
 func redactURLUserinfo(value string) string {
@@ -82,7 +92,10 @@ func redactURLUserinfo(value string) string {
 		return value
 	}
 	parsed, err := url.Parse(value)
-	if err != nil || parsed.User == nil {
+	if err != nil {
+		return redactedArgument
+	}
+	if parsed.User == nil {
 		return value
 	}
 	parsed.User = url.User(redactedArgument)

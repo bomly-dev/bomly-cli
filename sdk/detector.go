@@ -40,8 +40,12 @@ type DetectionRequest struct {
 	InstallArgs        []string        `json:"installArgs,omitempty"`
 	CoreVersion        string          `json:"coreVersion,omitempty"`
 	AllowStdErrLogging bool            `json:"allowStdErrLogging,omitempty"`
-	Stderr             io.Writer       `json:"-"`
-	Verbose            bool            `json:"-"`
+	// Stderr and Verbose remain process-local compatibility fields for
+	// built-in and protocol-v1 detector implementations. Core no longer
+	// mirrors arbitrary subprocess stderr at either verbosity because tool
+	// diagnostics may contain credentials.
+	Stderr  io.Writer `json:"-"`
+	Verbose bool      `json:"-"`
 	// Logger is a request-scoped logger injected by the pipeline, already
 	// bound to the subproject and detector this request targets. It lets a
 	// detector instance that is shared across concurrently-resolved

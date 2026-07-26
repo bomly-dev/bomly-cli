@@ -145,15 +145,11 @@ func cloneInto(logger *zap.Logger, source, dest, ref string, local bool) error {
 	}
 	args = append(args, source, dest)
 	if _, err := runGit(logger, "", args...); err != nil {
-		safeErr := err
-		if safeSource != source {
-			safeErr = fmt.Errorf("%s", strings.ReplaceAll(err.Error(), source, safeSource))
-		}
 		if logger != nil {
-			logger.Error(fmt.Sprintf("Git clone failed: %v", safeErr))
-			logger.Debug("git clone failure details", zap.String("source", safeSource), zap.String("destination", dest), zap.Error(safeErr))
+			logger.Error(fmt.Sprintf("Git clone failed: %v", err))
+			logger.Debug("git clone failure details", zap.String("source", safeSource), zap.String("destination", dest), zap.Error(err))
 		}
-		return fmt.Errorf("clone git repository %q: %w", safeSource, safeErr)
+		return fmt.Errorf("clone git repository %q: %w", safeSource, err)
 	}
 	if ref != "" {
 		if err := CheckoutRef(logger, dest, ref); err != nil {

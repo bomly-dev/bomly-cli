@@ -1,12 +1,29 @@
 package git
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 )
+
+func TestCloneIntoRedactsUserinfoAndPreservesExitError(t *testing.T) {
+	requireGit(t)
+	const source = "unsupported://user:clone-secret@example.test/repository"
+	err := cloneInto(nil, source, filepath.Join(t.TempDir(), "clone"), "", false)
+	if err == nil {
+		t.Fatal("cloneInto() error = nil, want unsupported transport error")
+	}
+	var exitErr *exec.ExitError
+	if !errors.As(err, &exitErr) {
+		t.Fatalf("cloneInto() did not preserve exec.ExitError: %v", err)
+	}
+	if strings.Contains(err.Error(), "user") || strings.Contains(err.Error(), "clone-secret") {
+		t.Fatalf("cloneInto() exposed URL user information: %v", err)
+	}
+}
 
 func TestResolveCommitWithSHA(t *testing.T) {
 	repoDir, headSHA, _ := createGitRepoWithFeatureBranch(t)

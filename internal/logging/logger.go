@@ -247,8 +247,10 @@ type CommandStderr struct {
 	bytes int64
 }
 
-// NewCommandStderr creates a secret-safe subprocess stderr counter. The
-// parameters remain for call-site compatibility; stderr is never mirrored.
+// NewCommandStderr creates a secret-safe subprocess stderr counter. The writer
+// and verbosity parameters remain so built-in and protocol-v1 detector call
+// sites keep their existing request shape; stderr is never retained or
+// mirrored.
 func NewCommandStderr(_ io.Writer, _ bool) *CommandStderr {
 	return &CommandStderr{}
 }

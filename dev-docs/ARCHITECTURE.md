@@ -379,11 +379,18 @@ When a build-tool-primary detector (Maven, Gradle, Go, …) cannot produce a gra
 - **Stage observability.** Pipeline stages (detection, consolidation, enrichment, reachability, policy evaluation) emit Info start/completion logs with counts and durations; consolidation stays logger-free and the pipeline logs around it. Detector-internal completion lines remain owned by the detectors themselves, and recoverable detector subprocess failures log at Warn, not Error, because the pipeline degrades and continues.
 - **Secret-safe subprocess logs.** Subprocess owners log the executable,
   sanitized argument list, and working directory at Debug. The shared logging
-  sanitizer removes credential flag values and URL user information while
-  preserving ordinary arguments for reproduction. The engine logs orchestration
-  state but never logs raw `install_args`. Arbitrary subprocess stderr is never
-  mirrored or retained because tools may print credentials there; failure
-  diagnostics report only the exit error and stderr byte count.
+  sanitizer removes credential-shaped flag values and URL user information
+  while preserving ordinary arguments for reproduction. Executable values are
+  resolved binary paths or names and are assumed not to contain arguments or
+  credentials. URL query values are not parsed as credentials, so callers must
+  not treat URL sanitization as a general query-string redactor. The engine
+  logs orchestration state but never logs raw `install_args`. Arbitrary
+  subprocess stderr is never mirrored or retained because tools may print
+  credentials there; failure diagnostics report only the exit error and
+  stderr byte count. The process-local `DetectionRequest.Stderr` and `Verbose`
+  fields and the two-argument stderr-counter constructor remain for source
+  compatibility with built-in and protocol-v1 detectors, but they do not
+  authorize raw tool output.
 
 ### Decision: detector logs are request-scoped by subproject
 

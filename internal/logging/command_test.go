@@ -71,6 +71,17 @@ func TestSanitizeArgsDoesNotTreatOrdinaryAuthoredFlagsAsCredentials(t *testing.T
 	}
 }
 
+func TestSanitizeArgsDoesNotTreatPositionalArgumentsAsCredentialFlags(t *testing.T) {
+	input := []string{
+		"install", "pass", "some-pkg",
+		"auth", "another-pkg",
+		"token", "final-pkg",
+	}
+	if got := SanitizeArgs(input); !reflect.DeepEqual(got, input) {
+		t.Fatalf("SanitizeArgs() changed positional args:\nwant %#v\ngot  %#v", input, got)
+	}
+}
+
 func TestSanitizeURLFailsClosedAndDoesNotInspectQueryValues(t *testing.T) {
 	if got := SanitizeURL("https://user:%zz@example.test/path"); got != redactedArgument {
 		t.Fatalf("SanitizeURL(malformed) = %q, want %q", got, redactedArgument)

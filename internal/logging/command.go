@@ -35,7 +35,7 @@ func SanitizeArgs(args []string) []string {
 			sanitized[index] = redactURLUserinfo(argument)
 			continue
 		}
-		if sensitiveFlag(argument) {
+		if strings.HasPrefix(argument, "-") && sensitiveFlag(argument) {
 			sanitized[index] = argument
 			redactNext = true
 			continue

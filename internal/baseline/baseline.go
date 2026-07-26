@@ -24,6 +24,8 @@ const (
 	DefaultRelativePath = ".bomly/baseline.json"
 )
 
+var errAutomaticBaselineSymlink = errors.New("automatic baseline path uses a symbolic link")
+
 // Document is a portable collection of package-specific finding entries.
 type Document struct {
 	SchemaVersion string  `json:"schema_version"`
@@ -206,6 +208,13 @@ func ResolversForTarget(selection string, target sdk.ExecutionTarget, logger *za
 	}
 	if automatic {
 		if err := validateAutomaticPath(target, path); err != nil {
+			if errors.Is(err, errAutomaticBaselineSymlink) {
+				logger.Warn("baseline: ignored linked project policy",
+					zap.String("path", path),
+					zap.String("target_kind", string(target.Kind)),
+					zap.Error(err))
+				return LoadResult{}, nil
+			}
 			return LoadResult{}, err
 		}
 	}
@@ -248,6 +257,8 @@ func validateAutomaticPath(target sdk.ExecutionTarget, path string) error {
 	if err != nil {
 		return fmt.Errorf("check automatic baseline path %q: %w", path, err)
 	}
+	// ResolvePath currently builds this path from a constant relative name.
+	// Keep the escape check as defense in depth if path construction changes.
 	if relative == ".." || strings.HasPrefix(relative, ".."+string(os.PathSeparator)) || filepath.IsAbs(relative) {
 		return fmt.Errorf("automatic baseline path %q escapes the project root", path)
 	}
@@ -260,6 +271,8 @@ func validateAutomaticPath(target sdk.ExecutionTarget, path string) error {
 		current = filepath.Join(current, component)
 		info, err := os.Lstat(current)
 		if errors.Is(err, os.ErrNotExist) {
+			// A dangling link is returned by Lstat and handled below. ErrNotExist
+			// therefore means a normal path component is absent.
 			return nil
 		}
 		if err != nil {
@@ -267,7 +280,8 @@ func validateAutomaticPath(target sdk.ExecutionTarget, path string) error {
 		}
 		if info.Mode()&os.ModeSymlink != 0 {
 			return fmt.Errorf(
-				"automatic baseline path %q uses symbolic link %q; use --baseline none to disable it or --baseline <path> to select a trusted file",
+				"%w: %q resolves through %q",
+				errAutomaticBaselineSymlink,
 				path,
 				current,
 			)

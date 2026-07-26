@@ -273,7 +273,7 @@ func TestResolversForTargetHandlesOptionalRequiredAndURLPolicies(t *testing.T) {
 	}
 }
 
-func TestResolversForTargetRejectsSymlinksOnlyForAutomaticSelection(t *testing.T) {
+func TestResolversForTargetIgnoresAutomaticSymlinksAndAllowsExplicitSelection(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("symlink creation requires elevated privileges on Windows")
 	}
@@ -302,11 +302,21 @@ func TestResolversForTargetRejectsSymlinksOnlyForAutomaticSelection(t *testing.T
 			}
 			target := sdk.ExecutionTarget{Kind: targetKind, Location: root}
 
-			if _, err := ResolversForTarget("auto", target, nil); err == nil ||
-				!strings.Contains(err.Error(), "uses symbolic link") {
-				t.Fatalf("automatic symlink error = %v", err)
+			core, logs := observer.New(zap.WarnLevel)
+			result, err := ResolversForTarget("auto", target, zap.New(core))
+			if err != nil || len(result.Resolvers) != 0 || result.Path != "" {
+				t.Fatalf("automatic symlink result = %#v, %v", result, err)
 			}
-			result, err := ResolversForTarget(link, target, nil)
+			warnings := logs.FilterMessage("baseline: ignored linked project policy")
+			if warnings.Len() != 1 {
+				t.Fatalf("automatic symlink warnings = %#v", logs.All())
+			}
+			fields := warnings.All()[0].ContextMap()
+			if fields["path"] != link || fields["target_kind"] != string(targetKind) ||
+				!strings.Contains(fmt.Sprint(fields["error"]), "resolves through") {
+				t.Fatalf("automatic symlink warning fields = %#v", fields)
+			}
+			result, err = ResolversForTarget(link, target, nil)
 			if err != nil || len(result.Resolvers) != 1 || result.Automatic {
 				t.Fatalf("explicit trusted symlink = %#v, %v", result, err)
 			}
@@ -323,9 +333,13 @@ func TestResolversForTargetRejectsSymlinksOnlyForAutomaticSelection(t *testing.T
 			}
 			target := sdk.ExecutionTarget{Kind: targetKind, Location: root}
 
-			if _, err := ResolversForTarget("", target, nil); err == nil ||
-				!strings.Contains(err.Error(), "uses symbolic link") {
-				t.Fatalf("automatic directory symlink error = %v", err)
+			core, logs := observer.New(zap.WarnLevel)
+			result, err := ResolversForTarget("", target, zap.New(core))
+			if err != nil || len(result.Resolvers) != 0 || result.Path != "" {
+				t.Fatalf("automatic directory symlink result = %#v, %v", result, err)
+			}
+			if logs.FilterMessage("baseline: ignored linked project policy").Len() != 1 {
+				t.Fatalf("automatic directory symlink warnings = %#v", logs.All())
 			}
 		})
 	}

@@ -100,7 +100,6 @@ When candidates were skipped for different reasons, each line carries its own (`
 | `excluded by --exclude <pattern>` | Drop or narrow that `--exclude` pattern. |
 | `excluded by --ecosystems <list>` | The candidate's ecosystem is outside the `--ecosystems` selection. |
 | `detector filter excludes every <pm> detector (...)` | `--detectors` / `--exclude-detectors` removed every detector that could handle it. |
-| `no detector registered for <pm>` | Bomly has no detector for that package manager (see [Support matrix](SUPPORT_MATRIX.md)). |
 
 The probe walks at most 3 levels below the target and reports at most 8 candidates; anything beyond that is elided with `… more candidates not shown`.
 

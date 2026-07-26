@@ -106,11 +106,16 @@ func (d *discoveryDiagnostics) ecosystemSkipReason(manager sdk.PackageManager) s
 	return ""
 }
 
-// detectorSkipReason reports candidates with no registered detector, with
-// every candidate detector filtered out, or whose manifest planning could not
-// resolve. Registration is checked against the request's unfiltered registry
-// and selection against the filtered planning registry, so "no detector
-// registered" stays distinguishable from "your filter removed them all".
+// detectorSkipReason reports candidates whose detector chain was emptied by
+// the active detector selectors. The candidate names come from the request's
+// **unfiltered** registry and the surviving chain from the **filtered**
+// planning registry, so the message can list what the filter removed.
+//
+// An empty chain always means the filter emptied it: the probe only surfaces
+// package managers from the built-in catalog, and every catalog manager with
+// manifest evidence ships a detector chain — an invariant pinned by
+// registry.TestEveryDetectablePackageManagerHasADetectorChain. There is
+// therefore no "no detector registered" reason to report.
 func (d *discoveryDiagnostics) detectorSkipReason(dir string, manager sdk.PackageManager) string {
 	if d.planning == nil {
 		return ""
@@ -122,7 +127,7 @@ func (d *discoveryDiagnostics) detectorSkipReason(dir string, manager sdk.Packag
 	}
 	candidates := detectorNamesForPackageManager(registryValue, d.req.ExecutionTarget.Kind, dir, manager)
 	if len(candidates) == 0 {
-		return fmt.Sprintf("no detector registered for %s", manager.Name())
+		return ""
 	}
 
 	chain := expandDetectorNames(d.planning, d.planning.PlannedDetectors(sdk.DetectionRequest{
@@ -134,17 +139,6 @@ func (d *discoveryDiagnostics) detectorSkipReason(dir string, manager sdk.Packag
 	}, candidates))
 	if len(chain) == 0 {
 		return fmt.Sprintf("detector filter excludes every %s detector (%s)", manager.Name(), strings.Join(candidates, ", "))
-	}
-
-	if _, ok := plannedSubprojectForPackageManager(
-		d.planning,
-		d.req.ExecutionTarget,
-		dir,
-		manager,
-		nil,
-		d.req.DetectorFilter,
-	); !ok {
-		return fmt.Sprintf("no resolvable %s manifest in this directory", manager.Name())
 	}
 	return ""
 }

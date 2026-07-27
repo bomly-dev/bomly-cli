@@ -26,6 +26,7 @@ Bomly uses this chain when it finds `sbom` evidence.
 | Resolve graph | JSON ingest | None |
 
 Format is auto-detected by content.
+Bomly rejects SBOM input files larger than 256 MiB before decoding them.
 
 ## Network behavior
 

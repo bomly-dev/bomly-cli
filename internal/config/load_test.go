@@ -1,10 +1,13 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
 func TestLoadFileAndEnvProxyPrecedence(t *testing.T) {
@@ -296,6 +299,24 @@ func TestLoadFileRejectsLegacyAndUnknownKeys(t *testing.T) {
 				t.Fatalf("LoadFile() error = %v, want substring %q", err, tc.want)
 			}
 		})
+	}
+}
+
+func TestLoadFileRejectsOversizedFile(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	if err := os.WriteFile(path, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Truncate(path, maxConfigFileBytes+1); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadFile(path)
+	if err == nil || !strings.Contains(err.Error(), "exceeds the 4 MiB limit") {
+		t.Fatalf("LoadFile() error = %v", err)
+	}
+	if !errors.Is(err, system.ErrInputTooLarge) {
+		t.Fatalf("LoadFile() error = %v, want wrapped system.ErrInputTooLarge", err)
 	}
 }
 

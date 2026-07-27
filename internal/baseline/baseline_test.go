@@ -13,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
@@ -399,6 +400,73 @@ func TestLoadRejectsMalformedAndUnsupportedDocuments(t *testing.T) {
 				t.Fatalf("Load() accepted %s:\n%s", name, contents)
 			}
 		})
+	}
+}
+
+func TestLoadRejectsOversizedBaseline(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "baseline.json")
+	if err := os.WriteFile(path, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Truncate(path, maxBaselineFileBytes+1); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := Load(path)
+	if err == nil || !strings.Contains(err.Error(), "exceeds the 16 MiB limit") {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if !errors.Is(err, system.ErrInputTooLarge) {
+		t.Fatalf("Load() error = %v, want wrapped system.ErrInputTooLarge", err)
+	}
+}
+
+func TestDocumentEntryLimit(t *testing.T) {
+	t.Run("exact limit", func(t *testing.T) {
+		document := Document{SchemaVersion: SchemaVersion, Entries: make([]Entry, 0, maxBaselineEntries)}
+		for idx := range maxBaselineEntries {
+			document.Entries = append(document.Entries, Entry{
+				PackageRef: fmt.Sprintf("pkg:npm/example-%d@1.0.0", idx),
+				Kind:       sdk.FindingKindPackage,
+				Auditor:    "package",
+				RuleID:     "denied-package",
+			})
+		}
+		if err := document.Validate(); err != nil {
+			t.Fatalf("Validate() at exact entry limit: %v", err)
+		}
+	})
+
+	t.Run("over limit", func(t *testing.T) {
+		document := Document{SchemaVersion: SchemaVersion, Entries: make([]Entry, maxBaselineEntries+1)}
+		err := document.Validate()
+		if err == nil || !strings.Contains(err.Error(), "limit is 10000") {
+			t.Fatalf("Validate() error = %v", err)
+		}
+	})
+}
+
+func TestDocumentRejectsIndexedAdvisoryOverlap(t *testing.T) {
+	document := Document{
+		SchemaVersion: SchemaVersion,
+		Entries: []Entry{
+			{
+				PackageRef:  "pkg:npm/example@1.0.0",
+				Kind:        sdk.FindingKindVulnerability,
+				Auditor:     "vulnerability",
+				AdvisoryIDs: []string{"CVE-1", "GHSA-shared"},
+			},
+			{
+				PackageRef:  "pkg:npm/example@1.0.0",
+				Kind:        sdk.FindingKindVulnerability,
+				Auditor:     "vulnerability",
+				AdvisoryIDs: []string{"ghsa-SHARED", "OSV-2"},
+			},
+		},
+	}
+	err := document.Validate()
+	if err == nil || !strings.Contains(err.Error(), "entries 0 and 1") {
+		t.Fatalf("Validate() error = %v", err)
 	}
 }
 

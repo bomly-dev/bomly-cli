@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
@@ -22,6 +23,9 @@ const (
 	SchemaVersion = "bomly.finding-baseline/v1"
 	// DefaultRelativePath is the conventional project baseline location.
 	DefaultRelativePath = ".bomly/baseline.json"
+
+	maxBaselineFileBytes int64 = 16 << 20
+	maxBaselineEntries         = 10_000
 )
 
 var errAutomaticBaselineSymlink = errors.New("automatic baseline path uses a symbolic link")
@@ -118,7 +122,11 @@ func (d Document) Validate() error {
 	if d.SchemaVersion != SchemaVersion {
 		return fmt.Errorf("unsupported baseline schema %q", d.SchemaVersion)
 	}
+	if len(d.Entries) > maxBaselineEntries {
+		return fmt.Errorf("baseline contains %d entries; limit is %d", len(d.Entries), maxBaselineEntries)
+	}
 	seen := map[string]struct{}{}
+	matched := map[entryMatchKey]int{}
 	for idx, entry := range d.Entries {
 		if !strings.HasPrefix(strings.TrimSpace(entry.PackageRef), "pkg:") || entry.Kind == "" || strings.TrimSpace(entry.Auditor) == "" {
 			return fmt.Errorf("baseline entry %d is missing package_ref, kind, or auditor", idx)
@@ -146,14 +154,64 @@ func (d Document) Validate() error {
 		if _, ok := seen[key]; ok {
 			return fmt.Errorf("baseline contains duplicate entry %q", key)
 		}
-		for prior := 0; prior < idx; prior++ {
-			if entriesMatch(d.Entries[prior], entry) {
+		matchKeys := entryMatchKeys(entry)
+		for _, matchKey := range matchKeys {
+			if prior, ok := matched[matchKey]; ok {
 				return fmt.Errorf("baseline entries %d and %d identify the same package finding", prior, idx)
 			}
 		}
 		seen[key] = struct{}{}
+		for _, matchKey := range matchKeys {
+			matched[matchKey] = idx
+		}
 	}
 	return nil
+}
+
+type entryMatchKey struct {
+	packageRef string
+	kind       sdk.FindingKind
+	auditor    string
+	identity   string
+}
+
+func entryMatchKeys(entry Entry) []entryMatchKey {
+	base := entryMatchKey{
+		packageRef: entry.PackageRef,
+		kind:       entry.Kind,
+		auditor:    entry.Auditor,
+	}
+	if entry.Kind != sdk.FindingKindVulnerability {
+		base.identity = entry.RuleID
+		return []entryMatchKey{base}
+	}
+	// A missing advisory list deliberately produces no keys, matching the old
+	// pairwise loops. Validate rejects that shape before reaching this helper.
+	keys := make([]entryMatchKey, 0, len(entry.AdvisoryIDs))
+	seen := make(map[string]struct{}, len(entry.AdvisoryIDs))
+	for _, advisoryID := range entry.AdvisoryIDs {
+		// Advisory identifiers are ASCII. Folding only A-Z makes that contract
+		// explicit and avoids implying locale-sensitive identifier matching.
+		identity := foldASCII(advisoryID)
+		if _, ok := seen[identity]; ok {
+			continue
+		}
+		seen[identity] = struct{}{}
+		key := base
+		key.identity = identity
+		keys = append(keys, key)
+	}
+	return keys
+}
+
+func foldASCII(value string) string {
+	folded := []byte(value)
+	for idx, char := range folded {
+		if char >= 'A' && char <= 'Z' {
+			folded[idx] = char + ('a' - 'A')
+		}
+	}
+	return string(folded)
 }
 
 func validBaselineSeverity(severity sdk.SeverityLevel) bool {
@@ -176,8 +234,11 @@ func validBaselineSeverity(severity sdk.SeverityLevel) bool {
 
 // Load reads and validates a baseline document.
 func Load(path string) (Document, error) {
-	data, err := os.ReadFile(path)
+	data, err := system.ReadFileLimit(path, maxBaselineFileBytes)
 	if err != nil {
+		if errors.Is(err, system.ErrInputTooLarge) {
+			return Document{}, fmt.Errorf("baseline %q exceeds the 16 MiB limit: %w", path, system.ErrInputTooLarge)
+		}
 		return Document{}, fmt.Errorf("read baseline %q: %w", path, err)
 	}
 	var document Document

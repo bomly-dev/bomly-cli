@@ -1,13 +1,17 @@
 package python
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
@@ -94,4 +98,93 @@ func createPythonVenv(ctx context.Context, base baseDetector, req sdk.DetectionR
 		return "", fmt.Errorf("venv python not found under %s", venvDir)
 	}
 	return venvPython, nil
+}
+
+// minPipInspectMajor / minPipInspectMinor pin the first pip release that ships
+// `pip inspect` (22.2). Older pip exits non-zero with an unknown-command error
+// that says nothing about the version.
+const (
+	minPipInspectMajor = 22
+	minPipInspectMinor = 2
+	minPipInspectLabel = "22.2"
+)
+
+var pipVersionPattern = regexp.MustCompile(`pip\s+(\d+)\.(\d+)`)
+
+// verifyPipInspectSupport reports whether the freshly created virtualenv can
+// be inspected at all. `python -m venv` seeds the venv with the ambient
+// interpreter's pip, so an old system Python (macOS ships 3.9 with pip 21.x)
+// produces a venv whose pip has no `inspect` command and exits non-zero with a
+// message that says nothing about the version.
+//
+// Bomly diagnoses this rather than fixing it: installing or upgrading a
+// package manager is out of scope, and the check runs before the install so a
+// doomed resolution costs nothing. The detector's fallback still produces a
+// graph; the difference is that the degradation notice now names the pip
+// version and the minimum instead of reporting "exit status 1".
+func verifyPipInspectSupport(base baseDetector, req sdk.DetectionRequest, detectorName, venvPython string) error {
+	logger := base.Logger
+	if logger == nil {
+		logger = zap.NewNop()
+	}
+	version, err := readPipVersion(base, req, detectorName, venvPython, logger)
+	if err != nil {
+		// An unreadable version is not itself fatal: let the install and
+		// inspect steps report whatever is actually wrong.
+		logger.Debug("could not read pip version from isolated environment", zap.String("detector", detectorName), zap.Error(err))
+		return nil
+	}
+	if pipSupportsInspect(version) {
+		logger.Debug("isolated environment pip supports inspect", zap.String("detector", detectorName), zap.String("pip_version", version))
+		return nil
+	}
+	return fmt.Errorf("isolated environment has pip %s, but `pip inspect` requires pip %s or newer; upgrade pip for that interpreter (python -m pip install --upgrade pip) or put a newer Python on PATH", version, minPipInspectLabel)
+}
+
+// readPipVersion returns the version string reported by `python -m pip
+// --version` for the given interpreter (e.g. "21.2.4").
+func readPipVersion(base baseDetector, req sdk.DetectionRequest, detectorName, venvPython string, logger *zap.Logger) (string, error) {
+	if logger == nil {
+		logger = zap.NewNop()
+	}
+	command := []string{venvPython, "-m", "pip", "--version"}
+	cmd := system.Command(command[0], command[1:]...)
+	cmd.Dir = base.workingDir(req.ProjectPath)
+	cmd.Env = pythonCommandEnv()
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = logging.NewCommandStderr(req.Stderr, req.Verbose)
+	logger.Debug("checking isolated environment pip version", zap.String("detector", detectorName), zap.String("working_dir", cmd.Dir), zap.String("executable", command[0]), zap.Strings("args", command[1:]))
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("run %s pip --version: %w", detectorName, err)
+	}
+	// "pip 21.2.4 from /path/to/pip (python 3.9)"
+	fields := strings.Fields(out.String())
+	if len(fields) < 2 || fields[0] != "pip" {
+		return "", fmt.Errorf("unrecognized pip --version output %q", strings.TrimSpace(out.String()))
+	}
+	return fields[1], nil
+}
+
+// pipSupportsInspect reports whether a pip version string is new enough to
+// provide `pip inspect`.
+func pipSupportsInspect(version string) bool {
+	match := pipVersionPattern.FindStringSubmatch("pip " + strings.TrimSpace(version))
+	if len(match) != 3 {
+		// Unparseable versions (dev builds, vendored forks) are given the
+		// benefit of the doubt; the inspect step reports the real failure.
+		return true
+	}
+	major, err := strconv.Atoi(match[1])
+	if err != nil {
+		return true
+	}
+	minor, err := strconv.Atoi(match[2])
+	if err != nil {
+		return true
+	}
+	if major != minPipInspectMajor {
+		return major > minPipInspectMajor
+	}
+	return minor >= minPipInspectMinor
 }

@@ -411,3 +411,103 @@ func (d *installRecorderDetector) Install(context.Context, sdk.DetectionRequest)
 	d.called++
 	return nil
 }
+
+// resolveTestWarnings resolves a project and returns the warnings the detector
+// reported alongside its graphs.
+func resolveTestWarnings(t *testing.T, detector sdk.Detector, projectDir string) []sdk.DetectorWarning {
+	t.Helper()
+	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	return result.Warnings
+}
+
+func TestPNPMLockfileDetectorReportsPackageManagerWarnings(t *testing.T) {
+	projectDir := t.TempDir()
+	// A pnpm 6.0 lockfile with a pnpm 11 pin: pnpm 11 migrates the format, so a
+	// frozen-lockfile CI install fails even though this parse succeeds.
+	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "packageManager": "pnpm@11.0.0"
+}`), 0o644); err != nil {
+		t.Fatalf("write package.json: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(projectDir, "pnpm-lock.yaml"), []byte(`lockfileVersion: '6.0'
+dependencies:
+  react:
+    specifier: ^18.2.0
+    version: 18.2.0
+packages:
+  /react@18.2.0:
+    dev: false
+`), 0o644); err != nil {
+		t.Fatalf("write pnpm-lock.yaml: %v", err)
+	}
+
+	warnings := resolveTestWarnings(t, pnpm.LockfileDetector{}, projectDir)
+	if len(warnings) != 1 {
+		t.Fatalf("expected 1 warning, got %+v", warnings)
+	}
+	if warnings[0].Type != sdk.DetectorWarningPackageManager ||
+		warnings[0].Code != sdk.DetectorWarningCodeLockfileFormat ||
+		warnings[0].Source != "pnpm" ||
+		warnings[0].Manifest != "pnpm-lock.yaml" {
+		t.Fatalf("unexpected warning: %+v", warnings[0])
+	}
+	if warnings[0].DegradesCoverage() {
+		t.Fatal("a package-manager warning must not claim degraded coverage")
+	}
+}
+
+func TestYarnLockfileDetectorReportsBerryFormatWarning(t *testing.T) {
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "packageManager": "yarn@1.22.22",
+  "dependencies": {"react": "^18.2.0"}
+}`), 0o644); err != nil {
+		t.Fatalf("write package.json: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(projectDir, "yarn.lock"), []byte(`__metadata:
+  version: 8
+  cacheKey: 10
+
+"react@npm:^18.2.0":
+  version: 18.2.0
+`), 0o644); err != nil {
+		t.Fatalf("write yarn.lock: %v", err)
+	}
+
+	warnings := resolveTestWarnings(t, yarn.LockfileDetector{}, projectDir)
+	if len(warnings) != 1 || warnings[0].Code != sdk.DetectorWarningCodeLockfileFormat {
+		t.Fatalf("unexpected warnings: %+v", warnings)
+	}
+}
+
+func TestLockfileDetectorsLeaveConsistentProjectsUnannotated(t *testing.T) {
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "packageManager": "npm@10.9.0"
+}`), 0o644); err != nil {
+		t.Fatalf("write package.json: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(projectDir, "package-lock.json"), []byte(`{
+  "name": "demo-app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "demo-app", "dependencies": {"react": "^18.2.0"}},
+    "node_modules/react": {"version": "18.2.0"}
+  }
+}`), 0o644); err != nil {
+		t.Fatalf("write package-lock.json: %v", err)
+	}
+
+	if warnings := resolveTestWarnings(t, npm.LockfileDetector{}, projectDir); len(warnings) != 0 {
+		t.Fatalf("expected no warnings for a consistent project, got %+v", warnings)
+	}
+}

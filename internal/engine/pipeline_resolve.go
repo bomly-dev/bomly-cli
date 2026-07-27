@@ -195,9 +195,84 @@ func (p *Pipeline) resolveDetectors(ctx context.Context, req sdk.DetectionReques
 	}
 
 	if len(results) == 0 {
-		return nil, errors.Join(errs...)
+		joined := errors.Join(errs...)
+		// When nothing in the chain could even start, the readiness reasons
+		// are the whole story: say so once, naming every link and what it
+		// needs, instead of leaving the user to read a joined error list.
+		if summary := unusableDetectorSummary(joined); summary != "" {
+			return nil, &noUsableDetectorError{summary: summary, err: joined}
+		}
+		return nil, joined
 	}
 	return results, nil
+}
+
+// detectorNotReadyError marks a detector that cannot run in this environment
+// (missing tool, missing runtime). It is a distinct type so the resolution
+// error can tell "the chain has nothing installed to run it" apart from "a
+// detector ran and failed".
+type detectorNotReadyError struct {
+	detector string
+	err      error
+}
+
+func (e *detectorNotReadyError) Error() string {
+	return fmt.Sprintf("detector %s: not ready: %v", e.detector, e.err)
+}
+
+func (e *detectorNotReadyError) Unwrap() error { return e.err }
+
+// noUsableDetectorError reports that every detector planned for a subproject
+// failed its readiness probe. It keeps the underlying joined error for
+// errors.Is/As callers while presenting one actionable line.
+type noUsableDetectorError struct {
+	summary string
+	err     error
+}
+
+func (e *noUsableDetectorError) Error() string {
+	return "no usable detector: " + e.summary
+}
+
+func (e *noUsableDetectorError) Unwrap() error { return e.err }
+
+// unusableDetectorSummary returns "detector not ready (reason)" for every link
+// in the chain, or "" when any failure was something other than readiness — a
+// detector that ran and failed explains itself better than this summary would.
+func unusableDetectorSummary(err error) string {
+	seen := make(map[string]struct{})
+	var reasons []string
+	if !collectNotReadyDetectors(err, seen, &reasons) || len(reasons) == 0 {
+		return ""
+	}
+	return strings.Join(reasons, "; ")
+}
+
+// collectNotReadyDetectors walks a (possibly joined) error tree and reports
+// whether every leaf is a readiness failure, collecting their reasons in
+// encounter order.
+func collectNotReadyDetectors(err error, seen map[string]struct{}, reasons *[]string) bool {
+	if err == nil {
+		return false
+	}
+	if joined, ok := err.(interface{ Unwrap() []error }); ok { //nolint:errorlint // the multi-error shape is the node we walk, not a wrapped cause
+		for _, inner := range joined.Unwrap() {
+			if !collectNotReadyDetectors(inner, seen, reasons) {
+				return false
+			}
+		}
+		return true
+	}
+	notReady, ok := errors.AsType[*detectorNotReadyError](err)
+	if !ok {
+		return false
+	}
+	if _, duplicate := seen[notReady.detector]; duplicate {
+		return true
+	}
+	seen[notReady.detector] = struct{}{}
+	*reasons = append(*reasons, fmt.Sprintf("%s not ready (%v)", notReady.detector, notReady.err))
+	return true
 }
 
 func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest, detector sdk.Detector, progress ProgressReporter) ([]sdk.DetectionResult, error) {
@@ -221,7 +296,7 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 	)
 
 	if err := detector.Ready(ctx, req); err != nil {
-		notReadyErr := fmt.Errorf("detector %s: not ready: %w", descriptor.Name, err)
+		notReadyErr := error(&detectorNotReadyError{detector: descriptor.Name, err: err})
 		p.Logger.Debug("pipeline: detector not ready",
 			zap.String("detector", descriptor.Name),
 			zap.String("subproject", req.Subproject.RelativePath),

@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -17,6 +17,9 @@ const (
 	defaultTimeout   = 30 * time.Second
 	defaultBatchSize = 1000
 	maxRetries       = 3
+
+	maxVulnerabilityResponseBytes int64 = 4 << 20
+	maxBatchResponseBytes         int64 = 64 << 20
 )
 
 // ClientConfig configures the OSV HTTP client.
@@ -89,7 +92,7 @@ func (c *Client) GetVuln(id string) (*Vulnerability, error) {
 		return nil, fmt.Errorf("osv get vuln %s: status %d", id, resp.StatusCode)
 	}
 
-	data, err := io.ReadAll(io.LimitReader(resp.Body, 4<<20)) // 4 MB per vuln
+	data, err := system.ReadLimit(resp.Body, resp.ContentLength, maxVulnerabilityResponseBytes)
 	if err != nil {
 		return nil, fmt.Errorf("osv read vuln %s: %w", id, err)
 	}
@@ -160,7 +163,7 @@ func (c *Client) queryChunkAttempt(endpoint string, body []byte, attempt int) (r
 		return nil, fmt.Errorf("osv api returned status %d", resp.StatusCode), nil
 	}
 
-	data, err := io.ReadAll(io.LimitReader(resp.Body, 64<<20)) // 64 MB limit
+	data, err := system.ReadLimit(resp.Body, resp.ContentLength, maxBatchResponseBytes)
 	if err != nil {
 		return nil, fmt.Errorf("osv read response: %w", err), nil
 	}

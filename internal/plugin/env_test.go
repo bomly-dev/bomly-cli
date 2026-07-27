@@ -92,6 +92,35 @@ func TestPluginEnvForwardsStandardProxyEnvWhenBomlyProxyUnset(t *testing.T) {
 	}
 }
 
+func TestPluginEnvDoesNotForwardUnrelatedHostEnvironment(t *testing.T) {
+	t.Setenv("AWS_SECRET_ACCESS_KEY", "ambient-cloud-secret")
+	t.Setenv("GITHUB_TOKEN", "ambient-github-secret")
+	t.Setenv("DATABASE_URL", "postgres://user:ambient-db-secret@example.com/db")
+	t.Setenv("BOMLY_OSV_API_BASE", "https://unrelated.example.test")
+
+	env, cleanup, err := pluginEnv(LaunchOptions{}, "acme.matcher")
+	if err != nil {
+		t.Fatalf("pluginEnv() error = %v", err)
+	}
+	defer cleanup()
+
+	values := envMap(env)
+	for _, name := range []string{
+		"AWS_SECRET_ACCESS_KEY",
+		"GITHUB_TOKEN",
+		"DATABASE_URL",
+		"BOMLY_OSV_API_BASE",
+	} {
+		if value, ok := values[name]; ok {
+			t.Fatalf("plugin environment forwarded unrelated %s=%q", name, value)
+		}
+	}
+	if values[EnvPluginAPIVersion] != sdk.PluginAPIVersion ||
+		values[sdk.EnvPluginID] != "acme.matcher" {
+		t.Fatalf("plugin environment omitted required protocol values: %#v", values)
+	}
+}
+
 func TestPluginEnvOnlyWritesSelectedPluginConfig(t *testing.T) {
 	env, cleanup, err := pluginEnv(LaunchOptions{
 		PluginConfigs: map[string]map[string]any{

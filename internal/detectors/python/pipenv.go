@@ -75,7 +75,7 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 	if pipenvVenvExists(workingDir, logger, req.Stderr, req.Verbose) {
 		command, err := pipInspectCommand("pipenv", "run")
 		if err == nil {
-			if depsGraph, err := base.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Pipenv detector", command); err == nil {
+			if depsGraph, err := base.resolveGraph(req, "Pipenv detector", command); err == nil {
 				resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, false, nil, workingDir)
 				logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
 				annotateGraphScopes(depsGraph, workingDir)
@@ -92,7 +92,7 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 		installCommand := pipenvSyncCommand(req)
 		if err := base.install(ctx, req, "Pipenv detector", installCommand); err == nil && pipenvVenvExists(workingDir, logger, req.Stderr, req.Verbose) {
 			if command, err := pipInspectCommand("pipenv", "run"); err == nil {
-				if depsGraph, err := base.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Pipenv detector", command); err == nil {
+				if depsGraph, err := base.resolveGraph(req, "Pipenv detector", command); err == nil {
 					annotateGraphScopes(depsGraph, workingDir)
 					attachDeclaredPositions(depsGraph, workingDir)
 					attachLoosePythonPositions(depsGraph, workingDir)
@@ -109,7 +109,7 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 	}
 
 	// Fallback: parse Pipfile.lock (flat graph, but always available offline).
-	if depsGraph, err := depGraphFromPipfileLock(filepath.Join(workingDir, "Pipfile.lock")); err == nil {
+	if depsGraph, err := depGraphFromPipfileLock(filepath.Join(workingDir, "Pipfile.lock"), pythonRootName(req, workingDir)); err == nil {
 		annotateGraphScopes(depsGraph, workingDir)
 		attachDeclaredPositions(depsGraph, workingDir)
 		attachLoosePythonPositions(depsGraph, workingDir)
@@ -197,7 +197,7 @@ type pipfileLockPackage struct {
 	Version string `json:"version"`
 }
 
-func depGraphFromPipfileLock(path string) (*sdk.Graph, error) {
+func depGraphFromPipfileLock(path, rootName string) (*sdk.Graph, error) {
 	raw, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read Pipfile.lock: %w", err)
@@ -212,7 +212,7 @@ func depGraphFromPipfileLock(path string) (*sdk.Graph, error) {
 	depsGraph := sdk.New()
 	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
 		PackageManager: sdk.PackageManagerPipenv,
-		Name:           "root",
+		Name:           pythonRootNameOrDefault(rootName, filepath.Dir(path)),
 		Type:           sdk.PackageTypeProject,
 		FirstParty:     true},
 	})

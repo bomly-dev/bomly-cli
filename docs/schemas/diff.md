@@ -14,6 +14,7 @@ Complete reference for the `bomly diff` JSON output.
 | `summary` | [`DiffSummary`](#diffsummary) | |
 | `packages` | Array<[`ScanPackageEntry`](#scanpackageentry)> | |
 | `audit` | [`DiffAudit`](#diffaudit) | |
+| `warnings` | Array<[`DetectorWarning`](#detectorwarning)> | |
 | `metadata` | [`Metadata`](#metadata) | |
 
 ## Types
@@ -89,6 +90,17 @@ Complete reference for the `bomly diff` JSON output.
 |-------|------|-------------|
 | `sink` | [`AffectedSymbol`](#affectedsymbol) | |
 | `frames` | Array<[`CallFrame`](#callframe)> | |
+
+### `DetectorWarning`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | `string` | |
+| `code` | `string` | |
+| `source` | `string` | |
+| `subproject` | `string` | |
+| `manifest` | `string` | |
+| `message` | `string` | |
 
 ### `DiffAudit`
 

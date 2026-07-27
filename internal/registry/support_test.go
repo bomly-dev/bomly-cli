@@ -248,6 +248,23 @@ func TestSupportCatalogExcludesOtherSentinel(t *testing.T) {
 	}
 }
 
+// TestEveryDetectablePackageManagerHasADetectorChain pins the invariant the
+// discovery diagnostics rely on: anything DetectPackageManagers can surface
+// (a catalog entry with manifest evidence) has detectors to plan, so an empty
+// planned chain can only mean the user's detector selectors emptied it.
+// Adding an evidence-only catalog entry would silently turn that diagnostic
+// into a lie, and this test into a failure.
+func TestEveryDetectablePackageManagerHasADetectorChain(t *testing.T) {
+	for _, manager := range SupportedPackageManagers() {
+		if len(EvidencePatternsForPackageManager(manager)) == 0 {
+			continue
+		}
+		if chain := DetectorNamesForPackageManager(manager); len(chain) == 0 {
+			t.Errorf("package manager %s has manifest evidence but no detector chain", manager.Name())
+		}
+	}
+}
+
 func supportEntryForManager(entries []PackageManagerSupport, manager sdk.PackageManager) (PackageManagerSupport, bool) {
 	for _, entry := range entries {
 		if entry.Manager == manager {

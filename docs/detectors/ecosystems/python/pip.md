@@ -31,15 +31,20 @@ Bomly uses this chain when it finds `pip` evidence.
 
 The isolated virtualenv lives under the OS temp directory and is keyed by the project path. Bomly recreates it before installing so stale packages cannot leak into the scan, then inspects that venv directly. Ambient site-packages are never accepted as the project graph.
 
+Direct vs. transitive comes from what your project declares by name — requirements files, the dependency tables in `pyproject.toml`, the `Pipfile` — plus the installer's `REQUESTED` marker. Lockfiles never count as declarations: they record the whole resolved closure, so reading them here would make every transitive package look direct. Everything else in the environment is wired under its parents using each distribution's `Requires-Dist` metadata.
+
+A `requirements.txt` project carries no name of its own, so the graph's root node is named from the first of: `pyproject.toml`'s declared project name, the subproject directory (in a recursive monorepo scan), the scanned repository name (for a `--url` target), or the project directory. Bomly's own `bomly-git-*` clone directories are never used — they are random per run.
+
 ## Network behavior
 
 ✅ `requirements.lock` parsing is offline and does not execute Python.
 
-⚠️ Without `requirements.lock`, Bomly installs into its isolated temp virtualenv so the graph is accurate. That can download packages from PyPI or the indexes declared by your install args.
+⚠️ Without `requirements.lock`, Bomly installs into its isolated temp virtualenv so the graph is accurate. That can download packages from PyPI or the indexes declared by your install args. The only commands Bomly runs there are `python -m venv`, `pip --version`, your requirements install, and `pip inspect` — it never installs or upgrades pip itself.
 
 ## Prerequisites
 
 - `python` on `PATH` with `pip` installed (`python -m pip --version` must work).
+- **pip 22.2 or newer**, which is the first release with `pip inspect`. `python -m venv` seeds the virtualenv with the ambient interpreter's pip, so an old system Python (macOS ships 3.9 with pip 21.x) produces a venv that cannot inspect itself. Bomly checks this before installing and fails with the pip version and this requirement named, rather than a bare exit status; the detector chain then falls back, so the scan still completes with a reduced graph. Bomly never installs or upgrades pip for you — fix it with `python -m pip install --upgrade pip` for that interpreter, or put a newer Python on `PATH`.
 - A `requirements.txt`, `requirements-dev.txt`, `requirements.in`, `requirements.lock`, or any `*requirements*.txt` file in the scan path acts as the evidence pattern that triggers `pip-detector`.
 
 ## `--install-first`

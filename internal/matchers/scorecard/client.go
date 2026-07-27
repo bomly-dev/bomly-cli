@@ -5,17 +5,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 const (
-	defaultAPIBase = "https://api.scorecard.dev"
-	defaultTimeout = 15 * time.Second
+	defaultAPIBase         = "https://api.scorecard.dev"
+	defaultTimeout         = 15 * time.Second
+	maxResponseBytes int64 = 4 << 20
 )
 
 // ErrProjectNotScored is returned by FetchProject when api.scorecard.dev has
@@ -100,7 +101,7 @@ func (c *Client) FetchProject(ctx context.Context, repo string) (*Project, error
 		return nil, fmt.Errorf("scorecard: fetch %s: status %d", repo, resp.StatusCode)
 	}
 
-	data, err := io.ReadAll(io.LimitReader(resp.Body, 4<<20)) // 4 MB cap per project
+	data, err := system.ReadLimit(resp.Body, resp.ContentLength, maxResponseBytes)
 	if err != nil {
 		return nil, fmt.Errorf("scorecard: read response for %s: %w", repo, err)
 	}

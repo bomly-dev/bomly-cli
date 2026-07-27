@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -17,6 +16,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/matchers"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/cache"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
@@ -33,7 +33,8 @@ const (
 
 	// deps.dev versionbatch currently returns at most 100 responses. Keeping
 	// request chunks at that size avoids silently dropping later package lookups.
-	maxBatchRequests = 100
+	maxBatchRequests       = 100
+	maxResponseBytes int64 = 16 << 20
 )
 
 // Config configures the deps.dev license matcher.
@@ -276,11 +277,10 @@ func (c *Checker) fetchBatch(ctx context.Context, items []pending, stats *checkS
 	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
-		data, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
-		return fmt.Errorf("deps.dev: batch request failed with status %d: %s", resp.StatusCode, strings.TrimSpace(string(data)))
+		return fmt.Errorf("deps.dev: batch request failed with status %d", resp.StatusCode)
 	}
 
-	rawBody, err := io.ReadAll(resp.Body)
+	rawBody, err := system.ReadLimit(resp.Body, resp.ContentLength, maxResponseBytes)
 	if err != nil {
 		return fmt.Errorf("deps.dev: read batch response: %w", err)
 	}

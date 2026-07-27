@@ -88,11 +88,11 @@ func (d UVDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) 
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("uv detector: build pip inspect command: %w", err)
 	}
-	depsGraph, err := base.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "uv detector", command)
+	depsGraph, err := base.resolveGraph(req, "uv detector", command)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("uv detector: resolve project environment graph: %w", err)
 	}
-	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir)
+	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir, pythonRootName(req, workingDir))
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("uv detector: filter tool packages: %w", err)
 	}

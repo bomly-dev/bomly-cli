@@ -301,6 +301,7 @@ For GitHub Release installs, Bomly resolves release metadata, selects the asset 
 Plugin archives have fixed safety limits:
 
 - Remote downloads: 256 MiB
+- GitHub release metadata: 4 MiB, rejected before decoding
 - Archive entries: 4,096
 - One expanded file: 256 MiB
 - All expanded files together: 512 MiB

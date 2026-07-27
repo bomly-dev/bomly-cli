@@ -44,11 +44,11 @@ func registerDiffTool(s *server.MCPServer, mcpCtx Context) {
 	s.AddTool(tool, func(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToolResult, error) {
 		base, err := req.RequireString("base")
 		if err != nil {
-			return mcplib.NewToolResultError(err.Error()), nil
+			return invalidRequestResult(mcpCtx, "diff", "base"), nil
 		}
 		head, err := req.RequireString("head")
 		if err != nil {
-			return mcplib.NewToolResultError(err.Error()), nil
+			return invalidRequestResult(mcpCtx, "diff", "head"), nil
 		}
 		diffReq := DiffRequest{
 			Base:                  base,
@@ -77,7 +77,7 @@ func registerDiffTool(s *server.MCPServer, mcpCtx Context) {
 		}
 		result, err := mcpCtx.Adapter.RunDiff(ctx, diffReq)
 		if err != nil {
-			return mcplib.NewToolResultError(err.Error()), nil
+			return toolErrorResult(mcpCtx, "diff", err), nil
 		}
 		return jsonResult(BuildCompactDiff(result))
 	})

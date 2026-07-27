@@ -14,7 +14,7 @@ func registerPluginsTool(s *server.MCPServer, mcpCtx Context) {
 	s.AddTool(tool, func(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToolResult, error) {
 		result, err := mcpCtx.Adapter.ListPlugins(ctx)
 		if err != nil {
-			return mcplib.NewToolResultError(err.Error()), nil
+			return toolErrorResult(mcpCtx, "plugins", err), nil
 		}
 		return jsonResult(result)
 	})

@@ -37,7 +37,7 @@ func registerExplainTool(s *server.MCPServer, mcpCtx Context) {
 	s.AddTool(tool, func(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToolResult, error) {
 		pkg, err := req.RequireString("package")
 		if err != nil {
-			return mcplib.NewToolResultError(err.Error()), nil
+			return invalidRequestResult(mcpCtx, "explain", "package"), nil
 		}
 		explainReq := ExplainRequest{
 			Package:               pkg,
@@ -63,7 +63,7 @@ func registerExplainTool(s *server.MCPServer, mcpCtx Context) {
 		}
 		result, err := mcpCtx.Adapter.RunExplain(ctx, explainReq)
 		if err != nil {
-			return mcplib.NewToolResultError(err.Error()), nil
+			return toolErrorResult(mcpCtx, "explain", err), nil
 		}
 		return jsonResult(BuildCompactExplain(pkg, result))
 	})

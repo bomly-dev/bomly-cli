@@ -259,7 +259,7 @@ func copyDownloadWithLimit(dst io.Writer, src io.Reader, contentLength, limit in
 		if errors.Is(err, io.EOF) {
 			return written, nil
 		}
-		return written, err
+		return written, fmt.Errorf("read plugin archive download: %w", err)
 	}
 	var probe [1]byte
 	count, probeErr := src.Read(probe[:])
@@ -267,7 +267,7 @@ func copyDownloadWithLimit(dst io.Writer, src io.Reader, contentLength, limit in
 		return written, fmt.Errorf("plugin archive download exceeds the %d-byte limit", limit)
 	}
 	if probeErr != nil && !errors.Is(probeErr, io.EOF) {
-		return written, probeErr
+		return written, fmt.Errorf("read plugin archive download: %w", probeErr)
 	}
 	return written, nil
 }
@@ -420,7 +420,7 @@ func extractZipArchive(archivePath, targetDir string, limits archiveLimits) erro
 				return 0, fmt.Errorf("open archive file %q: %w", file.Name, err)
 			}
 			defer func() { _ = rc.Close() }()
-			return writeArchiveFile(dst, rc, file.Mode(), file.Name, budget.writeLimit())
+			return writeArchiveFile(dst, rc, file.Mode(), file.Name, budget)
 		})
 		if err != nil {
 			return err
@@ -492,7 +492,7 @@ func extractTarGzArchive(archivePath, targetDir string, limits archiveLimits) er
 			if header.FileInfo().IsDir() {
 				return 0, os.MkdirAll(dst, 0o755)
 			}
-			return writeArchiveFile(dst, tr, os.FileMode(header.Mode), header.Name, budget.writeLimit())
+			return writeArchiveFile(dst, tr, os.FileMode(header.Mode), header.Name, budget)
 		})
 		if err != nil {
 			return err
@@ -535,6 +535,16 @@ func (b *archiveExtractionBudget) writeLimit() int64 {
 	return b.limits.maxEntryBytes
 }
 
+// overrunError attributes a stream overrun to the limit that actually bounded
+// the write: the per-entry cap normally, or the total expanded-size budget
+// when less of it remains than one entry may use.
+func (b *archiveExtractionBudget) overrunError(name string) error {
+	if b.limits.maxExpandedBytes-b.expanded < b.limits.maxEntryBytes {
+		return fmt.Errorf("plugin archive expanded size exceeds the %d-byte limit", b.limits.maxExpandedBytes)
+	}
+	return fmt.Errorf("plugin archive entry %q exceeds the %d-byte expanded size limit", name, b.limits.maxEntryBytes)
+}
+
 func (b *archiveExtractionBudget) addExpanded(name string, size int64) error {
 	if size < 0 || size > b.writeLimit() {
 		return fmt.Errorf("plugin archive entry %q exceeds the extraction limits", name)
@@ -568,7 +578,7 @@ func extractArchiveEntry(name, targetDir string, mode os.FileMode, write func(st
 	return write(destination)
 }
 
-func writeArchiveFile(path string, reader io.Reader, mode os.FileMode, entryName string, limit int64) (int64, error) {
+func writeArchiveFile(path string, reader io.Reader, mode os.FileMode, entryName string, budget *archiveExtractionBudget) (int64, error) {
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode.Perm())
 	if err != nil {
 		return 0, fmt.Errorf("create plugin archive file %q: %w", path, err)
@@ -580,7 +590,7 @@ func writeArchiveFile(path string, reader io.Reader, mode os.FileMode, entryName
 			_ = os.Remove(path)
 		}
 	}()
-	written, err := io.CopyN(file, reader, limit)
+	written, err := io.CopyN(file, reader, budget.writeLimit())
 	if err != nil && !errors.Is(err, io.EOF) {
 		return written, fmt.Errorf("write plugin archive file %q: %w", path, err)
 	}
@@ -588,7 +598,7 @@ func writeArchiveFile(path string, reader io.Reader, mode os.FileMode, entryName
 		var probe [1]byte
 		count, probeErr := reader.Read(probe[:])
 		if count > 0 {
-			return written, fmt.Errorf("plugin archive entry %q exceeds the %d-byte expanded size limit", entryName, limit)
+			return written, budget.overrunError(entryName)
 		}
 		if probeErr != nil && !errors.Is(probeErr, io.EOF) {
 			return written, fmt.Errorf("write plugin archive file %q: %w", path, probeErr)

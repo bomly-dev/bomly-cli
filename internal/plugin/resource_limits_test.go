@@ -196,8 +196,9 @@ func TestArchiveExtractionRejectsResourceLimits(t *testing.T) {
 
 func TestWriteArchiveFileRemovesPartialFileAtLimit(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "plugin")
-	written, err := writeArchiveFile(path, strings.NewReader("abcde"), 0o755, "plugin", 4)
-	if err == nil || !strings.Contains(err.Error(), "exceeds the 4-byte expanded size limit") {
+	budget := newArchiveExtractionBudget(archiveLimits{maxEntries: 1, maxEntryBytes: 4, maxExpandedBytes: 8})
+	written, err := writeArchiveFile(path, strings.NewReader("abcde"), 0o755, "plugin", budget)
+	if err == nil || !strings.Contains(err.Error(), "entry \"plugin\" exceeds the 4-byte expanded size limit") {
 		t.Fatalf("writeArchiveFile() error = %v", err)
 	}
 	if written != 4 {
@@ -205,6 +206,20 @@ func TestWriteArchiveFileRemovesPartialFileAtLimit(t *testing.T) {
 	}
 	if _, statErr := os.Stat(path); !os.IsNotExist(statErr) {
 		t.Fatalf("partial archive entry remains at %q", path)
+	}
+}
+
+func TestWriteArchiveFileOverrunNamesTheBindingLimit(t *testing.T) {
+	// The total expanded-size budget is the smaller bound here, so the error
+	// must name it instead of misattributing the per-entry cap.
+	path := filepath.Join(t.TempDir(), "plugin")
+	budget := newArchiveExtractionBudget(archiveLimits{maxEntries: 2, maxEntryBytes: 8, maxExpandedBytes: 4})
+	_, err := writeArchiveFile(path, strings.NewReader("abcde"), 0o755, "plugin", budget)
+	if err == nil || !strings.Contains(err.Error(), "expanded size exceeds the 4-byte limit") {
+		t.Fatalf("writeArchiveFile() error = %v", err)
+	}
+	if strings.Contains(err.Error(), "8-byte") {
+		t.Fatalf("writeArchiveFile() misattributed the per-entry cap: %v", err)
 	}
 }
 

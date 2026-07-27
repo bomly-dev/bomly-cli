@@ -148,6 +148,15 @@ install and enable them. See
 [Detectors → Network behavior](DETECTORS.md#network-behavior) and
 [Matchers](MATCHERS.md).
 
+Custom OSV and Scorecard endpoints, proxies, and additional CA files are
+supported, including private-network destinations. These are trusted settings:
+use the user config, a file selected with `--config` or `BOMLY_CONFIG`, or the
+documented environment variables. Repository config is not loaded
+automatically. Bomly follows normal redirects and does not block private
+addresses so self-hosted services and enterprise proxies can work. This also
+means a trusted HTTPS endpoint may redirect to HTTP; Bomly does not add a
+downgrade block.
+
 ## Build variants
 
 Bomly ships in two variants. The full binary (`bomly`) links the Syft and Grype libraries directly and needs no external tools. The lite binary (`bomly-lite`) shells out to `syft` and `grype` on your `PATH` for a smaller download. Both behave the same from the command line. See [Installation](INSTALLATION.md) for which to pick.

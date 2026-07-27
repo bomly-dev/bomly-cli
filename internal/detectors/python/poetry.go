@@ -84,11 +84,11 @@ func (d PoetryDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("poetry detector: build pip inspect command: %w", err)
 	}
-	depsGraph, err := base.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Poetry detector", command)
+	depsGraph, err := base.resolveGraph(req, "Poetry detector", command)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("poetry detector: resolve project environment graph: %w", err)
 	}
-	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir)
+	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir, pythonRootName(req, workingDir))
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("poetry detector: filter tool packages: %w", err)
 	}

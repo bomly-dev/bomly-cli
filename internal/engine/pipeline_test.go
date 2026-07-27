@@ -197,8 +197,64 @@ func TestResolveDetectors_IncludesReadyReasonWhenDetectorNotReady(t *testing.T) 
 	if err == nil {
 		t.Fatal("expected detector readiness error")
 	}
-	if !strings.Contains(err.Error(), "detector maven-detector: not ready: java runtime is unavailable") {
+	// A chain that never started reports one actionable line naming each link
+	// and what it needs, not a joined list of per-detector errors.
+	if !strings.Contains(err.Error(), "no usable detector: maven-detector not ready (java runtime is unavailable") {
 		t.Fatalf("expected readiness reason in error, got %v", err)
+	}
+}
+
+// TestResolveDetectors_SummarizesEveryUnreadyChainLink covers the fallback
+// chain: when neither the primary nor its fallback can run, both are named.
+func TestResolveDetectors_SummarizesEveryUnreadyChainLink(t *testing.T) {
+	registry := newTestRegistry()
+	notReady := false
+	registry.registerDetector(fakeFallbackDetector{
+		fakeDetector: fakeDetector{
+			descriptor:  DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+			ready:       &notReady,
+			readyReason: "npm not on PATH",
+		},
+		fallback: fakeDetector{
+			descriptor:  DetectorDescriptor{Name: "npm-lockfile", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+			ready:       &notReady,
+			readyReason: "no committed lockfile",
+		},
+	})
+
+	pipeline := NewPipeline(registry, zap.NewNop())
+	req := ResolveGraphRequest{Ecosystem: EcosystemNPM, PackageManager: PackageManagerNPM}
+	_, err := pipeline.resolveDetectors(context.Background(), req, registry.Detectors(req), nil)
+	if err == nil {
+		t.Fatal("expected detector readiness error")
+	}
+	want := "no usable detector: npm-native not ready (npm not on PATH); npm-lockfile not ready (no committed lockfile)"
+	if err.Error() != want {
+		t.Fatalf("resolveDetectors() error = %q, want %q", err, want)
+	}
+}
+
+// TestResolveDetectors_KeepsRunFailuresVerbatim proves the summary is scoped
+// to readiness: a detector that ran and failed explains itself better than a
+// "no usable detector" line would.
+func TestResolveDetectors_KeepsRunFailuresVerbatim(t *testing.T) {
+	registry := newTestRegistry()
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		err:        errors.New("npm ls: exit status 1"),
+	})
+
+	pipeline := NewPipeline(registry, zap.NewNop())
+	req := ResolveGraphRequest{Ecosystem: EcosystemNPM, PackageManager: PackageManagerNPM}
+	_, err := pipeline.resolveDetectors(context.Background(), req, registry.Detectors(req), nil)
+	if err == nil {
+		t.Fatal("expected detector resolution error")
+	}
+	if strings.Contains(err.Error(), "no usable detector") {
+		t.Fatalf("expected the run failure verbatim, got %v", err)
+	}
+	if !strings.Contains(err.Error(), "npm ls: exit status 1") {
+		t.Fatalf("expected the underlying failure in the error, got %v", err)
 	}
 }
 
@@ -1016,5 +1072,135 @@ func TestPipelineWarningsFromError_JoinedErrors(t *testing.T) {
 	}
 	if warnings[1].Source != "grype" || warnings[1].Message != "not ready" {
 		t.Errorf("warning[1] = %+v", warnings[1])
+	}
+}
+
+func TestPipeline_Run_CollectsDetectorReportedWarnings(t *testing.T) {
+	registry := newTestRegistry()
+	graph := sdk.New()
+	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+	warning := sdk.DetectorWarning{
+		Type:     sdk.DetectorWarningPackageManager,
+		Code:     sdk.DetectorWarningCodeInstallGate,
+		Source:   "pnpm",
+		Manifest: "pnpm-workspace.yaml",
+		Message:  "pnpm-workspace.yaml sets minimumReleaseAge=1440 (24h)",
+	}
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "pnpm-lockfile", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerPNPM}},
+		result: ResolveGraphResult{
+			Graphs:   SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "pnpm-lock.yaml", Kind: "pnpm-lock.yaml"}),
+			Warnings: []sdk.DetectorWarning{warning},
+		},
+	})
+
+	pipeline := NewPipeline(registry, zap.NewNop())
+	result, err := pipeline.Run(context.Background(), PipelineRequest{
+		Subprojects: []Subproject{{
+			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
+			RelativePath:            "apps/web",
+			PrimaryDetector:         "pnpm-lockfile",
+			DetectedPackageManagers: []PackageManager{PackageManagerPNPM},
+			Ecosystem:               EcosystemNPM,
+		}},
+	})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if len(result.DetectorWarnings) != 1 {
+		t.Fatalf("expected 1 detector warning, got %+v", result.DetectorWarnings)
+	}
+	got := result.DetectorWarnings[0]
+	// The engine stamps the subproject; everything else passes through.
+	if got.Subproject != "apps/web" || got.Source != "pnpm" || got.Message != warning.Message {
+		t.Fatalf("unexpected detector warning: %+v", got)
+	}
+	if got.DegradesCoverage() {
+		t.Fatal("a package-manager warning must not claim degraded coverage")
+	}
+}
+
+func TestPipeline_Run_DeduplicatesRepeatedDetectorWarnings(t *testing.T) {
+	registry := newTestRegistry()
+	graph := sdk.New()
+	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+	warning := sdk.DetectorWarning{
+		Type:    sdk.DetectorWarningPackageManager,
+		Code:    sdk.DetectorWarningCodeInstallGate,
+		Source:  "npm",
+		Message: ".npmrc sets before=2026-01-01",
+	}
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "npm-lockfile", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		result: ResolveGraphResult{
+			Graphs:   SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "package-lock.json"}),
+			Warnings: []sdk.DetectorWarning{warning, warning},
+		},
+	})
+
+	pipeline := NewPipeline(registry, zap.NewNop())
+	result, err := pipeline.Run(context.Background(), PipelineRequest{
+		Subprojects: []Subproject{{
+			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
+			RelativePath:            ".",
+			PrimaryDetector:         "npm-lockfile",
+			DetectedPackageManagers: []PackageManager{PackageManagerNPM},
+			Ecosystem:               EcosystemNPM,
+		}},
+	})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if len(result.DetectorWarnings) != 1 {
+		t.Fatalf("expected the repeated warning to collapse to 1, got %+v", result.DetectorWarnings)
+	}
+}
+
+func TestPipeline_Run_TypesFallbackWarningsAsDegradedCoverage(t *testing.T) {
+	registry := newTestRegistry()
+	fallbackGraph := sdk.New()
+	if err := fallbackGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+	registry.registerDetector(fakeFallbackDetector{
+		fakeDetector: fakeDetector{
+			descriptor: DetectorDescriptor{Name: "maven-detector", SupportedEcosystems: []Ecosystem{EcosystemMaven}, SupportedManagers: []PackageManager{PackageManagerMaven}},
+			err:        errors.New("java executable not found on PATH"),
+		},
+		fallback: fakeDetector{
+			descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemMaven}, SupportedManagers: []PackageManager{PackageManagerMaven}},
+			result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"})},
+		},
+	})
+
+	pipeline := NewPipeline(registry, zap.NewNop())
+	result, err := pipeline.Run(context.Background(), PipelineRequest{
+		Subprojects: []Subproject{{
+			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
+			RelativePath:            ".",
+			PrimaryDetector:         "maven-detector",
+			DetectedPackageManagers: []PackageManager{PackageManagerMaven},
+			Ecosystem:               EcosystemMaven,
+		}},
+	})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if len(result.DetectorWarnings) != 1 {
+		t.Fatalf("expected 1 fallback warning, got %+v", result.DetectorWarnings)
+	}
+	got := result.DetectorWarnings[0]
+	if got.Type != sdk.DetectorWarningFallback || got.Source != "maven-detector" || got.Manifest != "pom.xml" {
+		t.Fatalf("unexpected fallback warning: %+v", got)
+	}
+	if !got.DegradesCoverage() {
+		t.Fatal("a fallback warning must report degraded coverage")
+	}
+	if !strings.Contains(got.Message, "transitive dependencies may be missing") {
+		t.Fatalf("fallback warning lost its consequence: %q", got.Message)
 	}
 }

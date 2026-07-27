@@ -23,7 +23,11 @@ type ScanResponse struct {
 	Packages      []ScanPackageEntry `json:"packages"`
 	Findings      []AuditFinding     `json:"findings,omitempty"`
 	AuditSummary  *AuditSummary      `json:"audit_summary,omitempty"`
-	Metadata      Metadata           `json:"metadata"`
+	// Warnings are the detection-stage problems the run reported: resolution
+	// failures, detector fallbacks, and package-manager misconfiguration. Each
+	// carries a type so consumers can tell degraded coverage from advice.
+	Warnings []sdk.DetectorWarning `json:"warnings,omitempty"`
+	Metadata Metadata              `json:"metadata"`
 }
 
 // ScanManifest is one manifest-scoped dependency inventory in the scan payload.
@@ -43,15 +47,16 @@ type ScanManifest struct {
 // conflict) so audit findings can be joined against advisory data the same
 // way scan findings join against ScanResponse.Packages.
 type DiffResponse struct {
-	SchemaVersion string             `json:"schema_version"`
-	Command       string             `json:"command"`
-	Project       ProjectDescriptor  `json:"project"`
-	Comparison    DiffComparison     `json:"comparison"`
-	Results       DiffResults        `json:"results"`
-	Summary       DiffSummary        `json:"summary"`
-	Packages      []ScanPackageEntry `json:"packages"`
-	Audit         *DiffAudit         `json:"audit,omitempty"`
-	Metadata      Metadata           `json:"metadata"`
+	SchemaVersion string                `json:"schema_version"`
+	Command       string                `json:"command"`
+	Project       ProjectDescriptor     `json:"project"`
+	Comparison    DiffComparison        `json:"comparison"`
+	Results       DiffResults           `json:"results"`
+	Summary       DiffSummary           `json:"summary"`
+	Packages      []ScanPackageEntry    `json:"packages"`
+	Audit         *DiffAudit            `json:"audit,omitempty"`
+	Warnings      []sdk.DetectorWarning `json:"warnings,omitempty"`
+	Metadata      Metadata              `json:"metadata"`
 }
 
 // DiffAudit groups audit deltas for diff output.
@@ -167,6 +172,7 @@ type ExplainResponse struct {
 	Findings      []AuditFinding          `json:"findings,omitempty"`
 	AuditSummary  *AuditSummary           `json:"audit_summary,omitempty"`
 	Targets       []ExplainTargetResponse `json:"targets,omitempty"`
+	Warnings      []sdk.DetectorWarning   `json:"warnings,omitempty"`
 	Metadata      Metadata                `json:"metadata"`
 }
 
@@ -221,6 +227,9 @@ func (r ScanResponse) WithAnalyzerRuns(runs []string, stats map[string]sdk.Reach
 // strips experimental reachability annotations when the flag is disabled.
 func (r ScanResponse) WithReportOptions(options ReportOptions) ScanResponse {
 	r.Metadata = metadataWithReportOptions(r.Metadata, options)
+	if len(options.DetectorWarnings) > 0 {
+		r.Warnings = options.DetectorWarnings
+	}
 	if options.ReachabilityEnabled {
 		return r
 	}
@@ -371,6 +380,9 @@ func PackagesFromRegistries(base, head *sdk.PackageRegistry) []ScanPackageEntry 
 // strips experimental reachability annotations when the flag is disabled.
 func (r DiffResponse) WithReportOptions(options ReportOptions) DiffResponse {
 	r.Metadata = metadataWithReportOptions(r.Metadata, options)
+	if len(options.DetectorWarnings) > 0 {
+		r.Warnings = options.DetectorWarnings
+	}
 	if options.ReachabilityEnabled {
 		return r
 	}
@@ -391,6 +403,9 @@ func (r DiffResponse) WithReportOptions(options ReportOptions) DiffResponse {
 // and strips experimental reachability annotations when the flag is disabled.
 func (r ExplainResponse) WithReportOptions(options ReportOptions) ExplainResponse {
 	r.Metadata = metadataWithReportOptions(r.Metadata, options)
+	if len(options.DetectorWarnings) > 0 {
+		r.Warnings = options.DetectorWarnings
+	}
 	if options.ReachabilityEnabled {
 		return r
 	}

@@ -2,11 +2,14 @@ package registry
 
 import (
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 func TestBuildScanRegistryRegistersDetectorForEveryPackageManager(t *testing.T) {
@@ -153,5 +156,29 @@ func TestRegistryHTTPClientProviderReusesTransport(t *testing.T) {
 	}
 	if first.Timeout != 15*time.Second || second.Timeout != 30*time.Second {
 		t.Fatalf("timeouts = %v/%v, want 15s/30s", first.Timeout, second.Timeout)
+	}
+}
+
+func TestRegisterScorecardMatcherDoesNotLogEndpointCredentials(t *testing.T) {
+	core, logs := observer.New(zapcore.DebugLevel)
+	builtins := NewRegistry(Configs{
+		ScorecardAPIBase: "https://agent:super-secret@scorecard.example/api",
+	}, *zap.New(core))
+
+	builtins.registerScorecardMatcher()
+
+	entries := logs.FilterMessage("scorecard matcher configured").All()
+	if len(entries) != 1 {
+		t.Fatalf("scorecard configuration logs = %d, want 1", len(entries))
+	}
+	apiBase, ok := entries[0].ContextMap()["api_base"].(string)
+	if !ok {
+		t.Fatalf("api_base log field = %#v, want string", entries[0].ContextMap()["api_base"])
+	}
+	if apiBase != "https://scorecard.example/api" {
+		t.Fatalf("api_base log field = %q, want URL without credentials", apiBase)
+	}
+	if strings.Contains(apiBase, "agent") || strings.Contains(apiBase, "super-secret") {
+		t.Fatalf("api_base log field leaked credentials: %q", apiBase)
 	}
 }

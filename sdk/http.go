@@ -149,9 +149,17 @@ func proxyFunc(config HTTPClientConfig) (func(*http.Request) (*url.URL, error), 
 	if err != nil {
 		return nil, err
 	}
-	noProxy := strings.TrimSpace(config.NoProxy)
+	envProxy := httpproxy.FromEnvironment()
+	noProxy := mergeNoProxy(envProxy.NoProxy, config.NoProxy)
 	if proxyURL == "" {
-		return http.ProxyFromEnvironment, nil
+		if strings.TrimSpace(config.NoProxy) == "" {
+			return http.ProxyFromEnvironment, nil
+		}
+		envProxy.NoProxy = noProxy
+		urlProxy := envProxy.ProxyFunc()
+		return func(req *http.Request) (*url.URL, error) {
+			return urlProxy(req.URL)
+		}, nil
 	}
 	parsed, err := parseProxyURL(proxyURL)
 	if err != nil {
@@ -168,6 +176,26 @@ func proxyFunc(config HTTPClientConfig) (func(*http.Request) (*url.URL, error), 
 	return func(req *http.Request) (*url.URL, error) {
 		return urlProxy(req.URL)
 	}, nil
+}
+
+func mergeNoProxy(standard, bomly string) string {
+	entries := make([]string, 0)
+	seen := make(map[string]struct{})
+	for _, list := range []string{standard, bomly} {
+		for _, entry := range strings.Split(list, ",") {
+			entry = strings.TrimSpace(entry)
+			if entry == "" {
+				continue
+			}
+			key := strings.ToLower(entry)
+			if _, ok := seen[key]; ok {
+				continue
+			}
+			seen[key] = struct{}{}
+			entries = append(entries, entry)
+		}
+	}
+	return strings.Join(entries, ",")
 }
 
 // EffectiveProxyURL returns the effective proxy URL after applying Bomly's URL or

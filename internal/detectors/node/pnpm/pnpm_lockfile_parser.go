@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
@@ -67,6 +68,9 @@ type pnpmLockfileGraphs struct {
 	graph   *sdk.Graph
 	rootID  string
 	modules []pnpmModuleGraph
+	// lockfileVersion is the format version the lockfile declares, kept so the
+	// detector can compare it with the pnpm version the project pins.
+	lockfileVersion string
 }
 
 func depGraphFromPNPMLockfile(projectPath string) (pnpmLockfileGraphs, error) {
@@ -278,7 +282,12 @@ func depGraphFromPNPMLockfile(projectPath string) (pnpmLockfileGraphs, error) {
 		node.ApplyDirectDependencyScopes(depsGraph, rootNode.ID, pnpmRootDirectScopes(lockfile))
 	}
 
-	return pnpmLockfileGraphs{graph: depsGraph, rootID: rootNode.ID, modules: modules}, nil
+	return pnpmLockfileGraphs{
+		graph:           depsGraph,
+		rootID:          rootNode.ID,
+		modules:         modules,
+		lockfileVersion: pnpmLockfileVersionString(lockfile.LockfileVersion),
+	}, nil
 }
 
 // resolvePNPMImporterDependency resolves one importer dependency edge target:
@@ -494,4 +503,21 @@ func pnpmPackageSource(key string, entry pnpmLockPackage) sdk.DependencySource {
 		}
 	}
 	return node.DependencySourceFromSpecifier(value)
+}
+
+// pnpmLockfileVersionString renders the lockfileVersion scalar as the string a
+// lockfile author would recognize ("9.0", "6").
+func pnpmLockfileVersionString(value any) string {
+	switch typed := value.(type) {
+	case nil:
+		return ""
+	case string:
+		return strings.TrimSpace(typed)
+	case int:
+		return strconv.Itoa(typed)
+	case float64:
+		return strconv.FormatFloat(typed, 'f', -1, 64)
+	default:
+		return strings.TrimSpace(fmt.Sprintf("%v", typed))
+	}
 }

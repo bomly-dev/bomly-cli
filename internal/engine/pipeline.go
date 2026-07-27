@@ -152,18 +152,37 @@ func (p *Pipeline) runResolve(ctx context.Context, result *PipelineResult, req P
 	}
 	if resolveErr != nil {
 		result.PartialErrors = resolveErr
-		result.DetectorWarnings = PipelineWarningsFromError(resolveErr, "detector")
+		result.DetectorWarnings = resolutionFailureWarnings(resolveErr)
 		p.Logger.Warn("pipeline: partial resolution failures", zap.Error(resolveErr))
 	}
 	result.DetectorWarnings = append(result.DetectorWarnings, p.fallbackWarnings(resolveResults)...)
+	result.DetectorWarnings = append(result.DetectorWarnings, p.detectorReportedWarnings(resolveResults)...)
 	return nil
+}
+
+// resolutionFailureWarnings converts the (possibly joined) resolution error into
+// one warning per failed detector chain. The scan continues without those
+// subprojects, so the graph is incomplete: the type says so.
+func resolutionFailureWarnings(err error) []sdk.DetectorWarning {
+	warnings := make([]sdk.DetectorWarning, 0)
+	for _, warning := range PipelineWarningsFromError(err, "detector") {
+		warnings = append(warnings, sdk.DetectorWarning{
+			Type:    sdk.DetectorWarningResolutionFailure,
+			Source:  warning.Source,
+			Message: warning.Message,
+		})
+	}
+	if len(warnings) == 0 {
+		return nil
+	}
+	return warnings
 }
 
 // fallbackWarnings converts fallback annotations recorded during parallel
 // resolution into structured warnings and Warn logs. It runs single-goroutine
 // after resolveAll returns, so no synchronization is needed.
-func (p *Pipeline) fallbackWarnings(results []sdk.DetectionResult) []PipelineWarning {
-	var warnings []PipelineWarning
+func (p *Pipeline) fallbackWarnings(results []sdk.DetectionResult) []sdk.DetectorWarning {
+	var warnings []sdk.DetectorWarning
 	seen := make(map[string]struct{})
 	for _, result := range results {
 		if result.FallbackFrom == "" {
@@ -180,22 +199,78 @@ func (p *Pipeline) fallbackWarnings(results []sdk.DetectionResult) []PipelineWar
 			zap.String("subproject", result.SubprojectInfo.RelativePath),
 			zap.String("reason", result.FallbackReason),
 		)
-		warnings = append(warnings, PipelineWarning{Source: result.FallbackFrom, Message: fallbackWarningMessage(result)})
+		warnings = append(warnings, sdk.DetectorWarning{
+			Type:       sdk.DetectorWarningFallback,
+			Source:     result.FallbackFrom,
+			Subproject: result.SubprojectInfo.RelativePath,
+			Manifest:   firstManifestPath(result),
+			Message:    fallbackWarningMessage(result),
+		})
 	}
 	return warnings
 }
 
 func fallbackWarningMessage(result sdk.DetectionResult) string {
 	var b strings.Builder
-	if rel := strings.TrimSpace(result.SubprojectInfo.RelativePath); rel != "" && rel != "." {
-		fmt.Fprintf(&b, "subproject %s: ", rel)
-	}
 	reason := result.FallbackReason
 	if reason == "" {
 		reason = "primary detector failed"
 	}
-	fmt.Fprintf(&b, "%s — fell back to %s (transitive dependencies may be missing)", reason, result.DetectorName)
+	fmt.Fprintf(&b, "%s unavailable (%s) — resolved with %s; transitive dependencies may be missing",
+		result.FallbackFrom, reason, result.DetectorName)
 	return b.String()
+}
+
+// firstManifestPath names a manifest the result produced, so a warning can point
+// at a file. Fallback provenance is recorded on every manifest of the result;
+// one is enough to locate it.
+func firstManifestPath(result sdk.DetectionResult) string {
+	if result.Graphs == nil {
+		return ""
+	}
+	for _, entry := range result.Graphs.Entries {
+		if path := strings.TrimSpace(entry.Manifest.Path); path != "" {
+			// Detector paths can be absolute inside a temporary clone; carry the
+			// same relative form the consolidated manifests use.
+			return consolidation.NormalizeManifestPath(result.SubprojectInfo, path)
+		}
+	}
+	return ""
+}
+
+// detectorReportedWarnings collects the warnings detectors returned with their
+// graphs, stamping the subproject they came from and logging each one so `-v`
+// shows them when progress output is off (`-q`) or the run has no terminal.
+// Duplicates (a repo-root config shared by several subproject results) are
+// reported once. Like fallbackWarnings, this runs single-goroutine after
+// resolveAll returns.
+func (p *Pipeline) detectorReportedWarnings(results []sdk.DetectionResult) []sdk.DetectorWarning {
+	var warnings []sdk.DetectorWarning
+	seen := make(map[string]struct{})
+	for _, result := range results {
+		for _, warning := range result.Warnings {
+			if warning.Subproject == "" {
+				warning.Subproject = result.SubprojectInfo.RelativePath
+			}
+			key := string(warning.Type) + "\x00" + string(warning.Code) + "\x00" + warning.Source +
+				"\x00" + warning.Subproject + "\x00" + warning.Manifest + "\x00" + warning.Message
+			if _, ok := seen[key]; ok {
+				continue
+			}
+			seen[key] = struct{}{}
+			p.Logger.Warn("pipeline: detector warning",
+				zap.String("type", string(warning.Type)),
+				zap.String("code", string(warning.Code)),
+				zap.String("source", warning.Source),
+				zap.String("detector", result.DetectorName),
+				zap.String("subproject", warning.Subproject),
+				zap.String("manifest", warning.Manifest),
+				zap.String("message", warning.Message),
+			)
+			warnings = append(warnings, warning)
+		}
+	}
+	return warnings
 }
 
 func (p *Pipeline) runConsolidate(result *PipelineResult) error {

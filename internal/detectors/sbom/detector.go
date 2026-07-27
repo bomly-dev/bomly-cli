@@ -76,7 +76,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	data, err := system.ReadFileLimit(sbomPath, maxSBOMFileBytes)
 	if err != nil {
 		if errors.Is(err, system.ErrInputTooLarge) {
-			return sdk.DetectionResult{}, fmt.Errorf("sbom file %q exceeds the 256 MiB limit", sbomPath)
+			return sdk.DetectionResult{}, fmt.Errorf("sbom file %q exceeds the 256 MiB limit: %w", sbomPath, system.ErrInputTooLarge)
 		}
 		return sdk.DetectionResult{}, fmt.Errorf("read sbom file %q: %w", sbomPath, err)
 	}

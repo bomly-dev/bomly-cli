@@ -45,13 +45,13 @@ func LoadFile(path string) (*File, error) {
 	}
 	data, err := system.ReadFileLimit(path, maxConfigFileBytes)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			return nil, nil
 		}
 		if errors.Is(err, system.ErrInputTooLarge) {
-			return nil, fmt.Errorf("config file %q exceeds the 4 MiB limit", path)
+			return nil, fmt.Errorf("config file %q exceeds the 4 MiB limit: %w", path, system.ErrInputTooLarge)
 		}
-		return nil, err
+		return nil, fmt.Errorf("read config file: %w", err)
 	}
 	var cfg File
 	if err := rejectLegacyFlatKeys(data); err != nil {

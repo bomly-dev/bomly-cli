@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
+	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/output"
@@ -31,6 +32,33 @@ func warningProgressChildren(warnings []engine.PipelineWarning) []progress.Child
 			label = "unknown"
 		}
 		detail := strings.ReplaceAll(w.Message, "\n", " ")
+		children = append(children, progress.Child{
+			Icon:   progress.WarningMark,
+			Label:  label,
+			Detail: detail,
+		})
+	}
+	return children
+}
+
+// detectorWarningProgressChildren converts detection warnings into ⚠ children
+// using the warning source as Label and the message as Detail.
+func detectorWarningProgressChildren(warnings []sdk.DetectorWarning) []progress.Child {
+	children := make([]progress.Child, 0, len(warnings))
+	for _, warning := range warnings {
+		label := warning.Source
+		if label == "" {
+			label = string(warning.Type)
+		}
+		if label == "" {
+			label = "unknown"
+		}
+		// The message says what is wrong; the warning's own fields say where, so
+		// single-line channels stay attributable in a monorepo.
+		detail := render.SanitizeUntrusted(warning.Message)
+		if subproject := strings.TrimSpace(warning.Subproject); subproject != "" && subproject != "." {
+			detail = "subproject " + render.SanitizeUntrusted(subproject) + ": " + detail
+		}
 		children = append(children, progress.Child{
 			Icon:   progress.WarningMark,
 			Label:  label,

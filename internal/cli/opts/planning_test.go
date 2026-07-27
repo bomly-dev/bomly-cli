@@ -112,7 +112,7 @@ func TestNoSubprojectsErrorIncludesDiscoveryProbe(t *testing.T) {
 		t.Fatalf("expected ErrNoSubprojects, got %v", err)
 	}
 	msg := err.Error()
-	if !strings.Contains(msg, "discovery probe:") || !strings.Contains(msg, "package.json at web") {
+	if !strings.Contains(msg, "manifest candidates found") || !strings.Contains(msg, "- web/package.json (npm)") {
 		t.Fatalf("expected discovery probe evidence in error, got %q", msg)
 	}
 	if !strings.Contains(msg, "active filters: --detectors missing-detector") {

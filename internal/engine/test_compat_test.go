@@ -30,6 +30,7 @@ type RiskScore = sdk.RiskScore
 const (
 	PackageManagerUnknown           = sdk.PackageManagerUnknown
 	PackageManagerNPM               = sdk.PackageManagerNPM
+	PackageManagerPNPM              = sdk.PackageManagerPNPM
 	PackageManagerMaven             = sdk.PackageManagerMaven
 	PackageManagerGoMod             = sdk.PackageManagerGoMod
 	PackageManagerGitHubActions     = sdk.PackageManagerGitHubActions

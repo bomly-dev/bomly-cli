@@ -123,7 +123,7 @@ MCP tool results land in an agent's context window, so they use a compact respon
   - `no-fix-upstream` means the advisory source says no fixed version exists.
   - `manual-review` means the available data does not support a specific change.
 - **`informational`** — findings that do not currently require a change. This includes warning-only findings and vulnerabilities allowed by audit policy or below the selected failure threshold.
-- **`diagnostics`** — pipeline warnings (detector fallbacks, matcher failures) so partial results explain themselves.
+- **`diagnostics`** — pipeline warnings (detector fallbacks, matcher failures) so partial results explain themselves, plus the [CI-readiness warnings](CI_READINESS.md) detectors record while resolving: package-manager, lockfile-format, and install-policy mismatches that fail a CI install even after the vulnerability is fixed.
 - **`truncation`** — explicit counters whenever a cap cut anything; nothing is dropped silently.
 
 Each finding carries advisory identifiers (`vuln_id`, aliases), severity, classification (`fix_available`, `no_fix_upstream`, `wont_fix`, `policy_only`), the shortest dependency path, and KEV/EPSS/reachability signals — but no descriptions, reference URLs, or CVSS vectors.
@@ -228,4 +228,4 @@ MCP responses are intentionally compact. When an agent (or you) needs the comple
 
 ### A Scan Says "No Subprojects Discovered"
 
-The error now includes a discovery probe listing the manifest files that do exist under the target and which package manager they belong to (for example `found package.json at web (npm)`), plus any active filters. Check that the `path` argument points at the project root and that no `ecosystems` filter excludes what is actually there. When the probe reports manifests in subdirectories only (a monorepo of independent projects), pass `recursive: true` — discovery inspects only the target root by default. `max_depth` and `exclude` bound the recursive walk; see [Scan targets](SCAN_TARGETS.md#recursive-discovery----recursive).
+The error is a short report: the target and search scope, any active filters, and every manifest candidate that exists under the target with the reason discovery skipped it (`- web/package.json (npm) — skipped: not scanned without --recursive`, or `— skipped: excluded by --ecosystems go`; a reason shared by every candidate is stated once in the section header). Check that the `path` argument points at the project root and that no `ecosystems` filter excludes what is actually there. When the probe reports manifests in subdirectories only (a monorepo of independent projects), pass `recursive: true` — discovery inspects only the target root by default. `max_depth` and `exclude` bound the recursive walk; see [Scan targets](SCAN_TARGETS.md#recursive-discovery----recursive).

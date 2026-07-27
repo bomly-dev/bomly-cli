@@ -111,8 +111,19 @@ func validateBaselineMutationTarget(configured config.Resolved) error {
 	return nil
 }
 
+// baselineMutationWarningCount counts the warnings that mean the run may have
+// missed findings. Detection warnings are filtered by type: a resolution
+// failure or detector fallback leaves the graph incomplete and must block
+// recording a baseline, while a package-manager misconfiguration says nothing
+// about coverage.
 func baselineMutationWarningCount(result engine.PipelineResult) int {
-	return len(result.DetectorWarnings) + len(result.MatchWarnings) + len(result.AnalyzeWarnings) + len(result.AuditWarnings)
+	count := len(result.MatchWarnings) + len(result.AnalyzeWarnings) + len(result.AuditWarnings)
+	for _, warning := range result.DetectorWarnings {
+		if warning.DegradesCoverage() {
+			count++
+		}
+	}
+	return count
 }
 
 func newBaselineInspectCmd() *cobra.Command {

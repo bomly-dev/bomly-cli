@@ -3,6 +3,7 @@ package registry
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -389,10 +390,19 @@ func (r *Registry) registerScorecardMatcher() {
 		r.RegisterMatcherWithOptions(matcher, ComponentOptions{DefaultEnabled: false})
 	}
 	r.logger.Debug("scorecard matcher configured",
-		zap.String("api_base", scoreCfg.APIBase),
+		zap.String("api_base", endpointForLog(scoreCfg.APIBase)),
 		zap.String("cache_dir", scoreCfg.CacheDir),
 		zap.Duration("cache_ttl", scoreCfg.CacheTTL),
 	)
+}
+
+func endpointForLog(value string) string {
+	parsed, err := url.Parse(value)
+	if err != nil {
+		return "[invalid URL]"
+	}
+	parsed.User = nil
+	return parsed.String()
 }
 
 func (r *Registry) httpClientProvider() *sdk.HTTPClientProvider {

@@ -338,5 +338,14 @@
     "target_ref": "v1.0.0",
     "target_type": "git repository"
   },
-  "schema_version": "1.0"
+  "schema_version": "1.0",
+  "warnings": [
+    {
+      "manifest": "build.sbt",
+      "message": "sbt-native-detector unavailable (not ready: sbt executable not found on PATH) — resolved with sbt-detector; transitive dependencies may be missing",
+      "source": "sbt-native-detector",
+      "subproject": ".",
+      "type": "fallback"
+    }
+  ]
 }

@@ -188,9 +188,10 @@ func TestPipenvLockFixture(t *testing.T) {
 		requirePyPackage(t, g, want[0], want[1])
 	}
 
-	// Pipfile.lock has no transitive edges; default/develop hang off the root.
-	requirePyEdge(t, g, "root", "", "requests", "2.32.3")
-	requirePyEdge(t, g, "root", "", "pytest", "8.3.3")
+	// Pipfile.lock has no transitive edges; default/develop hang off the root,
+	// which is named after the project directory (issue #272).
+	requirePyEdge(t, g, "pipenv", "", "requests", "2.32.3")
+	requirePyEdge(t, g, "pipenv", "", "pytest", "8.3.3")
 
 	// Scope is re-derived from the Pipfile's [packages] / [dev-packages]:
 	// requests is runtime, pytest is development. pluggy is only a transitive

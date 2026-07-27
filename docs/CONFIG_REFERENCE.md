@@ -11,6 +11,8 @@ Bomly resolves configuration in the following order, with later sources overridi
 
 Repository config files are never loaded automatically. Select a trusted project file explicitly, for example `--config .bomly/config.yaml` or `BOMLY_CONFIG=.bomly/config.yaml`. When both are set, `--config` wins.
 
+Bomly rejects configuration files larger than 4 MiB before parsing them.
+
 YAML files use the nested keys documented below. Unknown keys and the former flat keys are rejected so configuration mistakes fail fast.
 
 ---
@@ -54,8 +56,8 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | `pipeline.install_args` | `BOMLY_INSTALL_ARGS` | `[]string` | - | Additional detector-specific install arguments |
 | `logging.quiet` | `BOMLY_QUIET` | `bool` | - | Suppress all non-error output |
 | `logging.verbosity` | `BOMLY_VERBOSE` | `int` | - | Verbosity level (0=normal, 1=verbose, 2+=debug) |
-| `network.proxy.url` | `BOMLY_HTTP_PROXY` | `string` | - | Outbound HTTP proxy URL used by Bomly and managed plugins |
-| `network.proxy.no_proxy` | `BOMLY_HTTP_NO_PROXY` | `string` | - | Comma-separated hosts, domains, or CIDRs that should bypass the outbound HTTP proxy |
+| `network.proxy.url` | `BOMLY_HTTP_PROXY` | `string` | - | Outbound HTTP proxy URL; when set, it replaces standard HTTP_PROXY/HTTPS_PROXY URLs |
+| `network.proxy.no_proxy` | `BOMLY_HTTP_NO_PROXY` | `string` | - | Hosts, domains, or CIDRs added to the standard NO_PROXY/no_proxy bypass list |
 | `network.proxy.type` | `BOMLY_HTTP_PROXY_TYPE` | `string` | http | Outbound proxy type when using host/port proxy settings: http, https, or socks5 |
 | `network.proxy.host` | `BOMLY_HTTP_PROXY_HOST` | `string` | - | Outbound proxy hostname or IP address used when http_proxy is not set |
 | `network.proxy.port` | `BOMLY_HTTP_PROXY_PORT` | `int` | - | Outbound proxy port used with http_proxy_host |
@@ -230,9 +232,9 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 #   verbosity: 0
 # network:
 #   proxy:
-#     Outbound HTTP proxy URL used by Bomly and managed plugins
+#     Outbound HTTP proxy URL; when set, it replaces standard HTTP_PROXY/HTTPS_PROXY URLs
 #     url: ""
-#     Comma-separated hosts, domains, or CIDRs that should bypass the outbound HTTP proxy
+#     Hosts, domains, or CIDRs added to the standard NO_PROXY/no_proxy bypass list
 #     no_proxy: ""
 #     Outbound proxy type when using host/port proxy settings: http, https, or socks5
 #     type: http

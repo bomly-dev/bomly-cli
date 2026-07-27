@@ -49,7 +49,7 @@ func PlanSubprojects(registryValue *engine.Registry, req Request) ([]sdk.Subproj
 			req.DetectorFilter,
 		)
 		if !ok {
-			return nil, noSubprojectsError(req)
+			return nil, noSubprojectsError(registryValue, req)
 		}
 		return []sdk.Subproject{subproject}, nil
 	}
@@ -65,7 +65,7 @@ func PlanSubprojects(registryValue *engine.Registry, req Request) ([]sdk.Subproj
 func planContainerSubprojects(registryValue *engine.Registry, req Request) ([]sdk.Subproject, error) {
 	plans := registryValue.DiscoveryPlans()
 	if len(plans) == 0 {
-		return nil, noSubprojectsError(req)
+		return nil, noSubprojectsError(registryValue, req)
 	}
 
 	subprojects := make([]sdk.Subproject, 0, len(plans))
@@ -101,7 +101,7 @@ func planContainerSubprojects(registryValue *engine.Registry, req Request) ([]sd
 	}
 
 	if len(subprojects) == 0 {
-		return nil, noSubprojectsError(req)
+		return nil, noSubprojectsError(registryValue, req)
 	}
 	sortSubprojects(subprojects)
 	return subprojects, nil
@@ -124,7 +124,7 @@ func planFilesystemSubprojects(registryValue *engine.Registry, req Request) ([]s
 			req.EcosystemFilter,
 		)
 		if len(subprojects) == 0 {
-			return nil, noSubprojectsError(req)
+			return nil, noSubprojectsError(registryValue, req)
 		}
 		return subprojects, nil
 	}
@@ -149,7 +149,7 @@ func planFilesystemSubprojects(registryValue *engine.Registry, req Request) ([]s
 		subprojects = append(subprojects, subproject)
 	}
 	if len(subprojects) == 0 {
-		return nil, noSubprojectsError(req)
+		return nil, noSubprojectsError(registryValue, req)
 	}
 	sortSubprojects(subprojects)
 	return subprojects, nil
@@ -564,30 +564,29 @@ func sortSubprojects(subprojects []sdk.Subproject) {
 	})
 }
 
-func noSubprojectsError(req Request) error {
-	var hints []string
+// noSubprojectsError renders the "nothing to scan" outcome as a short report
+// rather than one long sentence: what was searched, which filters were active,
+// every manifest candidate the probe saw with the reason discovery skipped it,
+// and the next thing to try. Terminals wrap a single-line error into an
+// unreadable block once a monorepo (or a home directory) contributes a dozen
+// candidates.
+func noSubprojectsError(registryValue *engine.Registry, req Request) error {
+	diagnostics := newDiscoveryDiagnostics(registryValue, req)
+	findings, truncated := describeDiscoveryFindings(req.ExecutionTarget, discoveryRulesFor(registryValue, req), diagnostics)
 
-	if len(req.DetectorFilter.Include) > 0 {
-		hints = append(hints, fmt.Sprintf("--detectors %s", strings.Join(req.DetectorFilter.Include, ",")))
+	var lines []string
+	if target := strings.TrimSpace(req.ExecutionTarget.Location); target != "" {
+		lines = append(lines, "target: "+target)
 	}
-	if len(req.DetectorFilter.Exclude) > 0 {
-		hints = append(hints, fmt.Sprintf("--exclude-detectors %s", strings.Join(req.DetectorFilter.Exclude, ",")))
+	lines = append(lines, "search: "+describeDiscoverySearch(req))
+	if hints := activeFilterHints(req); len(hints) > 0 {
+		lines = append(lines, "active filters: "+strings.Join(hints, ", "))
 	}
-	if len(req.EcosystemFilter.Include) > 0 {
-		names := make([]string, 0, len(req.EcosystemFilter.Include))
-		for _, e := range req.EcosystemFilter.Include {
-			names = append(names, string(e))
+	lines = append(lines, discoveryProbeSection(req.ExecutionTarget, findings, truncated)...)
+	if !req.Recursive {
+		if nested := firstNestedFinding(findings); nested != "" {
+			lines = append(lines, fmt.Sprintf("hint: manifests exist in subdirectories (e.g. %s); retry with --recursive", nested))
 		}
-		sort.Strings(names)
-		hints = append(hints, fmt.Sprintf("--ecosystems %s", strings.Join(names, ",")))
-	}
-	if len(req.EcosystemFilter.Exclude) > 0 {
-		names := make([]string, 0, len(req.EcosystemFilter.Exclude))
-		for _, e := range req.EcosystemFilter.Exclude {
-			names = append(names, "-"+string(e))
-		}
-		sort.Strings(names)
-		hints = append(hints, fmt.Sprintf("--ecosystems %s", strings.Join(names, ",")))
 	}
 
 	// Wrap as a "nothing to evaluate" exit (5), distinct from a resolution
@@ -595,22 +594,95 @@ func noSubprojectsError(req Request) error {
 	// treat as a neutral pass. ErrNoSubprojects stays the inner sentinel so
 	// errors.Is(err, ErrNoSubprojects) callers keep working.
 	err := ErrNoSubprojects
-	if req.Recursive {
-		err = fmt.Errorf("%w (recursive discovery, max depth %s, %d exclude pattern(s))", err, describeMaxDepth(req.MaxDepth), len(req.ExcludeGlobs))
-	}
-	if len(hints) > 0 {
-		err = fmt.Errorf("%w (active filters: %s)", err, strings.Join(hints, ", "))
-	}
-	findings, truncated := describeDiscoveryFindings(req.ExecutionTarget, discoveryRulesFor(nil, req))
-	if probe := renderDiscoveryProbe(req.ExecutionTarget, findings, truncated); len(probe) > 0 {
-		err = fmt.Errorf("%w; discovery probe: %s", err, strings.Join(probe, "; "))
-	}
-	if !req.Recursive {
-		if nested := firstNestedFinding(findings); nested != "" {
-			err = fmt.Errorf("%w; hint: manifests exist in subdirectories (e.g. %s); retry with --recursive", err, nested)
-		}
+	if len(lines) > 0 {
+		err = fmt.Errorf("%w\n  %s", err, strings.Join(lines, "\n  "))
 	}
 	return exit.NothingToEvaluateError(err)
+}
+
+// activeFilterHints renders the selectors that narrowed discovery, in the
+// spelling the user would type to change them.
+func activeFilterHints(req Request) []string {
+	var hints []string
+	if len(req.DetectorFilter.Include) > 0 {
+		hints = append(hints, fmt.Sprintf("--detectors %s", strings.Join(req.DetectorFilter.Include, ",")))
+	}
+	if len(req.DetectorFilter.Exclude) > 0 {
+		hints = append(hints, fmt.Sprintf("--exclude-detectors %s", strings.Join(req.DetectorFilter.Exclude, ",")))
+	}
+	if len(req.EcosystemFilter.Include) > 0 {
+		hints = append(hints, fmt.Sprintf("--ecosystems %s", strings.Join(sortedEcosystemNames(req.EcosystemFilter.Include, ""), ",")))
+	}
+	if len(req.EcosystemFilter.Exclude) > 0 {
+		hints = append(hints, fmt.Sprintf("--ecosystems %s", strings.Join(sortedEcosystemNames(req.EcosystemFilter.Exclude, "-"), ",")))
+	}
+	return hints
+}
+
+// describeDiscoverySearch summarizes the walk discovery actually performed.
+func describeDiscoverySearch(req Request) string {
+	if !req.Recursive {
+		return "target root only (no --recursive)"
+	}
+	return fmt.Sprintf("recursive discovery, max depth %s, %d exclude pattern(s)", describeMaxDepth(req.MaxDepth), len(req.ExcludeGlobs))
+}
+
+// discoveryProbeSection renders the probe as a headed, indented list. When
+// every candidate shares one skip reason — the common case, e.g. a monorepo
+// scanned without --recursive — the reason is hoisted into the header instead
+// of repeating on every line.
+func discoveryProbeSection(target sdk.ExecutionTarget, findings []discoveryFinding, truncated bool) []string {
+	probe := renderDiscoveryProbe(target, findings, truncated)
+	if len(probe) == 0 {
+		return nil
+	}
+	if len(findings) == 0 {
+		// Single "no known manifest files found under …" line.
+		return probe
+	}
+
+	header := fmt.Sprintf("manifest candidates found (depth <= %d):", discoveryProbeMaxDepth)
+	if reason := commonSkipReason(findings); reason != "" {
+		header = fmt.Sprintf("manifest candidates found (depth <= %d) — all skipped: %s", discoveryProbeMaxDepth, reason)
+		probe = renderDiscoveryProbe(target, stripSkipReasons(findings), truncated)
+	}
+
+	lines := make([]string, 0, len(probe)+1)
+	lines = append(lines, header)
+	for _, entry := range probe {
+		lines = append(lines, "  - "+entry)
+	}
+	return lines
+}
+
+// commonSkipReason returns the reason shared by every finding, or "" when the
+// findings disagree or any of them has no attributed reason.
+func commonSkipReason(findings []discoveryFinding) string {
+	reason := ""
+	for _, finding := range findings {
+		if finding.SkipReason == "" {
+			return ""
+		}
+		if reason == "" {
+			reason = finding.SkipReason
+			continue
+		}
+		if finding.SkipReason != reason {
+			return ""
+		}
+	}
+	return reason
+}
+
+// stripSkipReasons drops per-finding reasons that the section header already
+// states once.
+func stripSkipReasons(findings []discoveryFinding) []discoveryFinding {
+	stripped := make([]discoveryFinding, 0, len(findings))
+	for _, finding := range findings {
+		finding.SkipReason = ""
+		stripped = append(stripped, finding)
+	}
+	return stripped
 }
 
 // describeMaxDepth renders a depth cap for error messages (0 = unlimited).
@@ -641,11 +713,13 @@ const (
 
 // discoveryFinding is one piece of manifest evidence surfaced by the
 // diagnostic discovery probe: which manifest pattern exists, in which
-// root-relative directory, and which package manager it belongs to.
+// root-relative directory, which package manager it belongs to, and — when
+// the probe runs with request context — why discovery skipped it.
 type discoveryFinding struct {
 	RelativePath string
 	Manager      sdk.PackageManager
 	Evidence     string
+	SkipReason   string
 }
 
 // DescribeDiscovery probes a filesystem execution target for known manifest
@@ -654,14 +728,16 @@ type discoveryFinding struct {
 // exist, where, and which package manager they belong to. Returns nil for
 // non-filesystem targets.
 func DescribeDiscovery(target sdk.ExecutionTarget) []string {
-	findings, truncated := describeDiscoveryFindings(target, builtinDiscoveryRules())
+	findings, truncated := describeDiscoveryFindings(target, builtinDiscoveryRules(), nil)
 	return renderDiscoveryProbe(target, findings, truncated)
 }
 
 // describeDiscoveryFindings walks the target (bounded by
 // discoveryProbeMaxDepth / discoveryProbeMaxLines and the shared skip rules)
 // and returns the manifest evidence it saw, plus whether output was truncated.
-func describeDiscoveryFindings(target sdk.ExecutionTarget, rules discoveryRules) ([]discoveryFinding, bool) {
+// A non-nil diagnostics annotates each finding with the reason discovery
+// skipped it.
+func describeDiscoveryFindings(target sdk.ExecutionTarget, rules discoveryRules, diagnostics *discoveryDiagnostics) ([]discoveryFinding, bool) {
 	if strings.TrimSpace(target.Location) == "" {
 		return nil, false
 	}
@@ -705,7 +781,12 @@ func describeDiscoveryFindings(target sdk.ExecutionTarget, rules discoveryRules)
 		}
 		for idx, manager := range managers {
 			evidence := firstEvidenceInDir(path, registry.EvidencePatternsForPackageManager(manager))
-			findings = append(findings, discoveryFinding{RelativePath: rel, Manager: manager, Evidence: evidence})
+			findings = append(findings, discoveryFinding{
+				RelativePath: rel,
+				Manager:      manager,
+				Evidence:     evidence,
+				SkipReason:   diagnostics.skipReason(path, rel, manager),
+			})
 			if len(findings) >= discoveryProbeMaxLines {
 				if idx < len(managers)-1 {
 					truncated = true
@@ -738,12 +819,27 @@ func renderDiscoveryProbe(target sdk.ExecutionTarget, findings []discoveryFindin
 	}
 	lines := make([]string, 0, len(findings)+1)
 	for _, finding := range findings {
-		lines = append(lines, fmt.Sprintf("found %s at %s (%s)", valueOrPattern(finding.Evidence, "manifest evidence"), finding.RelativePath, finding.Manager.Name()))
+		line := fmt.Sprintf("%s (%s)", discoveryCandidatePath(finding), finding.Manager.Name())
+		if finding.SkipReason != "" {
+			line += " — skipped: " + finding.SkipReason
+		}
+		lines = append(lines, line)
 	}
 	if truncated {
-		lines = append(lines, "…")
+		lines = append(lines, "… more candidates not shown")
 	}
 	return lines
+}
+
+// discoveryCandidatePath renders a candidate as the root-relative path of its
+// manifest evidence ("web/package.json", ".github/workflows/*.yml"), which
+// reads faster than a separate file and directory column.
+func discoveryCandidatePath(finding discoveryFinding) string {
+	evidence := valueOrPattern(finding.Evidence, "manifest evidence")
+	if finding.RelativePath == "." || finding.RelativePath == "" {
+		return evidence
+	}
+	return finding.RelativePath + "/" + evidence
 }
 
 // firstEvidenceInDir names the first evidence pattern that exists in dir.

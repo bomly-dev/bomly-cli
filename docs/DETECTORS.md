@@ -61,6 +61,10 @@ After vulnerability enrichment, supporting detectors may describe package-manage
 
 Each package-manager page lists the strategies its built-in detectors understand. External detector plugins can advertise the same optional capability. Older protocol-v1 plugins keep working without it.
 
+## Resolution warnings
+
+A detector can resolve a perfectly good graph from a project whose package-manager configuration will still break an install somewhere else — a lockfile format the pinned manager will not keep, an install policy that rejects freshly published versions. Detectors record those as resolution warnings on the manifest they resolved, so the graph is still produced and the problem is still reported. See [CI-readiness warnings](CI_READINESS.md) for the checks and where the warnings surface.
+
 ## Network behavior
 
 Detectors differ in whether they run subprocesses, and those that do may
@@ -73,7 +77,7 @@ resolution.
 | --- | --- | --- |
 | Lockfile parser | `npm-detector`, `pnpm-detector`, `bundler-detector`, `composer-detector`, `nuget-detector`, `github-actions-detector`, SBOM ingest | None — pure file parse |
 | Lockfile-first hybrid | `cargo-detector`, `poetry-detector`, `uv-detector` | None when the lockfile is present; the build-tool fallback uses `--locked` / `--no-sync` to stay offline |
-| `pip inspect` | `pip-detector`, `pipenv-detector` | None — reads the local Python environment |
+| `pip inspect` | `pip-detector`, `pipenv-detector` | None when a lockfile is present; otherwise **may download** while populating the isolated environment it inspects |
 | Build-tool primary | `go-detector`, `maven-detector`, `gradle-detector`, `sbt-native-detector` | **May download** uncached artifacts during normal resolution |
 
 The build-tool-primary detectors invoke commands you would already run locally (`go list`, `mvn dependency:tree`, `gradle dependencies`, `sbt dependencyTree`). Whether they hit the network is a property of those tools and your local cache state, not a Bomly choice. To keep these scans fully offline, pre-warm the local cache (`go mod download`, `mvn dependency:go-offline`, etc.) or commit a lockfile when the ecosystem supports one.
@@ -180,4 +184,5 @@ bomly scan --image ghcr.io/example/app:latest
 
 - [Ecosystem guides](detectors/ecosystems/) — generated per-ecosystem detector chains, evidence patterns, and `PATH` requirements
 - [Support matrix](SUPPORT_MATRIX.md) — generated overview of every supported ecosystem
+- [CI-readiness warnings](CI_READINESS.md) — the package-manager mismatches detectors report alongside the graph
 - [Plugins](PLUGINS.md) — author and install external detectors

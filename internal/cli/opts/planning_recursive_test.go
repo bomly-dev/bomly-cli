@@ -367,7 +367,7 @@ func TestDescribeDiscoveryUsesSharedSkipRules(t *testing.T) {
 	if strings.Contains(joined, "dist") || strings.Contains(joined, "target") {
 		t.Fatalf("expected probe to honor built-in skip rules, got %q", joined)
 	}
-	if !strings.Contains(joined, "requirements.txt at src") {
+	if !strings.Contains(joined, "src/requirements.txt") {
 		t.Fatalf("expected probe to report src evidence, got %q", joined)
 	}
 }

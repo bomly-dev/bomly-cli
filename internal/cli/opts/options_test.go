@@ -1,6 +1,7 @@
 package opts
 
 import (
+	"bytes"
 	"context"
 	"os"
 	"path/filepath"
@@ -25,6 +26,22 @@ func TestCommandContextRoundTripsThroughContext(t *testing.T) {
 	}
 	if got != commandCtx {
 		t.Fatal("expected stored command context pointer")
+	}
+}
+
+func TestPipelineRequestExposesSubprocessStderrOnlyAtDebug(t *testing.T) {
+	var stderr bytes.Buffer
+
+	infoOptions := Options{verbose: false}
+	info := infoOptions.PipelineRequest(sdk.ScopeUnknown, &stderr)
+	if info.Stderr != nil || info.Verbose {
+		t.Fatalf("info request enabled subprocess stderr: %#v", info)
+	}
+
+	debugOptions := Options{verbose: true}
+	debug := debugOptions.PipelineRequest(sdk.ScopeUnknown, &stderr)
+	if debug.Stderr != &stderr || !debug.Verbose {
+		t.Fatalf("debug request did not enable subprocess stderr: %#v", debug)
 	}
 }
 

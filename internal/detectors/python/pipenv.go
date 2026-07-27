@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
+	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
@@ -70,7 +72,7 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 	// Pipfile.lock is flat (no parent-child edges), so the build tool wins here.
 	// Only attempt pip inspect when a venv is already populated; otherwise `pipenv run`
 	// silently creates an empty venv and pip inspect returns only bootstrap packages.
-	if pipenvVenvExists(workingDir) {
+	if pipenvVenvExists(workingDir, logger, req.Stderr, req.Verbose) {
 		command, err := pipInspectCommand("pipenv", "run")
 		if err == nil {
 			if depsGraph, err := base.resolveGraph(req, "Pipenv detector", command); err == nil {
@@ -88,7 +90,7 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 
 	if lockPath := filepath.Join(workingDir, "Pipfile.lock"); fileExists(lockPath) {
 		installCommand := pipenvSyncCommand(req)
-		if err := base.install(ctx, req, "Pipenv detector", installCommand); err == nil && pipenvVenvExists(workingDir) {
+		if err := base.install(ctx, req, "Pipenv detector", installCommand); err == nil && pipenvVenvExists(workingDir, logger, req.Stderr, req.Verbose) {
 			if command, err := pipInspectCommand("pipenv", "run"); err == nil {
 				if depsGraph, err := base.resolveGraph(req, "Pipenv detector", command); err == nil {
 					annotateGraphScopes(depsGraph, workingDir)
@@ -140,9 +142,13 @@ func (d PipenvDetector) Install(ctx context.Context, req sdk.DetectionRequest) e
 
 // pipenvVenvExists checks whether a pipenv virtual environment has been created
 // for the given working directory. It avoids triggering lazy venv creation.
-func pipenvVenvExists(workingDir string) bool {
-	cmd := system.Command("pipenv", "--venv")
+func pipenvVenvExists(workingDir string, logger *zap.Logger, stderr io.Writer, debug bool) bool {
+	executable := "pipenv"
+	args := []string{"--venv"}
+	cmd := system.Command(executable, args...)
 	cmd.Dir = workingDir
+	cmd.Stderr = logging.NewCommandStderr(stderr, debug)
+	logger.Debug("checking Pipenv virtualenv", logging.CommandFields(executable, args, workingDir)...)
 	out, err := cmd.Output()
 	if err != nil {
 		return false

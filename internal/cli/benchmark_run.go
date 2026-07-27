@@ -17,13 +17,14 @@ import (
 	"go.uber.org/zap"
 )
 
-func benchmarkNativeScanner(logger *zap.Logger, stderr io.Writer, verbose bool) benchmark.NativeScanFunc {
+// benchmarkNativeScanner builds pipeline requests directly instead of going
+// through Options.PipelineRequest, so it must apply the same subprocess-stderr
+// gate: raw tool output is forwarded only at debug verbosity (-vv).
+func benchmarkNativeScanner(logger *zap.Logger, stderr io.Writer, debug bool) benchmark.NativeScanFunc {
 	if logger == nil {
 		logger = zap.NewNop()
 	}
-	if stderr == nil {
-		stderr = io.Discard
-	}
+	stderr = benchmarkSubprocessStderr(stderr, debug)
 	return func(ctx context.Context, req benchmark.NativeScanRequest) (benchmark.NativeScanResult, error) {
 		checkoutDir, err := filepath.Abs(req.CheckoutDir)
 		if err != nil {
@@ -68,7 +69,7 @@ func benchmarkNativeScanner(logger *zap.Logger, stderr io.Writer, verbose bool) 
 			DetectorFilter:  detectorFilter,
 			InstallFirst:    req.InstallFirst,
 			Stderr:          stderr,
-			Verbose:         verbose,
+			Verbose:         debug,
 		})
 		if err != nil {
 			return benchmark.NativeScanResult{}, fmt.Errorf("run benchmark native scan: %w", err)
@@ -96,4 +97,14 @@ func benchmarkDetectorNames(results []sdk.DetectionResult) []string {
 	}
 	sort.Strings(names)
 	return names
+}
+
+// benchmarkSubprocessStderr mirrors the Options.PipelineRequest gate for
+// pipeline requests that are built directly: raw subprocess stderr is
+// forwarded only when debug verbosity (-vv) enabled it.
+func benchmarkSubprocessStderr(stderr io.Writer, debug bool) io.Writer {
+	if !debug {
+		return nil
+	}
+	return stderr
 }

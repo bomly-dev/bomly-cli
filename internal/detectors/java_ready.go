@@ -9,7 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/system"
+	"go.uber.org/zap"
 )
 
 // javaReadyTimeout bounds the `java -version` probe. It is only reached when
@@ -23,7 +25,10 @@ const javaReadyTimeout = 30 * time.Second
 // returns nil when a runtime is usable and a non-nil error describing the
 // reason otherwise. The probe is bound to ctx and additionally guarded by an
 // internal timeout so a hung `java` cannot stall a scan.
-func JavaReady(ctx context.Context) error {
+func JavaReady(ctx context.Context, logger *zap.Logger) error {
+	if logger == nil {
+		logger = zap.NewNop()
+	}
 	if _, err := system.LookPath("java"); err != nil {
 		return errors.New("java executable not found on PATH")
 	}
@@ -31,19 +36,22 @@ func JavaReady(ctx context.Context) error {
 	probeCtx, cancel := context.WithTimeout(ctx, javaReadyTimeout)
 	defer cancel()
 
-	cmd := system.CommandContext(probeCtx, "java", "-version")
-	var output bytes.Buffer
-	cmd.Stdout = &output
-	cmd.Stderr = &output
-	if err := cmd.Run(); err != nil {
+	executable := "java"
+	args := []string{"-version"}
+	cmd := system.CommandContext(probeCtx, executable, args...)
+	var diagnostics bytes.Buffer
+	cmd.Stdout = &diagnostics
+	cmd.Stderr = &diagnostics
+	logger.Debug("running Java readiness probe", logging.CommandFields(executable, args, cmd.Dir)...)
+	err := cmd.Run()
+	if message := strings.TrimSpace(diagnostics.String()); message != "" {
+		logger.Debug("Java readiness probe diagnostics", zap.String("stderr", message))
+	}
+	if err != nil {
 		if errors.Is(probeCtx.Err(), context.DeadlineExceeded) {
 			return fmt.Errorf("java readiness check timed out after %s", javaReadyTimeout)
 		}
-		message := strings.TrimSpace(output.String())
-		if message == "" {
-			message = err.Error()
-		}
-		return fmt.Errorf("java runtime is unavailable: %s", message)
+		return fmt.Errorf("java runtime is unavailable: %w (diagnostic bytes: %d)", err, diagnostics.Len())
 	}
 	return nil
 }

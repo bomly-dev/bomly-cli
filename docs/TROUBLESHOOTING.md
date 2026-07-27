@@ -147,7 +147,12 @@ The animation is also skipped automatically when `CI` or `BOMLY_QUIET` is set, a
 
 ## Need more detail
 
-Re-run with `-v` (INFO) or `-vv` (DEBUG). DEBUG logs include exact subprocess command lines, cache keys, and per-package decisions, which is usually enough to file a useful bug report.
+Re-run with `-v` (INFO) or `-vv` (DEBUG). DEBUG logs include subprocess
+executables, credential-sanitized arguments, working directories, cache keys,
+and per-package decisions. They also include raw stderr from invoked package
+managers, analyzers, matchers, Git, Java, and managed plugins. Bomly cannot
+reliably remove secrets from arbitrary tool output, so treat DEBUG logs as
+sensitive data. INFO logs do not include raw subprocess stderr.
 
 ```bash
 bomly scan --enrich -vv 2> bomly.log

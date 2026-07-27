@@ -62,7 +62,7 @@ func newBenchmarkCmd() *cobra.Command {
 				InstallFirst:       installFirst,
 				Notifications:      notifications,
 				Logger:             logger,
-				NativeScan:         benchmarkNativeScanner(logger, streams.notificationWriter(), current.Verbosity > 0),
+				NativeScan:         benchmarkNativeScanner(logger, streams.notificationWriter(), current.Verbosity >= 2),
 			})
 			if renderErr := writeBenchmarkSummary(cmd, format, summary); renderErr != nil {
 				return renderErr

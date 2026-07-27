@@ -77,8 +77,8 @@ func (d BaseDetector) ResolveGraph(stderr io.Writer, projectPath string, verbose
 	if err := cmd.Run(); err != nil {
 		logger.Warn(fmt.Sprintf("%s failed: %v", detectorName, err))
 		fields := []zap.Field{zap.Error(err), zap.String("detector", detectorName)}
-		if commandStderr.String() != "" {
-			fields = append(fields, zap.String("stderr", commandStderr.String()))
+		if commandStderr.ByteCount() > 0 {
+			fields = append(fields, zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		}
 		logger.Debug("external dependency detector failure details", fields...)
 		return nil, fmt.Errorf("run %s: %w", detectorName, err)
@@ -109,11 +109,12 @@ func (d BaseDetector) Install(ctx context.Context, req sdk.DetectionRequest, exe
 	cmd.Stderr = commandStderr
 	started := time.Now()
 	logger.Info(fmt.Sprintf("%s running install-first step", detectorName))
-	logger.Debug("running detector install-first", zap.String("detector", detectorName), zap.String("working_dir", cmd.Dir), zap.String("executable", executable), zap.Strings("args", args))
+	logger.Debug("running detector install-first",
+		append([]zap.Field{zap.String("detector", detectorName)}, logging.CommandFields(executable, args, cmd.Dir)...)...)
 	if err := cmd.Run(); err != nil {
 		fields := []zap.Field{zap.Error(err)}
-		if commandStderr.String() != "" {
-			fields = append(fields, zap.String("stderr", commandStderr.String()))
+		if commandStderr.ByteCount() > 0 {
+			fields = append(fields, zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		}
 		logger.Debug("detector install-first failure details", fields...)
 		return fmt.Errorf("run %s install step: %w", detectorName, err)

@@ -36,19 +36,21 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 	}
 
 	started := time.Now()
-	logger.Debug("running external syft detector", zap.String("target", target))
+	args := syftCommandArgs(target, req)
+	logger.Debug("running external syft detector", logging.CommandFields("syft", args, workingDir)...)
 	if req.EnrichmentEnabled {
 		logger.Debug("enabling syft CLI detector enrichment", zap.Strings("enrich", syftDetectorEnrichmentValues))
 	}
 
-	var stdout, stderr bytes.Buffer
-	cmd := system.Command("syft", syftCommandArgs(target, req)...)
+	var stdout bytes.Buffer
+	commandStderr := logging.NewCommandStderr(req.Stderr, req.Verbose)
+	cmd := system.Command("syft", args...)
 	cmd.Dir = workingDir
 	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
+	cmd.Stderr = commandStderr
 
 	if err := cmd.Run(); err != nil {
-		logger.Warn(fmt.Sprintf("syft CLI failed: %v (stderr: %s)", err, stderr.String()))
+		logger.Warn("syft CLI failed", zap.Error(err), zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		return sdk.DetectionResult{}, fmt.Errorf("run syft: %w", err)
 	}
 

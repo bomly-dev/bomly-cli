@@ -132,11 +132,11 @@ func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
 
 	started := time.Now()
 	logger.Info("Bundler detector running install-first step")
-	logger.Debug("running bundler detector install-first", zap.String("working_dir", cmd.Dir), zap.String("executable", bundlePath), zap.Strings("args", args))
+	logger.Debug("running bundler detector install-first", logging.CommandFields(bundlePath, args, cmd.Dir)...)
 	if err := cmd.Run(); err != nil {
 		fields := []zap.Field{zap.Error(err)}
-		if commandStderr.String() != "" {
-			fields = append(fields, zap.String("stderr", commandStderr.String()))
+		if commandStderr.ByteCount() > 0 {
+			fields = append(fields, zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		}
 		logger.Debug("bundler detector install-first failure details", fields...)
 		return fmt.Errorf("run bundle install: %w", err)

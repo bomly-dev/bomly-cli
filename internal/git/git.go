@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/system"
 	"go.uber.org/zap"
 )
@@ -40,7 +41,7 @@ func CloneTemp(logger *zap.Logger, repoURL, ref string) (string, error) {
 }
 
 // FindRepoRoot resolves the git repository root for path.
-func FindRepoRoot(path string) (string, error) {
+func FindRepoRoot(logger *zap.Logger, path string) (string, error) {
 	if err := ensureGitAvailable(); err != nil {
 		return "", err
 	}
@@ -51,7 +52,7 @@ func FindRepoRoot(path string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("resolve path %q: %w", path, err)
 	}
-	stdout, err := runGit(absPath, "rev-parse", "--show-toplevel")
+	stdout, err := runGit(logger, absPath, "rev-parse", "--show-toplevel")
 	if err != nil {
 		return "", fmt.Errorf("find git repository root for %q: %w", absPath, err)
 	}
@@ -59,11 +60,11 @@ func FindRepoRoot(path string) (string, error) {
 }
 
 // VerifyRef verifies that ref resolves to a commit in repoPath.
-func VerifyRef(repoPath, ref string) error {
+func VerifyRef(logger *zap.Logger, repoPath, ref string) error {
 	if ref == "" {
 		return fmt.Errorf("ref is empty")
 	}
-	if _, err := resolveCommit(repoPath, ref); err != nil {
+	if _, err := resolveCommit(logger, repoPath, ref); err != nil {
 		return fmt.Errorf("verify git ref %q: %w", ref, err)
 	}
 	return nil
@@ -72,11 +73,11 @@ func VerifyRef(repoPath, ref string) error {
 // ChangedLineRanges returns added/changed head-side line ranges from a git
 // diff. Deleted-only hunks are omitted because there is no head line for SARIF
 // to annotate.
-func ChangedLineRanges(repoPath, baseRef, headRef string) (map[string][]LineRange, error) {
+func ChangedLineRanges(logger *zap.Logger, repoPath, baseRef, headRef string) (map[string][]LineRange, error) {
 	if err := ensureGitAvailable(); err != nil {
 		return nil, err
 	}
-	out, err := runGit(repoPath, "diff", "--unified=0", "--no-ext-diff", "--no-color", baseRef, headRef)
+	out, err := runGit(logger, repoPath, "diff", "--unified=0", "--no-ext-diff", "--no-color", baseRef, headRef)
 	if err != nil {
 		return nil, fmt.Errorf("git diff %q..%q: %w", baseRef, headRef, err)
 	}
@@ -88,7 +89,7 @@ func CheckoutRef(logger *zap.Logger, repoPath, ref string) error {
 	if ref == "" {
 		return fmt.Errorf("ref is empty")
 	}
-	commit, err := resolveCommit(repoPath, ref)
+	commit, err := resolveCommit(logger, repoPath, ref)
 	if err != nil {
 		return err
 	}
@@ -101,13 +102,13 @@ func MaterializeLocalRef(logger *zap.Logger, sourceRepoPath, ref string) (string
 	if err := ensureGitAvailable(); err != nil {
 		return "", err
 	}
-	root, err := FindRepoRoot(sourceRepoPath)
+	root, err := FindRepoRoot(logger, sourceRepoPath)
 	if err != nil {
 		return "", err
 	}
 	resolvedRef := ""
 	if ref != "" {
-		resolvedRef, err = resolveCommit(root, ref)
+		resolvedRef, err = resolveCommit(logger, root, ref)
 		if err != nil {
 			return "", err
 		}
@@ -137,17 +138,18 @@ func ensureGitAvailable() error {
 }
 
 func cloneInto(logger *zap.Logger, source, dest, ref string, local bool) error {
+	safeSource := logging.SanitizeURL(source)
 	args := []string{"clone", "--quiet"}
 	if local {
 		args = append(args, "--local")
 	}
 	args = append(args, source, dest)
-	if _, err := runGit("", args...); err != nil {
+	if _, err := runGit(logger, "", args...); err != nil {
 		if logger != nil {
 			logger.Error(fmt.Sprintf("Git clone failed: %v", err))
-			logger.Debug("git clone failure details", zap.String("source", source), zap.String("destination", dest), zap.Error(err))
+			logger.Debug("git clone failure details", zap.String("source", safeSource), zap.String("destination", dest), zap.Error(err))
 		}
-		return fmt.Errorf("clone git repository %q: %w", source, err)
+		return fmt.Errorf("clone git repository %q: %w", safeSource, err)
 	}
 	if ref != "" {
 		if err := CheckoutRef(logger, dest, ref); err != nil {
@@ -157,9 +159,9 @@ func cloneInto(logger *zap.Logger, source, dest, ref string, local bool) error {
 	return nil
 }
 
-func resolveCommit(repoPath, ref string) (string, error) {
+func resolveCommit(logger *zap.Logger, repoPath, ref string) (string, error) {
 	for _, candidate := range refResolutionCandidates(ref) {
-		stdout, err := runGit(repoPath, "rev-parse", "--verify", candidate+"^{commit}")
+		stdout, err := runGit(logger, repoPath, "rev-parse", "--verify", candidate+"^{commit}")
 		if err == nil {
 			return strings.TrimSpace(stdout), nil
 		}
@@ -176,7 +178,7 @@ func refResolutionCandidates(ref string) []string {
 }
 
 func checkoutCommit(logger *zap.Logger, repoPath, commit, originalRef string) error {
-	if _, err := runGit(repoPath, "checkout", "--quiet", "--detach", commit); err != nil {
+	if _, err := runGit(logger, repoPath, "checkout", "--quiet", "--detach", commit); err != nil {
 		if logger != nil {
 			logger.Error(fmt.Sprintf("Git checkout failed: %v", err))
 			logger.Debug("git checkout failure details", zap.String("repository", repoPath), zap.String("ref", originalRef), zap.String("commit", commit), zap.Error(err))
@@ -186,21 +188,25 @@ func checkoutCommit(logger *zap.Logger, repoPath, commit, originalRef string) er
 	return nil
 }
 
-func runGit(workingDir string, args ...string) (string, error) {
+func runGit(logger *zap.Logger, workingDir string, args ...string) (string, error) {
+	if logger == nil {
+		logger = zap.NewNop()
+	}
+	logger.Debug("running Git command", logging.CommandFields("git", args, workingDir)...)
 	cmd := system.Command("git", args...)
 	if workingDir != "" {
 		cmd.Dir = workingDir
 	}
 	var stdout bytes.Buffer
-	var stderr bytes.Buffer
+	var diagnostics bytes.Buffer
 	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		message := strings.TrimSpace(stderr.String())
-		if message == "" {
-			return "", err
-		}
-		return "", fmt.Errorf("%w: %s", err, message)
+	cmd.Stderr = &diagnostics
+	err := cmd.Run()
+	if message := strings.TrimSpace(diagnostics.String()); message != "" {
+		logger.Debug("Git command diagnostics", zap.String("stderr", message))
+	}
+	if err != nil {
+		return "", fmt.Errorf("%w (stderr bytes: %d)", err, diagnostics.Len())
 	}
 	return stdout.String(), nil
 }

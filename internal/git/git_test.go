@@ -1,13 +1,33 @@
 package git
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
+
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
+
+func TestCloneIntoRedactsUserinfoAndPreservesExitError(t *testing.T) {
+	requireGit(t)
+	const source = "unsupported://user:clone-secret@example.test/repository"
+	err := cloneInto(nil, source, filepath.Join(t.TempDir(), "clone"), "", false)
+	if err == nil {
+		t.Fatal("cloneInto() error = nil, want unsupported transport error")
+	}
+	var exitErr *exec.ExitError
+	if !errors.As(err, &exitErr) {
+		t.Fatalf("cloneInto() did not preserve exec.ExitError: %v", err)
+	}
+	if strings.Contains(err.Error(), "user") || strings.Contains(err.Error(), "clone-secret") {
+		t.Fatalf("cloneInto() exposed URL user information: %v", err)
+	}
+}
 
 func TestCloneTempMaterializesRequestedCommitWithoutChangingSource(t *testing.T) {
 	sourceRepo, mainSHA, featureSHA := createGitRepoWithFeatureBranch(t)
@@ -65,7 +85,7 @@ func TestMaterializeLocalRefKeepsRepositorySymlinksAsSymlinks(t *testing.T) {
 func TestResolveCommitWithSHA(t *testing.T) {
 	repoDir, headSHA, _ := createGitRepoWithFeatureBranch(t)
 
-	resolved, err := resolveCommit(repoDir, headSHA)
+	resolved, err := resolveCommit(nil, repoDir, headSHA)
 	if err != nil {
 		t.Fatalf("resolveCommit() error = %v", err)
 	}
@@ -79,11 +99,11 @@ func TestResolveCommitWithRemoteTrackingBranch(t *testing.T) {
 	cloneDir := filepath.Join(t.TempDir(), "clone")
 	runGitCommand(t, "", "clone", "--quiet", sourceRepo, cloneDir)
 
-	if err := VerifyRef(cloneDir, "feature"); err != nil {
+	if err := VerifyRef(nil, cloneDir, "feature"); err != nil {
 		t.Fatalf("VerifyRef() error = %v", err)
 	}
 
-	resolved, err := resolveCommit(cloneDir, "feature")
+	resolved, err := resolveCommit(nil, cloneDir, "feature")
 	if err != nil {
 		t.Fatalf("resolveCommit() error = %v", err)
 	}
@@ -95,12 +115,29 @@ func TestResolveCommitWithRemoteTrackingBranch(t *testing.T) {
 func TestResolveCommitWithMissingRef(t *testing.T) {
 	repoDir, _, _ := createGitRepoWithFeatureBranch(t)
 
-	_, err := resolveCommit(repoDir, "missing-branch")
+	_, err := resolveCommit(nil, repoDir, "missing-branch")
 	if err == nil {
 		t.Fatal("resolveCommit() error = nil, want error")
 	}
 	if !strings.Contains(err.Error(), "resolve git ref \"missing-branch\"") {
 		t.Fatalf("resolveCommit() error = %v, want wrapped ref context", err)
+	}
+}
+
+func TestRunGitLogsStderrAtDebug(t *testing.T) {
+	requireGit(t)
+	core, observed := observer.New(zap.DebugLevel)
+
+	if _, err := runGit(zap.New(core), t.TempDir(), "rev-parse", "--verify", "missing-ref^{commit}"); err == nil {
+		t.Fatal("runGit() error = nil, want error")
+	}
+
+	entries := observed.FilterMessage("Git command diagnostics").All()
+	if len(entries) != 1 {
+		t.Fatalf("Git diagnostic logs = %#v", observed.All())
+	}
+	if stderr, _ := entries[0].ContextMap()["stderr"].(string); !strings.Contains(stderr, "fatal:") {
+		t.Fatalf("Git stderr log = %#v", entries[0].ContextMap())
 	}
 }
 

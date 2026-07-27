@@ -99,13 +99,13 @@ func (d baseDetector) resolveGraph(req sdk.DetectionRequest, detectorName string
 	cmd.Stderr = commandStderr
 
 	started := time.Now()
-	sanitizedCommand := sanitizeCommand(command)
-	logger.Debug("running external dependency detector", zap.String("detector", detectorName), zap.String("working_dir", cmd.Dir), zap.String("executable", sanitizedCommand[0]), zap.Strings("args", sanitizedCommand[1:]))
+	logger.Debug("running external dependency detector",
+		append([]zap.Field{zap.String("detector", detectorName)}, logging.CommandFields(command[0], command[1:], cmd.Dir)...)...)
 	if err := cmd.Run(); err != nil {
 		logger.Warn(fmt.Sprintf("%s failed: %v", detectorName, err))
 		fields := []zap.Field{zap.Error(err), zap.String("detector", detectorName)}
-		if commandStderr.String() != "" {
-			fields = append(fields, zap.String("stderr", commandStderr.String()))
+		if commandStderr.ByteCount() > 0 {
+			fields = append(fields, zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		}
 		logger.Debug("external dependency detector failure details", fields...)
 		return nil, fmt.Errorf("run %s: %w", detectorName, err)
@@ -143,12 +143,12 @@ func (d baseDetector) install(ctx context.Context, req sdk.DetectionRequest, det
 	cmd.Stderr = commandStderr
 	started := time.Now()
 	logger.Info(fmt.Sprintf("%s running install-first step", detectorName))
-	sanitizedCommand := sanitizeCommand(command)
-	logger.Debug("running python detector install-first", zap.String("detector", detectorName), zap.String("working_dir", cmd.Dir), zap.String("executable", sanitizedCommand[0]), zap.Strings("args", sanitizedCommand[1:]))
+	logger.Debug("running python detector install-first",
+		append([]zap.Field{zap.String("detector", detectorName)}, logging.CommandFields(command[0], command[1:], cmd.Dir)...)...)
 	if err := cmd.Run(); err != nil {
 		fields := []zap.Field{zap.Error(err)}
-		if commandStderr.String() != "" {
-			fields = append(fields, zap.String("stderr", commandStderr.String()))
+		if commandStderr.ByteCount() > 0 {
+			fields = append(fields, zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		}
 		logger.Debug("python detector install-first failure details", fields...)
 		return fmt.Errorf("run %s install step: %w", detectorName, err)

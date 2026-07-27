@@ -118,6 +118,9 @@ func (o *Options) AnalyzerFilter() sdk.AnalyzerFilter {
 func (o *Options) PipelineRequest(scope sdk.Scope, stderr io.Writer) engine.PipelineRequest {
 	failOn, _ := sdk.ParseFailOnList(o.ResolvedConfig.FailOn)
 	typosquatThreshold, _ := strconv.ParseFloat(strings.TrimSpace(o.ResolvedConfig.TyposquatThreshold), 64)
+	if !o.Verbose() {
+		stderr = nil
+	}
 	return engine.PipelineRequest{
 		ProjectPath:                o.executionTarget.Location,
 		ExecutionTarget:            o.executionTarget,
@@ -150,7 +153,7 @@ func (o *Options) PipelineRequest(scope sdk.Scope, stderr io.Writer) engine.Pipe
 	}
 }
 
-// Verbose reports whether verbose command output is enabled.
+// Verbose reports whether debug-level subprocess output is enabled.
 func (o *Options) Verbose() bool {
 	return o.verbose
 }
@@ -363,7 +366,7 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		httpProvider:           httpProvider,
 		ResolvedConfig:         resolved,
 		Format:                 format,
-		verbose:                resolved.Verbosity > 0,
+		verbose:                resolved.Verbosity >= 2,
 		cleanup:                cleanup,
 		findingPolicyResolvers: baselineResult.Resolvers,
 		baselineEvaluation:     baselineEvaluationFromLoadResult(baselineResult),

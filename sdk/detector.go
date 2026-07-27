@@ -32,16 +32,21 @@ type DetectionRequest struct {
 	PackageManager  PackageManager  `json:"packageManager,omitempty"`
 	// EnrichmentEnabled allows orchestration to request detector-time metadata
 	// enrichment when a downstream command has opted into package enrichment.
-	EnrichmentEnabled  bool            `json:"enrichmentEnabled,omitempty"`
-	DetectorFilter     DetectorFilter  `json:"detectorFilter"`
-	ScopeFilter        Scope           `json:"scopeFilter,omitempty"`
-	Query              DependencyQuery `json:"query"`
-	InstallFirst       bool            `json:"installFirst,omitempty"`
-	InstallArgs        []string        `json:"installArgs,omitempty"`
-	CoreVersion        string          `json:"coreVersion,omitempty"`
-	AllowStdErrLogging bool            `json:"allowStdErrLogging,omitempty"`
-	Stderr             io.Writer       `json:"-"`
-	Verbose            bool            `json:"-"`
+	EnrichmentEnabled bool            `json:"enrichmentEnabled,omitempty"`
+	DetectorFilter    DetectorFilter  `json:"detectorFilter"`
+	ScopeFilter       Scope           `json:"scopeFilter,omitempty"`
+	Query             DependencyQuery `json:"query"`
+	InstallFirst      bool            `json:"installFirst,omitempty"`
+	InstallArgs       []string        `json:"installArgs,omitempty"`
+	CoreVersion       string          `json:"coreVersion,omitempty"`
+	// AllowStdErrLogging tells a detector that the user enabled debug output
+	// and accepts the detector's raw subprocess diagnostics in that output.
+	AllowStdErrLogging bool `json:"allowStdErrLogging,omitempty"`
+	// Stderr and Verbose are process-local fields used by built-in detectors.
+	// Stderr is nil unless debug output is enabled. Verbose mirrors
+	// AllowStdErrLogging for compatibility with existing detector code.
+	Stderr  io.Writer `json:"-"`
+	Verbose bool      `json:"-"`
 	// Logger is a request-scoped logger injected by the pipeline, already
 	// bound to the subproject and detector this request targets. It lets a
 	// detector instance that is shared across concurrently-resolved

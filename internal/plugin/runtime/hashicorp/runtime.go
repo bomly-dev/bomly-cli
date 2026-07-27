@@ -3,8 +3,10 @@ package hashicorp
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 
+	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/hashicorp/go-hclog"
 	hplugin "github.com/hashicorp/go-plugin"
@@ -20,14 +22,23 @@ type Client struct {
 func Start(ctx context.Context, executable string, env []string, verbosity int) (*Client, error) {
 	cmd := exec.CommandContext(ctx, executable)
 	cmd.Env = append(cmd.Env, env...)
+	workingDir, _ := os.Getwd()
+	eventLogger := pluginLogger(verbosity)
+	eventLogger.Debug("starting plugin subprocess",
+		"executable", executable,
+		"args", logging.SanitizeArgs(cmd.Args[1:]),
+		"working_dir", workingDir,
+	)
 	client := hplugin.NewClient(&hplugin.ClientConfig{
 		HandshakeConfig:  sdk.HandshakeConfig(),
 		AllowedProtocols: []hplugin.Protocol{hplugin.ProtocolGRPC},
 		Cmd:              cmd,
-		Logger:           pluginLogger(verbosity),
-		Plugins:          sdk.ClientPluginMap(),
-		Managed:          true,
-		GRPCDialOptions:  nil,
+		// Managed plugin stderr is visible only with debug logging. The plugin
+		// owns this output, so users must treat debug logs as sensitive.
+		Logger:          pluginLogger(verbosity),
+		Plugins:         sdk.ClientPluginMap(),
+		Managed:         true,
+		GRPCDialOptions: nil,
 	})
 
 	rpcClient, err := client.Client()
@@ -49,16 +60,12 @@ func Start(ctx context.Context, executable string, env []string, verbosity int) 
 }
 
 func pluginLogger(verbosity int) hclog.Logger {
-	if verbosity <= 0 {
+	if verbosity < 2 {
 		return hclog.NewNullLogger()
-	}
-	level := hclog.Info
-	if verbosity >= 2 {
-		level = hclog.Debug
 	}
 	return hclog.New(&hclog.LoggerOptions{
 		Name:  "plugin",
-		Level: level,
+		Level: hclog.Debug,
 	})
 }
 

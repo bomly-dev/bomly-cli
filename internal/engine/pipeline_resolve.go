@@ -131,19 +131,20 @@ func resolveWorkerCount(subprojectCount int) int {
 
 func (p *Pipeline) resolveSubproject(ctx context.Context, req PipelineRequest, sub sdk.Subproject) ([]sdk.DetectionResult, error) {
 	baseReq := sdk.DetectionRequest{
-		ProjectPath:       sub.ExecutionTarget.Location,
-		ExecutionTarget:   sub.ExecutionTarget,
-		Subproject:        sub,
-		Ecosystem:         sub.Ecosystem,
-		PackageManager:    sub.PrimaryPackageManager(),
-		EnrichmentEnabled: req.EnrichEnabled || req.MatchEnabled,
-		DetectorFilter:    req.DetectorFilter,
-		ScopeFilter:       req.ScopeFilter,
-		InstallFirst:      req.InstallFirst,
-		InstallArgs:       req.InstallArgs,
-		CoreVersion:       req.CoreVersion,
-		Stderr:            req.Stderr,
-		Verbose:           req.Verbose,
+		ProjectPath:        sub.ExecutionTarget.Location,
+		ExecutionTarget:    sub.ExecutionTarget,
+		Subproject:         sub,
+		Ecosystem:          sub.Ecosystem,
+		PackageManager:     sub.PrimaryPackageManager(),
+		EnrichmentEnabled:  req.EnrichEnabled || req.MatchEnabled,
+		DetectorFilter:     req.DetectorFilter,
+		ScopeFilter:        req.ScopeFilter,
+		InstallFirst:       req.InstallFirst,
+		InstallArgs:        req.InstallArgs,
+		CoreVersion:        req.CoreVersion,
+		AllowStdErrLogging: req.Verbose,
+		Stderr:             req.Stderr,
+		Verbose:            req.Verbose,
 	}
 
 	detectorNames := sub.PlannedDetectors
@@ -321,7 +322,6 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 			p.Logger.Debug("pipeline: running detector install-first",
 				zap.String("detector", descriptor.Name),
 				zap.String("subproject", req.Subproject.RelativePath),
-				zap.Strings("install_args", req.InstallArgs),
 			)
 			if err := installer.Install(ctx, req); err != nil {
 				return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: install-first failed: %w", descriptor.Name, err), progress)

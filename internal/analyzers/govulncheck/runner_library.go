@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"go.uber.org/zap"
@@ -19,12 +20,17 @@ func NewRunner(logger *zap.Logger) Runner {
 	return libraryRunner{logger: ensureLogger(logger)}
 }
 
+func newRunnerWithStderr(logger *zap.Logger, stderr io.Writer) Runner {
+	return libraryRunner{logger: ensureLogger(logger), stderr: stderr}
+}
+
 // libraryRunner is the in-process implementation of Runner. The Runner
 // interface is preserved (rather than calling api.Build directly from
 // the analyzer) so unit tests can inject a fakeRunner for deterministic
 // behavior without a real Go toolchain.
 type libraryRunner struct {
 	logger *zap.Logger
+	stderr io.Writer
 }
 
 func (libraryRunner) Name() string { return "library" }
@@ -37,7 +43,7 @@ func (r libraryRunner) Run(ctx context.Context, moduleDir string) (RunnerResult,
 		zap.Strings("args", args))
 
 	var stdout bytes.Buffer
-	stderr := logging.NewCommandStderr(nil, false)
+	stderr := logging.NewCommandStderr(r.stderr, r.stderr != nil)
 	cmd := govulnscan.Command(ctx, args...)
 	cmd.Stdout = &stdout
 	cmd.Stderr = stderr

@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 )
 
-func TestInstallLogsReproducibleCommandWithoutCredentials(t *testing.T) {
+func TestInstallLogsReproducibleCommandAndDebugStderr(t *testing.T) {
 	executable, err := os.Executable()
 	if err != nil {
 		t.Fatal(err)
@@ -39,8 +39,8 @@ func TestInstallLogsReproducibleCommandWithoutCredentials(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Install() error = %v", err)
 	}
-	if strings.Contains(visibleStderr.String(), "stderr-secret") || visibleStderr.Len() != 0 {
-		t.Fatalf("subprocess stderr was mirrored: %q", visibleStderr.String())
+	if !strings.Contains(visibleStderr.String(), "stderr-secret") {
+		t.Fatalf("subprocess stderr was not mirrored in debug mode: %q", visibleStderr.String())
 	}
 
 	entries := observed.FilterMessage("running detector install-first").All()

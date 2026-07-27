@@ -384,13 +384,16 @@ When a build-tool-primary detector (Maven, Gradle, Go, …) cannot produce a gra
   resolved binary paths or names and are assumed not to contain arguments or
   credentials. URL query values are not parsed as credentials, so callers must
   not treat URL sanitization as a general query-string redactor. The engine
-  logs orchestration state but never logs raw `install_args`. Arbitrary
-  subprocess stderr is never mirrored or retained because tools may print
-  credentials there; failure diagnostics report only the exit error and
-  stderr byte count. The process-local `DetectionRequest.Stderr` and `Verbose`
-  fields and the two-argument stderr-counter constructor remain for source
-  compatibility with built-in and protocol-v1 detectors, but they do not
-  authorize raw tool output.
+  logs orchestration state but never logs raw `install_args`. At DEBUG
+  verbosity (`-vv`), subprocess stderr is streamed to Bomly's stderr so users
+  can diagnose package-manager, analyzer, matcher, Git, Java, and managed
+  plugin failures. It is hidden at lower verbosity and is not stored in
+  structured results. Because Bomly cannot reliably sanitize arbitrary tool
+  output, DEBUG logs may contain credentials or other sensitive values printed
+  by those tools and must be handled as sensitive data. The serialized
+  `DetectionRequest.AllowStdErrLogging` field lets protocol-v1 detectors see
+  that the user enabled this output; process-local `Stderr` and `Verbose`
+  fields carry the destination and compatibility signal for built-ins.
 
 ### Decision: detector logs are request-scoped by subproject
 

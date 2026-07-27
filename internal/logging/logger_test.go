@@ -34,8 +34,8 @@ func TestNewConsoleAndCommandStderr(t *testing.T) {
 	if got := writer.ByteCount(); got != int64(len("warn: noisy stderr\n")) {
 		t.Fatalf("ByteCount() = %d", got)
 	}
-	if visible.Len() != 0 {
-		t.Fatalf("subprocess stderr leaked to visible output: %q", visible.String())
+	if !strings.Contains(visible.String(), "warn: noisy stderr") {
+		t.Fatalf("expected debug writer mirroring, got %q", visible.String())
 	}
 }
 

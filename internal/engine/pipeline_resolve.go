@@ -131,19 +131,20 @@ func resolveWorkerCount(subprojectCount int) int {
 
 func (p *Pipeline) resolveSubproject(ctx context.Context, req PipelineRequest, sub sdk.Subproject) ([]sdk.DetectionResult, error) {
 	baseReq := sdk.DetectionRequest{
-		ProjectPath:       sub.ExecutionTarget.Location,
-		ExecutionTarget:   sub.ExecutionTarget,
-		Subproject:        sub,
-		Ecosystem:         sub.Ecosystem,
-		PackageManager:    sub.PrimaryPackageManager(),
-		EnrichmentEnabled: req.EnrichEnabled || req.MatchEnabled,
-		DetectorFilter:    req.DetectorFilter,
-		ScopeFilter:       req.ScopeFilter,
-		InstallFirst:      req.InstallFirst,
-		InstallArgs:       req.InstallArgs,
-		CoreVersion:       req.CoreVersion,
-		Stderr:            req.Stderr,
-		Verbose:           req.Verbose,
+		ProjectPath:        sub.ExecutionTarget.Location,
+		ExecutionTarget:    sub.ExecutionTarget,
+		Subproject:         sub,
+		Ecosystem:          sub.Ecosystem,
+		PackageManager:     sub.PrimaryPackageManager(),
+		EnrichmentEnabled:  req.EnrichEnabled || req.MatchEnabled,
+		DetectorFilter:     req.DetectorFilter,
+		ScopeFilter:        req.ScopeFilter,
+		InstallFirst:       req.InstallFirst,
+		InstallArgs:        req.InstallArgs,
+		CoreVersion:        req.CoreVersion,
+		AllowStdErrLogging: req.Verbose,
+		Stderr:             req.Stderr,
+		Verbose:            req.Verbose,
 	}
 
 	detectorNames := sub.PlannedDetectors

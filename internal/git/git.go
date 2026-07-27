@@ -198,11 +198,15 @@ func runGit(logger *zap.Logger, workingDir string, args ...string) (string, erro
 		cmd.Dir = workingDir
 	}
 	var stdout bytes.Buffer
-	diagnostics := logging.NewCommandStderr(nil, false)
+	var diagnostics bytes.Buffer
 	cmd.Stdout = &stdout
-	cmd.Stderr = diagnostics
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("%w (stderr bytes: %d)", err, diagnostics.ByteCount())
+	cmd.Stderr = &diagnostics
+	err := cmd.Run()
+	if message := strings.TrimSpace(diagnostics.String()); message != "" {
+		logger.Debug("Git command diagnostics", zap.String("stderr", message))
+	}
+	if err != nil {
+		return "", fmt.Errorf("%w (stderr bytes: %d)", err, diagnostics.Len())
 	}
 	return stdout.String(), nil
 }

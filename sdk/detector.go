@@ -32,18 +32,19 @@ type DetectionRequest struct {
 	PackageManager  PackageManager  `json:"packageManager,omitempty"`
 	// EnrichmentEnabled allows orchestration to request detector-time metadata
 	// enrichment when a downstream command has opted into package enrichment.
-	EnrichmentEnabled  bool            `json:"enrichmentEnabled,omitempty"`
-	DetectorFilter     DetectorFilter  `json:"detectorFilter"`
-	ScopeFilter        Scope           `json:"scopeFilter,omitempty"`
-	Query              DependencyQuery `json:"query"`
-	InstallFirst       bool            `json:"installFirst,omitempty"`
-	InstallArgs        []string        `json:"installArgs,omitempty"`
-	CoreVersion        string          `json:"coreVersion,omitempty"`
-	AllowStdErrLogging bool            `json:"allowStdErrLogging,omitempty"`
-	// Stderr and Verbose remain process-local compatibility fields for
-	// built-in and protocol-v1 detector implementations. Core no longer
-	// mirrors arbitrary subprocess stderr at either verbosity because tool
-	// diagnostics may contain credentials.
+	EnrichmentEnabled bool            `json:"enrichmentEnabled,omitempty"`
+	DetectorFilter    DetectorFilter  `json:"detectorFilter"`
+	ScopeFilter       Scope           `json:"scopeFilter,omitempty"`
+	Query             DependencyQuery `json:"query"`
+	InstallFirst      bool            `json:"installFirst,omitempty"`
+	InstallArgs       []string        `json:"installArgs,omitempty"`
+	CoreVersion       string          `json:"coreVersion,omitempty"`
+	// AllowStdErrLogging tells a detector that the user enabled debug output
+	// and accepts the detector's raw subprocess diagnostics in that output.
+	AllowStdErrLogging bool `json:"allowStdErrLogging,omitempty"`
+	// Stderr and Verbose are process-local fields used by built-in detectors.
+	// Stderr is nil unless debug output is enabled. Verbose mirrors
+	// AllowStdErrLogging for compatibility with existing detector code.
 	Stderr  io.Writer `json:"-"`
 	Verbose bool      `json:"-"`
 	// Logger is a request-scoped logger injected by the pipeline, already

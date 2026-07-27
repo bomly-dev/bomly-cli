@@ -241,26 +241,30 @@ func cloneFieldValue(value any) any {
 	}
 }
 
-// CommandStderr counts subprocess stderr without retaining or mirroring its
-// contents. Arbitrary tool diagnostics may contain credentials.
+// CommandStderr counts subprocess stderr and optionally mirrors it to the
+// caller's debug output. It does not retain the contents.
 type CommandStderr struct {
-	bytes int64
+	visible io.Writer
+	debug   bool
+	bytes   int64
 }
 
-// NewCommandStderr creates a secret-safe subprocess stderr counter. The writer
-// and verbosity parameters remain so built-in and protocol-v1 detector call
-// sites keep their existing request shape; stderr is never retained or
-// mirrored.
-func NewCommandStderr(_ io.Writer, _ bool) *CommandStderr {
-	return &CommandStderr{}
+// NewCommandStderr creates a subprocess stderr counter. When debug is true,
+// writes are also forwarded to visible as they arrive.
+func NewCommandStderr(visible io.Writer, debug bool) *CommandStderr {
+	return &CommandStderr{visible: visible, debug: debug}
 }
 
-// Write records only the number of stderr bytes.
+// Write records the byte count and mirrors the bytes when debug output is
+// enabled.
 func (w *CommandStderr) Write(p []byte) (int, error) {
 	if w == nil {
 		return len(p), nil
 	}
 	w.bytes += int64(len(p))
+	if w.debug && w.visible != nil {
+		return w.visible.Write(p)
+	}
 	return len(p), nil
 }
 

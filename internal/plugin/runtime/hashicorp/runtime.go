@@ -33,10 +33,9 @@ func Start(ctx context.Context, executable string, env []string, verbosity int) 
 		HandshakeConfig:  sdk.HandshakeConfig(),
 		AllowedProtocols: []hplugin.Protocol{hplugin.ProtocolGRPC},
 		Cmd:              cmd,
-		// Plugin stderr is arbitrary process output and may contain secrets.
-		// Keep go-plugin's stderr logger disabled; core logs only bounded,
-		// structured lifecycle information.
-		Logger:          hclog.NewNullLogger(),
+		// Managed plugin stderr is visible only with debug logging. The plugin
+		// owns this output, so users must treat debug logs as sensitive.
+		Logger:          pluginLogger(verbosity),
 		Plugins:         sdk.ClientPluginMap(),
 		Managed:         true,
 		GRPCDialOptions: nil,
@@ -61,16 +60,12 @@ func Start(ctx context.Context, executable string, env []string, verbosity int) 
 }
 
 func pluginLogger(verbosity int) hclog.Logger {
-	if verbosity <= 0 {
+	if verbosity < 2 {
 		return hclog.NewNullLogger()
-	}
-	level := hclog.Info
-	if verbosity >= 2 {
-		level = hclog.Debug
 	}
 	return hclog.New(&hclog.LoggerOptions{
 		Name:  "plugin",
-		Level: level,
+		Level: hclog.Debug,
 	})
 }
 

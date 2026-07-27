@@ -7,6 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 func TestCloneIntoRedactsUserinfoAndPreservesExitError(t *testing.T) {
@@ -64,6 +67,23 @@ func TestResolveCommitWithMissingRef(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "resolve git ref \"missing-branch\"") {
 		t.Fatalf("resolveCommit() error = %v, want wrapped ref context", err)
+	}
+}
+
+func TestRunGitLogsStderrAtDebug(t *testing.T) {
+	requireGit(t)
+	core, observed := observer.New(zap.DebugLevel)
+
+	if _, err := runGit(zap.New(core), t.TempDir(), "rev-parse", "--verify", "missing-ref^{commit}"); err == nil {
+		t.Fatal("runGit() error = nil, want error")
+	}
+
+	entries := observed.FilterMessage("Git command diagnostics").All()
+	if len(entries) != 1 {
+		t.Fatalf("Git diagnostic logs = %#v", observed.All())
+	}
+	if stderr, _ := entries[0].ContextMap()["stderr"].(string); !strings.Contains(stderr, "fatal:") {
+		t.Fatalf("Git stderr log = %#v", entries[0].ContextMap())
 	}
 }
 

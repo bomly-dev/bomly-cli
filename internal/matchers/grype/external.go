@@ -51,7 +51,7 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 
 	args := []string{"-o", "json"}
 	var stdout bytes.Buffer
-	commandStderr := logging.NewCommandStderr(req.Stderr, false)
+	commandStderr := logging.NewCommandStderr(req.Stderr, req.Stderr != nil)
 	cmd := system.Command("grype", args...)
 	cmd.Stdin = bytes.NewReader(spdxBytes)
 	cmd.Stdout = &stdout

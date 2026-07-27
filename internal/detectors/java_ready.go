@@ -1,10 +1,12 @@
 package detectors
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
@@ -37,15 +39,19 @@ func JavaReady(ctx context.Context, logger *zap.Logger) error {
 	executable := "java"
 	args := []string{"-version"}
 	cmd := system.CommandContext(probeCtx, executable, args...)
-	diagnostics := logging.NewCommandStderr(nil, false)
-	cmd.Stdout = diagnostics
-	cmd.Stderr = diagnostics
+	var diagnostics bytes.Buffer
+	cmd.Stdout = &diagnostics
+	cmd.Stderr = &diagnostics
 	logger.Debug("running Java readiness probe", logging.CommandFields(executable, args, cmd.Dir)...)
-	if err := cmd.Run(); err != nil {
+	err := cmd.Run()
+	if message := strings.TrimSpace(diagnostics.String()); message != "" {
+		logger.Debug("Java readiness probe diagnostics", zap.String("stderr", message))
+	}
+	if err != nil {
 		if errors.Is(probeCtx.Err(), context.DeadlineExceeded) {
 			return fmt.Errorf("java readiness check timed out after %s", javaReadyTimeout)
 		}
-		return fmt.Errorf("java runtime is unavailable: %w (diagnostic bytes: %d)", err, diagnostics.ByteCount())
+		return fmt.Errorf("java runtime is unavailable: %w (diagnostic bytes: %d)", err, diagnostics.Len())
 	}
 	return nil
 }

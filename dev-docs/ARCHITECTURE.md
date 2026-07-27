@@ -149,10 +149,14 @@ bypass the limit. Parsers never receive a partial over-limit document.
 Matcher and analyzer JSON cache entries have a separate 64 MiB read policy;
 corrupt or oversized entries degrade to a cache miss.
 
-Git clone size remains delegated to Git because remote repository scanning is
-an explicit operation and repositories do not have a useful universal size
-limit. It is recorded as a residual resource risk rather than implied to be
-bounded.
+Remote Git work uses a different boundary. Each remote operation has a
+10-minute deadline. Bomly does not fetch submodules or Git LFS objects, and it
+validates the completed checkout before discovery: at most 1,000,000 paths,
+10 GiB of regular files, 256 path levels, and no symlink whose lexical target
+escapes the checkout. Internal links remain intact. Git transfer bytes and
+`.git` object storage cannot be reliably capped by portable Git options before
+checkout, so those remain delegated to an operating-system quota when a hard
+cap is needed.
 
 ### Decision: Reachability annotates vulnerabilities, not findings
 
@@ -527,7 +531,10 @@ vulnerability data and does not trigger network enrichment.
 
 **Target materialization is a separate network boundary.** `--url` explicitly
 authorizes Bomly to clone the requested Git repository before the scan
-pipeline starts. Matcher gating does not suppress that clone.
+pipeline starts. Matcher gating does not suppress that clone. The clone has a
+10-minute deadline and does not recurse into submodules or download Git LFS
+objects. Bomly validates the completed checkout's size, entry count, depth,
+and symlink containment before repository discovery.
 
 `--install-first` is the explicit opt-in: it tells supporting detectors to run their normal install command (`npm install`, `pip install`, `composer install`, etc.) before resolving the graph. This downloads packages by design.
 

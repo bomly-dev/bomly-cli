@@ -48,7 +48,7 @@ func TestPipelineRequestExposesSubprocessStderrOnlyAtDebug(t *testing.T) {
 func TestCommandContextResolveExecutionTarget_Image(t *testing.T) {
 	options := Options{ResolvedConfig: config.Resolved{Image: "alpine:3.20"}}
 
-	target, location, cleanup, err := options.resolveExecutionTarget(nil)
+	target, location, cleanup, err := options.resolveExecutionTarget(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("resolveExecutionTarget() error = %v", err)
 	}
@@ -82,7 +82,7 @@ func TestProjectDescriptor_UsesUserFacingTargetLabels(t *testing.T) {
 func TestCommandContextResolveExecutionTarget_RejectsMultipleTargets(t *testing.T) {
 	options := Options{ResolvedConfig: config.Resolved{Path: ".", Image: "alpine:3.20"}}
 
-	_, _, _, err := options.resolveExecutionTarget(nil)
+	_, _, _, err := options.resolveExecutionTarget(context.Background(), nil)
 	if err == nil {
 		t.Fatal("expected multiple target error")
 	}

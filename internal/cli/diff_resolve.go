@@ -18,7 +18,7 @@ import (
 )
 
 func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger, baseRef, headRef string) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, map[string][]git.LineRange, error) {
-	repoRoot, repoCleanup, projectIdentifier, err := resolveDiffRepo(options, prog, logger)
+	repoRoot, repoCleanup, projectIdentifier, err := resolveDiffRepo(ctx, options, prog, logger)
 	if err != nil {
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, nil, err
 	}
@@ -59,11 +59,11 @@ func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, prog *prog
 // resolveDiffRepo finds (or clones) the git repository to diff. When --url is
 // set it surfaces a dedicated "Cloning repository" progress step around the
 // clone; for local repos no step is needed (resolution is instant).
-func resolveDiffRepo(options *opts.Options, prog *progress.Progress, logger *zap.Logger) (string, func() error, string, error) {
+func resolveDiffRepo(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger) (string, func() error, string, error) {
 	current := options.GetConfig()
 	if current.URL != "" {
 		step := prog.StartWithDoneLabel("input", "Cloning repository", "Cloned repository")
-		repoRoot, err := git.CloneTemp(logger, current.URL, "")
+		repoRoot, err := git.CloneTemp(ctx, logger, current.URL, "")
 		if err != nil {
 			step.Fail("Cloning repository failed")
 			return "", nil, "", exit.InvalidInputError("clone --url %q: %v", current.URL, err)
@@ -84,7 +84,7 @@ func resolveDiffRepo(options *opts.Options, prog *progress.Progress, logger *zap
 }
 
 func resolveDiffResultsForRef(ctx context.Context, options *opts.Options, logger *zap.Logger, repoRoot, ref string) (diffResolvedTarget, error) {
-	materializedPath, err := git.MaterializeLocalRef(logger, repoRoot, ref)
+	materializedPath, err := git.MaterializeLocalRef(ctx, logger, repoRoot, ref)
 	if err != nil {
 		return diffResolvedTarget{}, exit.ResolutionFailureError(err)
 	}

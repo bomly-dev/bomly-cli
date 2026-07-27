@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"errors"
 	"os"
 	"os/exec"
@@ -16,7 +17,7 @@ import (
 func TestCloneIntoRedactsUserinfoAndPreservesExitError(t *testing.T) {
 	requireGit(t)
 	const source = "unsupported://user:clone-secret@example.test/repository"
-	err := cloneInto(nil, source, filepath.Join(t.TempDir(), "clone"), "", false)
+	err := cloneInto(context.Background(), nil, source, filepath.Join(t.TempDir(), "clone"), "", false)
 	if err == nil {
 		t.Fatal("cloneInto() error = nil, want unsupported transport error")
 	}
@@ -32,7 +33,7 @@ func TestCloneIntoRedactsUserinfoAndPreservesExitError(t *testing.T) {
 func TestCloneTempMaterializesRequestedCommitWithoutChangingSource(t *testing.T) {
 	sourceRepo, mainSHA, featureSHA := createGitRepoWithFeatureBranch(t)
 
-	materialized, err := CloneTemp(nil, sourceRepo, featureSHA)
+	materialized, err := CloneTemp(context.Background(), nil, sourceRepo, featureSHA)
 	if err != nil {
 		t.Fatalf("CloneTemp() error = %v", err)
 	}
@@ -49,6 +50,25 @@ func TestCloneTempMaterializesRequestedCommitWithoutChangingSource(t *testing.T)
 	}
 }
 
+func TestCloneTempCancellationRemovesPartialTarget(t *testing.T) {
+	requireGit(t)
+	sourceRepo, _, _ := createGitRepoWithFeatureBranch(t)
+	tempRoot := t.TempDir()
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	if _, err := cloneTemp(ctx, nil, sourceRepo, "", tempRoot); !errors.Is(err, context.Canceled) {
+		t.Fatalf("cloneTemp() error = %v, want context cancellation", err)
+	}
+	entries, err := os.ReadDir(tempRoot)
+	if err != nil {
+		t.Fatalf("read temp root: %v", err)
+	}
+	if len(entries) != 0 {
+		t.Fatalf("cloneTemp() left partial directories: %v", entries)
+	}
+}
+
 func TestMaterializeLocalRefKeepsRepositorySymlinksAsSymlinks(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("symlink creation requires elevated privileges on Windows")
@@ -56,18 +76,18 @@ func TestMaterializeLocalRefKeepsRepositorySymlinksAsSymlinks(t *testing.T) {
 	requireGit(t)
 
 	repoDir := t.TempDir()
-	outside := filepath.Join(t.TempDir(), "outside.txt")
-	writePlatformTestFile(t, outside, "outside\n")
+	target := filepath.Join(repoDir, "target.txt")
+	writePlatformTestFile(t, target, "target\n")
 	runGitCommand(t, repoDir, "init", "--initial-branch=main")
 	runGitCommand(t, repoDir, "config", "user.email", "test@example.com")
 	runGitCommand(t, repoDir, "config", "user.name", "Bomly Test")
-	if err := os.Symlink(outside, filepath.Join(repoDir, "linked.txt")); err != nil {
+	if err := os.Symlink("target.txt", filepath.Join(repoDir, "linked.txt")); err != nil {
 		t.Fatalf("create repository symlink: %v", err)
 	}
-	runGitCommand(t, repoDir, "add", "linked.txt")
+	runGitCommand(t, repoDir, "add", "target.txt", "linked.txt")
 	runGitCommand(t, repoDir, "commit", "-m", "add symlink")
 
-	materialized, err := MaterializeLocalRef(nil, repoDir, "HEAD")
+	materialized, err := MaterializeLocalRef(context.Background(), nil, repoDir, "HEAD")
 	if err != nil {
 		t.Fatalf("MaterializeLocalRef() error = %v", err)
 	}
@@ -79,6 +99,149 @@ func TestMaterializeLocalRefKeepsRepositorySymlinksAsSymlinks(t *testing.T) {
 	}
 	if info.Mode()&os.ModeSymlink == 0 {
 		t.Fatalf("materialized link mode = %v, want symlink", info.Mode())
+	}
+}
+
+func TestMaterializeLocalRefRejectsEscapingRepositorySymlink(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symlink creation requires elevated privileges on Windows")
+	}
+	requireGit(t)
+
+	repoDir := t.TempDir()
+	outside := filepath.Join(t.TempDir(), "package.json")
+	writePlatformTestFile(t, outside, "{}")
+	runGitCommand(t, repoDir, "init", "--initial-branch=main")
+	runGitCommand(t, repoDir, "config", "user.email", "test@example.com")
+	runGitCommand(t, repoDir, "config", "user.name", "Bomly Test")
+	if err := os.Symlink(outside, filepath.Join(repoDir, "package.json")); err != nil {
+		t.Fatalf("create repository symlink: %v", err)
+	}
+	runGitCommand(t, repoDir, "add", "package.json")
+	runGitCommand(t, repoDir, "commit", "-m", "add escaping manifest")
+
+	_, err := MaterializeLocalRef(context.Background(), nil, repoDir, "HEAD")
+	if err == nil {
+		t.Fatal("MaterializeLocalRef() error = nil, want containment error")
+	}
+	if !strings.Contains(err.Error(), `repository symlink "package.json" points outside`) {
+		t.Fatalf("MaterializeLocalRef() error = %v", err)
+	}
+	if strings.Contains(err.Error(), outside) {
+		t.Fatalf("MaterializeLocalRef() exposed outside path: %v", err)
+	}
+}
+
+func TestValidateMaterializedTreeAllowsContainedSymlink(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symlink creation requires elevated privileges on Windows")
+	}
+	root := t.TempDir()
+	target := filepath.Join(root, "data", "package.json")
+	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+		t.Fatalf("create target directory: %v", err)
+	}
+	writePlatformTestFile(t, target, "{}")
+	if err := os.Symlink(filepath.Join("data", "package.json"), filepath.Join(root, "package.json")); err != nil {
+		t.Fatalf("create contained symlink: %v", err)
+	}
+
+	if err := validateMaterializedTree(root, defaultMaterializedTreeLimits); err != nil {
+		t.Fatalf("validateMaterializedTree() error = %v", err)
+	}
+}
+
+func TestValidateMaterializedTreeRejectsEscapingSymlink(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symlink creation requires elevated privileges on Windows")
+	}
+	root := t.TempDir()
+	outside := filepath.Join(t.TempDir(), "package.json")
+	writePlatformTestFile(t, outside, "{}")
+	if err := os.Symlink(outside, filepath.Join(root, "package.json")); err != nil {
+		t.Fatalf("create escaping symlink: %v", err)
+	}
+
+	err := validateMaterializedTree(root, defaultMaterializedTreeLimits)
+	if err == nil {
+		t.Fatal("validateMaterializedTree() error = nil, want containment error")
+	}
+	if !strings.Contains(err.Error(), `repository symlink "package.json" points outside the materialized target`) {
+		t.Fatalf("validateMaterializedTree() error = %v", err)
+	}
+	if strings.Contains(err.Error(), outside) {
+		t.Fatalf("validateMaterializedTree() exposed outside path: %v", err)
+	}
+}
+
+func TestValidateMaterializedTreeRejectsLexicalEscapeFromBrokenSymlink(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symlink creation requires elevated privileges on Windows")
+	}
+	root := t.TempDir()
+	if err := os.Symlink(filepath.Join("..", "missing", "package.json"), filepath.Join(root, "package.json")); err != nil {
+		t.Fatalf("create broken escaping symlink: %v", err)
+	}
+
+	if err := validateMaterializedTree(root, defaultMaterializedTreeLimits); err == nil {
+		t.Fatal("validateMaterializedTree() error = nil, want containment error")
+	}
+}
+
+func TestValidateMaterializedTreeResourceBoundaries(t *testing.T) {
+	t.Run("exact bytes and entries", func(t *testing.T) {
+		root := t.TempDir()
+		writePlatformTestFile(t, filepath.Join(root, "a.txt"), "1234")
+		writePlatformTestFile(t, filepath.Join(root, "b.txt"), "5678")
+		limits := materializedTreeLimits{maxEntries: 2, maxBytes: 8, maxDepth: 1}
+		if err := validateMaterializedTree(root, limits); err != nil {
+			t.Fatalf("validateMaterializedTree() error = %v", err)
+		}
+	})
+
+	t.Run("one byte over", func(t *testing.T) {
+		root := t.TempDir()
+		writePlatformTestFile(t, filepath.Join(root, "data.txt"), "12345")
+		limits := materializedTreeLimits{maxEntries: 1, maxBytes: 4, maxDepth: 1}
+		err := validateMaterializedTree(root, limits)
+		if err == nil || !strings.Contains(err.Error(), "exceeds 4 bytes") {
+			t.Fatalf("validateMaterializedTree() error = %v, want byte limit", err)
+		}
+	})
+
+	t.Run("one entry over", func(t *testing.T) {
+		root := t.TempDir()
+		writePlatformTestFile(t, filepath.Join(root, "a.txt"), "a")
+		writePlatformTestFile(t, filepath.Join(root, "b.txt"), "b")
+		limits := materializedTreeLimits{maxEntries: 1, maxBytes: 2, maxDepth: 1}
+		err := validateMaterializedTree(root, limits)
+		if err == nil || !strings.Contains(err.Error(), "exceeds 1 entries") {
+			t.Fatalf("validateMaterializedTree() error = %v, want entry limit", err)
+		}
+	})
+
+	t.Run("one level over", func(t *testing.T) {
+		root := t.TempDir()
+		path := filepath.Join(root, "one", "two")
+		if err := os.MkdirAll(path, 0o755); err != nil {
+			t.Fatalf("create nested path: %v", err)
+		}
+		limits := materializedTreeLimits{maxEntries: 2, maxBytes: 1, maxDepth: 1}
+		err := validateMaterializedTree(root, limits)
+		if err == nil || !strings.Contains(err.Error(), "exceeds maximum depth 1") {
+			t.Fatalf("validateMaterializedTree() error = %v, want depth limit", err)
+		}
+	})
+}
+
+func TestRunGitContextHonorsCancellation(t *testing.T) {
+	requireGit(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := runGitContext(ctx, nil, t.TempDir(), "status")
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("runGitContext() error = %v, want context cancellation", err)
 	}
 }
 

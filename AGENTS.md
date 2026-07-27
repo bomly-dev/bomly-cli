@@ -171,6 +171,10 @@ Core passes these env vars. Plugin discovery: `~/.bomly/plugins/bomly-*` overrid
 
 When adding a new user-visible feature (new CLI flag, new component class, new pipeline stage, new analyzer, etc.), walk this checklist before requesting review. The surfaces forgotten most often are **MCP**, **plugin command**, and **smoke test**.
 
+If the change adds an input, network client, subprocess, plugin role, output
+path, MCP field, or automatically discovered repository file, also complete the
+[security assurance review checklist](dev-docs/SECURITY_ASSURANCE.md#review-checklist).
+
 ### CLI surface
 
 - Flag declared in `internal/cli/opts/flag_options.go` with override propagation in `applyFlagOverrides`.

@@ -2,6 +2,9 @@
 
 Bomly uses GitHub Actions for validation, security analysis, smoke coverage, and release packaging.
 
+The workflow permission and credential inventory is maintained in
+[`SECURITY_ASSURANCE.md`](SECURITY_ASSURANCE.md#ci-credential-and-permission-inventory).
+
 ## Workflow Overview
 
 | Workflow               | Trigger                                        | Purpose                                                                                                                |

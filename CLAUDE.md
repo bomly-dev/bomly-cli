@@ -149,6 +149,10 @@ Cache failures are non-fatal — log a warning and continue.
 
 When adding a new user-visible feature (new CLI flag, new component class, new pipeline stage, new analyzer, etc.), walk this checklist before requesting review. Reviewers will ask for everything that applies, and the surface that gets forgotten most often is **MCP** + **plugin command** + **smoke test**.
 
+If the change adds an input, network client, subprocess, plugin role, output
+path, MCP field, or automatically discovered repository file, also complete the
+[security assurance review checklist](dev-docs/SECURITY_ASSURANCE.md#review-checklist).
+
 ### CLI surface
 
 - [ ] Flag declared in `internal/cli/opts/flag_options.go` with override propagation in `applyFlagOverrides`.

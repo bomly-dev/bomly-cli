@@ -24,6 +24,7 @@ Task-oriented walkthroughs.
 How Bomly thinks about your project.
 
 - [Architecture](ARCHITECTURE.md) — the scan pipeline, domain model, and network behavior
+- [Security and Trust Boundaries](SECURITY.md) — permissions, network behavior, plugins, input limits, and residual risks
 - [Detectors](DETECTORS.md) — turning project evidence into a dependency graph
 - [Matchers](MATCHERS.md) — enriching the graph with vulnerability, license, lifecycle data
 - [Auditors](AUDITORS.md) — evaluating the graph against policy
@@ -53,5 +54,6 @@ For contributors and release engineers. These live outside the published docs in
 - [Architecture (deep dive)](../dev-docs/ARCHITECTURE.md) — full pipeline, package boundaries, decision log
 - [Domain Models](../dev-docs/MODELS.md) — SDK types behind detection, matching, and audit
 - [CI](../dev-docs/CI.md) — Bomly's own internal CI configuration
+- [Security Assurance](../dev-docs/SECURITY_ASSURANCE.md) — trust-boundary controls, regression evidence, and CI permissions
 - [Release Checklist](../dev-docs/RELEASE_CHECKLIST.md) — maintainer checklist for publishing tagged releases
 - [Contributing](../CONTRIBUTING.md) — build setup, code conventions, release process

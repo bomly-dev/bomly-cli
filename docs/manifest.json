@@ -70,6 +70,12 @@
       "group": "concepts"
     },
     {
+      "slug": "security",
+      "title": "Security and trust boundaries",
+      "description": "Permissions, network behavior, plugins, input limits, and residual risks.",
+      "group": "concepts"
+    },
+    {
       "slug": "detectors",
       "title": "Detectors",
       "description": "How Bomly discovers projects and turns evidence into a dependency graph.",

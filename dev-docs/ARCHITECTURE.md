@@ -64,7 +64,7 @@ Stage summary:
 
 1. Runtime preparation builds the filtered registry and execution plan.
 2. Subproject discovery finds supported package-manager roots for the target. By default only the execution-target root is inspected; `--recursive` walks nested directories (bounded by `--max-depth`, `--exclude`, and built-in ignore rules) and plans one subproject per directory-and-package-manager pair, with workspace-expanding managers pruned below ancestors that already cover them.
-3. Detection resolves a dependency graph per package manager and then consolidates the per-subproject graphs into the single graph and package registry the rest of the pipeline uses. When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it; all detector results pass through the shared SDK scope filter, and consolidation is the tail of this stage rather than a separate step.
+3. Detection resolves a dependency graph per package manager and then consolidates the per-subproject graphs into the single graph and package registry the rest of the pipeline uses. Detection also produces one unified list of `sdk.DetectorWarning`s — resolution failures and fallbacks the engine observed, plus the package-manager problems detectors reported with their graphs (see the decision below). When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it; all detector results pass through the shared SDK scope filter, and consolidation is the tail of this stage rather than a separate step.
 4. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records. After vulnerability consolidation, `internal/remediation` derives package fix status and version, validates optional read-only detector hints, and creates occurrence-specific vulnerability suggestions. This is the tail of enrichment, not a separate stage.
 5. Analyzers run when `--analyze` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See [`../docs/REACHABILITY.md`](../docs/REACHABILITY.md) for ecosystem coverage and tier semantics.
 6. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. As the final part of that same audit stage, neutral policy-status resolvers may change only `Finding.PolicyStatus`; they never remove or rewrite finding evidence. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
@@ -244,13 +244,19 @@ projects. Discovery happens during normal target preparation: scan and explain
 read the materialized project tree, including repositories cloned through
 `--url`, while Git diff independently reads the base and head trees. A detected
 baseline is logged with its path, entry count, selection mode, and target kind;
-each evaluation logs findings evaluated and accepted. Output receives ordinary
-findings whose policy status may be `suppressed` through
-`Finding.PolicyStatus` / `policy_status`, and no baseline-specific output model
-or pipeline stage exists. Renaming the earlier finding field is an intentional
-breaking output-contract change while the CLI output schema identifier remains
-`1.0` and the compact MCP schema remains `mcp/1`. Protocol-v1 decoding still
-accepts the earlier wire field from existing external auditor plugins.
+automatic discovery warns and behaves as though no baseline exists when path
+inspection finds a symbolic-link `.bomly` directory or baseline file. This
+rejects discovered links but cannot prevent another process from replacing a
+path between inspection and reading. Explicit baseline paths remain trusted
+user-selected inputs and may refer outside the project or through a symbolic
+link. Each evaluation logs
+findings evaluated and accepted. Output receives ordinary findings whose policy
+status may be `suppressed` through `Finding.PolicyStatus` / `policy_status`, and
+no baseline-specific output model or pipeline stage exists. Renaming the
+earlier finding field is an intentional breaking output-contract change while
+the CLI output schema identifier remains `1.0` and the compact MCP schema
+remains `mcp/1`. Protocol-v1 decoding still accepts the earlier wire field from
+existing external auditor plugins.
 
 ### Decision: registry matching eligibility is an occurrence-level engine boundary
 
@@ -276,11 +282,37 @@ The `--format json` `findings[]` projection now mirrors `sdk.Finding` exactly: a
 
 The MCP server does not return the CLI JSON documents at all. Tool results land in an agent's context window and MCP clients truncate large results to errors, so `bomly_scan` / `bomly_diff` / `bomly_explain` return compact projections (`schema_version "mcp/1"`, `internal/mcp/types_compact.go`) built from the pipeline's domain data. MCP projects canonical package remediation suggestions; it does not select actions, versions, or package-manager advice. Groups are ranked KEV → severity → EPSS → fixability and hard-capped with explicit truncation counters. Audit may overlay policy status on matching vulnerability entries but cannot create or change suggestions. `bomly_explain` is the bounded drill-down (full advisory detail for one package); the CLI is the artifact channel for complete documents. The former `bomly_vuln_fix_context` tool was folded into these responses. Shortest dependency paths come from a bounded upward BFS over `Graph.Dependents`, never `CollectPathsTo` (all simple paths is exponential on dense graphs).
 
+### Decision: one typed detector-warning channel, no CI-readiness stage
+
+Issue #245 surfaced CI failures that were never vulnerabilities: a lockfile written by pnpm 11 against a project that pins pnpm 9, and a pnpm `minimumReleaseAge` gate that rejects a freshly published fix version. The Node detectors find these while resolving (`internal/detectors/node/package_manager_warnings.go`) and return them with their graphs in `DetectionResult.Warnings`.
+
+Detection had accumulated three separate warning paths — an error-derived list for failed chains, fallback annotations, and (briefly) a manifest-scoped list for package-manager problems — reaching different surfaces with different fidelity. They are now one type, `sdk.DetectorWarning{Type, Code, Source, Subproject, Manifest, Message}`, collected into `PipelineResult.DetectorWarnings`.
+
+**`Type` carries the meaning, and policy branches on it.** `resolution-failure` and `fallback` mean the graph may be incomplete; `package-manager` means the graph is sound and the project's configuration is not. `DetectorWarningType.DegradesCoverage` is the single predicate: `baselineMutationWarningCount` uses it so a manager mismatch does not block recording a baseline, while a failed chain still does. `Code` names the specific check for consumers that branch further; it is empty for the warnings the engine synthesizes, where the type already says everything. Location lives in `Subproject`/`Manifest` fields rather than being interpolated into the message, so grouping and deduplication stay message-based and single-line channels compose the prefix themselves.
+
+**Why not `Ready`, and why not a stage.** The knowledge belongs with the detectors — `Ready` is where "is this toolchain usable here" already lives, and it receives the same per-subproject working directory a separate stage would have had to reconstruct. But `Ready` cannot carry this: its verdict is binary and a non-nil error routes the subproject to `resolveFallback`, so reporting a lockfile-format mismatch through it would demote a perfectly good lockfile parser to Syft over an advisory-only condition. Its plugin transport has the same gap — `ReadyResponse.Reason` is dropped when `Ready` is true. A dedicated pipeline stage was rejected outright: it duplicated detector knowledge, re-derived the working directory, and made a cross-cutting concern look like a phase of the run. The detector already parsed the lockfile and already knows the manager, so the finding is a resolution output, returned with the graph.
+
+**Every surface, because `-q` exists.** One list feeds the `warnings` collection of the scan/diff/explain JSON documents, the text and Markdown reports above the summary, ⚠ progress children, `-v` logs, and MCP diagnostics under the `detect` stage. Progress alone was not enough: `-q` silences it and CI runs have no TTY. Unification also removed the duplicate fallback pass MCP diagnostics used to run over manifests.
+
+**Committed files only — no `--version` probe.** `pnpm`/`yarn` on `PATH` are frequently Corepack shims, and invoking one can download the pinned manager on demand and mutate Corepack's cache, which would mean a plain scan contacts a registry without `--enrich`. Comparing what the repository declares is also the more accurate question, since CI installs from the repository, not from this machine's `PATH`. The trade-off is accepted deliberately: a project that pins nothing gets no version comparison, and a laptop-versus-CI skew is not reported. Reading CI workflow files for setup-node/`pnpm/action-setup` pins would recover some of that and is left as a follow-up.
+
+**Manager-specific semantics, verified against each manager's docs.** Install gates and lockfile interoperability differ per manager and are modelled per manager, not shared: pnpm reads `minimumReleaseAge` (minutes) from `pnpm-workspace.yaml` and only auth/registry settings from `.npmrc`, while npm reads `min-release-age` (days) and `before` from `.npmrc`; npm accepts `yarn.lock` as install input and Bun converts `pnpm-lock.yaml`, so neither is a mismatch, whereas pnpm's conversion is the manual `pnpm import` and therefore is. Combinations no manager documents either way stay silent — a false "your lockfile will be ignored" is worse than no warning.
+
+**Rendering treats every warning field as untrusted.** Messages embed values read from scanned repositories (version pins, config values, subprocess error text) and file names come from the tree itself, so `render.SanitizeUntrusted` strips CSI, OSC/DCS-family, and C0/DEL control bytes before a notice is wrapped in `Style(...)`; whitespace folding alone would leave a crafted `package.json` able to clear the terminal or forge output.
+
 ### Decision: Recursive discovery prunes native multi-module roots per package manager
 
 `--recursive` discovery (`planRecursiveFilesystemSubprojects`, `internal/cli/opts/planning_recursive.go`) walks the tree with `filepath.WalkDir` and plans subprojects through the same `plannedSubprojectsForPath` helper the root-only path uses. When a package manager whose detector natively expands nested modules (maven, gradle, npm, pnpm, yarn, cargo, sbt, mix) has manifest evidence at an ancestor directory, nested subprojects for that same manager are pruned: the ancestor's detector resolves those modules already (reactor TGF blocks, workspace lockfile importers, `cargo metadata` workspace members), so planning them separately would double-count every dependency. Pruning is per package manager and never skips the directory itself — a Maven ancestor must not hide a nested `requirements.txt`. `gomod` deliberately never prunes: a nested `go.mod` is excluded from the parent module by Go semantics, and the gomod detector has no `go.work` awareness, so each module scans independently (package dedup by PURL absorbs any overlap). Depth counts the root as 0 with a default cap of 3 (`--max-depth 0` = unlimited), matching the discovery probe's existing depth so error hints and the real walk agree. The resolve worker pool stays capped at 4 (`resolveWorkerCount`): recursion mostly adds cheap lockfile subprojects, and raising the cap would multiply concurrent JVM/node build-tool processes on monorepos; revisit only if large lockfile-heavy monorepos show wall-clock pain.
 
 Discovery rules are **detector-owned, not hardcoded**: each detector declares its ecosystem's ignore rules on its descriptor (`sdk.DetectorDescriptor.IgnoredDirectories` basename globs and `IgnoredDirectoryMarkers` marker files such as `pyvenv.cfg`) and marks workspace-expanding support entries with `sdk.PackageManagerSupport.MultiModule` (via `sdk.Support(...).WithMultiModule()`). Discovery aggregates the union across every registered detector (`discoveryRulesFromDetectors`), so external detector plugins contribute rules exactly like built-ins — the fields ride the existing descriptor JSON, making them backward compatible with the v1 plugin protocol (older plugins simply omit them). The walk aggregates from the request's **unfiltered** registry so `--detectors`/`--ecosystems` filters never change which directories are walked; the diagnostic probe falls back to the static built-in catalog (`registry.BuiltinDetectors`). Dot-directory skipping stays core walk behavior, independent of detector declarations.
+
+### Decision: The discovery probe attributes a skip reason per candidate
+
+`noSubprojectsError` (`internal/cli/opts/planning.go`) annotates every probed manifest candidate with the reason discovery did not turn it into a subproject (`internal/cli/opts/planning_diagnostics.go`). The reasons are produced by **replaying the real planning checks in planning order** — recursion scope, `--max-depth`, `--exclude` (matched against the candidate and every ancestor, since the walk prunes whole subtrees), `--ecosystems`, detector registration, `--detectors` — rather than by threading a parallel reason channel through discovery. Planning's hot path stays allocation-free and unaware of diagnostics; the replay runs only on the failure path, over at most `discoveryProbeMaxLines` candidates. The cost of replay is that a reason is a re-derivation, not a recording: whenever a check moves, its replay must move with it, which the per-reason tests in `planning_diagnostics_test.go` pin. Candidate detector names come from the request's **unfiltered** registry and the surviving chain from the **filtered** planning registry, so the message can name what the filter removed. There is deliberately no "no detector registered" reason: the probe only surfaces built-in catalog managers, and `registry.TestEveryDetectablePackageManagerHasADetectorChain` pins that every catalog manager with evidence ships a chain, so an empty chain always means the selectors emptied it. The exported `DescribeDiscovery` probe has no request to replay and therefore emits evidence lines with no skip clauses.
+
+Readiness is deliberately **not** replayed in the probe. Planning never probes readiness — chains are planned statically and probed when they resolve — so any candidate that clears the checks above is planned, and a missing toolchain cannot produce "no subprojects discovered". It produces a resolution failure instead, which is where the diagnostic lives: `resolveDetector` marks readiness failures with `detectorNotReadyError`, and when every link in a chain failed that way `resolveDetectors` returns `noUsableDetectorError` — one line naming each link and what it needs (`no usable detector: npm-native not ready (npm not on PATH); npm not ready (no committed lockfile)`) while keeping the joined error for `errors.Is`/`As`. A chain where some detector actually ran and failed keeps its verbatim error: that failure explains itself better than a summary.
+
+The error text itself is a short indented report (target, search scope, active filters, candidate list, hint) rather than one long sentence, because a home directory or monorepo contributes enough candidates that a single line wraps into an unreadable block. A skip reason shared by every candidate is hoisted into the section header instead of repeating per line.
 
 ### Decision: Subprojects and modules are distinct concepts, derived in views
 
@@ -393,6 +425,14 @@ Python build-tool inspection can accidentally read the wrong environment: `pip i
 
 The smoke/benchmark Python targets rely on the fast-paths for determinism: `scan-python-poetry` uses the committed `poetry.lock` fast-path, and `scan-python-pip` commits a `requirements.lock`. The venv isolation remains the correctness backstop for real-world pip projects scanned without a committed lock.
 
+Two consequences of inspecting an environment rather than reading a manifest:
+
+- **Shape is reconstructed, not reported.** `pip inspect` returns a flat installed set. Edges come from each distribution's `requires_dist`; the direct set comes from what the project declares by name, plus the installer's `REQUESTED` marker for what those declarations cannot name (`-r` includes, environments populated by another front-end). Anything the root cannot reach is re-parented onto it, so a `requires_dist` cycle cannot strand a component. Treating every installed distribution as direct — the pre-fix behavior — reported pure transitives as top-level dependencies.
+- **Declarations are hand-authored files only.** `directPythonDeclarations` reads requirements files, the dependency tables of `pyproject.toml`, and the `Pipfile`. Lockfiles — including `requirements.lock` — are excluded on purpose: they record the resolved closure, where a transitive package appears exactly like a direct one. Since the inspect path is shared by pip, Poetry, uv, and Pipenv, admitting `poetry.lock` or `uv.lock` here would recreate the all-direct bug for those detectors. This is a deliberately narrower question than `declaredPythonDependencies`, which asks only whether a package belongs to the project at all (used to keep declared tool packages).
+- **`pip inspect` needs pip ≥ 22.2.** `python -m venv` seeds the virtualenv from the ambient interpreter, so an old system Python yields a venv that cannot inspect itself. Bomly diagnoses this before the install and fails with the pip version and the requirement named, which surfaces through the fallback notice instead of a bare `exit status 1`. It does not upgrade pip: installing package managers is out of scope (see Non-Negotiables), and mutating the environment before resolution would add an unpinned network write to every scan.
+
+Python roots are named, not labeled `root`: `pyproject.toml`'s project name, else the subproject directory, else the scanned repository, else the project directory. Bomly's own `bomly-git-*` clone directories are never used — they are random per run, which would make remote-target output non-deterministic.
+
 ### Decision: detector fallbacks are loud, annotated degradations
 
 When a build-tool-primary detector (Maven, Gradle, Go, …) cannot produce a graph and its `sdk.FallbackDetector` succeeds instead, the scan silently loses transitive resolution — the exact capability the primary exists for. That degradation is now first-class provenance rather than a Debug-only log line:
@@ -451,6 +491,8 @@ vulnerability data and does not trigger network enrichment.
 
 **Detector network behavior is per-implementation.** Lockfile-parser detectors (npm, pnpm, yarn, Composer, Bundler, NuGet, GitHub Actions, SBOM ingest, …) are pure file parsers and make no network calls. Build-tool primary detectors (`go-detector`, `maven-detector`, `gradle-detector`, `sbt-native-detector`) shell out to the build tool, which may download packages from registries during normal resolution — this is the build tool's behavior, not Bomly's. Hybrid detectors (`cargo`, `poetry`, `uv`) prefer the lockfile and use `--locked`/`--no-sync` flags on the build-tool fallback to stay offline. See [DETECTORS.md → Network behavior](../docs/DETECTORS.md#network-behavior).
 
+**CI-readiness warnings read committed files only.** The Node detectors' package-manager warnings inspect `package.json`, the lockfile they already parsed, `pnpm-workspace.yaml`, and `.npmrc`. They execute no package manager: `pnpm`/`yarn` on `PATH` are frequently Corepack shims, and running even `--version` can download the pinned manager on demand, which would put a registry call in a plain scan.
+
 **Target materialization is a separate network boundary.** `--url` explicitly
 authorizes Bomly to clone the requested Git repository before the scan
 pipeline starts. Matcher gating does not suppress that clone.
@@ -466,6 +508,24 @@ Permitted enrichment-time services:
 - Grype's vulnerability database distribution service
 
 Installed external matcher plugins may use their own documented services.
+
+**Custom network settings are trusted authority.** The OSV and Scorecard base
+URLs may point to public, private, loopback, or plain HTTP services. Proxy
+destinations and additional CA files have the same reach. Bomly supports these
+choices for self-hosted services and enterprise networks; it does not apply a
+private-network block. Only the user config is loaded automatically. A
+repository config must be selected with `--config` or `BOMLY_CONFIG`, and
+network-specific environment variables are also explicit inputs.
+
+The shared SDK HTTP client follows Go's normal redirect rules. Redirects are
+allowed because custom services commonly use them, but sensitive headers are
+not forwarded to a different hostname. The standard client also permits an
+HTTPS endpoint to redirect to HTTP. This is intentional trusted-endpoint
+behavior for self-hosted services; Bomly does not add a downgrade block. Proxy
+and endpoint passwords must not appear in errors or logs. Configured PEM
+certificates extend the system trust roots for the current process rather than
+replacing them. The executable assurance matrix is recorded in
+[`test/assurance/NETWORK_BOUNDARIES.md`](../test/assurance/NETWORK_BOUNDARIES.md).
 
 **Native plugins are trusted processes, not sandboxes.** Installation verifies
 the managed artifact and records it disabled by default. Enabling a plugin

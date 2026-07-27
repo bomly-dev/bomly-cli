@@ -1,10 +1,13 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
 func TestLoadFileAndEnvProxyPrecedence(t *testing.T) {
@@ -311,6 +314,9 @@ func TestLoadFileRejectsOversizedFile(t *testing.T) {
 	_, err := LoadFile(path)
 	if err == nil || !strings.Contains(err.Error(), "exceeds the 4 MiB limit") {
 		t.Fatalf("LoadFile() error = %v", err)
+	}
+	if !errors.Is(err, system.ErrInputTooLarge) {
+		t.Fatalf("LoadFile() error = %v, want wrapped system.ErrInputTooLarge", err)
 	}
 }
 

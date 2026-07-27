@@ -15,6 +15,7 @@ Complete reference for the `bomly explain` JSON output.
 | `findings` | Array<[`AuditFinding`](#auditfinding)> | |
 | `audit_summary` | [`AuditSummary`](#auditsummary) | |
 | `targets` | Array<[`ExplainTargetResponse`](#explaintargetresponse)> | |
+| `warnings` | Array<[`DetectorWarning`](#detectorwarning)> | |
 | `metadata` | [`Metadata`](#metadata) | |
 
 ## Types
@@ -100,6 +101,17 @@ Complete reference for the `bomly explain` JSON output.
 | `introduced_via` | `string` | |
 | `cyclic` | `boolean` | |
 | `cycle_to` | `string` | |
+
+### `DetectorWarning`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | `string` | |
+| `code` | `string` | |
+| `source` | `string` | |
+| `subproject` | `string` | |
+| `manifest` | `string` | |
+| `message` | `string` | |
 
 ### `EPSSScore`
 

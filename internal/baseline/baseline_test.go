@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
@@ -272,6 +274,105 @@ func TestResolversForTargetHandlesOptionalRequiredAndURLPolicies(t *testing.T) {
 	}
 }
 
+func TestResolversForTargetIgnoresAutomaticSymlinksAndAllowsExplicitSelection(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symlink creation requires elevated privileges on Windows")
+	}
+
+	document := NewDocument([]sdk.Finding{{
+		ID: "rule", Kind: sdk.FindingKindPackage, Auditor: "package",
+		RuleID: "rule", PackageRef: "pkg:npm/example@1.0.0",
+	}}, nil)
+	for _, targetKind := range []sdk.ExecutionTargetKind{
+		sdk.ExecutionTargetFilesystem,
+		sdk.ExecutionTargetGitRepository,
+	} {
+		t.Run(string(targetKind)+"/file symlink", func(t *testing.T) {
+			root := t.TempDir()
+			outside := filepath.Join(t.TempDir(), "baseline.json")
+			if err := WriteAtomic(outside, document, false); err != nil {
+				t.Fatal(err)
+			}
+			baselineDir := filepath.Join(root, ".bomly")
+			if err := os.MkdirAll(baselineDir, 0o755); err != nil {
+				t.Fatal(err)
+			}
+			link := filepath.Join(baselineDir, "baseline.json")
+			if err := os.Symlink(outside, link); err != nil {
+				t.Fatal(err)
+			}
+			target := sdk.ExecutionTarget{Kind: targetKind, Location: root}
+
+			core, logs := observer.New(zap.WarnLevel)
+			result, err := ResolversForTarget("auto", target, zap.New(core))
+			if err != nil || len(result.Resolvers) != 0 || result.Path != "" {
+				t.Fatalf("automatic symlink result = %#v, %v", result, err)
+			}
+			warnings := logs.FilterMessage("baseline: ignored linked project policy")
+			if warnings.Len() != 1 {
+				t.Fatalf("automatic symlink warnings = %#v", logs.All())
+			}
+			fields := warnings.All()[0].ContextMap()
+			if fields["path"] != link || fields["target_kind"] != string(targetKind) ||
+				!strings.Contains(fmt.Sprint(fields["error"]), "resolves through") {
+				t.Fatalf("automatic symlink warning fields = %#v", fields)
+			}
+			result, err = ResolversForTarget(link, target, nil)
+			if err != nil || len(result.Resolvers) != 1 || result.Automatic {
+				t.Fatalf("explicit trusted symlink = %#v, %v", result, err)
+			}
+		})
+
+		t.Run(string(targetKind)+"/directory symlink", func(t *testing.T) {
+			root := t.TempDir()
+			outsideDir := t.TempDir()
+			if err := WriteAtomic(filepath.Join(outsideDir, "baseline.json"), document, false); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.Symlink(outsideDir, filepath.Join(root, ".bomly")); err != nil {
+				t.Fatal(err)
+			}
+			target := sdk.ExecutionTarget{Kind: targetKind, Location: root}
+
+			core, logs := observer.New(zap.WarnLevel)
+			result, err := ResolversForTarget("", target, zap.New(core))
+			if err != nil || len(result.Resolvers) != 0 || result.Path != "" {
+				t.Fatalf("automatic directory symlink result = %#v, %v", result, err)
+			}
+			if logs.FilterMessage("baseline: ignored linked project policy").Len() != 1 {
+				t.Fatalf("automatic directory symlink warnings = %#v", logs.All())
+			}
+		})
+	}
+}
+
+func TestResolversForTargetAllowsUserSelectedSymlinkAsProjectRoot(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symlink creation requires elevated privileges on Windows")
+	}
+
+	realRoot := t.TempDir()
+	document := NewDocument([]sdk.Finding{{
+		ID: "rule", Kind: sdk.FindingKindPackage, Auditor: "package",
+		RuleID: "rule", PackageRef: "pkg:npm/example@1.0.0",
+	}}, nil)
+	if err := WriteAtomic(filepath.Join(realRoot, ".bomly", "baseline.json"), document, false); err != nil {
+		t.Fatal(err)
+	}
+	linkRoot := filepath.Join(t.TempDir(), "project")
+	if err := os.Symlink(realRoot, linkRoot); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := ResolversForTarget("auto", sdk.ExecutionTarget{
+		Kind:     sdk.ExecutionTargetFilesystem,
+		Location: linkRoot,
+	}, nil)
+	if err != nil || len(result.Resolvers) != 1 {
+		t.Fatalf("automatic baseline through selected project root = %#v, %v", result, err)
+	}
+}
+
 func TestLoadRejectsMalformedAndUnsupportedDocuments(t *testing.T) {
 	validEntry := `{"package_ref":"pkg:npm/example@1.0.0","kind":"package","auditor":"package","rule_id":"rule"}`
 	tests := map[string]string{
@@ -314,6 +415,9 @@ func TestLoadRejectsOversizedBaseline(t *testing.T) {
 	_, err := Load(path)
 	if err == nil || !strings.Contains(err.Error(), "exceeds the 16 MiB limit") {
 		t.Fatalf("Load() error = %v", err)
+	}
+	if !errors.Is(err, system.ErrInputTooLarge) {
+		t.Fatalf("Load() error = %v, want wrapped system.ErrInputTooLarge", err)
 	}
 }
 

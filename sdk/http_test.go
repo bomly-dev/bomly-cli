@@ -41,6 +41,64 @@ func TestNewHTTPClientNoProxyBypass(t *testing.T) {
 	}
 }
 
+func TestNewHTTPClientMergesNoProxyWithStandardProxyFallback(t *testing.T) {
+	t.Setenv("HTTP_PROXY", "http://standard-proxy.example:8080")
+	t.Setenv("HTTPS_PROXY", "http://standard-proxy.example:8080")
+	t.Setenv("ALL_PROXY", "")
+	t.Setenv("NO_PROXY", ".standard.example,.shared.example")
+	t.Setenv("no_proxy", "")
+
+	client, err := NewHTTPClient(HTTPClientConfig{NoProxy: ".bomly.example,.shared.example"})
+	if err != nil {
+		t.Fatalf("NewHTTPClient() error = %v", err)
+	}
+	for _, endpoint := range []string{
+		"http://service.standard.example/v1",
+		"http://service.bomly.example/v1",
+		"http://service.shared.example/v1",
+	} {
+		if proxyURL := proxyForRequest(t, client, endpoint); proxyURL != nil {
+			t.Fatalf("proxy for %s = %v, want merged no-proxy bypass", endpoint, proxyURL)
+		}
+	}
+	proxyURL := proxyForRequest(t, client, "http://service.example/v1")
+	if proxyURL == nil || proxyURL.String() != "http://standard-proxy.example:8080" {
+		t.Fatalf("proxy = %v, want standard environment proxy", proxyURL)
+	}
+}
+
+func TestNewHTTPClientMergesNoProxyWithExplicitProxy(t *testing.T) {
+	t.Setenv("NO_PROXY", ".standard.example")
+	t.Setenv("no_proxy", "")
+
+	client, err := NewHTTPClient(HTTPClientConfig{
+		ProxyURL: "http://bomly-proxy.example:8080",
+		NoProxy:  ".bomly.example",
+	})
+	if err != nil {
+		t.Fatalf("NewHTTPClient() error = %v", err)
+	}
+	for _, endpoint := range []string{
+		"http://service.standard.example/v1",
+		"http://service.bomly.example/v1",
+	} {
+		if proxyURL := proxyForRequest(t, client, endpoint); proxyURL != nil {
+			t.Fatalf("proxy for %s = %v, want merged no-proxy bypass", endpoint, proxyURL)
+		}
+	}
+	proxyURL := proxyForRequest(t, client, "http://service.example/v1")
+	if proxyURL == nil || proxyURL.String() != "http://bomly-proxy.example:8080" {
+		t.Fatalf("proxy = %v, want explicit Bomly proxy", proxyURL)
+	}
+}
+
+func TestMergeNoProxyPreservesOrderAndRemovesDuplicates(t *testing.T) {
+	got := mergeNoProxy(".standard.example, localhost", "LOCALHOST,.bomly.example")
+	if got != ".standard.example,localhost,.bomly.example" {
+		t.Fatalf("mergeNoProxy() = %q", got)
+	}
+}
+
 func TestNewHTTPClientBuildsProxyFromHostPort(t *testing.T) {
 	client, err := NewHTTPClient(HTTPClientConfig{
 		ProxyType:     "socks5",

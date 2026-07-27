@@ -59,7 +59,7 @@ func FuzzDepGraphFromPipfileLock(f *testing.F) {
 		if err := os.WriteFile(path, data, 0o600); err != nil {
 			t.Fatal(err)
 		}
-		graph, err := depGraphFromPipfileLock(path)
+		graph, err := depGraphFromPipfileLock(path, "")
 		if err == nil {
 			testutil.RequireFuzzGraphValid(t, graph)
 		}

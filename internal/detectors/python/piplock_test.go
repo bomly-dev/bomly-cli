@@ -56,7 +56,7 @@ func directDepIDs(t *testing.T, g *sdk.Graph, id string) []string {
 
 func TestDepGraphFromRequirementsLock(t *testing.T) {
 	lockPath, dir := writeLock(t, sampleRequirementsLock)
-	g, err := depGraphFromRequirementsLock(lockPath, dir)
+	g, err := depGraphFromRequirementsLock(lockPath, dir, "")
 	if err != nil {
 		t.Fatalf("depGraphFromRequirementsLock: %v", err)
 	}
@@ -100,7 +100,7 @@ func TestDepGraphFromRequirementsLock(t *testing.T) {
 
 func TestRequirementsLockScopes(t *testing.T) {
 	lockPath, dir := writeLock(t, sampleRequirementsLock)
-	g, err := depGraphFromRequirementsLock(lockPath, dir)
+	g, err := depGraphFromRequirementsLock(lockPath, dir, "")
 	if err != nil {
 		t.Fatalf("depGraphFromRequirementsLock: %v", err)
 	}

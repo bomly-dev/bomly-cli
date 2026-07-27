@@ -223,7 +223,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 func collectPoetryDepsAndRoot(projectPath string) (mainDeps, devDeps map[string]bool, rootName, rootVersion string) {
 	mainDeps = make(map[string]bool)
 	devDeps = make(map[string]bool)
-	rootName = "root"
+	rootName = pythonProjectName(projectPath)
 	rootVersion = ""
 
 	raw, err := os.ReadFile(filepath.Join(projectPath, "pyproject.toml"))

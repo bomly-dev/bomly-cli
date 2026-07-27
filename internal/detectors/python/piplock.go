@@ -51,7 +51,7 @@ func pipLockFilePath(projectPath string) string {
 // scope. Direct dependencies are those whose "# via" annotation references an
 // input file ("-r foo.in"); a file matching pipLockDevHint marks development
 // scope. Runtime always wins over development during BFS propagation.
-func depGraphFromRequirementsLock(lockPath, projectPath string) (*sdk.Graph, error) {
+func depGraphFromRequirementsLock(lockPath, projectPath, rootName string) (*sdk.Graph, error) {
 	data, err := os.ReadFile(lockPath)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", pipLockFileName, err)
@@ -80,7 +80,7 @@ func depGraphFromRequirementsLock(lockPath, projectPath string) (*sdk.Graph, err
 
 	g := sdk.New()
 	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
-		Name:           "root",
+		Name:           pythonRootNameOrDefault(rootName, projectPath),
 		PackageManager: sdk.PackageManagerPip,
 		Language:       "python",
 		Type:           sdk.PackageTypeApplication, FirstParty: true},

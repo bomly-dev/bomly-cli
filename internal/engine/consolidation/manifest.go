@@ -10,6 +10,14 @@ import (
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
+// NormalizeManifestPath renders a detector-reported manifest path the way the
+// consolidated manifests carry it: relative to the subproject's execution target
+// in slash form. Warnings that name a file go through this so an absolute path
+// inside a temporary clone directory never reaches output.
+func NormalizeManifestPath(subproject sdk.Subproject, manifestPath string) string {
+	return normalizeNativeManifestPath(subproject, manifestPath)
+}
+
 func normalizeNativeManifestPath(subproject sdk.Subproject, manifestPath string) string {
 	if manifestPath == "" {
 		return manifestPath

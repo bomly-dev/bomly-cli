@@ -21,6 +21,9 @@ func TestReadFileLimit(t *testing.T) {
 	if _, err := ReadFileLimit(path, 3); !errors.Is(err, ErrInputTooLarge) {
 		t.Fatalf("over-limit error = %v, want ErrInputTooLarge", err)
 	}
+	if _, err := ReadFileLimit(filepath.Join(t.TempDir(), "absent"), 4); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("missing-file error = %v, want os.ErrNotExist", err)
+	}
 }
 
 func TestReadLimitAcceptsExactLimitAndRejectsDeclaredOrStreamedExcess(t *testing.T) {

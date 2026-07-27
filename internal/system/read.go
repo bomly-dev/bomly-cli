@@ -32,7 +32,7 @@ func ReadLimit(input io.Reader, declaredSize, maxBytes int64) ([]byte, error) {
 	}
 	data, err := io.ReadAll(io.LimitReader(input, maxBytes+1))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("read input: %w", err)
 	}
 	if int64(len(data)) > maxBytes {
 		return nil, inputTooLargeError(maxBytes)
@@ -47,6 +47,9 @@ func ReadLimit(input io.Reader, declaredSize, maxBytes int64) ([]byte, error) {
 func ReadFileLimit(path string, maxBytes int64) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
+		// The *os.PathError already carries the "open <path>" operation
+		// context; wrapping again would duplicate it. Callers may keep using
+		// errors.Is(err, os.ErrNotExist) on this path.
 		return nil, err
 	}
 	defer func() { _ = file.Close() }()
@@ -55,7 +58,11 @@ func ReadFileLimit(path string, maxBytes int64) ([]byte, error) {
 	if info, statErr := file.Stat(); statErr == nil {
 		declaredSize = info.Size()
 	}
-	return ReadLimit(file, declaredSize, maxBytes)
+	data, err := ReadLimit(file, declaredSize, maxBytes)
+	if err != nil {
+		return nil, fmt.Errorf("read file %q: %w", path, err)
+	}
+	return data, nil
 }
 
 func inputTooLargeError(maxBytes int64) error {

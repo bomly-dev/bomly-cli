@@ -75,7 +75,8 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 		return sdk.DetectionResult{}, err
 	}
 	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(graph, detectors.InferManifestMetadata(req, []string{"package.json", "bun.lock", "bun.lockb"})),
+		Graphs:   sdk.SingleGraphContainer(graph, detectors.InferManifestMetadata(req, []string{"package.json", "bun.lock", "bun.lockb"})),
+		Warnings: node.PackageManagerWarnings(d.base().ProjectDir(req.ProjectPath), sdk.PackageManagerBun, node.LockfileFormat{}),
 	}, nil
 }
 

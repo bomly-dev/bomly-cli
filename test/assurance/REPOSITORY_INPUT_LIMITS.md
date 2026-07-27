@@ -17,6 +17,7 @@ The shared limit covers:
 | Workspace and module metadata | Cargo workspaces, Gradle modules, Maven modules, npm workspaces, pnpm workspaces, and registry discovery |
 | Analyzer project files | Go module fingerprints, JavaScript package and workspace files, JVM build files, Python project files, and source files scanned by the in-process reachability analyzers |
 | Best-effort source positions | Manifest and lockfile line scans used to attach source locations |
+| Hidden benchmark parser inputs | Selected target manifests use 64 MiB; generated and downloaded SBOM documents use 256 MiB; Git scalar output uses 1 MiB |
 
 An input at the limit is read in full. An input one byte larger returns
 `system.ErrInputTooLarge`; parsers do not use a partial document or partial
@@ -52,6 +53,10 @@ the scan.
   not document parsers. Remote checkouts have separate entry, size, depth,
   time, and symlink controls. Local target size remains under the user's
   filesystem authority.
+- Benchmark executable hashing, generated-artifact hashing, and the committed
+  report prompt are maintenance operations rather than untrusted document
+  parsing. Their reads are intentionally not classified as repository parser
+  inputs.
 - JSON, YAML, XML, TOML, and CSV libraries are not tested in isolation.
   Bomly-owned parsing and graph conversion around them is covered by the fuzz
   targets listed in `PARSER_FUZZING.md`.

@@ -1,10 +1,12 @@
 package benchmark
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -34,6 +36,25 @@ func TestLoadTargetsAndSmokeArgs(t *testing.T) {
 	args := targets[0].SmokeArgs()
 	if got := args[len(args)-1]; got != "npm" {
 		t.Fatalf("last arg = %q, want npm: %#v", got, args)
+	}
+}
+
+func TestLoadTargetsRejectsOversizedManifest(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "targets.json")
+	file, err := os.Create(path)
+	if err != nil {
+		t.Fatalf("create targets manifest: %v", err)
+	}
+	if err := file.Truncate(system.MaxRepositoryFileBytes + 1); err != nil {
+		_ = file.Close()
+		t.Fatalf("grow targets manifest: %v", err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatalf("close targets manifest: %v", err)
+	}
+
+	if _, err := LoadTargets(path); !errors.Is(err, system.ErrInputTooLarge) {
+		t.Fatalf("LoadTargets() error = %v, want ErrInputTooLarge", err)
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -25,6 +26,59 @@ func TestCloneIntoRedactsUserinfoAndPreservesExitError(t *testing.T) {
 	}
 	if strings.Contains(err.Error(), "user") || strings.Contains(err.Error(), "clone-secret") {
 		t.Fatalf("cloneInto() exposed URL user information: %v", err)
+	}
+}
+
+func TestCloneTempMaterializesRequestedCommitWithoutChangingSource(t *testing.T) {
+	sourceRepo, mainSHA, featureSHA := createGitRepoWithFeatureBranch(t)
+
+	materialized, err := CloneTemp(nil, sourceRepo, featureSHA)
+	if err != nil {
+		t.Fatalf("CloneTemp() error = %v", err)
+	}
+	t.Cleanup(func() { _ = os.RemoveAll(materialized) })
+
+	if got := runGitCommand(t, materialized, "rev-parse", "HEAD"); got != featureSHA {
+		t.Fatalf("materialized HEAD = %q, want %q", got, featureSHA)
+	}
+	if _, err := os.Stat(filepath.Join(materialized, "feature.txt")); err != nil {
+		t.Fatalf("materialized feature file: %v", err)
+	}
+	if got := runGitCommand(t, sourceRepo, "rev-parse", "HEAD"); got != mainSHA {
+		t.Fatalf("source HEAD changed to %q, want %q", got, mainSHA)
+	}
+}
+
+func TestMaterializeLocalRefKeepsRepositorySymlinksAsSymlinks(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symlink creation requires elevated privileges on Windows")
+	}
+	requireGit(t)
+
+	repoDir := t.TempDir()
+	outside := filepath.Join(t.TempDir(), "outside.txt")
+	writePlatformTestFile(t, outside, "outside\n")
+	runGitCommand(t, repoDir, "init", "--initial-branch=main")
+	runGitCommand(t, repoDir, "config", "user.email", "test@example.com")
+	runGitCommand(t, repoDir, "config", "user.name", "Bomly Test")
+	if err := os.Symlink(outside, filepath.Join(repoDir, "linked.txt")); err != nil {
+		t.Fatalf("create repository symlink: %v", err)
+	}
+	runGitCommand(t, repoDir, "add", "linked.txt")
+	runGitCommand(t, repoDir, "commit", "-m", "add symlink")
+
+	materialized, err := MaterializeLocalRef(nil, repoDir, "HEAD")
+	if err != nil {
+		t.Fatalf("MaterializeLocalRef() error = %v", err)
+	}
+	t.Cleanup(func() { _ = os.RemoveAll(materialized) })
+
+	info, err := os.Lstat(filepath.Join(materialized, "linked.txt"))
+	if err != nil {
+		t.Fatalf("inspect materialized symlink: %v", err)
+	}
+	if info.Mode()&os.ModeSymlink == 0 {
+		t.Fatalf("materialized link mode = %v, want symlink", info.Mode())
 	}
 }
 

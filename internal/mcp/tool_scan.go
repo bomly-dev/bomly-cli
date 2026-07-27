@@ -65,7 +65,7 @@ func registerScanTool(s *server.MCPServer, mcpCtx Context) {
 		}
 		result, err := mcpCtx.Adapter.RunScan(ctx, scanReq)
 		if err != nil {
-			return mcplib.NewToolResultError(err.Error()), nil
+			return toolErrorResult(mcpCtx, "scan", err), nil
 		}
 		return jsonResult(BuildCompactScan(result))
 	})

@@ -13,12 +13,16 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
 var (
 	githubReleaseAPIBase = "https://api.github.com"
 	pluginHTTPClient     *http.Client
 )
+
+const maxGitHubReleaseMetadataBytes int64 = 4 << 20
 
 type githubReleaseResponse struct {
 	TagName string               `json:"tag_name"`
@@ -94,8 +98,19 @@ func resolveGitHubRelease(ctx context.Context, source string) (githubReleaseReso
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
 		return githubReleaseResolution{}, fmt.Errorf("fetch GitHub release metadata: unexpected status %s (%s)", resp.Status, redactGitHubSecrets(strings.TrimSpace(string(body))))
 	}
+	body, err := system.ReadLimit(resp.Body, resp.ContentLength, maxGitHubReleaseMetadataBytes)
+	if errors.Is(err, system.ErrInputTooLarge) {
+		return githubReleaseResolution{}, fmt.Errorf(
+			"decode GitHub release metadata: response exceeds a limit of %s: %w",
+			system.ByteLimitLabel(maxGitHubReleaseMetadataBytes),
+			err,
+		)
+	}
+	if err != nil {
+		return githubReleaseResolution{}, fmt.Errorf("read GitHub release metadata: %w", err)
+	}
 	var release githubReleaseResponse
-	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+	if err := json.Unmarshal(body, &release); err != nil {
 		return githubReleaseResolution{}, fmt.Errorf("decode GitHub release metadata: %w", err)
 	}
 	asset, err := selectGitHubReleaseAsset(release.Assets)

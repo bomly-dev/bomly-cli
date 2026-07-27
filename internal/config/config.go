@@ -57,8 +57,8 @@ type Resolved struct {
 	Quiet                 bool     `doc:"Suppress all non-error output" env:"BOMLY_QUIET"`
 	Verbosity             int      `doc:"Verbosity level (0=normal, 1=verbose, 2+=debug)" env:"BOMLY_VERBOSE"`
 	LoadedFiles           []string
-	HTTPProxy             string                    `doc:"Outbound HTTP proxy URL used by Bomly and managed plugins" env:"BOMLY_HTTP_PROXY"`
-	HTTPNoProxy           string                    `doc:"Comma-separated hosts, domains, or CIDRs that should bypass the outbound HTTP proxy" env:"BOMLY_HTTP_NO_PROXY"`
+	HTTPProxy             string                    `doc:"Outbound HTTP proxy URL; when set, it replaces standard HTTP_PROXY/HTTPS_PROXY URLs" env:"BOMLY_HTTP_PROXY"`
+	HTTPNoProxy           string                    `doc:"Hosts, domains, or CIDRs added to the standard NO_PROXY/no_proxy bypass list" env:"BOMLY_HTTP_NO_PROXY"`
 	HTTPProxyType         string                    `doc:"Outbound proxy type when using host/port proxy settings: http, https, or socks5" env:"BOMLY_HTTP_PROXY_TYPE" default:"http"`
 	HTTPProxyHost         string                    `doc:"Outbound proxy hostname or IP address used when http_proxy is not set" env:"BOMLY_HTTP_PROXY_HOST"`
 	HTTPProxyPort         int                       `doc:"Outbound proxy port used with http_proxy_host" env:"BOMLY_HTTP_PROXY_PORT"`

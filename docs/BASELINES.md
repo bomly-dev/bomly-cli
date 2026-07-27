@@ -49,6 +49,13 @@ with its path, entry count, selection mode, and target kind. Audit completion
 logs include the baseline path, entries, findings evaluated, and findings
 accepted, including when those counts are zero.
 
+If automatic discovery sees a symbolic-link `.bomly` directory or
+`baseline.json`, Bomly warns and behaves as though no project baseline exists.
+This rejects links discovered during path inspection; it does not protect
+against another process replacing a path between inspection and reading. An
+explicit `--baseline <path>` is different: it is a trusted path selected by the
+user and may refer to a symbolic link or a file outside the project.
+
 Container targets have no reliable project root, so they require an absolute
 baseline path. For a standalone SBOM file, automatic discovery starts beside
 the file; an explicit path is recommended when the baseline lives elsewhere.

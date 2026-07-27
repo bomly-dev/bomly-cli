@@ -3,10 +3,11 @@ package jsreach
 import (
 	"bufio"
 	"io/fs"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
 // jsDynamicImport matches dynamic-import constructs in JavaScript /
@@ -58,7 +59,7 @@ func detectDynamicImports(projectDir string) bool {
 // on the first match of jsDynamicImport. The line iterator is bounded
 // so a pathologically long line cannot stall the scan.
 func fileContainsDynamicImport(path string) bool {
-	f, err := os.Open(path)
+	f, err := system.OpenRepositoryFile(path)
 	if err != nil {
 		return false
 	}

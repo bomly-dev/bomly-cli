@@ -133,7 +133,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	if ok, err := system.FileExists(lockPath); err != nil {
 		return sdk.DetectionResult{}, err
 	} else if ok {
-		raw, err := os.ReadFile(lockPath)
+		raw, err := system.ReadRepositoryFile(lockPath)
 		if err != nil {
 			return sdk.DetectionResult{}, fmt.Errorf("read NuGet lockfile: %w", err)
 		}
@@ -159,7 +159,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	}
 
 	configPath := filepath.Join(workingDir, "packages.config")
-	raw, err := os.ReadFile(configPath)
+	raw, err := system.ReadRepositoryFile(configPath)
 	if err == nil {
 		g, err := depGraphFromPackagesConfig(raw)
 		if err != nil {
@@ -305,7 +305,7 @@ func depGraphFromDepsFiles(paths []string) (*sdk.Graph, error) {
 	packageEntries := make(map[string]lockPackage)
 	rootDeps := make(map[string]string)
 	for _, path := range paths {
-		raw, err := os.ReadFile(path)
+		raw, err := system.ReadRepositoryFile(path)
 		if err != nil {
 			return nil, fmt.Errorf("read NuGet deps file %q: %w", path, err)
 		}
@@ -391,7 +391,7 @@ func depGraphFromProjectFiles(paths []string) (*sdk.Graph, error) {
 	}
 	seen := make(map[string]struct{})
 	for _, path := range paths {
-		raw, err := os.ReadFile(path)
+		raw, err := system.ReadRepositoryFile(path)
 		if err != nil {
 			return nil, fmt.Errorf("read NuGet project file %q: %w", path, err)
 		}

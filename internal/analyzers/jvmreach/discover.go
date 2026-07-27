@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	model "github.com/bomly-dev/bomly-cli/sdk"
+
+	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
 type jvmModule struct {
@@ -175,7 +177,7 @@ func discoverMavenModules(dir, inheritedGroup string, seen map[string]jvmModule)
 
 func readMavenProject(dir string) (mavenProject, bool) {
 	var project mavenProject
-	data, err := os.ReadFile(filepath.Join(dir, "pom.xml"))
+	data, err := system.ReadRepositoryFile(filepath.Join(dir, "pom.xml"))
 	if err != nil || xml.Unmarshal(data, &project) != nil {
 		return project, false
 	}
@@ -199,7 +201,7 @@ func readGradleModules(root string) []jvmModule {
 	if settingsPath == "" {
 		return nil
 	}
-	data, err := os.ReadFile(settingsPath)
+	data, err := system.ReadRepositoryFile(settingsPath)
 	if err != nil {
 		return nil
 	}
@@ -256,7 +258,7 @@ func gradleIncludedProjectPaths(body string) []string {
 
 func readGradleGroup(dir string) string {
 	for _, name := range []string{"build.gradle", "build.gradle.kts"} {
-		data, err := os.ReadFile(filepath.Join(dir, name))
+		data, err := system.ReadRepositoryFile(filepath.Join(dir, name))
 		if err != nil {
 			continue
 		}
@@ -270,7 +272,7 @@ func readGradleGroup(dir string) string {
 func discoverSourcePrefixes(root string) []string {
 	seen := make(map[string]struct{})
 	_, _ = walkSourceFiles(root, func(path string) error {
-		data, err := os.ReadFile(path)
+		data, err := system.ReadRepositoryFile(path)
 		if err != nil {
 			return nil
 		}
@@ -295,7 +297,7 @@ func discoverSourcePrefixes(root string) []string {
 func moduleHasApplicationEntryPoint(root string) bool {
 	found := false
 	_, _ = walkSourceFiles(root, func(path string) error {
-		data, err := os.ReadFile(path)
+		data, err := system.ReadRepositoryFile(path)
 		if err != nil {
 			return nil
 		}

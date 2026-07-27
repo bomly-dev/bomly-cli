@@ -3,7 +3,6 @@ package mix
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -114,7 +113,7 @@ func readOptional(path string) ([]byte, error) {
 	if err != nil || !ok {
 		return nil, err
 	}
-	return os.ReadFile(path)
+	return system.ReadRepositoryFile(path)
 }
 
 func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {

@@ -3,11 +3,11 @@ package maven
 import (
 	"encoding/xml"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -100,7 +100,7 @@ func walkPomModules(rootDir string) ([]mavenModule, error) {
 }
 
 func readPomModulesDocument(path string) (pomModulesDocument, error) {
-	raw, err := os.ReadFile(path)
+	raw, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return pomModulesDocument{}, fmt.Errorf("read %s: %w", path, err)
 	}

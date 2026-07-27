@@ -2,7 +2,6 @@ package cargo
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -310,7 +309,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 func readCargoLockMembers(workingDir string, memberDirs []string) []cargoLockMember {
 	members := make([]cargoLockMember, 0, len(memberDirs))
 	for _, dir := range memberDirs {
-		raw, err := os.ReadFile(filepath.Join(workingDir, filepath.FromSlash(dir), "Cargo.toml"))
+		raw, err := system.ReadRepositoryFile(filepath.Join(workingDir, filepath.FromSlash(dir), "Cargo.toml"))
 		if err != nil {
 			continue
 		}

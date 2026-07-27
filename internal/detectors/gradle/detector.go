@@ -598,7 +598,7 @@ var gradleRootProjectNamePattern = regexp.MustCompile(`(?m)\brootProject\.name\s
 
 func gradleRootName(workingDir string) string {
 	for _, name := range []string{"settings.gradle", "settings.gradle.kts"} {
-		raw, err := os.ReadFile(filepath.Join(workingDir, name))
+		raw, err := system.ReadRepositoryFile(filepath.Join(workingDir, name))
 		if err != nil {
 			continue
 		}

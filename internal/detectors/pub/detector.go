@@ -3,7 +3,6 @@ package pub
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -82,7 +81,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	d.Logger = req.DetectorLogger(d.Logger)
 	workingDir := d.workingDir(req.ProjectPath)
 	lockPath := filepath.Join(workingDir, "pubspec.lock")
-	lockRaw, err := os.ReadFile(lockPath)
+	lockRaw, err := system.ReadRepositoryFile(lockPath)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("read pub lockfile: %w", err)
 	}
@@ -120,7 +119,7 @@ func readPubspec(workingDir string) (pubspec, error) {
 		if !ok {
 			continue
 		}
-		raw, err := os.ReadFile(path)
+		raw, err := system.ReadRepositoryFile(path)
 		if err != nil {
 			return pubspec{}, fmt.Errorf("read pubspec: %w", err)
 		}

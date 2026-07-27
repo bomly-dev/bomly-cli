@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"gopkg.in/yaml.v3"
 )
@@ -362,7 +363,7 @@ func managerRangeForFormat(manager sdk.PackageManager, formatMajor int) (minMajo
 // readPackageJSONConfig reads dir/package.json. Missing or malformed files
 // yield nil.
 func readPackageJSONConfig(dir string) *packageJSONConfig {
-	data, err := os.ReadFile(filepath.Join(dir, "package.json"))
+	data, err := system.ReadRepositoryFile(filepath.Join(dir, "package.json"))
 	if err != nil {
 		return nil
 	}
@@ -393,7 +394,7 @@ func parsePackageManagerPin(pin string) (sdk.PackageManager, string) {
 // number of minutes that must pass after a version is published before pnpm
 // installs it.
 func workspaceMinimumReleaseAge(dir string) (int, bool) {
-	data, err := os.ReadFile(filepath.Join(dir, "pnpm-workspace.yaml"))
+	data, err := system.ReadRepositoryFile(filepath.Join(dir, "pnpm-workspace.yaml"))
 	if err != nil {
 		return 0, false
 	}
@@ -411,7 +412,7 @@ func workspaceMinimumReleaseAge(dir string) (int, bool) {
 
 // readNpmrc parses dir/.npmrc into lowercase keys. Values are returned verbatim.
 func readNpmrc(dir string) map[string]string {
-	data, err := os.ReadFile(filepath.Join(dir, ".npmrc"))
+	data, err := system.ReadRepositoryFile(filepath.Join(dir, ".npmrc"))
 	if err != nil {
 		return nil
 	}

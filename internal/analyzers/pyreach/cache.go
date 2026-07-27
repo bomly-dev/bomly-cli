@@ -10,6 +10,8 @@ import (
 	"time"
 
 	cachepkg "github.com/bomly-dev/bomly-cli/internal/matchers/cache"
+
+	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
 // cacheSchemaVersion bumps whenever the on-disk cache layout changes
@@ -110,7 +112,7 @@ var lockfileCandidates = []string{
 func projectChecksum(projectDir string) (string, error) {
 	for _, name := range lockfileCandidates {
 		path := filepath.Join(projectDir, name)
-		data, err := os.ReadFile(path)
+		data, err := system.ReadRepositoryFile(path)
 		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
 				continue

@@ -60,6 +60,9 @@ responses as untrusted input.
   plugin metadata have fixed size limits.
 - Configuration, baselines, SBOM input, and deps.dev responses have fixed
   limits. Oversized input fails with an error instead of being partially used.
+- Manifests, lockfiles, workspace files, and source files parsed in process
+  have a 64 MiB per-file limit. Local JSON cache entries have the same limit;
+  an oversized or corrupt cache entry becomes a cache miss.
 - Output is written only to the path selected by the user. Cache keys are
   hashed before they become paths.
 
@@ -68,12 +71,12 @@ Some resources intentionally have no general hard size limit:
 - `--url` uses the installed Git client and has no Bomly byte or disk quota.
   Cancel the command or apply operating-system limits when scanning an
   untrusted, very large repository.
-- Ordinary manifests and lockfiles do not share one global byte limit. Their
-  parsers reject malformed input and are fuzz-tested, but a very large project
-  can still consume substantial memory and time.
-- Files in Bomly's local cache directories are treated as user-controlled
-  state. Their contents are not given repository or plugin authority, but
-  cache files do not have a separate read-size limit.
+- Output from a selected package manager or host tool is not truncated. A
+  truncated command result could look like a complete dependency graph when it
+  is not.
+- A local target can contain many files even though each parsed file is
+  limited. The user-selected local filesystem remains responsible for that
+  total project size.
 
 ## Plugin Trust
 

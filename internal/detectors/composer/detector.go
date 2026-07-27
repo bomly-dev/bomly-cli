@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -84,7 +83,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	}
 
 	lockPath := filepath.Join(d.workingDir(req.ProjectPath), "composer.lock")
-	data, err := os.ReadFile(lockPath)
+	data, err := system.ReadRepositoryFile(lockPath)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("read composer lockfile: %w", err)
 	}
@@ -308,7 +307,7 @@ func readComposerManifest(path string) (composerManifest, error) {
 	if !exists {
 		return composerManifest{}, nil
 	}
-	data, err := os.ReadFile(path)
+	data, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return composerManifest{}, fmt.Errorf("read composer manifest: %w", err)
 	}

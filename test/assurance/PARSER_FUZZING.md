@@ -6,6 +6,10 @@ Every target bounds its input before parsing and treats a panic as a failure.
 Graph-producing targets also verify non-nil nodes, identifiers, and edge
 endpoints after every successful parse.
 
+Production repository file reads have a separate 64 MiB ceiling before these
+parsers run. See [`REPOSITORY_INPUT_LIMITS.md`](REPOSITORY_INPUT_LIMITS.md) for
+the reader inventory, cache behavior, and intentional exclusions.
+
 ## Native targets
 
 | Input family | Targets |

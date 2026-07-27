@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -129,7 +130,7 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 	if err != nil {
 		return npmLockfileGraphs{}, err
 	}
-	raw, err := os.ReadFile(filepath.Join(projectPath, lockfileName))
+	raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, lockfileName))
 	if err != nil {
 		return npmLockfileGraphs{}, fmt.Errorf("read %s: %w", lockfileName, err)
 	}

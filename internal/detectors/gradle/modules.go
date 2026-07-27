@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
 // gradleModule is one subproject declared by the build's settings script: its
@@ -175,7 +177,7 @@ func walkGradleSettingsModules(workingDir string) ([]gradleModule, error) {
 
 func readGradleSettings(workingDir string) (string, error) {
 	for _, name := range []string{"settings.gradle", "settings.gradle.kts"} {
-		raw, err := os.ReadFile(filepath.Join(workingDir, name))
+		raw, err := system.ReadRepositoryFile(filepath.Join(workingDir, name))
 		if err == nil {
 			return string(raw), nil
 		}
@@ -211,7 +213,7 @@ func gradleIncludedProjectPaths(body string) []string {
 
 func readGradleGroupAssignment(dir string) string {
 	for _, name := range []string{"build.gradle", "build.gradle.kts"} {
-		raw, err := os.ReadFile(filepath.Join(dir, name))
+		raw, err := system.ReadRepositoryFile(filepath.Join(dir, name))
 		if err != nil {
 			continue
 		}

@@ -4,13 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"gopkg.in/yaml.v3"
 )
@@ -74,7 +74,7 @@ type pnpmLockfileGraphs struct {
 }
 
 func depGraphFromPNPMLockfile(projectPath string) (pnpmLockfileGraphs, error) {
-	raw, err := os.ReadFile(filepath.Join(projectPath, "pnpm-lock.yaml"))
+	raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "pnpm-lock.yaml"))
 	if err != nil {
 		return pnpmLockfileGraphs{}, fmt.Errorf("read pnpm-lock.yaml: %w", err)
 	}

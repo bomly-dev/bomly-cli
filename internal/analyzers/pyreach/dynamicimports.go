@@ -3,10 +3,11 @@ package pyreach
 import (
 	"bufio"
 	"io/fs"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
 // pyDynamicImport matches dynamic-import constructs in Python that
@@ -64,7 +65,7 @@ func detectDynamicImports(projectDir string) bool {
 }
 
 func fileContainsDynamicImport(path string) bool {
-	f, err := os.Open(path)
+	f, err := system.OpenRepositoryFile(path)
 	if err != nil {
 		return false
 	}

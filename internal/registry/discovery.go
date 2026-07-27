@@ -192,7 +192,7 @@ func pyprojectBelongsToManager(path string, manager sdk.PackageManager) bool {
 }
 
 func pyprojectHasTable(path string, table string) bool {
-	raw, err := os.ReadFile(path)
+	raw, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return false
 	}

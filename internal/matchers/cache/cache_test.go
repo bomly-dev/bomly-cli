@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
 func TestFileCache_RoundTrip(t *testing.T) {
@@ -66,6 +68,31 @@ func TestFileCache_InvalidJSON_GracefulMiss(t *testing.T) {
 	_, ok := Get[string](cache, key)
 	if ok {
 		t.Error("expected cache miss for invalid JSON, got hit")
+	}
+}
+
+func TestFileCache_OversizedEntryIsGracefulMiss(t *testing.T) {
+	cache, err := NewFileCache(t.TempDir(), time.Hour)
+	if err != nil {
+		t.Fatalf("NewFileCache: %v", err)
+	}
+
+	key := NewKey("pkg:npm/oversized@1.0.0", "", "", "")
+	path := cache.path(key)
+	file, err := os.Create(path)
+	if err != nil {
+		t.Fatalf("create cache entry: %v", err)
+	}
+	if err := file.Truncate(system.MaxCacheEntryBytes + 1); err != nil {
+		_ = file.Close()
+		t.Fatalf("grow cache entry: %v", err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatalf("close cache entry: %v", err)
+	}
+
+	if _, ok := Get[string](cache, key); ok {
+		t.Fatal("Get returned a hit for an oversized cache entry")
 	}
 }
 

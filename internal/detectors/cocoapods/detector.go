@@ -3,7 +3,6 @@ package cocoapods
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -72,7 +71,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
 	workingDir := d.workingDir(req.ProjectPath)
-	raw, err := os.ReadFile(filepath.Join(workingDir, "Podfile.lock"))
+	raw, err := system.ReadRepositoryFile(filepath.Join(workingDir, "Podfile.lock"))
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("read Podfile.lock: %w", err)
 	}
@@ -212,7 +211,7 @@ var podfilePodNamePattern = regexp.MustCompile(`(?i)^\s*pod\s+'([^']+)'`)
 // Pods that appear in both test and non-test targets are treated as runtime.
 // Returns nil if the Podfile cannot be read.
 func parsePodfileTestTargets(path string) map[string]bool {
-	raw, err := os.ReadFile(path)
+	raw, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return nil
 	}

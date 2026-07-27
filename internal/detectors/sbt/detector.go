@@ -3,7 +3,6 @@ package sbt
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -154,7 +153,7 @@ func readOptional(path string) ([]byte, error) {
 	if err != nil || !ok {
 		return nil, err
 	}
-	return os.ReadFile(path)
+	return system.ReadRepositoryFile(path)
 }
 
 func rootNode() *sdk.Dependency {

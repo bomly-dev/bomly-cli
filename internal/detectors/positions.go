@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
+
+	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
 // AttachPositions populates PackageLocation.Position on graph
@@ -113,7 +115,7 @@ func hasLocation(locations []sdk.PackageLocation, pos *sdk.SourcePosition, exact
 // error if any. Returns nil silently when the file does not exist —
 // detector position wiring is best-effort.
 func ScanLines(path string, fn func(line int, text string)) error {
-	f, err := os.Open(path)
+	f, err := system.OpenRepositoryFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil

@@ -6,6 +6,8 @@ import (
 	"os"
 
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
 // runnerSchemaVersion is the runner's stable identifier for cache
@@ -42,7 +44,7 @@ func (r libraryRunner) Run(ctx context.Context, projectDir string) (RunnerResult
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		f, err := os.Open(path)
+		f, err := system.OpenRepositoryFile(path)
 		if err != nil {
 			r.logger.Debug("jvmreach: skipping unreadable source",
 				zap.String("path", path),

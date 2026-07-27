@@ -235,7 +235,7 @@ func Load(path string) (Document, error) {
 	data, err := system.ReadFileLimit(path, maxBaselineFileBytes)
 	if err != nil {
 		if errors.Is(err, system.ErrInputTooLarge) {
-			return Document{}, fmt.Errorf("baseline %q exceeds the 16 MiB limit", path)
+			return Document{}, fmt.Errorf("baseline %q exceeds the 16 MiB limit: %w", path, system.ErrInputTooLarge)
 		}
 		return Document{}, fmt.Errorf("read baseline %q: %w", path, err)
 	}

@@ -2,6 +2,7 @@ package sbom
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -146,6 +148,9 @@ func TestDetectorResolveGraph_RejectsOversizedSBOM(t *testing.T) {
 	_, err := (Detector{}).ResolveGraph(context.Background(), requestForSBOMPath(path))
 	if err == nil || !strings.Contains(err.Error(), "exceeds the 256 MiB limit") {
 		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	if !errors.Is(err, system.ErrInputTooLarge) {
+		t.Fatalf("ResolveGraph() error = %v, want wrapped system.ErrInputTooLarge", err)
 	}
 }
 

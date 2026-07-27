@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
@@ -314,6 +315,9 @@ func TestLoadRejectsOversizedBaseline(t *testing.T) {
 	_, err := Load(path)
 	if err == nil || !strings.Contains(err.Error(), "exceeds the 16 MiB limit") {
 		t.Fatalf("Load() error = %v", err)
+	}
+	if !errors.Is(err, system.ErrInputTooLarge) {
+		t.Fatalf("Load() error = %v, want wrapped system.ErrInputTooLarge", err)
 	}
 }
 

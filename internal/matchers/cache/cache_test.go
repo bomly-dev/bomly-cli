@@ -2,6 +2,8 @@ package cache
 
 import (
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -64,5 +66,32 @@ func TestFileCache_InvalidJSON_GracefulMiss(t *testing.T) {
 	_, ok := Get[string](cache, key)
 	if ok {
 		t.Error("expected cache miss for invalid JSON, got hit")
+	}
+}
+
+func TestFileCache_HostileIdentityCannotEscapeCacheDirectory(t *testing.T) {
+	root := t.TempDir()
+	cache, err := NewFileCache(root, time.Hour)
+	if err != nil {
+		t.Fatalf("NewFileCache: %v", err)
+	}
+
+	key := NewKey("../../outside", `..\outside`, "/absolute", "1.0.0")
+	path := cache.path(key)
+	rel, err := filepath.Rel(root, path)
+	if err != nil {
+		t.Fatalf("relative cache path: %v", err)
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) || filepath.IsAbs(rel) {
+		t.Fatalf("cache path escaped root: root=%q path=%q rel=%q", root, path, rel)
+	}
+	if filepath.Ext(path) != ".json" {
+		t.Fatalf("cache path = %q, want JSON extension", path)
+	}
+	if err := Set(cache, key, "safe"); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(filepath.Dir(root), "outside")); !os.IsNotExist(err) {
+		t.Fatalf("hostile identity wrote outside cache: %v", err)
 	}
 }

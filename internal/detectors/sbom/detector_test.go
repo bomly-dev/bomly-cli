@@ -2,6 +2,7 @@ package sbom
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -131,6 +133,24 @@ func TestDetectorResolveGraph_RejectsUnsupportedOrMalformedJSON(t *testing.T) {
 				t.Fatalf("expected error containing %q, got %v", tc.want, err)
 			}
 		})
+	}
+}
+
+func TestDetectorResolveGraph_RejectsOversizedSBOM(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "input.json")
+	if err := os.WriteFile(path, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Truncate(path, maxSBOMFileBytes+1); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := (Detector{}).ResolveGraph(context.Background(), requestForSBOMPath(path))
+	if err == nil || !strings.Contains(err.Error(), "exceeds the 256 MiB limit") {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	if !errors.Is(err, system.ErrInputTooLarge) {
+		t.Fatalf("ResolveGraph() error = %v, want wrapped system.ErrInputTooLarge", err)
 	}
 }
 

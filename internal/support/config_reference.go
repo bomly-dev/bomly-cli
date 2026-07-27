@@ -138,6 +138,7 @@ func renderConfigMarkdown(fields []configField) string {
 	builder.WriteString("3. `BOMLY_*` environment variables\n")
 	builder.WriteString("4. CLI flags\n\n")
 	builder.WriteString("Repository config files are never loaded automatically. Select a trusted project file explicitly, for example `--config .bomly/config.yaml` or `BOMLY_CONFIG=.bomly/config.yaml`. When both are set, `--config` wins.\n\n")
+	builder.WriteString("Bomly rejects configuration files larger than 4 MiB before parsing them.\n\n")
 	builder.WriteString("YAML files use the nested keys documented below. Unknown keys and the former flat keys are rejected so configuration mistakes fail fast.\n\n")
 	builder.WriteString("---\n\n")
 

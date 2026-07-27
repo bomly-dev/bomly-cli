@@ -190,6 +190,63 @@ func TestScanTool_PropagatesScope(t *testing.T) {
 	}
 }
 
+func TestToolsDoNotEnableNetworkOrAnalysisByDefault(t *testing.T) {
+	t.Run("scan", func(t *testing.T) {
+		adapter := &mockAdapter{
+			scanResult: mcp.ScanRunResult{
+				Response: output.ScanResponse{Command: "scan"},
+			},
+		}
+		c := newTestClient(t, adapter)
+		result := callTool(t, c, "bomly_scan", map[string]any{
+			"path": "../../untrusted\npath",
+		})
+		if result.IsError {
+			t.Fatalf("unexpected tool error: %v", result.Content)
+		}
+		if adapter.scanReq.Enrich || adapter.scanReq.Audit || adapter.scanReq.Analyze {
+			t.Fatalf("scan enabled optional work without permission: %#v", adapter.scanReq)
+		}
+	})
+
+	t.Run("explain", func(t *testing.T) {
+		adapter := &mockAdapter{
+			explainResult: mcp.ExplainRunResult{
+				Response: output.ExplainResponse{Command: "explain"},
+			},
+		}
+		c := newTestClient(t, adapter)
+		result := callTool(t, c, "bomly_explain", map[string]any{
+			"package": "pkg:npm/example@1.0.0\nuntrusted",
+		})
+		if result.IsError {
+			t.Fatalf("unexpected tool error: %v", result.Content)
+		}
+		if adapter.explainReq.Enrich || adapter.explainReq.Audit || adapter.explainReq.Analyze {
+			t.Fatalf("explain enabled optional work without permission: %#v", adapter.explainReq)
+		}
+	})
+
+	t.Run("diff", func(t *testing.T) {
+		adapter := &mockAdapter{
+			diffResult: mcp.DiffRunResult{
+				Response: output.DiffResponse{Command: "diff"},
+			},
+		}
+		c := newTestClient(t, adapter)
+		result := callTool(t, c, "bomly_diff", map[string]any{
+			"base": "main\nuntrusted",
+			"head": "HEAD",
+		})
+		if result.IsError {
+			t.Fatalf("unexpected tool error: %v", result.Content)
+		}
+		if adapter.diffReq.Enrich || adapter.diffReq.Audit || adapter.diffReq.Analyze {
+			t.Fatalf("diff enabled optional work without permission: %#v", adapter.diffReq)
+		}
+	})
+}
+
 func TestScanTool_PropagatesPolicyArguments(t *testing.T) {
 	adapter := &mockAdapter{scanResult: mcp.ScanRunResult{Response: output.ScanResponse{Command: "scan"}}}
 	c := newTestClient(t, adapter)

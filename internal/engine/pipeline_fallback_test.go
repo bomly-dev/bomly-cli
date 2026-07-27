@@ -225,8 +225,11 @@ func TestPipeline_RunRecordsFallbackWarning(t *testing.T) {
 	if warning.Source != "maven-detector" {
 		t.Fatalf("expected warning source maven-detector, got %q", warning.Source)
 	}
-	if want := "not ready: java executable not found on PATH — fell back to syft-detector (transitive dependencies may be missing)"; warning.Message != want {
+	if want := "maven-detector unavailable (not ready: java executable not found on PATH) — resolved with syft-detector; transitive dependencies may be missing"; warning.Message != want {
 		t.Fatalf("unexpected warning message:\n got %q\nwant %q", warning.Message, want)
+	}
+	if warning.Type != sdk.DetectorWarningFallback || !warning.DegradesCoverage() {
+		t.Fatalf("expected a coverage-degrading fallback warning, got %+v", warning)
 	}
 
 	fellBack := observed.FilterMessage("pipeline: detector fell back").All()
@@ -245,7 +248,7 @@ func TestPipeline_RunRecordsFallbackWarning(t *testing.T) {
 	}
 }
 
-func TestPipeline_RunPrefixesFallbackWarningWithSubproject(t *testing.T) {
+func TestPipeline_RunAttributesFallbackWarningToSubproject(t *testing.T) {
 	registry := newTestRegistry()
 	registry.registerDetector(fakeFallbackDetector{
 		fakeDetector: fakeDetector{
@@ -275,8 +278,14 @@ func TestPipeline_RunPrefixesFallbackWarningWithSubproject(t *testing.T) {
 	if len(result.DetectorWarnings) != 1 {
 		t.Fatalf("expected one detector warning, got %#v", result.DetectorWarnings)
 	}
-	if !strings.HasPrefix(result.DetectorWarnings[0].Message, "subproject services/api: ") {
-		t.Fatalf("expected subproject prefix, got %q", result.DetectorWarnings[0].Message)
+	// Location lives in the warning's fields, not in the message text, so
+	// grouping and deduplication stay message-based.
+	warning := result.DetectorWarnings[0]
+	if warning.Subproject != "services/api" {
+		t.Fatalf("expected the subproject on the warning, got %+v", warning)
+	}
+	if warning.Manifest != "go.mod" {
+		t.Fatalf("expected the manifest on the warning, got %+v", warning)
 	}
 }
 

@@ -34,6 +34,16 @@ func TestInstallDevBinaryVerifyEnableDisableAndUninstall(t *testing.T) {
 	if result.Installed.Enabled {
 		t.Fatalf("expected plugin install to record disabled state by default")
 	}
+	disabledRegistry := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
+	disabledRegistry.Build()
+	if err := managedplugin.RegisterRuntimePlugins(context.Background(), disabledRegistry, root); err != nil {
+		t.Fatalf("RegisterRuntimePlugins() with disabled plugin error = %v", err)
+	}
+	for _, detector := range disabledRegistry.AllDetectors() {
+		if detector.Descriptor().Name == "acme.detector.fake" {
+			t.Fatal("disabled external plugin joined the runtime registry")
+		}
+	}
 	manifestBytes, err := os.ReadFile(filepath.Join(result.Installed.Path, "bomly-plugin.json"))
 	if err != nil {
 		t.Fatalf("read installed manifest: %v", err)

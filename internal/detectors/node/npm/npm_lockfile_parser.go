@@ -119,6 +119,9 @@ type npmLockfileGraphs struct {
 	rootID       string
 	modules      []npmModuleGraph
 	lockfileName string
+	// lockfileVersion is the format version the lockfile declares, kept so the
+	// detector can compare it with the npm version the project pins.
+	lockfileVersion int
 }
 
 func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
@@ -164,7 +167,7 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 				dependency.Source = sdk.DependencySourceRegistry
 			}
 		}
-		return npmLockfileGraphs{graph: flat, rootID: rootID, lockfileName: lockfileName}, nil
+		return npmLockfileGraphs{graph: flat, rootID: rootID, lockfileName: lockfileName, lockfileVersion: lockfile.LockfileVersion}, nil
 	}
 
 	depsGraph := sdk.New()
@@ -306,7 +309,7 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 			node.ApplyDirectDependencyScopes(depsGraph, module.rootID, npmRootDirectScopes(entry))
 		}
 	}
-	return npmLockfileGraphs{graph: depsGraph, rootID: rootNode.ID, modules: modules, lockfileName: lockfileName}, nil
+	return npmLockfileGraphs{graph: depsGraph, rootID: rootNode.ID, modules: modules, lockfileName: lockfileName, lockfileVersion: lockfile.LockfileVersion}, nil
 }
 
 func npmLockfileName(projectPath string) (string, error) {

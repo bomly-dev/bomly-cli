@@ -13,6 +13,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/cache"
 	"github.com/bomly-dev/bomly-cli/sdk"
+	"go.uber.org/zap"
 )
 
 func TestVersionRequestFromPackage(t *testing.T) {
@@ -386,5 +387,50 @@ func TestDescriptorEcosystemsMatchSupportedSystems(t *testing.T) {
 		if !supported && declared[eco] {
 			t.Errorf("descriptor declares %q but depsDevSystem rejects it", eco)
 		}
+	}
+}
+
+func TestFetchBatchRejectsOversizedResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Length", strconv.FormatInt(maxResponseBytes+1, 10))
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	checker := &Checker{
+		client: server.Client(),
+		config: Config{APIBase: server.URL},
+		logger: zap.NewNop(),
+	}
+	err := checker.fetchBatch(context.Background(), []pending{{
+		pkg: &sdk.Package{},
+		req: versionRequest{VersionKey: versionKey{System: "NPM", Name: "example", Version: "1.0.0"}},
+	}}, nil)
+	if err == nil || !strings.Contains(err.Error(), "16 MiB limit") {
+		t.Fatalf("fetchBatch() error = %v", err)
+	}
+}
+
+func TestFetchBatchDoesNotExposeErrorResponseBody(t *testing.T) {
+	const privateDetail = "private upstream diagnostic"
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, privateDetail, http.StatusBadGateway)
+	}))
+	defer server.Close()
+
+	checker := &Checker{
+		client: server.Client(),
+		config: Config{APIBase: server.URL},
+		logger: zap.NewNop(),
+	}
+	err := checker.fetchBatch(context.Background(), []pending{{
+		pkg: &sdk.Package{},
+		req: versionRequest{VersionKey: versionKey{System: "NPM", Name: "example", Version: "1.0.0"}},
+	}}, nil)
+	if err == nil || !strings.Contains(err.Error(), "status 502") {
+		t.Fatalf("fetchBatch() error = %v", err)
+	}
+	if strings.Contains(err.Error(), privateDetail) {
+		t.Fatalf("fetchBatch() exposed response body: %v", err)
 	}
 }

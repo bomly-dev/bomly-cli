@@ -62,8 +62,9 @@ func (d PipDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest)
 	// Fast-path: a committed requirements.lock carries the full transitive tree
 	// and pinned versions, so we can build the graph without installing into
 	// (and inspecting) the ambient Python environment.
+	rootName := pythonRootName(req, workingDir)
 	if lockPath := pipLockFilePath(workingDir); lockPath != "" {
-		if depsGraph, err := depGraphFromRequirementsLock(lockPath, workingDir); err == nil {
+		if depsGraph, err := depGraphFromRequirementsLock(lockPath, workingDir, rootName); err == nil {
 			attachDeclaredPositions(depsGraph, workingDir)
 			attachLoosePythonPositions(depsGraph, workingDir)
 			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, false, nil, workingDir)
@@ -83,11 +84,11 @@ func (d PipDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest)
 		return sdk.DetectionResult{}, fmt.Errorf("pip detector: isolated Python environment was not created under %s", pythonVenvDir(workingDir))
 	}
 	command := []string{venvPython, "-m", "pip", "inspect", "--local"}
-	depsGraph, err := base.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "pip detector", command)
+	depsGraph, err := base.resolveGraph(req, "pip detector", command)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("pip detector: resolve isolated environment graph: %w", err)
 	}
-	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir)
+	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir, rootName)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("pip detector: filter tool packages: %w", err)
 	}
@@ -143,6 +144,11 @@ func (d PipDetector) installIsolatedPipEnvironment(ctx context.Context, req sdk.
 	}
 	venvPython, err := createPythonVenv(ctx, d.base(), req, "pip detector", pythonVenvDir(workingDir))
 	if err != nil {
+		return nil, err
+	}
+	// Check before installing: an environment that cannot be inspected makes
+	// the install pointless, and failing here keeps the reason in the error.
+	if err := verifyPipInspectSupport(d.base(), req, "pip detector", venvPython); err != nil {
 		return nil, err
 	}
 	command := []string{venvPython, "-m", "pip", "install", "-r", requirementsFile}

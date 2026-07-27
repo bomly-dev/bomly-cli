@@ -610,7 +610,20 @@ Managed plugin installation is owned by Bomly rather than by the runtime library
 6. Move the plugin into `~/.bomly/plugins/store/<id>/<version>`.
 7. Update `installed.json` atomically.
 
-The installer rejects archive path traversal, absolute paths, unsupported entrypoints, incompatible manifests, and runtime descriptors that do not match the manifest identity.
+The installer rejects archive path traversal, absolute paths, unsupported
+entrypoints, incompatible manifests, and runtime descriptors that do not match
+the manifest identity. Remote archive downloads are limited to 256 MiB, and
+GitHub release metadata responses are limited to 4 MiB before JSON decoding.
+Extraction accepts at most 4,096 entries, 256 MiB for one expanded file, and
+512 MiB across all expanded files. Zip metadata allows all limits to be checked
+before extraction. Tar streams are checked before each entry is written and
+again while bytes are copied, so a false size header cannot bypass the limit.
+Partial over-limit files are removed.
+
+Plugin JSON is bounded before decoding. `bomly-plugin.json` and
+`bomly-plugin.runtime.json` each have a 1 MiB limit. The shared
+`installed.json` database has a 16 MiB limit so a large plugin collection
+remains practical without allowing an unbounded read.
 
 ## Plugin Selection
 

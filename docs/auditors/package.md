@@ -63,7 +63,15 @@ bomly diff --base main --head HEAD --enrich --audit \
 
 ## Diff and baselines
 
-Under `bomly diff`, the base side of the comparison acts as a trusted baseline for the typosquat check. Bomly seeds the protected-name set with the package names already present in the base graph, and any package whose ID *or* display name already existed in the base is skipped. The practical effect: only **newly introduced** names are typosquat-checked — against both your `--protected-package` list and everything that was already in the tree — so a name that has lived in the project for releases is never flagged, while a freshly added lookalike is. Findings are then classified introduced / resolved / persisted like any other auditor (see [AUDITORS.md](../AUDITORS.md#diff-and-auditing)).
+Under `bomly diff`, the base side acts as a trusted baseline for the typosquat
+check. Bomly adds package names from the base graph to the protected-name set.
+It skips a head-side package when its ID or display name already existed in the
+base graph. This limits typosquat checks to newly introduced names. Each new
+name is compared with both your `--protected-package` list and the package
+names from the base graph. A long-standing package is not flagged, while a new
+lookalike can be. Findings are then classified as introduced, resolved, or
+persisted like findings from other auditors (see
+[AUDITORS.md](../AUDITORS.md#diff-and-auditing)).
 
 The same diff audit receives the canonical source transitions. A move to Git
 uses rule `dependency-source-change-to-git`; a move to a URL uses

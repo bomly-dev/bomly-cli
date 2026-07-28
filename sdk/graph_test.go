@@ -598,6 +598,74 @@ func TestCompareDependencyDetailsIgnoresMissingEvidence(t *testing.T) {
 	}
 }
 
+func TestDependencyDetailTransitionReviewReasons(t *testing.T) {
+	dependency := &Dependency{Source: DependencySourceRegistry}
+	tests := []struct {
+		name       string
+		transition DependencyDetailTransition
+		want       []DependencyDetailReviewReason
+	}{
+		{
+			name: "source changed to Git and coverage lost",
+			transition: DependencyDetailTransition{
+				Before:                 dependency,
+				After:                  &Dependency{Source: DependencySourceGit},
+				ChangedFields:          []DependencyDetailField{DependencyDetailSource, DependencyDetailRegistryEligibility},
+				BeforeRegistryEligible: true,
+			},
+			want: []DependencyDetailReviewReason{
+				DependencyDetailReviewSourceGit,
+				DependencyDetailReviewCoverageLoss,
+			},
+		},
+		{
+			name: "source changed to URL",
+			transition: DependencyDetailTransition{
+				Before:        dependency,
+				After:         &Dependency{Source: DependencySourceURL},
+				ChangedFields: []DependencyDetailField{DependencyDetailSource},
+			},
+			want: []DependencyDetailReviewReason{DependencyDetailReviewSourceURL},
+		},
+		{
+			name: "coverage gain",
+			transition: DependencyDetailTransition{
+				Before:                dependency,
+				After:                 dependency,
+				ChangedFields:         []DependencyDetailField{DependencyDetailRegistryEligibility},
+				AfterRegistryEligible: true,
+			},
+		},
+		{
+			name: "relationship only",
+			transition: DependencyDetailTransition{
+				Before:        dependency,
+				After:         dependency,
+				ChangedFields: []DependencyDetailField{DependencyDetailRelationship},
+			},
+		},
+		{
+			name: "missing changed-field evidence",
+			transition: DependencyDetailTransition{
+				Before: dependency,
+				After:  &Dependency{Source: DependencySourceGit},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.transition.ReviewReasons()
+			if !slices.Equal(got, tt.want) {
+				t.Fatalf("ReviewReasons() = %#v, want %#v", got, tt.want)
+			}
+			if tt.transition.NeedsReview() != (len(tt.want) > 0) {
+				t.Fatalf("NeedsReview() = %t, want %t", tt.transition.NeedsReview(), len(tt.want) > 0)
+			}
+		})
+	}
+}
+
 func TestCompareSortsDependencyDetailTransitions(t *testing.T) {
 	base := New()
 	head := New()

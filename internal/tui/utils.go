@@ -159,7 +159,9 @@ func statusBadge(status string) string {
 	case "changed":
 		return terminalSafeBadge(label, render.BgYellow, render.Black)
 	case "transitioned":
-		return terminalSafeBadge(" DETAILS ", render.BgYellow, render.Black)
+		return terminalSafeBadge(" DETAILS ", render.BgCyan, render.Black)
+	case "detail-review":
+		return terminalSafeBadge(" REVIEW ", render.BgYellow, render.Black)
 	case "unchanged":
 		return terminalSafeBadge(label, render.BgNeutral, render.White)
 	case "new": // audit-delta "introduced" (display-side label)

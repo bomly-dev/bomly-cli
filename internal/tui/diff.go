@@ -1556,7 +1556,7 @@ func (m *DiffModel) buildComponentsTab() *listModel {
 		for _, c := range groupItems {
 			items = append(items, listItem{
 				title:    componentChangeRowTitle(c),
-				subtitle: c.status,
+				subtitle: componentChangeStatus(c),
 				badges:   componentChangeBadges(c),
 				details:  componentChangeDetails(c),
 				depth:    1,
@@ -1602,6 +1602,13 @@ func (m *DiffModel) buildComponentsTab() *listModel {
 		emptyState:     "No package changes match the current filters.",
 		items:          items,
 	}
+}
+
+func componentChangeStatus(change flatComponentChange) string {
+	if change.transition != nil && output.DependencyDetailNeedsReview(*change.transition) {
+		return "detail-review"
+	}
+	return change.status
 }
 
 func componentsGroupKey(c flatComponentChange, group componentsGroup) string {
@@ -1855,6 +1862,20 @@ func componentChangeDetails(c flatComponentChange) []string {
 
 func renderDependencyDetailTransition(transition output.DiffDependencyTransition) []string {
 	lines := []string{"", render.Style("Detail changes", render.Bold, render.Cyan)}
+	for _, reason := range output.DependencyDetailReviewReasons(transition) {
+		var message string
+		switch reason {
+		case sdk.DependencyDetailReviewSourceGit:
+			message = "Dependency source changed to Git."
+		case sdk.DependencyDetailReviewSourceURL:
+			message = "Dependency source changed to a URL."
+		case sdk.DependencyDetailReviewCoverageLoss:
+			message = "Vulnerability checks no longer cover this dependency."
+		default:
+			continue
+		}
+		lines = append(lines, render.Style("  Review: ", render.Yellow, render.Bold)+message)
+	}
 	sourceChanged := dependencyDetailFieldChangedForTUI(transition, sdk.DependencyDetailSource)
 	for _, field := range transition.ChangedFields {
 		var label, before, after string

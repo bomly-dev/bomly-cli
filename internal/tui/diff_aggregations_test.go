@@ -161,6 +161,8 @@ func TestDiffComponentsProjectDependencyDetailTransition(t *testing.T) {
 	for _, want := range []string{
 		"Dependency detail changes",
 		"Detail changes",
+		"Review: Dependency source changed to Git.",
+		"Review: Vulnerability checks no longer cover this dependency.",
 		"Relationship:",
 		"direct → transitive",
 		"Source:",
@@ -172,6 +174,9 @@ func TestDiffComponentsProjectDependencyDetailTransition(t *testing.T) {
 	}
 	if counts := model.diffAggregateCounts(); counts.PackageDeltas != 1 {
 		t.Fatalf("PackageDeltas = %d, want 1", counts.PackageDeltas)
+	}
+	if got := componentChangeStatus(changes[0]); got != "detail-review" {
+		t.Fatalf("component status = %q, want detail-review", got)
 	}
 }
 
@@ -1151,6 +1156,9 @@ func TestStatusBadge_NewOldFixed(t *testing.T) {
 	}
 	if got := render.StripANSI(statusBadge("transitioned")); !strings.Contains(got, "DETAILS") {
 		t.Fatalf("detail-change badge = %q, want a clear DETAILS label", got)
+	}
+	if got := render.StripANSI(statusBadge("detail-review")); !strings.Contains(got, "REVIEW") {
+		t.Fatalf("review badge = %q, want a clear REVIEW label", got)
 	}
 }
 

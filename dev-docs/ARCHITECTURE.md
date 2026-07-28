@@ -293,6 +293,12 @@ MCP truncation. Diff package enrichment still uses the head-side registry, so
 reporting a detail change does not replace current vulnerability or
 remediation data.
 
+The SDK also classifies the small set of transitions that need extra review:
+a source moving to Git or a URL, and a loss of vulnerability-check coverage.
+Text, Markdown, and TUI use this classifier for styling and plain-language
+reasons. The structured transition remains unchanged; the review label is a
+presentation aid and has no effect on exit status.
+
 ### Decision: registry matching eligibility is an occurrence-level engine boundary
 
 Detection keeps every dependency occurrence and every PURL-backed package artifact, including application roots, workspace members, local sources, and unknown relationships. Immediately before matcher selection and execution, `engine.registryMatchRequest` clones only occurrences for which `Dependency.RegistryMatchEligible()` is true and preserves edges whose endpoints are both eligible. Every built-in and external matcher therefore receives the same filtered graph, while the full `PackageRegistry` remains shared so enrichment is still deduplicated by PURL. Analysis and auditors continue with the complete original graph.

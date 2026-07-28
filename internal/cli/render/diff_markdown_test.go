@@ -72,6 +72,7 @@ func TestDiffTextAndMarkdownRenderDependencyDetailTransitions(t *testing.T) {
 	}
 	for _, want := range []string{
 		"Detail changes (1)",
+		"⚠",
 		"relationship: direct → transitive",
 		"source: registry → git",
 	} {
@@ -95,10 +96,50 @@ func TestDiffTextAndMarkdownRenderDependencyDetailTransitions(t *testing.T) {
 	for _, want := range []string{
 		"1 detail change",
 		"### Dependency Detail Changes",
+		"**Review:** 1 of 1 detail change needs extra review.",
+		"| Attention | Package | Version | Changes |",
+		"| ⚠ Review | example | 1.0.0",
 		"relationship: direct → transitive",
 	} {
 		if !strings.Contains(markdown.String(), want) {
 			t.Fatalf("Markdown output missing %q:\n%s", want, markdown.String())
+		}
+	}
+}
+
+func TestDiffDependencyTransitionsKeepInformationalChangesNeutral(t *testing.T) {
+	transition := output.DiffDependencyTransition{
+		Before: output.DiffDependencyTransitionState{
+			Name:         "example",
+			Version:      "1.0.0",
+			Relationship: sdk.DependencyRelationshipDirect,
+		},
+		After: output.DiffDependencyTransitionState{
+			Name:         "example",
+			Version:      "1.0.0",
+			Relationship: sdk.DependencyRelationshipTransitive,
+		},
+		ChangedFields: []sdk.DependencyDetailField{sdk.DependencyDetailRelationship},
+	}
+	payload := output.DiffResponse{Results: output.DiffResults{Dependencies: output.DiffDependencyResults{
+		Transitions: []output.DiffDependencyTransition{transition},
+	}}}
+
+	var text bytes.Buffer
+	if err := Diff(&text, payload); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(text.String(), "↔ example") || strings.Contains(text.String(), "⚠") {
+		t.Fatalf("informational text transition rendered as review:\n%s", text.String())
+	}
+
+	var markdown bytes.Buffer
+	if err := DiffMarkdown(&markdown, payload); err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"**Review:** 0 of 1 detail change needs extra review.", "| Info | example |"} {
+		if !strings.Contains(markdown.String(), want) {
+			t.Fatalf("informational Markdown transition missing %q:\n%s", want, markdown.String())
 		}
 	}
 }

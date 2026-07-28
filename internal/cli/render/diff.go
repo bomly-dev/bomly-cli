@@ -72,8 +72,14 @@ func dependencyTextSections(results output.DiffDependencyResults) []string {
 		lines = append(lines, Style(fmt.Sprintf("Detail changes (%d)", len(results.Transitions)), Bold))
 		for _, transition := range results.Transitions {
 			name := dependencyTransitionDisplayName(transition.After)
-			line := fmt.Sprintf("  ↔ %s  %s", name, dependencyTransitionDescription(transition))
-			lines = append(lines, Wrap(line, Yellow))
+			symbol := "↔"
+			color := Cyan
+			if output.DependencyDetailNeedsReview(transition) {
+				symbol = "⚠"
+				color = Yellow
+			}
+			line := fmt.Sprintf("  %s %s  %s", symbol, name, dependencyTransitionDescription(transition))
+			lines = append(lines, Wrap(line, color))
 		}
 	}
 	appendAdded()

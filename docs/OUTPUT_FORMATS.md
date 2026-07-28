@@ -109,6 +109,12 @@ keeps the before and after evidence under
 `results.dependencies.transitions` and under the matching manifest. Text,
 Markdown, the interactive view, and MCP show the same classification.
 
+Human-readable output asks for extra review when a known source changes to Git
+or a URL, or when vulnerability checks covered the dependency before the
+change but no longer do. Other detail changes remain informational. These
+labels help reviewers find important changes; by themselves, they do not
+change the command's exit status.
+
 ## `sarif` — CI security tools
 
 SARIF 2.1.0. Findings only. One result per (rule × package) pair. Includes:

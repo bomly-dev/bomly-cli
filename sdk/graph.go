@@ -66,6 +66,56 @@ type DependencyDetailTransition struct {
 	AfterRegistryEligible  bool
 }
 
+// DependencyDetailReviewReason explains why a dependency detail change should
+// receive extra review.
+type DependencyDetailReviewReason string
+
+const (
+	// DependencyDetailReviewSourceGit indicates that the dependency now comes
+	// from a Git repository.
+	DependencyDetailReviewSourceGit DependencyDetailReviewReason = "source-changed-to-git"
+	// DependencyDetailReviewSourceURL indicates that the dependency now comes
+	// from an arbitrary URL.
+	DependencyDetailReviewSourceURL DependencyDetailReviewReason = "source-changed-to-url"
+	// DependencyDetailReviewCoverageLoss indicates that vulnerability checks
+	// covered the dependency before the change but no longer cover it.
+	DependencyDetailReviewCoverageLoss DependencyDetailReviewReason = "vulnerability-coverage-loss"
+)
+
+// ReviewReasons returns the reasons this detail change needs extra review.
+// The result is deterministic and does not treat missing evidence, coverage
+// gains, or relationship-only changes as review signals.
+func (t DependencyDetailTransition) ReviewReasons() []DependencyDetailReviewReason {
+	reasons := make([]DependencyDetailReviewReason, 0, 2)
+	if dependencyDetailFieldIncluded(t.ChangedFields, DependencyDetailSource) && t.After != nil {
+		switch t.After.Source {
+		case DependencySourceGit:
+			reasons = append(reasons, DependencyDetailReviewSourceGit)
+		case DependencySourceURL:
+			reasons = append(reasons, DependencyDetailReviewSourceURL)
+		}
+	}
+	if dependencyDetailFieldIncluded(t.ChangedFields, DependencyDetailRegistryEligibility) &&
+		t.BeforeRegistryEligible && !t.AfterRegistryEligible {
+		reasons = append(reasons, DependencyDetailReviewCoverageLoss)
+	}
+	return reasons
+}
+
+// NeedsReview reports whether this detail change has at least one review reason.
+func (t DependencyDetailTransition) NeedsReview() bool {
+	return len(t.ReviewReasons()) > 0
+}
+
+func dependencyDetailFieldIncluded(fields []DependencyDetailField, wanted DependencyDetailField) bool {
+	for _, field := range fields {
+		if field == wanted {
+			return true
+		}
+	}
+	return false
+}
+
 // Graph stores dependency nodes as a directed graph.
 type Graph struct {
 	indexByID map[string]int

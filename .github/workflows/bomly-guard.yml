@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Bomly Guard
-        uses: bomly-dev/bomly-guard@a03710dfd6ac3ddf2aae1f8f011815fa73a81ed1 # v1.1.0
+        uses: bomly-dev/bomly-guard@3f0869a7d411103210a63c1e64315a48cb2a5c20 # v1.2.0
         with:
           fail-on: high
           comment-summary-in-pr: always

@@ -404,8 +404,9 @@ The `+"`any`"+` token matches every severity, including `+"`unknown`"+`.
 
 ## `+"`--fail-on`"+`
 
-`+"`--fail-on`"+` controls vulnerability and coverage findings by severity,
-reachability, or known exploitation. Other policy flags, such as
+`+"`--fail-on`"+` controls vulnerability findings by severity, reachability,
+or known exploitation. It also provides the diff-only `+"`coverage-loss`"+`
+gate. Other policy flags, such as
 `+"`--deny-package`"+` and `+"`--deny-dependency-source-change`"+`, can create
 failing findings directly.
 
@@ -420,8 +421,11 @@ It accepts these tokens:
 | `+"`critical`"+` | findings with severity = critical |
 | `+"`reachable`"+` | findings where reachability status is `+"`reachable`"+` (experimental — see [REACHABILITY.md](REACHABILITY.md)) |
 | `+"`exploitable`"+` | vulnerability findings marked as known exploited by enrichment data |
+| `+"`coverage-loss`"+` | diffs where vulnerability checks covered a dependency on the base side but not the head side |
 
-Repeat the flag to AND constraints together:
+Repeat advisory constraints to AND them together. `+"`coverage-loss`"+` is an
+independent diff gate, so combining it with advisory constraints fails when
+either the coverage gate or the complete advisory constraint set matches:
 
 `+"```bash"+`
 # Fail on any high or critical finding
@@ -434,10 +438,14 @@ bomly scan --enrich --audit --analyze \
 # Fail only on high-or-critical vulnerabilities with known exploitation
 bomly scan --enrich --audit \
   --fail-on high --fail-on exploitable
+
+# Fail on high-or-critical vulnerabilities or lost vulnerability coverage
+bomly diff --base main --head HEAD --enrich --audit \
+  --fail-on high --fail-on coverage-loss
 `+"```"+`
 
 Tokens are case-insensitive. An invalid token produces an exit-code 4 (invalid input) with the message:
-`+"`unsupported --fail-on value \"<x>\" (accepted: any, low, medium, high, critical, reachable, exploitable)`"+`.
+`+"`unsupported --fail-on value \"<x>\" (accepted: any, low, medium, high, critical, reachable, exploitable, coverage-loss)`"+`.
 
 ## Minimal CI policy
 
@@ -911,7 +919,7 @@ func auditorBehavior(name string) auditorDocBehavior {
 			RequiresEnrich: true,
 			PolicyFlags:    []string{"--fail-on", "--allow-vulnerability-id"},
 			Reasons:        []string{"severity threshold", "reachable symbol", "KEV listing", "vulnerability coverage loss"},
-			Notes:          "Needs `--enrich`. In a diff, it also warns when vulnerability checks covered a dependency on the base side but not on the head side. `--fail-on medium` or lower makes that warning fail.",
+			Notes:          "Needs `--enrich`. In a diff, it also warns when vulnerability checks covered a dependency on the base side but not on the head side. `--fail-on coverage-loss` makes that warning fail.",
 		}
 	case "license":
 		return auditorDocBehavior{

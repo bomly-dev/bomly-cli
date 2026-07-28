@@ -25,7 +25,7 @@ func registerDiffTool(s *server.MCPServer, mcpCtx Context) {
 		mcplib.WithBoolean("enrich", mcplib.Description("Enrich packages with vulnerability and license data")),
 		mcplib.WithBoolean("audit", mcplib.Description("Include audit delta (introduced, resolved, and persisted findings) (requires enrich)")),
 		mcplib.WithBoolean("analyze", mcplib.Description("Run code analysis on each side and include reachability annotations on the audit delta (requires enrich)")),
-		mcplib.WithString("fail_on", mcplib.Description("Vulnerability threshold constraint, such as high, reachable, or exploitable")),
+		mcplib.WithString("fail_on", mcplib.Description("Audit constraint, such as high, reachable, exploitable, or coverage-loss")),
 		mcplib.WithString("allow_vulnerability_ids", mcplib.Description("Comma-separated vulnerability IDs to ignore")),
 		mcplib.WithString("allow_licenses", mcplib.Description("Comma-separated SPDX licenses to allow")),
 		mcplib.WithString("deny_licenses", mcplib.Description("Comma-separated SPDX licenses to deny")),

@@ -31,14 +31,14 @@ type Resolved struct {
 	Enrich                      bool     `doc:"Enrich packages with external license and vulnerability data" env:"BOMLY_ENRICH"`
 	Audit                       bool     `doc:"Evaluate policy and create findings from package vulnerability data" env:"BOMLY_AUDIT"`
 	Analyze                     bool     `doc:"Run code analysis to confirm whether vulnerabilities are reachable from application code" env:"BOMLY_ANALYZE"`
-	FailOn                      []string `doc:"Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable" env:"BOMLY_FAIL_ON"`
+	FailOn                      []string `doc:"Constraint(s) for which findings should fail. Repeatable. Advisory constraints are AND-ed. Values: any|low|medium|high|critical|reachable|exploitable; diff-only: coverage-loss" env:"BOMLY_FAIL_ON"`
 	AllowVulnerabilityIDs       []string `doc:"Vulnerability IDs to ignore during policy evaluation" env:"BOMLY_ALLOW_VULNERABILITY_IDS"`
 	AllowLicenses               []string `doc:"Allowed SPDX license identifiers or expressions" env:"BOMLY_ALLOW_LICENSES"`
 	DenyLicenses                []string `doc:"Denied SPDX license identifiers or expressions" env:"BOMLY_DENY_LICENSES"`
 	LicenseExemptPackages       []string `doc:"Package URLs exempt from license policy checks" env:"BOMLY_LICENSE_EXEMPT_PACKAGES"`
 	DenyPackages                []string `doc:"Package URLs to deny" env:"BOMLY_DENY_PACKAGES"`
 	DenyGroups                  []string `doc:"Package URL namespaces to deny" env:"BOMLY_DENY_GROUPS"`
-	DenyDependencySourceChanges []string `doc:"Dependency source changes that fail diff policy: git or url" env:"BOMLY_DENY_DEPENDENCY_SOURCE_CHANGES"`
+	DenyDependencySourceChanges []string `doc:"Diff-only dependency source changes that fail policy: git or url" env:"BOMLY_DENY_DEPENDENCY_SOURCE_CHANGES"`
 	ProtectedPackages           []string `doc:"Canonical package names to protect from typosquatting" env:"BOMLY_PROTECTED_PACKAGES"`
 	TyposquatThreshold          string   `doc:"Similarity threshold for typosquatting detection" env:"BOMLY_TYPOSQUAT_THRESHOLD" default:"0.90"`
 	TyposquatMode               string   `doc:"Typosquatting policy mode: warn or fail" env:"BOMLY_TYPOSQUAT_MODE" default:"warn"`

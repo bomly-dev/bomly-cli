@@ -332,7 +332,7 @@ func TestDependencyDetailRiskPolicy(t *testing.T) {
 		}
 	}
 	assertFails("denied Git source", "--deny-dependency-source-change", "git")
-	assertFails("coverage-loss severity threshold", "--fail-on", "medium")
+	assertFails("coverage-loss policy", "--fail-on", "coverage-loss")
 
 	warnOnlyArgs := append(append([]string(nil), auditedArgs...),
 		"--deny-dependency-source-change", "git",

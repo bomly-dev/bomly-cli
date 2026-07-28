@@ -17,6 +17,8 @@ func TestParseFailOn(t *testing.T) {
 		{"REACHABLE", ReachabilityConstraint, "reachable", false},
 		{"exploitable", ExploitabilityConstraint, "exploitable", false},
 		{"EXPLOITABLE", ExploitabilityConstraint, "exploitable", false},
+		{"coverage-loss", CoverageConstraint, "coverage-loss", false},
+		{"COVERAGE-LOSS", CoverageConstraint, "coverage-loss", false},
 		{"", "", "", false},
 		{"bogus", "", "", true},
 	}
@@ -39,13 +41,13 @@ func TestParseFailOn(t *testing.T) {
 }
 
 func TestParseFailOnListSkipsEmptyAggregatesErrors(t *testing.T) {
-	raw := []string{"low", "", "reachable", "exploitable", "bogus"}
+	raw := []string{"low", "", "reachable", "exploitable", "coverage-loss", "bogus"}
 	out, err := ParseFailOnList(raw)
 	if err == nil {
 		t.Fatal("expected error for bogus entry")
 	}
-	if len(out) != 3 {
-		t.Fatalf("got %d valid constraints, want 3: %+v", len(out), out)
+	if len(out) != 4 {
+		t.Fatalf("got %d valid constraints, want 4: %+v", len(out), out)
 	}
 	if out[0].Kind != SeverityConstraint || out[0].Value != "low" {
 		t.Errorf("first constraint = %+v", out[0])
@@ -55,6 +57,9 @@ func TestParseFailOnListSkipsEmptyAggregatesErrors(t *testing.T) {
 	}
 	if out[2].Kind != ExploitabilityConstraint || out[2].Value != "exploitable" {
 		t.Errorf("third constraint = %+v", out[2])
+	}
+	if out[3].Kind != CoverageConstraint || out[3].Value != "coverage-loss" {
+		t.Errorf("fourth constraint = %+v", out[3])
 	}
 }
 
@@ -146,6 +151,7 @@ func TestMatchesConstraints(t *testing.T) {
 	sevHigh := FailOnConstraint{Kind: SeverityConstraint, Value: "high"}
 	reach := FailOnConstraint{Kind: ReachabilityConstraint, Value: "reachable"}
 	exploit := FailOnConstraint{Kind: ExploitabilityConstraint, Value: "exploitable"}
+	coverage := FailOnConstraint{Kind: CoverageConstraint, Value: "coverage-loss"}
 
 	cases := []struct {
 		name string
@@ -164,6 +170,9 @@ func TestMatchesConstraints(t *testing.T) {
 		{"exploitable-only matches known exploited", highExploitable, []FailOnConstraint{exploit}, true},
 		{"exploitable-only excludes no signal", highNoReach, []FailOnConstraint{exploit}, false},
 		{"severity and exploitable", highExploitable, []FailOnConstraint{sevHigh, exploit}, true},
+		{"coverage-only does not match advisory", highReachable, []FailOnConstraint{coverage}, false},
+		{"coverage composes independently with severity", highReachable, []FailOnConstraint{coverage, sevHigh}, true},
+		{"coverage does not weaken severity", lowReachable, []FailOnConstraint{coverage, sevHigh}, false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

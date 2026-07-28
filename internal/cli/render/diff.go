@@ -55,7 +55,7 @@ func dependencyTextSections(results output.DiffDependencyResults) []string {
 		if len(results.Changed) == 0 {
 			return
 		}
-		lines = append(lines, Style(fmt.Sprintf("Changed (%d)", len(results.Changed)), Bold))
+		lines = append(lines, Style(fmt.Sprintf("Version changed (%d)", len(results.Changed)), Bold))
 		for _, change := range results.Changed {
 			name := change.After.Name
 			if strings.TrimSpace(name) == "" {
@@ -65,13 +65,66 @@ func dependencyTextSections(results output.DiffDependencyResults) []string {
 			lines = append(lines, Wrap(line, Yellow))
 		}
 	}
+	appendTransitions := func() {
+		if len(results.Transitions) == 0 {
+			return
+		}
+		lines = append(lines, Style(fmt.Sprintf("Dependency detail changes (%d)", len(results.Transitions)), Bold))
+		for _, transition := range results.Transitions {
+			name := dependencyTransitionDisplayName(transition.After)
+			line := fmt.Sprintf("  ↔ %s  %s", name, dependencyTransitionDescription(transition))
+			lines = append(lines, Wrap(line, Yellow))
+		}
+	}
 	appendAdded()
 	appendRemoved()
 	appendChanged()
+	appendTransitions()
 	if len(lines) == 0 {
 		lines = append(lines, Style("No dependency changes.", Dim))
 	}
 	return lines
+}
+
+func dependencyTransitionDescription(transition output.DiffDependencyTransition) string {
+	parts := make([]string, 0, len(transition.ChangedFields))
+	for _, field := range transition.ChangedFields {
+		switch field {
+		case sdk.DependencyMetadataRelationship:
+			parts = append(parts, fmt.Sprintf(
+				"relationship: %s → %s",
+				valueOrDash(transition.Before.Relationship),
+				valueOrDash(transition.After.Relationship),
+			))
+		case sdk.DependencyMetadataSource:
+			parts = append(parts, fmt.Sprintf(
+				"source: %s → %s",
+				valueOrDash(string(transition.Before.Source)),
+				valueOrDash(string(transition.After.Source)),
+			))
+		case sdk.DependencyMetadataRegistryEligibility:
+			parts = append(parts, fmt.Sprintf(
+				"registry matching: %s → %s",
+				registryEligibilityLabel(transition.Before.RegistryEligible),
+				registryEligibilityLabel(transition.After.RegistryEligible),
+			))
+		}
+	}
+	return strings.Join(parts, "; ")
+}
+
+func dependencyTransitionDisplayName(state output.DiffDependencyTransitionState) string {
+	if name := strings.TrimSpace(state.Name); name != "" {
+		return name
+	}
+	return state.ID
+}
+
+func registryEligibilityLabel(eligible bool) string {
+	if eligible {
+		return "eligible"
+	}
+	return "not eligible"
 }
 
 // findingsSummaryLine produces a summary line plus a list of each introduced or

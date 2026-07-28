@@ -231,7 +231,7 @@ func TestRenderDiffMarkdownIncludesPatchedVersionsByDefault(t *testing.T) {
 	for _, want := range []string{
 		"# Bomly Diff Summary",
 		"Compared `main` to `feature`.",
-		"**Summary:** 1 added, 1 changed, 0 removed.",
+		"**Summary:** 1 added, 1 version changed, 0 with detail changes, 0 removed.",
 		"| added | react@18.2.0 | 18.2.0 | - | unknown | - |",
 		"| changed | zod | 3.22.0 → 3.23.0 | - | unknown | - |",
 		"## Vulnerabilities",

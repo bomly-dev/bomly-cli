@@ -95,6 +95,19 @@ independent of a package version bump. A finding present on both sides is
 `persisted`; it is not reported as one resolved finding plus one introduced
 finding merely because the affected package version changed.
 
+Dependency changes are split into separate kinds. A version change says that
+the package release changed. A metadata transition says that the same package
+occurrence changed in one of these ways:
+
+- its relationship changed between direct, transitive, and unknown;
+- its source changed, such as registry to Git or workspace;
+- its eligibility for registry matching changed.
+
+A dependency can have both a version change and a metadata transition in the
+same diff. JSON keeps the before and after evidence under
+`results.dependencies.transitions` and under the matching manifest. Text,
+Markdown, the interactive view, and MCP show the same classification.
+
 ## `sarif` — CI security tools
 
 SARIF 2.1.0. Findings only. One result per (rule × package) pair. Includes:

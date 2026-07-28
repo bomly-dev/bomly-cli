@@ -38,7 +38,7 @@ flowchart TD
 5. **Audit** — When you pass `--audit`, [auditors](AUDITORS.md) evaluate policy (severity thresholds, license rules, denied packages) against the enriched data and produce findings. As part of this same step, configured policy-status rules may mark a finding non-gating without removing it. Combine `--enrich --audit` to gate on fresh external data in one run.
 6. **Render** — Bomly emits the result as text, JSON, SARIF, or an SBOM. See [Output formats](OUTPUT_FORMATS.md) and [SBOM formats](SBOM.md).
 
-`bomly explain` reuses the detect and match stages, then traces the dependency paths that pull in a given package. `bomly diff` runs the pipeline against two states and reports what changed.
+`bomly explain` reuses the detect and match stages, then traces the dependency paths that pull in a given package. `bomly diff` runs the pipeline against two states and reports package additions, removals, version changes, and changes to dependency relationship, source, or registry-matching eligibility.
 
 ## Configuration trust
 

@@ -56,7 +56,13 @@ func diffOverviewMarkdown(payload output.DiffResponse) []string {
 		[][]string{{
 			status,
 			fmt.Sprintf("+%d / ~%d / -%d", payload.Summary.AddedManifestCount, payload.Summary.ChangedManifestCount, payload.Summary.RemovedManifestCount),
-			fmt.Sprintf("+%d / ~%d / -%d", payload.Summary.AddedPackageCount, payload.Summary.ChangedPackageCount, payload.Summary.RemovedPackageCount),
+			fmt.Sprintf(
+				"+%d / ~%d version / ~%d details / -%d",
+				payload.Summary.AddedPackageCount,
+				payload.Summary.ChangedPackageCount,
+				payload.Summary.TransitionedPackageCount,
+				payload.Summary.RemovedPackageCount,
+			),
 			fmt.Sprintf("%d introduced / %d persisted / %d resolved", introduced, persisted, resolved),
 			humanizeDurationMS(payload.Metadata.DurationMS),
 		}},
@@ -79,16 +85,47 @@ func humanizeDurationMS(ms int64) string {
 func diffDependencyMarkdown(payload output.DiffResponse) []string {
 	results := payload.Results.Dependencies
 	lines := []string{
-		fmt.Sprintf("**Summary:** %d added, %d changed, %d removed.", len(results.Added), len(results.Changed), len(results.Removed)),
+		fmt.Sprintf(
+			"**Summary:** %d added, %d version changed, %d with detail changes, %d removed.",
+			len(results.Added), len(results.Changed), len(results.Transitions), len(results.Removed),
+		),
 		"",
 	}
 	lines = append(lines, diffAddedRemovedDependencyTable("Added Dependencies", "added", results.Added)...)
 	lines = append(lines, diffChangedDependencyTable(results.Changed)...)
+	lines = append(lines, diffDependencyTransitionTable(results.Transitions)...)
 	lines = append(lines, diffAddedRemovedDependencyTable("Removed Dependencies", "removed", results.Removed)...)
-	if len(results.Added) == 0 && len(results.Changed) == 0 && len(results.Removed) == 0 {
+	if len(results.Added) == 0 && len(results.Changed) == 0 && len(results.Transitions) == 0 && len(results.Removed) == 0 {
 		return []string{"✅ No dependency changes."}
 	}
 	return trimTrailingMarkdownBlanks(lines)
+}
+
+func diffDependencyTransitionTable(transitions []output.DiffDependencyTransition) []string {
+	if len(transitions) == 0 {
+		return nil
+	}
+	sorted := append([]output.DiffDependencyTransition(nil), transitions...)
+	sort.Slice(sorted, func(i, j int) bool {
+		left := sorted[i].After
+		right := sorted[j].After
+		if dependencyTransitionDisplayName(left) != dependencyTransitionDisplayName(right) {
+			return dependencyTransitionDisplayName(left) < dependencyTransitionDisplayName(right)
+		}
+		return left.ID < right.ID
+	})
+	rows := make([][]string, 0, len(sorted))
+	for _, transition := range sorted {
+		rows = append(rows, []string{
+			dependencyTransitionDisplayName(transition.After),
+			valueOrDash(transition.After.Version),
+			dependencyTransitionDescription(transition),
+		})
+	}
+	return append(
+		[]string{"### Dependency Detail Changes", ""},
+		append(markdownTable([]string{"Package", "Version", "Changes"}, rows), "")...,
+	)
 }
 
 func diffAddedRemovedDependencyTable(title, status string, changes []output.DiffPackageChange) []string {

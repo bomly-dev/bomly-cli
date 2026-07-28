@@ -119,6 +119,63 @@ func TestDiffAggregateCounts_EmptyPayload(t *testing.T) {
 	}
 }
 
+func TestDiffComponentsProjectDependencyMetadataTransition(t *testing.T) {
+	transition := output.DiffDependencyTransition{
+		Before: output.DiffDependencyTransitionState{
+			ID:               "example@1.0.0",
+			Name:             "example",
+			Version:          "1.0.0",
+			Relationship:     "direct",
+			Source:           sdk.DependencySourceRegistry,
+			RegistryEligible: true,
+		},
+		After: output.DiffDependencyTransitionState{
+			ID:               "example@1.0.0",
+			Name:             "example",
+			Version:          "1.0.0",
+			Relationship:     "transitive",
+			Source:           sdk.DependencySourceGit,
+			RegistryEligible: false,
+		},
+		ChangedFields: []sdk.DependencyMetadataField{
+			sdk.DependencyMetadataRelationship,
+			sdk.DependencyMetadataSource,
+			sdk.DependencyMetadataRegistryEligibility,
+		},
+	}
+	payload := output.DiffResponse{
+		Summary: output.DiffSummary{TransitionedPackageCount: 1},
+		Results: output.DiffResults{Manifests: []output.DiffManifestResult{{
+			Status:      "changed",
+			Path:        "package-lock.json",
+			Ecosystem:   sdk.EcosystemNPM,
+			Transitions: []output.DiffDependencyTransition{transition},
+		}}},
+	}
+	model := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	changes := model.collectComponentChanges()
+	if len(changes) != 1 || changes[0].status != "transitioned" {
+		t.Fatalf("component changes = %#v", changes)
+	}
+	details := strings.Join(componentChangeDetails(changes[0]), "\n")
+	for _, want := range []string{
+		"Dependency details changed",
+		"Relationship:",
+		"direct → transitive",
+		"Source:",
+		"registry → git",
+		"Registry matching:",
+		"eligible → not eligible",
+	} {
+		if !strings.Contains(render.StripANSI(details), want) {
+			t.Fatalf("transition details missing %q:\n%s", want, render.StripANSI(details))
+		}
+	}
+	if counts := model.diffAggregateCounts(); counts.PackageDeltas != 1 {
+		t.Fatalf("PackageDeltas = %d, want 1", counts.PackageDeltas)
+	}
+}
+
 func TestDiffAggregateCounts_LicenseDedup(t *testing.T) {
 	// Five packages all introduce MIT — unique count should be 1, not 5.
 	payload := output.DiffResponse{Results: output.DiffResults{Manifests: []output.DiffManifestResult{{

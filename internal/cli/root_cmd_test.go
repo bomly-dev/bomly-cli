@@ -692,7 +692,7 @@ func TestRoot_DiffCommand_JSONOutputWithMarkdownOutputFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read summary file: %v", err)
 	}
-	for _, want := range []string{"# Bomly Diff Summary", "Compared `" + baseSHA + "` to `" + headSHA + "`.", "**Summary:** 1 added, 1 changed, 0 removed."} {
+	for _, want := range []string{"# Bomly Diff Summary", "Compared `" + baseSHA + "` to `" + headSHA + "`.", "**Summary:** 1 added, 1 version changed, 0 with detail changes, 0 removed."} {
 		if !strings.Contains(string(summary), want) {
 			t.Fatalf("expected summary to contain %q, got:\n%s", want, summary)
 		}

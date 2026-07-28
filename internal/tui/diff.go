@@ -382,7 +382,7 @@ func (m *DiffModel) diffAggregateCounts() diffAggregateCounts {
 	s := m.payload.Summary
 	out := diffAggregateCounts{
 		ManifestDeltas: s.AddedManifestCount + s.ChangedManifestCount + s.RemovedManifestCount,
-		PackageDeltas:  s.AddedPackageCount + s.ChangedPackageCount + s.RemovedPackageCount,
+		PackageDeltas:  s.AddedPackageCount + s.ChangedPackageCount + s.TransitionedPackageCount + s.RemovedPackageCount,
 	}
 	if m.payload.Audit != nil {
 		for _, bucket := range [][]output.AuditFinding{m.payload.Audit.Introduced, m.payload.Audit.Persisted, m.payload.Audit.Resolved} {
@@ -482,7 +482,8 @@ func (m *DiffModel) buildOverviewTab() *listModel {
 				render.Style("Package Changes", render.Bold, render.Cyan),
 				"",
 				render.Style("  Added: ", render.Dim) + fmt.Sprintf("%d", summary.AddedPackageCount),
-				render.Style("  Changed: ", render.Dim) + fmt.Sprintf("%d", summary.ChangedPackageCount),
+				render.Style("  Version changed: ", render.Dim) + fmt.Sprintf("%d", summary.ChangedPackageCount),
+				render.Style("  Details changed: ", render.Dim) + fmt.Sprintf("%d", summary.TransitionedPackageCount),
 				render.Style("  Removed: ", render.Dim) + fmt.Sprintf("%d", summary.RemovedPackageCount),
 			},
 		},
@@ -585,7 +586,8 @@ type diffOverviewStats struct {
 	// unmatchedRemoved: total Removed packages — see unmatchedAdded.
 	unmatchedRemoved int
 
-	// changedTotal: total package-level change events (Added+Changed+Removed).
+	// changedTotal: total package-level change events
+	// (Added+VersionChanged+MetadataTransitioned+Removed).
 	changedTotal int
 
 	// auditSummaryTotal: the raw AuditSummary.Total field. Per
@@ -653,7 +655,7 @@ func (m *DiffModel) computeOverviewStats() diffOverviewStats {
 		if eco == "" {
 			eco = "unknown"
 		}
-		n := len(mf.Added) + len(mf.Changed) + len(mf.Removed)
+		n := len(mf.Added) + len(mf.Changed) + len(mf.Transitions) + len(mf.Removed)
 		if n > 0 {
 			out.ecosystems[eco] += n
 			out.changedTotal += n
@@ -671,6 +673,9 @@ func (m *DiffModel) computeOverviewStats() diffOverviewStats {
 			} else {
 				out.matchedExact++
 			}
+		}
+		for _, transition := range mf.Transitions {
+			addScopeRel("transitioned", transition.After.Scope, transition.After.ID)
 		}
 		out.unmatchedAdded += len(mf.Added)
 		out.unmatchedRemoved += len(mf.Removed)
@@ -989,9 +994,10 @@ func (m *DiffModel) overviewDashboardView(width, height int) string {
 			render.Style(fmt.Sprintf("%d changed", s.ChangedManifestCount), render.Yellow),
 			render.Style(fmt.Sprintf("%d removed", s.RemovedManifestCount), render.Red),
 		), cardWidth, cardHeight, render.Cyan),
-		boxView("Packages", summaryCountCardLines(s.AddedPackageCount+s.ChangedPackageCount+s.RemovedPackageCount, "Package Changes", cardWidth-2, render.Magenta,
+		boxView("Packages", summaryCountCardLines(s.AddedPackageCount+s.ChangedPackageCount+s.TransitionedPackageCount+s.RemovedPackageCount, "Package Changes", cardWidth-2, render.Magenta,
 			render.Style(fmt.Sprintf("%d added", s.AddedPackageCount), render.Green),
-			render.Style(fmt.Sprintf("%d changed", s.ChangedPackageCount), render.Yellow),
+			render.Style(fmt.Sprintf("%d version changed", s.ChangedPackageCount), render.Yellow),
+			render.Style(fmt.Sprintf("%d details changed", s.TransitionedPackageCount), render.Cyan),
 			render.Style(fmt.Sprintf("%d removed", s.RemovedPackageCount), render.Red),
 		), cardWidth, cardHeight, render.Magenta),
 		boxView("Vulnerabilities", summaryCountCardLines(diffVulnTotal(m.payload), "Vuln Deltas", cardWidth-2, render.Red,
@@ -1221,7 +1227,8 @@ func (m *DiffModel) overviewPanels() []listPanel {
 		}, color: render.Cyan, weight: 1},
 		{title: "Packages", lines: []string{
 			render.Style(fmt.Sprintf("%d Added", summary.AddedPackageCount), render.Green, render.Bold),
-			render.Style(fmt.Sprintf("%d Changed", summary.ChangedPackageCount), render.Yellow, render.Bold),
+			render.Style(fmt.Sprintf("%d Version Changed", summary.ChangedPackageCount), render.Yellow, render.Bold),
+			render.Style(fmt.Sprintf("%d Details Changed", summary.TransitionedPackageCount), render.Cyan, render.Bold),
 			render.Style(fmt.Sprintf("%d Removed", summary.RemovedPackageCount), render.Red, render.Bold),
 		}, color: render.Magenta, weight: 1},
 	}
@@ -1281,7 +1288,7 @@ func (m *DiffModel) overviewTopChangedManifests() []string {
 	for _, mf := range m.payload.Results.Manifests {
 		rows = append(rows, ranked{
 			name:  render.DiffManifestDisplayLabel(mf),
-			count: len(mf.Added) + len(mf.Changed) + len(mf.Removed),
+			count: len(mf.Added) + len(mf.Changed) + len(mf.Transitions) + len(mf.Removed),
 		})
 	}
 	sort.Slice(rows, func(i, j int) bool { return rows[i].count > rows[j].count })
@@ -1312,7 +1319,7 @@ type flatComponentChange struct {
 	manifestKey  string
 	manifestName string
 	ecosystem    string
-	status       string // "added" / "changed" / "removed"
+	status       string // "added" / "changed" / "transitioned" / "removed"
 	pkgName      string
 	pkgRef       output.PackageRef // After for changed, Package for added/removed
 	beforePkg    output.PackageRef // populated for changed entries
@@ -1321,6 +1328,7 @@ type flatComponentChange struct {
 	maxSeverity  string // worst severity across pkgRef.Vulnerabilities
 	relationship string // root/direct/transitive — looked up in head/base graph
 	remediation  *sdk.PackageRemediation
+	transition   *output.DiffDependencyTransition
 }
 
 func (m *DiffModel) collectComponentChanges() []flatComponentChange {
@@ -1375,6 +1383,20 @@ func (m *DiffModel) collectComponentChanges() []flatComponentChange {
 				remediation:  remediationForPURL(m.headRegistry, change.After.Purl),
 			})
 		}
+		for idx := range mf.Transitions {
+			transition := mf.Transitions[idx]
+			after := packageRefFromTransitionState(transition.After)
+			before := packageRefFromTransitionState(transition.Before)
+			out = append(out, flatComponentChange{
+				manifest: mf, manifestKey: mfKey, manifestName: mfName, ecosystem: eco,
+				status: "transitioned", pkgName: render.DiffPackageDisplayName(after),
+				pkgRef: after, beforePkg: before,
+				beforeVer: transition.Before.Version, afterVer: transition.After.Version,
+				relationship: transition.After.Relationship,
+				remediation:  remediationForPURL(m.headRegistry, transition.After.Purl),
+				transition:   &transition,
+			})
+		}
 		for _, change := range mf.Removed {
 			out = append(out, flatComponentChange{
 				manifest: mf, manifestKey: mfKey, manifestName: mfName, ecosystem: eco,
@@ -1386,6 +1408,28 @@ func (m *DiffModel) collectComponentChanges() []flatComponentChange {
 		}
 	}
 	return out
+}
+
+func packageRefFromTransitionState(state output.DiffDependencyTransitionState) output.PackageRef {
+	ref := output.PackageRef{
+		ID:              state.ID,
+		Name:            state.Name,
+		Version:         state.Version,
+		Purl:            state.Purl,
+		Scope:           state.Scope,
+		Relationship:    state.Relationship,
+		Licenses:        []output.LicenseRef{},
+		Vulnerabilities: []output.VulnerabilityRef{},
+	}
+	switch state.Relationship {
+	case string(sdk.DependencyRelationshipDirect):
+		direct := true
+		ref.Direct = &direct
+	case string(sdk.DependencyRelationshipTransitive):
+		direct := false
+		ref.Direct = &direct
+	}
+	return ref
 }
 
 func maxSeverity(vulns []output.VulnerabilityRef) string {
@@ -1471,13 +1515,15 @@ func (m *DiffModel) buildComponentsTab() *listModel {
 		}
 	}
 
-	added, changed, removed := 0, 0, 0
+	added, changed, transitioned, removed := 0, 0, 0, 0
 	for _, c := range filtered {
 		switch c.status {
 		case "added":
 			added++
 		case "changed":
 			changed++
+		case "transitioned":
+			transitioned++
 		case "removed":
 			removed++
 		}
@@ -1492,6 +1538,7 @@ func (m *DiffModel) buildComponentsTab() *listModel {
 			render.Style(" | Ecosystem: ", render.Dim) + render.Style(valueOrDefault(m.componentsEcosystem, "All"), render.BgYellow, render.Bold) +
 			render.Style(" | Added: ", render.Dim) + render.Style(fmt.Sprintf("%d", added), render.Green, render.Bold) +
 			render.Style(" | Changed: ", render.Dim) + render.Style(fmt.Sprintf("%d", changed), render.Yellow, render.Bold) +
+			render.Style(" | Details changed: ", render.Dim) + render.Style(fmt.Sprintf("%d", transitioned), render.Cyan, render.Bold) +
 			render.Style(" | Removed: ", render.Dim) + render.Style(fmt.Sprintf("%d", removed), render.Red, render.Bold),
 	}
 
@@ -1555,7 +1602,7 @@ func sortedComponentsGroupKeys(groups map[string][]flatComponentChange, group co
 	}
 	sort.Slice(keys, func(i, j int) bool {
 		if group == componentsGroupStatus {
-			order := map[string]int{"added": 0, "changed": 1, "removed": 2}
+			order := map[string]int{"added": 0, "changed": 1, "transitioned": 2, "removed": 3}
 			return order[keys[i]] < order[keys[j]]
 		}
 		return keys[i] < keys[j]
@@ -1570,13 +1617,14 @@ func (m *DiffModel) componentsGroupDetails(key string, group componentsGroup, it
 		render.Style("  Group axis: ", render.Dim) + componentsGroupName(group),
 		render.Style("  Items: ", render.Dim) + fmt.Sprintf("%d", len(items)),
 	}
-	counts := map[string]int{"added": 0, "changed": 0, "removed": 0}
+	counts := map[string]int{"added": 0, "changed": 0, "transitioned": 0, "removed": 0}
 	for _, c := range items {
 		counts[c.status]++
 	}
 	lines = append(lines,
 		render.Style("  Added: ", render.Dim)+fmt.Sprintf("%d", counts["added"]),
 		render.Style("  Changed: ", render.Dim)+fmt.Sprintf("%d", counts["changed"]),
+		render.Style("  Details changed: ", render.Dim)+fmt.Sprintf("%d", counts["transitioned"]),
 		render.Style("  Removed: ", render.Dim)+fmt.Sprintf("%d", counts["removed"]),
 	)
 	// When grouping by subproject, list the manifests the group spans so the
@@ -1625,6 +1673,9 @@ func componentChangeRowTitle(c flatComponentChange) string {
 	if c.status == "changed" {
 		return fmt.Sprintf("%s  (%s → %s)", c.pkgName, valueOrDash(c.beforeVer), valueOrDash(c.afterVer))
 	}
+	if c.status == "transitioned" {
+		return c.pkgName + "  (details)"
+	}
 	return c.pkgName
 }
 
@@ -1634,6 +1685,8 @@ func componentChangeDetailTitle(c flatComponentChange) string {
 		return "Added package"
 	case "removed":
 		return "Removed package"
+	case "transitioned":
+		return "Dependency details changed"
 	default:
 		return "Changed package"
 	}
@@ -1724,6 +1777,8 @@ func componentChangeDetails(c flatComponentChange) []string {
 		}
 		lines = append(lines, renderLicenseDelta(c.beforePkg.Licenses, c.pkgRef.Licenses)...)
 		lines = append(lines, renderVulnDelta(c.beforePkg.Vulnerabilities, c.pkgRef.Vulnerabilities)...)
+	} else if c.status == "transitioned" && c.transition != nil {
+		lines = append(lines, renderDependencyMetadataTransition(*c.transition)...)
 	} else {
 		lines = append(lines, renderLicenseList(c.pkgRef.Licenses)...)
 		lines = append(lines, renderVulnList(c.pkgRef.Vulnerabilities)...)
@@ -1733,6 +1788,40 @@ func componentChangeDetails(c flatComponentChange) []string {
 		lines = append(lines, remediationLines...)
 	}
 	return lines
+}
+
+func renderDependencyMetadataTransition(transition output.DiffDependencyTransition) []string {
+	lines := []string{"", render.Style("Metadata changes", render.Bold, render.Cyan)}
+	for _, field := range transition.ChangedFields {
+		var label, before, after string
+		switch field {
+		case sdk.DependencyMetadataRelationship:
+			label = "Relationship"
+			before = valueOrDash(transition.Before.Relationship)
+			after = valueOrDash(transition.After.Relationship)
+		case sdk.DependencyMetadataSource:
+			label = "Source"
+			before = valueOrDash(string(transition.Before.Source))
+			after = valueOrDash(string(transition.After.Source))
+		case sdk.DependencyMetadataRegistryEligibility:
+			label = "Registry matching"
+			before = tuiRegistryEligibilityLabel(transition.Before.RegistryEligible)
+			after = tuiRegistryEligibilityLabel(transition.After.RegistryEligible)
+		default:
+			continue
+		}
+		lines = append(lines,
+			render.Style("  "+label+": ", render.Dim)+before+" → "+after,
+		)
+	}
+	return lines
+}
+
+func tuiRegistryEligibilityLabel(eligible bool) string {
+	if eligible {
+		return "eligible"
+	}
+	return "not eligible"
 }
 
 // renderLicenseList renders one package's license inventory.

@@ -64,7 +64,8 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 
 ### Package Boundaries
 
-- `internal/detectors/*` must not import `internal/engine` or `internal/registry`. Concrete detectors depend on `internal/detectors`, `sdk`, and local helpers only.
+- `internal/detectors/*` must not import `internal/engine` or `internal/registry`. Concrete detectors may depend on `internal/detectors`, `internal/system` for bounded filesystem and subprocess operations, `sdk`, and local helpers.
+- Built-in analyzers may depend on `sdk`, `internal/system` for bounded filesystem and subprocess operations, shared cache and logging helpers, and local helpers. They must not import `internal/engine` or `internal/registry`.
 - `internal/detectors` owns detector-facing contracts such as `Detector`, `DetectorDescriptor`, `ResolveGraphRequest`, and detector helper functions.
 - `sdk` owns neutral shared identifiers and support metadata that would otherwise create package cycles, including ecosystems, package managers, detector types, and support-matrix data.
 - `internal/baseline` owns the baseline document and matching implementation. It depends on `sdk` policy contracts and must not be imported by `sdk` or `internal/engine`.

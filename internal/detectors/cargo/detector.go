@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -181,11 +180,11 @@ func (d Detector) FallbackDetector() sdk.Detector {
 
 func (d Detector) resolveFromLock(req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	workingDir := d.workingDir(req.ProjectPath)
-	lockRaw, err := os.ReadFile(filepath.Join(workingDir, "Cargo.lock"))
+	lockRaw, err := system.ReadRepositoryFile(filepath.Join(workingDir, "Cargo.lock"))
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("read Cargo.lock: %w", err)
 	}
-	manifestRaw, err := os.ReadFile(filepath.Join(workingDir, "Cargo.toml"))
+	manifestRaw, err := system.ReadRepositoryFile(filepath.Join(workingDir, "Cargo.toml"))
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("read Cargo.toml: %w", err)
 	}

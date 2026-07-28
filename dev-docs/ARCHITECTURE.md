@@ -142,12 +142,17 @@ the read. Baseline duplicate checks use an index keyed by package finding
 identity so validation remains linear as the document approaches its entry
 limit.
 
-Two inputs remain intentionally outside these limits. Cache entries are local
-files written by Bomly from already bounded requests and responses, so a
-per-entry read limit is a low-risk follow-up. Git clone size is delegated to Git
-because remote repository scanning is an explicit operation and repositories do
-not have a useful universal size limit. Both are recorded as residual resource
-risks rather than implied to be bounded.
+Repository-controlled manifests, lockfiles, workspace metadata, and analyzer
+source files use a shared 64 MiB per-file limit. Both whole-file and streaming
+readers check the opened size and the bytes consumed, so a growing file cannot
+bypass the limit. Parsers never receive a partial over-limit document.
+Matcher and analyzer JSON cache entries have a separate 64 MiB read policy;
+corrupt or oversized entries degrade to a cache miss.
+
+Git clone size remains delegated to Git because remote repository scanning is
+an explicit operation and repositories do not have a useful universal size
+limit. It is recorded as a residual resource risk rather than implied to be
+bounded.
 
 ### Decision: Reachability annotates vulnerabilities, not findings
 
@@ -683,7 +688,8 @@ This keeps the scan engine recognizable while making it possible to migrate sele
 
 ## Design Boundaries
 
-- Detector packages must not import `internal/engine` or `internal/registry`.
+- Detector packages must not import `internal/engine` or `internal/registry`. They may use `internal/system` for shared bounded filesystem and subprocess operations.
+- Built-in analyzer packages may use `internal/system` for shared bounded filesystem and subprocess operations, but must not import `internal/engine` or `internal/registry`.
 - `sdk` owns shared neutral identifiers and support types.
 - `internal/registry` owns discovery, support-matrix data, and built-in registry wiring.
 - `internal/engine` owns runtime planning, orchestration, and detector-chain reuse.

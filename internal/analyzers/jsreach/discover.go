@@ -10,6 +10,8 @@ import (
 
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"gopkg.in/yaml.v3"
+
+	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
 type workspaceMember struct {
@@ -183,7 +185,7 @@ func discoverWorkspaceMembers(root string) []workspaceMember {
 
 func readWorkspacePatterns(dir string) []string {
 	var patterns []string
-	data, err := os.ReadFile(filepath.Join(dir, "package.json"))
+	data, err := system.ReadRepositoryFile(filepath.Join(dir, "package.json"))
 	if err == nil {
 		var manifest struct {
 			Workspaces json.RawMessage `json:"workspaces"`
@@ -202,7 +204,7 @@ func readWorkspacePatterns(dir string) []string {
 			}
 		}
 	}
-	data, err = os.ReadFile(filepath.Join(dir, "pnpm-workspace.yaml"))
+	data, err = system.ReadRepositoryFile(filepath.Join(dir, "pnpm-workspace.yaml"))
 	if err == nil {
 		var manifest struct {
 			Packages []string `yaml:"packages"`
@@ -215,7 +217,7 @@ func readWorkspacePatterns(dir string) []string {
 }
 
 func readPackageName(dir string) string {
-	data, err := os.ReadFile(filepath.Join(dir, "package.json"))
+	data, err := system.ReadRepositoryFile(filepath.Join(dir, "package.json"))
 	if err != nil {
 		return ""
 	}

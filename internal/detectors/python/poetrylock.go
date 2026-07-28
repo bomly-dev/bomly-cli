@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -49,7 +50,7 @@ func poetryLockFilePath(projectPath string) string {
 // BFS propagation ensures that a package reachable via a runtime path is
 // always marked runtime even if it is also listed in a dev group.
 func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
-	data, err := os.ReadFile(lockPath)
+	data, err := system.ReadRepositoryFile(lockPath)
 	if err != nil {
 		return nil, fmt.Errorf("read poetry.lock: %w", err)
 	}
@@ -226,7 +227,7 @@ func collectPoetryDepsAndRoot(projectPath string) (mainDeps, devDeps map[string]
 	rootName = pythonProjectName(projectPath)
 	rootVersion = ""
 
-	raw, err := os.ReadFile(filepath.Join(projectPath, "pyproject.toml"))
+	raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "pyproject.toml"))
 	if err != nil {
 		return
 	}

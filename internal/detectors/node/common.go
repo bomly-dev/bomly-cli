@@ -347,7 +347,7 @@ func AnnotateScopesFromPackageJSON(projectPath string, depsGraph *sdk.Graph) err
 		return nil
 	}
 
-	data, err := os.ReadFile(filepath.Join(projectPath, "package.json"))
+	data, err := system.ReadRepositoryFile(filepath.Join(projectPath, "package.json"))
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil

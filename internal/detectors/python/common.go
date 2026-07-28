@@ -421,7 +421,7 @@ func pyprojectProjectName(projectPath string) string {
 	if projectPath == "" {
 		return ""
 	}
-	raw, err := os.ReadFile(filepath.Join(projectPath, "pyproject.toml"))
+	raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "pyproject.toml"))
 	if err != nil {
 		return ""
 	}
@@ -530,7 +530,7 @@ func directPythonDeclarations(projectPath string) (map[string]struct{}, error) {
 // are non-fatal — a project with an unreadable manifest still gets a graph,
 // just without the declaration hint.
 func collectPyprojectDeclarations(path string, declared map[string]struct{}) {
-	raw, err := os.ReadFile(path)
+	raw, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return
 	}
@@ -572,7 +572,7 @@ func collectPyprojectDeclarations(path string, declared map[string]struct{}) {
 // collectPipfileDeclarations reads a Pipfile's [packages] and [dev-packages]
 // tables. Pipfile.lock is not read here: it is a lockfile.
 func collectPipfileDeclarations(path string, declared map[string]struct{}) {
-	raw, err := os.ReadFile(path)
+	raw, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return
 	}
@@ -633,8 +633,8 @@ func declaredPythonDependencies(projectPath string) (map[string]struct{}, error)
 }
 
 func collectRequirementFileDependencies(path string, declared map[string]struct{}) error {
-	raw, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
+	raw, err := system.ReadRepositoryFile(path)
+	if errors.Is(err, os.ErrNotExist) {
 		return nil
 	}
 	if err != nil {
@@ -669,7 +669,7 @@ func declaredPythonPositions(projectPath string) map[string]*sdk.SourcePosition 
 }
 
 func collectRequirementFilePositions(path, relPath string, positions map[string]*sdk.SourcePosition) {
-	raw, err := os.ReadFile(path)
+	raw, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return
 	}
@@ -736,8 +736,8 @@ func attachDeclaredPositions(depsGraph *sdk.Graph, projectPath string) {
 }
 
 func collectLoosePythonManifestDependencies(path string, declared map[string]struct{}) error {
-	raw, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
+	raw, err := system.ReadRepositoryFile(path)
+	if errors.Is(err, os.ErrNotExist) {
 		return nil
 	}
 	if err != nil {
@@ -926,7 +926,7 @@ func collectPythonDevDependencies(projectPath string) map[string]struct{} {
 	}
 
 	// poetry / uv via pyproject.toml
-	if raw, err := os.ReadFile(filepath.Join(projectPath, "pyproject.toml")); err == nil {
+	if raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "pyproject.toml")); err == nil {
 		section := ""
 		inDevArray := false
 		for _, line := range strings.Split(string(raw), "\n") {
@@ -977,7 +977,7 @@ func collectPythonDevDependencies(projectPath string) map[string]struct{} {
 	}
 
 	// Pipfile [dev-packages]
-	if raw, err := os.ReadFile(filepath.Join(projectPath, "Pipfile")); err == nil {
+	if raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "Pipfile")); err == nil {
 		inDev := false
 		for _, line := range strings.Split(string(raw), "\n") {
 			trimmed := strings.TrimSpace(line)
@@ -995,7 +995,7 @@ func collectPythonDevDependencies(projectPath string) map[string]struct{} {
 	}
 
 	// pip: requirements-dev.txt (plain list of dev packages)
-	if raw, err := os.ReadFile(filepath.Join(projectPath, "requirements-dev.txt")); err == nil {
+	if raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "requirements-dev.txt")); err == nil {
 		for _, line := range strings.Split(string(raw), "\n") {
 			trimmed := strings.TrimSpace(line)
 			if trimmed == "" || strings.HasPrefix(trimmed, "#") || strings.HasPrefix(trimmed, "-") {

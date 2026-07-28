@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -29,9 +29,9 @@ func ParseIntegrityDigests(integrity string) []sdk.Digest {
 
 // ReadPackageJSONManifest reads the package.json manifest used by Node lockfile parsers.
 func ReadPackageJSONManifest(projectPath string) (PackageJSONManifest, error) {
-	data, err := os.ReadFile(filepath.Join(projectPath, "package.json"))
+	data, err := system.ReadRepositoryFile(filepath.Join(projectPath, "package.json"))
 	if err != nil {
-		return PackageJSONManifest{}, err
+		return PackageJSONManifest{}, fmt.Errorf("read package.json: %w", err)
 	}
 	var manifest PackageJSONManifest
 	if err := json.Unmarshal(StripUTF8BOM(data), &manifest); err != nil {

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -85,7 +84,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
-	data, err := os.ReadFile(lockPath)
+	data, err := system.ReadRepositoryFile(lockPath)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("read bundler lockfile: %w", err)
 	}
@@ -363,7 +362,7 @@ func parseGemfileScopes(path string) (map[string]sdk.Scope, error) {
 		return scopes, nil
 	}
 
-	data, err := os.ReadFile(path)
+	data, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read Gemfile: %w", err)
 	}

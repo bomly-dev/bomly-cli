@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -56,7 +56,7 @@ type bunLockfileGraphs struct {
 }
 
 func depGraphFromBunLockfile(projectPath string) (bunLockfileGraphs, error) {
-	raw, err := os.ReadFile(filepath.Join(projectPath, "bun.lock"))
+	raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "bun.lock"))
 	if err != nil {
 		return bunLockfileGraphs{}, fmt.Errorf("read bun.lock: %w", err)
 	}

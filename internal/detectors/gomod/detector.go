@@ -386,7 +386,7 @@ func moduleNodeID(node moduleNode) string {
 }
 
 func parseGoModFile(path string) (string, []moduleRef, error) {
-	data, err := os.ReadFile(path)
+	data, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return "", nil, fmt.Errorf("read %q: %w", path, err)
 	}

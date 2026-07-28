@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -141,7 +140,7 @@ func requiresDependencyGraphPlugin(workingDir string) bool {
 }
 
 func sbtVersion(workingDir string) string {
-	raw, err := os.ReadFile(filepath.Join(workingDir, "project", "build.properties"))
+	raw, err := system.ReadRepositoryFile(filepath.Join(workingDir, "project", "build.properties"))
 	if err != nil {
 		return ""
 	}
@@ -179,7 +178,7 @@ func hasDependencyGraphPlugin(workingDir string) bool {
 		filepath.Join("project", "build.sbt"),
 		"build.sbt",
 	} {
-		raw, err := os.ReadFile(filepath.Join(workingDir, name))
+		raw, err := system.ReadRepositoryFile(filepath.Join(workingDir, name))
 		if err != nil {
 			continue
 		}

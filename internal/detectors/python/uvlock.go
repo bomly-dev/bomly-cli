@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -42,7 +43,7 @@ type uvLockFile struct {
 // depGraphFromUVLock parses a uv.lock file and builds a dependency graph with
 // proper runtime / development scope annotations.
 func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
-	data, err := os.ReadFile(uvLockPath)
+	data, err := system.ReadRepositoryFile(uvLockPath)
 	if err != nil {
 		return nil, fmt.Errorf("read uv.lock: %w", err)
 	}

@@ -5,9 +5,9 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -45,7 +45,7 @@ func LoadTargets(path string) ([]Target, error) {
 	raw := embeddedTargets
 	if strings.TrimSpace(path) != "" {
 		var err error
-		raw, err = os.ReadFile(path)
+		raw, err = system.ReadRepositoryFile(path)
 		if err != nil {
 			return nil, fmt.Errorf("read benchmark targets: %w", err)
 		}

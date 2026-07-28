@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -198,7 +197,7 @@ type pipfileLockPackage struct {
 }
 
 func depGraphFromPipfileLock(path, rootName string) (*sdk.Graph, error) {
-	raw, err := os.ReadFile(path)
+	raw, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read Pipfile.lock: %w", err)
 	}

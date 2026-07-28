@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -235,7 +234,7 @@ func readOptional(path string) ([]byte, error) {
 	if err != nil || !ok {
 		return nil, err
 	}
-	return os.ReadFile(path)
+	return system.ReadRepositoryFile(path)
 }
 
 func rootNode() *sdk.Dependency {

@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
 // Key uniquely identifies one cached auditor result.
@@ -50,7 +52,7 @@ func (c *FileCache) path(key Key) string {
 // Get returns the cached value for key if it exists and has not expired.
 func Get[T any](c *FileCache, key Key) (T, bool) {
 	var zero T
-	data, err := os.ReadFile(c.path(key))
+	data, err := system.ReadCacheFile(c.path(key))
 	if err != nil {
 		return zero, false
 	}

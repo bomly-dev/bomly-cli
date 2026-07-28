@@ -11,6 +11,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"gopkg.in/yaml.v3"
 )
@@ -30,7 +31,7 @@ type yarnLockEntry struct {
 }
 
 func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
-	raw, err := os.ReadFile(filepath.Join(projectPath, "yarn.lock"))
+	raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "yarn.lock"))
 	if err != nil {
 		return nil, fmt.Errorf("read yarn.lock: %w", err)
 	}

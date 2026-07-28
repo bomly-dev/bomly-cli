@@ -1,6 +1,9 @@
 package mcp
 
 import (
+	"encoding/json"
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
@@ -21,8 +24,33 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 	run := DiffRunResult{
 		Response: output.DiffResponse{
 			Comparison: output.DiffComparison{Base: "main", Head: "feature"},
-			Summary:    output.DiffSummary{ChangedManifestCount: 1, ChangedPackageCount: 2},
-			Metadata:   output.Metadata{},
+			Summary:    output.DiffSummary{ChangedManifestCount: 1, ChangedPackageCount: 2, TransitionedPackageCount: 1},
+			Results: output.DiffResults{Dependencies: output.DiffDependencyResults{
+				Transitions: []output.DiffDependencyTransition{{
+					Before: output.DiffDependencyTransitionState{
+						Name:             "lib-a",
+						Version:          "1.0.0",
+						Purl:             "pkg:npm/lib-a@1.0.0",
+						Relationship:     "direct",
+						Source:           sdk.DependencySourceRegistry,
+						RegistryEligible: true,
+					},
+					After: output.DiffDependencyTransitionState{
+						Name:             "lib-a",
+						Version:          "1.0.0",
+						Purl:             "pkg:npm/lib-a@1.0.0",
+						Relationship:     "transitive",
+						Source:           sdk.DependencySourceGit,
+						RegistryEligible: false,
+					},
+					ChangedFields: []sdk.DependencyDetailField{
+						sdk.DependencyDetailRelationship,
+						sdk.DependencyDetailSource,
+						sdk.DependencyDetailRegistryEligibility,
+					},
+				}},
+			}},
+			Metadata: output.Metadata{},
 		},
 		// lib-a's finding is introduced by head; deep's persists; the
 		// old-lib finding only existed on base (resolved by this ref).
@@ -73,6 +101,49 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 	}
 	if compact.SchemaVersion != CompactSchemaVersion || compact.Command != "diff" {
 		t.Fatalf("header wrong: %#v", compact)
+	}
+	if compact.Summary.PackagesWithDetailChanges != 1 || len(compact.Transitions) != 1 {
+		t.Fatalf("dependency detail change missing: %#v", compact)
+	}
+	encoded, err := json.Marshal(compact)
+	if err != nil {
+		t.Fatalf("marshal compact diff: %v", err)
+	}
+	if !strings.Contains(string(encoded), `"packages_with_detail_changes":1`) ||
+		!strings.Contains(string(encoded), `"transitions":[`) ||
+		strings.Contains(string(encoded), `"packages_transitioned"`) ||
+		strings.Contains(string(encoded), `"dependency_transitions"`) {
+		t.Fatalf("compact detail-change names are inconsistent: %s", encoded)
+	}
+	if compact.Transitions[0].Before.Relationship != "direct" ||
+		compact.Transitions[0].After.Source != sdk.DependencySourceGit ||
+		compact.Transitions[0].After.RegistryEligible {
+		t.Fatalf("dependency detail-change evidence wrong: %#v", compact.Transitions[0])
+	}
+}
+
+func TestBuildCompactDiffCapsDependencyTransitions(t *testing.T) {
+	transitions := make([]output.DiffDependencyTransition, 0, maxDependencyTransitions+2)
+	for index := 0; index < maxDependencyTransitions+2; index++ {
+		name := fmt.Sprintf("package-%03d", index)
+		transitions = append(transitions, output.DiffDependencyTransition{
+			Before: output.DiffDependencyTransitionState{
+				Name: name, Purl: "pkg:npm/" + name + "@1.0.0", Relationship: "direct",
+			},
+			After: output.DiffDependencyTransitionState{
+				Name: name, Purl: "pkg:npm/" + name + "@1.0.0", Relationship: "transitive",
+			},
+			ChangedFields: []sdk.DependencyDetailField{sdk.DependencyDetailRelationship},
+		})
+	}
+	compact := BuildCompactDiff(DiffRunResult{Response: output.DiffResponse{
+		Results: output.DiffResults{Dependencies: output.DiffDependencyResults{Transitions: transitions}},
+	}})
+	if len(compact.Transitions) != maxDependencyTransitions {
+		t.Fatalf("transition count = %d, want %d", len(compact.Transitions), maxDependencyTransitions)
+	}
+	if compact.Truncation == nil || compact.Truncation.OmittedTransitions != 2 {
+		t.Fatalf("transition truncation = %#v", compact.Truncation)
 	}
 }
 

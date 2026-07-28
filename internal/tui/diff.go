@@ -355,7 +355,9 @@ func (m *DiffModel) diffFooterSummary() string {
 // Semantics:
 //
 //	ManifestDeltas:       Added + Changed + Removed manifests.
-//	PackageDeltas:        Added + Changed + Removed packages across all manifests.
+//	PackageDeltas:        Distinct added, changed, detail-changed, and removed
+//	                      package occurrences across all manifests. A version
+//	                      and detail change for the same occurrence counts once.
 //	VulnDeltas:           Introduced + Persisted + Resolved audit findings whose
 //	                      Kind classifies them as a vulnerability (matches
 //	                      isVulnerabilityFinding). Persisted is included because
@@ -382,7 +384,7 @@ func (m *DiffModel) diffAggregateCounts() diffAggregateCounts {
 	s := m.payload.Summary
 	out := diffAggregateCounts{
 		ManifestDeltas: s.AddedManifestCount + s.ChangedManifestCount + s.RemovedManifestCount,
-		PackageDeltas:  s.AddedPackageCount + s.ChangedPackageCount + s.RemovedPackageCount,
+		PackageDeltas:  diffPackageChangeCount(m.payload.Results.Manifests),
 	}
 	if m.payload.Audit != nil {
 		for _, bucket := range [][]output.AuditFinding{m.payload.Audit.Introduced, m.payload.Audit.Persisted, m.payload.Audit.Resolved} {
@@ -401,6 +403,33 @@ func (m *DiffModel) diffAggregateCounts() diffAggregateCounts {
 	}
 	out.LicenseUniqueDeltas = len(uniqueLicenses)
 	return out
+}
+
+func diffPackageChangeCount(manifests []output.DiffManifestResult) int {
+	total := 0
+	for _, manifest := range manifests {
+		total += manifestPackageChangeCount(manifest)
+	}
+	return total
+}
+
+func manifestPackageChangeCount(manifest output.DiffManifestResult) int {
+	total := len(manifest.Added) + len(manifest.Removed) + len(manifest.Changed)
+	versionChanged := make(map[string]struct{}, len(manifest.Changed))
+	for _, change := range manifest.Changed {
+		versionChanged[dependencyChangePairKey(change.Before.ID, change.After.ID)] = struct{}{}
+	}
+	for _, transition := range manifest.Transitions {
+		if _, combined := versionChanged[dependencyChangePairKey(transition.Before.ID, transition.After.ID)]; combined {
+			continue
+		}
+		total++
+	}
+	return total
+}
+
+func dependencyChangePairKey(beforeID, afterID string) string {
+	return beforeID + "\x00" + afterID
 }
 
 // diffLegend mirrors scan's legend so the keyboard help row reads identical
@@ -482,7 +511,8 @@ func (m *DiffModel) buildOverviewTab() *listModel {
 				render.Style("Package Changes", render.Bold, render.Cyan),
 				"",
 				render.Style("  Added: ", render.Dim) + fmt.Sprintf("%d", summary.AddedPackageCount),
-				render.Style("  Changed: ", render.Dim) + fmt.Sprintf("%d", summary.ChangedPackageCount),
+				render.Style("  Version changed: ", render.Dim) + fmt.Sprintf("%d", summary.ChangedPackageCount),
+				render.Style("  Detail changes: ", render.Dim) + fmt.Sprintf("%d", summary.TransitionedPackageCount),
 				render.Style("  Removed: ", render.Dim) + fmt.Sprintf("%d", summary.RemovedPackageCount),
 			},
 		},
@@ -585,7 +615,8 @@ type diffOverviewStats struct {
 	// unmatchedRemoved: total Removed packages — see unmatchedAdded.
 	unmatchedRemoved int
 
-	// changedTotal: total package-level change events (Added+Changed+Removed).
+	// changedTotal: total package-level change events
+	// (Added + version changed + detail changed + removed).
 	changedTotal int
 
 	// auditSummaryTotal: the raw AuditSummary.Total field. Per
@@ -653,7 +684,7 @@ func (m *DiffModel) computeOverviewStats() diffOverviewStats {
 		if eco == "" {
 			eco = "unknown"
 		}
-		n := len(mf.Added) + len(mf.Changed) + len(mf.Removed)
+		n := manifestPackageChangeCount(mf)
 		if n > 0 {
 			out.ecosystems[eco] += n
 			out.changedTotal += n
@@ -671,6 +702,16 @@ func (m *DiffModel) computeOverviewStats() diffOverviewStats {
 			} else {
 				out.matchedExact++
 			}
+		}
+		versionChanged := make(map[string]struct{}, len(mf.Changed))
+		for _, change := range mf.Changed {
+			versionChanged[dependencyChangePairKey(change.Before.ID, change.After.ID)] = struct{}{}
+		}
+		for _, transition := range mf.Transitions {
+			if _, combined := versionChanged[dependencyChangePairKey(transition.Before.ID, transition.After.ID)]; combined {
+				continue
+			}
+			addScopeRel("transitioned", transition.After.Scope, transition.After.ID)
 		}
 		out.unmatchedAdded += len(mf.Added)
 		out.unmatchedRemoved += len(mf.Removed)
@@ -989,9 +1030,10 @@ func (m *DiffModel) overviewDashboardView(width, height int) string {
 			render.Style(fmt.Sprintf("%d changed", s.ChangedManifestCount), render.Yellow),
 			render.Style(fmt.Sprintf("%d removed", s.RemovedManifestCount), render.Red),
 		), cardWidth, cardHeight, render.Cyan),
-		boxView("Packages", summaryCountCardLines(s.AddedPackageCount+s.ChangedPackageCount+s.RemovedPackageCount, "Package Changes", cardWidth-2, render.Magenta,
+		boxView("Packages", summaryCountCardLines(diffPackageChangeCount(m.payload.Results.Manifests), "Package Changes", cardWidth-2, render.Magenta,
 			render.Style(fmt.Sprintf("%d added", s.AddedPackageCount), render.Green),
-			render.Style(fmt.Sprintf("%d changed", s.ChangedPackageCount), render.Yellow),
+			render.Style(fmt.Sprintf("%d version changed", s.ChangedPackageCount), render.Yellow),
+			render.Style(fmt.Sprintf("%d detail changes", s.TransitionedPackageCount), render.Cyan),
 			render.Style(fmt.Sprintf("%d removed", s.RemovedPackageCount), render.Red),
 		), cardWidth, cardHeight, render.Magenta),
 		boxView("Vulnerabilities", summaryCountCardLines(diffVulnTotal(m.payload), "Vuln Deltas", cardWidth-2, render.Red,
@@ -1221,7 +1263,8 @@ func (m *DiffModel) overviewPanels() []listPanel {
 		}, color: render.Cyan, weight: 1},
 		{title: "Packages", lines: []string{
 			render.Style(fmt.Sprintf("%d Added", summary.AddedPackageCount), render.Green, render.Bold),
-			render.Style(fmt.Sprintf("%d Changed", summary.ChangedPackageCount), render.Yellow, render.Bold),
+			render.Style(fmt.Sprintf("%d Version Changed", summary.ChangedPackageCount), render.Yellow, render.Bold),
+			render.Style(fmt.Sprintf("%d Detail Changes", summary.TransitionedPackageCount), render.Cyan, render.Bold),
 			render.Style(fmt.Sprintf("%d Removed", summary.RemovedPackageCount), render.Red, render.Bold),
 		}, color: render.Magenta, weight: 1},
 	}
@@ -1281,7 +1324,7 @@ func (m *DiffModel) overviewTopChangedManifests() []string {
 	for _, mf := range m.payload.Results.Manifests {
 		rows = append(rows, ranked{
 			name:  render.DiffManifestDisplayLabel(mf),
-			count: len(mf.Added) + len(mf.Changed) + len(mf.Removed),
+			count: manifestPackageChangeCount(mf),
 		})
 	}
 	sort.Slice(rows, func(i, j int) bool { return rows[i].count > rows[j].count })
@@ -1312,7 +1355,7 @@ type flatComponentChange struct {
 	manifestKey  string
 	manifestName string
 	ecosystem    string
-	status       string // "added" / "changed" / "removed"
+	status       string // "added" / "changed" / "transitioned" / "removed"
 	pkgName      string
 	pkgRef       output.PackageRef // After for changed, Package for added/removed
 	beforePkg    output.PackageRef // populated for changed entries
@@ -1321,6 +1364,7 @@ type flatComponentChange struct {
 	maxSeverity  string // worst severity across pkgRef.Vulnerabilities
 	relationship string // root/direct/transitive — looked up in head/base graph
 	remediation  *sdk.PackageRemediation
+	transition   *output.DiffDependencyTransition
 }
 
 func (m *DiffModel) collectComponentChanges() []flatComponentChange {
@@ -1355,6 +1399,11 @@ func (m *DiffModel) collectComponentChanges() []flatComponentChange {
 		mfKey := diffManifestKey(mf)
 		mfName := render.DiffManifestDisplayLabel(mf)
 		eco := valueOrDefault(string(mf.Ecosystem), "unknown")
+		transitionsByPair := make(map[string]int, len(mf.Transitions))
+		for index, transition := range mf.Transitions {
+			transitionsByPair[dependencyChangePairKey(transition.Before.ID, transition.After.ID)] = index
+		}
+		usedTransitions := make(map[int]struct{}, len(mf.Transitions))
 		for _, change := range mf.Added {
 			out = append(out, flatComponentChange{
 				manifest: mf, manifestKey: mfKey, manifestName: mfName, ecosystem: eco,
@@ -1365,7 +1414,7 @@ func (m *DiffModel) collectComponentChanges() []flatComponentChange {
 			})
 		}
 		for _, change := range mf.Changed {
-			out = append(out, flatComponentChange{
+			component := flatComponentChange{
 				manifest: mf, manifestKey: mfKey, manifestName: mfName, ecosystem: eco,
 				status: "changed", pkgName: render.DiffPackageDisplayName(change.After),
 				pkgRef: change.After, beforePkg: change.Before,
@@ -1373,6 +1422,29 @@ func (m *DiffModel) collectComponentChanges() []flatComponentChange {
 				maxSeverity:  maxSeverity(change.After.Vulnerabilities),
 				relationship: pickRel("changed", change.After.ID),
 				remediation:  remediationForPURL(m.headRegistry, change.After.Purl),
+			}
+			if index, ok := transitionsByPair[dependencyChangePairKey(change.Before.ID, change.After.ID)]; ok {
+				transition := mf.Transitions[index]
+				component.transition = &transition
+				usedTransitions[index] = struct{}{}
+			}
+			out = append(out, component)
+		}
+		for idx := range mf.Transitions {
+			if _, used := usedTransitions[idx]; used {
+				continue
+			}
+			transition := mf.Transitions[idx]
+			after := packageRefFromTransitionState(transition.After)
+			before := packageRefFromTransitionState(transition.Before)
+			out = append(out, flatComponentChange{
+				manifest: mf, manifestKey: mfKey, manifestName: mfName, ecosystem: eco,
+				status: "transitioned", pkgName: render.DiffPackageDisplayName(after),
+				pkgRef: after, beforePkg: before,
+				beforeVer: transition.Before.Version, afterVer: transition.After.Version,
+				relationship: string(transition.After.Relationship),
+				remediation:  remediationForPURL(m.headRegistry, transition.After.Purl),
+				transition:   &transition,
 			})
 		}
 		for _, change := range mf.Removed {
@@ -1386,6 +1458,28 @@ func (m *DiffModel) collectComponentChanges() []flatComponentChange {
 		}
 	}
 	return out
+}
+
+func packageRefFromTransitionState(state output.DiffDependencyTransitionState) output.PackageRef {
+	ref := output.PackageRef{
+		ID:              state.ID,
+		Name:            state.Name,
+		Version:         state.Version,
+		Purl:            state.Purl,
+		Scope:           state.Scope,
+		Relationship:    string(state.Relationship),
+		Licenses:        []output.LicenseRef{},
+		Vulnerabilities: []output.VulnerabilityRef{},
+	}
+	switch state.Relationship {
+	case sdk.DependencyRelationshipDirect:
+		direct := true
+		ref.Direct = &direct
+	case sdk.DependencyRelationshipTransitive:
+		direct := false
+		ref.Direct = &direct
+	}
+	return ref
 }
 
 func maxSeverity(vulns []output.VulnerabilityRef) string {
@@ -1471,8 +1565,11 @@ func (m *DiffModel) buildComponentsTab() *listModel {
 		}
 	}
 
-	added, changed, removed := 0, 0, 0
+	added, changed, detailsChanged, removed := 0, 0, 0, 0
 	for _, c := range filtered {
+		if c.transition != nil {
+			detailsChanged++
+		}
 		switch c.status {
 		case "added":
 			added++
@@ -1492,6 +1589,7 @@ func (m *DiffModel) buildComponentsTab() *listModel {
 			render.Style(" | Ecosystem: ", render.Dim) + render.Style(valueOrDefault(m.componentsEcosystem, "All"), render.BgYellow, render.Bold) +
 			render.Style(" | Added: ", render.Dim) + render.Style(fmt.Sprintf("%d", added), render.Green, render.Bold) +
 			render.Style(" | Changed: ", render.Dim) + render.Style(fmt.Sprintf("%d", changed), render.Yellow, render.Bold) +
+			render.Style(" | Detail changes: ", render.Dim) + render.Style(fmt.Sprintf("%d", detailsChanged), render.Cyan, render.Bold) +
 			render.Style(" | Removed: ", render.Dim) + render.Style(fmt.Sprintf("%d", removed), render.Red, render.Bold),
 	}
 
@@ -1529,6 +1627,9 @@ func componentsGroupKey(c flatComponentChange, group componentsGroup) string {
 func componentsGroupLabel(key string, group componentsGroup) string {
 	switch group {
 	case componentsGroupStatus:
+		if key == "transitioned" {
+			return "Detail changes"
+		}
 		return titleCase(key)
 	default:
 		return key
@@ -1555,7 +1656,7 @@ func sortedComponentsGroupKeys(groups map[string][]flatComponentChange, group co
 	}
 	sort.Slice(keys, func(i, j int) bool {
 		if group == componentsGroupStatus {
-			order := map[string]int{"added": 0, "changed": 1, "removed": 2}
+			order := map[string]int{"added": 0, "changed": 1, "transitioned": 2, "removed": 3}
 			return order[keys[i]] < order[keys[j]]
 		}
 		return keys[i] < keys[j]
@@ -1570,13 +1671,17 @@ func (m *DiffModel) componentsGroupDetails(key string, group componentsGroup, it
 		render.Style("  Group axis: ", render.Dim) + componentsGroupName(group),
 		render.Style("  Items: ", render.Dim) + fmt.Sprintf("%d", len(items)),
 	}
-	counts := map[string]int{"added": 0, "changed": 0, "removed": 0}
+	counts := map[string]int{"added": 0, "changed": 0, "details": 0, "removed": 0}
 	for _, c := range items {
 		counts[c.status]++
+		if c.transition != nil {
+			counts["details"]++
+		}
 	}
 	lines = append(lines,
 		render.Style("  Added: ", render.Dim)+fmt.Sprintf("%d", counts["added"]),
 		render.Style("  Changed: ", render.Dim)+fmt.Sprintf("%d", counts["changed"]),
+		render.Style("  Detail changes: ", render.Dim)+fmt.Sprintf("%d", counts["details"]),
 		render.Style("  Removed: ", render.Dim)+fmt.Sprintf("%d", counts["removed"]),
 	)
 	// When grouping by subproject, list the manifests the group spans so the
@@ -1625,6 +1730,9 @@ func componentChangeRowTitle(c flatComponentChange) string {
 	if c.status == "changed" {
 		return fmt.Sprintf("%s  (%s → %s)", c.pkgName, valueOrDash(c.beforeVer), valueOrDash(c.afterVer))
 	}
+	if c.status == "transitioned" {
+		return c.pkgName + "  (detail changes)"
+	}
 	return c.pkgName
 }
 
@@ -1634,7 +1742,12 @@ func componentChangeDetailTitle(c flatComponentChange) string {
 		return "Added package"
 	case "removed":
 		return "Removed package"
+	case "transitioned":
+		return "Dependency detail changes"
 	default:
+		if c.transition != nil {
+			return "Version and dependency detail changes"
+		}
 		return "Changed package"
 	}
 }
@@ -1722,8 +1835,13 @@ func componentChangeDetails(c flatComponentChange) []string {
 				render.Style("  After:  ", render.Dim)+valueOrDash(c.pkgRef.Scope),
 			)
 		}
+		if c.transition != nil {
+			lines = append(lines, renderDependencyDetailTransition(*c.transition)...)
+		}
 		lines = append(lines, renderLicenseDelta(c.beforePkg.Licenses, c.pkgRef.Licenses)...)
 		lines = append(lines, renderVulnDelta(c.beforePkg.Vulnerabilities, c.pkgRef.Vulnerabilities)...)
+	} else if c.status == "transitioned" && c.transition != nil {
+		lines = append(lines, renderDependencyDetailTransition(*c.transition)...)
 	} else {
 		lines = append(lines, renderLicenseList(c.pkgRef.Licenses)...)
 		lines = append(lines, renderVulnList(c.pkgRef.Vulnerabilities)...)
@@ -1733,6 +1851,53 @@ func componentChangeDetails(c flatComponentChange) []string {
 		lines = append(lines, remediationLines...)
 	}
 	return lines
+}
+
+func renderDependencyDetailTransition(transition output.DiffDependencyTransition) []string {
+	lines := []string{"", render.Style("Detail changes", render.Bold, render.Cyan)}
+	sourceChanged := dependencyDetailFieldChangedForTUI(transition, sdk.DependencyDetailSource)
+	for _, field := range transition.ChangedFields {
+		var label, before, after string
+		switch field {
+		case sdk.DependencyDetailRelationship:
+			label = "Relationship"
+			before = valueOrDash(string(transition.Before.Relationship))
+			after = valueOrDash(string(transition.After.Relationship))
+		case sdk.DependencyDetailSource:
+			label = "Source"
+			before = valueOrDash(string(transition.Before.Source))
+			after = valueOrDash(string(transition.After.Source))
+		case sdk.DependencyDetailRegistryEligibility:
+			if sourceChanged {
+				continue
+			}
+			label = "Vulnerability checks"
+			before = tuiRegistryEligibilityLabel(transition.Before.RegistryEligible)
+			after = tuiRegistryEligibilityLabel(transition.After.RegistryEligible)
+		default:
+			continue
+		}
+		lines = append(lines,
+			render.Style("  "+label+": ", render.Dim)+before+" → "+after,
+		)
+	}
+	return lines
+}
+
+func dependencyDetailFieldChangedForTUI(transition output.DiffDependencyTransition, wanted sdk.DependencyDetailField) bool {
+	for _, field := range transition.ChangedFields {
+		if field == wanted {
+			return true
+		}
+	}
+	return false
+}
+
+func tuiRegistryEligibilityLabel(eligible bool) string {
+	if eligible {
+		return "covered"
+	}
+	return "not covered"
 }
 
 // renderLicenseList renders one package's license inventory.

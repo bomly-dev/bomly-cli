@@ -123,6 +123,7 @@ Key helpers:
 - `dep.PrimaryScope()`, `dep.HasScope(s)`, `dep.AddScope(s)` — scope helpers.
 - `sdk.DetectionLicenses(dep)` / `sdk.SetDetectionLicenses(dep, licenses)` — read/write detection-time license facts stashed in `dep.Metadata`.
 - `sdk.NormalizeDependencyIdentity(dep)` — canonical identity for diff matching.
+- `sdk.CompareDependencyDetails(baseGraph, headGraph, before, after)` — classify occurrence-level relationship, source, and registry-matching eligibility transitions.
 - `sdk.CanonicalPackageURLFromDependency(dep)` — derive the canonical PURL when the detector didn't supply one.
 - `sdk.RelationshipForPath(path)` — preserve an explicit relationship or derive direct/transitive from a root-to-target path.
 - `dep.RegistryMatchEligible()` — classify whether this occurrence may be sent to external registry enrichment.
@@ -415,7 +416,15 @@ SARIF projects the same registry-resolved findings; SBOM (SPDX/CycloneDX)
 projects the `packages` enrichment onto components (licenses, vulnerabilities,
 CPEs, checksums, EOL).
 
-`bomly diff` and `bomly explain` use the same vocabulary. SARIF and SBOM output are projected from the same registry-aware helpers; see [`../docs/OUTPUT_FORMATS.md`](../docs/OUTPUT_FORMATS.md) and [`../docs/SBOM.md`](../docs/SBOM.md) for format-specific details.
+`bomly diff` and `bomly explain` use the same vocabulary. Diff reports version
+changes separately from occurrence detail changes. A transition carries
+the before and after dependency relationship, source, and registry-matching
+eligibility plus an ordered list of the fields that changed. This preserves
+changes that do not alter package identity or version, including changes on
+duplicate occurrences in different manifests. SARIF and SBOM output are
+projected from the same registry-aware helpers; see
+[`../docs/OUTPUT_FORMATS.md`](../docs/OUTPUT_FORMATS.md) and
+[`../docs/SBOM.md`](../docs/SBOM.md) for format-specific details.
 
 ## Common patterns
 

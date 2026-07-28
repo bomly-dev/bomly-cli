@@ -38,6 +38,71 @@ func TestDiffOverviewMarkdownPersistedWarningsAreWarnings(t *testing.T) {
 	}
 }
 
+func TestDiffTextAndMarkdownRenderDependencyDetailTransitions(t *testing.T) {
+	payload := output.DiffResponse{
+		Summary: output.DiffSummary{TransitionedPackageCount: 1},
+		Results: output.DiffResults{Dependencies: output.DiffDependencyResults{
+			Transitions: []output.DiffDependencyTransition{{
+				Before: output.DiffDependencyTransitionState{
+					Name:             "example",
+					Version:          "1.0.0",
+					Relationship:     "direct",
+					Source:           sdk.DependencySourceRegistry,
+					RegistryEligible: true,
+				},
+				After: output.DiffDependencyTransitionState{
+					Name:             "example",
+					Version:          "1.0.0",
+					Relationship:     "transitive",
+					Source:           sdk.DependencySourceGit,
+					RegistryEligible: false,
+				},
+				ChangedFields: []sdk.DependencyDetailField{
+					sdk.DependencyDetailRelationship,
+					sdk.DependencyDetailSource,
+					sdk.DependencyDetailRegistryEligibility,
+				},
+			}},
+		}},
+	}
+
+	var text bytes.Buffer
+	if err := Diff(&text, payload); err != nil {
+		t.Fatalf("Diff() error = %v", err)
+	}
+	for _, want := range []string{
+		"Detail changes (1)",
+		"relationship: direct → transitive",
+		"source: registry → git",
+	} {
+		if !strings.Contains(text.String(), want) {
+			t.Fatalf("text output missing %q:\n%s", want, text.String())
+		}
+	}
+	if strings.Contains(text.String(), "vulnerability checks:") {
+		t.Fatalf("source changes must not repeat their implied coverage change:\n%s", text.String())
+	}
+	coverageOnly := payload.Results.Dependencies.Transitions[0]
+	coverageOnly.ChangedFields = []sdk.DependencyDetailField{sdk.DependencyDetailRegistryEligibility}
+	if description := dependencyTransitionDescription(coverageOnly); description != "vulnerability checks: covered → not covered" {
+		t.Fatalf("independent eligibility wording = %q", description)
+	}
+
+	var markdown bytes.Buffer
+	if err := DiffMarkdown(&markdown, payload); err != nil {
+		t.Fatalf("DiffMarkdown() error = %v", err)
+	}
+	for _, want := range []string{
+		"1 detail change",
+		"### Dependency Detail Changes",
+		"relationship: direct → transitive",
+	} {
+		if !strings.Contains(markdown.String(), want) {
+			t.Fatalf("Markdown output missing %q:\n%s", want, markdown.String())
+		}
+	}
+}
+
 func TestHumanizeDurationMS(t *testing.T) {
 	cases := []struct {
 		ms   int64

@@ -10,13 +10,14 @@ const CompactSchemaVersion = "mcp/1"
 // Compact response caps. Anything cut by a cap is counted in TruncationInfo —
 // never silently dropped.
 const (
-	maxFindingsPerGroup    = 15
-	maxRemediationGroups   = 40
-	maxInformational       = 60
-	maxPathNodes           = 6
-	maxAliases             = 3
-	maxInventoryEntries    = 200
-	maxDiagnosticsReported = 20
+	maxFindingsPerGroup      = 15
+	maxRemediationGroups     = 40
+	maxInformational         = 60
+	maxPathNodes             = 6
+	maxAliases               = 3
+	maxInventoryEntries      = 200
+	maxDiagnosticsReported   = 20
+	maxDependencyTransitions = 60
 )
 
 // Diagnostic surfaces one pipeline warning (detector fallback, matcher
@@ -130,12 +131,13 @@ type CompactSummary struct {
 // TruncationInfo reports exactly what the caps cut so the agent knows the
 // response is partial and how to drill down.
 type TruncationInfo struct {
-	Truncated       bool   `json:"truncated"`
-	OmittedFindings int    `json:"omitted_findings,omitempty"`
-	OmittedGroups   int    `json:"omitted_groups,omitempty"`
-	OmittedPackages int    `json:"omitted_packages,omitempty"`
-	OmittedPaths    int    `json:"omitted_paths,omitempty"`
-	Note            string `json:"note,omitempty"`
+	Truncated          bool   `json:"truncated"`
+	OmittedFindings    int    `json:"omitted_findings,omitempty"`
+	OmittedGroups      int    `json:"omitted_groups,omitempty"`
+	OmittedPackages    int    `json:"omitted_packages,omitempty"`
+	OmittedPaths       int    `json:"omitted_paths,omitempty"`
+	OmittedTransitions int    `json:"omitted_transitions,omitempty"`
+	Note               string `json:"note,omitempty"`
 }
 
 // CompactScanResponse is the bomly_scan tool result: remediation-grouped

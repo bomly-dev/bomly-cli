@@ -1238,6 +1238,7 @@
     "fuzzy_match_count": 0,
     "removed_manifest_count": 0,
     "removed_package_count": 0,
+    "transitioned_package_count": 0,
     "unchanged_manifest_count": 0,
     "unmatched_package_count": 0
   }

@@ -466,6 +466,235 @@ func TestCompare_ClassifiesAddedRemovedAndUpdated(t *testing.T) {
 	if diff.Updated[0].Before.ID != "update@1.0.0" || diff.Updated[0].After.ID != "update@2.0.0" {
 		t.Fatalf("unexpected updated node: %#v", diff.Updated[0])
 	}
+	if len(diff.Transitions) != 0 {
+		t.Fatalf("unexpected detail changes: %#v", diff.Transitions)
+	}
+}
+
+func TestCompare_ClassifiesDependencyDetailTransitions(t *testing.T) {
+	base := New()
+	head := New()
+	baseRoot := NewDependency(Dependency{Coordinates: Coordinates{Type: PackageTypeApplication, Name: "app", FirstParty: true}})
+	headRoot := baseRoot.Clone()
+	baseDependency := NewDependency(Dependency{
+		Coordinates:  Coordinates{Ecosystem: EcosystemNPM, Name: "example", Version: "1.0.0"},
+		Relationship: DependencyRelationshipDirect,
+		Source:       DependencySourceRegistry,
+	})
+	headDependency := baseDependency.Clone()
+	headDependency.Relationship = DependencyRelationshipUnknown
+	headDependency.Source = DependencySourceGit
+
+	for _, pair := range []struct {
+		graph *Graph
+		root  *Dependency
+		dep   *Dependency
+	}{
+		{graph: base, root: baseRoot, dep: baseDependency},
+		{graph: head, root: headRoot, dep: headDependency},
+	} {
+		if err := pair.graph.AddNode(pair.root); err != nil {
+			t.Fatal(err)
+		}
+		if err := pair.graph.AddNode(pair.dep); err != nil {
+			t.Fatal(err)
+		}
+		if err := pair.graph.AddEdge(pair.root.ID, pair.dep.ID); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	diff := Compare(base, head)
+	if len(diff.Added) != 0 || len(diff.Removed) != 0 || len(diff.Updated) != 0 {
+		t.Fatalf("detail-only diff changed package identity/version buckets: %#v", diff)
+	}
+	if len(diff.Transitions) != 1 {
+		t.Fatalf("Transitions = %#v, want one", diff.Transitions)
+	}
+	transition := diff.Transitions[0]
+	wantFields := []DependencyDetailField{
+		DependencyDetailSource,
+		DependencyDetailRegistryEligibility,
+	}
+	if !slices.Equal(transition.ChangedFields, wantFields) {
+		t.Fatalf("ChangedFields = %#v, want %#v", transition.ChangedFields, wantFields)
+	}
+	if transition.BeforeRelationship != DependencyRelationshipDirect || transition.AfterRelationship != DependencyRelationshipUnknown {
+		t.Fatalf("relationship transition = %q -> %q", transition.BeforeRelationship, transition.AfterRelationship)
+	}
+	if !transition.BeforeRegistryEligible || transition.AfterRegistryEligible {
+		t.Fatalf("registry eligibility transition = %t -> %t", transition.BeforeRegistryEligible, transition.AfterRegistryEligible)
+	}
+}
+
+func TestCompareDependencyDetailsClassifiesEachAxisIndependently(t *testing.T) {
+	base := NewDependency(Dependency{
+		Coordinates: Coordinates{
+			Ecosystem: EcosystemNPM,
+			Name:      "example",
+			Version:   "1.0.0",
+			PURL:      "pkg:npm/example@1.0.0",
+		},
+		Relationship: DependencyRelationshipDirect,
+		Source:       DependencySourceRegistry,
+	})
+	tests := []struct {
+		name  string
+		after func() *Dependency
+		want  DependencyDetailField
+	}{
+		{
+			name: "relationship only",
+			after: func() *Dependency {
+				after := base.Clone()
+				after.Relationship = DependencyRelationshipTransitive
+				return after
+			},
+			want: DependencyDetailRelationship,
+		},
+		{
+			name: "known source only",
+			after: func() *Dependency {
+				after := base.Clone()
+				after.Source = DependencySource("custom-registry")
+				return after
+			},
+			want: DependencyDetailSource,
+		},
+		{
+			name: "registry eligibility only",
+			after: func() *Dependency {
+				after := base.Clone()
+				after.FirstParty = true
+				return after
+			},
+			want: DependencyDetailRegistryEligibility,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			transition, changed := CompareDependencyDetails(nil, nil, base, tt.after())
+			if !changed {
+				t.Fatal("CompareDependencyDetails() did not report a transition")
+			}
+			if len(transition.ChangedFields) != 1 || transition.ChangedFields[0] != tt.want {
+				t.Fatalf("ChangedFields = %#v, want [%s]", transition.ChangedFields, tt.want)
+			}
+		})
+	}
+}
+
+func TestCompareDependencyDetailsIgnoresMissingEvidence(t *testing.T) {
+	before := NewDependency(Dependency{
+		Coordinates:  Coordinates{Ecosystem: EcosystemNPM, Name: "example", Version: "1.0.0"},
+		Relationship: DependencyRelationshipUnknown,
+	})
+	after := before.Clone()
+	after.Relationship = DependencyRelationshipDirect
+	after.Source = DependencySourceRegistry
+
+	if transition, changed := CompareDependencyDetails(nil, nil, before, after); changed {
+		t.Fatalf("missing relationship/source evidence must not create a detail change: %#v", transition)
+	}
+}
+
+func TestCompareSortsDependencyDetailTransitions(t *testing.T) {
+	base := New()
+	head := New()
+	for _, name := range []string{"zeta", "alpha"} {
+		before := NewDependency(Dependency{
+			Coordinates: Coordinates{Ecosystem: EcosystemNPM, Name: name, Version: "1.0.0"},
+			Source:      DependencySourceRegistry,
+		})
+		after := before.Clone()
+		after.Source = DependencySourceGit
+		if err := base.AddNode(before); err != nil {
+			t.Fatal(err)
+		}
+		if err := head.AddNode(after); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	diff := Compare(base, head)
+	if len(diff.Transitions) != 2 {
+		t.Fatalf("Transitions = %#v, want two", diff.Transitions)
+	}
+	if diff.Transitions[0].Before.Name != "alpha" || diff.Transitions[1].Before.Name != "zeta" {
+		t.Fatalf("transitions are not stable: %#v", diff.Transitions)
+	}
+}
+
+func TestCompare_DerivesRelationshipTransitionFromGraphEdges(t *testing.T) {
+	base := New()
+	head := New()
+	for _, graph := range []*Graph{base, head} {
+		for _, node := range []*Dependency{
+			NewDependency(Dependency{Coordinates: Coordinates{Type: PackageTypeApplication, Name: "app", FirstParty: true}}),
+			NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, Name: "parent", Version: "1.0.0"}}),
+			NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, Name: "child", Version: "1.0.0"}}),
+		} {
+			if err := graph.AddNode(node); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	appID := NewDependencyRef("app", "").ID
+	parentID := NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, Name: "parent", Version: "1.0.0"}}).ID
+	childID := NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, Name: "child", Version: "1.0.0"}}).ID
+	if err := base.AddEdge(appID, childID); err != nil {
+		t.Fatal(err)
+	}
+	if err := base.AddEdge(appID, parentID); err != nil {
+		t.Fatal(err)
+	}
+	if err := head.AddEdge(appID, parentID); err != nil {
+		t.Fatal(err)
+	}
+	if err := head.AddEdge(parentID, childID); err != nil {
+		t.Fatal(err)
+	}
+
+	diff := Compare(base, head)
+	if len(diff.Transitions) != 1 {
+		t.Fatalf("Transitions = %#v, want one", diff.Transitions)
+	}
+	transition := diff.Transitions[0]
+	if !slices.Equal(transition.ChangedFields, []DependencyDetailField{DependencyDetailRelationship}) {
+		t.Fatalf("ChangedFields = %#v", transition.ChangedFields)
+	}
+	if transition.BeforeRelationship != DependencyRelationshipDirect || transition.AfterRelationship != DependencyRelationshipTransitive {
+		t.Fatalf("relationship transition = %q -> %q", transition.BeforeRelationship, transition.AfterRelationship)
+	}
+}
+
+func TestCompare_ReportsVersionAndDetailChangesSeparately(t *testing.T) {
+	base := New()
+	head := New()
+	before := NewDependency(Dependency{
+		Coordinates:  Coordinates{Ecosystem: EcosystemNPM, Name: "example", Version: "1.0.0"},
+		Relationship: DependencyRelationshipDirect,
+		Source:       DependencySourceRegistry,
+	})
+	after := NewDependency(Dependency{
+		Coordinates:  Coordinates{Ecosystem: EcosystemNPM, Name: "example", Version: "2.0.0"},
+		Relationship: DependencyRelationshipTransitive,
+		Source:       DependencySourceRegistry,
+	})
+	if err := base.AddNode(before); err != nil {
+		t.Fatal(err)
+	}
+	if err := head.AddNode(after); err != nil {
+		t.Fatal(err)
+	}
+
+	diff := Compare(base, head)
+	if len(diff.Updated) != 1 || len(diff.Transitions) != 1 {
+		t.Fatalf("Compare() = %#v, want one version change and one detail change", diff)
+	}
+	if !slices.Equal(diff.Transitions[0].ChangedFields, []DependencyDetailField{DependencyDetailRelationship}) {
+		t.Fatalf("ChangedFields = %#v", diff.Transitions[0].ChangedFields)
+	}
 }
 
 func TestCompare_IgnoresSyntheticSubprojectRoots(t *testing.T) {

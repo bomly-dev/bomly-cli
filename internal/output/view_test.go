@@ -416,6 +416,98 @@ func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 	}
 }
 
+func TestBuildDiffResponseReportsDependencyDetailTransitions(t *testing.T) {
+	baseGraph := sdk.New()
+	headGraph := sdk.New()
+	baseRoot := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+		Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM,
+		Type: sdk.PackageTypeApplication, Name: "app", FirstParty: true,
+	}})
+	headRoot := baseRoot.Clone()
+	baseDependency := sdk.NewDependency(sdk.Dependency{
+		Coordinates: sdk.Coordinates{
+			Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM,
+			Name: "example", Version: "1.0.0", PURL: "pkg:npm/example@1.0.0",
+		},
+		Relationship: sdk.DependencyRelationshipDirect,
+		Source:       sdk.DependencySourceRegistry,
+		PackageRef:   "pkg:npm/example@1.0.0",
+	})
+	headDependency := baseDependency.Clone()
+	headDependency.Relationship = sdk.DependencyRelationshipTransitive
+	headDependency.Source = sdk.DependencySourceGit
+
+	for _, pair := range []struct {
+		graph *sdk.Graph
+		root  *sdk.Dependency
+		dep   *sdk.Dependency
+	}{
+		{graph: baseGraph, root: baseRoot, dep: baseDependency},
+		{graph: headGraph, root: headRoot, dep: headDependency},
+	} {
+		if err := pair.graph.AddNode(pair.root); err != nil {
+			t.Fatal(err)
+		}
+		if err := pair.graph.AddNode(pair.dep); err != nil {
+			t.Fatal(err)
+		}
+		if err := pair.graph.AddEdge(pair.root.ID, pair.dep.ID); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	baseConsolidated, err := consolidation.ConsolidateGraphs(singleManifestDiffResults(baseGraph))
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs(base) error = %v", err)
+	}
+	headConsolidated, err := consolidation.ConsolidateGraphs(singleManifestDiffResults(headGraph))
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs(head) error = %v", err)
+	}
+	headRegistry := sdk.NewPackageRegistry()
+	headRegistry.Ensure(headDependency.PURL).Remediation = &sdk.PackageRemediation{
+		Status:             sdk.PackageRemediationComplete,
+		RecommendedVersion: "1.1.0",
+	}
+	response := output.BuildDiffResponse(
+		"/tmp/demo", "base", "head", baseConsolidated, headConsolidated, nil,
+		time.Now().Add(-time.Second),
+		output.ReportOptions{HeadRegistry: headRegistry},
+	)
+
+	if response.Summary.TransitionedPackageCount != 1 || response.Summary.ChangedPackageCount != 0 {
+		t.Fatalf("unexpected diff summary: %#v", response.Summary)
+	}
+	if len(response.Results.Dependencies.Transitions) != 1 || len(response.Results.Manifests[0].Transitions) != 1 {
+		t.Fatalf("transition projection missing: %#v", response.Results)
+	}
+	transition := response.Results.Dependencies.Transitions[0]
+	if transition.Before.Relationship != "direct" || transition.After.Relationship != "transitive" {
+		t.Fatalf("relationship transition = %#v", transition)
+	}
+	if transition.Before.Source != sdk.DependencySourceRegistry || transition.After.Source != sdk.DependencySourceGit {
+		t.Fatalf("source transition = %#v", transition)
+	}
+	if !transition.Before.RegistryEligible || transition.After.RegistryEligible {
+		t.Fatalf("registry eligibility transition = %#v", transition)
+	}
+	if len(transition.ChangedFields) != 3 {
+		t.Fatalf("ChangedFields = %#v", transition.ChangedFields)
+	}
+	if len(response.Packages) != 1 || response.Packages[0].Remediation == nil || response.Packages[0].Remediation.RecommendedVersion != "1.1.0" {
+		t.Fatalf("head-side remediation was not preserved: %#v", response.Packages)
+	}
+	encoded, err := json.Marshal(response)
+	if err != nil {
+		t.Fatalf("marshal diff response: %v", err)
+	}
+	if response.SchemaVersion != "1.0" ||
+		!strings.Contains(string(encoded), `"transitioned_package_count":1`) ||
+		!strings.Contains(string(encoded), `"changed_fields":["relationship","source","registry_eligibility"]`) {
+		t.Fatalf("dependency detail-change JSON contract is incomplete: %s", encoded)
+	}
+}
+
 func TestBuildDiffResponseEnrichesPackageDeltasFromRegistries(t *testing.T) {
 	baseGraph := sdk.New()
 	headGraph := sdk.New()
@@ -909,9 +1001,17 @@ func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
 	headGraph := sdk.New()
 
 	baseApp := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "app", Version: "1.0.0"}})
-	baseDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "left-pad", Version: "1.0.0"}})
+	baseDep := sdk.NewDependency(sdk.Dependency{
+		Coordinates:  sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "left-pad", Version: "1.0.0"},
+		Relationship: sdk.DependencyRelationshipDirect,
+		Source:       sdk.DependencySourceRegistry,
+	})
 	headApp := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "app", Version: "1.0.0"}})
-	headDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "leftpad", Version: "1.1.0"}})
+	headDep := sdk.NewDependency(sdk.Dependency{
+		Coordinates:  sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "leftpad", Version: "1.1.0"},
+		Relationship: sdk.DependencyRelationshipTransitive,
+		Source:       sdk.DependencySourceGit,
+	})
 
 	for _, pkg := range []*sdk.Dependency{baseApp, baseDep} {
 		if err := baseGraph.AddNode(pkg); err != nil {
@@ -979,12 +1079,78 @@ func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
 	if len(response.Results.Manifests) != 1 || len(response.Results.Manifests[0].Changed) != 1 {
 		t.Fatalf("expected one changed package in manifest, got %#v", response.Results.Manifests)
 	}
+	if response.Summary.TransitionedPackageCount != 1 || len(response.Results.Manifests[0].Transitions) != 1 {
+		t.Fatalf("expected fuzzy reconciliation to preserve the detail change, got %#v", response.Results)
+	}
+	transition := response.Results.Manifests[0].Transitions[0]
+	if transition.Before.Relationship != "direct" || transition.After.Relationship != "transitive" ||
+		transition.Before.Source != sdk.DependencySourceRegistry || transition.After.Source != sdk.DependencySourceGit {
+		t.Fatalf("unexpected fuzzy detail change: %#v", transition)
+	}
 	changed := response.Results.Manifests[0].Changed[0]
 	if changed.After.Metadata == nil {
 		t.Fatalf("expected fuzzy metadata on reconciled package: %#v", changed.After)
 	}
 	if changed.After.Metadata["bomly.diff.fuzzy_reconciled"] != true {
 		t.Fatalf("expected fuzzy reconciliation marker, got %#v", changed.After.Metadata)
+	}
+}
+
+func TestBuildDiffResponseKeepsDuplicateOccurrenceTransitionsPerManifest(t *testing.T) {
+	newOccurrenceGraph := func(t *testing.T, relationship sdk.DependencyRelationship, source sdk.DependencySource) *sdk.Graph {
+		t.Helper()
+		graph := sdk.New()
+		root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+			Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM,
+			Type: sdk.PackageTypeApplication, Name: "app", FirstParty: true,
+		}})
+		dependency := sdk.NewDependency(sdk.Dependency{
+			Coordinates: sdk.Coordinates{
+				Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM,
+				Name: "shared", Version: "1.0.0", PURL: "pkg:npm/shared@1.0.0",
+			},
+			Relationship: relationship,
+			Source:       source,
+			PackageRef:   "pkg:npm/shared@1.0.0",
+		})
+		if err := graph.AddNode(root); err != nil {
+			t.Fatal(err)
+		}
+		if err := graph.AddNode(dependency); err != nil {
+			t.Fatal(err)
+		}
+		if err := graph.AddEdge(root.ID, dependency.ID); err != nil {
+			t.Fatal(err)
+		}
+		return graph
+	}
+	consolidated := func(first, second *sdk.Graph) sdk.ConsolidatedGraph {
+		return sdk.ConsolidatedGraph{Manifests: []sdk.ConsolidatedManifest{
+			{Entry: sdk.GraphEntry{Graph: first, Manifest: sdk.ManifestMetadata{Path: "apps/a/package-lock.json", Kind: "package-lock.json"}}},
+			{Entry: sdk.GraphEntry{Graph: second, Manifest: sdk.ManifestMetadata{Path: "apps/b/package-lock.json", Kind: "package-lock.json"}}},
+		}}
+	}
+
+	base := consolidated(
+		newOccurrenceGraph(t, sdk.DependencyRelationshipDirect, sdk.DependencySourceRegistry),
+		newOccurrenceGraph(t, sdk.DependencyRelationshipDirect, sdk.DependencySourceRegistry),
+	)
+	head := consolidated(
+		newOccurrenceGraph(t, sdk.DependencyRelationshipTransitive, sdk.DependencySourceRegistry),
+		newOccurrenceGraph(t, sdk.DependencyRelationshipDirect, sdk.DependencySourceGit),
+	)
+
+	response := output.BuildDiffResponse("/tmp/demo", "base", "head", base, head, nil, time.Now())
+	if response.Summary.TransitionedPackageCount != 2 {
+		t.Fatalf("TransitionedPackageCount = %d, want 2", response.Summary.TransitionedPackageCount)
+	}
+	if len(response.Results.Manifests) != 2 ||
+		len(response.Results.Manifests[0].Transitions) != 1 ||
+		len(response.Results.Manifests[1].Transitions) != 1 {
+		t.Fatalf("duplicate occurrence transitions were not preserved per manifest: %#v", response.Results.Manifests)
+	}
+	if len(response.Results.Dependencies.Transitions) != 2 {
+		t.Fatalf("aggregate should retain distinct occurrence evidence: %#v", response.Results.Dependencies.Transitions)
 	}
 }
 

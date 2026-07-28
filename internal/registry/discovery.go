@@ -181,20 +181,27 @@ func patternSpecificity(pattern string) int {
 func pyprojectBelongsToManager(path string, manager sdk.PackageManager) bool {
 	switch manager {
 	case sdk.PackageManagerPoetry:
-		return pyprojectHasTable(path, "tool.poetry")
+		hasTable, _ := pyprojectHasTable(path, "tool.poetry")
+		return hasTable
 	case sdk.PackageManagerUV:
-		return pyprojectHasTable(path, "tool.uv")
+		hasTable, _ := pyprojectHasTable(path, "tool.uv")
+		return hasTable
 	case sdk.PackageManagerPDM:
-		return !pyprojectHasTable(path, "tool.poetry") && !pyprojectHasTable(path, "tool.uv")
+		hasPoetryTable, readable := pyprojectHasTable(path, "tool.poetry")
+		if !readable {
+			return false
+		}
+		hasUVTable, readable := pyprojectHasTable(path, "tool.uv")
+		return readable && !hasPoetryTable && !hasUVTable
 	default:
 		return true
 	}
 }
 
-func pyprojectHasTable(path string, table string) bool {
+func pyprojectHasTable(path string, table string) (bool, bool) {
 	raw, err := system.ReadRepositoryFile(path)
 	if err != nil {
-		return false
+		return false, false
 	}
 	for _, line := range strings.Split(string(raw), "\n") {
 		trimmed := strings.TrimSpace(line)
@@ -206,10 +213,10 @@ func pyprojectHasTable(path string, table string) bool {
 		trimmed = trimmed[:strings.Index(trimmed, "]")]
 		name := strings.TrimSpace(trimmed)
 		if strings.EqualFold(name, table) || strings.HasPrefix(strings.ToLower(name), strings.ToLower(table)+".") {
-			return true
+			return true, true
 		}
 	}
-	return false
+	return false, true
 }
 
 func uniquePackageManagers(values []sdk.PackageManager) []sdk.PackageManager {

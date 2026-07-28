@@ -73,9 +73,8 @@ func ReadFileLimit(path string, maxBytes int64) ([]byte, error) {
 func OpenFileLimit(path string, maxBytes int64) (io.ReadCloser, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		// The *os.PathError already carries the "open <path>" operation
-		// context; wrapping again would duplicate it. Callers may keep using
-		// errors.Is(err, os.ErrNotExist) on this path.
+		// The *os.PathError already carries the operation and path. Preserve it
+		// directly because legacy parser callers still use os.IsNotExist.
 		return nil, err
 	}
 	if info, statErr := file.Stat(); statErr == nil && info.Size() > maxBytes {

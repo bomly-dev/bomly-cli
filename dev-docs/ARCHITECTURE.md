@@ -688,7 +688,8 @@ This keeps the scan engine recognizable while making it possible to migrate sele
 
 ## Design Boundaries
 
-- Detector packages must not import `internal/engine` or `internal/registry`.
+- Detector packages must not import `internal/engine` or `internal/registry`. They may use `internal/system` for shared bounded filesystem and subprocess operations.
+- Built-in analyzer packages may use `internal/system` for shared bounded filesystem and subprocess operations, but must not import `internal/engine` or `internal/registry`.
 - `sdk` owns shared neutral identifiers and support types.
 - `internal/registry` owns discovery, support-matrix data, and built-in registry wiring.
 - `internal/engine` owns runtime planning, orchestration, and detector-chain reuse.

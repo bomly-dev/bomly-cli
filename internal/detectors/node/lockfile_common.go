@@ -31,7 +31,7 @@ func ParseIntegrityDigests(integrity string) []sdk.Digest {
 func ReadPackageJSONManifest(projectPath string) (PackageJSONManifest, error) {
 	data, err := system.ReadRepositoryFile(filepath.Join(projectPath, "package.json"))
 	if err != nil {
-		return PackageJSONManifest{}, err
+		return PackageJSONManifest{}, fmt.Errorf("read package.json: %w", err)
 	}
 	var manifest PackageJSONManifest
 	if err := json.Unmarshal(StripUTF8BOM(data), &manifest); err != nil {

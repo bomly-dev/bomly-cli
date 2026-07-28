@@ -26,9 +26,9 @@ type LineRange struct {
 var diffHunkHeader = regexp.MustCompile(`^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@`)
 
 const (
-	// RemoteOperationTimeout bounds each Git clone or checkout operation.
+	// RemoteOperationTimeout bounds one constrained remote materialization flow.
 	// Git does not expose a reliable byte quota, so elapsed time is the
-	// enforceable in-process boundary for remote materialization.
+	// enforceable in-process boundary before checkout validation.
 	RemoteOperationTimeout = 10 * time.Minute
 
 	maxMaterializedEntries = 1_000_000
@@ -66,7 +66,7 @@ func cloneTemp(ctx context.Context, logger *zap.Logger, repoURL, ref, tempRoot s
 	if err != nil {
 		return "", fmt.Errorf("create temp directory: %w", err)
 	}
-	if err := cloneInto(operationCtx, logger, repoURL, tempDir, ref, false); err != nil {
+	if err := cloneInto(operationCtx, logger, repoURL, tempDir, ref, false, true); err != nil {
 		_ = os.RemoveAll(tempDir)
 		return "", err
 	}
@@ -79,6 +79,10 @@ func cloneTemp(ctx context.Context, logger *zap.Logger, repoURL, ref, tempRoot s
 
 // FindRepoRoot resolves the git repository root for path.
 func FindRepoRoot(logger *zap.Logger, path string) (string, error) {
+	return findRepoRootWithRunner(context.Background(), logger, path, runGitContext)
+}
+
+func findRepoRootWithRunner(ctx context.Context, logger *zap.Logger, path string, runner gitContextRunner) (string, error) {
 	if err := ensureGitAvailable(); err != nil {
 		return "", err
 	}
@@ -89,7 +93,7 @@ func FindRepoRoot(logger *zap.Logger, path string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("resolve path %q: %w", path, err)
 	}
-	stdout, err := runGit(logger, absPath, "rev-parse", "--show-toplevel")
+	stdout, err := runner(ctx, logger, absPath, "rev-parse", "--show-toplevel")
 	if err != nil {
 		return "", fmt.Errorf("find git repository root for %q: %w", absPath, err)
 	}
@@ -134,18 +138,41 @@ func CheckoutRef(logger *zap.Logger, repoPath, ref string) error {
 }
 
 // MaterializeLocalRef clones sourceRepoPath into a temporary directory and checks out ref.
+// Local repositories are trusted inputs, so repository symlinks are preserved
+// even when they point outside the checkout.
 // The caller owns cleanup of the returned directory.
 func MaterializeLocalRef(ctx context.Context, logger *zap.Logger, sourceRepoPath, ref string) (string, error) {
+	return materializeRef(ctx, logger, sourceRepoPath, ref, false)
+}
+
+// MaterializeRemoteRef clones an already-fetched remote repository into a
+// temporary directory, checks out ref, and validates the resulting tree.
+// The caller owns cleanup of the returned directory.
+func MaterializeRemoteRef(ctx context.Context, logger *zap.Logger, sourceRepoPath, ref string) (string, error) {
+	operationCtx, cancel := context.WithTimeout(ctx, RemoteOperationTimeout)
+	defer cancel()
+	path, err := materializeRef(operationCtx, logger, sourceRepoPath, ref, true)
+	if err != nil && errors.Is(err, context.DeadlineExceeded) {
+		return "", fmt.Errorf("materialize remote git ref %q: timed out after %s: %w", ref, RemoteOperationTimeout, err)
+	}
+	return path, err
+}
+
+func materializeRef(ctx context.Context, logger *zap.Logger, sourceRepoPath, ref string, constrained bool) (string, error) {
 	if err := ensureGitAvailable(); err != nil {
 		return "", err
 	}
-	root, err := FindRepoRoot(logger, sourceRepoPath)
+	runner := runGitContext
+	if constrained {
+		runner = runMaterializationGitContext
+	}
+	root, err := findRepoRootWithRunner(ctx, logger, sourceRepoPath, runner)
 	if err != nil {
 		return "", err
 	}
 	resolvedRef := ""
 	if ref != "" {
-		resolvedRef, err = resolveCommit(logger, root, ref)
+		resolvedRef, err = resolveCommitWithRunner(ctx, logger, root, ref, runner)
 		if err != nil {
 			return "", err
 		}
@@ -154,19 +181,21 @@ func MaterializeLocalRef(ctx context.Context, logger *zap.Logger, sourceRepoPath
 	if err != nil {
 		return "", fmt.Errorf("create temp directory: %w", err)
 	}
-	if err := cloneInto(ctx, logger, root, tempDir, "", true); err != nil {
+	if err := cloneInto(ctx, logger, root, tempDir, "", true, constrained); err != nil {
 		_ = os.RemoveAll(tempDir)
 		return "", err
 	}
 	if resolvedRef != "" {
-		if err := checkoutCommitContext(ctx, logger, tempDir, resolvedRef, ref); err != nil {
+		if err := checkoutCommitContext(ctx, logger, tempDir, resolvedRef, ref, constrained); err != nil {
 			_ = os.RemoveAll(tempDir)
 			return "", err
 		}
 	}
-	if err := validateMaterializedTree(tempDir, defaultMaterializedTreeLimits); err != nil {
-		_ = os.RemoveAll(tempDir)
-		return "", fmt.Errorf("validate materialized repository: %w", err)
+	if constrained {
+		if err := validateMaterializedTree(tempDir, defaultMaterializedTreeLimits); err != nil {
+			_ = os.RemoveAll(tempDir)
+			return "", fmt.Errorf("validate materialized repository: %w", err)
+		}
 	}
 	return tempDir, nil
 }
@@ -178,21 +207,19 @@ func ensureGitAvailable() error {
 	return nil
 }
 
-func cloneInto(ctx context.Context, logger *zap.Logger, source, dest, ref string, local bool) error {
+func cloneInto(ctx context.Context, logger *zap.Logger, source, dest, ref string, local, constrained bool) error {
 	safeSource := logging.SanitizeURL(source)
 	args := make([]string, 0, 10)
-	if !local {
-		// Keep a repository-controlled LFS pointer from starting a second,
-		// unbounded download during checkout. The pointer remains available
-		// to detectors like any other repository file.
-		args = append(args, "-c", "filter.lfs.smudge=", "-c", "filter.lfs.required=false")
-	}
 	args = append(args, "clone", "--quiet", "--no-recurse-submodules")
 	if local {
 		args = append(args, "--local")
 	}
 	args = append(args, source, dest)
-	if _, err := runGitContext(ctx, logger, "", args...); err != nil {
+	runner := runGitContext
+	if constrained {
+		runner = runMaterializationGitContext
+	}
+	if _, err := runner(ctx, logger, "", args...); err != nil {
 		if logger != nil {
 			logger.Error(fmt.Sprintf("Git clone failed: %v", err))
 			logger.Debug("git clone failure details", zap.String("source", safeSource), zap.String("destination", dest), zap.Error(err))
@@ -203,11 +230,11 @@ func cloneInto(ctx context.Context, logger *zap.Logger, source, dest, ref string
 		return fmt.Errorf("clone git repository %q: %w", safeSource, err)
 	}
 	if ref != "" {
-		commit, err := resolveCommitContext(ctx, logger, dest, ref)
+		commit, err := resolveCommitWithRunner(ctx, logger, dest, ref, runner)
 		if err != nil {
 			return err
 		}
-		if err := checkoutCommitContext(ctx, logger, dest, commit, ref); err != nil {
+		if err := checkoutCommitWithRunner(ctx, logger, dest, commit, ref, runner); err != nil {
 			return err
 		}
 	}
@@ -219,8 +246,14 @@ func resolveCommit(logger *zap.Logger, repoPath, ref string) (string, error) {
 }
 
 func resolveCommitContext(ctx context.Context, logger *zap.Logger, repoPath, ref string) (string, error) {
+	return resolveCommitWithRunner(ctx, logger, repoPath, ref, runGitContext)
+}
+
+type gitContextRunner func(context.Context, *zap.Logger, string, ...string) (string, error)
+
+func resolveCommitWithRunner(ctx context.Context, logger *zap.Logger, repoPath, ref string, runner gitContextRunner) (string, error) {
 	for _, candidate := range refResolutionCandidates(ref) {
-		stdout, err := runGitContext(ctx, logger, repoPath, "rev-parse", "--verify", candidate+"^{commit}")
+		stdout, err := runner(ctx, logger, repoPath, "rev-parse", "--verify", candidate+"^{commit}")
 		if err == nil {
 			return strings.TrimSpace(stdout), nil
 		}
@@ -237,11 +270,19 @@ func refResolutionCandidates(ref string) []string {
 }
 
 func checkoutCommit(logger *zap.Logger, repoPath, commit, originalRef string) error {
-	return checkoutCommitContext(context.Background(), logger, repoPath, commit, originalRef)
+	return checkoutCommitContext(context.Background(), logger, repoPath, commit, originalRef, false)
 }
 
-func checkoutCommitContext(ctx context.Context, logger *zap.Logger, repoPath, commit, originalRef string) error {
-	if _, err := runGitContext(ctx, logger, repoPath, "checkout", "--quiet", "--detach", commit); err != nil {
+func checkoutCommitContext(ctx context.Context, logger *zap.Logger, repoPath, commit, originalRef string, constrained bool) error {
+	runner := runGitContext
+	if constrained {
+		runner = runMaterializationGitContext
+	}
+	return checkoutCommitWithRunner(ctx, logger, repoPath, commit, originalRef, runner)
+}
+
+func checkoutCommitWithRunner(ctx context.Context, logger *zap.Logger, repoPath, commit, originalRef string, runner gitContextRunner) error {
+	if _, err := runner(ctx, logger, repoPath, "checkout", "--quiet", "--detach", commit); err != nil {
 		if logger != nil {
 			logger.Error(fmt.Sprintf("Git checkout failed: %v", err))
 			logger.Debug("git checkout failure details", zap.String("repository", repoPath), zap.String("ref", originalRef), zap.String("commit", commit), zap.Error(err))
@@ -256,6 +297,38 @@ func runGit(logger *zap.Logger, workingDir string, args ...string) (string, erro
 }
 
 func runGitContext(ctx context.Context, logger *zap.Logger, workingDir string, args ...string) (string, error) {
+	return runGitContextWithEnv(ctx, logger, workingDir, nil, args...)
+}
+
+func runMaterializationGitContext(ctx context.Context, logger *zap.Logger, workingDir string, args ...string) (string, error) {
+	return runGitContextWithEnv(
+		ctx,
+		logger,
+		workingDir,
+		materializationGitEnvironment(os.Environ()),
+		materializationGitArgs(args)...,
+	)
+}
+
+func materializationGitArgs(args []string) []string {
+	constrained := make([]string, 0, len(args)+2)
+	constrained = append(constrained, "-c", "submodule.recurse=false")
+	return append(constrained, args...)
+}
+
+func materializationGitEnvironment(environment []string) []string {
+	const key = "GIT_LFS_SKIP_SMUDGE="
+	constrained := make([]string, 0, len(environment)+1)
+	for _, entry := range environment {
+		if strings.HasPrefix(entry, key) {
+			continue
+		}
+		constrained = append(constrained, entry)
+	}
+	return append(constrained, key+"1")
+}
+
+func runGitContextWithEnv(ctx context.Context, logger *zap.Logger, workingDir string, environment []string, args ...string) (string, error) {
 	if logger == nil {
 		logger = zap.NewNop()
 	}
@@ -263,6 +336,9 @@ func runGitContext(ctx context.Context, logger *zap.Logger, workingDir string, a
 	cmd := system.CommandContext(ctx, "git", args...)
 	if workingDir != "" {
 		cmd.Dir = workingDir
+	}
+	if environment != nil {
+		cmd.Env = environment
 	}
 	var stdout bytes.Buffer
 	var diagnostics bytes.Buffer

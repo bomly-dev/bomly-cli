@@ -17,7 +17,7 @@ import (
 func TestCloneIntoRedactsUserinfoAndPreservesExitError(t *testing.T) {
 	requireGit(t)
 	const source = "unsupported://user:clone-secret@example.test/repository"
-	err := cloneInto(context.Background(), nil, source, filepath.Join(t.TempDir(), "clone"), "", false)
+	err := cloneInto(context.Background(), nil, source, filepath.Join(t.TempDir(), "clone"), "", false, true)
 	if err == nil {
 		t.Fatal("cloneInto() error = nil, want unsupported transport error")
 	}
@@ -76,15 +76,15 @@ func TestMaterializeLocalRefKeepsRepositorySymlinksAsSymlinks(t *testing.T) {
 	requireGit(t)
 
 	repoDir := t.TempDir()
-	target := filepath.Join(repoDir, "target.txt")
-	writePlatformTestFile(t, target, "target\n")
+	outside := filepath.Join(t.TempDir(), "target.txt")
+	writePlatformTestFile(t, outside, "target\n")
 	runGitCommand(t, repoDir, "init", "--initial-branch=main")
 	runGitCommand(t, repoDir, "config", "user.email", "test@example.com")
 	runGitCommand(t, repoDir, "config", "user.name", "Bomly Test")
-	if err := os.Symlink("target.txt", filepath.Join(repoDir, "linked.txt")); err != nil {
+	if err := os.Symlink(outside, filepath.Join(repoDir, "linked.txt")); err != nil {
 		t.Fatalf("create repository symlink: %v", err)
 	}
-	runGitCommand(t, repoDir, "add", "target.txt", "linked.txt")
+	runGitCommand(t, repoDir, "add", "linked.txt")
 	runGitCommand(t, repoDir, "commit", "-m", "add symlink")
 
 	materialized, err := MaterializeLocalRef(context.Background(), nil, repoDir, "HEAD")
@@ -102,7 +102,7 @@ func TestMaterializeLocalRefKeepsRepositorySymlinksAsSymlinks(t *testing.T) {
 	}
 }
 
-func TestMaterializeLocalRefRejectsEscapingRepositorySymlink(t *testing.T) {
+func TestMaterializeRemoteRefRejectsEscapingRepositorySymlink(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("symlink creation requires elevated privileges on Windows")
 	}
@@ -120,15 +120,38 @@ func TestMaterializeLocalRefRejectsEscapingRepositorySymlink(t *testing.T) {
 	runGitCommand(t, repoDir, "add", "package.json")
 	runGitCommand(t, repoDir, "commit", "-m", "add escaping manifest")
 
-	_, err := MaterializeLocalRef(context.Background(), nil, repoDir, "HEAD")
+	_, err := MaterializeRemoteRef(context.Background(), nil, repoDir, "HEAD")
 	if err == nil {
-		t.Fatal("MaterializeLocalRef() error = nil, want containment error")
+		t.Fatal("MaterializeRemoteRef() error = nil, want containment error")
 	}
 	if !strings.Contains(err.Error(), `repository symlink "package.json" points outside`) {
-		t.Fatalf("MaterializeLocalRef() error = %v", err)
+		t.Fatalf("MaterializeRemoteRef() error = %v", err)
 	}
 	if strings.Contains(err.Error(), outside) {
-		t.Fatalf("MaterializeLocalRef() exposed outside path: %v", err)
+		t.Fatalf("MaterializeRemoteRef() exposed outside path: %v", err)
+	}
+}
+
+func TestMaterializationGitArgumentsDisableSubmoduleRecursion(t *testing.T) {
+	got := materializationGitArgs([]string{"checkout", "--detach", "abc123"})
+	want := []string{"-c", "submodule.recurse=false", "checkout", "--detach", "abc123"}
+	if strings.Join(got, "\x00") != strings.Join(want, "\x00") {
+		t.Fatalf("materializationGitArgs() = %#v, want %#v", got, want)
+	}
+}
+
+func TestMaterializationGitEnvironmentDisablesLFSSmudge(t *testing.T) {
+	got := materializationGitEnvironment([]string{
+		"PATH=/usr/bin",
+		"GIT_LFS_SKIP_SMUDGE=0",
+		"OTHER=value",
+	})
+	if strings.Join(got, "\x00") != strings.Join([]string{
+		"PATH=/usr/bin",
+		"OTHER=value",
+		"GIT_LFS_SKIP_SMUDGE=1",
+	}, "\x00") {
+		t.Fatalf("materializationGitEnvironment() = %#v", got)
 	}
 }
 

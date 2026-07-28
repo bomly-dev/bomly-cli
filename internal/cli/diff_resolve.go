@@ -84,7 +84,13 @@ func resolveDiffRepo(ctx context.Context, options *opts.Options, prog *progress.
 }
 
 func resolveDiffResultsForRef(ctx context.Context, options *opts.Options, logger *zap.Logger, repoRoot, ref string) (diffResolvedTarget, error) {
-	materializedPath, err := git.MaterializeLocalRef(ctx, logger, repoRoot, ref)
+	var materializedPath string
+	var err error
+	if strings.TrimSpace(options.GetConfig().URL) != "" {
+		materializedPath, err = git.MaterializeRemoteRef(ctx, logger, repoRoot, ref)
+	} else {
+		materializedPath, err = git.MaterializeLocalRef(ctx, logger, repoRoot, ref)
+	}
 	if err != nil {
 		return diffResolvedTarget{}, exit.ResolutionFailureError(err)
 	}

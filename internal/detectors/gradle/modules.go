@@ -1,6 +1,7 @@
 package gradle
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -181,7 +182,7 @@ func readGradleSettings(workingDir string) (string, error) {
 		if err == nil {
 			return string(raw), nil
 		}
-		if !os.IsNotExist(err) {
+		if !errors.Is(err, os.ErrNotExist) {
 			return "", fmt.Errorf("read %s: %w", name, err)
 		}
 	}

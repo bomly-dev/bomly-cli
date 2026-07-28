@@ -58,7 +58,7 @@ func ReadLimit(input io.Reader, declaredSize, maxBytes int64) ([]byte, error) {
 func ReadFileLimit(path string, maxBytes int64) ([]byte, error) {
 	file, err := OpenFileLimit(path, maxBytes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("open bounded file %q: %w", path, err)
 	}
 	defer func() { _ = file.Close() }()
 	data, err := io.ReadAll(file)
@@ -73,9 +73,7 @@ func ReadFileLimit(path string, maxBytes int64) ([]byte, error) {
 func OpenFileLimit(path string, maxBytes int64) (io.ReadCloser, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		// The *os.PathError already carries the operation and path. Preserve it
-		// directly because legacy parser callers still use os.IsNotExist.
-		return nil, err
+		return nil, fmt.Errorf("open file %q for bounded read: %w", path, err)
 	}
 	if info, statErr := file.Stat(); statErr == nil && info.Size() > maxBytes {
 		_ = file.Close()
@@ -87,18 +85,30 @@ func OpenFileLimit(path string, maxBytes int64) (io.ReadCloser, error) {
 // ReadRepositoryFile reads one repository-controlled parser input with the
 // shared repository file limit.
 func ReadRepositoryFile(path string) ([]byte, error) {
-	return ReadFileLimit(path, MaxRepositoryFileBytes)
+	data, err := ReadFileLimit(path, MaxRepositoryFileBytes)
+	if err != nil {
+		return nil, fmt.Errorf("read repository file %q: %w", path, err)
+	}
+	return data, nil
 }
 
 // OpenRepositoryFile opens one repository-controlled parser input for a
 // streaming read with the shared repository file limit.
 func OpenRepositoryFile(path string) (io.ReadCloser, error) {
-	return OpenFileLimit(path, MaxRepositoryFileBytes)
+	reader, err := OpenFileLimit(path, MaxRepositoryFileBytes)
+	if err != nil {
+		return nil, fmt.Errorf("open repository file %q: %w", path, err)
+	}
+	return reader, nil
 }
 
 // ReadCacheFile reads one local cache entry with the shared cache entry limit.
 func ReadCacheFile(path string) ([]byte, error) {
-	return ReadFileLimit(path, MaxCacheEntryBytes)
+	data, err := ReadFileLimit(path, MaxCacheEntryBytes)
+	if err != nil {
+		return nil, fmt.Errorf("read cache file %q: %w", path, err)
+	}
+	return data, nil
 }
 
 func inputTooLargeError(maxBytes int64) error {

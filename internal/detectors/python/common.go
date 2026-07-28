@@ -634,7 +634,7 @@ func declaredPythonDependencies(projectPath string) (map[string]struct{}, error)
 
 func collectRequirementFileDependencies(path string, declared map[string]struct{}) error {
 	raw, err := system.ReadRepositoryFile(path)
-	if os.IsNotExist(err) {
+	if errors.Is(err, os.ErrNotExist) {
 		return nil
 	}
 	if err != nil {
@@ -737,7 +737,7 @@ func attachDeclaredPositions(depsGraph *sdk.Graph, projectPath string) {
 
 func collectLoosePythonManifestDependencies(path string, declared map[string]struct{}) error {
 	raw, err := system.ReadRepositoryFile(path)
-	if os.IsNotExist(err) {
+	if errors.Is(err, os.ErrNotExist) {
 		return nil
 	}
 	if err != nil {

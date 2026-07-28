@@ -2,6 +2,7 @@ package detectors
 
 import (
 	"bufio"
+	"errors"
 	"os"
 	"strings"
 
@@ -117,7 +118,7 @@ func hasLocation(locations []sdk.PackageLocation, pos *sdk.SourcePosition, exact
 func ScanLines(path string, fn func(line int, text string)) error {
 	f, err := system.OpenRepositoryFile(path)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			return nil
 		}
 		return err

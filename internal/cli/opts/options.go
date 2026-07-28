@@ -206,7 +206,7 @@ func (o *Options) ResolveConfig(cmd *cobra.Command) error {
 }
 
 func (o *Options) Prepare(ctx context.Context, logger *zap.Logger) (Options, error) {
-	executionTarget, _, cleanup, err := o.resolveExecutionTarget(logger)
+	executionTarget, _, cleanup, err := o.resolveExecutionTarget(ctx, logger)
 	if err != nil {
 		return Options{}, err
 	}
@@ -219,8 +219,8 @@ func (o *Options) Prepare(ctx context.Context, logger *zap.Logger) (Options, err
 // this directly when they want to surface a dedicated "Cloning repository"
 // (or similar) progress step around just this phase, before calling
 // PrepareForExecutionTarget for the subproject-indexing phase.
-func (o *Options) ResolveExecutionTarget(logger *zap.Logger) (sdk.ExecutionTarget, func() error, error) {
-	target, _, cleanup, err := o.resolveExecutionTarget(logger)
+func (o *Options) ResolveExecutionTarget(ctx context.Context, logger *zap.Logger) (sdk.ExecutionTarget, func() error, error) {
+	target, _, cleanup, err := o.resolveExecutionTarget(ctx, logger)
 	return target, cleanup, err
 }
 
@@ -582,7 +582,7 @@ func (o *Options) configLoadPaths(explicitConfig string) ([]string, error) {
 	return paths, nil
 }
 
-func (o *Options) resolveExecutionTarget(logger *zap.Logger) (sdk.ExecutionTarget, string, func() error, error) {
+func (o *Options) resolveExecutionTarget(ctx context.Context, logger *zap.Logger) (sdk.ExecutionTarget, string, func() error, error) {
 	resolved := o.ResolvedConfig
 	if resolved.SBOM {
 		if resolved.Image != "" || resolved.URL != "" || resolved.Ref != "" {
@@ -608,7 +608,7 @@ func (o *Options) resolveExecutionTarget(logger *zap.Logger) (sdk.ExecutionTarge
 		return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("--path, --url, and --image cannot be used together")
 	}
 	if resolved.URL != "" {
-		projectPath, err := git.CloneTemp(logger, resolved.URL, resolved.Ref)
+		projectPath, err := git.CloneTemp(ctx, logger, resolved.URL, resolved.Ref)
 		if err != nil {
 			return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("clone --url %q: %v", resolved.URL, err)
 		}

@@ -132,7 +132,19 @@ bomly scan --url https://github.com/example/repo --ref v1.2.0
 bomly scan --url https://github.com/example/repo --ref main
 ```
 
-The clone goes to a temporary directory and is removed after the scan. Credentials come from your local Git config (HTTPS via the credential helper; SSH via `~/.ssh`). Bomly does not store or log credentials.
+The clone goes to a temporary directory and is removed after the scan. One
+remote Git operation may run for at most 10 minutes. Bomly does not fetch
+submodules or Git LFS objects automatically; checked-out LFS pointer files
+remain as repository input.
+
+After checkout, Bomly rejects more than 1,000,000 paths, more than 10 GiB of
+regular files, paths deeper than 256 levels, and symlinks that point outside
+the checkout. Symlinks whose targets stay inside the checkout continue to
+work. These checks happen after Git creates the checkout, so they do not cap
+the bytes Git downloads or the size of its `.git` directory.
+
+Credentials come from your local Git config (HTTPS via the credential helper;
+SSH via `~/.ssh`). Bomly does not store or log credentials.
 
 `--ref` accepts any value `git checkout` accepts: branch, tag, commit SHA.
 

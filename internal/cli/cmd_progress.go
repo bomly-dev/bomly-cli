@@ -133,7 +133,7 @@ func plannedSubprojectChildren(subprojects []sdk.Subproject) []progress.Child {
 func prepareCommandContextWithProgress(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger) (opts.Options, error) {
 	if active, done, show := inputResolutionLabels(*options); show {
 		inputStep := prog.StartWithDoneLabel("input", active, done)
-		executionTarget, cleanup, err := options.ResolveExecutionTarget(logger)
+		executionTarget, cleanup, err := options.ResolveExecutionTarget(ctx, logger)
 		if err != nil {
 			inputStep.Fail(active + " failed")
 			return opts.Options{}, err

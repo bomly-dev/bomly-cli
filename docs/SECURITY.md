@@ -63,14 +63,20 @@ responses as untrusted input.
 - Manifests, lockfiles, workspace files, and source files parsed in process
   have a 64 MiB per-file limit. Local JSON cache entries have the same limit;
   an oversized or corrupt cache entry becomes a cache miss.
+- A remote Git operation may run for at most 10 minutes. After checkout,
+  Bomly accepts at most 1,000,000 paths, 10 GiB of regular files, and 256 path
+  levels. A repository symlink may point elsewhere in that checkout, but it
+  may not point outside the checkout. Submodules and Git LFS objects are not
+  downloaded automatically.
 - Output is written only to the path selected by the user. Cache keys are
   hashed before they become paths.
 
 Some resources intentionally have no general hard size limit:
 
-- `--url` uses the installed Git client and has no Bomly byte or disk quota.
-  Cancel the command or apply operating-system limits when scanning an
-  untrusted, very large repository.
+- `--url` uses the installed Git client. Git may download objects and use disk
+  space before Bomly can check the completed checkout, and the `.git`
+  directory is not included in the 10 GiB checkout limit. Use
+  operating-system limits when that earlier resource use must be capped.
 - Output from a selected package manager or host tool is not truncated. A
   truncated command result could look like a complete dependency graph when it
   is not.

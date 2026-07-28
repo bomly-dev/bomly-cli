@@ -135,7 +135,10 @@ separate boundaries:
 
 - **Matchers** only run when you pass `--enrich`. `--audit` evaluates data that is already present and never triggers enrichment on its own.
 - **Detectors** vary: lockfile parsers (npm, pnpm, Yarn, Bun text lockfiles, Composer, Bundler, NuGet, GitHub Actions, SBOM ingest, …) are pure file readers and make no network calls. Build-tool–backed detectors shell out to the package manager when their deterministic file parser cannot resolve the project. Bun prefers `bun.lock`, then uses `bun pm ls --all` for the installed tree, and finally falls back to Syft; displayed child edges are preserved and unprovable hoisted parent relationships remain explicitly `unknown`. Install-first is never implicit.
-- **Remote targets** require network access when you pass `--url`; Bomly clones the requested Git repository before scanning it.
+- **Remote targets** require network access when you pass `--url`; Bomly clones
+  the requested Git repository before scanning it. Remote Git work has a
+  10-minute deadline. The completed checkout has path, regular-file-size, and
+  depth limits, and repository symlinks cannot escape it.
 - `--install-first` is the explicit opt-in that lets supporting detectors run their install command (`npm install`, `pip install`, …) before resolving; this downloads packages by design.
 
 When enrichment is enabled, Bomly's built-in HTTP matchers may contact OSV,

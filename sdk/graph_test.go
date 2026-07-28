@@ -467,11 +467,11 @@ func TestCompare_ClassifiesAddedRemovedAndUpdated(t *testing.T) {
 		t.Fatalf("unexpected updated node: %#v", diff.Updated[0])
 	}
 	if len(diff.Transitions) != 0 {
-		t.Fatalf("unexpected metadata transitions: %#v", diff.Transitions)
+		t.Fatalf("unexpected detail changes: %#v", diff.Transitions)
 	}
 }
 
-func TestCompare_ClassifiesDependencyMetadataTransitions(t *testing.T) {
+func TestCompare_ClassifiesDependencyDetailTransitions(t *testing.T) {
 	base := New()
 	head := New()
 	baseRoot := NewDependency(Dependency{Coordinates: Coordinates{Type: PackageTypeApplication, Name: "app", FirstParty: true}})
@@ -506,16 +506,15 @@ func TestCompare_ClassifiesDependencyMetadataTransitions(t *testing.T) {
 
 	diff := Compare(base, head)
 	if len(diff.Added) != 0 || len(diff.Removed) != 0 || len(diff.Updated) != 0 {
-		t.Fatalf("metadata-only diff changed package identity/version buckets: %#v", diff)
+		t.Fatalf("detail-only diff changed package identity/version buckets: %#v", diff)
 	}
 	if len(diff.Transitions) != 1 {
 		t.Fatalf("Transitions = %#v, want one", diff.Transitions)
 	}
 	transition := diff.Transitions[0]
-	wantFields := []DependencyMetadataField{
-		DependencyMetadataRelationship,
-		DependencyMetadataSource,
-		DependencyMetadataRegistryEligibility,
+	wantFields := []DependencyDetailField{
+		DependencyDetailSource,
+		DependencyDetailRegistryEligibility,
 	}
 	if !slices.Equal(transition.ChangedFields, wantFields) {
 		t.Fatalf("ChangedFields = %#v, want %#v", transition.ChangedFields, wantFields)
@@ -528,7 +527,7 @@ func TestCompare_ClassifiesDependencyMetadataTransitions(t *testing.T) {
 	}
 }
 
-func TestCompareDependencyMetadataClassifiesEachAxisIndependently(t *testing.T) {
+func TestCompareDependencyDetailsClassifiesEachAxisIndependently(t *testing.T) {
 	base := NewDependency(Dependency{
 		Coordinates: Coordinates{
 			Ecosystem: EcosystemNPM,
@@ -542,7 +541,7 @@ func TestCompareDependencyMetadataClassifiesEachAxisIndependently(t *testing.T) 
 	tests := []struct {
 		name  string
 		after func() *Dependency
-		want  DependencyMetadataField
+		want  DependencyDetailField
 	}{
 		{
 			name: "relationship only",
@@ -551,16 +550,16 @@ func TestCompareDependencyMetadataClassifiesEachAxisIndependently(t *testing.T) 
 				after.Relationship = DependencyRelationshipTransitive
 				return after
 			},
-			want: DependencyMetadataRelationship,
+			want: DependencyDetailRelationship,
 		},
 		{
-			name: "source only",
+			name: "known source only",
 			after: func() *Dependency {
 				after := base.Clone()
-				after.Source = ""
+				after.Source = DependencySource("custom-registry")
 				return after
 			},
-			want: DependencyMetadataSource,
+			want: DependencyDetailSource,
 		},
 		{
 			name: "registry eligibility only",
@@ -569,14 +568,14 @@ func TestCompareDependencyMetadataClassifiesEachAxisIndependently(t *testing.T) 
 				after.FirstParty = true
 				return after
 			},
-			want: DependencyMetadataRegistryEligibility,
+			want: DependencyDetailRegistryEligibility,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			transition, changed := CompareDependencyMetadata(nil, nil, base, tt.after())
+			transition, changed := CompareDependencyDetails(nil, nil, base, tt.after())
 			if !changed {
-				t.Fatal("CompareDependencyMetadata() did not report a transition")
+				t.Fatal("CompareDependencyDetails() did not report a transition")
 			}
 			if len(transition.ChangedFields) != 1 || transition.ChangedFields[0] != tt.want {
 				t.Fatalf("ChangedFields = %#v, want [%s]", transition.ChangedFields, tt.want)
@@ -585,7 +584,21 @@ func TestCompareDependencyMetadataClassifiesEachAxisIndependently(t *testing.T) 
 	}
 }
 
-func TestCompareSortsDependencyMetadataTransitions(t *testing.T) {
+func TestCompareDependencyDetailsIgnoresMissingEvidence(t *testing.T) {
+	before := NewDependency(Dependency{
+		Coordinates:  Coordinates{Ecosystem: EcosystemNPM, Name: "example", Version: "1.0.0"},
+		Relationship: DependencyRelationshipUnknown,
+	})
+	after := before.Clone()
+	after.Relationship = DependencyRelationshipDirect
+	after.Source = DependencySourceRegistry
+
+	if transition, changed := CompareDependencyDetails(nil, nil, before, after); changed {
+		t.Fatalf("missing relationship/source evidence must not create a detail change: %#v", transition)
+	}
+}
+
+func TestCompareSortsDependencyDetailTransitions(t *testing.T) {
 	base := New()
 	head := New()
 	for _, name := range []string{"zeta", "alpha"} {
@@ -647,7 +660,7 @@ func TestCompare_DerivesRelationshipTransitionFromGraphEdges(t *testing.T) {
 		t.Fatalf("Transitions = %#v, want one", diff.Transitions)
 	}
 	transition := diff.Transitions[0]
-	if !slices.Equal(transition.ChangedFields, []DependencyMetadataField{DependencyMetadataRelationship}) {
+	if !slices.Equal(transition.ChangedFields, []DependencyDetailField{DependencyDetailRelationship}) {
 		t.Fatalf("ChangedFields = %#v", transition.ChangedFields)
 	}
 	if transition.BeforeRelationship != DependencyRelationshipDirect || transition.AfterRelationship != DependencyRelationshipTransitive {
@@ -655,7 +668,7 @@ func TestCompare_DerivesRelationshipTransitionFromGraphEdges(t *testing.T) {
 	}
 }
 
-func TestCompare_ReportsVersionAndMetadataChangesSeparately(t *testing.T) {
+func TestCompare_ReportsVersionAndDetailChangesSeparately(t *testing.T) {
 	base := New()
 	head := New()
 	before := NewDependency(Dependency{
@@ -677,9 +690,9 @@ func TestCompare_ReportsVersionAndMetadataChangesSeparately(t *testing.T) {
 
 	diff := Compare(base, head)
 	if len(diff.Updated) != 1 || len(diff.Transitions) != 1 {
-		t.Fatalf("Compare() = %#v, want one version change and one metadata transition", diff)
+		t.Fatalf("Compare() = %#v, want one version change and one detail change", diff)
 	}
-	if !slices.Equal(diff.Transitions[0].ChangedFields, []DependencyMetadataField{DependencyMetadataRelationship}) {
+	if !slices.Equal(diff.Transitions[0].ChangedFields, []DependencyDetailField{DependencyDetailRelationship}) {
 		t.Fatalf("ChangedFields = %#v", diff.Transitions[0].ChangedFields)
 	}
 }

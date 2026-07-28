@@ -38,7 +38,7 @@ func TestDiffOverviewMarkdownPersistedWarningsAreWarnings(t *testing.T) {
 	}
 }
 
-func TestDiffTextAndMarkdownRenderDependencyMetadataTransitions(t *testing.T) {
+func TestDiffTextAndMarkdownRenderDependencyDetailTransitions(t *testing.T) {
 	payload := output.DiffResponse{
 		Summary: output.DiffSummary{TransitionedPackageCount: 1},
 		Results: output.DiffResults{Dependencies: output.DiffDependencyResults{
@@ -57,10 +57,10 @@ func TestDiffTextAndMarkdownRenderDependencyMetadataTransitions(t *testing.T) {
 					Source:           sdk.DependencySourceGit,
 					RegistryEligible: false,
 				},
-				ChangedFields: []sdk.DependencyMetadataField{
-					sdk.DependencyMetadataRelationship,
-					sdk.DependencyMetadataSource,
-					sdk.DependencyMetadataRegistryEligibility,
+				ChangedFields: []sdk.DependencyDetailField{
+					sdk.DependencyDetailRelationship,
+					sdk.DependencyDetailSource,
+					sdk.DependencyDetailRegistryEligibility,
 				},
 			}},
 		}},
@@ -71,14 +71,21 @@ func TestDiffTextAndMarkdownRenderDependencyMetadataTransitions(t *testing.T) {
 		t.Fatalf("Diff() error = %v", err)
 	}
 	for _, want := range []string{
-		"Dependency detail changes (1)",
+		"Detail changes (1)",
 		"relationship: direct → transitive",
 		"source: registry → git",
-		"registry matching: eligible → not eligible",
 	} {
 		if !strings.Contains(text.String(), want) {
 			t.Fatalf("text output missing %q:\n%s", want, text.String())
 		}
+	}
+	if strings.Contains(text.String(), "vulnerability checks:") {
+		t.Fatalf("source changes must not repeat their implied coverage change:\n%s", text.String())
+	}
+	coverageOnly := payload.Results.Dependencies.Transitions[0]
+	coverageOnly.ChangedFields = []sdk.DependencyDetailField{sdk.DependencyDetailRegistryEligibility}
+	if description := dependencyTransitionDescription(coverageOnly); description != "vulnerability checks: covered → not covered" {
+		t.Fatalf("independent eligibility wording = %q", description)
 	}
 
 	var markdown bytes.Buffer
@@ -86,7 +93,7 @@ func TestDiffTextAndMarkdownRenderDependencyMetadataTransitions(t *testing.T) {
 		t.Fatalf("DiffMarkdown() error = %v", err)
 	}
 	for _, want := range []string{
-		"1 with detail changes",
+		"1 detail change",
 		"### Dependency Detail Changes",
 		"relationship: direct → transitive",
 	} {

@@ -57,7 +57,7 @@ func diffOverviewMarkdown(payload output.DiffResponse) []string {
 			status,
 			fmt.Sprintf("+%d / ~%d / -%d", payload.Summary.AddedManifestCount, payload.Summary.ChangedManifestCount, payload.Summary.RemovedManifestCount),
 			fmt.Sprintf(
-				"+%d / ~%d version / ~%d details / -%d",
+				"%d added / %d version changed / %d detail changes / %d removed",
 				payload.Summary.AddedPackageCount,
 				payload.Summary.ChangedPackageCount,
 				payload.Summary.TransitionedPackageCount,
@@ -86,8 +86,12 @@ func diffDependencyMarkdown(payload output.DiffResponse) []string {
 	results := payload.Results.Dependencies
 	lines := []string{
 		fmt.Sprintf(
-			"**Summary:** %d added, %d version changed, %d with detail changes, %d removed.",
-			len(results.Added), len(results.Changed), len(results.Transitions), len(results.Removed),
+			"**Summary:** %d added, %d version changed, %d %s, %d removed.",
+			len(results.Added),
+			len(results.Changed),
+			len(results.Transitions),
+			pluralWord(len(results.Transitions), "detail change", "detail changes"),
+			len(results.Removed),
 		),
 		"",
 	}

@@ -29,7 +29,7 @@ type Diff struct {
 	Added       []*Dependency
 	Removed     []*Dependency
 	Updated     []VersionChange
-	Transitions []DependencyMetadataTransition
+	Transitions []DependencyDetailTransition
 }
 
 // VersionChange captures a dependency identity that changed versions.
@@ -38,28 +38,28 @@ type VersionChange struct {
 	After  *Dependency
 }
 
-// DependencyMetadataField identifies one occurrence property that changed
+// DependencyDetailField identifies one occurrence property that changed
 // independently of package identity or version.
-type DependencyMetadataField string
+type DependencyDetailField string
 
 const (
-	// DependencyMetadataRelationship is a direct, transitive, or unknown
+	// DependencyDetailRelationship is a direct, transitive, or unknown
 	// relationship change.
-	DependencyMetadataRelationship DependencyMetadataField = "relationship"
-	// DependencyMetadataSource is a registry, workspace, file, Git, URL, or
+	DependencyDetailRelationship DependencyDetailField = "relationship"
+	// DependencyDetailSource is a registry, workspace, file, Git, URL, or
 	// project source change.
-	DependencyMetadataSource DependencyMetadataField = "source"
-	// DependencyMetadataRegistryEligibility indicates that external registry
+	DependencyDetailSource DependencyDetailField = "source"
+	// DependencyDetailRegistryEligibility indicates that external registry
 	// matching eligibility changed.
-	DependencyMetadataRegistryEligibility DependencyMetadataField = "registry_eligibility"
+	DependencyDetailRegistryEligibility DependencyDetailField = "registry_eligibility"
 )
 
-// DependencyMetadataTransition captures same-identity occurrence metadata
-// changes. Version changes remain represented separately by VersionChange.
-type DependencyMetadataTransition struct {
+// DependencyDetailTransition captures same-identity occurrence detail changes.
+// Version changes remain represented separately by VersionChange.
+type DependencyDetailTransition struct {
 	Before                 *Dependency
 	After                  *Dependency
-	ChangedFields          []DependencyMetadataField
+	ChangedFields          []DependencyDetailField
 	BeforeRelationship     DependencyRelationship
 	AfterRelationship      DependencyRelationship
 	BeforeRegistryEligible bool
@@ -385,18 +385,20 @@ func (g *Graph) PrettyTree() string {
 	return strings.TrimSuffix(b.String(), "\n")
 }
 
-// Compare returns added, removed, version-changed, and metadata-transitioned
+// Compare returns added, removed, version-changed, and detail-changed
 // dependencies between base and head. Synthetic consolidated subproject nodes
 // are ignored.
 func Compare(base, head *Graph) Diff {
 	baseExact, headExact := indexDiffableNodes(base), indexDiffableNodes(head)
+	baseRelationships := dependencyRelationshipsForGraph(base)
+	headRelationships := dependencyRelationshipsForGraph(head)
 	baseRemainder := make(map[string]*Dependency)
 	headRemainder := make(map[string]*Dependency)
-	transitions := make([]DependencyMetadataTransition, 0)
+	transitions := make([]DependencyDetailTransition, 0)
 
 	for id, node := range baseExact {
 		if headNode, ok := headExact[id]; ok {
-			if transition, changed := CompareDependencyMetadata(base, head, node, headNode); changed {
+			if transition, changed := compareDependencyDetails(node, headNode, baseRelationships, headRelationships); changed {
 				transitions = append(transitions, transition)
 			}
 			continue
@@ -440,7 +442,7 @@ func Compare(base, head *Graph) Diff {
 			before := baseNodes[i]
 			after := headNodes[i]
 			diff.Updated = append(diff.Updated, VersionChange{Before: before, After: after})
-			if transition, changed := CompareDependencyMetadata(base, head, before, after); changed {
+			if transition, changed := compareDependencyDetails(before, after, baseRelationships, headRelationships); changed {
 				diff.Transitions = append(diff.Transitions, transition)
 			}
 		}
@@ -468,36 +470,48 @@ func Compare(base, head *Graph) Diff {
 		}
 		return left.Before.ID < right.Before.ID
 	})
-	sortDependencyMetadataTransitions(diff.Transitions)
+	SortDependencyDetailTransitions(diff.Transitions)
 	return diff
 }
 
-// CompareDependencyMetadata returns a transition when relationship, source, or
+// CompareDependencyDetails returns a transition when relationship, source, or
 // registry-matching eligibility differs between two occurrences. It is
 // exported so trusted fuzzy identity reconciliation can use the same canonical
 // classifier as Compare.
-func CompareDependencyMetadata(baseGraph, headGraph *Graph, before, after *Dependency) (DependencyMetadataTransition, bool) {
+func CompareDependencyDetails(baseGraph, headGraph *Graph, before, after *Dependency) (DependencyDetailTransition, bool) {
+	return compareDependencyDetails(
+		before,
+		after,
+		dependencyRelationshipsForGraph(baseGraph),
+		dependencyRelationshipsForGraph(headGraph),
+	)
+}
+
+func compareDependencyDetails(before, after *Dependency, beforeRelationships, afterRelationships map[string]DependencyRelationship) (DependencyDetailTransition, bool) {
 	if before == nil || after == nil {
-		return DependencyMetadataTransition{}, false
+		return DependencyDetailTransition{}, false
 	}
-	beforeRelationship := dependencyRelationshipForDiff(baseGraph, before)
-	afterRelationship := dependencyRelationshipForDiff(headGraph, after)
+	beforeRelationship := dependencyRelationshipFromMap(beforeRelationships, before)
+	afterRelationship := dependencyRelationshipFromMap(afterRelationships, after)
 	beforeEligible := before.RegistryMatchEligible()
 	afterEligible := after.RegistryMatchEligible()
-	changedFields := make([]DependencyMetadataField, 0, 3)
-	if beforeRelationship != afterRelationship {
-		changedFields = append(changedFields, DependencyMetadataRelationship)
+	changedFields := make([]DependencyDetailField, 0, 3)
+	if beforeRelationship != DependencyRelationshipUnknown &&
+		afterRelationship != DependencyRelationshipUnknown &&
+		beforeRelationship != afterRelationship {
+		changedFields = append(changedFields, DependencyDetailRelationship)
 	}
-	if before.Source != after.Source {
-		changedFields = append(changedFields, DependencyMetadataSource)
+	if before.Source != "" && after.Source != "" && before.Source != after.Source {
+		changedFields = append(changedFields, DependencyDetailSource)
 	}
-	if beforeEligible != afterEligible {
-		changedFields = append(changedFields, DependencyMetadataRegistryEligibility)
+	eligibilityEvidenceComparable := before.Source == after.Source || (before.Source != "" && after.Source != "")
+	if eligibilityEvidenceComparable && beforeEligible != afterEligible {
+		changedFields = append(changedFields, DependencyDetailRegistryEligibility)
 	}
 	if len(changedFields) == 0 {
-		return DependencyMetadataTransition{}, false
+		return DependencyDetailTransition{}, false
 	}
-	return DependencyMetadataTransition{
+	return DependencyDetailTransition{
 		Before:                 before,
 		After:                  after,
 		ChangedFields:          changedFields,
@@ -508,41 +522,58 @@ func CompareDependencyMetadata(baseGraph, headGraph *Graph, before, after *Depen
 	}, true
 }
 
-func dependencyRelationshipForDiff(graph *Graph, node *Dependency) DependencyRelationship {
+func dependencyRelationshipFromMap(relationships map[string]DependencyRelationship, node *Dependency) DependencyRelationship {
 	if node == nil {
 		return DependencyRelationshipUnknown
 	}
-	if node.Relationship != "" {
-		return node.Relationship
+	if relationship := relationships[node.ID]; relationship != "" {
+		return relationship
 	}
+	return relationshipForDepth(node, 0)
+}
+
+func dependencyRelationshipsForGraph(graph *Graph) map[string]DependencyRelationship {
+	relationships := make(map[string]DependencyRelationship)
 	if graph == nil || graph.Size() == 0 {
-		return DependencyRelationshipUnknown
+		return relationships
 	}
 	roots := graph.Roots()
-	if len(roots) == 0 || len(roots) == graph.Size() {
-		return DependencyRelationshipUnknown
-	}
-	for _, root := range roots {
-		if root == nil || root.ID == node.ID {
-			continue
-		}
-		children, err := graph.DirectDependencies(root.ID)
-		if err != nil {
-			continue
-		}
-		for _, child := range children {
-			if child != nil && child.ID == node.ID {
-				return DependencyRelationshipDirect
+	hasUsableEdges := len(roots) > 0 && len(roots) != graph.Size()
+	direct := make(map[int]struct{})
+	if hasUsableEdges {
+		for _, root := range roots {
+			rootIndex, ok := graph.indexByID[root.ID]
+			if !ok {
+				continue
+			}
+			for childIndex := range graph.outgoing[rootIndex] {
+				direct[childIndex] = struct{}{}
 			}
 		}
 	}
-	if parents, err := graph.Dependents(node.ID); err == nil && len(parents) > 0 {
-		return DependencyRelationshipTransitive
+
+	for index, node := range graph.nodes {
+		if node == nil || !graph.alive[index] {
+			continue
+		}
+		if node.Relationship != "" {
+			relationships[node.ID] = relationshipForDepth(node, 0)
+			continue
+		}
+		depth := 0
+		if hasUsableEdges && len(graph.incoming[index]) > 0 {
+			depth = 2
+			if _, ok := direct[index]; ok {
+				depth = 1
+			}
+		}
+		relationships[node.ID] = relationshipForDepth(node, depth)
 	}
-	return DependencyRelationshipUnknown
+	return relationships
 }
 
-func sortDependencyMetadataTransitions(transitions []DependencyMetadataTransition) {
+// SortDependencyDetailTransitions orders detail changes deterministically.
+func SortDependencyDetailTransitions(transitions []DependencyDetailTransition) {
 	sort.Slice(transitions, func(i, j int) bool {
 		left := transitions[i]
 		right := transitions[j]

@@ -12,6 +12,7 @@
 package smoke
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -366,9 +367,10 @@ func TestScanRecursiveDepthLimitFindsNothing(t *testing.T) {
 
 func TestDiff(t *testing.T) {
 	cases := []struct {
-		name  string
-		args  []string
-		tools []string
+		name                string
+		args                []string
+		tools               []string
+		requireDetailChange bool
 	}{
 		{
 			name:  "diff-go",
@@ -383,6 +385,11 @@ func TestDiff(t *testing.T) {
 		{
 			name: "diff-sbom",
 			args: []string{"diff", "--sbom", "--base", sbomFixture("go.spdx.json"), "--head", sbomFixture("js.spdx.json"), "--format", "json"},
+		},
+		{
+			name:                "diff-sbom-detail-change",
+			args:                []string{"diff", "--sbom", "--base", sbomFixture("detail-change-base.spdx.json"), "--head", sbomFixture("detail-change-head.spdx.json"), "--format", "json"},
+			requireDetailChange: true,
 		},
 	}
 
@@ -399,6 +406,34 @@ func TestDiff(t *testing.T) {
 			}
 			if len(stdout) == 0 {
 				t.Fatal("bomly produced no stdout output")
+			}
+			if tc.requireDetailChange {
+				var response struct {
+					Summary struct {
+						TransitionedPackageCount int `json:"transitioned_package_count"`
+					} `json:"summary"`
+					Results struct {
+						Dependencies struct {
+							Transitions []json.RawMessage `json:"transitions"`
+						} `json:"dependencies"`
+					} `json:"results"`
+				}
+				if err := json.Unmarshal([]byte(stdout), &response); err != nil {
+					t.Fatalf("decode detail-change diff: %v", err)
+				}
+				if response.Summary.TransitionedPackageCount == 0 || len(response.Results.Dependencies.Transitions) == 0 {
+					t.Fatalf("expected an end-to-end dependency detail change, got summary=%+v", response.Summary)
+				}
+				textArgs := append([]string(nil), tc.args...)
+				textArgs[len(textArgs)-1] = "text"
+				textStdout, textStderr, textCode := runBomly(t, textArgs...)
+				if textCode != 0 {
+					t.Fatalf("bomly text diff exited %d\nstderr:\n%s", textCode, textStderr)
+				}
+				if !strings.Contains(textStdout, "Detail changes (1)") ||
+					!strings.Contains(textStdout, "relationship: direct → transitive") {
+					t.Fatalf("expected text output to explain the dependency detail change:\n%s", textStdout)
+				}
 			}
 
 			got := normalizeJSON(t, []byte(stdout))

@@ -140,20 +140,20 @@ type DiffChangedPackage struct {
 type DiffDependencyTransition struct {
 	Before        DiffDependencyTransitionState `json:"before"`
 	After         DiffDependencyTransitionState `json:"after"`
-	ChangedFields []sdk.DependencyMetadataField `json:"changed_fields"`
+	ChangedFields []sdk.DependencyDetailField   `json:"changed_fields"`
 }
 
-// DiffDependencyTransitionState preserves the identity and metadata of one
+// DiffDependencyTransitionState preserves the identity and details of one
 // occurrence before or after a transition.
 type DiffDependencyTransitionState struct {
-	ID               string               `json:"id"`
-	Name             string               `json:"name"`
-	Version          string               `json:"version,omitempty"`
-	Purl             string               `json:"purl,omitempty"`
-	Scope            string               `json:"scope,omitempty"`
-	Relationship     string               `json:"relationship"`
-	Source           sdk.DependencySource `json:"source,omitempty"`
-	RegistryEligible bool                 `json:"registry_eligible"`
+	ID               string                     `json:"id"`
+	Name             string                     `json:"name"`
+	Version          string                     `json:"version,omitempty"`
+	Purl             string                     `json:"purl,omitempty"`
+	Scope            string                     `json:"scope,omitempty"`
+	Relationship     sdk.DependencyRelationship `json:"relationship"`
+	Source           sdk.DependencySource       `json:"source,omitempty"`
+	RegistryEligible bool                       `json:"registry_eligible"`
 }
 
 // DiffManifestResult describes changes for one manifest.
@@ -743,8 +743,8 @@ func diffDependencyTransitionKey(transition DiffDependencyTransition) string {
 		transition.After.ID,
 		transition.Before.Scope,
 		transition.After.Scope,
-		transition.Before.Relationship,
-		transition.After.Relationship,
+		string(transition.Before.Relationship),
+		string(transition.After.Relationship),
 		string(transition.Before.Source),
 		string(transition.After.Source),
 		strconv.FormatBool(transition.Before.RegistryEligible),
@@ -1029,7 +1029,7 @@ func filterSBOMPseudoPackageDiff(diff *sdk.Diff, baseGraph, headGraph *sdk.Graph
 	if len(diff.Transitions) > 0 {
 		baseRoots := graphRootIDs(baseGraph)
 		headRoots := graphRootIDs(headGraph)
-		filtered := make([]sdk.DependencyMetadataTransition, 0, len(diff.Transitions))
+		filtered := make([]sdk.DependencyDetailTransition, 0, len(diff.Transitions))
 		for _, transition := range diff.Transitions {
 			if isSBOMPseudoPackage(transition.Before, baseRoots) || isSBOMPseudoPackage(transition.After, headRoots) {
 				continue
@@ -1109,13 +1109,13 @@ func diffChangedPackagesFromDiff(changes []sdk.VersionChange, baseRegistry, head
 	return out
 }
 
-func diffDependencyTransitionsFromDiff(transitions []sdk.DependencyMetadataTransition) []DiffDependencyTransition {
+func diffDependencyTransitionsFromDiff(transitions []sdk.DependencyDetailTransition) []DiffDependencyTransition {
 	out := make([]DiffDependencyTransition, 0, len(transitions))
 	for _, transition := range transitions {
 		out = append(out, DiffDependencyTransition{
 			Before:        diffDependencyTransitionState(transition.Before, transition.BeforeRelationship, transition.BeforeRegistryEligible),
 			After:         diffDependencyTransitionState(transition.After, transition.AfterRelationship, transition.AfterRegistryEligible),
-			ChangedFields: append([]sdk.DependencyMetadataField(nil), transition.ChangedFields...),
+			ChangedFields: append([]sdk.DependencyDetailField(nil), transition.ChangedFields...),
 		})
 	}
 	sort.Slice(out, func(i, j int) bool {
@@ -1126,7 +1126,7 @@ func diffDependencyTransitionsFromDiff(transitions []sdk.DependencyMetadataTrans
 
 func diffDependencyTransitionState(dependency *sdk.Dependency, relationship sdk.DependencyRelationship, eligible bool) DiffDependencyTransitionState {
 	if dependency == nil {
-		return DiffDependencyTransitionState{Relationship: string(relationship), RegistryEligible: eligible}
+		return DiffDependencyTransitionState{Relationship: relationship, RegistryEligible: eligible}
 	}
 	return DiffDependencyTransitionState{
 		ID:               dependency.ID,
@@ -1134,7 +1134,7 @@ func diffDependencyTransitionState(dependency *sdk.Dependency, relationship sdk.
 		Version:          dependency.Version,
 		Purl:             dependency.PURL,
 		Scope:            string(dependency.PrimaryScope()),
-		Relationship:     string(relationship),
+		Relationship:     relationship,
 		Source:           dependency.Source,
 		RegistryEligible: eligible,
 	}
@@ -1253,7 +1253,7 @@ func reconcileDiffWithFuzzyMatches(diff *sdk.Diff, baseGraph, headGraph *sdk.Gra
 		before := diff.Removed[match.removedIdx]
 		applyFuzzyMetadata(before, after, match.score, match.tier)
 		diff.Updated = append(diff.Updated, sdk.VersionChange{Before: before, After: after})
-		if transition, changed := sdk.CompareDependencyMetadata(baseGraph, headGraph, before, after); changed {
+		if transition, changed := sdk.CompareDependencyDetails(baseGraph, headGraph, before, after); changed {
 			diff.Transitions = append(diff.Transitions, transition)
 		}
 		matchedAdded[match.addedIdx] = struct{}{}
@@ -1295,20 +1295,7 @@ func reconcileDiffWithFuzzyMatches(diff *sdk.Diff, baseGraph, headGraph *sdk.Gra
 		}
 		return left.Before.ID < right.Before.ID
 	})
-	sort.Slice(diff.Transitions, func(i, j int) bool {
-		left := diff.Transitions[i]
-		right := diff.Transitions[j]
-		if left.Before.IdentityKey() != right.Before.IdentityKey() {
-			return left.Before.IdentityKey() < right.Before.IdentityKey()
-		}
-		if left.Before.Version != right.Before.Version {
-			return left.Before.Version < right.Before.Version
-		}
-		if left.After.Version != right.After.Version {
-			return left.After.Version < right.After.Version
-		}
-		return left.Before.ID < right.Before.ID
-	})
+	sdk.SortDependencyDetailTransitions(diff.Transitions)
 }
 
 func fuzzyReconcileScore(before, after *sdk.Dependency) (float64, string) {

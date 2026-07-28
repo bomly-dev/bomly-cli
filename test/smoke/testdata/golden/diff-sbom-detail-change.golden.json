@@ -1,0 +1,147 @@
+{
+  "command": "diff",
+  "comparison": {
+    "base": "detail-change-base.spdx.json",
+    "head": "detail-change-head.spdx.json"
+  },
+  "metadata": {
+    "duration_ms": 0
+  },
+  "packages": [
+    {
+      "ecosystem": "go",
+      "licenses": [],
+      "name": "example.com/app",
+      "purl": "pkg:golang/example.com/app@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [],
+      "name": "example.com/parent",
+      "purl": "pkg:golang/example.com/parent@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [],
+      "name": "example.com/shared",
+      "purl": "pkg:golang/example.com/shared@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    }
+  ],
+  "project": {
+    "ecosystem": "other",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "multiple",
+    "path": "\u003cnormalized\u003e",
+    "target_type": "dependency diff"
+  },
+  "results": {
+    "dependencies": {
+      "added": [
+        {
+          "package": {
+            "direct": true,
+            "id": "pkg:golang/example.com/parent@1.0.0",
+            "licenses": [],
+            "name": "example.com/parent",
+            "purl": "pkg:golang/example.com/parent@1.0.0",
+            "relationship": "direct",
+            "version": "1.0.0",
+            "vulnerabilities": []
+          }
+        }
+      ],
+      "transitions": [
+        {
+          "after": {
+            "id": "pkg:golang/example.com/shared@1.0.0",
+            "name": "example.com/shared",
+            "purl": "pkg:golang/example.com/shared@1.0.0",
+            "registry_eligible": true,
+            "relationship": "transitive",
+            "version": "1.0.0"
+          },
+          "before": {
+            "id": "pkg:golang/example.com/shared@1.0.0",
+            "name": "example.com/shared",
+            "purl": "pkg:golang/example.com/shared@1.0.0",
+            "registry_eligible": true,
+            "relationship": "direct",
+            "version": "1.0.0"
+          },
+          "changed_fields": [
+            "relationship"
+          ]
+        }
+      ]
+    },
+    "licenses": {},
+    "manifests": [
+      {
+        "added": [
+          {
+            "package": {
+              "direct": true,
+              "id": "pkg:golang/example.com/parent@1.0.0",
+              "licenses": [],
+              "name": "example.com/parent",
+              "purl": "pkg:golang/example.com/parent@1.0.0",
+              "relationship": "direct",
+              "version": "1.0.0",
+              "vulnerabilities": []
+            }
+          }
+        ],
+        "ecosystem": "sbom",
+        "kind": "detail-change-head.spdx.json",
+        "package_manager": "sbom",
+        "path": "detail-change-head.spdx.json",
+        "status": "changed",
+        "subproject": ".",
+        "transitions": [
+          {
+            "after": {
+              "id": "pkg:golang/example.com/shared@1.0.0",
+              "name": "example.com/shared",
+              "purl": "pkg:golang/example.com/shared@1.0.0",
+              "registry_eligible": true,
+              "relationship": "transitive",
+              "version": "1.0.0"
+            },
+            "before": {
+              "id": "pkg:golang/example.com/shared@1.0.0",
+              "name": "example.com/shared",
+              "purl": "pkg:golang/example.com/shared@1.0.0",
+              "registry_eligible": true,
+              "relationship": "direct",
+              "version": "1.0.0"
+            },
+            "changed_fields": [
+              "relationship"
+            ]
+          }
+        ]
+      }
+    ],
+    "vulnerabilities": {}
+  },
+  "schema_version": "1.0",
+  "summary": {
+    "added_manifest_count": 0,
+    "added_package_count": 1,
+    "changed_manifest_count": 1,
+    "changed_package_count": 0,
+    "exact_match_count": 0,
+    "fuzzy_match_count": 0,
+    "removed_manifest_count": 0,
+    "removed_package_count": 0,
+    "transitioned_package_count": 1,
+    "unchanged_manifest_count": 0,
+    "unmatched_package_count": 1
+  }
+}

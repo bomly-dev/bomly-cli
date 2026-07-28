@@ -271,7 +271,7 @@ the CLI output schema identifier remains `1.0` and the compact MCP schema
 remains `mcp/1`. Protocol-v1 decoding still accepts the earlier wire field from
 existing external auditor plugins.
 
-### Decision: dependency metadata transitions are canonical diff results
+### Decision: dependency detail changes are canonical diff results
 
 `sdk.Compare` classifies package version changes separately from changes to an
 occurrence's dependency relationship, source, or registry-matching
@@ -290,7 +290,7 @@ that result; it does not repeat the policy.
 Manifest results preserve duplicate occurrences. The global JSON and MCP
 views deduplicate only identical evidence and use stable ordering and bounded
 MCP truncation. Diff package enrichment still uses the head-side registry, so
-reporting a metadata transition does not replace current vulnerability or
+reporting a detail change does not replace current vulnerability or
 remediation data.
 
 ### Decision: registry matching eligibility is an occurrence-level engine boundary

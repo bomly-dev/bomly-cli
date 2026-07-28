@@ -10,7 +10,7 @@ import (
 )
 
 // diffHint tells agents how to drill into the delta.
-const diffHint = "Introduced findings are new on head; resolved close when this ref merges; persisted remain after merge. Dependency transitions describe relationship, source, or registry-matching changes without treating them as version changes. Use bomly_explain (on the head checkout) for full advisory detail of one package."
+const diffHint = "Introduced findings are new on head; resolved close when this ref merges; persisted remain after merge. Detail changes describe relationship, source, or vulnerability-check coverage changes without treating them as version changes. Use bomly_explain (on the head checkout) for full advisory detail of one package."
 
 // SecurityDelta buckets advisory findings by what merging head changes.
 type SecurityDelta struct {
@@ -21,34 +21,34 @@ type SecurityDelta struct {
 
 // CompactDiffSummary counts manifest/package/finding deltas.
 type CompactDiffSummary struct {
-	ManifestsAdded       int  `json:"manifests_added,omitempty"`
-	ManifestsChanged     int  `json:"manifests_changed,omitempty"`
-	ManifestsRemoved     int  `json:"manifests_removed,omitempty"`
-	PackagesAdded        int  `json:"packages_added,omitempty"`
-	PackagesChanged      int  `json:"packages_changed,omitempty"`
-	PackagesTransitioned int  `json:"packages_transitioned,omitempty"`
-	PackagesRemoved      int  `json:"packages_removed,omitempty"`
-	Introduced           int  `json:"introduced,omitempty"`
-	Resolved             int  `json:"resolved,omitempty"`
-	Persisted            int  `json:"persisted,omitempty"`
-	EnrichRan            bool `json:"enrich_ran"`
-	AuditRan             bool `json:"audit_ran"`
+	ManifestsAdded            int  `json:"manifests_added,omitempty"`
+	ManifestsChanged          int  `json:"manifests_changed,omitempty"`
+	ManifestsRemoved          int  `json:"manifests_removed,omitempty"`
+	PackagesAdded             int  `json:"packages_added,omitempty"`
+	PackagesChanged           int  `json:"packages_changed,omitempty"`
+	PackagesWithDetailChanges int  `json:"packages_with_detail_changes,omitempty"`
+	PackagesRemoved           int  `json:"packages_removed,omitempty"`
+	Introduced                int  `json:"introduced,omitempty"`
+	Resolved                  int  `json:"resolved,omitempty"`
+	Persisted                 int  `json:"persisted,omitempty"`
+	EnrichRan                 bool `json:"enrich_ran"`
+	AuditRan                  bool `json:"audit_ran"`
 }
 
 // CompactDependencyTransitionState is one side of a dependency occurrence
-// metadata transition.
+// detail change.
 type CompactDependencyTransitionState struct {
-	Relationship     string               `json:"relationship,omitempty"`
-	Source           sdk.DependencySource `json:"source,omitempty"`
-	RegistryEligible bool                 `json:"registry_eligible"`
+	Relationship     sdk.DependencyRelationship `json:"relationship,omitempty"`
+	Source           sdk.DependencySource       `json:"source,omitempty"`
+	RegistryEligible bool                       `json:"registry_eligible"`
 }
 
-// CompactDependencyTransition reports one same-identity metadata change
+// CompactDependencyTransition reports one same-identity detail change
 // without repeating licenses, vulnerabilities, locations, or other large
 // package detail.
 type CompactDependencyTransition struct {
 	Package       PackageIdentity                  `json:"package"`
-	ChangedFields []sdk.DependencyMetadataField    `json:"changed_fields"`
+	ChangedFields []sdk.DependencyDetailField      `json:"changed_fields"`
 	Before        CompactDependencyTransitionState `json:"before"`
 	After         CompactDependencyTransitionState `json:"after"`
 }
@@ -62,7 +62,7 @@ type CompactDiffResponse struct {
 	Comparison    output.DiffComparison         `json:"comparison"`
 	Summary       CompactDiffSummary            `json:"summary"`
 	SecurityDelta SecurityDelta                 `json:"security_delta"`
-	Transitions   []CompactDependencyTransition `json:"dependency_transitions,omitempty"`
+	Transitions   []CompactDependencyTransition `json:"transitions,omitempty"`
 	Remediations  []RemediationGroup            `json:"remediations,omitempty"`
 	Informational []CompactFinding              `json:"informational,omitempty"`
 	Diagnostics   []Diagnostic                  `json:"diagnostics,omitempty"`
@@ -81,18 +81,18 @@ func BuildCompactDiff(run DiffRunResult) CompactDiffResponse {
 		Command:       "diff",
 		Comparison:    run.Response.Comparison,
 		Summary: CompactDiffSummary{
-			ManifestsAdded:       run.Response.Summary.AddedManifestCount,
-			ManifestsChanged:     run.Response.Summary.ChangedManifestCount,
-			ManifestsRemoved:     run.Response.Summary.RemovedManifestCount,
-			PackagesAdded:        run.Response.Summary.AddedPackageCount,
-			PackagesChanged:      run.Response.Summary.ChangedPackageCount,
-			PackagesTransitioned: run.Response.Summary.TransitionedPackageCount,
-			PackagesRemoved:      run.Response.Summary.RemovedPackageCount,
-			Introduced:           len(run.Introduced),
-			Resolved:             len(run.Resolved),
-			Persisted:            len(run.Persisted),
-			AuditRan:             run.AuditRan,
-			EnrichRan:            run.EnrichRan,
+			ManifestsAdded:            run.Response.Summary.AddedManifestCount,
+			ManifestsChanged:          run.Response.Summary.ChangedManifestCount,
+			ManifestsRemoved:          run.Response.Summary.RemovedManifestCount,
+			PackagesAdded:             run.Response.Summary.AddedPackageCount,
+			PackagesChanged:           run.Response.Summary.ChangedPackageCount,
+			PackagesWithDetailChanges: run.Response.Summary.TransitionedPackageCount,
+			PackagesRemoved:           run.Response.Summary.RemovedPackageCount,
+			Introduced:                len(run.Introduced),
+			Resolved:                  len(run.Resolved),
+			Persisted:                 len(run.Persisted),
+			AuditRan:                  run.AuditRan,
+			EnrichRan:                 run.EnrichRan,
 		},
 		Diagnostics: capDiagnostics(run.Diagnostics),
 		Hint:        diffHint,
@@ -168,9 +168,19 @@ func compactDependencyTransitions(transitions []output.DiffDependencyTransition,
 	if len(transitions) == 0 {
 		return nil
 	}
-	sorted := append([]output.DiffDependencyTransition(nil), transitions...)
+	type keyedTransition struct {
+		key        string
+		transition output.DiffDependencyTransition
+	}
+	sorted := make([]keyedTransition, len(transitions))
+	for index, transition := range transitions {
+		sorted[index] = keyedTransition{
+			key:        compactDependencyTransitionSortKey(transition),
+			transition: transition,
+		}
+	}
 	sort.Slice(sorted, func(i, j int) bool {
-		return compactDependencyTransitionSortKey(sorted[i]) < compactDependencyTransitionSortKey(sorted[j])
+		return sorted[i].key < sorted[j].key
 	})
 	limit := len(sorted)
 	if limit > maxDependencyTransitions {
@@ -178,7 +188,8 @@ func compactDependencyTransitions(transitions []output.DiffDependencyTransition,
 		limit = maxDependencyTransitions
 	}
 	out := make([]CompactDependencyTransition, 0, limit)
-	for _, transition := range sorted[:limit] {
+	for _, item := range sorted[:limit] {
+		transition := item.transition
 		pkg := transition.After
 		out = append(out, CompactDependencyTransition{
 			Package: PackageIdentity{
@@ -186,7 +197,7 @@ func compactDependencyTransitions(transitions []output.DiffDependencyTransition,
 				Version: pkg.Version,
 				Purl:    pkg.Purl,
 			},
-			ChangedFields: append([]sdk.DependencyMetadataField(nil), transition.ChangedFields...),
+			ChangedFields: append([]sdk.DependencyDetailField(nil), transition.ChangedFields...),
 			Before: CompactDependencyTransitionState{
 				Relationship:     transition.Before.Relationship,
 				Source:           transition.Before.Source,
@@ -211,8 +222,8 @@ func compactDependencyTransitionSortKey(transition output.DiffDependencyTransiti
 		transition.After.Purl,
 		transition.After.Name,
 		transition.After.ID,
-		transition.Before.Relationship,
-		transition.After.Relationship,
+		string(transition.Before.Relationship),
+		string(transition.After.Relationship),
 		string(transition.Before.Source),
 		string(transition.After.Source),
 		strconv.FormatBool(transition.Before.RegistryEligible),

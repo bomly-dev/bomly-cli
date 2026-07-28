@@ -36,13 +36,28 @@ func RelationshipForPath(path []*Dependency) DependencyRelationship {
 		return ""
 	}
 	target := path[len(path)-1]
+	depth := len(path) - 1
+	if depth == 0 {
+		// Preserve the historical interpretation of a one-node path as a
+		// direct target. Graph-wide classification uses unknown for a root
+		// occurrence because no owning edge is available there.
+		depth = 1
+	}
+	return relationshipForDepth(target, depth)
+}
+
+func relationshipForDepth(target *Dependency, depth int) DependencyRelationship {
 	if target != nil && target.Relationship != "" {
 		return target.Relationship
 	}
-	if len(path) <= 2 {
+	switch {
+	case depth == 1:
 		return DependencyRelationshipDirect
+	case depth > 1:
+		return DependencyRelationshipTransitive
+	default:
+		return DependencyRelationshipUnknown
 	}
-	return DependencyRelationshipTransitive
 }
 
 // MergeDependencyRelationship combines occurrence relationships for a merged

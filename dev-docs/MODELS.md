@@ -123,7 +123,7 @@ Key helpers:
 - `dep.PrimaryScope()`, `dep.HasScope(s)`, `dep.AddScope(s)` — scope helpers.
 - `sdk.DetectionLicenses(dep)` / `sdk.SetDetectionLicenses(dep, licenses)` — read/write detection-time license facts stashed in `dep.Metadata`.
 - `sdk.NormalizeDependencyIdentity(dep)` — canonical identity for diff matching.
-- `sdk.CompareDependencyMetadata(baseGraph, headGraph, before, after)` — classify occurrence-level relationship, source, and registry-matching eligibility transitions.
+- `sdk.CompareDependencyDetails(baseGraph, headGraph, before, after)` — classify occurrence-level relationship, source, and registry-matching eligibility transitions.
 - `sdk.CanonicalPackageURLFromDependency(dep)` — derive the canonical PURL when the detector didn't supply one.
 - `sdk.RelationshipForPath(path)` — preserve an explicit relationship or derive direct/transitive from a root-to-target path.
 - `dep.RegistryMatchEligible()` — classify whether this occurrence may be sent to external registry enrichment.
@@ -417,7 +417,7 @@ projects the `packages` enrichment onto components (licenses, vulnerabilities,
 CPEs, checksums, EOL).
 
 `bomly diff` and `bomly explain` use the same vocabulary. Diff reports version
-changes separately from occurrence metadata transitions. A transition carries
+changes separately from occurrence detail changes. A transition carries
 the before and after dependency relationship, source, and registry-matching
 eligibility plus an ordered list of the fields that changed. This preserves
 changes that do not alter package identity or version, including changes on

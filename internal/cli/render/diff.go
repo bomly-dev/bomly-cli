@@ -69,7 +69,7 @@ func dependencyTextSections(results output.DiffDependencyResults) []string {
 		if len(results.Transitions) == 0 {
 			return
 		}
-		lines = append(lines, Style(fmt.Sprintf("Dependency detail changes (%d)", len(results.Transitions)), Bold))
+		lines = append(lines, Style(fmt.Sprintf("Detail changes (%d)", len(results.Transitions)), Bold))
 		for _, transition := range results.Transitions {
 			name := dependencyTransitionDisplayName(transition.After)
 			line := fmt.Sprintf("  ↔ %s  %s", name, dependencyTransitionDescription(transition))
@@ -88,29 +88,42 @@ func dependencyTextSections(results output.DiffDependencyResults) []string {
 
 func dependencyTransitionDescription(transition output.DiffDependencyTransition) string {
 	parts := make([]string, 0, len(transition.ChangedFields))
+	sourceChanged := dependencyDetailFieldChanged(transition, sdk.DependencyDetailSource)
 	for _, field := range transition.ChangedFields {
 		switch field {
-		case sdk.DependencyMetadataRelationship:
+		case sdk.DependencyDetailRelationship:
 			parts = append(parts, fmt.Sprintf(
 				"relationship: %s → %s",
-				valueOrDash(transition.Before.Relationship),
-				valueOrDash(transition.After.Relationship),
+				valueOrDash(string(transition.Before.Relationship)),
+				valueOrDash(string(transition.After.Relationship)),
 			))
-		case sdk.DependencyMetadataSource:
+		case sdk.DependencyDetailSource:
 			parts = append(parts, fmt.Sprintf(
 				"source: %s → %s",
 				valueOrDash(string(transition.Before.Source)),
 				valueOrDash(string(transition.After.Source)),
 			))
-		case sdk.DependencyMetadataRegistryEligibility:
+		case sdk.DependencyDetailRegistryEligibility:
+			if sourceChanged {
+				continue
+			}
 			parts = append(parts, fmt.Sprintf(
-				"registry matching: %s → %s",
+				"vulnerability checks: %s → %s",
 				registryEligibilityLabel(transition.Before.RegistryEligible),
 				registryEligibilityLabel(transition.After.RegistryEligible),
 			))
 		}
 	}
 	return strings.Join(parts, "; ")
+}
+
+func dependencyDetailFieldChanged(transition output.DiffDependencyTransition, wanted sdk.DependencyDetailField) bool {
+	for _, field := range transition.ChangedFields {
+		if field == wanted {
+			return true
+		}
+	}
+	return false
 }
 
 func dependencyTransitionDisplayName(state output.DiffDependencyTransitionState) string {
@@ -122,9 +135,9 @@ func dependencyTransitionDisplayName(state output.DiffDependencyTransitionState)
 
 func registryEligibilityLabel(eligible bool) string {
 	if eligible {
-		return "eligible"
+		return "covered"
 	}
-	return "not eligible"
+	return "not covered"
 }
 
 // findingsSummaryLine produces a summary line plus a list of each introduced or

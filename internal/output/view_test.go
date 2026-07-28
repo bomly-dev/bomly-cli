@@ -416,7 +416,7 @@ func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 	}
 }
 
-func TestBuildDiffResponseReportsDependencyMetadataTransitions(t *testing.T) {
+func TestBuildDiffResponseReportsDependencyDetailTransitions(t *testing.T) {
 	baseGraph := sdk.New()
 	headGraph := sdk.New()
 	baseRoot := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
@@ -434,7 +434,7 @@ func TestBuildDiffResponseReportsDependencyMetadataTransitions(t *testing.T) {
 		PackageRef:   "pkg:npm/example@1.0.0",
 	})
 	headDependency := baseDependency.Clone()
-	headDependency.Relationship = sdk.DependencyRelationshipUnknown
+	headDependency.Relationship = sdk.DependencyRelationshipTransitive
 	headDependency.Source = sdk.DependencySourceGit
 
 	for _, pair := range []struct {
@@ -482,7 +482,7 @@ func TestBuildDiffResponseReportsDependencyMetadataTransitions(t *testing.T) {
 		t.Fatalf("transition projection missing: %#v", response.Results)
 	}
 	transition := response.Results.Dependencies.Transitions[0]
-	if transition.Before.Relationship != "direct" || transition.After.Relationship != "unknown" {
+	if transition.Before.Relationship != "direct" || transition.After.Relationship != "transitive" {
 		t.Fatalf("relationship transition = %#v", transition)
 	}
 	if transition.Before.Source != sdk.DependencySourceRegistry || transition.After.Source != sdk.DependencySourceGit {
@@ -504,7 +504,7 @@ func TestBuildDiffResponseReportsDependencyMetadataTransitions(t *testing.T) {
 	if response.SchemaVersion != "1.0" ||
 		!strings.Contains(string(encoded), `"transitioned_package_count":1`) ||
 		!strings.Contains(string(encoded), `"changed_fields":["relationship","source","registry_eligibility"]`) {
-		t.Fatalf("dependency transition JSON contract is incomplete: %s", encoded)
+		t.Fatalf("dependency detail-change JSON contract is incomplete: %s", encoded)
 	}
 }
 
@@ -1080,12 +1080,12 @@ func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
 		t.Fatalf("expected one changed package in manifest, got %#v", response.Results.Manifests)
 	}
 	if response.Summary.TransitionedPackageCount != 1 || len(response.Results.Manifests[0].Transitions) != 1 {
-		t.Fatalf("expected fuzzy reconciliation to preserve the metadata transition, got %#v", response.Results)
+		t.Fatalf("expected fuzzy reconciliation to preserve the detail change, got %#v", response.Results)
 	}
 	transition := response.Results.Manifests[0].Transitions[0]
 	if transition.Before.Relationship != "direct" || transition.After.Relationship != "transitive" ||
 		transition.Before.Source != sdk.DependencySourceRegistry || transition.After.Source != sdk.DependencySourceGit {
-		t.Fatalf("unexpected fuzzy metadata transition: %#v", transition)
+		t.Fatalf("unexpected fuzzy detail change: %#v", transition)
 	}
 	changed := response.Results.Manifests[0].Changed[0]
 	if changed.After.Metadata == nil {

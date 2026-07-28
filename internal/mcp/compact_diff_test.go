@@ -1,7 +1,9 @@
 package mcp
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
@@ -41,10 +43,10 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 						Source:           sdk.DependencySourceGit,
 						RegistryEligible: false,
 					},
-					ChangedFields: []sdk.DependencyMetadataField{
-						sdk.DependencyMetadataRelationship,
-						sdk.DependencyMetadataSource,
-						sdk.DependencyMetadataRegistryEligibility,
+					ChangedFields: []sdk.DependencyDetailField{
+						sdk.DependencyDetailRelationship,
+						sdk.DependencyDetailSource,
+						sdk.DependencyDetailRegistryEligibility,
 					},
 				}},
 			}},
@@ -100,13 +102,23 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 	if compact.SchemaVersion != CompactSchemaVersion || compact.Command != "diff" {
 		t.Fatalf("header wrong: %#v", compact)
 	}
-	if compact.Summary.PackagesTransitioned != 1 || len(compact.Transitions) != 1 {
-		t.Fatalf("dependency transition missing: %#v", compact)
+	if compact.Summary.PackagesWithDetailChanges != 1 || len(compact.Transitions) != 1 {
+		t.Fatalf("dependency detail change missing: %#v", compact)
+	}
+	encoded, err := json.Marshal(compact)
+	if err != nil {
+		t.Fatalf("marshal compact diff: %v", err)
+	}
+	if !strings.Contains(string(encoded), `"packages_with_detail_changes":1`) ||
+		!strings.Contains(string(encoded), `"transitions":[`) ||
+		strings.Contains(string(encoded), `"packages_transitioned"`) ||
+		strings.Contains(string(encoded), `"dependency_transitions"`) {
+		t.Fatalf("compact detail-change names are inconsistent: %s", encoded)
 	}
 	if compact.Transitions[0].Before.Relationship != "direct" ||
 		compact.Transitions[0].After.Source != sdk.DependencySourceGit ||
 		compact.Transitions[0].After.RegistryEligible {
-		t.Fatalf("dependency transition evidence wrong: %#v", compact.Transitions[0])
+		t.Fatalf("dependency detail-change evidence wrong: %#v", compact.Transitions[0])
 	}
 }
 
@@ -121,7 +133,7 @@ func TestBuildCompactDiffCapsDependencyTransitions(t *testing.T) {
 			After: output.DiffDependencyTransitionState{
 				Name: name, Purl: "pkg:npm/" + name + "@1.0.0", Relationship: "transitive",
 			},
-			ChangedFields: []sdk.DependencyMetadataField{sdk.DependencyMetadataRelationship},
+			ChangedFields: []sdk.DependencyDetailField{sdk.DependencyDetailRelationship},
 		})
 	}
 	compact := BuildCompactDiff(DiffRunResult{Response: output.DiffResponse{

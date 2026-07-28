@@ -16,10 +16,11 @@ import (
 type FlagGroup string
 
 const (
-	FlagGroupTarget    FlagGroup = "target"
-	FlagGroupAnalysis  FlagGroup = "analysis"
-	FlagGroupSelectors FlagGroup = "selectors"
-	FlagGroupExecution FlagGroup = "execution"
+	FlagGroupTarget     FlagGroup = "target"
+	FlagGroupAnalysis   FlagGroup = "analysis"
+	FlagGroupDiffPolicy FlagGroup = "diff-policy"
+	FlagGroupSelectors  FlagGroup = "selectors"
+	FlagGroupExecution  FlagGroup = "execution"
 )
 
 func bindFlagOptions(cmd *cobra.Command, cfg *config.Resolved) error {
@@ -47,6 +48,8 @@ func BindCommandFlagGroups(cmd *cobra.Command, cfg *config.Resolved, groups ...F
 			bindTargetFlags(cmd.Flags(), cfg)
 		case FlagGroupAnalysis:
 			bindAnalysisFlags(cmd.Flags(), cfg)
+		case FlagGroupDiffPolicy:
+			bindDiffPolicyFlags(cmd.Flags(), cfg)
 		case FlagGroupSelectors:
 			bindSelectorFlags(cmd.Flags(), cfg)
 			if err := bindSelectorCompletionFlags(cmd); err != nil {
@@ -58,6 +61,15 @@ func BindCommandFlagGroups(cmd *cobra.Command, cfg *config.Resolved, groups ...F
 	}
 
 	return nil
+}
+
+func bindDiffPolicyFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
+	flags.StringArrayVar(
+		&cfg.DenyDependencySourceChanges,
+		"deny-dependency-source-change",
+		nil,
+		"Dependency source change that fails diff policy: git or url. Repeatable (requires --audit)",
+	)
 }
 
 func bindTargetFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
@@ -186,6 +198,9 @@ func applyFlagOverrides(dst *config.Resolved, flags config.Resolved, cmd *cobra.
 	}
 	if flagChanged(cmd, "deny-group") {
 		dst.DenyGroups = append([]string(nil), flags.DenyGroups...)
+	}
+	if flagChanged(cmd, "deny-dependency-source-change") {
+		dst.DenyDependencySourceChanges = append([]string(nil), flags.DenyDependencySourceChanges...)
 	}
 	if flagChanged(cmd, "protected-package") {
 		dst.ProtectedPackages = append([]string(nil), flags.ProtectedPackages...)

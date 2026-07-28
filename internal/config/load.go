@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/system"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"gopkg.in/yaml.v3"
 )
 
@@ -331,6 +332,12 @@ func Validate(cfg Resolved) error {
 	// front so the user gets a clear error instead.
 	if cfg.Audit && !cfg.Enrich {
 		return fmt.Errorf("--audit requires --enrich")
+	}
+	if len(cfg.DenyDependencySourceChanges) > 0 && !cfg.Audit {
+		return fmt.Errorf("--deny-dependency-source-change requires --audit")
+	}
+	if _, err := sdk.ParseDependencySourceChangePolicies(cfg.DenyDependencySourceChanges); err != nil {
+		return err
 	}
 	if cfg.Analyze && !cfg.Enrich {
 		return fmt.Errorf("--analyze requires --enrich")

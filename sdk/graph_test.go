@@ -651,6 +651,14 @@ func TestDependencyDetailTransitionReviewReasons(t *testing.T) {
 				After:  &Dependency{Source: DependencySourceGit},
 			},
 		},
+		{
+			name: "missing previous source evidence",
+			transition: DependencyDetailTransition{
+				Before:        &Dependency{},
+				After:         &Dependency{Source: DependencySourceGit},
+				ChangedFields: []DependencyDetailField{DependencyDetailSource},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -663,6 +671,34 @@ func TestDependencyDetailTransitionReviewReasons(t *testing.T) {
 				t.Fatalf("NeedsReview() = %t, want %t", tt.transition.NeedsReview(), len(tt.want) > 0)
 			}
 		})
+	}
+}
+
+func TestCloneDependencyDetailTransitionsDeepCopiesEvidence(t *testing.T) {
+	before := NewDependencyWithID("before", Dependency{
+		Coordinates: Coordinates{Name: "example", Version: "1.0.0"},
+		Source:      DependencySourceRegistry,
+	})
+	after := before.Clone()
+	after.Source = DependencySourceGit
+	original := []DependencyDetailTransition{{
+		Before:        before,
+		After:         after,
+		ChangedFields: []DependencyDetailField{DependencyDetailSource},
+	}}
+
+	cloned := CloneDependencyDetailTransitions(original)
+	cloned[0].Before.Source = DependencySourceURL
+	cloned[0].After.Source = DependencySourceFile
+	cloned[0].ChangedFields[0] = DependencyDetailRelationship
+
+	if original[0].Before.Source != DependencySourceRegistry ||
+		original[0].After.Source != DependencySourceGit ||
+		original[0].ChangedFields[0] != DependencyDetailSource {
+		t.Fatalf("clone mutated original: %#v", original)
+	}
+	if CloneDependencyDetailTransitions(nil) != nil {
+		t.Fatal("nil transition slice must stay nil")
 	}
 }
 

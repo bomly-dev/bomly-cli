@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -13,11 +14,12 @@ const auditorName = "package"
 
 // Auditor protects against denied packages and suspiciously similar package names.
 type Auditor struct {
-	DenyPackages       []string
-	DenyGroups         []string
-	ProtectedPackages  []string
-	TyposquatThreshold float64
-	TyposquatMode      string
+	DenyPackages                []string
+	DenyGroups                  []string
+	ProtectedPackages           []string
+	DenyDependencySourceChanges []sdk.DependencySource
+	TyposquatThreshold          float64
+	TyposquatMode               string
 }
 
 func (a Auditor) Descriptor() sdk.AuditorDescriptor {
@@ -44,14 +46,14 @@ func (a Auditor) Applicable(_ context.Context, req sdk.AuditRequest) (bool, erro
 }
 
 func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
+	findings := dependencySourceChangeFindings(req.DependencyDetailChanges, a.DenyDependencySourceChanges)
 	if req.Graph == nil {
-		return sdk.AuditResult{}, nil
+		return sdk.AuditResult{Findings: findings}, nil
 	}
 	packages := req.Graph.Nodes()
 	if req.Target != nil {
 		packages = []*sdk.Dependency{req.Target}
 	}
-	findings := make([]sdk.Finding, 0)
 	baseNames := protectedNames(req.BaselineGraph, a.ProtectedPackages)
 	baseIDs := packageIDs(req.BaselineGraph)
 	threshold := a.TyposquatThreshold
@@ -93,6 +95,100 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 		}
 	}
 	return sdk.AuditResult{Findings: findings}, nil
+}
+
+func dependencySourceChangeFindings(transitions []sdk.DependencyDetailTransition, denied []sdk.DependencySource) []sdk.Finding {
+	type findingKey struct {
+		ruleID   string
+		identity string
+	}
+	grouped := make(map[findingKey]*sdk.Finding)
+	for _, transition := range transitions {
+		if transition.After == nil {
+			continue
+		}
+		for _, reason := range transition.ReviewReasons() {
+			var ruleID, title string
+			switch reason {
+			case sdk.DependencyDetailReviewSourceGit:
+				ruleID = "dependency-source-change-to-git"
+				title = "Dependency source changed to Git"
+			case sdk.DependencyDetailReviewSourceURL:
+				ruleID = "dependency-source-change-to-url"
+				title = "Dependency source changed to a URL"
+			default:
+				continue
+			}
+			purl := transition.After.PackageRef
+			if purl == "" {
+				purl = sdk.CanonicalPackageURLFromDependency(transition.After)
+			}
+			identity := purl
+			if identity == "" {
+				identity = transition.After.ID
+			}
+			status := sdk.FindingPolicyStatusWarn
+			if dependencySourceDenied(transition.After.Source, denied) {
+				status = sdk.FindingPolicyStatusFail
+			}
+			key := findingKey{ruleID: ruleID, identity: identity}
+			if existing := grouped[key]; existing != nil {
+				existing.DependencyRefs = appendUniqueString(existing.DependencyRefs, transition.After.ID)
+				continue
+			}
+			grouped[key] = &sdk.Finding{
+				ID:             fmt.Sprintf("%s:%s:%s", auditorName, ruleID, identity),
+				Kind:           sdk.FindingKindPackage,
+				Title:          title,
+				Severity:       packageFindingSeverity(status),
+				Reasons:        []string{string(reason)},
+				Source:         auditorName,
+				Auditor:        auditorName,
+				RuleID:         ruleID,
+				PolicyStatus:   status,
+				PackageRef:     purl,
+				DependencyRefs: appendUniqueString(nil, transition.After.ID),
+			}
+		}
+	}
+	keys := make([]findingKey, 0, len(grouped))
+	for key := range grouped {
+		keys = append(keys, key)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		if keys[i].ruleID != keys[j].ruleID {
+			return keys[i].ruleID < keys[j].ruleID
+		}
+		return keys[i].identity < keys[j].identity
+	})
+	findings := make([]sdk.Finding, 0, len(keys))
+	for _, key := range keys {
+		finding := grouped[key]
+		sort.Strings(finding.DependencyRefs)
+		findings = append(findings, *finding)
+	}
+	return findings
+}
+
+func dependencySourceDenied(source sdk.DependencySource, denied []sdk.DependencySource) bool {
+	for _, candidate := range denied {
+		if source == candidate {
+			return true
+		}
+	}
+	return false
+}
+
+func appendUniqueString(values []string, value string) []string {
+	if strings.TrimSpace(value) == "" {
+		return values
+	}
+	for _, existing := range values {
+		if existing == value {
+			return values
+		}
+	}
+	return append(values, value)
 }
 
 func finding(pkg *sdk.Dependency, id, title string, policyStatus sdk.FindingPolicyStatus) sdk.Finding {

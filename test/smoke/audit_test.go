@@ -9,7 +9,11 @@ import (
 	"net/http/httptest"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
+
+	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // ---------------------------------------------------------------------------
@@ -261,5 +265,95 @@ func TestAuditDiffAndExplain(t *testing.T) {
 			got := normalizeJSON(t, []byte(stdout))
 			assertGolden(t, tc.name, got)
 		})
+	}
+}
+
+func TestDependencyDetailRiskPolicy(t *testing.T) {
+	requireTool(t, "npm")
+	common := []string{
+		"diff",
+		"--url", "https://github.com/bomly-dev/example-javascript-npm",
+		"--base", "assurance/dependency-source-registry-v1",
+		"--head", "assurance/dependency-source-git-v1",
+		"--detectors", "npm",
+	}
+
+	text, stderr, code := runBomly(t, append(append([]string(nil), common...), "--format", "text")...)
+	if code != 0 {
+		t.Fatalf("plain diff exited %d\nstderr:\n%s", code, stderr)
+	}
+	if !strings.Contains(text, "⚠ minimist") || !strings.Contains(text, "source: registry → git") {
+		t.Fatalf("text diff did not mark the source change for review:\n%s", text)
+	}
+	if strings.Contains(text, "Policy findings") {
+		t.Fatalf("plain diff invented audit findings:\n%s", text)
+	}
+
+	markdown, stderr, code := runBomly(t, append(append([]string(nil), common...), "--format", "markdown")...)
+	if code != 0 {
+		t.Fatalf("Markdown diff exited %d\nstderr:\n%s", code, stderr)
+	}
+	if !strings.Contains(markdown, "| ⚠ Review | minimist | 1.2.8") ||
+		!strings.Contains(markdown, "1 of 1 detail change needs extra review") {
+		t.Fatalf("Markdown diff did not explain the review signal:\n%s", markdown)
+	}
+
+	auditedArgs := append(append([]string(nil), common...),
+		"--format", "json",
+		"--enrich",
+		"--audit",
+		"--matchers=-grype,-osv,-scorecard,-depsdev-license-matcher",
+		"--auditors", "package,vulnerability",
+	)
+	auditedJSON, stderr, code := runBomly(t, auditedArgs...)
+	if code != 0 {
+		t.Fatalf("default audited diff exited %d\nstderr:\n%s", code, stderr)
+	}
+	var audited output.DiffResponse
+	if err := json.Unmarshal([]byte(auditedJSON), &audited); err != nil {
+		t.Fatalf("decode audited diff: %v", err)
+	}
+	statusByRule := make(map[string]sdk.FindingPolicyStatus)
+	for _, finding := range audited.Audit.Introduced {
+		statusByRule[finding.RuleID] = finding.PolicyStatus
+	}
+	for _, ruleID := range []string{"dependency-source-change-to-git", "vulnerability-coverage-loss"} {
+		if statusByRule[ruleID] != sdk.FindingPolicyStatusWarn {
+			t.Fatalf("default %s status = %q, findings: %#v", ruleID, statusByRule[ruleID], audited.Audit.Introduced)
+		}
+	}
+
+	assertFails := func(name string, extra ...string) {
+		t.Helper()
+		args := append(append([]string(nil), auditedArgs...), extra...)
+		_, stderr, code := runBomly(t, args...)
+		if code == 0 {
+			t.Fatalf("%s unexpectedly passed\nstderr:\n%s", name, stderr)
+		}
+	}
+	assertFails("denied Git source", "--deny-dependency-source-change", "git")
+	assertFails("coverage-loss severity threshold", "--fail-on", "medium")
+
+	warnOnlyArgs := append(append([]string(nil), auditedArgs...),
+		"--deny-dependency-source-change", "git",
+		"--warn-only",
+	)
+	warnOnlyJSON, stderr, code := runBomly(t, warnOnlyArgs...)
+	if code != 0 {
+		t.Fatalf("warn-only source policy exited %d\nstderr:\n%s", code, stderr)
+	}
+	var warnOnly output.DiffResponse
+	if err := json.Unmarshal([]byte(warnOnlyJSON), &warnOnly); err != nil {
+		t.Fatalf("decode warn-only diff: %v", err)
+	}
+	foundWarnOnlySource := false
+	for _, finding := range warnOnly.Audit.Introduced {
+		if finding.RuleID == "dependency-source-change-to-git" &&
+			finding.PolicyStatus == sdk.FindingPolicyStatusWarn {
+			foundWarnOnlySource = true
+		}
+	}
+	if !foundWarnOnlySource {
+		t.Fatalf("warn-only diff did not preserve the source warning: %#v", warnOnly.Audit.Introduced)
 	}
 }

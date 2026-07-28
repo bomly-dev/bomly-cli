@@ -58,18 +58,19 @@ func TestCloneWithOverridesAppliesPolicyControls(t *testing.T) {
 	adapter.options.SetConfig(base)
 
 	clone := adapter.cloneWithOverrides(mcpOverrides{
-		FailOn:                "high",
-		AllowVulnerabilityIDs: "GHSA-one,CVE-2026-0001",
-		AllowLicenses:         "MIT,Apache-2.0",
-		DenyLicenses:          "AGPL-3.0-only",
-		LicenseExemptPackages: "pkg:npm/example",
-		DenyPackages:          "pkg:npm/blocked",
-		DenyGroups:            "pkg:maven/com.example",
-		ProtectedPackages:     "react,express",
-		TyposquatThreshold:    "0.93",
-		TyposquatMode:         "fail",
-		WarnOnly:              true,
-		Baseline:              "security/baseline.json",
+		FailOn:                      "high",
+		AllowVulnerabilityIDs:       "GHSA-one,CVE-2026-0001",
+		AllowLicenses:               "MIT,Apache-2.0",
+		DenyLicenses:                "AGPL-3.0-only",
+		LicenseExemptPackages:       "pkg:npm/example",
+		DenyPackages:                "pkg:npm/blocked",
+		DenyGroups:                  "pkg:maven/com.example",
+		DenyDependencySourceChanges: "git,url",
+		ProtectedPackages:           "react,express",
+		TyposquatThreshold:          "0.93",
+		TyposquatMode:               "fail",
+		WarnOnly:                    true,
+		Baseline:                    "security/baseline.json",
 	})
 	got := clone.GetConfig()
 	if !got.WarnOnly {
@@ -96,6 +97,7 @@ func TestCloneWithOverridesAppliesPolicyControls(t *testing.T) {
 	assertStrings("license exemptions", got.LicenseExemptPackages, []string{"pkg:npm/example"})
 	assertStrings("deny packages", got.DenyPackages, []string{"pkg:npm/blocked"})
 	assertStrings("deny groups", got.DenyGroups, []string{"pkg:maven/com.example"})
+	assertStrings("deny dependency source changes", got.DenyDependencySourceChanges, []string{"git", "url"})
 	assertStrings("protected packages", got.ProtectedPackages, []string{"react", "express"})
 	if got.TyposquatThreshold != "0.93" || got.TyposquatMode != "fail" {
 		t.Fatalf("typosquat overrides = threshold %q, mode %q", got.TyposquatThreshold, got.TyposquatMode)

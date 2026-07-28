@@ -34,8 +34,11 @@ type AuditRequest struct {
 	BaselineGraph   *Graph           `json:"baselineGraph,omitempty"`
 	Registry        *PackageRegistry `json:"registry,omitempty"`
 	Target          *Dependency      `json:"target,omitempty"`
-	AuditorFilter   AuditorFilter    `json:"auditorFilter"`
-	Stderr          io.Writer        `json:"-"`
+	// DependencyDetailChanges contains canonical head-side transitions for a
+	// diff audit. Scan and explain requests leave it empty.
+	DependencyDetailChanges []DependencyDetailTransition `json:"dependencyDetailChanges,omitempty"`
+	AuditorFilter           AuditorFilter                `json:"auditorFilter"`
+	Stderr                  io.Writer                    `json:"-"`
 }
 
 // AuditResult contains findings and scores from one auditor.

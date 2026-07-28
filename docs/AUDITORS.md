@@ -8,15 +8,17 @@ Auditors run **after** detectors and matchers. They never make network calls of 
 bomly scan --enrich --audit --fail-on high
 ```
 
-`--audit` alone is useful when you have ingested an SBOM that already carries vulnerability data, or when a matcher ran in a previous step.
+The CLI requires `--enrich` with `--audit`. Auditors themselves do not make
+network calls; the selected matchers decide whether enrichment uses the
+network.
 
 ## Built-in auditors
 
 | Auditor | Checks | Policy flags |
 | --- | --- | --- |
-| [`vulnerability`](auditors/vulnerability.md) | Enriched advisories vs. severity / allowlist policy | `--fail-on`, `--allow-vulnerability-id` |
+| [`vulnerability`](auditors/vulnerability.md) | Enriched advisories and vulnerability-check coverage loss | `--fail-on`, `--allow-vulnerability-id` |
 | [`license`](auditors/license.md) | Package licenses vs. allow/deny SPDX policy | `--allow-license`, `--deny-license`, `--license-exempt-package` |
-| [`package`](auditors/package.md) | Denied packages and typosquatted names | `--deny-package`, `--deny-group`, `--protected-package`, `--typosquat-threshold`, `--typosquat-mode` |
+| [`package`](auditors/package.md) | Denied packages, typosquatted names, and source changes | `--deny-package`, `--deny-group`, `--protected-package`, `--typosquat-threshold`, `--typosquat-mode`, `--deny-dependency-source-change` |
 
 Select a subset with the `--auditors` selector (e.g. `--auditors license`). See the [per-auditor reference](auditors/) for options, examples, and limitations. Auditors are also a plugin extension point — for a worked example of an external auditor, see the [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor).
 
@@ -56,7 +58,12 @@ The `any` token matches every severity, including `unknown`.
 
 ## `--fail-on`
 
-`--fail-on` is the only knob that turns a finding into a non-zero exit code. It accepts a severity token, the reachability token `reachable`, or the known-exploitation token `exploitable`:
+`--fail-on` controls vulnerability and coverage findings by severity,
+reachability, or known exploitation. Other policy flags, such as
+`--deny-package` and `--deny-dependency-source-change`, can create
+failing findings directly.
+
+It accepts these tokens:
 
 | Token | Matches |
 | --- | --- |
@@ -137,6 +144,7 @@ policy:
   license_exempt_packages: [my-internal-lib]
   deny_packages: [event-stream]
   deny_groups: [com.evil]
+  deny_dependency_source_changes: [git, url]
   protected_packages: [react, lodash]
   typosquat_threshold: "0.90"
   typosquat_mode: warn                    # warn | fail

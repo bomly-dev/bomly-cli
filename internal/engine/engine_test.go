@@ -151,6 +151,47 @@ func TestEngineAudit_ReturnsPartialResultsWhenAnAuditorFails(t *testing.T) {
 	}
 }
 
+func TestEngineAudit_ClonesDependencyDetailChangesPerAuditor(t *testing.T) {
+	before := sdk.NewDependencyWithID("before", sdk.Dependency{Source: sdk.DependencySourceRegistry})
+	after := sdk.NewDependencyWithID("after", sdk.Dependency{Source: sdk.DependencySourceGit})
+	request := AuditRequest{
+		Ecosystem:      EcosystemNPM,
+		PackageManager: PackageManagerNPM,
+		DependencyDetailChanges: []sdk.DependencyDetailTransition{{
+			Before:        before,
+			After:         after,
+			ChangedFields: []sdk.DependencyDetailField{sdk.DependencyDetailSource},
+		}},
+	}
+	registry := newTestRegistry()
+	registry.registerAuditor(fakeAuditor{
+		descriptor: AuditorDescriptor{Name: "mutating", SupportedEcosystems: []Ecosystem{EcosystemNPM}},
+		run: func(req AuditRequest) AuditResult {
+			req.DependencyDetailChanges[0].After.Source = sdk.DependencySourceURL
+			req.DependencyDetailChanges[0].ChangedFields[0] = sdk.DependencyDetailRelationship
+			return AuditResult{}
+		},
+	})
+	registry.registerAuditor(fakeAuditor{
+		descriptor: AuditorDescriptor{Name: "observing", SupportedEcosystems: []Ecosystem{EcosystemNPM}},
+		run: func(req AuditRequest) AuditResult {
+			if req.DependencyDetailChanges[0].After.Source != sdk.DependencySourceGit ||
+				req.DependencyDetailChanges[0].ChangedFields[0] != sdk.DependencyDetailSource {
+				t.Fatalf("auditor observed mutated request: %#v", req.DependencyDetailChanges)
+			}
+			return AuditResult{}
+		},
+	})
+
+	if _, err := NewEngine(registry).Audit(context.Background(), request); err != nil {
+		t.Fatal(err)
+	}
+	if request.DependencyDetailChanges[0].After.Source != sdk.DependencySourceGit ||
+		request.DependencyDetailChanges[0].ChangedFields[0] != sdk.DependencyDetailSource {
+		t.Fatalf("Audit mutated caller request: %#v", request.DependencyDetailChanges)
+	}
+}
+
 func TestEngineAudit_SkipsNotReadyOrNotApplicableAuditors(t *testing.T) {
 	registry := newTestRegistry()
 	registry.registerAuditor(fakeAuditor{

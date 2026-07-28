@@ -584,6 +584,24 @@ func TestDiffTool_PropagatesTargetSelectors(t *testing.T) {
 	}
 }
 
+func TestDiffTool_PropagatesDependencySourcePolicy(t *testing.T) {
+	adapter := &mockAdapter{diffResult: mcp.DiffRunResult{Response: output.DiffResponse{Command: "diff"}}}
+	client := newTestClient(t, adapter)
+	result := callTool(t, client, "bomly_diff", map[string]any{
+		"base":                           "main",
+		"head":                           "HEAD",
+		"enrich":                         true,
+		"audit":                          true,
+		"deny_dependency_source_changes": "git,url",
+	})
+	if result.IsError {
+		t.Fatalf("unexpected tool error: %v", result.Content)
+	}
+	if adapter.diffReq.DenyDependencySourceChanges != "git,url" {
+		t.Fatalf("diff source policy = %q", adapter.diffReq.DenyDependencySourceChanges)
+	}
+}
+
 func TestPluginsTool_ReturnsJSONResult(t *testing.T) {
 	adapter := &mockAdapter{
 		plugins: []managedplugin.Info{

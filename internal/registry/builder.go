@@ -47,33 +47,34 @@ type Configs struct {
 	// FailOn is the parsed list of --fail-on constraints. The policy
 	// auditor evaluates findings against this AND-set; an empty slice
 	// preserves the historical behavior of emitting every finding.
-	FailOn                []sdk.FailOnConstraint
-	AllowVulnerabilityIDs []string
-	AllowLicenses         []string
-	DenyLicenses          []string
-	LicenseExemptPackages []string
-	DenyPackages          []string
-	DenyGroups            []string
-	ProtectedPackages     []string
-	TyposquatThreshold    string
-	TyposquatMode         string
-	OsvAPIBase            string
-	OsvCacheDir           string
-	OsvCacheTTL           string
-	KEVCacheDir           string
-	KEVCacheTTL           string
-	ScorecardAPIBase      string
-	ScorecardCacheDir     string
-	ScorecardCacheTTL     string
-	HTTPProxy             string
-	HTTPNoProxy           string
-	HTTPProxyType         string
-	HTTPProxyHost         string
-	HTTPProxyPort         int
-	HTTPProxyUsername     string
-	HTTPProxyPassword     string
-	HTTPCACertFile        string
-	HTTPClientProvider    *sdk.HTTPClientProvider
+	FailOn                      []sdk.FailOnConstraint
+	AllowVulnerabilityIDs       []string
+	AllowLicenses               []string
+	DenyLicenses                []string
+	LicenseExemptPackages       []string
+	DenyPackages                []string
+	DenyGroups                  []string
+	DenyDependencySourceChanges []sdk.DependencySource
+	ProtectedPackages           []string
+	TyposquatThreshold          string
+	TyposquatMode               string
+	OsvAPIBase                  string
+	OsvCacheDir                 string
+	OsvCacheTTL                 string
+	KEVCacheDir                 string
+	KEVCacheTTL                 string
+	ScorecardAPIBase            string
+	ScorecardCacheDir           string
+	ScorecardCacheTTL           string
+	HTTPProxy                   string
+	HTTPNoProxy                 string
+	HTTPProxyType               string
+	HTTPProxyHost               string
+	HTTPProxyPort               int
+	HTTPProxyUsername           string
+	HTTPProxyPassword           string
+	HTTPCACertFile              string
+	HTTPClientProvider          *sdk.HTTPClientProvider
 }
 
 // Filter narrows a registry down to the runtime-relevant selections.
@@ -477,11 +478,12 @@ func (r *Registry) registerAuditors() {
 			ExemptPackages: append([]string(nil), r.configs.LicenseExemptPackages...),
 		},
 		packageauditor.Auditor{
-			DenyPackages:       append([]string(nil), r.configs.DenyPackages...),
-			DenyGroups:         append([]string(nil), r.configs.DenyGroups...),
-			ProtectedPackages:  append([]string(nil), r.configs.ProtectedPackages...),
-			TyposquatThreshold: threshold,
-			TyposquatMode:      r.configs.TyposquatMode,
+			DenyPackages:                append([]string(nil), r.configs.DenyPackages...),
+			DenyGroups:                  append([]string(nil), r.configs.DenyGroups...),
+			DenyDependencySourceChanges: append([]sdk.DependencySource(nil), r.configs.DenyDependencySourceChanges...),
+			ProtectedPackages:           append([]string(nil), r.configs.ProtectedPackages...),
+			TyposquatThreshold:          threshold,
+			TyposquatMode:               r.configs.TyposquatMode,
 		},
 	}) {
 		r.RegisterAuditor(auditor)

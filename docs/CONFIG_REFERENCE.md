@@ -39,6 +39,7 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | `policy.license_exempt_packages` | `BOMLY_LICENSE_EXEMPT_PACKAGES` | `[]string` | - | Package URLs exempt from license policy checks |
 | `policy.deny_packages` | `BOMLY_DENY_PACKAGES` | `[]string` | - | Package URLs to deny |
 | `policy.deny_groups` | `BOMLY_DENY_GROUPS` | `[]string` | - | Package URL namespaces to deny |
+| `policy.deny_dependency_source_changes` | `BOMLY_DENY_DEPENDENCY_SOURCE_CHANGES` | `[]string` | - | Dependency source changes that fail diff policy: git or url |
 | `policy.protected_packages` | `BOMLY_PROTECTED_PACKAGES` | `[]string` | - | Canonical package names to protect from typosquatting |
 | `policy.typosquat_threshold` | `BOMLY_TYPOSQUAT_THRESHOLD` | `string` | 0.90 | Similarity threshold for typosquatting detection |
 | `policy.typosquat_mode` | `BOMLY_TYPOSQUAT_MODE` | `string` | warn | Typosquatting policy mode: warn or fail |
@@ -104,6 +105,7 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 | `baseline` | `policy.baseline` |
 | `config` | `--config` |
 | `container` | `target.container` |
+| `deny_dependency_source_changes` | `policy.deny_dependency_source_changes` |
 | `deny_groups` | `policy.deny_groups` |
 | `deny_licenses` | `policy.deny_licenses` |
 | `deny_packages` | `policy.deny_packages` |
@@ -208,6 +210,8 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 #   deny_packages: []
 #   Package URL namespaces to deny
 #   deny_groups: []
+#   Dependency source changes that fail diff policy: git or url
+#   deny_dependency_source_changes: []
 #   Canonical package names to protect from typosquatting
 #   protected_packages: []
 #   Similarity threshold for typosquatting detection

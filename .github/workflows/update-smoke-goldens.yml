@@ -75,6 +75,9 @@ jobs:
           - name: node
             run: 'TestScan$/(scan-npm$|scan-npm-scope-runtime|scan-npm-workspaces|scan-yarn|scan-pnpm|scan-bun$|scan-github-actions)|TestDiff/diff-npm|TestAuditScan/scan-npm-audit'
             node: true
+          - name: node-detail-policy
+            run: 'TestDependencyDetailRiskPolicy$'
+            node: true
           - name: node-reachability
             run: 'TestScan$/scan-npm-reachability'
             node: true

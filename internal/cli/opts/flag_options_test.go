@@ -99,3 +99,24 @@ func TestApplyFlagOverridesJSONShortcut(t *testing.T) {
 		})
 	}
 }
+
+func TestBindDiffPolicyFlags(t *testing.T) {
+	root := newTestRootCommand(t)
+	var resolved config.Resolved
+	if err := BindCommandFlagGroups(root, &resolved, FlagGroupDiffPolicy); err != nil {
+		t.Fatal(err)
+	}
+	if err := root.ParseFlags([]string{
+		"--deny-dependency-source-change", "git",
+		"--deny-dependency-source-change", "url",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	var merged config.Resolved
+	applyFlagOverrides(&merged, resolved, root)
+	if len(merged.DenyDependencySourceChanges) != 2 ||
+		merged.DenyDependencySourceChanges[0] != "git" ||
+		merged.DenyDependencySourceChanges[1] != "url" {
+		t.Fatalf("source-change flags = %#v", merged.DenyDependencySourceChanges)
+	}
+}

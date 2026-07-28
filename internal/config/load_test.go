@@ -104,6 +104,7 @@ policy:
   license_exempt_packages: [pkg:golang/example.com/exempt@v1.0.0]
   deny_packages: [pkg:golang/example.com/denied@v1.0.0]
   deny_groups: [example.com/private]
+  deny_dependency_source_changes: [git, url]
   protected_packages: [github.com/acme/core]
   typosquat_threshold: "0.95"
   typosquat_mode: fail
@@ -153,7 +154,7 @@ matchers:
 	if resolved.Ecosystems != "go,npm" || resolved.Detectors != "gomod" || resolved.Auditors != "policy" || resolved.Matchers != "osv" || resolved.Analyzers != "govulncheck" {
 		t.Fatalf("component config = %#v", resolved)
 	}
-	if len(resolved.FailOn) != 2 || len(resolved.AllowVulnerabilityIDs) != 1 || len(resolved.AllowLicenses) != 1 || len(resolved.DenyLicenses) != 1 || len(resolved.LicenseExemptPackages) != 1 || len(resolved.DenyPackages) != 1 || len(resolved.DenyGroups) != 1 || len(resolved.ProtectedPackages) != 1 {
+	if len(resolved.FailOn) != 2 || len(resolved.AllowVulnerabilityIDs) != 1 || len(resolved.AllowLicenses) != 1 || len(resolved.DenyLicenses) != 1 || len(resolved.LicenseExemptPackages) != 1 || len(resolved.DenyPackages) != 1 || len(resolved.DenyGroups) != 1 || len(resolved.DenyDependencySourceChanges) != 2 || len(resolved.ProtectedPackages) != 1 {
 		t.Fatalf("policy config = %#v", resolved)
 	}
 	if resolved.TyposquatThreshold != "0.95" || resolved.TyposquatMode != "fail" || !resolved.WarnOnly {

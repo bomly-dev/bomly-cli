@@ -1,11 +1,13 @@
 ## What the `package` auditor does
 
-It guards the *identity* of your dependencies rather than their contents. Two checks:
+It guards the identity and origin of your dependencies. It performs three checks:
 
 1. **Denylist** — flag any package (or any package in a denied group/namespace) you have decided to ban outright.
 2. **Typosquat** — flag packages whose names are suspiciously close to a package you trust, catching `reqeusts`, `loadsh`, or `cross-env`-style lookalikes.
+3. **Source change** — in a diff, warn when a dependency that had a known source now comes from Git or an arbitrary URL. This asks for review; it does not claim the change is malicious.
 
-Both checks are name-based, so this auditor needs no enrichment and runs fully offline.
+The first two checks are name-based and run fully offline. Source-change findings
+use the dependency details already produced by an enriched diff.
 
 ## Options
 
@@ -13,6 +15,7 @@ Both checks are name-based, so this auditor needs no enrichment and runs fully o
 | --- | --- | --- |
 | `--deny-package <name>` | `policy.deny_packages` | Fail when this package is present. Repeatable. |
 | `--deny-group <group>` | `policy.deny_groups` | Fail on any package in this group/namespace (e.g. a Maven groupId). Repeatable. |
+| `--deny-dependency-source-change <git\|url>` | `policy.deny_dependency_source_changes` | Make a matching source change fail instead of warn. Repeatable and diff-only. |
 | `--protected-package <name>` | `policy.protected_packages` | A trusted name; lookalikes within the threshold are flagged as possible typosquats. Repeatable. |
 | `--typosquat-threshold <0..1>` | `policy.typosquat_threshold` | Similarity score above which a name is treated as a lookalike. Default `0.90`. Higher = stricter (fewer matches). |
 | `--typosquat-mode <warn\|fail>` | `policy.typosquat_mode` | Policy status for a typosquat finding. `warn` (default) records a warning; `fail` makes it eligible to fail when it also matches `--fail-on`. |
@@ -23,24 +26,35 @@ Both checks are name-based, so this auditor needs no enrichment and runs fully o
 
 ```bash
 # Ban a known-bad package
-bomly scan --audit --deny-package event-stream --fail-on any
+bomly scan --enrich --audit --deny-package event-stream --fail-on any
 
 # Ban an entire namespace
-bomly scan --audit --deny-group com.evil --fail-on any
+bomly scan --enrich --audit --deny-group com.evil --fail-on any
 
 # Catch typosquats of the packages you actually depend on, and fail on them
-bomly scan --audit \
+bomly scan --enrich --audit \
   --protected-package react --protected-package lodash \
   --typosquat-threshold 0.85 --typosquat-mode fail \
   --fail-on any
+
+# Reject a registry dependency that changes to a Git source
+bomly diff --base main --head HEAD --enrich --audit \
+  --deny-dependency-source-change git
 ```
 
 ## Diff and baselines
 
 Under `bomly diff`, the base side of the comparison acts as a trusted baseline for the typosquat check. Bomly seeds the protected-name set with the package names already present in the base graph, and any package whose ID *or* display name already existed in the base is skipped. The practical effect: only **newly introduced** names are typosquat-checked — against both your `--protected-package` list and everything that was already in the tree — so a name that has lived in the project for releases is never flagged, while a freshly added lookalike is. Findings are then classified introduced / resolved / persisted like any other auditor (see [AUDITORS.md](../AUDITORS.md#diff-and-auditing)).
 
+The same diff audit receives the canonical source transitions. A move to Git
+uses rule `dependency-source-change-to-git`; a move to a URL uses
+`dependency-source-change-to-url`. Both warn by default. Configure the
+matching source type when it should fail. `--warn-only` still downgrades a
+configured failure.
+
 ## Limitations
 
 - **Names, not behavior.** This auditor cannot tell whether a package is malicious — only whether its name is denied or resembles a protected one. Pair it with the vulnerability auditor for content risk.
+- **Source changes need context.** Git and URL sources can be intentional. The warning asks a reviewer to confirm the new origin and pinned reference.
 - **Typosquat tuning is a trade-off.** A lower threshold catches more lookalikes but raises false positives on legitimately similar names; tune `--typosquat-threshold` per project.
 - **Protected lists are explicit.** Outside of `diff`, Bomly only checks lookalikes against names you pass with `--protected-package`; it does not infer a baseline of "popular" packages.

@@ -83,9 +83,10 @@ type DiffResults struct {
 
 // DiffDependencyResults aggregates package changes across all manifests.
 type DiffDependencyResults struct {
-	Added   []DiffPackageChange  `json:"added,omitempty"`
-	Removed []DiffPackageChange  `json:"removed,omitempty"`
-	Changed []DiffChangedPackage `json:"changed,omitempty"`
+	Added       []DiffPackageChange        `json:"added,omitempty"`
+	Removed     []DiffPackageChange        `json:"removed,omitempty"`
+	Changed     []DiffChangedPackage       `json:"changed,omitempty"`
+	Transitions []DiffDependencyTransition `json:"transitions,omitempty"`
 }
 
 // DiffLicenseResults aggregates license changes across all manifests.
@@ -134,31 +135,54 @@ type DiffChangedPackage struct {
 	Before PackageRef `json:"before"`
 }
 
+// DiffDependencyTransition is one same-identity occurrence whose
+// relationship, source, or registry-matching eligibility changed.
+type DiffDependencyTransition struct {
+	Before        DiffDependencyTransitionState `json:"before"`
+	After         DiffDependencyTransitionState `json:"after"`
+	ChangedFields []sdk.DependencyMetadataField `json:"changed_fields"`
+}
+
+// DiffDependencyTransitionState preserves the identity and metadata of one
+// occurrence before or after a transition.
+type DiffDependencyTransitionState struct {
+	ID               string               `json:"id"`
+	Name             string               `json:"name"`
+	Version          string               `json:"version,omitempty"`
+	Purl             string               `json:"purl,omitempty"`
+	Scope            string               `json:"scope,omitempty"`
+	Relationship     string               `json:"relationship"`
+	Source           sdk.DependencySource `json:"source,omitempty"`
+	RegistryEligible bool                 `json:"registry_eligible"`
+}
+
 // DiffManifestResult describes changes for one manifest.
 type DiffManifestResult struct {
-	Status         string               `json:"status"`
-	Path           string               `json:"path,omitempty"`
-	Kind           sdk.ManifestKind     `json:"kind,omitempty"`
-	Subproject     string               `json:"subproject,omitempty"`
-	Ecosystem      sdk.Ecosystem        `json:"ecosystem,omitempty"`
-	PackageManager sdk.PackageManager   `json:"package_manager,omitempty"`
-	Added          []DiffPackageChange  `json:"added,omitempty"`
-	Removed        []DiffPackageChange  `json:"removed,omitempty"`
-	Changed        []DiffChangedPackage `json:"changed,omitempty"`
+	Status         string                     `json:"status"`
+	Path           string                     `json:"path,omitempty"`
+	Kind           sdk.ManifestKind           `json:"kind,omitempty"`
+	Subproject     string                     `json:"subproject,omitempty"`
+	Ecosystem      sdk.Ecosystem              `json:"ecosystem,omitempty"`
+	PackageManager sdk.PackageManager         `json:"package_manager,omitempty"`
+	Added          []DiffPackageChange        `json:"added,omitempty"`
+	Removed        []DiffPackageChange        `json:"removed,omitempty"`
+	Changed        []DiffChangedPackage       `json:"changed,omitempty"`
+	Transitions    []DiffDependencyTransition `json:"transitions,omitempty"`
 }
 
 // DiffSummary aggregates manifest and package counts for a diff.
 type DiffSummary struct {
-	AddedManifestCount     int `json:"added_manifest_count"`
-	ChangedManifestCount   int `json:"changed_manifest_count"`
-	RemovedManifestCount   int `json:"removed_manifest_count"`
-	UnchangedManifestCount int `json:"unchanged_manifest_count"`
-	AddedPackageCount      int `json:"added_package_count"`
-	ChangedPackageCount    int `json:"changed_package_count"`
-	RemovedPackageCount    int `json:"removed_package_count"`
-	ExactMatchCount        int `json:"exact_match_count"`
-	FuzzyMatchCount        int `json:"fuzzy_match_count"`
-	UnmatchedPackageCount  int `json:"unmatched_package_count"`
+	AddedManifestCount       int `json:"added_manifest_count"`
+	ChangedManifestCount     int `json:"changed_manifest_count"`
+	RemovedManifestCount     int `json:"removed_manifest_count"`
+	UnchangedManifestCount   int `json:"unchanged_manifest_count"`
+	AddedPackageCount        int `json:"added_package_count"`
+	ChangedPackageCount      int `json:"changed_package_count"`
+	TransitionedPackageCount int `json:"transitioned_package_count"`
+	RemovedPackageCount      int `json:"removed_package_count"`
+	ExactMatchCount          int `json:"exact_match_count"`
+	FuzzyMatchCount          int `json:"fuzzy_match_count"`
+	UnmatchedPackageCount    int `json:"unmatched_package_count"`
 }
 
 // ExplainResponse is the structured payload for the explain command.
@@ -615,7 +639,7 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 				filterSBOMPseudoPackageDiff(&manifestDiff, baseManifest.Graph, headManifest.Graph)
 			}
 			exactMatches := len(manifestDiff.Updated)
-			reconcileDiffWithFuzzyMatches(&manifestDiff)
+			reconcileDiffWithFuzzyMatches(&manifestDiff, baseManifest.Graph, headManifest.Graph)
 			summary.ExactMatchCount += exactMatches
 			summary.FuzzyMatchCount += len(manifestDiff.Updated) - exactMatches
 			summary.UnmatchedPackageCount += len(manifestDiff.Added) + len(manifestDiff.Removed)
@@ -631,14 +655,16 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 				Added:          diffPackageChangesFromPackages(manifestDiff.Added, headRegistry, headDirect),
 				Removed:        diffPackageChangesFromPackages(manifestDiff.Removed, baseRegistry, baseDirect),
 				Changed:        diffChangedPackagesFromDiff(manifestDiff.Updated, baseRegistry, headRegistry, baseDirect, headDirect),
+				Transitions:    diffDependencyTransitionsFromDiff(manifestDiff.Transitions),
 			}
-			if len(result.Added) == 0 && len(result.Removed) == 0 && len(result.Changed) == 0 {
+			if len(result.Added) == 0 && len(result.Removed) == 0 && len(result.Changed) == 0 && len(result.Transitions) == 0 {
 				summary.UnchangedManifestCount++
 			} else {
 				result.Status = "changed"
 				summary.ChangedManifestCount++
 				summary.AddedPackageCount += len(result.Added)
 				summary.ChangedPackageCount += len(result.Changed)
+				summary.TransitionedPackageCount += len(result.Transitions)
 				summary.RemovedPackageCount += len(result.Removed)
 			}
 			results.Manifests = append(results.Manifests, result)
@@ -669,6 +695,7 @@ func aggregateDependencyChanges(manifests []DiffManifestResult) DiffDependencyRe
 	added := make(map[string]DiffPackageChange)
 	removed := make(map[string]DiffPackageChange)
 	changed := make(map[string]DiffChangedPackage)
+	transitions := make(map[string]DiffDependencyTransition)
 	for _, manifest := range manifests {
 		for _, change := range manifest.Added {
 			added[change.Package.ID] = change
@@ -679,6 +706,9 @@ func aggregateDependencyChanges(manifests []DiffManifestResult) DiffDependencyRe
 		for _, change := range manifest.Changed {
 			key := change.Before.ID + "->" + change.After.ID
 			changed[key] = change
+		}
+		for _, transition := range manifest.Transitions {
+			transitions[diffDependencyTransitionKey(transition)] = transition
 		}
 	}
 	out := DiffDependencyResults{}
@@ -691,10 +721,36 @@ func aggregateDependencyChanges(manifests []DiffManifestResult) DiffDependencyRe
 	for _, change := range changed {
 		out.Changed = append(out.Changed, change)
 	}
+	for _, transition := range transitions {
+		out.Transitions = append(out.Transitions, transition)
+	}
 	sort.Slice(out.Added, func(i, j int) bool { return out.Added[i].Package.ID < out.Added[j].Package.ID })
 	sort.Slice(out.Removed, func(i, j int) bool { return out.Removed[i].Package.ID < out.Removed[j].Package.ID })
 	sort.Slice(out.Changed, func(i, j int) bool { return out.Changed[i].After.ID < out.Changed[j].After.ID })
+	sort.Slice(out.Transitions, func(i, j int) bool {
+		return diffDependencyTransitionKey(out.Transitions[i]) < diffDependencyTransitionKey(out.Transitions[j])
+	})
 	return out
+}
+
+func diffDependencyTransitionKey(transition DiffDependencyTransition) string {
+	fields := make([]string, 0, len(transition.ChangedFields))
+	for _, field := range transition.ChangedFields {
+		fields = append(fields, string(field))
+	}
+	return strings.Join([]string{
+		transition.Before.ID,
+		transition.After.ID,
+		transition.Before.Scope,
+		transition.After.Scope,
+		transition.Before.Relationship,
+		transition.After.Relationship,
+		string(transition.Before.Source),
+		string(transition.After.Source),
+		strconv.FormatBool(transition.Before.RegistryEligible),
+		strconv.FormatBool(transition.After.RegistryEligible),
+		strings.Join(fields, ","),
+	}, "\x00")
 }
 
 func aggregateLicenseChanges(dependencies DiffDependencyResults) DiffLicenseResults {
@@ -970,6 +1026,18 @@ func filterSBOMPseudoPackageDiff(diff *sdk.Diff, baseGraph, headGraph *sdk.Graph
 	}
 	diff.Added = filterSBOMPseudoPackages(diff.Added, headGraph)
 	diff.Removed = filterSBOMPseudoPackages(diff.Removed, baseGraph)
+	if len(diff.Transitions) > 0 {
+		baseRoots := graphRootIDs(baseGraph)
+		headRoots := graphRootIDs(headGraph)
+		filtered := make([]sdk.DependencyMetadataTransition, 0, len(diff.Transitions))
+		for _, transition := range diff.Transitions {
+			if isSBOMPseudoPackage(transition.Before, baseRoots) || isSBOMPseudoPackage(transition.After, headRoots) {
+				continue
+			}
+			filtered = append(filtered, transition)
+		}
+		diff.Transitions = filtered
+	}
 }
 
 func filterSBOMPseudoPackages(packages []*sdk.Dependency, graph *sdk.Graph) []*sdk.Dependency {
@@ -1041,6 +1109,37 @@ func diffChangedPackagesFromDiff(changes []sdk.VersionChange, baseRegistry, head
 	return out
 }
 
+func diffDependencyTransitionsFromDiff(transitions []sdk.DependencyMetadataTransition) []DiffDependencyTransition {
+	out := make([]DiffDependencyTransition, 0, len(transitions))
+	for _, transition := range transitions {
+		out = append(out, DiffDependencyTransition{
+			Before:        diffDependencyTransitionState(transition.Before, transition.BeforeRelationship, transition.BeforeRegistryEligible),
+			After:         diffDependencyTransitionState(transition.After, transition.AfterRelationship, transition.AfterRegistryEligible),
+			ChangedFields: append([]sdk.DependencyMetadataField(nil), transition.ChangedFields...),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		return diffDependencyTransitionKey(out[i]) < diffDependencyTransitionKey(out[j])
+	})
+	return out
+}
+
+func diffDependencyTransitionState(dependency *sdk.Dependency, relationship sdk.DependencyRelationship, eligible bool) DiffDependencyTransitionState {
+	if dependency == nil {
+		return DiffDependencyTransitionState{Relationship: string(relationship), RegistryEligible: eligible}
+	}
+	return DiffDependencyTransitionState{
+		ID:               dependency.ID,
+		Name:             dependency.Name,
+		Version:          dependency.Version,
+		Purl:             dependency.PURL,
+		Scope:            string(dependency.PrimaryScope()),
+		Relationship:     string(relationship),
+		Source:           dependency.Source,
+		RegistryEligible: eligible,
+	}
+}
+
 // directMembership captures, for one graph, the set of direct-dependency node
 // IDs and whether the graph carries enough hierarchy to know directness at all.
 type directMembership struct {
@@ -1103,7 +1202,7 @@ const (
 	diffFuzzyTierKey       = "bomly.diff.fuzzy_tier"
 )
 
-func reconcileDiffWithFuzzyMatches(diff *sdk.Diff) {
+func reconcileDiffWithFuzzyMatches(diff *sdk.Diff, baseGraph, headGraph *sdk.Graph) {
 	if diff == nil || len(diff.Added) == 0 || len(diff.Removed) == 0 {
 		return
 	}
@@ -1154,6 +1253,9 @@ func reconcileDiffWithFuzzyMatches(diff *sdk.Diff) {
 		before := diff.Removed[match.removedIdx]
 		applyFuzzyMetadata(before, after, match.score, match.tier)
 		diff.Updated = append(diff.Updated, sdk.VersionChange{Before: before, After: after})
+		if transition, changed := sdk.CompareDependencyMetadata(baseGraph, headGraph, before, after); changed {
+			diff.Transitions = append(diff.Transitions, transition)
+		}
 		matchedAdded[match.addedIdx] = struct{}{}
 		matchedRemoved[match.removedIdx] = struct{}{}
 	}
@@ -1182,6 +1284,20 @@ func reconcileDiffWithFuzzyMatches(diff *sdk.Diff) {
 	sort.Slice(diff.Updated, func(i, j int) bool {
 		left := diff.Updated[i]
 		right := diff.Updated[j]
+		if left.Before.IdentityKey() != right.Before.IdentityKey() {
+			return left.Before.IdentityKey() < right.Before.IdentityKey()
+		}
+		if left.Before.Version != right.Before.Version {
+			return left.Before.Version < right.Before.Version
+		}
+		if left.After.Version != right.After.Version {
+			return left.After.Version < right.After.Version
+		}
+		return left.Before.ID < right.Before.ID
+	})
+	sort.Slice(diff.Transitions, func(i, j int) bool {
+		left := diff.Transitions[i]
+		right := diff.Transitions[j]
 		if left.Before.IdentityKey() != right.Before.IdentityKey() {
 			return left.Before.IdentityKey() < right.Before.IdentityKey()
 		}

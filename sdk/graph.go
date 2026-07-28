@@ -26,15 +26,44 @@ type Path struct {
 
 // Diff summarizes the dependency changes between two graphs.
 type Diff struct {
-	Added   []*Dependency
-	Removed []*Dependency
-	Updated []VersionChange
+	Added       []*Dependency
+	Removed     []*Dependency
+	Updated     []VersionChange
+	Transitions []DependencyMetadataTransition
 }
 
 // VersionChange captures a dependency identity that changed versions.
 type VersionChange struct {
 	Before *Dependency
 	After  *Dependency
+}
+
+// DependencyMetadataField identifies one occurrence property that changed
+// independently of package identity or version.
+type DependencyMetadataField string
+
+const (
+	// DependencyMetadataRelationship is a direct, transitive, or unknown
+	// relationship change.
+	DependencyMetadataRelationship DependencyMetadataField = "relationship"
+	// DependencyMetadataSource is a registry, workspace, file, Git, URL, or
+	// project source change.
+	DependencyMetadataSource DependencyMetadataField = "source"
+	// DependencyMetadataRegistryEligibility indicates that external registry
+	// matching eligibility changed.
+	DependencyMetadataRegistryEligibility DependencyMetadataField = "registry_eligibility"
+)
+
+// DependencyMetadataTransition captures same-identity occurrence metadata
+// changes. Version changes remain represented separately by VersionChange.
+type DependencyMetadataTransition struct {
+	Before                 *Dependency
+	After                  *Dependency
+	ChangedFields          []DependencyMetadataField
+	BeforeRelationship     DependencyRelationship
+	AfterRelationship      DependencyRelationship
+	BeforeRegistryEligible bool
+	AfterRegistryEligible  bool
 }
 
 // Graph stores dependency nodes as a directed graph.
@@ -356,15 +385,20 @@ func (g *Graph) PrettyTree() string {
 	return strings.TrimSuffix(b.String(), "\n")
 }
 
-// Compare returns the added, removed, and updated dependencies between base and
-// head. Synthetic consolidated subproject nodes are ignored.
+// Compare returns added, removed, version-changed, and metadata-transitioned
+// dependencies between base and head. Synthetic consolidated subproject nodes
+// are ignored.
 func Compare(base, head *Graph) Diff {
 	baseExact, headExact := indexDiffableNodes(base), indexDiffableNodes(head)
 	baseRemainder := make(map[string]*Dependency)
 	headRemainder := make(map[string]*Dependency)
+	transitions := make([]DependencyMetadataTransition, 0)
 
 	for id, node := range baseExact {
-		if _, ok := headExact[id]; ok {
+		if headNode, ok := headExact[id]; ok {
+			if transition, changed := CompareDependencyMetadata(base, head, node, headNode); changed {
+				transitions = append(transitions, transition)
+			}
 			continue
 		}
 		baseRemainder[id] = node
@@ -387,9 +421,10 @@ func Compare(base, head *Graph) Diff {
 	}
 
 	diff := Diff{
-		Added:   make([]*Dependency, 0),
-		Removed: make([]*Dependency, 0),
-		Updated: make([]VersionChange, 0),
+		Added:       make([]*Dependency, 0),
+		Removed:     make([]*Dependency, 0),
+		Updated:     make([]VersionChange, 0),
+		Transitions: transitions,
 	}
 	for key := range identities {
 		baseNodes := baseByIdentity[key]
@@ -402,7 +437,12 @@ func Compare(base, head *Graph) Diff {
 			pairs = len(headNodes)
 		}
 		for i := 0; i < pairs; i++ {
-			diff.Updated = append(diff.Updated, VersionChange{Before: baseNodes[i], After: headNodes[i]})
+			before := baseNodes[i]
+			after := headNodes[i]
+			diff.Updated = append(diff.Updated, VersionChange{Before: before, After: after})
+			if transition, changed := CompareDependencyMetadata(base, head, before, after); changed {
+				diff.Transitions = append(diff.Transitions, transition)
+			}
 		}
 		if pairs < len(baseNodes) {
 			diff.Removed = append(diff.Removed, baseNodes[pairs:]...)
@@ -428,7 +468,98 @@ func Compare(base, head *Graph) Diff {
 		}
 		return left.Before.ID < right.Before.ID
 	})
+	sortDependencyMetadataTransitions(diff.Transitions)
 	return diff
+}
+
+// CompareDependencyMetadata returns a transition when relationship, source, or
+// registry-matching eligibility differs between two occurrences. It is
+// exported so trusted fuzzy identity reconciliation can use the same canonical
+// classifier as Compare.
+func CompareDependencyMetadata(baseGraph, headGraph *Graph, before, after *Dependency) (DependencyMetadataTransition, bool) {
+	if before == nil || after == nil {
+		return DependencyMetadataTransition{}, false
+	}
+	beforeRelationship := dependencyRelationshipForDiff(baseGraph, before)
+	afterRelationship := dependencyRelationshipForDiff(headGraph, after)
+	beforeEligible := before.RegistryMatchEligible()
+	afterEligible := after.RegistryMatchEligible()
+	changedFields := make([]DependencyMetadataField, 0, 3)
+	if beforeRelationship != afterRelationship {
+		changedFields = append(changedFields, DependencyMetadataRelationship)
+	}
+	if before.Source != after.Source {
+		changedFields = append(changedFields, DependencyMetadataSource)
+	}
+	if beforeEligible != afterEligible {
+		changedFields = append(changedFields, DependencyMetadataRegistryEligibility)
+	}
+	if len(changedFields) == 0 {
+		return DependencyMetadataTransition{}, false
+	}
+	return DependencyMetadataTransition{
+		Before:                 before,
+		After:                  after,
+		ChangedFields:          changedFields,
+		BeforeRelationship:     beforeRelationship,
+		AfterRelationship:      afterRelationship,
+		BeforeRegistryEligible: beforeEligible,
+		AfterRegistryEligible:  afterEligible,
+	}, true
+}
+
+func dependencyRelationshipForDiff(graph *Graph, node *Dependency) DependencyRelationship {
+	if node == nil {
+		return DependencyRelationshipUnknown
+	}
+	if node.Relationship != "" {
+		return node.Relationship
+	}
+	if graph == nil || graph.Size() == 0 {
+		return DependencyRelationshipUnknown
+	}
+	roots := graph.Roots()
+	if len(roots) == 0 || len(roots) == graph.Size() {
+		return DependencyRelationshipUnknown
+	}
+	for _, root := range roots {
+		if root == nil || root.ID == node.ID {
+			continue
+		}
+		children, err := graph.DirectDependencies(root.ID)
+		if err != nil {
+			continue
+		}
+		for _, child := range children {
+			if child != nil && child.ID == node.ID {
+				return DependencyRelationshipDirect
+			}
+		}
+	}
+	if parents, err := graph.Dependents(node.ID); err == nil && len(parents) > 0 {
+		return DependencyRelationshipTransitive
+	}
+	return DependencyRelationshipUnknown
+}
+
+func sortDependencyMetadataTransitions(transitions []DependencyMetadataTransition) {
+	sort.Slice(transitions, func(i, j int) bool {
+		left := transitions[i]
+		right := transitions[j]
+		if left.Before.IdentityKey() != right.Before.IdentityKey() {
+			return left.Before.IdentityKey() < right.Before.IdentityKey()
+		}
+		if left.Before.Version != right.Before.Version {
+			return left.Before.Version < right.Before.Version
+		}
+		if left.After.Version != right.After.Version {
+			return left.After.Version < right.After.Version
+		}
+		if left.Before.ID != right.Before.ID {
+			return left.Before.ID < right.Before.ID
+		}
+		return left.After.ID < right.After.ID
+	})
 }
 
 func indexDiffableNodes(g *Graph) map[string]*Dependency {

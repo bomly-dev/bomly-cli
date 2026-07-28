@@ -132,6 +132,28 @@ Complete reference for the `bomly diff` JSON output.
 | `added` | Array<[`DiffPackageChange`](#diffpackagechange)> | |
 | `removed` | Array<[`DiffPackageChange`](#diffpackagechange)> | |
 | `changed` | Array<[`DiffChangedPackage`](#diffchangedpackage)> | |
+| `transitions` | Array<[`DiffDependencyTransition`](#diffdependencytransition)> | |
+
+### `DiffDependencyTransition`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `before` | [`DiffDependencyTransitionState`](#diffdependencytransitionstate) | |
+| `after` | [`DiffDependencyTransitionState`](#diffdependencytransitionstate) | |
+| `changed_fields` | Array<`string`> | |
+
+### `DiffDependencyTransitionState`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | |
+| `name` | `string` | |
+| `version` | `string` | |
+| `purl` | `string` | |
+| `scope` | `string` | |
+| `relationship` | `string` | |
+| `source` | `string` | |
+| `registry_eligible` | `boolean` | |
 
 ### `DiffLicenseChange`
 
@@ -169,6 +191,7 @@ Complete reference for the `bomly diff` JSON output.
 | `added` | Array<[`DiffPackageChange`](#diffpackagechange)> | |
 | `removed` | Array<[`DiffPackageChange`](#diffpackagechange)> | |
 | `changed` | Array<[`DiffChangedPackage`](#diffchangedpackage)> | |
+| `transitions` | Array<[`DiffDependencyTransition`](#diffdependencytransition)> | |
 
 ### `DiffPackageChange`
 
@@ -195,6 +218,7 @@ Complete reference for the `bomly diff` JSON output.
 | `unchanged_manifest_count` | `integer` | |
 | `added_package_count` | `integer` | |
 | `changed_package_count` | `integer` | |
+| `transitioned_package_count` | `integer` | |
 | `removed_package_count` | `integer` | |
 | `exact_match_count` | `integer` | |
 | `fuzzy_match_count` | `integer` | |

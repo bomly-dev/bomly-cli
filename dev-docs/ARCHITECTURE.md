@@ -271,6 +271,28 @@ the CLI output schema identifier remains `1.0` and the compact MCP schema
 remains `mcp/1`. Protocol-v1 decoding still accepts the earlier wire field from
 existing external auditor plugins.
 
+### Decision: dependency metadata transitions are canonical diff results
+
+`sdk.Compare` classifies package version changes separately from changes to an
+occurrence's dependency relationship, source, or registry-matching
+eligibility. The same occurrence may appear in both lists when both kinds of
+change happened. Keeping these as parallel results avoids treating a move from
+direct to transitive, registry to Git, or eligible to ineligible as a package
+addition or removal.
+
+Each transition keeps before and after evidence and an ordered list of changed
+fields. Explicit detector relationships win. For older protocol-v1 graphs that
+omit the relationship, the classifier derives direct or transitive from graph
+edges and uses unknown when the graph cannot prove either. Exact and trusted
+fuzzy identity matches call the same SDK classifier. Output code only projects
+that result; it does not repeat the policy.
+
+Manifest results preserve duplicate occurrences. The global JSON and MCP
+views deduplicate only identical evidence and use stable ordering and bounded
+MCP truncation. Diff package enrichment still uses the head-side registry, so
+reporting a metadata transition does not replace current vulnerability or
+remediation data.
+
 ### Decision: registry matching eligibility is an occurrence-level engine boundary
 
 Detection keeps every dependency occurrence and every PURL-backed package artifact, including application roots, workspace members, local sources, and unknown relationships. Immediately before matcher selection and execution, `engine.registryMatchRequest` clones only occurrences for which `Dependency.RegistryMatchEligible()` is true and preserves edges whose endpoints are both eligible. Every built-in and external matcher therefore receives the same filtered graph, while the full `PackageRegistry` remains shared so enrichment is still deduplicated by PURL. Analysis and auditors continue with the complete original graph.

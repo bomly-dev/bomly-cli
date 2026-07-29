@@ -27,6 +27,7 @@ the case.
 | --- | --- |
 | Deterministic | Uses checked-in inputs or local services and compares a stable normalized result |
 | Pinned input | Uses a public repository at a recorded commit; local tools or artifact registries can still affect build-tool-backed resolution |
+| Snapshot | Records the normalized result of an input that can move, such as a container tag |
 | Live service | Uses a pinned project with current advisory data; the result is a dated observation |
 | Manual assurance | Runs a separately started GitHub Actions workflow and saves its detailed report as an artifact |
 
@@ -37,8 +38,8 @@ expected results include SHA-256 checksums.
 ## Case studies
 
 - [Dependency graph evidence](evidence/DEPENDENCY_GRAPHS.md) covers npm, pnpm,
-  Yarn, Bun, Go, Python, and Maven graphs, plus visible degraded fallback
-  behavior.
+  Yarn, Bun, Go, Python, and Maven graphs. A separate deterministic
+  `degraded-detector-fallback` case covers visible fallback orchestration.
 - [Policy and vulnerability-guidance evidence](evidence/POLICY_AND_GUIDANCE.md)
   covers vulnerability and SPDX policy, baselines, source changes, persisted
   findings, reachability tiers, and read-only remediation suggestions.

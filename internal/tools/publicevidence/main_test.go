@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -43,6 +44,16 @@ func TestLoadAndValidateCatalog(t *testing.T) {
 	}
 	if err := validateCatalog(root, loaded); err != nil {
 		t.Fatal(err)
+	}
+
+	loaded.Cases[0].Proves = []string{" "}
+	if err := validateCatalog(root, loaded); err == nil || !strings.Contains(err.Error(), "blank entries") {
+		t.Fatalf("validateCatalog() blank proof error = %v", err)
+	}
+	loaded.Cases[0].Proves = []string{"The example succeeds."}
+	loaded.Cases[0].Limitations = []string{"\t"}
+	if err := validateCatalog(root, loaded); err == nil || !strings.Contains(err.Error(), "blank entries") {
+		t.Fatalf("validateCatalog() blank limitation error = %v", err)
 	}
 }
 
@@ -98,6 +109,58 @@ func TestValidateCatalogRejectsUnsortedAndUnknownFields(t *testing.T) {
 	}
 	if _, err := loadCatalog(path); err == nil || !strings.Contains(err.Error(), "unknown field") {
 		t.Fatalf("loadCatalog() error = %v", err)
+	}
+}
+
+func TestValidateInputRequiresDigestForPinnedContainer(t *testing.T) {
+	tagged := input{Kind: "container", Location: "Docker Hub", Ref: "alpine:3.20"}
+	if err := validateInput(t.TempDir(), "pinned-input", tagged); err == nil ||
+		!strings.Contains(err.Error(), "immutable sha256 digest") {
+		t.Fatalf("validateInput() tagged pinned container error = %v", err)
+	}
+	if err := validateInput(t.TempDir(), "snapshot", tagged); err != nil {
+		t.Fatalf("validateInput() snapshot tag error = %v", err)
+	}
+	digested := tagged
+	digested.Ref = "alpine@sha256:" + strings.Repeat("a", 64)
+	if err := validateInput(t.TempDir(), "pinned-input", digested); err != nil {
+		t.Fatalf("validateInput() digest error = %v", err)
+	}
+}
+
+func TestValidateArtifactRejectsSymlinkOutsideRepository(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symlink creation requires elevated privileges on Windows")
+	}
+	root := t.TempDir()
+	data := []byte("outside")
+	outside := filepath.Join(t.TempDir(), "result.json")
+	if err := os.WriteFile(outside, data, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(root, "result.json")
+	if err := os.Symlink(outside, link); err != nil {
+		t.Fatal(err)
+	}
+	sum := sha256.Sum256(data)
+	err := validateArtifact(root, artifact{
+		Path:   "result.json",
+		SHA256: hex.EncodeToString(sum[:]),
+	})
+	if err == nil || !strings.Contains(err.Error(), "resolves outside the repository") {
+		t.Fatalf("validateArtifact() error = %v", err)
+	}
+}
+
+func TestResolveCatalogPathHonorsAbsolutePath(t *testing.T) {
+	root := t.TempDir()
+	absolute := filepath.Join(t.TempDir(), "cases.json")
+	if got := resolveCatalogPath(root, absolute); got != absolute {
+		t.Fatalf("resolveCatalogPath() absolute = %q, want %q", got, absolute)
+	}
+	wantRelative := filepath.Join(root, "test", "evidence", "cases.json")
+	if got := resolveCatalogPath(root, "test/evidence/cases.json"); got != wantRelative {
+		t.Fatalf("resolveCatalogPath() relative = %q, want %q", got, wantRelative)
 	}
 }
 

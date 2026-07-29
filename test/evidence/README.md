@@ -30,6 +30,8 @@ The checker verifies that:
   the same normalized result.
 - `pinned-input` uses a public repository revision. Package-manager tools or
   registries can still affect build-tool-backed resolution.
+- `snapshot` records the normalized result of an input that can move, such as
+  a container tag.
 - `live-service` combines a pinned project with current advisory data. It is a
   dated observation because advisory services change.
 - `manual-assurance` starts a GitHub Actions workflow and stores the detailed

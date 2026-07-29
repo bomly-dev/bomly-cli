@@ -44,7 +44,7 @@ The deterministic ingestion cases check Bomly's internal graph. The manually
 started interoperability workflow adds an external check:
 
 ```sh
-gh workflow run sbom-interoperability.yml
+gh workflow run sbom-interoperability.yml --ref v0.20.0
 ```
 
 It generates canonical SPDX 2.3 and CycloneDX 1.6 files, verifies the
@@ -56,13 +56,15 @@ for the workflow summary and failure-investigation steps.
 The public catalog records the workflow checksum under
 `sbom-interoperability`. Validator versions and download checksums stay in the
 workflow so changing either requires an intentional evidence update.
+The `v0.20.0` release tag contains the recorded workflow definition, so this
+command does not silently switch to a later default-branch workflow.
 
 ## Supported-system checks
 
 The `portable-platforms` case starts:
 
 ```sh
-gh workflow run portable-assurance.yml
+gh workflow run portable-assurance.yml --ref v0.20.0
 ```
 
 This workflow:

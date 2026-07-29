@@ -9,7 +9,6 @@ Task-oriented walkthroughs.
 - [Installation](INSTALLATION.md) — install methods, `bomly` vs `bomly-lite`, checksum verification, uninstall
 - [Getting Started](GETTING_STARTED.md) — first scan, enrich, audit, diff
 - [Use Cases](USE_CASES.md) — recipes for PR gates, SBOMs, triage, license and offline scans
-- [Reproducible Evidence](EVIDENCE.md) — public inputs, commands, results, and limitations behind important behavior claims
 - [Scan Targets](SCAN_TARGETS.md) — directories, Git repos, containers, SBOMs
 - [Output Formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM
 - [SBOM Formats](SBOM.md) — SPDX vs. CycloneDX, write and ingest
@@ -32,6 +31,7 @@ How Bomly thinks about your project.
 - [Reachability](REACHABILITY.md) — narrowing findings to code your app actually calls
 - [MCP Server](MCP.md) — connect Bomly to Claude Code, Cursor, VS Code, or another MCP client
 - [Plugins](PLUGINS.md) — install, trust, configure, and package external plugins
+- [Reproducible Evidence](EVIDENCE.md) — public inputs, commands, results, and limitations behind important behavior claims
 - Plugin implementation guides: [detector](plugins/how-to-implement-detector.md), [matcher](plugins/how-to-implement-matcher.md), [auditor](plugins/how-to-implement-auditor.md)
 - Example plugin repos: [Bun detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector), [ClearlyDefined matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher), [EOL lifecycle matcher](https://github.com/bomly-dev/bomly-plugin-eol-matcher), [Meme auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor)
 - [Glossary](GLOSSARY.md) — every term, one sentence each

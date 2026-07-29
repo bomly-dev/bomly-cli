@@ -23,9 +23,10 @@ const (
 )
 
 var (
-	caseIDPattern   = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
-	revisionPattern = regexp.MustCompile(`^[0-9a-f]{40}$`)
-	hashPattern     = regexp.MustCompile(`^[0-9a-f]{64}$`)
+	caseIDPattern          = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
+	revisionPattern        = regexp.MustCompile(`^[0-9a-f]{40}$`)
+	hashPattern            = regexp.MustCompile(`^[0-9a-f]{64}$`)
+	containerDigestPattern = regexp.MustCompile(`@sha256:[0-9a-f]{64}$`)
 )
 
 type catalog struct {
@@ -68,7 +69,8 @@ func main() {
 	if err != nil {
 		exitError(err)
 	}
-	loaded, err := loadCatalog(filepath.Join(root, filepath.FromSlash(*catalogPath)))
+	resolvedCatalog := resolveCatalogPath(root, *catalogPath)
+	loaded, err := loadCatalog(resolvedCatalog)
 	if err != nil {
 		exitError(err)
 	}
@@ -107,6 +109,14 @@ func repositoryRoot() (string, error) {
 		}
 		current = parent
 	}
+}
+
+func resolveCatalogPath(root, catalogPath string) string {
+	resolved := filepath.FromSlash(catalogPath)
+	if filepath.IsAbs(resolved) {
+		return resolved
+	}
+	return filepath.Join(root, resolved)
 }
 
 func loadCatalog(path string) (catalog, error) {
@@ -175,7 +185,7 @@ func validateCase(root string, current evidenceCase) error {
 		return errors.New("title and area are required")
 	}
 	switch current.EvidenceLevel {
-	case "deterministic", "pinned-input", "live-service", "manual-assurance":
+	case "deterministic", "pinned-input", "live-service", "manual-assurance", "snapshot":
 	default:
 		return fmt.Errorf("unsupported evidence level %q", current.EvidenceLevel)
 	}
@@ -183,7 +193,7 @@ func validateCase(root string, current evidenceCase) error {
 		return errors.New("at least one input is required")
 	}
 	for _, item := range current.Inputs {
-		if err := validateInput(root, item); err != nil {
+		if err := validateInput(root, current.EvidenceLevel, item); err != nil {
 			return err
 		}
 	}
@@ -211,10 +221,20 @@ func validateCase(root string, current evidenceCase) error {
 	if len(current.Proves) == 0 || len(current.Limitations) == 0 {
 		return errors.New("proves and limitations must both be explicit")
 	}
+	for _, claim := range current.Proves {
+		if strings.TrimSpace(claim) == "" {
+			return errors.New("proves and limitations cannot contain blank entries")
+		}
+	}
+	for _, limitation := range current.Limitations {
+		if strings.TrimSpace(limitation) == "" {
+			return errors.New("proves and limitations cannot contain blank entries")
+		}
+	}
 	return nil
 }
 
-func validateInput(root string, current input) error {
+func validateInput(root, evidenceLevel string, current input) error {
 	if strings.TrimSpace(current.Location) == "" {
 		return errors.New("input location is required")
 	}
@@ -231,6 +251,9 @@ func validateInput(root string, current input) error {
 	case "container":
 		if current.Ref == "" {
 			return errors.New("container input requires an image reference")
+		}
+		if evidenceLevel == "pinned-input" && !containerDigestPattern.MatchString(current.Ref) {
+			return errors.New("pinned container input requires an immutable sha256 digest")
 		}
 	case "workflow":
 		if !hashPattern.MatchString(current.SHA256) {
@@ -251,15 +274,30 @@ func validateArtifact(root string, item artifact) error {
 	if filepath.IsAbs(clean) || clean == ".." || strings.HasPrefix(clean, ".."+string(filepath.Separator)) {
 		return fmt.Errorf("artifact path %q must stay inside the repository", item.Path)
 	}
+	resolvedRoot, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		return fmt.Errorf("resolve repository root: %w", err)
+	}
 	path := filepath.Join(root, clean)
-	info, err := os.Stat(path)
+	resolvedPath, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		return fmt.Errorf("resolve artifact %q: %w", item.Path, err)
+	}
+	relative, err := filepath.Rel(resolvedRoot, resolvedPath)
+	if err != nil {
+		return fmt.Errorf("resolve artifact %q relative to repository: %w", item.Path, err)
+	}
+	if relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
+		return fmt.Errorf("artifact path %q resolves outside the repository", item.Path)
+	}
+	info, err := os.Stat(resolvedPath)
 	if err != nil {
 		return fmt.Errorf("inspect artifact %q: %w", item.Path, err)
 	}
 	if !info.Mode().IsRegular() {
 		return fmt.Errorf("artifact %q is not a regular file", item.Path)
 	}
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(resolvedPath)
 	if err != nil {
 		return fmt.Errorf("read artifact %q: %w", item.Path, err)
 	}

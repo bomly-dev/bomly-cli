@@ -50,7 +50,7 @@
       "id": "container-inventory",
       "title": "Container package inventory",
       "area": "targets",
-      "evidence_level": "pinned-input",
+      "evidence_level": "snapshot",
       "inputs": [
         {
           "kind": "container",
@@ -568,7 +568,9 @@
           "gh",
           "workflow",
           "run",
-          "portable-assurance.yml"
+          "portable-assurance.yml",
+          "--ref",
+          "v0.20.0"
         ]
       ],
       "evidence": [
@@ -865,7 +867,9 @@
           "gh",
           "workflow",
           "run",
-          "sbom-interoperability.yml"
+          "sbom-interoperability.yml",
+          "--ref",
+          "v0.20.0"
         ]
       ],
       "evidence": [

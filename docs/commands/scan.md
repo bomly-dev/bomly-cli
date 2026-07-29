@@ -78,7 +78,7 @@ Pinning `--detectors` makes CI fail loudly instead of silently regenerating a fa
 
 ## Exit codes
 
-`0` clean · `2` a finding matched `--fail-on` · `3` a required detector could not produce a graph · `4` invalid flag or target · `5` nothing to evaluate. Full table and CI recipes: [Exit Codes](../EXIT_CODES.md).
+`0` clean · `1` execution error · `2` a finding matched `--fail-on` · `3` a required detector could not produce a graph · `4` invalid flag or target · `5` nothing to evaluate. Full table and CI recipes: [Exit Codes](../EXIT_CODES.md).
 
 ## See also
 

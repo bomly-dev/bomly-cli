@@ -4,7 +4,7 @@ A tour of how Bomly turns a scan target into a report — the stages a scan runs
 
 ## Commands
 
-Bomly is a CLI. Three commands run the dependency pipeline described on this page, and three manage the machinery around it:
+Bomly is a CLI. Three commands run the dependency pipeline described on this page, and four support it:
 
 | Command         | Purpose                                                              |
 |-----------------|----------------------------------------------------------------------|

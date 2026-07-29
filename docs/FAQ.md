@@ -12,7 +12,7 @@ No. Bomly has no account system, no license key, and no sign-up. Every feature i
 
 ## Does Bomly collect telemetry?
 
-No. Bomly sends no usage data, crash reports, or version pings. The only network traffic is what you explicitly trigger (`--enrich`, `--url`, `--image`, `--install-first`, plugin installation).
+No. Bomly sends no usage data, crash reports, or version pings. Network traffic comes only from what you trigger (`--enrich`, `--url`, `--image`, `--install-first`, plugin installation) — plus whatever your own package manager downloads if a build-tool-backed detector has to run it to resolve the graph. [Network and Privacy](NETWORK.md) has the complete table.
 
 ## How is Bomly different from image scanners like Trivy or Grype?
 
@@ -36,7 +36,7 @@ Bomly uses a small, stable set of exit codes: `2` means a finding matched your `
 
 ## Should I install `bomly` or `bomly-lite`?
 
-`bomly` is the full binary with builtin Syft and Grype — no external tools needed. `bomly-lite` is a smaller download that shells out to `syft` and `grype` on your `PATH`. Both behave the same from the command line. If in doubt, install `bomly`. See [Installation](INSTALLATION.md#bomly-vs-bomly-lite).
+`bomly` is the full binary with built-in Syft and Grype — no external tools needed. `bomly-lite` is a smaller download that shells out to `syft` and `grype` on your `PATH`. Both behave the same from the command line. If in doubt, install `bomly`. See [Installation](INSTALLATION.md#bomly-vs-bomly-lite).
 
 ## Where are the release notes?
 

@@ -40,7 +40,7 @@ Bomly prefers native detectors because they preserve edges (needed by `bomly exp
 
 ## Selecting detectors
 
-Use `--detectors` to restrict or extend the default set with the standard `+/-` selector grammar:
+Use `--detectors` to restrict or extend the default set with the standard [selector grammar](COMMANDS.md#selector-grammar):
 
 ```bash
 # Use only the native Go detector

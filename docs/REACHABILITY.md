@@ -348,7 +348,7 @@ Reachability data appears in three places:
 
 ## Selecting analyzers
 
-Use the `--analyzers` selector to restrict or extend the default set:
+Use the `--analyzers` [selector](COMMANDS.md#selector-grammar) to restrict or extend the default set:
 
 ```sh
 bomly scan --enrich --analyze --analyzers govulncheck

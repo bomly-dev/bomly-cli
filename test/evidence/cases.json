@@ -87,6 +87,44 @@
       ]
     },
     {
+      "id": "degraded-detector-fallback",
+      "title": "Visible detector fallback",
+      "area": "dependency-graph",
+      "evidence_level": "deterministic",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "internal/engine/pipeline_fallback_test.go",
+          "sha256": "4c2780f5c41b440b6c51eef05128a5079c33c9b08858fd7722b52febc05fe3c0"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/engine",
+          "-run",
+          "TestPipeline_RunRecordsFallbackWarning|TestPipeline_Run_TypesFallbackWarningsAsDegradedCoverage",
+          "-count=1"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "internal/engine/pipeline_fallback_test.go",
+          "sha256": "4c2780f5c41b440b6c51eef05128a5079c33c9b08858fd7722b52febc05fe3c0"
+        }
+      ],
+      "proves": [
+        "A detector fallback preserves its origin and produces a typed degraded-coverage warning."
+      ],
+      "limitations": [
+        "The synthetic detector case proves orchestration behavior, not the fidelity of every concrete fallback."
+      ]
+    },
+    {
       "id": "graph-bun",
       "title": "Bun lockfile graph",
       "area": "dependency-graph",

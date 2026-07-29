@@ -1,0 +1,865 @@
+{
+  "schema_version": "bomly.public-evidence/v1",
+  "cases": [
+    {
+      "id": "baseline-policy",
+      "title": "Finding baseline lifecycle",
+      "area": "policy",
+      "evidence_level": "deterministic",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-go-gomod",
+          "ref": "v1.0.0",
+          "revision": "0f2103c7e671653e519cf5edb0d3e86020202ecf"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestFindingBaselineWorkflow$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/testdata/golden/finding-baseline-workflow.golden.json",
+          "sha256": "8fa2b220af563a89d1fbaaab03a75ccc0952ae43251438bc27a2314301315aa0"
+        }
+      ],
+      "proves": [
+        "A project baseline can keep a denied package finding visible with suppressed policy status."
+      ],
+      "limitations": [
+        "The local matcher fixture is deterministic but does not measure advisory freshness."
+      ]
+    },
+    {
+      "id": "container-inventory",
+      "title": "Container package inventory",
+      "area": "targets",
+      "evidence_level": "pinned-input",
+      "inputs": [
+        {
+          "kind": "container",
+          "location": "Docker Hub",
+          "ref": "alpine:3.20"
+        }
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestContainerScan/container-scan-alpine$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/testdata/golden/container-scan-alpine.golden.json",
+          "sha256": "50f7d4426ead3af9ea5a07df7eeb77743e7aa1412260e1a665a7301f3c22ecc5"
+        }
+      ],
+      "proves": [
+        "Bomly can inventory the operating-system packages in the checked Alpine image."
+      ],
+      "limitations": [
+        "The upstream image tag can move; the checked-in golden is a snapshot, not an immutable image claim."
+      ]
+    },
+    {
+      "id": "graph-bun",
+      "title": "Bun lockfile graph",
+      "area": "dependency-graph",
+      "evidence_level": "pinned-input",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-bun",
+          "ref": "v1.0.0",
+          "revision": "358a2a920fe9c2f7e596c514f36df1c30c1ab185"
+        }
+      ],
+      "required_tools": [
+        "git"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-bun$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/testdata/golden/scan-bun.golden.json",
+          "sha256": "c61ccae15f3d36028ec1e741436abbf036236b9e2f018393b863e98d14360fb4"
+        }
+      ],
+      "proves": [
+        "The native Bun detector preserves the package inventory and dependency placement represented by the pinned lockfile."
+      ],
+      "limitations": [
+        "This is one Bun lockfile shape and does not prove behavior for every historical Bun format."
+      ]
+    },
+    {
+      "id": "graph-go",
+      "title": "Go module graph",
+      "area": "dependency-graph",
+      "evidence_level": "pinned-input",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-go-gomod",
+          "ref": "v1.0.0",
+          "revision": "0f2103c7e671653e519cf5edb0d3e86020202ecf"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-go$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/testdata/golden/scan-go.golden.json",
+          "sha256": "728f949898446657c4987bc1202a8d00c78b118868b4945141e4db8c4c54cdea"
+        }
+      ],
+      "proves": [
+        "The Go detector resolves a build-tool-backed module graph for the pinned repository."
+      ],
+      "limitations": [
+        "The result depends on a compatible Go toolchain and the evidence available from that toolchain."
+      ]
+    },
+    {
+      "id": "graph-maven",
+      "title": "Maven dependency graph",
+      "area": "dependency-graph",
+      "evidence_level": "pinned-input",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-java-maven",
+          "ref": "v1.0.0",
+          "revision": "93bb3aae614e2f2c6cb65f5ea2315846f5234150"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "java",
+        "mvn"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-maven$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/testdata/golden/scan-maven.golden.json",
+          "sha256": "a1077544af4bd637311e1767abe2a140e3ba8f0f65a64e662378e5ccca07de9b"
+        }
+      ],
+      "proves": [
+        "The Maven detector resolves a build-tool-backed dependency graph for the pinned repository."
+      ],
+      "limitations": [
+        "Artifact resolution depends on Maven repositories and a compatible Java and Maven installation."
+      ]
+    },
+    {
+      "id": "graph-npm",
+      "title": "npm lockfile graph",
+      "area": "dependency-graph",
+      "evidence_level": "pinned-input",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-npm",
+          "ref": "v1.0.0",
+          "revision": "559a762aeef68b0e5c818f62dfba67abc369912f"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "npm"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-npm$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/testdata/golden/scan-npm.golden.json",
+          "sha256": "da252e623cdeaf88db7874f528fd9a2f204c1136c4ab0bb26e4faa943dee79c1"
+        }
+      ],
+      "proves": [
+        "The npm detector preserves lockfile package inventory, versions, scopes, and dependency placement."
+      ],
+      "limitations": [
+        "This case covers the lockfile versions present in one pinned repository."
+      ]
+    },
+    {
+      "id": "graph-pnpm",
+      "title": "pnpm lockfile graph",
+      "area": "dependency-graph",
+      "evidence_level": "pinned-input",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-pnpm",
+          "ref": "v1.0.0",
+          "revision": "f1b0959f916dfb91db70c54a75b15e5b7f3d16af"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "npm"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-pnpm$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/testdata/golden/scan-pnpm.golden.json",
+          "sha256": "07991083b233acb7bc856e41275517a30cd5793c4b1afb94a467502374545467"
+        }
+      ],
+      "proves": [
+        "The pnpm detector preserves lockfile package inventory and dependency placement."
+      ],
+      "limitations": [
+        "This case does not cover every pnpm lockfile generation."
+      ]
+    },
+    {
+      "id": "graph-python",
+      "title": "Python requirements graph",
+      "area": "dependency-graph",
+      "evidence_level": "pinned-input",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-python-pip",
+          "revision": "fe04c758134b95dab102e1fce10275f7d18c0cf2"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "pip"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-python-pip$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/testdata/golden/scan-python-pip.golden.json",
+          "sha256": "025d14ad1a3c93f3af22a4a83a358ee85b42d782f50798b285048e35e8632bf2"
+        }
+      ],
+      "proves": [
+        "The pip detector reads the pinned requirements lock and preserves the resolved Python package graph."
+      ],
+      "limitations": [
+        "Unpinned requirements and environment inspection have different fidelity and are not proven by this case."
+      ]
+    },
+    {
+      "id": "graph-yarn",
+      "title": "Yarn lockfile graph",
+      "area": "dependency-graph",
+      "evidence_level": "pinned-input",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-yarn",
+          "ref": "v1.0.0",
+          "revision": "c84017b43bf0f6ea74281f4174a0c89b88b8cddf"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "npm"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-yarn$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/testdata/golden/scan-yarn.golden.json",
+          "sha256": "707e1ab208812a53527cc1de888d3e76c410d9b963b49c14076f023ceb5f7b90"
+        }
+      ],
+      "proves": [
+        "The Yarn detector preserves package inventory and dependency placement represented by the pinned lockfile."
+      ],
+      "limitations": [
+        "This case covers one Yarn lockfile family; fallback behavior is documented separately."
+      ]
+    },
+    {
+      "id": "performance-stability",
+      "title": "Repeated cold and warm scan measurements",
+      "area": "operations",
+      "evidence_level": "deterministic",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "test/smoke/testdata/sboms/go.spdx.json",
+          "sha256": "99bd846daec887cfcb61d6d5384ccff91c6045482652f4719fab8b312192fe0e"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "make",
+          "benchmark-samples"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "internal/tools/benchmarkrun/main.go",
+          "sha256": "d99c52b52065a95b0cda323f082bbdcb04276ab7cef96f21678550154f340bef"
+        }
+      ],
+      "proves": [
+        "The runner records five isolated cold and five shared-cache warm samples with output hashes, timing, memory, and dispersion."
+      ],
+      "limitations": [
+        "Wall time and memory are machine-specific observations and are not fixed pass-or-fail limits."
+      ]
+    },
+    {
+      "id": "portable-platforms",
+      "title": "Repeated unit tests and release builds",
+      "area": "operations",
+      "evidence_level": "manual-assurance",
+      "inputs": [
+        {
+          "kind": "workflow",
+          "location": ".github/workflows/portable-assurance.yml",
+          "sha256": "fadc2ff37a55c3b0dbaed91d3db67745b32b6ca517075e55734cea49a231b4d2"
+        }
+      ],
+      "required_tools": [
+        "gh"
+      ],
+      "reproduce": [
+        [
+          "gh",
+          "workflow",
+          "run",
+          "portable-assurance.yml"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": ".github/workflows/portable-assurance.yml",
+          "sha256": "fadc2ff37a55c3b0dbaed91d3db67745b32b6ca517075e55734cea49a231b4d2"
+        }
+      ],
+      "proves": [
+        "The manual workflow repeats Go unit tests on Linux, macOS, and Windows and cross-builds every release target."
+      ],
+      "limitations": [
+        "This workflow runs unit tests and builds; it does not run smoke tests against remote repositories or services."
+      ]
+    },
+    {
+      "id": "reachability-go",
+      "title": "Go vulnerability reachability",
+      "area": "reachability",
+      "evidence_level": "live-service",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-go-gomod",
+          "ref": "v1.0.0",
+          "revision": "0f2103c7e671653e519cf5edb0d3e86020202ecf"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-go-reachability$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/testdata/golden/scan-go-reachability.golden.json",
+          "sha256": "2d1db6318d75c491b8866ff9643ae80635702591046e4be89c362ca1b828a4cd"
+        }
+      ],
+      "proves": [
+        "The Go analyzer attaches named analyzer, tier, status, and reason evidence to matched vulnerabilities."
+      ],
+      "limitations": [
+        "Advisories come from live services and may change; an unreachable result is not proof that a package is safe."
+      ]
+    },
+    {
+      "id": "reachability-java",
+      "title": "Java package reachability",
+      "area": "reachability",
+      "evidence_level": "live-service",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-java-maven",
+          "ref": "v1.0.0",
+          "revision": "93bb3aae614e2f2c6cb65f5ea2315846f5234150"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "java",
+        "mvn"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-java-maven-reachability$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/testdata/golden/scan-java-maven-reachability.golden.json",
+          "sha256": "b3fa7485ebcee27a4836f7ad6b318ca53c238b24fa303059dd518007fc8ecb0f"
+        }
+      ],
+      "proves": [
+        "The Java analyzer separates package-reachable and package-unreachable vulnerability evidence."
+      ],
+      "limitations": [
+        "This is package-tier evidence, not symbol-level proof, and live advisory results may change."
+      ]
+    },
+    {
+      "id": "reachability-node",
+      "title": "JavaScript package reachability",
+      "area": "reachability",
+      "evidence_level": "live-service",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-npm",
+          "ref": "v1.0.0",
+          "revision": "559a762aeef68b0e5c818f62dfba67abc369912f"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "npm"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-npm-reachability$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/testdata/golden/scan-npm-reachability.golden.json",
+          "sha256": "2bb379a7e0b301357b24a8a1a169b805461530dac392af1908525e3ce5366760"
+        }
+      ],
+      "proves": [
+        "The JavaScript analyzer separates package-reachable and package-unreachable vulnerability evidence."
+      ],
+      "limitations": [
+        "This is package-tier evidence, dynamic loading can reduce confidence, and live advisory results may change."
+      ]
+    },
+    {
+      "id": "reachability-python",
+      "title": "Python package reachability",
+      "area": "reachability",
+      "evidence_level": "live-service",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-python-pip",
+          "revision": "fe04c758134b95dab102e1fce10275f7d18c0cf2"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "pip"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-python-pip-reachability$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/testdata/golden/scan-python-pip-reachability.golden.json",
+          "sha256": "4fbf082566a5562308edd71fd86f155e3eaf1fc7ed0f6dc96c0f2f7778ca3f90"
+        }
+      ],
+      "proves": [
+        "The Python analyzer separates package-reachable and package-unreachable vulnerability evidence."
+      ],
+      "limitations": [
+        "This is package-tier evidence, reflective imports can reduce confidence, and live advisory results may change."
+      ]
+    },
+    {
+      "id": "remediation-read-only",
+      "title": "Canonical read-only remediation guidance",
+      "area": "remediation",
+      "evidence_level": "deterministic",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "internal/remediation/derive_test.go",
+          "sha256": "4ab715423343aad70cff5ea4a406b642eb687f2552afb894a9edfba4244c7582"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/remediation",
+          "-run",
+          "TestDerivePackageRemediation|TestDeriveBuildsCanonicalOccurrenceSuggestions",
+          "-count=1"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "internal/remediation/derive_test.go",
+          "sha256": "4ab715423343aad70cff5ea4a406b642eb687f2552afb894a9edfba4244c7582"
+        }
+      ],
+      "proves": [
+        "One central component derives fix status, recommended versions, occurrence actions, and detector advice without applying changes."
+      ],
+      "limitations": [
+        "Suggestions are read-only evidence and are not guaranteed to work in every checkout."
+      ]
+    },
+    {
+      "id": "sbom-cyclonedx-ingest",
+      "title": "CycloneDX 1.6 ingestion",
+      "area": "sbom",
+      "evidence_level": "deterministic",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "test/smoke/testdata/sboms/go.cdx.json",
+          "sha256": "78454a7207f98ba0c8d35df8a257f9185c313d22691cc90a06f11809021bed93"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-sbom-cyclonedx$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/testdata/golden/scan-sbom-cyclonedx.golden.json",
+          "sha256": "54f5e33a47d884e1705d22102dd4745b4474295d0cc56da827bc3f172792dabb"
+        }
+      ],
+      "proves": [
+        "Bomly ingests the checked CycloneDX 1.6 dependency graph."
+      ],
+      "limitations": [
+        "The fixture covers one document shape and does not imply lossless conversion from every producer."
+      ]
+    },
+    {
+      "id": "sbom-interoperability",
+      "title": "External SBOM validation",
+      "area": "sbom",
+      "evidence_level": "manual-assurance",
+      "inputs": [
+        {
+          "kind": "workflow",
+          "location": ".github/workflows/sbom-interoperability.yml",
+          "sha256": "5434c3b2971034416cacbde5788320d47f3c1e976bdfdc60ff1f077b2e16ef09"
+        }
+      ],
+      "required_tools": [
+        "gh"
+      ],
+      "reproduce": [
+        [
+          "gh",
+          "workflow",
+          "run",
+          "sbom-interoperability.yml"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": ".github/workflows/sbom-interoperability.yml",
+          "sha256": "5434c3b2971034416cacbde5788320d47f3c1e976bdfdc60ff1f077b2e16ef09"
+        }
+      ],
+      "proves": [
+        "Checksum-pinned official SPDX and CycloneDX validators can check Bomly's generated canonical SBOMs."
+      ],
+      "limitations": [
+        "The workflow validates canonical fixtures, not every possible receiving tool or document conversion."
+      ]
+    },
+    {
+      "id": "sbom-spdx-ingest",
+      "title": "SPDX 2.3 ingestion",
+      "area": "sbom",
+      "evidence_level": "deterministic",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "test/smoke/testdata/sboms/go.spdx.json",
+          "sha256": "99bd846daec887cfcb61d6d5384ccff91c6045482652f4719fab8b312192fe0e"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-sbom-spdx$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/testdata/golden/scan-sbom-spdx.golden.json",
+          "sha256": "d49e4fc3f9c61fdb4c533116d9a5988e1841c7ccacc3675b93fb069d5ec14a00"
+        }
+      ],
+      "proves": [
+        "Bomly ingests the checked SPDX 2.3 dependency graph."
+      ],
+      "limitations": [
+        "The fixture covers one document shape and does not imply lossless conversion from every producer."
+      ]
+    },
+    {
+      "id": "source-change-policy",
+      "title": "Registry-to-Git source-change review",
+      "area": "policy",
+      "evidence_level": "pinned-input",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-npm",
+          "ref": "assurance/dependency-source-registry-v1",
+          "revision": "f6127099dad7f8b6fbaa7ed1ceb8e7b0d1e8c864"
+        },
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-npm",
+          "ref": "assurance/dependency-source-git-v1",
+          "revision": "96ffda21548628ce36201741b56164ca5c4405b6"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "npm"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestDependencyDetailRiskPolicy$"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "test/smoke/audit_test.go",
+          "sha256": "363c2ab0ecd4bec931c18abb32706c528e22f0dd3331db2691822851d5eb5ae2"
+        }
+      ],
+      "proves": [
+        "Diff marks a same-version registry-to-Git move for review and the package auditor can fail it when source-change policy is enabled."
+      ],
+      "limitations": [
+        "A source change is a review signal, not proof of malicious intent, and unknown source evidence cannot be classified."
+      ]
+    }
+  ]
+}

@@ -85,6 +85,8 @@ still downgrades a configured failure.
 
 - **Names, not behavior.** This auditor cannot tell whether a package is malicious — only whether its name is denied or resembles a protected one. Pair it with the vulnerability auditor for content risk.
 - **Source-change checks currently cover JavaScript package managers.** npm, pnpm, Yarn, and Bun detectors report the source details needed by this check. Other detectors do not yet provide enough source data, so this policy cannot report their source changes.
+- **Only Git and URL moves are review signals.** Moves to project, workspace, or file sources remain informational, even when registry matching eligibility changes.
+- **Source-change policy is diff-only.** `--fail-on source-change` is accepted by other audited commands but cannot match because they do not produce dependency detail transitions.
 - **Source changes need context.** Git and URL sources can be intentional. The warning asks a reviewer to confirm the new origin and pinned reference.
 - **Typosquat tuning is a trade-off.** A lower threshold catches more lookalikes but raises false positives on legitimately similar names; tune `--typosquat-threshold` per project.
 - **Protected lists are explicit.** Outside of `diff`, Bomly only checks lookalikes against names you pass with `--protected-package`; it does not infer a baseline of "popular" packages.

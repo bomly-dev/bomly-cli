@@ -427,6 +427,10 @@ is an independent package gate, so combining it with vulnerability constraints
 fails when either the source gate or the complete vulnerability constraint set
 matches:
 
+Used by itself, `+"`source-change`"+` leaves vulnerability findings unchanged.
+It can only match dependency transitions from `+"`bomly diff`"+`; it has no
+effect on `+"`scan`"+` or `+"`explain`"+`.
+
 `+"```bash"+`
 # Fail on any high or critical finding
 bomly scan --enrich --audit --fail-on high

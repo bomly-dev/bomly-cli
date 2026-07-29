@@ -156,22 +156,19 @@ func SeverityMeets(candidate SeverityLevel, threshold string) bool {
 // constraints in an AND-set. Source-change constraints apply only to package
 // findings and are ignored here. When constraints is empty, every
 // vulnerability matches (the historical behavior of `--audit` without
-// `--fail-on`). A list containing only non-vulnerability constraints does not
-// match a vulnerability.
+// `--fail-on`). A list containing only non-vulnerability constraints also
+// leaves vulnerability matching unchanged.
 func (v Vulnerability) MatchesConstraints(constraints []FailOnConstraint) bool {
 	if len(constraints) == 0 {
 		return true
 	}
-	evaluated := false
 	for _, c := range constraints {
 		switch c.Kind {
 		case SeverityConstraint:
-			evaluated = true
 			if !SeverityMeets(v.ParsedSeverity, c.Value) {
 				return false
 			}
 		case ReachabilityConstraint:
-			evaluated = true
 			// Currently only "reachable" is supported. nil reachability
 			// (no analyzer ran) does NOT match — the analyzer must have
 			// affirmatively determined reachability.
@@ -179,7 +176,6 @@ func (v Vulnerability) MatchesConstraints(constraints []FailOnConstraint) bool {
 				return false
 			}
 		case ExploitabilityConstraint:
-			evaluated = true
 			if !v.IsExploitable() {
 				return false
 			}
@@ -192,5 +188,5 @@ func (v Vulnerability) MatchesConstraints(constraints []FailOnConstraint) bool {
 			// breaking older auditor behavior.
 		}
 	}
-	return evaluated
+	return true
 }

@@ -19,6 +19,8 @@ func TestParseFailOn(t *testing.T) {
 		{"EXPLOITABLE", ExploitabilityConstraint, "exploitable", false},
 		{"source-change", SourceChangeConstraint, "source-change", false},
 		{"SOURCE-CHANGE", SourceChangeConstraint, "source-change", false},
+		{"source-change=git", "", "", true},
+		{"source-change=url", "", "", true},
 		{"", "", "", false},
 		{"bogus", "", "", true},
 	}
@@ -170,9 +172,10 @@ func TestMatchesConstraints(t *testing.T) {
 		{"exploitable-only matches known exploited", highExploitable, []FailOnConstraint{exploit}, true},
 		{"exploitable-only excludes no signal", highNoReach, []FailOnConstraint{exploit}, false},
 		{"severity and exploitable", highExploitable, []FailOnConstraint{sevHigh, exploit}, true},
-		{"source-change-only does not match advisory", highReachable, []FailOnConstraint{sourceChange}, false},
+		{"source-change-only leaves advisory matching unchanged", highReachable, []FailOnConstraint{sourceChange}, true},
 		{"source-change composes independently with severity", highReachable, []FailOnConstraint{sourceChange, sevHigh}, true},
 		{"source-change does not weaken severity", lowReachable, []FailOnConstraint{sourceChange, sevHigh}, false},
+		{"unknown-only leaves advisory matching unchanged", highReachable, []FailOnConstraint{{Kind: "future", Value: "value"}}, true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

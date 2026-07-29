@@ -9,6 +9,7 @@ Task-oriented walkthroughs.
 - [Installation](INSTALLATION.md) — install methods, `bomly` vs `bomly-lite`, checksum verification, uninstall
 - [Getting Started](GETTING_STARTED.md) — first scan, enrich, audit, diff
 - [Use Cases](USE_CASES.md) — recipes for PR gates, SBOMs, triage, license and offline scans
+- [Reproducible Evidence](EVIDENCE.md) — public inputs, commands, results, and limitations behind important behavior claims
 - [Scan Targets](SCAN_TARGETS.md) — directories, Git repos, containers, SBOMs
 - [Output Formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM
 - [SBOM Formats](SBOM.md) — SPDX vs. CycloneDX, write and ingest

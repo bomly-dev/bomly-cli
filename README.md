@@ -221,6 +221,7 @@ See [Plugins](docs/PLUGINS.md) for install, trust, and authoring guidance.
 - [MCP Server](docs/MCP.md) - connect Bomly to Claude Code, Cursor, VS Code, or another MCP client
 - [Reachability](docs/REACHABILITY.md) - experimental reachable-vulnerability triage
 - [Plugins](docs/PLUGINS.md) - managed external detectors, matchers, and auditors
+- [Release Notes](https://github.com/bomly-dev/bomly-cli/releases) - what changed in each version
 - [All Documentation](docs/README.md) - full docs index
 
 Contributor setup lives in [CONTRIBUTING.md](CONTRIBUTING.md). Architecture details live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

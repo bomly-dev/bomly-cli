@@ -48,6 +48,7 @@ Specifications and matrices. The generated pages are regenerated from code by `m
 
 Running Bomly in CI and keeping pipelines healthy.
 
+- [Integrations](INTEGRATIONS.md) — CI actions, AI agents, code scanning, install channels, and plugins
 - [CI Integration](CI_INTEGRATION.md) — GitHub Actions, GitLab, Jenkins, Azure, CircleCI
 - [CI-Readiness Warnings](CI_READINESS.md) — package-manager, lockfile-format, and install-policy mismatches that fail CI on their own
 - [Bomly Guard](BOMLY_GUARD.md) — the turnkey GitHub Action for PR dependency review

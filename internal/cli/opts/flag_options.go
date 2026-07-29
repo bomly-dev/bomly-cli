@@ -8,6 +8,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
@@ -64,12 +65,14 @@ func BindCommandFlagGroups(cmd *cobra.Command, cfg *config.Resolved, groups ...F
 }
 
 func bindDiffPolicyFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
+	const flagName = "deny-dependency-source-change"
 	flags.StringArrayVar(
 		&cfg.DenyDependencySourceChanges,
-		"deny-dependency-source-change",
+		flagName,
 		nil,
-		"Dependency source change that fails diff policy: git or url. Repeatable (requires --audit)",
+		"Dependency source change that fails diff policy. Without a value, both Git and URL are denied; use =git or =url to select one. Repeatable (requires --audit)",
 	)
+	flags.Lookup(flagName).NoOptDefVal = sdk.DependencySourceChangePolicyAny
 }
 
 func bindTargetFlags(flags *pflag.FlagSet, cfg *config.Resolved) {

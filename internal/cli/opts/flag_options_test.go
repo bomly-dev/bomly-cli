@@ -101,22 +101,67 @@ func TestApplyFlagOverridesJSONShortcut(t *testing.T) {
 }
 
 func TestBindDiffPolicyFlags(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+		want []string
+	}{
+		{
+			name: "explicit repeated values",
+			args: []string{
+				"--deny-dependency-source-change=git",
+				"--deny-dependency-source-change=url",
+			},
+			want: []string{"git", "url"},
+		},
+		{
+			name: "omitted value means any",
+			args: []string{"--deny-dependency-source-change"},
+			want: []string{"any"},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			root := newTestRootCommand(t)
+			var resolved config.Resolved
+			if err := BindCommandFlagGroups(root, &resolved, FlagGroupDiffPolicy); err != nil {
+				t.Fatal(err)
+			}
+			if err := root.ParseFlags(test.args); err != nil {
+				t.Fatal(err)
+			}
+			var merged config.Resolved
+			applyFlagOverrides(&merged, resolved, root)
+			if len(merged.DenyDependencySourceChanges) != len(test.want) {
+				t.Fatalf("source-change flags = %#v, want %#v", merged.DenyDependencySourceChanges, test.want)
+			}
+			for i := range test.want {
+				if merged.DenyDependencySourceChanges[i] != test.want[i] {
+					t.Fatalf("source-change flags = %#v, want %#v", merged.DenyDependencySourceChanges, test.want)
+				}
+			}
+		})
+	}
+}
+
+func TestBindValuelessDiffPolicyFlagBeforeOtherFlags(t *testing.T) {
 	root := newTestRootCommand(t)
 	var resolved config.Resolved
-	if err := BindCommandFlagGroups(root, &resolved, FlagGroupDiffPolicy); err != nil {
+	if err := BindCommandFlagGroups(root, &resolved, FlagGroupDiffPolicy, FlagGroupAnalysis); err != nil {
 		t.Fatal(err)
 	}
 	if err := root.ParseFlags([]string{
-		"--deny-dependency-source-change", "git",
-		"--deny-dependency-source-change", "url",
+		"--deny-dependency-source-change",
+		"--enrich",
+		"--audit",
 	}); err != nil {
 		t.Fatal(err)
 	}
-	var merged config.Resolved
-	applyFlagOverrides(&merged, resolved, root)
-	if len(merged.DenyDependencySourceChanges) != 2 ||
-		merged.DenyDependencySourceChanges[0] != "git" ||
-		merged.DenyDependencySourceChanges[1] != "url" {
-		t.Fatalf("source-change flags = %#v", merged.DenyDependencySourceChanges)
+	if len(resolved.DenyDependencySourceChanges) != 1 ||
+		resolved.DenyDependencySourceChanges[0] != "any" {
+		t.Fatalf("source-change flags = %#v, want any", resolved.DenyDependencySourceChanges)
+	}
+	if !resolved.Enrich || !resolved.Audit {
+		t.Fatalf("following flags were not parsed: enrich=%t audit=%t", resolved.Enrich, resolved.Audit)
 	}
 }

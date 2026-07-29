@@ -38,7 +38,7 @@ type Resolved struct {
 	LicenseExemptPackages       []string `doc:"Package URLs exempt from license policy checks" env:"BOMLY_LICENSE_EXEMPT_PACKAGES"`
 	DenyPackages                []string `doc:"Package URLs to deny" env:"BOMLY_DENY_PACKAGES"`
 	DenyGroups                  []string `doc:"Package URL namespaces to deny" env:"BOMLY_DENY_GROUPS"`
-	DenyDependencySourceChanges []string `doc:"Diff-only dependency source changes that fail policy: git or url" env:"BOMLY_DENY_DEPENDENCY_SOURCE_CHANGES"`
+	DenyDependencySourceChanges []string `doc:"Diff-only dependency source changes that fail policy: any, git, or url" env:"BOMLY_DENY_DEPENDENCY_SOURCE_CHANGES"`
 	ProtectedPackages           []string `doc:"Canonical package names to protect from typosquatting" env:"BOMLY_PROTECTED_PACKAGES"`
 	TyposquatThreshold          string   `doc:"Similarity threshold for typosquatting detection" env:"BOMLY_TYPOSQUAT_THRESHOLD" default:"0.90"`
 	TyposquatMode               string   `doc:"Typosquatting policy mode: warn or fail" env:"BOMLY_TYPOSQUAT_MODE" default:"warn"`

@@ -32,7 +32,7 @@ func registerDiffTool(s *server.MCPServer, mcpCtx Context) {
 		mcplib.WithString("license_exempt_packages", mcplib.Description("Comma-separated package URLs exempt from license checks")),
 		mcplib.WithString("deny_packages", mcplib.Description("Comma-separated package URLs to deny")),
 		mcplib.WithString("deny_groups", mcplib.Description("Comma-separated package URL namespaces to deny")),
-		mcplib.WithString("deny_dependency_source_changes", mcplib.Description("Comma-separated dependency source changes that fail diff policy: git or url (requires audit)")),
+		mcplib.WithString("deny_dependency_source_changes", mcplib.Description("Comma-separated dependency source changes that fail diff policy: any, git, or url (requires audit)")),
 		mcplib.WithString("protected_packages", mcplib.Description("Comma-separated package names to protect from typosquatting")),
 		mcplib.WithString("typosquat_threshold", mcplib.Description("Typosquatting similarity threshold")),
 		mcplib.WithString("typosquat_mode", mcplib.Description("Typosquatting mode: warn or fail")),

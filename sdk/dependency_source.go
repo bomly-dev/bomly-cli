@@ -17,18 +17,35 @@ const (
 	DependencySourceURL       DependencySource = "url"
 )
 
+// DependencySourceChangePolicyAny selects every source type supported by the
+// dependency source-change policy.
+const DependencySourceChangePolicyAny = "any"
+
 // ParseDependencySourceChangePolicies parses source types accepted by the
 // dependency source-change policy.
 func ParseDependencySourceChangePolicies(values []string) ([]DependencySource, error) {
-	parsed := make([]DependencySource, 0, len(values))
+	includeGit := false
+	includeURL := false
 	for _, value := range values {
-		source := DependencySource(strings.ToLower(strings.TrimSpace(value)))
-		switch source {
-		case DependencySourceGit, DependencySourceURL:
-			parsed = append(parsed, source)
+		normalized := strings.ToLower(strings.TrimSpace(value))
+		switch normalized {
+		case DependencySourceChangePolicyAny:
+			includeGit = true
+			includeURL = true
+		case string(DependencySourceGit):
+			includeGit = true
+		case string(DependencySourceURL):
+			includeURL = true
 		default:
-			return nil, fmt.Errorf("unsupported dependency source change %q (accepted: git, url)", value)
+			return nil, fmt.Errorf("unsupported dependency source change %q (accepted: any, git, url)", value)
 		}
+	}
+	parsed := make([]DependencySource, 0, 2)
+	if includeGit {
+		parsed = append(parsed, DependencySourceGit)
+	}
+	if includeURL {
+		parsed = append(parsed, DependencySourceURL)
 	}
 	return parsed, nil
 }

@@ -331,11 +331,11 @@ func TestDependencyDetailRiskPolicy(t *testing.T) {
 			t.Fatalf("%s unexpectedly passed\nstderr:\n%s", name, stderr)
 		}
 	}
-	assertFails("denied Git source", "--deny-dependency-source-change", "git")
+	assertFails("denied source change", "--deny-dependency-source-change")
 	assertFails("coverage-loss policy", "--fail-on", "coverage-loss")
 
 	warnOnlyArgs := append(append([]string(nil), auditedArgs...),
-		"--deny-dependency-source-change", "git",
+		"--deny-dependency-source-change=git",
 		"--warn-only",
 	)
 	warnOnlyJSON, stderr, code := runBomly(t, warnOnlyArgs...)

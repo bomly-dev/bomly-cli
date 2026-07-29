@@ -49,7 +49,7 @@ func TestValidateDependencySourceChangePolicy(t *testing.T) {
 	if err := Validate(Resolved{
 		Enrich:                      true,
 		Audit:                       true,
-		DenyDependencySourceChanges: []string{"git", "url"},
+		DenyDependencySourceChanges: []string{"any"},
 	}); err != nil {
 		t.Fatalf("valid source-change policy rejected: %v", err)
 	}
@@ -63,7 +63,7 @@ func TestValidateDependencySourceChangePolicy(t *testing.T) {
 		Enrich:                      true,
 		Audit:                       true,
 		DenyDependencySourceChanges: []string{"workspace"},
-	}); err == nil || !strings.Contains(err.Error(), "accepted: git, url") {
+	}); err == nil || !strings.Contains(err.Error(), "accepted: any, git, url") {
 		t.Fatalf("invalid source error = %v", err)
 	}
 }

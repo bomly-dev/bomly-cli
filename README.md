@@ -17,7 +17,7 @@
 
 Bomly is a free, open-source CLI for dependency intelligence. It scans source trees, SBOMs, Git refs, and container images; explains why dependencies are present; enriches packages with vulnerability and license data when you ask for it; evaluates policy; and writes automation-friendly output for CI.
 
-Free and open source, no account, no login. One binary. No service to host. No telemetry. No outbound matcher calls unless you opt in with `--enrich`.
+Free and open source, no account, no login. One binary. No service to host. No telemetry. No outbound matcher calls unless you opt in with `--enrich`. [Network and Privacy](docs/NETWORK.md) documents every network trigger so you can audit that claim instead of taking it on faith.
 
 ## Install Bomly
 

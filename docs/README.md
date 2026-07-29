@@ -19,6 +19,7 @@ Install Bomly and run your first scan.
 What Bomly does, and why each piece exists.
 
 - [Architecture](ARCHITECTURE.md) — the scan pipeline, domain model, and network behavior
+- [Network and Privacy](NETWORK.md) — every network trigger, what it transmits, and how to stay offline
 - [Security and Trust Boundaries](SECURITY.md) — permissions, network behavior, plugins, input limits, and residual risks
 - [Detectors](DETECTORS.md) — turning project evidence into a dependency graph
 - [Matchers](MATCHERS.md) — enriching the graph with vulnerability, license, lifecycle data

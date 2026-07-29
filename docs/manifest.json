@@ -76,6 +76,12 @@
       "group": "concepts"
     },
     {
+      "slug": "network",
+      "title": "Network and privacy",
+      "description": "Every network trigger, what it contacts and transmits, and how to keep a run offline.",
+      "group": "concepts"
+    },
+    {
       "slug": "security",
       "title": "Security and trust boundaries",
       "description": "Permissions, network behavior, plugins, input limits, and residual risks.",

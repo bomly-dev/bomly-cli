@@ -79,6 +79,12 @@ gem "nokogiri", ">= 1.16.5"
 
 `bundle lock --update nokogiri`. Re-scan.
 
+## Source details
+
+Bomly maps the `GEM`, `GIT`, and `PATH` sections in `Gemfile.lock` to registry,
+Git, and local-file sources. These details let `bomly diff` review a gem that
+moves to Git.
+
 ## Reachability
 
 > **Not yet supported.** Bomly has no Ruby reachability analyzer today. `--analyze` produces `not_applicable` for Ruby packages.

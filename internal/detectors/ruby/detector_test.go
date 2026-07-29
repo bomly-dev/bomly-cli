@@ -81,6 +81,71 @@ DEPENDENCIES
 	if got := string(activeSupport.PrimaryScope()); got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected activesupport scope runtime, got %q", got)
 	}
+	if activeSupport.Source != sdk.DependencySourceRegistry {
+		t.Fatalf("activesupport source = %q, want %q", activeSupport.Source, sdk.DependencySourceRegistry)
+	}
+}
+
+func TestBundlerSourceSections(t *testing.T) {
+	raw := `GEM
+  remote: https://rubygems.org/
+  specs:
+    rack (3.1.8)
+
+GIT
+  remote: https://github.com/example/helper.git
+  revision: abc
+  specs:
+    helper (1.0.0)
+
+PATH
+  remote: ../local-gem
+  specs:
+    local-gem (0.1.0)
+
+DEPENDENCIES
+  helper!
+  local-gem!
+  rack
+`
+	specs, _, err := parseBundlerLockfile(raw)
+	if err != nil {
+		t.Fatalf("parseBundlerLockfile() error = %v", err)
+	}
+	tests := []struct {
+		name string
+		want sdk.DependencySource
+		url  string
+	}{
+		{name: "rack", want: sdk.DependencySourceRegistry, url: "https://rubygems.org/"},
+		{name: "helper", want: sdk.DependencySourceGit, url: "https://github.com/example/helper.git"},
+		{name: "local-gem", want: sdk.DependencySourceFile, url: "../local-gem"},
+	}
+	for _, tt := range tests {
+		spec, ok := specs[tt.name]
+		if !ok {
+			t.Fatalf("missing %s spec", tt.name)
+		}
+		if spec.Source != tt.want {
+			t.Errorf("%s source = %q, want %q", tt.name, spec.Source, tt.want)
+		}
+		if spec.ResolvedURL != tt.url {
+			t.Errorf("%s resolved URL = %q, want %q", tt.name, spec.ResolvedURL, tt.url)
+		}
+	}
+	if got := specs["helper"].Revision; got != "abc" {
+		t.Fatalf("helper revision = %q, want abc", got)
+	}
+	helper := gemNode(specs["helper"])
+	if helper.Metadata["source_revision"] != "abc" {
+		t.Fatalf("helper source revision = %#v, want abc", helper.Metadata["source_revision"])
+	}
+}
+
+func TestBundlerUnknownSectionDoesNotGuessSource(t *testing.T) {
+	if got := bundlerSectionSource("PLUGIN"); got != "" {
+		t.Fatalf("bundlerSectionSource(PLUGIN) = %q, want unknown", got)
+	}
 }
 
 func TestParseGemfileScopes(t *testing.T) {

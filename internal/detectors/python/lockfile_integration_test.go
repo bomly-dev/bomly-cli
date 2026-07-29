@@ -83,6 +83,14 @@ func requirePyScope(t *testing.T, g *sdk.Graph, name, version string, scope sdk.
 	}
 }
 
+func requirePySource(t *testing.T, g *sdk.Graph, name, version string, source sdk.DependencySource) {
+	t.Helper()
+	pkg := requirePyPackage(t, g, name, version)
+	if pkg.Source != source {
+		t.Errorf("expected %s source %q, got %q", pyStableID(name, version), source, pkg.Source)
+	}
+}
+
 // requirePySingleRoot asserts the graph has exactly one root with the expected ID.
 func requirePySingleRoot(t *testing.T, g *sdk.Graph, rootID string) {
 	t.Helper()
@@ -117,6 +125,7 @@ func TestPipRequirementsLockFixture(t *testing.T) {
 	requirePyScope(t, g, "requests", "2.32.3", sdk.ScopeRuntime)
 	requirePyScope(t, g, "urllib3", "2.2.3", sdk.ScopeRuntime)
 	requirePyScope(t, g, "pytest", "8.3.3", sdk.ScopeDevelopment)
+	requirePySource(t, g, "requests", "2.32.3", sdk.DependencySourceRegistry)
 }
 
 // ---- poetry (poetry.lock + pyproject.toml fast-path) -----------------------
@@ -143,6 +152,7 @@ func TestPoetryLockFixture(t *testing.T) {
 	requirePyScope(t, g, "idna", "3.10", sdk.ScopeRuntime)
 	requirePyScope(t, g, "pytest", "8.3.3", sdk.ScopeDevelopment)
 	requirePyScope(t, g, "pluggy", "1.5.0", sdk.ScopeDevelopment)
+	requirePySource(t, g, "requests", "2.32.3", sdk.DependencySourceRegistry)
 }
 
 // ---- uv (uv.lock fast-path) ------------------------------------------------
@@ -173,6 +183,7 @@ func TestUVLockFixture(t *testing.T) {
 	requirePyScope(t, g, "urllib3", "2.2.3", sdk.ScopeRuntime)
 	requirePyScope(t, g, "pytest", "8.3.3", sdk.ScopeDevelopment)
 	requirePyScope(t, g, "pluggy", "1.5.0", sdk.ScopeDevelopment)
+	requirePySource(t, g, "requests", "2.32.3", sdk.DependencySourceRegistry)
 }
 
 // ---- pipenv (Pipfile.lock fast-path) ---------------------------------------
@@ -199,4 +210,5 @@ func TestPipenvLockFixture(t *testing.T) {
 	// stays runtime — a known limitation of the lock-only fast-path.
 	requirePyScope(t, g, "requests", "2.32.3", sdk.ScopeRuntime)
 	requirePyScope(t, g, "pytest", "8.3.3", sdk.ScopeDevelopment)
+	requirePySource(t, g, "requests", "2.32.3", sdk.DependencySourceRegistry)
 }

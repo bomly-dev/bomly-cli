@@ -128,6 +128,14 @@ Key helpers:
 - `sdk.RelationshipForPath(path)` — preserve an explicit relationship or derive direct/transitive from a root-to-target path.
 - `dep.RegistryMatchEligible()` — classify whether this occurrence may be sent to external registry enrichment.
 
+`Dependency.Source` is occurrence evidence, not a guess based on package name
+or ecosystem. A detector sets it only when the manifest, lockfile, or build
+tool output proves the origin. Cargo, Bundler, the JavaScript package managers,
+pub, SwiftPM, and the pip, Pipenv, Poetry, and uv Python paths currently expose
+that evidence. Formats that do not retain the selected feed or source leave the
+field empty. An empty source remains eligible for matching for protocol-v1
+compatibility, but it cannot create a source-change finding in a diff.
+
 An `unknown` relationship means that the package was present in the owning
 manifest but its parent could not be recovered. The component root is attached
 beneath the manifest/application root so it continues through matching,

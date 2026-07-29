@@ -86,6 +86,13 @@ func TestDetectionResultFromMetadataWorkspacePerModuleEntries(t *testing.T) {
 	if _, ok := a.Graph.Node("root"); ok {
 		t.Fatal("virtual workspace root must not leak into member entries")
 	}
+	member, ok := a.Graph.Node("a@0.1.0")
+	if !ok {
+		t.Fatal("expected workspace member a")
+	}
+	if member.Source != sdk.DependencySourceWorkspace {
+		t.Fatalf("workspace member source = %q, want %q", member.Source, sdk.DependencySourceWorkspace)
+	}
 }
 
 func TestResolveFromLockVirtualWorkspaceEmitsMemberEntries(t *testing.T) {

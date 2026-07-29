@@ -20,6 +20,11 @@ type uvLockSource struct {
 	Registry string `toml:"registry"`
 	Editable string `toml:"editable"`
 	Path     string `toml:"path"`
+	Git      string `toml:"git"`
+	URL      string `toml:"url"`
+	Rev      string `toml:"rev"`
+	Resolved string `toml:"resolved"`
+	Precise  string `toml:"precise"`
 }
 
 // uvLockPackage represents a single [[package]] entry in uv.lock.
@@ -65,7 +70,7 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 		}
 		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
 			Name:    normalizePythonName(pkg.Name),
-			Version: pkg.Version},
+			Version: pkg.Version}, Source: uvDependencySource(pkg.Source), ResolvedURL: uvResolvedURL(pkg.Source), Metadata: sourceRevisionMetadata(uvSourceRevision(pkg.Source)),
 		})
 
 		nodesByName[normalizePythonName(pkg.Name)] = node
@@ -208,6 +213,39 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 	}
 
 	return depsGraph, nil
+}
+
+func uvDependencySource(source uvLockSource) sdk.DependencySource {
+	switch {
+	case source.Editable != "" || source.Path != "":
+		return sdk.DependencySourceFile
+	case source.Git != "":
+		return sdk.DependencySourceGit
+	case source.URL != "":
+		return sdk.DependencySourceURL
+	case source.Registry != "":
+		return sdk.DependencySourceRegistry
+	default:
+		return ""
+	}
+}
+
+func uvResolvedURL(source uvLockSource) string {
+	for _, value := range []string{source.Git, source.URL, source.Registry, source.Editable, source.Path} {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func uvSourceRevision(source uvLockSource) string {
+	for _, value := range []string{source.Precise, source.Resolved, source.Rev} {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 // uvLockPath returns the path to the uv.lock file in the project directory,

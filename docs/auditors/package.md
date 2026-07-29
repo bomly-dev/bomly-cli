@@ -84,7 +84,7 @@ still downgrades a configured failure.
 ## Limitations
 
 - **Names, not behavior.** This auditor cannot tell whether a package is malicious — only whether its name is denied or resembles a protected one. Pair it with the vulnerability auditor for content risk.
-- **Source-change checks currently cover JavaScript package managers.** npm, pnpm, Yarn, and Bun detectors report the source details needed by this check. Other detectors do not yet provide enough source data, so this policy cannot report their source changes.
+- **Source-change checks need detector evidence.** Cargo, Bundler, npm, pnpm, Yarn, Bun, pub, SwiftPM, and the pip, Pipenv, Poetry, and uv Python paths report source details when their lockfile or tool output proves the origin. Other detectors leave the source unknown when their input cannot distinguish a registry package from another origin.
 - **Only Git and URL moves are review signals.** Moves to project, workspace, or file sources remain informational, even when registry matching eligibility changes.
 - **Source-change policy is diff-only.** `--fail-on source-change` is accepted by other audited commands but cannot match because they do not produce dependency detail transitions.
 - **Source changes need context.** Git and URL sources can be intentional. The warning asks a reviewer to confirm the new origin and pinned reference.

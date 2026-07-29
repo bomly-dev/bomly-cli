@@ -63,6 +63,11 @@ openssl = { git = "https://github.com/sfackler/rust-openssl", tag = "openssl-v0.
 
 `cargo update`. Re-scan.
 
+## Source details
+
+Bomly reads registry, Git, path, and workspace sources from Cargo metadata or
+`Cargo.lock`. These details let `bomly diff` review a package that moves to Git.
+
 ## Reachability
 
 > **Not yet supported.** Bomly has no Rust reachability analyzer today. `--analyze` produces `not_applicable` for crates.

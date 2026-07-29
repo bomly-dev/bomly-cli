@@ -6,6 +6,7 @@ name = "demo-app"
 version = "1.0.0"
 source = { editable = "." }
 dependencies = [
+    { name = "git-helper" },
     { name = "requests" },
 ]
 
@@ -28,6 +29,11 @@ source = { registry = "https://pypi.org/simple" }
 name = "idna"
 version = "3.10"
 source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "git-helper"
+version = "1.0.0"
+source = { git = "https://github.com/example/git-helper?rev=main#abc123" }
 
 [[package]]
 name = "pluggy"

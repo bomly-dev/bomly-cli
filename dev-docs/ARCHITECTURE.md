@@ -385,6 +385,21 @@ Workspace/reactor detectors (npm and pnpm lockfile, cargo, maven) emit one `Grap
 
 **First-party packages are inventory, not enrichment targets** (`sdk.NodeIsEnrichable`). Application-typed nodes — workspace members, reactor modules, the project's own package — are absent from public advisory/registry sources, so querying OSV / deps.dev / scorecard / grype for them wastes lookups and risks coincidental name matches (a workspace member named like a real npm package would adopt its advisories). The predicate mirrors `NodeIsDiffable` and gates the two selection chokepoints (`matchers.RegistryPackagesForGraph`, the OSV matcher's graph iteration) plus external grype's result mapping. External grype's SBOM *input* is deliberately not filtered: `sbom.FromDepGraph` is shared with user-facing SBOM generation, where first-party components must remain visible — so first-party matches are dropped when grype results map back into the registry. First-party entries stay in the `packages` collection and SBOMs, just unenriched; external plugin matchers (ClearlyDefined, EOL) are expected to adopt the same predicate.
 
+**Dependency source classification belongs to detectors.** Source is an
+occurrence fact, so the detector that reads the manifest, lockfile, or build
+tool output owns it. The engine and package auditor consume the canonical
+`sdk.Dependency.Source` value but never infer one from an ecosystem, package
+name, PURL, or repository metadata. Detectors classify only explicit evidence:
+for example Cargo `registry+` and `git+` sources, Bundler `GEM`/`GIT`/`PATH`
+sections, pub lock sources, SwiftPM pin kinds, Python direct-URL metadata, and
+Python lock source tables. When a format does not retain the selected origin,
+the source stays unknown. This trades some source-change coverage for avoiding
+false provenance claims and keeps external protocol-v1 detectors compatible.
+Source and matcher eligibility are related but not identical: SwiftPM remote
+source control is classified as Git, while remaining eligible because the
+repository URL is the canonical SwiftURL identity used for vulnerability
+matching.
+
 ### Decision: Bun text lockfiles are native; binary lockfiles degrade explicitly
 
 `bun-detector` parses JSONC `bun.lock` versions 0 and 1 directly in Go. The parser removes comments and trailing commas with a string-aware state machine, inventories package tuples before constructing edges, models workspace roots as application nodes, and runs the shared Node relationship finalizer before per-workspace graph partitioning. Bun workspace entries therefore use the same multi-entry `sdk.GraphContainer` contract described above. The lockfile path never invokes or installs Bun, so committed text lockfiles remain deterministic and offline.

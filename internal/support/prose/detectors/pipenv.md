@@ -44,6 +44,11 @@ bomly scan --install-first --detectors pipenv-detector \
   --install-arg --dev --install-arg --deploy
 ```
 
+## Source details
+
+Bomly reads registry, Git, URL, and local-file sources from `Pipfile.lock`.
+When Pipenv uses pip inspection, Bomly uses pip's `direct_url` record instead.
+
 ## Reachability (experimental)
 
 > **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.

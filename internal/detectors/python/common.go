@@ -214,7 +214,7 @@ func depGraphFromPipInspect(raw []byte, rootNode *sdk.Dependency, declared map[s
 		}
 		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
 			Name:    normalizePythonName(pkg.Metadata.Name),
-			Version: pkg.Metadata.Version},
+			Version: pkg.Metadata.Version}, Source: pipInspectDependencySource(pkg.DirectURL), ResolvedURL: pipInspectResolvedURL(pkg.DirectURL), Metadata: sourceRevisionMetadata(pipInspectRevision(pkg.DirectURL)),
 		})
 
 		if _, exists := nodesByName[node.Name]; !exists {
@@ -268,6 +268,52 @@ func depGraphFromPipInspect(raw []byte, rootNode *sdk.Dependency, declared map[s
 	}
 
 	return depsGraph, nil
+}
+
+func pipInspectDependencySource(directURL map[string]any) sdk.DependencySource {
+	if len(directURL) == 0 {
+		return sdk.DependencySourceRegistry
+	}
+	if _, ok := directURL["dir_info"]; ok {
+		return sdk.DependencySourceFile
+	}
+	if vcsInfo, ok := directURL["vcs_info"].(map[string]any); ok {
+		if vcs, _ := vcsInfo["vcs"].(string); strings.EqualFold(strings.TrimSpace(vcs), "git") {
+			return sdk.DependencySourceGit
+		}
+		return sdk.DependencySourceURL
+	}
+	resolved := pipInspectResolvedURL(directURL)
+	if strings.HasPrefix(strings.ToLower(resolved), "file:") {
+		return sdk.DependencySourceFile
+	}
+	if resolved != "" {
+		return sdk.DependencySourceURL
+	}
+	return ""
+}
+
+func pipInspectResolvedURL(directURL map[string]any) string {
+	value, _ := directURL["url"].(string)
+	return strings.TrimSpace(value)
+}
+
+func pipInspectRevision(directURL map[string]any) string {
+	vcsInfo, _ := directURL["vcs_info"].(map[string]any)
+	for _, key := range []string{"commit_id", "requested_revision"} {
+		if value, _ := vcsInfo[key].(string); strings.TrimSpace(value) != "" {
+			return strings.TrimSpace(value)
+		}
+	}
+	return ""
+}
+
+func sourceRevisionMetadata(revision string) map[string]any {
+	revision = strings.TrimSpace(revision)
+	if revision == "" {
+		return nil
+	}
+	return map[string]any{"source_revision": revision}
 }
 
 // pipDirectDependency reports whether an installed distribution is something

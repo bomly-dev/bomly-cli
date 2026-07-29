@@ -86,6 +86,13 @@ func TestDetectionResultFromMetadataWorkspacePerModuleEntries(t *testing.T) {
 	if _, ok := a.Graph.Node("root"); ok {
 		t.Fatal("virtual workspace root must not leak into member entries")
 	}
+	member, ok := a.Graph.Node("a@0.1.0")
+	if !ok {
+		t.Fatal("expected workspace member a")
+	}
+	if member.Source != sdk.DependencySourceWorkspace {
+		t.Fatalf("workspace member source = %q, want %q", member.Source, sdk.DependencySourceWorkspace)
+	}
 }
 
 func TestResolveFromLockVirtualWorkspaceEmitsMemberEntries(t *testing.T) {
@@ -128,10 +135,12 @@ dependencies = [
 [[package]]
 name = "pretty_assertions"
 version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "serde"
 version = "1.0.210"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 `)
 
 	result, err := Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: root})
@@ -158,6 +167,14 @@ version = "1.0.210"
 		if _, ok := a.Graph.Node(want); !ok {
 			t.Fatalf("expected %q in member a graph", want)
 		}
+	}
+	member, ok := a.Graph.Node("a@0.1.0")
+	if !ok || member.Source != sdk.DependencySourceWorkspace {
+		t.Fatalf("member a source = %#v, want workspace", member)
+	}
+	serde, ok := a.Graph.Node("serde@1.0.210")
+	if !ok || serde.Source != sdk.DependencySourceRegistry {
+		t.Fatalf("serde source = %#v, want registry", serde)
 	}
 	if _, ok := b.Graph.Node("a@0.1.0"); ok {
 		t.Fatal("member b graph must not contain member a")

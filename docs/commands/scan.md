@@ -18,7 +18,7 @@ Top-level dependencies
   express   4.19.2    MIT       runtime   -
 ```
 
-No network calls happen here — enrichment columns stay empty until you ask for them.
+No matcher service is contacted here — enrichment columns stay empty until you ask for them. (Resolution itself can still invoke your build tool when a lockfile parser can't resolve the project; [Network and Privacy](../NETWORK.md) has the full model.)
 
 ## Choose a target
 

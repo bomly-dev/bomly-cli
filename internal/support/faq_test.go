@@ -86,6 +86,10 @@ func TestDocsFAQIsWellFormed(t *testing.T) {
 						t.Errorf("faq %q has a link missing label or href", f.ID)
 					}
 					switch {
+					case strings.HasPrefix(l.Href, "//"):
+						// Protocol-relative URLs resolve to an external origin
+						// but would pass the site-relative branch below.
+						t.Errorf("faq %q link %q must not be protocol-relative", f.ID, l.Href)
 					case strings.HasPrefix(l.Href, "/"):
 						if l.External {
 							t.Errorf("faq %q link %q is site-relative but marked external", f.ID, l.Href)

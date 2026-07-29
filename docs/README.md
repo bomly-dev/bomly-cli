@@ -1,6 +1,6 @@
 # Bomly Documentation
 
-Start with [Getting Started](GETTING_STARTED.md) if you're new. Otherwise pick the section that matches what you're doing. The sections below mirror the site navigation groups defined in [`manifest.json`](manifest.json), so this index and the published docs site always tell the same story.
+Start with [Getting Started](GETTING_STARTED.md) if you're new. Otherwise pick the section that matches what you're doing. The sections below follow the site navigation groups defined in [`manifest.json`](manifest.json), plus links to a few site pages that live outside the versioned docs (such as the FAQ).
 
 ## Getting started
 

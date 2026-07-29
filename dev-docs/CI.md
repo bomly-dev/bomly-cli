@@ -9,7 +9,7 @@ The workflow permission and credential inventory is maintained in
 
 | Workflow               | Trigger                                        | Purpose                                                                                                                |
 |------------------------|------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
-| `Build & Test`         | Pull requests, pushes to `main`                | Fast validation split into parallel jobs: `lint`, `test`, `build`, `format`, `modules` (go.mod drift), and `generated-docs` (generated-doc drift) |
+| `Build & Test`         | Pull requests, pushes to `main`                | Fast validation split into parallel jobs: `lint`, `test`, `build`, `format`, `modules` (go.mod drift), `generated-docs` (generated-doc drift), and `docs-links` (relative-link and anchor check over `docs/`, `README.md`, and `CONTRIBUTING.md` via lychee in offline mode) |
 | `CodeQL`               | Pull requests, pushes to `main`, weekly        | Static security/quality analysis for Go; results surface in the Security tab                                           |
 | `Scorecard`            | Pushes to `main`, weekly, manual dispatch      | OpenSSF Scorecard supply-chain checks; publishes results and uploads SARIF                                             |
 | `Fuzz`                 | Nightly schedule, manual dispatch              | Native Go fuzzing over lockfile parsers, SBOM JSON, SDK transport JSON, and plugin path/archive sanitizers            |
@@ -24,7 +24,7 @@ The workflow permission and credential inventory is maintained in
 
 For protected branches, require at least:
 
-- The `Build & Test` jobs (`Lint`, `Test`, `Build`, `Format`, `Module drift`, `Generated docs drift`)
+- The `Build & Test` jobs (`Lint`, `Test`, `Build`, `Format`, `Module drift`, `Generated docs drift`, `Docs link check`)
 - `Dependency review` when dependency metadata changes
 - `Smoke` on merge queue entries
 

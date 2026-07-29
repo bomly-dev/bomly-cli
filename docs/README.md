@@ -33,6 +33,7 @@ What Bomly does, and why each piece exists.
 
 Specifications and matrices. The generated pages are regenerated from code by `make generate` — treat those as authoritative.
 
+- [Commands](COMMANDS.md) — per-command reference for [scan](commands/scan.md), [explain](commands/explain.md), and [diff](commands/diff.md)
 - [Support Matrix](SUPPORT_MATRIX.md) — every ecosystem and package manager
 - [Config Reference](CONFIG_REFERENCE.md) — every config key, env var, default, flag
 - [Exit Codes](EXIT_CODES.md) — what each process exit value means

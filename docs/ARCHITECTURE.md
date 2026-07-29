@@ -4,16 +4,19 @@ A tour of how Bomly turns a scan target into a report — the stages a scan runs
 
 ## Commands
 
-Bomly is a CLI. Everything runs through one of four commands:
+Bomly is a CLI. Three commands run the dependency pipeline described on this page, and three manage the machinery around it:
 
-| Command         | Purpose                                                |
-|-----------------|--------------------------------------------------------|
-| `bomly scan`    | Resolve dependencies, render reports, and write SBOMs  |
-| `bomly explain` | Show why a dependency exists in a graph                |
-| `bomly diff`    | Compare dependency state across Git refs or SBOM files |
-| `bomly version` | Print version information                              |
+| Command         | Purpose                                                              |
+|-----------------|----------------------------------------------------------------------|
+| `bomly scan`    | Resolve dependencies, render reports, and write SBOMs                |
+| `bomly explain` | Show why a dependency exists in a graph                              |
+| `bomly diff`    | Compare dependency state across Git refs, SBOM files, or image tags  |
+| `bomly baseline`| Create and inspect finding baselines                                 |
+| `bomly plugins` | List, install, enable, verify, and test external plugins             |
+| `bomly mcp`     | Serve Bomly's tools to MCP-aware AI agents                           |
+| `bomly version` | Print version information                                            |
 
-Each invocation works on exactly one target: a filesystem path, a container image, a remote Git repository, or an existing SBOM file. See [Scan targets](SCAN_TARGETS.md) for the details of each.
+Each pipeline invocation works on exactly one target: a filesystem path, a container image, a remote Git repository, or an existing SBOM file. See [Commands](COMMANDS.md) for the per-command reference and [Scan targets](SCAN_TARGETS.md) for the details of each target.
 
 ## The scan pipeline
 

@@ -116,6 +116,13 @@
       "hasChildren": true
     },
     {
+      "slug": "commands",
+      "title": "Commands",
+      "description": "Per-command reference for scan, explain, and diff, plus the shared option surface.",
+      "group": "reference",
+      "hasChildren": true
+    },
+    {
       "slug": "support-matrix",
       "title": "Support matrix",
       "description": "Every ecosystem and package manager Bomly can identify today.",

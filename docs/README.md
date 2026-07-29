@@ -12,6 +12,7 @@ Install Bomly and run your first scan.
 - [Scan Targets](SCAN_TARGETS.md) — directories, Git repos, containers, SBOMs
 - [Output Formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM
 - [SBOM Formats](SBOM.md) — SPDX vs. CycloneDX, write and ingest
+- [FAQ](FAQ.md) — quick answers on privacy, accounts, tool differences, and first-scan surprises
 
 ## How it works
 

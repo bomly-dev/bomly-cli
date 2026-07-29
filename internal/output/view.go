@@ -1124,6 +1124,27 @@ func diffDependencyTransitionsFromDiff(transitions []sdk.DependencyDetailTransit
 	return out
 }
 
+// DependencyDetailReviewReasons classifies a projected dependency detail
+// transition without adding a derived field to the JSON contract.
+func DependencyDetailReviewReasons(transition DiffDependencyTransition) []sdk.DependencyDetailReviewReason {
+	projected := sdk.DependencyDetailTransition{
+		Before:                 &sdk.Dependency{Source: transition.Before.Source},
+		After:                  &sdk.Dependency{Source: transition.After.Source},
+		ChangedFields:          append([]sdk.DependencyDetailField(nil), transition.ChangedFields...),
+		BeforeRelationship:     transition.Before.Relationship,
+		AfterRelationship:      transition.After.Relationship,
+		BeforeRegistryEligible: transition.Before.RegistryEligible,
+		AfterRegistryEligible:  transition.After.RegistryEligible,
+	}
+	return projected.ReviewReasons()
+}
+
+// DependencyDetailNeedsReview reports whether a projected dependency detail
+// transition should receive extra review.
+func DependencyDetailNeedsReview(transition DiffDependencyTransition) bool {
+	return len(DependencyDetailReviewReasons(transition)) > 0
+}
+
 func diffDependencyTransitionState(dependency *sdk.Dependency, relationship sdk.DependencyRelationship, eligible bool) DiffDependencyTransitionState {
 	if dependency == nil {
 		return DiffDependencyTransitionState{Relationship: relationship, RegistryEligible: eligible}

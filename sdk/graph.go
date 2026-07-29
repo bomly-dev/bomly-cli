@@ -57,13 +57,78 @@ const (
 // DependencyDetailTransition captures same-identity occurrence detail changes.
 // Version changes remain represented separately by VersionChange.
 type DependencyDetailTransition struct {
-	Before                 *Dependency
-	After                  *Dependency
-	ChangedFields          []DependencyDetailField
-	BeforeRelationship     DependencyRelationship
-	AfterRelationship      DependencyRelationship
-	BeforeRegistryEligible bool
-	AfterRegistryEligible  bool
+	Before                 *Dependency             `json:"before"`
+	After                  *Dependency             `json:"after"`
+	ChangedFields          []DependencyDetailField `json:"changedFields"`
+	BeforeRelationship     DependencyRelationship  `json:"beforeRelationship,omitempty"`
+	AfterRelationship      DependencyRelationship  `json:"afterRelationship,omitempty"`
+	BeforeRegistryEligible bool                    `json:"beforeRegistryEligible"`
+	AfterRegistryEligible  bool                    `json:"afterRegistryEligible"`
+}
+
+// DependencyDetailReviewReason explains why a dependency detail change should
+// receive extra review.
+type DependencyDetailReviewReason string
+
+const (
+	// DependencyDetailReviewSourceGit indicates that the dependency now comes
+	// from a Git repository.
+	DependencyDetailReviewSourceGit DependencyDetailReviewReason = "source-changed-to-git"
+	// DependencyDetailReviewSourceURL indicates that the dependency now comes
+	// from an arbitrary URL.
+	DependencyDetailReviewSourceURL DependencyDetailReviewReason = "source-changed-to-url"
+)
+
+// ReviewReasons returns the reasons this detail change needs extra review.
+// The result is deterministic and does not treat missing evidence, coverage
+// gains, or relationship-only changes as review signals.
+func (t DependencyDetailTransition) ReviewReasons() []DependencyDetailReviewReason {
+	reasons := make([]DependencyDetailReviewReason, 0, 1)
+	if dependencyDetailFieldIncluded(t.ChangedFields, DependencyDetailSource) &&
+		t.Before != nil && strings.TrimSpace(string(t.Before.Source)) != "" &&
+		t.After != nil {
+		switch t.After.Source {
+		case DependencySourceGit:
+			reasons = append(reasons, DependencyDetailReviewSourceGit)
+		case DependencySourceURL:
+			reasons = append(reasons, DependencyDetailReviewSourceURL)
+		}
+	}
+	return reasons
+}
+
+// NeedsReview reports whether this detail change has at least one review reason.
+func (t DependencyDetailTransition) NeedsReview() bool {
+	return len(t.ReviewReasons()) > 0
+}
+
+// CloneDependencyDetailTransitions returns a deep copy of dependency detail
+// transitions suitable for crossing component and plugin boundaries.
+func CloneDependencyDetailTransitions(transitions []DependencyDetailTransition) []DependencyDetailTransition {
+	if transitions == nil {
+		return nil
+	}
+	cloned := make([]DependencyDetailTransition, len(transitions))
+	for index, transition := range transitions {
+		cloned[index] = transition
+		cloned[index].ChangedFields = append([]DependencyDetailField(nil), transition.ChangedFields...)
+		if transition.Before != nil {
+			cloned[index].Before = transition.Before.Clone()
+		}
+		if transition.After != nil {
+			cloned[index].After = transition.After.Clone()
+		}
+	}
+	return cloned
+}
+
+func dependencyDetailFieldIncluded(fields []DependencyDetailField, wanted DependencyDetailField) bool {
+	for _, field := range fields {
+		if field == wanted {
+			return true
+		}
+	}
+	return false
 }
 
 // Graph stores dependency nodes as a directed graph.

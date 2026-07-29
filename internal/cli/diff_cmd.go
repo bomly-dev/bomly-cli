@@ -57,7 +57,6 @@ func newDiffCmd() *cobra.Command {
 			if current.Ref != "" {
 				return exit.InvalidInputError("diff does not support --ref; use --base and --head")
 			}
-
 			if current.SBOM {
 				if baseRef == "" {
 					return exit.InvalidInputError("--base is required when --sbom is set")

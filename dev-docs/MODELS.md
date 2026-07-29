@@ -426,6 +426,18 @@ projected from the same registry-aware helpers; see
 [`../docs/OUTPUT_FORMATS.md`](../docs/OUTPUT_FORMATS.md) and
 [`../docs/SBOM.md`](../docs/SBOM.md) for format-specific details.
 
+`DependencyDetailTransition.ReviewReasons` is the shared presentation
+classifier. It marks a transition when a known source changes to Git or a URL,
+or when registry-matcher coverage changes from covered to not covered. It does
+not add a derived field to JSON, MCP, or SARIF. Auditors may use the same
+reasons as input, but the classifier itself does not create findings.
+
+During `bomly diff --audit`, the head-side `AuditRequest` receives a deep copy
+of the canonical transitions in `DependencyDetailChanges`. The base-side
+request, scans, and explains leave the optional field empty. This lets built-in
+and external protocol-v1 auditors evaluate detail changes without rebuilding a
+diff from a focused audit graph.
+
 ## Common patterns
 
 ### Matchers: enrich the registry, not the graph

@@ -72,8 +72,14 @@ func dependencyTextSections(results output.DiffDependencyResults) []string {
 		lines = append(lines, Style(fmt.Sprintf("Detail changes (%d)", len(results.Transitions)), Bold))
 		for _, transition := range results.Transitions {
 			name := dependencyTransitionDisplayName(transition.After)
-			line := fmt.Sprintf("  ↔ %s  %s", name, dependencyTransitionDescription(transition))
-			lines = append(lines, Wrap(line, Yellow))
+			symbol := "↔"
+			color := Cyan
+			if output.DependencyDetailNeedsReview(transition) {
+				symbol = "⚠"
+				color = Yellow
+			}
+			line := fmt.Sprintf("  %s %s  %s", symbol, name, dependencyTransitionDescription(transition))
+			lines = append(lines, Wrap(line, color))
 		}
 	}
 	appendAdded()
@@ -98,11 +104,15 @@ func dependencyTransitionDescription(transition output.DiffDependencyTransition)
 				valueOrDash(string(transition.After.Relationship)),
 			))
 		case sdk.DependencyDetailSource:
-			parts = append(parts, fmt.Sprintf(
+			description := fmt.Sprintf(
 				"source: %s → %s",
 				valueOrDash(string(transition.Before.Source)),
 				valueOrDash(string(transition.After.Source)),
-			))
+			)
+			if transition.Before.RegistryEligible && !transition.After.RegistryEligible {
+				description += "; registry-based vulnerability checks may no longer cover this dependency"
+			}
+			parts = append(parts, description)
 		case sdk.DependencyDetailRegistryEligibility:
 			if sourceChanged {
 				continue

@@ -44,9 +44,9 @@ import (
 
 // Configs holds built-in registry wiring options resolved by the CLI layer.
 type Configs struct {
-	// FailOn is the parsed list of --fail-on constraints. The policy
-	// auditor evaluates findings against this AND-set; an empty slice
-	// preserves the historical behavior of emitting every finding.
+	// FailOn is the parsed list of --fail-on constraints. Vulnerability
+	// constraints form an AND-set; other auditors may consume independent
+	// finding-family constraints.
 	FailOn                []sdk.FailOnConstraint
 	AllowVulnerabilityIDs []string
 	AllowLicenses         []string
@@ -479,6 +479,7 @@ func (r *Registry) registerAuditors() {
 		packageauditor.Auditor{
 			DenyPackages:       append([]string(nil), r.configs.DenyPackages...),
 			DenyGroups:         append([]string(nil), r.configs.DenyGroups...),
+			FailOn:             append([]sdk.FailOnConstraint(nil), r.configs.FailOn...),
 			ProtectedPackages:  append([]string(nil), r.configs.ProtectedPackages...),
 			TyposquatThreshold: threshold,
 			TyposquatMode:      r.configs.TyposquatMode,

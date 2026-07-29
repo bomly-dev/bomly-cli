@@ -354,15 +354,17 @@ Auditors run **after** detectors and matchers. They never make network calls of 
 bomly scan --enrich --audit --fail-on high
 `+"```"+`
 
-`+"`--audit`"+` alone is useful when you have ingested an SBOM that already carries vulnerability data, or when a matcher ran in a previous step.
+The CLI requires `+"`--enrich`"+` with `+"`--audit`"+`. Auditors themselves do not make
+network calls; the selected matchers decide whether enrichment uses the
+network.
 
 ## Built-in auditors
 
 | Auditor | Checks | Policy flags |
 | --- | --- | --- |
-| [`+"`vulnerability`"+`](auditors/vulnerability.md) | Enriched advisories vs. severity / allowlist policy | `+"`--fail-on`"+`, `+"`--allow-vulnerability-id`"+` |
+| [`+"`vulnerability`"+`](auditors/vulnerability.md) | Enriched vulnerability advisories | `+"`--fail-on`"+`, `+"`--allow-vulnerability-id`"+` |
 | [`+"`license`"+`](auditors/license.md) | Package licenses vs. allow/deny SPDX policy | `+"`--allow-license`"+`, `+"`--deny-license`"+`, `+"`--license-exempt-package`"+` |
-| [`+"`package`"+`](auditors/package.md) | Denied packages and typosquatted names | `+"`--deny-package`"+`, `+"`--deny-group`"+`, `+"`--protected-package`"+`, `+"`--typosquat-threshold`"+`, `+"`--typosquat-mode`"+` |
+| [`+"`package`"+`](auditors/package.md) | Denied packages, typosquatted names, and source changes | `+"`--deny-package`"+`, `+"`--deny-group`"+`, `+"`--protected-package`"+`, `+"`--typosquat-threshold`"+`, `+"`--typosquat-mode`"+`, `+"`--fail-on source-change`"+` |
 
 Select a subset with the `+"`--auditors`"+` selector (e.g. `+"`--auditors license`"+`). See the [per-auditor reference](auditors/) for options, examples, and limitations. Auditors are also a plugin extension point — for a worked example of an external auditor, see the [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor).
 
@@ -402,7 +404,12 @@ The `+"`any`"+` token matches every severity, including `+"`unknown`"+`.
 
 ## `+"`--fail-on`"+`
 
-`+"`--fail-on`"+` is the only knob that turns a finding into a non-zero exit code. It accepts a severity token, the reachability token `+"`reachable`"+`, or the known-exploitation token `+"`exploitable`"+`:
+`+"`--fail-on`"+` controls vulnerability findings by severity, reachability,
+or known exploitation. It also provides the diff-only `+"`source-change`"+`
+gate for package findings. Other policy flags, such as `+"`--deny-package`"+`,
+can create failing findings directly.
+
+It accepts these tokens:
 
 | Token | Matches |
 | --- | --- |
@@ -413,8 +420,16 @@ The `+"`any`"+` token matches every severity, including `+"`unknown`"+`.
 | `+"`critical`"+` | findings with severity = critical |
 | `+"`reachable`"+` | findings where reachability status is `+"`reachable`"+` (experimental — see [REACHABILITY.md](REACHABILITY.md)) |
 | `+"`exploitable`"+` | vulnerability findings marked as known exploited by enrichment data |
+| `+"`source-change`"+` | diffs where a dependency changes from a known source to Git or an arbitrary URL |
 
-Repeat the flag to AND constraints together:
+Repeat vulnerability constraints to AND them together. `+"`source-change`"+`
+is an independent package gate, so combining it with vulnerability constraints
+fails when either the source gate or the complete vulnerability constraint set
+matches:
+
+Used by itself, `+"`source-change`"+` leaves vulnerability findings unchanged.
+It can only match dependency transitions from `+"`bomly diff`"+`; it has no
+effect on `+"`scan`"+` or `+"`explain`"+`.
 
 `+"```bash"+`
 # Fail on any high or critical finding
@@ -427,10 +442,14 @@ bomly scan --enrich --audit --analyze \
 # Fail only on high-or-critical vulnerabilities with known exploitation
 bomly scan --enrich --audit \
   --fail-on high --fail-on exploitable
+
+# Fail on high-or-critical vulnerabilities or dependency source changes
+bomly diff --base main --head HEAD --enrich --audit \
+  --fail-on high --fail-on source-change
 `+"```"+`
 
 Tokens are case-insensitive. An invalid token produces an exit-code 4 (invalid input) with the message:
-`+"`unsupported --fail-on value \"<x>\" (accepted: any, low, medium, high, critical, reachable, exploitable)`"+`.
+`+"`unsupported --fail-on value \"<x>\" (accepted: any, low, medium, high, critical, reachable, exploitable, source-change)`"+`.
 
 ## Minimal CI policy
 
@@ -898,12 +917,12 @@ func auditorBehavior(name string) auditorDocBehavior {
 	switch name {
 	case "vulnerability":
 		return auditorDocBehavior{
-			Summary:        "Evaluates enriched vulnerability records against severity and allowlist policy.",
+			Summary:        "Evaluates vulnerability records against vulnerability policy.",
 			FindingKind:    "vulnerability",
 			RequiresEnrich: true,
 			PolicyFlags:    []string{"--fail-on", "--allow-vulnerability-id"},
 			Reasons:        []string{"severity threshold", "reachable symbol", "KEV listing"},
-			Notes:          "Needs vulnerability data on packages, so pair it with `--enrich` (or ingest an SBOM that already carries advisories). `--allow-vulnerability-id` suppresses specific CVE/GHSA IDs you have triaged.",
+			Notes:          "Needs `--enrich` because it evaluates vulnerability records that matchers attach to packages.",
 		}
 	case "license":
 		return auditorDocBehavior{
@@ -916,12 +935,12 @@ func auditorBehavior(name string) auditorDocBehavior {
 		}
 	case "package":
 		return auditorDocBehavior{
-			Summary:        "Protects against denied packages and suspiciously similar (typosquatted) package names.",
+			Summary:        "Checks denied packages, suspiciously similar names, and dependency source changes.",
 			FindingKind:    "package",
 			RequiresEnrich: false,
-			PolicyFlags:    []string{"--deny-package", "--deny-group", "--protected-package", "--typosquat-threshold", "--typosquat-mode"},
-			Reasons:        []string{"denied package", "denied group", "typosquat of protected package"},
-			Notes:          "Name-based, so it needs no enrichment and runs fully offline. Declare the packages you trust with `--protected-package`; Bomly flags lookalikes within `--typosquat-threshold`. `--typosquat-mode` sets finding policy status, while `--fail-on` controls whether a matching finding changes the exit code.",
+			PolicyFlags:    []string{"--deny-package", "--deny-group", "--protected-package", "--typosquat-threshold", "--typosquat-mode", "--fail-on source-change"},
+			Reasons:        []string{"denied package", "denied group", "typosquat of protected package", "source changed to Git or URL"},
+			Notes:          "Package identity checks need no enrichment. In a diff audit, the auditor also warns when a known dependency source changes to Git or a URL. Use `--fail-on source-change` when that change should fail.",
 		}
 	default:
 		return auditorDocBehavior{

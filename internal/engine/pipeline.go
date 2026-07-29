@@ -534,13 +534,14 @@ func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req Pipeli
 
 func (p *Pipeline) audit(ctx context.Context, g *sdk.Graph, registry *sdk.PackageRegistry, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
 	auditReq := sdk.AuditRequest{
-		ProjectPath:     req.ProjectPath,
-		ExecutionTarget: req.ExecutionTarget,
-		Graph:           g,
-		Registry:        registry,
-		BaselineGraph:   req.BaselineGraph,
-		AuditorFilter:   req.AuditorFilter,
-		Stderr:          req.Stderr,
+		ProjectPath:             req.ProjectPath,
+		ExecutionTarget:         req.ExecutionTarget,
+		Graph:                   g,
+		Registry:                registry,
+		BaselineGraph:           req.BaselineGraph,
+		DependencyDetailChanges: sdk.CloneDependencyDetailTransitions(req.DependencyDetailChanges),
+		AuditorFilter:           req.AuditorFilter,
+		Stderr:                  req.Stderr,
 	}
 	result, err := p.engine.Audit(ctx, auditReq)
 	var warnings []PipelineWarning

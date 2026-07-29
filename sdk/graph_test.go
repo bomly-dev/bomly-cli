@@ -598,6 +598,109 @@ func TestCompareDependencyDetailsIgnoresMissingEvidence(t *testing.T) {
 	}
 }
 
+func TestDependencyDetailTransitionReviewReasons(t *testing.T) {
+	dependency := &Dependency{Source: DependencySourceRegistry}
+	tests := []struct {
+		name       string
+		transition DependencyDetailTransition
+		want       []DependencyDetailReviewReason
+	}{
+		{
+			name: "source changed to Git",
+			transition: DependencyDetailTransition{
+				Before:                 dependency,
+				After:                  &Dependency{Source: DependencySourceGit},
+				ChangedFields:          []DependencyDetailField{DependencyDetailSource, DependencyDetailRegistryEligibility},
+				BeforeRegistryEligible: true,
+			},
+			want: []DependencyDetailReviewReason{
+				DependencyDetailReviewSourceGit,
+			},
+		},
+		{
+			name: "source changed to URL",
+			transition: DependencyDetailTransition{
+				Before:        dependency,
+				After:         &Dependency{Source: DependencySourceURL},
+				ChangedFields: []DependencyDetailField{DependencyDetailSource},
+			},
+			want: []DependencyDetailReviewReason{DependencyDetailReviewSourceURL},
+		},
+		{
+			name: "coverage gain",
+			transition: DependencyDetailTransition{
+				Before:                dependency,
+				After:                 dependency,
+				ChangedFields:         []DependencyDetailField{DependencyDetailRegistryEligibility},
+				AfterRegistryEligible: true,
+			},
+		},
+		{
+			name: "relationship only",
+			transition: DependencyDetailTransition{
+				Before:        dependency,
+				After:         dependency,
+				ChangedFields: []DependencyDetailField{DependencyDetailRelationship},
+			},
+		},
+		{
+			name: "missing changed-field evidence",
+			transition: DependencyDetailTransition{
+				Before: dependency,
+				After:  &Dependency{Source: DependencySourceGit},
+			},
+		},
+		{
+			name: "missing previous source evidence",
+			transition: DependencyDetailTransition{
+				Before:        &Dependency{},
+				After:         &Dependency{Source: DependencySourceGit},
+				ChangedFields: []DependencyDetailField{DependencyDetailSource},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.transition.ReviewReasons()
+			if !slices.Equal(got, tt.want) {
+				t.Fatalf("ReviewReasons() = %#v, want %#v", got, tt.want)
+			}
+			if tt.transition.NeedsReview() != (len(tt.want) > 0) {
+				t.Fatalf("NeedsReview() = %t, want %t", tt.transition.NeedsReview(), len(tt.want) > 0)
+			}
+		})
+	}
+}
+
+func TestCloneDependencyDetailTransitionsDeepCopiesEvidence(t *testing.T) {
+	before := NewDependencyWithID("before", Dependency{
+		Coordinates: Coordinates{Name: "example", Version: "1.0.0"},
+		Source:      DependencySourceRegistry,
+	})
+	after := before.Clone()
+	after.Source = DependencySourceGit
+	original := []DependencyDetailTransition{{
+		Before:        before,
+		After:         after,
+		ChangedFields: []DependencyDetailField{DependencyDetailSource},
+	}}
+
+	cloned := CloneDependencyDetailTransitions(original)
+	cloned[0].Before.Source = DependencySourceURL
+	cloned[0].After.Source = DependencySourceFile
+	cloned[0].ChangedFields[0] = DependencyDetailRelationship
+
+	if original[0].Before.Source != DependencySourceRegistry ||
+		original[0].After.Source != DependencySourceGit ||
+		original[0].ChangedFields[0] != DependencyDetailSource {
+		t.Fatalf("clone mutated original: %#v", original)
+	}
+	if CloneDependencyDetailTransitions(nil) != nil {
+		t.Fatal("nil transition slice must stay nil")
+	}
+}
+
 func TestCompareSortsDependencyDetailTransitions(t *testing.T) {
 	base := New()
 	head := New()

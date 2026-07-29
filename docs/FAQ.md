@@ -14,9 +14,9 @@ No. Bomly has no account system, no license key, and no sign-up. Every feature i
 
 No. Bomly sends no usage data, crash reports, or version pings. Network traffic comes only from what you trigger (`--enrich`, `--url`, `--image`, `--install-first`, plugin installation) — plus whatever your own package manager downloads if a build-tool-backed detector has to run it to resolve the graph. [Network and Privacy](NETWORK.md) has the complete table.
 
-## How is Bomly different from image scanners like Trivy or Grype?
+## How is Bomly different from general-purpose security scanners?
 
-Different focus. General-purpose scanners are built to cover many target and finding types — container images, IaC misconfigurations, secrets — with vulnerability detection per target. Bomly is built around one thing: the dependency graph. It keeps the full graph so it can answer *why* a package is present (`bomly explain`), *what changed* between two refs or SBOMs (`bomly diff`), and *whether a vulnerability is actually reachable* from your code (`--analyze`), alongside SBOM generation and policy auditing. For container images, Bomly embeds the same Syft technology those tools build on. The tools compose: many teams run an image scanner for images and Bomly for dependency intelligence and PR review.
+Different focus. General-purpose scanners are built to cover many target and finding types — container images, IaC misconfigurations, secrets — with vulnerability detection per target. Bomly is built around one thing: the dependency graph. It keeps the full graph so it can answer *why* a package is present (`bomly explain`), *what changed* between two refs or SBOMs (`bomly diff`), and *whether a vulnerability is actually reachable* from your code (`--analyze`), alongside SBOM generation and policy auditing. For container images, Bomly embeds Syft and Grype — proven scanning technology used widely across the ecosystem. The tools compose: many teams run an image scanner for images and Bomly for dependency intelligence and PR review.
 
 ## Why does my scan show fewer dependencies than I expected?
 

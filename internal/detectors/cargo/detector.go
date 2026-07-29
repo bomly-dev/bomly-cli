@@ -393,13 +393,14 @@ func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}) 
 }
 
 func cargoDependencySource(source string) sdk.DependencySource {
+	source = strings.TrimSpace(source)
 	switch {
-	case strings.HasPrefix(strings.TrimSpace(source), "registry+"),
-		strings.HasPrefix(strings.TrimSpace(source), "sparse+"):
+	case strings.HasPrefix(source, "registry+"),
+		strings.HasPrefix(source, "sparse+"):
 		return sdk.DependencySourceRegistry
-	case strings.HasPrefix(strings.TrimSpace(source), "git+"):
+	case strings.HasPrefix(source, "git+"):
 		return sdk.DependencySourceGit
-	case strings.TrimSpace(source) == "":
+	case source == "":
 		return sdk.DependencySourceFile
 	default:
 		return ""

@@ -63,9 +63,16 @@ func TestUVDependencySource(t *testing.T) {
 }
 
 func TestUVSourceRevisionPrefersImmutableReference(t *testing.T) {
-	source := uvLockSource{Rev: "main", Resolved: "def456", Precise: "abc123"}
+	source := uvLockSource{Git: "https://github.com/example/pkg?rev=main#abc123"}
 	if got := uvSourceRevision(source); got != "abc123" {
 		t.Fatalf("uvSourceRevision() = %q, want abc123", got)
+	}
+}
+
+func TestUVSourceRevisionFallsBackToRequestedReference(t *testing.T) {
+	source := uvLockSource{Git: "https://github.com/example/pkg?rev=main"}
+	if got := uvSourceRevision(source); got != "main" {
+		t.Fatalf("uvSourceRevision() = %q, want main", got)
 	}
 }
 

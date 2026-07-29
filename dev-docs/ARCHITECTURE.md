@@ -395,6 +395,10 @@ sections, pub lock sources, SwiftPM pin kinds, Python direct-URL metadata, and
 Python lock source tables. When a format does not retain the selected origin,
 the source stays unknown. This trades some source-change coverage for avoiding
 false provenance claims and keeps external protocol-v1 detectors compatible.
+Source and matcher eligibility are related but not identical: SwiftPM remote
+source control is classified as Git, while remaining eligible because the
+repository URL is the canonical SwiftURL identity used for vulnerability
+matching.
 
 ### Decision: Bun text lockfiles are native; binary lockfiles degrade explicitly
 

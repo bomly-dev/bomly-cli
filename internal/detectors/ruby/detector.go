@@ -482,9 +482,9 @@ func scopeForGroupLabels(labels []string) sdk.Scope {
 }
 
 func gemNode(spec lockSpec) *sdk.Dependency {
-	metadata := map[string]any{}
-	if strings.TrimSpace(spec.Revision) != "" {
-		metadata["source_revision"] = strings.TrimSpace(spec.Revision)
+	var metadata map[string]any
+	if revision := strings.TrimSpace(spec.Revision); revision != "" {
+		metadata = map[string]any{"source_revision": revision}
 	}
 	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRuby,
 		Name:           strings.TrimSpace(spec.Name),

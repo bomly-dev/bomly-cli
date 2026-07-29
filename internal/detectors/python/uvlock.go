@@ -2,8 +2,10 @@ package python
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 	"github.com/bomly-dev/bomly-cli/internal/system"
@@ -22,9 +24,6 @@ type uvLockSource struct {
 	Path     string `toml:"path"`
 	Git      string `toml:"git"`
 	URL      string `toml:"url"`
-	Rev      string `toml:"rev"`
-	Resolved string `toml:"resolved"`
-	Precise  string `toml:"precise"`
 }
 
 // uvLockPackage represents a single [[package]] entry in uv.lock.
@@ -240,8 +239,16 @@ func uvResolvedURL(source uvLockSource) string {
 }
 
 func uvSourceRevision(source uvLockSource) string {
-	for _, value := range []string{source.Precise, source.Resolved, source.Rev} {
-		if value != "" {
+	parsed, err := url.Parse(strings.TrimSpace(source.Git))
+	if err != nil {
+		return ""
+	}
+	if parsed.Fragment != "" {
+		return parsed.Fragment
+	}
+	query := parsed.Query()
+	for _, key := range []string{"rev", "tag", "branch"} {
+		if value := strings.TrimSpace(query.Get(key)); value != "" {
 			return value
 		}
 	}

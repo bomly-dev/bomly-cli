@@ -169,12 +169,13 @@ func TestUVLockFixture(t *testing.T) {
 	for _, want := range [][2]string{
 		{"requests", "2.32.3"}, {"certifi", "2024.8.30"},
 		{"idna", "3.10"}, {"urllib3", "2.2.3"},
-		{"pytest", "8.3.3"}, {"pluggy", "1.5.0"},
+		{"pytest", "8.3.3"}, {"pluggy", "1.5.0"}, {"git-helper", "1.0.0"},
 	} {
 		requirePyPackage(t, g, want[0], want[1])
 	}
 
 	requirePyEdge(t, g, "demo-app", "1.0.0", "requests", "2.32.3")
+	requirePyEdge(t, g, "demo-app", "1.0.0", "git-helper", "1.0.0")
 	requirePyEdge(t, g, "requests", "2.32.3", "urllib3", "2.2.3")
 	requirePyEdge(t, g, "pytest", "8.3.3", "pluggy", "1.5.0")
 
@@ -184,6 +185,13 @@ func TestUVLockFixture(t *testing.T) {
 	requirePyScope(t, g, "pytest", "8.3.3", sdk.ScopeDevelopment)
 	requirePyScope(t, g, "pluggy", "1.5.0", sdk.ScopeDevelopment)
 	requirePySource(t, g, "requests", "2.32.3", sdk.DependencySourceRegistry)
+	gitHelper := requirePyPackage(t, g, "git-helper", "1.0.0")
+	if gitHelper.Source != sdk.DependencySourceGit {
+		t.Fatalf("git-helper source = %q, want %q", gitHelper.Source, sdk.DependencySourceGit)
+	}
+	if gitHelper.Metadata["source_revision"] != "abc123" {
+		t.Fatalf("git-helper source revision = %#v, want abc123", gitHelper.Metadata["source_revision"])
+	}
 }
 
 // ---- pipenv (Pipfile.lock fast-path) ---------------------------------------

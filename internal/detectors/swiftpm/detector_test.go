@@ -37,6 +37,9 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if pkg.Source != sdk.DependencySourceGit {
 		t.Fatalf("expected Git source, got %q", pkg.Source)
 	}
+	if !pkg.RegistryMatchEligible() {
+		t.Fatal("Swift remote source-control package must remain eligible for vulnerability matching")
+	}
 	deps, err := graph.DirectDependencies("root")
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)

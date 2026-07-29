@@ -85,7 +85,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 			PackageManager: sdk.PackageManagerPoetry,
 			Language:       "python",
 			Type:           sdk.PackageTypePackage,
-			PURL:           sdk.BuildPackageURL("pypi", "", pkg.Name, pkg.Version)}, Source: poetryDependencySource(pkg.Source.Type), ResolvedURL: strings.TrimSpace(pkg.Source.URL), Metadata: sourceRevisionMetadata(firstNonEmptyPython(pkg.Source.ResolvedReference, pkg.Source.Reference)),
+			PURL:           sdk.BuildPackageURL("pypi", "", pkg.Name, pkg.Version)}, Source: poetryDependencySource(pkg.Source.Type), ResolvedURL: strings.TrimSpace(pkg.Source.URL), Metadata: sourceRevisionMetadata(firstNonEmpty(pkg.Source.ResolvedReference, pkg.Source.Reference)),
 		})
 
 		for _, group := range pkg.Groups {
@@ -239,7 +239,7 @@ func poetryDependencySource(sourceType string) sdk.DependencySource {
 	}
 }
 
-func firstNonEmptyPython(values ...string) string {
+func firstNonEmpty(values ...string) string {
 	for _, value := range values {
 		if strings.TrimSpace(value) != "" {
 			return strings.TrimSpace(value)

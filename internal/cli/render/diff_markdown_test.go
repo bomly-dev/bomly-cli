@@ -75,6 +75,7 @@ func TestDiffTextAndMarkdownRenderDependencyDetailTransitions(t *testing.T) {
 		"⚠",
 		"relationship: direct → transitive",
 		"source: registry → git",
+		"registry-based vulnerability checks may no longer cover this dependency",
 	} {
 		if !strings.Contains(text.String(), want) {
 			t.Fatalf("text output missing %q:\n%s", want, text.String())

@@ -282,7 +282,9 @@ func TestDependencyDetailRiskPolicy(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("plain diff exited %d\nstderr:\n%s", code, stderr)
 	}
-	if !strings.Contains(text, "⚠ minimist") || !strings.Contains(text, "source: registry → git") {
+	if !strings.Contains(text, "⚠ minimist") ||
+		!strings.Contains(text, "source: registry → git") ||
+		!strings.Contains(text, "registry-based vulnerability checks may no longer cover this dependency") {
 		t.Fatalf("text diff did not mark the source change for review:\n%s", text)
 	}
 	if strings.Contains(text, "Policy findings") {
@@ -294,7 +296,8 @@ func TestDependencyDetailRiskPolicy(t *testing.T) {
 		t.Fatalf("Markdown diff exited %d\nstderr:\n%s", code, stderr)
 	}
 	if !strings.Contains(markdown, "| ⚠ Review | minimist | 1.2.8") ||
-		!strings.Contains(markdown, "1 of 1 detail change needs extra review") {
+		!strings.Contains(markdown, "1 of 1 detail change needs extra review") ||
+		!strings.Contains(markdown, "registry-based vulnerability checks may no longer cover this dependency") {
 		t.Fatalf("Markdown diff did not explain the review signal:\n%s", markdown)
 	}
 
@@ -317,10 +320,8 @@ func TestDependencyDetailRiskPolicy(t *testing.T) {
 	for _, finding := range audited.Audit.Introduced {
 		statusByRule[finding.RuleID] = finding.PolicyStatus
 	}
-	for _, ruleID := range []string{"dependency-source-change-to-git", "vulnerability-coverage-loss"} {
-		if statusByRule[ruleID] != sdk.FindingPolicyStatusWarn {
-			t.Fatalf("default %s status = %q, findings: %#v", ruleID, statusByRule[ruleID], audited.Audit.Introduced)
-		}
+	if statusByRule["dependency-source-change-to-git"] != sdk.FindingPolicyStatusWarn {
+		t.Fatalf("default source-change status = %q, findings: %#v", statusByRule["dependency-source-change-to-git"], audited.Audit.Introduced)
 	}
 
 	assertFails := func(name string, extra ...string) {
@@ -331,11 +332,10 @@ func TestDependencyDetailRiskPolicy(t *testing.T) {
 			t.Fatalf("%s unexpectedly passed\nstderr:\n%s", name, stderr)
 		}
 	}
-	assertFails("denied source change", "--deny-dependency-source-change")
-	assertFails("coverage-loss policy", "--fail-on", "coverage-loss")
+	assertFails("source-change policy", "--fail-on", "source-change")
 
 	warnOnlyArgs := append(append([]string(nil), auditedArgs...),
-		"--deny-dependency-source-change=git",
+		"--fail-on", "source-change",
 		"--warn-only",
 	)
 	warnOnlyJSON, stderr, code := runBomly(t, warnOnlyArgs...)

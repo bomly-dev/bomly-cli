@@ -45,29 +45,6 @@ func TestValidateAcceptsAuditAndAnalyzeWithEnrich(t *testing.T) {
 	}
 }
 
-func TestValidateDependencySourceChangePolicy(t *testing.T) {
-	if err := Validate(Resolved{
-		Enrich:                      true,
-		Audit:                       true,
-		DenyDependencySourceChanges: []string{"any"},
-	}); err != nil {
-		t.Fatalf("valid source-change policy rejected: %v", err)
-	}
-	if err := Validate(Resolved{
-		Enrich:                      true,
-		DenyDependencySourceChanges: []string{"git"},
-	}); err == nil || !strings.Contains(err.Error(), "--deny-dependency-source-change requires --audit") {
-		t.Fatalf("missing audit error = %v", err)
-	}
-	if err := Validate(Resolved{
-		Enrich:                      true,
-		Audit:                       true,
-		DenyDependencySourceChanges: []string{"workspace"},
-	}); err == nil || !strings.Contains(err.Error(), "accepted: any, git, url") {
-		t.Fatalf("invalid source error = %v", err)
-	}
-}
-
 func TestValidateExistingMutualExclusions(t *testing.T) {
 	if err := Validate(Resolved{Interactive: true, Format: "json"}); err == nil {
 		t.Error("--interactive + --format should still error")

@@ -57,10 +57,6 @@ func newDiffCmd() *cobra.Command {
 			if current.Ref != "" {
 				return exit.InvalidInputError("diff does not support --ref; use --base and --head")
 			}
-			if len(current.DenyDependencySourceChanges) > 0 && !current.Audit {
-				return exit.InvalidInputError("--deny-dependency-source-change requires --audit")
-			}
-
 			if current.SBOM {
 				if baseRef == "" {
 					return exit.InvalidInputError("--base is required when --sbom is set")

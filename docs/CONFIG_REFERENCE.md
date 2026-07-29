@@ -32,14 +32,13 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | `pipeline.enrich` | `BOMLY_ENRICH` | `bool` | - | Enrich packages with external license and vulnerability data |
 | `pipeline.audit` | `BOMLY_AUDIT` | `bool` | - | Evaluate policy and create findings from package vulnerability data |
 | `pipeline.analyze` | `BOMLY_ANALYZE` | `bool` | - | Run code analysis to confirm whether vulnerabilities are reachable from application code |
-| `policy.fail_on` | `BOMLY_FAIL_ON` | `[]string` | - | Constraint(s) for which findings should fail. Repeatable. Advisory constraints are AND-ed. Values: any|low|medium|high|critical|reachable|exploitable; diff-only: coverage-loss |
+| `policy.fail_on` | `BOMLY_FAIL_ON` | `[]string` | - | Constraint(s) for which findings should fail. Repeatable. Vulnerability constraints are AND-ed. Values: any|low|medium|high|critical|reachable|exploitable; diff-only package changes: source-change |
 | `policy.allow_vulnerability_ids` | `BOMLY_ALLOW_VULNERABILITY_IDS` | `[]string` | - | Vulnerability IDs to ignore during policy evaluation |
 | `policy.allow_licenses` | `BOMLY_ALLOW_LICENSES` | `[]string` | - | Allowed SPDX license identifiers or expressions |
 | `policy.deny_licenses` | `BOMLY_DENY_LICENSES` | `[]string` | - | Denied SPDX license identifiers or expressions |
 | `policy.license_exempt_packages` | `BOMLY_LICENSE_EXEMPT_PACKAGES` | `[]string` | - | Package URLs exempt from license policy checks |
 | `policy.deny_packages` | `BOMLY_DENY_PACKAGES` | `[]string` | - | Package URLs to deny |
 | `policy.deny_groups` | `BOMLY_DENY_GROUPS` | `[]string` | - | Package URL namespaces to deny |
-| `policy.deny_dependency_source_changes` | `BOMLY_DENY_DEPENDENCY_SOURCE_CHANGES` | `[]string` | - | Diff-only dependency source changes that fail policy: any, git, or url |
 | `policy.protected_packages` | `BOMLY_PROTECTED_PACKAGES` | `[]string` | - | Canonical package names to protect from typosquatting |
 | `policy.typosquat_threshold` | `BOMLY_TYPOSQUAT_THRESHOLD` | `string` | 0.90 | Similarity threshold for typosquatting detection |
 | `policy.typosquat_mode` | `BOMLY_TYPOSQUAT_MODE` | `string` | warn | Typosquatting policy mode: warn or fail |
@@ -105,7 +104,6 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 | `baseline` | `policy.baseline` |
 | `config` | `--config` |
 | `container` | `target.container` |
-| `deny_dependency_source_changes` | `policy.deny_dependency_source_changes` |
 | `deny_groups` | `policy.deny_groups` |
 | `deny_licenses` | `policy.deny_licenses` |
 | `deny_packages` | `policy.deny_packages` |
@@ -196,7 +194,7 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 #   Reachability analyzer selectors; supports +name and -name modifiers
 #   analyzers: ""
 # policy:
-#   Constraint(s) for which findings should fail. Repeatable. Advisory constraints are AND-ed. Values: any|low|medium|high|critical|reachable|exploitable; diff-only: coverage-loss
+#   Constraint(s) for which findings should fail. Repeatable. Vulnerability constraints are AND-ed. Values: any|low|medium|high|critical|reachable|exploitable; diff-only package changes: source-change
 #   fail_on: []
 #   Vulnerability IDs to ignore during policy evaluation
 #   allow_vulnerability_ids: []
@@ -210,8 +208,6 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 #   deny_packages: []
 #   Package URL namespaces to deny
 #   deny_groups: []
-#   Diff-only dependency source changes that fail policy: any, git, or url
-#   deny_dependency_source_changes: []
 #   Canonical package names to protect from typosquatting
 #   protected_packages: []
 #   Similarity threshold for typosquatting detection

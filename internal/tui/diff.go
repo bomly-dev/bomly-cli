@@ -1866,11 +1866,9 @@ func renderDependencyDetailTransition(transition output.DiffDependencyTransition
 		var message string
 		switch reason {
 		case sdk.DependencyDetailReviewSourceGit:
-			message = "Dependency source changed to Git."
+			message = "Dependency source changed to Git. Registry-based vulnerability checks may no longer cover it."
 		case sdk.DependencyDetailReviewSourceURL:
-			message = "Dependency source changed to a URL."
-		case sdk.DependencyDetailReviewCoverageLoss:
-			message = "Vulnerability checks no longer cover this dependency."
+			message = "Dependency source changed to a URL. Registry-based vulnerability checks may no longer cover it."
 		default:
 			continue
 		}

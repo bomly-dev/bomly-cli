@@ -8,7 +8,6 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	"github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
@@ -17,11 +16,10 @@ import (
 type FlagGroup string
 
 const (
-	FlagGroupTarget     FlagGroup = "target"
-	FlagGroupAnalysis   FlagGroup = "analysis"
-	FlagGroupDiffPolicy FlagGroup = "diff-policy"
-	FlagGroupSelectors  FlagGroup = "selectors"
-	FlagGroupExecution  FlagGroup = "execution"
+	FlagGroupTarget    FlagGroup = "target"
+	FlagGroupAnalysis  FlagGroup = "analysis"
+	FlagGroupSelectors FlagGroup = "selectors"
+	FlagGroupExecution FlagGroup = "execution"
 )
 
 func bindFlagOptions(cmd *cobra.Command, cfg *config.Resolved) error {
@@ -49,8 +47,6 @@ func BindCommandFlagGroups(cmd *cobra.Command, cfg *config.Resolved, groups ...F
 			bindTargetFlags(cmd.Flags(), cfg)
 		case FlagGroupAnalysis:
 			bindAnalysisFlags(cmd.Flags(), cfg)
-		case FlagGroupDiffPolicy:
-			bindDiffPolicyFlags(cmd.Flags(), cfg)
 		case FlagGroupSelectors:
 			bindSelectorFlags(cmd.Flags(), cfg)
 			if err := bindSelectorCompletionFlags(cmd); err != nil {
@@ -62,17 +58,6 @@ func BindCommandFlagGroups(cmd *cobra.Command, cfg *config.Resolved, groups ...F
 	}
 
 	return nil
-}
-
-func bindDiffPolicyFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
-	const flagName = "deny-dependency-source-change"
-	flags.StringArrayVar(
-		&cfg.DenyDependencySourceChanges,
-		flagName,
-		nil,
-		"Dependency source change that fails diff policy. Without a value, both Git and URL are denied; use =git or =url to select one. Repeatable (requires --audit)",
-	)
-	flags.Lookup(flagName).NoOptDefVal = sdk.DependencySourceChangePolicyAny
 }
 
 func bindTargetFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
@@ -95,7 +80,7 @@ func bindAnalysisFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 	flags.BoolVar(&cfg.Enrich, "enrich", false, "Enrich packages with external license and vulnerability data")
 	flags.BoolVar(&cfg.Audit, "audit", false, "Evaluate policy and create findings from package vulnerability data")
 	flags.BoolVar(&cfg.Analyze, "analyze", false, "[Experimental] Run code analysis to confirm whether vulnerabilities are reachable from application code")
-	flags.StringArrayVar(&cfg.FailOn, "fail-on", nil, "Constraint(s) for which findings should fail. Repeatable; advisory constraints AND together. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable. Diff coverage: coverage-loss")
+	flags.StringArrayVar(&cfg.FailOn, "fail-on", nil, "Constraint(s) for which findings should fail. Repeatable; vulnerability constraints AND together. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable. Diff package changes: source-change")
 	flags.StringArrayVar(&cfg.AllowVulnerabilityIDs, "allow-vulnerability-id", nil, "Vulnerability ID to ignore during policy evaluation. Repeatable")
 	flags.StringArrayVar(&cfg.AllowLicenses, "allow-license", nil, "Allowed SPDX license identifier or expression. Repeatable")
 	flags.StringArrayVar(&cfg.DenyLicenses, "deny-license", nil, "Denied SPDX license identifier or expression. Repeatable")
@@ -201,9 +186,6 @@ func applyFlagOverrides(dst *config.Resolved, flags config.Resolved, cmd *cobra.
 	}
 	if flagChanged(cmd, "deny-group") {
 		dst.DenyGroups = append([]string(nil), flags.DenyGroups...)
-	}
-	if flagChanged(cmd, "deny-dependency-source-change") {
-		dst.DenyDependencySourceChanges = append([]string(nil), flags.DenyDependencySourceChanges...)
 	}
 	if flagChanged(cmd, "protected-package") {
 		dst.ProtectedPackages = append([]string(nil), flags.ProtectedPackages...)

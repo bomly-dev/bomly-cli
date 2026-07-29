@@ -362,9 +362,9 @@ network.
 
 | Auditor | Checks | Policy flags |
 | --- | --- | --- |
-| [`+"`vulnerability`"+`](auditors/vulnerability.md) | Enriched advisories and vulnerability-check coverage loss | `+"`--fail-on`"+`, `+"`--allow-vulnerability-id`"+` |
+| [`+"`vulnerability`"+`](auditors/vulnerability.md) | Enriched vulnerability advisories | `+"`--fail-on`"+`, `+"`--allow-vulnerability-id`"+` |
 | [`+"`license`"+`](auditors/license.md) | Package licenses vs. allow/deny SPDX policy | `+"`--allow-license`"+`, `+"`--deny-license`"+`, `+"`--license-exempt-package`"+` |
-| [`+"`package`"+`](auditors/package.md) | Denied packages, typosquatted names, and source changes | `+"`--deny-package`"+`, `+"`--deny-group`"+`, `+"`--protected-package`"+`, `+"`--typosquat-threshold`"+`, `+"`--typosquat-mode`"+`, `+"`--deny-dependency-source-change`"+` |
+| [`+"`package`"+`](auditors/package.md) | Denied packages, typosquatted names, and source changes | `+"`--deny-package`"+`, `+"`--deny-group`"+`, `+"`--protected-package`"+`, `+"`--typosquat-threshold`"+`, `+"`--typosquat-mode`"+`, `+"`--fail-on source-change`"+` |
 
 Select a subset with the `+"`--auditors`"+` selector (e.g. `+"`--auditors license`"+`). See the [per-auditor reference](auditors/) for options, examples, and limitations. Auditors are also a plugin extension point — for a worked example of an external auditor, see the [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor).
 
@@ -405,10 +405,9 @@ The `+"`any`"+` token matches every severity, including `+"`unknown`"+`.
 ## `+"`--fail-on`"+`
 
 `+"`--fail-on`"+` controls vulnerability findings by severity, reachability,
-or known exploitation. It also provides the diff-only `+"`coverage-loss`"+`
-gate. Other policy flags, such as
-`+"`--deny-package`"+` and `+"`--deny-dependency-source-change`"+`, can create
-failing findings directly.
+or known exploitation. It also provides the diff-only `+"`source-change`"+`
+gate for package findings. Other policy flags, such as `+"`--deny-package`"+`,
+can create failing findings directly.
 
 It accepts these tokens:
 
@@ -421,11 +420,12 @@ It accepts these tokens:
 | `+"`critical`"+` | findings with severity = critical |
 | `+"`reachable`"+` | findings where reachability status is `+"`reachable`"+` (experimental — see [REACHABILITY.md](REACHABILITY.md)) |
 | `+"`exploitable`"+` | vulnerability findings marked as known exploited by enrichment data |
-| `+"`coverage-loss`"+` | diffs where vulnerability checks covered a dependency on the base side but not the head side |
+| `+"`source-change`"+` | diffs where a dependency changes from a known source to Git or an arbitrary URL |
 
-Repeat advisory constraints to AND them together. `+"`coverage-loss`"+` is an
-independent diff gate, so combining it with advisory constraints fails when
-either the coverage gate or the complete advisory constraint set matches:
+Repeat vulnerability constraints to AND them together. `+"`source-change`"+`
+is an independent package gate, so combining it with vulnerability constraints
+fails when either the source gate or the complete vulnerability constraint set
+matches:
 
 `+"```bash"+`
 # Fail on any high or critical finding
@@ -439,13 +439,13 @@ bomly scan --enrich --audit --analyze \
 bomly scan --enrich --audit \
   --fail-on high --fail-on exploitable
 
-# Fail on high-or-critical vulnerabilities or lost vulnerability coverage
+# Fail on high-or-critical vulnerabilities or dependency source changes
 bomly diff --base main --head HEAD --enrich --audit \
-  --fail-on high --fail-on coverage-loss
+  --fail-on high --fail-on source-change
 `+"```"+`
 
 Tokens are case-insensitive. An invalid token produces an exit-code 4 (invalid input) with the message:
-`+"`unsupported --fail-on value \"<x>\" (accepted: any, low, medium, high, critical, reachable, exploitable, coverage-loss)`"+`.
+`+"`unsupported --fail-on value \"<x>\" (accepted: any, low, medium, high, critical, reachable, exploitable, source-change)`"+`.
 
 ## Minimal CI policy
 
@@ -498,7 +498,6 @@ policy:
   license_exempt_packages: [my-internal-lib]
   deny_packages: [event-stream]
   deny_groups: [com.evil]
-  deny_dependency_source_changes: [git, url]
   protected_packages: [react, lodash]
   typosquat_threshold: "0.90"
   typosquat_mode: warn                    # warn | fail
@@ -914,12 +913,12 @@ func auditorBehavior(name string) auditorDocBehavior {
 	switch name {
 	case "vulnerability":
 		return auditorDocBehavior{
-			Summary:        "Evaluates vulnerability records and reports lost vulnerability-check coverage in diffs.",
-			FindingKind:    "vulnerability and package",
+			Summary:        "Evaluates vulnerability records against vulnerability policy.",
+			FindingKind:    "vulnerability",
 			RequiresEnrich: true,
 			PolicyFlags:    []string{"--fail-on", "--allow-vulnerability-id"},
-			Reasons:        []string{"severity threshold", "reachable symbol", "KEV listing", "vulnerability coverage loss"},
-			Notes:          "Needs `--enrich`. In a diff, it also warns when vulnerability checks covered a dependency on the base side but not on the head side. `--fail-on coverage-loss` makes that warning fail.",
+			Reasons:        []string{"severity threshold", "reachable symbol", "KEV listing"},
+			Notes:          "Needs `--enrich` because it evaluates vulnerability records that matchers attach to packages.",
 		}
 	case "license":
 		return auditorDocBehavior{
@@ -935,9 +934,9 @@ func auditorBehavior(name string) auditorDocBehavior {
 			Summary:        "Checks denied packages, suspiciously similar names, and dependency source changes.",
 			FindingKind:    "package",
 			RequiresEnrich: false,
-			PolicyFlags:    []string{"--deny-package", "--deny-group", "--protected-package", "--typosquat-threshold", "--typosquat-mode", "--deny-dependency-source-change"},
+			PolicyFlags:    []string{"--deny-package", "--deny-group", "--protected-package", "--typosquat-threshold", "--typosquat-mode", "--fail-on source-change"},
 			Reasons:        []string{"denied package", "denied group", "typosquat of protected package", "source changed to Git or URL"},
-			Notes:          "Package identity checks need no enrichment. In an enriched diff audit, the auditor also warns when a known dependency source changes to Git or a URL. Use `--deny-dependency-source-change` when that change should fail.",
+			Notes:          "Package identity checks need no enrichment. In a diff audit, the auditor also warns when a known dependency source changes to Git or a URL. Use `--fail-on source-change` when that change should fail.",
 		}
 	default:
 		return auditorDocBehavior{

@@ -584,21 +584,21 @@ func TestDiffTool_PropagatesTargetSelectors(t *testing.T) {
 	}
 }
 
-func TestDiffTool_PropagatesDependencySourcePolicy(t *testing.T) {
+func TestDiffToolPropagatesSourceChangePolicy(t *testing.T) {
 	adapter := &mockAdapter{diffResult: mcp.DiffRunResult{Response: output.DiffResponse{Command: "diff"}}}
 	client := newTestClient(t, adapter)
 	result := callTool(t, client, "bomly_diff", map[string]any{
-		"base":                           "main",
-		"head":                           "HEAD",
-		"enrich":                         true,
-		"audit":                          true,
-		"deny_dependency_source_changes": "git,url",
+		"base":    "main",
+		"head":    "HEAD",
+		"enrich":  true,
+		"audit":   true,
+		"fail_on": "source-change",
 	})
 	if result.IsError {
 		t.Fatalf("unexpected tool error: %v", result.Content)
 	}
-	if adapter.diffReq.DenyDependencySourceChanges != "git,url" {
-		t.Fatalf("diff source policy = %q", adapter.diffReq.DenyDependencySourceChanges)
+	if adapter.diffReq.FailOn != "source-change" {
+		t.Fatalf("diff fail-on policy = %q", adapter.diffReq.FailOn)
 	}
 }
 

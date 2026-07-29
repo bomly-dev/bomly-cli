@@ -20,53 +20,52 @@ package config
 // Resolved holds the fully-merged CLI configuration: defaults overridden by
 // the YAML config file, then env vars, then explicit flags.
 type Resolved struct {
-	Path                        string   `doc:"Filesystem path to scan" env:"BOMLY_PATH"`
-	Image                       string   `doc:"Container image to scan (e.g. alpine:latest)" env:"BOMLY_IMAGE" envalias:"BOMLY_CONTAINER"`
-	URL                         string   `doc:"Remote Git URL to clone and scan" env:"BOMLY_URL"`
-	Ref                         string   `doc:"Git ref to checkout when scanning a URL" env:"BOMLY_REF"`
-	SBOM                        bool     `doc:"Treat the selected filesystem target as an SBOM file" env:"BOMLY_SBOM"`
-	Recursive                   bool     `doc:"Recursively discover nested manifests under the scan root" env:"BOMLY_RECURSIVE"`
-	MaxDepth                    int      `doc:"Maximum directory depth for recursive discovery, counted from the scan root (0 = unlimited)" env:"BOMLY_MAX_DEPTH" default:"3"`
-	ExcludePaths                []string `doc:"Glob pattern(s) relative to the scan root excluded from recursive discovery, in addition to built-in ignore rules; requires recursive" env:"BOMLY_EXCLUDE"`
-	Enrich                      bool     `doc:"Enrich packages with external license and vulnerability data" env:"BOMLY_ENRICH"`
-	Audit                       bool     `doc:"Evaluate policy and create findings from package vulnerability data" env:"BOMLY_AUDIT"`
-	Analyze                     bool     `doc:"Run code analysis to confirm whether vulnerabilities are reachable from application code" env:"BOMLY_ANALYZE"`
-	FailOn                      []string `doc:"Constraint(s) for which findings should fail. Repeatable. Advisory constraints are AND-ed. Values: any|low|medium|high|critical|reachable|exploitable; diff-only: coverage-loss" env:"BOMLY_FAIL_ON"`
-	AllowVulnerabilityIDs       []string `doc:"Vulnerability IDs to ignore during policy evaluation" env:"BOMLY_ALLOW_VULNERABILITY_IDS"`
-	AllowLicenses               []string `doc:"Allowed SPDX license identifiers or expressions" env:"BOMLY_ALLOW_LICENSES"`
-	DenyLicenses                []string `doc:"Denied SPDX license identifiers or expressions" env:"BOMLY_DENY_LICENSES"`
-	LicenseExemptPackages       []string `doc:"Package URLs exempt from license policy checks" env:"BOMLY_LICENSE_EXEMPT_PACKAGES"`
-	DenyPackages                []string `doc:"Package URLs to deny" env:"BOMLY_DENY_PACKAGES"`
-	DenyGroups                  []string `doc:"Package URL namespaces to deny" env:"BOMLY_DENY_GROUPS"`
-	DenyDependencySourceChanges []string `doc:"Diff-only dependency source changes that fail policy: any, git, or url" env:"BOMLY_DENY_DEPENDENCY_SOURCE_CHANGES"`
-	ProtectedPackages           []string `doc:"Canonical package names to protect from typosquatting" env:"BOMLY_PROTECTED_PACKAGES"`
-	TyposquatThreshold          string   `doc:"Similarity threshold for typosquatting detection" env:"BOMLY_TYPOSQUAT_THRESHOLD" default:"0.90"`
-	TyposquatMode               string   `doc:"Typosquatting policy mode: warn or fail" env:"BOMLY_TYPOSQUAT_MODE" default:"warn"`
-	WarnOnly                    bool     `doc:"Downgrade failing findings to warnings" env:"BOMLY_WARN_ONLY"`
-	Baseline                    string   `doc:"Finding baseline selection: auto, none, or a file path" env:"BOMLY_BASELINE" default:"auto"`
-	Analyzers                   string   `doc:"Reachability analyzer selectors; supports +name and -name modifiers" env:"BOMLY_ANALYZERS"`
-	Format                      string   `doc:"Primary output format: text, json, markdown, sarif, spdx, or cyclonedx. SBOM formats are scan-only" env:"BOMLY_FORMAT"`
-	Outputs                     []string `doc:"Additional output target(s) as <format> or <format>=<path>. Repeatable; supports text, json, markdown, sarif, spdx, and cyclonedx" env:"BOMLY_OUTPUT"`
-	Interactive                 bool     `doc:"Enable interactive TUI mode" env:"BOMLY_INTERACTIVE"`
-	Ecosystems                  string   `doc:"Ecosystem selectors; supports +name and -name modifiers" env:"BOMLY_ECOSYSTEMS"`
-	Detectors                   string   `doc:"Detector selectors; supports +name and -name modifiers" env:"BOMLY_DETECTORS"`
-	Auditors                    string   `doc:"Auditor selectors; supports +name and -name modifiers" env:"BOMLY_AUDITORS"`
-	Matchers                    string   `doc:"Matcher selectors; supports +name and -name modifiers" env:"BOMLY_MATCHERS"`
-	InstallFirst                bool     `doc:"Run detector-specific dependency installation before resolving graphs" env:"BOMLY_INSTALL_FIRST"`
-	InstallArgs                 []string `doc:"Additional detector-specific install arguments" env:"BOMLY_INSTALL_ARGS"`
-	Config                      string   `doc:"Explicit YAML config file path; repository config files are never loaded automatically" env:"BOMLY_CONFIG"`
-	Quiet                       bool     `doc:"Suppress all non-error output" env:"BOMLY_QUIET"`
-	Verbosity                   int      `doc:"Verbosity level (0=normal, 1=verbose, 2+=debug)" env:"BOMLY_VERBOSE"`
-	LoadedFiles                 []string
-	HTTPProxy                   string                    `doc:"Outbound HTTP proxy URL; when set, it replaces standard HTTP_PROXY/HTTPS_PROXY URLs" env:"BOMLY_HTTP_PROXY"`
-	HTTPNoProxy                 string                    `doc:"Hosts, domains, or CIDRs added to the standard NO_PROXY/no_proxy bypass list" env:"BOMLY_HTTP_NO_PROXY"`
-	HTTPProxyType               string                    `doc:"Outbound proxy type when using host/port proxy settings: http, https, or socks5" env:"BOMLY_HTTP_PROXY_TYPE" default:"http"`
-	HTTPProxyHost               string                    `doc:"Outbound proxy hostname or IP address used when http_proxy is not set" env:"BOMLY_HTTP_PROXY_HOST"`
-	HTTPProxyPort               int                       `doc:"Outbound proxy port used with http_proxy_host" env:"BOMLY_HTTP_PROXY_PORT"`
-	HTTPProxyUsername           string                    `doc:"Username for proxy authentication when using host/port proxy settings" env:"BOMLY_HTTP_PROXY_USERNAME"`
-	HTTPProxyPassword           string                    `doc:"Password for proxy authentication when using host/port proxy settings" env:"BOMLY_HTTP_PROXY_PASSWORD"`
-	HTTPCACertFile              string                    `doc:"PEM certificate chain file to trust for outbound HTTPS connections, including TLS-intercepting proxies" env:"BOMLY_HTTP_CA_CERT_FILE"`
-	Plugins                     map[string]map[string]any `doc:"Per-plugin configuration keyed by managed plugin ID"`
+	Path                  string   `doc:"Filesystem path to scan" env:"BOMLY_PATH"`
+	Image                 string   `doc:"Container image to scan (e.g. alpine:latest)" env:"BOMLY_IMAGE" envalias:"BOMLY_CONTAINER"`
+	URL                   string   `doc:"Remote Git URL to clone and scan" env:"BOMLY_URL"`
+	Ref                   string   `doc:"Git ref to checkout when scanning a URL" env:"BOMLY_REF"`
+	SBOM                  bool     `doc:"Treat the selected filesystem target as an SBOM file" env:"BOMLY_SBOM"`
+	Recursive             bool     `doc:"Recursively discover nested manifests under the scan root" env:"BOMLY_RECURSIVE"`
+	MaxDepth              int      `doc:"Maximum directory depth for recursive discovery, counted from the scan root (0 = unlimited)" env:"BOMLY_MAX_DEPTH" default:"3"`
+	ExcludePaths          []string `doc:"Glob pattern(s) relative to the scan root excluded from recursive discovery, in addition to built-in ignore rules; requires recursive" env:"BOMLY_EXCLUDE"`
+	Enrich                bool     `doc:"Enrich packages with external license and vulnerability data" env:"BOMLY_ENRICH"`
+	Audit                 bool     `doc:"Evaluate policy and create findings from package vulnerability data" env:"BOMLY_AUDIT"`
+	Analyze               bool     `doc:"Run code analysis to confirm whether vulnerabilities are reachable from application code" env:"BOMLY_ANALYZE"`
+	FailOn                []string `doc:"Constraint(s) for which findings should fail. Repeatable. Vulnerability constraints are AND-ed. Values: any|low|medium|high|critical|reachable|exploitable; diff-only package changes: source-change" env:"BOMLY_FAIL_ON"`
+	AllowVulnerabilityIDs []string `doc:"Vulnerability IDs to ignore during policy evaluation" env:"BOMLY_ALLOW_VULNERABILITY_IDS"`
+	AllowLicenses         []string `doc:"Allowed SPDX license identifiers or expressions" env:"BOMLY_ALLOW_LICENSES"`
+	DenyLicenses          []string `doc:"Denied SPDX license identifiers or expressions" env:"BOMLY_DENY_LICENSES"`
+	LicenseExemptPackages []string `doc:"Package URLs exempt from license policy checks" env:"BOMLY_LICENSE_EXEMPT_PACKAGES"`
+	DenyPackages          []string `doc:"Package URLs to deny" env:"BOMLY_DENY_PACKAGES"`
+	DenyGroups            []string `doc:"Package URL namespaces to deny" env:"BOMLY_DENY_GROUPS"`
+	ProtectedPackages     []string `doc:"Canonical package names to protect from typosquatting" env:"BOMLY_PROTECTED_PACKAGES"`
+	TyposquatThreshold    string   `doc:"Similarity threshold for typosquatting detection" env:"BOMLY_TYPOSQUAT_THRESHOLD" default:"0.90"`
+	TyposquatMode         string   `doc:"Typosquatting policy mode: warn or fail" env:"BOMLY_TYPOSQUAT_MODE" default:"warn"`
+	WarnOnly              bool     `doc:"Downgrade failing findings to warnings" env:"BOMLY_WARN_ONLY"`
+	Baseline              string   `doc:"Finding baseline selection: auto, none, or a file path" env:"BOMLY_BASELINE" default:"auto"`
+	Analyzers             string   `doc:"Reachability analyzer selectors; supports +name and -name modifiers" env:"BOMLY_ANALYZERS"`
+	Format                string   `doc:"Primary output format: text, json, markdown, sarif, spdx, or cyclonedx. SBOM formats are scan-only" env:"BOMLY_FORMAT"`
+	Outputs               []string `doc:"Additional output target(s) as <format> or <format>=<path>. Repeatable; supports text, json, markdown, sarif, spdx, and cyclonedx" env:"BOMLY_OUTPUT"`
+	Interactive           bool     `doc:"Enable interactive TUI mode" env:"BOMLY_INTERACTIVE"`
+	Ecosystems            string   `doc:"Ecosystem selectors; supports +name and -name modifiers" env:"BOMLY_ECOSYSTEMS"`
+	Detectors             string   `doc:"Detector selectors; supports +name and -name modifiers" env:"BOMLY_DETECTORS"`
+	Auditors              string   `doc:"Auditor selectors; supports +name and -name modifiers" env:"BOMLY_AUDITORS"`
+	Matchers              string   `doc:"Matcher selectors; supports +name and -name modifiers" env:"BOMLY_MATCHERS"`
+	InstallFirst          bool     `doc:"Run detector-specific dependency installation before resolving graphs" env:"BOMLY_INSTALL_FIRST"`
+	InstallArgs           []string `doc:"Additional detector-specific install arguments" env:"BOMLY_INSTALL_ARGS"`
+	Config                string   `doc:"Explicit YAML config file path; repository config files are never loaded automatically" env:"BOMLY_CONFIG"`
+	Quiet                 bool     `doc:"Suppress all non-error output" env:"BOMLY_QUIET"`
+	Verbosity             int      `doc:"Verbosity level (0=normal, 1=verbose, 2+=debug)" env:"BOMLY_VERBOSE"`
+	LoadedFiles           []string
+	HTTPProxy             string                    `doc:"Outbound HTTP proxy URL; when set, it replaces standard HTTP_PROXY/HTTPS_PROXY URLs" env:"BOMLY_HTTP_PROXY"`
+	HTTPNoProxy           string                    `doc:"Hosts, domains, or CIDRs added to the standard NO_PROXY/no_proxy bypass list" env:"BOMLY_HTTP_NO_PROXY"`
+	HTTPProxyType         string                    `doc:"Outbound proxy type when using host/port proxy settings: http, https, or socks5" env:"BOMLY_HTTP_PROXY_TYPE" default:"http"`
+	HTTPProxyHost         string                    `doc:"Outbound proxy hostname or IP address used when http_proxy is not set" env:"BOMLY_HTTP_PROXY_HOST"`
+	HTTPProxyPort         int                       `doc:"Outbound proxy port used with http_proxy_host" env:"BOMLY_HTTP_PROXY_PORT"`
+	HTTPProxyUsername     string                    `doc:"Username for proxy authentication when using host/port proxy settings" env:"BOMLY_HTTP_PROXY_USERNAME"`
+	HTTPProxyPassword     string                    `doc:"Password for proxy authentication when using host/port proxy settings" env:"BOMLY_HTTP_PROXY_PASSWORD"`
+	HTTPCACertFile        string                    `doc:"PEM certificate chain file to trust for outbound HTTPS connections, including TLS-intercepting proxies" env:"BOMLY_HTTP_CA_CERT_FILE"`
+	Plugins               map[string]map[string]any `doc:"Per-plugin configuration keyed by managed plugin ID"`
 
 	// OSV matcher settings
 	OsvAPIBase  string `doc:"Base URL for the OSV vulnerability API" env:"BOMLY_OSV_API_BASE" default:"https://api.osv.dev"`
@@ -133,19 +132,18 @@ type ComponentsFile struct {
 
 // PolicyFile configures audit policy evaluation.
 type PolicyFile struct {
-	FailOn                      *FailOnList `yaml:"fail_on,omitempty" resolved:"FailOn" legacy:"fail_on"`
-	AllowVulnerabilityIDs       *[]string   `yaml:"allow_vulnerability_ids,omitempty" resolved:"AllowVulnerabilityIDs" legacy:"allow_vulnerability_ids"`
-	AllowLicenses               *[]string   `yaml:"allow_licenses,omitempty" resolved:"AllowLicenses" legacy:"allow_licenses"`
-	DenyLicenses                *[]string   `yaml:"deny_licenses,omitempty" resolved:"DenyLicenses" legacy:"deny_licenses"`
-	LicenseExemptPackages       *[]string   `yaml:"license_exempt_packages,omitempty" resolved:"LicenseExemptPackages" legacy:"license_exempt_packages"`
-	DenyPackages                *[]string   `yaml:"deny_packages,omitempty" resolved:"DenyPackages" legacy:"deny_packages"`
-	DenyGroups                  *[]string   `yaml:"deny_groups,omitempty" resolved:"DenyGroups" legacy:"deny_groups"`
-	DenyDependencySourceChanges *[]string   `yaml:"deny_dependency_source_changes,omitempty" resolved:"DenyDependencySourceChanges" legacy:"deny_dependency_source_changes"`
-	ProtectedPackages           *[]string   `yaml:"protected_packages,omitempty" resolved:"ProtectedPackages" legacy:"protected_packages"`
-	TyposquatThreshold          *string     `yaml:"typosquat_threshold,omitempty" resolved:"TyposquatThreshold" legacy:"typosquat_threshold"`
-	TyposquatMode               *string     `yaml:"typosquat_mode,omitempty" resolved:"TyposquatMode" legacy:"typosquat_mode"`
-	WarnOnly                    *bool       `yaml:"warn_only,omitempty" resolved:"WarnOnly" legacy:"warn_only"`
-	Baseline                    *string     `yaml:"baseline,omitempty" resolved:"Baseline" legacy:"baseline"`
+	FailOn                *FailOnList `yaml:"fail_on,omitempty" resolved:"FailOn" legacy:"fail_on"`
+	AllowVulnerabilityIDs *[]string   `yaml:"allow_vulnerability_ids,omitempty" resolved:"AllowVulnerabilityIDs" legacy:"allow_vulnerability_ids"`
+	AllowLicenses         *[]string   `yaml:"allow_licenses,omitempty" resolved:"AllowLicenses" legacy:"allow_licenses"`
+	DenyLicenses          *[]string   `yaml:"deny_licenses,omitempty" resolved:"DenyLicenses" legacy:"deny_licenses"`
+	LicenseExemptPackages *[]string   `yaml:"license_exempt_packages,omitempty" resolved:"LicenseExemptPackages" legacy:"license_exempt_packages"`
+	DenyPackages          *[]string   `yaml:"deny_packages,omitempty" resolved:"DenyPackages" legacy:"deny_packages"`
+	DenyGroups            *[]string   `yaml:"deny_groups,omitempty" resolved:"DenyGroups" legacy:"deny_groups"`
+	ProtectedPackages     *[]string   `yaml:"protected_packages,omitempty" resolved:"ProtectedPackages" legacy:"protected_packages"`
+	TyposquatThreshold    *string     `yaml:"typosquat_threshold,omitempty" resolved:"TyposquatThreshold" legacy:"typosquat_threshold"`
+	TyposquatMode         *string     `yaml:"typosquat_mode,omitempty" resolved:"TyposquatMode" legacy:"typosquat_mode"`
+	WarnOnly              *bool       `yaml:"warn_only,omitempty" resolved:"WarnOnly" legacy:"warn_only"`
+	Baseline              *string     `yaml:"baseline,omitempty" resolved:"Baseline" legacy:"baseline"`
 }
 
 // OutputFile configures report rendering.

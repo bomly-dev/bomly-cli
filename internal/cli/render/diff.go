@@ -104,11 +104,15 @@ func dependencyTransitionDescription(transition output.DiffDependencyTransition)
 				valueOrDash(string(transition.After.Relationship)),
 			))
 		case sdk.DependencyDetailSource:
-			parts = append(parts, fmt.Sprintf(
+			description := fmt.Sprintf(
 				"source: %s → %s",
 				valueOrDash(string(transition.Before.Source)),
 				valueOrDash(string(transition.After.Source)),
-			))
+			)
+			if transition.Before.RegistryEligible && !transition.After.RegistryEligible {
+				description += "; registry-based vulnerability checks may no longer cover this dependency"
+			}
+			parts = append(parts, description)
 		case sdk.DependencyDetailRegistryEligibility:
 			if sourceChanged {
 				continue

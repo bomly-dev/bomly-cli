@@ -68,30 +68,29 @@ type ExplainRequest struct {
 
 // DiffRequest holds per-call overrides for the bomly_diff tool.
 type DiffRequest struct {
-	Base                        string `json:"base"`
-	Head                        string `json:"head"`
-	Path                        string `json:"path"`
-	Image                       string `json:"image"`
-	SBOM                        bool   `json:"sbom"`
-	Enrich                      bool   `json:"enrich"`
-	Audit                       bool   `json:"audit"`
-	Analyze                     bool   `json:"analyze"`
-	FailOn                      string `json:"fail_on"`
-	AllowVulnerabilityIDs       string `json:"allow_vulnerability_ids"`
-	AllowLicenses               string `json:"allow_licenses"`
-	DenyLicenses                string `json:"deny_licenses"`
-	LicenseExemptPackages       string `json:"license_exempt_packages"`
-	DenyPackages                string `json:"deny_packages"`
-	DenyGroups                  string `json:"deny_groups"`
-	DenyDependencySourceChanges string `json:"deny_dependency_source_changes"`
-	ProtectedPackages           string `json:"protected_packages"`
-	TyposquatThreshold          string `json:"typosquat_threshold"`
-	TyposquatMode               string `json:"typosquat_mode"`
-	WarnOnly                    bool   `json:"warn_only"`
-	Baseline                    string `json:"baseline"`
-	Recursive                   bool   `json:"recursive"`
-	MaxDepth                    int    `json:"max_depth"`
-	Exclude                     string `json:"exclude"`
+	Base                  string `json:"base"`
+	Head                  string `json:"head"`
+	Path                  string `json:"path"`
+	Image                 string `json:"image"`
+	SBOM                  bool   `json:"sbom"`
+	Enrich                bool   `json:"enrich"`
+	Audit                 bool   `json:"audit"`
+	Analyze               bool   `json:"analyze"`
+	FailOn                string `json:"fail_on"`
+	AllowVulnerabilityIDs string `json:"allow_vulnerability_ids"`
+	AllowLicenses         string `json:"allow_licenses"`
+	DenyLicenses          string `json:"deny_licenses"`
+	LicenseExemptPackages string `json:"license_exempt_packages"`
+	DenyPackages          string `json:"deny_packages"`
+	DenyGroups            string `json:"deny_groups"`
+	ProtectedPackages     string `json:"protected_packages"`
+	TyposquatThreshold    string `json:"typosquat_threshold"`
+	TyposquatMode         string `json:"typosquat_mode"`
+	WarnOnly              bool   `json:"warn_only"`
+	Baseline              string `json:"baseline"`
+	Recursive             bool   `json:"recursive"`
+	MaxDepth              int    `json:"max_depth"`
+	Exclude               string `json:"exclude"`
 }
 
 // ScanRunResult carries a scan run's full output back to the MCP layer:

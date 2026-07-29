@@ -77,16 +77,13 @@ const (
 	// DependencyDetailReviewSourceURL indicates that the dependency now comes
 	// from an arbitrary URL.
 	DependencyDetailReviewSourceURL DependencyDetailReviewReason = "source-changed-to-url"
-	// DependencyDetailReviewCoverageLoss indicates that vulnerability checks
-	// covered the dependency before the change but no longer cover it.
-	DependencyDetailReviewCoverageLoss DependencyDetailReviewReason = "vulnerability-coverage-loss"
 )
 
 // ReviewReasons returns the reasons this detail change needs extra review.
 // The result is deterministic and does not treat missing evidence, coverage
 // gains, or relationship-only changes as review signals.
 func (t DependencyDetailTransition) ReviewReasons() []DependencyDetailReviewReason {
-	reasons := make([]DependencyDetailReviewReason, 0, 2)
+	reasons := make([]DependencyDetailReviewReason, 0, 1)
 	if dependencyDetailFieldIncluded(t.ChangedFields, DependencyDetailSource) &&
 		t.Before != nil && strings.TrimSpace(string(t.Before.Source)) != "" &&
 		t.After != nil {
@@ -96,10 +93,6 @@ func (t DependencyDetailTransition) ReviewReasons() []DependencyDetailReviewReas
 		case DependencySourceURL:
 			reasons = append(reasons, DependencyDetailReviewSourceURL)
 		}
-	}
-	if dependencyDetailFieldIncluded(t.ChangedFields, DependencyDetailRegistryEligibility) &&
-		t.BeforeRegistryEligible && !t.AfterRegistryEligible {
-		reasons = append(reasons, DependencyDetailReviewCoverageLoss)
 	}
 	return reasons
 }

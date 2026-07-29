@@ -161,8 +161,7 @@ func TestDiffComponentsProjectDependencyDetailTransition(t *testing.T) {
 	for _, want := range []string{
 		"Dependency detail changes",
 		"Detail changes",
-		"Review: Dependency source changed to Git.",
-		"Review: Vulnerability checks no longer cover this dependency.",
+		"Review: Dependency source changed to Git. Registry-based vulnerability checks may no longer cover it.",
 		"Relationship:",
 		"direct → transitive",
 		"Source:",

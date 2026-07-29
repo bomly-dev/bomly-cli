@@ -315,7 +315,9 @@ func TestAuditDependencySourceChanges(t *testing.T) {
 	}
 
 	enforced, err := (Auditor{
-		DenyDependencySourceChanges: []sdk.DependencySource{sdk.DependencySourceGit},
+		FailOn: []sdk.FailOnConstraint{{
+			Kind: sdk.SourceChangeConstraint, Value: sdk.SourceChangeValue,
+		}},
 	}).Audit(context.Background(), sdk.AuditRequest{
 		DependencyDetailChanges: []sdk.DependencyDetailTransition{
 			transition("npm:one", sdk.DependencySourceGit),
@@ -329,8 +331,9 @@ func TestAuditDependencySourceChanges(t *testing.T) {
 		enforced.Findings[0].Severity != sdk.SeverityError {
 		t.Fatalf("denied Git source finding = %#v", enforced.Findings[0])
 	}
-	if enforced.Findings[1].PolicyStatus != sdk.FindingPolicyStatusWarn {
-		t.Fatalf("non-denied URL source finding = %#v", enforced.Findings[1])
+	if enforced.Findings[1].PolicyStatus != sdk.FindingPolicyStatusFail ||
+		enforced.Findings[1].Severity != sdk.SeverityError {
+		t.Fatalf("enforced URL source finding = %#v", enforced.Findings[1])
 	}
 }
 

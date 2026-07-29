@@ -606,7 +606,7 @@ func TestDependencyDetailTransitionReviewReasons(t *testing.T) {
 		want       []DependencyDetailReviewReason
 	}{
 		{
-			name: "source changed to Git and coverage lost",
+			name: "source changed to Git",
 			transition: DependencyDetailTransition{
 				Before:                 dependency,
 				After:                  &Dependency{Source: DependencySourceGit},
@@ -615,7 +615,6 @@ func TestDependencyDetailTransitionReviewReasons(t *testing.T) {
 			},
 			want: []DependencyDetailReviewReason{
 				DependencyDetailReviewSourceGit,
-				DependencyDetailReviewCoverageLoss,
 			},
 		},
 		{

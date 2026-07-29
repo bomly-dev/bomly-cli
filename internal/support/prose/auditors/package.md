@@ -6,8 +6,9 @@ It guards the identity and origin of your dependencies. It performs three checks
 2. **Typosquat** — flag packages whose names are suspiciously close to a package you trust, catching `reqeusts`, `loadsh`, or `cross-env`-style lookalikes.
 3. **Source change** — in a diff, warn when a dependency that had a known source now comes from Git or an arbitrary URL. This asks for review; it does not claim the change is malicious.
 
-The first two checks are name-based and run fully offline. Source-change findings
-use the dependency details already produced by an enriched diff.
+All three checks use dependency details already produced by detection. A
+source change to Git or a URL may also mean registry-based vulnerability
+checks no longer cover that dependency.
 
 ## Options
 
@@ -15,7 +16,7 @@ use the dependency details already produced by an enriched diff.
 | --- | --- | --- |
 | `--deny-package <name>` | `policy.deny_packages` | Fail when this package is present. Repeatable. |
 | `--deny-group <group>` | `policy.deny_groups` | Fail on any package in this group/namespace (e.g. a Maven groupId). Repeatable. |
-| `--deny-dependency-source-change[=any\|git\|url]` | `policy.deny_dependency_source_changes` | Make a matching source change fail instead of warn. Without a value, `any` covers both Git and URL. Use `=git` or `=url` to select one. Repeatable and diff-only. |
+| `--fail-on source-change` | `policy.fail_on` | Make a source change to Git or a URL fail instead of warn. Diff-only. |
 | `--protected-package <name>` | `policy.protected_packages` | A trusted name; lookalikes within the threshold are flagged as possible typosquats. Repeatable. |
 | `--typosquat-threshold <0..1>` | `policy.typosquat_threshold` | Similarity score above which a name is treated as a lookalike. Default `0.90`. Higher = stricter (fewer matches). |
 | `--typosquat-mode <warn\|fail>` | `policy.typosquat_mode` | Policy status for a typosquat finding. `warn` (default) records a warning; `fail` makes it eligible to fail when it also matches `--fail-on`. |
@@ -37,9 +38,9 @@ bomly scan --enrich --audit \
   --typosquat-threshold 0.85 --typosquat-mode fail \
   --fail-on any
 
-# Reject a registry dependency that changes to Git or a URL
+# Reject a dependency that changes to Git or a URL
 bomly diff --base main --head HEAD --enrich --audit \
-  --deny-dependency-source-change
+  --fail-on source-change
 ```
 
 ## Diff and baselines
@@ -56,9 +57,10 @@ persisted like findings from other auditors (see
 
 The same diff audit receives the canonical source transitions. A move to Git
 uses rule `dependency-source-change-to-git`; a move to a URL uses
-`dependency-source-change-to-url`. Both warn by default. Configure the
-matching source type when it should fail. `--warn-only` still downgrades a
-configured failure.
+`dependency-source-change-to-url`. Both warn by default and explain that
+registry-based vulnerability checks may no longer cover the dependency. Use
+`--fail-on source-change` when either source change should fail. `--warn-only`
+still downgrades a configured failure.
 
 ## Limitations
 

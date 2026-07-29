@@ -106,31 +106,30 @@ type mcpOptionsAdapter struct {
 // addition here plus a one-line apply in cloneWithOverrides — no signature
 // churn at every callsite.
 type mcpOverrides struct {
-	Path                        string
-	Image                       string
-	URL                         string
-	Ref                         string
-	Enrich                      bool
-	Audit                       bool
-	Analyze                     bool
-	FailOn                      string
-	AllowVulnerabilityIDs       string
-	AllowLicenses               string
-	DenyLicenses                string
-	LicenseExemptPackages       string
-	DenyPackages                string
-	DenyGroups                  string
-	DenyDependencySourceChanges string
-	ProtectedPackages           string
-	TyposquatThreshold          string
-	TyposquatMode               string
-	WarnOnly                    bool
-	Baseline                    string
-	Ecosystems                  string
-	SBOM                        bool
-	Recursive                   bool
-	MaxDepth                    int
-	Exclude                     string
+	Path                  string
+	Image                 string
+	URL                   string
+	Ref                   string
+	Enrich                bool
+	Audit                 bool
+	Analyze               bool
+	FailOn                string
+	AllowVulnerabilityIDs string
+	AllowLicenses         string
+	DenyLicenses          string
+	LicenseExemptPackages string
+	DenyPackages          string
+	DenyGroups            string
+	ProtectedPackages     string
+	TyposquatThreshold    string
+	TyposquatMode         string
+	WarnOnly              bool
+	Baseline              string
+	Ecosystems            string
+	SBOM                  bool
+	Recursive             bool
+	MaxDepth              int
+	Exclude               string
 }
 
 // cloneWithOverrides returns a copy of CommandContext with per-call values layered on top.
@@ -150,7 +149,6 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	applyCSVOverride(&clone.ResolvedConfig.LicenseExemptPackages, o.LicenseExemptPackages)
 	applyCSVOverride(&clone.ResolvedConfig.DenyPackages, o.DenyPackages)
 	applyCSVOverride(&clone.ResolvedConfig.DenyGroups, o.DenyGroups)
-	applyCSVOverride(&clone.ResolvedConfig.DenyDependencySourceChanges, o.DenyDependencySourceChanges)
 	applyCSVOverride(&clone.ResolvedConfig.ProtectedPackages, o.ProtectedPackages)
 	applyStringOverride(&clone.ResolvedConfig.TyposquatThreshold, o.TyposquatThreshold)
 	applyStringOverride(&clone.ResolvedConfig.TyposquatMode, o.TyposquatMode)
@@ -191,7 +189,6 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	applyCSVOverride(&resolved.LicenseExemptPackages, o.LicenseExemptPackages)
 	applyCSVOverride(&resolved.DenyPackages, o.DenyPackages)
 	applyCSVOverride(&resolved.DenyGroups, o.DenyGroups)
-	applyCSVOverride(&resolved.DenyDependencySourceChanges, o.DenyDependencySourceChanges)
 	applyCSVOverride(&resolved.ProtectedPackages, o.ProtectedPackages)
 	applyStringOverride(&resolved.TyposquatThreshold, o.TyposquatThreshold)
 	applyStringOverride(&resolved.TyposquatMode, o.TyposquatMode)
@@ -459,28 +456,27 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (mcp.DiffRunResult, error) {
 	started := time.Now()
 	o, err := a.validatedCloneWithOverrides(mcpOverrides{
-		Path:                        req.Path,
-		Image:                       req.Image,
-		SBOM:                        req.SBOM,
-		Enrich:                      req.Enrich,
-		Audit:                       req.Audit,
-		Analyze:                     req.Analyze,
-		FailOn:                      req.FailOn,
-		AllowVulnerabilityIDs:       req.AllowVulnerabilityIDs,
-		AllowLicenses:               req.AllowLicenses,
-		DenyLicenses:                req.DenyLicenses,
-		LicenseExemptPackages:       req.LicenseExemptPackages,
-		DenyPackages:                req.DenyPackages,
-		DenyGroups:                  req.DenyGroups,
-		DenyDependencySourceChanges: req.DenyDependencySourceChanges,
-		ProtectedPackages:           req.ProtectedPackages,
-		TyposquatThreshold:          req.TyposquatThreshold,
-		TyposquatMode:               req.TyposquatMode,
-		WarnOnly:                    req.WarnOnly,
-		Baseline:                    req.Baseline,
-		Recursive:                   req.Recursive,
-		MaxDepth:                    req.MaxDepth,
-		Exclude:                     req.Exclude,
+		Path:                  req.Path,
+		Image:                 req.Image,
+		SBOM:                  req.SBOM,
+		Enrich:                req.Enrich,
+		Audit:                 req.Audit,
+		Analyze:               req.Analyze,
+		FailOn:                req.FailOn,
+		AllowVulnerabilityIDs: req.AllowVulnerabilityIDs,
+		AllowLicenses:         req.AllowLicenses,
+		DenyLicenses:          req.DenyLicenses,
+		LicenseExemptPackages: req.LicenseExemptPackages,
+		DenyPackages:          req.DenyPackages,
+		DenyGroups:            req.DenyGroups,
+		ProtectedPackages:     req.ProtectedPackages,
+		TyposquatThreshold:    req.TyposquatThreshold,
+		TyposquatMode:         req.TyposquatMode,
+		WarnOnly:              req.WarnOnly,
+		Baseline:              req.Baseline,
+		Recursive:             req.Recursive,
+		MaxDepth:              req.MaxDepth,
+		Exclude:               req.Exclude,
 	})
 	if err != nil {
 		return mcp.DiffRunResult{}, mcp.WrapToolError(

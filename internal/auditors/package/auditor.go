@@ -14,12 +14,12 @@ const auditorName = "package"
 
 // Auditor protects against denied packages and suspiciously similar package names.
 type Auditor struct {
-	DenyPackages                []string
-	DenyGroups                  []string
-	ProtectedPackages           []string
-	DenyDependencySourceChanges []sdk.DependencySource
-	TyposquatThreshold          float64
-	TyposquatMode               string
+	DenyPackages       []string
+	DenyGroups         []string
+	ProtectedPackages  []string
+	FailOn             []sdk.FailOnConstraint
+	TyposquatThreshold float64
+	TyposquatMode      string
 }
 
 func (a Auditor) Descriptor() sdk.AuditorDescriptor {
@@ -46,7 +46,7 @@ func (a Auditor) Applicable(_ context.Context, req sdk.AuditRequest) (bool, erro
 }
 
 func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
-	findings := dependencySourceChangeFindings(req.DependencyDetailChanges, a.DenyDependencySourceChanges)
+	findings := dependencySourceChangeFindings(req.DependencyDetailChanges, a.FailOn)
 	if req.Graph == nil {
 		return sdk.AuditResult{Findings: findings}, nil
 	}
@@ -97,7 +97,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 	return sdk.AuditResult{Findings: findings}, nil
 }
 
-func dependencySourceChangeFindings(transitions []sdk.DependencyDetailTransition, denied []sdk.DependencySource) []sdk.Finding {
+func dependencySourceChangeFindings(transitions []sdk.DependencyDetailTransition, constraints []sdk.FailOnConstraint) []sdk.Finding {
 	type findingKey struct {
 		ruleID   string
 		identity string
@@ -112,10 +112,10 @@ func dependencySourceChangeFindings(transitions []sdk.DependencyDetailTransition
 			switch reason {
 			case sdk.DependencyDetailReviewSourceGit:
 				ruleID = "dependency-source-change-to-git"
-				title = "Dependency source changed to Git"
+				title = "Dependency source changed to Git; registry-based vulnerability checks may no longer cover it"
 			case sdk.DependencyDetailReviewSourceURL:
 				ruleID = "dependency-source-change-to-url"
-				title = "Dependency source changed to a URL"
+				title = "Dependency source changed to a URL; registry-based vulnerability checks may no longer cover it"
 			default:
 				continue
 			}
@@ -128,7 +128,7 @@ func dependencySourceChangeFindings(transitions []sdk.DependencyDetailTransition
 				identity = transition.After.ID
 			}
 			status := sdk.FindingPolicyStatusWarn
-			if dependencySourceDenied(transition.After.Source, denied) {
+			if sourceChangeMatchesConstraints(constraints) {
 				status = sdk.FindingPolicyStatusFail
 			}
 			key := findingKey{ruleID: ruleID, identity: identity}
@@ -170,9 +170,9 @@ func dependencySourceChangeFindings(transitions []sdk.DependencyDetailTransition
 	return findings
 }
 
-func dependencySourceDenied(source sdk.DependencySource, denied []sdk.DependencySource) bool {
-	for _, candidate := range denied {
-		if source == candidate {
+func sourceChangeMatchesConstraints(constraints []sdk.FailOnConstraint) bool {
+	for _, candidate := range constraints {
+		if candidate.Kind == sdk.SourceChangeConstraint && candidate.Value == sdk.SourceChangeValue {
 			return true
 		}
 	}

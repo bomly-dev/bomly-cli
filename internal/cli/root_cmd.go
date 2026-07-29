@@ -106,7 +106,6 @@ func newRootCmd(version string) (*cobra.Command, error) {
 	if err := opts.BindCommandFlagGroups(diffCmd, &options.ResolvedConfig,
 		opts.FlagGroupTarget,
 		opts.FlagGroupAnalysis,
-		opts.FlagGroupDiffPolicy,
 		opts.FlagGroupSelectors,
 		opts.FlagGroupExecution,
 	); err != nil {
@@ -209,7 +208,6 @@ func logResolvedOptions(cmd *cobra.Command) {
 		zap.Bool("enrich", resolved.Enrich),
 		zap.Bool("audit", resolved.Audit),
 		zap.Strings("fail_on", resolved.FailOn),
-		zap.Strings("deny_dependency_source_changes", resolved.DenyDependencySourceChanges),
 		zap.Bool("analyze", resolved.Analyze),
 		zap.String("analyzers", resolved.Analyzers),
 		zap.String("format", resolved.Format),

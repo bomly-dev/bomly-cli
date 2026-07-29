@@ -145,7 +145,7 @@ bomly scan --json
 # SARIF for security tabs and code-scanning integrations
 bomly scan --enrich --audit --fail-on high --format sarif
 
-# Write SBOMs while still showing the normal report
+# Write SBOM artifacts (add --format text to also print the report)
 bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json
 
 # Emit one SBOM to stdout

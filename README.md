@@ -211,7 +211,7 @@ See [Plugins](docs/PLUGINS.md) for install, trust, and authoring guidance.
 ## Documentation
 
 - [Getting Started](docs/GETTING_STARTED.md) - install Bomly and run your first scan
-- [FAQ](docs/FAQ.md) - quick answers on privacy, accounts, and tool differences
+- [FAQ](https://bomly.dev/faq) - quick answers on privacy, accounts, and tool differences
 - [Installation](docs/INSTALLATION.md) - install methods, checksums, upgrades, uninstall
 - [Use Cases](docs/USE_CASES.md) - practical recipes for PR gates, SBOMs, triage, and offline scans
 - [Scan Targets](docs/SCAN_TARGETS.md) - directories, Git repos, containers, and SBOMs

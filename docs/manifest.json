@@ -58,12 +58,6 @@
       "group": "start"
     },
     {
-      "slug": "faq",
-      "title": "FAQ",
-      "description": "Quick answers on privacy, accounts, tool differences, and first-scan surprises.",
-      "group": "start"
-    },
-    {
       "slug": "sbom",
       "title": "SBOM formats",
       "description": "SPDX 2.3 vs. CycloneDX 1.6, when to pick which, ingest and conversion recipes.",

@@ -439,6 +439,44 @@
       ]
     },
     {
+      "id": "license-policy",
+      "title": "Complex and invalid SPDX policy",
+      "area": "policy",
+      "evidence_level": "deterministic",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "internal/auditors/license/spdx_policy_matrix_test.go",
+          "sha256": "f7adb4c3b59754aec61a3eabebe38854436057923bb1edf3d9497272594d91ab"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/auditors/license",
+          "-run",
+          "TestLicenseAuditorComplexSPDX|TestLicenseAuditorInvalidSPDXExpressionMatrix",
+          "-count=1"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "internal/auditors/license/spdx_policy_matrix_test.go",
+          "sha256": "f7adb4c3b59754aec61a3eabebe38854436057923bb1edf3d9497272594d91ab"
+        }
+      ],
+      "proves": [
+        "The license auditor evaluates AND, OR, nested, exception, custom-reference, and invalid SPDX expressions under allow and deny policy."
+      ],
+      "limitations": [
+        "The tests prove policy evaluation after license data is present; they do not prove the accuracy of every upstream license source."
+      ]
+    },
+    {
       "id": "performance-stability",
       "title": "Repeated cold and warm scan measurements",
       "area": "operations",
@@ -470,6 +508,44 @@
       ],
       "limitations": [
         "Wall time and memory are machine-specific observations and are not fixed pass-or-fail limits."
+      ]
+    },
+    {
+      "id": "persisted-risk",
+      "title": "Risk that persists across a version change",
+      "area": "diff",
+      "evidence_level": "deterministic",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "internal/engine/diff/diff_test.go",
+          "sha256": "8177a085ebf190011e0555f37dc89ac001856b11f0930902fb080dc8b53d5fee"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/engine/diff",
+          "-run",
+          "TestRun_SameVulnerabilityAcrossVersionBumpPersists|TestRun_SameLicenseIssueAcrossVersionBumpPersists",
+          "-count=1"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "internal/engine/diff/diff_test.go",
+          "sha256": "8177a085ebf190011e0555f37dc89ac001856b11f0930902fb080dc8b53d5fee"
+        }
+      ],
+      "proves": [
+        "A vulnerability or license finding that remains across a package version change is classified as persisted instead of one resolved and one introduced finding."
+      ],
+      "limitations": [
+        "Persistence uses the canonical package-finding identity; a genuinely different advisory or rule remains a distinct finding."
       ]
     },
     {
@@ -897,6 +973,44 @@
       ],
       "limitations": [
         "A source change is a review signal, not proof of malicious intent, and unknown source evidence cannot be classified."
+      ]
+    },
+    {
+      "id": "vulnerability-policy",
+      "title": "Vulnerability policy constraints",
+      "area": "policy",
+      "evidence_level": "deterministic",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "internal/auditors/vulnerability/policy_matrix_test.go",
+          "sha256": "79b98c8c367eebe8933328980611b6d8497c369f6be5b55e57ef25405697c7a8"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/auditors/vulnerability",
+          "-run",
+          "TestAuditorSeverityReachabilityExploitabilityAndAllowlistMatrix",
+          "-count=1"
+        ]
+      ],
+      "evidence": [
+        {
+          "path": "internal/auditors/vulnerability/policy_matrix_test.go",
+          "sha256": "79b98c8c367eebe8933328980611b6d8497c369f6be5b55e57ef25405697c7a8"
+        }
+      ],
+      "proves": [
+        "The vulnerability auditor composes severity, reachability, known exploitation, and advisory allowlists with the documented repeated-constraint behavior."
+      ],
+      "limitations": [
+        "Policy can only evaluate vulnerability, reachability, and exploitation evidence that is present in the registry."
       ]
     }
   ]

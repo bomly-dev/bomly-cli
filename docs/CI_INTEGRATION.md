@@ -131,6 +131,7 @@ bomly:
   script:
     - |
       bomly scan --enrich --audit --fail-on high \
+        --format text \
         -o spdx=sbom.spdx.json \
         -o cyclonedx=sbom.cdx.json
   artifacts:
@@ -219,6 +220,7 @@ jobs:
           command: |
             curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
             bomly scan --enrich --audit --fail-on high \
+              --format text \
               -o spdx=sbom.spdx.json \
               -o cyclonedx=sbom.cdx.json
       - save_cache:

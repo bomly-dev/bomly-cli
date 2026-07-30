@@ -7,7 +7,7 @@ EXE_SUFFIX=$(if $(filter Windows_NT,$(OS)),.exe,)
 GOLANGCI_LINT=$(GOPATH_BIN)/golangci-lint$(EXE_SUFFIX)
 FUZZTIME?=60s
 
-.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test fuzz run generate docs-config docs-schema docs-schema-md docs-support-matrix docs-components smoke benchmark benchmark-samples benchmark-report licenses
+.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test fuzz run generate docs-config docs-schema docs-schema-md docs-support-matrix docs-components smoke evidence benchmark benchmark-samples benchmark-report licenses
 
 build: build-full build-lite
 
@@ -40,6 +40,9 @@ fuzz:
 
 smoke:
 	go test -tags "smoke" ./test/smoke/ -v -count=1 -timeout 15m $(if $(ARGS),$(ARGS),)
+
+evidence:
+	go run ./internal/tools/publicevidence $(if $(CASE),-case $(CASE),)
 
 benchmark: build-full
 	bin/$(BINARY_NAME)$(EXE_SUFFIX) benchmark $(if $(ARGS),$(ARGS),)

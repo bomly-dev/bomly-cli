@@ -46,6 +46,7 @@ Generated from code. Treat as authoritative.
 - [Matcher Reference](matchers/) — per-matcher behavior, cache, output
 - [Auditor Reference](auditors/) — per-auditor options, examples, limitations
 - [JSON Schemas](SCHEMAS.md) — scan, explain, diff output shapes
+- [Reproducible Evidence](EVIDENCE.md) — public inputs, commands, results, and limitations behind important behavior claims
 
 ## Project
 

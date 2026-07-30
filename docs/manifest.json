@@ -46,6 +46,13 @@
       "group": "start"
     },
     {
+      "slug": "evidence",
+      "title": "Reproducible evidence",
+      "description": "Public inputs, commands, results, and limitations behind important behavior claims.",
+      "group": "reference",
+      "hasChildren": true
+    },
+    {
       "slug": "scan-targets",
       "title": "Scan targets",
       "description": "Local directories, Git repositories, container images, and existing SBOMs.",

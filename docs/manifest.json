@@ -49,7 +49,7 @@
       "slug": "evidence",
       "title": "Reproducible evidence",
       "description": "Public inputs, commands, results, and limitations behind important behavior claims.",
-      "group": "concepts",
+      "group": "reference",
       "hasChildren": true
     },
     {

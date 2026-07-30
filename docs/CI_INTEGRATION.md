@@ -71,7 +71,7 @@ jobs:
             --json > bomly-diff.json
 ```
 
-This fails only when the PR introduces a new high finding, ignoring pre-existing ones.
+The diff audits only the packages the PR touched, so findings on untouched packages never fail the job. Within that scope, introduced and persisted high findings both gate — persisted means a changed package still ships a known issue at its new version.
 
 ### Cache matcher data
 
@@ -256,7 +256,7 @@ Tune `--fail-on` to taste. `pre-push` keeps commits fast and only runs on push.
 - Pin the Bomly version in CI. Use a tagged release URL or package-manager version, not `latest`.
 - Cache `~/.bomly/cache` across runs. Matcher TTLs make this safe.
 - Always upload the SBOM even when the scan fails. The SBOM is a release artifact in its own right.
-- Use `bomly diff` on PRs to avoid penalizing PRs for pre-existing findings.
+- Use `bomly diff` on PRs so pre-existing findings on untouched packages don't penalize the job — only the packages the PR changes are audited.
 - Pre-warm enrichment on `main` with a scheduled nightly run so PR jobs start with a warm cache.
 
 ## See also

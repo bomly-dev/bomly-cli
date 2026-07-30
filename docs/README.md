@@ -7,6 +7,7 @@ Start with [Getting Started](GETTING_STARTED.md) if you're new. Otherwise pick t
 Install Bomly and run your first scan.
 
 - [Getting Started](GETTING_STARTED.md) — first scan, enrich, audit, diff
+- [Tutorial](TUTORIAL.md) — from first scan to a CI gate on a real project, with representative output from the workflow
 - [Installation](INSTALLATION.md) — install methods, `bomly` vs `bomly-lite`, checksum verification, uninstall
 - [Use Cases](USE_CASES.md) — recipes for PR gates, SBOMs, triage, license and offline scans
 - [Scan Targets](SCAN_TARGETS.md) — directories, Git repos, containers, SBOMs

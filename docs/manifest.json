@@ -34,6 +34,12 @@
       "group": "start"
     },
     {
+      "slug": "tutorial",
+      "title": "Tutorial",
+      "description": "From first scan to a CI gate on a real project, with representative output from the workflow.",
+      "group": "start"
+    },
+    {
       "slug": "installation",
       "title": "Installation",
       "description": "Install methods, `bomly` vs `bomly-lite`, checksum verification, upgrade, uninstall.",

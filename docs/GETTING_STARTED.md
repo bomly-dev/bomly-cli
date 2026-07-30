@@ -179,7 +179,7 @@ Or two SBOM files:
 bomly diff --sbom --base ./old.spdx.json --head ./new.spdx.json --json
 ```
 
-Add `--audit --fail-on high` to fail PRs that introduce new high-severity findings without complaining about pre-existing ones.
+Add `--enrich --audit --fail-on high` to gate PRs (auditing requires enrichment). The diff audits only the packages the change touched — untouched debt elsewhere never blocks a PR — and within that scope it fails when the change introduces a matching finding or keeps one alive at the changed package's new version (see [diff](commands/diff.md)).
 
 ## Use Bomly with an AI agent
 

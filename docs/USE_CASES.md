@@ -2,7 +2,7 @@
 
 Recipes for the jobs people actually use Bomly for. Each one is a goal, the command that does it, what you get back, and where to go deeper. New to Bomly? Start with [Getting Started](GETTING_STARTED.md) first.
 
-## Gate a pull request on new vulnerabilities
+## Gate a pull request on dependency vulnerabilities
 
 **Goal:** fail a PR when its dependency changes carry a high-severity vulnerability, without nagging about debt the PR didn't touch.
 
@@ -83,14 +83,14 @@ Licenses are matched as SPDX expressions. Use `--deny-license` to block specific
 **Goal:** flag dependency names that impersonate packages you trust, or that you've banned outright.
 
 ```bash
-bomly scan --audit \
+bomly scan --enrich --audit \
   --protected-package react --protected-package lodash \
   --typosquat-threshold 0.85 \
   --deny-package event-stream \
   --fail-on any
 ```
 
-This check is name-based and needs no enrichment, so it runs fully offline. See the [package auditor](auditors/package.md).
+The check itself is name-based — no enrichment data feeds it — but the CLI currently requires `--enrich` alongside `--audit`, so this run does contact the enrichment services. See the [package auditor](auditors/package.md).
 
 ## Scan offline / air-gapped
 

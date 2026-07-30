@@ -36,7 +36,7 @@
     {
       "slug": "tutorial",
       "title": "Tutorial",
-      "description": "From first scan to a CI gate on a real project, with the output of every step.",
+      "description": "From first scan to a CI gate on a real project, with representative output from the workflow.",
       "group": "start"
     },
     {

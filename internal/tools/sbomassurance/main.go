@@ -140,7 +140,7 @@ func run(bomlyPath, outputDir, inputPath string) error {
 		path string
 	}{
 		{name: "spdx-2.3-json", path: filepath.Join(outputDir, "bomly.spdx.json")},
-		{name: "cyclonedx-1.6-json", path: filepath.Join(outputDir, "bomly.cdx.json")},
+		{name: "cyclonedx-1.7-json", path: filepath.Join(outputDir, "bomly.cdx.json")},
 	}
 	for _, format := range formats {
 		cliFormat := "spdx"
@@ -164,7 +164,7 @@ func run(bomlyPath, outputDir, inputPath string) error {
 
 	commands := [][]string{
 		{"java", "-jar", spdxJar, "Verify", formats[0].path},
-		{cdxBinary, "validate", "--input-file", formats[1].path, "--input-format", "json", "--input-version", "v1_6", "--fail-on-errors"},
+		{cdxBinary, "validate", "--input-file", formats[1].path, "--input-format", "json", "--input-version", "v1_7", "--fail-on-errors"},
 	}
 	for _, command := range commands {
 		result, _ := execute(ctx, command[0], command[1:]...)

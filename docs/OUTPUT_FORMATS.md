@@ -13,7 +13,7 @@ Use `--json` as a shortcut for `--format json` when you want structured output q
 | `markdown` | Reviews | Job summaries, PR comments, and other Markdown surfaces |
 | `sarif` | Audit-only | CI security panes, GitHub Security tab, IDE problem markers |
 | `spdx` | Scan only | SPDX 2.3 JSON SBOMs |
-| `cyclonedx` | Scan only | CycloneDX 1.6 JSON SBOMs |
+| `cyclonedx` | Scan only | CycloneDX 1.7 JSON SBOMs |
 
 Flag:
 
@@ -216,7 +216,7 @@ Supported targets:
 | `markdown` | GitHub-flavored Markdown report |
 | `sarif` | SARIF 2.1.0 report; requires `--audit` |
 | `spdx` | SPDX 2.3 JSON |
-| `cyclonedx` | CycloneDX 1.6 JSON |
+| `cyclonedx` | CycloneDX 1.7 JSON |
 
 `spdx` and `cyclonedx` are supported by `scan`. Report formats (`text`, `json`, `markdown`, `sarif`) are supported by report-producing commands. See [SBOM formats](SBOM.md) for the SBOM comparison and writing rules.
 

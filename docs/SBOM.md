@@ -1,6 +1,6 @@
 # SBOM Formats
 
-Bomly reads and writes the two open SBOM standards used in production today: SPDX 2.3 and CycloneDX 1.6.
+Bomly reads and writes the two open SBOM standards used in production today. It writes SPDX 2.3 and CycloneDX 1.7, and ingests SPDX 2.3 plus CycloneDX 1.4 through 1.7.
 
 ## What's an SBOM?
 
@@ -10,7 +10,7 @@ You produce an SBOM once and consume it many times: in PR checks, in release art
 
 ## Format comparison
 
-| | SPDX 2.3 | CycloneDX 1.6 |
+| | SPDX 2.3 | CycloneDX 1.7 |
 | --- | --- | --- |
 | Steward | Linux Foundation | OWASP |
 | Primary use case | Software supply chain and license compliance | Component analysis and vulnerability management |

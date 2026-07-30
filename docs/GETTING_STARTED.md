@@ -99,7 +99,7 @@ This calls the enabled built-in matchers, including OSV, KEV, deps.dev, and Open
 
 ## Generate an SBOM
 
-Use `-o` to write SPDX 2.3 or CycloneDX 1.6:
+Use `-o` to write SPDX 2.3 or CycloneDX 1.7:
 
 ```bash
 bomly scan \

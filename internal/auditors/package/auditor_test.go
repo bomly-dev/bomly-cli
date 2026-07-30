@@ -271,3 +271,90 @@ func TestAudit(t *testing.T) {
 		})
 	}
 }
+
+func TestAuditDependencySourceChanges(t *testing.T) {
+	const purl = "pkg:npm/example@1.0.0"
+	transition := func(id string, source sdk.DependencySource) sdk.DependencyDetailTransition {
+		before := sdk.NewDependencyWithID(id, sdk.Dependency{
+			Coordinates: sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
+			Source:      sdk.DependencySourceRegistry,
+			PackageRef:  purl,
+		})
+		after := before.Clone()
+		after.Source = source
+		return sdk.DependencyDetailTransition{
+			Before:                 before,
+			After:                  after,
+			ChangedFields:          []sdk.DependencyDetailField{sdk.DependencyDetailSource, sdk.DependencyDetailRegistryEligibility},
+			BeforeRegistryEligible: true,
+		}
+	}
+
+	result, err := (Auditor{}).Audit(context.Background(), sdk.AuditRequest{
+		DependencyDetailChanges: []sdk.DependencyDetailTransition{
+			transition("npm:one", sdk.DependencySourceGit),
+			transition("npm:two", sdk.DependencySourceGit),
+			transition("npm:url", sdk.DependencySourceURL),
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Findings) != 2 {
+		t.Fatalf("findings = %#v, want one Git and one URL finding", result.Findings)
+	}
+	git := result.Findings[0]
+	if git.RuleID != "dependency-source-change-to-git" ||
+		git.PolicyStatus != sdk.FindingPolicyStatusWarn ||
+		git.Severity != sdk.SeverityWarning ||
+		len(git.DependencyRefs) != 2 {
+		t.Fatalf("Git source finding = %#v", git)
+	}
+	if result.Findings[1].RuleID != "dependency-source-change-to-url" {
+		t.Fatalf("URL source finding = %#v", result.Findings[1])
+	}
+
+	enforced, err := (Auditor{
+		FailOn: []sdk.FailOnConstraint{{
+			Kind: sdk.SourceChangeConstraint, Value: sdk.SourceChangeValue,
+		}},
+	}).Audit(context.Background(), sdk.AuditRequest{
+		DependencyDetailChanges: []sdk.DependencyDetailTransition{
+			transition("npm:one", sdk.DependencySourceGit),
+			transition("npm:url", sdk.DependencySourceURL),
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if enforced.Findings[0].PolicyStatus != sdk.FindingPolicyStatusFail ||
+		enforced.Findings[0].Severity != sdk.SeverityError {
+		t.Fatalf("denied Git source finding = %#v", enforced.Findings[0])
+	}
+	if enforced.Findings[1].PolicyStatus != sdk.FindingPolicyStatusFail ||
+		enforced.Findings[1].Severity != sdk.SeverityError {
+		t.Fatalf("enforced URL source finding = %#v", enforced.Findings[1])
+	}
+}
+
+func TestAuditDependencySourceChangesIgnoresInformationalTransitions(t *testing.T) {
+	dependency := sdk.NewDependencyWithID("example", sdk.Dependency{
+		Coordinates: sdk.Coordinates{Name: "example", Version: "1.0.0"},
+		Source:      sdk.DependencySourceRegistry,
+	})
+	after := dependency.Clone()
+	after.Relationship = sdk.DependencyRelationshipTransitive
+	result, err := (Auditor{}).Audit(context.Background(), sdk.AuditRequest{
+		DependencyDetailChanges: []sdk.DependencyDetailTransition{{
+			Before:        dependency,
+			After:         after,
+			ChangedFields: []sdk.DependencyDetailField{sdk.DependencyDetailRelationship},
+		}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Findings) != 0 {
+		t.Fatalf("informational transition produced findings: %#v", result.Findings)
+	}
+}

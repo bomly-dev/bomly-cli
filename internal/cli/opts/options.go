@@ -241,7 +241,6 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		}
 		return Options{}, exit.InvalidInputError("%v", err)
 	}
-
 	httpProvider, err := sdk.NewHTTPClientProvider(httpClientConfigFromResolved(resolved))
 	if err != nil {
 		if cleanup != nil {

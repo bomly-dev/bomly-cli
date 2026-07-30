@@ -43,6 +43,7 @@ Specifications and matrices. The generated pages are regenerated from code by `m
 - [Detector Ecosystem Guides](detectors/ecosystems/) — per-ecosystem detector chains
 - [Matcher Reference](matchers/) — per-matcher behavior, cache, output
 - [Auditor Reference](auditors/) — per-auditor options, examples, limitations
+- [Reproducible Evidence](EVIDENCE.md) — public inputs, commands, results, and limitations behind important behavior claims
 
 ## Operations
 

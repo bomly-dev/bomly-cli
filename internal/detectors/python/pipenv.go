@@ -194,6 +194,11 @@ type pipfileLock struct {
 
 type pipfileLockPackage struct {
 	Version string `json:"version"`
+	Git     string `json:"git"`
+	Path    string `json:"path"`
+	File    string `json:"file"`
+	Index   string `json:"index"`
+	Ref     string `json:"ref"`
 }
 
 func depGraphFromPipfileLock(path, rootName string) (*sdk.Graph, error) {
@@ -234,7 +239,7 @@ func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Dependency, packages
 		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
 			PackageManager: sdk.PackageManagerPipenv,
 			Name:           normalizedName,
-			Version:        strings.TrimPrefix(pkg.Version, "==")}, Scopes: sdk.ScopesOf(scope),
+			Version:        strings.TrimPrefix(pkg.Version, "==")}, Source: pipfileDependencySource(pkg), ResolvedURL: pipfileResolvedURL(pkg), Metadata: sourceRevisionMetadata(pkg.Ref), Scopes: sdk.ScopesOf(scope),
 		})
 
 		if _, exists := depsGraph.Node(node.ID); !exists {
@@ -247,4 +252,31 @@ func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Dependency, packages
 		}
 	}
 	return nil
+}
+
+func pipfileDependencySource(pkg pipfileLockPackage) sdk.DependencySource {
+	switch {
+	case strings.TrimSpace(pkg.Git) != "":
+		return sdk.DependencySourceGit
+	case strings.TrimSpace(pkg.Path) != "", strings.HasPrefix(strings.ToLower(strings.TrimSpace(pkg.File)), "file:"):
+		return sdk.DependencySourceFile
+	case strings.TrimSpace(pkg.File) != "":
+		if strings.Contains(strings.TrimSpace(pkg.File), "://") {
+			return sdk.DependencySourceURL
+		}
+		return sdk.DependencySourceFile
+	case strings.TrimSpace(pkg.Index) != "", strings.TrimSpace(pkg.Version) != "":
+		return sdk.DependencySourceRegistry
+	default:
+		return ""
+	}
+}
+
+func pipfileResolvedURL(pkg pipfileLockPackage) string {
+	for _, value := range []string{pkg.Git, pkg.Path, pkg.File} {
+		if strings.TrimSpace(value) != "" {
+			return strings.TrimSpace(value)
+		}
+	}
+	return ""
 }

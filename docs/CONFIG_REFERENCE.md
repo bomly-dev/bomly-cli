@@ -32,7 +32,7 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | `pipeline.enrich` | `BOMLY_ENRICH` | `bool` | - | Enrich packages with external license and vulnerability data |
 | `pipeline.audit` | `BOMLY_AUDIT` | `bool` | - | Evaluate policy and create findings from package vulnerability data |
 | `pipeline.analyze` | `BOMLY_ANALYZE` | `bool` | - | Run code analysis to confirm whether vulnerabilities are reachable from application code |
-| `policy.fail_on` | `BOMLY_FAIL_ON` | `[]string` | - | Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable |
+| `policy.fail_on` | `BOMLY_FAIL_ON` | `[]string` | - | Constraint(s) for which findings should fail. Repeatable. Vulnerability constraints are AND-ed. Values: any|low|medium|high|critical|reachable|exploitable; diff-only package changes: source-change |
 | `policy.allow_vulnerability_ids` | `BOMLY_ALLOW_VULNERABILITY_IDS` | `[]string` | - | Vulnerability IDs to ignore during policy evaluation |
 | `policy.allow_licenses` | `BOMLY_ALLOW_LICENSES` | `[]string` | - | Allowed SPDX license identifiers or expressions |
 | `policy.deny_licenses` | `BOMLY_DENY_LICENSES` | `[]string` | - | Denied SPDX license identifiers or expressions |
@@ -194,7 +194,7 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 #   Reachability analyzer selectors; supports +name and -name modifiers
 #   analyzers: ""
 # policy:
-#   Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable
+#   Constraint(s) for which findings should fail. Repeatable. Vulnerability constraints are AND-ed. Values: any|low|medium|high|critical|reachable|exploitable; diff-only package changes: source-change
 #   fail_on: []
 #   Vulnerability IDs to ignore during policy evaluation
 #   allow_vulnerability_ids: []

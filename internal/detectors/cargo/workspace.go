@@ -174,30 +174,32 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 	}
 
 	g := sdk.New()
-	nodeFor := func(name, version string, application bool) *sdk.Dependency {
+	nodeFor := func(pkg lockPackage, application bool) *sdk.Dependency {
 		pkgType := "crate"
+		source := cargoDependencySource(pkg.Source)
 		if application {
 			pkgType = "application"
+			source = sdk.DependencySourceWorkspace
 		}
 		return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
-			Name:           name,
-			Version:        version,
+			Name:           pkg.Name,
+			Version:        pkg.Version,
 			PackageManager: sdk.PackageManagerCargo,
 			Type:           sdk.ParsePackageType(pkgType),
 			Language:       "rust",
-			PURL:           sdk.BuildPackageURL("cargo", "", name, version)},
+			PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)}, Source: source, ResolvedURL: pkg.Source,
 		})
 	}
-	lockVersion := func(manifest cargoManifest) string {
+	lockPackageFor := func(manifest cargoManifest) lockPackage {
 		if pkg, ok := byName[manifest.Name]; ok && pkg.Version != "" {
-			return pkg.Version
+			return pkg
 		}
-		return manifest.Version
+		return lockPackage{Name: manifest.Name, Version: manifest.Version}
 	}
 
 	rootID := ""
 	if rootManifest.Name != "" {
-		root := nodeFor(rootManifest.Name, lockVersion(rootManifest), true)
+		root := nodeFor(lockPackageFor(rootManifest), true)
 		if err := addNodeIfMissing(g, root); err != nil {
 			return nil, nil, "", err
 		}
@@ -209,7 +211,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 		if member.manifest.Name == "" {
 			continue
 		}
-		memberNode := nodeFor(member.manifest.Name, lockVersion(member.manifest), true)
+		memberNode := nodeFor(lockPackageFor(member.manifest), true)
 		if err := addNodeIfMissing(g, memberNode); err != nil {
 			return nil, nil, "", err
 		}
@@ -220,7 +222,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 		if _, ok := applicationNames[pkg.Name]; ok {
 			continue
 		}
-		if err := addNodeIfMissing(g, nodeFor(pkg.Name, pkg.Version, false)); err != nil {
+		if err := addNodeIfMissing(g, nodeFor(pkg, false)); err != nil {
 			return nil, nil, "", err
 		}
 	}
@@ -236,7 +238,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 		if !ok {
 			return "", false
 		}
-		return nodeFor(pkg.Name, pkg.Version, false).ID, true
+		return nodeFor(pkg, false).ID, true
 	}
 
 	// Transitive edges from the lockfile for non-application packages.

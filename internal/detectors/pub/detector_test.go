@@ -89,6 +89,47 @@ func TestDepGraphFromLockScopesDirectDependencies(t *testing.T) {
 	if dev.PURL != "pkg:pub/test@1.25.8" {
 		t.Fatalf("unexpected purl %q", dev.PURL)
 	}
+	if dev.Source != sdk.DependencySourceRegistry {
+		t.Fatalf("test source = %q, want %q", dev.Source, sdk.DependencySourceRegistry)
+	}
+}
+
+func TestPubDependencySource(t *testing.T) {
+	tests := []struct {
+		source string
+		want   sdk.DependencySource
+	}{
+		{source: "hosted", want: sdk.DependencySourceRegistry},
+		{source: "git", want: sdk.DependencySourceGit},
+		{source: "path", want: sdk.DependencySourceFile},
+		{source: "sdk", want: ""},
+		{source: "", want: ""},
+	}
+	for _, tt := range tests {
+		if got := pubDependencySource(tt.source); got != tt.want {
+			t.Errorf("pubDependencySource(%q) = %q, want %q", tt.source, got, tt.want)
+		}
+	}
+}
+
+func TestPubPackagePreservesGitRevision(t *testing.T) {
+	node := packageNode("example", pubLockPackage{
+		Source:  "git",
+		Version: "1.0.0",
+		Description: map[string]any{
+			"url":          "https://github.com/example/pkg.git",
+			"resolved-ref": "abc123",
+		},
+	})
+	if node.Source != sdk.DependencySourceGit {
+		t.Fatalf("source = %q, want %q", node.Source, sdk.DependencySourceGit)
+	}
+	if node.ResolvedURL != "https://github.com/example/pkg.git" {
+		t.Fatalf("resolved URL = %q", node.ResolvedURL)
+	}
+	if node.Metadata["source_revision"] != "abc123" {
+		t.Fatalf("source revision = %#v, want abc123", node.Metadata["source_revision"])
+	}
 }
 
 func TestDepGraphFromPubDepsJSONBuildsTransitiveScopes(t *testing.T) {

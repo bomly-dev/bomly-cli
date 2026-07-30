@@ -128,6 +128,14 @@ Key helpers:
 - `sdk.RelationshipForPath(path)` — preserve an explicit relationship or derive direct/transitive from a root-to-target path.
 - `dep.RegistryMatchEligible()` — classify whether this occurrence may be sent to external registry enrichment.
 
+`Dependency.Source` is occurrence evidence, not a guess based on package name
+or ecosystem. A detector sets it only when the manifest, lockfile, or build
+tool output proves the origin. Cargo, Bundler, the JavaScript package managers,
+pub, SwiftPM, and the pip, Pipenv, Poetry, and uv Python paths currently expose
+that evidence. Formats that do not retain the selected feed or source leave the
+field empty. An empty source remains eligible for matching for protocol-v1
+compatibility, but it cannot create a source-change finding in a diff.
+
 An `unknown` relationship means that the package was present in the owning
 manifest but its parent could not be recovered. The component root is attached
 beneath the manifest/application root so it continues through matching,
@@ -137,7 +145,7 @@ for protocol-v1 plugins and is derived from graph structure by consumers.
 
 Dependencies **do not** carry `Licenses`, `Vulnerabilities`, or `Scorecard` fields. Detection-time licenses ride along in metadata; matching-stage data lives on the registry package.
 
-Registry matching eligibility is occurrence-based. Ordinary registry releases are eligible even when their `ResolvedURL` points at a custom registry or mirror. First-party/manifest nodes and occurrences sourced from project, workspace, link/file, Git, or arbitrary URL references are ineligible but remain in the complete graph and package registry for analysis, auditing, diff, SBOM, and output. Application type alone is not an ownership signal: an application artifact imported from an SBOM remains eligible unless it is marked first-party or has a non-registry source. An omitted source remains eligible for protocol-v1 and legacy detector compatibility. Before any built-in or external matcher runs, the engine passes it a cloned graph containing only eligible occurrences and eligible-to-eligible edges; the original graph and full registry continue to later stages unchanged.
+Registry matching eligibility is occurrence-based. Ordinary registry releases are eligible even when their `ResolvedURL` points at a custom registry or mirror. First-party/manifest nodes and occurrences sourced from project, workspace, link/file, Git, or arbitrary URL references are normally ineligible but remain in the complete graph and package registry for analysis, auditing, diff, SBOM, and output. Swift source-control packages are the exception: their repository URL is the canonical SwiftURL package identity, so Git-sourced Swift packages remain eligible for vulnerability matching. Application type alone is not an ownership signal: an application artifact imported from an SBOM remains eligible unless it is marked first-party or has a non-registry source. An omitted source remains eligible for protocol-v1 and legacy detector compatibility. Before any built-in or external matcher runs, the engine passes it a cloned graph containing only eligible occurrences and eligible-to-eligible edges; the original graph and full registry continue to later stages unchanged.
 
 ## `sdk.Package` — registry artifact (matching)
 
@@ -425,6 +433,18 @@ duplicate occurrences in different manifests. SARIF and SBOM output are
 projected from the same registry-aware helpers; see
 [`../docs/OUTPUT_FORMATS.md`](../docs/OUTPUT_FORMATS.md) and
 [`../docs/SBOM.md`](../docs/SBOM.md) for format-specific details.
+
+`DependencyDetailTransition.ReviewReasons` is the shared presentation
+classifier. It marks a transition when a known source changes to Git or a URL,
+or when registry-matcher coverage changes from covered to not covered. It does
+not add a derived field to JSON, MCP, or SARIF. Auditors may use the same
+reasons as input, but the classifier itself does not create findings.
+
+During `bomly diff --audit`, the head-side `AuditRequest` receives a deep copy
+of the canonical transitions in `DependencyDetailChanges`. The base-side
+request, scans, and explains leave the optional field empty. This lets built-in
+and external protocol-v1 auditors evaluate detail changes without rebuilding a
+diff from a focused audit graph.
 
 ## Common patterns
 

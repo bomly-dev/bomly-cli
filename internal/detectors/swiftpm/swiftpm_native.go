@@ -159,6 +159,7 @@ func buildSwiftDepTree(g *sdk.Graph, parentID string, deps []swiftShowDepsNode, 
 		pkg := swiftPackage{
 			Name:       name,
 			Version:    dep.Version,
+			SourceKind: swiftSourceKindForLocation(dep.URL),
 			Repository: dep.URL,
 		}
 		node := packageNode(pkg)

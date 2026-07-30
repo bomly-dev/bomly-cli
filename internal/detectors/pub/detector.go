@@ -179,21 +179,38 @@ func rootNode(manifest pubspec) *sdk.Dependency {
 }
 
 func packageNode(name string, pkg pubLockPackage) *sdk.Dependency {
+	metadata := map[string]any{
+		"source": strings.TrimSpace(pkg.Source),
+	}
+	if revision := descriptionString(pkg.Description, "resolved-ref"); revision != "" {
+		metadata["source_revision"] = revision
+	}
 	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemDart,
 		Name:           name,
 		Version:        strings.TrimSpace(pkg.Version),
 		PackageManager: sdk.PackageManagerPub,
 		Type:           sdk.PackageTypePackage,
 		Language:       "dart",
-		PURL:           sdk.BuildPackageURL("pub", "", name, pkg.Version)}, Metadata: map[string]any{
-		"source": strings.TrimSpace(pkg.Source),
-	},
+		PURL:           sdk.BuildPackageURL("pub", "", name, pkg.Version)}, Source: pubDependencySource(pkg.Source), Metadata: metadata,
 	})
 
 	if resolved := resolvedURL(pkg.Description); resolved != "" {
 		node.ResolvedURL = resolved
 	}
 	return node
+}
+
+func pubDependencySource(source string) sdk.DependencySource {
+	switch strings.ToLower(strings.TrimSpace(source)) {
+	case "hosted":
+		return sdk.DependencySourceRegistry
+	case "git":
+		return sdk.DependencySourceGit
+	case "path":
+		return sdk.DependencySourceFile
+	default:
+		return ""
+	}
 }
 
 func scopeForPackage(name string, pkg pubLockPackage, manifest pubspec) sdk.Scope {
@@ -214,14 +231,21 @@ func scopeForPackage(name string, pkg pubLockPackage, manifest pubspec) sdk.Scop
 }
 
 func resolvedURL(description any) string {
+	for _, key := range []string{"url", "path"} {
+		if value := descriptionString(description, key); value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func descriptionString(description any, key string) string {
 	m, ok := description.(map[string]any)
 	if !ok {
 		return ""
 	}
-	for _, key := range []string{"url", "resolved-ref", "path"} {
-		if value, ok := m[key].(string); ok && strings.TrimSpace(value) != "" {
-			return strings.TrimSpace(value)
-		}
+	if value, ok := m[key].(string); ok && strings.TrimSpace(value) != "" {
+		return strings.TrimSpace(value)
 	}
 	return ""
 }

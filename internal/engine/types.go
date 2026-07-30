@@ -31,6 +31,7 @@ type PipelineRequest struct {
 	TyposquatThreshold         float64
 	TyposquatMode              string
 	WarnOnly                   bool
+	DependencyDetailChanges    []sdk.DependencyDetailTransition
 	FindingPolicyResolvers     []sdk.FindingPolicyResolver
 	BaselineEvaluation         *BaselineEvaluation
 	BaselineGraph              *sdk.Graph

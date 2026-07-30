@@ -74,7 +74,7 @@ func depGraphFromRequirementsLock(lockPath, projectPath, rootName string) (*sdk.
 			PackageManager: sdk.PackageManagerPip,
 			Language:       "python",
 			Type:           sdk.PackageTypePackage,
-			PURL:           sdk.BuildPackageURL("pypi", "", e.name, e.version)},
+			PURL:           sdk.BuildPackageURL("pypi", "", e.name, e.version)}, Source: sdk.DependencySourceRegistry,
 		})
 		nodesByName[e.name] = node
 	}

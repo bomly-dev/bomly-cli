@@ -78,7 +78,10 @@ Bomly reads manifests, lockfiles, package-manager output, container layers, or e
 | Can CI fail on high-severity findings? | `bomly scan --enrich --audit --fail-on high --format sarif` |
 | Can I triage reachable findings first? | `bomly scan --enrich --audit --analyze --fail-on high --fail-on reachable` |
 
-For more recipes, see [Getting Started](docs/GETTING_STARTED.md) and [Use Cases](docs/USE_CASES.md).
+For more recipes, see [Getting Started](docs/GETTING_STARTED.md) and
+[Use Cases](docs/USE_CASES.md). To review the public inputs, commands, expected
+results, and limitations behind important behavior claims, see
+[Reproducible Evidence](docs/EVIDENCE.md).
 
 ## Explore Interactively
 

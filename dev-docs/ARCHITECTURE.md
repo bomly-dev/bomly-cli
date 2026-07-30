@@ -293,6 +293,20 @@ MCP truncation. Diff package enrichment still uses the head-side registry, so
 reporting a detail change does not replace current vulnerability or
 remediation data.
 
+The SDK also classifies the small set of transitions that need extra review:
+a source moving to Git or a URL, and a loss of vulnerability-check coverage.
+Text, Markdown, and TUI use this classifier for styling and plain-language
+reasons. The structured transition remains unchanged; the review label is a
+presentation aid and has no effect on exit status.
+
+When diff auditing is enabled, `internal/engine/diff` passes a deep copy of the
+canonical transitions only to the head-side audit request. The existing
+package auditor turns Git and URL source moves into warnings and may enforce
+configured source types. The existing vulnerability auditor turns covered to
+not-covered transitions into warning-severity coverage findings and applies
+the existing severity `--fail-on` constraints. Auditors do not infer these
+changes from the focused audit graphs, and no new pipeline stage is introduced.
+
 ### Decision: registry matching eligibility is an occurrence-level engine boundary
 
 Detection keeps every dependency occurrence and every PURL-backed package artifact, including application roots, workspace members, local sources, and unknown relationships. Immediately before matcher selection and execution, `engine.registryMatchRequest` clones only occurrences for which `Dependency.RegistryMatchEligible()` is true and preserves edges whose endpoints are both eligible. Every built-in and external matcher therefore receives the same filtered graph, while the full `PackageRegistry` remains shared so enrichment is still deduplicated by PURL. Analysis and auditors continue with the complete original graph.
@@ -370,6 +384,21 @@ Workspace/reactor detectors (npm and pnpm lockfile, cargo, maven) emit one `Grap
 **Gradle multi-project resolution runs one invocation with a task path per subproject.** Gradle was originally deferred as "no machine-readable per-module graph in one invocation" — but `gradle dependencies :app:dependencies :lib:dependencies --console=plain` is exactly that: each report section opens with a `Root project 'x'` / `Project ':x'` banner the parser uses to switch which root the following configuration trees attach to. Subproject paths come from a regex walk of `settings.gradle(.kts)` `include(...)` declarations (`projectDir` overrides honored; composite `includeBuild` not expanded). Inter-project `project :x` tokens — including the colon-less `project x (n)` form declared-only listings print — resolve to the subproject's synthesized application-typed root node, so cross-module dependencies are real edges, mirroring the maven web→core case. Failure degrades in layers: a settings-walk error resolves the root project only; a failed multi-task invocation (stale settings naming removed subprojects) retries the root-only report; subprojects never seen in the report add no orphan nodes. Before this, the gradle detector ran the root `dependencies` task only, while recursive discovery pruned nested gradle modules on the assumption the root detector expands them — multi-project builds silently under-reported.
 
 **First-party packages are inventory, not enrichment targets** (`sdk.NodeIsEnrichable`). Application-typed nodes — workspace members, reactor modules, the project's own package — are absent from public advisory/registry sources, so querying OSV / deps.dev / scorecard / grype for them wastes lookups and risks coincidental name matches (a workspace member named like a real npm package would adopt its advisories). The predicate mirrors `NodeIsDiffable` and gates the two selection chokepoints (`matchers.RegistryPackagesForGraph`, the OSV matcher's graph iteration) plus external grype's result mapping. External grype's SBOM *input* is deliberately not filtered: `sbom.FromDepGraph` is shared with user-facing SBOM generation, where first-party components must remain visible — so first-party matches are dropped when grype results map back into the registry. First-party entries stay in the `packages` collection and SBOMs, just unenriched; external plugin matchers (ClearlyDefined, EOL) are expected to adopt the same predicate.
+
+**Dependency source classification belongs to detectors.** Source is an
+occurrence fact, so the detector that reads the manifest, lockfile, or build
+tool output owns it. The engine and package auditor consume the canonical
+`sdk.Dependency.Source` value but never infer one from an ecosystem, package
+name, PURL, or repository metadata. Detectors classify only explicit evidence:
+for example Cargo `registry+` and `git+` sources, Bundler `GEM`/`GIT`/`PATH`
+sections, pub lock sources, SwiftPM pin kinds, Python direct-URL metadata, and
+Python lock source tables. When a format does not retain the selected origin,
+the source stays unknown. This trades some source-change coverage for avoiding
+false provenance claims and keeps external protocol-v1 detectors compatible.
+Source and matcher eligibility are related but not identical: SwiftPM remote
+source control is classified as Git, while remaining eligible because the
+repository URL is the canonical SwiftURL identity used for vulnerability
+matching.
 
 ### Decision: Bun text lockfiles are native; binary lockfiles degrade explicitly
 

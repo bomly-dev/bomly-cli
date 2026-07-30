@@ -20,7 +20,7 @@ For example, the `npm` chain is `npm-detector` → `syft-detector`:
 1. `npm-detector` parses `package-lock.json` directly and resolves the full transitive graph.
 2. `syft-detector` runs only if the native detector cannot produce graph data (for example, no lockfile present), and emits a flat package list.
 
-Per-ecosystem chains are listed in [`detectors/ecosystems/`](detectors/ecosystems/). The full live list lives in the CLI:
+Per-detector chains are listed in the [detector reference](detectors/). The full live list lives in the CLI:
 
 ```bash
 bomly plugins list --detectors
@@ -82,7 +82,7 @@ resolution.
 
 The build-tool-primary detectors invoke commands you would already run locally (`go list`, `mvn dependency:tree`, `gradle dependencies`, `sbt dependencyTree`). Whether they hit the network is a property of those tools and your local cache state, not a Bomly choice. To keep these scans fully offline, pre-warm the local cache (`go mod download`, `mvn dependency:go-offline`, etc.) or commit a lockfile when the ecosystem supports one.
 
-Per-PM pages under [`detectors/ecosystems/`](detectors/ecosystems/) document the exact command each detector runs and whether it touches the network.
+Each page under [`detectors/`](detectors/) documents the exact command that detector runs and whether it touches the network.
 
 ## `--install-first` {#install-first}
 
@@ -112,7 +112,7 @@ Pass `--install-first` to let supporting detectors run their normal dependency-i
 
 Detectors without an `Install` implementation (e.g. NuGet, GitHub Actions, SBOM ingest, Syft) silently skip the step when `--install-first` is set. Bomly does **not** install package managers themselves — only their dependencies.
 
-Each package-manager page under [`detectors/ecosystems/`](detectors/ecosystems/) lists whether `--install-first` is supported and the exact command that runs.
+Each page under [`detectors/`](detectors/) lists whether `--install-first` is supported and the exact command that runs.
 
 ### Customizing the install command with `--install-arg`
 
@@ -182,7 +182,7 @@ bomly scan --image ghcr.io/example/app:latest
 
 ## See also
 
-- [Ecosystem guides](detectors/ecosystems/) — generated per-ecosystem detector chains, evidence patterns, and `PATH` requirements
+- [Detector reference](detectors/) — one generated page per native detector, plus [Syft fallback](detectors/syft.md) for everything else
 - [Support matrix](SUPPORT_MATRIX.md) — generated overview of every supported ecosystem
 - [CI-readiness warnings](CI_READINESS.md) — the package-manager mismatches detectors report alongside the graph
 - [Plugins](PLUGINS.md) — author and install external detectors

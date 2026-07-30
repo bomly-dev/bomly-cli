@@ -47,6 +47,20 @@ External detectors, matchers, and auditors install as managed plugins (versioned
 
 Write your own: [Plugins](PLUGINS.md) and the per-role implementation guides.
 
+### Marketplace
+
+The [Bomly marketplace](https://bomly.dev/marketplace) lists every component that can take part in a scan — detectors, matchers, auditors, and analyzers — filterable by kind and ecosystem. It covers built-in components alongside external plugins, so you can see what already runs before installing anything.
+
+Each entry is labelled by origin, and the label tells you who wrote the code:
+
+- **Core** — Bomly's own components, shipped in the binary.
+- **Bundled** — third-party engines compiled in, such as Syft and Grype.
+- **External plugin** — installed at runtime from its own repository.
+
+External plugins run as separate processes and stay disabled until you enable them. Read [Security and Trust Boundaries](SECURITY.md) for what a plugin can and cannot reach, and [Plugins](PLUGINS.md) for the install, verify, and enable workflow.
+
+To get a plugin listed, open a submission from the marketplace page. Entries are reviewed and added by hand — there is no automatic index.
+
 ## Community
 
 No community integrations are listed yet — if you've built one (a CI orb, an IDE extension, a dashboard that reads Bomly JSON), open a pull request adding it here with a one-line description and a link.

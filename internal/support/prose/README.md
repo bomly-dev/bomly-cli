@@ -65,7 +65,7 @@ Skip any section that's truly not applicable. Don't pad.
 1. Edit or add a file under `prose/detectors/` or `prose/matchers/`.
 2. Run `make generate`.
 3. The new content appears at the bottom of the corresponding
-   `docs/detectors/ecosystems/<name>.md` or `docs/matchers/<name>.md`.
+   `docs/detectors/<name>.md` or `docs/matchers/<name>.md`.
 4. Commit both the prose file and the regenerated docs.
 
 The embed is done via `//go:embed all:prose` in

@@ -133,7 +133,7 @@ User-facing docs live in [`docs/`](docs/). Most pages are handwritten; some are 
 Run `make generate` after changing any of:
 
 - `internal/config/config.go` — regenerates `docs/CONFIG_REFERENCE.md`
-- `sdk/catalog.go`, `sdk/support_matrix.go`, `internal/registry/support.go` — regenerates `docs/SUPPORT_MATRIX.md` and `docs/detectors/ecosystems/*.md`
+- `sdk/catalog.go`, `sdk/support_matrix.go`, `internal/registry/support.go` — regenerates `docs/SUPPORT_MATRIX.md` and `docs/detectors/*.md`
 - `internal/output/*` or scan/explain/diff response types — regenerates `docs/schemas/*.md`
 - `internal/support/component_docs.go` — regenerates `docs/{DETECTORS,MATCHERS,AUDITORS}.md` and `docs/matchers/*.md`
 

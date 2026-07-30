@@ -483,7 +483,7 @@ See [EXIT_CODES.md](EXIT_CODES.md) for the full table.
 - **Resolved** — present in base, absent in head
 - **Persisted** — present in both
 
-Combine with `+"`--fail-on`"+` to fail PRs that introduce new high-severity findings without complaining about pre-existing ones:
+The diff audit only inspects packages the change touched, so findings on unchanged packages never appear — that is how pre-existing debt stays out of PR reviews. Both remaining buckets gate: `+"`--fail-on`"+` fails on introduced findings and on persisted ones, because a persisted finding means the changed package still ships a known issue at its new version:
 
 `+"```bash"+`
 bomly diff --base main --head HEAD --enrich --audit --fail-on high

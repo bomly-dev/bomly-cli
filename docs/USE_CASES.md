@@ -4,13 +4,13 @@ Recipes for the jobs people actually use Bomly for. Each one is a goal, the comm
 
 ## Gate a pull request on new vulnerabilities
 
-**Goal:** fail a PR when it *introduces* a high-severity vulnerability, without nagging about pre-existing ones.
+**Goal:** fail a PR when its dependency changes carry a high-severity vulnerability, without nagging about debt the PR didn't touch.
 
 ```bash
 bomly diff --base main --head HEAD --enrich --audit --fail-on high
 ```
 
-`diff` classifies findings as introduced / resolved / persisted and only `--fail-on` matches against the introduced set, so a clean PR passes even on a repo with known debt. Exit code `2` means a new high finding; see [Exit codes](EXIT_CODES.md).
+`diff` audits only the packages the change touched and classifies their findings as introduced / resolved / persisted, so untouched debt elsewhere in the repo never blocks a PR. Introduced and persisted findings both gate — persisted means the changed package still ships a known issue at its new version. Exit code `2` means the change carries a gating finding; see [Exit codes](EXIT_CODES.md).
 
 <details>
 <summary>Sample output — an <code>express</code> upgrade that drags in one new advisory</summary>
@@ -39,7 +39,7 @@ Version changed (9)
   Run again with --format json to see remediation details.
 ```
 
-With `--fail-on high`, this run passes: the only *introduced* finding is medium, and the persisted high is pre-existing debt.
+With `--fail-on high`, this run exits `2`: the introduced finding is only medium, but the persisted high on `path-to-regexp@0.1.12` means the upgrade still ships a known high-severity issue. The gate holds until a bump reaches a fixed version — or the finding is accepted into a committed [baseline](BASELINES.md).
 
 </details>
 
@@ -149,7 +149,7 @@ bomly diff --sbom --base old.spdx.json --head new.spdx.json
 bomly diff --image ghcr.io/example/app --base 1.4.0 --head 1.5.0 --enrich --audit --fail-on high
 ```
 
-You get added, removed, and updated dependencies, plus introduced/resolved findings when `--audit` is set. Great for release notes, upgrade reviews, and catching what a base-image bump dragged in.
+You get added, removed, and updated dependencies, plus introduced, resolved, and persisted findings when `--audit` is set. Great for release notes, upgrade reviews, and catching what a base-image bump dragged in.
 
 ## Understand why a dependency is there
 

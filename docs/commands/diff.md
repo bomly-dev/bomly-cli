@@ -49,7 +49,7 @@ Add `--enrich --audit` to classify findings between the two states into three bu
 bomly diff --base main --head HEAD --enrich --audit --fail-on high
 ```
 
-`--fail-on` gates on the *introduced* bucket, so this is the PR-gate form: fail the build when the change introduces a matching finding, without complaining about pre-existing ones. See [Auditors → Diff and auditing](../AUDITORS.md#diff-and-auditing). This is exactly what [Bomly Guard](../BOMLY_GUARD.md) runs on pull requests, with the result rendered as a PR comment.
+The audit only inspects packages the change touched, so unrelated pre-existing debt never appears. Within that scope, `--fail-on` gates on *introduced* **and** *persisted* findings — a persisted finding means the changed package still carries a known issue at its new version, so the gate holds until the bump reaches a fixed version (or the finding is [baselined](../BASELINES.md)). See [Auditors → Diff and auditing](../AUDITORS.md#diff-and-auditing). This is exactly what [Bomly Guard](../BOMLY_GUARD.md) runs on pull requests, with the result rendered as a PR comment.
 
 ```bash
 bomly diff --base main --head HEAD --json   # structured delta for tooling

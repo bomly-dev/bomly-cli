@@ -584,6 +584,24 @@ func TestDiffTool_PropagatesTargetSelectors(t *testing.T) {
 	}
 }
 
+func TestDiffToolPropagatesSourceChangePolicy(t *testing.T) {
+	adapter := &mockAdapter{diffResult: mcp.DiffRunResult{Response: output.DiffResponse{Command: "diff"}}}
+	client := newTestClient(t, adapter)
+	result := callTool(t, client, "bomly_diff", map[string]any{
+		"base":    "main",
+		"head":    "HEAD",
+		"enrich":  true,
+		"audit":   true,
+		"fail_on": "source-change",
+	})
+	if result.IsError {
+		t.Fatalf("unexpected tool error: %v", result.Content)
+	}
+	if adapter.diffReq.FailOn != "source-change" {
+		t.Fatalf("diff fail-on policy = %q", adapter.diffReq.FailOn)
+	}
+}
+
 func TestPluginsTool_ReturnsJSONResult(t *testing.T) {
 	adapter := &mockAdapter{
 		plugins: []managedplugin.Info{

@@ -16,3 +16,8 @@ Bomly uses this chain when it finds `pub` evidence.
 | Install-first support | No |
 | Remediation hints | None |
 | Native command hints | `dart`, `syft for bomly-lite` |
+
+## Source details
+
+Bomly reads hosted, Git, and path sources from `pubspec.lock` or native pub
+output. An unrecognized source type stays unknown.

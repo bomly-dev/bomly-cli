@@ -372,8 +372,14 @@ func rootNode() *sdk.Dependency {
 
 func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}) *sdk.Dependency {
 	pkgType := "crate"
-	if _, ok := workspace[id]; ok {
+	_, workspaceMember := workspace[id]
+	source := cargoDependencySource(pkg.Source)
+	if workspaceMember {
 		pkgType = "application"
+		source = sdk.DependencySourceProject
+		if len(workspace) > 1 {
+			source = sdk.DependencySourceWorkspace
+		}
 	}
 	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
 		Name:           pkg.Name,
@@ -381,9 +387,24 @@ func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}) 
 		PackageManager: sdk.PackageManagerCargo,
 		Type:           sdk.ParsePackageType(pkgType),
 		Language:       "rust",
-		PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)}, ResolvedURL: pkg.Source,
+		PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)}, Source: source, ResolvedURL: pkg.Source,
 	})
 
+}
+
+func cargoDependencySource(source string) sdk.DependencySource {
+	source = strings.TrimSpace(source)
+	switch {
+	case strings.HasPrefix(source, "registry+"),
+		strings.HasPrefix(source, "sparse+"):
+		return sdk.DependencySourceRegistry
+	case strings.HasPrefix(source, "git+"):
+		return sdk.DependencySourceGit
+	case source == "":
+		return sdk.DependencySourceFile
+	default:
+		return ""
+	}
 }
 
 func scopeForDepKinds(kinds []metadataDepKind) sdk.Scope {
@@ -417,6 +438,7 @@ func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
 type lockPackage struct {
 	Name         string
 	Version      string
+	Source       string
 	Dependencies []string
 }
 
@@ -457,7 +479,7 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 	byName := make(map[string]lockPackage, len(packages))
 	for _, pkg := range packages {
 		byName[pkg.Name] = pkg
-		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version}, pkg.Name+"@"+pkg.Version, nil)
+		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
 		if pkg.Name == manifest.Name {
 			continue
 		}
@@ -469,13 +491,13 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 		if pkg.Name == manifest.Name {
 			continue
 		}
-		parent := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version}, pkg.Name+"@"+pkg.Version, nil)
+		parent := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
 		for _, depName := range pkg.Dependencies {
 			childPkg, ok := byName[depName]
 			if !ok || childPkg.Name == manifest.Name {
 				continue
 			}
-			child := packageNode(metadataPackage{Name: childPkg.Name, Version: childPkg.Version}, childPkg.Name+"@"+childPkg.Version, nil)
+			child := packageNode(metadataPackage{Name: childPkg.Name, Version: childPkg.Version, Source: childPkg.Source}, childPkg.Name+"@"+childPkg.Version, nil)
 			if err := g.AddEdge(parent.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add Cargo.lock dependency %q -> %q: %w", parent.ID, child.ID, err)
 			}
@@ -486,7 +508,7 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 		if !ok {
 			continue
 		}
-		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version}, pkg.Name+"@"+pkg.Version, nil)
+		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
 		if existing, ok := g.Node(node.ID); ok {
 			existing.AddScope(sdk.ScopeRuntime)
 		}
@@ -499,7 +521,7 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 		if !ok {
 			continue
 		}
-		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version}, pkg.Name+"@"+pkg.Version, nil)
+		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
 		if existing, ok := g.Node(node.ID); ok {
 			existing.AddScope(sdk.ScopeDevelopment)
 		}
@@ -586,6 +608,8 @@ func parseCargoLockPackages(text string) []lockPackage {
 				pkg.Name = trimTomlString(strings.TrimPrefix(line, "name = "))
 			case strings.HasPrefix(line, "version = "):
 				pkg.Version = trimTomlString(strings.TrimPrefix(line, "version = "))
+			case strings.HasPrefix(line, "source = "):
+				pkg.Source = trimTomlString(strings.TrimPrefix(line, "source = "))
 			case strings.HasPrefix(line, "dependencies = ["):
 				for i++; i < len(lines); i++ {
 					depLine := strings.TrimSpace(strings.TrimSuffix(lines[i], ","))

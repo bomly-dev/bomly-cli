@@ -119,16 +119,34 @@ func diffDependencyTransitionTable(transitions []output.DiffDependencyTransition
 		return left.ID < right.ID
 	})
 	rows := make([][]string, 0, len(sorted))
+	reviewCount := 0
 	for _, transition := range sorted {
+		attention := "Info"
+		if output.DependencyDetailNeedsReview(transition) {
+			attention = "⚠ Review"
+			reviewCount++
+		}
 		rows = append(rows, []string{
+			attention,
 			dependencyTransitionDisplayName(transition.After),
 			valueOrDash(transition.After.Version),
 			dependencyTransitionDescription(transition),
 		})
 	}
 	return append(
-		[]string{"### Dependency Detail Changes", ""},
-		append(markdownTable([]string{"Package", "Version", "Changes"}, rows), "")...,
+		[]string{
+			"### Dependency Detail Changes",
+			"",
+			fmt.Sprintf(
+				"**Review:** %d of %d %s %s extra review.",
+				reviewCount,
+				len(sorted),
+				pluralWord(len(sorted), "detail change", "detail changes"),
+				pluralWord(len(sorted), "needs", "need"),
+			),
+			"",
+		},
+		append(markdownTable([]string{"Attention", "Package", "Version", "Changes"}, rows), "")...,
 	)
 }
 

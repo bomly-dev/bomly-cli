@@ -16,6 +16,8 @@ func TestDependencyRegistryMatchEligible(t *testing.T) {
 		{name: "workspace", dep: &Dependency{Source: DependencySourceWorkspace}},
 		{name: "file", dep: &Dependency{Source: DependencySourceFile}},
 		{name: "git", dep: &Dependency{Source: DependencySourceGit}},
+		{name: "Swift source control", dep: &Dependency{Coordinates: Coordinates{Ecosystem: EcosystemSwift}, Source: DependencySourceGit}, want: true},
+		{name: "Swift local path", dep: &Dependency{Coordinates: Coordinates{Ecosystem: EcosystemSwift}, Source: DependencySourceFile}},
 		{name: "url", dep: &Dependency{Source: DependencySourceURL}},
 		{name: "first-party application", dep: &Dependency{Coordinates: Coordinates{Type: PackageTypeApplication, FirstParty: true}, Source: DependencySourceRegistry}},
 		{name: "imported application", dep: &Dependency{Coordinates: Coordinates{Type: PackageTypeApplication}, Source: DependencySourceRegistry}, want: true},

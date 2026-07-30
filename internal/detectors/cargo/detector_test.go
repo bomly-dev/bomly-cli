@@ -75,6 +75,33 @@ func TestDepGraphFromMetadataWorkspace(t *testing.T) {
 	if dev.PURL != "pkg:cargo/pretty_assertions@1.4.1" {
 		t.Fatalf("unexpected purl %q", dev.PURL)
 	}
+	if app.Source != sdk.DependencySourceProject {
+		t.Fatalf("single project source = %q, want %q", app.Source, sdk.DependencySourceProject)
+	}
+	if dev.Source != sdk.DependencySourceRegistry {
+		t.Fatalf("registry package source = %q, want %q", dev.Source, sdk.DependencySourceRegistry)
+	}
+}
+
+func TestCargoDependencySource(t *testing.T) {
+	tests := []struct {
+		name   string
+		source string
+		want   sdk.DependencySource
+	}{
+		{name: "registry", source: "registry+https://github.com/rust-lang/crates.io-index", want: sdk.DependencySourceRegistry},
+		{name: "sparse registry", source: "sparse+https://index.crates.io/", want: sdk.DependencySourceRegistry},
+		{name: "git", source: "git+https://github.com/example/helper?rev=abc#abc", want: sdk.DependencySourceGit},
+		{name: "path", want: sdk.DependencySourceFile},
+		{name: "unknown scheme", source: "custom+https://example.test", want: ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := cargoDependencySource(tt.source); got != tt.want {
+				t.Fatalf("cargoDependencySource(%q) = %q, want %q", tt.source, got, tt.want)
+			}
+		})
+	}
 }
 
 func TestDepGraphFromMetadataWithScopeFilter(t *testing.T) {
@@ -133,10 +160,12 @@ dependencies = [
 [[package]]
 name = "dev-helper"
 version = "0.1.0"
+source = "git+https://github.com/example/dev-helper?rev=abc#abc"
 
 [[package]]
 name = "helper"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 `)
 	manifest := []byte(`[package]
 name = "app"
@@ -169,6 +198,16 @@ dev-helper = { path = "dev-helper" }
 	}
 	if string(dev.PrimaryScope()) != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected development scope, got %q", string(dev.PrimaryScope()))
+	}
+	if dev.Source != sdk.DependencySourceGit {
+		t.Fatalf("dev-helper source = %q, want %q", dev.Source, sdk.DependencySourceGit)
+	}
+	helper, ok := g.Node("helper@0.1.0")
+	if !ok {
+		t.Fatal("expected helper package")
+	}
+	if helper.Source != sdk.DependencySourceRegistry {
+		t.Fatalf("helper source = %q, want %q", helper.Source, sdk.DependencySourceRegistry)
 	}
 }
 

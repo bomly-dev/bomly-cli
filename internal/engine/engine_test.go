@@ -71,13 +71,15 @@ func (f *fakeInstallFirstDetector) Install(_ context.Context, req ResolveGraphRe
 }
 
 type fakeAuditor struct {
-	descriptor AuditorDescriptor
-	result     AuditResult
-	err        error
-	ready      *bool
-	applicable *bool
-	applyErr   error
-	run        func(AuditRequest) AuditResult
+	descriptor   AuditorDescriptor
+	result       AuditResult
+	err          error
+	ready        *bool
+	applicable   *bool
+	applyErr     error
+	run          func(AuditRequest) AuditResult
+	onReady      func(AuditRequest)
+	onApplicable func(AuditRequest)
 }
 
 func (f fakeAuditor) Descriptor() AuditorDescriptor { return f.descriptor }
@@ -89,14 +91,20 @@ func (f fakeAuditor) Audit(_ context.Context, req AuditRequest) (AuditResult, er
 	return f.result, f.err
 }
 
-func (f fakeAuditor) Ready(context.Context, AuditRequest) error {
+func (f fakeAuditor) Ready(_ context.Context, req AuditRequest) error {
+	if f.onReady != nil {
+		f.onReady(req)
+	}
 	if f.ready != nil && !*f.ready {
 		return errors.New("not ready")
 	}
 	return nil
 }
 
-func (f fakeAuditor) Applicable(_ context.Context, _ AuditRequest) (bool, error) {
+func (f fakeAuditor) Applicable(_ context.Context, req AuditRequest) (bool, error) {
+	if f.onApplicable != nil {
+		f.onApplicable(req)
+	}
 	if f.applyErr != nil {
 		return false, f.applyErr
 	}
@@ -149,6 +157,63 @@ func TestEngineAudit_ReturnsPartialResultsWhenAnAuditorFails(t *testing.T) {
 	if len(result.Findings) != 1 || result.Findings[0].ID != "1" {
 		t.Fatalf("expected partial findings to be preserved, got %#v", result.Findings)
 	}
+}
+
+func TestEngineAudit_ClonesDependencyDetailChangesPerAuditor(t *testing.T) {
+	before := sdk.NewDependencyWithID("before", sdk.Dependency{Source: sdk.DependencySourceRegistry})
+	after := sdk.NewDependencyWithID("after", sdk.Dependency{Source: sdk.DependencySourceGit})
+	request := AuditRequest{
+		Ecosystem:      EcosystemNPM,
+		PackageManager: PackageManagerNPM,
+		DependencyDetailChanges: []sdk.DependencyDetailTransition{{
+			Before:        before,
+			After:         after,
+			ChangedFields: []sdk.DependencyDetailField{sdk.DependencyDetailSource},
+		}},
+	}
+	assertOriginal := func(phase string, req AuditRequest) {
+		t.Helper()
+		if req.DependencyDetailChanges[0].After.Source != sdk.DependencySourceGit ||
+			req.DependencyDetailChanges[0].ChangedFields[0] != sdk.DependencyDetailSource {
+			t.Fatalf("%s observed mutated request: %#v", phase, req.DependencyDetailChanges)
+		}
+	}
+	mutate := func(req AuditRequest) {
+		req.DependencyDetailChanges[0].After.Source = sdk.DependencySourceURL
+		req.DependencyDetailChanges[0].ChangedFields[0] = sdk.DependencyDetailRelationship
+	}
+	registry := newTestRegistry()
+	registry.registerAuditor(fakeAuditor{
+		descriptor: AuditorDescriptor{Name: "mutating", SupportedEcosystems: []Ecosystem{EcosystemNPM}},
+		onReady:    mutate,
+		onApplicable: func(req AuditRequest) {
+			assertOriginal("mutating auditor Applicable", req)
+			mutate(req)
+		},
+		run: func(req AuditRequest) AuditResult {
+			assertOriginal("mutating auditor Audit", req)
+			mutate(req)
+			return AuditResult{}
+		},
+	})
+	registry.registerAuditor(fakeAuditor{
+		descriptor: AuditorDescriptor{Name: "observing", SupportedEcosystems: []Ecosystem{EcosystemNPM}},
+		onReady: func(req AuditRequest) {
+			assertOriginal("observing auditor Ready", req)
+		},
+		onApplicable: func(req AuditRequest) {
+			assertOriginal("observing auditor Applicable", req)
+		},
+		run: func(req AuditRequest) AuditResult {
+			assertOriginal("observing auditor Audit", req)
+			return AuditResult{}
+		},
+	})
+
+	if _, err := NewEngine(registry).Audit(context.Background(), request); err != nil {
+		t.Fatal(err)
+	}
+	assertOriginal("caller", request)
 }
 
 func TestEngineAudit_SkipsNotReadyOrNotApplicableAuditors(t *testing.T) {

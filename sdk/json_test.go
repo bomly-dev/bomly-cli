@@ -139,9 +139,23 @@ func TestPluginRequestResponseRegistryJSON(t *testing.T) {
 		t.Fatalf("match result registry package = %#v, ok=%v", pkg, ok)
 	}
 
-	auditData, err := json.Marshal(AuditRequest{Registry: registry})
+	before := NewDependencyWithID("before", Dependency{Source: DependencySourceRegistry})
+	after := NewDependencyWithID("after", Dependency{Source: DependencySourceGit})
+	auditData, err := json.Marshal(AuditRequest{
+		Registry: registry,
+		DependencyDetailChanges: []DependencyDetailTransition{{
+			Before:        before,
+			After:         after,
+			ChangedFields: []DependencyDetailField{DependencyDetailSource},
+		}},
+	})
 	if err != nil {
 		t.Fatalf("marshal audit request: %v", err)
+	}
+	if !strings.Contains(string(auditData), `"dependencyDetailChanges"`) ||
+		!strings.Contains(string(auditData), `"changedFields"`) ||
+		strings.Contains(string(auditData), `"ChangedFields"`) {
+		t.Fatalf("audit request transition wire shape = %s", auditData)
 	}
 	var auditReq AuditRequest
 	if err := json.Unmarshal(auditData, &auditReq); err != nil {
@@ -152,6 +166,20 @@ func TestPluginRequestResponseRegistryJSON(t *testing.T) {
 	}
 	if pkg, ok := auditReq.Registry.Get("pkg:npm/lodash@4.17.15"); !ok || len(pkg.Vulnerabilities) != 1 {
 		t.Fatalf("audit request registry package = %#v, ok=%v", pkg, ok)
+	}
+	if len(auditReq.DependencyDetailChanges) != 1 ||
+		auditReq.DependencyDetailChanges[0].After.Source != DependencySourceGit {
+		t.Fatalf("audit request detail changes = %#v", auditReq.DependencyDetailChanges)
+	}
+}
+
+func TestProtocolV1AuditRequestDefaultsDependencyDetailChanges(t *testing.T) {
+	var request AuditRequest
+	if err := json.Unmarshal([]byte(`{"ecosystem":"npm","auditorFilter":{}}`), &request); err != nil {
+		t.Fatal(err)
+	}
+	if request.DependencyDetailChanges != nil {
+		t.Fatalf("legacy audit request detail changes = %#v, want nil", request.DependencyDetailChanges)
 	}
 }
 

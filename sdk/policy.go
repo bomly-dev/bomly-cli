@@ -18,11 +18,14 @@ const (
 	// ExploitabilityConstraint matches when a vulnerability has known
 	// exploitation metadata.
 	ExploitabilityConstraint FailOnKind = "exploitability"
+	// SourceChangeConstraint matches package-auditor findings for dependency
+	// source changes in a diff.
+	SourceChangeConstraint FailOnKind = "source-change"
 )
 
-// FailOnConstraint is one parsed --fail-on value. The policy auditor
-// evaluates a vulnerability against an AND-set of constraints; only
-// vulnerabilities satisfying every constraint become Findings.
+// FailOnConstraint is one parsed --fail-on value. Vulnerability constraints
+// form an AND-set. Other finding types may define independent gates, such as
+// a dependency source change in a diff.
 type FailOnConstraint struct {
 	Kind  FailOnKind
 	Value string
@@ -47,6 +50,11 @@ const (
 	ExploitabilityValueExploitable = "exploitable"
 )
 
+// SourceChangeValue is the supported dependency source-change constraint.
+const (
+	SourceChangeValue = "source-change"
+)
+
 var validSeverityValues = map[SeverityLevel]struct{}{
 	SeverityAny:      {},
 	SeverityLow:      {},
@@ -63,11 +71,16 @@ var validExploitabilityValues = map[string]struct{}{
 	ExploitabilityValueExploitable: {},
 }
 
+var validSourceChangeValues = map[string]struct{}{
+	SourceChangeValue: {},
+}
+
 // ParseFailOn parses one raw --fail-on value into a typed constraint.
 // Severity tokens (any|low|medium|high|critical) yield a SeverityConstraint.
 // "reachable" yields a ReachabilityConstraint. "exploitable" yields an
-// ExploitabilityConstraint. Empty input returns the zero value with no error
-// so callers can treat empty repeats as no-ops.
+// ExploitabilityConstraint. "source-change" yields a SourceChangeConstraint.
+// Empty input returns the zero value with no error so callers can treat empty
+// repeats as no-ops.
 func ParseFailOn(raw string) (FailOnConstraint, error) {
 	normalized := ParseSeverityLevel(raw)
 	if normalized == SeverityUnknown && strings.TrimSpace(raw) == "" {
@@ -83,7 +96,10 @@ func ParseFailOn(raw string) (FailOnConstraint, error) {
 	if _, ok := validExploitabilityValues[rawNormalized]; ok {
 		return FailOnConstraint{Kind: ExploitabilityConstraint, Value: rawNormalized}, nil
 	}
-	return FailOnConstraint{}, fmt.Errorf("unsupported --fail-on value %q (accepted: any, low, medium, high, critical, reachable, exploitable)", raw)
+	if _, ok := validSourceChangeValues[rawNormalized]; ok {
+		return FailOnConstraint{Kind: SourceChangeConstraint, Value: rawNormalized}, nil
+	}
+	return FailOnConstraint{}, fmt.Errorf("unsupported --fail-on value %q (accepted: any, low, medium, high, critical, reachable, exploitable, source-change)", raw)
 }
 
 // ParseFailOnList parses every raw value, skipping empty entries. It returns
@@ -136,11 +152,16 @@ func SeverityMeets(candidate SeverityLevel, threshold string) bool {
 	return SeverityRank(candidate) >= SeverityRank(t)
 }
 
-// MatchesConstraints evaluates one vulnerability against a set of
-// constraints (AND semantics). When constraints is empty, every
+// MatchesConstraints evaluates one vulnerability against the vulnerability
+// constraints in an AND-set. Source-change constraints apply only to package
+// findings and are ignored here. When constraints is empty, every
 // vulnerability matches (the historical behavior of `--audit` without
-// `--fail-on`).
+// `--fail-on`). A list containing only non-vulnerability constraints also
+// leaves vulnerability matching unchanged.
 func (v Vulnerability) MatchesConstraints(constraints []FailOnConstraint) bool {
+	if len(constraints) == 0 {
+		return true
+	}
 	for _, c := range constraints {
 		switch c.Kind {
 		case SeverityConstraint:
@@ -158,6 +179,9 @@ func (v Vulnerability) MatchesConstraints(constraints []FailOnConstraint) bool {
 			if !v.IsExploitable() {
 				return false
 			}
+		case SourceChangeConstraint:
+			// Source changes are evaluated by the package auditor against
+			// dependency detail transitions, not vulnerabilities.
 		default:
 			// Unknown kinds are treated as no-op rather than as
 			// rejection so future constraint kinds can be added without

@@ -80,6 +80,10 @@ Bomly gives auditors the same core scan data used by built-in auditors:
 - `req.Registry` contains package records keyed by PURL.
 - `req.BaselineGraph` may be present for diff-style workflows.
 - `req.Target` may be present when a command focuses on one dependency.
+- `req.DependencyDetailChanges` contains the canonical head-side dependency
+  detail transitions during a diff audit. It is empty for scans, explains, and
+  the base side of a diff. This optional protocol-v1 field may be absent when
+  an older core calls the plugin.
 
 Auditors should emit reference-style findings that point at registry packages by PURL:
 

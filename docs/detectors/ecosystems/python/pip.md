@@ -102,6 +102,12 @@ pip-compile --constraint constraints.txt requirements.in
 
 Re-scan.
 
+## Source details
+
+Pinned packages in `requirements.lock` are registry packages. On the inspection
+path, Bomly uses pip's `direct_url` record to identify Git, URL, and local-file
+installs. Missing or malformed source data stays unknown.
+
 ## Reachability (experimental)
 
 > **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.

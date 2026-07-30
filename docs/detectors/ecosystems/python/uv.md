@@ -92,6 +92,11 @@ constraint-dependencies = ["urllib3>=2.2.2"]
 
 Re-lock and re-scan.
 
+## Source details
+
+Bomly reads registry, Git, URL, path, and editable sources from each `uv.lock`
+package source table. An entry without source evidence stays unknown.
+
 ## Reachability (experimental)
 
 > **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.

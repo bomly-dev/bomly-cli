@@ -24,8 +24,8 @@ func TestParseOutputFormatAcceptsSharedFormatsAndAliases(t *testing.T) {
 		{value: "sarif", wantFormat: output.FormatSARIF, wantLabel: "sarif"},
 		{value: "spdx", wantFormat: output.FormatSPDX, wantTarget: sbom.TargetSPDX23JSON, wantLabel: "spdx"},
 		{value: "spdx-json", wantFormat: output.FormatSPDX, wantTarget: sbom.TargetSPDX23JSON, wantLabel: "spdx"},
-		{value: "cyclonedx", wantFormat: output.FormatCycloneDX, wantTarget: sbom.TargetCycloneDX16JSON, wantLabel: "cyclonedx"},
-		{value: "cyclonedx-json", wantFormat: output.FormatCycloneDX, wantTarget: sbom.TargetCycloneDX16JSON, wantLabel: "cyclonedx"},
+		{value: "cyclonedx", wantFormat: output.FormatCycloneDX, wantTarget: sbom.TargetCycloneDX17JSON, wantLabel: "cyclonedx"},
+		{value: "cyclonedx-json", wantFormat: output.FormatCycloneDX, wantTarget: sbom.TargetCycloneDX17JSON, wantLabel: "cyclonedx"},
 	}
 
 	for _, tc := range tests {
@@ -74,7 +74,7 @@ func TestParseOutputSpecsParsesReportAndSBOMTargets(t *testing.T) {
 	if specs[4].Target != sbom.TargetSPDX23JSON || !specs[4].IsSBOM() {
 		t.Fatalf("unexpected spdx spec: %#v", specs[4])
 	}
-	if specs[5].Target != sbom.TargetCycloneDX16JSON || !specs[5].IsSBOM() {
+	if specs[5].Target != sbom.TargetCycloneDX17JSON || !specs[5].IsSBOM() {
 		t.Fatalf("unexpected cyclonedx spec: %#v", specs[5])
 	}
 }

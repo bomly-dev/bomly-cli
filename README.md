@@ -139,7 +139,7 @@ See [Getting Started](docs/GETTING_STARTED.md) for the first-run walkthrough and
 
 ## Generate Output for CI
 
-Bomly can write human-readable text, JSON, SARIF, SPDX 2.3, and CycloneDX 1.6:
+Bomly can write human-readable text, JSON, SARIF, SPDX 2.3, and CycloneDX 1.7:
 
 ```bash
 # Structured JSON for automation
@@ -220,7 +220,7 @@ See [Plugins](docs/PLUGINS.md) for install, trust, and authoring guidance.
 - [Use Cases](docs/USE_CASES.md) - practical recipes for PR gates, SBOMs, triage, and offline scans
 - [Scan Targets](docs/SCAN_TARGETS.md) - directories, Git repos, containers, and SBOMs
 - [Output Formats](docs/OUTPUT_FORMATS.md) - text, JSON, SARIF, SPDX, CycloneDX
-- [SBOM Formats](docs/SBOM.md) - SPDX 2.3 and CycloneDX 1.6, ingest, and conversion recipes
+- [SBOM Formats](docs/SBOM.md) - SPDX 2.3 and CycloneDX 1.7, ingest, and conversion recipes
 - [CI Integration](docs/CI_INTEGRATION.md) - GitHub Actions, GitLab, Jenkins, Azure, CircleCI
 - [Bomly Guard](docs/BOMLY_GUARD.md) - turnkey GitHub Action for PR dependency review
 - [MCP Server](docs/MCP.md) - connect Bomly to Claude Code, Cursor, VS Code, or another MCP client

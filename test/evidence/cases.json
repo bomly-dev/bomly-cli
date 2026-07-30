@@ -856,7 +856,7 @@
         {
           "kind": "workflow",
           "location": ".github/workflows/sbom-interoperability.yml",
-          "sha256": "5434c3b2971034416cacbde5788320d47f3c1e976bdfdc60ff1f077b2e16ef09"
+          "sha256": "3d379300ab8e7bc02f6859c088ba06153fcbd2dc3cf159a62d890d1abda24f1a"
         }
       ],
       "required_tools": [
@@ -875,7 +875,7 @@
       "evidence": [
         {
           "path": ".github/workflows/sbom-interoperability.yml",
-          "sha256": "5434c3b2971034416cacbde5788320d47f3c1e976bdfdc60ff1f077b2e16ef09"
+          "sha256": "3d379300ab8e7bc02f6859c088ba06153fcbd2dc3cf159a62d890d1abda24f1a"
         }
       ],
       "proves": [

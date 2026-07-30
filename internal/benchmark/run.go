@@ -476,7 +476,7 @@ func bomlySBOMTarget(format string) (sbom.Target, error) {
 	case "spdx":
 		return sbom.TargetSPDX23JSON, nil
 	case "cyclonedx":
-		return sbom.TargetCycloneDX16JSON, nil
+		return sbom.TargetCycloneDX17JSON, nil
 	default:
 		return "", fmt.Errorf("unsupported Bomly benchmark SBOM format %q", format)
 	}

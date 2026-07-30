@@ -47,7 +47,7 @@ started interoperability workflow adds an external check:
 gh workflow run sbom-interoperability.yml --ref v0.20.0
 ```
 
-It generates canonical SPDX 2.3 and CycloneDX 1.6 files, verifies the
+It generates canonical SPDX 2.3 and CycloneDX 1.7 files, verifies the
 downloaded validator checksums, runs the named official validators, and saves
 the generated files plus a `bomly.sbom-assurance-run/v1` report. See
 [`test/assurance/SBOM_INTEROPERABILITY.md`](../../test/assurance/SBOM_INTEROPERABILITY.md)

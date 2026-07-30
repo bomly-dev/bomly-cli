@@ -41,7 +41,7 @@ func SBOMTarget(format output.Format) (sbom.Target, bool) {
 	case output.FormatSPDX:
 		return sbom.TargetSPDX23JSON, true
 	case output.FormatCycloneDX:
-		return sbom.TargetCycloneDX16JSON, true
+		return sbom.TargetCycloneDX17JSON, true
 	default:
 		return "", false
 	}

@@ -165,7 +165,7 @@
               "id": "can-bomly-read-or-generate-sboms",
               "question": "Can Bomly read or generate SBOMs?",
               "toc": "Reading & generating SBOMs",
-              "answer": "Both. `bomly scan --sbom --path ./sbom.cdx.json` reads an existing SPDX or CycloneDX SBOM and turns it into a dependency graph you can diff, explain, and audit. Bomly also writes SBOMs in SPDX 2.3 and CycloneDX 1.6, either to stdout or to files while still printing the normal report.",
+              "answer": "Both. `bomly scan --sbom --path ./sbom.cdx.json` reads an existing SPDX or CycloneDX SBOM and turns it into a dependency graph you can diff, explain, and audit. Bomly also writes SBOMs in SPDX 2.3 and CycloneDX 1.7, either to stdout or to files, and ingests CycloneDX 1.4 through 1.7.",
               "links": [
                 {
                   "label": "SBOM guide",
@@ -294,7 +294,7 @@
               "id": "output-formats",
               "question": "What output formats does Bomly produce?",
               "toc": "Output formats",
-              "answer": "The default output is a human-readable text report. With `--format` you can switch to `json`, `markdown`, SARIF 2.1.0 (requires `--audit`), SPDX 2.3, or CycloneDX 1.6, and `-o format=path` writes several formats in one run while still printing the normal report.",
+              "answer": "The default output is a human-readable text report. With `--format` you can switch to `json`, `markdown`, SARIF 2.1.0 (requires `--audit`), SPDX 2.3, or CycloneDX 1.7, and `-o format=path` writes several formats in one run while still printing the normal report.",
               "links": [
                 {
                   "label": "Output formats",

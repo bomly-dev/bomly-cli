@@ -56,7 +56,7 @@ separate network behavior.
 
 ## SBOM
 
-**SBOM** — Software Bill of Materials. Bomly writes SPDX 2.3 and CycloneDX 1.6 JSON via `-o`, and ingests both via `--sbom`. See [SBOM formats](SBOM.md).
+**SBOM** — Software Bill of Materials. Bomly writes SPDX 2.3 and CycloneDX 1.7 JSON via `-o`, and ingests SPDX 2.3 and CycloneDX 1.4–1.7 via `--sbom`. See [SBOM formats](SBOM.md).
 
 **PURL** — Package URL identifier (`pkg:type/namespace/name@version`). Bomly emits PURLs on every package.
 

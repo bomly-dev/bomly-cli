@@ -17,7 +17,7 @@
 
 Bomly is a free, open-source CLI for dependency intelligence. It scans source trees, SBOMs, Git refs, and container images; explains why dependencies are present; enriches packages with vulnerability and license data when you ask for it; evaluates policy; and writes automation-friendly output for CI.
 
-Free and open source, no account, no login. One binary. No service to host. No telemetry. No outbound matcher calls unless you opt in with `--enrich`.
+Free and open source, no account, no login. One binary. No service to host. No telemetry. No outbound matcher calls unless you opt in with `--enrich`. [Network and Privacy](docs/NETWORK.md) documents every network trigger so you can audit that claim instead of taking it on faith.
 
 ## Install Bomly
 
@@ -214,6 +214,7 @@ See [Plugins](docs/PLUGINS.md) for install, trust, and authoring guidance.
 ## Documentation
 
 - [Getting Started](docs/GETTING_STARTED.md) - install Bomly and run your first scan
+- [FAQ](https://bomly.dev/faq) - quick answers on privacy, accounts, and tool differences
 - [Installation](docs/INSTALLATION.md) - install methods, checksums, upgrades, uninstall
 - [Use Cases](docs/USE_CASES.md) - practical recipes for PR gates, SBOMs, triage, and offline scans
 - [Scan Targets](docs/SCAN_TARGETS.md) - directories, Git repos, containers, and SBOMs
@@ -224,6 +225,7 @@ See [Plugins](docs/PLUGINS.md) for install, trust, and authoring guidance.
 - [MCP Server](docs/MCP.md) - connect Bomly to Claude Code, Cursor, VS Code, or another MCP client
 - [Reachability](docs/REACHABILITY.md) - experimental reachable-vulnerability triage
 - [Plugins](docs/PLUGINS.md) - managed external detectors, matchers, and auditors
+- [Release Notes](https://github.com/bomly-dev/bomly-cli/releases) - what changed in each version
 - [All Documentation](docs/README.md) - full docs index
 
 Contributor setup lives in [CONTRIBUTING.md](CONTRIBUTING.md). Architecture details live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

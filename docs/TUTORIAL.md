@@ -10,7 +10,7 @@ Where [Getting Started](GETTING_STARTED.md) introduces each feature on its own, 
 - `git`
 - Network access for the enrichment steps (`--enrich` is the explicit opt-in — see [Network and Privacy](NETWORK.md))
 
-We'll use a deliberately vulnerable demo project maintained by the Bomly org, pinned to a tag so your results match this page:
+We'll use a deliberately vulnerable demo project maintained by the Bomly org, pinned to a tag so the *dependency graph* you scan matches this page. The outputs below were captured with Bomly 0.20.2 on 2026-07-30; graph numbers are stable, but advisory counts and IDs come from live enrichment data and may drift as services add or withdraw records:
 
 ```bash
 git clone --depth 1 --branch v1.0.0 https://github.com/bomly-dev/example-javascript-npm
@@ -100,7 +100,7 @@ echo $?
 ```
 
 <details>
-<summary>Findings (31 total — first ten shown)</summary>
+<summary>Findings (31 rows: 25 gating vulnerabilities + 6 license warnings — first ten shown)</summary>
 
 ```text
 Findings
@@ -118,17 +118,17 @@ Findings
 
 </details>
 
-The exit code is `2`: at least one finding matched `--fail-on high`. On this project that's 31 findings — too many to fix in one sitting, which is exactly the situation the next two steps are for. ([Auditors](AUDITORS.md), [Exit Codes](EXIT_CODES.md))
+The exit code is `2`: at least one finding matched `--fail-on high`. The report lists 31 findings, of two kinds: 25 gating vulnerability findings, plus 6 license *warnings* (the `[WARNING] UNKNOWN-…` rows — packages whose license couldn't be determined) that inform but never gate. Twenty-five gating findings is too many to fix in one sitting, which is exactly the situation the next two steps are for. ([Auditors](AUDITORS.md), [Exit Codes](EXIT_CODES.md))
 
 ## Step 5 — Triage by reachability (experimental)
 
-Which of those 31 findings live in code this app actually imports?
+Which of those 25 gating findings live in code this app actually imports?
 
 ```bash
 bomly scan --enrich --audit --analyze --fail-on high --fail-on reachable
 ```
 
-The two `--fail-on` constraints AND together: a finding now gates only when it is high-or-above **and** reachable. On this project that cuts 31 findings to 16 — for example, `minimist@1.2.5` (pulled in by the dev-only `mocha` toolchain) drops out, while `minimist@0.0.10` on the runtime path stays.
+The two `--fail-on` constraints AND together: a vulnerability finding now gates only when it is high-or-above **and** reachable. On this project that cuts the gating vulnerability findings from 25 to 10 (the report shows 16 rows — the 6 license warnings are unaffected by reachability). For example, `minimist@1.2.5` (pulled in by the dev-only `mocha` toolchain) drops out, while `minimist@0.0.10` on the runtime path stays.
 
 Reachability is experimental, and at package precision "unreachable" means "no import path found", not "safe" — read [Reachability](REACHABILITY.md) before making this your only gate.
 
@@ -158,21 +158,20 @@ echo $?   # 2
 Version changed (1)
   ~ lodash  4.17.14 → 4.17.15
 
-6 finding(s) persisted.
+3 finding(s) persisted.
   persisted  [HIGH]      GHSA-35jh-r3h4-6jhm  lodash@4.17.15
   persisted  [HIGH]      GHSA-p6mc-m468-83gw  lodash@4.17.15
   persisted  [HIGH]      GHSA-r5fr-rjxr-66jc  lodash@4.17.15
-  persisted  [MEDIUM]    GHSA-29mw-wpgm-hmr9  lodash@4.17.15
-  persisted  [MEDIUM]    GHSA-f23m-r3pf-42rh  lodash@4.17.15
-  persisted  [MEDIUM]    GHSA-xxjr-mmjv-4gpg  lodash@4.17.15
 
 ✓ 1 fix suggestion for 1 of 1 vulnerable package.
   Run again with --format json to see remediation details.
 ```
 
+(The `--fail-on high` threshold filters the rendered findings too — drop it to also see this bump's three medium-severity persisted advisories.)
+
 Read this carefully, because it shows both halves of how diff gating works:
 
-- The other 21 vulnerable packages from Step 4 are absent. Diff audits **only the packages the change touched** — untouched debt elsewhere in the repo never blocks a PR.
+- The other 22 vulnerable packages from Step 3 are absent. Diff audits **only the packages the change touched** — untouched debt elsewhere in the repo never blocks a PR.
 - The exit code is still `2`. The lodash bump *persisted* three high-severity findings: 4.17.15 still ships them, so the gate correctly refuses to call this upgrade done. The way out is the bump the fix suggestion points at — or an accepted baseline.
 - The baseline from Step 6 didn't apply here because diff materializes each side from git: every side uses the baseline **committed at that ref**. Commit `.bomly/baseline.json` and PRs that leave accepted findings untouched pass.
 

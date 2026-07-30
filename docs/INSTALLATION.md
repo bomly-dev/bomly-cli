@@ -191,16 +191,25 @@ curl -sSfL https://get.anchore.io/grype | sh -s -- -b /usr/local/bin
 
 ## Verify release checksums
 
-Releases include `SHA256SUMS` alongside every archive and package. The commands below use `v0.20.2` — substitute the release you are verifying.
+Releases include `SHA256SUMS` alongside every archive and package. The commands below use `v0.20.2` and one archive per platform — substitute the release and artifact you are verifying, and download both the archive and the checksum file first.
 
-Linux and macOS:
+Linux (GNU coreutils):
 
 ```bash
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/bomly_0.20.2_linux_amd64.tar.gz
 curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/SHA256SUMS
 sha256sum --check SHA256SUMS --ignore-missing
 ```
 
-Each downloaded archive in the directory prints one `OK` line, and the command exits `0`:
+macOS (the system `shasum`; select the artifact's line first):
+
+```bash
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/bomly_0.20.2_darwin_arm64.tar.gz
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/SHA256SUMS
+grep " bomly_0.20.2_darwin_arm64.tar.gz$" SHA256SUMS | shasum -a 256 -c
+```
+
+Either way, each verified archive prints one `OK` line and the command exits `0`:
 
 ```text
 bomly_0.20.2_darwin_arm64.tar.gz: OK

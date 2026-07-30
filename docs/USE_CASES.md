@@ -12,6 +12,37 @@ bomly diff --base main --head HEAD --enrich --audit --fail-on high
 
 `diff` classifies findings as introduced / resolved / persisted and only `--fail-on` matches against the introduced set, so a clean PR passes even on a repo with known debt. Exit code `2` means a new high finding; see [Exit codes](EXIT_CODES.md).
 
+<details>
+<summary>Sample output — an <code>express</code> upgrade that drags in one new advisory</summary>
+
+```text
+Added (1)
+  + encodeurl@2.0.0  MIT      runtime
+Version changed (9)
+  ~ body-parser        1.20.2 → 1.20.3
+  ~ cookie             0.6.0 → 0.7.1
+  ~ express            4.19.2 → 4.21.2
+  ~ finalhandler       1.2.0 → 1.3.1
+  ~ merge-descriptors  1.0.1 → 1.0.3
+  ~ path-to-regexp     0.1.7 → 0.1.12
+  ~ qs                 6.11.0 → 6.13.0
+  ~ send               0.18.0 → 0.19.0
+  ~ serve-static       1.15.0 → 1.16.2
+
+1 new finding(s) introduced; 3 finding(s) persisted.
+  introduced  [MEDIUM]    GHSA-q8mj-m7cp-5q26  qs@6.13.0
+  persisted   [HIGH]      GHSA-37ch-88jc-xwx2  path-to-regexp@0.1.12
+  persisted   [MEDIUM]    GHSA-6rw7-vpxm-498p  qs@6.13.0
+  persisted   [LOW]       GHSA-w7fw-mjwx-w883  qs@6.13.0
+
+✓ 2 fix suggestions for 2 of 2 vulnerable packages.
+  Run again with --format json to see remediation details.
+```
+
+With `--fail-on high`, this run passes: the only *introduced* finding is medium, and the persisted high is pre-existing debt.
+
+</details>
+
 → Turnkey version for GitHub PRs: the [Bomly Guard action](https://github.com/bomly-dev/bomly-guard) ([setup](CI_INTEGRATION.md#turnkey-pr-reviews-with-bomly-guard)).
 
 ## Generate and publish an SBOM
@@ -125,10 +156,23 @@ You get added, removed, and updated dependencies, plus introduced/resolved findi
 **Goal:** find the path that pulled a transitive package into your build.
 
 ```bash
-bomly explain lodash
+bomly explain send
 ```
 
-`explain` prints the dependency path(s) that introduced the package. Add `--audit` to see findings in that path's context.
+`explain` prints every dependency path that introduces the package:
+
+```text
+package    send@0.18.0
+direct     no
+introduced by:
+  demo@1.0.0
+  └─ express@4.19.2
+     ├─ send@0.18.0 [analyzed] (transitive)
+     └─ serve-static@1.15.0
+        └─ send@0.18.0 [analyzed] (transitive)
+```
+
+Add `--audit` to see findings in that path's context. Full reference: [explain](commands/explain.md).
 
 ## Explore results interactively
 

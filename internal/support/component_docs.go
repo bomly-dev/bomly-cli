@@ -81,7 +81,7 @@ Bomly prefers native detectors because they preserve edges (needed by `+"`bomly 
 
 ## Selecting detectors
 
-Use `+"`--detectors`"+` to restrict or extend the default set with the standard `+"`+/-`"+` selector grammar:
+Use `+"`--detectors`"+` to restrict or extend the default set with the standard [selector grammar](COMMANDS.md#selector-grammar):
 
 `+"```bash"+`
 # Use only the native Go detector
@@ -266,7 +266,7 @@ Pass `+"`--enrich`"+` to run all default network matchers:
 bomly scan --enrich
 `+"```"+`
 
-Use `+"`--matchers`"+` to restrict or extend the set with the standard `+"`+/-`"+` selector grammar:
+Use `+"`--matchers`"+` to restrict or extend the set with the standard [selector grammar](COMMANDS.md#selector-grammar):
 
 `+"```bash"+`
 # Only OSV
@@ -366,7 +366,7 @@ network.
 | [`+"`license`"+`](auditors/license.md) | Package licenses vs. allow/deny SPDX policy | `+"`--allow-license`"+`, `+"`--deny-license`"+`, `+"`--license-exempt-package`"+` |
 | [`+"`package`"+`](auditors/package.md) | Denied packages, typosquatted names, and source changes | `+"`--deny-package`"+`, `+"`--deny-group`"+`, `+"`--protected-package`"+`, `+"`--typosquat-threshold`"+`, `+"`--typosquat-mode`"+`, `+"`--fail-on source-change`"+` |
 
-Select a subset with the `+"`--auditors`"+` selector (e.g. `+"`--auditors license`"+`). See the [per-auditor reference](auditors/) for options, examples, and limitations. Auditors are also a plugin extension point — for a worked example of an external auditor, see the [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor).
+Select a subset with the `+"`--auditors`"+` [selector](COMMANDS.md#selector-grammar) (e.g. `+"`--auditors license`"+`). See the [per-auditor reference](auditors/) for options, examples, and limitations. Auditors are also a plugin extension point — for a worked example of an external auditor, see the [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor).
 
 ## When auditors run
 

@@ -161,6 +161,12 @@
       "group": "reference"
     },
     {
+      "slug": "integrations",
+      "title": "Integrations",
+      "description": "CI actions, AI agents, code scanning, install channels, and plugins Bomly connects to.",
+      "group": "operations"
+    },
+    {
       "slug": "ci-integration",
       "title": "CI integration",
       "description": "Drop-in recipes for GitHub Actions, GitLab, Jenkins, Azure DevOps, and CircleCI.",

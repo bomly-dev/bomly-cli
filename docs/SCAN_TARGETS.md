@@ -39,6 +39,23 @@ bomly scan --recursive --exclude dist,examples  # repeatable / comma-separated
 
 It works with `--path` and `--url` targets. `--image` and `--sbom` scans do not use directory discovery and reject `--recursive` with exit 4.
 
+The report shows the discovered structure — every subproject with its manifest and package count, consolidated into one graph:
+
+```text
+✓ 78 packages in 2 manifests   (2 direct, 76 transitive · runtime 78, dev 0)
+  ├─ api (subproject, npm)
+  │  └─ demo — 68 packages [package-lock.json]
+  └─ web (subproject, npm)
+     └─ demo — 69 packages [package-lock.json]
+
+Top-level dependencies
+  NAME      VERSION   LICENSE   SCOPE     VULNS
+  express   4.19.2    MIT       runtime   -
+  express   4.21.2    MIT       runtime   -
+```
+
+Both versions of a package appear when different subprojects pin different releases — each is a distinct package keyed by its own PURL.
+
 ### Depth — `--max-depth`
 
 Depth is counted from the scan root: the root itself is depth 0 and a direct child is depth 1. Directories at depths beyond `--max-depth` are not visited. The default is `3`; `--max-depth 0` removes the limit. `--max-depth` requires `--recursive`.
@@ -174,6 +191,16 @@ SPDX 2.3 JSON and CycloneDX 1.6 JSON are auto-detected. Useful when:
 - You produced an SBOM in a previous CI step and want to audit it.
 - A vendor sent you an SBOM and you want to evaluate it against your policy.
 - You're testing detector output without re-running the heavy detector.
+
+Ingest looks like a normal scan, with one visible difference — SBOMs don't carry Bomly's runtime/development scope split, so dependencies keep the relationship the SBOM recorded (here, `required`) and count as `unscoped`:
+
+```text
+✓ 69 packages in 1 manifest   (1 direct, 68 transitive · runtime 0, dev 0, unscoped 69)
+
+Top-level dependencies
+  NAME      VERSION   LICENSE   SCOPE      VULNS
+  express   4.21.2    MIT       required   -
+```
 
 See [SBOM formats](SBOM.md) for the format comparison.
 

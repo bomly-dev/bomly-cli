@@ -40,6 +40,25 @@ The default. Groups packages by ecosystem and edge depth, summarizes finding cou
 bomly scan --enrich --audit
 ```
 
+```text
+✓ 68 packages in 1 manifest   (1 direct, 67 transitive · runtime 68, dev 0)
+
+✓ Enriched via Grype, deps.dev License Matcher
+
+✓ 7 fix suggestions for 7 of 7 vulnerable packages.
+  Run again with --format json to see remediation details.
+
+Top-level dependencies
+  NAME      VERSION   LICENSE   SCOPE     VULNS
+  express   4.19.2    MIT       runtime   1L
+
+Findings
+  [HIGH]      GHSA-37ch-88jc-xwx2  path-to-regexp@0.1.7
+  [HIGH]      GHSA-9wv6-86v2-598j  path-to-regexp@0.1.7
+  [HIGH]      GHSA-qwcr-r2fm-qrc7  body-parser@1.20.2
+  [HIGH]      GHSA-rhx6-c78j-4q9w  path-to-regexp@0.1.7
+```
+
 Markdown reports include the same remediation summary and the complete
 suggestion table.
 
@@ -81,6 +100,21 @@ bomly explain lodash --json | jq '.paths[] | .nodes | map(.name) | join(" -> ")'
 
 # New findings introduced by a PR
 bomly diff --base main --head HEAD --enrich --audit --json | jq '.findings.introduced[]'
+```
+
+The first query against a project pinning `express@4.19.2` (first two of several matches shown):
+
+```json
+{
+  "name": "body-parser",
+  "version": "1.20.2",
+  "ecosystem": "npm"
+}
+{
+  "name": "path-to-regexp",
+  "version": "0.1.7",
+  "ecosystem": "npm"
+}
 ```
 
 JSON output includes Bomly-specific metadata that standard SBOM formats don't carry: reachability tier/status/confidence, audit reasons, and per-finding source.
@@ -128,11 +162,41 @@ SARIF 2.1.0. Findings only. One result per (rule × package) pair. Includes:
 bomly scan --enrich --audit --fail-on high --format sarif > bomly.sarif
 ```
 
+<details>
+<summary>Sample result object (one finding, properties trimmed)</summary>
+
+```json
+{
+  "ruleId": "GHSA-m6fv-jmcg-4jfg",
+  "level": "error",
+  "message": {
+    "text": "send vulnerable to template injection that can lead to XSS in pkg:npm/send@0.18.0"
+  },
+  "locations": [
+    {
+      "physicalLocation": {
+        "artifactLocation": { "uri": "package-lock.json" },
+        "region": { "startLine": 636 }
+      }
+    }
+  ],
+  "properties": {
+    "package_ref": "pkg:npm/send@0.18.0",
+    "fixed_in": "0.19.0",
+    "fix_state": "fixed"
+  }
+}
+```
+
+Locations point at the lockfile line that pins the vulnerable version, so code-scanning annotations land somewhere actionable.
+
+</details>
+
 GitHub Code Scanning, Azure DevOps, and most IDE extensions ingest SARIF directly. See [CI integration](CI_INTEGRATION.md) for upload recipes.
 
 ## Additional output: `-o`
 
-`-o` uses the same format names as `--format`, plus an optional file path. Use `<format>=<path>` to write to a file, or just `<format>` to write that additional output to stdout.
+`-o` uses the same format names as `--format`, plus an optional file path. Use `<format>=<path>` to write to a file, or just `<format>` to write that additional output to stdout. When every `-o` names a file and `--format` is not set, a successful run writes the files silently — pass `--format text` (or any primary format) if you also want stdout output.
 
 ```bash
 bomly scan --json \

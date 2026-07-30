@@ -53,7 +53,7 @@ With `--fail-on high`, this run passes: the only *introduced* finding is medium,
 bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json
 ```
 
-Both files are written in one pass from the same resolved graph. Use `--format spdx` (or `cyclonedx`) to stream a single SBOM to stdout instead. Details: [SBOM formats](SBOM.md).
+Both files are written in one pass from the same resolved graph, and a successful run prints nothing — add `--format text` if you also want the terminal report in the build log. Use `--format spdx` (or `cyclonedx`) to stream a single SBOM to stdout instead. Details: [SBOM formats](SBOM.md).
 
 ## Triage vulnerabilities by reachability
 

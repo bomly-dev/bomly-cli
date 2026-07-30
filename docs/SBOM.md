@@ -47,6 +47,7 @@ Constraints:
 
 - At most one `-o` may omit `=<path>`. Two stdout outputs would collide.
 - `-o spdx=` (empty path) is an error.
+- When every `-o` names a file and `--format` is not set, a successful run writes the files and prints nothing — add `--format text` if you also want the terminal report.
 - `--format spdx`, `--format cyclonedx`, `-o spdx`, and `-o cyclonedx` are supported by `scan` only.
 - Paths are resolved relative to the current working directory.
 

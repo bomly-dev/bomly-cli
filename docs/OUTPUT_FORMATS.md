@@ -225,7 +225,7 @@ Supported targets:
 A single scan can produce:
 
 - A human report on stdout.
-- A JSON document piped to a file.
+- A JSON document written to a file.
 - A SARIF document for a CI panel.
 - One or more SBOM artifacts.
 
@@ -233,13 +233,14 @@ Example:
 
 ```bash
 bomly scan --enrich --audit --fail-on high \
-  --json \
-  -o markdown=summary.md \
+  --format text \
+  -o json=bomly.json \
   -o sarif=bomly.sarif \
   -o spdx=sbom.spdx.json \
-  -o cyclonedx=sbom.cdx.json \
-  > bomly.json
+  -o cyclonedx=sbom.cdx.json
 ```
+
+`--format text` keeps the terminal report on stdout. Without it (and with every `-o` naming a file), a successful run writes the files and prints nothing.
 
 Detector and matcher work runs once. All outputs derive from the same in-memory graph.
 

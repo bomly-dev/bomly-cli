@@ -59,7 +59,7 @@ bomly scan --enrich --audit --analyze --fail-on low --fail-on reachable
 ```bash
 bomly scan --json                                   # shortcut for --format json
 bomly scan --enrich --audit --fail-on high --format sarif
-bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json  # write SBOM files; prints nothing — add --format text to keep the report
+bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json  # write SBOM files; prints nothing — add --format text to also print a report
 bomly scan --interactive                            # open the TUI instead of printing a report
 ```
 

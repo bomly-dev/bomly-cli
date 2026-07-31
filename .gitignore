@@ -27,3 +27,12 @@ qodana.yaml
 
 # Local scratch notes (not tracked)
 /notes
+
+# npm wrapper artifacts (the binary is fetched by its postinstall step)
+/npm/vendor
+/npm/node_modules
+/npm/*.tgz
+
+# Copied from the repo root by npm/scripts/prepack.js at pack time
+/npm/LICENSE
+/npm/NOTICE

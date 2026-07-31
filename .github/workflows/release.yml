@@ -226,3 +226,176 @@ jobs:
             > /dev/null
 
           gh release edit "$RELEASE_TAG" --draft=false --repo bomly-dev/bomly-cli
+
+  publish-npm:
+    # Publishes the `bomly-mcp` npm wrapper, which is the package the official
+    # MCP Registry entry points at.
+    #
+    # Authentication is npm Trusted Publishing (OIDC) — there is deliberately
+    # no npm token here, and none should ever be added. npm's own token screen
+    # warns against long-lived automation tokens for exactly this case.
+    #
+    # Must run after `publish`: the wrapper's postinstall step downloads the
+    # release archive and its checksum file from this tag, and draft-release
+    # assets are not publicly downloadable — so publishing npm any earlier
+    # ships a package that cannot install.
+    #
+    # Split from `publish-mcp-registry` so a failure in either half can be
+    # re-run on its own. npm versions are immutable, so this job also treats
+    # "this exact version is already published" as success rather than as an
+    # error that would block the registry step behind it.
+    #
+    # Inert until Ahmed turns it on. Setup is one-time and documented in
+    # dev-docs/CI.md; the short version:
+    #   1. publish bomly-mcp once by hand (trusted publishing cannot create a
+    #      package that does not exist yet)
+    #   2. set the trusted publisher at
+    #      npmjs.com/package/bomly-mcp/access -> this repo, workflow release.yml
+    #   3. gh variable set PUBLISH_MCP_REGISTRY -R bomly-dev/bomly-cli --body true
+    needs: publish
+    if: startsWith(github.ref, 'refs/tags/') && vars.PUBLISH_MCP_REGISTRY == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # mints the OIDC token npm exchanges for publish rights
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Upgrade npm for trusted publishing
+        # Trusted publishing needs npm >= 11.5.1. The runner image bundles an
+        # older npm with its Node, so pin an explicit floor rather than
+        # inheriting whatever the image happens to ship this month.
+        run: |
+          set -euo pipefail
+          npm install -g npm@^11.5.1
+          npm --version
+
+      - name: Stamp the release version into npm/package.json
+        # The tag is authoritative. Auto Version keeps the committed files in
+        # sync too, but deriving here means a missed bump cannot publish a
+        # wrapper that points at a release that does not exist.
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="${RELEASE_TAG#v}"
+          jq --arg v "$version" '.version = $v' npm/package.json > npm/package.json.tmp
+          mv npm/package.json.tmp npm/package.json
+
+      - name: Publish bomly-mcp to npm
+        # No `env:` and no npmrc: npm reads the OIDC token from the Actions
+        # runtime itself. --provenance is passed explicitly even though trusted
+        # publishing is documented to imply it, because the implicit path has
+        # been reported to no-op.
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        working-directory: npm
+        run: |
+          set -euo pipefail
+          version="${RELEASE_TAG#v}"
+
+          # Idempotent: a re-run after a partial failure must not die here on
+          # an immutable version that is already live.
+          if curl -fsSL "https://registry.npmjs.org/bomly-mcp/${version}" > /dev/null 2>&1; then
+            echo "bomly-mcp@${version} is already published; skipping npm publish."
+            exit 0
+          fi
+
+          npm publish --provenance --access public
+
+  publish-mcp-registry:
+    # Publishes the server entry in the official MCP Registry
+    # (https://registry.modelcontextprotocol.io).
+    #
+    # Registry auth is GitHub OIDC, so it needs no secret of its own; the
+    # `io.github.bomly-dev/*` namespace is granted from this repo's identity.
+    #
+    # Kept separate from publish-npm so either half can be re-run alone: npm
+    # versions are immutable, so a combined job that failed here could not be
+    # retried without tripping over the already-published version. (It was also
+    # the boundary that kept an npm token away from the downloaded
+    # mcp-publisher binary; with trusted publishing there is no token left to
+    # isolate, but the retry argument stands on its own.)
+    needs: publish-npm
+    if: startsWith(github.ref, 'refs/tags/') && vars.PUBLISH_MCP_REGISTRY == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # required for mcp-publisher's OIDC login
+    env:
+      # Pinned deliberately. `releases/latest` would download and execute a
+      # moving target inside a job that holds an OIDC identity able to publish
+      # under our registry namespace. Bump this together with the digest and
+      # the signer identity below, after reading the release diff.
+      MCP_PUBLISHER_VERSION: v1.8.0
+      MCP_PUBLISHER_SHA256: 1370446bbe74d562608e8005a6ccce02d146a661fbd78674e11cc70b9618d6cf
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Stamp the release version into server.json
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="${RELEASE_TAG#v}"
+          jq --arg v "$version" '.version = $v | .packages[0].version = $v' server.json > server.json.tmp
+          mv server.json.tmp server.json
+
+      - name: Wait for the npm package to be resolvable
+        # The registry verifies package ownership by fetching the package, so
+        # publishing the server entry before npm's CDN has the new version
+        # fails validation.
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="${RELEASE_TAG#v}"
+          for attempt in $(seq 1 30); do
+            if curl -fsSL "https://registry.npmjs.org/bomly-mcp/${version}" > /dev/null 2>&1; then
+              echo "bomly-mcp@${version} is resolvable."
+              exit 0
+            fi
+            echo "Attempt ${attempt}: bomly-mcp@${version} not visible yet, waiting."
+            sleep 10
+          done
+          echo "::error::bomly-mcp@${version} did not become resolvable on npm within 5 minutes"
+          exit 1
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Download and verify mcp-publisher
+        # Two independent checks before anything is extracted or executed:
+        # the pinned SHA-256, and the Sigstore bundle proving the archive was
+        # built by the registry's own tagged release workflow.
+        run: |
+          set -euo pipefail
+
+          base="https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}"
+          archive="mcp-publisher_linux_amd64.tar.gz"
+
+          curl -fsSL -o "${archive}" "${base}/${archive}"
+          curl -fsSL -o "${archive}.sigstore.json" "${base}/${archive}.sigstore.json"
+
+          echo "${MCP_PUBLISHER_SHA256}  ${archive}" | sha256sum --check --strict
+
+          cosign verify-blob "${archive}" \
+            --bundle "${archive}.sigstore.json" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --certificate-identity "https://github.com/modelcontextprotocol/registry/.github/workflows/release.yml@refs/tags/${MCP_PUBLISHER_VERSION}"
+
+          tar xzf "${archive}" mcp-publisher
+
+      - name: Publish the server entry to the MCP Registry
+        run: |
+          set -euo pipefail
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish

@@ -27,12 +27,30 @@ bomly mcp serve
 
 The command writes its startup banner to stderr and then waits for an MCP client on stdio. It is not meant to be used as an interactive shell command after startup.
 
+## Without Installing The CLI First
+
+If you would rather not install Bomly separately, the [`bomly-mcp`](https://www.npmjs.com/package/bomly-mcp) npm package starts the same server:
+
+```bash
+npx -y bomly-mcp
+```
+
+Its install step downloads the release archive for your platform from GitHub Releases and checks it against `SHA256SUMS`, the file published with each release that lists the SHA-256 checksum of every archive in it. If the archive's checksum does not match the one listed there, the install fails and nothing is unpacked. Otherwise the binary is unpacked inside the package, together with the `LICENSE`, `NOTICE`, and `licenses/` files the archive carries. Set `BOMLY_MCP_VERSION` to pin a different CLI version.
+
+Anywhere below that a config uses `"command": "bomly"` with `"args": ["mcp", "serve"]`, you can use `"command": "npx"` with `"args": ["-y", "bomly-mcp"]` instead. If `bomly` is already on `PATH`, prefer it: the server starts faster and you update it with your package manager.
+
 ## Claude Code
 
 Add Bomly as a local stdio server:
 
 ```bash
 claude mcp add --transport stdio bomly -- bomly mcp serve
+```
+
+Or, without a separate CLI install:
+
+```bash
+claude mcp add --transport stdio bomly -- npx -y bomly-mcp
 ```
 
 For a project-scoped config you can also commit a `.mcp.json` file:

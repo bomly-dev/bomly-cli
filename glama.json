@@ -1,0 +1,20 @@
+{
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "maintainers": [
+    "bomly-guy"
+  ],
+  "name": "bomly",
+  "description": "Give your coding agent the dependency graph it is about to change. Scan a source tree, SBOM, Git ref, or container image; explain why a package is present; diff two graphs; check findings against policy. Vulnerability and license lookups are opt-in per call.",
+  "keywords": [
+    "dependencies",
+    "sbom",
+    "cyclonedx",
+    "spdx",
+    "supply-chain-security",
+    "vulnerability-scanning",
+    "sca",
+    "policy",
+    "devsecops",
+    "local-first"
+  ]
+}

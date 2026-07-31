@@ -270,6 +270,19 @@ Two jobs at the end of `release.yml` publish the `bomly-mcp` npm wrapper and the
    gh variable set PUBLISH_MCP_REGISTRY -R bomly-dev/bomly-cli --body true
    ```
 
+### Publishing the registry entry by hand
+
+Rarely needed — the release workflow does it — but useful for a first listing or a fix-up:
+
+```bash
+mcp-publisher login github --token "$(gh auth token)"
+mcp-publisher publish
+```
+
+**Use `--token`, not the bare interactive `mcp-publisher login github`.** The interactive OAuth flow does not request the `read:org` scope, so the registry cannot read your organization role and grants only your personal namespace (`io.github.<user>/*`). Publishing then fails with a 403 naming the wrong namespace. The error suggests making your org membership public; that alone does **not** fix it. A token carrying `read:org` does — and the `gh` CLI's own token already has it.
+
+Publishing under `io.github.bomly-dev/*` also requires being an **Owner** of the org, which the registry checks.
+
 ### Notes
 
 - **npm version floor.** Trusted publishing needs npm >= 11.5.1, which is newer than the runner image's bundled npm. The job installs `npm@^11.5.1` explicitly rather than inheriting whatever the image ships.

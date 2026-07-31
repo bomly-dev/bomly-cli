@@ -35,7 +35,7 @@ If you would rather not install Bomly separately, the [`bomly-mcp`](https://www.
 npx -y bomly-mcp
 ```
 
-Its install step downloads the release archive for your platform from GitHub Releases, checks it against that release's `SHA256SUMS`, and unpacks the binary inside the package. A checksum mismatch fails the install. Set `BOMLY_MCP_VERSION` to pin a different CLI version.
+Its install step downloads the release archive for your platform from GitHub Releases and checks it against `SHA256SUMS`, the file published with each release that lists the SHA-256 checksum of every archive in it. If the archive's checksum does not match the one listed there, the install fails and nothing is unpacked. Otherwise the binary is unpacked inside the package, together with the `LICENSE`, `NOTICE`, and `licenses/` files the archive carries. Set `BOMLY_MCP_VERSION` to pin a different CLI version.
 
 Anywhere below that a config uses `"command": "bomly"` with `"args": ["mcp", "serve"]`, you can use `"command": "npx"` with `"args": ["-y", "bomly-mcp"]` instead. If `bomly` is already on `PATH`, prefer it: the server starts faster and you update it with your package manager.
 

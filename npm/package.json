@@ -1,6 +1,6 @@
 {
   "name": "bomly-mcp",
-  "version": "0.20.1",
+  "version": "0.21.1",
   "description": "Run the Bomly MCP server with npx. Downloads the matching Bomly CLI release binary and starts `bomly mcp serve`.",
   "mcpName": "io.github.bomly-dev/bomly-cli",
   "license": "Apache-2.0",
@@ -29,7 +29,9 @@
   "files": [
     "bin/",
     "scripts/",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "NOTICE"
   ],
   "engines": {
     "node": ">=18"
@@ -44,6 +46,8 @@
     "arm64"
   ],
   "scripts": {
-    "postinstall": "node scripts/postinstall.js"
+    "prepack": "node scripts/prepack.js",
+    "postinstall": "node scripts/postinstall.js",
+    "test": "node --test \"test/*.test.js\""
   }
 }

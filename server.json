@@ -3,7 +3,7 @@
   "name": "io.github.bomly-dev/bomly-cli",
   "title": "Bomly",
   "description": "Give your coding agent the dependency graph it is about to change: scan, diff, explain, audit",
-  "version": "0.20.1",
+  "version": "0.21.1",
   "websiteUrl": "https://bomly.dev/cli",
   "repository": {
     "url": "https://github.com/bomly-dev/bomly-cli",
@@ -14,7 +14,7 @@
     {
       "registryType": "npm",
       "identifier": "bomly-mcp",
-      "version": "0.20.1",
+      "version": "0.21.1",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"

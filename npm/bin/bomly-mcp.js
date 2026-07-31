@@ -35,14 +35,28 @@ child.on("error", (error) => {
 
 // Forward the signals an MCP client uses to stop a stdio server, so the child
 // shuts down with us rather than being orphaned.
+const forwarders = new Map();
 for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
-  process.on(signal, () => child.kill(signal));
+  const forward = () => child.kill(signal);
+  forwarders.set(signal, forward);
+  process.on(signal, forward);
 }
 
 child.on("exit", (code, signal) => {
   if (signal) {
+    // Adding a listener above replaced Node's default terminate-on-signal
+    // behavior. Re-raising while it is still attached only re-enters our own
+    // handler; the event loop then drains and we exit 0 — telling whatever
+    // supervises us that the server shut down cleanly when it was actually
+    // killed. Removing the listener first lets the signal reach the default
+    // handler, so we die of the same cause the child did. process.exit is the
+    // backstop for platforms where re-raising does not terminate us.
+    const forward = forwarders.get(signal);
+    if (forward) {
+      process.removeListener(signal, forward);
+    }
     process.kill(process.pid, signal);
-    return;
+    process.exit(1);
   }
   process.exit(code === null ? 1 : code);
 });

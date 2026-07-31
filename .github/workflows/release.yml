@@ -231,6 +231,10 @@ jobs:
     # Publishes the `bomly-mcp` npm wrapper, which is the package the official
     # MCP Registry entry points at.
     #
+    # Authentication is npm Trusted Publishing (OIDC) — there is deliberately
+    # no npm token here, and none should ever be added. npm's own token screen
+    # warns against long-lived automation tokens for exactly this case.
+    #
     # Must run after `publish`: the wrapper's postinstall step downloads the
     # release archive and its checksum file from this tag, and draft-release
     # assets are not publicly downloadable — so publishing npm any earlier
@@ -241,21 +245,34 @@ jobs:
     # "this exact version is already published" as success rather than as an
     # error that would block the registry step behind it.
     #
-    # Inert until Ahmed turns it on. Enable with:
-    #   gh secret set NPM_TOKEN -R bomly-dev/bomly-cli
-    #   gh variable set PUBLISH_MCP_REGISTRY -R bomly-dev/bomly-cli --body true
+    # Inert until Ahmed turns it on. Setup is one-time and documented in
+    # dev-docs/CI.md; the short version:
+    #   1. publish bomly-mcp once by hand (trusted publishing cannot create a
+    #      package that does not exist yet)
+    #   2. set the trusted publisher at
+    #      npmjs.com/package/bomly-mcp/access -> this repo, workflow release.yml
+    #   3. gh variable set PUBLISH_MCP_REGISTRY -R bomly-dev/bomly-cli --body true
     needs: publish
     if: startsWith(github.ref, 'refs/tags/') && vars.PUBLISH_MCP_REGISTRY == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
-      id-token: write # required for npm publish --provenance
+      id-token: write # mints the OIDC token npm exchanges for publish rights
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      - name: Upgrade npm for trusted publishing
+        # Trusted publishing needs npm >= 11.5.1. The runner image bundles an
+        # older npm with its Node, so pin an explicit floor rather than
+        # inheriting whatever the image happens to ship this month.
+        run: |
+          set -euo pipefail
+          npm install -g npm@^11.5.1
+          npm --version
 
       - name: Stamp the release version into npm/package.json
         # The tag is authoritative. Auto Version keeps the committed files in
@@ -270,22 +287,16 @@ jobs:
           mv npm/package.json.tmp npm/package.json
 
       - name: Publish bomly-mcp to npm
-        # The token is written to a job-temp npmrc selected by
-        # NPM_CONFIG_USERCONFIG, not to ~/.npmrc. A step-scoped `env:` does not
-        # scope a file: anything ~/.npmrc would stay readable by every later
-        # step, including the downloaded mcp-publisher binary. The trap removes
-        # it even when npm fails.
+        # No `env:` and no npmrc: npm reads the OIDC token from the Actions
+        # runtime itself. --provenance is passed explicitly even though trusted
+        # publishing is documented to imply it, because the implicit path has
+        # been reported to no-op.
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           RELEASE_TAG: ${{ github.ref_name }}
+        working-directory: npm
         run: |
           set -euo pipefail
           version="${RELEASE_TAG#v}"
-
-          if [ -z "${NPM_TOKEN}" ]; then
-            echo "::error::PUBLISH_MCP_REGISTRY is true but NPM_TOKEN is not set. Run: gh secret set NPM_TOKEN -R bomly-dev/bomly-cli"
-            exit 1
-          fi
 
           # Idempotent: a re-run after a partial failure must not die here on
           # an immutable version that is already live.
@@ -294,11 +305,7 @@ jobs:
             exit 0
           fi
 
-          npmrc="${RUNNER_TEMP}/.npmrc"
-          trap 'rm -f "${npmrc}"' EXIT
-          (umask 077 && printf '//registry.npmjs.org/:_authToken=%s\n' "${NPM_TOKEN}" > "${npmrc}")
-
-          NPM_CONFIG_USERCONFIG="${npmrc}" npm publish --provenance --access public ./npm
+          npm publish --provenance --access public
 
   publish-mcp-registry:
     # Publishes the server entry in the official MCP Registry
@@ -306,7 +313,13 @@ jobs:
     #
     # Registry auth is GitHub OIDC, so it needs no secret of its own; the
     # `io.github.bomly-dev/*` namespace is granted from this repo's identity.
-    # This job never sees NPM_TOKEN — that is why it is a separate job.
+    #
+    # Kept separate from publish-npm so either half can be re-run alone: npm
+    # versions are immutable, so a combined job that failed here could not be
+    # retried without tripping over the already-published version. (It was also
+    # the boundary that kept an npm token away from the downloaded
+    # mcp-publisher binary; with trusted publishing there is no token left to
+    # isolate, but the retry argument stands on its own.)
     needs: publish-npm
     if: startsWith(github.ref, 'refs/tags/') && vars.PUBLISH_MCP_REGISTRY == 'true'
     runs-on: ubuntu-latest

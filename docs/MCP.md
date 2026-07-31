@@ -141,7 +141,7 @@ MCP tool results land in an agent's context window, so they use a compact respon
   - `no-fix-upstream` means the advisory source says no fixed version exists.
   - `manual-review` means the available data does not support a specific change.
 - **`informational`** — findings that do not currently require a change. This includes warning-only findings and vulnerabilities allowed by audit policy or below the selected failure threshold.
-- **`diagnostics`** — pipeline warnings (detector fallbacks, matcher failures) so partial results explain themselves.
+- **`diagnostics`** — pipeline warnings (detector fallbacks, matcher failures) so partial results explain themselves, plus the [CI-readiness warnings](CI_READINESS.md) detectors record while resolving: package-manager, lockfile-format, and install-policy mismatches that fail a CI install even after the vulnerability is fixed.
 - **`truncation`** — explicit counters whenever a cap cut anything; nothing is dropped silently.
 
 Each finding carries advisory identifiers (`vuln_id`, aliases), severity, classification (`fix_available`, `no_fix_upstream`, `wont_fix`, `policy_only`), the shortest dependency path, and KEV/EPSS/reachability signals — but no descriptions, reference URLs, or CVSS vectors.
@@ -193,6 +193,24 @@ Bomly's MCP server runs as your user on your machine. Treat it like running the 
 Network enrichment is opt-in via `enrich` for `bomly_scan`, `bomly_explain`, and `bomly_diff`. Without enrichment, matchers do not call vulnerability, license, lifecycle, or scorecard services. Some detectors may still invoke package-manager commands, and those tools can contact package registries as part of normal dependency resolution. See [Detectors](DETECTORS.md#network-behavior) for the detector-level breakdown.
 
 ## Troubleshooting
+
+### A Tool Reports Only A Short Failure Category
+
+MCP tool errors use short messages such as `scan pipeline failed` or
+`diff target resolution failed`. Bomly does not send raw internal errors to the
+MCP client because they can contain local paths, command output, URLs, or
+credentials.
+
+Run the server with `bomly -vv mcp serve` and reproduce the request to inspect
+the safe stage logs emitted independently by the component that failed. The
+MCP error log itself records only the stable category and the Go type of the
+unwrapped cause, never the cause text. The MCP client must keep stdout reserved
+for the protocol.
+
+Request validation uses the same short category instead of echoing the rejected
+value. This keeps paths, URLs, and other user input out of the protocol and
+logs, but it also means an agent may need to inspect the tool schema or retry
+with fewer options to identify an invalid combination.
 
 ### `spawn bomly ENOENT`
 

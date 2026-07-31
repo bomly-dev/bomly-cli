@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -215,6 +216,28 @@ func TestResolveGitHubReleaseRedactsTokenFromErrors(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "[redacted]") {
 		t.Fatalf("expected redacted marker in error, got %q", err.Error())
+	}
+}
+
+func TestResolveGitHubReleaseRejectsOversizedMetadata(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Length", fmt.Sprint(maxGitHubReleaseMetadataBytes+1))
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	origBase := githubReleaseAPIBase
+	origClient := pluginHTTPClient
+	githubReleaseAPIBase = server.URL
+	pluginHTTPClient = server.Client()
+	defer func() {
+		githubReleaseAPIBase = origBase
+		pluginHTTPClient = origClient
+	}()
+
+	_, err := resolveGitHubRelease(context.Background(), "github:acme/release-detector@v1.0.0")
+	if err == nil || !strings.Contains(err.Error(), "response exceeds a limit of 4 MiB") {
+		t.Fatalf("resolveGitHubRelease() error = %v", err)
 	}
 }
 

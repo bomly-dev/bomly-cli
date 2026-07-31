@@ -161,8 +161,8 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 	if err != nil {
 		logger.Warn(fmt.Sprintf("Go module detector failed: %v", err))
 		fields := []zap.Field{zap.Error(err)}
-		if commandStderr.String() != "" {
-			fields = append(fields, zap.String("stderr", commandStderr.String()))
+		if commandStderr.ByteCount() > 0 {
+			fields = append(fields, zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		}
 		logger.Debug("go module detector failure details", fields...)
 		return nil, fmt.Errorf("run go list -deps -json all: %w", err)
@@ -386,7 +386,7 @@ func moduleNodeID(node moduleNode) string {
 }
 
 func parseGoModFile(path string) (string, []moduleRef, error) {
-	data, err := os.ReadFile(path)
+	data, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return "", nil, fmt.Errorf("read %q: %w", path, err)
 	}
@@ -470,7 +470,7 @@ func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
 	cmd.Stderr = commandStderr
 	started := time.Now()
 	logger.Info("Go detector running install-first step")
-	logger.Debug("running go detector install-first", zap.String("working_dir", workingDir), zap.String("executable", goPath), zap.Strings("args", args))
+	logger.Debug("running go detector install-first", logging.CommandFields(goPath, args, workingDir)...)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("run go mod download: %w", err)
 	}

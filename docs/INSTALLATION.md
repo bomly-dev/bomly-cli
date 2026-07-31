@@ -94,12 +94,12 @@ irm https://bomly.dev/install.ps1 | iex
 Pin a version or install the lite binary:
 
 ```bash
-curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
+curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.20.2 sh
 curl -fsSL https://bomly.dev/install.sh | BOMLY_BINARY=bomly-lite sh
 ```
 
 ```powershell
-$env:BOMLY_VERSION = "v0.14.2"; irm https://bomly.dev/install.ps1 | iex
+$env:BOMLY_VERSION = "v0.20.2"; irm https://bomly.dev/install.ps1 | iex
 $env:BOMLY_BINARY = "bomly-lite"; irm https://bomly.dev/install.ps1 | iex
 ```
 
@@ -143,19 +143,19 @@ Archive naming:
 Manual Linux / macOS install:
 
 ```bash
-curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.14.2/bomly_v0.14.2_linux_amd64.tar.gz
-curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.14.2/SHA256SUMS
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/bomly_0.20.2_linux_amd64.tar.gz
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/SHA256SUMS
 sha256sum --check SHA256SUMS --ignore-missing
-tar -xzf bomly_v0.14.2_linux_amd64.tar.gz
+tar -xzf bomly_0.20.2_linux_amd64.tar.gz
 sudo install -m 0755 bomly /usr/local/bin/
 ```
 
 Manual Windows install:
 
 ```powershell
-$archive = "bomly_v0.14.2_windows_amd64.zip"
-Invoke-WebRequest -Uri "https://github.com/bomly-dev/bomly-cli/releases/download/v0.14.2/$archive" -OutFile $archive
-Invoke-WebRequest -Uri "https://github.com/bomly-dev/bomly-cli/releases/download/v0.14.2/SHA256SUMS" -OutFile SHA256SUMS
+$archive = "bomly_0.20.2_windows_amd64.zip"
+Invoke-WebRequest -Uri "https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/$archive" -OutFile $archive
+Invoke-WebRequest -Uri "https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/SHA256SUMS" -OutFile SHA256SUMS
 Get-FileHash .\$archive -Algorithm SHA256
 Expand-Archive -Path $archive -DestinationPath .
 # Move bomly.exe somewhere on your PATH.
@@ -191,19 +191,34 @@ curl -sSfL https://get.anchore.io/grype | sh -s -- -b /usr/local/bin
 
 ## Verify release checksums
 
-Releases include `SHA256SUMS` alongside every archive and package.
+Releases include `SHA256SUMS` alongside every archive and package. The commands below use `v0.20.2` and one archive per platform — substitute the release and artifact you are verifying, and download both the archive and the checksum file first.
 
-Linux and macOS:
+Linux (GNU coreutils):
 
 ```bash
-curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.14.2/SHA256SUMS
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/bomly_0.20.2_linux_amd64.tar.gz
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/SHA256SUMS
 sha256sum --check SHA256SUMS --ignore-missing
+```
+
+macOS (the system `shasum`; select the artifact's line first):
+
+```bash
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/bomly_0.20.2_darwin_arm64.tar.gz
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/SHA256SUMS
+grep " bomly_0.20.2_darwin_arm64.tar.gz$" SHA256SUMS | shasum -a 256 -c
+```
+
+Either way, each verified archive prints one `OK` line and the command exits `0`:
+
+```text
+bomly_0.20.2_darwin_arm64.tar.gz: OK
 ```
 
 PowerShell:
 
 ```powershell
-Get-FileHash .\bomly_v0.14.2_windows_amd64.zip -Algorithm SHA256
+Get-FileHash .\bomly_0.20.2_windows_amd64.zip -Algorithm SHA256
 # Compare the printed hash against the matching line in SHA256SUMS.
 ```
 
@@ -212,7 +227,7 @@ Get-FileHash .\bomly_v0.14.2_windows_amd64.zip -Algorithm SHA256
 `SHA256SUMS` is itself signed keylessly with [cosign](https://docs.sigstore.dev/cosign/signing/overview/), tying the release to the exact GitHub Actions workflow run that built it:
 
 ```bash
-curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.14.2/SHA256SUMS.sigstore.json
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/SHA256SUMS.sigstore.json
 cosign verify-blob \
   --bundle SHA256SUMS.sigstore.json \
   --certificate-identity-regexp "^https://github.com/bomly-dev/bomly-cli/.github/workflows/release.yml@.*$" \
@@ -220,17 +235,23 @@ cosign verify-blob \
   SHA256SUMS
 ```
 
+A valid signature prints exactly:
+
+```text
+Verified OK
+```
+
 ### Verify SLSA provenance
 
 Each release also publishes a single `multiple.intoto.jsonl` SLSA Build Level 3 provenance file covering every release artifact, attesting which source commit and workflow produced them:
 
 ```bash
-curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.14.2/bomly_v0.14.2_linux_amd64.tar.gz
-curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.14.2/multiple.intoto.jsonl
-slsa-verifier verify-artifact bomly_v0.14.2_linux_amd64.tar.gz \
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/bomly_0.20.2_linux_amd64.tar.gz
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.20.2/multiple.intoto.jsonl
+slsa-verifier verify-artifact bomly_0.20.2_linux_amd64.tar.gz \
   --provenance-path multiple.intoto.jsonl \
   --source-uri github.com/bomly-dev/bomly-cli \
-  --source-tag v0.14.2
+  --source-tag v0.20.2
 ```
 
 `slsa-verifier` is available from the [slsa-framework/slsa-verifier releases](https://github.com/slsa-framework/slsa-verifier/releases).

@@ -1,6 +1,7 @@
 package opts
 
 import (
+	"bytes"
 	"context"
 	"os"
 	"path/filepath"
@@ -28,10 +29,26 @@ func TestCommandContextRoundTripsThroughContext(t *testing.T) {
 	}
 }
 
+func TestPipelineRequestExposesSubprocessStderrOnlyAtDebug(t *testing.T) {
+	var stderr bytes.Buffer
+
+	infoOptions := Options{verbose: false}
+	info := infoOptions.PipelineRequest(sdk.ScopeUnknown, &stderr)
+	if info.Stderr != nil || info.Verbose {
+		t.Fatalf("info request enabled subprocess stderr: %#v", info)
+	}
+
+	debugOptions := Options{verbose: true}
+	debug := debugOptions.PipelineRequest(sdk.ScopeUnknown, &stderr)
+	if debug.Stderr != &stderr || !debug.Verbose {
+		t.Fatalf("debug request did not enable subprocess stderr: %#v", debug)
+	}
+}
+
 func TestCommandContextResolveExecutionTarget_Image(t *testing.T) {
 	options := Options{ResolvedConfig: config.Resolved{Image: "alpine:3.20"}}
 
-	target, location, cleanup, err := options.resolveExecutionTarget(nil)
+	target, location, cleanup, err := options.resolveExecutionTarget(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("resolveExecutionTarget() error = %v", err)
 	}
@@ -65,7 +82,7 @@ func TestProjectDescriptor_UsesUserFacingTargetLabels(t *testing.T) {
 func TestCommandContextResolveExecutionTarget_RejectsMultipleTargets(t *testing.T) {
 	options := Options{ResolvedConfig: config.Resolved{Path: ".", Image: "alpine:3.20"}}
 
-	_, _, _, err := options.resolveExecutionTarget(nil)
+	_, _, _, err := options.resolveExecutionTarget(context.Background(), nil)
 	if err == nil {
 		t.Fatal("expected multiple target error")
 	}
@@ -759,6 +776,73 @@ func TestCommandContextInitialize_RepositoryConfigCannotGrantAuthorityImplicitly
 		got.OsvAPIBase != "https://api.osv.dev" || got.OsvCacheDir != "" ||
 		len(got.Plugins) != 0 || len(got.LoadedFiles) != 0 {
 		t.Fatalf("repository config granted authority without --config: %#v", got)
+	}
+}
+
+func TestCommandContextInitialize_ExplicitConfigResolvesRelativeCAPathAndPrivateNetworkSettings(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
+
+	configDir := t.TempDir()
+	configPath := filepath.Join(configDir, "trusted.yaml")
+	writeConfigFile(t, configPath, map[string]any{
+		"network": map[string]any{
+			"proxy": map[string]any{
+				"url":      "http://proxy.internal.test:8080",
+				"no_proxy": "advisories.internal.test,127.0.0.0/8",
+			},
+			"ca_cert_file": "private-ca.pem",
+		},
+		"matchers": map[string]any{
+			"osv": map[string]any{
+				"api_base": "http://127.0.0.1:8081",
+			},
+			"scorecard": map[string]any{
+				"api_base": "https://scorecard.internal.test",
+			},
+		},
+		"plugins": map[string]any{
+			"private.matcher": map[string]any{
+				"endpoint": "https://advisories.internal.test",
+			},
+		},
+	})
+
+	options := &Options{}
+	root := newTestRootCommand(t)
+	if err := options.Bind(root); err != nil {
+		t.Fatalf("Bind() error = %v", err)
+	}
+	if err := root.ParseFlags([]string{"--config", configPath}); err != nil {
+		t.Fatalf("ParseFlags() error = %v", err)
+	}
+	if err := options.ResolveConfig(root); err != nil {
+		t.Fatalf("ResolveConfig() error = %v", err)
+	}
+
+	got := options.GetConfig()
+	if got.HTTPProxy != "http://proxy.internal.test:8080" {
+		t.Fatalf("HTTP proxy = %q", got.HTTPProxy)
+	}
+	if got.HTTPNoProxy != "advisories.internal.test,127.0.0.0/8" {
+		t.Fatalf("HTTP no-proxy = %q", got.HTTPNoProxy)
+	}
+	// CA paths are resolved from the selected config file, not the process CWD.
+	if got.HTTPCACertFile != filepath.Join(configDir, "private-ca.pem") {
+		t.Fatalf("HTTP CA certificate = %q", got.HTTPCACertFile)
+	}
+	if got.OsvAPIBase != "http://127.0.0.1:8081" {
+		t.Fatalf("OSV API base = %q", got.OsvAPIBase)
+	}
+	if got.ScorecardAPIBase != "https://scorecard.internal.test" {
+		t.Fatalf("Scorecard API base = %q", got.ScorecardAPIBase)
+	}
+	if got.Plugins["private.matcher"]["endpoint"] != "https://advisories.internal.test" {
+		t.Fatalf("plugin config = %#v", got.Plugins)
+	}
+	if len(got.LoadedFiles) != 1 || got.LoadedFiles[0] != configPath {
+		t.Fatalf("loaded files = %#v, want explicit config", got.LoadedFiles)
 	}
 }
 

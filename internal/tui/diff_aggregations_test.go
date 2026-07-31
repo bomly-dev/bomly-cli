@@ -119,6 +119,102 @@ func TestDiffAggregateCounts_EmptyPayload(t *testing.T) {
 	}
 }
 
+func TestDiffComponentsProjectDependencyDetailTransition(t *testing.T) {
+	transition := output.DiffDependencyTransition{
+		Before: output.DiffDependencyTransitionState{
+			ID:               "example@1.0.0",
+			Name:             "example",
+			Version:          "1.0.0",
+			Relationship:     "direct",
+			Source:           sdk.DependencySourceRegistry,
+			RegistryEligible: true,
+		},
+		After: output.DiffDependencyTransitionState{
+			ID:               "example@1.0.0",
+			Name:             "example",
+			Version:          "1.0.0",
+			Relationship:     "transitive",
+			Source:           sdk.DependencySourceGit,
+			RegistryEligible: false,
+		},
+		ChangedFields: []sdk.DependencyDetailField{
+			sdk.DependencyDetailRelationship,
+			sdk.DependencyDetailSource,
+			sdk.DependencyDetailRegistryEligibility,
+		},
+	}
+	payload := output.DiffResponse{
+		Summary: output.DiffSummary{TransitionedPackageCount: 1},
+		Results: output.DiffResults{Manifests: []output.DiffManifestResult{{
+			Status:      "changed",
+			Path:        "package-lock.json",
+			Ecosystem:   sdk.EcosystemNPM,
+			Transitions: []output.DiffDependencyTransition{transition},
+		}}},
+	}
+	model := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	changes := model.collectComponentChanges()
+	if len(changes) != 1 || changes[0].status != "transitioned" {
+		t.Fatalf("component changes = %#v", changes)
+	}
+	details := strings.Join(componentChangeDetails(changes[0]), "\n")
+	for _, want := range []string{
+		"Dependency detail changes",
+		"Detail changes",
+		"Review: Dependency source changed to Git. Registry-based vulnerability checks may no longer cover it.",
+		"Relationship:",
+		"direct → transitive",
+		"Source:",
+		"registry → git",
+	} {
+		if !strings.Contains(render.StripANSI(details), want) {
+			t.Fatalf("transition details missing %q:\n%s", want, render.StripANSI(details))
+		}
+	}
+	if counts := model.diffAggregateCounts(); counts.PackageDeltas != 1 {
+		t.Fatalf("PackageDeltas = %d, want 1", counts.PackageDeltas)
+	}
+	if got := componentChangeStatus(changes[0]); got != "detail-review" {
+		t.Fatalf("component status = %q, want detail-review", got)
+	}
+}
+
+func TestDiffComponentsFoldVersionAndDetailChangesIntoOneRow(t *testing.T) {
+	transition := output.DiffDependencyTransition{
+		Before: output.DiffDependencyTransitionState{ID: "example@1.0.0", Name: "example", Version: "1.0.0", Relationship: "direct"},
+		After:  output.DiffDependencyTransitionState{ID: "example@2.0.0", Name: "example", Version: "2.0.0", Relationship: "transitive"},
+		ChangedFields: []sdk.DependencyDetailField{
+			sdk.DependencyDetailRelationship,
+		},
+	}
+	payload := output.DiffResponse{
+		Summary: output.DiffSummary{ChangedPackageCount: 1, TransitionedPackageCount: 1},
+		Results: output.DiffResults{Manifests: []output.DiffManifestResult{{
+			Status: "changed",
+			Path:   "package-lock.json",
+			Changed: []output.DiffChangedPackage{{
+				Before: output.PackageRef{ID: "example@1.0.0", Name: "example", Version: "1.0.0"},
+				After:  output.PackageRef{ID: "example@2.0.0", Name: "example", Version: "2.0.0"},
+			}},
+			Transitions: []output.DiffDependencyTransition{transition},
+		}}},
+	}
+	model := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	changes := model.collectComponentChanges()
+	if len(changes) != 1 || changes[0].status != "changed" || changes[0].transition == nil {
+		t.Fatalf("combined component change was not folded into one row: %#v", changes)
+	}
+	if counts := model.diffAggregateCounts(); counts.PackageDeltas != 1 {
+		t.Fatalf("combined PackageDeltas = %d, want 1", counts.PackageDeltas)
+	}
+	details := render.StripANSI(strings.Join(componentChangeDetails(changes[0]), "\n"))
+	for _, want := range []string{"Version and dependency detail changes", "1.0.0", "2.0.0", "direct → transitive"} {
+		if !strings.Contains(details, want) {
+			t.Fatalf("combined details missing %q:\n%s", want, details)
+		}
+	}
+}
+
 func TestDiffAggregateCounts_LicenseDedup(t *testing.T) {
 	// Five packages all introduce MIT — unique count should be 1, not 5.
 	payload := output.DiffResponse{Results: output.DiffResults{Manifests: []output.DiffManifestResult{{
@@ -1056,6 +1152,12 @@ func TestStatusBadge_NewOldFixed(t *testing.T) {
 		if !strings.Contains(got, want) {
 			t.Errorf("statusBadge(%q) = %q, want it to contain %q", status, got, want)
 		}
+	}
+	if got := render.StripANSI(statusBadge("transitioned")); !strings.Contains(got, "DETAILS") {
+		t.Fatalf("detail-change badge = %q, want a clear DETAILS label", got)
+	}
+	if got := render.StripANSI(statusBadge("detail-review")); !strings.Contains(got, "REVIEW") {
+		t.Fatalf("review badge = %q, want a clear REVIEW label", got)
 	}
 }
 

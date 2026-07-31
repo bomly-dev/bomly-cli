@@ -63,10 +63,13 @@ func Run(ctx context.Context, req Request) (Result, error) {
 	}
 
 	if req.Base.Request.AuditEnabled || req.Head.Request.AuditEnabled {
-		baseAuditGraph, headAuditGraph, err := focusedAuditGraphs(base.Graph, head.Graph)
+		graphDiff := sdk.Compare(base.Graph, head.Graph)
+		baseAuditGraph, headAuditGraph, err := focusedAuditGraphs(graphDiff)
 		if err != nil {
 			return result, fmt.Errorf("focused audit graphs: %w", err)
 		}
+		req.Base.Request.DependencyDetailChanges = nil
+		req.Head.Request.DependencyDetailChanges = sdk.CloneDependencyDetailTransitions(graphDiff.Transitions)
 		baseAudit, baseWarnings := req.Base.Pipeline.RunAuditGraph(ctx, baseAuditGraph, base.Registry, req.Base.Request)
 		result.Base.Findings = baseAudit.Findings
 		result.Base.RiskScores = baseAudit.RiskScores
@@ -87,8 +90,7 @@ func Run(ctx context.Context, req Request) (Result, error) {
 	return result, nil
 }
 
-func focusedAuditGraphs(base, head *sdk.Graph) (*sdk.Graph, *sdk.Graph, error) {
-	graphDiff := sdk.Compare(base, head)
+func focusedAuditGraphs(graphDiff sdk.Diff) (*sdk.Graph, *sdk.Graph, error) {
 	basePackages := make([]*sdk.Dependency, 0, len(graphDiff.Removed)+len(graphDiff.Updated))
 	headPackages := make([]*sdk.Dependency, 0, len(graphDiff.Added)+len(graphDiff.Updated))
 	basePackages = append(basePackages, graphDiff.Removed...)

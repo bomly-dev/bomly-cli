@@ -90,7 +90,7 @@ internal/testutil/               Test helpers (fake binary builder)
 
 **`bomly explain`** is implemented by `newExplainCmd` in `internal/cli/explain_cmd.go`.
 
-**Scan pipeline order**: `runtimePreparation → subprojectDiscovery (root-only by default; --recursive walks nested dirs) → detect (per-package-manager chains; resolve + consolidate into one graph) → scopeFilter → match (package enrichment, vulnerability consolidation, and remediation derivation) → analyze (reachability, when --analyze is set) → audit (including finding policy-status resolution) → format`. Consolidation is the tail of detect (`runDetect` = `runResolve` + `runConsolidate`), and remediation derivation is the tail of enrichment; neither is a separate stage.
+**Scan pipeline order**: `runtimePreparation → subprojectDiscovery (root-only by default; --recursive walks nested dirs) → detect (per-package-manager chains; resolve + consolidate into one graph; detectors may record CI-readiness resolution warnings on manifests) → scopeFilter → match (package enrichment, vulnerability consolidation, and remediation derivation) → analyze (reachability, when --analyze is set) → audit (including finding policy-status resolution) → format`. Consolidation is the tail of detect (`runDetect` = `runResolve` + `runConsolidate`), and remediation derivation is the tail of enrichment; neither is a separate stage.
 
 Runtime preparation is owned by `internal/engine` and is reached through CLI option helpers before pipeline execution. The CLI resolves raw targets and flags but must not discover subprojects with a separate registry.
 
@@ -148,6 +148,10 @@ Cache failures are non-fatal — log a warning and continue.
 ## Feature Checklist
 
 When adding a new user-visible feature (new CLI flag, new component class, new pipeline stage, new analyzer, etc.), walk this checklist before requesting review. Reviewers will ask for everything that applies, and the surface that gets forgotten most often is **MCP** + **plugin command** + **smoke test**.
+
+If the change adds an input, network client, subprocess, plugin role, output
+path, MCP field, or automatically discovered repository file, also complete the
+[security assurance review checklist](dev-docs/SECURITY_ASSURANCE.md#review-checklist).
 
 ### CLI surface
 

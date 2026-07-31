@@ -3,6 +3,7 @@ package yarn
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,8 +11,14 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
+	"gopkg.in/yaml.v3"
 )
+
+// yarnLockfileHeadBytes bounds the format probe: Berry writes the __metadata
+// block at the top of yarn.lock, well inside this window.
+const yarnLockfileHeadBytes = 4096
 
 type yarnLockEntry struct {
 	Name         string
@@ -24,7 +31,7 @@ type yarnLockEntry struct {
 }
 
 func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
-	raw, err := os.ReadFile(filepath.Join(projectPath, "yarn.lock"))
+	raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "yarn.lock"))
 	if err != nil {
 		return nil, fmt.Errorf("read yarn.lock: %w", err)
 	}
@@ -406,4 +413,37 @@ func yarnEntrySource(entry yarnLockEntry) sdk.DependencySource {
 		}
 	}
 	return sdk.DependencySourceRegistry
+}
+
+// yarnLockfileFormat reports the lockfile format the project committed: "1"
+// for Yarn Classic, or the Berry __metadata version. Berry writes __metadata
+// as the first entry, so only the head of the file is read — yarn.lock can be
+// several megabytes and the graph parser has already paid for one full read.
+func yarnLockfileFormat(projectPath string) string {
+	file, err := os.Open(filepath.Join(projectPath, "yarn.lock"))
+	if err != nil {
+		return ""
+	}
+	defer func() { _ = file.Close() }()
+
+	head := make([]byte, yarnLockfileHeadBytes)
+	read, err := io.ReadFull(file, head)
+	if err != nil && !errors.Is(err, io.EOF) && !errors.Is(err, io.ErrUnexpectedEOF) {
+		return ""
+	}
+	text := string(head[:read])
+	if !strings.Contains(text, "__metadata:") {
+		return "1"
+	}
+	var berry struct {
+		Metadata struct {
+			Version any `yaml:"version"`
+		} `yaml:"__metadata"`
+	}
+	// A truncated head is not valid YAML on its own; fall back to the format
+	// family, which is all the version comparison needs.
+	if err := yaml.Unmarshal(head[:read], &berry); err != nil || berry.Metadata.Version == nil {
+		return "2"
+	}
+	return strings.TrimSpace(fmt.Sprintf("%v", berry.Metadata.Version))
 }

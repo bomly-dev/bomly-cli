@@ -13,7 +13,7 @@ Use `--json` as a shortcut for `--format json` when you want structured output q
 | `markdown` | Reviews | Job summaries, PR comments, and other Markdown surfaces |
 | `sarif` | Audit-only | CI security panes, GitHub Security tab, IDE problem markers |
 | `spdx` | Scan only | SPDX 2.3 JSON SBOMs |
-| `cyclonedx` | Scan only | CycloneDX 1.6 JSON SBOMs |
+| `cyclonedx` | Scan only | CycloneDX 1.7 JSON SBOMs |
 
 Flag:
 
@@ -38,6 +38,25 @@ The default. Groups packages by ecosystem and edge depth, summarizes finding cou
 
 ```bash
 bomly scan --enrich --audit
+```
+
+```text
+✓ 68 packages in 1 manifest   (1 direct, 67 transitive · runtime 68, dev 0)
+
+✓ Enriched via Grype, deps.dev License Matcher
+
+✓ 7 fix suggestions for 7 of 7 vulnerable packages.
+  Run again with --format json to see remediation details.
+
+Top-level dependencies
+  NAME      VERSION   LICENSE   SCOPE     VULNS
+  express   4.19.2    MIT       runtime   1L
+
+Findings
+  [HIGH]      GHSA-37ch-88jc-xwx2  path-to-regexp@0.1.7
+  [HIGH]      GHSA-9wv6-86v2-598j  path-to-regexp@0.1.7
+  [HIGH]      GHSA-qwcr-r2fm-qrc7  body-parser@1.20.2
+  [HIGH]      GHSA-rhx6-c78j-4q9w  path-to-regexp@0.1.7
 ```
 
 Markdown reports include the same remediation summary and the complete
@@ -83,6 +102,21 @@ bomly explain lodash --json | jq '.paths[] | .nodes | map(.name) | join(" -> ")'
 bomly diff --base main --head HEAD --enrich --audit --json | jq '.findings.introduced[]'
 ```
 
+The first query against a project pinning `express@4.19.2` (first two of several matches shown):
+
+```json
+{
+  "name": "body-parser",
+  "version": "1.20.2",
+  "ecosystem": "npm"
+}
+{
+  "name": "path-to-regexp",
+  "version": "0.1.7",
+  "ecosystem": "npm"
+}
+```
+
 JSON output includes Bomly-specific metadata that standard SBOM formats don't carry: reachability tier/status/confidence, audit reasons, and per-finding source.
 
 `bomly explain` returns every deterministic root-to-target path, not only a
@@ -94,6 +128,26 @@ workspace and duplicate-version routes that can require different investigation.
 independent of a package version bump. A finding present on both sides is
 `persisted`; it is not reported as one resolved finding plus one introduced
 finding merely because the affected package version changed.
+
+Dependency changes are split into separate kinds. A version change says that
+the package release changed. A detail change says that the same package
+occurrence changed in one of these ways:
+
+- its relationship changed between direct, transitive, and unknown;
+- its source changed, such as registry to Git or workspace;
+- its eligibility for registry matching changed.
+
+A dependency can have both a version change and a detail change in the same
+diff. Structured output calls each detail-change record a `transition`. JSON
+keeps the before and after evidence under
+`results.dependencies.transitions` and under the matching manifest. Text,
+Markdown, the interactive view, and MCP show the same classification.
+
+Human-readable output asks for extra review when a known source changes to Git
+or a URL, or when vulnerability checks covered the dependency before the
+change but no longer do. Other detail changes remain informational. These
+labels help reviewers find important changes; by themselves, they do not
+change the command's exit status.
 
 ## `sarif` — CI security tools
 
@@ -108,11 +162,41 @@ SARIF 2.1.0. Findings only. One result per (rule × package) pair. Includes:
 bomly scan --enrich --audit --fail-on high --format sarif > bomly.sarif
 ```
 
+<details>
+<summary>Sample result object (one finding, properties trimmed)</summary>
+
+```json
+{
+  "ruleId": "GHSA-m6fv-jmcg-4jfg",
+  "level": "error",
+  "message": {
+    "text": "send vulnerable to template injection that can lead to XSS in pkg:npm/send@0.18.0"
+  },
+  "locations": [
+    {
+      "physicalLocation": {
+        "artifactLocation": { "uri": "package-lock.json" },
+        "region": { "startLine": 636 }
+      }
+    }
+  ],
+  "properties": {
+    "package_ref": "pkg:npm/send@0.18.0",
+    "fixed_in": "0.19.0",
+    "fix_state": "fixed"
+  }
+}
+```
+
+Locations point at the lockfile line that pins the vulnerable version, so code-scanning annotations land somewhere actionable.
+
+</details>
+
 GitHub Code Scanning, Azure DevOps, and most IDE extensions ingest SARIF directly. See [CI integration](CI_INTEGRATION.md) for upload recipes.
 
 ## Additional output: `-o`
 
-`-o` uses the same format names as `--format`, plus an optional file path. Use `<format>=<path>` to write to a file, or just `<format>` to write that additional output to stdout.
+`-o` uses the same format names as `--format`, plus an optional file path. Use `<format>=<path>` to write to a file, or just `<format>` to write that additional output to stdout. When every `-o` names a file and `--format` is not set, a successful run writes the files silently — pass `--format text` (or any primary format) if you also want stdout output.
 
 ```bash
 bomly scan --json \
@@ -132,7 +216,7 @@ Supported targets:
 | `markdown` | GitHub-flavored Markdown report |
 | `sarif` | SARIF 2.1.0 report; requires `--audit` |
 | `spdx` | SPDX 2.3 JSON |
-| `cyclonedx` | CycloneDX 1.6 JSON |
+| `cyclonedx` | CycloneDX 1.7 JSON |
 
 `spdx` and `cyclonedx` are supported by `scan`. Report formats (`text`, `json`, `markdown`, `sarif`) are supported by report-producing commands. See [SBOM formats](SBOM.md) for the SBOM comparison and writing rules.
 
@@ -141,7 +225,7 @@ Supported targets:
 A single scan can produce:
 
 - A human report on stdout.
-- A JSON document piped to a file.
+- A JSON document written to a file.
 - A SARIF document for a CI panel.
 - One or more SBOM artifacts.
 
@@ -149,13 +233,14 @@ Example:
 
 ```bash
 bomly scan --enrich --audit --fail-on high \
-  --json \
-  -o markdown=summary.md \
+  --format text \
+  -o json=bomly.json \
   -o sarif=bomly.sarif \
   -o spdx=sbom.spdx.json \
-  -o cyclonedx=sbom.cdx.json \
-  > bomly.json
+  -o cyclonedx=sbom.cdx.json
 ```
+
+`--format text` keeps the terminal report on stdout. Without it (and with every `-o` naming a file), a successful run writes the files and prints nothing.
 
 Detector and matcher work runs once. All outputs derive from the same in-memory graph.
 

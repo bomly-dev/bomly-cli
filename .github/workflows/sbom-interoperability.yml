@@ -65,7 +65,7 @@ jobs:
           fi
           {
             printf '# SBOM compatibility check: %s %s\n\n' "${icon}" "${result}"
-            printf 'Bomly generated SPDX 2.3 and CycloneDX 1.6 files, then asked the official validators to check them.\n\n'
+            printf 'Bomly generated SPDX 2.3 and CycloneDX 1.7 files, then asked the official validators to check them.\n\n'
             printf -- '- **Revision:** `%s`\n' "${GITHUB_SHA}"
             printf -- '- **Validation:** `%s`\n' "${VALIDATION_RESULT}"
             printf -- '- **Evidence:** %s\n\n' "${evidence}"

@@ -21,7 +21,7 @@ const (
 	FormatSARIF Format = "sarif"
 	// FormatSPDX renders an SPDX 2.3 JSON SBOM.
 	FormatSPDX Format = "spdx"
-	// FormatCycloneDX renders a CycloneDX 1.6 JSON SBOM.
+	// FormatCycloneDX renders a CycloneDX 1.7 JSON SBOM.
 	FormatCycloneDX Format = "cyclonedx"
 )
 

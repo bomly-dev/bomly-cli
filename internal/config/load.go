@@ -14,8 +14,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"gopkg.in/yaml.v3"
 )
+
+const maxConfigFileBytes int64 = 4 << 20
 
 // UserConfigPath returns the path to the user-level config file (~/.bomly/config.yaml).
 // Returns an empty string (no error) when the home directory cannot be determined.
@@ -40,12 +43,15 @@ func LoadFile(path string) (*File, error) {
 	if strings.TrimSpace(path) == "" {
 		return nil, nil
 	}
-	data, err := os.ReadFile(path)
+	data, err := system.ReadFileLimit(path, maxConfigFileBytes)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			return nil, nil
 		}
-		return nil, err
+		if errors.Is(err, system.ErrInputTooLarge) {
+			return nil, fmt.Errorf("config file %q exceeds the 4 MiB limit: %w", path, system.ErrInputTooLarge)
+		}
+		return nil, fmt.Errorf("read config file: %w", err)
 	}
 	var cfg File
 	if err := rejectLegacyFlatKeys(data); err != nil {

@@ -23,9 +23,14 @@ func diffAuditOutput(audit *diffengine.Audit, baseRegistry, headRegistry *sdk.Pa
 	}
 }
 
+// reportOptionsFromPipelineResults collects the run facts every response
+// document carries. Detector warnings are collected whether or not reachability
+// ran: they are how a JSON consumer sees the problems the progress stream
+// showed.
 func reportOptionsFromPipelineResults(enabled bool, results ...engine.PipelineResult) output.ReportOptions {
+	options := output.ReportOptions{DetectorWarnings: detectorWarningsFromResults(results...)}
 	if !enabled {
-		return output.ReportOptions{}
+		return options
 	}
 	runsSeen := make(map[string]struct{})
 	stats := make(map[string]sdk.ReachabilityStats)
@@ -50,11 +55,28 @@ func reportOptionsFromPipelineResults(enabled bool, results ...engine.PipelineRe
 		runs = append(runs, run)
 	}
 	sort.Strings(runs)
-	return output.ReportOptions{
-		ReachabilityEnabled: true,
-		AnalyzerRuns:        runs,
-		AnalyzerStats:       stats,
+	options.ReachabilityEnabled = true
+	options.AnalyzerRuns = runs
+	options.AnalyzerStats = stats
+	return options
+}
+
+// detectorWarningsFromResults concatenates the detection warnings of every
+// pipeline run in the command (diff has two), dropping duplicates so the two
+// sides of a diff do not report the same misconfiguration twice.
+func detectorWarningsFromResults(results ...engine.PipelineResult) []sdk.DetectorWarning {
+	var warnings []sdk.DetectorWarning
+	seen := make(map[sdk.DetectorWarning]struct{})
+	for _, result := range results {
+		for _, warning := range result.DetectorWarnings {
+			if _, ok := seen[warning]; ok {
+				continue
+			}
+			seen[warning] = struct{}{}
+			warnings = append(warnings, warning)
+		}
 	}
+	return warnings
 }
 
 // matcherRan reports whether a matcher with the given name produced stats in

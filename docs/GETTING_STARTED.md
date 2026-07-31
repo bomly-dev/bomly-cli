@@ -32,6 +32,18 @@ This runs the default pipeline:
 2. Run the best detector chain for each subproject.
 3. Render a human-readable report.
 
+On a small npm project it looks like this:
+
+```text
+✓ 68 packages in 1 manifest   (1 direct, 67 transitive · runtime 68, dev 0)
+
+Top-level dependencies
+  NAME      VERSION   LICENSE   SCOPE     VULNS
+  express   4.19.2    MIT       runtime   -
+```
+
+The VULNS column stays empty until you enrich — that's the next section.
+
 **Matchers are offline by default** — no `--enrich` means zero outbound enrichment calls. **Detectors** may still invoke their build tool (Go, Maven, Gradle, sbt) which can download packages from package registries. Lockfile-parser detectors (npm, pnpm, yarn, Composer, Bundler, NuGet, GitHub Actions) and SBOM ingest are fully offline. See [Detectors → Network behavior](DETECTORS.md#network-behavior) for the full breakdown.
 
 Pass `--path` to scan a directory other than the current one:
@@ -68,11 +80,26 @@ See [Scan targets](SCAN_TARGETS.md) for the full target list.
 bomly scan --enrich
 ```
 
+The same project now shows which packages carry advisories and whether fixes exist:
+
+```text
+✓ 68 packages in 1 manifest   (1 direct, 67 transitive · runtime 68, dev 0)
+
+✓ Enriched via Grype, deps.dev License Matcher
+
+✓ 7 fix suggestions for 7 of 7 vulnerable packages.
+  Run again with --format json to see remediation details.
+
+Top-level dependencies
+  NAME      VERSION   LICENSE   SCOPE     VULNS
+  express   4.19.2    MIT       runtime   1L
+```
+
 This calls the enabled built-in matchers, including OSV, KEV, deps.dev, and OpenSSF Scorecard when selected. Responses are cached under `~/.bomly/cache/`. See [Matchers](MATCHERS.md) for the per-source list and cache TTLs. ClearlyDefined license and endoflife.date lifecycle enrichment are available as external matcher plugins.
 
 ## Generate an SBOM
 
-Use `-o` to write SPDX 2.3 or CycloneDX 1.6:
+Use `-o` to write SPDX 2.3 or CycloneDX 1.7:
 
 ```bash
 bomly scan \
@@ -80,7 +107,7 @@ bomly scan \
   -o cyclonedx=sbom.cdx.json
 ```
 
-`-o` can be passed multiple times. At most one may omit `=<path>` (that one goes to stdout). See [SBOM formats](SBOM.md) for the format comparison.
+`-o` can be passed multiple times. At most one may omit `=<path>` (that one goes to stdout). When every `-o` has a file path and no `--format` is set, a successful run writes the files and prints nothing — add `--format text` if you also want the terminal report. See [SBOM formats](SBOM.md) for the format comparison.
 
 ## Gate CI on a policy
 
@@ -88,6 +115,16 @@ Add `--audit --fail-on <severity>` to turn findings into a non-zero exit code:
 
 ```bash
 bomly scan --enrich --audit --fail-on high
+```
+
+On a project with vulnerable packages, the report gains a Findings section and the process exits `2`:
+
+```text
+Findings
+  [HIGH]      GHSA-37ch-88jc-xwx2  path-to-regexp@0.1.7
+  [HIGH]      GHSA-9wv6-86v2-598j  path-to-regexp@0.1.7
+  [HIGH]      GHSA-qwcr-r2fm-qrc7  body-parser@1.20.2
+  [HIGH]      GHSA-rhx6-c78j-4q9w  path-to-regexp@0.1.7
 ```
 
 Exit `0` means clean. Exit `2` means at least one finding matched the threshold. Exit `4` means an invalid flag value. See [Exit codes](EXIT_CODES.md).
@@ -107,10 +144,26 @@ See [Auditors](AUDITORS.md) for the full grammar and [Reachability](REACHABILITY
 ## Explain why a package is in the graph
 
 ```bash
-bomly explain lodash
+bomly explain send
 ```
 
-Bomly prints the shortest dependency path that introduced the package, plus alternative paths if there are multiple roots.
+Bomly prints every dependency path that introduces the package — not just the shortest one — so you can see each route you'd have to break to remove it:
+
+```text
+ecosystem  npm
+manager    npm
+package    send@0.18.0
+scope      runtime
+direct     no
+licenses
+  MIT [declared]
+introduced by:
+  demo@1.0.0
+  └─ express@4.19.2
+     ├─ send@0.18.0 [analyzed] (transitive)
+     └─ serve-static@1.15.0
+        └─ send@0.18.0 [analyzed] (transitive)
+```
 
 ## Diff two versions
 
@@ -126,7 +179,7 @@ Or two SBOM files:
 bomly diff --sbom --base ./old.spdx.json --head ./new.spdx.json --json
 ```
 
-Add `--audit --fail-on high` to fail PRs that introduce new high-severity findings without complaining about pre-existing ones.
+Add `--enrich --audit --fail-on high` to gate PRs (auditing requires enrichment). The diff audits only the packages the change touched — untouched debt elsewhere never blocks a PR — and within that scope it fails when the change introduces a matching finding or keeps one alive at the changed package's new version (see [diff](commands/diff.md)).
 
 ## Use Bomly with an AI agent
 

@@ -11,6 +11,8 @@ import (
 	"time"
 
 	cachepkg "github.com/bomly-dev/bomly-cli/internal/matchers/cache"
+
+	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
 // cacheSchemaVersion bumps whenever the on-disk cache layout changes in a
@@ -97,7 +99,7 @@ func keyFor(moduleDir, runnerName string) (cachepkg.Key, error) {
 func moduleChecksum(moduleDir string) (string, error) {
 	for _, name := range []string{"go.sum", "go.mod"} {
 		path := filepath.Join(moduleDir, name)
-		data, err := os.ReadFile(path)
+		data, err := system.ReadRepositoryFile(path)
 		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
 				continue

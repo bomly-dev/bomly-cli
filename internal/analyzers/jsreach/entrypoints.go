@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/bomly-dev/bomly-cli/internal/system"
 )
 
 // discoverEntryPoints inspects projectDir/package.json and returns the
@@ -33,7 +35,7 @@ import (
 // match the analyzer's bookkeeping.
 func discoverEntryPoints(projectDir string) ([]string, error) {
 	pkgPath := filepath.Join(projectDir, "package.json")
-	data, err := os.ReadFile(pkgPath)
+	data, err := system.ReadRepositoryFile(pkgPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, fmt.Errorf("package.json not found at %s", pkgPath)

@@ -16,6 +16,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
+	"go.uber.org/zap"
 )
 
 // Ready reports whether the external grype binary is available.
@@ -48,15 +49,17 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 		return sdk.MatchResult{Registry: req.Registry, MatcherStats: grypeMatcherStats(0, 0, 0)}, fmt.Errorf("grype: serialize sbom: %w", err)
 	}
 
-	var stdout, stderr bytes.Buffer
-	cmd := system.Command("grype", "-o", "json")
+	args := []string{"-o", "json"}
+	var stdout bytes.Buffer
+	commandStderr := logging.NewCommandStderr(req.Stderr, req.Stderr != nil)
+	cmd := system.Command("grype", args...)
 	cmd.Stdin = bytes.NewReader(spdxBytes)
 	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
+	cmd.Stderr = commandStderr
 
-	logger.Debug("running external grype matcher")
+	logger.Debug("running external grype matcher", logging.CommandFields("grype", args, cmd.Dir)...)
 	if err := cmd.Run(); err != nil {
-		logger.Warn(fmt.Sprintf("grype CLI failed: %v (stderr: %s)", err, stderr.String()))
+		logger.Warn("grype CLI failed", zap.Error(err), zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		return sdk.MatchResult{Registry: req.Registry, MatcherStats: grypeMatcherStats(0, 0, 0)}, fmt.Errorf("grype match failed: %w", err)
 	}
 

@@ -64,7 +64,7 @@ Stage summary:
 
 1. Runtime preparation builds the filtered registry and execution plan.
 2. Subproject discovery finds supported package-manager roots for the target. By default only the execution-target root is inspected; `--recursive` walks nested directories (bounded by `--max-depth`, `--exclude`, and built-in ignore rules) and plans one subproject per directory-and-package-manager pair, with workspace-expanding managers pruned below ancestors that already cover them.
-3. Detection resolves a dependency graph per package manager and then consolidates the per-subproject graphs into the single graph and package registry the rest of the pipeline uses. When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it; all detector results pass through the shared SDK scope filter, and consolidation is the tail of this stage rather than a separate step.
+3. Detection resolves a dependency graph per package manager and then consolidates the per-subproject graphs into the single graph and package registry the rest of the pipeline uses. Detection also produces one unified list of `sdk.DetectorWarning`s — resolution failures and fallbacks the engine observed, plus the package-manager problems detectors reported with their graphs (see the decision below). When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it; all detector results pass through the shared SDK scope filter, and consolidation is the tail of this stage rather than a separate step.
 4. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records. After vulnerability consolidation, `internal/remediation` derives package fix status and version, validates optional read-only detector hints, and creates occurrence-specific vulnerability suggestions. This is the tail of enrichment, not a separate stage.
 5. Analyzers run when `--analyze` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See [`../docs/REACHABILITY.md`](../docs/REACHABILITY.md) for ecosystem coverage and tier semantics.
 6. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. As the final part of that same audit stage, neutral policy-status resolvers may change only `Finding.PolicyStatus`; they never remove or rewrite finding evidence. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
@@ -124,6 +124,43 @@ Automatic finding-baseline discovery is separate. Baselines use a narrow,
 versioned policy-status contract: they cannot change targets, start network or
 package-manager activity, load plugins, or choose output paths. Their automatic
 selection remains visible in logs and run statistics.
+
+### Decision: untrusted documents have input limits
+
+Bomly bounds large documents before decoding them. YAML configuration files are
+limited to 4 MiB. Finding baselines are limited to 16 MiB and 10,000 entries.
+Explicit SBOM inputs are limited to 256 MiB. Successful deps.dev batch responses
+are limited to 16 MiB. OSV vulnerability and batch responses are limited to
+4 MiB and 64 MiB. CISA KEV responses are limited to 32 MiB, and Scorecard
+project responses are limited to 4 MiB. Failed matcher responses expose only
+the HTTP status rather than including an upstream response body in errors or
+logs.
+
+The shared file reader checks both the size reported when the file is opened and
+the bytes actually read. This keeps the limit in place if a file grows during
+the read. Baseline duplicate checks use an index keyed by package finding
+identity so validation remains linear as the document approaches its entry
+limit.
+
+Repository-controlled manifests, lockfiles, workspace metadata, and analyzer
+source files use a shared 64 MiB per-file limit. Both whole-file and streaming
+readers check the opened size and the bytes consumed, so a growing file cannot
+bypass the limit. Parsers never receive a partial over-limit document.
+Matcher and analyzer JSON cache entries have a separate 64 MiB read policy;
+corrupt or oversized entries degrade to a cache miss.
+
+Remote Git work uses a different boundary. Each remote materialization flow has
+a 10-minute deadline. Bomly does not fetch submodules or Git LFS objects, and it
+validates the completed checkout before discovery: at most 1,000,000 paths,
+10 GiB of regular files, 256 path levels, and no symlink whose lexical target
+escapes the checkout. Internal links remain intact. Git transfer bytes and
+`.git` object storage cannot be reliably capped by portable Git options before
+checkout, so those remain delegated to an operating-system quota when a hard
+cap is needed.
+
+The hidden maintainer benchmark uses its own shallow Git clone runner. It is
+outside the customer CLI's remote-target materialization boundary and does not
+inherit these checkout validation controls.
 
 ### Decision: Reachability annotates vulnerabilities, not findings
 
@@ -220,13 +257,55 @@ projects. Discovery happens during normal target preparation: scan and explain
 read the materialized project tree, including repositories cloned through
 `--url`, while Git diff independently reads the base and head trees. A detected
 baseline is logged with its path, entry count, selection mode, and target kind;
-each evaluation logs findings evaluated and accepted. Output receives ordinary
-findings whose policy status may be `suppressed` through
-`Finding.PolicyStatus` / `policy_status`, and no baseline-specific output model
-or pipeline stage exists. Renaming the earlier finding field is an intentional
-breaking output-contract change while the CLI output schema identifier remains
-`1.0` and the compact MCP schema remains `mcp/1`. Protocol-v1 decoding still
-accepts the earlier wire field from existing external auditor plugins.
+automatic discovery warns and behaves as though no baseline exists when path
+inspection finds a symbolic-link `.bomly` directory or baseline file. This
+rejects discovered links but cannot prevent another process from replacing a
+path between inspection and reading. Explicit baseline paths remain trusted
+user-selected inputs and may refer outside the project or through a symbolic
+link. Each evaluation logs
+findings evaluated and accepted. Output receives ordinary findings whose policy
+status may be `suppressed` through `Finding.PolicyStatus` / `policy_status`, and
+no baseline-specific output model or pipeline stage exists. Renaming the
+earlier finding field is an intentional breaking output-contract change while
+the CLI output schema identifier remains `1.0` and the compact MCP schema
+remains `mcp/1`. Protocol-v1 decoding still accepts the earlier wire field from
+existing external auditor plugins.
+
+### Decision: dependency detail changes are canonical diff results
+
+`sdk.Compare` classifies package version changes separately from changes to an
+occurrence's dependency relationship, source, or registry-matching
+eligibility. The same occurrence may appear in both lists when both kinds of
+change happened. Keeping these as parallel results avoids treating a move from
+direct to transitive, registry to Git, or eligible to ineligible as a package
+addition or removal.
+
+Each transition keeps before and after evidence and an ordered list of changed
+fields. Explicit detector relationships win. For older protocol-v1 graphs that
+omit the relationship, the classifier derives direct or transitive from graph
+edges and uses unknown when the graph cannot prove either. Exact and trusted
+fuzzy identity matches call the same SDK classifier. Output code only projects
+that result; it does not repeat the policy.
+
+Manifest results preserve duplicate occurrences. The global JSON and MCP
+views deduplicate only identical evidence and use stable ordering and bounded
+MCP truncation. Diff package enrichment still uses the head-side registry, so
+reporting a detail change does not replace current vulnerability or
+remediation data.
+
+The SDK also classifies the small set of transitions that need extra review:
+a source moving to Git or a URL, and a loss of vulnerability-check coverage.
+Text, Markdown, and TUI use this classifier for styling and plain-language
+reasons. The structured transition remains unchanged; the review label is a
+presentation aid and has no effect on exit status.
+
+When diff auditing is enabled, `internal/engine/diff` passes a deep copy of the
+canonical transitions only to the head-side audit request. The existing
+package auditor turns Git and URL source moves into warnings and may enforce
+configured source types. The existing vulnerability auditor turns covered to
+not-covered transitions into warning-severity coverage findings and applies
+the existing severity `--fail-on` constraints. Auditors do not infer these
+changes from the focused audit graphs, and no new pipeline stage is introduced.
 
 ### Decision: registry matching eligibility is an occurrence-level engine boundary
 
@@ -251,6 +330,34 @@ recoverable graph condition into a warning.
 The `--format json` `findings[]` projection now mirrors `sdk.Finding` exactly: an identity-only package ref (display name, org, version, purl), `vulnerability_id`, and `dependency_refs` — no embedded package object and no flat advisory copies. Advisory data lives once in `packages[]` and consumers join by PURL, the way SARIF always did; text/markdown/TUI renderers were converted to the same join. `DiffResponse` gained a `packages[]` collection (PURL-deduplicated union of base and head registries, head wins) so diff audit findings resolve the same way. Rationale: the embedded copies made findings-heavy scan JSON ~10x larger than the data it contained (issue #245) and let the projection drift from the domain model.
 
 The MCP server does not return the CLI JSON documents at all. Tool results land in an agent's context window and MCP clients truncate large results to errors, so `bomly_scan` / `bomly_diff` / `bomly_explain` return compact projections (`schema_version "mcp/1"`, `internal/mcp/types_compact.go`) built from the pipeline's domain data. MCP projects canonical package remediation suggestions; it does not select actions, versions, or package-manager advice. Groups are ranked KEV → severity → EPSS → fixability and hard-capped with explicit truncation counters. Audit may overlay policy status on matching vulnerability entries but cannot create or change suggestions. `bomly_explain` is the bounded drill-down (full advisory detail for one package); the CLI is the artifact channel for complete documents. The former `bomly_vuln_fix_context` tool was folded into these responses. Shortest dependency paths come from a bounded upward BFS over `Graph.Dependents`, never `CollectPathsTo` (all simple paths is exponential on dense graphs).
+
+MCP tool failures expose only stable categories such as request validation,
+target preparation, target resolution, pipeline execution, and plugin
+inventory. Raw adapter errors never cross the protocol boundary because they
+may contain local paths, command output, URLs, or credentials. The server logs
+the tool, category, and unwrapped Go cause type without the arbitrary cause
+text. Detailed stage logs remain available at debug verbosity only when the
+component that produced the failure emits them independently. Validation
+messages intentionally remain generic because otherwise a rejected path, URL,
+or other user value could be copied into the protocol response.
+
+### Decision: one typed detector-warning channel, no CI-readiness stage
+
+Issue #245 surfaced CI failures that were never vulnerabilities: a lockfile written by pnpm 11 against a project that pins pnpm 9, and a pnpm `minimumReleaseAge` gate that rejects a freshly published fix version. The Node detectors find these while resolving (`internal/detectors/node/package_manager_warnings.go`) and return them with their graphs in `DetectionResult.Warnings`.
+
+Detection had accumulated three separate warning paths — an error-derived list for failed chains, fallback annotations, and (briefly) a manifest-scoped list for package-manager problems — reaching different surfaces with different fidelity. They are now one type, `sdk.DetectorWarning{Type, Code, Source, Subproject, Manifest, Message}`, collected into `PipelineResult.DetectorWarnings`.
+
+**`Type` carries the meaning, and policy branches on it.** `resolution-failure` and `fallback` mean the graph may be incomplete; `package-manager` means the graph is sound and the project's configuration is not. `DetectorWarningType.DegradesCoverage` is the single predicate: `baselineMutationWarningCount` uses it so a manager mismatch does not block recording a baseline, while a failed chain still does. `Code` names the specific check for consumers that branch further; it is empty for the warnings the engine synthesizes, where the type already says everything. Location lives in `Subproject`/`Manifest` fields rather than being interpolated into the message, so grouping and deduplication stay message-based and single-line channels compose the prefix themselves.
+
+**Why not `Ready`, and why not a stage.** The knowledge belongs with the detectors — `Ready` is where "is this toolchain usable here" already lives, and it receives the same per-subproject working directory a separate stage would have had to reconstruct. But `Ready` cannot carry this: its verdict is binary and a non-nil error routes the subproject to `resolveFallback`, so reporting a lockfile-format mismatch through it would demote a perfectly good lockfile parser to Syft over an advisory-only condition. Its plugin transport has the same gap — `ReadyResponse.Reason` is dropped when `Ready` is true. A dedicated pipeline stage was rejected outright: it duplicated detector knowledge, re-derived the working directory, and made a cross-cutting concern look like a phase of the run. The detector already parsed the lockfile and already knows the manager, so the finding is a resolution output, returned with the graph.
+
+**Every surface, because `-q` exists.** One list feeds the `warnings` collection of the scan/diff/explain JSON documents, the text and Markdown reports above the summary, ⚠ progress children, `-v` logs, and MCP diagnostics under the `detect` stage. Progress alone was not enough: `-q` silences it and CI runs have no TTY. Unification also removed the duplicate fallback pass MCP diagnostics used to run over manifests.
+
+**Committed files only — no `--version` probe.** `pnpm`/`yarn` on `PATH` are frequently Corepack shims, and invoking one can download the pinned manager on demand and mutate Corepack's cache, which would mean a plain scan contacts a registry without `--enrich`. Comparing what the repository declares is also the more accurate question, since CI installs from the repository, not from this machine's `PATH`. The trade-off is accepted deliberately: a project that pins nothing gets no version comparison, and a laptop-versus-CI skew is not reported. Reading CI workflow files for setup-node/`pnpm/action-setup` pins would recover some of that and is left as a follow-up.
+
+**Manager-specific semantics, verified against each manager's docs.** Install gates and lockfile interoperability differ per manager and are modelled per manager, not shared: pnpm reads `minimumReleaseAge` (minutes) from `pnpm-workspace.yaml` and only auth/registry settings from `.npmrc`, while npm reads `min-release-age` (days) and `before` from `.npmrc`; npm accepts `yarn.lock` as install input and Bun converts `pnpm-lock.yaml`, so neither is a mismatch, whereas pnpm's conversion is the manual `pnpm import` and therefore is. Combinations no manager documents either way stay silent — a false "your lockfile will be ignored" is worse than no warning.
+
+**Rendering treats every warning field as untrusted.** Messages embed values read from scanned repositories (version pins, config values, subprocess error text) and file names come from the tree itself, so `render.SanitizeUntrusted` strips CSI, OSC/DCS-family, and C0/DEL control bytes before a notice is wrapped in `Style(...)`; whitespace folding alone would leave a crafted `package.json` able to clear the terminal or forge output.
 
 ### Decision: Recursive discovery prunes native multi-module roots per package manager
 
@@ -277,6 +384,21 @@ Workspace/reactor detectors (npm and pnpm lockfile, cargo, maven) emit one `Grap
 **Gradle multi-project resolution runs one invocation with a task path per subproject.** Gradle was originally deferred as "no machine-readable per-module graph in one invocation" — but `gradle dependencies :app:dependencies :lib:dependencies --console=plain` is exactly that: each report section opens with a `Root project 'x'` / `Project ':x'` banner the parser uses to switch which root the following configuration trees attach to. Subproject paths come from a regex walk of `settings.gradle(.kts)` `include(...)` declarations (`projectDir` overrides honored; composite `includeBuild` not expanded). Inter-project `project :x` tokens — including the colon-less `project x (n)` form declared-only listings print — resolve to the subproject's synthesized application-typed root node, so cross-module dependencies are real edges, mirroring the maven web→core case. Failure degrades in layers: a settings-walk error resolves the root project only; a failed multi-task invocation (stale settings naming removed subprojects) retries the root-only report; subprojects never seen in the report add no orphan nodes. Before this, the gradle detector ran the root `dependencies` task only, while recursive discovery pruned nested gradle modules on the assumption the root detector expands them — multi-project builds silently under-reported.
 
 **First-party packages are inventory, not enrichment targets** (`sdk.NodeIsEnrichable`). Application-typed nodes — workspace members, reactor modules, the project's own package — are absent from public advisory/registry sources, so querying OSV / deps.dev / scorecard / grype for them wastes lookups and risks coincidental name matches (a workspace member named like a real npm package would adopt its advisories). The predicate mirrors `NodeIsDiffable` and gates the two selection chokepoints (`matchers.RegistryPackagesForGraph`, the OSV matcher's graph iteration) plus external grype's result mapping. External grype's SBOM *input* is deliberately not filtered: `sbom.FromDepGraph` is shared with user-facing SBOM generation, where first-party components must remain visible — so first-party matches are dropped when grype results map back into the registry. First-party entries stay in the `packages` collection and SBOMs, just unenriched; external plugin matchers (ClearlyDefined, EOL) are expected to adopt the same predicate.
+
+**Dependency source classification belongs to detectors.** Source is an
+occurrence fact, so the detector that reads the manifest, lockfile, or build
+tool output owns it. The engine and package auditor consume the canonical
+`sdk.Dependency.Source` value but never infer one from an ecosystem, package
+name, PURL, or repository metadata. Detectors classify only explicit evidence:
+for example Cargo `registry+` and `git+` sources, Bundler `GEM`/`GIT`/`PATH`
+sections, pub lock sources, SwiftPM pin kinds, Python direct-URL metadata, and
+Python lock source tables. When a format does not retain the selected origin,
+the source stays unknown. This trades some source-change coverage for avoiding
+false provenance claims and keeps external protocol-v1 detectors compatible.
+Source and matcher eligibility are related but not identical: SwiftPM remote
+source control is classified as Git, while remaining eligible because the
+repository URL is the canonical SwiftURL identity used for vulnerability
+matching.
 
 ### Decision: Bun text lockfiles are native; binary lockfiles degrade explicitly
 
@@ -393,6 +515,23 @@ When a build-tool-primary detector (Maven, Gradle, Go, …) cannot produce a gra
 - **Degradation vs hand-off.** Only a real primary failure (not-ready, applicability-check error, install failure, resolve error, empty graph, scope-filter error) is annotated and warned about. `Applicable() == false` with no error is designed chain hand-off (e.g. the npm lockfile detector deferring to the native detector when no lockfile exists) and stays quiet. In chained fallbacks the outermost real failure wins, since users care about the planned primary.
 - **Default visibility.** At default verbosity the CLI logger is a no-op, so the authoritative channel is the `PipelineWarning` converted from the annotation after the parallel resolve phase — it renders as a ⚠ child in the scan/explain/diff progress UI, as a yellow notice in the text report, a warning blockquote in markdown, and a `resolution.fallback` object in scan JSON. A single Warn log (`pipeline: detector fell back`) fires per unique (subproject, primary, fallback) tuple for `-v` users.
 - **Stage observability.** Pipeline stages (detection, consolidation, enrichment, reachability, policy evaluation) emit Info start/completion logs with counts and durations; consolidation stays logger-free and the pipeline logs around it. Detector-internal completion lines remain owned by the detectors themselves, and recoverable detector subprocess failures log at Warn, not Error, because the pipeline degrades and continues.
+- **Secret-safe subprocess logs.** Subprocess owners log the executable,
+  sanitized argument list, and working directory at Debug. The shared logging
+  sanitizer removes credential-shaped flag values and URL user information
+  while preserving ordinary arguments for reproduction. Executable values are
+  resolved binary paths or names and are assumed not to contain arguments or
+  credentials. URL query values are not parsed as credentials, so callers must
+  not treat URL sanitization as a general query-string redactor. The engine
+  logs orchestration state but never logs raw `install_args`. At DEBUG
+  verbosity (`-vv`), subprocess stderr is streamed to Bomly's stderr so users
+  can diagnose package-manager, analyzer, matcher, Git, Java, and managed
+  plugin failures. It is hidden at lower verbosity and is not stored in
+  structured results. Because Bomly cannot reliably sanitize arbitrary tool
+  output, DEBUG logs may contain credentials or other sensitive values printed
+  by those tools and must be handled as sensitive data. The serialized
+  `DetectionRequest.AllowStdErrLogging` field lets protocol-v1 detectors see
+  that the user enabled this output; process-local `Stderr` and `Verbose`
+  fields carry the destination and compatibility signal for built-ins.
 
 ### Decision: detector logs are request-scoped by subproject
 
@@ -443,9 +582,16 @@ vulnerability data and does not trigger network enrichment.
 
 **Detector network behavior is per-implementation.** Lockfile-parser detectors (npm, pnpm, yarn, Composer, Bundler, NuGet, GitHub Actions, SBOM ingest, …) are pure file parsers and make no network calls. Build-tool primary detectors (`go-detector`, `maven-detector`, `gradle-detector`, `sbt-native-detector`) shell out to the build tool, which may download packages from registries during normal resolution — this is the build tool's behavior, not Bomly's. Hybrid detectors (`cargo`, `poetry`, `uv`) prefer the lockfile and use `--locked`/`--no-sync` flags on the build-tool fallback to stay offline. See [DETECTORS.md → Network behavior](../docs/DETECTORS.md#network-behavior).
 
+**CI-readiness warnings read committed files only.** The Node detectors' package-manager warnings inspect `package.json`, the lockfile they already parsed, `pnpm-workspace.yaml`, and `.npmrc`. They execute no package manager: `pnpm`/`yarn` on `PATH` are frequently Corepack shims, and running even `--version` can download the pinned manager on demand, which would put a registry call in a plain scan.
+
 **Target materialization is a separate network boundary.** `--url` explicitly
 authorizes Bomly to clone the requested Git repository before the scan
-pipeline starts. Matcher gating does not suppress that clone.
+pipeline starts. Matcher gating does not suppress that clone. The clone has a
+10-minute deadline and disables submodule recursion and Git LFS smudging for
+every clone and ref checkout. Bomly validates the completed checkout's size,
+entry count, depth, and symlink containment before repository discovery. Local
+repository diffs preserve the selected checkout's symlinks because that
+repository is already a user-trusted input.
 
 `--install-first` is the explicit opt-in: it tells supporting detectors to run their normal install command (`npm install`, `pip install`, `composer install`, etc.) before resolving the graph. This downloads packages by design.
 
@@ -458,6 +604,24 @@ Permitted enrichment-time services:
 - Grype's vulnerability database distribution service
 
 Installed external matcher plugins may use their own documented services.
+
+**Custom network settings are trusted authority.** The OSV and Scorecard base
+URLs may point to public, private, loopback, or plain HTTP services. Proxy
+destinations and additional CA files have the same reach. Bomly supports these
+choices for self-hosted services and enterprise networks; it does not apply a
+private-network block. Only the user config is loaded automatically. A
+repository config must be selected with `--config` or `BOMLY_CONFIG`, and
+network-specific environment variables are also explicit inputs.
+
+The shared SDK HTTP client follows Go's normal redirect rules. Redirects are
+allowed because custom services commonly use them, but sensitive headers are
+not forwarded to a different hostname. The standard client also permits an
+HTTPS endpoint to redirect to HTTP. This is intentional trusted-endpoint
+behavior for self-hosted services; Bomly does not add a downgrade block. Proxy
+and endpoint passwords must not appear in errors or logs. Configured PEM
+certificates extend the system trust roots for the current process rather than
+replacing them. The executable assurance matrix is recorded in
+[`test/assurance/NETWORK_BOUNDARIES.md`](../test/assurance/NETWORK_BOUNDARIES.md).
 
 **Native plugins are trusted processes, not sandboxes.** Installation verifies
 the managed artifact and records it disabled by default. Enabling a plugin
@@ -542,7 +706,20 @@ Managed plugin installation is owned by Bomly rather than by the runtime library
 6. Move the plugin into `~/.bomly/plugins/store/<id>/<version>`.
 7. Update `installed.json` atomically.
 
-The installer rejects archive path traversal, absolute paths, unsupported entrypoints, incompatible manifests, and runtime descriptors that do not match the manifest identity.
+The installer rejects archive path traversal, absolute paths, unsupported
+entrypoints, incompatible manifests, and runtime descriptors that do not match
+the manifest identity. Remote archive downloads are limited to 256 MiB, and
+GitHub release metadata responses are limited to 4 MiB before JSON decoding.
+Extraction accepts at most 4,096 entries, 256 MiB for one expanded file, and
+512 MiB across all expanded files. Zip metadata allows all limits to be checked
+before extraction. Tar streams are checked before each entry is written and
+again while bytes are copied, so a false size header cannot bypass the limit.
+Partial over-limit files are removed.
+
+Plugin JSON is bounded before decoding. `bomly-plugin.json` and
+`bomly-plugin.runtime.json` each have a 1 MiB limit. The shared
+`installed.json` database has a 16 MiB limit so a large plugin collection
+remains practical without allowing an unbounded read.
 
 ## Plugin Selection
 
@@ -575,7 +752,8 @@ This keeps the scan engine recognizable while making it possible to migrate sele
 
 ## Design Boundaries
 
-- Detector packages must not import `internal/engine` or `internal/registry`.
+- Detector packages must not import `internal/engine` or `internal/registry`. They may use `internal/system` for shared bounded filesystem and subprocess operations.
+- Built-in analyzer packages may use `internal/system` for shared bounded filesystem and subprocess operations, but must not import `internal/engine` or `internal/registry`.
 - `sdk` owns shared neutral identifiers and support types.
 - `internal/registry` owns discovery, support-matrix data, and built-in registry wiring.
 - `internal/engine` owns runtime planning, orchestration, and detector-chain reuse.

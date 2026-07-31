@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -24,6 +23,9 @@ var symbolPattern = regexp.MustCompile(`:([A-Za-z0-9_]+)`)
 type lockSpec struct {
 	Name         string
 	Version      string
+	Source       sdk.DependencySource
+	ResolvedURL  string
+	Revision     string
 	Dependencies []string
 }
 
@@ -85,7 +87,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
-	data, err := os.ReadFile(lockPath)
+	data, err := system.ReadRepositoryFile(lockPath)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("read bundler lockfile: %w", err)
 	}
@@ -132,11 +134,11 @@ func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
 
 	started := time.Now()
 	logger.Info("Bundler detector running install-first step")
-	logger.Debug("running bundler detector install-first", zap.String("working_dir", cmd.Dir), zap.String("executable", bundlePath), zap.Strings("args", args))
+	logger.Debug("running bundler detector install-first", logging.CommandFields(bundlePath, args, cmd.Dir)...)
 	if err := cmd.Run(); err != nil {
 		fields := []zap.Field{zap.Error(err)}
-		if commandStderr.String() != "" {
-			fields = append(fields, zap.String("stderr", commandStderr.String()))
+		if commandStderr.ByteCount() > 0 {
+			fields = append(fields, zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		}
 		logger.Debug("bundler detector install-first failure details", fields...)
 		return fmt.Errorf("run bundle install: %w", err)
@@ -189,20 +191,20 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 	}
 
 	for _, spec := range specs {
-		node := gemNode(spec.Name, spec.Version)
+		node := gemNode(spec)
 		if err := addGemNodeIfMissing(depsGraph, node); err != nil {
 			return nil, err
 		}
 	}
 
 	for _, spec := range specs {
-		parent := gemNode(spec.Name, spec.Version)
+		parent := gemNode(spec)
 		for _, dependencyName := range spec.Dependencies {
 			childSpec, ok := specs[dependencyName]
 			if !ok {
 				continue
 			}
-			child := gemNode(childSpec.Name, childSpec.Version)
+			child := gemNode(childSpec)
 			if err := depsGraph.AddEdge(parent.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add dependency %q -> %q: %w", parent.ID, child.ID, err)
 			}
@@ -214,12 +216,12 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 		if !ok {
 			spec = lockSpec{Name: dependencyName}
 			specs[dependencyName] = spec
-			node := gemNode(spec.Name, spec.Version)
+			node := gemNode(spec)
 			if err := addGemNodeIfMissing(depsGraph, node); err != nil {
 				return nil, err
 			}
 		}
-		node := gemNode(spec.Name, spec.Version)
+		node := gemNode(spec)
 		scope := directScopes[dependencyName]
 		if scope == sdk.ScopeUnknown {
 			scope = sdk.ScopeRuntime
@@ -244,7 +246,7 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 			if !ok {
 				return
 			}
-			node := gemNode(spec.Name, spec.Version)
+			node := gemNode(spec)
 			if existing, ok := depsGraph.Node(node.ID); ok {
 				existing.AddScope(scope)
 			}
@@ -269,6 +271,9 @@ func parseBundlerLockfile(raw string) (map[string]lockSpec, []string, error) {
 	section := ""
 	inSpecs := false
 	currentName := ""
+	sectionSource := sdk.DependencySource("")
+	sectionRemote := ""
+	sectionRevision := ""
 
 	scanner := bufio.NewScanner(strings.NewReader(strings.ReplaceAll(raw, "\r\n", "\n")))
 	for scanner.Scan() {
@@ -282,11 +287,22 @@ func parseBundlerLockfile(raw string) (map[string]lockSpec, []string, error) {
 			section = trimmed
 			inSpecs = false
 			currentName = ""
+			sectionSource = bundlerSectionSource(section)
+			sectionRemote = ""
+			sectionRevision = ""
 			continue
 		}
 
 		switch section {
 		case "GEM", "GIT", "PATH":
+			if !inSpecs && strings.HasPrefix(trimmed, "remote:") {
+				sectionRemote = strings.TrimSpace(strings.TrimPrefix(trimmed, "remote:"))
+				continue
+			}
+			if !inSpecs && strings.HasPrefix(trimmed, "revision:") {
+				sectionRevision = strings.TrimSpace(strings.TrimPrefix(trimmed, "revision:"))
+				continue
+			}
 			if trimmed == "specs:" {
 				inSpecs = true
 				currentName = ""
@@ -306,6 +322,9 @@ func parseBundlerLockfile(raw string) (map[string]lockSpec, []string, error) {
 				spec := specs[name]
 				spec.Name = name
 				spec.Version = version
+				spec.Source = sectionSource
+				spec.ResolvedURL = sectionRemote
+				spec.Revision = sectionRevision
 				specs[name] = spec
 			case indent >= 6 && currentName != "":
 				dependencyName := parseDependencyName(trimmed)
@@ -330,6 +349,19 @@ func parseBundlerLockfile(raw string) (map[string]lockSpec, []string, error) {
 		return nil, nil, fmt.Errorf("scan bundler lockfile: %w", err)
 	}
 	return specs, directDependencies, nil
+}
+
+func bundlerSectionSource(section string) sdk.DependencySource {
+	switch section {
+	case "GEM":
+		return sdk.DependencySourceRegistry
+	case "GIT":
+		return sdk.DependencySourceGit
+	case "PATH":
+		return sdk.DependencySourceFile
+	default:
+		return ""
+	}
 }
 
 func parseLockSpecHeader(value string) (string, string) {
@@ -363,7 +395,7 @@ func parseGemfileScopes(path string) (map[string]sdk.Scope, error) {
 		return scopes, nil
 	}
 
-	data, err := os.ReadFile(path)
+	data, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read Gemfile: %w", err)
 	}
@@ -449,13 +481,17 @@ func scopeForGroupLabels(labels []string) sdk.Scope {
 	return sdk.ScopeDevelopment
 }
 
-func gemNode(name, version string) *sdk.Dependency {
+func gemNode(spec lockSpec) *sdk.Dependency {
+	var metadata map[string]any
+	if revision := strings.TrimSpace(spec.Revision); revision != "" {
+		metadata = map[string]any{"source_revision": revision}
+	}
 	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRuby,
-		Name:           strings.TrimSpace(name),
-		Version:        strings.TrimSpace(version),
+		Name:           strings.TrimSpace(spec.Name),
+		Version:        strings.TrimSpace(spec.Version),
 		PackageManager: sdk.PackageManagerBundler,
 		Type:           "gem",
-		Language:       "ruby"},
+		Language:       "ruby"}, Source: spec.Source, ResolvedURL: strings.TrimSpace(spec.ResolvedURL), Metadata: metadata,
 	})
 
 }

@@ -18,6 +18,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
@@ -25,6 +26,11 @@ import (
 var githubAPIBaseURL = "https://api.github.com"
 
 var githubTokenEnvNames = []string{"BOMLY_BENCHMARK_GITHUB_TOKEN", "GITHUB_TOKEN", "GH_TOKEN"}
+
+const (
+	maxBenchmarkSBOMBytes   int64 = 256 << 20
+	maxGitScalarOutputBytes int64 = 1 << 20
+)
 
 // RunOptions configures one hidden benchmark invocation.
 type RunOptions struct {
@@ -470,7 +476,7 @@ func bomlySBOMTarget(format string) (sbom.Target, error) {
 	case "spdx":
 		return sbom.TargetSPDX23JSON, nil
 	case "cyclonedx":
-		return sbom.TargetCycloneDX16JSON, nil
+		return sbom.TargetCycloneDX17JSON, nil
 	default:
 		return "", fmt.Errorf("unsupported Bomly benchmark SBOM format %q", format)
 	}
@@ -745,7 +751,7 @@ func filterSBOMFile(inputPath, outputPath string, ecosystem sdk.Ecosystem) error
 }
 
 func loadSBOMDocument(path string) (*sbom.Document, sbom.Target, error) {
-	raw, err := os.ReadFile(path)
+	raw, err := system.ReadFileLimit(path, maxBenchmarkSBOMBytes)
 	if err != nil {
 		return nil, "", fmt.Errorf("read SBOM: %w", err)
 	}
@@ -771,7 +777,7 @@ func resolveCheckoutHEAD(ctx context.Context, logger *zap.Logger, logPath, check
 	if err := runOutputCommand(ctx, logger, nil, outputPath, logPath, "git", "-C", checkoutDir, "rev-parse", "HEAD"); err != nil {
 		return "", fmt.Errorf("resolve checkout HEAD: %w", err)
 	}
-	raw, err := os.ReadFile(outputPath)
+	raw, err := system.ReadFileLimit(outputPath, maxGitScalarOutputBytes)
 	if err != nil {
 		return "", fmt.Errorf("read checkout HEAD: %w", err)
 	}
@@ -838,7 +844,7 @@ func inheritedWorkingDir() string {
 }
 
 func unwrapGitHubSBOM(inputPath, outputPath string) error {
-	raw, err := os.ReadFile(inputPath)
+	raw, err := system.ReadFileLimit(inputPath, maxBenchmarkSBOMBytes)
 	if err != nil {
 		return fmt.Errorf("read GitHub SBOM response: %w", err)
 	}

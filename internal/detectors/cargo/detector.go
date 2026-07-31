@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -129,8 +128,8 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	raw, err := cmd.Output()
 	if err != nil {
 		fields := []zap.Field{zap.Error(err)}
-		if commandStderr.String() != "" {
-			fields = append(fields, zap.String("stderr", commandStderr.String()))
+		if commandStderr.ByteCount() > 0 {
+			fields = append(fields, zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		}
 		logger.Debug("cargo detector failure details", fields...)
 		return sdk.DetectionResult{}, fmt.Errorf("run cargo metadata: %w", err)
@@ -181,11 +180,11 @@ func (d Detector) FallbackDetector() sdk.Detector {
 
 func (d Detector) resolveFromLock(req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	workingDir := d.workingDir(req.ProjectPath)
-	lockRaw, err := os.ReadFile(filepath.Join(workingDir, "Cargo.lock"))
+	lockRaw, err := system.ReadRepositoryFile(filepath.Join(workingDir, "Cargo.lock"))
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("read Cargo.lock: %w", err)
 	}
-	manifestRaw, err := os.ReadFile(filepath.Join(workingDir, "Cargo.toml"))
+	manifestRaw, err := system.ReadRepositoryFile(filepath.Join(workingDir, "Cargo.toml"))
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("read Cargo.toml: %w", err)
 	}
@@ -373,8 +372,14 @@ func rootNode() *sdk.Dependency {
 
 func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}) *sdk.Dependency {
 	pkgType := "crate"
-	if _, ok := workspace[id]; ok {
+	_, workspaceMember := workspace[id]
+	source := cargoDependencySource(pkg.Source)
+	if workspaceMember {
 		pkgType = "application"
+		source = sdk.DependencySourceProject
+		if len(workspace) > 1 {
+			source = sdk.DependencySourceWorkspace
+		}
 	}
 	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
 		Name:           pkg.Name,
@@ -382,9 +387,24 @@ func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}) 
 		PackageManager: sdk.PackageManagerCargo,
 		Type:           sdk.ParsePackageType(pkgType),
 		Language:       "rust",
-		PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)}, ResolvedURL: pkg.Source,
+		PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)}, Source: source, ResolvedURL: pkg.Source,
 	})
 
+}
+
+func cargoDependencySource(source string) sdk.DependencySource {
+	source = strings.TrimSpace(source)
+	switch {
+	case strings.HasPrefix(source, "registry+"),
+		strings.HasPrefix(source, "sparse+"):
+		return sdk.DependencySourceRegistry
+	case strings.HasPrefix(source, "git+"):
+		return sdk.DependencySourceGit
+	case source == "":
+		return sdk.DependencySourceFile
+	default:
+		return ""
+	}
 }
 
 func scopeForDepKinds(kinds []metadataDepKind) sdk.Scope {
@@ -418,6 +438,7 @@ func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
 type lockPackage struct {
 	Name         string
 	Version      string
+	Source       string
 	Dependencies []string
 }
 
@@ -458,7 +479,7 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 	byName := make(map[string]lockPackage, len(packages))
 	for _, pkg := range packages {
 		byName[pkg.Name] = pkg
-		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version}, pkg.Name+"@"+pkg.Version, nil)
+		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
 		if pkg.Name == manifest.Name {
 			continue
 		}
@@ -470,13 +491,13 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 		if pkg.Name == manifest.Name {
 			continue
 		}
-		parent := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version}, pkg.Name+"@"+pkg.Version, nil)
+		parent := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
 		for _, depName := range pkg.Dependencies {
 			childPkg, ok := byName[depName]
 			if !ok || childPkg.Name == manifest.Name {
 				continue
 			}
-			child := packageNode(metadataPackage{Name: childPkg.Name, Version: childPkg.Version}, childPkg.Name+"@"+childPkg.Version, nil)
+			child := packageNode(metadataPackage{Name: childPkg.Name, Version: childPkg.Version, Source: childPkg.Source}, childPkg.Name+"@"+childPkg.Version, nil)
 			if err := g.AddEdge(parent.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add Cargo.lock dependency %q -> %q: %w", parent.ID, child.ID, err)
 			}
@@ -487,7 +508,7 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 		if !ok {
 			continue
 		}
-		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version}, pkg.Name+"@"+pkg.Version, nil)
+		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
 		if existing, ok := g.Node(node.ID); ok {
 			existing.AddScope(sdk.ScopeRuntime)
 		}
@@ -500,7 +521,7 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 		if !ok {
 			continue
 		}
-		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version}, pkg.Name+"@"+pkg.Version, nil)
+		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
 		if existing, ok := g.Node(node.ID); ok {
 			existing.AddScope(sdk.ScopeDevelopment)
 		}
@@ -587,6 +608,8 @@ func parseCargoLockPackages(text string) []lockPackage {
 				pkg.Name = trimTomlString(strings.TrimPrefix(line, "name = "))
 			case strings.HasPrefix(line, "version = "):
 				pkg.Version = trimTomlString(strings.TrimPrefix(line, "version = "))
+			case strings.HasPrefix(line, "source = "):
+				pkg.Source = trimTomlString(strings.TrimPrefix(line, "source = "))
 			case strings.HasPrefix(line, "dependencies = ["):
 				for i++; i < len(lines); i++ {
 					depLine := strings.TrimSpace(strings.TrimSuffix(lines[i], ","))
@@ -650,6 +673,10 @@ func trimTomlString(value string) string {
 
 // Install prepares Cargo dependencies before graph resolution.
 func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
+	logger := d.Logger
+	if logger == nil {
+		logger = zap.NewNop()
+	}
 	cargoPath, err := cargoExecLookPath("cargo")
 	if err != nil {
 		return fmt.Errorf("resolve cargo executable: %w", err)
@@ -658,6 +685,7 @@ func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
 	cmd := cargoExecCommand(cargoPath, args...)
 	cmd.Dir = d.workingDir(req.ProjectPath)
 	cmd.Stderr = logging.NewCommandStderr(req.Stderr, req.Verbose)
+	logger.Debug("running cargo detector install-first", logging.CommandFields(cargoPath, args, cmd.Dir)...)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("run cargo fetch: %w", err)
 	}

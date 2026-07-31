@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -34,11 +33,11 @@ func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether the sbt binary and a usable Java runtime are available.
-func (d NativeDetector) Ready(ctx context.Context, _ sdk.DetectionRequest) error {
+func (d NativeDetector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
 	if _, err := system.LookPath("sbt"); err != nil {
 		return detectors.CommandNotReadyError("sbt", err)
 	}
-	return detectors.JavaReady(ctx)
+	return detectors.JavaReady(ctx, req.DetectorLogger(d.Logger))
 }
 
 // Applicable reports whether sbt build files are present.
@@ -80,14 +79,16 @@ func (d NativeDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 
 	cmdCtx, cancel := detectors.BuildToolContext(ctx)
 	defer cancel()
-	cmd := system.CommandContext(cmdCtx, "sbt", "--no-colors", "--batch", "dependencyTree")
+	executable := "sbt"
+	args := []string{"--no-colors", "--batch", "dependencyTree"}
+	cmd := system.CommandContext(cmdCtx, executable, args...)
 	cmd.Dir = workingDir
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = logging.NewCommandStderr(req.Stderr, req.Verbose)
 
 	started := time.Now()
-	logger.Debug("running sbt native detector", zap.String("working_dir", workingDir))
+	logger.Debug("running sbt native detector", logging.CommandFields(executable, args, workingDir)...)
 	if err := cmd.Run(); err != nil {
 		if errors.Is(cmdCtx.Err(), context.DeadlineExceeded) {
 			err = fmt.Errorf("timed out after %s: %w", detectors.BuildToolTimeout, err)
@@ -139,7 +140,7 @@ func requiresDependencyGraphPlugin(workingDir string) bool {
 }
 
 func sbtVersion(workingDir string) string {
-	raw, err := os.ReadFile(filepath.Join(workingDir, "project", "build.properties"))
+	raw, err := system.ReadRepositoryFile(filepath.Join(workingDir, "project", "build.properties"))
 	if err != nil {
 		return ""
 	}
@@ -177,7 +178,7 @@ func hasDependencyGraphPlugin(workingDir string) bool {
 		filepath.Join("project", "build.sbt"),
 		"build.sbt",
 	} {
-		raw, err := os.ReadFile(filepath.Join(workingDir, name))
+		raw, err := system.ReadRepositoryFile(filepath.Join(workingDir, name))
 		if err != nil {
 			continue
 		}

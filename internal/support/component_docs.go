@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	rootdetectors "github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
@@ -61,7 +62,7 @@ For example, the `+"`npm`"+` chain is `+"`npm-detector`"+` → `+"`syft-detector
 1. `+"`npm-detector`"+` parses `+"`package-lock.json`"+` directly and resolves the full transitive graph.
 2. `+"`syft-detector`"+` runs only if the native detector cannot produce graph data (for example, no lockfile present), and emits a flat package list.
 
-Per-ecosystem chains are listed in [`+"`detectors/ecosystems/`"+`](detectors/ecosystems/). The full live list lives in the CLI:
+Per-detector chains are listed in the [detector reference](detectors/). The full live list lives in the CLI:
 
 `+"```bash"+`
 bomly plugins list --detectors
@@ -81,7 +82,7 @@ Bomly prefers native detectors because they preserve edges (needed by `+"`bomly 
 
 ## Selecting detectors
 
-Use `+"`--detectors`"+` to restrict or extend the default set with the standard `+"`+/-`"+` selector grammar:
+Use `+"`--detectors`"+` to restrict or extend the default set with the standard [selector grammar](COMMANDS.md#selector-grammar):
 
 `+"```bash"+`
 # Use only the native Go detector
@@ -102,6 +103,10 @@ After vulnerability enrichment, supporting detectors may describe package-manage
 
 Each package-manager page lists the strategies its built-in detectors understand. External detector plugins can advertise the same optional capability. Older protocol-v1 plugins keep working without it.
 
+## Resolution warnings
+
+A detector can resolve a perfectly good graph from a project whose package-manager configuration will still break an install somewhere else — a lockfile format the pinned manager will not keep, an install policy that rejects freshly published versions. Detectors record those as resolution warnings on the manifest they resolved, so the graph is still produced and the problem is still reported. See [CI-readiness warnings](CI_READINESS.md) for the checks and where the warnings surface.
+
 ## Network behavior
 
 Detectors differ in whether they run subprocesses, and those that do may
@@ -119,7 +124,7 @@ resolution.
 
 The build-tool-primary detectors invoke commands you would already run locally (`+"`go list`"+`, `+"`mvn dependency:tree`"+`, `+"`gradle dependencies`"+`, `+"`sbt dependencyTree`"+`). Whether they hit the network is a property of those tools and your local cache state, not a Bomly choice. To keep these scans fully offline, pre-warm the local cache (`+"`go mod download`"+`, `+"`mvn dependency:go-offline`"+`, etc.) or commit a lockfile when the ecosystem supports one.
 
-Per-PM pages under [`+"`detectors/ecosystems/`"+`](detectors/ecosystems/) document the exact command each detector runs and whether it touches the network.
+Each page under [`+"`detectors/`"+`](detectors/) documents the exact command that detector runs and whether it touches the network.
 
 ## `+"`--install-first`"+` {#install-first}
 
@@ -149,7 +154,7 @@ Pass `+"`--install-first`"+` to let supporting detectors run their normal depend
 
 Detectors without an `+"`Install`"+` implementation (e.g. NuGet, GitHub Actions, SBOM ingest, Syft) silently skip the step when `+"`--install-first`"+` is set. Bomly does **not** install package managers themselves — only their dependencies.
 
-Each package-manager page under [`+"`detectors/ecosystems/`"+`](detectors/ecosystems/) lists whether `+"`--install-first`"+` is supported and the exact command that runs.
+Each page under [`+"`detectors/`"+`](detectors/) lists whether `+"`--install-first`"+` is supported and the exact command that runs.
 
 ### Customizing the install command with `+"`--install-arg`"+`
 
@@ -219,8 +224,9 @@ bomly scan --image ghcr.io/example/app:latest
 
 ## See also
 
-- [Ecosystem guides](detectors/ecosystems/) — generated per-ecosystem detector chains, evidence patterns, and `+"`PATH`"+` requirements
+- [Detector reference](detectors/) — one generated page per native detector, plus [Syft fallback](detectors/syft.md) for everything else
 - [Support matrix](SUPPORT_MATRIX.md) — generated overview of every supported ecosystem
+- [CI-readiness warnings](CI_READINESS.md) — the package-manager mismatches detectors report alongside the graph
 - [Plugins](PLUGINS.md) — author and install external detectors
 `) + "\n"
 }
@@ -261,7 +267,7 @@ Pass `+"`--enrich`"+` to run all default network matchers:
 bomly scan --enrich
 `+"```"+`
 
-Use `+"`--matchers`"+` to restrict or extend the set with the standard `+"`+/-`"+` selector grammar:
+Use `+"`--matchers`"+` to restrict or extend the set with the standard [selector grammar](COMMANDS.md#selector-grammar):
 
 `+"```bash"+`
 # Only OSV
@@ -349,17 +355,19 @@ Auditors run **after** detectors and matchers. They never make network calls of 
 bomly scan --enrich --audit --fail-on high
 `+"```"+`
 
-`+"`--audit`"+` alone is useful when you have ingested an SBOM that already carries vulnerability data, or when a matcher ran in a previous step.
+The CLI requires `+"`--enrich`"+` with `+"`--audit`"+`. Auditors themselves do not make
+network calls; the selected matchers decide whether enrichment uses the
+network.
 
 ## Built-in auditors
 
 | Auditor | Checks | Policy flags |
 | --- | --- | --- |
-| [`+"`vulnerability`"+`](auditors/vulnerability.md) | Enriched advisories vs. severity / allowlist policy | `+"`--fail-on`"+`, `+"`--allow-vulnerability-id`"+` |
+| [`+"`vulnerability`"+`](auditors/vulnerability.md) | Enriched vulnerability advisories | `+"`--fail-on`"+`, `+"`--allow-vulnerability-id`"+` |
 | [`+"`license`"+`](auditors/license.md) | Package licenses vs. allow/deny SPDX policy | `+"`--allow-license`"+`, `+"`--deny-license`"+`, `+"`--license-exempt-package`"+` |
-| [`+"`package`"+`](auditors/package.md) | Denied packages and typosquatted names | `+"`--deny-package`"+`, `+"`--deny-group`"+`, `+"`--protected-package`"+`, `+"`--typosquat-threshold`"+`, `+"`--typosquat-mode`"+` |
+| [`+"`package`"+`](auditors/package.md) | Denied packages, typosquatted names, and source changes | `+"`--deny-package`"+`, `+"`--deny-group`"+`, `+"`--protected-package`"+`, `+"`--typosquat-threshold`"+`, `+"`--typosquat-mode`"+`, `+"`--fail-on source-change`"+` |
 
-Select a subset with the `+"`--auditors`"+` selector (e.g. `+"`--auditors license`"+`). See the [per-auditor reference](auditors/) for options, examples, and limitations. Auditors are also a plugin extension point — for a worked example of an external auditor, see the [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor).
+Select a subset with the `+"`--auditors`"+` [selector](COMMANDS.md#selector-grammar) (e.g. `+"`--auditors license`"+`). See the [per-auditor reference](auditors/) for options, examples, and limitations. Auditors are also a plugin extension point — for a worked example of an external auditor, see the [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor).
 
 ## When auditors run
 
@@ -397,7 +405,12 @@ The `+"`any`"+` token matches every severity, including `+"`unknown`"+`.
 
 ## `+"`--fail-on`"+`
 
-`+"`--fail-on`"+` is the only knob that turns a finding into a non-zero exit code. It accepts a severity token, the reachability token `+"`reachable`"+`, or the known-exploitation token `+"`exploitable`"+`:
+`+"`--fail-on`"+` controls vulnerability findings by severity, reachability,
+or known exploitation. It also provides the diff-only `+"`source-change`"+`
+gate for package findings. Other policy flags, such as `+"`--deny-package`"+`,
+can create failing findings directly.
+
+It accepts these tokens:
 
 | Token | Matches |
 | --- | --- |
@@ -408,8 +421,16 @@ The `+"`any`"+` token matches every severity, including `+"`unknown`"+`.
 | `+"`critical`"+` | findings with severity = critical |
 | `+"`reachable`"+` | findings where reachability status is `+"`reachable`"+` (experimental — see [REACHABILITY.md](REACHABILITY.md)) |
 | `+"`exploitable`"+` | vulnerability findings marked as known exploited by enrichment data |
+| `+"`source-change`"+` | diffs where a dependency changes from a known source to Git or an arbitrary URL |
 
-Repeat the flag to AND constraints together:
+Repeat vulnerability constraints to AND them together. `+"`source-change`"+`
+is an independent package gate, so combining it with vulnerability constraints
+fails when either the source gate or the complete vulnerability constraint set
+matches:
+
+Used by itself, `+"`source-change`"+` leaves vulnerability findings unchanged.
+It can only match dependency transitions from `+"`bomly diff`"+`; it has no
+effect on `+"`scan`"+` or `+"`explain`"+`.
 
 `+"```bash"+`
 # Fail on any high or critical finding
@@ -422,10 +443,14 @@ bomly scan --enrich --audit --analyze \
 # Fail only on high-or-critical vulnerabilities with known exploitation
 bomly scan --enrich --audit \
   --fail-on high --fail-on exploitable
+
+# Fail on high-or-critical vulnerabilities or dependency source changes
+bomly diff --base main --head HEAD --enrich --audit \
+  --fail-on high --fail-on source-change
 `+"```"+`
 
 Tokens are case-insensitive. An invalid token produces an exit-code 4 (invalid input) with the message:
-`+"`unsupported --fail-on value \"<x>\" (accepted: any, low, medium, high, critical, reachable, exploitable)`"+`.
+`+"`unsupported --fail-on value \"<x>\" (accepted: any, low, medium, high, critical, reachable, exploitable, source-change)`"+`.
 
 ## Minimal CI policy
 
@@ -459,7 +484,7 @@ See [EXIT_CODES.md](EXIT_CODES.md) for the full table.
 - **Resolved** — present in base, absent in head
 - **Persisted** — present in both
 
-Combine with `+"`--fail-on`"+` to fail PRs that introduce new high-severity findings without complaining about pre-existing ones:
+The diff audit only inspects packages the change touched, so findings on unchanged packages never appear — that is how pre-existing debt stays out of PR reviews. Both remaining buckets gate: `+"`--fail-on`"+` fails on introduced findings and on persisted ones, because a persisted finding means the changed package still ships a known issue at its new version:
 
 `+"```bash"+`
 bomly diff --base main --head HEAD --enrich --audit --fail-on high
@@ -504,7 +529,10 @@ A project may commit `+"`.bomly/baseline.json`"+` to suppress accepted package
 findings without removing them from reports. Policy-status resolution is part of
 auditing: auditors first emit ordinary findings, then the audit stage marks
 compatible entries `+"`suppressed`"+`. It never removes a finding or suppresses
-pipeline diagnostics. See [Finding Baselines](BASELINES.md).
+pipeline diagnostics. If automatic discovery finds a symbolic link at the
+conventional baseline path, Bomly warns and behaves as though no baseline
+exists. An explicit `+"`--baseline <path>`"+` remains a trusted user-selected
+path. See [Finding Baselines](BASELINES.md).
 
 ## See also
 
@@ -528,7 +556,7 @@ func WriteComponentDocs(docsDir string) error {
 			return err
 		}
 	}
-	if err := writeDetectorEcosystemDocs(filepath.Join(docsDir, "detectors", "ecosystems")); err != nil {
+	if err := writeDetectorDocs(filepath.Join(docsDir, "detectors")); err != nil {
 		return err
 	}
 	if err := writeMatcherDocs(filepath.Join(docsDir, "matchers")); err != nil {
@@ -540,130 +568,167 @@ func WriteComponentDocs(docsDir string) error {
 	return nil
 }
 
-func writeDetectorEcosystemDocs(outputDir string) error {
-	// Wipe and recreate the output directory so renamed or removed ecosystems
-	// and package managers don't leave orphan files behind.
+// writeDetectorDocs writes one page per detector under docs/detectors/,
+// grouped into a directory per ecosystem:
+//
+//	docs/detectors/npm/{npm,pnpm,yarn,bun}.md
+//	docs/detectors/python/{pip,pipenv,poetry,uv}.md
+//	docs/detectors/syft.md
+//
+// Only ecosystems with a native detector get a directory. Everything Bomly
+// sees through Syft alone shares the single top-level `syft.md` — those pages
+// were near-identical, and one page describing the fallback is more useful
+// than 23 copies of it.
+func writeDetectorDocs(outputDir string) error {
+	// Wipe and recreate the output directory so renamed or removed detectors
+	// don't leave orphan files behind. This also clears the old
+	// detectors/ecosystems/ tree the first time the new layout is generated.
 	if err := os.RemoveAll(outputDir); err != nil {
 		return fmt.Errorf("clean %s: %w", outputDir, err)
 	}
 	if err := os.MkdirAll(outputDir, 0o755); err != nil {
 		return fmt.Errorf("create %s: %w", outputDir, err)
 	}
-	entries := registry.SupportEntries()
-	byEcosystem := make(map[sdk.Ecosystem][]registry.PackageManagerSupport)
-	for _, entry := range entries {
-		byEcosystem[entry.Ecosystem] = append(byEcosystem[entry.Ecosystem], entry)
+
+	var native, syftOnly []registry.PackageManagerSupport
+	for _, entry := range registry.SupportEntries() {
+		if isSyftOnlyChain(entry.Detectors) {
+			syftOnly = append(syftOnly, entry)
+			continue
+		}
+		native = append(native, entry)
 	}
-	ecosystems := make([]sdk.Ecosystem, 0, len(byEcosystem))
-	for ecosystem := range byEcosystem {
-		ecosystems = append(ecosystems, ecosystem)
-	}
-	sort.Slice(ecosystems, func(i, j int) bool { return ecosystems[i] < ecosystems[j] })
-	for _, ecosystem := range ecosystems {
-		ecosystemDir := filepath.Join(outputDir, string(ecosystem))
+	sortSupportEntries(native)
+	sortSupportEntries(syftOnly)
+
+	for _, entry := range native {
+		ecosystemDir := filepath.Join(outputDir, string(entry.Ecosystem))
 		if err := os.MkdirAll(ecosystemDir, 0o755); err != nil {
 			return fmt.Errorf("create %s: %w", ecosystemDir, err)
 		}
-		ecosystemEntries := byEcosystem[ecosystem]
-		sort.Slice(ecosystemEntries, func(i, j int) bool {
-			return ecosystemEntries[i].Manager.Name() < ecosystemEntries[j].Manager.Name()
-		})
-		for _, entry := range ecosystemEntries {
-			path := filepath.Join(ecosystemDir, entry.Manager.Name()+".md")
-			if err := writeMarkdown(path, renderPackageManagerMarkdown(ecosystem, entry)); err != nil {
-				return err
-			}
-		}
-		if err := writeMarkdown(filepath.Join(ecosystemDir, "README.md"), renderEcosystemReadme(ecosystem, ecosystemEntries)); err != nil {
+		path := filepath.Join(ecosystemDir, entry.Manager.Name()+".md")
+		if err := writeMarkdown(path, renderPackageManagerMarkdown(entry.Ecosystem, entry)); err != nil {
 			return err
 		}
 	}
-	return writeMarkdown(filepath.Join(outputDir, "README.md"), renderDetectorEcosystemIndex(ecosystems, byEcosystem))
-}
 
-func renderDetectorEcosystemIndex(ecosystems []sdk.Ecosystem, byEcosystem map[sdk.Ecosystem][]registry.PackageManagerSupport) string {
-	var b strings.Builder
-	b.WriteString("# Detector Ecosystem Guides\n\n")
-	b.WriteString(generatedBanner + "\n\n")
-	b.WriteString("Bomly groups detectors by **ecosystem** (the package universe — `go`, `npm`, `python`, `maven`, …) and writes one page per **package manager** within that ecosystem (`pip`, `poetry`, `uv` are all under `python`).\n\n")
-	b.WriteString("Pick your ecosystem to see the package managers it covers and how each one is detected.\n\n")
-	b.WriteString("| Ecosystem | Package managers |\n")
-	b.WriteString("| --- | --- |\n")
-	for _, ecosystem := range ecosystems {
-		entries := byEcosystem[ecosystem]
-		links := make([]string, 0, len(entries))
-		for _, entry := range entries {
-			name := entry.Manager.Name()
-			links = append(links, fmt.Sprintf("[`%s`](%s/%s.md)", name, ecosystem, name))
-		}
-		_, _ = fmt.Fprintf(&b, "| [%s](%s/) | %s |\n", ecosystem, ecosystem, strings.Join(links, ", "))
+	if err := writeMarkdown(filepath.Join(outputDir, "syft.md"), renderSyftMarkdown(syftOnly)); err != nil {
+		return err
 	}
-	return b.String()
+	return writeMarkdown(filepath.Join(outputDir, "README.md"), renderDetectorIndex(native, syftOnly))
 }
 
-func renderEcosystemReadme(ecosystem sdk.Ecosystem, entries []registry.PackageManagerSupport) string {
+// isSyftOnlyChain reports whether a package manager is only reachable through
+// the bundled Syft cataloger — no native Bomly detector resolves it.
+func isSyftOnlyChain(detectorNames []string) bool {
+	if len(detectorNames) == 0 {
+		return false
+	}
+	for _, name := range detectorNames {
+		if name != rootdetectors.NameSyft {
+			return false
+		}
+	}
+	return true
+}
+
+func sortSupportEntries(entries []registry.PackageManagerSupport) {
+	sort.Slice(entries, func(i, j int) bool {
+		if entries[i].Ecosystem != entries[j].Ecosystem {
+			return entries[i].Ecosystem < entries[j].Ecosystem
+		}
+		return entries[i].Manager.Name() < entries[j].Manager.Name()
+	})
+}
+
+func renderDetectorIndex(native, syftOnly []registry.PackageManagerSupport) string {
 	var b strings.Builder
-	_, _ = fmt.Fprintf(&b, "# %s\n\n", titleWords(string(ecosystem)))
+	b.WriteString("# Detector Reference\n\n")
 	b.WriteString(generatedBanner + "\n\n")
-	_, _ = fmt.Fprintf(&b, "Package managers Bomly recognizes in the `%s` ecosystem:\n\n", ecosystem)
-	b.WriteString("| Package manager | Detector chain | Evidence patterns | Remediation hints | Install-first support |\n")
-	b.WriteString("| --- | --- | --- | --- | --- |\n")
-	for _, entry := range entries {
+	b.WriteString("One page per package manager Bomly resolves natively, grouped by ecosystem, plus a single page for everything covered through the bundled Syft cataloger.\n\n")
+	b.WriteString("## Native detectors\n\n")
+	b.WriteString("These read a lockfile, manifest, or build tool directly and produce a full dependency graph with edges.\n\n")
+	b.WriteString("| Ecosystem | Package manager | Detector chain | Install-first support |\n")
+	b.WriteString("| --- | --- | --- | --- |\n")
+	previousEcosystem := sdk.Ecosystem("")
+	for _, entry := range native {
 		name := entry.Manager.Name()
-		_, _ = fmt.Fprintf(&b, "| [`%s`](%s.md) | %s | %s | %s | %s |\n",
+		// Only label the ecosystem on its first row, so a multi-manager
+		// ecosystem reads as one block instead of a repeated column.
+		ecosystem := ""
+		if entry.Ecosystem != previousEcosystem {
+			ecosystem = "`" + string(entry.Ecosystem) + "`"
+			previousEcosystem = entry.Ecosystem
+		}
+		_, _ = fmt.Fprintf(&b, "| %s | [`%s`](%s/%s.md) | %s | %s |\n",
+			ecosystem,
 			name,
+			entry.Ecosystem,
 			name,
 			codeList(entry.Detectors),
-			codeListOrDash(entry.EvidencePatterns),
-			remediationActionsForChain(entry.Detectors, entry.Manager, false),
 			yesNo(chainSupportsInstallFirst(entry.Detectors)),
 		)
 	}
-	b.WriteString("\n## How to read this\n\n")
-	b.WriteString("- Each package-manager page documents the exact commands Bomly runs (if any), the network behavior, and the lockfile or manifest formats supported.\n")
-	b.WriteString("- Bomly tries detector chains from left to right. Later detectors in the chain are fallbacks Bomly uses when the preferred detector cannot produce graph data.\n")
-	b.WriteString("- Install-first support means `--install-first` can run the package manager's normal install command before graph resolution. This downloads packages and modifies the filesystem; see [docs/DETECTORS.md](../../../DETECTORS.md#install-first).\n")
-	b.WriteString("- Remediation hints are read-only package-manager guidance used during `--enrich`. Detectors do not choose the final action or change project files.\n")
-	for _, action := range remediationActionsForEntries(entries) {
-		switch action {
-		case sdk.RemediationActionDirectBump:
-			b.WriteString("  - `direct-bump` means the detector knows how to update a package declared directly in the project.\n")
-		case sdk.RemediationActionTransitiveOverride:
-			b.WriteString("  - `transitive-override` means the detector knows how to pin an indirect package with the package manager's override feature.\n")
-		case sdk.RemediationActionLockfileRefresh:
-			b.WriteString("  - `lockfile-refresh` means the detector knows how to ask the package manager to resolve a newer indirect package version.\n")
-		}
-	}
-	b.WriteString("- Each package-manager page also lists the directories its detectors declare as ignored during recursive discovery (`--recursive`) and whether the chain resolves nested workspace/reactor modules from a root manifest (multi-module); see [docs/SCAN_TARGETS.md](../../../SCAN_TARGETS.md#recursive-discovery----recursive).\n")
-	b.WriteString("- Syft-backed entries provide broad compatibility, especially for containers and ecosystems without native Bomly graph resolution.\n")
+	b.WriteString("\n## Syft-backed coverage\n\n")
+	_, _ = fmt.Fprintf(&b, "[Syft fallback](syft.md) covers %d more package managers, mostly OS package databases and ecosystems without a native detector. Those produce a flat package list rather than a graph.\n\n", len(syftOnly))
+	b.WriteString("## How to read this\n\n")
+	b.WriteString("- Bomly tries detector chains left to right. Later entries are fallbacks used when the preferred detector cannot produce graph data.\n")
+	b.WriteString("- Install-first support means `--install-first` can run the package manager's normal install command before graph resolution. That downloads packages and modifies the filesystem; see [Detectors](../DETECTORS.md#install-first).\n")
+	b.WriteString("- Remediation hints are read-only package-manager guidance used during `--enrich`. Detectors never choose the final action or change project files.\n")
+	b.WriteString("- Every ecosystem and package manager, native or not, is listed in the [Support matrix](../SUPPORT_MATRIX.md).\n")
 	return b.String()
 }
 
-func remediationActionsForEntries(entries []registry.PackageManagerSupport) []sdk.RemediationAction {
-	seen := map[sdk.RemediationAction]struct{}{}
+func renderSyftMarkdown(entries []registry.PackageManagerSupport) string {
+	var b strings.Builder
+	b.WriteString("# Syft fallback\n\n")
+	b.WriteString(generatedBanner + "\n\n")
+	b.WriteString("Bomly bundles [Syft](https://github.com/anchore/syft) as the catch-all detector. It runs when no native detector applies, which is how Bomly covers OS package databases and ecosystems without a native graph resolver.\n\n")
+	b.WriteString("| Property | Value |\n")
+	b.WriteString("| --- | --- |\n")
+	b.WriteString("| Detector | `" + rootdetectors.NameSyft + "` |\n")
+	b.WriteString("| Graph shape | Flat package list — no dependency edges |\n")
+	_, _ = fmt.Fprintf(&b, "| Package managers covered | %d (below) |\n", len(entries))
+	b.WriteString("| Install-first support | No |\n")
+	b.WriteString("| Remediation hints | None |\n")
+
+	b.WriteString("\n## Package managers covered\n\n")
+	b.WriteString("These have no native Bomly detector — Syft is the only chain entry.\n\n")
+	b.WriteString("| Ecosystem | Package manager | Evidence patterns |\n")
+	b.WriteString("| --- | --- | --- |\n")
 	for _, entry := range entries {
-		for _, action := range remediationActionsForDetectorChain(entry.Detectors, entry.Manager) {
-			seen[action] = struct{}{}
+		_, _ = fmt.Fprintf(&b, "| `%s` | `%s` | %s |\n",
+			entry.Ecosystem,
+			entry.Manager.Name(),
+			codeListOrDash(entry.EvidencePatterns),
+		)
+	}
+
+	b.WriteString("\n## Container operating systems\n\n")
+	b.WriteString("Syft also identifies the base OS of a container image, which is where its package database catalogers come from.\n\n")
+	b.WriteString("| OS family | Cataloger | Version source |\n")
+	b.WriteString("| --- | --- | --- |\n")
+	for _, os := range registry.SupportedOperatingSystems() {
+		name := os.Name
+		if len(os.Aliases) > 0 {
+			name += " (" + strings.Join(os.Aliases, ", ") + ")"
 		}
+		_, _ = fmt.Fprintf(&b, "| %s | `%s` | %s |\n", name, os.Provider, os.VersionSource)
 	}
-	ordered := []sdk.RemediationAction{
-		sdk.RemediationActionDirectBump,
-		sdk.RemediationActionTransitiveOverride,
-		sdk.RemediationActionLockfileRefresh,
+
+	if prose := loadProse("detectors", "syft"); prose != "" {
+		b.WriteString("\n")
+		b.WriteString(prose)
 	}
-	result := make([]sdk.RemediationAction, 0, len(seen))
-	for _, action := range ordered {
-		if _, ok := seen[action]; ok {
-			result = append(result, action)
-		}
-	}
-	return result
+	return b.String()
 }
 
 func renderPackageManagerMarkdown(ecosystem sdk.Ecosystem, entry registry.PackageManagerSupport) string {
 	name := entry.Manager.Name()
 	var b strings.Builder
-	_, _ = fmt.Fprintf(&b, "# `%s` (%s ecosystem)\n\n", name, ecosystem)
+	// Plain name as the H1: it's what the landing page uses for the sidebar
+	// entry, and the ecosystem is the next row of the table below.
+	_, _ = fmt.Fprintf(&b, "# %s\n\n", name)
 	b.WriteString(generatedBanner + "\n\n")
 	_, _ = fmt.Fprintf(&b, "Bomly uses this chain when it finds `%s` evidence.\n\n", name)
 	b.WriteString("| Property | Value |\n")
@@ -890,12 +955,12 @@ func auditorBehavior(name string) auditorDocBehavior {
 	switch name {
 	case "vulnerability":
 		return auditorDocBehavior{
-			Summary:        "Evaluates enriched vulnerability records against severity and allowlist policy.",
+			Summary:        "Evaluates vulnerability records against vulnerability policy.",
 			FindingKind:    "vulnerability",
 			RequiresEnrich: true,
 			PolicyFlags:    []string{"--fail-on", "--allow-vulnerability-id"},
 			Reasons:        []string{"severity threshold", "reachable symbol", "KEV listing"},
-			Notes:          "Needs vulnerability data on packages, so pair it with `--enrich` (or ingest an SBOM that already carries advisories). `--allow-vulnerability-id` suppresses specific CVE/GHSA IDs you have triaged.",
+			Notes:          "Needs `--enrich` because it evaluates vulnerability records that matchers attach to packages.",
 		}
 	case "license":
 		return auditorDocBehavior{
@@ -908,12 +973,12 @@ func auditorBehavior(name string) auditorDocBehavior {
 		}
 	case "package":
 		return auditorDocBehavior{
-			Summary:        "Protects against denied packages and suspiciously similar (typosquatted) package names.",
+			Summary:        "Checks denied packages, suspiciously similar names, and dependency source changes.",
 			FindingKind:    "package",
 			RequiresEnrich: false,
-			PolicyFlags:    []string{"--deny-package", "--deny-group", "--protected-package", "--typosquat-threshold", "--typosquat-mode"},
-			Reasons:        []string{"denied package", "denied group", "typosquat of protected package"},
-			Notes:          "Name-based, so it needs no enrichment and runs fully offline. Declare the packages you trust with `--protected-package`; Bomly flags lookalikes within `--typosquat-threshold`. `--typosquat-mode` sets finding policy status, while `--fail-on` controls whether a matching finding changes the exit code.",
+			PolicyFlags:    []string{"--deny-package", "--deny-group", "--protected-package", "--typosquat-threshold", "--typosquat-mode", "--fail-on source-change"},
+			Reasons:        []string{"denied package", "denied group", "typosquat of protected package", "source changed to Git or URL"},
+			Notes:          "Package identity checks need no enrichment. In a diff audit, the auditor also warns when a known dependency source changes to Git or a URL. Use `--fail-on source-change` when that change should fail.",
 		}
 	default:
 		return auditorDocBehavior{

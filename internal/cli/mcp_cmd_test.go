@@ -5,6 +5,8 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/config"
+	"github.com/bomly-dev/bomly-cli/internal/engine"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestApplyStringOverride(t *testing.T) {
@@ -123,5 +125,27 @@ func TestValidatedCloneWithOverridesRejectsInvalidCombinations(t *testing.T) {
 	}
 	if _, err := adapter.validatedCloneWithOverrides(mcpOverrides{TyposquatThreshold: "not-a-number"}); err == nil {
 		t.Fatal("expected non-numeric typosquat threshold to fail validation")
+	}
+}
+
+func TestMCPDiagnosticsFromPipelineIncludesDetectorWarnings(t *testing.T) {
+	diagnostics := mcpDiagnosticsFromPipeline(engine.PipelineResult{
+		DetectorWarnings: []sdk.DetectorWarning{
+			{Type: sdk.DetectorWarningFallback, Source: "maven-detector", Message: "maven-detector unavailable"},
+			{Type: sdk.DetectorWarningPackageManager, Source: "pnpm", Message: "pnpm-lock.yaml is format version 9.0"},
+		},
+		MatchWarnings: []engine.PipelineWarning{{Source: "osv", Message: "timeout"}},
+	})
+	if len(diagnostics) != 3 {
+		t.Fatalf("expected 3 diagnostics, got %+v", diagnostics)
+	}
+	for idx, want := range []struct{ stage, source string }{
+		{"detect", "maven-detector"},
+		{"detect", "pnpm"},
+		{"match", "osv"},
+	} {
+		if diagnostics[idx].Stage != want.stage || diagnostics[idx].Source != want.source {
+			t.Fatalf("diagnostic[%d] = %+v, want stage %q source %q", idx, diagnostics[idx], want.stage, want.source)
+		}
 	}
 }

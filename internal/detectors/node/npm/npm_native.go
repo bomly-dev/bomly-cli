@@ -73,7 +73,8 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	}
 	AttachPackageLockPositions(depsGraph, d.base().ProjectDir(req.ProjectPath))
 	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, npmManifestMetadataPatterns)),
+		Graphs:   sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, npmManifestMetadataPatterns)),
+		Warnings: node.PackageManagerWarnings(d.base().ProjectDir(req.ProjectPath), sdk.PackageManagerNPM, node.LockfileFormat{}),
 	}, nil
 }
 

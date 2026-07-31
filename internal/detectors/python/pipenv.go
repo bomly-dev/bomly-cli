@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
+	"io"
 	"path/filepath"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
+	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
@@ -70,7 +71,7 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 	// Pipfile.lock is flat (no parent-child edges), so the build tool wins here.
 	// Only attempt pip inspect when a venv is already populated; otherwise `pipenv run`
 	// silently creates an empty venv and pip inspect returns only bootstrap packages.
-	if pipenvVenvExists(workingDir) {
+	if pipenvVenvExists(workingDir, logger, req.Stderr, req.Verbose) {
 		command, err := pipInspectCommand("pipenv", "run")
 		if err == nil {
 			if depsGraph, err := base.resolveGraph(req, "Pipenv detector", command); err == nil {
@@ -88,7 +89,7 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 
 	if lockPath := filepath.Join(workingDir, "Pipfile.lock"); fileExists(lockPath) {
 		installCommand := pipenvSyncCommand(req)
-		if err := base.install(ctx, req, "Pipenv detector", installCommand); err == nil && pipenvVenvExists(workingDir) {
+		if err := base.install(ctx, req, "Pipenv detector", installCommand); err == nil && pipenvVenvExists(workingDir, logger, req.Stderr, req.Verbose) {
 			if command, err := pipInspectCommand("pipenv", "run"); err == nil {
 				if depsGraph, err := base.resolveGraph(req, "Pipenv detector", command); err == nil {
 					annotateGraphScopes(depsGraph, workingDir)
@@ -140,9 +141,13 @@ func (d PipenvDetector) Install(ctx context.Context, req sdk.DetectionRequest) e
 
 // pipenvVenvExists checks whether a pipenv virtual environment has been created
 // for the given working directory. It avoids triggering lazy venv creation.
-func pipenvVenvExists(workingDir string) bool {
-	cmd := system.Command("pipenv", "--venv")
+func pipenvVenvExists(workingDir string, logger *zap.Logger, stderr io.Writer, debug bool) bool {
+	executable := "pipenv"
+	args := []string{"--venv"}
+	cmd := system.Command(executable, args...)
 	cmd.Dir = workingDir
+	cmd.Stderr = logging.NewCommandStderr(stderr, debug)
+	logger.Debug("checking Pipenv virtualenv", logging.CommandFields(executable, args, workingDir)...)
 	out, err := cmd.Output()
 	if err != nil {
 		return false
@@ -189,10 +194,15 @@ type pipfileLock struct {
 
 type pipfileLockPackage struct {
 	Version string `json:"version"`
+	Git     string `json:"git"`
+	Path    string `json:"path"`
+	File    string `json:"file"`
+	Index   string `json:"index"`
+	Ref     string `json:"ref"`
 }
 
 func depGraphFromPipfileLock(path, rootName string) (*sdk.Graph, error) {
-	raw, err := os.ReadFile(path)
+	raw, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read Pipfile.lock: %w", err)
 	}
@@ -229,7 +239,7 @@ func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Dependency, packages
 		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
 			PackageManager: sdk.PackageManagerPipenv,
 			Name:           normalizedName,
-			Version:        strings.TrimPrefix(pkg.Version, "==")}, Scopes: sdk.ScopesOf(scope),
+			Version:        strings.TrimPrefix(pkg.Version, "==")}, Source: pipfileDependencySource(pkg), ResolvedURL: pipfileResolvedURL(pkg), Metadata: sourceRevisionMetadata(pkg.Ref), Scopes: sdk.ScopesOf(scope),
 		})
 
 		if _, exists := depsGraph.Node(node.ID); !exists {
@@ -242,4 +252,31 @@ func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Dependency, packages
 		}
 	}
 	return nil
+}
+
+func pipfileDependencySource(pkg pipfileLockPackage) sdk.DependencySource {
+	switch {
+	case strings.TrimSpace(pkg.Git) != "":
+		return sdk.DependencySourceGit
+	case strings.TrimSpace(pkg.Path) != "", strings.HasPrefix(strings.ToLower(strings.TrimSpace(pkg.File)), "file:"):
+		return sdk.DependencySourceFile
+	case strings.TrimSpace(pkg.File) != "":
+		if strings.Contains(strings.TrimSpace(pkg.File), "://") {
+			return sdk.DependencySourceURL
+		}
+		return sdk.DependencySourceFile
+	case strings.TrimSpace(pkg.Index) != "", strings.TrimSpace(pkg.Version) != "":
+		return sdk.DependencySourceRegistry
+	default:
+		return ""
+	}
+}
+
+func pipfileResolvedURL(pkg pipfileLockPackage) string {
+	for _, value := range []string{pkg.Git, pkg.Path, pkg.File} {
+		if strings.TrimSpace(value) != "" {
+			return strings.TrimSpace(value)
+		}
+	}
+	return ""
 }

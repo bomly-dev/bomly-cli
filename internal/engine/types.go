@@ -31,6 +31,7 @@ type PipelineRequest struct {
 	TyposquatThreshold         float64
 	TyposquatMode              string
 	WarnOnly                   bool
+	DependencyDetailChanges    []sdk.DependencyDetailTransition
 	FindingPolicyResolvers     []sdk.FindingPolicyResolver
 	BaselineEvaluation         *BaselineEvaluation
 	BaselineGraph              *sdk.Graph
@@ -71,13 +72,18 @@ type PipelineWarning struct {
 
 // PipelineResult contains the full output of a pipeline run.
 type PipelineResult struct {
-	ResolveResults   []sdk.DetectionResult
-	Consolidated     sdk.ConsolidatedGraph
-	Graph            *sdk.Graph
-	Registry         *sdk.PackageRegistry
-	Findings         []sdk.Finding
-	RiskScores       []sdk.RiskScore
-	DetectorWarnings []PipelineWarning
+	ResolveResults []sdk.DetectionResult
+	Consolidated   sdk.ConsolidatedGraph
+	Graph          *sdk.Graph
+	Registry       *sdk.PackageRegistry
+	Findings       []sdk.Finding
+	RiskScores     []sdk.RiskScore
+	// DetectorWarnings are every non-fatal detection problem in one list:
+	// resolution failures and detector fallbacks the engine observed, plus the
+	// package-manager warnings detectors reported alongside their graphs. Each
+	// carries a type, so consumers that care only about degraded coverage filter
+	// on DetectorWarning.DegradesCoverage rather than on the list being empty.
+	DetectorWarnings []sdk.DetectorWarning
 	AuditWarnings    []PipelineWarning
 	MatchWarnings    []PipelineWarning
 	AnalyzeWarnings  []PipelineWarning

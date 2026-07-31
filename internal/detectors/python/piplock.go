@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -52,7 +53,7 @@ func pipLockFilePath(projectPath string) string {
 // input file ("-r foo.in"); a file matching pipLockDevHint marks development
 // scope. Runtime always wins over development during BFS propagation.
 func depGraphFromRequirementsLock(lockPath, projectPath, rootName string) (*sdk.Graph, error) {
-	data, err := os.ReadFile(lockPath)
+	data, err := system.ReadRepositoryFile(lockPath)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", pipLockFileName, err)
 	}
@@ -73,7 +74,7 @@ func depGraphFromRequirementsLock(lockPath, projectPath, rootName string) (*sdk.
 			PackageManager: sdk.PackageManagerPip,
 			Language:       "python",
 			Type:           sdk.PackageTypePackage,
-			PURL:           sdk.BuildPackageURL("pypi", "", e.name, e.version)},
+			PURL:           sdk.BuildPackageURL("pypi", "", e.name, e.version)}, Source: sdk.DependencySourceRegistry,
 		})
 		nodesByName[e.name] = node
 	}

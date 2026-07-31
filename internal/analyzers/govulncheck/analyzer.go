@@ -93,7 +93,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 	}
 	runner := a.Runner
 	if runner == nil {
-		runner = NewRunner(logger)
+		runner = newRunnerWithStderr(logger, req.Stderr)
 	}
 
 	overallStart := time.Now()

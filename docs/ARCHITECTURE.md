@@ -4,16 +4,19 @@ A tour of how Bomly turns a scan target into a report — the stages a scan runs
 
 ## Commands
 
-Bomly is a CLI. Everything runs through one of four commands:
+Bomly is a CLI. Three commands run the dependency pipeline described on this page, and four support it:
 
-| Command         | Purpose                                                |
-|-----------------|--------------------------------------------------------|
-| `bomly scan`    | Resolve dependencies, render reports, and write SBOMs  |
-| `bomly explain` | Show why a dependency exists in a graph                |
-| `bomly diff`    | Compare dependency state across Git refs or SBOM files |
-| `bomly version` | Print version information                              |
+| Command         | Purpose                                                              |
+|-----------------|----------------------------------------------------------------------|
+| `bomly scan`    | Resolve dependencies, render reports, and write SBOMs                |
+| `bomly explain` | Show why a dependency exists in a graph                              |
+| `bomly diff`    | Compare dependency state across Git refs, SBOM files, or image tags  |
+| `bomly baseline`| Create and inspect finding baselines                                 |
+| `bomly plugins` | List, install, enable, verify, and test external plugins             |
+| `bomly mcp`     | Serve Bomly's tools to MCP-aware AI agents                           |
+| `bomly version` | Print version information                                            |
 
-Each invocation works on exactly one target: a filesystem path, a container image, a remote Git repository, or an existing SBOM file. See [Scan targets](SCAN_TARGETS.md) for the details of each.
+Each pipeline invocation works on exactly one target: a filesystem path, a container image, a remote Git repository, or an existing SBOM file. See [Commands](COMMANDS.md) for the per-command reference and [Scan targets](SCAN_TARGETS.md) for the details of each target.
 
 ## The scan pipeline
 
@@ -32,13 +35,13 @@ flowchart TD
 ```
 
 1. **Discover** — Bomly inspects the target root and finds every supported package-manager root (a `go.mod`, a `package-lock.json`, a `pom.xml`, and so on). With `--recursive` it also walks nested directories, discovering independent subprojects in a monorepo while workspace-aware managers (npm workspaces, Maven reactors, …) keep expanding their own modules from the root. See [Scan targets](SCAN_TARGETS.md#recursive-discovery----recursive).
-2. **Detect** — For each root, a [detector](DETECTORS.md) reads the lockfile, manifest, or SBOM and resolves a dependency graph. Per-subproject graphs are then *consolidated* into one graph and one deduplicated package set for the rest of the run. `--scope` narrows the graph to runtime or development dependencies here.
+2. **Detect** — For each root, a [detector](DETECTORS.md) reads the lockfile, manifest, or SBOM and resolves a dependency graph. Per-subproject graphs are then *consolidated* into one graph and one deduplicated package set for the rest of the run. `--scope` narrows the graph to runtime or development dependencies here. Detection reports its non-fatal problems as one list of warnings, each with a type: `resolution-failure` (a detector chain failed and its subproject is missing), `fallback` (a fallback detector produced the graph, so transitive dependencies may be missing), and `package-manager` (the graph is sound, but the project's configuration will break an install elsewhere — see [CI-readiness warnings](CI_READINESS.md)). The first two mean coverage degraded and findings may be missing; the third does not. Warnings appear in the progress output, in the text and Markdown reports, and in the `warnings` collection of the JSON document.
 3. **Match** — When you pass `--enrich`, [matchers](MATCHERS.md) add data to published registry packages: known vulnerabilities, licenses, end-of-life status, and project health scores. Bomly then derives one remediation result from the vulnerability and dependency evidence. It reports fix availability, a recommended version when the evidence is complete, and occurrence-specific actions when a detector supports the package-manager strategy. Project roots, workspace members, and local/file/Git/URL artifacts remain in the graph and reports but are not queried as if they were registry releases.
 4. **Analyze** — When you pass `--analyze`, [reachability](REACHABILITY.md) analysis runs on top of the matched data to flag whether a vulnerability is actually reachable from your code.
 5. **Audit** — When you pass `--audit`, [auditors](AUDITORS.md) evaluate policy (severity thresholds, license rules, denied packages) against the enriched data and produce findings. As part of this same step, configured policy-status rules may mark a finding non-gating without removing it. Combine `--enrich --audit` to gate on fresh external data in one run.
 6. **Render** — Bomly emits the result as text, JSON, SARIF, or an SBOM. See [Output formats](OUTPUT_FORMATS.md) and [SBOM formats](SBOM.md).
 
-`bomly explain` reuses the detect and match stages, then traces the dependency paths that pull in a given package. `bomly diff` runs the pipeline against two states and reports what changed.
+`bomly explain` reuses the detect and match stages, then traces the dependency paths that pull in a given package. `bomly diff` runs the pipeline against two states and reports package additions, removals, version changes, and changes to dependency relationship, source, or registry-matching eligibility.
 
 ## Configuration trust
 
@@ -135,7 +138,10 @@ separate boundaries:
 
 - **Matchers** only run when you pass `--enrich`. `--audit` evaluates data that is already present and never triggers enrichment on its own.
 - **Detectors** vary: lockfile parsers (npm, pnpm, Yarn, Bun text lockfiles, Composer, Bundler, NuGet, GitHub Actions, SBOM ingest, …) are pure file readers and make no network calls. Build-tool–backed detectors shell out to the package manager when their deterministic file parser cannot resolve the project. Bun prefers `bun.lock`, then uses `bun pm ls --all` for the installed tree, and finally falls back to Syft; displayed child edges are preserved and unprovable hoisted parent relationships remain explicitly `unknown`. Install-first is never implicit.
-- **Remote targets** require network access when you pass `--url`; Bomly clones the requested Git repository before scanning it.
+- **Remote targets** require network access when you pass `--url`; Bomly clones
+  the requested Git repository before scanning it. Remote Git work has a
+  10-minute deadline. The completed checkout has path, regular-file-size, and
+  depth limits, and repository symlinks cannot escape it.
 - `--install-first` is the explicit opt-in that lets supporting detectors run their install command (`npm install`, `pip install`, …) before resolving; this downloads packages by design.
 
 When enrichment is enabled, Bomly's built-in HTTP matchers may contact OSV,
@@ -147,6 +153,18 @@ endoflife.date integrations, may contact their documented services once you
 install and enable them. See
 [Detectors → Network behavior](DETECTORS.md#network-behavior) and
 [Matchers](MATCHERS.md).
+
+Custom OSV and Scorecard endpoints, proxies, and additional CA files are
+supported, including private-network destinations. These are trusted settings:
+use the user config, a file selected with `--config` or `BOMLY_CONFIG`, or the
+documented environment variables. Repository config is not loaded
+automatically. Bomly follows normal redirects and does not block private
+addresses so self-hosted services and enterprise proxies can work. This also
+means a trusted HTTPS endpoint may redirect to HTTP; Bomly does not add a
+downgrade block.
+
+For the complete permission model, input limits, plugin trust boundary, and
+documented residual risks, see [Security and Trust Boundaries](SECURITY.md).
 
 ## Build variants
 

@@ -3,12 +3,15 @@ package mcp
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	mcplib "github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
+	"go.uber.org/zap"
 )
 
 // ScanRequest holds per-call overrides for the bomly_scan tool.
@@ -146,10 +149,54 @@ type OptionsAdapter interface {
 	ListPlugins(ctx context.Context) (managedplugin.ListResponse, error)
 }
 
-// Context carries the adapter and version into tool handlers.
+// Context carries the adapter, version, and optional safe server logger into
+// tool handlers.
 type Context struct {
 	Adapter OptionsAdapter
 	Version string
+	Logger  *zap.Logger
+}
+
+// ToolErrorKind identifies the stable operation that failed without exposing
+// the underlying error to an MCP client.
+type ToolErrorKind string
+
+const (
+	// ToolErrorRequest means the request failed Bomly's configuration or
+	// argument validation.
+	ToolErrorRequest ToolErrorKind = "request"
+	// ToolErrorPreparation means Bomly could not prepare the selected target.
+	ToolErrorPreparation ToolErrorKind = "preparation"
+	// ToolErrorTargetResolution means Bomly could not resolve one or more diff
+	// targets.
+	ToolErrorTargetResolution ToolErrorKind = "target-resolution"
+	// ToolErrorPipeline means dependency detection or a later pipeline stage
+	// failed.
+	ToolErrorPipeline ToolErrorKind = "pipeline"
+	// ToolErrorPluginInventory means the plugin inventory could not be loaded.
+	ToolErrorPluginInventory ToolErrorKind = "plugin-inventory"
+)
+
+type toolError struct {
+	kind ToolErrorKind
+	err  error
+}
+
+func (e *toolError) Error() string {
+	return fmt.Sprintf("%s: %v", e.kind, e.err)
+}
+
+func (e *toolError) Unwrap() error {
+	return e.err
+}
+
+// WrapToolError attaches a stable MCP-facing category while preserving the
+// original error for internal callers.
+func WrapToolError(kind ToolErrorKind, err error) error {
+	if err == nil {
+		return nil
+	}
+	return &toolError{kind: kind, err: err}
 }
 
 // NewServer creates a configured MCP server with all bomly tools registered.
@@ -181,7 +228,61 @@ func firstNonEmpty(values ...string) string {
 func jsonResult(v any) (*mcplib.CallToolResult, error) {
 	data, err := json.Marshal(v)
 	if err != nil {
-		return mcplib.NewToolResultError("marshal result: " + err.Error()), nil
+		return mcplib.NewToolResultError("encode tool response failed"), nil
 	}
 	return mcplib.NewToolResultText(string(data)), nil
+}
+
+func toolErrorResult(mcpCtx Context, tool string, err error) *mcplib.CallToolResult {
+	kind := ToolErrorKind("")
+	var categorized *toolError
+	if errors.As(err, &categorized) {
+		kind = categorized.kind
+	}
+	cause := errors.Unwrap(err)
+	if cause == nil {
+		cause = err
+	}
+	if mcpCtx.Logger != nil {
+		mcpCtx.Logger.Warn("mcp: tool request failed",
+			zap.String("tool", tool),
+			zap.String("category", publicToolErrorCategory(kind)),
+			zap.String("cause_type", fmt.Sprintf("%T", cause)),
+		)
+	}
+	return mcplib.NewToolResultError(publicToolError(tool, kind))
+}
+
+func invalidRequestResult(mcpCtx Context, tool, field string) *mcplib.CallToolResult {
+	if mcpCtx.Logger != nil {
+		mcpCtx.Logger.Debug("mcp: required tool argument missing",
+			zap.String("tool", tool),
+			zap.String("field", field),
+		)
+	}
+	return mcplib.NewToolResultError(fmt.Sprintf("%s request is invalid: %s is required", tool, field))
+}
+
+func publicToolError(tool string, kind ToolErrorKind) string {
+	switch kind {
+	case ToolErrorRequest:
+		return tool + " request is invalid"
+	case ToolErrorPreparation:
+		return tool + " target preparation failed"
+	case ToolErrorTargetResolution:
+		return tool + " target resolution failed"
+	case ToolErrorPipeline:
+		return tool + " pipeline failed"
+	case ToolErrorPluginInventory:
+		return "plugin inventory failed"
+	default:
+		return tool + " failed"
+	}
+}
+
+func publicToolErrorCategory(kind ToolErrorKind) string {
+	if kind == "" {
+		return "internal"
+	}
+	return string(kind)
 }

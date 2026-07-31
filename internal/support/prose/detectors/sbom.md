@@ -1,12 +1,13 @@
 ## How `sbom` resolves
 
-`sbom-detector` is a **direct ingest** — it accepts SPDX 2.3 JSON or CycloneDX 1.6 JSON as input and treats the SBOM as the source of truth for the graph. No subprocess runs, no other detector chains fire.
+`sbom-detector` is a **direct ingest** — it accepts SPDX 2.3 JSON or CycloneDX 1.4–1.7 JSON as input and treats the SBOM as the source of truth for the graph. No subprocess runs, no other detector chains fire.
 
 | Step | Strategy | Command |
 | --- | --- | --- |
 | Resolve graph | JSON ingest | None |
 
 Format is auto-detected by content.
+Bomly rejects SBOM input files larger than 256 MiB before decoding them.
 
 ## Network behavior
 
@@ -58,5 +59,5 @@ bomly diff --sbom --base ./v1.0.cdx.json --head ./v1.1.cdx.json
 - **Relationship fidelity depends on the source SBOM.** If the SBOM was produced by a tool that emits a flat package list (no `DEPENDS_ON` / `dependencies` edges), Bomly's graph is also flat. `bomly explain` cannot show paths that aren't recorded.
 - **Vendor-specific extensions** (custom properties, non-standard package types) are passed through to the JSON output but are not used for policy decisions.
 - **SBOM ingest is exclusive** — combining `--sbom` with `--image` or `--url` is rejected with exit 4.
-- **Format versions other than SPDX 2.3 JSON and CycloneDX 1.6 JSON** are rejected. SPDX 3.0 and CycloneDX 1.5 ingest are tracked for follow-up.
+- **Format versions other than SPDX 2.3 JSON and CycloneDX 1.4–1.7 JSON** are rejected. SPDX 3.0 ingest is tracked for follow-up.
 - **Tag-Value SPDX** and **XML CycloneDX** are not currently ingested.

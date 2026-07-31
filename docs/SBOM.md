@@ -1,6 +1,6 @@
 # SBOM Formats
 
-Bomly reads and writes the two open SBOM standards used in production today: SPDX 2.3 and CycloneDX 1.6.
+Bomly reads and writes the two open SBOM standards used in production today. It writes SPDX 2.3 and CycloneDX 1.7, and ingests SPDX 2.3 plus CycloneDX 1.4 through 1.7.
 
 ## What's an SBOM?
 
@@ -10,7 +10,7 @@ You produce an SBOM once and consume it many times: in PR checks, in release art
 
 ## Format comparison
 
-| | SPDX 2.3 | CycloneDX 1.6 |
+| | SPDX 2.3 | CycloneDX 1.7 |
 | --- | --- | --- |
 | Steward | Linux Foundation | OWASP |
 | Primary use case | Software supply chain and license compliance | Component analysis and vulnerability management |
@@ -47,6 +47,7 @@ Constraints:
 
 - At most one `-o` may omit `=<path>`. Two stdout outputs would collide.
 - `-o spdx=` (empty path) is an error.
+- When every `-o` names a file and `--format` is not set, a successful run writes the files and prints nothing — add `--format text` if you also want the terminal report.
 - `--format spdx`, `--format cyclonedx`, `-o spdx`, and `-o cyclonedx` are supported by `scan` only.
 - Paths are resolved relative to the current working directory.
 
@@ -140,4 +141,4 @@ Bomly does not advertise a one-shot `convert` command — the scan pipeline is t
 
 - [Scan targets](SCAN_TARGETS.md) — every input Bomly accepts
 - [Output formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM details
-- [SBOM detector](detectors/ecosystems/sbom/sbom.md) — ingest specifics
+- [SBOM detector](detectors/sbom/sbom.md) — ingest specifics

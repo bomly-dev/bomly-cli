@@ -118,6 +118,9 @@ func (o *Options) AnalyzerFilter() sdk.AnalyzerFilter {
 func (o *Options) PipelineRequest(scope sdk.Scope, stderr io.Writer) engine.PipelineRequest {
 	failOn, _ := sdk.ParseFailOnList(o.ResolvedConfig.FailOn)
 	typosquatThreshold, _ := strconv.ParseFloat(strings.TrimSpace(o.ResolvedConfig.TyposquatThreshold), 64)
+	if !o.Verbose() {
+		stderr = nil
+	}
 	return engine.PipelineRequest{
 		ProjectPath:                o.executionTarget.Location,
 		ExecutionTarget:            o.executionTarget,
@@ -150,7 +153,7 @@ func (o *Options) PipelineRequest(scope sdk.Scope, stderr io.Writer) engine.Pipe
 	}
 }
 
-// Verbose reports whether verbose command output is enabled.
+// Verbose reports whether debug-level subprocess output is enabled.
 func (o *Options) Verbose() bool {
 	return o.verbose
 }
@@ -203,7 +206,7 @@ func (o *Options) ResolveConfig(cmd *cobra.Command) error {
 }
 
 func (o *Options) Prepare(ctx context.Context, logger *zap.Logger) (Options, error) {
-	executionTarget, _, cleanup, err := o.resolveExecutionTarget(logger)
+	executionTarget, _, cleanup, err := o.resolveExecutionTarget(ctx, logger)
 	if err != nil {
 		return Options{}, err
 	}
@@ -216,8 +219,8 @@ func (o *Options) Prepare(ctx context.Context, logger *zap.Logger) (Options, err
 // this directly when they want to surface a dedicated "Cloning repository"
 // (or similar) progress step around just this phase, before calling
 // PrepareForExecutionTarget for the subproject-indexing phase.
-func (o *Options) ResolveExecutionTarget(logger *zap.Logger) (sdk.ExecutionTarget, func() error, error) {
-	target, _, cleanup, err := o.resolveExecutionTarget(logger)
+func (o *Options) ResolveExecutionTarget(ctx context.Context, logger *zap.Logger) (sdk.ExecutionTarget, func() error, error) {
+	target, _, cleanup, err := o.resolveExecutionTarget(ctx, logger)
 	return target, cleanup, err
 }
 
@@ -238,7 +241,6 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		}
 		return Options{}, exit.InvalidInputError("%v", err)
 	}
-
 	httpProvider, err := sdk.NewHTTPClientProvider(httpClientConfigFromResolved(resolved))
 	if err != nil {
 		if cleanup != nil {
@@ -363,7 +365,7 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		httpProvider:           httpProvider,
 		ResolvedConfig:         resolved,
 		Format:                 format,
-		verbose:                resolved.Verbosity > 0,
+		verbose:                resolved.Verbosity >= 2,
 		cleanup:                cleanup,
 		findingPolicyResolvers: baselineResult.Resolvers,
 		baselineEvaluation:     baselineEvaluationFromLoadResult(baselineResult),
@@ -579,7 +581,7 @@ func (o *Options) configLoadPaths(explicitConfig string) ([]string, error) {
 	return paths, nil
 }
 
-func (o *Options) resolveExecutionTarget(logger *zap.Logger) (sdk.ExecutionTarget, string, func() error, error) {
+func (o *Options) resolveExecutionTarget(ctx context.Context, logger *zap.Logger) (sdk.ExecutionTarget, string, func() error, error) {
 	resolved := o.ResolvedConfig
 	if resolved.SBOM {
 		if resolved.Image != "" || resolved.URL != "" || resolved.Ref != "" {
@@ -605,7 +607,7 @@ func (o *Options) resolveExecutionTarget(logger *zap.Logger) (sdk.ExecutionTarge
 		return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("--path, --url, and --image cannot be used together")
 	}
 	if resolved.URL != "" {
-		projectPath, err := git.CloneTemp(logger, resolved.URL, resolved.Ref)
+		projectPath, err := git.CloneTemp(ctx, logger, resolved.URL, resolved.Ref)
 		if err != nil {
 			return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("clone --url %q: %v", resolved.URL, err)
 		}

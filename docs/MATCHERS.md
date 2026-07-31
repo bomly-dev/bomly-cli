@@ -32,7 +32,7 @@ Pass `--enrich` to run all default network matchers:
 bomly scan --enrich
 ```
 
-Use `--matchers` to restrict or extend the set with the standard `+/-` selector grammar:
+Use `--matchers` to restrict or extend the set with the standard [selector grammar](COMMANDS.md#selector-grammar):
 
 ```bash
 # Only OSV

@@ -57,7 +57,6 @@ func newDiffCmd() *cobra.Command {
 			if current.Ref != "" {
 				return exit.InvalidInputError("diff does not support --ref; use --base and --head")
 			}
-
 			if current.SBOM {
 				if baseRef == "" {
 					return exit.InvalidInputError("--base is required when --sbom is set")
@@ -107,17 +106,17 @@ func newDiffCmd() *cobra.Command {
 			projectIdentifier := ""
 			compBase := baseRef
 			compHead := headRef
-			var resolutionWarnings []engine.PipelineWarning
+			var targetWarnings []engine.PipelineWarning
 			var changedLines map[string][]output.SARIFLineRange
 
 			switch {
 			case current.SBOM:
-				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveSBOMDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef)
+				baseTarget, headTarget, projectIdentifier, targetWarnings, err = resolveSBOMDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef)
 			case current.Image != "":
-				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveContainerDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef)
+				baseTarget, headTarget, projectIdentifier, targetWarnings, err = resolveContainerDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef)
 			default:
 				var gitChangedLines map[string][]git.LineRange
-				baseTarget, headTarget, projectIdentifier, resolutionWarnings, gitChangedLines, err = resolveGitDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef)
+				baseTarget, headTarget, projectIdentifier, targetWarnings, gitChangedLines, err = resolveGitDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef)
 				changedLines = sarifChangedLinesFromGit(gitChangedLines)
 			}
 			if err != nil {
@@ -147,10 +146,10 @@ func newDiffCmd() *cobra.Command {
 			}
 
 			allResults := append(append([]sdk.DetectionResult{}, diffResult.Base.ResolveResults...), diffResult.Head.ResolveResults...)
-			resolutionWarnings = append(resolutionWarnings, diffResult.Base.DetectorWarnings...)
-			resolutionWarnings = append(resolutionWarnings, diffResult.Head.DetectorWarnings...)
 			detectionChildren := detectorProgressChildren(allResults)
-			detectionChildren = append(detectionChildren, warningProgressChildren(resolutionWarnings)...)
+			detectionChildren = append(detectionChildren, warningProgressChildren(targetWarnings)...)
+			detectionChildren = append(detectionChildren, detectorWarningProgressChildren(
+				detectorWarningsFromResults(diffResult.Base, diffResult.Head))...)
 			prog.CompleteStep("Detected Dependencies", detectionChildren)
 			if current.Enrich {
 				stats := combineMatcherStats(diffResult.Base.MatcherStats, diffResult.Head.MatcherStats)

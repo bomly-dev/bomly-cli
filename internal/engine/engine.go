@@ -52,11 +52,11 @@ func (e *Engine) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResu
 		descriptor := auditor.Descriptor()
 		name := descriptor.Name
 		label := descriptor.Label()
-		if err := auditor.Ready(ctx, req); err != nil {
+		if err := auditor.Ready(ctx, cloneAuditRequest(req)); err != nil {
 			errs = append(errs, fmt.Errorf("auditor %s: not ready: %w", name, err))
 			continue
 		}
-		applicable, err := auditor.Applicable(ctx, req)
+		applicable, err := auditor.Applicable(ctx, cloneAuditRequest(req))
 		if err != nil {
 			errs = append(errs, fmt.Errorf("auditor %s: applicability check failed: %w", name, err))
 			continue
@@ -66,7 +66,7 @@ func (e *Engine) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResu
 			continue
 		}
 
-		result, err := auditor.Audit(ctx, req)
+		result, err := auditor.Audit(ctx, cloneAuditRequest(req))
 		if err != nil {
 			errs = append(errs, fmt.Errorf("auditor %s: %w", name, err))
 			continue
@@ -80,6 +80,12 @@ func (e *Engine) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResu
 		return aggregated, errors.Join(errs...)
 	}
 	return aggregated, nil
+}
+
+func cloneAuditRequest(req sdk.AuditRequest) sdk.AuditRequest {
+	cloned := req
+	cloned.DependencyDetailChanges = sdk.CloneDependencyDetailTransitions(req.DependencyDetailChanges)
+	return cloned
 }
 
 // Analyze runs registered analyzers against the graph and returns the

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -14,6 +15,12 @@ import (
 type poetryLockPackage struct {
 	Name    string `toml:"name"`
 	Version string `toml:"version"`
+	Source  struct {
+		Type              string `toml:"type"`
+		URL               string `toml:"url"`
+		Reference         string `toml:"reference"`
+		ResolvedReference string `toml:"resolved_reference"`
+	} `toml:"source"`
 	// Groups lists the dependency groups this package belongs to.
 	// "main" → runtime; anything else (dev, test, …) → development.
 	Groups []string `toml:"groups"`
@@ -49,7 +56,7 @@ func poetryLockFilePath(projectPath string) string {
 // BFS propagation ensures that a package reachable via a runtime path is
 // always marked runtime even if it is also listed in a dev group.
 func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
-	data, err := os.ReadFile(lockPath)
+	data, err := system.ReadRepositoryFile(lockPath)
 	if err != nil {
 		return nil, fmt.Errorf("read poetry.lock: %w", err)
 	}
@@ -78,7 +85,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 			PackageManager: sdk.PackageManagerPoetry,
 			Language:       "python",
 			Type:           sdk.PackageTypePackage,
-			PURL:           sdk.BuildPackageURL("pypi", "", pkg.Name, pkg.Version)},
+			PURL:           sdk.BuildPackageURL("pypi", "", pkg.Name, pkg.Version)}, Source: poetryDependencySource(pkg.Source.Type), ResolvedURL: strings.TrimSpace(pkg.Source.URL), Metadata: sourceRevisionMetadata(firstNonEmpty(pkg.Source.ResolvedReference, pkg.Source.Reference)),
 		})
 
 		for _, group := range pkg.Groups {
@@ -215,6 +222,32 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 	return g, nil
 }
 
+func poetryDependencySource(sourceType string) sdk.DependencySource {
+	switch strings.ToLower(strings.TrimSpace(sourceType)) {
+	case "":
+		return sdk.DependencySourceRegistry
+	case "legacy", "default", "supplemental":
+		return sdk.DependencySourceRegistry
+	case "git":
+		return sdk.DependencySourceGit
+	case "directory", "file", "path":
+		return sdk.DependencySourceFile
+	case "url":
+		return sdk.DependencySourceURL
+	default:
+		return ""
+	}
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return strings.TrimSpace(value)
+		}
+	}
+	return ""
+}
+
 // collectPoetryDepsAndRoot reads pyproject.toml and returns the direct
 // runtime/dev dependency names and the project's root name/version.
 //
@@ -226,7 +259,7 @@ func collectPoetryDepsAndRoot(projectPath string) (mainDeps, devDeps map[string]
 	rootName = pythonProjectName(projectPath)
 	rootVersion = ""
 
-	raw, err := os.ReadFile(filepath.Join(projectPath, "pyproject.toml"))
+	raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "pyproject.toml"))
 	if err != nil {
 		return
 	}

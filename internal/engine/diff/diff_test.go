@@ -51,6 +51,39 @@ func TestRun_ReportsAddedPackageFindingAsIntroduced(t *testing.T) {
 	assertFindingIDs(t, result.Audit.Persisted)
 }
 
+func TestRun_PassesCanonicalDetailChangesOnlyToHeadAudit(t *testing.T) {
+	baseDependency := npmPackage("example", "1.0.0")
+	baseDependency.Source = sdk.DependencySourceRegistry
+	headDependency := baseDependency.Clone()
+	headDependency.Source = sdk.DependencySourceGit
+
+	pipeline := func(graph *sdk.Graph) *engine.Pipeline {
+		registry := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
+		registry.RegisterDetector(fakeDetector{
+			descriptor: detectorDescriptor(),
+			result: sdk.DetectionResult{
+				Graphs: engine.SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+			},
+		})
+		registry.RegisterAuditor(fakeAuditor{
+			descriptor:    sdk.AuditorDescriptor{Name: "detail-policy"},
+			detailFinding: true,
+		})
+		return engine.NewPipeline(registry, zap.NewNop())
+	}
+
+	result, err := Run(context.Background(), Request{
+		Base: Target{Pipeline: pipeline(graphFixture(t, baseDependency)), Request: diffTestRequest()},
+		Head: Target{Pipeline: pipeline(graphFixture(t, headDependency)), Request: diffTestRequest()},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertFindingIDs(t, result.Audit.Introduced, "detail-policy")
+	assertFindingIDs(t, result.Audit.Persisted)
+	assertFindingIDs(t, result.Audit.Resolved)
+}
+
 func TestRun_AppliesEachSidesAuditPolicyStatusResolvers(t *testing.T) {
 	react := npmPackage("react", "18.2.0")
 	base := diffTestPipeline(t, graphFixture(t), nil)
@@ -315,6 +348,7 @@ func (f fakeDetector) ResolveGraph(context.Context, sdk.DetectionRequest) (sdk.D
 type fakeAuditor struct {
 	descriptor        sdk.AuditorDescriptor
 	findingsByPackage map[string][]sdk.Finding
+	detailFinding     bool
 }
 
 func (f fakeAuditor) Descriptor() sdk.AuditorDescriptor {
@@ -330,6 +364,16 @@ func (f fakeAuditor) Applicable(context.Context, sdk.AuditRequest) (bool, error)
 }
 
 func (f fakeAuditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
+	if f.detailFinding && len(req.DependencyDetailChanges) > 0 {
+		return sdk.AuditResult{Findings: []sdk.Finding{{
+			ID:             "detail-policy",
+			Kind:           sdk.FindingKindPackage,
+			PolicyStatus:   sdk.FindingPolicyStatusWarn,
+			RuleID:         "detail-policy",
+			PackageRef:     req.DependencyDetailChanges[0].After.PURL,
+			DependencyRefs: []string{req.DependencyDetailChanges[0].After.ID},
+		}}}, nil
+	}
 	if req.Graph == nil {
 		return sdk.AuditResult{}, nil
 	}

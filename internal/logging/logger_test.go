@@ -31,11 +31,11 @@ func TestNewConsoleAndCommandStderr(t *testing.T) {
 	if _, err := writer.Write([]byte("warn: noisy stderr\n")); err != nil {
 		t.Fatalf("Write() error = %v", err)
 	}
-	if got := writer.String(); got != "warn: noisy stderr" {
-		t.Fatalf("String() = %q", got)
+	if got := writer.ByteCount(); got != int64(len("warn: noisy stderr\n")) {
+		t.Fatalf("ByteCount() = %d", got)
 	}
 	if !strings.Contains(visible.String(), "warn: noisy stderr") {
-		t.Fatalf("expected visible writer mirroring, got %q", visible.String())
+		t.Fatalf("expected debug writer mirroring, got %q", visible.String())
 	}
 }
 

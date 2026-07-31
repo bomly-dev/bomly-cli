@@ -57,15 +57,17 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	d.Logger = req.DetectorLogger(d.Logger)
 	logger := d.logger()
 	workingDir := d.workingDir(req.ProjectPath)
+	executable := "swift"
+	args := []string{"package", "show-dependencies", "--format", "json"}
 
-	cmd := system.Command("swift", "package", "show-dependencies", "--format", "json")
+	cmd := system.Command(executable, args...)
 	cmd.Dir = workingDir
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = logging.NewCommandStderr(req.Stderr, req.Verbose)
 
 	started := time.Now()
-	logger.Debug("running SwiftPM native detector", zap.String("working_dir", workingDir))
+	logger.Debug("running SwiftPM native detector", logging.CommandFields(executable, args, workingDir)...)
 	if err := cmd.Run(); err != nil {
 		logger.Debug("swift package show-dependencies failed", zap.Error(err))
 		return sdk.DetectionResult{}, fmt.Errorf("swift package show-dependencies: %w", err)
@@ -157,6 +159,7 @@ func buildSwiftDepTree(g *sdk.Graph, parentID string, deps []swiftShowDepsNode, 
 		pkg := swiftPackage{
 			Name:       name,
 			Version:    dep.Version,
+			SourceKind: swiftSourceKindForLocation(dep.URL),
 			Repository: dep.URL,
 		}
 		node := packageNode(pkg)

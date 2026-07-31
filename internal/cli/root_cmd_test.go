@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -691,7 +692,7 @@ func TestRoot_DiffCommand_JSONOutputWithMarkdownOutputFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read summary file: %v", err)
 	}
-	for _, want := range []string{"# Bomly Diff Summary", "Compared `" + baseSHA + "` to `" + headSHA + "`.", "**Summary:** 1 added, 1 changed, 0 removed."} {
+	for _, want := range []string{"# Bomly Diff Summary", "Compared `" + baseSHA + "` to `" + headSHA + "`.", "**Summary:** 1 added, 1 version changed, 0 detail changes, 0 removed."} {
 		if !strings.Contains(string(summary), want) {
 			t.Fatalf("expected summary to contain %q, got:\n%s", want, summary)
 		}
@@ -2652,11 +2653,27 @@ func TestRoot_ScanCommand_MavenMissingJavaReturnsResolutionFailure(t *testing.T)
 	if got := exit.Code(err); got != 3 {
 		t.Fatalf("expected resolution failure exit code 3, got %d (err=%v)", got, err)
 	}
-	if !strings.Contains(err.Error(), "Unable to locate a Java Runtime") {
-		t.Fatalf("expected Java runtime message in error, got %v", err)
+	if !strings.Contains(err.Error(), "diagnostic bytes:") ||
+		strings.Contains(err.Error(), "Unable to locate a Java Runtime") {
+		t.Fatalf("expected secret-safe Java runtime message in error, got %v", err)
 	}
 	if stdout.Len() != 0 {
 		t.Fatalf("expected no stdout on resolution failure, got %q", stdout.String())
+	}
+
+	debugRoot, err := newRootCmd("0.9.0-test")
+	if err != nil {
+		t.Fatalf("newRootCmd() debug error = %v", err)
+	}
+	var debugStderr bytes.Buffer
+	debugRoot.SetOut(io.Discard)
+	debugRoot.SetErr(&debugStderr)
+	debugRoot.SetArgs([]string{"scan", "--path", projectDir, "--ecosystems", "maven", "--detectors", "maven-detector", "--format", "json", "-vv"})
+	if err := debugRoot.Execute(); err == nil {
+		t.Fatal("expected debug scan to fail when Java is unavailable")
+	}
+	if !strings.Contains(debugStderr.String(), "Unable to locate a Java Runtime") {
+		t.Fatalf("expected Java diagnostics in debug output, got %q", debugStderr.String())
 	}
 }
 

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -35,6 +34,7 @@ type packageResolved struct {
 
 type resolvedPin struct {
 	Identity    string        `json:"identity"`
+	Kind        string        `json:"kind"`
 	Package     string        `json:"package"`
 	Repository  string        `json:"repositoryURL"`
 	Location    string        `json:"location"`
@@ -53,6 +53,7 @@ type resolvedState struct {
 type swiftPackage struct {
 	Name        string
 	Version     string
+	SourceKind  string
 	Repository  string
 	Revision    string
 	Requirement string
@@ -193,6 +194,7 @@ func parseResolved(raw []byte) (map[string]swiftPackage, error) {
 		packages[name] = swiftPackage{
 			Name:       name,
 			Version:    firstNonEmpty(pin.State.Version, pin.State.Branch, pin.State.Revision),
+			SourceKind: pin.Kind,
 			Repository: firstNonEmpty(pin.Location, pin.Repository),
 			Revision:   pin.State.Revision,
 		}
@@ -235,7 +237,7 @@ func readOptional(path string) ([]byte, error) {
 	if err != nil || !ok {
 		return nil, err
 	}
-	return os.ReadFile(path)
+	return system.ReadRepositoryFile(path)
 }
 
 func rootNode() *sdk.Dependency {
@@ -268,13 +270,46 @@ func packageNode(pkg swiftPackage) *sdk.Dependency {
 		PackageManager: sdk.PackageManagerSwiftPM,
 		Type:           sdk.PackageTypePackage,
 		Language:       "swift",
-		PURL:           sdk.BuildPackageURL("swift", namespace, name, pkg.Version)}, ResolvedURL: strings.TrimSpace(pkg.Repository),
+		PURL:           sdk.BuildPackageURL("swift", namespace, name, pkg.Version)}, Source: swiftDependencySource(pkg.SourceKind, pkg.Repository), ResolvedURL: strings.TrimSpace(pkg.Repository),
 		Metadata: metadata,
 	})
 
 	// SwiftPM does not distinguish dev scope; all packages are runtime.
 	node.AddScope(sdk.ScopeRuntime)
 	return node
+}
+
+func swiftDependencySource(kind, location string) sdk.DependencySource {
+	switch strings.ToLower(strings.TrimSpace(kind)) {
+	case "registry":
+		return sdk.DependencySourceRegistry
+	case "remotesourcecontrol":
+		return sdk.DependencySourceGit
+	case "localsourcecontrol", "filesystem":
+		return sdk.DependencySourceFile
+	case "":
+		if strings.TrimSpace(location) != "" {
+			// Package.resolved v1 predates the kind field. Its repositoryURL
+			// field is source-control evidence, not an arbitrary download URL.
+			return sdk.DependencySourceGit
+		}
+	}
+	return ""
+}
+
+func swiftSourceKindForLocation(location string) string {
+	location = strings.TrimSpace(location)
+	switch {
+	case location == "":
+		return ""
+	case strings.HasPrefix(strings.ToLower(location), "file:"),
+		filepath.IsAbs(location),
+		strings.HasPrefix(location, "./"),
+		strings.HasPrefix(location, "../"):
+		return "localSourceControl"
+	default:
+		return "remoteSourceControl"
+	}
 }
 
 func packageIdentity(repository, fallbackName string) (string, string) {

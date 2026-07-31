@@ -7,6 +7,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
+	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
@@ -201,7 +202,7 @@ func logResolvedOptions(cmd *cobra.Command) {
 	logger.Debug("Resolved options",
 		zap.String("path", resolved.Path),
 		zap.String("image", resolved.Image),
-		zap.String("url", resolved.URL),
+		zap.String("url", logging.SanitizeURL(resolved.URL)),
 		zap.String("ref", resolved.Ref),
 		zap.Bool("sbom", resolved.SBOM),
 		zap.Bool("enrich", resolved.Enrich),
@@ -215,7 +216,7 @@ func logResolvedOptions(cmd *cobra.Command) {
 		zap.String("ecosystems", resolved.Ecosystems),
 		zap.String("detectors", resolved.Detectors),
 		zap.Bool("install_first", resolved.InstallFirst),
-		zap.Strings("install_args", resolved.InstallArgs),
+		zap.Strings("install_args", logging.SanitizeArgs(resolved.InstallArgs)),
 		zap.String("config", resolved.Config),
 		zap.Bool("verbose", resolved.Verbosity > 0),
 		zap.Int("verbosity", resolved.Verbosity),

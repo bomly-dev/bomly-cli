@@ -17,7 +17,7 @@
 
 Bomly is a free, open-source CLI for dependency intelligence. It scans source trees, SBOMs, Git refs, and container images; explains why dependencies are present; enriches packages with vulnerability and license data when you ask for it; evaluates policy; and writes automation-friendly output for CI.
 
-Free and open source, no account, no login. One binary. No service to host. No telemetry. No outbound matcher calls unless you opt in with `--enrich`.
+Free and open source, no account, no login. One binary. No service to host. No telemetry. No outbound matcher calls unless you opt in with `--enrich`. [Network and Privacy](docs/NETWORK.md) documents every network trigger so you can audit that claim instead of taking it on faith.
 
 ## Install Bomly
 
@@ -78,7 +78,10 @@ Bomly reads manifests, lockfiles, package-manager output, container layers, or e
 | Can CI fail on high-severity findings? | `bomly scan --enrich --audit --fail-on high --format sarif` |
 | Can I triage reachable findings first? | `bomly scan --enrich --audit --analyze --fail-on high --fail-on reachable` |
 
-For more recipes, see [Getting Started](docs/GETTING_STARTED.md) and [Use Cases](docs/USE_CASES.md).
+For more recipes, see [Getting Started](docs/GETTING_STARTED.md) and
+[Use Cases](docs/USE_CASES.md). To review the public inputs, commands, expected
+results, and limitations behind important behavior claims, see
+[Reproducible Evidence](docs/EVIDENCE.md).
 
 ## Explore Interactively
 
@@ -136,7 +139,7 @@ See [Getting Started](docs/GETTING_STARTED.md) for the first-run walkthrough and
 
 ## Generate Output for CI
 
-Bomly can write human-readable text, JSON, SARIF, SPDX 2.3, and CycloneDX 1.6:
+Bomly can write human-readable text, JSON, SARIF, SPDX 2.3, and CycloneDX 1.7:
 
 ```bash
 # Structured JSON for automation
@@ -145,7 +148,7 @@ bomly scan --json
 # SARIF for security tabs and code-scanning integrations
 bomly scan --enrich --audit --fail-on high --format sarif
 
-# Write SBOMs while still showing the normal report
+# Write SBOM artifacts (add --format text to also print the report)
 bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json
 
 # Emit one SBOM to stdout
@@ -217,16 +220,19 @@ See [Plugins](docs/PLUGINS.md) for install, trust, and authoring guidance.
 ## Documentation
 
 - [Getting Started](docs/GETTING_STARTED.md) - install Bomly and run your first scan
+- [Tutorial](docs/TUTORIAL.md) - from first scan to a CI gate on a real project
+- [FAQ](https://bomly.dev/faq) - quick answers on privacy, accounts, and tool differences
 - [Installation](docs/INSTALLATION.md) - install methods, checksums, upgrades, uninstall
 - [Use Cases](docs/USE_CASES.md) - practical recipes for PR gates, SBOMs, triage, and offline scans
 - [Scan Targets](docs/SCAN_TARGETS.md) - directories, Git repos, containers, and SBOMs
 - [Output Formats](docs/OUTPUT_FORMATS.md) - text, JSON, SARIF, SPDX, CycloneDX
-- [SBOM Formats](docs/SBOM.md) - SPDX 2.3 and CycloneDX 1.6, ingest, and conversion recipes
+- [SBOM Formats](docs/SBOM.md) - SPDX 2.3 and CycloneDX 1.7, ingest, and conversion recipes
 - [CI Integration](docs/CI_INTEGRATION.md) - GitHub Actions, GitLab, Jenkins, Azure, CircleCI
 - [Bomly Guard](docs/BOMLY_GUARD.md) - turnkey GitHub Action for PR dependency review
 - [MCP Server](docs/MCP.md) - connect Bomly to Claude Code, Cursor, VS Code, or another MCP client
 - [Reachability](docs/REACHABILITY.md) - experimental reachable-vulnerability triage
 - [Plugins](docs/PLUGINS.md) - managed external detectors, matchers, and auditors
+- [Release Notes](https://github.com/bomly-dev/bomly-cli/releases) - what changed in each version
 - [All Documentation](docs/README.md) - full docs index
 
 Contributor setup lives in [CONTRIBUTING.md](CONTRIBUTING.md). Architecture details live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

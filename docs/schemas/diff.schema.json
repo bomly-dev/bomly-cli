@@ -3116,6 +3116,95 @@
                 "type": "object"
               },
               "type": "array"
+            },
+            "transitions": {
+              "items": {
+                "properties": {
+                  "after": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purl": {
+                        "type": "string"
+                      },
+                      "registry_eligible": {
+                        "type": "boolean"
+                      },
+                      "relationship": {
+                        "type": "string"
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "relationship",
+                      "registry_eligible"
+                    ],
+                    "type": "object"
+                  },
+                  "before": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purl": {
+                        "type": "string"
+                      },
+                      "registry_eligible": {
+                        "type": "boolean"
+                      },
+                      "relationship": {
+                        "type": "string"
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "relationship",
+                      "registry_eligible"
+                    ],
+                    "type": "object"
+                  },
+                  "changed_fields": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "before",
+                  "after",
+                  "changed_fields"
+                ],
+                "type": "object"
+              },
+              "type": "array"
             }
           },
           "type": "object"
@@ -7008,6 +7097,95 @@
               },
               "subproject": {
                 "type": "string"
+              },
+              "transitions": {
+                "items": {
+                  "properties": {
+                    "after": {
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "purl": {
+                          "type": "string"
+                        },
+                        "registry_eligible": {
+                          "type": "boolean"
+                        },
+                        "relationship": {
+                          "type": "string"
+                        },
+                        "scope": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "relationship",
+                        "registry_eligible"
+                      ],
+                      "type": "object"
+                    },
+                    "before": {
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "purl": {
+                          "type": "string"
+                        },
+                        "registry_eligible": {
+                          "type": "boolean"
+                        },
+                        "relationship": {
+                          "type": "string"
+                        },
+                        "scope": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "relationship",
+                        "registry_eligible"
+                      ],
+                      "type": "object"
+                    },
+                    "changed_fields": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "before",
+                    "after",
+                    "changed_fields"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
             },
             "required": [
@@ -9877,6 +10055,9 @@
         "removed_package_count": {
           "type": "integer"
         },
+        "transitioned_package_count": {
+          "type": "integer"
+        },
         "unchanged_manifest_count": {
           "type": "integer"
         },
@@ -9891,12 +10072,43 @@
         "unchanged_manifest_count",
         "added_package_count",
         "changed_package_count",
+        "transitioned_package_count",
         "removed_package_count",
         "exact_match_count",
         "fuzzy_match_count",
         "unmatched_package_count"
       ],
       "type": "object"
+    },
+    "warnings": {
+      "items": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "manifest": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "subproject": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "message"
+        ],
+        "type": "object"
+      },
+      "type": "array"
     }
   },
   "required": [

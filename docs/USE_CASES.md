@@ -2,17 +2,48 @@
 
 Recipes for the jobs people actually use Bomly for. Each one is a goal, the command that does it, what you get back, and where to go deeper. New to Bomly? Start with [Getting Started](GETTING_STARTED.md) first.
 
-## Gate a pull request on new vulnerabilities
+## Gate a pull request on dependency vulnerabilities
 
-**Goal:** fail a PR when it *introduces* a high-severity vulnerability, without nagging about pre-existing ones.
+**Goal:** fail a PR when its dependency changes carry a high-severity vulnerability, without nagging about debt the PR didn't touch.
 
 ```bash
 bomly diff --base main --head HEAD --enrich --audit --fail-on high
 ```
 
-`diff` classifies findings as introduced / resolved / persisted and only `--fail-on` matches against the introduced set, so a clean PR passes even on a repo with known debt. Exit code `2` means a new high finding; see [Exit codes](EXIT_CODES.md).
+`diff` audits only the packages the change touched and classifies their findings as introduced / resolved / persisted, so untouched debt elsewhere in the repo never blocks a PR. Introduced and persisted findings both gate — persisted means the changed package still ships a known issue at its new version. Exit code `2` means the change carries a gating finding; see [Exit codes](EXIT_CODES.md).
 
-→ Turnkey version for GitHub PRs: the [Bomly Guard action](https://github.com/bomly-dev/bomly-guard) ([setup](CI_INTEGRATION.md#turnkey-pr-reviews-with-the-bomly-guard-action)).
+<details>
+<summary>Sample output — an <code>express</code> upgrade that drags in one new advisory</summary>
+
+```text
+Added (1)
+  + encodeurl@2.0.0  MIT      runtime
+Version changed (9)
+  ~ body-parser        1.20.2 → 1.20.3
+  ~ cookie             0.6.0 → 0.7.1
+  ~ express            4.19.2 → 4.21.2
+  ~ finalhandler       1.2.0 → 1.3.1
+  ~ merge-descriptors  1.0.1 → 1.0.3
+  ~ path-to-regexp     0.1.7 → 0.1.12
+  ~ qs                 6.11.0 → 6.13.0
+  ~ send               0.18.0 → 0.19.0
+  ~ serve-static       1.15.0 → 1.16.2
+
+1 new finding(s) introduced; 3 finding(s) persisted.
+  introduced  [MEDIUM]    GHSA-q8mj-m7cp-5q26  qs@6.13.0
+  persisted   [HIGH]      GHSA-37ch-88jc-xwx2  path-to-regexp@0.1.12
+  persisted   [MEDIUM]    GHSA-6rw7-vpxm-498p  qs@6.13.0
+  persisted   [LOW]       GHSA-w7fw-mjwx-w883  qs@6.13.0
+
+✓ 2 fix suggestions for 2 of 2 vulnerable packages.
+  Run again with --format json to see remediation details.
+```
+
+With `--fail-on high`, this run exits `2`: the introduced finding is only medium, but the persisted high on `path-to-regexp@0.1.12` means the upgrade still ships a known high-severity issue. The gate holds until a bump reaches a fixed version — or the finding is accepted into a committed [baseline](BASELINES.md).
+
+</details>
+
+→ Turnkey version for GitHub PRs: the [Bomly Guard action](https://github.com/bomly-dev/bomly-guard) ([setup](CI_INTEGRATION.md#turnkey-pr-reviews-with-bomly-guard)).
 
 ## Generate and publish an SBOM
 
@@ -22,7 +53,7 @@ bomly diff --base main --head HEAD --enrich --audit --fail-on high
 bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json
 ```
 
-Both files are written in one pass from the same resolved graph. Use `--format spdx` (or `cyclonedx`) to stream a single SBOM to stdout instead. Details: [SBOM formats](SBOM.md).
+Both files are written in one pass from the same resolved graph, and a successful run prints nothing — add `--format text` if you also want the terminal report in the build log. Use `--format spdx` (or `cyclonedx`) to stream a single SBOM to stdout instead. Details: [SBOM formats](SBOM.md).
 
 ## Triage vulnerabilities by reachability
 
@@ -52,14 +83,14 @@ Licenses are matched as SPDX expressions. Use `--deny-license` to block specific
 **Goal:** flag dependency names that impersonate packages you trust, or that you've banned outright.
 
 ```bash
-bomly scan --audit \
+bomly scan --enrich --audit \
   --protected-package react --protected-package lodash \
   --typosquat-threshold 0.85 \
   --deny-package event-stream \
   --fail-on any
 ```
 
-This check is name-based and needs no enrichment, so it runs fully offline. See the [package auditor](auditors/package.md).
+The check itself is name-based — no enrichment data feeds it — but the CLI currently requires `--enrich` alongside `--audit`, so this run does contact the enrichment services. See the [package auditor](auditors/package.md).
 
 ## Scan offline / air-gapped
 
@@ -118,17 +149,30 @@ bomly diff --sbom --base old.spdx.json --head new.spdx.json
 bomly diff --image ghcr.io/example/app --base 1.4.0 --head 1.5.0 --enrich --audit --fail-on high
 ```
 
-You get added, removed, and updated dependencies, plus introduced/resolved findings when `--audit` is set. Great for release notes, upgrade reviews, and catching what a base-image bump dragged in.
+You get added, removed, and updated dependencies, plus introduced, resolved, and persisted findings when `--audit` is set. Great for release notes, upgrade reviews, and catching what a base-image bump dragged in.
 
 ## Understand why a dependency is there
 
 **Goal:** find the path that pulled a transitive package into your build.
 
 ```bash
-bomly explain lodash
+bomly explain send
 ```
 
-`explain` prints the dependency path(s) that introduced the package. Add `--audit` to see findings in that path's context.
+`explain` prints every dependency path that introduces the package:
+
+```text
+package    send@0.18.0
+direct     no
+introduced by:
+  demo@1.0.0
+  └─ express@4.19.2
+     ├─ send@0.18.0 [analyzed] (transitive)
+     └─ serve-static@1.15.0
+        └─ send@0.18.0 [analyzed] (transitive)
+```
+
+Add `--audit` to see findings in that path's context. Full reference: [explain](commands/explain.md).
 
 ## Explore results interactively
 

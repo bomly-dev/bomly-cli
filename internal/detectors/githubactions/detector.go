@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"gopkg.in/yaml.v3"
 )
@@ -264,7 +265,7 @@ func discoverManifestFiles(projectPath string) ([]string, []string, error) {
 }
 
 func parseWorkflowRefs(path string) ([]string, error) {
-	data, err := os.ReadFile(path)
+	data, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read workflow file %q: %w", path, err)
 	}
@@ -287,7 +288,7 @@ func parseWorkflowRefs(path string) ([]string, error) {
 }
 
 func parseActionRefs(path string) ([]string, error) {
-	data, err := os.ReadFile(path)
+	data, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read action file %q: %w", path, err)
 	}

@@ -39,6 +39,23 @@ bomly scan --recursive --exclude dist,examples  # repeatable / comma-separated
 
 It works with `--path` and `--url` targets. `--image` and `--sbom` scans do not use directory discovery and reject `--recursive` with exit 4.
 
+The report shows the discovered structure — every subproject with its manifest and package count, consolidated into one graph:
+
+```text
+✓ 78 packages in 2 manifests   (2 direct, 76 transitive · runtime 78, dev 0)
+  ├─ api (subproject, npm)
+  │  └─ demo — 68 packages [package-lock.json]
+  └─ web (subproject, npm)
+     └─ demo — 69 packages [package-lock.json]
+
+Top-level dependencies
+  NAME      VERSION   LICENSE   SCOPE     VULNS
+  express   4.19.2    MIT       runtime   -
+  express   4.21.2    MIT       runtime   -
+```
+
+Both versions of a package appear when different subprojects pin different releases — each is a distinct package keyed by its own PURL.
+
 ### Depth — `--max-depth`
 
 Depth is counted from the scan root: the root itself is depth 0 and a direct child is depth 1. Directories at depths beyond `--max-depth` are not visited. The default is `3`; `--max-depth 0` removes the limit. `--max-depth` requires `--recursive`.
@@ -132,7 +149,19 @@ bomly scan --url https://github.com/example/repo --ref v1.2.0
 bomly scan --url https://github.com/example/repo --ref main
 ```
 
-The clone goes to a temporary directory and is removed after the scan. Credentials come from your local Git config (HTTPS via the credential helper; SSH via `~/.ssh`). Bomly does not store or log credentials.
+The clone goes to a temporary directory and is removed after the scan. One
+remote Git operation may run for at most 10 minutes. Bomly does not fetch
+submodules or Git LFS objects automatically; checked-out LFS pointer files
+remain as repository input.
+
+After checkout, Bomly rejects more than 1,000,000 paths, more than 10 GiB of
+regular files, paths deeper than 256 levels, and symlinks that point outside
+the checkout. Symlinks whose targets stay inside the checkout continue to
+work. These checks happen after Git creates the checkout, so they do not cap
+the bytes Git downloads or the size of its `.git` directory.
+
+Credentials come from your local Git config (HTTPS via the credential helper;
+SSH via `~/.ssh`). Bomly does not store or log credentials.
 
 `--ref` accepts any value `git checkout` accepts: branch, tag, commit SHA.
 
@@ -157,11 +186,21 @@ bomly scan --sbom --path ./vendor.spdx.json
 bomly scan --sbom --path ./build/sbom.cdx.json
 ```
 
-SPDX 2.3 JSON and CycloneDX 1.6 JSON are auto-detected. Useful when:
+SPDX 2.3 JSON and CycloneDX 1.4–1.7 JSON are auto-detected. Useful when:
 
 - You produced an SBOM in a previous CI step and want to audit it.
 - A vendor sent you an SBOM and you want to evaluate it against your policy.
 - You're testing detector output without re-running the heavy detector.
+
+Ingest looks like a normal scan, with one visible difference — SBOMs don't carry Bomly's runtime/development scope split, so dependencies keep the relationship the SBOM recorded (here, `required`) and count as `unscoped`:
+
+```text
+✓ 69 packages in 1 manifest   (1 direct, 68 transitive · runtime 0, dev 0, unscoped 69)
+
+Top-level dependencies
+  NAME      VERSION   LICENSE   SCOPE      VULNS
+  express   4.21.2    MIT       required   -
+```
 
 See [SBOM formats](SBOM.md) for the format comparison.
 

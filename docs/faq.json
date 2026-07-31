@@ -1,0 +1,524 @@
+{
+  "groups": [
+    {
+      "id": "general",
+      "title": "General",
+      "icon": "message-circle-question",
+      "subgroups": [
+        {
+          "faqs": [
+            {
+              "id": "what-is-bomly",
+              "question": "What is Bomly?",
+              "answer": "Bomly is a free, open-source CLI for dependency intelligence. It scans source trees, SBOMs, Git refs, and container images, builds one dependency graph, and explains why each package is present. When you ask for it, Bomly enriches packages with vulnerability and license data, evaluates policy, and writes automation-friendly output for CI. It ships as one binary, with no service to host.",
+              "links": [
+                {
+                  "label": "Bomly CLI",
+                  "href": "/cli"
+                },
+                {
+                  "label": "Getting started",
+                  "href": "/docs/getting-started"
+                }
+              ]
+            },
+            {
+              "id": "how-is-bomly-different",
+              "question": "How is Bomly different from general-purpose security scanners?",
+              "toc": "How is Bomly different?",
+              "answer": "Different focus. General-purpose scanners cover many target and finding types — container images, IaC misconfigurations, secrets — with vulnerability detection per target. Bomly is built around one thing: the dependency graph. It keeps the full graph so it can answer why a package is present (`bomly explain`), what changed between two refs or SBOMs (`bomly diff`), and whether a vulnerability is actually reachable from your code (`--analyze`), alongside SBOM generation and policy auditing. For container images, Bomly embeds Syft and Grype — proven scanning technology used widely across the ecosystem. The tools compose: many teams run an image scanner for images and Bomly for dependency intelligence and PR review.",
+              "links": [
+                {
+                  "label": "Architecture",
+                  "href": "/docs/architecture"
+                },
+                {
+                  "label": "Bomly CLI",
+                  "href": "/cli"
+                }
+              ]
+            },
+            {
+              "id": "is-bomly-free",
+              "question": "Is Bomly really free?",
+              "answer": "Yes. The Bomly CLI and the Bomly Guard GitHub Action are open source under the Apache License 2.0. There is no account, no login, and no subscription required to run Bomly locally or in CI.",
+              "links": [
+                {
+                  "label": "License (Apache 2.0)",
+                  "href": "https://github.com/bomly-dev/bomly-cli/blob/main/LICENSE",
+                  "external": true
+                },
+                {
+                  "label": "Support the project",
+                  "href": "/support"
+                }
+              ]
+            },
+            {
+              "id": "what-data-leaves-my-machine",
+              "question": "What data leaves my machine when I run Bomly?",
+              "toc": "What data leaves my machine?",
+              "answer": "By default, nothing. Bomly has no telemetry, no usage tracking, and no crash reporting. Network enrichment is opt-in: when you pass `--enrich`, Bomly queries public data sources such as OSV, CISA KEV, and deps.dev for vulnerability and license data. One detail to know: detectors that use a build tool, such as Maven or Gradle, may resolve packages from the package registry, because that is how those build tools work.",
+              "links": [
+                {
+                  "label": "Privacy",
+                  "href": "/privacy"
+                }
+              ]
+            },
+            {
+              "id": "who-builds-bomly",
+              "question": "Who builds Bomly?",
+              "answer": "Bomly is built by Ahmed ElMallah, a senior software engineer at GitHub, as a personal open-source project. Development happens in the open at github.com/bomly-dev, and the roadmap is driven by real usage and reported issues. Bomly is a personal project — it is not affiliated with or endorsed by GitHub.",
+              "links": [
+                {
+                  "label": "elmallah.dev",
+                  "href": "https://elmallah.dev",
+                  "external": true
+                },
+                {
+                  "label": "github.com/bomly-dev",
+                  "href": "https://github.com/bomly-dev",
+                  "external": true
+                },
+                {
+                  "label": "Support the project",
+                  "href": "/support"
+                }
+              ]
+            },
+            {
+              "id": "how-do-i-get-help",
+              "question": "How do I get help or report a bug?",
+              "toc": "Help & bug reports",
+              "answer": "Open an issue on the bomly-cli repository for bugs, or start a GitHub Discussion for questions and feedback. Security reports go through the repository security policy so they can be handled privately. The support page lists all the ways to reach the project.",
+              "links": [
+                {
+                  "label": "Support",
+                  "href": "/support"
+                },
+                {
+                  "label": "Troubleshooting",
+                  "href": "/docs/troubleshooting"
+                }
+              ]
+            },
+            {
+              "id": "where-are-the-release-notes",
+              "question": "Where are the release notes?",
+              "toc": "Release notes",
+              "answer": "On GitHub Releases. Draft releases are created automatically after merges to main, and the documentation site is updated per release.",
+              "links": [
+                {
+                  "label": "GitHub Releases",
+                  "href": "https://github.com/bomly-dev/bomly-cli/releases",
+                  "external": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cli",
+      "title": "Bomly CLI",
+      "icon": "square-terminal",
+      "subgroups": [
+        {
+          "label": "Getting started",
+          "faqs": [
+            {
+              "id": "how-do-i-install-bomly",
+              "question": "How do I install Bomly?",
+              "toc": "Installing Bomly",
+              "answer": "The quickest ways are Homebrew (`brew install bomly-dev/tap/bomly`) and the install script (`curl -fsSL https://bomly.dev/install.sh | sh`). On Windows you can use WinGet (`winget install Bomly.BomlyCLI`) or Scoop, and every release also ships binaries and Linux packages on GitHub. The default `bomly` binary has Syft and Grype built in; a smaller `bomly-lite` binary uses the `syft` and `grype` already on your PATH.",
+              "links": [
+                {
+                  "label": "Installation",
+                  "href": "/docs/installation"
+                }
+              ]
+            },
+            {
+              "id": "which-ecosystems-are-supported",
+              "question": "Which ecosystems does Bomly support?",
+              "toc": "Supported ecosystems",
+              "answer": "Bomly has native detectors for Go, npm (including pnpm and Yarn), Maven and Gradle, Python (pip, pipenv, Poetry, uv), PHP Composer, Ruby Bundler, Rust Cargo, .NET NuGet, Swift (SwiftPM and CocoaPods), Dart pub, Scala sbt, Elixir Mix, C/C++ Conan, and GitHub Actions workflows, plus SPDX and CycloneDX SBOM ingest. Bundled Syft-based detectors cover the long tail, including container images and OS-level packages. The support matrix in the docs lists every detector and the files it reads.",
+              "links": [
+                {
+                  "label": "Support matrix",
+                  "href": "/docs/support-matrix"
+                },
+                {
+                  "label": "Detectors",
+                  "href": "/docs/detectors"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Scanning & SBOMs",
+          "faqs": [
+            {
+              "id": "can-bomly-read-or-generate-sboms",
+              "question": "Can Bomly read or generate SBOMs?",
+              "toc": "Reading & generating SBOMs",
+              "answer": "Both. `bomly scan --sbom --path ./sbom.cdx.json` reads an existing SPDX or CycloneDX SBOM and turns it into a dependency graph you can diff, explain, and audit. Bomly also writes SBOMs in SPDX 2.3 and CycloneDX 1.7, either to stdout or to files, and ingests CycloneDX 1.4 through 1.7.",
+              "links": [
+                {
+                  "label": "SBOM guide",
+                  "href": "/docs/sbom"
+                },
+                {
+                  "label": "Scan targets",
+                  "href": "/docs/scan-targets"
+                }
+              ]
+            },
+            {
+              "id": "does-bomly-scan-container-images",
+              "question": "Does Bomly scan container images?",
+              "toc": "Container images",
+              "answer": "Yes. `bomly scan --image ghcr.io/example/app:latest` reads the image layers and resolves the packages inside them into the same dependency graph. Container image support comes from the bundled Syft detectors, which also cover OS-level packages such as apk and dpkg databases.",
+              "links": [
+                {
+                  "label": "Scan targets",
+                  "href": "/docs/scan-targets"
+                }
+              ]
+            },
+            {
+              "id": "why-is-this-package-in-my-project",
+              "question": "How do I find out why a package is in my project?",
+              "toc": "Why is this package here?",
+              "answer": "Run `bomly explain <package>`, for example `bomly explain lodash`. Bomly prints the dependency paths that bring the package in, so you can see which direct dependency is responsible, and it includes advisory and fix context when enrichment data is present. This works for transitive packages that never appear in your own manifests.",
+              "links": [
+                {
+                  "label": "Use cases",
+                  "href": "/docs/use-cases"
+                },
+                {
+                  "label": "Getting started",
+                  "href": "/docs/getting-started"
+                }
+              ]
+            },
+            {
+              "id": "compare-branches-or-sboms",
+              "question": "How do I compare dependencies between two branches or two SBOMs?",
+              "toc": "Comparing branches & SBOMs",
+              "answer": "Use `bomly diff`. `bomly diff --base main --head HEAD` compares two Git refs, `bomly diff --sbom --base ./old.spdx.json --head ./new.spdx.json` compares two SBOM files, and `--image` compares two container tags or digests. Findings are grouped into introduced, resolved, and persisted, so you can see exactly what a change adds or fixes.",
+              "links": [
+                {
+                  "label": "Scan targets",
+                  "href": "/docs/scan-targets"
+                },
+                {
+                  "label": "CI integration",
+                  "href": "/docs/ci-integration"
+                }
+              ]
+            },
+            {
+              "id": "fewer-dependencies-than-expected",
+              "question": "Why does my scan show fewer dependencies than I expected?",
+              "toc": "Fewer dependencies than expected",
+              "answer": "Bomly resolves the graph from evidence — lockfiles first, then package-manager output, then fallbacks. If a project has no lockfile, the responsible detector may fall back to a coarser source and report a fallback warning, which means transitive dependencies can be missing. Check the warnings in the report, commit a lockfile, or use `--install-first` to let the detector materialize one.",
+              "links": [
+                {
+                  "label": "Detectors",
+                  "href": "/docs/detectors"
+                },
+                {
+                  "label": "CI-readiness warnings",
+                  "href": "/docs/ci-readiness"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "CI & policy",
+          "faqs": [
+            {
+              "id": "fail-ci-on-a-vulnerability",
+              "question": "How do I fail CI when a change introduces a high-severity vulnerability?",
+              "toc": "Failing CI on vulnerabilities",
+              "answer": "Run `bomly scan --enrich --audit --fail-on high` in your pipeline. Exit codes are stable for scripts: 0 for clean results and 2 for policy violations, so any CI system can gate on the result. Add `--format sarif` to send findings to GitHub code scanning or any other SARIF-aware tool. On GitHub pull requests, the Bomly Guard action packages this whole flow for you.",
+              "links": [
+                {
+                  "label": "CI integration",
+                  "href": "/docs/ci-integration"
+                },
+                {
+                  "label": "Exit codes",
+                  "href": "/docs/exit-codes"
+                },
+                {
+                  "label": "Bomly Guard",
+                  "href": "/guard"
+                }
+              ]
+            },
+            {
+              "id": "enforce-a-license-policy",
+              "question": "Can I enforce a license policy?",
+              "toc": "License policy",
+              "answer": "Yes. Use `--allow-license` to define an allowlist of SPDX license expressions, `--deny-license` to block specific ones, and `--license-exempt-package` for packages you have reviewed and accepted. Combined with `--fail-on`, license findings can fail the scan in CI. The same options are available as inputs on the Bomly Guard action.",
+              "links": [
+                {
+                  "label": "Auditors",
+                  "href": "/docs/auditors"
+                },
+                {
+                  "label": "Config reference",
+                  "href": "/docs/config-reference"
+                }
+              ]
+            },
+            {
+              "id": "typosquat-detection",
+              "question": "Can Bomly warn me about typosquatted package names?",
+              "toc": "Typosquat detection",
+              "answer": "Yes. The package auditor compares new package names against a protected set: pass `--protected-package` for the names you care about, and tune `--typosquat-threshold` (default 0.90) and `--typosquat-mode` (`warn` or `fail`). The check is name-based and needs no network enrichment. Under `bomly diff`, the packages already in your base branch seed the protected set, so only newly introduced names are checked.",
+              "links": [
+                {
+                  "label": "Auditors",
+                  "href": "/docs/auditors"
+                }
+              ]
+            },
+            {
+              "id": "output-formats",
+              "question": "What output formats does Bomly produce?",
+              "toc": "Output formats",
+              "answer": "The default output is a human-readable text report. With `--format` you can switch to `json`, `markdown`, SARIF 2.1.0 (requires `--audit`), SPDX 2.3, or CycloneDX 1.7, and `-o format=path` writes several formats in one run while still printing the normal report.",
+              "links": [
+                {
+                  "label": "Output formats",
+                  "href": "/docs/output-formats"
+                }
+              ]
+            },
+            {
+              "id": "does-audit-make-network-calls",
+              "question": "Does auditing make network calls?",
+              "toc": "Audit & network",
+              "answer": "No. `--audit` evaluates the vulnerability and license data already present on packages. Fetching that data is `--enrich`'s job; combine them (`--enrich --audit`) when you want to fetch and evaluate in one run.",
+              "links": [
+                {
+                  "label": "Auditors",
+                  "href": "/docs/auditors"
+                },
+                {
+                  "label": "Network and privacy",
+                  "href": "/docs/network"
+                }
+              ]
+            },
+            {
+              "id": "is-unreachable-safe-to-ignore",
+              "question": "Does \"unreachable\" mean a vulnerability is safe to ignore?",
+              "toc": "Is \"unreachable\" safe?",
+              "answer": "No. Reachability is a triage signal: \"unreachable\" at package precision means static analysis found no import path, and static analysis cannot see dynamic imports, plugin loaders, or runtime code generation. Use it to prioritize, not to dismiss — and read the reachability guide before gating CI on `--fail-on reachable`.",
+              "links": [
+                {
+                  "label": "Reachability",
+                  "href": "/docs/reachability"
+                }
+              ]
+            },
+            {
+              "id": "why-did-my-scan-exit-non-zero",
+              "question": "Why did my scan exit non-zero?",
+              "toc": "Non-zero exit codes",
+              "answer": "Bomly uses a small, stable set of exit codes: 0 is clean, 2 means a finding matched your `--fail-on` policy, and 1, 3, 4, and 5 distinguish execution errors, resolution failures, invalid input, and \"nothing to evaluate\". The exit-codes reference has the full table and CI recipes for branching on them.",
+              "links": [
+                {
+                  "label": "Exit codes",
+                  "href": "/docs/exit-codes"
+                },
+                {
+                  "label": "Troubleshooting",
+                  "href": "/docs/troubleshooting"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Plugins",
+          "faqs": [
+            {
+              "id": "extend-bomly-with-plugins",
+              "question": "Can I extend Bomly with plugins?",
+              "toc": "Extending with plugins",
+              "answer": "Yes. Managed plugins add new detectors, matchers, and auditors without changing the binary. Install one from a local archive, a URL with a checksum, or a GitHub release (`bomly plugins install github:owner/repo@tag`); installed plugins stay disabled until you run `bomly plugins enable`, which is the explicit trust decision. The docs include guides for writing your own plugin in Go.",
+              "links": [
+                {
+                  "label": "Plugins",
+                  "href": "/docs/plugins"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "guard",
+      "title": "Bomly Guard",
+      "icon": "shield-check",
+      "subgroups": [
+        {
+          "faqs": [
+            {
+              "id": "what-is-bomly-guard",
+              "question": "What is Bomly Guard?",
+              "answer": "Bomly Guard is the official GitHub Action for Bomly. It installs the Bomly CLI and runs `bomly diff` against the pull request's merge base, so every PR gets a dependency review with vulnerability, license, and policy findings. It is free and open source under Apache 2.0 — no server, no signup.",
+              "links": [
+                {
+                  "label": "Bomly Guard",
+                  "href": "/guard"
+                },
+                {
+                  "label": "Guard docs",
+                  "href": "/docs/bomly-guard"
+                }
+              ]
+            },
+            {
+              "id": "add-guard-to-my-repository",
+              "question": "How do I add Guard to my repository?",
+              "toc": "Adding Guard to a repo",
+              "answer": "Add one step to a `pull_request` workflow: `uses: bomly-dev/bomly-guard@v1`, with the policy inputs you want, such as `fail-on: high`. Check out the repository with `fetch-depth: 0` so both refs can be resolved. Guard reports a normal GitHub check, so you can make it required through branch protection.",
+              "links": [
+                {
+                  "label": "Bomly Guard",
+                  "href": "/guard"
+                },
+                {
+                  "label": "Guard docs",
+                  "href": "/docs/bomly-guard"
+                }
+              ]
+            },
+            {
+              "id": "guard-pull-request-results",
+              "question": "Does Guard post results to my pull request?",
+              "toc": "PR comments & results",
+              "answer": "Guard always writes a job summary with the results. Set `comment-summary-in-pr` to `always` or `on-failure` and it also posts a single PR comment — updated in place on new pushes — with an overview, the dependency changes, and the policy findings. With `upload-sarif` enabled, findings also go to GitHub code scanning as alerts.",
+              "links": [
+                {
+                  "label": "Guard docs",
+                  "href": "/docs/bomly-guard"
+                }
+              ]
+            },
+            {
+              "id": "reproduce-guard-locally",
+              "question": "Can I reproduce Guard's CI result locally?",
+              "toc": "Reproducing CI locally",
+              "answer": "Yes. Guard is a thin wrapper around the Bomly CLI, so the same command runs on your machine: `bomly diff --base main --head HEAD` with the same policy flags reproduces the review before you push. This also makes CI results easy to debug.",
+              "links": [
+                {
+                  "label": "CI integration",
+                  "href": "/docs/ci-integration"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mcp",
+      "title": "MCP server",
+      "icon": "bot",
+      "subgroups": [
+        {
+          "faqs": [
+            {
+              "id": "set-up-the-mcp-server",
+              "question": "How do I set up the Bomly MCP server?",
+              "toc": "Setting up the server",
+              "answer": "Install the Bomly CLI and run `bomly mcp serve` — the MCP server is built into the same binary, so there is nothing else to install. Then register it in your agent's MCP configuration: Claude Code (`~/.claude.json`), Cursor (`.cursor/mcp.json`), VS Code and GitHub Copilot (`.vscode/mcp.json`), or Codex (`~/.codex/config.toml`). The MCP page walks through the whole setup.",
+              "links": [
+                {
+                  "label": "Bomly MCP",
+                  "href": "/mcp"
+                },
+                {
+                  "label": "MCP docs",
+                  "href": "/docs/mcp"
+                }
+              ]
+            },
+            {
+              "id": "which-agents-work-with-mcp",
+              "question": "Which agents and editors work with the Bomly MCP server?",
+              "toc": "Supported agents & editors",
+              "answer": "Any MCP client that supports stdio transport can use it. Documented setups exist for Claude Code, Cursor, VS Code, GitHub Copilot, and Codex. The server runs as a local child process of your agent — there is no remote endpoint to configure.",
+              "links": [
+                {
+                  "label": "Bomly MCP",
+                  "href": "/mcp"
+                },
+                {
+                  "label": "MCP docs",
+                  "href": "/docs/mcp"
+                }
+              ]
+            },
+            {
+              "id": "mcp-tools",
+              "question": "What tools does the MCP server expose?",
+              "toc": "Available tools",
+              "answer": "Four tools. `bomly_scan` scans a path, Git URL, container image, or SBOM and returns a compact summary grouped by remediation. `bomly_explain` shows dependency paths, advisories, and fix context for one package. `bomly_diff` reports the dependency changes between two refs, images, or SBOM files as introduced, resolved, and persisted. `bomly_plugins` lists the plugins in your installation. Responses are compact on purpose, sized for agent tool-result limits.",
+              "links": [
+                {
+                  "label": "MCP docs",
+                  "href": "/docs/mcp"
+                }
+              ]
+            },
+            {
+              "id": "mcp-network-and-accounts",
+              "question": "Does the MCP server need network access or an account?",
+              "toc": "Network access & accounts",
+              "answer": "No account and no API key. The server runs locally over stdio, and network enrichment is opt-in per tool call through the `enrich` argument — without it, the matchers make no vulnerability or license calls. As with the CLI, some build-tool detectors may still resolve packages from a registry while constructing the graph.",
+              "links": [
+                {
+                  "label": "MCP docs",
+                  "href": "/docs/mcp"
+                },
+                {
+                  "label": "Privacy",
+                  "href": "/privacy"
+                }
+              ]
+            },
+            {
+              "id": "agent-checks-before-committing",
+              "question": "How do I make my agent check dependencies before committing?",
+              "toc": "Checks before committing",
+              "answer": "Add a short instruction to your repository's agent guidance file — `CLAUDE.md`, `AGENTS.md`, or `copilot-instructions.md` — telling the agent to run a dependency diff against the base branch before committing dependency or lockfile changes. The Bomly docs include a ready snippet for this. It is a workflow hint, not a security guarantee: the agent decides when to call the tools.",
+              "links": [
+                {
+                  "label": "Bomly MCP",
+                  "href": "/mcp"
+                },
+                {
+                  "label": "MCP docs",
+                  "href": "/docs/mcp"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

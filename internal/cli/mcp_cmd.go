@@ -52,6 +52,7 @@ func newMcpServeCmd() *cobra.Command {
 			s := mcp.NewServer(mcp.Context{
 				Adapter: adapter,
 				Version: cmd.Root().Version,
+				Logger:  logger,
 			})
 			printMCPBanner(cmd.ErrOrStderr())
 			return mcpserver.ServeStdio(s)
@@ -290,22 +291,34 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (m
 		Exclude:               req.Exclude,
 	})
 	if err != nil {
-		return mcp.ScanRunResult{}, fmt.Errorf("validate scan request: %w", err)
+		return mcp.ScanRunResult{}, mcp.WrapToolError(
+			mcp.ToolErrorRequest,
+			fmt.Errorf("validate scan request: %w", err),
+		)
 	}
 	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
-		return mcp.ScanRunResult{}, fmt.Errorf("prepare scan: %w", err)
+		return mcp.ScanRunResult{}, mcp.WrapToolError(
+			mcp.ToolErrorPreparation,
+			fmt.Errorf("prepare scan: %w", err),
+		)
 	}
 	scopeFilter, err := sdk.ParseScope(req.Scope)
 	if err != nil {
-		return mcp.ScanRunResult{}, fmt.Errorf("parse scope: %w", err)
+		return mcp.ScanRunResult{}, mcp.WrapToolError(
+			mcp.ToolErrorRequest,
+			fmt.Errorf("parse scope: %w", err),
+		)
 	}
 
 	pipeline := engine.NewPipeline(cmdCtx.Registry(), a.logger)
 	pipeReq := cmdCtx.PipelineRequest(scopeFilter, io.Discard)
 	pipeResult, runErr := scanengine.Run(ctx, pipeline, pipeReq)
 	if runErr != nil && len(pipeResult.ResolveResults) == 0 {
-		return mcp.ScanRunResult{}, fmt.Errorf("run scan pipeline: %w", runErr)
+		return mcp.ScanRunResult{}, mcp.WrapToolError(
+			mcp.ToolErrorPipeline,
+			fmt.Errorf("run scan pipeline: %w", runErr),
+		)
 	}
 
 	var findings []sdk.Finding
@@ -331,8 +344,9 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (m
 	}, nil
 }
 
-// mcpDiagnosticsFromPipeline maps pipeline warnings (and manifest resolution
-// fallbacks) to MCP diagnostics so internal/mcp never imports internal/engine.
+// mcpDiagnosticsFromPipeline maps pipeline warnings to MCP diagnostics so
+// internal/mcp never imports internal/engine. Detection warnings already carry
+// fallback provenance, so there is no separate manifest pass.
 func mcpDiagnosticsFromPipeline(pipeResult engine.PipelineResult) []mcp.Diagnostic {
 	var diagnostics []mcp.Diagnostic
 	appendWarnings := func(stage string, warnings []engine.PipelineWarning) {
@@ -344,27 +358,16 @@ func mcpDiagnosticsFromPipeline(pipeResult engine.PipelineResult) []mcp.Diagnost
 			})
 		}
 	}
-	appendWarnings("detect", pipeResult.DetectorWarnings)
+	for _, warning := range pipeResult.DetectorWarnings {
+		diagnostics = append(diagnostics, mcp.Diagnostic{
+			Stage:   "detect",
+			Source:  warning.Source,
+			Message: warning.Message,
+		})
+	}
 	appendWarnings("match", pipeResult.MatchWarnings)
 	appendWarnings("analyze", pipeResult.AnalyzeWarnings)
 	appendWarnings("audit", pipeResult.AuditWarnings)
-	for _, manifest := range pipeResult.Consolidated.Manifests {
-		resolution := manifest.Entry.Manifest.Resolution
-		if resolution == nil || resolution.Fallback == nil {
-			continue
-		}
-		message := fmt.Sprintf("manifest %s resolved via fallback detector %s (primary %s failed",
-			manifest.Entry.Manifest.Path, manifest.DetectorName, resolution.Fallback.From)
-		if resolution.Fallback.Reason != "" {
-			message += ": " + resolution.Fallback.Reason
-		}
-		message += ")"
-		diagnostics = append(diagnostics, mcp.Diagnostic{
-			Stage:   "detect",
-			Source:  manifest.DetectorName,
-			Message: message,
-		})
-	}
 	return diagnostics
 }
 
@@ -392,11 +395,17 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 		Exclude:               req.Exclude,
 	})
 	if err != nil {
-		return mcp.ExplainRunResult{}, fmt.Errorf("validate explain request: %w", err)
+		return mcp.ExplainRunResult{}, mcp.WrapToolError(
+			mcp.ToolErrorRequest,
+			fmt.Errorf("validate explain request: %w", err),
+		)
 	}
 	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
-		return mcp.ExplainRunResult{}, fmt.Errorf("prepare explain: %w", err)
+		return mcp.ExplainRunResult{}, mcp.WrapToolError(
+			mcp.ToolErrorPreparation,
+			fmt.Errorf("prepare explain: %w", err),
+		)
 	}
 
 	pipeline := engine.NewPipeline(cmdCtx.Registry(), a.logger)
@@ -405,7 +414,10 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 		Pipeline: cmdCtx.PipelineRequest(sdk.ScopeUnknown, io.Discard),
 	})
 	if err != nil {
-		return mcp.ExplainRunResult{}, fmt.Errorf("run explain pipeline: %w", err)
+		return mcp.ExplainRunResult{}, mcp.WrapToolError(
+			mcp.ToolErrorPipeline,
+			fmt.Errorf("run explain pipeline: %w", err),
+		)
 	}
 
 	targets := make([]output.ExplainTargetResponse, 0, len(explainResult.Targets))
@@ -467,7 +479,10 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (m
 		Exclude:               req.Exclude,
 	})
 	if err != nil {
-		return mcp.DiffRunResult{}, fmt.Errorf("validate diff request: %w", err)
+		return mcp.DiffRunResult{}, mcp.WrapToolError(
+			mcp.ToolErrorRequest,
+			fmt.Errorf("validate diff request: %w", err),
+		)
 	}
 	logger := a.logger
 
@@ -487,7 +502,10 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (m
 		baseTarget, headTarget, projectIdentifier, _, _, err = resolveGitDiffGraphs(ctx, o, nil, logger, req.Base, req.Head)
 	}
 	if err != nil {
-		return mcp.DiffRunResult{}, fmt.Errorf("resolve diff targets: %w", err)
+		return mcp.DiffRunResult{}, mcp.WrapToolError(
+			mcp.ToolErrorTargetResolution,
+			fmt.Errorf("resolve diff targets: %w", err),
+		)
 	}
 	defer func() { _ = baseTarget.close() }()
 	defer func() { _ = headTarget.close() }()
@@ -503,7 +521,10 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (m
 		},
 	})
 	if err != nil {
-		return mcp.DiffRunResult{}, fmt.Errorf("run diff pipeline: %w", err)
+		return mcp.DiffRunResult{}, mcp.WrapToolError(
+			mcp.ToolErrorPipeline,
+			fmt.Errorf("run diff pipeline: %w", err),
+		)
 	}
 
 	reportOptions := reportOptionsFromPipelineResults(o.GetConfig().Analyze, diffResult.Base, diffResult.Head)
@@ -546,7 +567,7 @@ func (a *mcpOptionsAdapter) ListPlugins(_ context.Context) (plugin.ListResponse,
 	builtins := builtInPluginInfos(current, a.version)
 	infos, err := plugin.ListPluginInfos("", builtins)
 	if err != nil {
-		return plugin.ListResponse{}, err
+		return plugin.ListResponse{}, mcp.WrapToolError(mcp.ToolErrorPluginInventory, err)
 	}
 	return plugin.GroupPluginInfos(infos), nil
 }

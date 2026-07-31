@@ -133,11 +133,28 @@ User-facing docs live in [`docs/`](docs/). Most pages are handwritten; some are 
 Run `make generate` after changing any of:
 
 - `internal/config/config.go` — regenerates `docs/CONFIG_REFERENCE.md`
-- `sdk/catalog.go`, `sdk/support_matrix.go`, `internal/registry/support.go` — regenerates `docs/SUPPORT_MATRIX.md` and `docs/detectors/ecosystems/*.md`
+- `sdk/catalog.go`, `sdk/support_matrix.go`, `internal/registry/support.go` — regenerates `docs/SUPPORT_MATRIX.md` and `docs/detectors/*.md`
 - `internal/output/*` or scan/explain/diff response types — regenerates `docs/schemas/*.md`
 - `internal/support/component_docs.go` — regenerates `docs/{DETECTORS,MATCHERS,AUDITORS}.md` and `docs/matchers/*.md`
 
 For per-detector and per-matcher prose (Phase 2 hybrid generation), add a Markdown file under `internal/support/prose/{detectors,matchers}/<name>.md` and re-run `make generate`. The generator embeds the prose between the structured fact table and the auto-generated banner.
+
+### Docs navigation and slugs
+
+- Every top-level page in `docs/` needs an entry in `docs/manifest.json`, and the groups in `docs/README.md` mirror the manifest groups. `internal/support/manifest_test.go` enforces the 1:1 page/manifest sync; nested directories (`detectors/`, `matchers/`, `schemas/`, …) are auto-discovered by the site renderer and stay out of the manifest.
+- A published slug is a URL. Do not rename or delete a manifest slug without coordinating a redirect in the landing-page repo first — the docs site has no automatic redirects, so a dropped slug is a permanently broken link.
+
+### Docs style
+
+- Link text names the destination ("see [Exit Codes](docs/EXIT_CODES.md)"), never "here" or "this page".
+- Self-references are always relative links. Never hardcode absolute `https://bomly.dev/...` doc URLs in Markdown — they break silently when the site structure changes.
+- Anything copy-pasteable uses straight quotes and one canonical spelling per command. If two pages show the same invocation, they show it identically.
+- Prefer showing real expected output after a command. Wrap output longer than ~20 lines in `<details><summary>Output</summary>…</details>`.
+- Experimental features carry three markers that must agree: `experimental: true` on the manifest entry, an `[Experimental]` prefix in the flag help text, and a banner as the first block of the page:
+
+  ```markdown
+  > ⚠️ **Experimental.** This feature may change without preserving backwards compatibility. <one sentence on what is stable and what is not>
+  ```
 
 ## Release Bumps
 

@@ -65,11 +65,16 @@ urllib3 = ">=2.2.2"
 
 Re-lock and re-scan.
 
+## Source details
+
+Bomly reads registry, Git, URL, and local-directory sources from each
+`poetry.lock` package source table. An unrecognized source type stays unknown.
+
 ## Reachability (experimental)
 
 > **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
 
-For Poetry-managed packages, the analyzer is `pyreach` at **Tier-3 (package)**. See [REACHABILITY.md](../../../REACHABILITY.md#unreachable-is-not-safe).
+For Poetry-managed packages, the analyzer is `pyreach` at **Tier-3 (package)**. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
 
 ## Limitations
 

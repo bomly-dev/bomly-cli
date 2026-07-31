@@ -73,7 +73,8 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	}
 	AttachYarnLockPositions(depsGraph, d.base().ProjectDir(req.ProjectPath))
 	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, yarnManifestMetadataPatterns)),
+		Graphs:   sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, yarnManifestMetadataPatterns)),
+		Warnings: node.PackageManagerWarnings(d.base().ProjectDir(req.ProjectPath), sdk.PackageManagerYarn, node.LockfileFormat{}),
 	}, nil
 }
 

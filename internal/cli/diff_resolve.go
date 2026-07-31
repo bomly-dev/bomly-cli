@@ -18,20 +18,20 @@ import (
 )
 
 func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger, baseRef, headRef string) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, map[string][]git.LineRange, error) {
-	repoRoot, repoCleanup, projectIdentifier, err := resolveDiffRepo(options, prog, logger)
+	repoRoot, repoCleanup, projectIdentifier, err := resolveDiffRepo(ctx, options, prog, logger)
 	if err != nil {
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, nil, err
 	}
 	if repoCleanup != nil {
 		defer func() { _ = repoCleanup() }()
 	}
-	if err := git.VerifyRef(repoRoot, baseRef); err != nil {
+	if err := git.VerifyRef(logger, repoRoot, baseRef); err != nil {
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, nil, exit.InvalidInputError("verify --base %q: %v", baseRef, err)
 	}
-	if err := git.VerifyRef(repoRoot, headRef); err != nil {
+	if err := git.VerifyRef(logger, repoRoot, headRef); err != nil {
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, nil, exit.InvalidInputError("verify --head %q: %v", headRef, err)
 	}
-	changedLines, err := git.ChangedLineRanges(repoRoot, baseRef, headRef)
+	changedLines, err := git.ChangedLineRanges(logger, repoRoot, baseRef, headRef)
 	if err != nil && logger != nil {
 		logger.Warn("diff: changed line ranges unavailable", zap.Error(err))
 	}
@@ -59,11 +59,11 @@ func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, prog *prog
 // resolveDiffRepo finds (or clones) the git repository to diff. When --url is
 // set it surfaces a dedicated "Cloning repository" progress step around the
 // clone; for local repos no step is needed (resolution is instant).
-func resolveDiffRepo(options *opts.Options, prog *progress.Progress, logger *zap.Logger) (string, func() error, string, error) {
+func resolveDiffRepo(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger) (string, func() error, string, error) {
 	current := options.GetConfig()
 	if current.URL != "" {
 		step := prog.StartWithDoneLabel("input", "Cloning repository", "Cloned repository")
-		repoRoot, err := git.CloneTemp(logger, current.URL, "")
+		repoRoot, err := git.CloneTemp(ctx, logger, current.URL, "")
 		if err != nil {
 			step.Fail("Cloning repository failed")
 			return "", nil, "", exit.InvalidInputError("clone --url %q: %v", current.URL, err)
@@ -76,7 +76,7 @@ func resolveDiffRepo(options *opts.Options, prog *progress.Progress, logger *zap
 	if err != nil {
 		return "", nil, "", err
 	}
-	repoRoot, err := git.FindRepoRoot(selectedPath)
+	repoRoot, err := git.FindRepoRoot(logger, selectedPath)
 	if err != nil {
 		return "", nil, "", exit.InvalidInputError("resolve local git repository: %v", err)
 	}
@@ -84,7 +84,13 @@ func resolveDiffRepo(options *opts.Options, prog *progress.Progress, logger *zap
 }
 
 func resolveDiffResultsForRef(ctx context.Context, options *opts.Options, logger *zap.Logger, repoRoot, ref string) (diffResolvedTarget, error) {
-	materializedPath, err := git.MaterializeLocalRef(logger, repoRoot, ref)
+	var materializedPath string
+	var err error
+	if strings.TrimSpace(options.GetConfig().URL) != "" {
+		materializedPath, err = git.MaterializeRemoteRef(ctx, logger, repoRoot, ref)
+	} else {
+		materializedPath, err = git.MaterializeLocalRef(ctx, logger, repoRoot, ref)
+	}
 	if err != nil {
 		return diffResolvedTarget{}, exit.ResolutionFailureError(err)
 	}

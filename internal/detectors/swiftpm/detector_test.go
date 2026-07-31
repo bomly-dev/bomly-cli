@@ -34,12 +34,59 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if pkg.PURL != "pkg:swift/github.com/apple/swift-argument-parser@1.3.0" {
 		t.Fatalf("expected SwiftPM PURL, got %q", pkg.PURL)
 	}
+	if pkg.Source != sdk.DependencySourceGit {
+		t.Fatalf("expected Git source, got %q", pkg.Source)
+	}
+	if !pkg.RegistryMatchEligible() {
+		t.Fatal("Swift remote source-control package must remain eligible for vulnerability matching")
+	}
 	deps, err := graph.DirectDependencies("root")
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}
 	if len(deps) != 1 {
 		t.Fatalf("expected one direct dependency, got %d", len(deps))
+	}
+}
+
+func TestSwiftDependencySource(t *testing.T) {
+	tests := []struct {
+		name     string
+		kind     string
+		location string
+		want     sdk.DependencySource
+	}{
+		{name: "registry", kind: "registry", location: "mona.LinkedList", want: sdk.DependencySourceRegistry},
+		{name: "remote source control", kind: "remoteSourceControl", location: "https://github.com/example/pkg", want: sdk.DependencySourceGit},
+		{name: "local source control", kind: "localSourceControl", location: "../pkg", want: sdk.DependencySourceFile},
+		{name: "legacy repository", location: "https://github.com/example/pkg", want: sdk.DependencySourceGit},
+		{name: "missing evidence", want: ""},
+		{name: "unknown kind", kind: "custom", location: "https://example.test/pkg", want: ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := swiftDependencySource(tt.kind, tt.location); got != tt.want {
+				t.Fatalf("swiftDependencySource(%q, %q) = %q, want %q", tt.kind, tt.location, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSwiftSourceKindForLocation(t *testing.T) {
+	tests := []struct {
+		location string
+		want     string
+	}{
+		{location: "https://github.com/example/pkg.git", want: "remoteSourceControl"},
+		{location: "git@github.com:example/pkg.git", want: "remoteSourceControl"},
+		{location: "../pkg", want: "localSourceControl"},
+		{location: "file:///workspace/pkg", want: "localSourceControl"},
+		{location: "", want: ""},
+	}
+	for _, tt := range tests {
+		if got := swiftSourceKindForLocation(tt.location); got != tt.want {
+			t.Errorf("swiftSourceKindForLocation(%q) = %q, want %q", tt.location, got, tt.want)
+		}
 	}
 }
 

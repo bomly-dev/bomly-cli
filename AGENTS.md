@@ -56,7 +56,7 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 | `internal/testutil`    | Test helpers (fake binary builder)                                                                |
 | `internal/system`      | OS-level helpers                                                                                  |
 
-Scan pipeline: `runtimePreparation → subprojectDiscovery (root-only by default; --recursive walks nested dirs) → detect (per-package-manager chains; resolve + consolidate into one graph) → scopeFilter → match (package enrichment, vulnerability consolidation, and remediation derivation) → analyze (reachability, when --analyze is set) → audit (including finding policy-status resolution) → format`. Consolidation is the tail of the detect stage, and remediation derivation is the tail of enrichment; neither is a separate stage.
+Scan pipeline: `runtimePreparation → subprojectDiscovery (root-only by default; --recursive walks nested dirs) → detect (per-package-manager chains; resolve + consolidate into one graph; detectors may record CI-readiness resolution warnings on manifests) → scopeFilter → match (package enrichment, vulnerability consolidation, and remediation derivation) → analyze (reachability, when --analyze is set) → audit (including finding policy-status resolution) → format`. Consolidation is the tail of the detect stage, and remediation derivation is the tail of enrichment; neither is a separate stage.
 
 Runtime preparation is owned by `internal/engine`: build the filtered registry once, index the execution target with that same registry, and reuse the prepared runtime for `scan`, `diff`, `explain`, license enrichment, and auditing. The CLI resolves raw execution targets and flags, but it must not discover subprojects with a separate registry.
 
@@ -64,7 +64,8 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 
 ### Package Boundaries
 
-- `internal/detectors/*` must not import `internal/engine` or `internal/registry`. Concrete detectors depend on `internal/detectors`, `sdk`, and local helpers only.
+- `internal/detectors/*` must not import `internal/engine` or `internal/registry`. Concrete detectors may depend on `internal/detectors`, `internal/system` for bounded filesystem and subprocess operations, `sdk`, and local helpers.
+- Built-in analyzers may depend on `sdk`, `internal/system` for bounded filesystem and subprocess operations, shared cache and logging helpers, and local helpers. They must not import `internal/engine` or `internal/registry`.
 - `internal/detectors` owns detector-facing contracts such as `Detector`, `DetectorDescriptor`, `ResolveGraphRequest`, and detector helper functions.
 - `sdk` owns neutral shared identifiers and support metadata that would otherwise create package cycles, including ecosystems, package managers, detector types, and support-matrix data.
 - `internal/baseline` owns the baseline document and matching implementation. It depends on `sdk` policy contracts and must not be imported by `sdk` or `internal/engine`.
@@ -170,6 +171,10 @@ Core passes these env vars. Plugin discovery: `~/.bomly/plugins/bomly-*` overrid
 ## Feature Checklist
 
 When adding a new user-visible feature (new CLI flag, new component class, new pipeline stage, new analyzer, etc.), walk this checklist before requesting review. The surfaces forgotten most often are **MCP**, **plugin command**, and **smoke test**.
+
+If the change adds an input, network client, subprocess, plugin role, output
+path, MCP field, or automatically discovered repository file, also complete the
+[security assurance review checklist](dev-docs/SECURITY_ASSURANCE.md#review-checklist).
 
 ### CLI surface
 

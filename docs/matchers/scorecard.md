@@ -53,6 +53,10 @@ Packages with no resolvable github.com source — and packages whose source is h
 
 Cache directory (Unix/macOS): `~/.bomly/cache/scorecard/`. Cache failures are logged at WARN and never abort the scan. Repositories the OSSF has not scored return HTTP 404; the matcher records a `notScored` sentinel for the TTL so unscored repos are not retried on every run.
 
+Each successful project response is limited to 4 MiB. Larger responses fail
+with a clear size error. Failed HTTP responses report the status without
+including the remote response body in errors or logs.
+
 ## Output fields
 
 When attached, `package.scorecard` holds:

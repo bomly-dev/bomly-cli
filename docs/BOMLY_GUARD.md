@@ -43,7 +43,7 @@ Pin to a major tag (`@v1`) for automatic patch and minor updates, or to an exact
 On a `pull_request` event the action:
 
 1. Installs the Bomly CLI (`version` input, defaults to `latest`).
-2. Resolves the base and head refs. Pull requests default to the PR merge base for the base and the PR head SHA for the head, so review focuses only on what the PR changes — pre-existing findings on the target branch are ignored.
+2. Resolves the base and head refs. Pull requests default to the PR merge base for the base and the PR head SHA for the head, so review focuses only on what the PR changes. Packages the PR doesn't touch are never audited — which is how pre-existing target-branch findings stay out of the review; persisted findings on a package the PR did change still count when they match the configured policy (here, `fail-on: high`).
 3. Runs `bomly diff --format json` with the enrich/audit/analyze and policy flags mapped from the action inputs.
 4. Renders the Markdown summary and SARIF side outputs.
 5. Writes the job summary, optionally posts (or updates) a PR comment, and optionally uploads SARIF.

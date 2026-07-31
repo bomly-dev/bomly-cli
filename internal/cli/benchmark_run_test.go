@@ -14,6 +14,15 @@ import (
 	"go.uber.org/zap"
 )
 
+func TestBenchmarkSubprocessStderrForwardsOnlyAtDebug(t *testing.T) {
+	if got := benchmarkSubprocessStderr(io.Discard, false); got != nil {
+		t.Fatalf("info-level stderr = %#v, want nil", got)
+	}
+	if got := benchmarkSubprocessStderr(io.Discard, true); got != io.Discard {
+		t.Fatalf("debug-level stderr = %#v, want the provided writer", got)
+	}
+}
+
 func TestBenchmarkNativeScannerUsesBomlyNativeDetector(t *testing.T) {
 	projectDir := t.TempDir()
 	lockfile := []byte(`{

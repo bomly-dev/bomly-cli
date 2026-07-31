@@ -31,7 +31,7 @@ type Resolved struct {
 	Enrich                bool     `doc:"Enrich packages with external license and vulnerability data" env:"BOMLY_ENRICH"`
 	Audit                 bool     `doc:"Evaluate policy and create findings from package vulnerability data" env:"BOMLY_AUDIT"`
 	Analyze               bool     `doc:"Run code analysis to confirm whether vulnerabilities are reachable from application code" env:"BOMLY_ANALYZE"`
-	FailOn                []string `doc:"Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable" env:"BOMLY_FAIL_ON"`
+	FailOn                []string `doc:"Constraint(s) for which findings should fail. Repeatable. Vulnerability constraints are AND-ed. Values: any|low|medium|high|critical|reachable|exploitable; diff-only package changes: source-change" env:"BOMLY_FAIL_ON"`
 	AllowVulnerabilityIDs []string `doc:"Vulnerability IDs to ignore during policy evaluation" env:"BOMLY_ALLOW_VULNERABILITY_IDS"`
 	AllowLicenses         []string `doc:"Allowed SPDX license identifiers or expressions" env:"BOMLY_ALLOW_LICENSES"`
 	DenyLicenses          []string `doc:"Denied SPDX license identifiers or expressions" env:"BOMLY_DENY_LICENSES"`
@@ -57,8 +57,8 @@ type Resolved struct {
 	Quiet                 bool     `doc:"Suppress all non-error output" env:"BOMLY_QUIET"`
 	Verbosity             int      `doc:"Verbosity level (0=normal, 1=verbose, 2+=debug)" env:"BOMLY_VERBOSE"`
 	LoadedFiles           []string
-	HTTPProxy             string                    `doc:"Outbound HTTP proxy URL used by Bomly and managed plugins" env:"BOMLY_HTTP_PROXY"`
-	HTTPNoProxy           string                    `doc:"Comma-separated hosts, domains, or CIDRs that should bypass the outbound HTTP proxy" env:"BOMLY_HTTP_NO_PROXY"`
+	HTTPProxy             string                    `doc:"Outbound HTTP proxy URL; when set, it replaces standard HTTP_PROXY/HTTPS_PROXY URLs" env:"BOMLY_HTTP_PROXY"`
+	HTTPNoProxy           string                    `doc:"Hosts, domains, or CIDRs added to the standard NO_PROXY/no_proxy bypass list" env:"BOMLY_HTTP_NO_PROXY"`
 	HTTPProxyType         string                    `doc:"Outbound proxy type when using host/port proxy settings: http, https, or socks5" env:"BOMLY_HTTP_PROXY_TYPE" default:"http"`
 	HTTPProxyHost         string                    `doc:"Outbound proxy hostname or IP address used when http_proxy is not set" env:"BOMLY_HTTP_PROXY_HOST"`
 	HTTPProxyPort         int                       `doc:"Outbound proxy port used with http_proxy_host" env:"BOMLY_HTTP_PROXY_PORT"`

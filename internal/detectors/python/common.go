@@ -99,13 +99,13 @@ func (d baseDetector) resolveGraph(req sdk.DetectionRequest, detectorName string
 	cmd.Stderr = commandStderr
 
 	started := time.Now()
-	sanitizedCommand := sanitizeCommand(command)
-	logger.Debug("running external dependency detector", zap.String("detector", detectorName), zap.String("working_dir", cmd.Dir), zap.String("executable", sanitizedCommand[0]), zap.Strings("args", sanitizedCommand[1:]))
+	logger.Debug("running external dependency detector",
+		append([]zap.Field{zap.String("detector", detectorName)}, logging.CommandFields(command[0], command[1:], cmd.Dir)...)...)
 	if err := cmd.Run(); err != nil {
 		logger.Warn(fmt.Sprintf("%s failed: %v", detectorName, err))
 		fields := []zap.Field{zap.Error(err), zap.String("detector", detectorName)}
-		if commandStderr.String() != "" {
-			fields = append(fields, zap.String("stderr", commandStderr.String()))
+		if commandStderr.ByteCount() > 0 {
+			fields = append(fields, zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		}
 		logger.Debug("external dependency detector failure details", fields...)
 		return nil, fmt.Errorf("run %s: %w", detectorName, err)
@@ -143,12 +143,12 @@ func (d baseDetector) install(ctx context.Context, req sdk.DetectionRequest, det
 	cmd.Stderr = commandStderr
 	started := time.Now()
 	logger.Info(fmt.Sprintf("%s running install-first step", detectorName))
-	sanitizedCommand := sanitizeCommand(command)
-	logger.Debug("running python detector install-first", zap.String("detector", detectorName), zap.String("working_dir", cmd.Dir), zap.String("executable", sanitizedCommand[0]), zap.Strings("args", sanitizedCommand[1:]))
+	logger.Debug("running python detector install-first",
+		append([]zap.Field{zap.String("detector", detectorName)}, logging.CommandFields(command[0], command[1:], cmd.Dir)...)...)
 	if err := cmd.Run(); err != nil {
 		fields := []zap.Field{zap.Error(err)}
-		if commandStderr.String() != "" {
-			fields = append(fields, zap.String("stderr", commandStderr.String()))
+		if commandStderr.ByteCount() > 0 {
+			fields = append(fields, zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		}
 		logger.Debug("python detector install-first failure details", fields...)
 		return fmt.Errorf("run %s install step: %w", detectorName, err)
@@ -214,7 +214,7 @@ func depGraphFromPipInspect(raw []byte, rootNode *sdk.Dependency, declared map[s
 		}
 		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
 			Name:    normalizePythonName(pkg.Metadata.Name),
-			Version: pkg.Metadata.Version},
+			Version: pkg.Metadata.Version}, Source: pipInspectDependencySource(pkg.DirectURL), ResolvedURL: pipInspectResolvedURL(pkg.DirectURL), Metadata: sourceRevisionMetadata(pipInspectRevision(pkg.DirectURL)),
 		})
 
 		if _, exists := nodesByName[node.Name]; !exists {
@@ -268,6 +268,52 @@ func depGraphFromPipInspect(raw []byte, rootNode *sdk.Dependency, declared map[s
 	}
 
 	return depsGraph, nil
+}
+
+func pipInspectDependencySource(directURL map[string]any) sdk.DependencySource {
+	if len(directURL) == 0 {
+		return sdk.DependencySourceRegistry
+	}
+	if _, ok := directURL["dir_info"]; ok {
+		return sdk.DependencySourceFile
+	}
+	if vcsInfo, ok := directURL["vcs_info"].(map[string]any); ok {
+		if vcs, _ := vcsInfo["vcs"].(string); strings.EqualFold(strings.TrimSpace(vcs), "git") {
+			return sdk.DependencySourceGit
+		}
+		return sdk.DependencySourceURL
+	}
+	resolved := pipInspectResolvedURL(directURL)
+	if strings.HasPrefix(strings.ToLower(resolved), "file:") {
+		return sdk.DependencySourceFile
+	}
+	if resolved != "" {
+		return sdk.DependencySourceURL
+	}
+	return ""
+}
+
+func pipInspectResolvedURL(directURL map[string]any) string {
+	value, _ := directURL["url"].(string)
+	return strings.TrimSpace(value)
+}
+
+func pipInspectRevision(directURL map[string]any) string {
+	vcsInfo, _ := directURL["vcs_info"].(map[string]any)
+	for _, key := range []string{"commit_id", "requested_revision"} {
+		if value, _ := vcsInfo[key].(string); strings.TrimSpace(value) != "" {
+			return strings.TrimSpace(value)
+		}
+	}
+	return ""
+}
+
+func sourceRevisionMetadata(revision string) map[string]any {
+	revision = strings.TrimSpace(revision)
+	if revision == "" {
+		return nil
+	}
+	return map[string]any{"source_revision": revision}
 }
 
 // pipDirectDependency reports whether an installed distribution is something
@@ -421,7 +467,7 @@ func pyprojectProjectName(projectPath string) string {
 	if projectPath == "" {
 		return ""
 	}
-	raw, err := os.ReadFile(filepath.Join(projectPath, "pyproject.toml"))
+	raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "pyproject.toml"))
 	if err != nil {
 		return ""
 	}
@@ -530,7 +576,7 @@ func directPythonDeclarations(projectPath string) (map[string]struct{}, error) {
 // are non-fatal — a project with an unreadable manifest still gets a graph,
 // just without the declaration hint.
 func collectPyprojectDeclarations(path string, declared map[string]struct{}) {
-	raw, err := os.ReadFile(path)
+	raw, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return
 	}
@@ -572,7 +618,7 @@ func collectPyprojectDeclarations(path string, declared map[string]struct{}) {
 // collectPipfileDeclarations reads a Pipfile's [packages] and [dev-packages]
 // tables. Pipfile.lock is not read here: it is a lockfile.
 func collectPipfileDeclarations(path string, declared map[string]struct{}) {
-	raw, err := os.ReadFile(path)
+	raw, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return
 	}
@@ -633,8 +679,8 @@ func declaredPythonDependencies(projectPath string) (map[string]struct{}, error)
 }
 
 func collectRequirementFileDependencies(path string, declared map[string]struct{}) error {
-	raw, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
+	raw, err := system.ReadRepositoryFile(path)
+	if errors.Is(err, os.ErrNotExist) {
 		return nil
 	}
 	if err != nil {
@@ -669,7 +715,7 @@ func declaredPythonPositions(projectPath string) map[string]*sdk.SourcePosition 
 }
 
 func collectRequirementFilePositions(path, relPath string, positions map[string]*sdk.SourcePosition) {
-	raw, err := os.ReadFile(path)
+	raw, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return
 	}
@@ -736,8 +782,8 @@ func attachDeclaredPositions(depsGraph *sdk.Graph, projectPath string) {
 }
 
 func collectLoosePythonManifestDependencies(path string, declared map[string]struct{}) error {
-	raw, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
+	raw, err := system.ReadRepositoryFile(path)
+	if errors.Is(err, os.ErrNotExist) {
 		return nil
 	}
 	if err != nil {
@@ -926,7 +972,7 @@ func collectPythonDevDependencies(projectPath string) map[string]struct{} {
 	}
 
 	// poetry / uv via pyproject.toml
-	if raw, err := os.ReadFile(filepath.Join(projectPath, "pyproject.toml")); err == nil {
+	if raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "pyproject.toml")); err == nil {
 		section := ""
 		inDevArray := false
 		for _, line := range strings.Split(string(raw), "\n") {
@@ -977,7 +1023,7 @@ func collectPythonDevDependencies(projectPath string) map[string]struct{} {
 	}
 
 	// Pipfile [dev-packages]
-	if raw, err := os.ReadFile(filepath.Join(projectPath, "Pipfile")); err == nil {
+	if raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "Pipfile")); err == nil {
 		inDev := false
 		for _, line := range strings.Split(string(raw), "\n") {
 			trimmed := strings.TrimSpace(line)
@@ -995,7 +1041,7 @@ func collectPythonDevDependencies(projectPath string) map[string]struct{} {
 	}
 
 	// pip: requirements-dev.txt (plain list of dev packages)
-	if raw, err := os.ReadFile(filepath.Join(projectPath, "requirements-dev.txt")); err == nil {
+	if raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "requirements-dev.txt")); err == nil {
 		for _, line := range strings.Split(string(raw), "\n") {
 			trimmed := strings.TrimSpace(line)
 			if trimmed == "" || strings.HasPrefix(trimmed, "#") || strings.HasPrefix(trimmed, "-") {

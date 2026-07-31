@@ -298,6 +298,28 @@ Current supported sources are:
 
 For GitHub Release installs, Bomly resolves release metadata, selects the asset matching the current OS and architecture, and uses a `SHA256SUMS` asset when present to verify the archive automatically.
 
+Plugin archives have fixed safety limits:
+
+- Remote downloads: 256 MiB
+- GitHub release metadata: 4 MiB, rejected before decoding
+- Archive entries: 4,096
+- One expanded file: 256 MiB
+- All expanded files together: 512 MiB
+- Plugin manifest: 1 MiB
+- Runtime descriptor snapshot: 1 MiB
+- Installed plugin database: 16 MiB
+
+These limits leave room for statically linked plugin binaries while stopping
+unusually large downloads and compressed archives before they fill local
+storage. Local archives skip the download limit because they are already on
+disk, but the extraction limits still apply. Zip archives are checked before
+any file is extracted. Tar archives are checked one entry at a time as they
+are read.
+
+The JSON limits apply both during installation and when Bomly loads an
+installed plugin. Normal metadata files are only a few kilobytes. An
+over-limit file is rejected before JSON decoding.
+
 For private GitHub Releases, set one of these environment variables before installing:
 
 ```bash

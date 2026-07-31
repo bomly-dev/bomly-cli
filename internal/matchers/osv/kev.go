@@ -3,11 +3,11 @@ package osv
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
 
 	audcache "github.com/bomly-dev/bomly-cli/internal/matchers/cache"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -17,7 +17,8 @@ const (
 	kevCacheKey     = "kev-catalog"
 	// by defaultKEVCacheTTL it is intentionally longer than the OSV TTL; the KEV catalog
 	// is updated less frequently than individual vulnerability queries.
-	defaultKEVCacheTTL = 6 * time.Hour
+	defaultKEVCacheTTL        = 6 * time.Hour
+	maxKEVResponseBytes int64 = 32 << 20
 )
 
 // KEVCatalog is the in-memory representation of the CISA KEV catalog.
@@ -66,7 +67,7 @@ func FetchKEVCatalog(cache *audcache.FileCache, clients ...*http.Client) (*KEVCa
 		return nil, fmt.Errorf("kev catalog returned status %d", resp.StatusCode)
 	}
 
-	data, err := io.ReadAll(io.LimitReader(resp.Body, 32<<20)) // 32 MB limit
+	data, err := system.ReadLimit(resp.Body, resp.ContentLength, maxKEVResponseBytes)
 	if err != nil {
 		return nil, fmt.Errorf("read kev catalog: %w", err)
 	}

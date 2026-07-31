@@ -248,7 +248,21 @@ Two jobs at the end of `release.yml` publish the `bomly-mcp` npm wrapper and the
 
    The version must match a GitHub release that is already published: the package's postinstall step downloads that release's archive, so publishing ahead of it ships a package that cannot install.
 
-2. **Set the trusted publisher** at `https://www.npmjs.com/package/bomly-mcp/access` → repository `bomly-dev/bomly-cli`, workflow `release.yml`. Configure it on the *package* access page; the account-level packages page does not have this setting.
+2. **Set the trusted publisher** at `https://www.npmjs.com/package/bomly-mcp/access`. Configure it on the *package* access page; the account-level packages page does not have this setting.
+
+   | Field | Value |
+   | --- | --- |
+   | Publisher | GitHub Actions |
+   | Organization / Repository | `bomly-dev` / `bomly-cli` |
+   | Workflow filename | `release.yml` |
+   | Environment name | `npm-publish` |
+   | Allowed actions | `npm publish` only |
+
+   The environment name is checked as an OIDC claim, so it must match the `environment:` on the `publish-npm` job exactly. The `npm-publish` environment is restricted to the `v*` **tag** pattern, so a push to any branch cannot reach npm.
+
+   Do **not** use the existing `release` environment here: it is scoped to the `main` branch, and this job runs on a tag ref, so the deployment would be rejected.
+
+   Under **Publishing access**, choose *Require two-factor authentication and disallow bypass 2fa tokens*. Trusted publishers keep working under it, and it blocks token-based publishing entirely — which is the point, since there is no token.
 
 3. **Turn the jobs on:**
 

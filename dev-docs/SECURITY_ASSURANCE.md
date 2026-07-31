@@ -66,12 +66,25 @@ only their required permissions.
 | `scorecard.yml` | `read-all` | Scorecard adds `security-events: write` and `id-token: write` to publish signed results |
 | `bomly-guard.yml` | `contents: read` | Guard adds pull-request, issue, and security-event writes for comments and SARIF |
 | `update-smoke-goldens.yml` | `contents: read` | The final job adds `contents: write` and `pull-requests: write` to publish reviewed goldens |
-| `release.yml` | `contents: read` | Release jobs add only the contents, packages, actions, and OIDC permissions needed to publish artifacts and provenance |
+| `release.yml` | `contents: read` | Release jobs add only the contents, packages, actions, and OIDC permissions needed to publish artifacts and provenance. `publish-npm` and `publish-mcp-registry` add `id-token: write` and use **no secret at all** — npm and the MCP Registry both authenticate by exchanging the workflow's OIDC identity (see [MCP Registry Publishing](CI.md#mcp-registry-publishing)) |
 
 Third-party actions are pinned. Long-lived secrets are passed only to the step
 that needs them. Release automation prefers short-lived, repository-scoped
 GitHub App tokens; the Windows package publication token is validated before
 release work starts and remains the documented exception.
+
+npm publication holds no credential of any kind. It uses npm Trusted
+Publishing, so npm exchanges the workflow's OIDC identity for publish rights.
+The `publish-npm` job is bound to the `npm-publish` environment, which npm
+verifies as an OIDC claim and which is restricted to the `v*` tag pattern, so
+publishing cannot be reached from a branch push. The package additionally
+requires two-factor authentication and disallows bypass-2FA tokens, so the
+trusted publisher is the only automated path to the registry.
+
+`mcp-publisher` is downloaded into that same privileged job, so it is pinned by
+version and verified twice before execution: against a pinned SHA-256, and with
+`cosign verify-blob` against the upstream Sigstore bundle, asserting the
+artifact was built by the MCP Registry's own tagged release workflow.
 
 ## Evidence Changes
 

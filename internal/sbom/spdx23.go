@@ -31,7 +31,7 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 		spdxID := common.ElementID(base)
 		idByComponent[c.ID] = spdxID
 
-		packages = append(packages, &v23.Package{
+		pkg := &v23.Package{
 			PackageName:               c.NameOrID(),
 			PackageSPDXIdentifier:     spdxID,
 			PackageVersion:            c.Version,
@@ -43,7 +43,14 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageCopyrightText:      spdxCopyrightValue(c.Copyright),
 			PackageChecksums:          spdxChecksums(c.Digests),
 			PackageExternalReferences: spdxExternalReferences(c),
-		})
+		}
+		if IsProjectRootComponent(c) {
+			pkg.PrimaryPackagePurpose = "APPLICATION"
+			if doc.Provenance.Manufacturer != "" {
+				pkg.PackageSupplier = &common.Supplier{SupplierType: "Organization", Supplier: doc.Provenance.Manufacturer}
+			}
+		}
+		packages = append(packages, pkg)
 	}
 
 	relationships := make([]*v23.Relationship, 0, len(doc.Dependencies)+len(doc.Roots))
@@ -78,16 +85,27 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 		}
 	}
 
-	creators := make([]common.Creator, 0, len(doc.ToolNamesOrDefault()))
+	creators := make([]common.Creator, 0, len(doc.ToolNamesOrDefault())+1)
 	for _, tool := range doc.ToolNamesOrDefault() {
+		// SPDX creator convention appends the tool version as "name-version".
+		if tool == doc.ToolOrDefault() && doc.ToolVersion != "" {
+			tool += "-" + doc.ToolVersion
+		}
 		creators = append(creators, common.Creator{
 			CreatorType: "Tool",
 			Creator:     tool,
 		})
 	}
+	if doc.Provenance.Manufacturer != "" {
+		creators = append(creators, common.Creator{
+			CreatorType: "Organization",
+			Creator:     doc.Provenance.Manufacturer,
+		})
+	}
 	creation := &v23.CreationInfo{
-		Creators: creators,
-		Created:  doc.CreatedOrNow().Format("2006-01-02T15:04:05Z"),
+		Creators:       creators,
+		Created:        doc.CreatedOrNow().Format("2006-01-02T15:04:05Z"),
+		CreatorComment: spdxCreatorComment(doc.Provenance),
 	}
 
 	spdxDoc := &v23.Document{
@@ -244,6 +262,22 @@ func parseSPDXCreated(ci *v23.CreationInfo) time.Time {
 		return time.Time{}
 	}
 	return t.UTC()
+}
+
+// spdxCreatorComment folds provenance contact metadata into the SPDX creation
+// comment; SPDX 2.3 has no first-class fields for these.
+func spdxCreatorComment(p Provenance) string {
+	fields := make([]string, 0, 3)
+	if contact := strings.TrimSpace(p.SecurityContact); contact != "" {
+		fields = append(fields, "SecurityContact: "+contact)
+	}
+	if disclosure := strings.TrimSpace(p.VulnerabilityDisclosureURL); disclosure != "" {
+		fields = append(fields, "VulnerabilityDisclosure: "+disclosure)
+	}
+	if supportEnd := strings.TrimSpace(p.SupportEnd); supportEnd != "" {
+		fields = append(fields, "SupportEnd: "+supportEnd)
+	}
+	return strings.Join(fields, "; ")
 }
 
 func spdxPackageComment(component Component) string {

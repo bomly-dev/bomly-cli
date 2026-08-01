@@ -8,6 +8,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	scanengine "github.com/bomly-dev/bomly-cli/internal/engine/scan"
 	"github.com/bomly-dev/bomly-cli/internal/output"
@@ -126,10 +127,11 @@ func newScanCmd() *cobra.Command {
 				return output.WriteSARIF(w, findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Analyze, LocationGraphs: []*sdk.Graph{pipeResult.Graph}})
 			}
 
+			sbomBuildOpts := scanSBOMBuildOptions(payload.Project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry)
+
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
 				stdout := streams.reportWriter()
-				sbomBuildOpts := sbom.BuildOptions{ToolNames: sbomToolNames(resolved), Registry: pipeResult.Registry}
 				for _, spec := range outputSpecs {
 					switch {
 					case spec.IsSBOM():
@@ -157,7 +159,7 @@ func newScanCmd() *cobra.Command {
 				if !ok {
 					return exit.InvalidInputError("output format %q is not supported by scan", graphOutputFormat)
 				}
-				rawDocument, err := sbom.MarshalDepGraphJSON(selectedGraph, target, sbom.BuildOptions{ToolNames: sbomToolNames(resolved), Registry: pipeResult.Registry}, sbom.EncodeOptions{Pretty: true})
+				rawDocument, err := sbom.MarshalDepGraphJSON(selectedGraph, target, sbomBuildOpts, sbom.EncodeOptions{Pretty: true})
 				if err != nil {
 					return fmt.Errorf("marshal %s sbom: %w", graphOutputFormat, err)
 				}
@@ -209,6 +211,28 @@ func scanPolicyExit(auditEnabled bool, findings []sdk.Finding) error {
 		}
 	}
 	return nil
+}
+
+// scanSBOMBuildOptions assembles the SBOM projection options for a scan: the
+// document is named after the scanned project, the primary component mirrors
+// it, and optional provenance metadata comes from configuration.
+func scanSBOMBuildOptions(project output.ProjectDescriptor, current config.Resolved, version string, resolved []sdk.DetectionResult, registry *sdk.PackageRegistry) sbom.BuildOptions {
+	opts := sbom.BuildOptions{
+		ToolNames:   sbomToolNames(resolved),
+		ToolVersion: strings.TrimSpace(version),
+		Registry:    registry,
+		Provenance: sbom.Provenance{
+			Manufacturer:               strings.TrimSpace(current.SBOMManufacturer),
+			SecurityContact:            strings.TrimSpace(current.SBOMSecurityContact),
+			VulnerabilityDisclosureURL: strings.TrimSpace(current.SBOMVulnerabilityDisclosureURL),
+			SupportEnd:                 strings.TrimSpace(current.SBOMSupportEnd),
+		},
+	}
+	if name := strings.TrimSpace(project.Name); name != "" {
+		opts.DocumentName = name
+		opts.ProjectRoot = &sbom.ProjectRoot{Name: name, Version: strings.TrimSpace(project.TargetRef)}
+	}
+	return opts
 }
 
 func sbomToolNames(results []sdk.DetectionResult) []string {

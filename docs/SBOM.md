@@ -84,6 +84,56 @@ Both formats carry:
 - Package name, version, PURL.
 - Dependency relationships from the detector graph.
 - File-level evidence when the detector provided it.
+- Content hashes captured at detection time, when the ecosystem records them:
+  npm/pnpm/yarn/bun lockfile integrity values and Go module `go.sum` tree
+  hashes (the `h1:` SHA-256 dirhash, hex-encoded — the same convention
+  cyclonedx-gomod uses). Values are normalized to lowercase hex so they are
+  schema-valid in both formats.
+
+### Document identity
+
+Every generated document carries a stable identity:
+
+- A generated `urn:uuid` serial number (CycloneDX `serialNumber`; the same
+  nonce forms the SPDX document namespace, so the two exports of one scan are
+  correlatable).
+- The producing tool with its version (CycloneDX `metadata.tools[]`; SPDX
+  `Creator: Tool: bomly-cli-<version>`), plus one tool entry per detector that
+  contributed to the graph.
+- A primary component describing the scanned project. When the dependency
+  graph has a single root, that root is the primary component. When a scan
+  discovers multiple manifests (several ecosystems, several workflow files),
+  Bomly synthesizes a primary component named after the scanned project with a
+  `pkg:generic` PURL; it depends on every graph root, so the exported
+  dependency graph is connected and both formats agree on the document's
+  subject. The synthesized component is not repeated in the CycloneDX
+  component inventory, and Bomly skips it when re-ingesting its own SBOMs.
+
+### Provenance metadata (EU CRA readiness)
+
+The optional `sbom` config section embeds producer metadata that regulated
+consumers (for example the EU Cyber Resilience Act's SBOM expectations) ask
+for:
+
+```yaml
+sbom:
+  manufacturer: "Example Org"                      # CRA Art. 13(15)
+  security_contact: "security@example.com"         # CRA Art. 13(6)
+  vulnerability_disclosure_url: "https://example.com/security"  # Art. 13(7)
+  support_end: "2030-12-31"                        # CRA Art. 13(8)
+```
+
+CycloneDX: `metadata.manufacturer`, `security-contact` / `advisories`
+external references on the primary component, and a `bomly:support_end_date`
+metadata property. SPDX 2.3 has no first-class fields for most of these, so
+Bomly emits an `Organization` creator, the supplier on the primary package,
+and the contact fields in the creation-info comment.
+
+Without these fields Bomly's exports satisfy the NTIA minimum elements
+(supplier defaults to the producing tool); third-party CRA profile checks
+will flag the missing manufacturer/contact metadata until the `sbom` section
+is configured. Per-component supplier and description data is not invented:
+those fields stay empty unless a data source actually provides them.
 
 When `--enrich` is set, components are enriched from the matching-stage package
 registry (keyed by PURL):
@@ -118,8 +168,10 @@ Some information necessarily becomes less specific during conversion:
   report data rather than portable SBOM fields. Use JSON when those distinctions
   must survive export and import.
 - A CycloneDX document has one metadata component. When an input graph has
-  multiple roots, every root remains in the dependency graph, but only the first
-  deterministic root is selected as that metadata component.
+  multiple roots, every root remains in the dependency graph and the
+  synthesized primary component (see "Document identity" above) links them;
+  ingest paths that predate the synthesized root treat the first
+  deterministic root as the primary component.
 
 Before treating a generated file as a release artifact, validate it with the
 standard validator required by the receiving system. Bomly's tests parse every

@@ -1,8 +1,12 @@
 package sbom
 
 import (
+	"crypto/rand"
+	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -35,6 +39,7 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			Type:           string(pkg.Type),
 			Copyright:      pkg.Copyright,
 			Licenses:       componentLicenses(sdk.DetectionLicenses(pkg)),
+			Digests:        componentDigests(pkg.Digests),
 		}
 		enrichComponentFromRegistry(&component, opts.Registry, pkg.PURL)
 		components = append(components, component)
@@ -86,9 +91,38 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 	if documentName == "" {
 		documentName = defaultDocumentName
 	}
+
+	// When the graph has no single root (multiple manifests, multiple
+	// ecosystems) the primary component would otherwise be an arbitrary
+	// manifest node. Synthesize a pseudo root that represents the scanned
+	// project and depends on every graph root so both formats agree on the
+	// document's primary identity and the export forms one connected graph.
+	if opts.ProjectRoot != nil && strings.TrimSpace(opts.ProjectRoot.Name) != "" && opts.RootComponentID == "" && len(rootIDs) != 1 {
+		root := projectRootComponent(*opts.ProjectRoot)
+		sort.Strings(rootIDs)
+		components = append(components, root)
+		sort.Slice(components, func(i, j int) bool {
+			return components[i].ID < components[j].ID
+		})
+		dependencies = append(dependencies, Dependency{Ref: root.ID, DependsOn: rootIDs})
+		sort.Slice(dependencies, func(i, j int) bool {
+			return dependencies[i].Ref < dependencies[j].Ref
+		})
+		rootIDs = []string{root.ID}
+	}
+
+	serialNumber := strings.TrimSpace(opts.SerialNumber)
+	nonce := ""
+	if serialNumber == "" {
+		nonce = newUUIDv4()
+		serialNumber = "urn:uuid:" + nonce
+	}
 	documentNS := opts.DocumentNS
 	if documentNS == "" {
-		documentNS = fmt.Sprintf("https://bomly.dev/spdx/%d", created.UnixNano())
+		if nonce == "" {
+			nonce = newUUIDv4()
+		}
+		documentNS = "https://bomly.dev/spdx/" + nonce
 	}
 	toolName := opts.ToolName
 	if toolName == "" {
@@ -101,12 +135,105 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 		Namespace:    documentNS,
 		Tool:         toolName,
 		Tools:        toolNames,
+		ToolVersion:  strings.TrimSpace(opts.ToolVersion),
 		Created:      created,
-		SerialNumber: opts.SerialNumber,
+		SerialNumber: serialNumber,
+		Provenance:   opts.Provenance,
 		Components:   components,
 		Dependencies: dependencies,
 		Roots:        rootIDs,
 	}, nil
+}
+
+// projectRootComponent synthesizes the pseudo component representing the
+// scanned project. It carries a pkg:generic PURL so downstream consumers have
+// a stable identifier for the primary component across updates.
+func projectRootComponent(spec ProjectRoot) Component {
+	name := strings.TrimSpace(spec.Name)
+	version := strings.TrimSpace(spec.Version)
+	purl := "pkg:generic/" + url.PathEscape(strings.ToLower(name))
+	if version != "" {
+		purl += "@" + url.PathEscape(version)
+	}
+	return Component{
+		ID:      projectRootIDPrefix + sanitizeSPDXID(name),
+		Name:    name,
+		Version: version,
+		Type:    "application",
+		PURL:    purl,
+	}
+}
+
+// newUUIDv4 returns a random RFC 4122 version-4 UUID string.
+func newUUIDv4() string {
+	var b [16]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		// crypto/rand never fails on supported platforms; fall back to a
+		// time-derived nonce rather than emitting an empty identifier.
+		return fmt.Sprintf("00000000-0000-4000-8000-%012x", time.Now().UnixNano()&0xffffffffffff)
+	}
+	b[6] = (b[6] & 0x0f) | 0x40
+	b[8] = (b[8] & 0x3f) | 0x80
+	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
+}
+
+// componentDigests projects detection-time dependency digests into the SBOM
+// component model, normalizing values to lowercase hex so encoders can emit
+// them as schema-valid CycloneDX hashes / SPDX checksums. Digests whose value
+// cannot be normalized for a known algorithm are kept verbatim; encoders drop
+// entries with unsupported algorithms.
+func componentDigests(digests []sdk.Digest) []Digest {
+	if len(digests) == 0 {
+		return nil
+	}
+	out := make([]Digest, 0, len(digests))
+	for _, d := range digests {
+		value := strings.TrimSpace(d.Value)
+		if value == "" {
+			continue
+		}
+		out = append(out, Digest{Algorithm: string(d.Algorithm), Value: normalizeDigestValue(string(d.Algorithm), value)})
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
+
+// digestHexSizes maps digest algorithms onto their raw byte lengths, used to
+// validate base64-encoded values (npm SRI integrity) before hex re-encoding.
+var digestHexSizes = map[string]int{
+	"md5":      16,
+	"sha1":     20,
+	"sha-1":    20,
+	"sha224":   28,
+	"sha-224":  28,
+	"sha256":   32,
+	"sha-256":  32,
+	"sha384":   48,
+	"sha-384":  48,
+	"sha512":   64,
+	"sha-512":  64,
+	"sha3-256": 32,
+	"sha3-384": 48,
+	"sha3-512": 64,
+}
+
+func normalizeDigestValue(algorithm, value string) string {
+	size, ok := digestHexSizes[strings.ToLower(strings.TrimSpace(algorithm))]
+	if !ok {
+		return value
+	}
+	if len(value) == size*2 {
+		if _, err := hex.DecodeString(value); err == nil {
+			return strings.ToLower(value)
+		}
+	}
+	// npm-style SRI integrity values are standard base64 of the raw digest.
+	if raw, err := base64.StdEncoding.DecodeString(value); err == nil && len(raw) == size {
+		return hex.EncodeToString(raw)
+	}
+	return value
 }
 
 func uniqueToolNames(values []string) []string {
@@ -142,14 +269,7 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 	if len(pkg.CPEs) > 0 {
 		component.CPEs = append([]string(nil), pkg.CPEs...)
 	}
-	if len(pkg.Digests) > 0 {
-		digests := make([]Digest, 0, len(pkg.Digests))
-		for _, d := range pkg.Digests {
-			if d.Value == "" {
-				continue
-			}
-			digests = append(digests, Digest{Algorithm: string(d.Algorithm), Value: d.Value})
-		}
+	if digests := componentDigests(pkg.Digests); len(digests) > 0 {
 		component.Digests = digests
 	}
 	if len(pkg.Vulnerabilities) > 0 {

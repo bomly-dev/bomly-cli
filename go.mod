@@ -7,9 +7,9 @@ require (
 	github.com/CycloneDX/cyclonedx-go v0.11.0
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/anchore/clio v0.1.1
-	github.com/anchore/grype v0.116.0
+	github.com/anchore/grype v0.116.1
 	github.com/anchore/packageurl-go v0.2.0
-	github.com/anchore/syft v1.49.0
+	github.com/anchore/syft v1.50.0
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
@@ -170,7 +170,7 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.14 // indirect
 	github.com/googleapis/gax-go/v2 v2.17.0 // indirect
 	github.com/gookit/color v1.6.1 // indirect
-	github.com/gpustack/gguf-parser-go v0.24.1 // indirect
+	github.com/gpustack/gguf-parser-go v0.25.0 // indirect
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b // indirect
 	github.com/hashicorp/aws-sdk-go-base/v2 v2.0.0-beta.72 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -318,8 +318,8 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gorm.io/gorm v1.31.2 // indirect
 	howett.net/plist v1.0.1 // indirect
-	modernc.org/libc v1.73.4 // indirect
+	modernc.org/libc v1.74.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.53.0 // indirect
+	modernc.org/sqlite v1.54.0 // indirect
 )

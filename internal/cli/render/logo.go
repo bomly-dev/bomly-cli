@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	startupLogoFrameDelay = 70 * time.Millisecond
+	startupLogoFrameDelay = 45 * time.Millisecond
 
-	// logoFrameCount is the total animation length (~2s at 70ms per frame);
+	// logoFrameCount is the total animation length (~1.3s at 45ms per frame);
 	// the last two frames hold the finished art while the tagline fades in.
 	logoFrameCount       = 28
 	logoRevealFrameCount = logoFrameCount - 2
@@ -35,11 +35,13 @@ const (
 	logoStaticPlain
 )
 
-// StartupLogo plays a brief Bomly logo animation when w is an attached TTY.
-// On non-TTY writers (pipes, files), it is a silent no-op. The animation is
-// skipped in favor of a static logo when NO_COLOR (plain), BOMLY_NO_ANIMATION,
-// CI, or BOMLY_QUIET (colored) are set. A random animation variant plays each
-// run; BOMLY_LOGO pins one by name (reveal, rain, glitch, slide).
+// StartupLogo prints the Bomly logo when w is an attached TTY. On non-TTY
+// writers (pipes, files), it is a silent no-op. By default the logo is a
+// static colored banner so help stays instant; setting BOMLY_LOGO to a truthy
+// value opts into a brief animation with a random variant, and setting it to a
+// variant name (reveal, rain, glitch, slide) pins that variant. NO_COLOR
+// forces a plain static logo, and BOMLY_NO_ANIMATION, CI, or BOMLY_QUIET force
+// a static colored logo even when BOMLY_LOGO is set.
 func StartupLogo(w io.Writer) {
 	file, ok := w.(*os.File)
 	if !ok || file == nil {
@@ -80,7 +82,8 @@ func StartupLogo(w io.Writer) {
 
 // startupLogoMode applies the environment gates. NO_COLOR follows the
 // no-color.org convention (any non-empty value); the remaining variables are
-// treated as boolean flags via envFlagSet.
+// treated as boolean flags via envFlagSet. Animation is opt-in via BOMLY_LOGO;
+// the off-switches (BOMLY_NO_ANIMATION, CI, BOMLY_QUIET) win over it.
 func startupLogoMode() logoMode {
 	if os.Getenv("NO_COLOR") != "" {
 		return logoStaticPlain
@@ -88,7 +91,10 @@ func startupLogoMode() logoMode {
 	if envFlagSet("BOMLY_NO_ANIMATION") || envFlagSet("CI") || envFlagSet("BOMLY_QUIET") {
 		return logoStaticColor
 	}
-	return logoAnimate
+	if envFlagSet("BOMLY_LOGO") {
+		return logoAnimate
+	}
+	return logoStaticColor
 }
 
 // envFlagSet reports whether the named environment variable is set to a truthy

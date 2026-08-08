@@ -7,10 +7,10 @@ import (
 )
 
 // clearLogoEnv isolates logo gating tests from the ambient environment (CI
-// runners set CI=true, which would flip animate-expected cases).
+// runners set CI=true, and a developer's BOMLY_LOGO would flip the default).
 func clearLogoEnv(t *testing.T) {
 	t.Helper()
-	for _, name := range []string{"NO_COLOR", "BOMLY_NO_ANIMATION", "CI", "BOMLY_QUIET"} {
+	for _, name := range []string{"NO_COLOR", "BOMLY_NO_ANIMATION", "CI", "BOMLY_QUIET", "BOMLY_LOGO"} {
 		t.Setenv(name, "")
 	}
 }
@@ -148,14 +148,19 @@ func TestStartupLogoMode(t *testing.T) {
 		env  map[string]string
 		want logoMode
 	}{
-		{name: "default animates", env: nil, want: logoAnimate},
+		{name: "default colored static", env: nil, want: logoStaticColor},
+		{name: "logo flag animates", env: map[string]string{"BOMLY_LOGO": "1"}, want: logoAnimate},
+		{name: "logo variant animates", env: map[string]string{"BOMLY_LOGO": "rain"}, want: logoAnimate},
+		{name: "logo flag zero stays static", env: map[string]string{"BOMLY_LOGO": "0"}, want: logoStaticColor},
+		{name: "logo flag false stays static", env: map[string]string{"BOMLY_LOGO": "FALSE"}, want: logoStaticColor},
 		{name: "NO_COLOR plain static", env: map[string]string{"NO_COLOR": "1"}, want: logoStaticPlain},
 		{name: "NO_COLOR wins over no-animation", env: map[string]string{"NO_COLOR": "1", "BOMLY_NO_ANIMATION": "1"}, want: logoStaticPlain},
+		{name: "NO_COLOR wins over logo flag", env: map[string]string{"NO_COLOR": "1", "BOMLY_LOGO": "1"}, want: logoStaticPlain},
 		{name: "no-animation colored static", env: map[string]string{"BOMLY_NO_ANIMATION": "1"}, want: logoStaticColor},
-		{name: "no-animation zero animates", env: map[string]string{"BOMLY_NO_ANIMATION": "0"}, want: logoAnimate},
-		{name: "no-animation false animates", env: map[string]string{"BOMLY_NO_ANIMATION": "FALSE"}, want: logoAnimate},
+		{name: "no-animation wins over logo flag", env: map[string]string{"BOMLY_NO_ANIMATION": "1", "BOMLY_LOGO": "rain"}, want: logoStaticColor},
+		{name: "no-animation zero stays static", env: map[string]string{"BOMLY_NO_ANIMATION": "0"}, want: logoStaticColor},
 		{name: "CI colored static", env: map[string]string{"CI": "true"}, want: logoStaticColor},
-		{name: "CI zero animates", env: map[string]string{"CI": "0"}, want: logoAnimate},
+		{name: "CI wins over logo flag", env: map[string]string{"CI": "true", "BOMLY_LOGO": "1"}, want: logoStaticColor},
 		{name: "quiet colored static", env: map[string]string{"BOMLY_QUIET": "1"}, want: logoStaticColor},
 	}
 	for _, tc := range cases {

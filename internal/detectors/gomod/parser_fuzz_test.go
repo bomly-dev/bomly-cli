@@ -14,7 +14,7 @@ func FuzzDepGraphFromGoList(f *testing.F) {
 		if len(data) > testutil.MaxFuzzInputSize {
 			return
 		}
-		graph, err := depGraphFromGoListWithScope(data, "example.com/root", nil, sdk.Scope(""))
+		graph, err := depGraphFromGoListWithScope(data, "example.com/root", nil, sdk.Scope(""), nil)
 		if err == nil {
 			testutil.RequireFuzzGraphValid(t, graph)
 		}

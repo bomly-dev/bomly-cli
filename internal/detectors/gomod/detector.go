@@ -4,6 +4,9 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -144,6 +147,14 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 		return nil, err
 	}
 
+	sumDigests, err := parseGoSumDigests(filepath.Join(workingDir, "go.sum"))
+	if err != nil {
+		// go.sum is integrity metadata, not graph input: a missing or
+		// malformed file must never fail resolution.
+		logger.Debug("go.sum digests unavailable", zap.Error(err))
+		sumDigests = nil
+	}
+
 	goPath, err := goExecLookPath("go")
 	if err != nil {
 		return nil, fmt.Errorf("resolve go executable: %w", err)
@@ -168,7 +179,7 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 		return nil, fmt.Errorf("run go list -deps -json all: %w", err)
 	}
 
-	depsGraph, err := depGraphFromGoListWithScope(raw, modulePath, directRequires, scopeFilter)
+	depsGraph, err := depGraphFromGoListWithScope(raw, modulePath, directRequires, scopeFilter, sumDigests)
 	if err != nil {
 		logger.Warn(fmt.Sprintf("Failed to map Go module output to a dependency graph: %v", err))
 		logger.Debug("go module output mapping failed", zap.Error(err))
@@ -192,10 +203,10 @@ func buildGoListArgs() []string {
 }
 
 func depGraphFromGoList(raw []byte, rootModule string, directRequires []moduleRef) (*sdk.Graph, error) {
-	return depGraphFromGoListWithScope(raw, rootModule, directRequires, sdk.ScopeUnknown)
+	return depGraphFromGoListWithScope(raw, rootModule, directRequires, sdk.ScopeUnknown, nil)
 }
 
-func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires []moduleRef, scopeFilter sdk.Scope) (*sdk.Graph, error) {
+func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires []moduleRef, scopeFilter sdk.Scope, sumDigests map[string]sdk.Digest) (*sdk.Graph, error) {
 	if strings.TrimSpace(rootModule) == "" {
 		return nil, errors.New("go module path is empty")
 	}
@@ -272,22 +283,22 @@ func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires [
 			continue
 		}
 		if !currentModule.Main {
-			currentNode := packageFromModuleNode(currentModule, mergedScope, directLines)
+			currentNode := packageFromModuleNode(currentModule, mergedScope, directLines, sumDigests)
 			if err := addOrMergeModuleNode(depsGraph, currentNode, mergedScope); err != nil {
 				return nil, err
 			}
 		}
 
 		if scopeFilter != sdk.ScopeDevelopment || mergedScope == sdk.ScopeDevelopment {
-			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, mergedScope, current.pkg.Imports, packageRecords, packageModules, directLines, &queue); err != nil {
+			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, mergedScope, current.pkg.Imports, packageRecords, packageModules, directLines, sumDigests, &queue); err != nil {
 				return nil, err
 			}
 		}
 		if scopeFilter != sdk.ScopeRuntime {
-			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.TestImports, packageRecords, packageModules, directLines, &queue); err != nil {
+			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.TestImports, packageRecords, packageModules, directLines, sumDigests, &queue); err != nil {
 				return nil, err
 			}
-			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.XTestImports, packageRecords, packageModules, directLines, &queue); err != nil {
+			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.XTestImports, packageRecords, packageModules, directLines, sumDigests, &queue); err != nil {
 				return nil, err
 			}
 		}
@@ -327,7 +338,7 @@ func moduleNodeFromPackage(pkg goListPackage, rootModule string) (moduleNode, bo
 	}, true
 }
 
-func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNode, scope sdk.Scope, imports []string, packageRecords map[string]goListPackage, packageModules map[string]moduleNode, directLines map[string]int, queue *[]queuedPackage) error {
+func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNode, scope sdk.Scope, imports []string, packageRecords map[string]goListPackage, packageModules map[string]moduleNode, directLines map[string]int, sumDigests map[string]sdk.Digest, queue *[]queuedPackage) error {
 	fromID := rootID
 	if !from.Main {
 		fromID = moduleNodeID(from)
@@ -343,7 +354,7 @@ func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNod
 			continue
 		}
 		if !to.Main {
-			pkg := packageFromModuleNode(to, scope, directLines)
+			pkg := packageFromModuleNode(to, scope, directLines, sumDigests)
 			if err := addOrMergeModuleNode(depsGraph, pkg, scope); err != nil {
 				return err
 			}
@@ -358,13 +369,16 @@ func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNod
 	return nil
 }
 
-func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[string]int) *sdk.Dependency {
+func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[string]int, sumDigests map[string]sdk.Digest) *sdk.Dependency {
 	dep := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGo,
 		Name:    node.Path,
 		Version: node.Version},
 	}
 	if scope != sdk.ScopeUnknown {
 		dep.Scopes = []sdk.Scope{scope}
+	}
+	if digest, ok := sumDigests[node.Path+"@"+node.Version]; ok {
+		dep.Digests = []sdk.Digest{digest}
 	}
 	if line, ok := directLines[node.Path]; ok && line > 0 {
 		dep.Locations = []sdk.PackageLocation{
@@ -383,6 +397,40 @@ func moduleNodeID(node moduleNode) string {
 		Name:    node.Path,
 		Version: node.Version},
 	}).ID
+}
+
+// parseGoSumDigests reads go.sum and returns a "path@version" → digest map for
+// module tree hashes ("h1:" lines, excluding the "/go.mod" entries). The h1
+// hash is SHA-256 over the Go module dirhash manifest; it is exposed as a
+// sha256 digest in hex, matching the convention CycloneDX's cyclonedx-gomod
+// uses for Go module component hashes.
+func parseGoSumDigests(path string) (map[string]sdk.Digest, error) {
+	data, err := system.ReadRepositoryFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read %q: %w", path, err)
+	}
+
+	digests := make(map[string]sdk.Digest)
+	scanner := bufio.NewScanner(strings.NewReader(strings.ReplaceAll(string(data), "\r\n", "\n")))
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+		if len(fields) != 3 {
+			continue
+		}
+		modulePath, version, hash := fields[0], fields[1], fields[2]
+		if strings.HasSuffix(version, "/go.mod") || !strings.HasPrefix(hash, "h1:") {
+			continue
+		}
+		raw, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(hash, "h1:"))
+		if err != nil || len(raw) != sha256.Size {
+			continue
+		}
+		digests[modulePath+"@"+version] = sdk.Digest{Algorithm: sdk.DigestAlgorithmSHA256, Value: hex.EncodeToString(raw)}
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("scan %q: %w", path, err)
+	}
+	return digests, nil
 }
 
 func parseGoModFile(path string) (string, []moduleRef, error) {

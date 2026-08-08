@@ -62,17 +62,20 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 		if _, ok := skipped[dependency.Ref]; ok {
 			continue
 		}
-		fromID := dependency.Ref
-		if mapped := idMap[fromID]; mapped != "" {
-			fromID = mapped
+		fromID, ok := idMap[dependency.Ref]
+		if !ok {
+			// Dependency entries may reference the synthesized document root
+			// (present only in CycloneDX metadata.component) or otherwise
+			// dangling refs; neither has a graph node to anchor an edge.
+			continue
 		}
 		for _, child := range dependency.DependsOn {
 			if _, ok := skipped[child]; ok {
 				continue
 			}
-			toID := child
-			if mapped := idMap[toID]; mapped != "" {
-				toID = mapped
+			toID, ok := idMap[child]
+			if !ok {
+				continue
 			}
 			if fromID == toID {
 				continue
@@ -87,12 +90,13 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 }
 
 func isDocumentRootPseudoPackage(component Component) bool {
+	// Bomly's synthesized project root carries a pkg:generic PURL but is
+	// still a stand-in for the scanned tree, not a resolved package.
+	if IsProjectRootComponent(component) {
+		return true
+	}
 	if strings.TrimSpace(component.PURL) != "" {
 		return false
-	}
-	id := strings.TrimSpace(component.ID)
-	if strings.HasPrefix(id, "SPDXRef-DocumentRoot-") {
-		return true
 	}
 	if strings.EqualFold(strings.TrimSpace(component.Type), "file") && strings.TrimSpace(component.Version) == "" {
 		return true

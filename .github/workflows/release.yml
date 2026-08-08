@@ -273,13 +273,25 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Upgrade npm for trusted publishing
-        # Trusted publishing needs npm >= 11.5.1. The runner image bundles an
-        # older npm with its Node, so pin an explicit floor rather than
-        # inheriting whatever the image happens to ship this month.
+      - name: Ensure npm supports trusted publishing
+        # Trusted publishing needs npm >= 11.5.1, which the runner image has
+        # not always bundled. Upgrade only when the shipped npm is too old, so
+        # this becomes a no-op once the image catches up.
+        #
+        # `sudo` is required: npm's global prefix on the runner is /usr/local,
+        # which the `runner` user cannot write to. Without it this fails with
+        # EACCES on /usr/local/share/man — which is exactly how the v0.21.2
+        # release lost its npm and registry publish.
         run: |
           set -euo pipefail
-          npm install -g npm@^11.5.1
+          required=11.5.1
+          current="$(npm --version)"
+          if printf '%s\n%s\n' "$required" "$current" | sort -V -C; then
+            echo "npm ${current} already supports trusted publishing."
+          else
+            echo "npm ${current} is older than ${required}; upgrading."
+            sudo npm install -g "npm@^${required}"
+          fi
           npm --version
 
       - name: Stamp the release version into npm/package.json

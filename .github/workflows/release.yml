@@ -325,7 +325,18 @@ jobs:
             exit 0
           fi
 
-          npm publish --provenance --access public
+          if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
+            echo "::error::No OIDC token endpoint in the environment. This job needs 'id-token: write'."
+            exit 1
+          fi
+
+          # npm reports a bare ENEEDAUTH when the OIDC exchange is refused,
+          # which reads as "no credentials" and sends you looking for a token
+          # that deliberately does not exist. Name the real cause instead.
+          if ! npm publish --provenance --access public; then
+            echo "::error::npm publish failed. If the error above is ENEEDAUTH, npm refused the OIDC exchange and there is no token to fall back on — by design. That means the trusted publisher for bomly-mcp is missing or does not match this workflow. Check https://www.npmjs.com/package/bomly-mcp/access and confirm ALL of: publisher='GitHub Actions', organization='bomly-dev', repository='bomly-cli', workflow filename='release.yml', environment='npm-publish', and 'Allow npm publish' ticked under Allowed actions. Every field must match exactly; a blank or wrong environment name is the usual culprit. See dev-docs/CI.md#mcp-registry-publishing."
+            exit 1
+          fi
 
   publish-mcp-registry:
     # Publishes the server entry in the official MCP Registry

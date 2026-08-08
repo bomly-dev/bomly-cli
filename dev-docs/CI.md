@@ -283,6 +283,25 @@ mcp-publisher publish
 
 Publishing under `io.github.bomly-dev/*` also requires being an **Owner** of the org, which the registry checks.
 
+### If publish-npm fails with ENEEDAUTH
+
+`ENEEDAUTH` from `npm publish` in this job does **not** mean a token is missing. There is deliberately no token. It means npm refused the OIDC exchange and fell back to looking for credentials that do not exist.
+
+The cause is almost always the trusted-publisher record on npmjs.com not matching the workflow. Check every field at `https://www.npmjs.com/package/bomly-mcp/access`:
+
+| Field | Must be |
+| --- | --- |
+| Publisher | GitHub Actions |
+| Organization | `bomly-dev` |
+| Repository | `bomly-cli` |
+| Workflow filename | `release.yml` |
+| Environment name | `npm-publish` |
+| Allowed actions | **`npm publish` ticked** (at least one must be) |
+
+All of them must match exactly. A blank or wrong environment name is the usual culprit, and an unticked "Allowed actions" makes the record inert. Saving the form requires clicking **Set up connection** — a filled-in but unsaved form looks identical to a saved one on reload.
+
+Things that are *not* the cause, ruled out on the v0.21.2 and v0.21.3 failures: npm version (the job upgrades to 11.19.0, well past the 11.5.1 floor), `id-token: write` (present), and the environment binding (GitHub recorded a `npm-publish` deployment for the tag both times).
+
 ### Notes
 
 - **npm version floor.** Trusted publishing needs npm >= 11.5.1, which is newer than the runner image's bundled npm. The job installs `npm@^11.5.1` explicitly rather than inheriting whatever the image ships.

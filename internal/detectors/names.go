@@ -1,11 +1,17 @@
 package detectors
 
 const (
-	NameNPM           = "npm-detector"
+	// NameNPM, NamePNPM, and NameYarn are the merged per-package-manager
+	// detectors that own an internal lockfile→buildtool strategy order. The
+	// historical lockfile/native names remain as registry aliases.
+	NameNPM           = "npm"
+	NameNPMLockfile   = "npm-detector"
 	NameNPMNative     = "npm-native-detector"
-	NamePNPM          = "pnpm-detector"
+	NamePNPM          = "pnpm"
+	NamePNPMLockfile  = "pnpm-detector"
 	NamePNPMNative    = "pnpm-native-detector"
-	NameYarn          = "yarn-detector"
+	NameYarn          = "yarn"
+	NameYarnLockfile  = "yarn-detector"
 	NameBun           = "bun-detector"
 	NameBunNative     = "bun-native-detector"
 	NameYarnNative    = "yarn-native-detector"

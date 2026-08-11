@@ -8,7 +8,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
 	"github.com/bomly-dev/bomly-cli/internal/remediation"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
 
@@ -434,6 +434,7 @@ func remediationDetectorsByName(detectors []sdk.Detector) map[string]sdk.Detecto
 			return
 		}
 		result[name] = detector
+		//nolint:staticcheck // deprecated interface still consulted during its one-release compatibility window
 		if provider, ok := detector.(sdk.FallbackDetector); ok {
 			add(provider.FallbackDetector())
 		}

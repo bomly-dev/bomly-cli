@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
 
@@ -17,11 +17,8 @@ func TestBuiltInDetectorsOwnRemediationCapabilitiesAndAdvice(t *testing.T) {
 		advice  string
 	}{
 		{detectors.NameNPM, sdk.PackageManagerNPM, sdk.RemediationActionTransitiveOverride, `add "overrides": {"example": "1.2.0"} to package.json and run npm install`},
-		{detectors.NameNPMNative, sdk.PackageManagerNPM, sdk.RemediationActionTransitiveOverride, `add "overrides": {"example": "1.2.0"} to package.json and run npm install`},
 		{detectors.NamePNPM, sdk.PackageManagerPNPM, sdk.RemediationActionTransitiveOverride, `add "example": "1.2.0" under "pnpm"."overrides" in package.json (or under "overrides:" in pnpm-workspace.yaml for workspaces) and run pnpm install`},
-		{detectors.NamePNPMNative, sdk.PackageManagerPNPM, sdk.RemediationActionTransitiveOverride, `add "example": "1.2.0" under "pnpm"."overrides" in package.json (or under "overrides:" in pnpm-workspace.yaml for workspaces) and run pnpm install`},
 		{detectors.NameYarn, sdk.PackageManagerYarn, sdk.RemediationActionTransitiveOverride, `add "resolutions": {"example": "1.2.0"} to package.json and run yarn install`},
-		{detectors.NameYarnNative, sdk.PackageManagerYarn, sdk.RemediationActionTransitiveOverride, `add "resolutions": {"example": "1.2.0"} to package.json and run yarn install`},
 		{detectors.NameBun, sdk.PackageManagerBun, sdk.RemediationActionLockfileRefresh, "run bun update example@1.2.0"},
 		{detectors.NameBunNative, sdk.PackageManagerBun, sdk.RemediationActionLockfileRefresh, "run bun update example@1.2.0"},
 		{detectors.NameGoMod, sdk.PackageManagerGoMod, sdk.RemediationActionLockfileRefresh, "run go get example@v1.2.0 && go mod tidy"},

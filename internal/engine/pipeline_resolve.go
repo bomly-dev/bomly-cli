@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
 
@@ -159,7 +159,7 @@ func (p *Pipeline) resolveSubproject(ctx context.Context, req PipelineRequest, s
 		return nil, fmt.Errorf("no detector registered for ecosystem %q and package manager %q", sub.Ecosystem, sub.PrimaryPackageManager())
 	}
 
-	results, err := p.resolveDetectors(ctx, baseReq, detectorList[:1], req.Progress)
+	results, err := p.resolveDetectors(ctx, baseReq, detectorList, req.Progress)
 	if err != nil {
 		return nil, err
 	}
@@ -169,42 +169,50 @@ func (p *Pipeline) resolveSubproject(ctx context.Context, req PipelineRequest, s
 	return results, nil
 }
 
-// resolveDetectors runs matched detectors in priority order. Detectors may
-// provide their own fallback detector when they cannot produce a result.
+// resolveDetectors executes the planned detector chain first-success: a
+// detector that is not applicable hands off to the next link silently, a real
+// failure (not ready, install failure, resolution failure, empty graph)
+// records the failure and hands off, and the first detector that produces a
+// graph wins. When a later detector succeeds after a real failure, its
+// results carry FallbackFrom/FallbackReason provenance naming the first
+// failed detector. When every link fails the joined failures are returned.
 func (p *Pipeline) resolveDetectors(ctx context.Context, req sdk.DetectionRequest, detectorList []sdk.Detector, progress ProgressReporter) ([]sdk.DetectionResult, error) {
-	var results []sdk.DetectionResult
 	var errs []error
-	succeeded := make(map[string]struct{}, len(detectorList))
+	var firstFailureName string
+	var firstFailureErr error
 
 	for _, detector := range detectorList {
-		descriptor := detector.Descriptor()
-		if _, ok := succeeded[descriptor.Name]; ok {
-			continue
-		}
 		detectorResults, err := p.resolveDetector(ctx, req, detector, progress)
 		if err != nil {
+			if firstFailureErr == nil {
+				firstFailureName = detector.Descriptor().Name
+				firstFailureErr = err
+			}
 			errs = append(errs, err)
 			continue
 		}
-		results = append(results, detectorResults...)
-		for _, result := range detectorResults {
-			if result.DetectorName != "" {
-				succeeded[result.DetectorName] = struct{}{}
-			}
+		if len(detectorResults) == 0 {
+			// Not applicable: routine hand-off to the next planned detector.
+			continue
 		}
+		if firstFailureErr != nil {
+			annotateFallbackResults(detectorResults, firstFailureName, firstFailureErr)
+		}
+		return detectorResults, nil
 	}
 
-	if len(results) == 0 {
-		joined := errors.Join(errs...)
-		// When nothing in the chain could even start, the readiness reasons
-		// are the whole story: say so once, naming every link and what it
-		// needs, instead of leaving the user to read a joined error list.
-		if summary := unusableDetectorSummary(joined); summary != "" {
-			return nil, &noUsableDetectorError{summary: summary, err: joined}
-		}
-		return nil, joined
+	if len(errs) == 0 {
+		// Nothing in the chain applied; the subproject contributes no graphs.
+		return nil, nil
 	}
-	return results, nil
+	joined := errors.Join(errs...)
+	// When nothing in the chain could even start, the readiness reasons
+	// are the whole story: say so once, naming every link and what it
+	// needs, instead of leaving the user to read a joined error list.
+	if summary := unusableDetectorSummary(joined); summary != "" {
+		return nil, &noUsableDetectorError{summary: summary, err: joined}
+	}
+	return nil, joined
 }
 
 // detectorNotReadyError marks a detector that cannot run in this environment
@@ -302,19 +310,19 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 			zap.String("subproject", req.Subproject.RelativePath),
 			zap.Error(notReadyErr),
 		)
-		return p.resolveFallback(ctx, req, detector, notReadyErr, progress)
+		return nil, notReadyErr
 	}
 
 	applicable, err := detector.Applicable(ctx, req)
 	if err != nil {
-		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: applicability check failed: %w", descriptor.Name, err), progress)
+		return nil, fmt.Errorf("detector %s: applicability check failed: %w", descriptor.Name, err)
 	}
 	if !applicable {
 		p.Logger.Debug("pipeline: detector not applicable",
 			zap.String("detector", descriptor.Name),
 			zap.String("subproject", req.Subproject.RelativePath),
 		)
-		return p.resolveFallback(ctx, req, detector, nil, progress)
+		return nil, nil
 	}
 
 	if req.InstallFirst {
@@ -324,7 +332,7 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 				zap.String("subproject", req.Subproject.RelativePath),
 			)
 			if err := installer.Install(ctx, req); err != nil {
-				return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: install-first failed: %w", descriptor.Name, err), progress)
+				return nil, fmt.Errorf("detector %s: install-first failed: %w", descriptor.Name, err)
 			}
 		} else {
 			p.Logger.Debug("pipeline: detector does not support install-first",
@@ -342,20 +350,25 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 
 	result, err := detector.ResolveGraph(ctx, req)
 	if err != nil {
-		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: %w", descriptor.Name, err), progress)
+		return nil, fmt.Errorf("detector %s: %w", descriptor.Name, err)
 	}
 	if result.Graphs == nil || result.Graphs.Len() == 0 {
-		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: no graph data", descriptor.Name), progress)
+		return nil, fmt.Errorf("detector %s: no graph data", descriptor.Name)
 	}
 	result, err = sdk.FilterDetectionResultByScope(result, req.ScopeFilter)
 	if err != nil {
-		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: scope filter: %w", descriptor.Name, err), progress)
+		return nil, fmt.Errorf("detector %s: scope filter: %w", descriptor.Name, err)
 	}
 
 	result.SubprojectInfo = req.Subproject
 	result.DetectorName = descriptor.Name
 	result.Origin = p.Registry.DetectorOrigin(descriptor.Name)
-	result.Technique = descriptor.Technique
+	// Detectors with an internal strategy order (e.g. the merged Node
+	// detectors) stamp the winning strategy's technique on the result; only
+	// fill from the descriptor when the detector left it empty.
+	if result.Technique == "" {
+		result.Technique = descriptor.Technique
+	}
 	packages, edges := graphContainerStats(result.Graphs)
 	p.Logger.Debug("pipeline: detector succeeded",
 		zap.String("detector", descriptor.Name),
@@ -367,47 +380,13 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 	return []sdk.DetectionResult{result}, nil
 }
 
-func (p *Pipeline) resolveFallback(ctx context.Context, req sdk.DetectionRequest, detector sdk.Detector, primaryErr error, progress ProgressReporter) ([]sdk.DetectionResult, error) {
-	fallbackProvider, ok := detector.(sdk.FallbackDetector)
-	if !ok {
-		return nil, primaryErr
-	}
-	fallback := fallbackProvider.FallbackDetector()
-	if fallback == nil {
-		return nil, primaryErr
-	}
-	if !fallbackSelected(req.DetectorFilter, fallback.Descriptor()) {
-		p.Logger.Debug("pipeline: fallback detector skipped by filter",
-			zap.String("detector", detector.Descriptor().Name),
-			zap.String("fallback_detector", fallback.Descriptor().Name),
-			zap.String("subproject", req.Subproject.RelativePath),
-		)
-		return nil, primaryErr
-	}
-	p.Logger.Debug("pipeline: trying fallback detector",
-		zap.String("detector", detector.Descriptor().Name),
-		zap.String("fallback_detector", fallback.Descriptor().Name),
-		zap.String("subproject", req.Subproject.RelativePath),
-		zap.Error(primaryErr),
-	)
-	results, fallbackErr := p.resolveDetector(ctx, req, fallback, progress)
-	if primaryErr == nil {
-		return results, fallbackErr
-	}
-	if fallbackErr == nil {
-		annotateFallbackResults(results, detector.Descriptor().Name, primaryErr)
-		return results, nil
-	}
-	return nil, errors.Join(primaryErr, fallbackErr)
-}
-
 // annotateFallbackResults records fallback provenance on every result produced
-// after a real primary-detector failure. The outermost failure wins: chained
-// fallbacks overwrite inner annotations so the warning names the planned
-// primary detector, while routine applicability hand-off (nil primaryErr)
-// never reaches this point and leaves inner annotations intact. The reason is
-// collapsed to a single line because tool errors (e.g. macOS java_home) can
-// span multiple lines, which would break the single-line warning channels.
+// after a real failure earlier in the planned chain. The first failure wins:
+// the warning names the first planned detector that really failed, while
+// routine applicability hand-off never records a failure and therefore leaves
+// results unannotated. The reason is collapsed to a single line because tool
+// errors (e.g. macOS java_home) can span multiple lines, which would break
+// the single-line warning channels.
 func annotateFallbackResults(results []sdk.DetectionResult, primaryName string, primaryErr error) {
 	reason := trimDetectorErrorPrefix(strings.Join(strings.Fields(primaryErr.Error()), " "), primaryName)
 	for i := range results {
@@ -535,17 +514,4 @@ func graphContainerStats(container *sdk.GraphContainer) (packages, edges int) {
 		})
 	}
 	return packages, edges
-}
-
-func fallbackSelected(filter sdk.DetectorFilter, descriptor sdk.DetectorDescriptor) bool {
-	if descriptor.Name == "" {
-		return false
-	}
-	if filter.Excludes(descriptor.Name) {
-		return false
-	}
-	if len(filter.Include) > 0 && !filter.Includes(descriptor.Name) {
-		return false
-	}
-	return true
 }

@@ -4,13 +4,14 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestAnnotateScopesFromPackageJSON(t *testing.T) {
@@ -363,19 +364,66 @@ func TestLockfileDetectorRequiresLockfile(t *testing.T) {
 	}
 }
 
-func TestNPMDetectorInstallDelegatesToFallback(t *testing.T) {
-	fallback := &installRecorderDetector{}
-	detector := npm.LockfileDetector{Fallback: fallback}
-	if err := detector.Install(context.Background(), sdk.DetectionRequest{}); err != nil {
+func TestMergedNPMDetectorInstallFirstDisabledByConfig(t *testing.T) {
+	disabled := false
+	detector := npm.Detector{Config: node.StrategyConfig{InstallFirst: &disabled}}
+	// With installFirst disabled, Install must be a no-op even when the host
+	// requested install-first execution: no npm subprocess runs (the test has
+	// no project dir, so a real install attempt would fail loudly).
+	if err := detector.Install(context.Background(), sdk.DetectionRequest{InstallFirst: true}); err != nil {
 		t.Fatalf("Install() error = %v", err)
-	}
-	if fallback.called != 1 {
-		t.Fatalf("expected fallback install to be called once, got %d", fallback.called)
 	}
 }
 
-type installRecorderDetector struct {
-	called int
+func TestMergedNPMDetectorRejectsUnknownStrategy(t *testing.T) {
+	detector := npm.Detector{Config: node.StrategyConfig{Strategy: []string{"lockfile", "bogus"}}}
+	if err := detector.Ready(context.Background(), sdk.DetectionRequest{}); err == nil || !strings.Contains(err.Error(), `unknown strategy action "bogus"`) {
+		t.Fatalf("expected unknown-strategy error from Ready, got %v", err)
+	}
+	if _, err := detector.Applicable(context.Background(), sdk.DetectionRequest{}); err == nil {
+		t.Fatal("expected unknown-strategy error from Applicable")
+	}
+	if _, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{}); err == nil {
+		t.Fatal("expected unknown-strategy error from ResolveGraph")
+	}
+}
+
+func TestMergedNPMDetectorLockfileFirst(t *testing.T) {
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "package-lock.json"), []byte(`{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {
+      "name": "demo-app",
+      "version": "1.0.0",
+      "dependencies": {
+        "react": "18.2.0"
+      }
+    },
+    "node_modules/react": {
+      "version": "18.2.0"
+    }
+  }
+}`), 0o644); err != nil {
+		t.Fatalf("write package-lock.json: %v", err)
+	}
+	detector := npm.Detector{}
+	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	if err != nil || !applicable {
+		t.Fatalf("expected merged npm detector to be applicable, got %v / %v", applicable, err)
+	}
+	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	if result.Technique != sdk.LockfileTechnique {
+		t.Fatalf("expected the winning lockfile strategy to stamp its technique, got %q", result.Technique)
+	}
+	if result.Graphs == nil || result.Graphs.Len() == 0 {
+		t.Fatal("expected graphs from the lockfile strategy")
+	}
 }
 
 func resolveTestGraph(t *testing.T, detector sdk.Detector, projectDir string) (*sdk.Graph, error) {
@@ -385,31 +433,6 @@ func resolveTestGraph(t *testing.T, detector sdk.Detector, projectDir string) (*
 		return nil, err
 	}
 	return result.Graphs.ConsolidatedGraph()
-}
-
-func (d *installRecorderDetector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{Name: "install-recorder"}
-}
-
-func (d *installRecorderDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return nil
-}
-
-func (d *installRecorderDetector) Ready(context.Context, sdk.DetectionRequest) error {
-	return nil
-}
-
-func (d *installRecorderDetector) Applicable(context.Context, sdk.DetectionRequest) (bool, error) {
-	return true, nil
-}
-
-func (d *installRecorderDetector) ResolveGraph(context.Context, sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	return sdk.DetectionResult{}, nil
-}
-
-func (d *installRecorderDetector) Install(context.Context, sdk.DetectionRequest) error {
-	d.called++
-	return nil
 }
 
 // resolveTestWarnings resolves a project and returns the warnings the detector

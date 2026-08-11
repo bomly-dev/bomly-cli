@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
@@ -67,17 +67,15 @@ func TestResolveDetector_FallbackLoggerRelabelled(t *testing.T) {
 			req.Logger.Info("resolving")
 		}
 	}
-	registry.registerDetector(fakeFallbackDetector{
-		fakeDetector: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "go-native", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
-			err:        errors.New("go not installed"),
-			onResolve:  logDetector("go-native"),
-		},
-		fallback: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
-			result:     ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
-			onResolve:  logDetector("syft-detector"),
-		},
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "go-native", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
+		err:        errors.New("go not installed"),
+		onResolve:  logDetector("go-native"),
+	})
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
+		onResolve:  logDetector("syft-detector"),
 	})
 
 	core, logs := observer.New(zapcore.InfoLevel)

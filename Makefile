@@ -67,3 +67,9 @@ licenses:
 		--ignore github.com/xi2/xz \
 		--ignore modernc.org/mathutil \
 		--force
+	# go-licenses cannot classify modernc.org/mathutil, but its BSD-3-Clause
+	# terms require shipping the notice with binary distributions: copy the
+	# license text explicitly and fail the target if it is missing.
+	mkdir -p licenses/modernc.org/mathutil
+	cp "$$(go list -m -f '{{.Dir}}' modernc.org/mathutil)/LICENSE" licenses/modernc.org/mathutil/LICENSE
+	test -s licenses/modernc.org/mathutil/LICENSE

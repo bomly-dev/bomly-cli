@@ -320,3 +320,24 @@ func TestWingetManifestLicensing(t *testing.T) {
 		}
 	}
 }
+
+// TestLicensesTargetShipsMathutilNotice guards the explicit BSD-3-Clause
+// notice copy for modernc.org/mathutil: go-licenses cannot classify that
+// module, so the Makefile ships its LICENSE by hand and must keep doing so
+// for as long as the module is linked into the binary.
+func TestLicensesTargetShipsMathutilNotice(t *testing.T) {
+	makefile, err := os.ReadFile(filepath.Join("..", "..", "Makefile"))
+	if err != nil {
+		t.Fatalf("read Makefile: %v", err)
+	}
+	content := string(makefile)
+	for _, required := range []string{
+		"go list -m -f '{{.Dir}}' modernc.org/mathutil",
+		"licenses/modernc.org/mathutil/LICENSE",
+		"test -s licenses/modernc.org/mathutil/LICENSE",
+	} {
+		if !strings.Contains(content, required) {
+			t.Errorf("Makefile licenses target is missing %q; the mathutil BSD notice must ship with binary distributions", required)
+		}
+	}
+}

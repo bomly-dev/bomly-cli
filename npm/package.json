@@ -1,6 +1,6 @@
 {
   "name": "bomly-mcp",
-  "version": "0.21.3",
+  "version": "0.22.0",
   "description": "Run the Bomly MCP server with npx. Downloads the matching Bomly CLI release binary and starts `bomly mcp serve`.",
   "mcpName": "io.github.bomly-dev/bomly-cli",
   "license": "Apache-2.0",

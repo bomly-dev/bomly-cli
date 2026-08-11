@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/config"
+	"github.com/bomly-dev/bomly-cli/internal/plugin"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/spf13/cobra"
@@ -1059,5 +1060,39 @@ func TestResolveConfigDefaultsMaxDepthWithoutFlags(t *testing.T) {
 	}
 	if got.MaxDepth != 3 {
 		t.Fatalf("expected default max depth 3, got %d", got.MaxDepth)
+	}
+}
+
+// TestDetachPluginPoolIsolatesClones proves that a clone of an Options value
+// gets an independent plugin subprocess pool after DetachPluginPool: pooled
+// plugin processes are bound to the launching request's context, so
+// long-lived servers (MCP) must not share one pool across requests.
+func TestDetachPluginPoolIsolatesClones(t *testing.T) {
+	base := &Options{}
+	baseCtx := base.PluginLaunchContext(context.Background())
+	baseLaunch, ok := plugin.LaunchOptionsFromContext(baseCtx)
+	if !ok || baseLaunch.Pool == nil {
+		t.Fatal("base PluginLaunchContext did not memoize a pool")
+	}
+
+	shared := *base
+	sharedCtx := shared.PluginLaunchContext(context.Background())
+	sharedLaunch, _ := plugin.LaunchOptionsFromContext(sharedCtx)
+	if sharedLaunch.Pool != baseLaunch.Pool {
+		t.Fatal("shallow copy should share the memoized pool (precondition)")
+	}
+
+	detached := *base
+	detached.DetachPluginPool()
+	detachedCtx := detached.PluginLaunchContext(context.Background())
+	detachedLaunch, _ := plugin.LaunchOptionsFromContext(detachedCtx)
+	if detachedLaunch.Pool == nil {
+		t.Fatal("detached clone did not create its own pool")
+	}
+	if detachedLaunch.Pool == baseLaunch.Pool {
+		t.Fatal("DetachPluginPool clone still shares the base pool")
+	}
+	if base.pluginPool != baseLaunch.Pool {
+		t.Fatal("DetachPluginPool on the clone must not clear the base pool")
 	}
 }

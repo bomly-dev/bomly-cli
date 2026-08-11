@@ -759,7 +759,7 @@ func discoverRuntimeSnapshot(ctx context.Context, executable string) (RuntimeDes
 }
 
 func fetchRuntimeSnapshot(ctx context.Context, executable string, kind plugschema.PluginKind, pluginID ...string) (RuntimeDescriptorSnapshot, error) {
-	client, err := startPlugin(ctx, executable, firstString(pluginID), "")
+	client, err := startPlugin(ctx, executable, firstString(pluginID), kind)
 	if err != nil {
 		return RuntimeDescriptorSnapshot{}, err
 	}

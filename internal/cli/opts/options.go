@@ -434,6 +434,16 @@ func (o *Options) OutputFormat() (output.Format, error) {
 	return output.ParseFormat(strings.ToLower(strings.TrimSpace(cfg.Format)))
 }
 
+// DetachPluginPool clears the memoized plugin subprocess pool so this Options
+// value lazily creates its own on first use. Long-lived servers that clone a
+// base Options per request must call this on the clone: pooled subprocesses
+// are bound to the launching request's context, so a pool shared across
+// requests would have its processes killed by request cancellation and its
+// single-restart allowance exhausted by subsequent requests.
+func (o *Options) DetachPluginPool() {
+	o.pluginPool = nil
+}
+
 func (o *Options) PluginLaunchContext(ctx context.Context) context.Context {
 	current := o.GetConfig()
 	httpProvider := o.httpProvider

@@ -151,6 +151,11 @@ nfpms:
         dst: /usr/share/doc/bomly/LICENSE
       - src: NOTICE
         dst: /usr/share/doc/bomly/NOTICE
+      # Third-party license texts collected by `make licenses` (a before hook),
+      # shipped as a whole tree the same way the release archives carry them.
+      - src: licenses
+        dst: /usr/share/doc/bomly/licenses
+        type: tree
 
 # Published as a Homebrew formula (not a cask): casks get the
 # com.apple.quarantine attribute, which trips macOS Gatekeeper ("Apple could
@@ -170,6 +175,9 @@ brews:
     commit_msg_template: "Update Bomly CLI to {{ .Tag }}"
     install: |
       bin.install "bomly"
+    extra_install: |
+      doc.install "LICENSE", "NOTICE"
+      doc.install "licenses"
     test: |
       system "#{bin}/bomly", "version"
     repository:
@@ -211,7 +219,8 @@ winget:
     homepage: https://bomly.dev/cli
     publisher_url: https://github.com/bomly-dev
     publisher_support_url: https://github.com/bomly-dev/bomly-cli/issues
-    license_url: https://github.com/bomly-dev/bomly-cli/blob/main/LICENSE
+    # Immutable tagged copy of the license, not a mutable main ref.
+    license_url: "https://github.com/bomly-dev/bomly-cli/blob/{{ .Tag }}/LICENSE"
     copyright: Copyright Bomly contributors
     tags:
       - cli

@@ -26,7 +26,7 @@ type ClientPool struct {
 	mu      sync.Mutex
 	entries map[string]*poolEntry
 	// startFn launches a subprocess; overridable in tests.
-	startFn func(ctx context.Context, executable, pluginID string) (pooledClient, error)
+	startFn func(ctx context.Context, executable, pluginID string, kind plugschema.PluginKind) (pooledClient, error)
 }
 
 type poolEntry struct {
@@ -40,8 +40,8 @@ type poolEntry struct {
 func NewClientPool() *ClientPool {
 	return &ClientPool{
 		entries: make(map[string]*poolEntry),
-		startFn: func(ctx context.Context, executable, pluginID string) (pooledClient, error) {
-			return startPlugin(ctx, executable, pluginID)
+		startFn: func(ctx context.Context, executable, pluginID string, kind plugschema.PluginKind) (pooledClient, error) {
+			return startPlugin(ctx, executable, pluginID, kind)
 		},
 	}
 }
@@ -50,7 +50,7 @@ func NewClientPool() *ClientPool {
 // first use and restarting it at most once per pool lifetime when it died.
 // The returned client is shared: callers must not close it; the pool owns the
 // subprocess until Shutdown.
-func (p *ClientPool) Acquire(ctx context.Context, executable, pluginID string) (plugschema.Client, error) {
+func (p *ClientPool) Acquire(ctx context.Context, executable, pluginID string, kind plugschema.PluginKind) (plugschema.Client, error) {
 	if p == nil {
 		return nil, fmt.Errorf("plugin client pool is nil")
 	}
@@ -84,7 +84,7 @@ func (p *ClientPool) Acquire(ctx context.Context, executable, pluginID string) (
 			return nil, entry.err
 		}
 	}
-	client, err := p.startFn(ctx, executable, pluginID)
+	client, err := p.startFn(ctx, executable, pluginID, kind)
 	if err != nil {
 		return nil, fmt.Errorf("start pooled plugin %s: %w", pluginID, err)
 	}

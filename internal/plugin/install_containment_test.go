@@ -152,3 +152,40 @@ func TestExtractTarGzArchiveRejectsEscapingLinksAndSpecialFiles(t *testing.T) {
 		})
 	}
 }
+
+// TestExtractZipArchiveAcceptsDottedFilenames guards against over-broad
+// traversal checks: ".." inside a filename is legitimate; only exact ".."
+// path components, absolute paths, and drive paths are traversal.
+func TestExtractZipArchiveAcceptsDottedFilenames(t *testing.T) {
+	archivePath := filepath.Join(t.TempDir(), "plugin.zip")
+	file, err := os.Create(archivePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	writer := zip.NewWriter(file)
+	entry, err := writer.Create("licenses/foo..bar.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := entry.Write([]byte("dotted")); err != nil {
+		t.Fatal(err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	targetDir := t.TempDir()
+	if err := extractZipArchive(archivePath, targetDir, defaultArchiveLimits()); err != nil {
+		t.Fatalf("extractZipArchive() rejected a legitimate dotted filename: %v", err)
+	}
+	content, err := os.ReadFile(filepath.Join(targetDir, "licenses", "foo..bar.txt"))
+	if err != nil {
+		t.Fatalf("read extracted dotted file: %v", err)
+	}
+	if string(content) != "dotted" {
+		t.Fatalf("unexpected extracted content %q", content)
+	}
+}

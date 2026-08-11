@@ -77,15 +77,15 @@ func RegisterRuntimePlugins(ctx context.Context, reg registryWriter, root string
 // launch options carry a ClientPool the pooled subprocess is reused and the
 // release is a no-op; otherwise a one-shot subprocess is started and release
 // terminates it.
-func acquireClient(ctx context.Context, executable, pluginID string) (sdk.Client, func(), error) {
+func acquireClient(ctx context.Context, executable, pluginID string, kind sdk.PluginKind) (sdk.Client, func(), error) {
 	if options, ok := LaunchOptionsFromContext(ctx); ok && options.Pool != nil {
-		client, err := options.Pool.Acquire(ctx, executable, pluginID)
+		client, err := options.Pool.Acquire(ctx, executable, pluginID, kind)
 		if err != nil {
 			return nil, func() {}, err
 		}
 		return client, func() {}, nil
 	}
-	client, err := startPlugin(ctx, executable, pluginID)
+	client, err := startPlugin(ctx, executable, pluginID, kind)
 	if err != nil {
 		return nil, func() {}, err
 	}
@@ -113,7 +113,7 @@ func (d externalDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 
 func (d externalDetector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
 	ctx = launchContext(ctx, d.launchCtx)
-	client, release, err := acquireClient(ctx, d.info.Entrypoint, d.info.ID)
+	client, release, err := acquireClient(ctx, d.info.Entrypoint, d.info.ID, d.info.Kind)
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (d externalDetector) Ready(ctx context.Context, req sdk.DetectionRequest) e
 
 func (d externalDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	ctx = launchContext(ctx, d.launchCtx)
-	client, release, err := acquireClient(ctx, d.info.Entrypoint, d.info.ID)
+	client, release, err := acquireClient(ctx, d.info.Entrypoint, d.info.ID, d.info.Kind)
 	if err != nil {
 		return false, err
 	}
@@ -138,7 +138,7 @@ func (d externalDetector) Applicable(ctx context.Context, req sdk.DetectionReque
 
 func (d externalDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	ctx = launchContext(ctx, d.launchCtx)
-	client, release, err := acquireClient(ctx, d.info.Entrypoint, d.info.ID)
+	client, release, err := acquireClient(ctx, d.info.Entrypoint, d.info.ID, d.info.Kind)
 	if err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ func (d externalDetector) Install(ctx context.Context, req sdk.DetectionRequest)
 
 func (d externalDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	ctx = launchContext(ctx, d.launchCtx)
-	client, release, err := acquireClient(ctx, d.info.Entrypoint, d.info.ID)
+	client, release, err := acquireClient(ctx, d.info.Entrypoint, d.info.ID, d.info.Kind)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -172,7 +172,7 @@ func (d externalDetector) RemediationHints(ctx context.Context, req sdk.Remediat
 		return sdk.RemediationHintResponse{}, nil
 	}
 	ctx = launchContext(ctx, d.launchCtx)
-	client, release, err := acquireClient(ctx, d.info.Entrypoint, d.info.ID)
+	client, release, err := acquireClient(ctx, d.info.Entrypoint, d.info.ID, d.info.Kind)
 	if err != nil {
 		return sdk.RemediationHintResponse{}, fmt.Errorf("start external detector remediation hints %s: %w", d.info.ID, err)
 	}
@@ -205,7 +205,7 @@ func (m externalMatcher) Descriptor() sdk.MatcherDescriptor {
 
 func (m externalMatcher) Ready(ctx context.Context, req sdk.MatchRequest) error {
 	ctx = launchContext(ctx, m.launchCtx)
-	client, release, err := acquireClient(ctx, m.info.Entrypoint, m.info.ID)
+	client, release, err := acquireClient(ctx, m.info.Entrypoint, m.info.ID, m.info.Kind)
 	if err != nil {
 		return err
 	}
@@ -216,7 +216,7 @@ func (m externalMatcher) Ready(ctx context.Context, req sdk.MatchRequest) error 
 
 func (m externalMatcher) Applicable(ctx context.Context, req sdk.MatchRequest) (bool, error) {
 	ctx = launchContext(ctx, m.launchCtx)
-	client, release, err := acquireClient(ctx, m.info.Entrypoint, m.info.ID)
+	client, release, err := acquireClient(ctx, m.info.Entrypoint, m.info.ID, m.info.Kind)
 	if err != nil {
 		return false, err
 	}
@@ -227,7 +227,7 @@ func (m externalMatcher) Applicable(ctx context.Context, req sdk.MatchRequest) (
 
 func (m externalMatcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	ctx = launchContext(ctx, m.launchCtx)
-	client, release, err := acquireClient(ctx, m.info.Entrypoint, m.info.ID)
+	client, release, err := acquireClient(ctx, m.info.Entrypoint, m.info.ID, m.info.Kind)
 	if err != nil {
 		return sdk.MatchResult{}, err
 	}
@@ -270,7 +270,7 @@ func (a externalAuditor) Descriptor() sdk.AuditorDescriptor {
 
 func (a externalAuditor) Ready(ctx context.Context, req sdk.AuditRequest) error {
 	ctx = launchContext(ctx, a.launchCtx)
-	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID)
+	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID, a.info.Kind)
 	if err != nil {
 		return err
 	}
@@ -281,7 +281,7 @@ func (a externalAuditor) Ready(ctx context.Context, req sdk.AuditRequest) error 
 
 func (a externalAuditor) Applicable(ctx context.Context, req sdk.AuditRequest) (bool, error) {
 	ctx = launchContext(ctx, a.launchCtx)
-	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID)
+	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID, a.info.Kind)
 	if err != nil {
 		return false, err
 	}
@@ -292,7 +292,7 @@ func (a externalAuditor) Applicable(ctx context.Context, req sdk.AuditRequest) (
 
 func (a externalAuditor) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
 	ctx = launchContext(ctx, a.launchCtx)
-	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID)
+	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID, a.info.Kind)
 	if err != nil {
 		return sdk.AuditResult{}, err
 	}
@@ -325,7 +325,7 @@ func (a externalAnalyzer) Descriptor() sdk.AnalyzerDescriptor {
 
 func (a externalAnalyzer) Ready(ctx context.Context, req sdk.AnalyzeRequest) error {
 	ctx = launchContext(ctx, a.launchCtx)
-	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID)
+	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID, a.info.Kind)
 	if err != nil {
 		return err
 	}
@@ -336,7 +336,7 @@ func (a externalAnalyzer) Ready(ctx context.Context, req sdk.AnalyzeRequest) err
 
 func (a externalAnalyzer) Applicable(ctx context.Context, req sdk.AnalyzeRequest) (bool, error) {
 	ctx = launchContext(ctx, a.launchCtx)
-	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID)
+	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID, a.info.Kind)
 	if err != nil {
 		return false, err
 	}
@@ -347,7 +347,7 @@ func (a externalAnalyzer) Applicable(ctx context.Context, req sdk.AnalyzeRequest
 
 func (a externalAnalyzer) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
 	ctx = launchContext(ctx, a.launchCtx)
-	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID)
+	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID, a.info.Kind)
 	if err != nil {
 		return sdk.AnalyzeResult{}, err
 	}

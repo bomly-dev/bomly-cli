@@ -66,7 +66,7 @@ func Test(ctx context.Context, root, id string, builtins []Info) (*TestResult, e
 		return nil, fmt.Errorf("plugin entrypoint %q must stay within the plugin directory", entry)
 	}
 
-	client, err := startPlugin(launchContext(ctx, nil), fullEntrypoint, manifest.ID)
+	client, err := startPlugin(launchContext(ctx, nil), fullEntrypoint, manifest.ID, manifest.Kind)
 	if err != nil {
 		return nil, fmt.Errorf("start plugin runtime for readiness probe: %w", err)
 	}

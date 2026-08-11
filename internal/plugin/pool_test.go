@@ -23,7 +23,7 @@ func poolWithFakeStart(t *testing.T, starts *atomic.Int32, clients *[]*fakePoole
 	t.Helper()
 	var mu sync.Mutex
 	pool := NewClientPool()
-	pool.startFn = func(_ context.Context, _, _ string) (pooledClient, error) {
+	pool.startFn = func(_ context.Context, _, _ string, _ plugschema.PluginKind) (pooledClient, error) {
 		starts.Add(1)
 		client := &fakePooledClient{}
 		mu.Lock()
@@ -46,7 +46,7 @@ func TestClientPoolConcurrentAcquireStartsOneSubprocess(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if _, err := pool.Acquire(context.Background(), "/bin/fake", "acme.plugin"); err != nil {
+			if _, err := pool.Acquire(context.Background(), "/bin/fake", "acme.plugin", ""); err != nil {
 				errs <- err
 			}
 		}()
@@ -67,12 +67,12 @@ func TestClientPoolRestartsDeadSubprocessOnce(t *testing.T) {
 	pool := poolWithFakeStart(t, &starts, &clients)
 	ctx := context.Background()
 
-	if _, err := pool.Acquire(ctx, "/bin/fake", "acme.plugin"); err != nil {
+	if _, err := pool.Acquire(ctx, "/bin/fake", "acme.plugin", ""); err != nil {
 		t.Fatalf("first Acquire() error = %v", err)
 	}
 	// Kill the subprocess: the next Acquire must close it and restart once.
 	clients[0].exited.Store(true)
-	if _, err := pool.Acquire(ctx, "/bin/fake", "acme.plugin"); err != nil {
+	if _, err := pool.Acquire(ctx, "/bin/fake", "acme.plugin", ""); err != nil {
 		t.Fatalf("Acquire() after death error = %v", err)
 	}
 	if !clients[0].closed.Load() {
@@ -84,10 +84,10 @@ func TestClientPoolRestartsDeadSubprocessOnce(t *testing.T) {
 
 	// A second death exhausts the restart budget and persists the error.
 	clients[1].exited.Store(true)
-	if _, err := pool.Acquire(ctx, "/bin/fake", "acme.plugin"); err == nil || !strings.Contains(err.Error(), "not restarting again") {
+	if _, err := pool.Acquire(ctx, "/bin/fake", "acme.plugin", ""); err == nil || !strings.Contains(err.Error(), "not restarting again") {
 		t.Fatalf("expected persisted restart-budget error, got %v", err)
 	}
-	if _, err := pool.Acquire(ctx, "/bin/fake", "acme.plugin"); err == nil || !strings.Contains(err.Error(), "not restarting again") {
+	if _, err := pool.Acquire(ctx, "/bin/fake", "acme.plugin", ""); err == nil || !strings.Contains(err.Error(), "not restarting again") {
 		t.Fatalf("expected persisted error on later Acquire, got %v", err)
 	}
 	if got := starts.Load(); got != 2 {
@@ -100,10 +100,10 @@ func TestClientPoolShutdownClosesClients(t *testing.T) {
 	var clients []*fakePooledClient
 	pool := poolWithFakeStart(t, &starts, &clients)
 
-	if _, err := pool.Acquire(context.Background(), "/bin/fake", "acme.one"); err != nil {
+	if _, err := pool.Acquire(context.Background(), "/bin/fake", "acme.one", ""); err != nil {
 		t.Fatalf("Acquire() error = %v", err)
 	}
-	if _, err := pool.Acquire(context.Background(), "/bin/fake-two", "acme.two"); err != nil {
+	if _, err := pool.Acquire(context.Background(), "/bin/fake-two", "acme.two", ""); err != nil {
 		t.Fatalf("Acquire() error = %v", err)
 	}
 	pool.Shutdown()

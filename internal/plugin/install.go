@@ -408,10 +408,10 @@ func extractZipArchive(archivePath, targetDir string, limits archiveLimits) erro
 	}
 	budget := newArchiveExtractionBudget(limits)
 	for _, file := range reader.File {
-		// Inline traversal rejection: subsumed by validateArchiveEntryName, but
-		// static analyzers recognize this direct guard on the entry name.
-		if strings.Contains(file.Name, "..") {
-			return fmt.Errorf("plugin archive entry %q contains a parent-directory component", file.Name)
+		// Inline locality guard: rejects traversal without rejecting legitimate
+		// dotted filenames; recognized by static analyzers as a sanitizer.
+		if !filepath.IsLocal(file.Name) {
+			return fmt.Errorf("plugin archive entry %q escapes the extraction directory", file.Name)
 		}
 		if err := validateArchiveEntryName(file.Name); err != nil {
 			return err
@@ -493,10 +493,10 @@ func extractTarGzArchive(archivePath, targetDir string, limits archiveLimits) er
 		if header.Size < 0 {
 			return fmt.Errorf("plugin archive entry %q has a negative size", header.Name)
 		}
-		// Inline traversal rejection: subsumed by validateArchiveEntryName, but
-		// static analyzers recognize this direct guard on the entry name.
-		if strings.Contains(header.Name, "..") {
-			return fmt.Errorf("plugin archive entry %q contains a parent-directory component", header.Name)
+		// Inline locality guard: rejects traversal without rejecting legitimate
+		// dotted filenames; recognized by static analyzers as a sanitizer.
+		if !filepath.IsLocal(header.Name) {
+			return fmt.Errorf("plugin archive entry %q escapes the extraction directory", header.Name)
 		}
 		if err := validateArchiveEntryName(header.Name); err != nil {
 			return err
@@ -722,7 +722,7 @@ func normalizeWindowsExecutableForLaunch(tempDir, binaryPath string) (string, er
 }
 
 func discoverRuntimeSnapshot(ctx context.Context, executable string) (RuntimeDescriptorSnapshot, error) {
-	client, err := startPlugin(ctx, executable, "")
+	client, err := startPlugin(ctx, executable, "", "")
 	if err != nil {
 		return RuntimeDescriptorSnapshot{}, err
 	}
@@ -759,7 +759,7 @@ func discoverRuntimeSnapshot(ctx context.Context, executable string) (RuntimeDes
 }
 
 func fetchRuntimeSnapshot(ctx context.Context, executable string, kind plugschema.PluginKind, pluginID ...string) (RuntimeDescriptorSnapshot, error) {
-	client, err := startPlugin(ctx, executable, firstString(pluginID))
+	client, err := startPlugin(ctx, executable, firstString(pluginID), "")
 	if err != nil {
 		return RuntimeDescriptorSnapshot{}, err
 	}
@@ -888,9 +888,9 @@ func (c *runtimeClient) Close() {
 	}
 }
 
-func startPlugin(ctx context.Context, executable, pluginID string) (*runtimeClient, error) {
+func startPlugin(ctx context.Context, executable, pluginID string, kind plugschema.PluginKind) (*runtimeClient, error) {
 	options, _ := LaunchOptionsFromContext(ctx)
-	env, cleanup, err := pluginEnv(options, pluginID)
+	env, cleanup, err := pluginEnv(options, pluginID, kind)
 	if err != nil {
 		return nil, err
 	}
@@ -902,7 +902,7 @@ func startPlugin(ctx context.Context, executable, pluginID string) (*runtimeClie
 	return &runtimeClient{client: client, cleanup: cleanup}, nil
 }
 
-func pluginEnv(options LaunchOptions, pluginID string) ([]string, func(), error) {
+func pluginEnv(options LaunchOptions, pluginID string, kind plugschema.PluginKind) ([]string, func(), error) {
 	env := []string{
 		EnvPluginAPIVersion + "=" + plugschema.PluginAPIVersion,
 		EnvPluginConfig + "=" + strings.TrimSpace(options.ConfigPath),
@@ -912,7 +912,13 @@ func pluginEnv(options LaunchOptions, pluginID string) ([]string, func(), error)
 	}
 	env = append(env, proxyEnv(options)...)
 	cleanup := func() {}
-	if pluginConfig := options.PluginConfigs.ForPlugin(pluginID); pluginConfig != nil {
+	pluginConfig := options.PluginConfigs.ForPlugin(pluginID)
+	if kind != "" {
+		// The component kind disambiguates same-named components of different
+		// kinds so a plugin never receives another component's configuration.
+		pluginConfig = options.PluginConfigs.ForComponent(string(kind), pluginID)
+	}
+	if pluginConfig != nil {
 		path, remove, err := writePluginConfigFile(pluginConfig)
 		if err != nil {
 			return nil, cleanup, err

@@ -13222,7 +13222,7 @@
           "version": "0.1.0"
         }
       ],
-      "detector": "pnpm-detector",
+      "detector": "pnpm",
       "ecosystem": "npm",
       "kind": "pnpm-lock.yaml",
       "package_manager": "pnpm",

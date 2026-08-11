@@ -1034,7 +1034,7 @@
           "version": "0.0.3"
         }
       ],
-      "detector": "npm-detector",
+      "detector": "npm",
       "ecosystem": "npm",
       "kind": "package-lock.json",
       "package_manager": "npm",

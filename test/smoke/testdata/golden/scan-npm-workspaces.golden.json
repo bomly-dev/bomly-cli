@@ -133,7 +133,7 @@
           "version": "1.0.0"
         }
       ],
-      "detector": "npm-detector",
+      "detector": "npm",
       "ecosystem": "npm",
       "kind": "package.json",
       "package_manager": "npm",
@@ -181,7 +181,7 @@
           "version": "2.1.3"
         }
       ],
-      "detector": "npm-detector",
+      "detector": "npm",
       "ecosystem": "npm",
       "kind": "package-lock.json",
       "package_manager": "npm",
@@ -265,7 +265,7 @@
           "version": "1.2.5"
         }
       ],
-      "detector": "npm-detector",
+      "detector": "npm",
       "ecosystem": "npm",
       "kind": "package.json",
       "package_manager": "npm",

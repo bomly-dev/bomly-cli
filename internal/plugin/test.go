@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	plugschema "github.com/bomly-dev/bomly-cli/sdk"
+	plugschema "github.com/bomly-dev/bomly-sdk"
 )
 
 // isNotInstalledError reports whether err is the sentinel returned by findInstalled
@@ -108,6 +108,12 @@ func probePluginReadiness(ctx context.Context, client plugschema.Client, kind pl
 			return false, "auditor-ready", fmt.Errorf("run auditor readiness probe: %w", err)
 		}
 		return resp != nil && resp.Ready, "auditor-ready", nil
+	case plugschema.PluginKindAnalyzer:
+		resp, err := client.AnalyzerReady(ctx, &plugschema.AnalyzeRequest{})
+		if err != nil {
+			return false, "analyzer-ready", fmt.Errorf("run analyzer readiness probe: %w", err)
+		}
+		return resp != nil && resp.Ready, "analyzer-ready", nil
 	default:
 		return false, "", fmt.Errorf("plugin kind %q does not support runtime readiness probes", kind)
 	}

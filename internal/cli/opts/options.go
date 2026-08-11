@@ -17,7 +17,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/plugin"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -41,6 +41,7 @@ type Options struct {
 	cleanup                func() error
 	findingPolicyResolvers []sdk.FindingPolicyResolver
 	baselineEvaluation     *engine.BaselineEvaluation
+	pluginPool             *plugin.ClientPool
 }
 
 type optionsKey struct{}
@@ -353,6 +354,20 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		}
 	}
 
+	// The plugin subprocess pool joins the command cleanup chain alongside
+	// temp-dir cleanup (e.g. git clone dirs): Close() shuts down any pooled
+	// plugin subprocesses started while the command ran.
+	pool := o.pluginPool
+	cleanupWithPool := func() error {
+		if pool != nil {
+			pool.Shutdown()
+		}
+		if cleanup != nil {
+			return cleanup()
+		}
+		return nil
+	}
+
 	return Options{
 		registry:               filteredRegistry,
 		executionTarget:        executionTarget,
@@ -366,9 +381,10 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		ResolvedConfig:         resolved,
 		Format:                 format,
 		verbose:                resolved.Verbosity >= 2,
-		cleanup:                cleanup,
+		cleanup:                cleanupWithPool,
 		findingPolicyResolvers: baselineResult.Resolvers,
 		baselineEvaluation:     baselineEvaluationFromLoadResult(baselineResult),
+		pluginPool:             pool,
 	}, nil
 }
 
@@ -424,7 +440,11 @@ func (o *Options) PluginLaunchContext(ctx context.Context) context.Context {
 	if httpProvider == nil {
 		httpProvider, _ = sdk.NewHTTPClientProvider(httpClientConfigFromResolved(current))
 	}
+	if o.pluginPool == nil {
+		o.pluginPool = plugin.NewClientPool()
+	}
 	return plugin.WithLaunchOptions(ctx, plugin.LaunchOptions{
+		Pool:               o.pluginPool,
 		ConfigPath:         current.Config,
 		Verbosity:          current.Verbosity,
 		HTTPProxy:          current.HTTPProxy,

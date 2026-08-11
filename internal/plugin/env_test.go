@@ -6,7 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/internal/config"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestPluginEnvIncludesProxyAndPluginConfig(t *testing.T) {
@@ -19,8 +20,10 @@ func TestPluginEnvIncludesProxyAndPluginConfig(t *testing.T) {
 		HTTPProxyPassword: "secret",
 		HTTPNoProxy:       "localhost,.corp.example",
 		HTTPCACertFile:    "/tmp/proxy-ca.pem",
-		PluginConfigs: map[string]map[string]any{
-			"acme.matcher": {"api_base": "https://api.example.com"},
+		PluginConfigs: config.PluginConfigs{
+			Matchers: map[string]map[string]any{
+				"acme.matcher": {"api_base": "https://api.example.com"},
+			},
 		},
 	}, "acme.matcher")
 	if err != nil {
@@ -123,9 +126,13 @@ func TestPluginEnvDoesNotForwardUnrelatedHostEnvironment(t *testing.T) {
 
 func TestPluginEnvOnlyWritesSelectedPluginConfig(t *testing.T) {
 	env, cleanup, err := pluginEnv(LaunchOptions{
-		PluginConfigs: map[string]map[string]any{
-			"acme.matcher": {"token": "selected-secret"},
-			"other.plugin": {"token": "other-secret"},
+		PluginConfigs: config.PluginConfigs{
+			Matchers: map[string]map[string]any{
+				"acme.matcher": {"token": "selected-secret"},
+			},
+			Legacy: map[string]map[string]any{
+				"other.plugin": {"token": "other-secret"},
+			},
 		},
 	}, "acme.matcher")
 	if err != nil {

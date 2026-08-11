@@ -4,7 +4,7 @@ A detector plugin turns project evidence into a Bomly dependency graph. Use a de
 
 External detector plugins are served with `sdk.ServeDetector`.
 
-The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-cli/sdk) documents the `sdk.ServeDetector` entrypoint, `sdk.ServedDetector` interface, `sdk.DetectionRequest`, `sdk.DetectionResult`, graph helpers, coordinates, and package-manager support types used below.
+The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) documents the `sdk.ServeDetector` entrypoint, `sdk.ServedDetector` interface, `sdk.DetectionRequest`, `sdk.DetectionResult`, graph helpers, coordinates, and package-manager support types used below.
 
 ## Minimum Shape
 
@@ -16,7 +16,7 @@ package main
 import (
     "context"
 
-    "github.com/bomly-dev/bomly-cli/sdk"
+    "github.com/bomly-dev/bomly-sdk"
 )
 
 const pluginID = "bomly.examples.detector.bun-lock"

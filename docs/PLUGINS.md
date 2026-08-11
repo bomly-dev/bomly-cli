@@ -5,8 +5,9 @@ Bomly plugins let you extend scans without changing the Bomly binary. Today, man
 - **detectors** that turn project files into dependency graphs
 - **matchers** that enrich packages with vulnerabilities, licenses, lifecycle data, or other package metadata
 - **auditors** that turn graph and registry data into findings or risk scores
+- **analyzers** that annotate vulnerabilities with reachability data during `--analyze`
 
-External analyzer plugins are not supported yet. `bomly plugins list --analyzers` can show built-in reachability analyzers, but the external plugin runtime currently serves only detectors, matchers, and auditors through `sdk.ServeDetector`, `sdk.ServeMatcher`, and `sdk.ServeAuditor`.
+Each role has a serve entrypoint in the SDK: `sdk.ServeDetector`, `sdk.ServeMatcher`, `sdk.ServeAuditor`, and `sdk.ServeAnalyzer`.
 
 ## Start Here
 
@@ -17,8 +18,9 @@ Use the implementation guides when you are writing one:
 - [How To Implement A Detector Plugin](plugins/how-to-implement-detector.md)
 - [How To Implement A Matcher Plugin](plugins/how-to-implement-matcher.md)
 - [How To Implement An Auditor Plugin](plugins/how-to-implement-auditor.md)
+- [How To Implement An Analyzer Plugin](plugins/how-to-implement-analyzer.md)
 
-Use the [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-cli/sdk) for the Go types, runtime entrypoints, request/response payloads, graph model, package registry, and finding contract those guides use.
+Use the [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) for the Go types, runtime entrypoints, request/response payloads, graph model, package registry, and finding contract those guides use.
 
 Example plugin repositories live outside this repo so each plugin type can show a realistic package, release, and README:
 
@@ -34,10 +36,18 @@ Managed plugins are Go binaries that use Bomly's public `sdk` package. Bomly sta
 Plugin identity is split into three clear places:
 
 - **Manifest = package.** `bomly-plugin.json` records install and package fields: ID, name, version, description, homepage, license, source, Bomly version constraint, runtime, plugin API version, and entrypoint.
-- **Descriptor = component.** The plugin binary returns one role descriptor: detector, matcher, or auditor. The descriptor owns the component name, display name, aliases, tags, supported ecosystems, supported package managers, and role-specific behavior.
+- **Descriptor = component.** The plugin binary returns one role descriptor: detector, matcher, auditor, or analyzer. The descriptor owns the component name, display name, aliases, tags, supported ecosystems, supported package managers, and role-specific behavior.
 - **Installed DB = trust and state.** Bomly records checksum, enabled/disabled state, install path, and an internal descriptor snapshot when a plugin is installed. Plugin authors do not write that snapshot.
 
-There is no `Metadata()` hook. For packaged plugins, Bomly reads `id`, `kind`, and `pluginApiVersion` from `bomly-plugin.json`, launches the binary, fetches the matching descriptor, and requires `descriptor.name == manifest.id`. For dev-binary installs without a manifest, Bomly probes detector, matcher, and auditor descriptors and accepts the binary only when exactly one role responds.
+There is no `Metadata()` hook. For packaged plugins, Bomly reads `id`, `kind`, and `pluginApiVersion` from `bomly-plugin.json`, launches the binary, fetches the matching descriptor, and requires `descriptor.name == manifest.id`. For dev-binary installs without a manifest, Bomly probes detector, matcher, auditor, and analyzer descriptors and accepts the binary only when exactly one role responds.
+
+### Subprocess lifecycle
+
+During a scan (or any other command that runs components), Bomly keeps **one pooled subprocess per enabled plugin**. The subprocess starts lazily on the plugin's first call, and every subsequent call in the same command — readiness, applicability, and the component RPC itself — reuses that warm process instead of paying a handshake per call. If the subprocess dies mid-command, Bomly restarts it **at most once**; a second death disables the plugin for the rest of the command with a warning. All pooled subprocesses are terminated when the command finishes — plugin processes never outlive the Bomly invocation.
+
+### Registry deltas
+
+Matchers and analyzers can respond in two shapes. The protocol baseline is the **full registry**: the plugin returns every package, modified or not. Plugins that advertise the `package-updates-v1` capability may instead return **package-update deltas** — only the packages they touched — when the request's `AcceptPackageUpdates` field says the host understands them. The host merges deltas into its registry by PURL. Plugins must fall back to the full-registry shape when the host does not opt in, which keeps old hosts and new plugins compatible in both directions.
 
 Bomly owns:
 
@@ -61,9 +71,9 @@ bomly plugins enable <plugin-id>
 Treat `bomly plugins enable` as the trust decision. When enabled, a plugin runs with the same user-level privileges as the Bomly process. It can read and write files, make network connections, spawn child processes, and access environment variables available to that user.
 
 Bomly does not place enabled plugins in an operating-system sandbox. The
-plugin protocol limits what Bomly accepts as a detector, matcher, or auditor
-result, but it cannot restrict what the native plugin process does on the
-host.
+plugin protocol limits what Bomly accepts as a detector, matcher, auditor, or
+analyzer result, but it cannot restrict what the native plugin process does on
+the host.
 
 Repository-declared plugins are never executed automatically. The host must explicitly install and enable the plugin before it can run.
 
@@ -166,6 +176,9 @@ bomly scan --enrich --matchers +clearlydefined-license-matcher
 
 # Use one auditor explicitly.
 bomly scan --audit --auditors bomly.examples.auditor.meme-deps
+
+# Add an external analyzer to the reachability stage.
+bomly scan --enrich --analyze --analyzers +my-reach-analyzer
 ```
 
 Detector plugins can participate in subproject discovery. Their runtime descriptor and `PackageManagerSupport` response record package-manager support and evidence patterns such as `go.mod`. Bomly stores that verified descriptor snapshot during install so external detectors can join the same scan-planning flow as built-ins.
@@ -206,13 +219,28 @@ continue to work unchanged.
 
 Bomly passes the active plugin API version, the explicit `BOMLY_CONFIG` path when one was provided, proxy settings, and the enabled plugin's own config to managed plugin subprocesses.
 
-Per-plugin configuration lives under `plugins.<plugin-id>`:
+Per-plugin configuration is scoped by component kind under
+`plugins.{detectors,matchers,auditors,analyzers}.<name>`:
 
 ```yaml
 plugins:
-  clearlydefined-license-matcher:
-    api_base: https://api.clearlydefined.io
+  matchers:
+    clearlydefined-license-matcher:
+      api_base: https://api.clearlydefined.io
+  analyzers:
+    my-reach-analyzer:
+      max_depth: 10
 ```
+
+The older flat form `plugins.<plugin-id>: {...}` is still accepted for
+compatibility — it applies to whichever component name matches, regardless of
+kind — but it is deprecated and reported with a warning. Kind-scoped blocks
+win when both are present. New configuration should always use the
+kind-scoped form.
+
+Plugins that declare a `ConfigSchema` in their descriptor get their
+configuration keys, descriptions, and defaults rendered by
+`bomly plugins info <plugin-id>`.
 
 External plugins can read only their own config through the SDK:
 
@@ -366,3 +394,23 @@ External plugins are native OS subprocesses. They are not sandboxed, not contain
 - Treat `bomly plugins enable` as the explicit trust decision for granting execution privileges.
 - Prefer `github:owner/repo@tag` installs when releases publish `SHA256SUMS`.
 - Do not enable plugins you did not build or obtain from a source you control.
+
+## Compatibility And Protocol Evolution
+
+Plugin compatibility has two independent axes:
+
+- **The in-process Go API** — the SDK types and functions your plugin compiles against. This follows the SDK module's semantic version: a new SDK release may add types or fields, and upgrading the pin may require code changes at compile time. This axis only matters when you rebuild the plugin.
+- **The wire protocol** — what a built plugin binary and a Bomly binary say to each other at runtime. This is versioned independently (`bomly.plugin.v1`) and is what keeps an already-shipped plugin binary working as users upgrade Bomly.
+
+A plugin binary built against an older SDK release keeps working with newer Bomly binaries as long as both speak the same wire protocol major version.
+
+### Wire-evolution rules (protocol v1)
+
+Within protocol v1, changes are **additive only**:
+
+- New request/response fields are added as optional (`omitempty`) JSON fields. Receivers ignore unknown JSON fields, so old plugins and old hosts are unaffected.
+- New RPCs are added as optional. A peer that does not implement one answers `Unimplemented`, and the caller falls back to the previous behavior.
+- Existing fields and RPCs are never removed, renamed, or repurposed.
+- Optional features that need active participation from both sides are negotiated through **capabilities**: the plugin advertises the feature in its descriptor (for example `package-updates-v1`), and the host signals acceptance per request. Neither side may assume the other supports a capability that was not advertised.
+
+A change that cannot be expressed additively is a breaking change. It would ship as a new protocol major version (`v2`) negotiated alongside v1 — existing v1 plugins would keep running against the v1 surface, not silently break.

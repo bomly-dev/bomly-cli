@@ -4,7 +4,7 @@ A matcher plugin enriches packages after detection. Use a matcher when you want 
 
 External matcher plugins are served with `sdk.ServeMatcher`.
 
-The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-cli/sdk) documents the `sdk.ServeMatcher` entrypoint, `sdk.ServedMatcher` interface, `sdk.MatchRequest`, `sdk.MatchResult`, PURL-keyed package registry, and enrichment types used below.
+The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) documents the `sdk.ServeMatcher` entrypoint, `sdk.ServedMatcher` interface, `sdk.MatchRequest`, `sdk.MatchResult`, PURL-keyed package registry, and enrichment types used below.
 
 ## Minimum Shape
 
@@ -16,7 +16,7 @@ package main
 import (
     "context"
 
-    "github.com/bomly-dev/bomly-cli/sdk"
+    "github.com/bomly-dev/bomly-sdk"
 )
 
 const pluginID = "clearlydefined-license-matcher"
@@ -112,12 +112,13 @@ Prefer canonical PURLs. Auditors and output rendering use PURLs to connect findi
 
 ## Configuration, HTTP, And Cache
 
-Per-plugin config lives under `plugins.<plugin-id>`:
+Per-plugin config lives under the kind-scoped `plugins.matchers.<name>` block (the deprecated flat `plugins.<plugin-id>` form still works with a warning):
 
 ```yaml
 plugins:
-  clearlydefined-license-matcher:
-    api_base: https://api.clearlydefined.io
+  matchers:
+    clearlydefined-license-matcher:
+      api_base: https://api.clearlydefined.io
 ```
 
 Read it with:

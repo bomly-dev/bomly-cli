@@ -99,6 +99,148 @@ func TestPluginWorkflows(t *testing.T) {
 	})
 }
 
+// TestAnalyzerPluginWorkflow exercises the managed analyzer plugin role end
+// to end: dev-install the embedded analyzer fixture, enable it, confirm the
+// plugin list groups it under analyzers with an external origin, run an
+// --analyze scan on a local fixture project, and confirm the analyzer both
+// ran (metadata.analyzer_runs) and annotated a vulnerability with a
+// reachability result. The fixture appends its process ID to a pid file on
+// every hook call, so the test also proves that one pooled subprocess served
+// every RPC in the scan.
+func TestAnalyzerPluginWorkflow(t *testing.T) {
+	requireTool(t, "go")
+
+	plugin := buildExampleAnalyzerPlugin(t)
+	projectDir := createExamplePluginProject(t)
+	env := pluginWorkflowEnv(t)
+
+	stdout, stderr, code := runBomlyWithEnv(t, env, "plugin", "install", plugin.BinaryPath, "--dev")
+	if code != 0 {
+		t.Fatalf("analyzer plugin install --dev exited %d\nstderr:\n%s", code, stderr)
+	}
+	if !strings.Contains(stdout, "Installed "+plugin.ID+"@0.0.0-dev") {
+		t.Fatalf("unexpected analyzer install output:\n%s", stdout)
+	}
+	if _, enableStderr, enableCode := runBomlyWithEnv(t, env, "plugin", "enable", plugin.ID); enableCode != 0 {
+		t.Fatalf("analyzer plugin enable exited %d\nstderr:\n%s", enableCode, enableStderr)
+	}
+
+	listStdout, listStderr, listCode := runBomlyWithEnv(t, env, "plugin", "list", "--external", "--format", "json")
+	if listCode != 0 {
+		t.Fatalf("plugin list exited %d\nstderr:\n%s", listCode, listStderr)
+	}
+	assertAnalyzerPluginListed(t, listStdout, plugin.ID)
+
+	// The pid file arrives through the kind-scoped plugins.analyzers.<name>
+	// config block, which the host serializes into the plugin subprocess
+	// environment. Every fixture hook appends its PID to this file.
+	pidFile := filepath.Join(t.TempDir(), "analyzer-pids.txt")
+	configPath := filepath.Join(t.TempDir(), "bomly.yaml")
+	configYAML := "plugins:\n  analyzers:\n    " + plugin.ID + ":\n      pid_file: " + pidFile + "\n"
+	if err := os.WriteFile(configPath, []byte(configYAML), 0o644); err != nil {
+		t.Fatalf("write scan config: %v", err)
+	}
+
+	// --analyze requires --enrich. Keep enrichment hermetic by restricting
+	// matchers to osv and pointing it at an unroutable local address: the
+	// matcher degrades to a pipeline warning without touching the network,
+	// and the analyzer stage still runs.
+	scanEnv := append(append([]string(nil), env...), "BOMLY_OSV_API_BASE=http://127.0.0.1:1")
+	scanStdout, scanStderr, scanCode := runBomlyWithEnv(t, scanEnv,
+		"scan",
+		"--path", projectDir,
+		"--detectors", "go",
+		"--enrich",
+		"--matchers", "osv",
+		"--analyze",
+		"--analyzers", plugin.ID,
+		"--config", configPath,
+		"--format", "json",
+	)
+	if scanCode != 0 {
+		t.Fatalf("analyzer plugin scan exited %d\nstderr:\n%s", scanCode, scanStderr)
+	}
+	assertAnalyzerRan(t, scanStdout, plugin.ID)
+	if !strings.Contains(scanStdout, "EXAMPLE-REACH-0001") {
+		t.Fatalf("scan output does not contain the analyzer's reachability-annotated vulnerability EXAMPLE-REACH-0001:\n%s", scanStdout)
+	}
+	assertSinglePluginSubprocess(t, pidFile)
+
+	if _, disableStderr, disableCode := runBomlyWithEnv(t, env, "plugin", "disable", plugin.ID); disableCode != 0 {
+		t.Fatalf("analyzer plugin disable exited %d\nstderr:\n%s", disableCode, disableStderr)
+	}
+	if _, uninstallStderr, uninstallCode := runBomlyWithEnv(t, env, "plugin", "uninstall", plugin.ID); uninstallCode != 0 {
+		t.Fatalf("analyzer plugin uninstall exited %d\nstderr:\n%s", uninstallCode, uninstallStderr)
+	}
+}
+
+// assertAnalyzerPluginListed decodes the grouped plugin list JSON and checks
+// the plugin appears under the analyzers group with an external origin.
+func assertAnalyzerPluginListed(t *testing.T, raw string, pluginID string) {
+	t.Helper()
+	var grouped map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(raw), &grouped); err != nil {
+		t.Fatalf("decode plugin list output: %v\nraw:\n%s", err, raw)
+	}
+	var analyzers []map[string]any
+	if err := json.Unmarshal(grouped["analyzers"], &analyzers); err != nil {
+		t.Fatalf("decode analyzers group: %v\nraw:\n%s", err, raw)
+	}
+	for _, item := range analyzers {
+		if item["id"] != pluginID {
+			continue
+		}
+		if builtIn, _ := item["BuiltIn"].(bool); builtIn {
+			t.Fatalf("analyzer plugin %q is listed as built-in; want external origin", pluginID)
+		}
+		if enabled, _ := item["Enabled"].(bool); !enabled {
+			t.Fatalf("analyzer plugin %q is listed as disabled after enable", pluginID)
+		}
+		return
+	}
+	t.Fatalf("analyzer plugin %q was not listed under analyzers:\n%s", pluginID, raw)
+}
+
+// assertAnalyzerRan checks the scan response metadata records the analyzer
+// in analyzer_runs.
+func assertAnalyzerRan(t *testing.T, raw string, pluginID string) {
+	t.Helper()
+	var response struct {
+		Metadata struct {
+			AnalyzerRuns []string `json:"analyzer_runs"`
+		} `json:"metadata"`
+	}
+	if err := json.Unmarshal([]byte(raw), &response); err != nil {
+		t.Fatalf("decode scan output: %v", err)
+	}
+	for _, run := range response.Metadata.AnalyzerRuns {
+		if run == pluginID {
+			return
+		}
+	}
+	t.Fatalf("analyzer %q not recorded in metadata.analyzer_runs %v", pluginID, response.Metadata.AnalyzerRuns)
+}
+
+// assertSinglePluginSubprocess reads the pid file the analyzer fixture
+// appended to on every hook call and asserts every recorded PID is identical:
+// one pooled subprocess served the whole scan.
+func assertSinglePluginSubprocess(t *testing.T, pidFile string) {
+	t.Helper()
+	data, err := os.ReadFile(pidFile)
+	if err != nil {
+		t.Fatalf("read analyzer pid file: %v", err)
+	}
+	pids := strings.Fields(string(data))
+	if len(pids) < 2 {
+		t.Fatalf("expected at least 2 recorded plugin PIDs (Ready, Applicable, Analyze), got %d: %v", len(pids), pids)
+	}
+	for _, pid := range pids[1:] {
+		if pid != pids[0] {
+			t.Fatalf("analyzer plugin used more than one subprocess during the scan: %v", pids)
+		}
+	}
+}
+
 type examplePluginPackage struct {
 	BinaryPath   string
 	SourceDir    string
@@ -110,13 +252,22 @@ type examplePluginPackage struct {
 
 func buildExamplePlugin(t *testing.T) examplePluginPackage {
 	t.Helper()
+	return buildExamplePluginWithSDK(t, sdkModuleVersion(t))
+}
+
+// buildExamplePluginWithSDK builds the example detector fixture against a
+// specific github.com/bomly-dev/bomly-sdk release. The min-version
+// wire-compatibility smoke uses it to compile against the oldest supported
+// SDK release instead of the pinned one.
+func buildExamplePluginWithSDK(t *testing.T, sdkVersion string) examplePluginPackage {
+	t.Helper()
 	// TODO: Replace this generated fixture with the public example plugin repos once they can be cloned in CI.
 	binaryName := "bomly-example-gomod-detector"
 	if runtime.GOOS == "windows" {
 		binaryName += ".exe"
 	}
 	sourceDir := t.TempDir()
-	writeExamplePluginSource(t, sourceDir)
+	writeExamplePluginSource(t, sourceDir, sdkVersion)
 	manifestPath := filepath.Join(sourceDir, "bomly-plugin.json")
 	readmePath := filepath.Join(sourceDir, "README.md")
 	binaryPath := filepath.Join(t.TempDir(), binaryName)
@@ -136,11 +287,9 @@ func buildExamplePlugin(t *testing.T) examplePluginPackage {
 	}
 }
 
-func writeExamplePluginSource(t *testing.T, dir string) {
+func writeExamplePluginSource(t *testing.T, dir, sdkVersion string) {
 	t.Helper()
-	// TODO: Use the real external detector example when the private plugin repos become public.
-	repoPath := filepath.ToSlash(repoRoot(t))
-	goMod := "module bomly-smoke-plugin\n\ngo 1.25\n\nrequire github.com/bomly-dev/bomly-cli v0.0.0\n\nreplace github.com/bomly-dev/bomly-cli => " + repoPath + "\n"
+	goMod := "module bomly-smoke-plugin\n\ngo 1.25\n\nrequire github.com/bomly-dev/bomly-sdk " + sdkVersion + "\n"
 	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(goMod), 0o644); err != nil {
 		t.Fatalf("write plugin go.mod: %v", err)
 	}
@@ -152,6 +301,38 @@ func writeExamplePluginSource(t *testing.T, dir string) {
 	}
 	if err := os.WriteFile(filepath.Join(dir, "README.md"), []byte("# Smoke Plugin Fixture\n\nGenerated by the smoke test.\n"), 0o644); err != nil {
 		t.Fatalf("write plugin README: %v", err)
+	}
+}
+
+// buildExampleAnalyzerPlugin builds the embedded example analyzer fixture
+// (exampleAnalyzerPluginMainSource in fixture_compile_test.go) against the
+// pinned sdk release and returns the built binary.
+func buildExampleAnalyzerPlugin(t *testing.T) examplePluginPackage {
+	t.Helper()
+	binaryName := "bomly-example-reach-analyzer"
+	if runtime.GOOS == "windows" {
+		binaryName += ".exe"
+	}
+	sourceDir := t.TempDir()
+	goMod := "module bomly-smoke-analyzer-plugin\n\ngo 1.25\n\nrequire github.com/bomly-dev/bomly-sdk " + sdkModuleVersion(t) + "\n"
+	if err := os.WriteFile(filepath.Join(sourceDir, "go.mod"), []byte(goMod), 0o644); err != nil {
+		t.Fatalf("write analyzer plugin go.mod: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "main.go"), []byte(exampleAnalyzerPluginMainSource), 0o644); err != nil {
+		t.Fatalf("write analyzer plugin main.go: %v", err)
+	}
+	binaryPath := filepath.Join(t.TempDir(), binaryName)
+	build := exec.Command("go", "build", "-mod=mod", "-o", binaryPath, ".")
+	build.Dir = sourceDir
+	output, err := build.CombinedOutput()
+	if err != nil {
+		t.Fatalf("build example analyzer plugin: %v\n%s", err, string(output))
+	}
+	return examplePluginPackage{
+		BinaryPath: binaryPath,
+		SourceDir:  sourceDir,
+		ID:         "bomly.example.reach-analyzer",
+		Version:    "0.0.0-dev",
 	}
 }
 

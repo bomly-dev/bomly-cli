@@ -7,7 +7,7 @@ import (
 	"os/exec"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"github.com/hashicorp/go-hclog"
 	hplugin "github.com/hashicorp/go-plugin"
 )
@@ -75,6 +75,14 @@ func (c *Client) Raw() sdk.Client {
 		return nil
 	}
 	return c.raw
+}
+
+// Exited reports whether the plugin subprocess has terminated.
+func (c *Client) Exited() bool {
+	if c == nil || c.client == nil {
+		return true
+	}
+	return c.client.Exited()
 }
 
 // Close terminates the plugin subprocess.

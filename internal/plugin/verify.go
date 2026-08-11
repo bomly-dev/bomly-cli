@@ -64,6 +64,7 @@ func Verify(ctx context.Context, root, id string) (*VerifyResult, error) {
 			DetectorDescriptor: installedSnapshot.DetectorDescriptor,
 			MatcherDescriptor:  installedSnapshot.MatcherDescriptor,
 			AuditorDescriptor:  installedSnapshot.AuditorDescriptor,
+			AnalyzerDescriptor: installedSnapshot.AnalyzerDescriptor,
 			Installed:          record,
 			Entrypoint:         fullEntrypoint,
 		},

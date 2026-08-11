@@ -1,6 +1,9 @@
 package config
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -167,5 +170,109 @@ func TestApplyDefaultsSetsMaxDepth(t *testing.T) {
 	ApplyDefaults(&explicit)
 	if explicit.MaxDepth != 7 {
 		t.Fatalf("expected explicit MaxDepth 7 to survive defaults, got %d", explicit.MaxDepth)
+	}
+}
+
+func TestLoadFileParsesKindScopedPluginConfig(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	if err := os.WriteFile(path, []byte(`
+plugins:
+  matchers:
+    acme.matcher:
+      api_base: https://api.example
+  analyzers:
+    acme.analyzer:
+      mode: fast
+`), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	fileCfg, err := LoadFile(path)
+	if err != nil {
+		t.Fatalf("LoadFile() error = %v", err)
+	}
+	var resolved Resolved
+	ApplyFileConfig(&resolved, *fileCfg)
+	if got := resolved.Plugins.ForComponent(PluginKindMatcher, "acme.matcher")["api_base"]; got != "https://api.example" {
+		t.Fatalf("matcher config = %#v", got)
+	}
+	if got := resolved.Plugins.ForComponent(PluginKindAnalyzer, "acme.analyzer")["mode"]; got != "fast" {
+		t.Fatalf("analyzer config = %#v", got)
+	}
+	if resolved.Plugins.ForComponent(PluginKindDetector, "acme.matcher") != nil {
+		t.Fatal("kind-scoped block leaked into another kind")
+	}
+	if len(resolved.Plugins.Legacy) != 0 {
+		t.Fatalf("kind-scoped config unexpectedly recorded legacy entries: %#v", resolved.Plugins.Legacy)
+	}
+}
+
+func TestLoadFileParsesLegacyFlatPluginConfigWithDeprecationWarning(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	if err := os.WriteFile(path, []byte(`
+plugins:
+  acme.matcher:
+    api_base: https://api.example
+`), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	fileCfg, err := LoadFile(path)
+	if err != nil {
+		t.Fatalf("LoadFile() error = %v", err)
+	}
+	var resolved Resolved
+	ApplyFileConfig(&resolved, *fileCfg)
+	if got := resolved.Plugins.ForComponent(PluginKindMatcher, "acme.matcher")["api_base"]; got != "https://api.example" {
+		t.Fatalf("legacy flat config did not apply to matcher lookup: %#v", got)
+	}
+	if got := resolved.Plugins.ForPlugin("acme.matcher")["api_base"]; got != "https://api.example" {
+		t.Fatalf("legacy flat config missing from ForPlugin: %#v", got)
+	}
+	warnings := ValidatePluginConfigs(resolved, PluginCatalog{})
+	if len(warnings) != 1 || !strings.Contains(warnings[0], "plugins.acme.matcher: flat plugin configuration is deprecated") {
+		t.Fatalf("warnings = %#v, want one deprecation warning", warnings)
+	}
+}
+
+func TestValidatePluginConfigsWarnsOnUnknownComponent(t *testing.T) {
+	resolved := Resolved{Plugins: PluginConfigs{
+		Matchers: map[string]map[string]any{
+			"osv":     {"api_base": "https://api.example"},
+			"unknown": {"api_base": "https://api.example"},
+		},
+	}}
+	catalog := PluginCatalog{Components: map[string][]string{
+		PluginKindMatcher: {"osv"},
+	}}
+	warnings := ValidatePluginConfigs(resolved, catalog)
+	if len(warnings) != 1 ||
+		!strings.Contains(warnings[0], "plugins.matchers.unknown") ||
+		!strings.Contains(warnings[0], "no built-in component or installed plugin") {
+		t.Fatalf("warnings = %#v, want one unknown-component warning", warnings)
+	}
+}
+
+func TestValidatePluginConfigsWarnsOnSchemaUnknownKeys(t *testing.T) {
+	schema := []byte(`{"type":"object","properties":{"api_base":{"type":"string"}},"additionalProperties":false}`)
+	resolved := Resolved{Plugins: PluginConfigs{
+		Matchers: map[string]map[string]any{
+			"acme.matcher": {"api_base": "https://api.example", "bogus": true, "extra": 1},
+		},
+	}}
+	catalog := PluginCatalog{
+		Components: map[string][]string{PluginKindMatcher: {"acme.matcher"}},
+		Schemas:    map[string]json.RawMessage{SchemaKey(PluginKindMatcher, "acme.matcher"): schema},
+	}
+	warnings := ValidatePluginConfigs(resolved, catalog)
+	if len(warnings) != 1 ||
+		!strings.Contains(warnings[0], "plugins.matchers.acme.matcher") ||
+		!strings.Contains(warnings[0], "bogus, extra") {
+		t.Fatalf("warnings = %#v, want one unknown-key warning", warnings)
+	}
+
+	// Schemas that allow additional properties never warn.
+	openSchema := []byte(`{"type":"object","properties":{"api_base":{"type":"string"}}}`)
+	catalog.Schemas[SchemaKey(PluginKindMatcher, "acme.matcher")] = openSchema
+	if warnings := ValidatePluginConfigs(resolved, catalog); len(warnings) != 0 {
+		t.Fatalf("open schema produced warnings: %#v", warnings)
 	}
 }

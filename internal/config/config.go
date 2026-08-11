@@ -57,15 +57,15 @@ type Resolved struct {
 	Quiet                 bool     `doc:"Suppress all non-error output" env:"BOMLY_QUIET"`
 	Verbosity             int      `doc:"Verbosity level (0=normal, 1=verbose, 2+=debug)" env:"BOMLY_VERBOSE"`
 	LoadedFiles           []string
-	HTTPProxy             string                    `doc:"Outbound HTTP proxy URL; when set, it replaces standard HTTP_PROXY/HTTPS_PROXY URLs" env:"BOMLY_HTTP_PROXY"`
-	HTTPNoProxy           string                    `doc:"Hosts, domains, or CIDRs added to the standard NO_PROXY/no_proxy bypass list" env:"BOMLY_HTTP_NO_PROXY"`
-	HTTPProxyType         string                    `doc:"Outbound proxy type when using host/port proxy settings: http, https, or socks5" env:"BOMLY_HTTP_PROXY_TYPE" default:"http"`
-	HTTPProxyHost         string                    `doc:"Outbound proxy hostname or IP address used when http_proxy is not set" env:"BOMLY_HTTP_PROXY_HOST"`
-	HTTPProxyPort         int                       `doc:"Outbound proxy port used with http_proxy_host" env:"BOMLY_HTTP_PROXY_PORT"`
-	HTTPProxyUsername     string                    `doc:"Username for proxy authentication when using host/port proxy settings" env:"BOMLY_HTTP_PROXY_USERNAME"`
-	HTTPProxyPassword     string                    `doc:"Password for proxy authentication when using host/port proxy settings" env:"BOMLY_HTTP_PROXY_PASSWORD"`
-	HTTPCACertFile        string                    `doc:"PEM certificate chain file to trust for outbound HTTPS connections, including TLS-intercepting proxies" env:"BOMLY_HTTP_CA_CERT_FILE"`
-	Plugins               map[string]map[string]any `doc:"Per-plugin configuration keyed by managed plugin ID"`
+	HTTPProxy             string        `doc:"Outbound HTTP proxy URL; when set, it replaces standard HTTP_PROXY/HTTPS_PROXY URLs" env:"BOMLY_HTTP_PROXY"`
+	HTTPNoProxy           string        `doc:"Hosts, domains, or CIDRs added to the standard NO_PROXY/no_proxy bypass list" env:"BOMLY_HTTP_NO_PROXY"`
+	HTTPProxyType         string        `doc:"Outbound proxy type when using host/port proxy settings: http, https, or socks5" env:"BOMLY_HTTP_PROXY_TYPE" default:"http"`
+	HTTPProxyHost         string        `doc:"Outbound proxy hostname or IP address used when http_proxy is not set" env:"BOMLY_HTTP_PROXY_HOST"`
+	HTTPProxyPort         int           `doc:"Outbound proxy port used with http_proxy_host" env:"BOMLY_HTTP_PROXY_PORT"`
+	HTTPProxyUsername     string        `doc:"Username for proxy authentication when using host/port proxy settings" env:"BOMLY_HTTP_PROXY_USERNAME"`
+	HTTPProxyPassword     string        `doc:"Password for proxy authentication when using host/port proxy settings" env:"BOMLY_HTTP_PROXY_PASSWORD"`
+	HTTPCACertFile        string        `doc:"PEM certificate chain file to trust for outbound HTTPS connections, including TLS-intercepting proxies" env:"BOMLY_HTTP_CA_CERT_FILE"`
+	Plugins               PluginConfigs `doc:"Per-plugin configuration scoped by component kind (detectors, matchers, auditors, analyzers) and keyed by component name; legacy flat plugin-ID keys are still accepted with a deprecation warning"`
 
 	// OSV matcher settings
 	OsvAPIBase  string `doc:"Base URL for the OSV vulnerability API" env:"BOMLY_OSV_API_BASE" default:"https://api.osv.dev"`
@@ -88,15 +88,15 @@ type Resolved struct {
 // back to the flat runtime configuration, while legacy tags drive migration
 // errors and generated documentation for the former flat YAML keys.
 type File struct {
-	Target     TargetFile                `yaml:"target,omitempty"`
-	Pipeline   PipelineFile              `yaml:"pipeline,omitempty"`
-	Components ComponentsFile            `yaml:"components,omitempty"`
-	Policy     PolicyFile                `yaml:"policy,omitempty"`
-	Output     OutputFile                `yaml:"output,omitempty"`
-	Logging    LoggingFile               `yaml:"logging,omitempty"`
-	Network    NetworkFile               `yaml:"network,omitempty"`
-	Matchers   MatchersFile              `yaml:"matchers,omitempty"`
-	Plugins    map[string]map[string]any `yaml:"plugins,omitempty" resolved:"Plugins"`
+	Target     TargetFile     `yaml:"target,omitempty"`
+	Pipeline   PipelineFile   `yaml:"pipeline,omitempty"`
+	Components ComponentsFile `yaml:"components,omitempty"`
+	Policy     PolicyFile     `yaml:"policy,omitempty"`
+	Output     OutputFile     `yaml:"output,omitempty"`
+	Logging    LoggingFile    `yaml:"logging,omitempty"`
+	Network    NetworkFile    `yaml:"network,omitempty"`
+	Matchers   MatchersFile   `yaml:"matchers,omitempty"`
+	Plugins    PluginsFile    `yaml:"plugins,omitempty" resolved:"Plugins"`
 }
 
 // TargetFile configures the execution target selected for a scan.

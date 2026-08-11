@@ -10,7 +10,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -774,7 +774,7 @@ func TestCommandContextInitialize_RepositoryConfigCannotGrantAuthorityImplicitly
 		len(got.InstallArgs) != 0 || got.Detectors != "" || got.Matchers != "" ||
 		len(got.Outputs) != 0 || got.HTTPProxy != "" ||
 		got.OsvAPIBase != "https://api.osv.dev" || got.OsvCacheDir != "" ||
-		len(got.Plugins) != 0 || len(got.LoadedFiles) != 0 {
+		!got.Plugins.IsEmpty() || len(got.LoadedFiles) != 0 {
 		t.Fatalf("repository config granted authority without --config: %#v", got)
 	}
 }
@@ -838,7 +838,7 @@ func TestCommandContextInitialize_ExplicitConfigResolvesRelativeCAPathAndPrivate
 	if got.ScorecardAPIBase != "https://scorecard.internal.test" {
 		t.Fatalf("Scorecard API base = %q", got.ScorecardAPIBase)
 	}
-	if got.Plugins["private.matcher"]["endpoint"] != "https://advisories.internal.test" {
+	if got.Plugins.ForPlugin("private.matcher")["endpoint"] != "https://advisories.internal.test" {
 		t.Fatalf("plugin config = %#v", got.Plugins)
 	}
 	if len(got.LoadedFiles) != 1 || got.LoadedFiles[0] != configPath {

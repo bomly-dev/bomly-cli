@@ -62,6 +62,7 @@ func newRootCmd(version string) (*cobra.Command, error) {
 			if err := options.ResolveConfig(cmd); err != nil {
 				return err
 			}
+			warnPluginConfigIssues(cmd, options)
 			cmd.SetContext(options.PluginLaunchContext(opts.ToContext(cmd.Context(), options)))
 			logResolvedOptions(cmd)
 			return nil
@@ -139,6 +140,7 @@ func newRootCmd(version string) (*cobra.Command, error) {
 	root.AddCommand(versionCmd)
 	root.AddCommand(benchmarkCmd)
 	root.AddCommand(baselineCmd)
+	root.AddCommand(newInternalCmd())
 
 	setHelpFuncRecursive(root, startupLogoHelpFunc(root))
 

@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -15,9 +16,10 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	plugschema "github.com/bomly-dev/bomly-cli/sdk"
+	plugschema "github.com/bomly-dev/bomly-sdk"
 )
 
 const (
@@ -46,7 +48,13 @@ type LaunchOptions struct {
 	HTTPProxyPassword  string
 	HTTPCACertFile     string
 	HTTPClientProvider *plugschema.HTTPClientProvider
-	PluginConfigs      map[string]map[string]any
+	// PluginConfigs carries the kind-scoped per-component configuration
+	// resolved from the CLI config. Launch-time lookups are by plugin ID,
+	// which is unique across the install database.
+	PluginConfigs config.PluginConfigs
+	// Pool, when set, keeps one live subprocess per plugin for the lifetime of
+	// the owning command instead of launching one per call. Never serialized.
+	Pool *ClientPool
 }
 
 type launchOptionsKey struct{}
@@ -94,6 +102,7 @@ type RuntimeDescriptorSnapshot struct {
 	DetectorDescriptor *plugschema.DetectorDescriptor `json:"detectorDescriptor,omitempty"`
 	MatcherDescriptor  *plugschema.MatcherDescriptor  `json:"matcherDescriptor,omitempty"`
 	AuditorDescriptor  *plugschema.AuditorDescriptor  `json:"auditorDescriptor,omitempty"`
+	AnalyzerDescriptor *plugschema.AnalyzerDescriptor `json:"analyzerDescriptor,omitempty"`
 }
 
 // InstalledPlugin records one plugin installation.
@@ -429,6 +438,8 @@ func validateRuntimeSnapshot(snapshot RuntimeDescriptorSnapshot) error {
 		return plugschema.ValidateMatcherDescriptor(snapshot.MatcherDescriptor)
 	case plugschema.PluginKindAuditor:
 		return plugschema.ValidateAuditorDescriptor(snapshot.AuditorDescriptor)
+	case plugschema.PluginKindAnalyzer:
+		return plugschema.ValidateAnalyzerDescriptor(snapshot.AnalyzerDescriptor)
 	default:
 		return fmt.Errorf("plugin runtime descriptor snapshot kind %q is invalid", snapshot.Kind)
 	}
@@ -455,7 +466,7 @@ func validateManifest(manifest Manifest) error {
 		return errors.New("plugin manifest version is required")
 	}
 	switch manifest.Kind {
-	case plugschema.PluginKindDetector, plugschema.PluginKindMatcher, plugschema.PluginKindAuditor:
+	case plugschema.PluginKindDetector, plugschema.PluginKindMatcher, plugschema.PluginKindAuditor, plugschema.PluginKindAnalyzer:
 	default:
 		return fmt.Errorf("plugin manifest kind %q is invalid", manifest.Kind)
 	}
@@ -709,6 +720,10 @@ func runtimeSnapshotMatchesSnapshot(live, installed RuntimeDescriptorSnapshot) e
 		if !auditorDescriptorEqual(live.AuditorDescriptor, installed.AuditorDescriptor) {
 			return fmt.Errorf("plugin runtime auditor descriptor does not match installed snapshot")
 		}
+	case plugschema.PluginKindAnalyzer:
+		if !analyzerDescriptorEqual(live.AnalyzerDescriptor, installed.AnalyzerDescriptor) {
+			return fmt.Errorf("plugin runtime analyzer descriptor does not match installed snapshot")
+		}
 	}
 	return nil
 }
@@ -747,6 +762,7 @@ func LoadInstalledPlugins(root string) ([]Info, error) {
 			DetectorDescriptor: cloneDetectorDescriptor(snapshot.DetectorDescriptor),
 			MatcherDescriptor:  cloneMatcherDescriptor(snapshot.MatcherDescriptor),
 			AuditorDescriptor:  cloneAuditorDescriptor(snapshot.AuditorDescriptor),
+			AnalyzerDescriptor: cloneAnalyzerDescriptor(snapshot.AnalyzerDescriptor),
 			Installed:          new(item),
 			Enabled:            item.Enabled,
 			Entrypoint:         fullEntrypoint,
@@ -809,6 +825,7 @@ func LoadRuntimePlugins(root string) ([]Info, error) {
 			DetectorDescriptor: cloneDetectorDescriptor(snapshot.DetectorDescriptor),
 			MatcherDescriptor:  cloneMatcherDescriptor(snapshot.MatcherDescriptor),
 			AuditorDescriptor:  cloneAuditorDescriptor(snapshot.AuditorDescriptor),
+			AnalyzerDescriptor: cloneAnalyzerDescriptor(snapshot.AnalyzerDescriptor),
 			Installed:          new(item),
 			Enabled:            item.Enabled,
 			Entrypoint:         fullEntrypoint,
@@ -834,14 +851,46 @@ func matcherDescriptorEqual(left, right *plugschema.MatcherDescriptor) bool {
 	if left == nil || right == nil {
 		return left == nil && right == nil
 	}
-	return componentDescriptorEqual(componentFromMatcherDescriptor(*left), componentFromMatcherDescriptor(*right))
+	return componentDescriptorEqual(componentFromMatcherDescriptor(*left), componentFromMatcherDescriptor(*right)) &&
+		slices.Equal(left.Capabilities, right.Capabilities) &&
+		configSchemaEqual(left.ConfigSchema, right.ConfigSchema)
+}
+
+// configSchemaEqual compares config schemas semantically: snapshot files are
+// written with indentation, so raw byte equality would falsely reject a
+// re-read schema that only differs in whitespace.
+func configSchemaEqual(left, right json.RawMessage) bool {
+	return bytes.Equal(compactJSON(left), compactJSON(right))
+}
+
+func compactJSON(raw json.RawMessage) []byte {
+	if len(raw) == 0 {
+		return nil
+	}
+	var buf bytes.Buffer
+	if err := json.Compact(&buf, raw); err != nil {
+		return raw
+	}
+	return buf.Bytes()
 }
 
 func auditorDescriptorEqual(left, right *plugschema.AuditorDescriptor) bool {
 	if left == nil || right == nil {
 		return left == nil && right == nil
 	}
-	return componentDescriptorEqual(componentFromAuditorDescriptor(*left), componentFromAuditorDescriptor(*right))
+	return componentDescriptorEqual(componentFromAuditorDescriptor(*left), componentFromAuditorDescriptor(*right)) &&
+		configSchemaEqual(left.ConfigSchema, right.ConfigSchema)
+}
+
+func analyzerDescriptorEqual(left, right *plugschema.AnalyzerDescriptor) bool {
+	if left == nil || right == nil {
+		return left == nil && right == nil
+	}
+	return componentDescriptorEqual(componentFromAnalyzerDescriptor(*left), componentFromAnalyzerDescriptor(*right)) &&
+		slices.Equal(left.SupportedLanguages, right.SupportedLanguages) &&
+		slices.Equal(left.SupportedTiers, right.SupportedTiers) &&
+		slices.Equal(left.Capabilities, right.Capabilities) &&
+		configSchemaEqual(left.ConfigSchema, right.ConfigSchema)
 }
 
 func componentDescriptorEqual(left, right plugschema.ComponentDescriptor) bool {
@@ -858,11 +907,15 @@ func componentFromDetectorDescriptor(descriptor plugschema.DetectorDescriptor) p
 }
 
 func componentFromMatcherDescriptor(descriptor plugschema.MatcherDescriptor) plugschema.ComponentDescriptor {
-	return plugschema.ComponentDescriptor(descriptor)
+	return plugschema.ComponentDescriptor{Name: descriptor.Name, DisplayName: descriptor.DisplayName, Aliases: descriptor.Aliases, Tags: descriptor.Tags, SupportedEcosystems: descriptor.SupportedEcosystems, SupportedManagers: descriptor.SupportedManagers}
 }
 
 func componentFromAuditorDescriptor(descriptor plugschema.AuditorDescriptor) plugschema.ComponentDescriptor {
-	return plugschema.ComponentDescriptor(descriptor)
+	return plugschema.ComponentDescriptor{Name: descriptor.Name, DisplayName: descriptor.DisplayName, Aliases: descriptor.Aliases, Tags: descriptor.Tags, SupportedEcosystems: descriptor.SupportedEcosystems, SupportedManagers: descriptor.SupportedManagers}
+}
+
+func componentFromAnalyzerDescriptor(descriptor plugschema.AnalyzerDescriptor) plugschema.ComponentDescriptor {
+	return plugschema.ComponentDescriptor{Name: descriptor.Name, DisplayName: descriptor.DisplayName, Aliases: descriptor.Aliases, Tags: descriptor.Tags, SupportedEcosystems: descriptor.SupportedEcosystems, SupportedManagers: descriptor.SupportedManagers}
 }
 
 func cloneDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugschema.DetectorDescriptor {
@@ -962,6 +1015,8 @@ func cloneMatcherDescriptor(descriptor *plugschema.MatcherDescriptor) *plugschem
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
 	copyValue.Tags = append([]string(nil), descriptor.Tags...)
+	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
+	copyValue.ConfigSchema = append(json.RawMessage(nil), descriptor.ConfigSchema...)
 	return &copyValue
 }
 
@@ -974,5 +1029,22 @@ func cloneAuditorDescriptor(descriptor *plugschema.AuditorDescriptor) *plugschem
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
 	copyValue.Tags = append([]string(nil), descriptor.Tags...)
+	copyValue.ConfigSchema = append(json.RawMessage(nil), descriptor.ConfigSchema...)
+	return &copyValue
+}
+
+func cloneAnalyzerDescriptor(descriptor *plugschema.AnalyzerDescriptor) *plugschema.AnalyzerDescriptor {
+	if descriptor == nil {
+		return nil
+	}
+	copyValue := *descriptor
+	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
+	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
+	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
+	copyValue.Tags = append([]string(nil), descriptor.Tags...)
+	copyValue.SupportedLanguages = append([]plugschema.Language(nil), descriptor.SupportedLanguages...)
+	copyValue.SupportedTiers = append([]plugschema.ReachabilityTier(nil), descriptor.SupportedTiers...)
+	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
+	copyValue.ConfigSchema = append(json.RawMessage(nil), descriptor.ConfigSchema...)
 	return &copyValue
 }

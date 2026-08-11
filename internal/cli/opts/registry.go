@@ -3,7 +3,7 @@ package opts
 import (
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // RegistryConfigsFromResolved converts resolved CLI configuration into scan registry wiring.
@@ -39,5 +39,6 @@ func RegistryConfigsFromResolved(cfg config.Resolved) engine.RegistryConfigs {
 		HTTPProxyUsername:     cfg.HTTPProxyUsername,
 		HTTPProxyPassword:     cfg.HTTPProxyPassword,
 		HTTPCACertFile:        cfg.HTTPCACertFile,
+		PluginConfigs:         cfg.Plugins,
 	}
 }

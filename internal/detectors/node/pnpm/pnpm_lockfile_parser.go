@@ -11,7 +11,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"gopkg.in/yaml.v3"
 )
 

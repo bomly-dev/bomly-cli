@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/anchore/syft/syft/cataloging"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func syftCatalogerExpressions(req sdk.DetectionRequest) []string {

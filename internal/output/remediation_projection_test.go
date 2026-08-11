@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestScanAndDiffJSONKeepRemediationOnTopLevelPackages(t *testing.T) {

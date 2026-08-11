@@ -11,7 +11,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/mcp"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"github.com/mark3labs/mcp-go/client"
 	mcplib "github.com/mark3labs/mcp-go/mcp"
 	"go.uber.org/zap"

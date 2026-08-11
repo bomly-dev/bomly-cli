@@ -3,7 +3,7 @@ package nodetest
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // MaxFuzzInputSize caps fuzz payloads for lockfile parser targets.

@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // SchemaVersion is the current CLI output schema version.

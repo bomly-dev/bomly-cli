@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // decodeSyftJSONGraphs falls back to generic SBOM parsing when the Syft library

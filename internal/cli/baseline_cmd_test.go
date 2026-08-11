@@ -13,7 +13,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/baseline"
 	"github.com/bomly-dev/bomly-cli/internal/config"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestBaselineInspectJSON(t *testing.T) {

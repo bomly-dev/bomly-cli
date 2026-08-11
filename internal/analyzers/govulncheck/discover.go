@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	model "github.com/bomly-dev/bomly-sdk"
 )
 
 // discoverModuleRoots returns the set of Go module roots derivable from

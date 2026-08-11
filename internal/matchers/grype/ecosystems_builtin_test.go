@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	syftPkg "github.com/anchore/syft/syft/pkg"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // The declared ecosystem list is what the generated docs and `bomly plugins

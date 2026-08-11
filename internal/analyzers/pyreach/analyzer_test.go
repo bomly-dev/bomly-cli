@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	model "github.com/bomly-dev/bomly-sdk"
 )
 
 // fakeRunner returns a canned RunnerResult or error for tests.

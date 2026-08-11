@@ -3,7 +3,7 @@ package scorecard
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestResolveRepo(t *testing.T) {

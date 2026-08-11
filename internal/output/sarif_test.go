@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 const sarifTestPURL = "pkg:npm/lodash@4.17.15"

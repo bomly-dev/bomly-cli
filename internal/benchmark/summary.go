@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 const summarySchemaVersion = "bomly.benchmark.v2"

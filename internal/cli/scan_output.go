@@ -7,7 +7,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func diffAuditOutput(audit *diffengine.Audit, baseRegistry, headRegistry *sdk.PackageRegistry) *output.DiffAudit {

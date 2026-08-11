@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // pipLockFileName is the committed, fully-pinned lock the pip fast-path reads.

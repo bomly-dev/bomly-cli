@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/anchore/packageurl-go"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // githubRepoPattern matches an org/repo segment in any github.com URL form

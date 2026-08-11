@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	model "github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
 

@@ -3,7 +3,7 @@ package consolidation
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestConsolidateGraphs_PreservesOriginAndFallbackProvenance(t *testing.T) {

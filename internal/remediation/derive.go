@@ -9,7 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 const (

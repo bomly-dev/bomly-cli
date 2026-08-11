@@ -11,7 +11,7 @@ package govulncheck
 import (
 	"context"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	model "github.com/bomly-dev/bomly-sdk"
 )
 
 // Runner executes govulncheck against one Go module root and returns the

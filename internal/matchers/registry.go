@@ -1,6 +1,6 @@
 package matchers
 
-import "github.com/bomly-dev/bomly-cli/sdk"
+import "github.com/bomly-dev/bomly-sdk"
 
 // RegistryPackagesForGraph seeds the PURL-keyed package registry from the
 // dependency graph and returns the registry packages that matchers should

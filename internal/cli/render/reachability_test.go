@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	model "github.com/bomly-dev/bomly-sdk"
 )
 
 func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {

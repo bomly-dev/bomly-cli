@@ -3,7 +3,7 @@ package engine
 import (
 	"fmt"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // registryMatchRequest builds the matcher-facing graph without mutating the

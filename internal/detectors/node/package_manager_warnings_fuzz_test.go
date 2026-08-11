@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/nodetest"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // FuzzPackageManagerWarnings exercises the project-configuration parsers behind

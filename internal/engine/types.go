@@ -3,7 +3,7 @@ package engine
 import (
 	"io"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // PipelineRequest defines input for a full pipeline run.

@@ -5,7 +5,7 @@ package matchers
 import (
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // MissingLicensePackages returns the packages eligible for external license lookup.

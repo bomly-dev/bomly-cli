@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // ScanResponse is the structured payload for the scan command. It surfaces the

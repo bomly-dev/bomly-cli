@@ -3,7 +3,7 @@ package engine
 import (
 	"context"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func resolveFindingPolicyStatuses(ctx context.Context, findings []sdk.Finding, registry *sdk.PackageRegistry, resolvers []sdk.FindingPolicyResolver) []sdk.Finding {

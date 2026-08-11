@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	model "github.com/bomly-dev/bomly-sdk"
 	"gopkg.in/yaml.v3"
 
 	"github.com/bomly-dev/bomly-cli/internal/system"

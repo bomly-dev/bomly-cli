@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestLoadTargetsUsesEmbeddedManifest(t *testing.T) {

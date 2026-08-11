@@ -3,7 +3,7 @@ package consolidation
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestRebaseGraphLocations_PrefixesSubprojectPath(t *testing.T) {

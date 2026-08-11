@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	model "github.com/bomly-dev/bomly-sdk"
 	"github.com/evanw/esbuild/pkg/api"
 )
 

@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // ParseIntegrityDigests parses a space-separated integrity string (for example "sha512-abc sha1-xyz")

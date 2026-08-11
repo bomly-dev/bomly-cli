@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // mavenModule is one reactor module discovered by walking pom <modules>

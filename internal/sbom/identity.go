@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/anchore/packageurl-go"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func parsePURL(value string) *packageurl.PackageURL {

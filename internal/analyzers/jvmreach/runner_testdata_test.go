@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	model "github.com/bomly-dev/bomly-sdk"
 )
 
 func jvmProjectFixture(name string) string {

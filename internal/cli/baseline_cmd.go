@@ -12,7 +12,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	scanengine "github.com/bomly-dev/bomly-cli/internal/engine/scan"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"github.com/spf13/cobra"
 )
 

@@ -3,7 +3,7 @@ package explain
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestFindWhy_MarksCyclicPaths(t *testing.T) {

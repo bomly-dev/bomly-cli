@@ -2,7 +2,7 @@ package mcp
 
 import (
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // maxExplainPaths caps how many root-to-target chains one match reports.

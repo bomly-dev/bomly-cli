@@ -20,9 +20,44 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-
-	"github.com/bomly-dev/bomly-cli/internal/benchmark"
 )
+
+// smokeTarget mirrors the shared scan-target manifest entries this suite
+// consumes. testdata/scan_targets.json is the smoke copy of the manifest;
+// keep it in sync with the engine's benchmark targets when scan cases change.
+type smokeTarget struct {
+	Name      string   `json:"name"`
+	URL       string   `json:"url"`
+	Ref       string   `json:"ref"`
+	Ecosystem string   `json:"ecosystem"`
+	Args      []string `json:"args,omitempty"`
+	Tools     []string `json:"tools,omitempty"`
+	Detectors string   `json:"detectors,omitempty"`
+}
+
+func loadSmokeTargets(t *testing.T) []smokeTarget {
+	t.Helper()
+	raw, err := os.ReadFile(filepath.Join("testdata", "scan_targets.json"))
+	if err != nil {
+		t.Fatalf("read scan targets: %v", err)
+	}
+	var targets []smokeTarget
+	if err := json.Unmarshal(raw, &targets); err != nil {
+		t.Fatalf("parse scan targets: %v", err)
+	}
+	return targets
+}
+
+// smokeArgs returns the scan arguments for the target's pinned revision.
+func (t smokeTarget) smokeArgs() []string {
+	args := []string{"scan", "--url", t.URL, "--ref", t.Ref, "--format", "json"}
+	args = append(args, "--ecosystems", t.Ecosystem)
+	if strings.TrimSpace(t.Detectors) != "" {
+		args = append(args, "--detectors", t.Detectors)
+	}
+	args = append(args, t.Args...)
+	return args
+}
 
 // bomlyBin is the path to the compiled CLI binary, built once in TestMain.
 var bomlyBin string
@@ -131,18 +166,14 @@ func TestScan(t *testing.T) {
 		tools []string // required tools - skip if any missing
 	}{}
 
-	targets, err := benchmark.LoadTargets("")
-	if err != nil {
-		t.Fatalf("load shared scan targets: %v", err)
-	}
-	for _, target := range targets {
+	for _, target := range loadSmokeTargets(t) {
 		cases = append(cases, struct {
 			name  string
 			args  []string
 			tools []string
 		}{
 			name:  target.Name,
-			args:  target.SmokeArgs(),
+			args:  target.smokeArgs(),
 			tools: target.Tools,
 		})
 	}

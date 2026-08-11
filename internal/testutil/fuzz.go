@@ -3,7 +3,7 @@ package testutil
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // MaxFuzzInputSize is the shared upper bound for parser fuzz payloads.

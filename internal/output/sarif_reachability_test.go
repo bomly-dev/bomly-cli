@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	model "github.com/bomly-dev/bomly-sdk"
 )
 
 // fixtureRegistryWithVuln builds a single-package PURL-keyed registry where

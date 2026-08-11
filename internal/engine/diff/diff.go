@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // Target describes one side of a diff pipeline run.

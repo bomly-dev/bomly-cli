@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testutil"
-	plugschema "github.com/bomly-dev/bomly-cli/sdk"
+	plugschema "github.com/bomly-dev/bomly-sdk"
 )
 
 func TestResolveGitHubReleaseAndInstall(t *testing.T) {
@@ -463,7 +463,7 @@ func fakeDetectorPluginSource(id string) string {
 import (
 	"context"
 	"path/filepath"
-	schemav1 "github.com/bomly-dev/bomly-cli/sdk"
+	schemav1 "github.com/bomly-dev/bomly-sdk"
 )
 
 type detector struct{}

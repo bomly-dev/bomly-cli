@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testutil"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func FuzzDepGraphFromBundlerLock(f *testing.F) {

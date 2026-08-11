@@ -1,7 +1,7 @@
 package syft
 
 import (
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 var syftDetectorEnrichmentValues = []string{"golang", "java", "javascript", "python"}

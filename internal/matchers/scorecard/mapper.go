@@ -3,7 +3,7 @@ package scorecard
 import (
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // mapProject converts an api.scorecard.dev Project payload into the

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // Text-formatting helpers live in internal/cli/render. Thin shims keep

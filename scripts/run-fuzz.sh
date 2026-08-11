@@ -3,6 +3,9 @@ set -euo pipefail
 
 FUZZTIME="${FUZZTIME:-60s}"
 
+# The SDK's own fuzz targets (package URL canonicalization, graph/registry
+# transport JSON) moved with the sdk package to the bomly-sdk repository and
+# run there.
 targets=(
   "github.com/bomly-dev/bomly-cli/internal/config FuzzLoadFile"
   "github.com/bomly-dev/bomly-cli/internal/analyzers/govulncheck FuzzParseGovulncheckJSON"
@@ -30,9 +33,6 @@ targets=(
   "github.com/bomly-dev/bomly-cli/internal/sbom FuzzUnmarshalAutoJSON"
   "github.com/bomly-dev/bomly-cli/internal/baseline FuzzLoad"
   "github.com/bomly-dev/bomly-cli/internal/engine FuzzConsolidateVulnerabilities"
-  "github.com/bomly-dev/bomly-cli/sdk FuzzCanonicalizePackageURL"
-  "github.com/bomly-dev/bomly-cli/sdk FuzzGraphJSON"
-  "github.com/bomly-dev/bomly-cli/sdk FuzzPackageRegistryJSON"
   "github.com/bomly-dev/bomly-cli/internal/plugin FuzzPluginPathSanitizers"
 )
 

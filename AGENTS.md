@@ -1,6 +1,12 @@
 # Agent Instructions — Bomly CLI
 
+Guidance for AI agents working in this repository.
+
 Bomly is a **customer-facing, security-sensitive CLI** for dependency intelligence. Audience: professional developers, security managers, and CI workflows. Expect high standards: correct behavior, clear output, full logging, and no panics.
+
+This is the single public repository for the Bomly CLI: the full implementation (`internal/*`), the `cmd/bomly` entry point, user documentation (`docs/`), release automation, install scripts, the npm MCP wrapper, and the binary-driven smoke test suite. One module lives outside this repository:
+
+- **`github.com/bomly-dev/bomly-sdk`** (public, separate repo): the contract both built-in components and external managed plugins implement — domain types, plugin kinds, validation, support metadata. It has its own tests and releases; this repo pins released versions (pseudo-versions only during coordinated cross-repo changes). Any reference to `sdk.<Type>` below means that module. Plugin authors start there, with `docs/PLUGINS.md`, `docs/plugins/`, and the public plugin template repo.
 
 ## Build & Test
 
@@ -8,24 +14,26 @@ Bomly is a **customer-facing, security-sensitive CLI** for dependency intelligen
 make build               # build both `bin/bomly` (builtin Syft/Grype) and `bin/bomly-lite`
 make build-lite          # go build -tags "bomly_external_syft,bomly_external_grype" -o bin/bomly-lite ./cmd/bomly
 make test                # go test ./...
-make smoke               # end-to-end smoke tests against real repos/containers (slow, needs network)
-make smoke ARGS="-update" # regenerate golden files for smoke tests
+make smoke               # end-to-end tests driving the built binary (slow, requires network)
+make smoke ARGS="-update" # regenerate smoke golden files
 make fuzz FUZZTIME=5s    # run every registered fuzz target with a short per-target budget
 make benchmark           # run the hidden local dependency-graph benchmark
 make benchmark-report    # analyze local benchmark artifacts with Copilot CLI
+make evidence            # verify the public evidence catalog (test/evidence/cases.json)
 make run ARGS="scan"    # go run ./cmd/bomly <ARGS>
-make generate            # regenerate config reference, JSON schemas, schema docs, and support matrix
+make generate            # regenerate config reference, JSON schemas, schema docs, support matrix, and component docs (binary-driven)
 ```
 
 Always run `make test` after changes. All tests must pass before marking work is done.
-If you change `internal/cli/config.go`, `internal/output/*`, `sdk/catalog.go`, `sdk/support_matrix.go`, or `internal/registry/support.go`, also run `make generate`.
+If you change `internal/cli/config.go`, `internal/output/*`, or `internal/registry/support.go`, or bump the pinned `bomly-dev/bomly-sdk` version (its catalog or support-matrix data feeds the generated docs), also run `make generate` and commit the docs drift.
+
+`go.mod` pins released versions and must not contain `replace` directives on main (CI enforces this). Local cross-repo SDK development: `go work init . ../bomly-sdk` (never commit `go.work`).
 
 ### Git Worktrees
 
 Development may happen inside Git worktrees. Always run commands in the active worktree directory.
 Do not assume the primary checkout path; use paths relative to the current worktree.
 Avoid destructive Git operations that can affect sibling worktrees or shared refs.
-Worktrees should be created inside `.github/worktrees/` (mirroring the `.claude/worktrees/` convention).
 
 ## Architecture
 
@@ -35,24 +43,26 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 |------------------------|---------------------------------------------------------------------------------------------------|
 | `cmd/bomly`            | Entry point — calls `internal/cli.Execute()`                                                      |
 | `internal/cli`         | Cobra root + all commands (`scan`, `explain`, `diff`, `plugin`, `version`)                        |
-| `sdk`       | Unified domain types: `Dependency` (detection graph nodes), `Package` (PURL-keyed matching artifacts in `PackageRegistry`), `Vulnerability` (OSV-aligned), reference-style `Finding`, plus neutral package/ecosystem/support identifiers. See `dev-docs/MODELS.md`. |
+| `sdk` (external module) | Unified domain types: `Dependency` (detection graph nodes), `Package` (PURL-keyed matching artifacts in `PackageRegistry`), `Vulnerability` (OSV-aligned), reference-style `Finding`, plus neutral package/ecosystem/support identifiers. See `dev-docs/MODELS.md`. |
 | `internal/detectors`   | Detector contracts, descriptors, requests/results, and detector-only helpers                      |
 | `internal/engine`      | Pipeline, engine, consolidation, auditors, matchers, and orchestration                            |
 | `internal/registry`    | Canonical support/discovery registry and built-in engine registry wiring                          |
 | `internal/detectors/*` | Concrete dependency resolution per ecosystem (gomod, gradle, maven, node, python, sbom, syft)     |
 | `internal/matchers/*`  | External enrichment matchers and shared matcher cache (osv, grype, deps.dev, scorecard; ClearlyDefined and eol run as external matcher plugins) |
 | `internal/auditors/*`  | Policy evaluators and audit-only logic (policy, noop)                                             |
+| `internal/analyzers/*` | Built-in reachability analyzers (govulncheck, jsreach)                                            |
 | `internal/baseline`    | Portable package-finding baseline codec and audit-integrated policy-status resolver               |
 | `internal/remediation` | Canonical vulnerability fix status, version, detector-hint validation, and occurrence suggestions |
 | `internal/sbom`        | SBOM codec (SPDX 2.3, CycloneDX)                                                                  |
 | `internal/benchmark`   | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets       |
 | `internal/output`      | Output rendering plus structured command payloads and schema generation for `scan`, `diff`, `explain`, JSON, and SARIF 2.1.0 |
-| `internal/plugin`      | Plugin discovery, protocol, handshake, and execution                                              |
+| `internal/plugin`      | Plugin discovery, protocol, handshake, and pooled subprocess execution                            |
+| `internal/composition` | Build-variant composition: wires the full (builtin Syft/Grype) and lite component sets            |
 | `internal/engine/diff` | Diff pipeline orchestration and audit delta classification                                        |
 | `internal/engine/explain` | Dependency path traversal (`explain` command)                                                  |
 | `internal/engine/scan` | Scan command pipeline API                                                                         |
-| `internal/matchers`    | External enrichment matchers plus shared matcher cache and enrichment helpers                     |
 | `internal/logging`     | Zap console wrapper                                                                               |
+| `internal/support`     | Docs generation (config reference, schemas, support matrix, component docs) behind the hidden `bomly internal docs-gen` command |
 | `internal/testutil`    | Test helpers (fake binary builder)                                                                |
 | `internal/system`      | OS-level helpers                                                                                  |
 
@@ -62,13 +72,21 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 
 `bomly explain` is implemented by `newExplainCmd` in `internal/cli/explain_cmd.go`.
 
+### Plugin framework
+
+- Component kinds are Detector, Matcher, Auditor, and Analyzer; every built-in implements the same SDK contract an external plugin implements.
+- External plugins run through a **pooled subprocess runtime**: one warm subprocess per enabled plugin per command, lazy start, at most one restart on death, always terminated when the command finishes.
+- Plugin configuration is **kind-scoped**: `plugins:` config is nested by component kind (detectors / matchers / auditors / analyzers) and keyed by component name; legacy flat plugin-ID keys are accepted with a deprecation warning.
+- Per-ecosystem detectors are consolidated packages with host-owned chains — e.g. `internal/detectors/node` hosts the npm/pnpm/yarn/bun sub-detectors, and detector name aliases keep old `--detectors` selections working.
+- Build composition lives in `internal/composition` (`composition_full.go` / `composition_lite.go` behind build tags); register new built-ins there and in `internal/registry/builder.go`.
+
 ### Package Boundaries
 
-- `internal/detectors/*` must not import `internal/engine` or `internal/registry`. Concrete detectors may depend on `internal/detectors`, `internal/system` for bounded filesystem and subprocess operations, `sdk`, and local helpers.
-- Built-in analyzers may depend on `sdk`, `internal/system` for bounded filesystem and subprocess operations, shared cache and logging helpers, and local helpers. They must not import `internal/engine` or `internal/registry`.
+- `internal/detectors/*` must not import `internal/engine` or `internal/registry`. Concrete detectors may depend on `internal/detectors`, `internal/system` for bounded filesystem and subprocess operations, the SDK, and local helpers.
+- Built-in analyzers may depend on the SDK, `internal/system` for bounded filesystem and subprocess operations, shared cache and logging helpers, and local helpers. They must not import `internal/engine` or `internal/registry`.
 - `internal/detectors` owns detector-facing contracts such as `Detector`, `DetectorDescriptor`, `ResolveGraphRequest`, and detector helper functions.
-- `sdk` owns neutral shared identifiers and support metadata that would otherwise create package cycles, including ecosystems, package managers, detector types, and support-matrix data.
-- `internal/baseline` owns the baseline document and matching implementation. It depends on `sdk` policy contracts and must not be imported by `sdk` or `internal/engine`.
+- The SDK owns neutral shared identifiers and support metadata that would otherwise create package cycles, including ecosystems, package managers, detector types, and support-matrix data.
+- `internal/baseline` owns the baseline document and matching implementation. It depends on the SDK policy contracts and must not be imported by `internal/engine`.
 - `internal/remediation` owns canonical vulnerability remediation decisions. Detectors may supply validated read-only strategy hints, but they do not choose final actions or versions.
 - `internal/registry` owns package-manager discovery, support lookups, and built-in registry wiring in `internal/registry/builder.go`. Do not create or reintroduce a separate `registrybuilder` package.
 - `internal/engine` may import `internal/detectors` and `internal/registry`, but detector packages must not point back into `internal/engine`. Runtime planning, prepared subprojects, and detector-chain reuse belong in `internal/engine`.
@@ -80,7 +98,7 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - **No secrets or credentials in logs.** Ever.
 - **Matcher network calls require explicit enrichment.** Built-in matchers may contact OSV (`https://api.osv.dev`), CISA KEV, deps.dev (`https://api.deps.dev`), OpenSSF Scorecard (`https://api.scorecard.dev`), and Grype's database service (`https://grype.anchore.io/databases`, plus the archive URL it returns) only during `--enrich`. Installed external matcher plugins such as ClearlyDefined and endoflife.date may contact their documented services during `--enrich`. `--audit` evaluates existing package data and must not trigger matcher calls. Remote Git targets and build-tool detectors have separate, explicit network behavior.
 - **Record architecture decisions in [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md).** (`docs/ARCHITECTURE.md` is the public, user-facing overview.)
-- **Prefer `internal/`.** Add new packages inside `internal/` unless there is a clear public API need.
+- **Prefer `internal/`.** Add new packages inside `internal/` unless there is a clear public API need; genuinely public contract surface belongs in the SDK module.
 - **Standard library + Cobra + existing deps only.** Do not add new dependencies without discussion.
 
 ## Code Conventions
@@ -130,7 +148,7 @@ Cache failures are **non-fatal** — log a warning and continue without caching.
 - Register built-ins in `internal/registry/builder.go`, which wires concrete detectors, auditors, matchers, and plugin stages into `engine.Registry`.
 - External enrichment is matcher-based; see `internal/matchers/depsdev`, `internal/matchers/clearlydefined`, `internal/matchers/osv`, `internal/matchers/grype`, `internal/matchers/eol`, and `internal/matchers/scorecard`.
 - Detector chains are explicit in `internal/registry/support.go` and `internal/registry/builder.go`; do not infer priority from technique alone.
-- Some native detectors are build-tool-backed primaries (`pub-native`, `swiftpm-native`, `sbt-native`) with committed-file fallbacks. Run smoke tests and the local benchmark with `dart`, `swift`, or `sbt` on `PATH` before updating graph-shape expectations for those ecosystems.
+- Some native detectors are build-tool-backed primaries (`pub-native`, `swiftpm-native`, `sbt-native`) with committed-file fallbacks. Run the local benchmark and the smoke tests with `dart`, `swift`, or `sbt` on `PATH` before updating graph-shape expectations for those ecosystems.
 
 ### Terminal Output
 
@@ -161,12 +179,21 @@ Core passes these env vars. Plugin discovery: `~/.bomly/plugins/bomly-*` overrid
 
 ### Fuzz tests
 
-- Every new or materially changed pure in-process parser for untrusted repository, configuration, baseline, SBOM, SDK, plugin, or analyzer data must have a native Go fuzz target.
+- Every new or materially changed pure in-process parser for untrusted repository, configuration, baseline, SBOM, plugin, or analyzer data must have a native Go fuzz target. (The SDK's own parsers carry their fuzz targets in the SDK repo.)
 - Bound fuzz input before parsing. Use `testutil.MaxFuzzInputSize` unless the format needs a documented tighter limit.
 - Seed valid, malformed, and truncated inputs. Assert that parsing never panics and that repeated parsing has deterministic success or failure; graph producers must also call `testutil.RequireFuzzGraphValid`.
 - Register every new fuzz target in `scripts/run-fuzz.sh` so both `make fuzz` and the scheduled `.github/workflows/fuzz.yml` workflow execute it.
 - When a parser is command-backed, delegated entirely to the standard library, or otherwise unsuitable for native fuzzing, record the exclusion and reason in `test/assurance/PARSER_FUZZING.md`.
 - When fuzz targets or their runner manifest change, run the focused target and `make fuzz FUZZTIME=5s`.
+
+## Smoke tests
+
+Smoke tests (`test/smoke/`, `make smoke`) drive the built binary end-to-end against real public repositories pinned via `--url --ref`:
+
+- Scan cases come from `test/smoke/testdata/scan_targets.json`; keep it in sync with `internal/benchmark/testdata/scan_targets.json` (the benchmark target list) when cases change.
+- Pin every scan case's detectors with `--detectors`; normalize volatile fields in `helpers_test.go::normalizeJSON` before goldens.
+- Register new tests in both slice matrices (`smoke.yml` and exactly one slice in `update-smoke-goldens.yml`); `go test -run` elements are unanchored regexes — use `$` anchors to keep slice ownership exact.
+- `TestExamplePluginFixtureCompiles` runs in `make test` and must keep compiling against the pinned `bomly-dev/bomly-sdk` release; update the fixture source when the SDK contract changes.
 
 ## Feature Checklist
 
@@ -197,7 +224,7 @@ Every new flag on `bomly scan` / `bomly explain` / `bomly diff` must be reachabl
 
 When adding a new component class (a new sibling of Detector / Matcher / Auditor / Analyzer):
 
-- Add a `PluginKind*` constant in `sdk/plugin.go` and accept it in `sdk/validate.go::ValidateMetadata`.
+- Add a `PluginKind*` constant in the SDK's `plugin.go` and accept it in the SDK's `validate.go::ValidateMetadata` (SDK repo change, released and pinned here).
 - Add the descriptor pointer to `internal/plugin/types.go::Manifest` plus a `clone<Kind>Descriptor` helper that deep-copies every slice field.
 - In `internal/cli/plugin_cmd.go`:
   - Extend `pluginKindFilter` and add a `--<kind>s` filter flag.
@@ -231,20 +258,18 @@ If a new analyzer / matcher / detector produces deterministic output for a fixed
 
 ### Smoke tests
 
-- Use a **real public repo** pinned to a specific tag or commit SHA via `--url --ref`. Do not add local Go modules / npm packages / etc. under `test/smoke/testdata/`. The only acceptable testdata files are SBOM fixtures and similar non-project inputs.
-- The pinned ref must exercise the feature meaningfully. For reachability that means a repo with at least one symbol-tier reachable advisory; for a new ecosystem detector that means a repo whose lockfile actually parses.
-- Update `test/smoke/helpers_test.go::normalizeJSON` (or the more specific normalizers it calls) to scrub any new volatile fields (timestamps, line numbers, file paths under temp clone dirs) before they reach goldens.
-- Run `make smoke ARGS="-update"` to regenerate goldens. Commit the regenerated `.golden.json` in the same PR.
-- Register the new test in both CI slice matrices: add it to a slice in `.github/workflows/smoke.yml` (nightly runs) and to **exactly one** slice in `.github/workflows/update-smoke-goldens.yml` (regeneration uploads per-slice golden artifacts, so each golden file must be produced by exactly one slice — no gaps, no overlaps). `go test -run` matches each `/`-separated element as an **unanchored** regex: `scan-go` also matches `scan-go-reachability`, so use `$` anchors (`scan-go$`) to keep slice ownership exact. The workflows invoke `go test` directly rather than `make smoke ARGS=...` because make expands `$` in ARGS (`$|` becomes empty) and silently corrupts the pattern.
-- Keep slow, network-heavy cases (reachability, build-tool resolution) in their own dedicated slices so a stalled remote fails one small re-runnable job instead of an ecosystem's whole regeneration.
-- Pin every scan smoke case to the detector its golden encodes with `--detectors <selector>` (targets: the `detectors` field in `internal/benchmark/testdata/scan_targets.json`; explicit cases: inline in args). With a pinned selector set the engine skips fallbacks outside it, so a degraded environment (flaked readiness probe, failed build tool) exits non-zero instead of silently regenerating a fallback-shaped golden. Cases whose golden legitimately encodes a fallback chain pin both links (e.g. `sbt-native,sbt`).
+Any new user-visible feature needs a smoke case under `test/smoke/` — follow the golden/normalizer/slice-matrix rules in the Smoke tests section above.
 
 ### Documentation
 
-- `make generate` regenerates `docs/CONFIG_REFERENCE.md`, `docs/schemas/*`, and `docs/SUPPORT_MATRIX.md` from struct tags. Run it whenever `internal/config/config.go`, `internal/output/*`, or `sdk/catalog.go` / `sdk/support_matrix.go` change.
+- `make generate` regenerates `docs/CONFIG_REFERENCE.md`, `docs/schemas/*`, `docs/SUPPORT_MATRIX.md`, and the component docs through the built binary. Run it whenever `internal/config/config.go` or `internal/output/*` change, or when the pinned SDK version (catalog / support-matrix data) is bumped.
 - Add or update a feature page under `docs/` (e.g. `docs/REACHABILITY.md`) with quick-start usage, semantics, ecosystem coverage, output shape, and limitations. Be explicit about safety caveats (e.g. "tier-3 unreachable does not mean safe").
 - `dev-docs/ARCHITECTURE.md`: update the pipeline diagram if the stage list changed; add a decision-log entry for non-obvious design choices. Keep the public `docs/ARCHITECTURE.md` overview in sync when stages change.
 - `CLAUDE.md` and `AGENTS.md`: update the architecture tree and package-boundary list when introducing a new internal package.
+
+## Release
+
+Draft releases are created automatically after merges to `main` from commit prefixes: `feat:` → minor, other → patch, `type!:`/`BREAKING CHANGE:` → major, `[skip release]` → none. Squash titles count. Publishing runs GoReleaser with signed checksums and SLSA provenance; see `dev-docs/RELEASE_CHECKLIST.md`.
 
 ## Reference Docs
 

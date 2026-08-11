@@ -214,9 +214,9 @@ Consequences:
    libraries.** A missing prefix produces a false-negative for
    direct imports. The dep-graph BFS usually catches the case via
    a transitive edge from a correctly-mapped neighbor, but unlike
-   Python there is no identity-normalization fallback. Adding a
-   prefix is a one-line PR in
-   `internal/analyzers/jvmreach/prefixmap.go`.
+   Python there is no identity-normalization fallback. If you hit a
+   missing prefix, please open an issue naming the Maven artifact
+   and its Java package prefix — additions are quick to ship.
 3. **Sub-package imports collapse to the artifact.** Importing
    `com.fasterxml.jackson.databind.ObjectMapper` flips the whole
    `jackson-databind` artifact reachable, even if the advisory
@@ -330,16 +330,16 @@ Reachability data appears in three places:
   analyzer is a lower bound on what's actually reachable.
 - **`pyreach`'s module-to-distribution map is hand-curated.** Missing
   an entry produces a false-negative for direct top-level imports.
-  PRs to extend `internal/analyzers/pyreach/moduletodist.go` are
-  welcome.
+  Please open an issue naming the distribution and its import name
+  so the map can be extended.
 - **`jvmreach` does not follow reflection or runtime class loading.**
   Spring component scanning, `ServiceLoader`, OSGi, JPMS dynamic
   layers, and annotation-processed code are invisible to a static
   scanner.
 - **`jvmreach`'s package-prefix map is hand-curated.** The Java
   `package → Maven artifact` relationship has no naming convention,
-  so missing prefixes do not have an identity fallback. PRs to
-  extend `internal/analyzers/jvmreach/prefixmap.go` are welcome.
+  so missing prefixes do not have an identity fallback. Please open
+  an issue naming the artifact and prefix so the map can be extended.
 - **`jvmreach` multi-module traversal is declarative.** It follows
   Maven parent `<modules>` recursively and standard Gradle
   `include(...)` declarations with `projectDir` overrides. Gradle
@@ -359,6 +359,10 @@ bomly scan --enrich --analyze --analyzers govulncheck,jsreach
 Selector syntax mirrors `--detectors`, `--matchers`, and `--auditors`:
 bare names are an explicit include set, `+name` appends to defaults,
 `-name` removes from defaults.
+
+External analyzer plugins participate in the same selector once installed and
+enabled — see [Plugins](PLUGINS.md) and
+[How To Implement An Analyzer Plugin](plugins/how-to-implement-analyzer.md).
 
 ## Build layout
 

@@ -5,7 +5,7 @@ Use this checklist when publishing a tagged Bomly CLI release.
 ## Before tagging
 
 - Confirm `main` is green for required checks.
-- Run the smoke workflow or confirm the latest scheduled smoke result is healthy.
+- Run the smoke workflow (or confirm its latest scheduled smoke result is healthy).
 - Confirm `cmd/bomly/main.go` contains the intended version after the `Auto Version` workflow.
 - Confirm release publishing credentials are configured in GitHub Actions.
 

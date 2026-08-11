@@ -567,14 +567,9 @@ The reachability analyzers are not split: `govulncheck` always uses the vendored
 
 ## CI and Releases
 
-GitHub Actions handles validation, security analysis, smoke coverage, and release packaging:
+Pull requests and pushes to `main` run the full validation suite (tests, vet, formatting, module-tidy drift, generated-docs drift). End-to-end smoke coverage, GoReleaser packaging, `SHA256SUMS`, Linux packages, and the Homebrew/Scoop/WinGet manifest PRs all run in this repository's workflows.
 
-- Pull requests run fast validation only.
-- Pushes to `main` run deeper quality checks and scheduled smoke coverage.
-- Semver tags run GoReleaser to publish GitHub Releases with GitHub-native release notes, cross-platform archives, `SHA256SUMS`, Linux packages, and package-manager manifests.
-- GoReleaser also opens package-manager manifest PRs for Homebrew, Scoop, and WinGet. Official distro repositories are intentionally out of scope until usage justifies the maintainer overhead.
-
-See [CI and Release Pipeline](CI.md) for workflow details and release mechanics.
+See [CI](CI.md) for workflow details.
 
 ## Network Behavior
 

@@ -95,7 +95,7 @@
         {
           "kind": "fixture",
           "location": "internal/engine/pipeline_fallback_test.go",
-          "sha256": "4c2780f5c41b440b6c51eef05128a5079c33c9b08858fd7722b52febc05fe3c0"
+          "sha256": "7751d6137dd39c8616857f2e0891ed4928bf2b37e72475d567c1e38262755a6d"
         }
       ],
       "required_tools": [
@@ -114,7 +114,7 @@
       "evidence": [
         {
           "path": "internal/engine/pipeline_fallback_test.go",
-          "sha256": "4c2780f5c41b440b6c51eef05128a5079c33c9b08858fd7722b52febc05fe3c0"
+          "sha256": "7751d6137dd39c8616857f2e0891ed4928bf2b37e72475d567c1e38262755a6d"
         }
       ],
       "proves": [
@@ -447,7 +447,7 @@
         {
           "kind": "fixture",
           "location": "internal/auditors/license/spdx_policy_matrix_test.go",
-          "sha256": "f7adb4c3b59754aec61a3eabebe38854436057923bb1edf3d9497272594d91ab"
+          "sha256": "04d8e3528b33687a09d317b867f7c24068081c1ac60bb53cee1e0a03c0b143f2"
         }
       ],
       "required_tools": [
@@ -466,7 +466,7 @@
       "evidence": [
         {
           "path": "internal/auditors/license/spdx_policy_matrix_test.go",
-          "sha256": "f7adb4c3b59754aec61a3eabebe38854436057923bb1edf3d9497272594d91ab"
+          "sha256": "04d8e3528b33687a09d317b867f7c24068081c1ac60bb53cee1e0a03c0b143f2"
         }
       ],
       "proves": [
@@ -519,7 +519,7 @@
         {
           "kind": "fixture",
           "location": "internal/engine/diff/diff_test.go",
-          "sha256": "8177a085ebf190011e0555f37dc89ac001856b11f0930902fb080dc8b53d5fee"
+          "sha256": "abe87f7b95e55e5cf70bd0684c36027757308f7f405a9db370a894238f16f195"
         }
       ],
       "required_tools": [
@@ -538,7 +538,7 @@
       "evidence": [
         {
           "path": "internal/engine/diff/diff_test.go",
-          "sha256": "8177a085ebf190011e0555f37dc89ac001856b11f0930902fb080dc8b53d5fee"
+          "sha256": "abe87f7b95e55e5cf70bd0684c36027757308f7f405a9db370a894238f16f195"
         }
       ],
       "proves": [

@@ -6,7 +6,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/progress"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestMatchProgressChildren_ReportsMatcherCounts(t *testing.T) {

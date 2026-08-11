@@ -1,9 +1,10 @@
 package plugin
 
 import (
+	"encoding/json"
 	"testing"
 
-	plugschema "github.com/bomly-dev/bomly-cli/sdk"
+	plugschema "github.com/bomly-dev/bomly-sdk"
 )
 
 func TestCloneDetectorDescriptorDeepCopiesDiscoveryFields(t *testing.T) {
@@ -59,16 +60,22 @@ func TestCloneMatcherDescriptorDeepCopiesSlices(t *testing.T) {
 		Tags:                []string{"vulnerability"},
 		SupportedEcosystems: []plugschema.Ecosystem{plugschema.EcosystemNPM},
 		SupportedManagers:   []plugschema.PackageManager{plugschema.PackageManagerNPM},
+		Capabilities:        []string{plugschema.CapabilityPackageUpdates},
+		ConfigSchema:        json.RawMessage(`{"type":"object"}`),
 	}
 	clone := cloneMatcherDescriptor(original)
 	clone.Aliases[0] = "mutated"
 	clone.Tags[0] = "mutated"
 	clone.SupportedEcosystems[0] = plugschema.EcosystemGo
 	clone.SupportedManagers[0] = plugschema.PackageManagerGoMod
+	clone.Capabilities[0] = "mutated"
+	clone.ConfigSchema[0] = 'X'
 	if original.Aliases[0] != "matcher-alias" ||
 		original.Tags[0] != "vulnerability" ||
 		original.SupportedEcosystems[0] != plugschema.EcosystemNPM ||
-		original.SupportedManagers[0] != plugschema.PackageManagerNPM {
+		original.SupportedManagers[0] != plugschema.PackageManagerNPM ||
+		original.Capabilities[0] != plugschema.CapabilityPackageUpdates ||
+		original.ConfigSchema[0] != '{' {
 		t.Fatal("matcher clone shares backing arrays with the original descriptor")
 	}
 }
@@ -80,17 +87,98 @@ func TestCloneAuditorDescriptorDeepCopiesSlices(t *testing.T) {
 		Tags:                []string{"policy"},
 		SupportedEcosystems: []plugschema.Ecosystem{plugschema.EcosystemNPM},
 		SupportedManagers:   []plugschema.PackageManager{plugschema.PackageManagerNPM},
+		ConfigSchema:        json.RawMessage(`{"type":"object"}`),
 	}
 	clone := cloneAuditorDescriptor(original)
 	clone.Aliases[0] = "mutated"
 	clone.Tags[0] = "mutated"
 	clone.SupportedEcosystems[0] = plugschema.EcosystemGo
 	clone.SupportedManagers[0] = plugschema.PackageManagerGoMod
+	clone.ConfigSchema[0] = 'X'
 	if original.Aliases[0] != "auditor-alias" ||
 		original.Tags[0] != "policy" ||
 		original.SupportedEcosystems[0] != plugschema.EcosystemNPM ||
-		original.SupportedManagers[0] != plugschema.PackageManagerNPM {
+		original.SupportedManagers[0] != plugschema.PackageManagerNPM ||
+		original.ConfigSchema[0] != '{' {
 		t.Fatal("auditor clone shares backing arrays with the original descriptor")
+	}
+}
+
+func TestCloneAnalyzerDescriptorDeepCopiesSlices(t *testing.T) {
+	original := &plugschema.AnalyzerDescriptor{
+		Name:                "analyzer",
+		Aliases:             []string{"analyzer-alias"},
+		Tags:                []string{"reachability"},
+		SupportedEcosystems: []plugschema.Ecosystem{plugschema.EcosystemGo},
+		SupportedManagers:   []plugschema.PackageManager{plugschema.PackageManagerGoMod},
+		SupportedLanguages:  []plugschema.Language{plugschema.LanguageGo},
+		SupportedTiers:      []plugschema.ReachabilityTier{plugschema.TierSymbol},
+		Capabilities:        []string{plugschema.CapabilityPackageUpdates},
+		ConfigSchema:        json.RawMessage(`{"type":"object"}`),
+	}
+	clone := cloneAnalyzerDescriptor(original)
+	clone.Aliases[0] = "mutated"
+	clone.Tags[0] = "mutated"
+	clone.SupportedEcosystems[0] = plugschema.EcosystemNPM
+	clone.SupportedManagers[0] = plugschema.PackageManagerNPM
+	clone.SupportedLanguages[0] = plugschema.LanguageJavaScript
+	clone.SupportedTiers[0] = plugschema.TierPackage
+	clone.Capabilities[0] = "mutated"
+	clone.ConfigSchema[0] = 'X'
+	if original.Aliases[0] != "analyzer-alias" ||
+		original.Tags[0] != "reachability" ||
+		original.SupportedEcosystems[0] != plugschema.EcosystemGo ||
+		original.SupportedManagers[0] != plugschema.PackageManagerGoMod ||
+		original.SupportedLanguages[0] != plugschema.LanguageGo ||
+		original.SupportedTiers[0] != plugschema.TierSymbol ||
+		original.Capabilities[0] != plugschema.CapabilityPackageUpdates ||
+		original.ConfigSchema[0] != '{' {
+		t.Fatal("analyzer clone shares backing arrays with the original descriptor")
+	}
+}
+
+func TestValidateManifestAcceptsAnalyzerKind(t *testing.T) {
+	manifest := withCanonicalManifestDefaults(Manifest{
+		ID:         "acme.analyzer.fake",
+		Name:       "acme analyzer",
+		Version:    "1.0.0",
+		Kind:       plugschema.PluginKindAnalyzer,
+		Entrypoint: map[string]string{platformKey(): "bin/analyzer"},
+	}, "test")
+	if err := validateManifest(manifest); err != nil {
+		t.Fatalf("validateManifest() rejected analyzer kind: %v", err)
+	}
+}
+
+func TestRuntimeSnapshotRoundTripWithAnalyzerDescriptor(t *testing.T) {
+	dir := t.TempDir()
+	snapshot := RuntimeDescriptorSnapshot{
+		ID:               "acme.analyzer.fake",
+		Kind:             plugschema.PluginKindAnalyzer,
+		PluginAPIVersion: plugschema.PluginAPIVersion,
+		AnalyzerDescriptor: &plugschema.AnalyzerDescriptor{
+			Name:               "acme.analyzer.fake",
+			SupportedLanguages: []plugschema.Language{plugschema.LanguageGo},
+			SupportedTiers:     []plugschema.ReachabilityTier{plugschema.TierSymbol},
+			Capabilities:       []string{plugschema.CapabilityPackageUpdates},
+			ConfigSchema:       json.RawMessage(`{"type":"object","additionalProperties":false}`),
+		},
+	}
+	if err := writeRuntimeSnapshot(dir, snapshot); err != nil {
+		t.Fatalf("writeRuntimeSnapshot() error = %v", err)
+	}
+	loaded, err := readRuntimeSnapshot(dir)
+	if err != nil {
+		t.Fatalf("readRuntimeSnapshot() error = %v", err)
+	}
+	if loaded.Kind != plugschema.PluginKindAnalyzer || loaded.AnalyzerDescriptor == nil {
+		t.Fatalf("round-trip lost analyzer descriptor: %#v", loaded)
+	}
+	if !analyzerDescriptorEqual(loaded.AnalyzerDescriptor, snapshot.AnalyzerDescriptor) {
+		t.Fatalf("analyzer descriptor round-trip mismatch: %#v", loaded.AnalyzerDescriptor)
+	}
+	if err := runtimeSnapshotMatchesSnapshot(loaded, normalizeRuntimeSnapshot(snapshot)); err != nil {
+		t.Fatalf("runtimeSnapshotMatchesSnapshot() error = %v", err)
 	}
 }
 

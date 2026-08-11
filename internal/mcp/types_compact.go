@@ -1,6 +1,6 @@
 package mcp
 
-import "github.com/bomly-dev/bomly-cli/sdk"
+import "github.com/bomly-dev/bomly-sdk"
 
 // CompactSchemaVersion tags the agent-facing MCP response shapes. It is
 // versioned independently of the CLI JSON schema: MCP responses are compact

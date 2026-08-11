@@ -3,7 +3,7 @@ package detectors
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestBuildRemediationHintsResolvesRawDetectionCoordinates(t *testing.T) {

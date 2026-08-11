@@ -3,7 +3,7 @@ package consolidation
 import (
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // rebaseGraphLocations rewrites subproject-relative PackageLocation paths so

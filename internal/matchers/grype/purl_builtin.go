@@ -10,7 +10,7 @@ import (
 	grypedistro "github.com/anchore/grype/grype/distro"
 	grypepkg "github.com/anchore/grype/grype/pkg"
 	syftPkg "github.com/anchore/syft/syft/pkg"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // sourceRPMPattern extracts the name, version, release, and arch from a source

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // pnpmLockKeyLine matches top-level `packages:` entries in pnpm-lock.yaml.

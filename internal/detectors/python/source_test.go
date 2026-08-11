@@ -3,7 +3,7 @@ package python
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestPipInspectDependencySource(t *testing.T) {

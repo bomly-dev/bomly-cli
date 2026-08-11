@@ -2,15 +2,17 @@ package registry
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/auditors/license"
 	packageauditor "github.com/bomly-dev/bomly-cli/internal/auditors/package"
 	"github.com/bomly-dev/bomly-cli/internal/auditors/vulnerability"
+	"github.com/bomly-dev/bomly-cli/internal/composition"
+	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/cargo"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/cocoapods"
@@ -21,6 +23,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/gradle"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/maven"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/mix"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/bun"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
@@ -33,12 +36,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/sbt"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/swiftpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/syft"
-	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/matchers/depsdev"
-	"github.com/bomly-dev/bomly-cli/internal/matchers/grype"
-	osvmatcher "github.com/bomly-dev/bomly-cli/internal/matchers/osv"
-	"github.com/bomly-dev/bomly-cli/internal/matchers/scorecard"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
 
@@ -74,6 +72,9 @@ type Configs struct {
 	HTTPProxyPassword     string
 	HTTPCACertFile        string
 	HTTPClientProvider    *sdk.HTTPClientProvider
+	// PluginConfigs carries kind-scoped per-component configuration blocks so
+	// embedded components can decode the same block managed plugins receive.
+	PluginConfigs config.PluginConfigs
 }
 
 // Filter narrows a registry down to the runtime-relevant selections.
@@ -105,16 +106,16 @@ func (p DetectorDiscoveryPlan) Clone() DetectorDiscoveryPlan {
 
 // Registry holds registered detectors, auditors, matchers, analyzers, and discovery plans.
 type Registry struct {
-	logger          *zap.Logger
-	configs         Configs
-	detectors       []sdk.Detector
-	auditors        []sdk.Auditor
-	matchers        []sdk.Matcher
-	analyzers       []sdk.Analyzer
-	discoveryPlans  map[string]DetectorDiscoveryPlan
-	defaultEnabled  map[string]bool
-	detectorOrigins map[string]sdk.DetectorOrigin
-	httpProvider    *sdk.HTTPClientProvider
+	logger           *zap.Logger
+	configs          Configs
+	detectors        []sdk.Detector
+	auditors         []sdk.Auditor
+	matchers         []sdk.Matcher
+	analyzers        []sdk.Analyzer
+	discoveryPlans   map[string]DetectorDiscoveryPlan
+	defaultEnabled   map[string]bool
+	componentOrigins map[string]sdk.DetectorOrigin
+	httpProvider     *sdk.HTTPClientProvider
 }
 
 // ComponentOptions records Bomly-owned registry behavior that plugin authors
@@ -141,26 +142,6 @@ func (d remediationDetectorWithDescriptor) RemediationHints(ctx context.Context,
 	return forwardRemediationHints(ctx, d.Detector, req)
 }
 
-type fallbackDetectorWithDescriptor struct {
-	detectorWithDescriptor
-}
-
-func (d fallbackDetectorWithDescriptor) FallbackDetector() sdk.Detector {
-	return decoratedFallbackDetector(d.Detector)
-}
-
-type fallbackRemediationDetectorWithDescriptor struct {
-	detectorWithDescriptor
-}
-
-func (d fallbackRemediationDetectorWithDescriptor) FallbackDetector() sdk.Detector {
-	return decoratedFallbackDetector(d.Detector)
-}
-
-func (d fallbackRemediationDetectorWithDescriptor) RemediationHints(ctx context.Context, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
-	return forwardRemediationHints(ctx, d.Detector, req)
-}
-
 type installFirstDetectorWithDescriptor struct {
 	detectorWithDescriptor
 }
@@ -179,42 +160,6 @@ func (d installFirstRemediationDetectorWithDescriptor) Install(ctx context.Conte
 
 func (d installFirstRemediationDetectorWithDescriptor) RemediationHints(ctx context.Context, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
 	return forwardRemediationHints(ctx, d.Detector, req)
-}
-
-type fallbackInstallFirstDetectorWithDescriptor struct {
-	detectorWithDescriptor
-}
-
-func (d fallbackInstallFirstDetectorWithDescriptor) FallbackDetector() sdk.Detector {
-	return decoratedFallbackDetector(d.Detector)
-}
-
-func (d fallbackInstallFirstDetectorWithDescriptor) Install(ctx context.Context, req sdk.DetectionRequest) error {
-	return d.Detector.(sdk.InstallFirstDetector).Install(ctx, req)
-}
-
-type fallbackInstallFirstRemediationDetectorWithDescriptor struct {
-	detectorWithDescriptor
-}
-
-func (d fallbackInstallFirstRemediationDetectorWithDescriptor) FallbackDetector() sdk.Detector {
-	return decoratedFallbackDetector(d.Detector)
-}
-
-func (d fallbackInstallFirstRemediationDetectorWithDescriptor) Install(ctx context.Context, req sdk.DetectionRequest) error {
-	return d.Detector.(sdk.InstallFirstDetector).Install(ctx, req)
-}
-
-func (d fallbackInstallFirstRemediationDetectorWithDescriptor) RemediationHints(ctx context.Context, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
-	return forwardRemediationHints(ctx, d.Detector, req)
-}
-
-func decoratedFallbackDetector(detector sdk.Detector) sdk.Detector {
-	fallback := detector.(sdk.FallbackDetector).FallbackDetector()
-	if fallback == nil {
-		return nil
-	}
-	return detectorWithDecoratedDescriptor(fallback, decorateDetectorDescriptor(fallback.Descriptor()))
 }
 
 func forwardRemediationHints(ctx context.Context, detector sdk.Detector, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
@@ -249,12 +194,12 @@ func (a analyzerWithDescriptor) Descriptor() sdk.AnalyzerDescriptor {
 // NewRegistry creates an empty registry.
 func NewRegistry(configs Configs, logger zap.Logger) *Registry {
 	return &Registry{
-		logger:          &logger,
-		configs:         configs,
-		discoveryPlans:  make(map[string]DetectorDiscoveryPlan),
-		defaultEnabled:  make(map[string]bool),
-		detectorOrigins: make(map[string]sdk.DetectorOrigin),
-		httpProvider:    configs.HTTPClientProvider,
+		logger:           &logger,
+		configs:          configs,
+		discoveryPlans:   make(map[string]DetectorDiscoveryPlan),
+		defaultEnabled:   make(map[string]bool),
+		componentOrigins: make(map[string]sdk.DetectorOrigin),
+		httpProvider:     configs.HTTPClientProvider,
 	}
 }
 
@@ -269,9 +214,32 @@ func (r *Registry) Build() {
 }
 
 func (r *Registry) registerDetectors() {
-	for _, detector := range builtInDetectors(orderedBuiltInDetectors(r.logger)) {
+	for _, detector := range builtInDetectors(orderedBuiltInDetectors(r.logger, r.configs.PluginConfigs)) {
 		r.RegisterDetector(detector)
 	}
+}
+
+// nodeStrategyConfigFor decodes the kind-scoped plugins.detectors.<name>
+// block into the shared Node strategy configuration. Decode failures are
+// non-fatal: the detector runs with defaults and the problem is logged.
+func nodeStrategyConfigFor(logger *zap.Logger, pluginConfigs config.PluginConfigs, name string) node.StrategyConfig {
+	var cfg node.StrategyConfig
+	block := pluginConfigs.ForComponent(string(sdk.PluginKindDetector), name)
+	if len(block) == 0 {
+		return cfg
+	}
+	data, err := json.Marshal(block)
+	if err == nil {
+		err = json.Unmarshal(data, &cfg)
+	}
+	if err != nil {
+		if logger != nil {
+			logger.Warn("detector configuration invalid; using defaults",
+				zap.String("detector", name), zap.Error(err))
+		}
+		return node.StrategyConfig{}
+	}
+	return cfg
 }
 
 // RegisterDetector adds a detector to the registry.
@@ -285,115 +253,52 @@ func (r *Registry) RegisterDetectorWithOptions(detector sdk.Detector, options Co
 		return
 	}
 	descriptor := decorateDetectorDescriptor(detector.Descriptor())
-	origin := options.Origin
-	if origin == "" {
-		origin = sdk.CoreOrigin
-	}
 	r.detectors = append(r.detectors, detectorWithDecoratedDescriptor(detector, descriptor))
 	r.setDefaultEnabled(sdk.PluginKindDetector, descriptor.Name, options.DefaultEnabled)
-	r.detectorOrigins[descriptor.Name] = origin
+	r.setComponentOrigin(sdk.PluginKindDetector, descriptor.Name, options.Origin)
 }
 
 func (r *Registry) registerMatchers() {
-	r.registerGrypeMatcher()
-	r.registerOSVMatcher()
-	r.registerDepsDevMatcher()
-	r.registerScorecardMatcher()
+	r.registerCompositionEntries(sdk.PluginKindMatcher)
 }
 
-func (r *Registry) registerGrypeMatcher() {
-	for _, matcher := range builtInMatchers([]sdk.Matcher{grype.Matcher{Logger: r.logger}}) {
-		r.RegisterMatcher(matcher)
-	}
+// registerAnalyzers wires the built-in reachability analyzers from the build
+// composition.
+func (r *Registry) registerAnalyzers() {
+	r.registerCompositionEntries(sdk.PluginKindAnalyzer)
 }
 
-func (r *Registry) registerOSVMatcher() {
-	osvCfg := osvmatcher.DefaultConfig()
-	osvCfg.Logger = r.logger
-	osvCfg.HTTPClientProvider = r.httpClientProvider()
-	if r.configs.OsvAPIBase != "" {
-		osvCfg.APIBase = r.configs.OsvAPIBase
-	}
-	if r.configs.OsvCacheDir != "" {
-		osvCfg.CacheDir = r.configs.OsvCacheDir
-	}
-	if r.configs.OsvCacheTTL != "" {
-		if d, err := time.ParseDuration(r.configs.OsvCacheTTL); err == nil {
-			osvCfg.CacheTTL = d
-		} else {
-			r.logger.Warn("osv: invalid cache_ttl; using default", zap.String("value", r.configs.OsvCacheTTL), zap.Error(err))
-		}
-	}
-	if r.configs.KEVCacheDir != "" {
-		osvCfg.KEVCacheDir = r.configs.KEVCacheDir
-	}
-	if r.configs.KEVCacheTTL != "" {
-		if d, err := time.ParseDuration(r.configs.KEVCacheTTL); err == nil {
-			osvCfg.KEVCacheTTL = d
-		} else {
-			r.logger.Warn("osv: invalid kev_cache_ttl; using default", zap.String("value", r.configs.KEVCacheTTL), zap.Error(err))
-		}
-	}
-
-	osvMatcher, err := osvmatcher.New(osvCfg)
-	if err != nil {
-		r.logger.Warn("osv matcher unavailable", zap.Error(err))
-	} else {
-		for _, matcher := range builtInMatchers([]sdk.Matcher{osvMatcher}) {
-			r.RegisterMatcherWithOptions(matcher, ComponentOptions{DefaultEnabled: false})
-		}
-	}
-}
-
-func (r *Registry) registerDepsDevMatcher() {
-	depsDevCfg := depsdev.DefaultConfig()
-	depsDevCfg.Logger = r.logger
-	depsDevCfg.HTTPClientProvider = r.httpClientProvider()
-	depsDevChecker, err := depsdev.New(depsDevCfg)
-	if err != nil {
-		r.logger.Warn("deps.dev license matcher unavailable", zap.Error(err))
-	} else {
-		for _, matcher := range builtInMatchers([]sdk.Matcher{depsDevChecker}) {
-			r.RegisterMatcher(matcher)
-		}
-		r.logger.Debug("deps.dev matcher configured")
-	}
-}
-
-func (r *Registry) registerScorecardMatcher() {
-	scoreCfg := scorecard.DefaultConfig()
-	scoreCfg.Logger = r.logger
-	if r.configs.ScorecardAPIBase != "" {
-		scoreCfg.APIBase = r.configs.ScorecardAPIBase
-	}
-	if r.configs.ScorecardCacheDir != "" {
-		scoreCfg.CacheDir = r.configs.ScorecardCacheDir
-	}
-	if r.configs.ScorecardCacheTTL != "" {
-		if d, err := time.ParseDuration(r.configs.ScorecardCacheTTL); err == nil {
-			scoreCfg.CacheTTL = d
-		} else {
-			r.logger.Warn("scorecard: invalid cache_ttl; using default", zap.String("value", r.configs.ScorecardCacheTTL), zap.Error(err))
-		}
-	}
-	scoreCfg.ClientConfig = &scorecard.ClientConfig{
-		APIBase:            scoreCfg.APIBase,
-		Timeout:            15 * time.Second,
+// registerCompositionEntries registers every composition entry of one kind
+// through the module registration path, preserving each entry's
+// default-enabled flag and origin. Construction failures are non-fatal: the
+// component is skipped with a warning, matching the historical bespoke
+// wiring.
+func (r *Registry) registerCompositionEntries(kind sdk.PluginKind) {
+	deps := composition.Deps{
+		Logger:             r.logger,
 		HTTPClientProvider: r.httpClientProvider(),
+		OsvAPIBase:         r.configs.OsvAPIBase,
+		OsvCacheDir:        r.configs.OsvCacheDir,
+		OsvCacheTTL:        r.configs.OsvCacheTTL,
+		KEVCacheDir:        r.configs.KEVCacheDir,
+		KEVCacheTTL:        r.configs.KEVCacheTTL,
+		ScorecardAPIBase:   r.configs.ScorecardAPIBase,
+		ScorecardCacheDir:  r.configs.ScorecardCacheDir,
+		ScorecardCacheTTL:  r.configs.ScorecardCacheTTL,
 	}
-	scoreMatcher, err := scorecard.New(scoreCfg)
-	if err != nil {
-		r.logger.Warn("scorecard matcher unavailable", zap.Error(err))
-		return
+	for _, entry := range composition.Entries() {
+		if entry.Kind != kind {
+			continue
+		}
+		origin, err := entry.Origin(sdk.ExecutionEmbedded)
+		if err != nil {
+			r.logger.Warn("composition entry rejected", zap.String("component", entry.Name), zap.Error(err))
+			continue
+		}
+		if err := r.RegisterModule(entry.Module(deps), ComponentOptions{DefaultEnabled: entry.DefaultEnabled, Origin: origin}); err != nil {
+			r.logger.Warn("built-in component unavailable", zap.String("component", entry.Name), zap.Error(err))
+		}
 	}
-	for _, matcher := range builtInMatchers([]sdk.Matcher{scoreMatcher}) {
-		r.RegisterMatcherWithOptions(matcher, ComponentOptions{DefaultEnabled: false})
-	}
-	r.logger.Debug("scorecard matcher configured",
-		zap.String("api_base", logging.SanitizeURL(scoreCfg.APIBase)),
-		zap.String("cache_dir", scoreCfg.CacheDir),
-		zap.Duration("cache_ttl", scoreCfg.CacheTTL),
-	)
 }
 
 func (r *Registry) httpClientProvider() *sdk.HTTPClientProvider {
@@ -430,21 +335,8 @@ func (r *Registry) RegisterMatcherWithOptions(matcher sdk.Matcher, options Compo
 	}
 	r.matchers = append(r.matchers, matcher)
 	r.setDefaultEnabled(sdk.PluginKindMatcher, matcher.Descriptor().Name, options.DefaultEnabled)
+	r.setComponentOrigin(sdk.PluginKindMatcher, matcher.Descriptor().Name, options.Origin)
 }
-
-// registerAnalyzers wires the built-in reachability analyzers. Concrete
-// analyzers are registered by separate methods so plugins (and lite builds)
-// can opt out via build tags.
-func (r *Registry) registerAnalyzers() {
-	r.registerGovulncheckAnalyzer()
-	r.registerJSReachAnalyzer()
-	r.registerPyReachAnalyzer()
-	r.registerJVMReachAnalyzer()
-}
-
-// registerGovulncheckAnalyzer is provided by analyzers_govulncheck.go so the
-// registry package can stay free of analyzer dependencies (they pull in
-// golang.org/x/vuln in the builtin build).
 
 // RegisterAnalyzer adds an analyzer to the registry.
 func (r *Registry) RegisterAnalyzer(analyzer sdk.Analyzer) {
@@ -459,6 +351,7 @@ func (r *Registry) RegisterAnalyzerWithOptions(analyzer sdk.Analyzer, options Co
 	descriptor := decorateAnalyzerDescriptor(analyzer.Descriptor())
 	r.analyzers = append(r.analyzers, analyzerWithDescriptor{Analyzer: analyzer, descriptor: descriptor})
 	r.setDefaultEnabled(sdk.PluginKindAnalyzer, descriptor.Name, options.DefaultEnabled)
+	r.setComponentOrigin(sdk.PluginKindAnalyzer, descriptor.Name, options.Origin)
 }
 
 func (r *Registry) registerAuditors() {
@@ -502,6 +395,7 @@ func (r *Registry) RegisterAuditorWithOptions(auditor sdk.Auditor, options Compo
 	descriptor := decorateAuditorDescriptor(auditor.Descriptor())
 	r.auditors = append(r.auditors, auditorWithDescriptor{Auditor: auditor, descriptor: descriptor})
 	r.setDefaultEnabled(sdk.PluginKindAuditor, descriptor.Name, options.DefaultEnabled)
+	r.setComponentOrigin(sdk.PluginKindAuditor, descriptor.Name, options.Origin)
 }
 
 func (r *Registry) registerDiscoveryPlans() {
@@ -589,16 +483,44 @@ func (r *Registry) DefaultEnabledAnalyzerNames() []string {
 	return names
 }
 
-// DetectorOrigin returns Bomly-owned origin metadata for a registered detector.
-func (r *Registry) DetectorOrigin(name string) sdk.DetectorOrigin {
+func (r *Registry) setComponentOrigin(kind sdk.PluginKind, name string, origin sdk.DetectorOrigin) {
+	if r == nil || strings.TrimSpace(name) == "" {
+		return
+	}
+	if origin == "" {
+		origin = sdk.CoreOrigin
+	}
+	if r.componentOrigins == nil {
+		r.componentOrigins = make(map[string]sdk.DetectorOrigin)
+	}
+	r.componentOrigins[componentKey(kind, name)] = origin
+}
+
+// ComponentOrigin returns Bomly-owned origin metadata for a registered component.
+func (r *Registry) ComponentOrigin(kind sdk.PluginKind, name string) sdk.DetectorOrigin {
 	if r == nil {
 		return sdk.CoreOrigin
 	}
-	origin := r.detectorOrigins[strings.TrimSpace(name)]
+	origin := r.componentOrigins[componentKey(kind, name)]
 	if origin == "" {
 		return sdk.CoreOrigin
 	}
 	return origin
+}
+
+// ComponentConfig returns the resolved configuration block for a registered
+// component, or nil when none is configured. Embedded components can decode
+// the same kind-scoped block that managed plugins receive.
+func (r *Registry) ComponentConfig(kind sdk.PluginKind, name string) map[string]any {
+	if r == nil {
+		return nil
+	}
+	return r.configs.PluginConfigs.ForComponent(string(kind), name)
+}
+
+// DetectorOrigin returns Bomly-owned origin metadata for a registered detector.
+func (r *Registry) DetectorOrigin(name string) sdk.DetectorOrigin {
+	return r.ComponentOrigin(sdk.PluginKindDetector, name)
 }
 
 // DetectorDescriptors returns registered detector descriptors in registration order.
@@ -813,8 +735,8 @@ func (r *Registry) Filter(filter Filter) *Registry {
 	for key, enabled := range r.defaultEnabled {
 		filtered.defaultEnabled[key] = enabled
 	}
-	for name, origin := range r.detectorOrigins {
-		filtered.detectorOrigins[name] = origin
+	for key, origin := range r.componentOrigins {
+		filtered.componentOrigins[key] = origin
 	}
 
 	allowedDetectors := make(map[string]struct{}, len(r.detectors))
@@ -1024,8 +946,8 @@ func mergeEcosystems(left, right []sdk.Ecosystem) []sdk.Ecosystem {
 	return merged
 }
 
-func orderedBuiltInDetectors(logger *zap.Logger) []sdk.Detector {
-	detectorsByName := builtInDetectorsByName(logger)
+func orderedBuiltInDetectors(logger *zap.Logger, pluginConfigs config.PluginConfigs) []sdk.Detector {
+	detectorsByName := builtInDetectorsByName(logger, pluginConfigs)
 	ordered := make([]sdk.Detector, 0, len(detectorsByName))
 	seen := make(map[string]struct{}, len(detectorsByName))
 
@@ -1087,18 +1009,9 @@ func decorateDetectorDescriptor(descriptor sdk.DetectorDescriptor) sdk.DetectorD
 
 func detectorWithDecoratedDescriptor(detector sdk.Detector, descriptor sdk.DetectorDescriptor) sdk.Detector {
 	base := detectorWithDescriptor{Detector: detector, descriptor: descriptor}
-	_, hasFallback := detector.(sdk.FallbackDetector)
 	_, hasInstall := detector.(sdk.InstallFirstDetector)
 	_, hasRemediation := detector.(sdk.DetectorRemediationProvider)
 	switch {
-	case hasFallback && hasInstall && hasRemediation:
-		return fallbackInstallFirstRemediationDetectorWithDescriptor{detectorWithDescriptor: base}
-	case hasFallback && hasInstall:
-		return fallbackInstallFirstDetectorWithDescriptor{detectorWithDescriptor: base}
-	case hasFallback && hasRemediation:
-		return fallbackRemediationDetectorWithDescriptor{detectorWithDescriptor: base}
-	case hasFallback:
-		return fallbackDetectorWithDescriptor{detectorWithDescriptor: base}
 	case hasInstall && hasRemediation:
 		return installFirstRemediationDetectorWithDescriptor{detectorWithDescriptor: base}
 	case hasInstall:
@@ -1131,12 +1044,9 @@ func decorateAnalyzerDescriptor(descriptor sdk.AnalyzerDescriptor) sdk.AnalyzerD
 }
 
 var builtInDetectorAliases = map[string][]string{
-	detectors.NameNPM:           {"npm"},
-	detectors.NameNPMNative:     {"npm-native"},
-	detectors.NamePNPM:          {"pnpm"},
-	detectors.NamePNPMNative:    {"pnpm-native"},
-	detectors.NameYarn:          {"yarn"},
-	detectors.NameYarnNative:    {"yarn-native"},
+	detectors.NameNPM:           {"npm-detector", "npm-lockfile", "npm-native", "npm-native-detector"},
+	detectors.NamePNPM:          {"pnpm-detector", "pnpm-lockfile", "pnpm-native", "pnpm-native-detector"},
+	detectors.NameYarn:          {"yarn-detector", "yarn-lockfile", "yarn-native", "yarn-native-detector"},
 	detectors.NameBun:           {"bun"},
 	detectors.NameBunNative:     {"bun-native"},
 	detectors.NameGradle:        {"gradle"},
@@ -1179,11 +1089,8 @@ var builtInAnalyzerAliases = map[string][]string{
 
 var builtInDisplayNames = map[string]string{
 	detectors.NameNPM:           "npm Detector",
-	detectors.NameNPMNative:     "npm Native Detector",
 	detectors.NamePNPM:          "pnpm Detector",
-	detectors.NamePNPMNative:    "pnpm Native Detector",
 	detectors.NameYarn:          "Yarn Detector",
-	detectors.NameYarnNative:    "Yarn Native Detector",
 	detectors.NameBun:           "Bun Detector",
 	detectors.NameBunNative:     "Bun Native Detector",
 	detectors.NameGradle:        "Gradle Detector",
@@ -1236,43 +1143,39 @@ func detectorOriginForRegistry(detector sdk.Detector) sdk.DetectorOrigin {
 	return sdk.CoreOrigin
 }
 
-func builtInDetectorsByName(logger *zap.Logger) map[string]sdk.Detector {
-	syftFallback := syft.Detector{Logger: logger}
+func builtInDetectorsByName(logger *zap.Logger, pluginConfigs config.PluginConfigs) map[string]sdk.Detector {
 	syftPrimary := syft.Detector{
 		Logger:              logger,
 		SupportedManagers:   SupportedPackageManagersForDetector(detectors.NameSyft),
 		SupportedEcosystems: SupportedEcosystemsForDetector(detectors.NameSyft),
 	}
 	sbomDetector := sbomdetector.Detector{Logger: logger}
-	npmNativeDetector := npm.NativeDetector{Logger: logger, Fallback: syftFallback}
-	pnpmNativeDetector := pnpm.NativeDetector{Logger: logger, Fallback: syftFallback}
-	yarnNativeDetector := yarn.NativeDetector{Logger: logger, Fallback: syftFallback}
-	npmDetector := npm.LockfileDetector{Logger: logger, Fallback: npmNativeDetector}
-	pnpmDetector := pnpm.LockfileDetector{Logger: logger, Fallback: pnpmNativeDetector}
-	yarnDetector := yarn.LockfileDetector{Logger: logger, Fallback: yarnNativeDetector}
-	bunNativeDetector := bun.NativeDetector{Logger: logger, Fallback: syftFallback}
-	bunDetector := bun.LockfileDetector{Logger: logger, Fallback: bunNativeDetector}
-	gradleDetector := gradle.Detector{Logger: logger, Fallback: syftFallback}
-	mavenDetector := maven.Detector{Logger: logger, Fallback: syftFallback}
-	goDetector := gomod.Detector{Logger: logger, Fallback: syftFallback}
-	composerDetector := composer.Detector{Logger: logger, Fallback: syftFallback}
-	bundlerDetector := ruby.Detector{Logger: logger, Fallback: syftFallback}
+	npmDetector := npm.Detector{Logger: logger, Config: nodeStrategyConfigFor(logger, pluginConfigs, detectors.NameNPM)}
+	pnpmDetector := pnpm.Detector{Logger: logger, Config: nodeStrategyConfigFor(logger, pluginConfigs, detectors.NamePNPM)}
+	yarnDetector := yarn.Detector{Logger: logger, Config: nodeStrategyConfigFor(logger, pluginConfigs, detectors.NameYarn)}
+	bunNativeDetector := bun.NativeDetector{Logger: logger}
+	bunDetector := bun.LockfileDetector{Logger: logger}
+	gradleDetector := gradle.Detector{Logger: logger}
+	mavenDetector := maven.Detector{Logger: logger}
+	goDetector := gomod.Detector{Logger: logger}
+	composerDetector := composer.Detector{Logger: logger}
+	bundlerDetector := ruby.Detector{Logger: logger}
 	githubActionsDetector := githubactions.Detector{}
-	pipDetector := python.PipDetector{Logger: logger, Fallback: syftFallback}
-	pipenvDetector := python.PipenvDetector{Logger: logger, Fallback: syftFallback}
-	poetryDetector := python.PoetryDetector{Logger: logger, Fallback: syftFallback}
-	uvDetector := python.UVDetector{Logger: logger, Fallback: syftFallback}
-	nugetDetector := nuget.Detector{Logger: logger, Fallback: syftFallback}
-	cargoDetector := cargo.Detector{Logger: logger, Fallback: syftFallback}
-	pubDetector := pub.Detector{Logger: logger, Fallback: syftFallback}
-	pubNativeDetector := pub.NativeDetector{Logger: logger, Fallback: pubDetector}
-	cocoaPodsDetector := cocoapods.Detector{Logger: logger, Fallback: syftFallback}
-	swiftPMDetector := swiftpm.Detector{Logger: logger, Fallback: syftFallback}
-	swiftPMNativeDetector := swiftpm.NativeDetector{Logger: logger, Fallback: swiftPMDetector}
-	mixDetector := mix.Detector{Logger: logger, Fallback: syftFallback}
-	conanDetector := conan.Detector{Logger: logger, Fallback: syftFallback}
-	sbtDetector := sbt.Detector{Logger: logger, Fallback: syftFallback}
-	sbtNativeDetector := sbt.NativeDetector{Logger: logger, Fallback: sbtDetector}
+	pipDetector := python.PipDetector{Logger: logger}
+	pipenvDetector := python.PipenvDetector{Logger: logger}
+	poetryDetector := python.PoetryDetector{Logger: logger}
+	uvDetector := python.UVDetector{Logger: logger}
+	nugetDetector := nuget.Detector{Logger: logger}
+	cargoDetector := cargo.Detector{Logger: logger}
+	pubDetector := pub.Detector{Logger: logger}
+	pubNativeDetector := pub.NativeDetector{Logger: logger}
+	cocoaPodsDetector := cocoapods.Detector{Logger: logger}
+	swiftPMDetector := swiftpm.Detector{Logger: logger}
+	swiftPMNativeDetector := swiftpm.NativeDetector{Logger: logger}
+	mixDetector := mix.Detector{Logger: logger}
+	conanDetector := conan.Detector{Logger: logger}
+	sbtDetector := sbt.Detector{Logger: logger}
+	sbtNativeDetector := sbt.NativeDetector{Logger: logger}
 
 	return map[string]sdk.Detector{
 		sbomDetector.Descriptor().Name:          sbomDetector,

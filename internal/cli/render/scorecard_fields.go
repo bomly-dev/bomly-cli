@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // ScorecardHeadline renders a one-line summary suitable for a

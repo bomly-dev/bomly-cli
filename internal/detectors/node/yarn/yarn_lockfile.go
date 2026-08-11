@@ -8,7 +8,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
 
@@ -16,7 +16,6 @@ import (
 type LockfileDetector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
 }
 
 var yarnEvidencePatterns = []string{"yarn.lock"}
@@ -47,7 +46,7 @@ func (d LockfileDetector) Applicable(ctx context.Context, req sdk.DetectionReque
 func (d LockfileDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		IgnoredDirectories:      []string{"node_modules", "dist"},
-		Name:                    detectors.NameYarn,
+		Name:                    detectors.NameYarnLockfile,
 		RemediationCapabilities: yarnLockfileRemediationCapabilities(),
 		Technique:               sdk.LockfileTechnique,
 		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemNPM},
@@ -66,7 +65,7 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("yarn lockfile parser detector: %w", err)
 	}
-	if _, err := node.AttachUnknownComponentsToApplication(depsGraph, d.Logger, detectors.NameYarn, "yarn.lock"); err != nil {
+	if _, err := node.AttachUnknownComponentsToApplication(depsGraph, d.Logger, detectors.NameYarnLockfile, "yarn.lock"); err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("yarn lockfile parser detector: %w", err)
 	}
 	if err := node.AnnotateScopesFromPackageJSON(d.base().ProjectDir(req.ProjectPath), depsGraph); err != nil {
@@ -83,23 +82,9 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 	}, nil
 }
 
-// FallbackDetector returns the configured fallback detector.
-func (d LockfileDetector) FallbackDetector() sdk.Detector {
-	return d.Fallback
-}
-
 func (d LockfileDetector) base() node.BaseDetector {
 	return node.BaseDetector{
 		Logger:     d.Logger,
 		WorkingDir: d.WorkingDir,
 	}
-}
-
-// Install prepares Yarn dependencies before graph resolution.
-func (d LockfileDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
-	installer, ok := d.Fallback.(sdk.InstallFirstDetector)
-	if !ok {
-		return nil
-	}
-	return installer.Install(ctx, req)
 }

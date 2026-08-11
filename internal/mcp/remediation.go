@@ -7,7 +7,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // remediationInput carries everything the compact builders need to turn raw

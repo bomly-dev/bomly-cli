@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestProjectedDependencyDetailReviewReasonsMatchCanonicalTransition(t *testing.T) {

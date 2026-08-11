@@ -1,6 +1,6 @@
 package mcp
 
-import "github.com/bomly-dev/bomly-cli/sdk"
+import "github.com/bomly-dev/bomly-sdk"
 
 // classifyFinding buckets a finding by what an agent can do about it.
 // vuln is the advisory the finding references, resolved from the registry;

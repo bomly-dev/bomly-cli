@@ -10,7 +10,7 @@ import (
 	gocvss31 "github.com/pandatix/go-cvss/31"
 	gocvss40 "github.com/pandatix/go-cvss/40"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // MapVulnerability converts one OsvVulnerability into an OSV-aligned

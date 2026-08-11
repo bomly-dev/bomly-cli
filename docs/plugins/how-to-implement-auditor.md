@@ -4,7 +4,7 @@ An auditor plugin evaluates the dependency graph and package registry after dete
 
 External auditor plugins are served with `sdk.ServeAuditor`.
 
-The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-cli/sdk) documents the `sdk.ServeAuditor` entrypoint, `sdk.ServedAuditor` interface, `sdk.AuditRequest`, `sdk.AuditResult`, reference-style findings, and risk-score types used below.
+The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) documents the `sdk.ServeAuditor` entrypoint, `sdk.ServedAuditor` interface, `sdk.AuditRequest`, `sdk.AuditResult`, reference-style findings, and risk-score types used below.
 
 ## Minimum Shape
 
@@ -16,7 +16,7 @@ package main
 import (
     "context"
 
-    "github.com/bomly-dev/bomly-cli/sdk"
+    "github.com/bomly-dev/bomly-sdk"
 )
 
 const pluginID = "bomly.examples.auditor.meme-deps"
@@ -102,13 +102,14 @@ Do not copy full package or vulnerability records into findings. Keep the findin
 
 ## Configuration And HTTP
 
-Per-plugin config lives under `plugins.<plugin-id>`:
+Per-plugin config lives under the kind-scoped `plugins.auditors.<name>` block (the deprecated flat `plugins.<plugin-id>` form still works with a warning):
 
 ```yaml
 plugins:
-  bomly.examples.auditor.meme-deps:
-    extra_packages:
-      - totally-not-suspicious
+  auditors:
+    bomly.examples.auditor.meme-deps:
+      extra_packages:
+        - totally-not-suspicious
 ```
 
 Read it with:

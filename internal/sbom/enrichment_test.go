@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 )
 

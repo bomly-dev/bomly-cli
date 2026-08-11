@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	model "github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
 

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 type remediationReport struct {

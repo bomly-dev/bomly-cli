@@ -8,7 +8,7 @@ import (
 	explainengine "github.com/bomly-dev/bomly-cli/internal/engine/explain"
 	"github.com/bomly-dev/bomly-cli/internal/mcp"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestCanonicalGraphFixturePreservesOccurrenceAndPackageAccounting(t *testing.T) {

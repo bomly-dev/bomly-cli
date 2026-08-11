@@ -1,3 +1,7 @@
+# Scheduled native Go fuzzing over the highest-risk untrusted-input
+# boundaries (lockfile parsers, SBOM JSON, baseline decoding, vulnerability
+# consolidation, plugin archive/path sanitizers). The target list lives in
+# scripts/run-fuzz.sh. Deeper runs happen locally via `make fuzz FUZZTIME=...`.
 name: Fuzz
 
 on:

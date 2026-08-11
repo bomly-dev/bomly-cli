@@ -1,6 +1,6 @@
 # Architecture
 
-A tour of how Bomly turns a scan target into a report — the stages a scan runs through, the data it produces, and when (if ever) it touches the network. This is the user-facing overview; if you're contributing to Bomly itself, the deep design notes and package boundaries live in the repository's `dev-docs/ARCHITECTURE.md`.
+A tour of how Bomly turns a scan target into a report — the stages a scan runs through, the data it produces, and when (if ever) it touches the network.
 
 ## Commands
 
@@ -116,14 +116,14 @@ flowchart TD
 
 ## Extensibility
 
-Every built-in is an implementation of the same contract an external plugin implements — there is no privileged internal path. Three extension points are pluggable today, and a fourth is planned:
+Every built-in is an implementation of the same contract an external plugin implements — there is no privileged internal path. Four extension points are pluggable today:
 
 | Extension point | Status    | Responsibility                                                   |
 |-----------------|-----------|------------------------------------------------------------------|
 | Detector        | Available | Turn evidence (lockfile, manifest, SBOM) into a dependency graph |
 | Matcher         | Available | Enrich packages with vulnerability, license, or lifecycle data   |
 | Auditor         | Available | Evaluate policy and emit findings                                |
-| Analyzer        | Planned   | Annotate reachability for a language                             |
+| Analyzer        | Available | Annotate vulnerability reachability for a language               |
 
 External plugins run as separate, versioned native processes and are disabled
 until you explicitly enable them. They are not operating-system sandboxes.
@@ -165,6 +165,17 @@ downgrade block.
 
 For the complete permission model, input limits, plugin trust boundary, and
 documented residual risks, see [Security and Trust Boundaries](SECURITY.md).
+
+## Repository and module layout
+
+Bomly is built from modular components. This repository contains the full
+CLI: the `bomly` command entry point, the implementation of every pipeline
+stage and built-in component (detectors, matchers, auditors, analyzers), the
+user documentation, the release automation, and the end-to-end test suite
+that drives the built binary against pinned public repositories. The public
+[`bomly-sdk`](https://github.com/bomly-dev/bomly-sdk) module is released
+separately and defines the contract that both built-in components and
+external plugins implement.
 
 ## Build variants
 

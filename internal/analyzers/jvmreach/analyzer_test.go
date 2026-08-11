@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	model "github.com/bomly-dev/bomly-sdk"
 )
 
 type fakeRunner struct {

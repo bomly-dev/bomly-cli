@@ -13,7 +13,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
 	"github.com/bomly-dev/bomly-cli/internal/testutil"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
 
@@ -180,7 +180,9 @@ func TestInstallRejectsUnsafeArchivePaths(t *testing.T) {
 	}
 
 	_, err = managedplugin.Install(context.Background(), root, archivePath, managedplugin.InstallOptions{})
-	if err == nil || !strings.Contains(err.Error(), "escapes the extraction directory") {
+	if err == nil ||
+		(!strings.Contains(err.Error(), "escapes the extraction directory") &&
+			!strings.Contains(err.Error(), "parent-directory component")) {
 		t.Fatalf("expected unsafe archive path error, got %v", err)
 	}
 }
@@ -342,8 +344,14 @@ func TestExternalMatcherReceivesAndReturnsRegistry(t *testing.T) {
 		t.Fatalf("Enable() error = %v", err)
 	}
 
+	// Register through a persistent subprocess pool so the external matcher
+	// exercises the pooled launch path end to end.
+	pool := managedplugin.NewClientPool()
+	defer pool.Shutdown()
+	launchCtx := managedplugin.WithLaunchOptions(context.Background(), managedplugin.LaunchOptions{Pool: pool})
+
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
-	if err := managedplugin.RegisterRuntimePlugins(context.Background(), reg, root); err != nil {
+	if err := managedplugin.RegisterRuntimePlugins(launchCtx, reg, root); err != nil {
 		t.Fatalf("RegisterRuntimePlugins() error = %v", err)
 	}
 	matchers := reg.Matchers(sdk.MatchRequest{
@@ -351,6 +359,10 @@ func TestExternalMatcherReceivesAndReturnsRegistry(t *testing.T) {
 	})
 	if len(matchers) != 1 {
 		t.Fatalf("expected one external matcher, got %d", len(matchers))
+	}
+
+	if err := matchers[0].Ready(context.Background(), sdk.MatchRequest{}); err != nil {
+		t.Fatalf("Ready() through pooled subprocess error = %v", err)
 	}
 
 	const purl = "pkg:npm/react@18.2.0"
@@ -383,7 +395,7 @@ func fakeDetectorPluginSource(id string) string {
 import (
 	"context"
 	"path/filepath"
-	schemav1 "github.com/bomly-dev/bomly-cli/sdk"
+	schemav1 "github.com/bomly-dev/bomly-sdk"
 )
 
 type detector struct{}
@@ -452,7 +464,7 @@ func fakeMatcherPluginSource(id string) string {
 import (
 	"context"
 	"fmt"
-	schemav1 "github.com/bomly-dev/bomly-cli/sdk"
+	schemav1 "github.com/bomly-dev/bomly-sdk"
 )
 
 type matcher struct{}
@@ -501,7 +513,7 @@ func fakeDetectorPluginSourceWithoutPackageManagers(id string) string {
 
 import (
 	"context"
-	schemav1 "github.com/bomly-dev/bomly-cli/sdk"
+	schemav1 "github.com/bomly-dev/bomly-sdk"
 )
 
 type detector struct{}
@@ -540,7 +552,7 @@ func fakeRemediationDetectorPluginSource(id string) string {
 
 import (
 	"context"
-	schemav1 "github.com/bomly-dev/bomly-cli/sdk"
+	schemav1 "github.com/bomly-dev/bomly-sdk"
 )
 
 type detector struct{}

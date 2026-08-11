@@ -3,7 +3,7 @@ package consolidation
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestBuildPackageRegistry_DeduplicatesByPURLAndLinksDependencies(t *testing.T) {

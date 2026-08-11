@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestRegistryPackagesForGraphSkipsFirstPartyNodes(t *testing.T) {

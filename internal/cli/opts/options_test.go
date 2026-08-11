@@ -9,8 +9,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/config"
+	"github.com/bomly-dev/bomly-cli/internal/plugin"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -774,7 +775,7 @@ func TestCommandContextInitialize_RepositoryConfigCannotGrantAuthorityImplicitly
 		len(got.InstallArgs) != 0 || got.Detectors != "" || got.Matchers != "" ||
 		len(got.Outputs) != 0 || got.HTTPProxy != "" ||
 		got.OsvAPIBase != "https://api.osv.dev" || got.OsvCacheDir != "" ||
-		len(got.Plugins) != 0 || len(got.LoadedFiles) != 0 {
+		!got.Plugins.IsEmpty() || len(got.LoadedFiles) != 0 {
 		t.Fatalf("repository config granted authority without --config: %#v", got)
 	}
 }
@@ -838,7 +839,7 @@ func TestCommandContextInitialize_ExplicitConfigResolvesRelativeCAPathAndPrivate
 	if got.ScorecardAPIBase != "https://scorecard.internal.test" {
 		t.Fatalf("Scorecard API base = %q", got.ScorecardAPIBase)
 	}
-	if got.Plugins["private.matcher"]["endpoint"] != "https://advisories.internal.test" {
+	if got.Plugins.ForPlugin("private.matcher")["endpoint"] != "https://advisories.internal.test" {
 		t.Fatalf("plugin config = %#v", got.Plugins)
 	}
 	if len(got.LoadedFiles) != 1 || got.LoadedFiles[0] != configPath {
@@ -1059,5 +1060,39 @@ func TestResolveConfigDefaultsMaxDepthWithoutFlags(t *testing.T) {
 	}
 	if got.MaxDepth != 3 {
 		t.Fatalf("expected default max depth 3, got %d", got.MaxDepth)
+	}
+}
+
+// TestDetachPluginPoolIsolatesClones proves that a clone of an Options value
+// gets an independent plugin subprocess pool after DetachPluginPool: pooled
+// plugin processes are bound to the launching request's context, so
+// long-lived servers (MCP) must not share one pool across requests.
+func TestDetachPluginPoolIsolatesClones(t *testing.T) {
+	base := &Options{}
+	baseCtx := base.PluginLaunchContext(context.Background())
+	baseLaunch, ok := plugin.LaunchOptionsFromContext(baseCtx)
+	if !ok || baseLaunch.Pool == nil {
+		t.Fatal("base PluginLaunchContext did not memoize a pool")
+	}
+
+	shared := *base
+	sharedCtx := shared.PluginLaunchContext(context.Background())
+	sharedLaunch, _ := plugin.LaunchOptionsFromContext(sharedCtx)
+	if sharedLaunch.Pool != baseLaunch.Pool {
+		t.Fatal("shallow copy should share the memoized pool (precondition)")
+	}
+
+	detached := *base
+	detached.DetachPluginPool()
+	detachedCtx := detached.PluginLaunchContext(context.Background())
+	detachedLaunch, _ := plugin.LaunchOptionsFromContext(detachedCtx)
+	if detachedLaunch.Pool == nil {
+		t.Fatal("detached clone did not create its own pool")
+	}
+	if detachedLaunch.Pool == baseLaunch.Pool {
+		t.Fatal("DetachPluginPool clone still shares the base pool")
+	}
+	if base.pluginPool != baseLaunch.Pool {
+		t.Fatal("DetachPluginPool on the clone must not clear the base pool")
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // RenderSupportMatrixMarkdown renders the canonical markdown support matrix document.

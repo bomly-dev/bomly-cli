@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // IndexedDetectors describes a set of package managers that will be detected by the same primary detector.

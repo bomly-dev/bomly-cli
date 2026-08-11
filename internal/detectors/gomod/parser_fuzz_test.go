@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testutil"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func FuzzDepGraphFromGoList(f *testing.F) {

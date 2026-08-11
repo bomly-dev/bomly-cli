@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	model "github.com/bomly-dev/bomly-sdk"
 )
 
 // discoverProjectRoots returns the Python project roots derivable

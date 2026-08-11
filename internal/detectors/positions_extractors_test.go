@@ -15,7 +15,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/ruby"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/sbt"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func writeFile(t *testing.T, dir, name, body string) {

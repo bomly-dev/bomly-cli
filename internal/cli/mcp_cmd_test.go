@@ -6,7 +6,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestApplyStringOverride(t *testing.T) {

@@ -13,7 +13,7 @@ import (
 	"github.com/anchore/syft/syft/format/syftjson"
 	syftpkg "github.com/anchore/syft/syft/pkg"
 	syftsbom "github.com/anchore/syft/syft/sbom"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestDetectorResolveGraph_SyftJSON(t *testing.T) {

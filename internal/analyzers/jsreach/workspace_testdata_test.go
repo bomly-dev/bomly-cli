@@ -9,7 +9,7 @@ import (
 	"sort"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	model "github.com/bomly-dev/bomly-sdk"
 )
 
 func workspaceFixture(name string) string {

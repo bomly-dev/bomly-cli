@@ -8,7 +8,7 @@ import (
 	"github.com/anchore/syft/syft/artifact"
 	syftpkg "github.com/anchore/syft/syft/pkg"
 	syftsbom "github.com/anchore/syft/syft/sbom"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // TestGraphFromSyftSBOMMapsPackagesEdgesLicenses exercises the builtin Syft →

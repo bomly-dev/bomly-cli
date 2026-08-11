@@ -16,7 +16,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/mcp"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/plugin"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	mcpserver "github.com/mark3labs/mcp-go/server"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -136,6 +136,10 @@ type mcpOverrides struct {
 // The copy is safe to use concurrently — each call gets its own context and pipeline.
 func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	clone := *a.options
+	// Every MCP invocation gets its own plugin subprocess pool: pooled
+	// processes are bound to the request context and would otherwise be
+	// killed by one request's cancellation and unavailable to the next.
+	clone.DetachPluginPool()
 
 	resolved := clone.GetConfig()
 	applyStringOverride(&clone.ResolvedConfig.Path, o.Path)
@@ -303,6 +307,7 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (m
 			fmt.Errorf("prepare scan: %w", err),
 		)
 	}
+	defer func() { _ = cmdCtx.Close() }()
 	scopeFilter, err := sdk.ParseScope(req.Scope)
 	if err != nil {
 		return mcp.ScanRunResult{}, mcp.WrapToolError(
@@ -407,6 +412,7 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 			fmt.Errorf("prepare explain: %w", err),
 		)
 	}
+	defer func() { _ = cmdCtx.Close() }()
 
 	pipeline := engine.NewPipeline(cmdCtx.Registry(), a.logger)
 	explainResult, err := pipeline.RunExplain(ctx, engine.ExplainRequest{

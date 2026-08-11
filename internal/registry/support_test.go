@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestSupportCatalogEvidencePatterns(t *testing.T) {
@@ -24,19 +24,19 @@ func TestSupportCatalogEvidencePatterns(t *testing.T) {
 
 func TestSupportCatalogDetectorChainOrdering(t *testing.T) {
 	chain := DetectorNamesForPackageManager(sdk.PackageManagerNPM)
-	want := []string{detectors.NameNPM, detectors.NameNPMNative, detectors.NameSyft}
+	want := []string{detectors.NameNPM, detectors.NameSyft}
 	if !reflect.DeepEqual(chain, want) {
 		t.Fatalf("expected npm detector chain %v, got %v", want, chain)
 	}
 
 	chain = DetectorNamesForPackageManager(sdk.PackageManagerPNPM)
-	want = []string{detectors.NamePNPM, detectors.NamePNPMNative, detectors.NameSyft}
+	want = []string{detectors.NamePNPM, detectors.NameSyft}
 	if !reflect.DeepEqual(chain, want) {
 		t.Fatalf("expected pnpm detector chain %v, got %v", want, chain)
 	}
 
 	chain = DetectorNamesForPackageManager(sdk.PackageManagerYarn)
-	want = []string{detectors.NameYarn, detectors.NameYarnNative, detectors.NameSyft}
+	want = []string{detectors.NameYarn, detectors.NameSyft}
 	if !reflect.DeepEqual(chain, want) {
 		t.Fatalf("expected yarn detector chain %v, got %v", want, chain)
 	}
@@ -54,7 +54,7 @@ func TestSupportCatalogDetectorChainOrdering(t *testing.T) {
 	}
 
 	chain = DetectorNamesForPackageManager(sdk.PackageManagerSBT)
-	want = []string{detectors.NameSBTNative, detectors.NameSBT}
+	want = []string{detectors.NameSBTNative, detectors.NameSBT, detectors.NameSyft}
 	if !reflect.DeepEqual(chain, want) {
 		t.Fatalf("expected sbt detector chain %v, got %v", want, chain)
 	}
@@ -119,12 +119,12 @@ func TestSupportEntriesForTechniqueFiltersEvidencePatterns(t *testing.T) {
 			rejectEvidence: []string{},
 		},
 		{
-			name:           "npm native fallback",
+			name:           "npm merged multiple",
 			manager:        sdk.PackageManagerNPM,
-			technique:      sdk.BuildToolTechnique,
-			wantDetectors:  []string{detectors.NameNPMNative},
-			wantEvidence:   []string{"package.json"},
-			rejectEvidence: []string{"package-lock.json"},
+			technique:      sdk.MultipleTechnique,
+			wantDetectors:  []string{detectors.NameNPM, detectors.NameSyft},
+			wantEvidence:   []string{"npm-shrinkwrap.json", "package-lock.json", "package.json"},
+			rejectEvidence: []string{},
 		},
 		{
 			name:           "swiftpm lockfile",
@@ -156,14 +156,6 @@ func TestSupportEntriesForTechniqueFiltersEvidencePatterns(t *testing.T) {
 			technique:      sdk.ManifestTechnique,
 			wantDetectors:  []string{detectors.NameSBT},
 			wantEvidence:   []string{"build.sbt", "project/plugins.sbt", "project/build.properties"},
-			rejectEvidence: []string{},
-		},
-		{
-			name:           "npm lockfile",
-			manager:        sdk.PackageManagerNPM,
-			technique:      sdk.LockfileTechnique,
-			wantDetectors:  []string{detectors.NameNPM},
-			wantEvidence:   []string{"npm-shrinkwrap.json", "package-lock.json"},
 			rejectEvidence: []string{},
 		},
 		{

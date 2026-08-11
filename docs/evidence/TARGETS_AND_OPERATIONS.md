@@ -40,46 +40,39 @@ bomly scan \
   --fail-on high
 ```
 
-The deterministic ingestion cases check Bomly's internal graph. The manually
-started interoperability workflow adds an external check:
+The deterministic ingestion cases check Bomly's dependency graph. The
+`SBOM interoperability assurance` workflow
+(`.github/workflows/sbom-interoperability.yml`) in this repository adds an
+external check. It runs weekly and can be started on demand:
 
 ```sh
-gh workflow run sbom-interoperability.yml --ref v0.20.0
+gh workflow run sbom-interoperability.yml
 ```
 
-It generates canonical SPDX 2.3 and CycloneDX 1.7 files, verifies the
-downloaded validator checksums, runs the named official validators, and saves
-the generated files plus a `bomly.sbom-assurance-run/v1` report. See
+It builds the released CLI surface, uses the binary itself to generate SPDX
+2.3 and CycloneDX 1.7 files from a pinned fixture SBOM, verifies the
+downloaded validator checksums, runs the official validators
+(`spdx/tools-java` and `cyclonedx-cli`), and uploads the generated files,
+their checksums, and the validation logs as a public run artifact.
+
+Validator versions and download checksums stay in the workflow file, so
+changing either requires an intentional, reviewable evidence update. See
 [`test/assurance/SBOM_INTEROPERABILITY.md`](../../test/assurance/SBOM_INTEROPERABILITY.md)
 for the workflow summary and failure-investigation steps.
 
-The public catalog records the workflow checksum under
-`sbom-interoperability`. Validator versions and download checksums stay in the
-workflow so changing either requires an intentional evidence update.
-The `v0.20.0` release tag contains the recorded workflow definition, so this
-command does not silently switch to a later default-branch workflow.
-
 ## Supported-system checks
 
-The `portable-platforms` case starts:
+Unit-test and build assurance — the unit suite and release-target builds —
+runs in this repository's public CI on every change.
 
-```sh
-gh workflow run portable-assurance.yml --ref v0.20.0
-```
+The publicly verifiable evidence for this repository is:
 
-This workflow:
-
-- runs the Go unit tests twice on Linux, macOS, and Windows;
-- repeats Java-related unit tests ten times;
-- repeats all Go unit tests five more times on Linux;
-- builds full and lightweight binaries for every release target.
-
-It is important to be precise: this is unit-test and build assurance. It does
-not run smoke tests against public repositories, container registries, or
-advisory services. The workflow summary identifies each group and explains
-how to open failed logs. See
-[`test/assurance/BENCHMARK_RUNS.md`](../../test/assurance/BENCHMARK_RUNS.md)
-for the full description.
+- the `SBOM interoperability assurance` workflow described above, which
+  drives the built binary and official validators in public CI;
+- the smoke suite, which runs the built binary end to end against pinned
+  public repositories and checked-in golden outputs;
+- signed releases with SLSA build provenance, which tie each published
+  binary to the public revision it was built from.
 
 ## Repeatable performance measurements
 
@@ -91,7 +84,9 @@ make benchmark-samples
 
 The `performance-stability` case uses the checked SPDX fixture and the
 lightweight Bomly binary. It records five isolated cold-cache scans and five
-shared-cache warm scans under `.benchmark-runs/performance`.
+shared-cache warm scans under `.benchmark-runs/performance`. See
+[`test/assurance/BENCHMARK_RUNS.md`](../../test/assurance/BENCHMARK_RUNS.md)
+for the full description.
 
 The resulting `bomly.benchmark-run/v1` report includes:
 
@@ -112,10 +107,9 @@ Before a broad release:
 1. Run `make test` and the relevant pinned smoke slices.
 2. Run `make benchmark-samples` and compare the report with the previous run
    from a comparable host.
-3. Start the portable workflow and read its Summary page.
-4. If SBOM output changed, start the interoperability workflow and inspect its
+3. If SBOM output changed, start the interoperability workflow and inspect its
    generated artifact hashes and validator results.
-5. Record the repository commit with every retained workflow or benchmark
+4. Record the repository commit with every retained workflow or benchmark
    report.
 
 ## Limits

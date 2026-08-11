@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/testutil"
-	plugschema "github.com/bomly-dev/bomly-cli/sdk"
+	plugschema "github.com/bomly-dev/bomly-sdk"
 )
 
 func TestInstallRemoteArchiveUsesConfiguredProxy(t *testing.T) {

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 var ErrNilGraph = errors.New("dependency graph is nil")

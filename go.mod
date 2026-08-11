@@ -24,12 +24,15 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	go.uber.org/zap v1.28.0
-	golang.org/x/net v0.57.0
 	golang.org/x/term v0.45.0
 	golang.org/x/vuln v1.6.0
 	google.golang.org/grpc v1.83.0
-	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af
 	gopkg.in/yaml.v3 v3.0.1
+)
+
+require (
+	golang.org/x/net v0.57.0 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 )
 
 require (
@@ -102,6 +105,7 @@ require (
 	github.com/bodgit/plumbing v1.3.0 // indirect
 	github.com/bodgit/sevenzip v1.6.1 // indirect
 	github.com/bodgit/windows v1.0.1 // indirect
+	github.com/bomly-dev/bomly-sdk v0.2.0
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/harmonica v0.2.0 // indirect

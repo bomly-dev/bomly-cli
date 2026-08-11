@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	model "github.com/bomly-dev/bomly-sdk"
 )
 
 func goFixture(parts ...string) string {

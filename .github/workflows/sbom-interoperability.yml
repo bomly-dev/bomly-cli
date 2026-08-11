@@ -1,10 +1,23 @@
 name: SBOM interoperability assurance
 
 on:
+  schedule:
+    - cron: "41 5 * * 1"
   workflow_dispatch:
 
 permissions:
   contents: read
+
+env:
+  SPDX_TOOLS_VERSION: "2.0.7"
+  SPDX_TOOLS_URL: https://github.com/spdx/tools-java/releases/download/v2.0.7/tools-java-2.0.7.zip
+  SPDX_TOOLS_SHA256: 2dc63c3399c5178058b1be8a3de6f13b9f24981cd86c4292ef98f4a7e90de36d
+  SPDX_TOOLS_JAR: tools-java-2.0.7-jar-with-dependencies.jar
+  CDX_CLI_VERSION: "0.32.0"
+  CDX_CLI_URL: https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.32.0/cyclonedx-linux-x64
+  CDX_CLI_SHA256: 454879e6a4a405c8a13bff49b8982adcb0596f3019b26b0811c66e4d7f0783e1
+  FIXTURE_SBOM: test/smoke/testdata/sboms/go.spdx.json
+  OUTPUT_DIR: sbom-assurance-artifacts
 
 jobs:
   validate:
@@ -27,99 +40,70 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Build the offline-capable CLI
-        run: make build-lite
+      - name: Build the Bomly binary
+        run: make build-full
 
-      - name: Generate and validate canonical SBOMs
-        id: validate
-        run: go run ./internal/tools/sbomassurance -bomly ./bin/bomly-lite -output sbom-assurance-artifacts
+      - name: Download checksum-pinned validators
+        run: |
+          set -euo pipefail
+          mkdir -p "${OUTPUT_DIR}/validators"
+          curl -fsSL --retry 3 -o "${OUTPUT_DIR}/validators/tools-java.zip" "${SPDX_TOOLS_URL}"
+          echo "${SPDX_TOOLS_SHA256}  ${OUTPUT_DIR}/validators/tools-java.zip" | sha256sum -c -
+          unzip -j -o "${OUTPUT_DIR}/validators/tools-java.zip" "${SPDX_TOOLS_JAR}" -d "${OUTPUT_DIR}/validators"
+          curl -fsSL --retry 3 -o "${OUTPUT_DIR}/validators/cyclonedx-cli" "${CDX_CLI_URL}"
+          echo "${CDX_CLI_SHA256}  ${OUTPUT_DIR}/validators/cyclonedx-cli" | sha256sum -c -
+          chmod +x "${OUTPUT_DIR}/validators/cyclonedx-cli"
+
+      - name: Generate SBOMs with the built binary
+        run: |
+          set -euo pipefail
+          ./bin/bomly scan --sbom --path "${FIXTURE_SBOM}" --detectors sbom \
+            --format spdx > "${OUTPUT_DIR}/bomly.spdx.json"
+          ./bin/bomly scan --sbom --path "${FIXTURE_SBOM}" --detectors sbom \
+            --format cyclonedx > "${OUTPUT_DIR}/bomly.cdx.json"
+          sha256sum "${OUTPUT_DIR}/bomly.spdx.json" "${OUTPUT_DIR}/bomly.cdx.json" \
+            | tee "${OUTPUT_DIR}/checksums.txt"
+
+      - name: Validate SPDX 2.3 output (spdx/tools-java)
+        run: |
+          set -euo pipefail
+          java -jar "${OUTPUT_DIR}/validators/${SPDX_TOOLS_JAR}" Verify \
+            "${OUTPUT_DIR}/bomly.spdx.json" 2>&1 | tee "${OUTPUT_DIR}/spdx-validation.log"
+
+      - name: Validate CycloneDX 1.7 output (cyclonedx-cli)
+        run: |
+          set -euo pipefail
+          "${OUTPUT_DIR}/validators/cyclonedx-cli" validate \
+            --input-file "${OUTPUT_DIR}/bomly.cdx.json" \
+            --input-format json --input-version v1_7 --fail-on-errors \
+            2>&1 | tee "${OUTPUT_DIR}/cyclonedx-validation.log"
+
+      - name: Summarize the result
+        if: always()
+        run: |
+          set -euo pipefail
+          {
+            printf '# SBOM interoperability assurance\n\n'
+            printf 'The built binary generated SPDX 2.3 and CycloneDX 1.7 SBOMs from a pinned fixture, and the official validators checked them.\n\n'
+            printf -- '- **Revision:** `%s`\n' "${GITHUB_SHA}"
+            printf -- '- **Validators:** spdx/tools-java `%s`, cyclonedx-cli `%s` (both checksum-pinned)\n\n' "${SPDX_TOOLS_VERSION}" "${CDX_CLI_VERSION}"
+            if [[ -f "${OUTPUT_DIR}/checksums.txt" ]]; then
+              printf '## Generated file checksums\n\n```\n'
+              cat "${OUTPUT_DIR}/checksums.txt"
+              printf '```\n'
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Upload assurance evidence
-        id: evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sbom-interoperability-${{ github.run_id }}
-          path: sbom-assurance-artifacts/
+          path: |
+            sbom-assurance-artifacts/bomly.spdx.json
+            sbom-assurance-artifacts/bomly.cdx.json
+            sbom-assurance-artifacts/checksums.txt
+            sbom-assurance-artifacts/spdx-validation.log
+            sbom-assurance-artifacts/cyclonedx-validation.log
           if-no-files-found: warn
           retention-days: 14
-
-      - name: Explain the result
-        if: always()
-        env:
-          VALIDATION_RESULT: ${{ steps.validate.outcome }}
-          EVIDENCE_ARTIFACT_ID: ${{ steps.evidence.outputs.artifact-id }}
-        run: |
-          set -euo pipefail
-          if [[ "${VALIDATION_RESULT}" == "success" ]]; then
-            result="Passed"
-            icon="✅"
-          else
-            result="Failed"
-            icon="❌"
-          fi
-          if [[ -n "${EVIDENCE_ARTIFACT_ID}" ]]; then
-            evidence="Uploaded (artifact ID \`${EVIDENCE_ARTIFACT_ID}\`)"
-          else
-            evidence="Not produced"
-          fi
-          {
-            printf '# SBOM compatibility check: %s %s\n\n' "${icon}" "${result}"
-            printf 'Bomly generated SPDX 2.3 and CycloneDX 1.7 files, then asked the official validators to check them.\n\n'
-            printf -- '- **Revision:** `%s`\n' "${GITHUB_SHA}"
-            printf -- '- **Validation:** `%s`\n' "${VALIDATION_RESULT}"
-            printf -- '- **Evidence:** %s\n\n' "${evidence}"
-          } >> "${GITHUB_STEP_SUMMARY}"
-
-          manifest="sbom-assurance-artifacts/run-manifest.json"
-          if [[ -f "${manifest}" ]]; then
-            {
-              printf '## Validators\n\n'
-              printf '| Validator | Version | Result | Time |\n'
-              printf '|---|---:|---|---:|\n'
-              jq -r '
-                . as $run
-                | .validators[]
-                | . as $validator
-                | ($run.commands[]
-                    | select(
-                        (.executable == "java" and $validator.name == "spdx-tools-java")
-                        or
-                        (.executable | endswith("cyclonedx-cli") and $validator.name == "cyclonedx-cli")
-                      )
-                  ) as $command
-                | "| \($validator.name) | \($validator.version) | "
-                  + (if $command.exit_code == 0 then "Passed" else "Failed (exit \($command.exit_code))" end)
-                  + " | \($command.duration_ms) ms |"
-              ' "${manifest}"
-              printf '\n## Generated files\n\n'
-              printf '| Format | Size | SHA-256 |\n'
-              printf '|---|---:|---|\n'
-              jq -r '.artifacts[] | "| \(.format) | \(.bytes) bytes | `\(.sha256)` |"' "${manifest}"
-              printf '\n## Validator messages\n\n'
-              jq -r '
-                .commands[]
-                | select(.executable == "java" or (.executable | endswith("cyclonedx-cli")))
-                | (if .executable == "java" then "SPDX" else "CycloneDX" end) as $name
-                | [(.stdout // ""), (.stderr // "")]
-                | map(select(length > 0))
-                | join("\n")
-                | gsub("\r"; "")
-                | gsub("\n+$"; "")
-                | (if length == 0 then "No messages" else gsub("\n"; "<br>") end) as $message
-                | "- **\($name):** \($message)"
-              ' "${manifest}"
-            } >> "${GITHUB_STEP_SUMMARY}"
-          else
-            printf '\nNo run report was created. Open the failed build or validation step first.\n' >> "${GITHUB_STEP_SUMMARY}"
-          fi
-
-          {
-            printf '\n## Need more detail?\n\n'
-            printf 'Download the saved files with:\n\n'
-            printf '```bash\n'
-            printf 'gh run download %s -n sbom-interoperability-%s -D sbom-assurance-artifacts\n' "${GITHUB_RUN_ID}" "${GITHUB_RUN_ID}"
-            printf 'jq . sbom-assurance-artifacts/run-manifest.json\n'
-            printf '```\n\n'
-            printf 'The report contains every command, exit code, duration, validator message, version, and checksum. The full command output is also available in the **Generate and validate canonical SBOMs** step log.\n'
-          } >> "${GITHUB_STEP_SUMMARY}"

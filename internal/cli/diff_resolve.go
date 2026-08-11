@@ -13,7 +13,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/git"
 	"github.com/bomly-dev/bomly-cli/internal/progress"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
 

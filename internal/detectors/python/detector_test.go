@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestDepGraphFromPipInspect(t *testing.T) {

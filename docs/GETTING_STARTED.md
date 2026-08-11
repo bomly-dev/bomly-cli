@@ -4,13 +4,25 @@ This page walks you from installation to your first useful scan in five minutes.
 
 ## Install
 
+On Linux or macOS:
+
+```bash
+curl -fsSL https://bomly.dev/install.sh | sh
+```
+
+On Windows:
+
+```powershell
+winget install Bomly.BomlyCLI
+```
+
 If you have Go on `PATH`:
 
 ```bash
 go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
 ```
 
-Otherwise download a prebuilt archive from [GitHub Releases](https://github.com/bomly-dev/bomly-cli/releases) and put `bomly` on your `PATH`. Verify:
+Or download a prebuilt archive from [GitHub Releases](https://github.com/bomly-dev/bomly-cli/releases) and put `bomly` on your `PATH`. See [Installation](INSTALLATION.md) for Linux packages, Scoop, checksums, and pinned versions. Verify:
 
 ```bash
 bomly version

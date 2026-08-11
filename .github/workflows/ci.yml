@@ -96,6 +96,14 @@ jobs:
           set -euo pipefail
           go mod tidy
           git diff --exit-code -- go.mod go.sum
+      - name: Forbid replace directives
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -E '^replace ' go.mod; then
+            echo "go.mod must not contain replace directives" >&2
+            exit 1
+          fi
 
   generated-docs:
     name: Generated docs drift
@@ -109,12 +117,10 @@ jobs:
           go-version-file: go.mod
           cache: true
           cache-dependency-path: go.sum
-      - name: Check generated documentation drift
-        shell: bash
-        run: |
-          set -euo pipefail
-          make generate
-          git diff --exit-code
+      - name: Regenerate documentation from the built binary
+        run: make generate
+      - name: Check generated docs drift
+        run: git diff --exit-code -- docs/
 
   docs-links:
     name: Docs link check

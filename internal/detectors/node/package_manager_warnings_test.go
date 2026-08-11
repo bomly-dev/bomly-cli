@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func writeProject(t *testing.T, files map[string]string) string {

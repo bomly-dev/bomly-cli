@@ -8,7 +8,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // poetryLockPackage represents a single [[package]] entry in poetry.lock.

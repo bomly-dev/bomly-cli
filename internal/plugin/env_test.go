@@ -6,7 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/internal/config"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestPluginEnvIncludesProxyAndPluginConfig(t *testing.T) {
@@ -19,10 +20,12 @@ func TestPluginEnvIncludesProxyAndPluginConfig(t *testing.T) {
 		HTTPProxyPassword: "secret",
 		HTTPNoProxy:       "localhost,.corp.example",
 		HTTPCACertFile:    "/tmp/proxy-ca.pem",
-		PluginConfigs: map[string]map[string]any{
-			"acme.matcher": {"api_base": "https://api.example.com"},
+		PluginConfigs: config.PluginConfigs{
+			Matchers: map[string]map[string]any{
+				"acme.matcher": {"api_base": "https://api.example.com"},
+			},
 		},
-	}, "acme.matcher")
+	}, "acme.matcher", "matcher")
 	if err != nil {
 		t.Fatalf("pluginEnv() error = %v", err)
 	}
@@ -78,7 +81,7 @@ func TestPluginEnvIncludesProxyAndPluginConfig(t *testing.T) {
 func TestPluginEnvForwardsStandardProxyEnvWhenBomlyProxyUnset(t *testing.T) {
 	t.Setenv("HTTP_PROXY", "http://standard.example:8080")
 	t.Setenv("NO_PROXY", "localhost")
-	env, cleanup, err := pluginEnv(LaunchOptions{}, "acme.matcher")
+	env, cleanup, err := pluginEnv(LaunchOptions{}, "acme.matcher", "matcher")
 	if err != nil {
 		t.Fatalf("pluginEnv() error = %v", err)
 	}
@@ -98,7 +101,7 @@ func TestPluginEnvDoesNotForwardUnrelatedHostEnvironment(t *testing.T) {
 	t.Setenv("DATABASE_URL", "postgres://user:ambient-db-secret@example.com/db")
 	t.Setenv("BOMLY_OSV_API_BASE", "https://unrelated.example.test")
 
-	env, cleanup, err := pluginEnv(LaunchOptions{}, "acme.matcher")
+	env, cleanup, err := pluginEnv(LaunchOptions{}, "acme.matcher", "matcher")
 	if err != nil {
 		t.Fatalf("pluginEnv() error = %v", err)
 	}
@@ -123,11 +126,15 @@ func TestPluginEnvDoesNotForwardUnrelatedHostEnvironment(t *testing.T) {
 
 func TestPluginEnvOnlyWritesSelectedPluginConfig(t *testing.T) {
 	env, cleanup, err := pluginEnv(LaunchOptions{
-		PluginConfigs: map[string]map[string]any{
-			"acme.matcher": {"token": "selected-secret"},
-			"other.plugin": {"token": "other-secret"},
+		PluginConfigs: config.PluginConfigs{
+			Matchers: map[string]map[string]any{
+				"acme.matcher": {"token": "selected-secret"},
+			},
+			Legacy: map[string]map[string]any{
+				"other.plugin": {"token": "other-secret"},
+			},
 		},
-	}, "acme.matcher")
+	}, "acme.matcher", "matcher")
 	if err != nil {
 		t.Fatalf("pluginEnv() error = %v", err)
 	}
@@ -158,4 +165,40 @@ func envMap(env []string) map[string]string {
 		out[key] = value
 	}
 	return out
+}
+
+// TestPluginEnvSelectsConfigByKind proves that same-named components of
+// different kinds never receive each other's configuration blocks.
+func TestPluginEnvSelectsConfigByKind(t *testing.T) {
+	options := LaunchOptions{
+		PluginConfigs: config.PluginConfigs{
+			Detectors: map[string]map[string]any{
+				"acme.same": {"token": "detector-secret"},
+			},
+			Matchers: map[string]map[string]any{
+				"acme.same": {"token": "matcher-secret"},
+			},
+		},
+	}
+	env, cleanup, err := pluginEnv(options, "acme.same", "matcher")
+	if err != nil {
+		t.Fatalf("pluginEnv() error = %v", err)
+	}
+	defer cleanup()
+	var configPath string
+	for _, entry := range env {
+		if value, ok := strings.CutPrefix(entry, sdk.EnvPluginConfigFile+"="); ok {
+			configPath = value
+		}
+	}
+	if configPath == "" {
+		t.Fatal("pluginEnv() did not write a plugin config file")
+	}
+	raw, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatalf("read plugin config file: %v", err)
+	}
+	if !strings.Contains(string(raw), "matcher-secret") || strings.Contains(string(raw), "detector-secret") {
+		t.Fatalf("plugin config selected the wrong kind's block: %s", raw)
+	}
 }

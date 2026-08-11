@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // DiffMarkdown writes a GitHub-flavored Markdown diff report.

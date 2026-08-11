@@ -7,7 +7,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
 
@@ -15,7 +15,6 @@ import (
 type NativeDetector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
 }
 
 // PackageManagerSupport returns discovery metadata for the internal pnpm CLI fallback detector.
@@ -76,11 +75,6 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 		Graphs:   sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pnpmManifestMetadataPatterns)),
 		Warnings: node.PackageManagerWarnings(d.base().ProjectDir(req.ProjectPath), sdk.PackageManagerPNPM, node.LockfileFormat{}),
 	}, nil
-}
-
-// FallbackDetector returns the configured fallback detector.
-func (d NativeDetector) FallbackDetector() sdk.Detector {
-	return d.Fallback
 }
 
 func (d NativeDetector) base() node.BaseDetector {

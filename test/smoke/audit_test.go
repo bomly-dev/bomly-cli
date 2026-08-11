@@ -12,9 +12,19 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
+
+// diffDocument decodes the subset of the diff JSON document this test
+// asserts on. The full response shape is covered by docs/schemas/diff.
+type diffDocument struct {
+	Audit struct {
+		Introduced []struct {
+			RuleID       string                  `json:"rule_id"`
+			PolicyStatus sdk.FindingPolicyStatus `json:"policy_status"`
+		} `json:"introduced"`
+	} `json:"audit"`
+}
 
 // ---------------------------------------------------------------------------
 // Mock OSV server
@@ -312,7 +322,7 @@ func TestDependencyDetailRiskPolicy(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("default audited diff exited %d\nstderr:\n%s", code, stderr)
 	}
-	var audited output.DiffResponse
+	var audited diffDocument
 	if err := json.Unmarshal([]byte(auditedJSON), &audited); err != nil {
 		t.Fatalf("decode audited diff: %v", err)
 	}
@@ -342,7 +352,7 @@ func TestDependencyDetailRiskPolicy(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("warn-only source policy exited %d\nstderr:\n%s", code, stderr)
 	}
-	var warnOnly output.DiffResponse
+	var warnOnly diffDocument
 	if err := json.Unmarshal([]byte(warnOnlyJSON), &warnOnly); err != nil {
 		t.Fatalf("decode warn-only diff: %v", err)
 	}

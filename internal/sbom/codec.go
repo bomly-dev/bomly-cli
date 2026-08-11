@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/anchore/syft/syft/format/syftjson"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 var (

@@ -1,6 +1,6 @@
 package engine
 
-import "github.com/bomly-dev/bomly-cli/sdk"
+import "github.com/bomly-dev/bomly-sdk"
 
 // DeduplicateFindings removes duplicate package/vulnerability findings, keeping the highest-priority source.
 func DeduplicateFindings(findings []sdk.Finding) []sdk.Finding {

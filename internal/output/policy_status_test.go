@@ -3,7 +3,7 @@ package output
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // TestFailingFindingCountKeepsSuppressedFindingNonBlocking verifies accepted

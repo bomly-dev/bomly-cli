@@ -65,12 +65,5 @@ Features that are still maturing.
 
 ## Project
 
-For contributors and release engineers. These live outside the published docs in [`dev-docs/`](../dev-docs/).
-
 - [Release Notes](https://github.com/bomly-dev/bomly-cli/releases) — what changed in each version
-- [Architecture (deep dive)](../dev-docs/ARCHITECTURE.md) — full pipeline, package boundaries, decision log
-- [Domain Models](../dev-docs/MODELS.md) — SDK types behind detection, matching, and audit
-- [CI](../dev-docs/CI.md) — Bomly's own internal CI configuration
-- [Security Assurance](../dev-docs/SECURITY_ASSURANCE.md) — trust-boundary controls, regression evidence, and CI permissions
-- [Release Checklist](../dev-docs/RELEASE_CHECKLIST.md) — maintainer checklist for publishing tagged releases
-- [Contributing](../CONTRIBUTING.md) — build setup, code conventions, release process
+- [Contributing](../CONTRIBUTING.md) — repository layout, docs conventions, release process

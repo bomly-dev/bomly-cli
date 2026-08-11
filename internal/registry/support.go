@@ -25,7 +25,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/sbt"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/swiftpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/syft"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // PackageManagerSupport records Bomly's built-in support metadata for one package manager.
@@ -67,12 +67,9 @@ var operatingSystemSupport = []OperatingSystemSupport{
 
 func builtInSupportDetectors() []sdk.Detector {
 	return []sdk.Detector{
-		npm.LockfileDetector{},
-		npm.NativeDetector{},
-		pnpm.LockfileDetector{},
-		pnpm.NativeDetector{},
-		yarn.LockfileDetector{},
-		yarn.NativeDetector{},
+		npm.Detector{},
+		pnpm.Detector{},
+		yarn.Detector{},
 		bun.LockfileDetector{},
 		bun.NativeDetector{},
 		gradle.Detector{},
@@ -286,7 +283,27 @@ func buildPackageManagerSupportCatalog(detectorList []sdk.Detector) map[sdk.Pack
 			catalog[support.PackageManager] = entry
 		}
 	}
+	applyChainFixups(catalog)
 	return catalog
+}
+
+// applyChainFixups keeps host-planned detector chains identical to the
+// historical Fallback-field walk where the declared-support catalog and the
+// old fallback wiring disagreed. Only one fixup remains:
+//
+//   - sbt chains always ended at the generic Syft fallback even though Syft
+//     declares no sbt-specific evidence, so Syft is appended.
+//
+// github-actions previously had a fixup here that stripped Syft from its
+// chain to match the old runtime (the workflow parser never set a Fallback
+// field). That was a latent wiring bug, not intent: Syft genuinely supports
+// github-actions and the declared-support catalog always listed it, so the
+// chain is now deliberately [github-actions-detector, syft-detector].
+func applyChainFixups(catalog map[sdk.PackageManager]PackageManagerSupport) {
+	if entry, ok := catalog[sdk.PackageManagerSBT]; ok {
+		entry.Detectors = appendUniqueStrings(entry.Detectors, rootdetectors.NameSyft)
+		catalog[sdk.PackageManagerSBT] = entry
+	}
 }
 
 func buildDetectorOriginCatalog(detectorList []sdk.Detector) map[string]sdk.DetectorOrigin {

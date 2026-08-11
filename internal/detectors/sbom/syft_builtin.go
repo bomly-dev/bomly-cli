@@ -8,7 +8,7 @@ import (
 
 	"github.com/anchore/syft/syft/format/syftjson"
 	syftdetector "github.com/bomly-dev/bomly-cli/internal/detectors/syft"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // decodeSyftJSONGraphs decodes a Syft-format JSON SBOM into a graph container

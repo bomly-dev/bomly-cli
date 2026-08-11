@@ -15,7 +15,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	plugschema "github.com/bomly-dev/bomly-cli/sdk"
+	plugschema "github.com/bomly-dev/bomly-sdk"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -554,7 +554,7 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 
 	for _, descriptor := range reg.MatcherDescriptors() {
 		d := descriptor
-		info := matcherPluginInfo(&d, coreVersion, reg.DefaultEnabledMatcherNames())
+		info := matcherPluginInfo(&d, coreVersion, reg.DefaultEnabledMatcherNames(), string(reg.ComponentOrigin(plugschema.PluginKindMatcher, d.Name)))
 		if m, ok := matcherInstances[d.Name]; ok {
 			m := m
 			info.ReadyFn = func(ctx context.Context) (bool, string, error) {
@@ -565,7 +565,7 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 	}
 	for _, descriptor := range reg.AuditorDescriptors() {
 		d := descriptor
-		info := auditorPluginInfo(&d, coreVersion, reg.DefaultEnabledAuditorNames())
+		info := auditorPluginInfo(&d, coreVersion, reg.DefaultEnabledAuditorNames(), string(reg.ComponentOrigin(plugschema.PluginKindAuditor, d.Name)))
 		if a, ok := auditorInstances[d.Name]; ok {
 			a := a
 			info.ReadyFn = func(ctx context.Context) (bool, string, error) {
@@ -576,7 +576,7 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 	}
 	for _, descriptor := range reg.AnalyzerDescriptors() {
 		d := descriptor
-		info := analyzerPluginInfo(&d, coreVersion, reg.DefaultEnabledAnalyzerNames())
+		info := analyzerPluginInfo(&d, coreVersion, reg.DefaultEnabledAnalyzerNames(), string(reg.ComponentOrigin(plugschema.PluginKindAnalyzer, d.Name)))
 		if a, ok := analyzerInstances[d.Name]; ok {
 			a := a
 			info.ReadyFn = func(ctx context.Context) (bool, string, error) {
@@ -603,6 +603,7 @@ func collectDetectorInstances(primaries []plugschema.Detector) map[string]plugsc
 				out[name] = d
 			}
 		}
+		//nolint:staticcheck // deprecated interface still consulted during its one-release compatibility window
 		if fb, ok := d.(plugschema.FallbackDetector); ok {
 			walk(fb.FallbackDetector())
 		}
@@ -628,6 +629,7 @@ func collectFallbackDetectorDescriptors(
 		}
 		seen[name] = struct{}{}
 	}
+	//nolint:staticcheck // deprecated interface still consulted during its one-release compatibility window
 	provider, ok := detector.(plugschema.FallbackDetector)
 	if !ok {
 		return
@@ -664,7 +666,7 @@ func detectorPluginInfo(descriptor *plugschema.DetectorDescriptor, coreVersion s
 	}
 }
 
-func matcherPluginInfo(descriptor *plugschema.MatcherDescriptor, coreVersion string, defaultEnabled []string) managedplugin.Info {
+func matcherPluginInfo(descriptor *plugschema.MatcherDescriptor, coreVersion string, defaultEnabled []string, sourceType string) managedplugin.Info {
 	return managedplugin.Info{
 		Manifest: managedplugin.Manifest{
 			SchemaVersion:    plugschema.PackageManifestSchemaVersion,
@@ -678,11 +680,11 @@ func matcherPluginInfo(descriptor *plugschema.MatcherDescriptor, coreVersion str
 		MatcherDescriptor: cloneMatcherDescriptor(descriptor),
 		BuiltIn:           true,
 		Enabled:           slices.Contains(defaultEnabled, descriptor.Name),
-		SourceType:        "builtin",
+		SourceType:        sourceType,
 	}
 }
 
-func auditorPluginInfo(descriptor *plugschema.AuditorDescriptor, coreVersion string, defaultEnabled []string) managedplugin.Info {
+func auditorPluginInfo(descriptor *plugschema.AuditorDescriptor, coreVersion string, defaultEnabled []string, sourceType string) managedplugin.Info {
 	return managedplugin.Info{
 		Manifest: managedplugin.Manifest{
 			SchemaVersion:    plugschema.PackageManifestSchemaVersion,
@@ -696,11 +698,11 @@ func auditorPluginInfo(descriptor *plugschema.AuditorDescriptor, coreVersion str
 		AuditorDescriptor: cloneAuditorDescriptor(descriptor),
 		BuiltIn:           true,
 		Enabled:           slices.Contains(defaultEnabled, descriptor.Name),
-		SourceType:        "builtin",
+		SourceType:        sourceType,
 	}
 }
 
-func analyzerPluginInfo(descriptor *plugschema.AnalyzerDescriptor, coreVersion string, defaultEnabled []string) managedplugin.Info {
+func analyzerPluginInfo(descriptor *plugschema.AnalyzerDescriptor, coreVersion string, defaultEnabled []string, sourceType string) managedplugin.Info {
 	return managedplugin.Info{
 		Manifest: managedplugin.Manifest{
 			SchemaVersion:    plugschema.PackageManifestSchemaVersion,
@@ -714,7 +716,7 @@ func analyzerPluginInfo(descriptor *plugschema.AnalyzerDescriptor, coreVersion s
 		AnalyzerDescriptor: cloneAnalyzerDescriptor(descriptor),
 		BuiltIn:            true,
 		Enabled:            slices.Contains(defaultEnabled, descriptor.Name),
-		SourceType:         "builtin",
+		SourceType:         sourceType,
 	}
 }
 
@@ -773,6 +775,8 @@ func cloneMatcherDescriptor(descriptor *plugschema.MatcherDescriptor) *plugschem
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
 	copyValue.Tags = append([]string(nil), descriptor.Tags...)
+	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
+	copyValue.ConfigSchema = append(json.RawMessage(nil), descriptor.ConfigSchema...)
 	return &copyValue
 }
 
@@ -783,6 +787,7 @@ func cloneAuditorDescriptor(descriptor *plugschema.AuditorDescriptor) *plugschem
 	copyValue := *descriptor
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
+	copyValue.ConfigSchema = append(json.RawMessage(nil), descriptor.ConfigSchema...)
 	return &copyValue
 }
 
@@ -795,6 +800,8 @@ func cloneAnalyzerDescriptor(descriptor *plugschema.AnalyzerDescriptor) *plugsch
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.SupportedLanguages = append([]plugschema.Language(nil), descriptor.SupportedLanguages...)
 	copyValue.SupportedTiers = append([]plugschema.ReachabilityTier(nil), descriptor.SupportedTiers...)
+	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
+	copyValue.ConfigSchema = append(json.RawMessage(nil), descriptor.ConfigSchema...)
 	return &copyValue
 }
 
@@ -858,6 +865,50 @@ func renderPluginInfo(w io.Writer, info managedplugin.Info) error {
 	}
 	for _, line := range lines {
 		if _, err := fmt.Fprintf(w, "%-*s : %s\n", labelWidth, line[0], line[1]); err != nil {
+			return err
+		}
+	}
+	return renderPluginConfigSchema(w, pluginInfoConfigSchema(info))
+}
+
+// renderPluginConfigSchema renders a "Config" section listing the top-level
+// properties (name, type, description, default) advertised by the plugin's
+// config schema. Nothing is rendered when no schema is present.
+func renderPluginConfigSchema(w io.Writer, schema []byte) error {
+	if len(schema) == 0 {
+		return nil
+	}
+	var parsed struct {
+		Properties map[string]struct {
+			Type        string `json:"type"`
+			Description string `json:"description"`
+			Default     any    `json:"default"`
+		} `json:"properties"`
+	}
+	if err := json.Unmarshal(schema, &parsed); err != nil || len(parsed.Properties) == 0 {
+		return nil
+	}
+	names := make([]string, 0, len(parsed.Properties))
+	for name := range parsed.Properties {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	if _, err := fmt.Fprintln(w, "Config:"); err != nil {
+		return err
+	}
+	for _, name := range names {
+		property := parsed.Properties[name]
+		line := "  " + name
+		if property.Type != "" {
+			line += " (" + property.Type + ")"
+		}
+		if property.Description != "" {
+			line += " — " + property.Description
+		}
+		if property.Default != nil {
+			line += fmt.Sprintf(" [default: %v]", property.Default)
+		}
+		if _, err := fmt.Fprintln(w, line); err != nil {
 			return err
 		}
 	}

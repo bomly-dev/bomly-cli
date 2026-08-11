@@ -7,7 +7,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
-	plugschema "github.com/bomly-dev/bomly-cli/sdk"
+	plugschema "github.com/bomly-dev/bomly-sdk"
 	"github.com/spf13/cobra"
 )
 
@@ -32,8 +32,7 @@ func TestPluginList_TableSectionsAndDetectorColumns(t *testing.T) {
 		"TYPE",
 		"PACKAGE MANAGERS",
 		"ECOSYSTEMS",
-		"npm-detector",
-		"npm-native-detector",
+		"npm Detector (npm)",
 		"* Complete plugin metadata",
 		"--json",
 	} {
@@ -120,7 +119,7 @@ func TestPluginList_FormatJSON(t *testing.T) {
 	}
 	foundNPMDetector := false
 	for _, item := range items {
-		if item["id"] != "npm-detector" {
+		if item["id"] != "npm" {
 			continue
 		}
 		foundNPMDetector = true
@@ -145,7 +144,7 @@ func TestPluginList_FormatJSON(t *testing.T) {
 		}
 	}
 	if !foundNPMDetector {
-		t.Fatalf("expected detector JSON output to include npm-detector, got %#v", items)
+		t.Fatalf("expected detector JSON output to include the merged npm detector, got %#v", items)
 	}
 }
 

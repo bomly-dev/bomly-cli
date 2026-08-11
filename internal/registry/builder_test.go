@@ -1,12 +1,13 @@
 package registry
 
 import (
+	"context"
 	"slices"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
@@ -51,7 +52,7 @@ func TestBuildScanRegistryKeepsNativeDetectorFirstForNativeManagers(t *testing.T
 		manager      sdk.PackageManager
 		detectorName string
 	}{
-		{manager: sdk.PackageManagerNPM, detectorName: "npm-detector"},
+		{manager: sdk.PackageManagerNPM, detectorName: "npm"},
 		{manager: sdk.PackageManagerComposer, detectorName: "composer-detector"},
 		{manager: sdk.PackageManagerBundler, detectorName: "bundler-detector"},
 		{manager: sdk.PackageManagerGitHubActions, detectorName: "github-actions-detector"},
@@ -165,7 +166,7 @@ func TestRegisterScorecardMatcherDoesNotLogEndpointCredentials(t *testing.T) {
 		ScorecardAPIBase: "https://agent:super-secret@scorecard.example/api",
 	}, *zap.New(core))
 
-	builtins.registerScorecardMatcher()
+	builtins.registerCompositionEntries(sdk.PluginKindMatcher)
 
 	entries := logs.FilterMessage("scorecard matcher configured").All()
 	if len(entries) != 1 {
@@ -181,4 +182,59 @@ func TestRegisterScorecardMatcherDoesNotLogEndpointCredentials(t *testing.T) {
 	if strings.Contains(apiBase, "agent") || strings.Contains(apiBase, "super-secret") {
 		t.Fatalf("api_base log field leaked credentials: %q", apiBase)
 	}
+}
+
+func TestComponentOriginRecordsAllKinds(t *testing.T) {
+	builtins := NewRegistry(Configs{}, *zap.NewNop())
+	builtins.Build()
+
+	if origin := builtins.ComponentOrigin(sdk.PluginKindDetector, "go.mod"); origin != sdk.CoreOrigin {
+		t.Fatalf("go.mod detector origin = %q, want core", origin)
+	}
+	if origin := builtins.DetectorOrigin("syft-detector"); origin != sdk.BundledOrigin {
+		t.Fatalf("syft detector origin = %q, want bundled (via DetectorOrigin delegate)", origin)
+	}
+	if origin := builtins.ComponentOrigin(sdk.PluginKindAuditor, "license"); origin != sdk.CoreOrigin {
+		t.Fatalf("license auditor origin = %q, want core", origin)
+	}
+
+	builtins.RegisterMatcherWithOptions(externalOriginMatcher{}, ComponentOptions{DefaultEnabled: true, Origin: sdk.ExternalOrigin})
+	builtins.RegisterAnalyzerWithOptions(externalOriginAnalyzer{}, ComponentOptions{DefaultEnabled: true, Origin: sdk.ExternalOrigin})
+	if origin := builtins.ComponentOrigin(sdk.PluginKindMatcher, "acme.matcher"); origin != sdk.ExternalOrigin {
+		t.Fatalf("external matcher origin = %q, want external", origin)
+	}
+	if origin := builtins.ComponentOrigin(sdk.PluginKindAnalyzer, "acme.analyzer"); origin != sdk.ExternalOrigin {
+		t.Fatalf("external analyzer origin = %q, want external", origin)
+	}
+
+	filtered := builtins.Filter(Filter{})
+	if origin := filtered.ComponentOrigin(sdk.PluginKindMatcher, "acme.matcher"); origin != sdk.ExternalOrigin {
+		t.Fatalf("filtered matcher origin = %q, want external", origin)
+	}
+}
+
+type externalOriginMatcher struct{}
+
+func (externalOriginMatcher) Descriptor() sdk.MatcherDescriptor {
+	return sdk.MatcherDescriptor{Name: "acme.matcher"}
+}
+func (externalOriginMatcher) Ready(context.Context, sdk.MatchRequest) error { return nil }
+func (externalOriginMatcher) Applicable(context.Context, sdk.MatchRequest) (bool, error) {
+	return true, nil
+}
+func (externalOriginMatcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
+	return sdk.MatchResult{Registry: req.Registry}, nil
+}
+
+type externalOriginAnalyzer struct{}
+
+func (externalOriginAnalyzer) Descriptor() sdk.AnalyzerDescriptor {
+	return sdk.AnalyzerDescriptor{Name: "acme.analyzer"}
+}
+func (externalOriginAnalyzer) Ready(context.Context, sdk.AnalyzeRequest) error { return nil }
+func (externalOriginAnalyzer) Applicable(context.Context, sdk.AnalyzeRequest) (bool, error) {
+	return true, nil
+}
+func (externalOriginAnalyzer) Analyze(_ context.Context, req sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
+	return sdk.AnalyzeResult{Registry: req.Registry}, nil
 }

@@ -11,7 +11,7 @@ import (
 	syftlib "github.com/anchore/syft/syft"
 	"github.com/anchore/syft/syft/cataloging/pkgcataloging"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	_ "github.com/glebarez/sqlite" // register "sqlite" driver required by syft's RPM cataloger
 	"go.uber.org/zap"
 )

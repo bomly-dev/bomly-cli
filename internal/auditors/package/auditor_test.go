@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // pkg is a convenience constructor for tests.

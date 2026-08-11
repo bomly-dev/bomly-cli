@@ -12,7 +12,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestRenderDiffTextShowsFindingsSummaryLine(t *testing.T) {

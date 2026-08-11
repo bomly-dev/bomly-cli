@@ -104,7 +104,7 @@ func cliHealthDetectorPluginSource(id string, ready bool) string {
 
 import (
 	"context"
-	schemav1 "github.com/bomly-dev/bomly-cli/sdk"
+	schemav1 "github.com/bomly-dev/bomly-sdk"
 )
 
 type detector struct{}

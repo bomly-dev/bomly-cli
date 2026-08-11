@@ -6,18 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
-
-type fakeFallbackDetector struct {
-	fakeDetector
-	fallback Detector
-}
-
-func (f fakeFallbackDetector) FallbackDetector() Detector {
-	return f.fallback
-}
 
 type fakeRemediationDetector struct {
 	fakeDetector
@@ -118,15 +109,13 @@ func TestResolveDetectors_FallsBackWhenPrimaryFails(t *testing.T) {
 		t.Fatalf("add node: %v", err)
 	}
 
-	registry.registerDetector(fakeFallbackDetector{
-		fakeDetector: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "go-native", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
-			err:        errors.New("go not installed"),
-		},
-		fallback: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
-			result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
-		},
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "go-native", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
+		err:        errors.New("go not installed"),
+	})
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
@@ -153,15 +142,13 @@ func TestResolveDetectors_DoesNotRunExcludedFallback(t *testing.T) {
 		t.Fatalf("add node: %v", err)
 	}
 
-	registry.registerDetector(fakeFallbackDetector{
-		fakeDetector: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "go-native", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
-			err:        errors.New("go not installed"),
-		},
-		fallback: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
-			result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
-		},
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "go-native", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
+		err:        errors.New("go not installed"),
+	})
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
@@ -209,17 +196,15 @@ func TestResolveDetectors_IncludesReadyReasonWhenDetectorNotReady(t *testing.T) 
 func TestResolveDetectors_SummarizesEveryUnreadyChainLink(t *testing.T) {
 	registry := newTestRegistry()
 	notReady := false
-	registry.registerDetector(fakeFallbackDetector{
-		fakeDetector: fakeDetector{
-			descriptor:  DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-			ready:       &notReady,
-			readyReason: "npm not on PATH",
-		},
-		fallback: fakeDetector{
-			descriptor:  DetectorDescriptor{Name: "npm-lockfile", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-			ready:       &notReady,
-			readyReason: "no committed lockfile",
-		},
+	registry.registerDetector(fakeDetector{
+		descriptor:  DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		ready:       &notReady,
+		readyReason: "npm not on PATH",
+	})
+	registry.registerDetector(fakeDetector{
+		descriptor:  DetectorDescriptor{Name: "npm-lockfile", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		ready:       &notReady,
+		readyReason: "no committed lockfile",
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
@@ -265,22 +250,20 @@ func TestPipeline_UsesPlannedDetectorChainWithoutEagerFallbackExecution(t *testi
 		t.Fatalf("add node: %v", err)
 	}
 
-	registry.registerDetector(fakeFallbackDetector{
-		fakeDetector: fakeDetector{
-			descriptor: DetectorDescriptor{
-				Name:                "go-native",
-				SupportedEcosystems: []Ecosystem{EcosystemGo},
-				SupportedManagers:   []PackageManager{PackageManagerGoMod},
-			},
-			err: errors.New("go not installed"),
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{
+			Name:                "go-native",
+			SupportedEcosystems: []Ecosystem{EcosystemGo},
+			SupportedManagers:   []PackageManager{PackageManagerGoMod},
 		},
-		fallback: fakeDetector{
-			descriptor: DetectorDescriptor{
-				Name:      "syft-detector",
-				Technique: sdk.MultipleTechnique,
-			},
-			result: ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
+		err: errors.New("go not installed"),
+	})
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{
+			Name:      "syft-detector",
+			Technique: sdk.MultipleTechnique,
 		},
+		result: ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
 	})
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{
@@ -455,20 +438,18 @@ func TestPipeline_ThreadsScopeFilterIntoFallbackDetector(t *testing.T) {
 	fallbackGraph := scopedTestGraph(t)
 
 	seenFallback := false
-	registry.registerDetector(fakeFallbackDetector{
-		fakeDetector: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-			err:        errors.New("native failed"),
-		},
-		fallback: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "npm-lockfile", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-			result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
-			onResolve: func(req ResolveGraphRequest) {
-				seenFallback = true
-				if req.ScopeFilter != sdk.ScopeRuntime {
-					t.Fatalf("expected runtime scope in fallback request, got %q", req.ScopeFilter)
-				}
-			},
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		err:        errors.New("native failed"),
+	})
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "npm-lockfile", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		onResolve: func(req ResolveGraphRequest) {
+			seenFallback = true
+			if req.ScopeFilter != sdk.ScopeRuntime {
+				t.Fatalf("expected runtime scope in fallback request, got %q", req.ScopeFilter)
+			}
 		},
 	})
 
@@ -1166,15 +1147,13 @@ func TestPipeline_Run_TypesFallbackWarningsAsDegradedCoverage(t *testing.T) {
 	if err := fallbackGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
-	registry.registerDetector(fakeFallbackDetector{
-		fakeDetector: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "maven-detector", SupportedEcosystems: []Ecosystem{EcosystemMaven}, SupportedManagers: []PackageManager{PackageManagerMaven}},
-			err:        errors.New("java executable not found on PATH"),
-		},
-		fallback: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemMaven}, SupportedManagers: []PackageManager{PackageManagerMaven}},
-			result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"})},
-		},
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "maven-detector", SupportedEcosystems: []Ecosystem{EcosystemMaven}, SupportedManagers: []PackageManager{PackageManagerMaven}},
+		err:        errors.New("java executable not found on PATH"),
+	})
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemMaven}, SupportedManagers: []PackageManager{PackageManagerMaven}},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"})},
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())

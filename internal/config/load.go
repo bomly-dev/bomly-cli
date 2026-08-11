@@ -81,17 +81,12 @@ func ApplyFileConfig(dst *Resolved, src File) {
 		return
 	}
 	applyFileLeaves(reflect.ValueOf(dst).Elem(), reflect.ValueOf(src))
-	if len(src.Plugins) > 0 {
-		if dst.Plugins == nil {
-			dst.Plugins = make(map[string]map[string]any, len(src.Plugins))
-		}
-		for id, pluginConfig := range src.Plugins {
-			trimmedID := strings.TrimSpace(id)
-			if trimmedID == "" {
-				continue
-			}
-			dst.Plugins[trimmedID] = clonePluginConfig(pluginConfig)
-		}
+	if !src.Plugins.IsEmpty() {
+		dst.Plugins.Detectors = mergePluginBlocks(dst.Plugins.Detectors, src.Plugins.Detectors)
+		dst.Plugins.Matchers = mergePluginBlocks(dst.Plugins.Matchers, src.Plugins.Matchers)
+		dst.Plugins.Auditors = mergePluginBlocks(dst.Plugins.Auditors, src.Plugins.Auditors)
+		dst.Plugins.Analyzers = mergePluginBlocks(dst.Plugins.Analyzers, src.Plugins.Analyzers)
+		dst.Plugins.Legacy = mergePluginBlocks(dst.Plugins.Legacy, src.Plugins.Legacy)
 	}
 }
 

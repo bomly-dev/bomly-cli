@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // discoveryDiagnostics explains, per probed manifest candidate, why discovery

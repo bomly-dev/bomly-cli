@@ -246,7 +246,7 @@ jobs:
     # error that would block the registry step behind it.
     #
     # Inert until Ahmed turns it on. Setup is one-time and documented in
-    # dev-docs/CI.md; the short version:
+    # the short version:
     #   1. publish bomly-mcp once by hand (trusted publishing cannot create a
     #      package that does not exist yet)
     #   2. set the trusted publisher at

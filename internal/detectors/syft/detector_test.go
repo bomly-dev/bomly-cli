@@ -13,7 +13,7 @@ import (
 	syftfile "github.com/anchore/syft/syft/file"
 	syftpkg "github.com/anchore/syft/syft/pkg"
 	syftsbom "github.com/anchore/syft/syft/sbom"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestDetectorApplicable(t *testing.T) {

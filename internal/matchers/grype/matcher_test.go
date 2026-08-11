@@ -14,7 +14,7 @@ import (
 	grypematch "github.com/anchore/grype/grype/match"
 	grypepkg "github.com/anchore/grype/grype/pkg"
 	grypevuln "github.com/anchore/grype/grype/vulnerability"
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestDescriptor_Name(t *testing.T) {

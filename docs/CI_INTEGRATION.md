@@ -1,6 +1,6 @@
 # CI Integration
 
-Drop-in recipes for running Bomly in CI. For Bomly's own CI configuration see `dev-docs/CI.md` in the repository.
+Drop-in recipes for running Bomly in CI.
 
 The pattern is the same everywhere: install Bomly, run `bomly scan` with `--audit --fail-on <severity>`, upload SBOM and SARIF artifacts, and let exit code 2 fail the build on policy violations. See [Exit codes](EXIT_CODES.md).
 
@@ -264,4 +264,3 @@ Tune `--fail-on` to taste. `pre-push` keeps commits fast and only runs on push.
 - [Exit codes](EXIT_CODES.md) - what each CI exit means
 - [Output formats](OUTPUT_FORMATS.md) - SARIF, JSON, SBOM details
 - [Auditors](AUDITORS.md) - `--fail-on`
-- `dev-docs/CI.md` (in the repository) - Bomly's own internal CI configuration

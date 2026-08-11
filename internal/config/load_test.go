@@ -52,7 +52,7 @@ plugins:
 	if want := filepath.Join(filepath.Dir(path), "certs", "proxy-ca.pem"); resolved.HTTPCACertFile != want {
 		t.Fatalf("HTTPCACertFile = %q, want %q", resolved.HTTPCACertFile, want)
 	}
-	if got := resolved.Plugins["acme.matcher"]["api_base"]; got != "https://api.file.example" {
+	if got := resolved.Plugins.ForComponent(PluginKindMatcher, "acme.matcher")["api_base"]; got != "https://api.file.example" {
 		t.Fatalf("plugin api_base = %#v", got)
 	}
 
@@ -70,7 +70,7 @@ plugins:
 	if resolved.HTTPProxyHost != "env-split-proxy.example" || resolved.HTTPProxyPort != 3128 {
 		t.Fatalf("decomposed proxy after env = %#v", resolved)
 	}
-	if got := resolved.Plugins["acme.matcher"]["batch_size"]; got != float64(10) {
+	if got := resolved.Plugins.ForPlugin("acme.matcher")["batch_size"]; got != float64(10) {
 		t.Fatalf("plugin batch_size = %#v", got)
 	}
 }
@@ -322,16 +322,16 @@ func TestLoadFileRejectsOversizedFile(t *testing.T) {
 
 func TestApplyFileConfigMergesPluginConfigsByID(t *testing.T) {
 	resolved := Resolved{}
-	ApplyFileConfig(&resolved, File{Plugins: map[string]map[string]any{
+	ApplyFileConfig(&resolved, File{Plugins: PluginsFile{Legacy: map[string]map[string]any{
 		"acme.one": {"value": "one"},
-	}})
-	ApplyFileConfig(&resolved, File{Plugins: map[string]map[string]any{
+	}}})
+	ApplyFileConfig(&resolved, File{Plugins: PluginsFile{Matchers: map[string]map[string]any{
 		"acme.two": {"value": "two"},
-	}})
-	if _, ok := resolved.Plugins["acme.one"]; !ok {
+	}}})
+	if resolved.Plugins.ForPlugin("acme.one") == nil {
 		t.Fatalf("expected first plugin config to remain")
 	}
-	if got := resolved.Plugins["acme.two"]["value"]; got != "two" {
+	if got := resolved.Plugins.ForComponent(PluginKindMatcher, "acme.two")["value"]; got != "two" {
 		t.Fatalf("second plugin config = %#v", got)
 	}
 }

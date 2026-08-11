@@ -8,7 +8,7 @@ Bomly uses this chain when it finds `yarn` evidence.
 | --- | --- |
 | Package manager | `yarn` |
 | Ecosystem | `npm` |
-| Detector chain | `yarn-detector`, `yarn-native-detector`, `syft-detector` |
+| Detector chain | `yarn`, `syft-detector` |
 | Evidence patterns | `yarn.lock`, `package.json` |
 | Ignored directories | `node_modules`, `dist` |
 | Ignored directory markers | - |
@@ -22,19 +22,19 @@ Bomly uses this chain when it finds `yarn` evidence.
 
 ## How `yarn` resolves
 
-The default chain is **lockfile-first**: `yarn-detector` parses `yarn.lock` (classic v1 or Berry v2/v3/v4) and produces a full transitive graph. The native variant shells out to `yarn list`; Syft is the final fallback.
+The default chain is **lockfile-first**: `yarn` (lockfile strategy) parses `yarn.lock` (classic v1 or Berry v2/v3/v4) and produces a full transitive graph. The native variant shells out to `yarn list`; Syft is the final fallback.
 
 | Detector | Runs by default | Strategy | Command |
 | --- | --- | --- | --- |
-| `yarn-detector` | Yes | Lockfile parser | None |
-| `yarn-native-detector` | Fallback | Build tool | `yarn list --json` |
+| `yarn` (lockfile strategy) | Yes | Lockfile parser | None |
+| `yarn` (buildtool strategy) | Fallback | Build tool | `yarn list --json` |
 | `syft-detector` | Final fallback | Cataloger | (Syft internal) |
 
 ## Network behavior
 
-✅ The default `yarn-detector` is **fully offline-safe**. It reads `yarn.lock` and does not run any subprocess.
+✅ The default `yarn` (lockfile strategy) is **fully offline-safe**. It reads `yarn.lock` and does not run any subprocess.
 
-⚠️ `yarn-native-detector` runs `yarn list`. With a complete lockfile and an installed `node_modules` directory, yarn produces output from local state.
+⚠️ `yarn` (buildtool strategy) runs `yarn list`. With a complete lockfile and an installed `node_modules` directory, yarn produces output from local state.
 
 ## Prerequisites
 
@@ -54,11 +54,11 @@ bomly scan --install-first
 
 ### Customizing the install command
 
-Append flags to `yarn install` with repeatable `--install-arg`. Requires `--detectors yarn-detector`.
+Append flags to `yarn install` with repeatable `--install-arg`. Requires `--detectors yarn`.
 
 ```bash
 # Refuse to update the lockfile and skip optional deps
-bomly scan --install-first --detectors yarn-detector \
+bomly scan --install-first --detectors yarn \
   --install-arg --frozen-lockfile --install-arg --ignore-optional
 ```
 
@@ -95,3 +95,19 @@ For Yarn packages, the analyzer is `jsreach` at **Tier-3 (package)** — same ca
 - **Yarn Berry workspaces with `injected: true`** dependencies are followed as regular edges.
 - **`portal:` and `link:` protocols** point to local checkouts; their internal dependencies are read from the local package, not the registry.
 - **Subpath imports collapse to the package name** for reachability.
+
+## Configuration
+
+`yarn` is one merged detector with two internal strategies (`lockfile`, `buildtool`). Its `plugins.detectors.yarn` config block accepts:
+
+```yaml
+plugins:
+  detectors:
+    yarn:
+      # Reorder or subset the internal actions (default: lockfile, buildtool)
+      strategy: [lockfile, buildtool]
+      # Opt this detector out of --install-first even when the flag is passed
+      installFirst: true
+```
+
+The historical detector names (`yarn-detector`, `yarn-native`) remain selector aliases of `yarn`.

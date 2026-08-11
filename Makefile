@@ -7,7 +7,7 @@ EXE_SUFFIX=$(if $(filter Windows_NT,$(OS)),.exe,)
 GOLANGCI_LINT=$(GOPATH_BIN)/golangci-lint$(EXE_SUFFIX)
 FUZZTIME?=60s
 
-.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test fuzz run generate docs-config docs-schema docs-schema-md docs-support-matrix docs-components smoke evidence benchmark benchmark-samples benchmark-report licenses
+.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test smoke fuzz run generate evidence benchmark benchmark-report licenses
 
 build: build-full build-lite
 
@@ -35,11 +35,11 @@ install-hooks:
 test:
 	go test ./...
 
-fuzz:
-	FUZZTIME="$(FUZZTIME)" scripts/run-fuzz.sh
-
 smoke:
 	go test -tags "smoke" ./test/smoke/ -v -count=1 -timeout 15m $(if $(ARGS),$(ARGS),)
+
+fuzz:
+	FUZZTIME="$(FUZZTIME)" scripts/run-fuzz.sh
 
 evidence:
 	go run ./internal/tools/publicevidence $(if $(CASE),-case $(CASE),)
@@ -57,22 +57,8 @@ benchmark-report:
 run:
 	go run ./cmd/bomly $(ARGS)
 
-generate: docs-config docs-schema docs-schema-md docs-support-matrix docs-components
-
-docs-config:
-	go run ./internal/support/cmd/configref
-
-docs-schema:
-	go run ./internal/support/cmd/schemajson
-
-docs-schema-md:
-	go run ./internal/support/cmd/schemadocs
-
-docs-support-matrix:
-	go run ./internal/support/cmd/supportmatrix
-
-docs-components:
-	go run ./internal/support/cmd/componentdocs
+generate: build-full
+	./bin/$(BINARY_NAME)$(EXE_SUFFIX) internal docs-gen --output docs
 
 licenses:
 	go run github.com/google/go-licenses@$(GO_LICENSES_VERSION) save ./... \

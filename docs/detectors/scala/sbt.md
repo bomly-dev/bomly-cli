@@ -8,11 +8,11 @@ Bomly uses this chain when it finds `sbt` evidence.
 | --- | --- |
 | Package manager | `sbt` |
 | Ecosystem | `scala` |
-| Detector chain | `sbt-native-detector`, `sbt-detector` |
+| Detector chain | `sbt-native-detector`, `sbt-detector`, `syft-detector` |
 | Evidence patterns | `build.sbt`, `project/plugins.sbt`, `project/build.properties` |
 | Ignored directories | `target` |
 | Ignored directory markers | - |
 | Multi-module resolution | Yes |
 | Install-first support | No |
 | Remediation hints | None |
-| Native command hints | `sbt` |
+| Native command hints | `sbt`, `syft for bomly-lite` |

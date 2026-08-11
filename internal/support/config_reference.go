@@ -25,7 +25,18 @@ type configField struct {
 
 // GenerateConfigReference renders the config reference markdown from the given config source file.
 func GenerateConfigReference(configPath string) (string, int, error) {
-	fields, err := parseConfigFields(configPath)
+	src, err := os.ReadFile(configPath)
+	if err != nil {
+		return "", 0, fmt.Errorf("read %s: %w", configPath, err)
+	}
+	return GenerateConfigReferenceFromSource(src)
+}
+
+// GenerateConfigReferenceFromSource renders the config reference markdown from
+// config schema source bytes. Binary-driven generation passes the embedded
+// source (config.ResolvedSource) so no repository checkout is required.
+func GenerateConfigReferenceFromSource(src []byte) (string, int, error) {
+	fields, err := parseConfigFields(src)
 	if err != nil {
 		return "", 0, err
 	}
@@ -44,11 +55,11 @@ func WriteConfigReference(configPath, outputPath string) (int, error) {
 	return fieldCount, nil
 }
 
-func parseConfigFields(configPath string) ([]configField, error) {
+func parseConfigFields(src []byte) ([]configField, error) {
 	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, configPath, nil, parser.ParseComments)
+	f, err := parser.ParseFile(fset, "config.go", src, parser.ParseComments)
 	if err != nil {
-		return nil, fmt.Errorf("parse %s: %w", configPath, err)
+		return nil, fmt.Errorf("parse config source: %w", err)
 	}
 
 	fileConfigYAML := config.YAMLPathsByResolvedField()

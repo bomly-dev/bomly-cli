@@ -8,7 +8,7 @@ Bomly uses this chain when it finds `pnpm` evidence.
 | --- | --- |
 | Package manager | `pnpm` |
 | Ecosystem | `npm` |
-| Detector chain | `pnpm-detector`, `pnpm-native-detector`, `syft-detector` |
+| Detector chain | `pnpm`, `syft-detector` |
 | Evidence patterns | `pnpm-lock.yaml`, `package.json` |
 | Ignored directories | `node_modules`, `dist` |
 | Ignored directory markers | - |
@@ -22,19 +22,19 @@ Bomly uses this chain when it finds `pnpm` evidence.
 
 ## How `pnpm` resolves
 
-The default chain is **lockfile-first**: `pnpm-detector` parses `pnpm-lock.yaml` directly and produces a full transitive graph. The native variant shells out to `pnpm list`; Syft is the final fallback.
+The default chain is **lockfile-first**: `pnpm` (lockfile strategy) parses `pnpm-lock.yaml` directly and produces a full transitive graph. The native variant shells out to `pnpm list`; Syft is the final fallback.
 
 | Detector | Runs by default | Strategy | Command |
 | --- | --- | --- | --- |
-| `pnpm-detector` | Yes | Lockfile parser | None |
-| `pnpm-native-detector` | Fallback | Build tool | `pnpm list --json --depth Infinity` |
+| `pnpm` (lockfile strategy) | Yes | Lockfile parser | None |
+| `pnpm` (buildtool strategy) | Fallback | Build tool | `pnpm list --json --depth Infinity` |
 | `syft-detector` | Final fallback | Cataloger | (Syft internal) |
 
 ## Network behavior
 
-✅ The default `pnpm-detector` is **fully offline-safe**. It reads `pnpm-lock.yaml` and does not run any subprocess.
+✅ The default `pnpm` (lockfile strategy) is **fully offline-safe**. It reads `pnpm-lock.yaml` and does not run any subprocess.
 
-⚠️ `pnpm-native-detector` runs `pnpm list`. With a complete lockfile, pnpm produces the graph from local state without network calls. If the lockfile is incomplete and `node_modules` is cold, pnpm may fail or, depending on configuration, fetch missing packages.
+⚠️ `pnpm` (buildtool strategy) runs `pnpm list`. With a complete lockfile, pnpm produces the graph from local state without network calls. If the lockfile is incomplete and `node_modules` is cold, pnpm may fail or, depending on configuration, fetch missing packages.
 
 ## Prerequisites
 
@@ -54,11 +54,11 @@ bomly scan --install-first
 
 ### Customizing the install command
 
-Append flags to `pnpm install` with repeatable `--install-arg`. Requires `--detectors pnpm-detector`.
+Append flags to `pnpm install` with repeatable `--install-arg`. Requires `--detectors pnpm`.
 
 ```bash
 # Refuse to update the lockfile (fail if it would change)
-bomly scan --install-first --detectors pnpm-detector \
+bomly scan --install-first --detectors pnpm \
   --install-arg --frozen-lockfile
 ```
 
@@ -93,3 +93,19 @@ For pnpm packages, the analyzer is `jsreach` at **Tier-3 (package)** — same ca
 - **Symlinked `node_modules`** are pnpm's storage model; Bomly relies on the lockfile, not the filesystem layout, so this works correctly.
 - **Subpath imports collapse to the package name** for reachability.
 - **Pre-v6 lockfiles** (pnpm v5 and earlier) parse but with reduced detail.
+
+## Configuration
+
+`pnpm` is one merged detector with two internal strategies (`lockfile`, `buildtool`). Its `plugins.detectors.pnpm` config block accepts:
+
+```yaml
+plugins:
+  detectors:
+    pnpm:
+      # Reorder or subset the internal actions (default: lockfile, buildtool)
+      strategy: [lockfile, buildtool]
+      # Opt this detector out of --install-first even when the flag is passed
+      installFirst: true
+```
+
+The historical detector names (`pnpm-detector`, `pnpm-native`) remain selector aliases of `pnpm`.

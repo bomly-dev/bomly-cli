@@ -15,10 +15,10 @@ A detector knows one or more package managers. Given evidence on disk — a lock
 
 A **detector chain** is the ordered list Bomly tries for a package manager. The first entry is preferred. Later entries are fallbacks Bomly uses when the preferred detector is not ready, is not applicable, or cannot produce graph data.
 
-For example, the `npm` chain is `npm-detector` → `syft-detector`:
+For example, the `npm` chain is `npm` → `syft-detector`:
 
-1. `npm-detector` parses `package-lock.json` directly and resolves the full transitive graph.
-2. `syft-detector` runs only if the native detector cannot produce graph data (for example, no lockfile present), and emits a flat package list.
+1. `npm` tries its internal strategies in order — parse `package-lock.json` directly, then fall back to `npm ls` — and resolves the full transitive graph.
+2. `syft-detector` runs only if the npm detector cannot produce graph data (for example, no lockfile and no npm CLI), and emits a flat package list.
 
 Per-detector chains are listed in the [detector reference](detectors/). The full live list lives in the CLI:
 
@@ -75,7 +75,7 @@ resolution.
 
 | Detector class | Examples | Network during normal scan |
 | --- | --- | --- |
-| Lockfile parser | `npm-detector`, `pnpm-detector`, `bundler-detector`, `composer-detector`, `nuget-detector`, `github-actions-detector`, SBOM ingest | None — pure file parse |
+| Lockfile parser | `npm`, `pnpm`, `yarn` (lockfile strategy), `bundler-detector`, `composer-detector`, `nuget-detector`, `github-actions-detector`, SBOM ingest | None — pure file parse |
 | Lockfile-first hybrid | `cargo-detector`, `poetry-detector`, `uv-detector` | None when the lockfile is present; the build-tool fallback uses `--locked` / `--no-sync` to stay offline |
 | `pip inspect` | `pip-detector`, `pipenv-detector` | None when a lockfile is present; otherwise **may download** while populating the isolated environment it inspects |
 | Build-tool primary | `go-detector`, `maven-detector`, `gradle-detector`, `sbt-native-detector` | **May download** uncached artifacts during normal resolution |
@@ -126,7 +126,7 @@ Recipes:
 
 ```bash
 # npm: tolerate peer-dependency conflicts on a legacy project
-bomly scan --install-first --detectors npm-detector \
+bomly scan --install-first --detectors npm \
   --install-arg --legacy-peer-deps
 
 # pip: install from a private index in CI

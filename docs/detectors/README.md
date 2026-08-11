@@ -19,9 +19,9 @@ These read a lockfile, manifest, or build tool directly and produce a full depen
 | `maven` | [`gradle`](maven/gradle.md) | `gradle-detector`, `syft-detector` | Yes |
 |  | [`maven`](maven/maven.md) | `maven-detector`, `syft-detector` | Yes |
 | `npm` | [`bun`](npm/bun.md) | `bun-detector`, `bun-native-detector`, `syft-detector` | Yes |
-|  | [`npm`](npm/npm.md) | `npm-detector`, `npm-native-detector`, `syft-detector` | Yes |
-|  | [`pnpm`](npm/pnpm.md) | `pnpm-detector`, `pnpm-native-detector`, `syft-detector` | Yes |
-|  | [`yarn`](npm/yarn.md) | `yarn-detector`, `yarn-native-detector`, `syft-detector` | Yes |
+|  | [`npm`](npm/npm.md) | `npm`, `syft-detector` | Yes |
+|  | [`pnpm`](npm/pnpm.md) | `pnpm`, `syft-detector` | Yes |
+|  | [`yarn`](npm/yarn.md) | `yarn`, `syft-detector` | Yes |
 | `php` | [`composer`](php/composer.md) | `composer-detector`, `syft-detector` | Yes |
 | `python` | [`pip`](python/pip.md) | `pip-detector`, `syft-detector` | Yes |
 |  | [`pipenv`](python/pipenv.md) | `pipenv-detector`, `syft-detector` | Yes |
@@ -30,7 +30,7 @@ These read a lockfile, manifest, or build tool directly and produce a full depen
 | `ruby` | [`bundler`](ruby/bundler.md) | `bundler-detector`, `syft-detector` | Yes |
 | `rust` | [`cargo`](rust/cargo.md) | `cargo-detector`, `syft-detector` | Yes |
 | `sbom` | [`sbom`](sbom/sbom.md) | `sbom-detector` | No |
-| `scala` | [`sbt`](scala/sbt.md) | `sbt-native-detector`, `sbt-detector` | No |
+| `scala` | [`sbt`](scala/sbt.md) | `sbt-native-detector`, `sbt-detector`, `syft-detector` | No |
 | `swift` | [`cocoapods`](swift/cocoapods.md) | `cocoapods-detector`, `syft-detector` | No |
 |  | [`swiftpm`](swift/swiftpm.md) | `swiftpm-native-detector`, `swiftpm-detector`, `syft-detector` | No |
 

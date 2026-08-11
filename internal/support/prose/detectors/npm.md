@@ -1,18 +1,18 @@
 ## How `npm` resolves
 
-The default chain is **lockfile-first**: `npm-detector` parses `package-lock.json` directly and produces a full transitive graph with edges, scope (`runtime` / `development`), and resolved versions. If the native variant is preferred (chain reorders to favor it), `npm-native-detector` runs `npm ls` instead. The Syft fallback runs only when no native detector applies.
+The default chain is **lockfile-first**: `npm` (lockfile strategy) parses `package-lock.json` directly and produces a full transitive graph with edges, scope (`runtime` / `development`), and resolved versions. If the native variant is preferred (chain reorders to favor it), `npm` (buildtool strategy) runs `npm ls` instead. The Syft fallback runs only when no native detector applies.
 
 | Detector | Runs by default | Strategy | Command |
 | --- | --- | --- | --- |
-| `npm-detector` | Yes | Lockfile parser | None |
-| `npm-native-detector` | Fallback | Build tool | `npm ls --all --json --package-lock-only` |
+| `npm` (lockfile strategy) | Yes | Lockfile parser | None |
+| `npm` (buildtool strategy) | Fallback | Build tool | `npm ls --all --json --package-lock-only` |
 | `syft-detector` | Final fallback | Cataloger | (Syft internal) |
 
 ## Network behavior
 
-✅ The default `npm-detector` is **fully offline-safe**. It reads `package-lock.json` and does not run any subprocess.
+✅ The default `npm` (lockfile strategy) is **fully offline-safe**. It reads `package-lock.json` and does not run any subprocess.
 
-⚠️ `npm-native-detector` runs `npm ls`. With `--package-lock-only`, npm does not consult `node_modules` or fetch from the registry; the lockfile is authoritative. If `package-lock.json` is missing or incomplete, npm may emit warnings but does not download packages.
+⚠️ `npm` (buildtool strategy) runs `npm ls`. With `--package-lock-only`, npm does not consult `node_modules` or fetch from the registry; the lockfile is authoritative. If `package-lock.json` is missing or incomplete, npm may emit warnings but does not download packages.
 
 ## Prerequisites
 
@@ -32,11 +32,11 @@ bomly scan --install-first
 
 ### Customizing the install command
 
-Append flags to `npm install` with repeatable `--install-arg`. Requires `--detectors npm-detector` so the args target this detector unambiguously.
+Append flags to `npm install` with repeatable `--install-arg`. Requires `--detectors npm` so the args target this detector unambiguously.
 
 ```bash
 # Tolerate peer-dependency conflicts on a legacy project
-bomly scan --install-first --detectors npm-detector \
+bomly scan --install-first --detectors npm \
   --install-arg --legacy-peer-deps --install-arg --no-audit
 ```
 
@@ -85,3 +85,19 @@ In workspace monorepos, `jsreach` automatically follows imports between consumed
 - **Optional and peer dependencies** are recorded with their lockfile flags, but enforcement of peer-dep version constraints is not re-evaluated.
 - **Subpath imports collapse to the package name** for reachability. `import 'lodash/get'` and `import 'lodash/fp'` both attribute to `lodash`.
 - **Lockfile v1** (npm v5–v6) parses but with reduced edge fidelity. Upgrade to npm v7+ for full graph data.
+
+## Configuration
+
+`npm` is one merged detector with two internal strategies (`lockfile`, `buildtool`). Its `plugins.detectors.npm` config block accepts:
+
+```yaml
+plugins:
+  detectors:
+    npm:
+      # Reorder or subset the internal actions (default: lockfile, buildtool)
+      strategy: [lockfile, buildtool]
+      # Opt this detector out of --install-first even when the flag is passed
+      installFirst: true
+```
+
+The historical detector names (`npm-detector`, `npm-native`) remain selector aliases of `npm`.

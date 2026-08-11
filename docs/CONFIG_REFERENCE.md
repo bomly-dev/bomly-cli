@@ -64,7 +64,7 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | `network.proxy.username` | `BOMLY_HTTP_PROXY_USERNAME` | `string` | - | Username for proxy authentication when using host/port proxy settings |
 | `network.proxy.password` | `BOMLY_HTTP_PROXY_PASSWORD` | `string` | - | Password for proxy authentication when using host/port proxy settings |
 | `network.ca_cert_file` | `BOMLY_HTTP_CA_CERT_FILE` | `string` | - | PEM certificate chain file to trust for outbound HTTPS connections, including TLS-intercepting proxies |
-| `plugins` | `-` | `map[string]map[string]any` | - | Per-plugin configuration keyed by managed plugin ID |
+| `plugins` | `-` | `PluginConfigs` | - | Per-plugin configuration scoped by component kind (detectors, matchers, auditors, analyzers) and keyed by component name; legacy flat plugin-ID keys are still accepted with a deprecation warning |
 
 ## OSV matcher settings
 
@@ -268,6 +268,4 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 #     cache_dir: ""
 #     TTL for cached Scorecard responses (e.g. 24h)
 #     cache_ttl: 24h
-# Per-plugin configuration keyed by managed plugin ID
-# plugins: {}
 ```

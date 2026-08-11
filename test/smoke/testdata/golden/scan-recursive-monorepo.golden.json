@@ -4166,7 +4166,7 @@
           "version": "11.0.1"
         }
       ],
-      "detector": "npm-detector",
+      "detector": "npm",
       "ecosystem": "npm",
       "kind": "package-lock.json",
       "package_manager": "npm",

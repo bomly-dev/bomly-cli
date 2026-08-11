@@ -9131,7 +9131,7 @@
           "version": "0.1.2"
         }
       ],
-      "detector": "yarn-detector",
+      "detector": "yarn",
       "ecosystem": "npm",
       "kind": "yarn.lock",
       "package_manager": "yarn",

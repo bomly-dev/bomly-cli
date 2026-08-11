@@ -421,7 +421,7 @@
     ],
     "analyzer_stats": {
       "pyreach": {
-        "reachable": 34,
+        "reachable": 39,
         "unreachable": 7
       }
     },
@@ -487,6 +487,73 @@
       },
       "version": "1.11.29",
       "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2026-48588",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-3h9f-r86x-qvjx",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
         {
           "affected_version_range": "\u003cnormalized\u003e",
           "aliases": [
@@ -712,6 +779,140 @@
           "description": "\u003cnormalized\u003e",
           "epss": [
             {
+              "cve": "CVE-2026-8404",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-8cjm-8mp7-r2xf",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2026-53878",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-8qcx-xf44-272x",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
               "cve": "CVE-2022-36359",
               "date": "\u003cnormalized\u003e",
               "epss": 0,
@@ -779,6 +980,140 @@
           "description": "\u003cnormalized\u003e",
           "epss": [
             {
+              "cve": "CVE-2026-48587",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-923m-gv2p-w5qp",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2026-53877",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-crhf-3pfg-w68w",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
               "cve": "CVE-2025-64459",
               "date": "\u003cnormalized\u003e",
               "epss": 0,
@@ -798,6 +1133,73 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-frmv-pr5f-9mcr",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2026-6873",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-h7pc-vwp9-298g",
           "namespace": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
@@ -1682,6 +2084,73 @@
           "severity_source": "\u003cnormalized\u003e",
           "source": "grype",
           "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2026-59884",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-m4p7-r5rc-7g4j",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "medium",
+            "hops": 1,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
         }
       ]
     },
@@ -1756,140 +2225,6 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-752w-5fwx-jx9f",
-          "namespace": "\u003cnormalized\u003e",
-          "reachability": {
-            "analyzed_at": "\u003ctimestamp\u003e",
-            "analyzer": "pyreach",
-            "confidence": "high",
-            "hops": 0,
-            "status": "reachable",
-            "tier": "package"
-          },
-          "reasons": [
-            "\u003cnormalized\u003e"
-          ],
-          "references": [
-            {
-              "type": "\u003cnormalized\u003e",
-              "url": "\u003cnormalized\u003e"
-            }
-          ],
-          "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
-          "severity_source": "\u003cnormalized\u003e",
-          "source": "grype",
-          "title": "\u003cnormalized\u003e"
-        },
-        {
-          "affected_version_range": "\u003cnormalized\u003e",
-          "aliases": [
-            "\u003cnormalized\u003e"
-          ],
-          "cvss": [
-            {
-              "score": 0,
-              "vector": "\u003cnormalized\u003e",
-              "version": "\u003cnormalized\u003e"
-            }
-          ],
-          "cwes": [
-            {
-              "cve": "\u003cnormalized\u003e",
-              "id": "\u003cnormalized\u003e",
-              "source": "\u003cnormalized\u003e",
-              "type": "\u003cnormalized\u003e"
-            }
-          ],
-          "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
-          "epss": [
-            {
-              "cve": "CVE-2026-48522",
-              "date": "\u003cnormalized\u003e",
-              "epss": 0,
-              "percentile": 0
-            }
-          ],
-          "fix_available": [
-            {
-              "date": "\u003cnormalized\u003e",
-              "kind": "\u003cnormalized\u003e",
-              "version": "\u003cnormalized\u003e"
-            }
-          ],
-          "fix_state": "\u003cnormalized\u003e",
-          "fixed_in": "\u003cnormalized\u003e",
-          "fixed_versions": [
-            "\u003cnormalized\u003e"
-          ],
-          "id": "GHSA-993g-76c3-p5m4",
-          "namespace": "\u003cnormalized\u003e",
-          "reachability": {
-            "analyzed_at": "\u003ctimestamp\u003e",
-            "analyzer": "pyreach",
-            "confidence": "high",
-            "hops": 0,
-            "status": "reachable",
-            "tier": "package"
-          },
-          "reasons": [
-            "\u003cnormalized\u003e"
-          ],
-          "references": [
-            {
-              "type": "\u003cnormalized\u003e",
-              "url": "\u003cnormalized\u003e"
-            }
-          ],
-          "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
-          "severity_source": "\u003cnormalized\u003e",
-          "source": "grype",
-          "title": "\u003cnormalized\u003e"
-        },
-        {
-          "affected_version_range": "\u003cnormalized\u003e",
-          "aliases": [
-            "\u003cnormalized\u003e"
-          ],
-          "cvss": [
-            {
-              "score": 0,
-              "vector": "\u003cnormalized\u003e",
-              "version": "\u003cnormalized\u003e"
-            }
-          ],
-          "cwes": [
-            {
-              "cve": "\u003cnormalized\u003e",
-              "id": "\u003cnormalized\u003e",
-              "source": "\u003cnormalized\u003e",
-              "type": "\u003cnormalized\u003e"
-            }
-          ],
-          "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
-          "epss": [
-            {
-              "cve": "CVE-2026-48524",
-              "date": "\u003cnormalized\u003e",
-              "epss": 0,
-              "percentile": 0
-            }
-          ],
-          "fix_available": [
-            {
-              "date": "\u003cnormalized\u003e",
-              "kind": "\u003cnormalized\u003e",
-              "version": "\u003cnormalized\u003e"
-            }
-          ],
-          "fix_state": "\u003cnormalized\u003e",
-          "fixed_in": "\u003cnormalized\u003e",
-          "fixed_versions": [
-            "\u003cnormalized\u003e"
-          ],
-          "id": "GHSA-fhv5-28vv-h8m8",
           "namespace": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",

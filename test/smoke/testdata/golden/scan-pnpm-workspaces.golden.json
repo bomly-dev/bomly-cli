@@ -98,7 +98,7 @@
           "version": "1.0.0"
         }
       ],
-      "detector": "pnpm-detector",
+      "detector": "pnpm",
       "ecosystem": "npm",
       "kind": "package.json",
       "package_manager": "pnpm",
@@ -167,7 +167,7 @@
           "version": "1.2.5"
         }
       ],
-      "detector": "pnpm-detector",
+      "detector": "pnpm",
       "ecosystem": "npm",
       "kind": "package.json",
       "package_manager": "pnpm",
@@ -210,7 +210,7 @@
           "version": "2.1.3"
         }
       ],
-      "detector": "pnpm-detector",
+      "detector": "pnpm",
       "ecosystem": "npm",
       "kind": "pnpm-lock.yaml",
       "package_manager": "pnpm",

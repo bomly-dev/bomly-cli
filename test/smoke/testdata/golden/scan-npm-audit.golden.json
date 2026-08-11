@@ -3309,7 +3309,7 @@
           "version": "13.3.2"
         }
       ],
-      "detector": "npm-detector",
+      "detector": "npm",
       "ecosystem": "npm",
       "kind": "package-lock.json",
       "package_manager": "npm",

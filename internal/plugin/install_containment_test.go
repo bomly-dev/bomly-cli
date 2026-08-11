@@ -11,6 +11,35 @@ import (
 	"testing"
 )
 
+func TestValidateArchiveEntryName(t *testing.T) {
+	valid := []string{
+		"", ".", "bin/plugin", "bin/", "manifest.json", "nested/dir/file.txt", "dir/",
+	}
+	for _, name := range valid {
+		if err := validateArchiveEntryName(name); err != nil {
+			t.Errorf("validateArchiveEntryName(%q) = %v, want nil", name, err)
+		}
+	}
+	invalid := []string{
+		"../evil",
+		"/absolute/evil",
+		`\absolute\evil`,
+		`..\evil`,
+		"a/../../b",
+		"safe/../../../escape",
+		"..",
+		"../",
+		`C:\evil`,
+		"C:/evil",
+		"dir/../..",
+	}
+	for _, name := range invalid {
+		if err := validateArchiveEntryName(name); err == nil {
+			t.Errorf("validateArchiveEntryName(%q) = nil, want error", name)
+		}
+	}
+}
+
 func TestExtractZipArchiveRejectsEscapingAndSymlinkEntries(t *testing.T) {
 	tests := []struct {
 		name string
@@ -20,6 +49,9 @@ func TestExtractZipArchiveRejectsEscapingAndSymlinkEntries(t *testing.T) {
 		{name: "parent traversal", path: "../escape"},
 		{name: "absolute path", path: "/tmp/escape"},
 		{name: "Windows traversal", path: `..\escape`},
+		{name: "Windows absolute path", path: `C:\evil`},
+		{name: "interior traversal", path: "a/../../b"},
+		{name: "nested parent component", path: "safe/../../../escape"},
 		{name: "symlink", path: "link", mode: os.ModeSymlink | 0o777},
 	}
 	for _, tc := range tests {
@@ -51,6 +83,8 @@ func TestExtractZipArchiveRejectsEscapingAndSymlinkEntries(t *testing.T) {
 				t.Fatalf("extractZipArchive() accepted unsafe entry %q", tc.path)
 			}
 			if !strings.Contains(err.Error(), "escapes the extraction directory") &&
+				!strings.Contains(err.Error(), "uses an absolute path") &&
+				!strings.Contains(err.Error(), "parent-directory component") &&
 				!strings.Contains(err.Error(), "unsupported symlink mode") {
 				t.Fatalf("extractZipArchive() error = %v", err)
 			}
@@ -66,6 +100,8 @@ func TestExtractTarGzArchiveRejectsEscapingLinksAndSpecialFiles(t *testing.T) {
 	}{
 		{name: "parent traversal", path: "../escape", typeflag: tar.TypeReg},
 		{name: "absolute path", path: "/tmp/escape", typeflag: tar.TypeReg},
+		{name: "interior traversal", path: "a/../../b", typeflag: tar.TypeReg},
+		{name: "Windows traversal", path: `..\escape`, typeflag: tar.TypeReg},
 		{name: "symbolic link", path: "link", typeflag: tar.TypeSymlink},
 		{name: "hard link", path: "hard-link", typeflag: tar.TypeLink},
 		{name: "device", path: "device", typeflag: tar.TypeChar},
@@ -108,6 +144,8 @@ func TestExtractTarGzArchiveRejectsEscapingLinksAndSpecialFiles(t *testing.T) {
 				t.Fatalf("extractTarGzArchive() accepted unsafe entry %q", tc.path)
 			}
 			if !strings.Contains(err.Error(), "escapes the extraction directory") &&
+				!strings.Contains(err.Error(), "uses an absolute path") &&
+				!strings.Contains(err.Error(), "parent-directory component") &&
 				!strings.Contains(err.Error(), "uses unsupported type") {
 				t.Fatalf("extractTarGzArchive() error = %v", err)
 			}

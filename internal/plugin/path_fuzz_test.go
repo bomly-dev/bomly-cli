@@ -40,6 +40,17 @@ func FuzzPluginPathSanitizers(f *testing.F) {
 			}
 		}
 
+		if err := validateArchiveEntryName(raw); err == nil {
+			trimmed := strings.TrimSpace(raw)
+			if trimmed != "" && trimmed != "." {
+				slashName := strings.ReplaceAll(trimmed, "\\", "/")
+				local := filepath.FromSlash(strings.TrimRight(slashName, "/"))
+				if !filepath.IsLocal(local) {
+					t.Fatalf("validateArchiveEntryName accepted non-local entry: %q", raw)
+				}
+			}
+		}
+
 		cleanPath, err := cleanRelativePluginPath(raw)
 		if err != nil {
 			return

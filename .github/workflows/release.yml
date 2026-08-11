@@ -163,6 +163,18 @@ jobs:
     # tag as immutable (even if the bad release is later deleted). The
     # `publish` job uploads this provenance file itself, by release ID, to
     # avoid that entirely.
+    #
+    # Known benign annotations from this job (all internal to the generator at
+    # v2.1.0, its latest release — nothing here can configure them away):
+    #   - "Node.js 20 is deprecated ... forced to run on Node 24": the
+    #     generator's internal actions still declare node20; GitHub runs them
+    #     on Node 24 anyway. Upstream migration is tracked in
+    #     slsa-framework/slsa-github-generator#4490.
+    #   - "Restore cache failed: Dependencies file is not found ... go.sum":
+    #     the generator's own setup-go step enables caching but its builder
+    #     checkout has no go.sum at the expected path. Tracked upstream in
+    #     slsa-framework/slsa-github-generator#2863 (fix PRs #2864, #4441).
+    # Re-check both when bumping the generator past v2.1.0.
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: ${{ needs.release.outputs.hashes }}

@@ -489,6 +489,9 @@ func TestUnmarshalAutoJSON_RejectsUnsupportedOrMalformedJSON(t *testing.T) {
 	if _, _, err := UnmarshalAutoJSON([]byte(`{"hello":`)); err == nil || !errors.Is(err, ErrMalformedJSON) {
 		t.Fatalf("expected malformed-json error, got %v", err)
 	}
+	if _, target, err := UnmarshalAutoJSON(mustSyftJSONFixture(t)); !errors.Is(err, ErrSyftJSONUnsupported) || target != TargetSyftJSON {
+		t.Fatalf("expected syft-json-unsupported error with syft target, got (%q, %v)", target, err)
+	}
 }
 
 func TestToGraph_AllowsCycles(t *testing.T) {

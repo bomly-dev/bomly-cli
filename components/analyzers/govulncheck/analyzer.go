@@ -43,6 +43,7 @@ func (a Analyzer) Descriptor() model.AnalyzerDescriptor {
 		SupportedManagers:   []model.PackageManager{model.PackageManagerGoMod},
 		SupportedLanguages:  []model.Language{model.LanguageGo},
 		SupportedTiers:      []model.ReachabilityTier{model.TierSymbol, model.TierPackage},
+		Capabilities:        []string{model.CapabilityPackageUpdates},
 	}
 }
 
@@ -103,7 +104,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		// Unknown so consumers know the analyzer was attempted.
 		logger.Info("govulncheck: no module roots discovered; marking all Go vulnerabilities as unknown")
 		annotateAllUnknown(req, "no-module-root-discovered", time.Now())
-		return resultForRequest(), nil
+		return finishResult(req, resultForRequest()), nil
 	}
 
 	logger.Info("govulncheck: starting reachability analysis",
@@ -172,7 +173,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 
 	out := resultForRequest()
 	out.AnalyzerStats = map[string]model.ReachabilityStats{Name: stats}
-	return out, nil
+	return finishResult(req, out), nil
 }
 
 // runWithCache returns (result, fromCache, error) for one module. Cache
@@ -510,4 +511,34 @@ func failureReason(err error) string {
 	default:
 		return "runner-error"
 	}
+}
+
+// finishResult applies the package-updates delta protocol to out. When the
+// host accepts deltas (req.AcceptPackageUpdates), the analyzer returns only
+// the registry packages it annotated instead of the full registry; the host
+// folds them back in with sdk.ApplyPackageUpdates. The annotation this
+// analyzer writes -- filling Vulnerability.Reachability on existing
+// (Source, ID)-keyed vulnerabilities that had none -- is exactly what the
+// host-side merge (Package.MergeFrom) expresses, so the delta path is
+// equivalent to the legacy in-place path. The one in-place behavior the merge
+// cannot express is replacing a Reachability annotation already written by a
+// DIFFERENT analyzer; built-in analyzer dispatch is language-disjoint, so no
+// two built-ins annotate the same package.
+func finishResult(req model.AnalyzeRequest, out model.AnalyzeResult) model.AnalyzeResult {
+	if !req.AcceptPackageUpdates || req.Registry == nil {
+		return out
+	}
+	out.Registry = nil
+	for _, pkg := range req.Registry.All() {
+		if pkg == nil {
+			continue
+		}
+		for _, vuln := range pkg.Vulnerabilities {
+			if vuln.Reachability != nil && vuln.Reachability.Analyzer == Name {
+				out.PackageUpdates = append(out.PackageUpdates, pkg)
+				break
+			}
+		}
+	}
+	return out
 }

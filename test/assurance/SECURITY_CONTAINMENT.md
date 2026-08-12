@@ -14,7 +14,7 @@ must remain stable.
 | Plugin tar extraction | Absolute paths, parent traversal, links, and special files cannot write outside the extraction directory | `TestExtractTarGzArchiveRejectsEscapingLinksAndSpecialFiles` |
 | Automatic baseline | The conventional project baseline is resolved for filesystem and materialized Git targets, and invalid documents fail closed | `TestResolversForTargetHandlesOptionalRequiredAndURLPolicies`, `TestLoadRejectsMalformedAndUnsupportedDocuments` |
 | Baseline replacement | A rejected replacement leaves the existing baseline intact | `TestWriteAtomicValidationFailurePreservesExistingDocument` |
-| Cache filename | Untrusted package identity text is hashed before it becomes a cache filename | `TestFileCache_HostileIdentityCannotEscapeCacheDirectory` |
+| Cache filename | Untrusted package identity text is hashed before it becomes a cache filename | `TestSDKContractFileCachePermissionsAndContainment` (local contract in `test/assurance/sdk_contract_test.go`; authoritative suite upstream in `bomly-dev/bomly-sdk` `filecache/cache_test.go`) |
 | Generated output | Output is written only to the destination the user selected | `TestWriteOutputDocumentWritesOnlyToExplicitDestination` |
 
 Explicit paths are authority boundaries, not project sandboxes. A user may

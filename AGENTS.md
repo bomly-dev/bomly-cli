@@ -27,7 +27,7 @@ make generate            # regenerate config reference, JSON schemas, schema doc
 Always run `make test` after changes. All tests must pass before marking work is done.
 If you change `internal/cli/config.go`, `internal/output/*`, or `internal/registry/support.go`, or bump the pinned `bomly-dev/bomly-sdk` version (its catalog or support-matrix data feeds the generated docs), also run `make generate` and commit the docs drift.
 
-`go.mod` pins released versions and must not contain `replace` directives on main (CI enforces this). Local cross-repo SDK development: `go work init . ../bomly-sdk` (never commit `go.work`).
+`go.mod` pins released versions and must not contain `replace` directives on main (CI enforces this). The committed `go.work` lists in-repo modules only (root now; `components/*` as waves land). Local cross-repo SDK development: `go work use ../bomly-sdk` (never commit that entry).
 
 ### Git Worktrees
 
@@ -48,7 +48,7 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 | `internal/engine`      | Pipeline, engine, consolidation, auditors, matchers, and orchestration                            |
 | `internal/registry`    | Canonical support/discovery registry and built-in engine registry wiring                          |
 | `internal/detectors/*` | Concrete dependency resolution per ecosystem (gomod, gradle, maven, node, python, sbom, syft)     |
-| `internal/matchers/*`  | External enrichment matchers and shared matcher cache (osv, grype, deps.dev, scorecard; ClearlyDefined and eol run as external matcher plugins) |
+| `internal/matchers/*`  | External enrichment matchers (osv, grype, deps.dev, scorecard; ClearlyDefined and eol run as external matcher plugins); the shared cache lives in `bomly-sdk/filecache` |
 | `internal/auditors/*`  | Policy evaluators and audit-only logic (policy, noop)                                             |
 | `internal/analyzers/*` | Built-in reachability analyzers (govulncheck, jsreach)                                            |
 | `internal/baseline`    | Portable package-finding baseline codec and audit-integrated policy-status resolver               |
@@ -61,10 +61,8 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 | `internal/engine/diff` | Diff pipeline orchestration and audit delta classification                                        |
 | `internal/engine/explain` | Dependency path traversal (`explain` command)                                                  |
 | `internal/engine/scan` | Scan command pipeline API                                                                         |
-| `internal/logging`     | Zap console wrapper                                                                               |
+| `internal/logging`     | Zap console wrapper (subprocess logging helpers live in `bomly-sdk/logkit`)                       |
 | `internal/support`     | Docs generation (config reference, schemas, support matrix, component docs) behind the hidden `bomly internal docs-gen` command |
-| `internal/testutil`    | Test helpers (fake binary builder)                                                                |
-| `internal/system`      | OS-level helpers                                                                                  |
 
 Scan pipeline: `runtimePreparation → subprojectDiscovery (root-only by default; --recursive walks nested dirs) → detect (per-package-manager chains; resolve + consolidate into one graph; detectors may record CI-readiness resolution warnings on manifests) → scopeFilter → match (package enrichment, vulnerability consolidation, and remediation derivation) → analyze (reachability, when --analyze is set) → audit (including finding policy-status resolution) → format`. Consolidation is the tail of the detect stage, and remediation derivation is the tail of enrichment; neither is a separate stage.
 
@@ -80,10 +78,18 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - Per-ecosystem detectors are consolidated packages with host-owned chains — e.g. `internal/detectors/node` hosts the npm/pnpm/yarn/bun sub-detectors, and detector name aliases keep old `--detectors` selections working.
 - Build composition lives in `internal/composition` (`composition_full.go` / `composition_lite.go` behind build tags); register new built-ins there and in `internal/registry/builder.go`.
 
+### Component modules (`components/`)
+
+- Shared helper code (bounded filesystem/subprocess ops, file cache, subprocess logging, detector/matcher helpers, test kit) lives in `bomly-sdk` subpackages: `system`, `filecache`, `logkit`, `detectorkit`, `matcherkit`, `testkit`. Do not reintroduce CLI-internal copies.
+- Extracted components will live under `components/<kind>/<name>/` as separate Go modules with their own `go.mod`, tagged per module as `components/<kind>/<name>/vX.Y.Z`.
+- The committed `go.work` puts the repo in workspace mode for local development; waves add `use ./components/...` entries. Release and pinned builds run with `GOWORK=off` (GoReleaser sets it explicitly; CI's `pinned-build` job verifies the module pins alone still build on pushes to `main`).
+- Each extraction wave lands as **one atomic PR**: move the code into its component module, add the `use` entry, and keep the root module compiling in the same change.
+- `scripts/release-components.sh` (also `make release-components`) is the release train: dry run prints per-module patch tags for modules changed since their last tag; `--apply` (ARGS="--apply") creates and pushes the tags and prints the root `go get` pin bumps.
+
 ### Package Boundaries
 
-- `internal/detectors/*` must not import `internal/engine` or `internal/registry`. Concrete detectors may depend on `internal/detectors`, `internal/system` for bounded filesystem and subprocess operations, the SDK, and local helpers.
-- Built-in analyzers may depend on the SDK, `internal/system` for bounded filesystem and subprocess operations, shared cache and logging helpers, and local helpers. They must not import `internal/engine` or `internal/registry`.
+- `internal/detectors/*` must not import `internal/engine` or `internal/registry`. Concrete detectors may depend on `internal/detectors` (name constants), the SDK and its helper subpackages (`system` for bounded filesystem and subprocess operations, `detectorkit` for shared detector helpers), and local helpers.
+- Built-in analyzers may depend on the SDK and its helper subpackages (`system` for bounded filesystem and subprocess operations, `filecache`, `logkit`), and local helpers. They must not import `internal/engine` or `internal/registry`.
 - `internal/detectors` owns detector-facing contracts such as `Detector`, `DetectorDescriptor`, `ResolveGraphRequest`, and detector helper functions.
 - The SDK owns neutral shared identifiers and support metadata that would otherwise create package cycles, including ecosystems, package managers, detector types, and support-matrix data.
 - `internal/baseline` owns the baseline document and matching implementation. It depends on the SDK policy contracts and must not be imported by `internal/engine`.
@@ -129,16 +135,18 @@ logger.Warn("cache miss", zap.Error(err))
 - Log **everything** relevant, but aggregate cache/API activity at the operation level by default. Prefer one summary log for a cache pass, API batch, or enrichment run over per-package hit/miss/request logs unless an individual item is required to explain a warning or error.
 - No PII, no tokens, no credentials.
 
-### Caching (`internal/matchers/cache`)
+### Caching (`bomly-sdk/filecache`)
 
 ```go
-cache, _ := audcache.NewFileCache(dir, 24*time.Hour)
-key := audcache.NewKey(purl, name, ecosystem, version)  // SHA256
-if v, ok := audcache.Get[T](cache, key); ok { ... }
-_ = audcache.Set(cache, key, value)
+import cache "github.com/bomly-dev/bomly-sdk/filecache"
+
+fc, _ := cache.NewFileCache(dir, 24*time.Hour)
+key := cache.NewKey(purl, name, ecosystem, version)  // SHA256
+if v, ok := cache.Get[T](fc, key); ok { ... }
+_ = cache.Set(fc, key, value)
 ```
 
-License and vulnerability matchers share the same cache API from `internal/matchers/cache`.
+License and vulnerability matchers share the same cache API from `bomly-sdk/filecache`.
 Cache failures are **non-fatal** — log a warning and continue without caching.
 
 ### Detector / Auditor Pattern
@@ -171,7 +179,7 @@ Core passes these env vars. Plugin discovery: `~/.bomly/plugins/bomly-*` overrid
 
 - Every exported type/function has a doc comment.
 - Unit tests for new logic; integration tests for new commands.
-- Test helpers: `t.TempDir()`, `testutil.BuildGoBinary()`, `httptest.NewServer()`.
+- Test helpers: `t.TempDir()`, `testkit.BuildGoBinary()` (from `bomly-sdk/testkit`), `httptest.NewServer()`.
 - Generated docs are part of the contract: update `docs/CONFIG_REFERENCE.md`, `docs/schemas/*`, and `docs/SUPPORT_MATRIX.md` via `make generate` when their source packages change.
 - Fake binaries (npm, go, Gradle, plugin) are built in `TestMain` — see `internal/cli/root_test_main_test.go`.
 - No test conditionally skipped without a recorded reason.
@@ -180,8 +188,8 @@ Core passes these env vars. Plugin discovery: `~/.bomly/plugins/bomly-*` overrid
 ### Fuzz tests
 
 - Every new or materially changed pure in-process parser for untrusted repository, configuration, baseline, SBOM, plugin, or analyzer data must have a native Go fuzz target. (The SDK's own parsers carry their fuzz targets in the SDK repo.)
-- Bound fuzz input before parsing. Use `testutil.MaxFuzzInputSize` unless the format needs a documented tighter limit.
-- Seed valid, malformed, and truncated inputs. Assert that parsing never panics and that repeated parsing has deterministic success or failure; graph producers must also call `testutil.RequireFuzzGraphValid`.
+- Bound fuzz input before parsing. Use `testkit.MaxFuzzInputSize` (from `bomly-sdk/testkit`) unless the format needs a documented tighter limit.
+- Seed valid, malformed, and truncated inputs. Assert that parsing never panics and that repeated parsing has deterministic success or failure; graph producers must also call `testkit.RequireFuzzGraphValid`.
 - Register every new fuzz target in `scripts/run-fuzz.sh` so both `make fuzz` and the scheduled `.github/workflows/fuzz.yml` workflow execute it.
 - When a parser is command-backed, delegated entirely to the standard library, or otherwise unsuitable for native fuzzing, record the exclusion and reason in `test/assurance/PARSER_FUZZING.md`.
 - When fuzz targets or their runner manifest change, run the focused target and `make fuzz FUZZTIME=5s`.
@@ -248,7 +256,7 @@ When invoking subprocesses, the DEBUG line MUST include the binary path, args, a
 
 ### Caching
 
-If a new analyzer / matcher / detector produces deterministic output for a fixed `(input, schema version)` pair, wrap it with `internal/matchers/cache.FileCache`:
+If a new analyzer / matcher / detector produces deterministic output for a fixed `(input, schema version)` pair, wrap it with `bomly-sdk/filecache.FileCache`:
 
 - Cache key folds: schema version (so we can bump and invalidate), input fingerprint (lockfile content hash), runtime version when the underlying tool is sensitive to it, and the runner name when multiple implementations exist.
 - Default location: `~/.cache/bomly/<area>/<subarea>/`.

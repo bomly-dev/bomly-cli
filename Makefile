@@ -7,7 +7,7 @@ EXE_SUFFIX=$(if $(filter Windows_NT,$(OS)),.exe,)
 GOLANGCI_LINT=$(GOPATH_BIN)/golangci-lint$(EXE_SUFFIX)
 FUZZTIME?=60s
 
-.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test smoke fuzz run generate evidence benchmark benchmark-report licenses
+.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test smoke fuzz release-components run generate evidence benchmark benchmark-report licenses
 
 build: build-full build-lite
 
@@ -40,6 +40,10 @@ smoke:
 
 fuzz:
 	FUZZTIME="$(FUZZTIME)" scripts/run-fuzz.sh
+
+# Dry-run the component release train (pass ARGS="--apply" to tag and push).
+release-components:
+	./scripts/release-components.sh $(if $(ARGS),$(ARGS),)
 
 evidence:
 	go run ./internal/tools/publicevidence $(if $(CASE),-case $(CASE),)

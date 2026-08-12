@@ -63,6 +63,28 @@ jobs:
       - name: Build lite Bomly binary
         run: go build -tags "bomly_external_syft,bomly_external_grype" -o /tmp/bomly-lite ./cmd/bomly
 
+  pinned-build:
+    name: Pinned build (workspace off)
+    # Component-module pseudo-versions only resolve after a wave PR merges,
+    # so this pins-only guard runs on pushes to main rather than on PRs.
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    env:
+      GOWORK: off
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+      - name: Build with module pins only
+        run: go build ./cmd/bomly
+      - name: Test with module pins only
+        run: go test ./internal/... ./cmd/...
+
   format:
     name: Format
     runs-on: ubuntu-latest

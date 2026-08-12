@@ -69,6 +69,15 @@ if [[ ! "${version}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     exit 1
 fi
 
+# Component tags must point at the CLI release commit, not HEAD: the local
+# branch may have advanced past the release tag (or --version may select an
+# older release), and lockstep means the component tag captures exactly the
+# code that shipped in that CLI release.
+release_commit="$(git rev-parse -q --verify "refs/tags/${version}^{commit}")" || {
+    echo "error: release tag ${version} not found locally; fetch tags first (git fetch --tags)" >&2
+    exit 1
+}
+
 # Collect component module directories: components/<kind>/<name>/go.mod.
 modules=()
 for gomod in components/*/*/go.mod; do
@@ -81,7 +90,7 @@ if [[ ${#modules[@]} -eq 0 ]]; then
     exit 0
 fi
 
-echo "# release version: ${version}"
+echo "# release version: ${version} (commit ${release_commit})"
 bump_cmds=()
 for module in "${modules[@]}"; do
     tag="${module}/${version}"
@@ -99,11 +108,11 @@ for module in "${modules[@]}"; do
         continue
     fi
     if ${apply}; then
-        git tag -a "${tag}" -m "Release ${tag}"
+        git tag -a "${tag}" -m "Release ${tag}" "${release_commit}"
         git push origin "${tag}"
-        echo "tagged and pushed ${tag}"
+        echo "tagged and pushed ${tag} at ${release_commit}"
     else
-        echo "git tag -a ${tag} -m 'Release ${tag}'"
+        echo "git tag -a ${tag} -m 'Release ${tag}' ${release_commit}"
         echo "git push origin ${tag}"
     fi
 done

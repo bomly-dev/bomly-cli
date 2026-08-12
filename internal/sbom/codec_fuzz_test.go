@@ -14,6 +14,20 @@ func FuzzUnmarshalAutoJSON(f *testing.F) {
 		`{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"components":[]}`,
 		`{"bomFormat":"CycloneDX","specVersion":"1.6","version":1,"components":[]}`,
 		`{"artifacts":[],"artifactRelationships":[],"source":{"type":"directory","target":"."},"descriptor":{"name":"syft","version":"seed"},"schema":{"version":"16.0.34","url":"https://raw.githubusercontent.com/anchore/syft/main/schema/json/schema-16.0.34.json"}}`,
+		// Malformed inputs: rejection paths must be deterministic, never panic.
+		``,
+		`{}`,
+		`null`,
+		`[]`,
+		`{"hello":"world"}`,
+		`{"spdxVersion":"SPDX-9.9"}`,
+		`{"bomFormat":"CycloneDX","specVersion":"9.9"}`,
+		`{"bomFormat":"CycloneDX","specVersion":1.5}`,
+		`{"spdxVersion":"SPDX-2.3","packages":"not-a-list"}`,
+		// Truncated documents: valid prefixes cut mid-structure.
+		`{"spdxVersion":"SPDX-2.3","SPDXID":"SPDXRef-DOCUMENT","name":"demo","packages":[{"SPDXID":"SPDXRef-`,
+		`{"bomFormat":"CycloneDX","specVersion":"1.6","version":1,"components":[{"name":`,
+		`{"artifacts":[],"schema":{"version":"16.0.34","url":"https://raw.githubusercontent.com/anchore/syft`,
 	} {
 		f.Add([]byte(seed))
 	}

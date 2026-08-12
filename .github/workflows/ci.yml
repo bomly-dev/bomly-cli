@@ -82,6 +82,11 @@ jobs:
           cache-dependency-path: go.sum
       - name: Build with module pins only
         run: go build ./cmd/bomly
+      - name: Build lite variant with module pins only
+        # Mirrors the regular build job's lite variant so a stale pin in a
+        # future extracted Syft/Grype component module fails here instead of
+        # only in GoReleaser.
+        run: go build -tags "bomly_external_syft,bomly_external_grype" ./cmd/bomly
       - name: Test with module pins only
         run: go test ./internal/... ./cmd/...
 

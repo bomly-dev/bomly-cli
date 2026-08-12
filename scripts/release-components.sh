@@ -112,8 +112,20 @@ for module in "${modules[@]}"; do
     # creation and push: the REMOTE is the source of truth for "already
     # released". A local-only tag is verified against the release commit
     # (a stale local tag is an error, never silently pushed) and pushed.
-    if [[ -n "$(git ls-remote --tags origin "refs/tags/${tag}")" ]]; then
-        echo "# ${module}: ${tag} already on origin, skipping"
+    # A pre-existing remote tag is verified too: prefer the peeled ^{}
+    # commit (annotated tags), falling back to the unpeeled ref for
+    # lightweight tags. A remote tag at the wrong commit aborts the train —
+    # it must never silently ride into the pin bumps.
+    remote_tag_commit="$(git ls-remote --tags origin "refs/tags/${tag}^{}" | awk '{print $1; exit}')"
+    if [[ -z "${remote_tag_commit}" ]]; then
+        remote_tag_commit="$(git ls-remote --tags origin "refs/tags/${tag}" | awk '{print $1; exit}')"
+    fi
+    if [[ -n "${remote_tag_commit}" ]]; then
+        if [[ "${remote_tag_commit}" != "${release_commit}" ]]; then
+            echo "error: remote tag ${tag} points at ${remote_tag_commit}, not release commit ${release_commit}; resolve the tag on origin before releasing" >&2
+            exit 1
+        fi
+        echo "# ${module}: ${tag} already on origin at ${release_commit}, skipping"
         continue
     fi
     local_tag_commit="$(git rev-parse -q --verify "refs/tags/${tag}^{commit}" || true)"

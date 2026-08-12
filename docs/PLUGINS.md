@@ -7,13 +7,15 @@ Bomly plugins let you extend scans without changing the Bomly binary. Today, man
 - **auditors** that turn graph and registry data into findings or risk scores
 - **analyzers** that annotate vulnerabilities with reachability data during `--analyze`
 
-Each role has a serve entrypoint in the SDK: `sdk.ServeDetector`, `sdk.ServeMatcher`, `sdk.ServeAuditor`, and `sdk.ServeAnalyzer`.
+Every plugin packages its component as one `sdk.Module` and serves it from `main` with `sdk.ServeModule`. The same module can also be compiled into a host build, so a component is written once and runs in both execution modes. (The low-level per-role entrypoints `sdk.ServeDetector`, `sdk.ServeMatcher`, `sdk.ServeAuditor`, and `sdk.ServeAnalyzer` remain available for advanced cases.)
 
 ## Start Here
 
-Use this page when you want to install, trust, configure, package, or troubleshoot a managed plugin.
+Use this page when you want to install, trust, configure, package, or troubleshoot a managed plugin — and for the [authoring basics](#write-a-plugin) every plugin role shares.
 
-Use the implementation guides when you are writing one:
+**Writing a plugin? Start from the [bomly-plugin-template](https://github.com/bomly-dev/bomly-plugin-template) repository** ("Use this template" on GitHub). It is a complete, working plugin with typed configuration, tests, the SDK conformance suite, CI, and a release workflow Bomly can install from.
+
+Then use the implementation guide for your role:
 
 - [How To Implement A Detector Plugin](plugins/how-to-implement-detector.md)
 - [How To Implement A Matcher Plugin](plugins/how-to-implement-matcher.md)
@@ -22,12 +24,12 @@ Use the implementation guides when you are writing one:
 
 Use the [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) for the Go types, runtime entrypoints, request/response payloads, graph model, package registry, and finding contract those guides use.
 
-Example plugin repositories live outside this repo so each plugin type can show a realistic package, release, and README:
+Real plugin repositories live outside this repo so each plugin type can show a realistic package, release, and README:
 
-- [Bun Lock Detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector) — detector example using `PackageManagerOther`
-- [ClearlyDefined License Matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher) — matcher example for license enrichment
-- [EOL Lifecycle Matcher](https://github.com/bomly-dev/bomly-plugin-eol-matcher) — matcher example for lifecycle metadata
-- [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor) — auditor example that emits warning findings
+- [Bun Lock Detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector) — detector for a package manager Bomly does not model directly (`PackageManagerOther`)
+- [ClearlyDefined License Matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher) — matcher for license enrichment
+- [EOL Lifecycle Matcher](https://github.com/bomly-dev/bomly-plugin-eol-matcher) — matcher for lifecycle metadata
+- [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor) — auditor that emits warning findings
 
 ## How Plugins Run
 
@@ -60,6 +62,77 @@ Bomly owns:
 
 Plugins do not get install hooks, post-install scripts, or automatic execution from repository checkouts.
 
+## Write A Plugin
+
+A plugin is written once as a **module** — the execution-neutral packaging of one component:
+
+```go
+sdk.Module{
+    Kind: sdk.PluginKindMatcher, // or Detector / Auditor / Analyzer
+    Matcher: &sdk.MatcherModule{
+        Descriptor: descriptor(), // static registration data
+        New: func(ctx context.Context, host sdk.HostContext) (sdk.Matcher, error) {
+            // construct the component; decode config from host
+        },
+    },
+}
+```
+
+The same module value can be compiled into a host build (embedded) or served as a managed plugin subprocess — the component code does not change between the two. `sdk.HostContext` is the only channel through which the component reaches host services, and both execution modes satisfy the same contract:
+
+- `Logger()` — a zap logger wired to the host's verbosity. Never log secrets.
+- `HTTPClient()` — an HTTP client provider that honors Bomly's proxy, no-proxy, and CA certificate settings.
+- `Runtime()` — the host core version and whether execution is embedded or managed.
+- `DecodeConfig(v)` — unmarshals the component's own `plugins.<kind>.<name>` configuration block (see [Configuration](#configuration-and-proxy-support)).
+
+Every role embeds a default-lifecycle helper (`sdk.BaseDetector`, `sdk.BaseMatcher`, `sdk.BaseAuditor`, `sdk.BaseAnalyzer`) that supplies always-ready, always-applicable implementations of `Ready(ctx, req) error` and `Applicable(ctx, req) (bool, error)`. Override `Ready` to report a missing prerequisite with a clear reason; override `Applicable` to skip requests the component should not handle. Honor the context everywhere.
+
+### Repository contract
+
+Follow the [template repository's](https://github.com/bomly-dev/bomly-plugin-template) shape:
+
+```text
+plugin/                  importable package exporting Module()
+cmd/<binary-name>/
+  main.go                one line: sdk.ServeModule(plugin.Module())
+bomly-plugin.json        package manifest; "id" must equal the descriptor name
+testdata/                fixtures for unit tests
+.github/workflows/       CI plus a release workflow producing platform archives
+go.mod                   pins a released github.com/bomly-dev/bomly-sdk version
+```
+
+Keeping the component in an importable `plugin/` package (not `package main`) is what makes the module reusable: the binary serves it, tests construct it directly, and a host build can embed it.
+
+`sdk.ServeModule` is the managed entrypoint. It validates the module, builds a managed `HostContext` (stderr logger, HTTP client provider from Bomly's environment, config decoding from the file the host passes), constructs the component lazily on first use, and speaks the plugin wire protocol. Only plugins that need the low-level wire surface directly should reach for the per-role `Serve<Kind>` entrypoints and `Served<Kind>` interfaces.
+
+## Test A Plugin
+
+Unit-test the component logic through `Module().New` with a small test `HostContext` stub (the template's `plugin/plugin_test.go` shows one), then run the SDK conformance suite:
+
+```go
+func TestConformance(t *testing.T) {
+    conformance.Test(t, conformance.Config{
+        Module:       plugin.Module(),
+        ManifestPath: "../bomly-plugin.json",
+        SampleConfig: json.RawMessage(`{"greeting":"hi"}`),
+    })
+}
+```
+
+The suite checks module and descriptor validity, JSON round-trip stability, construction through a `HostContext`, the Ready/Applicable lifecycle contract (including prompt return on a cancelled context), role capabilities such as the package-updates delta protocol, and — when `ManifestPath` is set — the manifest identity cross-check. To probe a built binary over the real managed transport, add `conformance.ProbeBinary(t, "bin/<name>", conformance.WithModule(plugin.Module()))`.
+
+The local development loop against Bomly:
+
+```bash
+go build -o ./bin/<binary-name> ./cmd/<binary-name>
+bomly plugins install ./bin/<binary-name> --dev
+bomly plugins enable <plugin-id>
+bomly scan ...                     # with the role's selector flag
+bomly plugins verify <plugin-id>   # manifest, checksum, binary, descriptor
+bomly plugins test <plugin-id>     # runtime readiness
+bomly plugins doctor <plugin-id>   # verify + test
+```
+
 ## Trust And Enablement
 
 Installed external plugins are disabled by default. They do not participate in scans until you enable them:
@@ -79,13 +152,13 @@ Repository-declared plugins are never executed automatically. The host must expl
 
 ## Try The Example Plugins
 
-Each example repo has a `bomly-plugin.json`, a small Go implementation, tests, and packaging notes.
+Each example repo has a `bomly-plugin.json`, a Go implementation, tests, and packaging notes. Check its README for the exact build command; the general workflow is:
 
 ```bash
 git clone git@github.com:bomly-dev/bomly-plugin-bun-lock-detector.git
 cd bomly-plugin-bun-lock-detector
 go test ./...
-go build -o ./bin/bomly-plugin-bun-lock-detector .
+go build -o ./bin/bomly-plugin-bun-lock-detector ./cmd/bomly-plugin-bun-lock-detector
 bomly plugins install ./bin/bomly-plugin-bun-lock-detector --dev
 bomly plugins enable bomly.examples.detector.bun-lock
 bomly scan --path ./my-bun-project --detectors bomly.examples.detector.bun-lock
@@ -195,7 +268,9 @@ All three are optional and older plugins that omit them keep working unchanged.
 
 A detector plugin may also explain which package-manager remediation strategies
 it understands. Add `RemediationCapabilities` to the detector descriptor and
-implement `sdk.ServedDetectorRemediationProvider`.
+implement the optional hints provider — `sdk.DetectorRemediationProvider` on a
+module's detector, or `sdk.ServedDetectorRemediationProvider` in the low-level
+served style.
 
 The provider runs after vulnerability enrichment. It receives the detector's
 own result and the enriched package registry. It may return occurrence-scoped
@@ -238,22 +313,32 @@ kind — but it is deprecated and reported with a warning. Kind-scoped blocks
 win when both are present. New configuration should always use the
 kind-scoped form.
 
-Plugins that declare a `ConfigSchema` in their descriptor get their
-configuration keys, descriptions, and defaults rendered by
-`bomly plugins info <plugin-id>`.
+Plugins that declare a `ConfigSchema` in their descriptor (build it from the
+config struct with `sdk.MustConfigSchemaFor`) get their configuration keys,
+descriptions, and defaults rendered by `bomly plugins info <plugin-id>`.
 
-External plugins can read only their own config through the SDK:
+A component reads only its own block, through the `HostContext` its module
+constructor receives:
 
 ```go
-type config struct {
-    APIBase string `json:"api_base"`
+type Config struct {
+    APIBase string `json:"apiBase" doc:"Service endpoint override" default:"https://api.example.com"`
 }
 
-var cfg config
-if err := sdk.DecodePluginConfigFromEnv(&cfg); err != nil {
-    return err
-}
+New: func(_ context.Context, host sdk.HostContext) (sdk.Matcher, error) {
+    matcher := &Matcher{}
+    if err := host.DecodeConfig(&matcher.config); err != nil {
+        return nil, fmt.Errorf("decode config: %w", err)
+    }
+    return matcher, nil
+},
 ```
+
+`DecodeConfig` has identical JSON semantics in both execution modes: embedded
+execution sources the block from the host config, managed execution from the
+config file the host passes to the subprocess. (Plugins written against the
+low-level served style read the same payload with
+`sdk.DecodePluginConfigFromEnv`.)
 
 Proxy settings can be configured with a direct proxy URL:
 
@@ -292,7 +377,7 @@ if err != nil {
 client := provider.Client(20 * time.Second)
 ```
 
-## Package Layout
+## Package And Release A Plugin
 
 An external plugin package includes a `bomly-plugin.json` manifest and one or more platform entrypoint binaries:
 
@@ -302,6 +387,10 @@ bin/
   bomly-plugin-example
 README.md
 ```
+
+The manifest's `entrypoint` field maps each `os/arch` platform to its binary name (Windows entries end in `.exe`). Keep the manifest `version` and the release tag in lockstep.
+
+For distribution, follow the template repository's release workflow: build each platform, package one archive per platform named `<name>_<version>_<os>_<arch>.tar.gz` (`.zip` on Windows) containing the binary, `bomly-plugin.json`, `README.md`, and `LICENSE`, generate a `SHA256SUMS` file over the archives, and publish everything as a GitHub release. Users then install with `bomly plugins install github:<owner>/<repo>@v<version>`, and Bomly verifies the archive against `SHA256SUMS` automatically.
 
 Installed plugins are stored under:
 

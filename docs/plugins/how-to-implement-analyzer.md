@@ -2,114 +2,127 @@
 
 An analyzer plugin runs code analysis after enrichment. Use an analyzer when you want to annotate vulnerabilities with reachability data — whether the scanned project can actually reach the vulnerable package or symbol — for a language the built-in analyzers do not cover, or with a technique they do not use.
 
-External analyzer plugins are served with `sdk.ServeAnalyzer`. They run when a scan passes `--analyze` (which requires `--enrich`), after matchers and before auditors.
+An analyzer is one `sdk.Module` with `Kind: sdk.PluginKindAnalyzer`. The same module can be compiled into a host build (embedded) or served as a managed plugin binary with `sdk.ServeModule` — you write the component once. Analyzers run when a scan passes `--analyze` (which requires `--enrich`), after matchers and before auditors. [Plugin basics](../PLUGINS.md#write-a-plugin) covers the module model, repository contract, configuration, testing, and release flow shared by every role; this guide covers what is specific to analyzers.
 
-The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) documents the `sdk.ServeAnalyzer` entrypoint, `sdk.ServedAnalyzer` interface, `sdk.AnalyzeRequest`, `sdk.AnalyzeResponse`, PURL-keyed package registry, and the `sdk.Reachability` annotation used below.
+The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) documents `sdk.Module`, `sdk.AnalyzerModule`, the `sdk.Analyzer` interface, `sdk.AnalyzeRequest`, `sdk.AnalyzeResult`, the PURL-keyed package registry, and the `sdk.Reachability` annotation used below.
 
-## Repository Layout
+## Start From The Template
 
-An analyzer plugin is an independent Go module that pins a released SDK version:
+Start from the [bomly-plugin-template](https://github.com/bomly-dev/bomly-plugin-template) repository ("Use this template" on GitHub). It ships a working matcher; turning it into an analyzer means changing the module kind, the descriptor, and the role method — the layout, manifest, tests, and release workflow stay the same:
 
 ```text
-go.mod                      module example.com/bomly-plugin-myreach
-                            require github.com/bomly-dev/bomly-sdk v0.1.0
-analyzer/                   implementation package (analysis logic, tests)
-cmd/bomly-plugin-myreach/
-  main.go                   thin entrypoint calling sdk.ServeAnalyzer
-bomly-plugin.json           package manifest
-README.md
+plugin/                  importable package: descriptor, Config, Analyzer, Module()
+cmd/<binary-name>/
+  main.go                one line: sdk.ServeModule(plugin.Module())
+bomly-plugin.json        package manifest ("kind": "analyzer")
+testdata/                fixtures for unit tests
+.github/workflows/       CI and the release workflow
+go.mod                   pins a released github.com/bomly-dev/bomly-sdk version
 ```
 
-Keep the analysis logic in a normal library package so it is unit-testable without the plugin runtime, and keep `main.go` minimal:
+## The Module
 
 ```go
-package main
-
-import (
-    "example.com/bomly-plugin-myreach/analyzer"
-
-    "github.com/bomly-dev/bomly-sdk"
-)
-
-func main() {
-    sdk.ServeAnalyzer(analyzer.New())
-}
-```
-
-## Minimum Shape
-
-The implementation satisfies `sdk.ServedAnalyzer`:
-
-```go
-package analyzer
+package plugin
 
 import (
     "context"
+    "fmt"
 
-    "github.com/bomly-dev/bomly-sdk"
+    sdk "github.com/bomly-dev/bomly-sdk"
 )
 
-const pluginID = "myreach-analyzer"
+// Name must equal the "id" field in bomly-plugin.json.
+const Name = "com.example.myreach-analyzer"
 
-// Config is the plugin's configuration block. Advertising it through
-// ConfigSchema lets `bomly plugins info` document it.
+// Config is the analyzer's typed configuration block.
 type Config struct {
-    MaxDepth int `json:"max_depth" doc:"Maximum call-graph depth to explore" default:"10"`
+    MaxDepth int `json:"maxDepth" doc:"Maximum call-graph depth to explore" default:"10"`
 }
 
-type Analyzer struct{}
+// Analyzer annotates vulnerabilities with reachability. sdk.BaseAnalyzer
+// supplies default Ready/Applicable implementations. Override Ready when the
+// analysis needs a toolchain that can be missing.
+type Analyzer struct {
+    sdk.BaseAnalyzer
+    config Config
+}
 
-func New() *Analyzer { return &Analyzer{} }
-
-func (a *Analyzer) Descriptor(context.Context) (*sdk.AnalyzerDescriptor, error) {
-    return &sdk.AnalyzerDescriptor{
-        Name:        pluginID,
+func descriptor() sdk.AnalyzerDescriptor {
+    return sdk.AnalyzerDescriptor{
+        Name:        Name,
         DisplayName: "MyReach Analyzer",
         // SupportedLanguages is the analyzer's primary dispatch axis: Bomly
         // only runs the analyzer when the request's language matches (an
         // empty list reads as "all languages").
         SupportedLanguages: []sdk.Language{sdk.LanguageGo},
         // SupportedTiers communicates the precision you can deliver:
-        // TierSymbol (call-path level) or TierPackage (import level).
+        // sdk.TierSymbol (call-path level) or sdk.TierPackage (import level).
         SupportedTiers: []sdk.ReachabilityTier{sdk.TierPackage},
-        // Advertise optional protocol features. CapabilityPackageUpdates
-        // enables the registry-delta response contract described below.
+        // The analyzer can return package-update deltas (see below).
         Capabilities: []string{sdk.CapabilityPackageUpdates},
         ConfigSchema: sdk.MustConfigSchemaFor(Config{}),
+    }
+}
+
+func (a *Analyzer) Descriptor() sdk.AnalyzerDescriptor { return descriptor() }
+
+// Analyze annotates registry vulnerabilities with reachability.
+func (a *Analyzer) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
+    updated := annotateReachability(ctx, req) // your analysis; returns []*sdk.Package
+    stats := map[string]sdk.ReachabilityStats{Name: {Reachable: len(updated)}}
+
+    if req.AcceptPackageUpdates {
+        // Delta path: return only the packages you touched.
+        return sdk.AnalyzeResult{
+            PackageUpdates: updated,
+            AnalyzerRuns:   []string{Name},
+            AnalyzerStats:  stats,
+        }, nil
+    }
+
+    // Baseline path (protocol v1): return the full registry.
+    registry := sdk.ApplyPackageUpdates(req.Registry, updated)
+    return sdk.AnalyzeResult{
+        Registry:      registry,
+        AnalyzerRuns:  []string{Name},
+        AnalyzerStats: stats,
     }, nil
 }
 
-func (a *Analyzer) Ready(context.Context, *sdk.AnalyzeRequest) (*sdk.ReadyResponse, error) {
-    return &sdk.ReadyResponse{Ready: true}, nil
-}
-
-func (a *Analyzer) Applicable(context.Context, *sdk.AnalyzeRequest) (*sdk.ApplicableResponse, error) {
-    return &sdk.ApplicableResponse{Applicable: true}, nil
-}
-
-func (a *Analyzer) Analyze(ctx context.Context, req *sdk.AnalyzeRequest) (*sdk.AnalyzeResponse, error) {
-    updated := annotateReachability(ctx, req) // your analysis; returns []*sdk.Package
-    stats := map[string]sdk.ReachabilityStats{pluginID: {Reachable: len(updated)}}
-
-    if req.AcceptPackageUpdates {
-        // Modern hosts merge deltas: return only the packages you touched.
-        return &sdk.AnalyzeResponse{PackageUpdates: updated, AnalyzerStats: stats}, nil
+// Module packages the analyzer for both execution modes.
+func Module() sdk.Module {
+    return sdk.Module{
+        Kind: sdk.PluginKindAnalyzer,
+        Analyzer: &sdk.AnalyzerModule{
+            Descriptor: descriptor(),
+            New: func(_ context.Context, host sdk.HostContext) (sdk.Analyzer, error) {
+                analyzer := &Analyzer{}
+                if err := host.DecodeConfig(&analyzer.config); err != nil {
+                    return nil, fmt.Errorf("decode %s config: %w", Name, err)
+                }
+                return analyzer, nil
+            },
+        },
     }
-
-    // Older hosts expect the full registry back.
-    registry := sdk.ApplyPackageUpdates(req.Registry, updated)
-    return &sdk.AnalyzeResponse{Registry: registry, AnalyzerStats: stats}, nil
 }
 ```
 
-## What Each Hook Does
+The binary entrypoint stays one line:
 
-- `Descriptor` describes the component identity, supported languages, tiers, capabilities, and configuration schema.
-- `Ready` reports whether the analyzer can run in the current environment (toolchain present, source readable). Return `Ready: false` with a `Reason` instead of an error when the environment is simply missing something.
-- `Applicable` reports whether the analyzer should run for the current request (right language, project shape).
-- `Analyze` reads `sdk.AnalyzeRequest` and returns reachability annotations.
+```go
+func main() { sdk.ServeModule(plugin.Module()) }
+```
 
-All hooks receive a context. Honor cancellation: analysis can be expensive, and a cancelled scan should stop the analyzer promptly. Check `ctx.Err()` between phases and pass the context into any subprocess or HTTP call.
+## What Each Part Does
+
+- `Descriptor` is the analyzer's static registration: name (must equal the manifest `id`), supported languages, tiers, capabilities, and config schema.
+- `New` constructs the analyzer once per execution, with a `sdk.HostContext` for the logger, HTTP client, runtime info, and configuration.
+- `Ready(ctx, req) error` reports whether the analyzer can run right now — return `nil` when ready, or an error whose message explains the reason (toolchain missing, source unreadable). `sdk.BaseAnalyzer` embeds an always-ready default.
+- `Applicable(ctx, req) (bool, error)` reports whether the analyzer should run for this request (right language, right project shape).
+- `Analyze` does the work: run the analysis and return reachability annotations.
+
+All methods receive a context. Honor cancellation: analysis can be expensive, and a cancelled scan should stop the analyzer promptly. Check `ctx.Err()` between phases and pass the context into any subprocess or HTTP call.
 
 ## Reachability Semantics
 
@@ -118,24 +131,24 @@ Analyzers annotate `Vulnerability.Reachability` on packages in the PURL-keyed re
 ```go
 pkg, ok := req.Registry.Get("pkg:golang/example.com/mod@v1.2.3")
 if !ok {
-    return nil // nothing to annotate
+    return // nothing to annotate
 }
 for i := range pkg.Vulnerabilities {
     pkg.Vulnerabilities[i].Reachability = &sdk.Reachability{
         Status:   sdk.ReachabilityReachable,
         Tier:     sdk.TierPackage,
-        Analyzer: pluginID,
+        Analyzer: Name,
     }
 }
 ```
 
-Use the four statuses honestly: `reachable` when you found evidence, `unreachable` when the analysis completed and found none (state your tier — package-tier unreachable does not mean safe), `unknown` with a `Reason` when the analysis could not complete, and leave the annotation absent when the vulnerability is outside your scope.
+Use the statuses honestly: `sdk.ReachabilityReachable` when you found evidence, `sdk.ReachabilityUnreachable` when the analysis completed and found none (state your tier — package-tier unreachable does not mean safe), `sdk.ReachabilityUnknown` with a `Reason` when the analysis could not complete, and leave the annotation absent when the vulnerability is outside your scope.
 
 **Never fail the scan.** Analyzer failures degrade: if your toolchain is missing, a file does not parse, or an internal step errors, report `unknown` with a reason (or return an error, which Bomly downgrades to a pipeline warning) — but prefer returning partial results over returning an error. The scan must complete either way.
 
 ## Registry Deltas (`package-updates-v1`)
 
-Analyzers can return results in two shapes:
+Analyzers can respond in two shapes:
 
 - **Full registry** (protocol v1 baseline): return `Registry` with every package, annotated or not. Always works.
 - **Deltas**: return `PackageUpdates` containing only the packages you touched. The host merges them into its registry by PURL. Cheaper on the wire for large projects.
@@ -144,90 +157,56 @@ The rules:
 
 1. Advertise `sdk.CapabilityPackageUpdates` (`"package-updates-v1"`) in `Descriptor.Capabilities`.
 2. Return `PackageUpdates` **only when** `req.AcceptPackageUpdates` is true — that is the host telling you it understands deltas. Older hosts never set it, and you must fall back to returning the full registry for them.
-3. When `Registry` is non-nil in the response, it wins and `PackageUpdates` is ignored, so return one or the other.
+3. When `Registry` is non-nil in the result, it wins and `PackageUpdates` is ignored — return one or the other.
 
 `sdk.ApplyPackageUpdates` implements the same merge the host uses, which makes the legacy fallback a one-liner (see the `Analyze` example above) and is handy in tests.
 
-## Configuration
+## Configuration, HTTP, And Cache
 
-Per-analyzer config lives under the kind-scoped `plugins.analyzers.<name>` block:
+Declare a typed `Config` struct with `json`, `doc:`, and `default:` tags, advertise it with `ConfigSchema: sdk.MustConfigSchemaFor(Config{})`, and decode it in `New` with `host.DecodeConfig(&cfg)`. Users set the block under `plugins.analyzers.<name>`:
 
 ```yaml
 plugins:
   analyzers:
-    myreach-analyzer:
-      max_depth: 10
+    com.example.myreach-analyzer:
+      maxDepth: 10
 ```
 
-(The deprecated flat `plugins.<name>` form still works but emits a deprecation warning.)
+The same block reaches the component in both execution modes. See [Configuration in the plugin guide](../PLUGINS.md#configuration-and-proxy-support) for details and the deprecated flat form.
 
-Read it with:
+If the analyzer calls an external service, use `HostContext.HTTPClient()` so proxy settings work consistently, and document every endpoint in the README. If the analysis is deterministic for a fixed input (lockfile hash, toolchain version), add caching inside the plugin; cache failures are non-fatal — log a warning and continue.
+
+## Test It
+
+Unit-test the analysis logic and both response shapes, and run the SDK conformance suite (it exercises the package-updates contract for modules that advertise the capability):
 
 ```go
-var cfg Config
-if err := sdk.DecodePluginConfigFromEnv(&cfg); err != nil {
-    return nil, err
+func TestConformance(t *testing.T) {
+    conformance.Test(t, conformance.Config{
+        Module:       Module(),
+        ManifestPath: filepath.Join("..", "bomly-plugin.json"),
+        SampleConfig: json.RawMessage(`{"maxDepth":5}`),
+    })
 }
 ```
 
-Declare the same struct in `Descriptor.ConfigSchema` via `sdk.ConfigSchemaFor` (or `MustConfigSchemaFor`) so `bomly plugins info <name>` can render the configuration keys, docs, and defaults.
-
-If the analyzer calls an external service, use Bomly's SDK HTTP provider so proxy settings work consistently:
-
-```go
-provider, err := sdk.NewHTTPClientProviderFromEnv()
-if err != nil {
-    return nil, err
-}
-client := provider.Client(20 * time.Second)
-```
-
-If the analysis is deterministic for a fixed input (lockfile hash, toolchain version), add caching inside the plugin. Cache failures should be non-fatal: log a warning and continue without cached data.
-
-## Package And Install
-
-For development, build and install the binary directly:
+Local development loop:
 
 ```bash
 go build -o ./bin/bomly-plugin-myreach ./cmd/bomly-plugin-myreach
 bomly plugins install ./bin/bomly-plugin-myreach --dev
-bomly plugins enable myreach-analyzer
+bomly plugins enable com.example.myreach-analyzer
+bomly scan --path ./my-project --enrich --analyze --analyzers +com.example.myreach-analyzer --json
+bomly plugins verify com.example.myreach-analyzer
+bomly plugins test com.example.myreach-analyzer
+bomly plugins doctor com.example.myreach-analyzer
 ```
 
-For distribution, package a package-only `bomly-plugin.json` manifest (with `"kind": "analyzer"`) alongside per-platform binaries:
+`--analyzers +<name>` adds the analyzer to the default set; `--analyzers <name>` runs only it. The scan JSON records the analyzer under `metadata.analyzer_runs`, and annotated vulnerabilities carry your `reachability` block. See [Testing a plugin](../PLUGINS.md#test-a-plugin) for the shared workflow, including `conformance.ProbeBinary`.
 
-```text
-bomly-plugin.json
-bin/
-  bomly-plugin-myreach
-README.md
-```
+## Package And Release
 
-Publish one archive per platform (for example `bomly-plugin-myreach_linux_amd64.tar.gz`) plus a `SHA256SUMS` file so `github:owner/repo@tag` installs verify checksums automatically. The manifest contains package and install fields only. Bomly probes the binary at install time, verifies `descriptor.name == manifest.id`, and writes its own internal descriptor snapshot for plugin list, selectors, verification, and runtime registration.
-
-## Test It
-
-Check installation and runtime readiness:
-
-```bash
-bomly plugins verify myreach-analyzer
-bomly plugins test myreach-analyzer
-bomly plugins doctor myreach-analyzer
-```
-
-Run only this analyzer during a scan:
-
-```bash
-bomly scan --path ./my-project --enrich --analyze --analyzers myreach-analyzer --json
-```
-
-Or add it to the default analyzer set:
-
-```bash
-bomly scan --path ./my-project --enrich --analyze --analyzers +myreach-analyzer
-```
-
-The scan JSON records the analyzer under `metadata.analyzer_runs`, and annotated vulnerabilities carry your `reachability` block.
+Follow the template's release workflow: one archive per platform named `<name>_<version>_<os>_<arch>.tar.gz` (`.zip` on Windows) containing the binary, `bomly-plugin.json`, `README.md`, and `LICENSE`, plus a `SHA256SUMS` file. The manifest's `entrypoint` map names the binary per platform, and `descriptor.Name` must equal the manifest `id`. See [Package and release](../PLUGINS.md#package-and-release-a-plugin).
 
 ## Implementation Checklist
 
@@ -236,9 +215,7 @@ The scan JSON records the analyzer under `metadata.analyzer_runs`, and annotated
 - Advertise `SupportedLanguages`, `SupportedTiers`, and `Capabilities` accurately.
 - Return `PackageUpdates` only when `req.AcceptPackageUpdates` is true; otherwise return the full registry.
 - Honor context cancellation in long-running analysis.
-- Document configuration through `ConfigSchema` and read it with `DecodePluginConfigFromEnv`.
-- Be explicit in your README about any network calls the analyzer makes; keep them behind configuration where possible.
-- Honor proxy settings through `sdk.NewHTTPClientProviderFromEnv`.
-- Wrap errors with useful context and avoid panics.
+- Make network calls through `HostContext.HTTPClient()` and document every endpoint.
+- Wrap errors with useful context; avoid panics.
 - Do not log secrets, tokens, or credentials.
-- Add unit tests for the analysis logic and the delta/full-registry response paths.
+- Add unit tests for the analysis logic and both response shapes, plus `conformance.Test`.

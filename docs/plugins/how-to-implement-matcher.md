@@ -2,100 +2,141 @@
 
 A matcher plugin enriches packages after detection. Use a matcher when you want to add vulnerability data, license data, lifecycle information, health signals, or other package metadata to Bomly's package registry.
 
-External matcher plugins are served with `sdk.ServeMatcher`.
+A matcher is one `sdk.Module` with `Kind: sdk.PluginKindMatcher`. The same module can be compiled into a host build (embedded) or served as a managed plugin binary with `sdk.ServeModule` — you write the component once. [Plugin basics](../PLUGINS.md#write-a-plugin) covers the module model, repository contract, configuration, testing, and release flow shared by every role; this guide covers what is specific to matchers.
 
-The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) documents the `sdk.ServeMatcher` entrypoint, `sdk.ServedMatcher` interface, `sdk.MatchRequest`, `sdk.MatchResult`, PURL-keyed package registry, and enrichment types used below.
+The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) documents `sdk.Module`, `sdk.MatcherModule`, the `sdk.Matcher` interface, `sdk.MatchRequest`, `sdk.MatchResult`, the PURL-keyed package registry, and the enrichment types used below.
 
-## Minimum Shape
+## Start From The Template
 
-Create a Go `main` package that imports the Bomly SDK:
+The [bomly-plugin-template](https://github.com/bomly-dev/bomly-plugin-template) repository *is* a matcher — a complete, working one that annotates every package with a configurable greeting. Click "Use this template" on GitHub, work through its rename checklist, and replace the `Match` logic. The layout:
+
+```text
+plugin/                  importable package: descriptor, Config, Matcher, Module()
+cmd/<binary-name>/
+  main.go                one line: sdk.ServeModule(plugin.Module())
+bomly-plugin.json        package manifest ("kind": "matcher")
+testdata/                fixture registry for unit tests
+.github/workflows/       CI and the release workflow
+go.mod                   pins a released github.com/bomly-dev/bomly-sdk version
+```
+
+## The Module
+
+This is the template's matcher, trimmed to the essentials:
 
 ```go
-package main
+package plugin
 
 import (
     "context"
+    "fmt"
 
-    "github.com/bomly-dev/bomly-sdk"
+    sdk "github.com/bomly-dev/bomly-sdk"
 )
 
-const pluginID = "clearlydefined-license-matcher"
+// Name must equal the "id" field in bomly-plugin.json.
+const Name = "com.example.license-matcher"
 
-type matcher struct{}
-
-
-func (m *matcher) Descriptor(context.Context) (*sdk.MatcherDescriptor, error) {
-    return &sdk.MatcherDescriptor{
-        Name:        pluginID,
-        DisplayName: "ClearlyDefined License Matcher",
-        Aliases:     []string{"clearlydefined", "licenses"},
-        Tags:        []string{"license-enrichment", "http", "cache"},
-        // Declare the ecosystems your matcher can actually enrich. Leave this
-        // empty only when the matcher works for every ecosystem — an empty
-        // list reads as "all". `bomly plugins list` and the generated docs
-        // show whatever you put here.
-        SupportedEcosystems: []sdk.Ecosystem{
-            sdk.EcosystemNPM,
-            sdk.EcosystemMaven,
-            sdk.EcosystemGo,
-        },
-    }, nil
+// Config is the matcher's typed configuration block.
+type Config struct {
+    APIBase string `json:"apiBase" doc:"Service endpoint override" default:"https://api.example.com"`
 }
 
-func (m *matcher) Ready(context.Context, *sdk.MatchRequest) (*sdk.ReadyResponse, error) {
-    return &sdk.ReadyResponse{Ready: true}, nil
+// Matcher enriches registry packages. sdk.BaseMatcher supplies default
+// Ready/Applicable implementations (always ready, always applicable).
+type Matcher struct {
+    sdk.BaseMatcher
+    config Config
+    host   sdk.HostContext
 }
 
-func (m *matcher) Applicable(context.Context, *sdk.MatchRequest) (*sdk.ApplicableResponse, error) {
-    return &sdk.ApplicableResponse{Applicable: true}, nil
+func descriptor() sdk.MatcherDescriptor {
+    return sdk.MatcherDescriptor{
+        Name:        Name,
+        DisplayName: "Example License Matcher",
+        Aliases:     []string{"example-licenses"},
+        Tags:        []string{"license-enrichment", "http"},
+        // Declare the ecosystems the matcher can actually enrich. An empty
+        // list reads as "all ecosystems".
+        SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemNPM, sdk.EcosystemGo},
+        // The matcher can return package-update deltas (see below).
+        Capabilities: []string{sdk.CapabilityPackageUpdates},
+        ConfigSchema: sdk.MustConfigSchemaFor(Config{}),
+    }
 }
 
-func (m *matcher) Match(ctx context.Context, req *sdk.MatchRequest) (*sdk.MatchResponse, error) {
-    registry := req.Registry
-    if registry == nil {
-        registry = sdk.NewPackageRegistry()
+func (m *Matcher) Descriptor() sdk.MatcherDescriptor { return descriptor() }
+
+// Match runs once per scan with the full package registry.
+func (m *Matcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
+    stats := sdk.MatcherStats{Name: Name, DisplayName: "Example License Matcher"}
+    if req.Registry == nil {
+        return sdk.MatchResult{MatcherStats: stats}, nil
     }
 
-    pkg := registry.Ensure("pkg:npm/lodash@4.17.21")
-    pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
-    pkg.Vulnerabilities = append(pkg.Vulnerabilities, sdk.Vulnerability{
-        ID:     "GHSA-example",
-        Source: "example-feed",
-    })
+    if req.AcceptPackageUpdates {
+        // Delta path: return only the packages we touched. Each update is a
+        // sparse Package carrying the PURL (the merge key) plus the new data.
+        var updates []*sdk.Package
+        for _, pkg := range req.Registry.All() {
+            update := &sdk.Package{Coordinates: sdk.Coordinates{PURL: pkg.PURL}}
+            update.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
+            updates = append(updates, update)
+        }
+        stats.MatchedPackages = len(updates)
+        stats.Licenses = len(updates)
+        return sdk.MatchResult{PackageUpdates: updates, MatcherStats: stats}, nil
+    }
 
-    return &sdk.MatchResponse{
-        Registry: registry,
-        MatcherStats: sdk.MatcherStats{
-            Name: pluginID,
-            DisplayName: "ClearlyDefined License Matcher",
-            MatchedPackages: 1,
-            Licenses: 1,
-            Vulnerabilities: 1,
-        },
-    }, nil
+    // Baseline path (protocol v1): enrich in place, echo the full registry.
+    for _, pkg := range req.Registry.All() {
+        pkg.Licenses = append(pkg.Licenses, sdk.PackageLicense{SPDXExpression: "MIT"})
+        stats.MatchedPackages++
+        stats.Licenses++
+    }
+    return sdk.MatchResult{Registry: req.Registry, MatcherStats: stats}, nil
 }
 
-func main() {
-    sdk.ServeMatcher(&matcher{})
+// Module packages the matcher for both execution modes.
+func Module() sdk.Module {
+    return sdk.Module{
+        Kind: sdk.PluginKindMatcher,
+        Matcher: &sdk.MatcherModule{
+            Descriptor: descriptor(),
+            New: func(_ context.Context, host sdk.HostContext) (sdk.Matcher, error) {
+                matcher := &Matcher{host: host}
+                if err := host.DecodeConfig(&matcher.config); err != nil {
+                    return nil, fmt.Errorf("decode %s config: %w", Name, err)
+                }
+                return matcher, nil
+            },
+        },
+    }
 }
 ```
 
-The working example repo is [bomly-plugin-clearlydefined-matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher). It shows a standalone HTTP matcher with plugin-local cache and proxy-aware SDK HTTP clients.
+The binary entrypoint stays one line:
 
-## What Each Hook Does
+```go
+func main() { sdk.ServeModule(plugin.Module()) }
+```
 
-- `Descriptor` describes the component identity, display name, aliases, tags, and support.
-- `Ready` reports whether the plugin can run in the current environment.
-- `Applicable` reports whether the matcher should run for the current request.
-- `Match` reads `sdk.MatchRequest` and returns a `sdk.MatchResponse` with the enriched registry.
+## What Each Part Does
+
+- `Descriptor` is the matcher's static registration: name (must equal the manifest `id`), display name, aliases, tags, supported ecosystems, capabilities, and config schema.
+- `New` constructs the matcher once per execution, with a `sdk.HostContext` for the logger, HTTP client, runtime info, and configuration.
+- `Ready(ctx, req) error` reports whether the matcher can run right now — return `nil` when ready, or an error explaining the reason (a missing token, an unreachable endpoint). `sdk.BaseMatcher` embeds an always-ready default; override it when your matcher depends on something that can be absent.
+- `Applicable(ctx, req) (bool, error)` reports whether the matcher should run for this request (for example, only certain ecosystems).
+- `Match` does the work: enrich registry packages and return the result with `MatcherStats`.
+
+Matchers only run during explicit enrichment (`--enrich`). Honor the context: pass it into every HTTP call so a cancelled scan stops promptly.
 
 ## Use The Registry
 
 Bomly separates dependency instances from package records:
 
-- `req.Graph` contains dependency nodes and edges.
-- `req.Registry` contains canonical package records keyed by PURL.
-- Matchers enrich registry packages and return the updated registry.
+- `req.Graph` contains dependency nodes and edges — identity and structure.
+- `req.Registry` contains canonical package records keyed by PURL. Matchers enrich each package once per PURL, no matter how many dependency instances point at it.
 
 Use `Ensure` when a package may already exist:
 
@@ -104,98 +145,95 @@ pkg := req.Registry.Ensure("pkg:npm/lodash@4.17.21")
 pkg.Licenses = append(pkg.Licenses, sdk.PackageLicense{SPDXExpression: "MIT"})
 pkg.Vulnerabilities = append(pkg.Vulnerabilities, sdk.Vulnerability{
     ID:     "GHSA-example",
-    Source: "security-team",
+    Source: "example-feed",
 })
 ```
 
-Prefer canonical PURLs. Auditors and output rendering use PURLs to connect findings, vulnerabilities, and packages.
+Prefer canonical PURLs. Auditors and output rendering use PURLs to connect findings, vulnerabilities, and packages. Enrich packages; do not rewrite graph identity.
+
+## Registry Deltas (`package-updates-v1`)
+
+Matchers can respond in two shapes:
+
+- **Full registry** (protocol v1 baseline): return `Registry` with every package, enriched or not. Always works.
+- **Deltas**: return `PackageUpdates` containing only the packages you touched. The host merges them into its registry by PURL. Cheaper on the wire for large projects.
+
+The rules:
+
+1. Advertise `sdk.CapabilityPackageUpdates` in `Descriptor.Capabilities`.
+2. Return `PackageUpdates` **only when** `req.AcceptPackageUpdates` is true — that is the host telling you it understands deltas. Older hosts never set it, and you must fall back to the full-registry shape for them.
+3. When `Registry` is non-nil in the result, it wins and `PackageUpdates` is ignored — return one or the other.
+
+`sdk.ApplyPackageUpdates` implements the same merge the host uses; it is handy in tests and for building a full-registry fallback from the delta path.
+
+## Degrade, Don't Fail
+
+Enrichment failures should not sink a scan. If the upstream service is down or a response does not parse, prefer returning partial results — the packages you did enrich, with `UnmatchedPackages` counted in `MatcherStats` — over returning an error. Report a completely unavailable dependency (missing token, unreachable endpoint) through `Ready` with a clear reason instead of failing mid-`Match`. Cache lookups that fail are non-fatal: log a warning and continue without the cache.
 
 ## Configuration, HTTP, And Cache
 
-Per-plugin config lives under the kind-scoped `plugins.matchers.<name>` block (the deprecated flat `plugins.<plugin-id>` form still works with a warning):
+Declare a typed `Config` struct with `json`, `doc:`, and `default:` tags, advertise it with `ConfigSchema: sdk.MustConfigSchemaFor(Config{})`, and decode it in `New` with `host.DecodeConfig(&cfg)`. Users set the block under `plugins.matchers.<name>`:
 
 ```yaml
 plugins:
   matchers:
-    clearlydefined-license-matcher:
-      api_base: https://api.clearlydefined.io
+    com.example.license-matcher:
+      apiBase: https://api.example.com
 ```
 
-Read it with:
+The same block reaches the component in both execution modes. See [Configuration in the plugin guide](../PLUGINS.md#configuration-and-proxy-support) for details and the deprecated flat form.
+
+Make outbound calls through `HostContext.HTTPClient()` so Bomly's proxy, no-proxy, and CA settings apply consistently:
 
 ```go
-type config struct {
-    APIBase string `json:"api_base"`
-}
-
-var cfg config
-if err := sdk.DecodePluginConfigFromEnv(&cfg); err != nil {
-    return nil, err
-}
+client := m.host.HTTPClient().Client(20 * time.Second)
 ```
 
-If the matcher calls an external service, use Bomly's SDK HTTP provider so proxy settings work consistently:
-
-```go
-provider, err := sdk.NewHTTPClientProviderFromEnv()
-if err != nil {
-    return nil, err
-}
-client := provider.Client(20 * time.Second)
-_ = client
-```
-
-If the matcher produces deterministic output for a fixed input and service version, add caching inside the plugin. Cache failures should be non-fatal: log a warning and continue without cached data.
-
-## Package And Install
-
-For development, build and install the binary directly:
-
-```bash
-go build -o ./bin/bomly-plugin-clearlydefined-matcher .
-bomly plugins install ./bin/bomly-plugin-clearlydefined-matcher --dev
-bomly plugins enable clearlydefined-license-matcher
-```
-
-For distribution, package a package-only `bomly-plugin.json` manifest with the binary:
-
-```text
-bomly-plugin.json
-bin/
-  bomly-plugin-clearlydefined-matcher
-README.md
-```
-
-The manifest contains package and install fields only. Bomly probes the binary at install time, verifies `descriptor.name == manifest.id`, and writes its own internal descriptor snapshot for plugin list, selectors, verification, and runtime registration.
+Document every endpoint the matcher talks to in its README. If the matcher produces deterministic output for a fixed input and service version, add caching inside the plugin; cache failures are non-fatal.
 
 ## Test It
 
-Check installation and runtime readiness:
+Unit-test the mapping from service responses into registry package data, cover both the full-registry and delta paths, and run the SDK conformance suite:
 
-```bash
-bomly plugins verify clearlydefined-license-matcher
-bomly plugins test clearlydefined-license-matcher
-bomly plugins doctor clearlydefined-license-matcher
+```go
+func TestConformance(t *testing.T) {
+    conformance.Test(t, conformance.Config{
+        Module:       Module(),
+        ManifestPath: filepath.Join("..", "bomly-plugin.json"),
+        SampleConfig: json.RawMessage(`{"apiBase":"https://example.test"}`),
+    })
+}
 ```
 
-Run only this matcher during enrichment:
+The template's `plugin/plugin_test.go` shows a minimal test `HostContext` stub and fixture-registry loading.
+
+Local development loop:
 
 ```bash
-bomly scan --path ./my-project --enrich --matchers clearlydefined-license-matcher --json
+go build -o ./bin/bomly-plugin-example ./cmd/bomly-plugin-example
+bomly plugins install ./bin/bomly-plugin-example --dev
+bomly plugins enable com.example.license-matcher
+bomly scan --path ./my-project --enrich --matchers +com.example.license-matcher --json
+bomly plugins verify com.example.license-matcher
+bomly plugins test com.example.license-matcher
+bomly plugins doctor com.example.license-matcher
 ```
 
-Or add it to the default matcher set:
+`--matchers +<name>` adds the matcher to the default set; `--matchers <name>` runs only it. See [Testing a plugin](../PLUGINS.md#test-a-plugin) for the shared workflow, including `conformance.ProbeBinary`.
 
-```bash
-bomly scan --path ./my-project --enrich --matchers +clearlydefined-license-matcher
-```
+## Package And Release
+
+Follow the template's release workflow: one archive per platform named `<name>_<version>_<os>_<arch>.tar.gz` (`.zip` on Windows) containing the binary, `bomly-plugin.json`, `README.md`, and `LICENSE`, plus a `SHA256SUMS` file. The manifest's `entrypoint` map names the binary per platform, and `descriptor.Name` must equal the manifest `id`. See [Package and release](../PLUGINS.md#package-and-release-a-plugin).
 
 ## Implementation Checklist
 
-- Enrich `req.Registry`; do not replace graph identity.
-- Return `MatcherStats` with the matcher ID and useful counts.
-- Keep external network calls behind explicit enrichment.
-- Honor proxy settings through the SDK HTTP provider.
-- Wrap errors with useful context and avoid panics.
+- Enrich `req.Registry` by PURL; do not rewrite graph identity.
+- Return `MatcherStats` with the matcher name and useful counts.
+- Advertise `SupportedEcosystems` and `Capabilities` accurately.
+- Return `PackageUpdates` only when `req.AcceptPackageUpdates` is true; otherwise return the full registry.
+- Degrade to partial results on upstream failures; report hard unavailability through `Ready`.
+- Make network calls through `HostContext.HTTPClient()` and document every endpoint.
+- Honor context cancellation in HTTP calls and long loops.
+- Wrap errors with useful context; avoid panics.
 - Do not log secrets, tokens, or credentials.
-- Add unit tests for mapping service responses into registry package data.
+- Add unit tests for response mapping plus both response shapes, and `conformance.Test`.

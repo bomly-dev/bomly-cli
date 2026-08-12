@@ -20,7 +20,7 @@ var unboundedWholeFileReadCalls = []string{
 func TestRepositoryParsersDoNotUseUnboundedWholeFileReads(t *testing.T) {
 	root := assuranceRepositoryRoot(t)
 	for _, relativeRoot := range []string{
-		"internal/analyzers",
+		"components/analyzers",
 		"internal/detectors",
 		"internal/registry",
 	} {

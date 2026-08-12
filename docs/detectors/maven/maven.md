@@ -109,7 +109,7 @@ For Maven packages, the analyzer is `jvmreach` at **Tier-3 (package)**. It walks
 
 For multi-module reactors, `jvmreach` reads parent `<modules>` declarations recursively and follows source namespace imports between consumed sibling modules before attributing external artifacts.
 
-If a missing prefix produces a false-negative for a direct import, add the mapping to `internal/analyzers/jvmreach/prefixmap.go` (one-line PR).
+If a missing prefix produces a false-negative for a direct import, add the mapping to `components/analyzers/jvmreach/prefixmap.go` (one-line PR).
 
 ## Limitations
 

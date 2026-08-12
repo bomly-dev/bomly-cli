@@ -50,7 +50,7 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 | `internal/detectors/*` | Concrete dependency resolution per ecosystem (gomod, gradle, maven, node, python, sbom, syft)     |
 | `internal/matchers/*`  | External enrichment matchers (osv, grype, deps.dev, scorecard; ClearlyDefined and eol run as external matcher plugins); the shared cache lives in `bomly-sdk/filecache` |
 | `internal/auditors/*`  | Policy evaluators and audit-only logic (policy, noop)                                             |
-| `internal/analyzers/*` | Built-in reachability analyzers (govulncheck, jsreach)                                            |
+| `components/analyzers/*` | Built-in reachability analyzers as nested component modules (govulncheck, jsreach, pyreach, jvmreach) |
 | `internal/baseline`    | Portable package-finding baseline codec and audit-integrated policy-status resolver               |
 | `internal/remediation` | Canonical vulnerability fix status, version, detector-hint validation, and occurrence suggestions |
 | `internal/sbom`        | SBOM codec (SPDX 2.3, CycloneDX)                                                                  |
@@ -89,7 +89,7 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 ### Package Boundaries
 
 - `internal/detectors/*` must not import `internal/engine` or `internal/registry`. Concrete detectors may depend on `internal/detectors` (name constants), the SDK and its helper subpackages (`system` for bounded filesystem and subprocess operations, `detectorkit` for shared detector helpers), and local helpers.
-- Built-in analyzers may depend on the SDK and its helper subpackages (`system` for bounded filesystem and subprocess operations, `filecache`, `logkit`), and local helpers. They must not import `internal/engine` or `internal/registry`.
+- Built-in analyzers live in nested component modules under `components/analyzers/<name>/` (own `go.mod`, consumed by `internal/composition` through the committed `go.work` until the release train pins them in the root `go.mod`). They may depend on the SDK and its helper subpackages (`system` for bounded filesystem and subprocess operations, `filecache`, `logkit`), and local helpers. They must not import any `internal/*` package.
 - `internal/detectors` owns detector-facing contracts such as `Detector`, `DetectorDescriptor`, `ResolveGraphRequest`, and detector helper functions.
 - The SDK owns neutral shared identifiers and support metadata that would otherwise create package cycles, including ecosystems, package managers, detector types, and support-matrix data.
 - `internal/baseline` owns the baseline document and matching implementation. It depends on the SDK policy contracts and must not be imported by `internal/engine`.

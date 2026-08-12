@@ -90,7 +90,7 @@ installs. Missing or malformed source data stays unknown.
 
 > **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
 
-For pip-managed packages, the analyzer is `pyreach` at **Tier-3 (package)**. It walks every `.py` file under the project root, records imports, and maps module names to PyPI distribution names. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe) and the module-to-distribution map in `internal/analyzers/pyreach/moduletodist.go`.
+For pip-managed packages, the analyzer is `pyreach` at **Tier-3 (package)**. It walks every `.py` file under the project root, records imports, and maps module names to PyPI distribution names. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe) and the module-to-distribution map in `components/analyzers/pyreach/moduletodist.go`.
 
 ## Limitations
 

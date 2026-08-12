@@ -561,6 +561,17 @@ The former `internal/system`, `internal/matchers/cache`, and `internal/testutil`
 
 Do not reintroduce CLI-internal copies of these helpers; new shared helper code goes into the appropriate SDK subpackage.
 
+### Decision: built-in analyzers are nested component modules consumed via the workspace
+
+Wave 1 of the component-extraction program moved the four reachability analyzers from `internal/analyzers/<name>` to `components/analyzers/<name>/`, each a nested Go module (`github.com/bomly-dev/bomly-cli/components/analyzers/<name>`) that depends only on the released SDK plus its own third-party dependencies. Each module exports `Module() sdk.Module`; `internal/composition`'s analyzer entries delegate to it, so entry names, kinds, and default-enabled flags are unchanged and the registry wiring is untouched.
+
+Consumption is deliberately two-phase:
+
+- **In the wave PR**, the root module does *not* `require` the component modules — unpublished module paths cannot resolve, and `replace` directives are forbidden on main. The committed `go.work` makes root builds and tests resolve them in workspace mode. CI's workspace-off guards (the `pinned-build` job and the root half of the `modules` drift job) detect workspace-only component modules — a component `go.mod` whose module path is missing from the root `require` list — and skip with a notice instead of failing.
+- **After merge**, the release train (`make release-components ARGS=--apply`) tags every component module at the CLI release version, and the follow-up pin-bump PR adds the root `require` entries. From then on the workspace-off guards are enforced again, and released CLI builds consume the pinned component versions.
+
+The analyzers also adopted the SDK package-updates delta protocol (`CapabilityPackageUpdates`): every annotation they write is filling `Vulnerability.Reachability` on existing `(Source, ID)`-keyed registry vulnerabilities, which is exactly what `Package.MergeFrom` expresses, so when the host sets `AcceptPackageUpdates` they return only the packages they touched. The legacy full-registry/in-place path is unchanged, and per-module equivalence tests pin delta-applied output to the legacy output. The one in-place behavior the merge cannot express — replacing a `Reachability` written by a *different* analyzer — cannot occur between built-ins because analyzer dispatch is language-disjoint.
+
 ### Decision: syft-JSON SBOM ingest is removed; sniffing is retained for the migration error
 
 Syft's proprietary JSON SBOM format is no longer an accepted `--sbom` ingest input. It had exactly one consumer in the codebase — the SBOM ingest detector — while the syft detector itself always shells out with `-o spdx-json`. The lite build (`bomly_external_syft`) never actually ingested it either: its fallback re-ran the generic decoder, which returned a nil document for the syft target, so `ToGraph(nil)` hard-failed with an unhelpful `sbom document is nil` error. The change therefore unifies full and lite behavior on one explicit, actionable rejection; the compatibility impact is on full builds only, which previously decoded the format. Removing the decode path made `internal/detectors/sbom` build-tag-free and dropped its `anchore/syft` dependency.
@@ -654,7 +665,7 @@ Cache failures are non-fatal. The command should warn and continue rather than f
 | `internal/detectors`  | Detector contracts and ecosystem implementations                                                |
 | `internal/auditors`   | Policy evaluators and finding creation                                                          |
 | `internal/baseline`   | Portable package-finding baseline codec and audit policy-status resolver                         |
-| `internal/analyzers`  | Reachability analyzers (govulncheck for Go, jsreach for JS/TS, pyreach for Python, jvmreach for JVM languages) that annotate `sdk.Vulnerability.Reachability` on registry packages |
+| `components/analyzers` | Reachability analyzers as nested component modules (govulncheck for Go, jsreach for JS/TS, pyreach for Python, jvmreach for JVM languages) that annotate `sdk.Vulnerability.Reachability` on registry packages |
 | `internal/matchers`   | Matcher contracts plus shared enrichment helpers used by built-in matchers                      |
 | `internal/engine/diff` | Diff pipeline orchestration and audit delta classification                                    |
 | `internal/engine/explain` | Dependency path traversal                                                                   |

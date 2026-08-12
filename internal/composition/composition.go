@@ -11,10 +11,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/internal/analyzers/govulncheck"
-	"github.com/bomly-dev/bomly-cli/internal/analyzers/jsreach"
-	"github.com/bomly-dev/bomly-cli/internal/analyzers/jvmreach"
-	"github.com/bomly-dev/bomly-cli/internal/analyzers/pyreach"
+	"github.com/bomly-dev/bomly-cli/components/analyzers/govulncheck"
+	"github.com/bomly-dev/bomly-cli/components/analyzers/jsreach"
+	"github.com/bomly-dev/bomly-cli/components/analyzers/jvmreach"
+	"github.com/bomly-dev/bomly-cli/components/analyzers/pyreach"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/depsdev"
 	osvmatcher "github.com/bomly-dev/bomly-cli/internal/matchers/osv"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/scorecard"
@@ -225,42 +225,30 @@ func scorecardEntry() Entry {
 }
 
 func govulncheckEntry() Entry {
-	return analyzerEntry("govulncheck", func(deps Deps) sdk.Analyzer {
-		return govulncheck.Analyzer{Logger: deps.logger()}
-	})
+	return analyzerEntry("govulncheck", govulncheck.Module)
 }
 
 func jsReachEntry() Entry {
-	return analyzerEntry("jsreach", func(deps Deps) sdk.Analyzer {
-		return jsreach.Analyzer{Logger: deps.logger()}
-	})
+	return analyzerEntry("jsreach", jsreach.Module)
 }
 
 func pyReachEntry() Entry {
-	return analyzerEntry("pyreach", func(deps Deps) sdk.Analyzer {
-		return pyreach.Analyzer{Logger: deps.logger()}
-	})
+	return analyzerEntry("pyreach", pyreach.Module)
 }
 
 func jvmReachEntry() Entry {
-	return analyzerEntry("jvmreach", func(deps Deps) sdk.Analyzer {
-		return jvmreach.Analyzer{Logger: deps.logger()}
-	})
+	return analyzerEntry("jvmreach", jvmreach.Module)
 }
 
-func analyzerEntry(name string, build func(Deps) sdk.Analyzer) Entry {
+// analyzerEntry wraps a component module constructor from
+// components/analyzers/<name>. The component builds its analyzer from the
+// registration HostContext (logger included), so the entry ignores Deps.
+func analyzerEntry(name string, module func() sdk.Module) Entry {
 	return Entry{
 		Name:           name,
 		Kind:           sdk.PluginKindAnalyzer,
 		Implementation: ImplementationNative,
 		DefaultEnabled: true,
-		Module: func(deps Deps) sdk.Module {
-			return sdk.Module{Kind: sdk.PluginKindAnalyzer, Analyzer: &sdk.AnalyzerModule{
-				Descriptor: sdk.AnalyzerDescriptor{Name: name},
-				New: func(_ context.Context, _ sdk.HostContext) (sdk.Analyzer, error) {
-					return build(deps), nil
-				},
-			}}
-		},
+		Module:         func(Deps) sdk.Module { return module() },
 	}
 }

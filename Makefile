@@ -28,12 +28,25 @@ $(GOLANGCI_LINT): Makefile
 
 lint: $(GOLANGCI_LINT)
 	$(GOLANGCI_LINT) run
+	@for m in $(COMPONENT_MODULES); do \
+		echo "==> golangci-lint run $$m..."; \
+		(cd "$$m" && "$(GOLANGCI_LINT)" run) || exit 1; \
+	done
 
 install-hooks:
 	git config core.hooksPath .githooks
 
+# Component modules (components/<kind>/<name>) are separate Go modules, so
+# root `go test ./...` does not reach them; iterate them explicitly. The
+# committed go.work makes the per-module runs coherent with the root build.
+COMPONENT_MODULES=$(dir $(wildcard components/*/*/go.mod))
+
 test:
 	go test ./...
+	@for m in $(COMPONENT_MODULES); do \
+		echo "==> go test $$m..."; \
+		(cd "$$m" && go test ./...) || exit 1; \
+	done
 
 smoke:
 	go test -tags "smoke" ./test/smoke/ -v -count=1 -timeout 15m $(if $(ARGS),$(ARGS),)

@@ -407,13 +407,13 @@ func TestFromDepGraph_StampsFirstPartyVersionFromProjectRoot(t *testing.T) {
 
 func TestNormalizeSPDXLicenseExpression(t *testing.T) {
 	cases := map[string]string{
-		"GPL-2.0":              "GPL-2.0-only",
-		"GPL-3.0+":             "GPL-3.0-or-later",
-		"(MIT OR GPL-2.0)":     "(MIT OR GPL-2.0-only)",
-		"MIT":                  "MIT",
-		"Custom License Text":  "Custom License Text",
-		"LGPL-2.1 WITH addon":  "LGPL-2.1-only WITH addon",
-		"":                     "",
+		"GPL-2.0":             "GPL-2.0-only",
+		"GPL-3.0+":            "GPL-3.0-or-later",
+		"(MIT OR GPL-2.0)":    "(MIT OR GPL-2.0-only)",
+		"MIT":                 "MIT",
+		"Custom License Text": "Custom License Text",
+		"LGPL-2.1 WITH addon": "LGPL-2.1-only WITH addon",
+		"":                    "",
 	}
 	for in, want := range cases {
 		if got := normalizeSPDXLicenseExpression(in); got != want {

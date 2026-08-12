@@ -34,7 +34,11 @@ func (c *embeddedHostContext) HTTPClient() *sdk.HTTPClientProvider {
 }
 
 func (c *embeddedHostContext) Runtime() sdk.RuntimeInfo {
-	return sdk.RuntimeInfo{Execution: sdk.ExecutionEmbedded}
+	info := sdk.RuntimeInfo{Execution: sdk.ExecutionEmbedded}
+	if c != nil && c.registry != nil {
+		info.CoreVersion = c.registry.configs.CoreVersion
+	}
+	return info
 }
 
 func (c *embeddedHostContext) DecodeConfig(v any) error {

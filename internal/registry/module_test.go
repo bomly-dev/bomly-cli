@@ -34,11 +34,14 @@ func (m *moduleTestMatcher) Match(context.Context, sdk.MatchRequest) (sdk.MatchR
 }
 
 func TestRegisterModuleMatcher(t *testing.T) {
-	configs := Configs{PluginConfigs: config.PluginConfigs{
-		Matchers: map[string]map[string]any{
-			"module-matcher": {"endpoint": "https://example.test"},
+	configs := Configs{
+		CoreVersion: "1.2.3",
+		PluginConfigs: config.PluginConfigs{
+			Matchers: map[string]map[string]any{
+				"module-matcher": {"endpoint": "https://example.test"},
+			},
 		},
-	}}
+	}
 	registry := NewRegistry(configs, *zap.NewNop())
 
 	constructed := &moduleTestMatcher{name: "module-matcher"}
@@ -64,6 +67,9 @@ func TestRegisterModuleMatcher(t *testing.T) {
 	}
 	if constructed.hostInfo.Execution != sdk.ExecutionEmbedded {
 		t.Fatalf("expected embedded execution mode, got %q", constructed.hostInfo.Execution)
+	}
+	if constructed.hostInfo.CoreVersion != "1.2.3" {
+		t.Fatalf("expected host runtime core version %q, got %q", "1.2.3", constructed.hostInfo.CoreVersion)
 	}
 	if constructed.decoded["endpoint"] != "https://example.test" {
 		t.Fatalf("expected kind-scoped config block to decode, got %#v", constructed.decoded)

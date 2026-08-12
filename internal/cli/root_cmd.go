@@ -7,7 +7,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
-	"github.com/bomly-dev/bomly-cli/internal/logging"
+	logging "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
@@ -42,6 +42,7 @@ func normalizeExecuteError(err error) error {
 // newRootCmd creates the root Cobra command for the bomly CLI, setting up global options, subcommands, and templates.
 func newRootCmd(version string) (*cobra.Command, error) {
 	options := opts.NewOptions()
+	options.ResolvedConfig.CoreVersion = version
 	root := &cobra.Command{
 		Use:                   "bomly [command]",
 		Short:                 "A modern CLI for SBOM generation, dependency analysis, and software supply chain intelligence.",

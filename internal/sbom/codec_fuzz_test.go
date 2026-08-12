@@ -1,6 +1,9 @@
 package sbom
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 const maxFuzzInputSize = 1 << 20
 
@@ -10,7 +13,7 @@ func FuzzUnmarshalAutoJSON(f *testing.F) {
 		`{"bomFormat":"CycloneDX","specVersion":"1.4","version":1,"components":[]}`,
 		`{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"components":[]}`,
 		`{"bomFormat":"CycloneDX","specVersion":"1.6","version":1,"components":[]}`,
-		`{"artifacts":[],"artifactRelationships":[],"source":{"type":"directory","target":"."},"descriptor":{"name":"syft","version":"seed"}}`,
+		`{"artifacts":[],"artifactRelationships":[],"source":{"type":"directory","target":"."},"descriptor":{"name":"syft","version":"seed"},"schema":{"version":"16.0.34","url":"https://raw.githubusercontent.com/anchore/syft/main/schema/json/schema-16.0.34.json"}}`,
 	} {
 		f.Add([]byte(seed))
 	}
@@ -20,8 +23,14 @@ func FuzzUnmarshalAutoJSON(f *testing.F) {
 			return
 		}
 		doc, target, err := UnmarshalAutoJSON(raw)
-		if err != nil || target == TargetSyftJSON {
+		if err != nil {
+			if target == TargetSyftJSON && !errors.Is(err, ErrSyftJSONUnsupported) {
+				t.Fatalf("syft target must fail with ErrSyftJSONUnsupported, got %v", err)
+			}
 			return
+		}
+		if target == TargetSyftJSON {
+			t.Fatal("syft target must never parse successfully")
 		}
 		if doc == nil {
 			t.Fatalf("successful %s parse returned nil document", target)

@@ -84,7 +84,7 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - Extracted components will live under `components/<kind>/<name>/` as separate Go modules with their own `go.mod`, tagged per module as `components/<kind>/<name>/vX.Y.Z`.
 - The committed `go.work` puts the repo in workspace mode for local development; waves add `use ./components/...` entries. Release and pinned builds run with `GOWORK=off` (GoReleaser sets it explicitly; CI's `pinned-build` job verifies the module pins alone still build on pushes to `main`).
 - Each extraction wave lands as **one atomic PR**: move the code into its component module, add the `use` entry, and keep the root module compiling in the same change.
-- `scripts/release-components.sh` (also `make release-components`) is the release train: dry run prints per-module patch tags for modules changed since their last tag; `--apply` (ARGS="--apply") creates and pushes the tags and prints the root `go get` pin bumps.
+- `scripts/release-components.sh` (also `make release-components`) is the release train: component modules version in lockstep with the CLI — after a CLI release tag exists, the script tags every component module at that same version (idempotent; unchanged modules get empty releases by design); `--apply` (ARGS="--apply") creates and pushes the tags and prints the root `go get` pin bumps for the follow-up PR.
 
 ### Package Boundaries
 

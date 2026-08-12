@@ -2,27 +2,29 @@
 # release-components.sh — release-train helper for in-repo component modules.
 #
 # Component modules live under components/<kind>/<name>/ with their own go.mod
-# and are versioned with per-module tags of the form:
+# and are versioned in LOCKSTEP with the CLI: every component module is tagged
+# at the CLI's release version, whether or not it changed. One version number
+# describes the whole repository; empty component releases are deliberate and
+# accepted in exchange for that simplicity.
 #
-#   components/<kind>/<name>/vX.Y.Z
+#   components/<kind>/<name>/vX.Y.Z   (X.Y.Z = the CLI release version)
 #
 # Usage:
-#   ./scripts/release-components.sh            # dry run: print the tag commands
-#   ./scripts/release-components.sh --apply    # create + push annotated tags
+#   ./scripts/release-components.sh                     # dry run at the latest CLI tag
+#   ./scripts/release-components.sh --version v1.2.3    # dry run at an explicit version
+#   ./scripts/release-components.sh --apply             # create + push the tags
 #
-# Dry run (default): for every component module that has commits touching its
-# directory since its latest tag (or that has never been tagged), compute the
-# next patch version and print the `git tag` / `git push` commands without
-# running them.
+# Dry run (default): resolve the release version (latest root v* tag unless
+# --version is given), then print the `git tag` / `git push` commands for every
+# component module missing that tag, plus the root-module `go get` pin bumps.
 #
-# --apply: create and push those annotated tags, then print the root-module
-# `go get` commands that bump the CLI's pins to the freshly tagged versions.
+# --apply: create and push those annotated tags. Modules already tagged at the
+# release version are skipped, so the script is idempotent and safe to re-run
+# after a partial failure. The root pin bumps are printed, not executed — they
+# land through a normal PR.
 #
-# Notes:
-# - Only patch bumps are computed. Minor/major component releases are rare and
-#   deliberate; tag those by hand.
-# - No component modules exist yet; until the first wave PR lands, a dry run
-#   prints nothing and exits 0.
+# Intended flow: run after the CLI release tag exists (auto-version.yml), then
+# open the pin-bump PR.
 
 set -euo pipefail
 
@@ -30,11 +32,41 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${repo_root}"
 
 apply=false
-if [[ "${1:-}" == "--apply" ]]; then
-    apply=true
-elif [[ -n "${1:-}" ]]; then
-    echo "usage: $0 [--apply]" >&2
-    exit 2
+version=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --apply)
+            apply=true
+            shift
+            ;;
+        --version)
+            version="${2:-}"
+            if [[ -z "${version}" ]]; then
+                echo "error: --version requires a value (vX.Y.Z)" >&2
+                exit 2
+            fi
+            shift 2
+            ;;
+        *)
+            echo "usage: $0 [--apply] [--version vX.Y.Z]" >&2
+            exit 2
+            ;;
+    esac
+done
+
+if [[ -z "${version}" ]]; then
+    # Latest CLI release tag. Root tags are plain vX.Y.Z; component tags carry
+    # a path prefix, so this glob cannot match them.
+    version="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)"
+    if [[ -z "${version}" ]]; then
+        echo "error: no CLI release tag found; pass --version vX.Y.Z" >&2
+        exit 1
+    fi
+fi
+
+if [[ ! "${version}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "error: version ${version} is not of the form vX.Y.Z" >&2
+    exit 1
 fi
 
 # Collect component module directories: components/<kind>/<name>/go.mod.
@@ -49,28 +81,23 @@ if [[ ${#modules[@]} -eq 0 ]]; then
     exit 0
 fi
 
+echo "# release version: ${version}"
 bump_cmds=()
 for module in "${modules[@]}"; do
-    # Latest existing tag for this module, sorted by semantic version.
-    last_tag="$(git tag --list "${module}/v*" --sort=-v:refname | head -n 1)"
-
-    if [[ -n "${last_tag}" ]]; then
-        # Skip modules without changes since their last tag.
-        if git diff --quiet "${last_tag}" HEAD -- "${module}"; then
-            echo "# ${module}: no changes since ${last_tag}, skipping"
-            continue
-        fi
-        version="${last_tag##*/v}"
-        major="${version%%.*}"
-        rest="${version#*.}"
-        minor="${rest%%.*}"
-        patch="${rest#*.}"
-        next="v${major}.${minor}.$((patch + 1))"
-    else
-        next="v0.1.0"
+    tag="${module}/${version}"
+    # Derive the module path from the component's go.mod rather than the
+    # filesystem path, so /v2+ major-version modules pin correctly.
+    module_path="$(awk '$1 == "module" { print $2; exit }' "${module}/go.mod")"
+    if [[ -z "${module_path}" ]]; then
+        echo "error: ${module}/go.mod has no module directive" >&2
+        exit 1
     fi
+    bump_cmds+=("go get ${module_path}@${version}")
 
-    tag="${module}/${next}"
+    if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+        echo "# ${module}: already tagged ${tag}, skipping"
+        continue
+    fi
     if ${apply}; then
         git tag -a "${tag}" -m "Release ${tag}"
         git push origin "${tag}"
@@ -79,14 +106,6 @@ for module in "${modules[@]}"; do
         echo "git tag -a ${tag} -m 'Release ${tag}'"
         echo "git push origin ${tag}"
     fi
-    # Derive the module path from the component's go.mod rather than the
-    # filesystem path, so /v2+ major-version modules pin correctly.
-    module_path="$(awk '$1 == "module" { print $2; exit }' "${module}/go.mod")"
-    if [[ -z "${module_path}" ]]; then
-        echo "error: ${module}/go.mod has no module directive" >&2
-        exit 1
-    fi
-    bump_cmds+=("go get ${module_path}@${next}")
 done
 
 if [[ ${#bump_cmds[@]} -gt 0 ]]; then

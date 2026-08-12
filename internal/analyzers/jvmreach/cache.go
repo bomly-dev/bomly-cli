@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"time"
 
-	cachepkg "github.com/bomly-dev/bomly-cli/internal/matchers/cache"
+	cachepkg "github.com/bomly-dev/bomly-sdk/filecache"
 
-	"github.com/bomly-dev/bomly-cli/internal/system"
+	"github.com/bomly-dev/bomly-sdk/system"
 )
 
 const cacheSchemaVersion = "v3"

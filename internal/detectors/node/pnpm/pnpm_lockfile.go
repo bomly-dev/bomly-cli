@@ -7,8 +7,9 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -77,7 +78,7 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 	}
 	AttachPnpmLockPositions(graphs.graph, workingDir)
 
-	rootManifest := detectors.InferManifestMetadata(req, pnpmManifestMetadataPatterns)
+	rootManifest := detectorkit.InferManifestMetadata(req, pnpmManifestMetadataPatterns)
 	warnings := node.PackageManagerWarnings(workingDir, sdk.PackageManagerPNPM,
 		node.LockfileFormat{File: "pnpm-lock.yaml", Version: graphs.lockfileVersion})
 	if len(graphs.modules) == 0 {
@@ -88,13 +89,13 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 	}
 
 	entries := make([]sdk.GraphEntry, 0, len(graphs.modules)+1)
-	rootGraph, err := detectors.SubgraphFrom(graphs.graph, graphs.rootID)
+	rootGraph, err := detectorkit.SubgraphFrom(graphs.graph, graphs.rootID)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("pnpm lockfile parser detector: extract workspace root graph: %w", err)
 	}
 	entries = append(entries, sdk.GraphEntry{Graph: rootGraph, Manifest: rootManifest})
 	for _, module := range graphs.modules {
-		moduleGraph, err := detectors.SubgraphFrom(graphs.graph, module.rootID)
+		moduleGraph, err := detectorkit.SubgraphFrom(graphs.graph, module.rootID)
 		if err != nil {
 			return sdk.DetectionResult{}, fmt.Errorf("pnpm lockfile parser detector: extract workspace member graph %q: %w", module.dir, err)
 		}

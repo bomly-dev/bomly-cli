@@ -16,8 +16,10 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	logkit "github.com/bomly-dev/bomly-sdk/logkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -54,10 +56,10 @@ func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
 // Ready reports whether a Maven wrapper is present or Maven is installed and a
 // usable Java runtime is available for the request's working directory.
 func (d Detector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
-	if _, _, err := d.resolveRunner(detectors.RequestWorkingDir(req)); err != nil {
-		return detectors.CommandNotReadyError("mvn", err)
+	if _, _, err := d.resolveRunner(detectorkit.RequestWorkingDir(req)); err != nil {
+		return detectorkit.CommandNotReadyError("mvn", err)
 	}
-	return detectors.JavaReady(ctx, req.DetectorLogger(d.Logger))
+	return detectorkit.JavaReady(ctx, req.DetectorLogger(d.Logger))
 }
 
 // Applicable reports whether the project looks like a Maven project.
@@ -110,7 +112,7 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 	}
 	AttachPomPositions(depsGraph, workingDir, "pom.xml")
 
-	rootManifest := detectors.InferManifestMetadata(req, evidencePatterns)
+	rootManifest := detectorkit.InferManifestMetadata(req, evidencePatterns)
 	modules, err := walkPomModules(workingDir)
 	if err != nil || len(modules) == 0 {
 		if err != nil {
@@ -193,7 +195,7 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 	entries := make([]sdk.GraphEntry, 0, len(matchedModules)+1)
 	rootGraph := sdk.New()
 	for _, rootID := range rootIDs {
-		subgraph, err := detectors.SubgraphFrom(depsGraph, rootID)
+		subgraph, err := detectorkit.SubgraphFrom(depsGraph, rootID)
 		if err != nil {
 			continue
 		}
@@ -205,7 +207,7 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 		entries = append(entries, sdk.GraphEntry{Graph: rootGraph, Manifest: rootManifest})
 	}
 	for _, matched := range matchedModules {
-		moduleGraph, err := detectors.SubgraphFrom(depsGraph, matched.rootID)
+		moduleGraph, err := detectorkit.SubgraphFrom(depsGraph, matched.rootID)
 		if err != nil {
 			continue
 		}
@@ -235,14 +237,14 @@ func (d Detector) resolveGraph(ctx context.Context, stderr io.Writer, projectPat
 	}
 
 	args := mavenDependencyTreeArgs(prefixArgs, scopeFilter)
-	cmdCtx, cancel := detectors.BuildToolContext(ctx)
+	cmdCtx, cancel := detectorkit.BuildToolContext(ctx)
 	defer cancel()
 	cmd := system.CommandContext(cmdCtx, executable, args...)
 	cmd.Dir = projectPath
 	if d.WorkingDir != "" {
 		cmd.Dir = d.WorkingDir
 	}
-	commandStderr := logging.NewCommandStderr(stderr, verbose)
+	commandStderr := logkit.NewCommandStderr(stderr, verbose)
 	cmd.Stderr = commandStderr
 
 	started := time.Now()
@@ -250,7 +252,7 @@ func (d Detector) resolveGraph(ctx context.Context, stderr io.Writer, projectPat
 	raw, err := cmd.Output()
 	if err != nil {
 		if errors.Is(cmdCtx.Err(), context.DeadlineExceeded) {
-			err = fmt.Errorf("timed out after %s: %w", detectors.BuildToolTimeout, err)
+			err = fmt.Errorf("timed out after %s: %w", detectorkit.BuildToolTimeout, err)
 		}
 		logger.Warn(fmt.Sprintf("Maven dependencies detector failed: %v", err))
 		fields := []zap.Field{zap.Error(err)}
@@ -585,21 +587,21 @@ func (d Detector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	}
 	args := append(prefixArgs, "dependency:resolve")
 	args = append(args, req.InstallArgs...)
-	cmdCtx, cancel := detectors.BuildToolContext(ctx)
+	cmdCtx, cancel := detectorkit.BuildToolContext(ctx)
 	defer cancel()
 	cmd := system.CommandContext(cmdCtx, executable, args...)
 	cmd.Dir = req.ProjectPath
 	if d.WorkingDir != "" {
 		cmd.Dir = d.WorkingDir
 	}
-	commandStderr := logging.NewCommandStderr(req.Stderr, req.Verbose)
+	commandStderr := logkit.NewCommandStderr(req.Stderr, req.Verbose)
 	cmd.Stderr = commandStderr
 	started := time.Now()
 	logger.Info("Maven detector running install-first step")
-	logger.Debug("running maven detector install-first", logging.CommandFields(executable, args, cmd.Dir)...)
+	logger.Debug("running maven detector install-first", logkit.CommandFields(executable, args, cmd.Dir)...)
 	if err := cmd.Run(); err != nil {
 		if errors.Is(cmdCtx.Err(), context.DeadlineExceeded) {
-			err = fmt.Errorf("timed out after %s: %w", detectors.BuildToolTimeout, err)
+			err = fmt.Errorf("timed out after %s: %w", detectorkit.BuildToolTimeout, err)
 		}
 		return fmt.Errorf("run maven dependency resolve: %w", err)
 	}

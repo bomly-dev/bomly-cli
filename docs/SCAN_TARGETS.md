@@ -186,7 +186,7 @@ bomly scan --sbom --path ./vendor.spdx.json
 bomly scan --sbom --path ./build/sbom.cdx.json
 ```
 
-SPDX 2.3 JSON and CycloneDX 1.4–1.7 JSON are auto-detected. Useful when:
+SPDX 2.3 JSON and CycloneDX 1.4–1.7 JSON are auto-detected. Syft's own JSON format is not accepted; convert it first with `syft convert <file> -o spdx-json`. Useful when:
 
 - You produced an SBOM in a previous CI step and want to audit it.
 - A vendor sent you an SBOM and you want to evaluate it against your policy.

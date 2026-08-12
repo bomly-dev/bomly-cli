@@ -9,8 +9,9 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -107,13 +108,13 @@ func (d LockfileDetector) base() node.BaseDetector {
 }
 
 func bunWorkspaceGraphEntries(graphs bunLockfileGraphs, rootManifest sdk.ManifestMetadata) ([]sdk.GraphEntry, error) {
-	rootGraph, err := detectors.SubgraphFrom(graphs.graph, graphs.rootID)
+	rootGraph, err := detectorkit.SubgraphFrom(graphs.graph, graphs.rootID)
 	if err != nil {
 		return nil, fmt.Errorf("extract workspace root graph: %w", err)
 	}
 	entries := []sdk.GraphEntry{{Graph: rootGraph, Manifest: rootManifest}}
 	for _, module := range graphs.modules {
-		moduleGraph, err := detectors.SubgraphFrom(graphs.graph, module.rootID)
+		moduleGraph, err := detectorkit.SubgraphFrom(graphs.graph, module.rootID)
 		if err != nil {
 			return nil, fmt.Errorf("extract workspace member graph %q: %w", module.dir, err)
 		}

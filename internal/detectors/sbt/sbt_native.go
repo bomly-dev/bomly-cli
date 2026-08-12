@@ -13,8 +13,10 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	logkit "github.com/bomly-dev/bomly-sdk/logkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -35,9 +37,9 @@ func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 // Ready reports whether the sbt binary and a usable Java runtime are available.
 func (d NativeDetector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
 	if _, err := system.LookPath("sbt"); err != nil {
-		return detectors.CommandNotReadyError("sbt", err)
+		return detectorkit.CommandNotReadyError("sbt", err)
 	}
-	return detectors.JavaReady(ctx, req.DetectorLogger(d.Logger))
+	return detectorkit.JavaReady(ctx, req.DetectorLogger(d.Logger))
 }
 
 // Applicable reports whether sbt build files are present.
@@ -77,7 +79,7 @@ func (d NativeDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 	logger := d.logger()
 	workingDir := d.workingDir(req.ProjectPath)
 
-	cmdCtx, cancel := detectors.BuildToolContext(ctx)
+	cmdCtx, cancel := detectorkit.BuildToolContext(ctx)
 	defer cancel()
 	executable := "sbt"
 	args := []string{"--no-colors", "--batch", "dependencyTree"}
@@ -85,13 +87,13 @@ func (d NativeDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 	cmd.Dir = workingDir
 	var out bytes.Buffer
 	cmd.Stdout = &out
-	cmd.Stderr = logging.NewCommandStderr(req.Stderr, req.Verbose)
+	cmd.Stderr = logkit.NewCommandStderr(req.Stderr, req.Verbose)
 
 	started := time.Now()
-	logger.Debug("running sbt native detector", logging.CommandFields(executable, args, workingDir)...)
+	logger.Debug("running sbt native detector", logkit.CommandFields(executable, args, workingDir)...)
 	if err := cmd.Run(); err != nil {
 		if errors.Is(cmdCtx.Err(), context.DeadlineExceeded) {
-			err = fmt.Errorf("timed out after %s: %w", detectors.BuildToolTimeout, err)
+			err = fmt.Errorf("timed out after %s: %w", detectorkit.BuildToolTimeout, err)
 		}
 		logger.Debug("sbt dependencyTree failed", zap.Error(err))
 		return sdk.DetectionResult{}, fmt.Errorf("sbt dependencyTree: %w", err)
@@ -104,7 +106,7 @@ func (d NativeDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 	logger.Info(fmt.Sprintf("sbt native detector found %d dependencies in %s", g.Size(), logging.FormatDuration(time.Since(started))))
 	AttachSBTPositions(g, workingDir)
 	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns)),
+		Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns)),
 	}, nil
 }
 

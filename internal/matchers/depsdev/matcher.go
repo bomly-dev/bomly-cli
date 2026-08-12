@@ -14,10 +14,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/internal/matchers"
-	"github.com/bomly-dev/bomly-cli/internal/matchers/cache"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	cache "github.com/bomly-dev/bomly-sdk/filecache"
+	matchers "github.com/bomly-dev/bomly-sdk/matcherkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 

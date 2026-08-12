@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
+	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
 )
 
 var conanRefLine = regexp.MustCompile(`([a-zA-Z0-9_][a-zA-Z0-9._+-]*)\s*/\s*([^@'"\s,)]+)`)

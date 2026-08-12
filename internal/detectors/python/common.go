@@ -15,8 +15,9 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	logkit "github.com/bomly-dev/bomly-sdk/logkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -95,12 +96,12 @@ func (d baseDetector) resolveGraph(req sdk.DetectionRequest, detectorName string
 	cmd.Env = pythonCommandEnv()
 	var out bytes.Buffer
 	cmd.Stdout = &out
-	commandStderr := logging.NewCommandStderr(req.Stderr, req.Verbose)
+	commandStderr := logkit.NewCommandStderr(req.Stderr, req.Verbose)
 	cmd.Stderr = commandStderr
 
 	started := time.Now()
 	logger.Debug("running external dependency detector",
-		append([]zap.Field{zap.String("detector", detectorName)}, logging.CommandFields(command[0], command[1:], cmd.Dir)...)...)
+		append([]zap.Field{zap.String("detector", detectorName)}, logkit.CommandFields(command[0], command[1:], cmd.Dir)...)...)
 	if err := cmd.Run(); err != nil {
 		logger.Warn(fmt.Sprintf("%s failed: %v", detectorName, err))
 		fields := []zap.Field{zap.Error(err), zap.String("detector", detectorName)}
@@ -139,12 +140,12 @@ func (d baseDetector) install(ctx context.Context, req sdk.DetectionRequest, det
 	cmd := system.Command(command[0], command[1:]...)
 	cmd.Dir = d.workingDir(req.ProjectPath)
 	cmd.Env = pythonCommandEnv()
-	commandStderr := logging.NewCommandStderr(req.Stderr, req.Verbose)
+	commandStderr := logkit.NewCommandStderr(req.Stderr, req.Verbose)
 	cmd.Stderr = commandStderr
 	started := time.Now()
 	logger.Info(fmt.Sprintf("%s running install-first step", detectorName))
 	logger.Debug("running python detector install-first",
-		append([]zap.Field{zap.String("detector", detectorName)}, logging.CommandFields(command[0], command[1:], cmd.Dir)...)...)
+		append([]zap.Field{zap.String("detector", detectorName)}, logkit.CommandFields(command[0], command[1:], cmd.Dir)...)...)
 	if err := cmd.Run(); err != nil {
 		fields := []zap.Field{zap.Error(err)}
 		if commandStderr.ByteCount() > 0 {

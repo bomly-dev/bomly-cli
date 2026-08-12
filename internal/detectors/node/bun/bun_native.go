@@ -7,8 +7,9 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -30,7 +31,7 @@ func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 // Ready reports whether Bun is available.
 func (d NativeDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := system.LookPath("bun")
-	return detectors.CommandNotReadyError("bun", err)
+	return detectorkit.CommandNotReadyError("bun", err)
 }
 
 // Applicable reports whether a Bun project manifest is present.
@@ -75,7 +76,7 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 		return sdk.DetectionResult{}, err
 	}
 	return sdk.DetectionResult{
-		Graphs:   sdk.SingleGraphContainer(graph, detectors.InferManifestMetadata(req, []string{"package.json", "bun.lock", "bun.lockb"})),
+		Graphs:   sdk.SingleGraphContainer(graph, detectorkit.InferManifestMetadata(req, []string{"package.json", "bun.lock", "bun.lockb"})),
 		Warnings: node.PackageManagerWarnings(d.base().ProjectDir(req.ProjectPath), sdk.PackageManagerBun, node.LockfileFormat{}),
 	}, nil
 }

@@ -18,8 +18,8 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	plugschema "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/system"
 )
 
 const (

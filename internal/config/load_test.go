@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/system"
+	"github.com/bomly-dev/bomly-sdk/system"
 )
 
 func TestLoadFileAndEnvProxyPrecedence(t *testing.T) {

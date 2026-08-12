@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
+	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
 )
 
 func bundlerRemediationCapabilities() []sdk.RemediationCapability {

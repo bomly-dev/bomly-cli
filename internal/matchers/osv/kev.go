@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	audcache "github.com/bomly-dev/bomly-cli/internal/matchers/cache"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	audcache "github.com/bomly-dev/bomly-sdk/filecache"
+	"github.com/bomly-dev/bomly-sdk/system"
 )
 
 const (

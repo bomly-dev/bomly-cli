@@ -8,11 +8,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+	logkit "github.com/bomly-dev/bomly-sdk/logkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -37,13 +38,13 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 
 	started := time.Now()
 	args := syftCommandArgs(target, req)
-	logger.Debug("running external syft detector", logging.CommandFields("syft", args, workingDir)...)
+	logger.Debug("running external syft detector", logkit.CommandFields("syft", args, workingDir)...)
 	if req.EnrichmentEnabled {
 		logger.Debug("enabling syft CLI detector enrichment", zap.Strings("enrich", syftDetectorEnrichmentValues))
 	}
 
 	var stdout bytes.Buffer
-	commandStderr := logging.NewCommandStderr(req.Stderr, req.Verbose)
+	commandStderr := logkit.NewCommandStderr(req.Stderr, req.Verbose)
 	cmd := system.Command("syft", args...)
 	cmd.Dir = workingDir
 	cmd.Stdout = &stdout

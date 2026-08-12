@@ -15,8 +15,9 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	logkit "github.com/bomly-dev/bomly-sdk/logkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -76,12 +77,12 @@ func createPythonVenv(ctx context.Context, base baseDetector, req sdk.DetectionR
 	cmd := system.Command(command[0], command[1:]...)
 	cmd.Dir = base.workingDir(req.ProjectPath)
 	cmd.Env = pythonCommandEnv()
-	commandStderr := logging.NewCommandStderr(req.Stderr, req.Verbose)
+	commandStderr := logkit.NewCommandStderr(req.Stderr, req.Verbose)
 	cmd.Stderr = commandStderr
 	started := time.Now()
 	logger.Info(fmt.Sprintf("%s creating isolated virtualenv", detectorName))
 	fields := []zap.Field{zap.String("detector", detectorName), zap.String("venv", venvDir)}
-	fields = append(fields, logging.CommandFields(command[0], command[1:], cmd.Dir)...)
+	fields = append(fields, logkit.CommandFields(command[0], command[1:], cmd.Dir)...)
 	logger.Debug("creating python virtualenv", fields...)
 	if err := cmd.Run(); err != nil {
 		fields := []zap.Field{zap.Error(err)}
@@ -153,7 +154,7 @@ func readPipVersion(base baseDetector, req sdk.DetectionRequest, detectorName, v
 	cmd.Env = pythonCommandEnv()
 	var out bytes.Buffer
 	cmd.Stdout = &out
-	cmd.Stderr = logging.NewCommandStderr(req.Stderr, req.Verbose)
+	cmd.Stderr = logkit.NewCommandStderr(req.Stderr, req.Verbose)
 	logger.Debug("checking isolated environment pip version", zap.String("detector", detectorName), zap.String("working_dir", cmd.Dir), zap.String("executable", command[0]), zap.Strings("args", command[1:]))
 	if err := cmd.Run(); err != nil {
 		return "", fmt.Errorf("run %s pip --version: %w", detectorName, err)

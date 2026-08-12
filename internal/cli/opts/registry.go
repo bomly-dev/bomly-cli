@@ -40,5 +40,6 @@ func RegistryConfigsFromResolved(cfg config.Resolved) engine.RegistryConfigs {
 		HTTPProxyPassword:     cfg.HTTPProxyPassword,
 		HTTPCACertFile:        cfg.HTTPCACertFile,
 		PluginConfigs:         cfg.Plugins,
+		CoreVersion:           cfg.CoreVersion,
 	}
 }

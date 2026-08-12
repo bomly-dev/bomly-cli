@@ -98,6 +98,10 @@ func (e *Engine) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.Analy
 		return sdk.AnalyzeResult{Registry: req.Registry}, nil
 	}
 
+	// The engine understands AnalyzeResult.PackageUpdates deltas, so advertise
+	// it to every analyzer, embedded or external.
+	req.AcceptPackageUpdates = true
+
 	aggregated := sdk.AnalyzeResult{
 		Registry:      req.Registry,
 		AnalyzerStats: make(map[string]sdk.ReachabilityStats),
@@ -126,9 +130,18 @@ func (e *Engine) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.Analy
 			continue
 		}
 		aggregated.AnalyzerRuns = append(aggregated.AnalyzerRuns, label)
-		if result.Registry != nil {
+		// A returned registry wins over deltas, mirroring the external-plugin
+		// transport adapter (internal/plugin/registry.go externalAnalyzer.Analyze),
+		// which resolves PackageUpdates into a full Registry before the engine
+		// sees the result — so external plugin deltas are never applied twice.
+		switch {
+		case result.Registry != nil:
 			aggregated.Registry = result.Registry
 			req.Registry = result.Registry
+		case len(result.PackageUpdates) > 0:
+			updated := sdk.ApplyPackageUpdates(req.Registry, result.PackageUpdates)
+			aggregated.Registry = updated
+			req.Registry = updated
 		}
 		for analyzerName, stats := range result.AnalyzerStats {
 			aggregated.AnalyzerStats[analyzerName] = stats
@@ -164,6 +177,10 @@ func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (MatchResult, 
 		return result, fmt.Errorf("%w for ecosystem %q, and package manager %q", ErrNoMatcher, req.Ecosystem, req.PackageManager)
 	}
 
+	// The engine understands MatchResult.PackageUpdates deltas, so advertise
+	// it to every matcher, embedded or external.
+	req.AcceptPackageUpdates = true
+
 	aggregated := MatchResult{
 		Registry: req.Registry,
 	}
@@ -191,9 +208,18 @@ func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (MatchResult, 
 			continue
 		}
 		aggregated.MatcherStats = append(aggregated.MatcherStats, matcherStats(descriptor, result.MatcherStats))
-		if result.Registry != nil {
+		// A returned registry wins over deltas, mirroring the external-plugin
+		// transport adapter (internal/plugin/registry.go externalMatcher.Match),
+		// which resolves PackageUpdates into a full Registry before the engine
+		// sees the result — so external plugin deltas are never applied twice.
+		switch {
+		case result.Registry != nil:
 			aggregated.Registry = result.Registry
 			req.Registry = result.Registry
+		case len(result.PackageUpdates) > 0:
+			updated := sdk.ApplyPackageUpdates(req.Registry, result.PackageUpdates)
+			aggregated.Registry = updated
+			req.Registry = updated
 		}
 	}
 	finalizeMatchResult(&aggregated)

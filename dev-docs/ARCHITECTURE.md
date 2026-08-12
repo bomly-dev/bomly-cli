@@ -552,6 +552,21 @@ The help-path startup banner (`internal/cli/render/logo.go`) is a frame-based an
 - **Gating is env-var-only (`BOMLY_LOGO` to opt in; `NO_COLOR`, `BOMLY_NO_ANIMATION`, `CI`, `BOMLY_QUIET` to force static), deliberately not a config key.** Cobra's `execute()` returns `flag.ErrHelp` right after flag parsing, *before* the `PersistentPreRunE` chain where `options.ResolveConfig` runs — so on `bomly --help` / `bomly <cmd> --help` (the banner's primary path) resolved config simply does not exist yet. A `logo.animate` config key would silently work only for bare `bomly` and `bomly help <cmd>`, which is a trap. When animation is gated off but stderr is a TTY, the static final frame prints instead (plain under `NO_COLOR`, colored otherwise); non-TTY stderr prints nothing.
 - **The animation leaves cursor visibility unchanged.** Hiding the cursor would make the animation slightly cleaner, but a process-level interrupt can bypass deferred cleanup and leave the user's shell cursor hidden. Avoiding that terminal-state mutation keeps interruption safe without introducing signal handling into the render package.
 
+### Decision: shared helper code lives in bomly-sdk subpackages, not CLI-internal packages
+
+The former `internal/system`, `internal/matchers/cache`, and `internal/testutil` helpers (plus subprocess logging and detector/matcher helper functions) moved to `bomly-sdk` subpackages: `system`, `filecache`, `logkit`, `detectorkit`, `matcherkit`, and `testkit`. Two forces drove this:
+
+- **One helper surface for both sides of the plugin boundary.** The component-extraction program moves built-ins into `components/<kind>/<name>/` modules, and external plugin authors implement the same SDK contracts. Both need the same bounded filesystem/subprocess ops, file cache, and logging discipline; keeping the helpers CLI-internal would have forced extracted components and plugins to copy them.
+- **The SDK stays lightweight.** The helper subpackages depend on the standard library plus zap only, so importing them does not drag CLI dependencies into plugin builds.
+
+Do not reintroduce CLI-internal copies of these helpers; new shared helper code goes into the appropriate SDK subpackage.
+
+### Decision: syft-JSON SBOM ingest is removed; sniffing is retained for the migration error
+
+Syft's proprietary JSON SBOM format is no longer an accepted `--sbom` ingest input. It had exactly one consumer in the codebase — the SBOM ingest detector — while the syft detector itself always shells out with `-o spdx-json`. The lite build (`bomly_external_syft`) never actually ingested it either: its fallback re-ran the generic decoder, which returned a nil document for the syft target, so `ToGraph(nil)` hard-failed with an unhelpful `sbom document is nil` error. The change therefore unifies full and lite behavior on one explicit, actionable rejection; the compatibility impact is on full builds only, which previously decoded the format. Removing the decode path made `internal/detectors/sbom` build-tag-free and dropped its `anchore/syft` dependency.
+
+The boundary: `internal/sbom` **keeps** syft-JSON identification in `DetectJSONTarget` solely so `UnmarshalAutoJSON` can fail with the precise, actionable `ErrSyftJSONUnsupported` ("convert with: `syft convert <file> -o spdx-json`") instead of a generic unsupported-format error. Sniffing is not a step toward re-adding ingest; supported ingest formats are SPDX 2.3 JSON and CycloneDX 1.4–1.7 JSON.
+
 ## Build Modes
 
 Syft and Grype each support two build modes:
@@ -650,8 +665,11 @@ Cache failures are non-fatal. The command should warn and continue rather than f
 | `sdk`      | Shared domain types                                                                             |
 | `internal/plugin`     | Managed plugin manifests, installation, verification, store state, adapters, and runtime glue  |
 | `internal/extensions` | Extension hooks and support code                                                                |
-| `internal/system`     | OS-level helpers used internally                                                                |
-| `internal/testutil`   | Test helpers                                                                                    |
+| `bomly-sdk/system` (external) | Bounded filesystem and subprocess helpers shared by components and plugins             |
+| `bomly-sdk/filecache` (external) | Shared TTL file cache for matcher and analyzer results                              |
+| `bomly-sdk/logkit` (external) | Subprocess logging helpers                                                             |
+| `bomly-sdk/detectorkit` / `matcherkit` (external) | Shared detector and matcher helper functions                       |
+| `bomly-sdk/testkit` (external) | Shared test helpers (binary builds, fuzz bounds, graph validation)                    |
 
 ## Managed Plugins
 
@@ -749,8 +767,8 @@ This keeps the scan engine recognizable while making it possible to migrate sele
 
 ## Design Boundaries
 
-- Detector packages must not import `internal/engine` or `internal/registry`. They may use `internal/system` for shared bounded filesystem and subprocess operations.
-- Built-in analyzer packages may use `internal/system` for shared bounded filesystem and subprocess operations, but must not import `internal/engine` or `internal/registry`.
+- Detector packages must not import `internal/engine` or `internal/registry`. They may use the SDK's `system` subpackage for shared bounded filesystem and subprocess operations, and `detectorkit` for shared detector helpers.
+- Built-in analyzer packages may use the SDK's `system`, `filecache`, and `logkit` subpackages, but must not import `internal/engine` or `internal/registry`.
 - `sdk` owns shared neutral identifiers and support types.
 - `internal/registry` owns discovery, support-matrix data, and built-in registry wiring.
 - `internal/engine` owns runtime planning, orchestration, and detector-chain reuse.

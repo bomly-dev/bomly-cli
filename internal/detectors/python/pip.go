@@ -6,8 +6,9 @@ import (
 	"path/filepath"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -28,7 +29,7 @@ func (d PipDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 // Ready reports whether a Python interpreter is available.
 func (d PipDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := pythonCommand()
-	return detectors.CommandNotReadyError("python", err)
+	return detectorkit.CommandNotReadyError("python", err)
 }
 
 // Applicable reports whether pip-style manifests are present.

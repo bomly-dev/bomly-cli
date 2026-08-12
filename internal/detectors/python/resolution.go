@@ -3,9 +3,9 @@ package python
 import (
 	"fmt"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-sdk"
+	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+	logging "github.com/bomly-dev/bomly-sdk/logkit"
 	"go.uber.org/zap"
 )
 

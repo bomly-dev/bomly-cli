@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/system"
 )
 
 func TestDetectorResolveGraph_SPDXJSON(t *testing.T) {
@@ -133,6 +133,31 @@ func TestDetectorResolveGraph_RejectsUnsupportedOrMalformedJSON(t *testing.T) {
 				t.Fatalf("expected error containing %q, got %v", tc.want, err)
 			}
 		})
+	}
+}
+
+// TestDetectorResolveGraph_RejectsSyftJSON asserts that syft-format JSON SBOMs
+// yield the actionable conversion error. The fixture is handcrafted so the test
+// runs identically under the default and bomly_external_syft build tags.
+func TestDetectorResolveGraph_RejectsSyftJSON(t *testing.T) {
+	syftJSON := []byte(`{"artifacts":[],"artifactRelationships":[],"source":{"type":"directory","target":"."},"descriptor":{"name":"syft","version":"1.0.0"},"schema":{"version":"16.0.34","url":"https://raw.githubusercontent.com/anchore/syft/main/schema/json/schema-16.0.34.json"}}`)
+	if target, err := sbom.DetectJSONTarget(syftJSON); err != nil || target != sbom.TargetSyftJSON {
+		t.Fatalf("fixture must sniff as syft json, got (%q, %v)", target, err)
+	}
+
+	path := filepath.Join(t.TempDir(), "input.syft.json")
+	if err := os.WriteFile(path, syftJSON, 0o644); err != nil {
+		t.Fatalf("write fixture: %v", err)
+	}
+
+	_, err := (Detector{}).ResolveGraph(context.Background(), requestForSBOMPath(path))
+	if err == nil || !errors.Is(err, sbom.ErrSyftJSONUnsupported) {
+		t.Fatalf("ResolveGraph() error = %v, want wrapped sbom.ErrSyftJSONUnsupported", err)
+	}
+	for _, want := range []string{path, "syft convert <file> -o spdx-json"} {
+		if !strings.Contains(err.Error(), want) {
+			t.Fatalf("ResolveGraph() error %q missing %q", err.Error(), want)
+		}
 	}
 }
 

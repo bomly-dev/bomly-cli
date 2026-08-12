@@ -10,9 +10,10 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	logging "github.com/bomly-dev/bomly-sdk/logkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -147,7 +148,7 @@ func (d Detector) detectionResultFromMetadata(req sdk.DetectionRequest, raw []by
 		return sdk.DetectionResult{}, err
 	}
 	AttachCargoLockPositions(g, workingDir)
-	rootManifest := detectors.InferManifestMetadata(req, evidencePatterns)
+	rootManifest := detectorkit.InferManifestMetadata(req, evidencePatterns)
 	if len(members) <= 1 {
 		return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, rootManifest)}, nil
 	}
@@ -202,7 +203,7 @@ func (d Detector) resolveFromLock(req sdk.DetectionRequest) (sdk.DetectionResult
 		return sdk.DetectionResult{}, err
 	}
 	AttachCargoLockPositions(g, workingDir)
-	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
+	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns))}, nil
 }
 
 // resolveLockWorkspace resolves a workspace whose root carries a Cargo.lock.
@@ -243,7 +244,7 @@ func (d Detector) resolveLockWorkspace(req sdk.DetectionRequest, workingDir stri
 	if rootID != "" {
 		modules = append([]cargoModuleGraph{{dir: ".", rootID: rootID}}, modules...)
 	}
-	result, err := cargoDetectionResultFromGraph(g, modules, detectors.InferManifestMetadata(req, evidencePatterns))
+	result, err := cargoDetectionResultFromGraph(g, modules, detectorkit.InferManifestMetadata(req, evidencePatterns))
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}

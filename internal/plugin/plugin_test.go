@@ -12,8 +12,8 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
-	"github.com/bomly-dev/bomly-cli/internal/testutil"
 	"github.com/bomly-dev/bomly-sdk"
+	testutil "github.com/bomly-dev/bomly-sdk/testkit"
 	"go.uber.org/zap"
 )
 

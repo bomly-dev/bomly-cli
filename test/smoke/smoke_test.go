@@ -511,6 +511,46 @@ func TestExplain(t *testing.T) {
 	}
 }
 
+// TestScanSBOMSyftJSONRejected locks in the syft-JSON ingest removal end to
+// end: `--sbom` on a syft-format JSON file must exit 3 (resolution failure —
+// the detector cannot produce a graph) with the actionable conversion hint,
+// identically for the full and lite binaries. The fixture is hermetic: a
+// minimal document carrying the schema marker the codec sniffs.
+func TestScanSBOMSyftJSONRejected(t *testing.T) {
+	t.Parallel()
+
+	fixture := filepath.Join(t.TempDir(), "reject.syft.json")
+	const syftJSON = `{"artifacts":[],"artifactRelationships":[],` +
+		`"source":{"type":"directory","target":"."},` +
+		`"descriptor":{"name":"syft","version":"1.0.0"},` +
+		`"schema":{"version":"16.0.34","url":"https://raw.githubusercontent.com/anchore/syft/main/schema/json/schema-16.0.34.json"}}`
+	if err := os.WriteFile(fixture, []byte(syftJSON), 0o644); err != nil {
+		t.Fatalf("write syft json fixture: %v", err)
+	}
+
+	args := []string{"scan", "--sbom", "--path", fixture, "--format", "json", "--detectors", "sbom"}
+	binaries := map[string]string{
+		"full": bomlyBin,
+		"lite": buildLiteBinary(t),
+	}
+	for name, bin := range binaries {
+		t.Run(name, func(t *testing.T) {
+			_, stderr, code := runBomlyBinaryWithEnv(t, bin, nil, args...)
+			if code != 3 {
+				t.Fatalf("expected exit 3 (resolution failure) for syft-JSON ingest, got %d\nstderr:\n%s", code, stderr)
+			}
+			for _, want := range []string{
+				"syft JSON SBOMs are not supported",
+				"syft convert <file> -o spdx-json",
+			} {
+				if !strings.Contains(stderr, want) {
+					t.Fatalf("expected stderr to contain %q, got:\n%s", want, stderr)
+				}
+			}
+		})
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------

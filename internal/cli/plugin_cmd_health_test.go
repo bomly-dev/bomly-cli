@@ -10,7 +10,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
-	"github.com/bomly-dev/bomly-cli/internal/testutil"
+	testutil "github.com/bomly-dev/bomly-sdk/testkit"
 )
 
 func TestPluginTestReady(t *testing.T) {

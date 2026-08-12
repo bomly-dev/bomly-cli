@@ -3,8 +3,8 @@ package cargo
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/testutil"
 	"github.com/bomly-dev/bomly-sdk"
+	testutil "github.com/bomly-dev/bomly-sdk/testkit"
 )
 
 func FuzzDepGraphFromCargoLock(f *testing.F) {

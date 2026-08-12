@@ -80,6 +80,11 @@ type Resolved struct {
 	ScorecardAPIBase  string `doc:"Base URL for the OpenSSF Scorecard public API" env:"BOMLY_SCORECARD_API_BASE" default:"https://api.scorecard.dev"`
 	ScorecardCacheDir string `doc:"Directory for the Scorecard response cache" env:"BOMLY_SCORECARD_CACHE_DIR"`
 	ScorecardCacheTTL string `doc:"TTL for cached Scorecard responses (e.g. 24h)" env:"BOMLY_SCORECARD_CACHE_TTL" default:"24h"`
+
+	// CoreVersion is the running bomly core version. The CLI populates it at
+	// startup from the build's version string; it is not user configuration
+	// and has no flag, environment variable, or YAML key.
+	CoreVersion string
 }
 
 // File is the nested YAML-deserialized shape of a Bomly config file. Leaf

@@ -63,10 +63,16 @@ the scan.
 
 ## Regression evidence
 
-- `internal/system`: exact-limit, one-byte-over-limit, streamed-growth, and
-  size-scaled read tests and benchmarks.
-- `internal/matchers/cache`: corrupt and oversized cache entries degrade to a
-  miss.
+- `bomly-sdk/system` (pinned dependency): the authoritative exact-limit,
+  one-byte-over-limit, streamed-growth, and size-scaled read tests and
+  benchmarks live upstream in `bomly-dev/bomly-sdk` (`system/read_test.go`);
+  `test/assurance/sdk_contract_test.go` re-asserts the bounding contract
+  (including growth rejection and the 64 MiB repository limit) against the
+  pinned version in `make test`.
+- `bomly-sdk/filecache` (pinned dependency): corrupt and oversized cache
+  entries degrade to a miss — contract-checked locally in
+  `test/assurance/sdk_contract_test.go`, authoritative suite upstream in
+  `filecache/cache_test.go`.
 - Detector and analyzer package suites: valid fixtures still produce their
   complete expected graphs and analysis results through the bounded readers.
 - `scripts/run-fuzz.sh`: every registered pure repository parser receives

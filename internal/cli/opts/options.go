@@ -16,8 +16,8 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/git"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/plugin"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )

@@ -12,8 +12,9 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -143,7 +144,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 			return sdk.DetectionResult{}, err
 		}
 		AttachNugetPositions(g, workingDir)
-		return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, []string{"packages.lock.json"}))}, nil
+		return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, []string{"packages.lock.json"}))}, nil
 	}
 
 	depsFiles, err := nugetDepsFiles(workingDir)
@@ -156,7 +157,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 			return sdk.DetectionResult{}, err
 		}
 		AttachNugetPositions(g, workingDir)
-		return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, []string{"*.deps.json"}))}, nil
+		return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, []string{"*.deps.json"}))}, nil
 	}
 
 	configPath := filepath.Join(workingDir, "packages.config")
@@ -167,7 +168,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 			return sdk.DetectionResult{}, err
 		}
 		AttachNugetPositions(g, workingDir)
-		return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, []string{"packages.config"}))}, nil
+		return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, []string{"packages.config"}))}, nil
 	}
 	if !errors.Is(err, os.ErrNotExist) {
 		return sdk.DetectionResult{}, fmt.Errorf("read NuGet packages.config: %w", err)
@@ -182,7 +183,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 		return sdk.DetectionResult{}, err
 	}
 	AttachNugetPositions(g, workingDir)
-	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, projectFilePatterns))}, nil
+	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, projectFilePatterns))}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/testutil"
+	testutil "github.com/bomly-dev/bomly-sdk/testkit"
 )
 
 func FuzzLoadFile(f *testing.F) {

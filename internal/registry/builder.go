@@ -75,6 +75,9 @@ type Configs struct {
 	// PluginConfigs carries kind-scoped per-component configuration blocks so
 	// embedded components can decode the same block managed plugins receive.
 	PluginConfigs config.PluginConfigs
+	// CoreVersion is the running bomly core version, surfaced to embedded
+	// components through sdk.HostContext.Runtime(). Empty when unknown.
+	CoreVersion string
 }
 
 // Filter narrows a registry down to the runtime-relevant selections.

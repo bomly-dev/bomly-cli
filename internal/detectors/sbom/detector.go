@@ -9,8 +9,9 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -84,6 +85,8 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	doc, target, err := sbom.UnmarshalAutoJSON(data)
 	if err != nil {
 		switch {
+		case errors.Is(err, sbom.ErrSyftJSONUnsupported):
+			return sdk.DetectionResult{}, fmt.Errorf("unsupported sbom file %q: %w", sbomPath, err)
 		case errors.Is(err, sbom.ErrMalformedJSON):
 			return sdk.DetectionResult{}, fmt.Errorf("parse sbom file %q: %w", sbomPath, err)
 		case errors.Is(err, sbom.ErrUnsupportedFormat):
@@ -93,21 +96,11 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 		}
 	}
 
-	var graphs *sdk.GraphContainer
-	switch target {
-	case sbom.TargetSyftJSON:
-		var syftErr error
-		graphs, syftErr = decodeSyftJSONGraphs(data, sbomPath)
-		if syftErr != nil {
-			return sdk.DetectionResult{}, syftErr
-		}
-	default:
-		depsGraph, err := sbom.ToGraph(doc)
-		if err != nil {
-			return sdk.DetectionResult{}, fmt.Errorf("convert sbom %q to graph: %w", sbomPath, err)
-		}
-		graphs = sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns))
+	depsGraph, err := sbom.ToGraph(doc)
+	if err != nil {
+		return sdk.DetectionResult{}, fmt.Errorf("convert sbom %q to graph: %w", sbomPath, err)
 	}
+	graphs := sdk.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns))
 
 	logger.Debug("resolved explicit sbom file", zap.String("path", sbomPath), zap.String("format", string(target)))
 	return sdk.DetectionResult{
@@ -123,7 +116,7 @@ func normalizeSBOMManifestMetadata(container *sdk.GraphContainer, req sdk.Detect
 		return container
 	}
 	normalized := &sdk.GraphContainer{Entries: make([]sdk.GraphEntry, 0, len(container.Entries))}
-	defaultManifest := detectors.InferManifestMetadata(req, evidencePatterns)
+	defaultManifest := detectorkit.InferManifestMetadata(req, evidencePatterns)
 	for _, entry := range container.Entries {
 		manifest := entry.Manifest
 		if manifest.Path == "" {

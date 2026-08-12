@@ -36,3 +36,7 @@ qodana.yaml
 # Copied from the repo root by npm/scripts/prepack.js at pack time
 /npm/LICENSE
 /npm/NOTICE
+
+# accidental root-level build outputs
+/bomly
+/bomly-lite

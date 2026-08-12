@@ -3,7 +3,7 @@ package cocoapods
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/testutil"
+	testutil "github.com/bomly-dev/bomly-sdk/testkit"
 )
 
 func FuzzDepGraphFromPodfileLock(f *testing.F) {

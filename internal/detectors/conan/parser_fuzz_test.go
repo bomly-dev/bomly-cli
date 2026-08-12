@@ -3,7 +3,7 @@ package conan
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/testutil"
+	testutil "github.com/bomly-dev/bomly-sdk/testkit"
 )
 
 func FuzzDepGraphFromConanJSON(f *testing.F) {

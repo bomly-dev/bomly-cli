@@ -15,11 +15,11 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/analyzers/jsreach"
 	"github.com/bomly-dev/bomly-cli/internal/analyzers/jvmreach"
 	"github.com/bomly-dev/bomly-cli/internal/analyzers/pyreach"
-	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/depsdev"
 	osvmatcher "github.com/bomly-dev/bomly-cli/internal/matchers/osv"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/scorecard"
 	"github.com/bomly-dev/bomly-sdk"
+	logging "github.com/bomly-dev/bomly-sdk/logkit"
 	"go.uber.org/zap"
 )
 

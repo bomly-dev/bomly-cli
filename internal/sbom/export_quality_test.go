@@ -373,3 +373,140 @@ func TestMarshalDepGraphJSON_SPDX23ProvenanceAndToolVersion(t *testing.T) {
 		t.Fatalf("expected the document to describe the synthesized root")
 	}
 }
+
+func TestFromDepGraph_StampsFirstPartyVersionFromProjectRoot(t *testing.T) {
+	g := sdk.New()
+	main := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name: "example.com/app", Ecosystem: sdk.EcosystemGo, FirstParty: true,
+	}})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name: "example.com/lib", Version: "v1.0.0", Ecosystem: sdk.EcosystemGo,
+	}})
+	for _, n := range []*sdk.Dependency{main, dep} {
+		if err := g.AddNode(n); err != nil {
+			t.Fatalf("add node: %v", err)
+		}
+	}
+	if err := g.AddEdge(main.ID, dep.ID); err != nil {
+		t.Fatalf("add edge: %v", err)
+	}
+
+	doc, err := FromDepGraph(g, BuildOptions{ProjectRoot: &ProjectRoot{Name: "app", Version: "v2.3.4"}})
+	if err != nil {
+		t.Fatalf("from depgraph: %v", err)
+	}
+	for _, c := range doc.Components {
+		if c.Name == "example.com/app" && c.Version != "v2.3.4" {
+			t.Fatalf("expected first-party component to carry the project version, got %q", c.Version)
+		}
+		if c.Name == "example.com/lib" && c.Version != "v1.0.0" {
+			t.Fatalf("third-party version must not be overwritten, got %q", c.Version)
+		}
+	}
+}
+
+func TestNormalizeSPDXLicenseExpression(t *testing.T) {
+	cases := map[string]string{
+		"GPL-2.0":              "GPL-2.0-only",
+		"GPL-3.0+":             "GPL-3.0-or-later",
+		"(MIT OR GPL-2.0)":     "(MIT OR GPL-2.0-only)",
+		"MIT":                  "MIT",
+		"Custom License Text":  "Custom License Text",
+		"LGPL-2.1 WITH addon":  "LGPL-2.1-only WITH addon",
+		"":                     "",
+	}
+	for in, want := range cases {
+		if got := normalizeSPDXLicenseExpression(in); got != want {
+			t.Errorf("normalizeSPDXLicenseExpression(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
+func TestMarshalDepGraphJSON_CycloneDXLifecycleCompositionAndAuthors(t *testing.T) {
+	out, err := MarshalDepGraphJSON(mustMultiRootGraph(t), TargetCycloneDX17JSON, BuildOptions{
+		ProjectRoot: &ProjectRoot{Name: "demo"},
+		Lifecycle:   "pre-build",
+		Aggregate:   "complete",
+		Provenance: Provenance{
+			Manufacturer:    "Example Org",
+			SecurityContact: "security@example.com",
+		},
+	}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal cyclonedx: %v", err)
+	}
+	var bom cdx.BOM
+	if err := json.Unmarshal(out, &bom); err != nil {
+		t.Fatalf("unmarshal cyclonedx: %v", err)
+	}
+	if bom.Metadata.Lifecycles == nil || len(*bom.Metadata.Lifecycles) != 1 || (*bom.Metadata.Lifecycles)[0].Phase != cdx.LifecyclePhasePreBuild {
+		t.Fatalf("expected pre-build lifecycle, got %+v", bom.Metadata.Lifecycles)
+	}
+	if bom.Compositions == nil || len(*bom.Compositions) != 1 || (*bom.Compositions)[0].Aggregate != cdx.CompositionAggregateComplete {
+		t.Fatalf("expected complete composition, got %+v", bom.Compositions)
+	}
+	if bom.Metadata.Authors == nil || len(*bom.Metadata.Authors) != 1 {
+		t.Fatalf("expected one author, got %+v", bom.Metadata.Authors)
+	}
+	author := (*bom.Metadata.Authors)[0]
+	if author.Name != "Example Org" || author.Email != "security@example.com" {
+		t.Fatalf("unexpected author: %+v", author)
+	}
+}
+
+func TestMarshalDepGraphJSON_CycloneDXOmitsInvalidLifecycleAndAggregate(t *testing.T) {
+	out, err := MarshalDepGraphJSON(mustGraph(t), TargetCycloneDX17JSON, BuildOptions{
+		Lifecycle: "sometime",
+		Aggregate: "mostly-done",
+	}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal cyclonedx: %v", err)
+	}
+	var bom cdx.BOM
+	if err := json.Unmarshal(out, &bom); err != nil {
+		t.Fatalf("unmarshal cyclonedx: %v", err)
+	}
+	if bom.Metadata.Lifecycles != nil {
+		t.Fatalf("invalid lifecycle should be omitted, got %+v", bom.Metadata.Lifecycles)
+	}
+	if bom.Compositions != nil {
+		t.Fatalf("invalid aggregate should be omitted, got %+v", bom.Compositions)
+	}
+}
+
+func TestMarshalDepGraphJSON_SPDX23PackagePurposes(t *testing.T) {
+	g := sdk.New()
+	workflow := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name: "ci.yml", Version: "local", Ecosystem: sdk.EcosystemGitHub, Type: sdk.ParsePackageType("workflow"),
+	}})
+	lib := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name: "react", Version: "18.2.0", Ecosystem: sdk.EcosystemNPM,
+	}})
+	for _, n := range []*sdk.Dependency{workflow, lib} {
+		if err := g.AddNode(n); err != nil {
+			t.Fatalf("add node: %v", err)
+		}
+	}
+
+	out, err := MarshalDepGraphJSON(g, TargetSPDX23JSON, BuildOptions{ProjectRoot: &ProjectRoot{Name: "demo"}}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal spdx: %v", err)
+	}
+	var d v23.Document
+	if err := json.Unmarshal(out, &d); err != nil {
+		t.Fatalf("unmarshal spdx: %v", err)
+	}
+	purposes := map[string]string{}
+	for _, p := range d.Packages {
+		purposes[p.PackageName] = p.PrimaryPackagePurpose
+	}
+	if purposes["react"] != "LIBRARY" {
+		t.Fatalf("expected LIBRARY purpose for react, got %q", purposes["react"])
+	}
+	if purposes["ci.yml"] != "OTHER" {
+		t.Fatalf("expected OTHER purpose for workflow, got %q", purposes["ci.yml"])
+	}
+	if purposes["demo"] != "APPLICATION" {
+		t.Fatalf("expected APPLICATION purpose for project root, got %q", purposes["demo"])
+	}
+}

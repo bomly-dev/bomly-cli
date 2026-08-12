@@ -67,6 +67,16 @@ type BuildOptions struct {
 
 	Provenance Provenance
 
+	// Lifecycle is the CycloneDX lifecycle phase the document describes
+	// (for example "pre-build" for source scans, "post-build" for container
+	// images). Empty omits lifecycle metadata.
+	Lifecycle string
+
+	// Aggregate is the CycloneDX composition completeness declaration
+	// ("complete", "incomplete", ...). Empty omits the declaration; callers
+	// must only claim "complete" when nothing filtered or degraded the graph.
+	Aggregate string
+
 	// Registry, when non-nil, supplies matching-stage enrichment (licenses,
 	// vulnerabilities, CPEs, digests, EOL) resolved by PURL and folded onto
 	// each component during projection.
@@ -88,6 +98,8 @@ type Document struct {
 	Created      time.Time
 	SerialNumber string
 	Provenance   Provenance
+	Lifecycle    string
+	Aggregate    string
 
 	Components   []Component
 	Dependencies []Dependency
@@ -158,6 +170,10 @@ type Vulnerability struct {
 	FixedVersions []string
 	Advisories    []string
 	Description   string
+
+	// Recommendation is remediation guidance derived from known fixed
+	// versions (CycloneDX `recommendation`; SPDX 2.3 has no equivalent).
+	Recommendation string
 }
 
 // EOL is a format-agnostic projection of end-of-life enrichment for a component.

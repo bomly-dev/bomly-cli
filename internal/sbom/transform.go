@@ -28,10 +28,16 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 	depsByRef := make(map[string][]string, componentCount)
 
 	g.WalkNodes(func(pkg *sdk.Dependency) bool {
+		version := pkg.Version
+		if version == "" && pkg.FirstParty && opts.ProjectRoot != nil {
+			// First-party nodes (the scanned project's own modules) have no
+			// registry version; the project version is theirs.
+			version = strings.TrimSpace(opts.ProjectRoot.Version)
+		}
 		component := Component{
 			ID:             pkg.ID,
 			Name:           pkg.EcosystemName(),
-			Version:        pkg.Version,
+			Version:        version,
 			Scope:          string(pkg.PrimaryScope()),
 			PURL:           pkg.PURL,
 			Ecosystem:      string(pkg.Ecosystem),
@@ -139,6 +145,8 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 		Created:      created,
 		SerialNumber: serialNumber,
 		Provenance:   opts.Provenance,
+		Lifecycle:    strings.TrimSpace(opts.Lifecycle),
+		Aggregate:    strings.TrimSpace(opts.Aggregate),
 		Components:   components,
 		Dependencies: dependencies,
 		Roots:        rootIDs,
@@ -273,7 +281,7 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 		component.Digests = digests
 	}
 	if len(pkg.Vulnerabilities) > 0 {
-		component.Vulnerabilities = vulnerabilitiesFromPackage(pkg.Vulnerabilities)
+		component.Vulnerabilities = vulnerabilitiesFromPackage(pkg.EcosystemName(), pkg.Vulnerabilities)
 	}
 	if pkg.EOL != nil {
 		component.EOL = &EOL{
@@ -288,15 +296,16 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 // vulnerabilitiesFromPackage projects matching-stage advisories into the
 // format-agnostic SBOM vulnerability model. Severity/score/vector come from the
 // first CVSS entry when present, falling back to the parsed severity band.
-func vulnerabilitiesFromPackage(vulns []sdk.Vulnerability) []Vulnerability {
+func vulnerabilitiesFromPackage(packageName string, vulns []sdk.Vulnerability) []Vulnerability {
 	out := make([]Vulnerability, 0, len(vulns))
 	for _, v := range vulns {
 		vuln := Vulnerability{
-			ID:            v.ID,
-			Source:        v.Source,
-			Severity:      string(v.ParsedSeverity),
-			FixedVersions: append([]string(nil), v.FixedVersions...),
-			Description:   v.Details,
+			ID:             v.ID,
+			Source:         v.Source,
+			Severity:       string(v.ParsedSeverity),
+			FixedVersions:  append([]string(nil), v.FixedVersions...),
+			Description:    v.Details,
+			Recommendation: vulnerabilityRecommendation(packageName, v.FixedVersions),
 		}
 		if vuln.Source == "" {
 			vuln.Source = v.DataSource
@@ -319,6 +328,26 @@ func vulnerabilitiesFromPackage(vulns []sdk.Vulnerability) []Vulnerability {
 		out = append(out, vuln)
 	}
 	return out
+}
+
+// vulnerabilityRecommendation renders remediation guidance from known fixed
+// versions. Returns "" when no fix is known so consumers never see fabricated
+// advice.
+func vulnerabilityRecommendation(packageName string, fixedVersions []string) string {
+	versions := make([]string, 0, len(fixedVersions))
+	for _, v := range fixedVersions {
+		if v = strings.TrimSpace(v); v != "" {
+			versions = append(versions, v)
+		}
+	}
+	if len(versions) == 0 {
+		return ""
+	}
+	subject := strings.TrimSpace(packageName)
+	if subject == "" {
+		subject = "the affected package"
+	}
+	return "Upgrade " + subject + " to " + strings.Join(versions, " or ")
 }
 
 // cweNumber extracts the integer portion of a CWE identifier such as
@@ -361,10 +390,68 @@ func componentLicenses(licenses []sdk.PackageLicense) []License {
 	out := make([]License, 0, len(licenses))
 	for _, license := range licenses {
 		out = append(out, License{
-			Value:          license.Value,
-			SPDXExpression: license.SPDXExpression,
+			Value:          normalizeSPDXLicenseExpression(license.Value),
+			SPDXExpression: normalizeSPDXLicenseExpression(license.SPDXExpression),
 			Type:           string(license.Type),
 		})
 	}
 	return out
+}
+
+// deprecatedSPDXLicenseIDs maps SPDX license identifiers that the SPDX license
+// list has deprecated onto their current replacements. Only unambiguous
+// renames are listed; anything else passes through untouched.
+var deprecatedSPDXLicenseIDs = map[string]string{
+	"AGPL-1.0":   "AGPL-1.0-only",
+	"AGPL-3.0":   "AGPL-3.0-only",
+	"GFDL-1.1":   "GFDL-1.1-only",
+	"GFDL-1.2":   "GFDL-1.2-only",
+	"GFDL-1.3":   "GFDL-1.3-only",
+	"GPL-1.0":    "GPL-1.0-only",
+	"GPL-1.0+":   "GPL-1.0-or-later",
+	"GPL-2.0":    "GPL-2.0-only",
+	"GPL-2.0+":   "GPL-2.0-or-later",
+	"GPL-3.0":    "GPL-3.0-only",
+	"GPL-3.0+":   "GPL-3.0-or-later",
+	"LGPL-2.0":   "LGPL-2.0-only",
+	"LGPL-2.0+":  "LGPL-2.0-or-later",
+	"LGPL-2.1":   "LGPL-2.1-only",
+	"LGPL-2.1+":  "LGPL-2.1-or-later",
+	"LGPL-3.0":   "LGPL-3.0-only",
+	"LGPL-3.0+":  "LGPL-3.0-or-later",
+	"GPL-2.0-with-classpath-exception": "GPL-2.0-only WITH Classpath-exception-2.0",
+}
+
+// normalizeSPDXLicenseExpression replaces deprecated SPDX identifiers inside a
+// license expression with their current names, preserving expression
+// structure. Non-SPDX free-text values pass through unchanged.
+func normalizeSPDXLicenseExpression(expression string) string {
+	if strings.TrimSpace(expression) == "" {
+		return expression
+	}
+	var b strings.Builder
+	b.Grow(len(expression))
+	token := strings.Builder{}
+	flush := func() {
+		if token.Len() == 0 {
+			return
+		}
+		t := token.String()
+		if replacement, ok := deprecatedSPDXLicenseIDs[t]; ok {
+			b.WriteString(replacement)
+		} else {
+			b.WriteString(t)
+		}
+		token.Reset()
+	}
+	for _, r := range expression {
+		if r == ' ' || r == '(' || r == ')' {
+			flush()
+			b.WriteRune(r)
+			continue
+		}
+		token.WriteRune(r)
+	}
+	flush()
+	return b.String()
 }

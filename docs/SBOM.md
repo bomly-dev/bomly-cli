@@ -85,10 +85,20 @@ Both formats carry:
 - Dependency relationships from the detector graph.
 - File-level evidence when the detector provided it.
 - Content hashes captured at detection time, when the ecosystem records them:
-  npm/pnpm/yarn/bun lockfile integrity values and Go module `go.sum` tree
+  npm/pnpm/yarn/bun lockfile integrity values, Go module `go.sum` tree
   hashes (the `h1:` SHA-256 dirhash, hex-encoded — the same convention
-  cyclonedx-gomod uses). Values are normalized to lowercase hex so they are
-  schema-valid in both formats.
+  cyclonedx-gomod uses), SHA-256 digests of GitHub Actions workflow and
+  action manifests, and the pinned commit ID of SHA-pinned actions. Values
+  are normalized to lowercase hex so they are schema-valid in both formats.
+- License identifiers normalized to the current SPDX license list: deprecated
+  ids such as `GPL-2.0` are rewritten to their replacements (`GPL-2.0-only`)
+  inside expressions, in both formats.
+- An SPDX `primaryPackagePurpose` for every package (LIBRARY for registry
+  packages, APPLICATION for the primary component, and so on).
+- Remediation guidance on CycloneDX vulnerability entries: when enrichment
+  knows fixed versions, each vulnerability carries a `recommendation`
+  ("Upgrade <package> to <version>"). No guidance is invented when no fix is
+  known. SPDX 2.3 has no equivalent field.
 
 ### Document identity
 
@@ -100,6 +110,15 @@ Every generated document carries a stable identity:
 - The producing tool with its version (CycloneDX `metadata.tools[]`; SPDX
   `Creator: Tool: bomly-cli-<version>`), plus one tool entry per detector that
   contributed to the graph.
+- A project version on the primary component and the project's own
+  (first-party) modules: the `--ref` value for remote scans, or `git
+  describe --tags --always --dirty` for local checkouts. When neither is
+  available the version is omitted rather than invented.
+- A CycloneDX lifecycle phase (`pre-build` for source scans, `post-build`
+  for container images) and a composition completeness declaration:
+  `complete` for unfiltered, warning-free scans, `incomplete` when a
+  `--scope` filter dropped part of the graph, `unknown` when resolution was
+  degraded. SPDX 2.3 has no equivalent fields.
 - A primary component describing the scanned project. When the dependency
   graph has a single root, that root is the primary component. When a scan
   discovers multiple manifests (several ecosystems, several workflow files),

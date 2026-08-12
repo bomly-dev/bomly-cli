@@ -86,11 +86,23 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 	}
 	if doc.Provenance.Manufacturer != "" {
 		metadata.Manufacturer = &cdx.OrganizationalEntity{Name: doc.Provenance.Manufacturer}
+		author := cdx.OrganizationalContact{Name: doc.Provenance.Manufacturer}
+		if email := bareEmail(doc.Provenance.SecurityContact); email != "" {
+			author.Email = email
+		}
+		metadata.Authors = &[]cdx.OrganizationalContact{author}
 	}
 	if props := cycloneDXMetadataProperties(doc.Provenance); len(props) > 0 {
 		metadata.Properties = &props
 	}
+	if phase := cycloneDXLifecyclePhase(doc.Lifecycle); phase != "" {
+		metadata.Lifecycles = &[]cdx.Lifecycle{{Phase: phase}}
+	}
 	bom.Metadata = metadata
+
+	if aggregate := cycloneDXAggregate(doc.Aggregate); aggregate != "" {
+		bom.Compositions = &[]cdx.Composition{{Aggregate: aggregate}}
+	}
 
 	var out bytes.Buffer
 	enc := cdx.NewBOMEncoder(&out, cdx.BOMFileFormatJSON).SetPretty(opts.Pretty)
@@ -251,6 +263,44 @@ func cycloneDXSecurityReferences(p Provenance) []cdx.ExternalReference {
 		return nil
 	}
 	return refs
+}
+
+// bareEmail returns value when it looks like a plain email address (no URI
+// scheme), otherwise "".
+func bareEmail(value string) string {
+	value = strings.TrimSpace(value)
+	if strings.Contains(value, "@") && !strings.Contains(value, ":") && !strings.Contains(value, "/") {
+		return value
+	}
+	return ""
+}
+
+// cycloneDXLifecyclePhase validates a lifecycle phase against the CycloneDX
+// vocabulary, returning "" for unknown values so an invalid phase can never
+// make the document non-conformant.
+func cycloneDXLifecyclePhase(value string) cdx.LifecyclePhase {
+	switch cdx.LifecyclePhase(strings.ToLower(strings.TrimSpace(value))) {
+	case cdx.LifecyclePhaseDesign, cdx.LifecyclePhasePreBuild, cdx.LifecyclePhaseBuild,
+		cdx.LifecyclePhasePostBuild, cdx.LifecyclePhaseOperations, cdx.LifecyclePhaseDiscovery,
+		cdx.LifecyclePhaseDecommission:
+		return cdx.LifecyclePhase(strings.ToLower(strings.TrimSpace(value)))
+	default:
+		return ""
+	}
+}
+
+// cycloneDXAggregate validates a composition aggregate value, returning "" for
+// unknown values.
+func cycloneDXAggregate(value string) cdx.CompositionAggregate {
+	switch cdx.CompositionAggregate(strings.ToLower(strings.TrimSpace(value))) {
+	case cdx.CompositionAggregateComplete, cdx.CompositionAggregateIncomplete,
+		cdx.CompositionAggregateIncompleteFirstPartyOnly, cdx.CompositionAggregateIncompleteFirstPartyOpenSourceOnly,
+		cdx.CompositionAggregateIncompleteThirdPartyOnly, cdx.CompositionAggregateIncompleteThirdPartyOpenSourceOnly,
+		cdx.CompositionAggregateNotSpecified, cdx.CompositionAggregateUnknown:
+		return cdx.CompositionAggregate(strings.ToLower(strings.TrimSpace(value)))
+	default:
+		return ""
+	}
 }
 
 func cycloneDXMetadataProperties(p Provenance) []cdx.Property {
@@ -471,8 +521,9 @@ func cycloneDXVulnerabilities(components []Component) []cdx.Vulnerability {
 
 func cycloneDXVulnerability(v Vulnerability, refs []string) cdx.Vulnerability {
 	vuln := cdx.Vulnerability{
-		ID:          v.ID,
-		Description: v.Description,
+		ID:             v.ID,
+		Description:    v.Description,
+		Recommendation: v.Recommendation,
 	}
 	if v.Source != "" {
 		vuln.Source = &cdx.Source{Name: v.Source}

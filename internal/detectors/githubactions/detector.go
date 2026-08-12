@@ -2,6 +2,8 @@ package githubactions
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io/fs"
 	"os"
@@ -113,6 +115,7 @@ func depGraphContainerFromRepository(projectPath string) (*sdk.GraphContainer, e
 
 	for _, relPath := range workflowFiles {
 		node := localWorkflowNode(relPath)
+		node.Digests = manifestFileDigests(projectPath, relPath)
 		workflowNodes[relPath] = node
 		if err := addNodeIfMissing(depsGraph, node); err != nil {
 			return nil, err
@@ -121,6 +124,7 @@ func depGraphContainerFromRepository(projectPath string) (*sdk.GraphContainer, e
 	for _, relManifestPath := range actionFiles {
 		relActionPath := filepath.ToSlash(filepath.Dir(relManifestPath))
 		node := localActionNode(relActionPath)
+		node.Digests = manifestFileDigests(projectPath, relManifestPath)
 		actionNodes[relActionPath] = node
 		if err := addNodeIfMissing(depsGraph, node); err != nil {
 			return nil, err
@@ -359,17 +363,34 @@ func resolveReference(ref, callerRelPath string, workflowNodes map[string]*sdk.D
 	if strings.Contains(name, ".github/workflows/") {
 		typeName = "workflow"
 	}
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGitHub,
-			Org:     org,
-			Name:    packageName,
-			Version: version,
+	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGitHub,
+		Org:     org,
+		Name:    packageName,
+		Version: version,
 
-			PackageManager: sdk.PackageManagerGitHubActions,
-			Type:           sdk.ParsePackageType(typeName),
-			Language:       "yaml"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime),
-		}),
+		PackageManager: sdk.PackageManagerGitHubActions,
+		Type:           sdk.ParsePackageType(typeName),
+		Language:       "yaml"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime),
+	})
+	// A SHA-pinned ref is the content-addressed identity of the action's
+	// source tree; record it so SBOM consumers can verify the pin.
+	if isGitCommitSHA(version) {
+		node.Digests = []sdk.Digest{{Algorithm: sdk.DigestAlgorithmSHA1, Value: strings.ToLower(version)}}
+	}
+	return node, nil
+}
 
-		nil
+// isGitCommitSHA reports whether value is a full 40-hex-character Git object ID.
+func isGitCommitSHA(value string) bool {
+	if len(value) != 40 {
+		return false
+	}
+	for _, r := range value {
+		if (r < '0' || r > '9') && (r < 'a' || r > 'f') && (r < 'A' || r > 'F') {
+			return false
+		}
+	}
+	return true
 }
 
 func localReferenceCandidates(ref, callerRelPath string) []string {
@@ -419,6 +440,18 @@ func localActionNode(relPath string) *sdk.Dependency {
 		Language:       "yaml"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime),
 	})
 
+}
+
+// manifestFileDigests hashes a workflow or action manifest file so local
+// manifest components carry verifiable integrity data. Returns nil on any
+// read failure — digests are metadata, never a resolution requirement.
+func manifestFileDigests(projectPath, relPath string) []sdk.Digest {
+	data, err := system.ReadRepositoryFile(filepath.Join(projectPath, filepath.FromSlash(relPath)))
+	if err != nil {
+		return nil
+	}
+	sum := sha256.Sum256(data)
+	return []sdk.Digest{{Algorithm: sdk.DigestAlgorithmSHA256, Value: hex.EncodeToString(sum[:])}}
 }
 
 func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {

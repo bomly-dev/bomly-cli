@@ -188,3 +188,50 @@ func TestDetectorResolveGraphPreservesDuplicateUsesLocations(t *testing.T) {
 		t.Fatalf("checkout locations = %#v, want ci line 4 and guard line 5", checkout.Locations)
 	}
 }
+
+func TestDepGraphDigests(t *testing.T) {
+	projectDir := t.TempDir()
+	workflowDir := filepath.Join(projectDir, ".github", "workflows")
+	if err := os.MkdirAll(workflowDir, 0o755); err != nil {
+		t.Fatalf("create workflow dir: %v", err)
+	}
+	pinned := "11bd71901bbe5b1630ceea73d27597364c9af683"
+	workflow := []byte("jobs:\n  build:\n    steps:\n      - uses: actions/checkout@" + pinned + "\n      - uses: actions/cache@v4\n")
+	if err := os.WriteFile(filepath.Join(workflowDir, "ci.yml"), workflow, 0o644); err != nil {
+		t.Fatalf("write workflow: %v", err)
+	}
+
+	g, err := depGraphFromRepository(projectDir)
+	if err != nil {
+		t.Fatalf("depGraphFromRepository() error = %v", err)
+	}
+
+	found := map[string][]sdk.Digest{}
+	g.WalkNodes(func(node *sdk.Dependency) bool {
+		found[node.Name] = node.Digests
+		return true
+	})
+
+	checkout := found["checkout"]
+	if len(checkout) != 1 || checkout[0].Algorithm != sdk.DigestAlgorithmSHA1 || checkout[0].Value != pinned {
+		t.Fatalf("expected pinned commit digest on actions/checkout, got %#v", checkout)
+	}
+	if len(found["cache"]) != 0 {
+		t.Fatalf("tag-pinned action must not carry a digest, got %#v", found["cache"])
+	}
+	wf := found[".github/workflows/ci.yml"]
+	if len(wf) != 1 || wf[0].Algorithm != sdk.DigestAlgorithmSHA256 || len(wf[0].Value) != 64 {
+		t.Fatalf("expected sha256 file digest on the workflow manifest, got %#v", wf)
+	}
+}
+
+func TestIsGitCommitSHA(t *testing.T) {
+	if !isGitCommitSHA("11bd71901bbe5b1630ceea73d27597364c9af683") {
+		t.Fatal("expected 40-hex value to be recognized as a commit SHA")
+	}
+	for _, value := range []string{"v4", "main", "11bd719", "11bd71901bbe5b1630ceea73d27597364c9afzzz"} {
+		if isGitCommitSHA(value) {
+			t.Fatalf("value %q must not be treated as a commit SHA", value)
+		}
+	}
+}

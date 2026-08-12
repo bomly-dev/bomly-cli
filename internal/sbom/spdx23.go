@@ -43,9 +43,9 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageCopyrightText:      spdxCopyrightValue(c.Copyright),
 			PackageChecksums:          spdxChecksums(c.Digests),
 			PackageExternalReferences: spdxExternalReferences(c),
+			PrimaryPackagePurpose:     spdxPrimaryPackagePurpose(c.Type),
 		}
 		if IsProjectRootComponent(c) {
-			pkg.PrimaryPackagePurpose = "APPLICATION"
 			if doc.Provenance.Manufacturer != "" {
 				pkg.PackageSupplier = &common.Supplier{SupplierType: "Organization", Supplier: doc.Provenance.Manufacturer}
 			}
@@ -262,6 +262,32 @@ func parseSPDXCreated(ci *v23.CreationInfo) time.Time {
 		return time.Time{}
 	}
 	return t.UTC()
+}
+
+// spdxPrimaryPackagePurpose maps Bomly's component type onto the SPDX 2.3
+// PrimaryPackagePurpose vocabulary. Ordinary registry packages default to
+// LIBRARY; unmapped domain types (for example workflows) return OTHER.
+func spdxPrimaryPackagePurpose(componentType string) string {
+	switch strings.ToLower(strings.TrimSpace(componentType)) {
+	case "", "package", "library":
+		return "LIBRARY"
+	case "application":
+		return "APPLICATION"
+	case "framework":
+		return "FRAMEWORK"
+	case "container":
+		return "CONTAINER"
+	case "operating-system":
+		return "OPERATING-SYSTEM"
+	case "device":
+		return "DEVICE"
+	case "firmware":
+		return "FIRMWARE"
+	case "file":
+		return "FILE"
+	default:
+		return "OTHER"
+	}
 }
 
 // spdxCreatorComment folds provenance contact metadata into the SPDX creation

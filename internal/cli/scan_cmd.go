@@ -15,6 +15,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-cli/internal/tui"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"github.com/spf13/cobra"
 )
 
@@ -127,7 +128,7 @@ func newScanCmd() *cobra.Command {
 				return output.WriteSARIF(w, findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Analyze, LocationGraphs: []*sdk.Graph{pipeResult.Graph}})
 			}
 
-			sbomBuildOpts := scanSBOMBuildOptions(payload.Project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry)
+			sbomBuildOpts := scanSBOMBuildOptions(payload.Project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry, selectedScope, len(pipeResult.DetectorWarnings) > 0)
 
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -216,11 +217,13 @@ func scanPolicyExit(auditEnabled bool, findings []sdk.Finding) error {
 // scanSBOMBuildOptions assembles the SBOM projection options for a scan: the
 // document is named after the scanned project, the primary component mirrors
 // it, and optional provenance metadata comes from configuration.
-func scanSBOMBuildOptions(project output.ProjectDescriptor, current config.Resolved, version string, resolved []sdk.DetectionResult, registry *sdk.PackageRegistry) sbom.BuildOptions {
+func scanSBOMBuildOptions(project output.ProjectDescriptor, current config.Resolved, version string, resolved []sdk.DetectionResult, registry *sdk.PackageRegistry, selectedScope sdk.Scope, degraded bool) sbom.BuildOptions {
 	opts := sbom.BuildOptions{
 		ToolNames:   sbomToolNames(resolved),
 		ToolVersion: strings.TrimSpace(version),
 		Registry:    registry,
+		Lifecycle:   sbomLifecyclePhase(project.TargetType),
+		Aggregate:   sbomCompositionAggregate(selectedScope, degraded),
 		Provenance: sbom.Provenance{
 			Manufacturer:               strings.TrimSpace(current.SBOMManufacturer),
 			SecurityContact:            strings.TrimSpace(current.SBOMSecurityContact),
@@ -229,10 +232,62 @@ func scanSBOMBuildOptions(project output.ProjectDescriptor, current config.Resol
 		},
 	}
 	if name := strings.TrimSpace(project.Name); name != "" {
+		projectVersion := strings.TrimSpace(project.TargetRef)
+		if projectVersion == "" {
+			projectVersion = gitDescribeVersion(project.Path)
+		}
 		opts.DocumentName = name
-		opts.ProjectRoot = &sbom.ProjectRoot{Name: name, Version: strings.TrimSpace(project.TargetRef)}
+		opts.ProjectRoot = &sbom.ProjectRoot{Name: name, Version: projectVersion}
 	}
 	return opts
+}
+
+// sbomLifecyclePhase maps the execution target type onto a CycloneDX
+// lifecycle phase: source trees are pre-build inventories, container images
+// describe a built artifact. Other targets (for example re-exported SBOMs)
+// carry no phase claim.
+func sbomLifecyclePhase(targetType string) string {
+	switch targetType {
+	case "filesystem", "git repository":
+		return "pre-build"
+	case "container image":
+		return "post-build"
+	default:
+		return ""
+	}
+}
+
+// sbomCompositionAggregate declares dependency-graph completeness. A scope
+// filter deliberately drops part of the graph, and degraded resolution means
+// completeness is unknown; only an unfiltered, warning-free scan may claim
+// "complete".
+func sbomCompositionAggregate(selectedScope sdk.Scope, degraded bool) string {
+	if degraded {
+		return "unknown"
+	}
+	if selectedScope != sdk.ScopeUnknown && selectedScope != "" {
+		return "incomplete"
+	}
+	return "complete"
+}
+
+// gitDescribeVersion derives a project version from Git history when the scan
+// target is a checkout with no explicit ref (local path scans). Returns ""
+// when Git or history is unavailable — the version is then simply omitted.
+func gitDescribeVersion(path string) string {
+	if strings.TrimSpace(path) == "" {
+		return ""
+	}
+	gitPath, err := system.LookPath("git")
+	if err != nil {
+		return ""
+	}
+	cmd := system.Command(gitPath, "-C", path, "describe", "--tags", "--always", "--dirty")
+	out, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(out))
 }
 
 func sbomToolNames(results []sdk.DetectionResult) []string {

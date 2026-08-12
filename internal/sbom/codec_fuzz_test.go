@@ -23,6 +23,23 @@ func FuzzUnmarshalAutoJSON(f *testing.F) {
 			return
 		}
 		doc, target, err := UnmarshalAutoJSON(raw)
+
+		// Repeated parsing must be deterministic: same success state, same
+		// target, and same error classification.
+		doc2, target2, err2 := UnmarshalAutoJSON(raw)
+		if (err == nil) != (err2 == nil) || target != target2 {
+			t.Fatalf("non-deterministic parse: (%q, %v) then (%q, %v)", target, err, target2, err2)
+		}
+		if err != nil {
+			for _, sentinel := range []error{ErrSyftJSONUnsupported, ErrMalformedJSON, ErrUnsupportedFormat} {
+				if errors.Is(err, sentinel) != errors.Is(err2, sentinel) {
+					t.Fatalf("non-deterministic error classification: %v then %v", err, err2)
+				}
+			}
+		} else if (doc == nil) != (doc2 == nil) {
+			t.Fatalf("non-deterministic document presence: %v then %v", doc != nil, doc2 != nil)
+		}
+
 		if err != nil {
 			if target == TargetSyftJSON && !errors.Is(err, ErrSyftJSONUnsupported) {
 				t.Fatalf("syft target must fail with ErrSyftJSONUnsupported, got %v", err)

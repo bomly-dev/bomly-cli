@@ -17,7 +17,7 @@ the reader inventory, cache behavior, and intentional exclusions.
 | Configuration and policy documents | strict YAML configuration, finding baseline |
 | Shared JSON contracts | dependency graph, package registry |
 | Package identifiers and plugin paths | package URL canonicalization, plugin path sanitizers |
-| SBOM | automatic SPDX, CycloneDX, and Syft JSON decoding |
+| SBOM | automatic SPDX and CycloneDX decoding; Syft JSON identification and deterministic rejection (the format is no longer ingested) |
 | Analyzer output | govulncheck JSON stream, esbuild metafile |
 | Node lockfiles | npm, pnpm, Yarn, Bun |
 | Node project configuration | package.json, pnpm-workspace.yaml, and .npmrc behind the package-manager warning checks |

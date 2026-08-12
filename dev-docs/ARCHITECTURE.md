@@ -561,6 +561,12 @@ The former `internal/system`, `internal/matchers/cache`, and `internal/testutil`
 
 Do not reintroduce CLI-internal copies of these helpers; new shared helper code goes into the appropriate SDK subpackage.
 
+### Decision: syft-JSON SBOM ingest is removed; sniffing is retained for the migration error
+
+Syft's proprietary JSON SBOM format is no longer an accepted `--sbom` ingest input. It had exactly one consumer in the codebase — the SBOM ingest detector — while the syft detector itself always shells out with `-o spdx-json`, and the lite build (`bomly_external_syft`) already degraded syft-JSON ingest silently to a lossy generic decode, so the two build variants quietly disagreed. Removing the decode path made `internal/detectors/sbom` build-tag-free and dropped its `anchore/syft` dependency.
+
+The boundary: `internal/sbom` **keeps** syft-JSON identification in `DetectJSONTarget` solely so `UnmarshalAutoJSON` can fail with the precise, actionable `ErrSyftJSONUnsupported` ("convert with: `syft convert <file> -o spdx-json`") instead of a generic unsupported-format error. Sniffing is not a step toward re-adding ingest; supported ingest formats are SPDX 2.3 JSON and CycloneDX 1.4–1.7 JSON.
+
 ## Build Modes
 
 Syft and Grype each support two build modes:

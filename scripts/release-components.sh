@@ -18,10 +18,11 @@
 # --version is given), then print the `git tag` / `git push` commands for every
 # component module missing that tag, plus the root-module `go get` pin bumps.
 #
-# --apply: create and push those annotated tags. Modules already tagged at the
-# release version are skipped, so the script is idempotent and safe to re-run
-# after a partial failure. The root pin bumps are printed, not executed — they
-# land through a normal PR.
+# --apply: create and push those annotated tags. Modules whose tag already
+# exists ON ORIGIN are skipped (the remote is the source of truth, so a rerun
+# after a partial failure pushes any local-only tag instead of skipping it),
+# making the script idempotent. The root pin bumps are printed, not executed —
+# they land through a normal PR.
 #
 # Intended flow: run after the CLI release tag exists (auto-version.yml), then
 # open the pin-bump PR.
@@ -78,12 +79,14 @@ release_commit="$(git rev-parse -q --verify "refs/tags/${version}^{commit}")" ||
     exit 1
 }
 
-# Collect component module directories: components/<kind>/<name>/go.mod.
+# Collect component module directories from the RELEASE COMMIT, not the
+# working tree: with --version selecting an older release, HEAD's set of
+# components/<kind>/<name>/go.mod files may differ from what shipped.
 modules=()
-for gomod in components/*/*/go.mod; do
-    [[ -f "${gomod}" ]] || continue
+while IFS= read -r gomod; do
     modules+=("$(dirname "${gomod}")")
-done
+done < <(git ls-tree -r --name-only "${release_commit}" -- components/ |
+    grep -E '^components/[^/]+/[^/]+/go\.mod$' || true)
 
 if [[ ${#modules[@]} -eq 0 ]]; then
     echo "no component modules found under components/*/*/ — nothing to release" >&2
@@ -94,25 +97,44 @@ echo "# release version: ${version} (commit ${release_commit})"
 bump_cmds=()
 for module in "${modules[@]}"; do
     tag="${module}/${version}"
-    # Derive the module path from the component's go.mod rather than the
-    # filesystem path, so /v2+ major-version modules pin correctly.
-    module_path="$(awk '$1 == "module" { print $2; exit }' "${module}/go.mod")"
+    # Derive the module path from the go.mod AS OF THE RELEASE COMMIT (not the
+    # checkout), so /v2+ major-version modules pin correctly and the pin
+    # commands describe released code by construction.
+    module_path="$(git show "${release_commit}:${module}/go.mod" |
+        awk '$1 == "module" { print $2; exit }')"
     if [[ -z "${module_path}" ]]; then
-        echo "error: ${module}/go.mod has no module directive" >&2
+        echo "error: ${module}/go.mod at ${version} has no module directive" >&2
         exit 1
     fi
     bump_cmds+=("go get ${module_path}@${version}")
 
-    if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
-        echo "# ${module}: already tagged ${tag}, skipping"
+    # Idempotent reruns must survive a partial failure between local tag
+    # creation and push: the REMOTE is the source of truth for "already
+    # released". A local-only tag is verified against the release commit
+    # (a stale local tag is an error, never silently pushed) and pushed.
+    if [[ -n "$(git ls-remote --tags origin "refs/tags/${tag}")" ]]; then
+        echo "# ${module}: ${tag} already on origin, skipping"
         continue
     fi
+    local_tag_commit="$(git rev-parse -q --verify "refs/tags/${tag}^{commit}" || true)"
+    if [[ -n "${local_tag_commit}" && "${local_tag_commit}" != "${release_commit}" ]]; then
+        echo "error: local tag ${tag} points at ${local_tag_commit}, not release commit ${release_commit}; delete it (git tag -d ${tag}) and rerun" >&2
+        exit 1
+    fi
     if ${apply}; then
-        git tag -a "${tag}" -m "Release ${tag}" "${release_commit}"
+        if [[ -z "${local_tag_commit}" ]]; then
+            git tag -a "${tag}" -m "Release ${tag}" "${release_commit}"
+        else
+            echo "# ${module}: local tag ${tag} exists but was never pushed, pushing"
+        fi
         git push origin "${tag}"
         echo "tagged and pushed ${tag} at ${release_commit}"
     else
-        echo "git tag -a ${tag} -m 'Release ${tag}' ${release_commit}"
+        if [[ -z "${local_tag_commit}" ]]; then
+            echo "git tag -a ${tag} -m 'Release ${tag}' ${release_commit}"
+        else
+            echo "# ${module}: local tag ${tag} exists but is not on origin"
+        fi
         echo "git push origin ${tag}"
     fi
 done

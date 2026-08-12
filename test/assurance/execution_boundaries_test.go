@@ -20,27 +20,32 @@ type listedPackage struct {
 func TestRemediationPackageDependencyBoundaries(t *testing.T) {
 	root := repositoryRoot(t)
 	const module = "github.com/bomly-dev/bomly-cli/"
+	// The shared helper packages live in the SDK module now; the capability
+	// they grant (bounded filesystem/subprocess ops, cache filesystem access)
+	// is unchanged, so the boundary assertions target the SDK paths.
+	const sdkSystem = "github.com/bomly-dev/bomly-sdk/system"
+	const sdkFilecache = "github.com/bomly-dev/bomly-sdk/filecache"
 
 	t.Run("central derivation", func(t *testing.T) {
 		packages := goListDependencies(t, root, "./internal/remediation")
 		assertDirectImportsAbsent(t, packages, module+"internal/remediation", map[string]string{
-			"net":                              "network access",
-			"net/http":                         "HTTP access",
-			"os":                               "filesystem or process environment access",
-			"os/exec":                          "subprocess execution",
-			module + "internal/system":         "filesystem or subprocess access",
-			module + "internal/matchers/cache": "cache filesystem access",
+			"net":        "network access",
+			"net/http":   "HTTP access",
+			"os":         "filesystem or process environment access",
+			"os/exec":    "subprocess execution",
+			sdkSystem:    "filesystem or subprocess access",
+			sdkFilecache: "cache filesystem access",
 		})
 		assertDependenciesAbsent(t, packages, map[string]string{
-			module + "internal/git":            "Git filesystem or subprocess access",
-			module + "internal/matchers/cache": "cache filesystem access",
-			module + "internal/plugin":         "native plugin execution",
-			module + "internal/system":         "filesystem or subprocess access",
+			module + "internal/git":    "Git filesystem or subprocess access",
+			sdkFilecache:               "cache filesystem access",
+			module + "internal/plugin": "native plugin execution",
+			sdkSystem:                  "filesystem or subprocess access",
 		})
 	})
 
 	// These packages also own detector resolution, so their complete dependency
-	// graphs legitimately include internal/system and os/exec. At package
+	// graphs legitimately include the SDK system helpers and os/exec. At package
 	// granularity, enforce that remediation hints do not acquire network,
 	// cache, plugin, Git, or central-policy dependencies. Request immutability
 	// and read-only provider behavior are covered by the remediation contract
@@ -69,18 +74,18 @@ func TestRemediationPackageDependencyBoundaries(t *testing.T) {
 				packages := goListDependencies(t, root, target.path)
 				importPath := module + strings.TrimPrefix(target.path, "./")
 				assertDirectImportsAbsent(t, packages, importPath, map[string]string{
-					"net":                              "network access",
-					"net/http":                         "HTTP access",
-					module + "internal/git":            "Git access",
-					module + "internal/matchers/cache": "cache filesystem access",
-					module + "internal/plugin":         "native plugin execution",
-					module + "internal/remediation":    "central remediation policy",
+					"net":                           "network access",
+					"net/http":                      "HTTP access",
+					module + "internal/git":         "Git access",
+					sdkFilecache:                    "cache filesystem access",
+					module + "internal/plugin":      "native plugin execution",
+					module + "internal/remediation": "central remediation policy",
 				})
 				assertDependenciesAbsent(t, packages, map[string]string{
-					module + "internal/git":            "Git access",
-					module + "internal/matchers/cache": "cache filesystem access",
-					module + "internal/plugin":         "native plugin execution",
-					module + "internal/remediation":    "central remediation policy",
+					module + "internal/git":         "Git access",
+					sdkFilecache:                    "cache filesystem access",
+					module + "internal/plugin":      "native plugin execution",
+					module + "internal/remediation": "central remediation policy",
 				})
 			})
 		}

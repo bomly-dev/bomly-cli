@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/system"
+	"github.com/bomly-dev/bomly-sdk/system"
 )
 
 // jsDynamicImport matches dynamic-import constructs in JavaScript /

@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/system"
+	logging "github.com/bomly-dev/bomly-sdk/logkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 

@@ -5,8 +5,9 @@ import (
 	"fmt"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -27,7 +28,7 @@ func (d UVDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 // Ready reports whether uv is available.
 func (d UVDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := system.LookPath("uv")
-	return detectors.CommandNotReadyError("uv", err)
+	return detectorkit.CommandNotReadyError("uv", err)
 }
 
 // Applicable reports whether uv manifests are present.

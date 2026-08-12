@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/bomly-dev/bomly-cli/internal/logging"
+	logging "github.com/bomly-dev/bomly-sdk/logkit"
 	"go.uber.org/zap"
 	govulnscan "golang.org/x/vuln/scan"
 )

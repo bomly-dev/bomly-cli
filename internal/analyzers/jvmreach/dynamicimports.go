@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/system"
+	"github.com/bomly-dev/bomly-sdk/system"
 )
 
 // jvmDynamicImport matches JVM reflection-based class-loading

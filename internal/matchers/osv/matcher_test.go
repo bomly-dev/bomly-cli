@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	audcache "github.com/bomly-dev/bomly-cli/internal/matchers/cache"
 	"github.com/bomly-dev/bomly-sdk"
+	audcache "github.com/bomly-dev/bomly-sdk/filecache"
 )
 
 // --- buildQuery ---

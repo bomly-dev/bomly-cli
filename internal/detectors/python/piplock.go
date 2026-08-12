@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/system"
 )
 
 // pipLockFileName is the committed, fully-pinned lock the pip fast-path reads.

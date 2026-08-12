@@ -15,8 +15,10 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	logkit "github.com/bomly-dev/bomly-sdk/logkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -79,7 +81,7 @@ func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
 // Ready reports whether the Go CLI is available.
 func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := goExecLookPath("go")
-	return detectors.CommandNotReadyError("go", err)
+	return detectorkit.CommandNotReadyError("go", err)
 }
 
 // Applicable reports whether the target project contains a go.mod file.
@@ -119,7 +121,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	}
 
 	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns)),
+		Graphs: sdk.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns)),
 	}, nil
 }
 
@@ -152,7 +154,7 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 	args := buildGoListArgs()
 	cmd := goExecCommand(goPath, args...)
 	cmd.Dir = workingDir
-	commandStderr := logging.NewCommandStderr(stderr, verbose)
+	commandStderr := logkit.NewCommandStderr(stderr, verbose)
 	cmd.Stderr = commandStderr
 
 	started := time.Now()
@@ -466,11 +468,11 @@ func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
 	args := append([]string{"mod", "download"}, req.InstallArgs...)
 	cmd := goExecCommand(goPath, args...)
 	cmd.Dir = workingDir
-	commandStderr := logging.NewCommandStderr(req.Stderr, req.Verbose)
+	commandStderr := logkit.NewCommandStderr(req.Stderr, req.Verbose)
 	cmd.Stderr = commandStderr
 	started := time.Now()
 	logger.Info("Go detector running install-first step")
-	logger.Debug("running go detector install-first", logging.CommandFields(goPath, args, workingDir)...)
+	logger.Debug("running go detector install-first", logkit.CommandFields(goPath, args, workingDir)...)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("run go mod download: %w", err)
 	}

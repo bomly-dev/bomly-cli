@@ -19,8 +19,8 @@ import (
 	"github.com/anchore/syft/syft/cpe"
 	syftPkg "github.com/anchore/syft/syft/pkg"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/matchers"
 	"github.com/bomly-dev/bomly-sdk"
+	matchers "github.com/bomly-dev/bomly-sdk/matcherkit"
 	"go.uber.org/zap"
 )
 

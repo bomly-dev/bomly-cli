@@ -6,8 +6,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-sdk"
+	logging "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/hashicorp/go-hclog"
 	hplugin "github.com/hashicorp/go-plugin"
 )

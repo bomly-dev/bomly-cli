@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/system"
 )
 
 func TestDetectorResolveGraph_SPDXJSON(t *testing.T) {

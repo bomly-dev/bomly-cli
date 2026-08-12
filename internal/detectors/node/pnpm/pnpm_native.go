@@ -6,8 +6,9 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -25,7 +26,7 @@ func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 // Ready reports whether pnpm is available.
 func (d NativeDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := system.LookPath("pnpm")
-	return detectors.CommandNotReadyError("pnpm", err)
+	return detectorkit.CommandNotReadyError("pnpm", err)
 }
 
 // Applicable reports whether pnpm manifests are present.
@@ -72,7 +73,7 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	}
 	AttachPnpmLockPositions(depsGraph, d.base().ProjectDir(req.ProjectPath))
 	return sdk.DetectionResult{
-		Graphs:   sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pnpmManifestMetadataPatterns)),
+		Graphs:   sdk.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, pnpmManifestMetadataPatterns)),
 		Warnings: node.PackageManagerWarnings(d.base().ProjectDir(req.ProjectPath), sdk.PackageManagerPNPM, node.LockfileFormat{}),
 	}, nil
 }

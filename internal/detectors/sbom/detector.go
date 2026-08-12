@@ -9,8 +9,9 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -106,7 +107,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 		if err != nil {
 			return sdk.DetectionResult{}, fmt.Errorf("convert sbom %q to graph: %w", sbomPath, err)
 		}
-		graphs = sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns))
+		graphs = sdk.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns))
 	}
 
 	logger.Debug("resolved explicit sbom file", zap.String("path", sbomPath), zap.String("format", string(target)))
@@ -123,7 +124,7 @@ func normalizeSBOMManifestMetadata(container *sdk.GraphContainer, req sdk.Detect
 		return container
 	}
 	normalized := &sdk.GraphContainer{Entries: make([]sdk.GraphEntry, 0, len(container.Entries))}
-	defaultManifest := detectors.InferManifestMetadata(req, evidencePatterns)
+	defaultManifest := detectorkit.InferManifestMetadata(req, evidencePatterns)
 	for _, entry := range container.Entries {
 		manifest := entry.Manifest
 		if manifest.Path == "" {

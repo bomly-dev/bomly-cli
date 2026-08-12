@@ -9,9 +9,10 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	logging "github.com/bomly-dev/bomly-sdk/logkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -32,7 +33,7 @@ func (d PipenvDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 // Ready reports whether Pipenv is available.
 func (d PipenvDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := system.LookPath("pipenv")
-	return detectors.CommandNotReadyError("pipenv", err)
+	return detectorkit.CommandNotReadyError("pipenv", err)
 }
 
 // Applicable reports whether Pipenv manifests are present.

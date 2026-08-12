@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/bomly-dev/bomly-cli/internal/system"
+	"github.com/bomly-dev/bomly-sdk/system"
 )
 
 // discoverEntryPoints inspects projectDir/package.json and returns the

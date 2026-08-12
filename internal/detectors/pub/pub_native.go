@@ -9,8 +9,10 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	logkit "github.com/bomly-dev/bomly-sdk/logkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -31,7 +33,7 @@ func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 // Ready reports whether the dart binary is available.
 func (d NativeDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := system.LookPath("dart")
-	return detectors.CommandNotReadyError("dart", err)
+	return detectorkit.CommandNotReadyError("dart", err)
 }
 
 // Applicable reports whether pub manifests are present.
@@ -64,10 +66,10 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	cmd.Dir = workingDir
 	var out bytes.Buffer
 	cmd.Stdout = &out
-	cmd.Stderr = logging.NewCommandStderr(req.Stderr, req.Verbose)
+	cmd.Stderr = logkit.NewCommandStderr(req.Stderr, req.Verbose)
 
 	started := time.Now()
-	logger.Debug("running pub native detector", logging.CommandFields(executable, args, workingDir)...)
+	logger.Debug("running pub native detector", logkit.CommandFields(executable, args, workingDir)...)
 	if err := cmd.Run(); err != nil {
 		logger.Debug("dart pub deps failed", zap.Error(err))
 		return sdk.DetectionResult{}, fmt.Errorf("dart pub deps: %w", err)
@@ -79,7 +81,7 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	}
 	logger.Info(fmt.Sprintf("pub native detector found %d dependencies in %s", g.Size(), logging.FormatDuration(time.Since(started))))
 	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns)),
+		Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns)),
 	}, nil
 }
 

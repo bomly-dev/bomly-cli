@@ -239,8 +239,8 @@ github.com/bodgit/sevenzip v1.6.1 h1:kikg2pUMYC9ljU7W9SaqHXhym5HyKm8/M/jd31fYan4
 github.com/bodgit/sevenzip v1.6.1/go.mod h1:GVoYQbEVbOGT8n2pfqCIMRUaRjQ8F9oSqoBEqZh5fQ8=
 github.com/bodgit/windows v1.0.1 h1:tF7K6KOluPYygXa3Z2594zxlkbKPAOvqr97etrGNIz4=
 github.com/bodgit/windows v1.0.1/go.mod h1:a6JLwrB4KrTR5hBpp8FI9/9W9jJfeQ2h4XDXU74ZCdM=
-github.com/bomly-dev/bomly-sdk v0.2.0 h1:yE9m+z+AoAkYnch+EgC7nkSYOipCRw62cnrVuWJgUzc=
-github.com/bomly-dev/bomly-sdk v0.2.0/go.mod h1:yn1LBkoHG9gDBXKyRj0UNJo0BlXl8Bj9Ymb3WKLIh78=
+github.com/bomly-dev/bomly-sdk v0.3.0 h1:JtC7qZ9yq3r4fUYyq7e/Os4f9wGMa4Qot8U0l9MepFA=
+github.com/bomly-dev/bomly-sdk v0.3.0/go.mod h1:yn1LBkoHG9gDBXKyRj0UNJo0BlXl8Bj9Ymb3WKLIh78=
 github.com/bradleyjkemp/cupaloy/v2 v2.8.0 h1:any4BmKE+jGIaMpnU8YgH/I2LPiLBufr6oMMlVBbn9M=
 github.com/bradleyjkemp/cupaloy/v2 v2.8.0/go.mod h1:bm7JXdkRd4BHJk9HpwqAI8BoAY1lps46Enkdqw6aRX0=
 github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/FBatYVw=

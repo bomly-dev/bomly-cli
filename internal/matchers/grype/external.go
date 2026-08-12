@@ -12,10 +12,11 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/matchers"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	logkit "github.com/bomly-dev/bomly-sdk/logkit"
+	matchers "github.com/bomly-dev/bomly-sdk/matcherkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -51,13 +52,13 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 
 	args := []string{"-o", "json"}
 	var stdout bytes.Buffer
-	commandStderr := logging.NewCommandStderr(req.Stderr, req.Stderr != nil)
+	commandStderr := logkit.NewCommandStderr(req.Stderr, req.Stderr != nil)
 	cmd := system.Command("grype", args...)
 	cmd.Stdin = bytes.NewReader(spdxBytes)
 	cmd.Stdout = &stdout
 	cmd.Stderr = commandStderr
 
-	logger.Debug("running external grype matcher", logging.CommandFields("grype", args, cmd.Dir)...)
+	logger.Debug("running external grype matcher", logkit.CommandFields("grype", args, cmd.Dir)...)
 	if err := cmd.Run(); err != nil {
 		logger.Warn("grype CLI failed", zap.Error(err), zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		return sdk.MatchResult{Registry: req.Registry, MatcherStats: grypeMatcherStats(0, 0, 0)}, fmt.Errorf("grype match failed: %w", err)

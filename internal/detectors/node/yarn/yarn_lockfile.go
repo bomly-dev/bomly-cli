@@ -7,8 +7,9 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -74,7 +75,7 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 	AttachYarnLockPositions(depsGraph, d.base().ProjectDir(req.ProjectPath))
 
 	workingDir := d.base().ProjectDir(req.ProjectPath)
-	manifest := detectors.InferManifestMetadata(req, yarnManifestMetadataPatterns)
+	manifest := detectorkit.InferManifestMetadata(req, yarnManifestMetadataPatterns)
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, manifest),
 		Warnings: node.PackageManagerWarnings(workingDir, sdk.PackageManagerYarn,

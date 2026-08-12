@@ -12,8 +12,9 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	logkit "github.com/bomly-dev/bomly-sdk/logkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -69,7 +70,7 @@ func (d BaseDetector) ResolveGraph(stderr io.Writer, projectPath string, verbose
 	cmd.Dir = d.ProjectDir(projectPath)
 	var out bytes.Buffer
 	cmd.Stdout = &out
-	commandStderr := logging.NewCommandStderr(stderr, verbose)
+	commandStderr := logkit.NewCommandStderr(stderr, verbose)
 	cmd.Stderr = commandStderr
 
 	started := time.Now()
@@ -105,12 +106,12 @@ func (d BaseDetector) Install(ctx context.Context, req sdk.DetectionRequest, exe
 	_ = ctx
 	cmd := system.Command(executable, args...)
 	cmd.Dir = d.ProjectDir(req.ProjectPath)
-	commandStderr := logging.NewCommandStderr(req.Stderr, req.Verbose)
+	commandStderr := logkit.NewCommandStderr(req.Stderr, req.Verbose)
 	cmd.Stderr = commandStderr
 	started := time.Now()
 	logger.Info(fmt.Sprintf("%s running install-first step", detectorName))
 	logger.Debug("running detector install-first",
-		append([]zap.Field{zap.String("detector", detectorName)}, logging.CommandFields(executable, args, cmd.Dir)...)...)
+		append([]zap.Field{zap.String("detector", detectorName)}, logkit.CommandFields(executable, args, cmd.Dir)...)...)
 	if err := cmd.Run(); err != nil {
 		fields := []zap.Field{zap.Error(err)}
 		if commandStderr.ByteCount() > 0 {

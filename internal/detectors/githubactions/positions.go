@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
+	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
 )
 
 // usesLine matches `uses: owner/repo[/path]@ref` entries in workflow

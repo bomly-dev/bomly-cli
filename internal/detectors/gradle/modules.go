@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/system"
+	"github.com/bomly-dev/bomly-sdk/system"
 )
 
 // gradleModule is one subproject declared by the build's settings script: its

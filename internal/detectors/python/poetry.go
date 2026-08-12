@@ -5,8 +5,9 @@ import (
 	"fmt"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -27,7 +28,7 @@ func (d PoetryDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 // Ready reports whether Poetry is available.
 func (d PoetryDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := system.LookPath("poetry")
-	return detectors.CommandNotReadyError("poetry", err)
+	return detectorkit.CommandNotReadyError("poetry", err)
 }
 
 // Applicable reports whether Poetry manifests are present.

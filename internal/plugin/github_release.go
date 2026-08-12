@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/system"
+	"github.com/bomly-dev/bomly-sdk/system"
 )
 
 var (

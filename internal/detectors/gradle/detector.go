@@ -15,8 +15,10 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	logkit "github.com/bomly-dev/bomly-sdk/logkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -41,16 +43,16 @@ func (d Detector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
 	const executableName = "gradle"
 	workingDir := d.WorkingDir
 	if workingDir == "" {
-		workingDir = detectors.RequestWorkingDir(req)
+		workingDir = detectorkit.RequestWorkingDir(req)
 	}
 	if workingDir == "" {
 		if _, err := system.LookPath(executableName); err != nil {
-			return detectors.CommandNotReadyError(executableName, err)
+			return detectorkit.CommandNotReadyError(executableName, err)
 		}
 	} else if _, _, err := d.commandSpec(workingDir, nil); err != nil {
-		return detectors.CommandNotReadyError(executableName, err)
+		return detectorkit.CommandNotReadyError(executableName, err)
 	}
-	return detectors.JavaReady(ctx, req.DetectorLogger(d.Logger))
+	return detectorkit.JavaReady(ctx, req.DetectorLogger(d.Logger))
 }
 
 // Applicable returns true when the project looks like a Gradle build.
@@ -111,7 +113,7 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 		workingDir = req.ProjectPath
 	}
 
-	rootManifest := detectors.InferManifestMetadata(req, evidencePatterns)
+	rootManifest := detectorkit.InferManifestMetadata(req, evidencePatterns)
 	if len(parsed.modules) == 0 {
 		AttachGradlePositions(parsed.rootGraph, workingDir, "")
 		return sdk.DetectionResult{
@@ -233,11 +235,11 @@ func (d Detector) runDependencies(ctx context.Context, stderr io.Writer, working
 		logger = zap.NewNop()
 	}
 
-	cmdCtx, cancel := detectors.BuildToolContext(ctx)
+	cmdCtx, cancel := detectorkit.BuildToolContext(ctx)
 	defer cancel()
 	cmd := system.CommandContext(cmdCtx, executable, args...)
 	cmd.Dir = workingDir
-	commandStderr := logging.NewCommandStderr(stderr, verbose)
+	commandStderr := logkit.NewCommandStderr(stderr, verbose)
 	cmd.Stderr = commandStderr
 
 	var gradleOut bytes.Buffer
@@ -247,7 +249,7 @@ func (d Detector) runDependencies(ctx context.Context, stderr io.Writer, working
 	logger.Debug("running gradle dependencies detector", zap.String("working_dir", workingDir), zap.String("executable", executable), zap.Strings("args", args))
 	if err := cmd.Run(); err != nil {
 		if errors.Is(cmdCtx.Err(), context.DeadlineExceeded) {
-			err = fmt.Errorf("timed out after %s: %w", detectors.BuildToolTimeout, err)
+			err = fmt.Errorf("timed out after %s: %w", detectorkit.BuildToolTimeout, err)
 		}
 		logger.Warn(fmt.Sprintf("Gradle dependencies detector failed: %v", err))
 		fields := []zap.Field{zap.Error(err)}
@@ -746,18 +748,18 @@ func (d Detector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 		return fmt.Errorf("resolve gradle command: %w", err)
 	}
 	args = append(args, req.InstallArgs...)
-	cmdCtx, cancel := detectors.BuildToolContext(ctx)
+	cmdCtx, cancel := detectorkit.BuildToolContext(ctx)
 	defer cancel()
 	cmd := system.CommandContext(cmdCtx, executable, args...)
 	cmd.Dir = workingDir
-	commandStderr := logging.NewCommandStderr(req.Stderr, req.Verbose)
+	commandStderr := logkit.NewCommandStderr(req.Stderr, req.Verbose)
 	cmd.Stderr = commandStderr
 	started := time.Now()
 	logger.Info("Gradle detector running install-first step")
-	logger.Debug("running gradle detector install-first", logging.CommandFields(executable, args, workingDir)...)
+	logger.Debug("running gradle detector install-first", logkit.CommandFields(executable, args, workingDir)...)
 	if err := cmd.Run(); err != nil {
 		if errors.Is(cmdCtx.Err(), context.DeadlineExceeded) {
-			err = fmt.Errorf("timed out after %s: %w", detectors.BuildToolTimeout, err)
+			err = fmt.Errorf("timed out after %s: %w", detectorkit.BuildToolTimeout, err)
 		}
 		return fmt.Errorf("run gradle install step: %w", err)
 	}

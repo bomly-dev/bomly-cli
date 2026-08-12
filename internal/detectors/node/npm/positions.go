@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
+	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
 )
 
 // npmLockKeyLine matches a "packages" entry key in package-lock.json

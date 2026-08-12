@@ -11,8 +11,10 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	logkit "github.com/bomly-dev/bomly-sdk/logkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
 
@@ -96,7 +98,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	AttachComposerLockPositions(depsGraph, workingDir)
 
 	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns)),
+		Graphs: sdk.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns)),
 	}, nil
 }
 
@@ -120,12 +122,12 @@ func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
 	args := append([]string{"install"}, req.InstallArgs...)
 	cmd := system.Command(composerPath, args...)
 	cmd.Dir = d.workingDir(req.ProjectPath)
-	commandStderr := logging.NewCommandStderr(req.Stderr, req.Verbose)
+	commandStderr := logkit.NewCommandStderr(req.Stderr, req.Verbose)
 	cmd.Stderr = commandStderr
 
 	started := time.Now()
 	logger.Info("Composer detector running install-first step")
-	logger.Debug("running composer detector install-first", logging.CommandFields(composerPath, args, cmd.Dir)...)
+	logger.Debug("running composer detector install-first", logkit.CommandFields(composerPath, args, cmd.Dir)...)
 	if err := cmd.Run(); err != nil {
 		fields := []zap.Field{zap.Error(err)}
 		if commandStderr.ByteCount() > 0 {

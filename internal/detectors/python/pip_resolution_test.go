@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/testutil"
 	"github.com/bomly-dev/bomly-sdk"
+	logging "github.com/bomly-dev/bomly-sdk/logkit"
+	testutil "github.com/bomly-dev/bomly-sdk/testkit"
 )
 
 const fakePythonSource = `package main

@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/matchers"
-	"github.com/bomly-dev/bomly-cli/internal/matchers/cache"
 	"github.com/bomly-dev/bomly-sdk"
+	cache "github.com/bomly-dev/bomly-sdk/filecache"
+	matchers "github.com/bomly-dev/bomly-sdk/matcherkit"
 	"go.uber.org/zap"
 )
 

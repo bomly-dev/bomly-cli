@@ -3,9 +3,9 @@ package sbom
 import (
 	"errors"
 	"testing"
-)
 
-const maxFuzzInputSize = 1 << 20
+	testkit "github.com/bomly-dev/bomly-sdk/testkit"
+)
 
 func FuzzUnmarshalAutoJSON(f *testing.F) {
 	for _, seed := range []string{
@@ -33,7 +33,7 @@ func FuzzUnmarshalAutoJSON(f *testing.F) {
 	}
 
 	f.Fuzz(func(t *testing.T, raw []byte) {
-		if len(raw) > maxFuzzInputSize {
+		if len(raw) > testkit.MaxFuzzInputSize {
 			return
 		}
 		doc, target, err := UnmarshalAutoJSON(raw)

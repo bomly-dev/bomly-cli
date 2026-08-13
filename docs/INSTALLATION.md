@@ -163,15 +163,18 @@ Expand-Archive -Path $archive -DestinationPath .
 
 Each archive also contains `LICENSE`, `NOTICE`, and a `licenses/` directory with third-party license text.
 
-### `go install`
+### Build from source
 
-Use this path if you already have Go on `PATH`:
+Remote `go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest` is not supported: the repository hosts its built-in components as nested modules wired up with `replace` directives, and `go install` refuses remote builds of modules that use `replace`. Clone and build instead if you have Go on `PATH`:
 
 ```bash
-go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
+git clone https://github.com/bomly-dev/bomly-cli.git
+cd bomly-cli
+go build -o bomly ./cmd/bomly
+# Move `bomly` somewhere on your PATH.
 ```
 
-`go install` builds the full Bomly binary with builtin Syft and Grype support. It does not install `bomly-lite`.
+This builds the full Bomly binary with builtin Syft and Grype support. Add `-tags "bomly_external_syft,bomly_external_grype"` to build `bomly-lite` instead.
 
 ## `bomly` vs `bomly-lite`
 
@@ -268,7 +271,7 @@ Use the package manager that installed Bomly:
 - WinGet: `winget upgrade Bomly.BomlyCLI`
 - Scoop: `scoop update bomly`
 - Linux packages: install the newer package artifact with your system package manager.
-- Go: re-run `go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest`.
+- Built from source: `git pull` the clone and rebuild (`go build -o bomly ./cmd/bomly`).
 - Install script: re-run the same script, optionally with `BOMLY_VERSION`.
 
 Check the current version before and after:

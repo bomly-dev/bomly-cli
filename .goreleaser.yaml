@@ -5,14 +5,6 @@ project_name: bomly
 metadata:
   mod_timestamp: "{{ .CommitTimestamp }}"
 
-# The whole release run — before hooks (`go mod download`, `make licenses`)
-# and builds alike — resolves dependencies from go.mod pins only; the
-# committed go.work is a local development convenience. A build-scoped
-# GOWORK=off would leave the hooks resolving workspace-tip components and
-# ship a license tree that does not match the released binaries.
-env:
-  - GOWORK=off
-
 before:
   hooks:
     - go mod download

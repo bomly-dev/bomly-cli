@@ -13,7 +13,6 @@ require (
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
-	github.com/evanw/esbuild v0.28.1
 	github.com/github/go-spdx/v2 v2.7.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/hashicorp/go-hclog v1.6.3
@@ -25,13 +24,14 @@ require (
 	github.com/spf13/pflag v1.0.10
 	go.uber.org/zap v1.28.0
 	golang.org/x/term v0.45.0
-	golang.org/x/vuln v1.6.0
 	google.golang.org/grpc v1.83.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
+	github.com/evanw/esbuild v0.28.1 // indirect
 	golang.org/x/net v0.57.0 // indirect
+	golang.org/x/vuln v1.6.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )
 
@@ -105,6 +105,10 @@ require (
 	github.com/bodgit/plumbing v1.3.0 // indirect
 	github.com/bodgit/sevenzip v1.6.1 // indirect
 	github.com/bodgit/windows v1.0.1 // indirect
+	github.com/bomly-dev/bomly-cli/components/analyzers/govulncheck v0.0.0
+	github.com/bomly-dev/bomly-cli/components/analyzers/jsreach v0.0.0
+	github.com/bomly-dev/bomly-cli/components/analyzers/jvmreach v0.0.0
+	github.com/bomly-dev/bomly-cli/components/analyzers/pyreach v0.0.0
 	github.com/bomly-dev/bomly-sdk v0.3.0
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
@@ -327,3 +331,11 @@ require (
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.54.0 // indirect
 )
+
+replace github.com/bomly-dev/bomly-cli/components/analyzers/govulncheck => ./components/analyzers/govulncheck
+
+replace github.com/bomly-dev/bomly-cli/components/analyzers/jsreach => ./components/analyzers/jsreach
+
+replace github.com/bomly-dev/bomly-cli/components/analyzers/pyreach => ./components/analyzers/pyreach
+
+replace github.com/bomly-dev/bomly-cli/components/analyzers/jvmreach => ./components/analyzers/jvmreach

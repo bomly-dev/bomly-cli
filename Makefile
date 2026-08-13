@@ -37,8 +37,9 @@ install-hooks:
 	git config core.hooksPath .githooks
 
 # Component modules (components/<kind>/<name>) are separate Go modules, so
-# root `go test ./...` does not reach them; iterate them explicitly. The
-# committed go.work makes the per-module runs coherent with the root build.
+# root `go test ./...` does not reach them; iterate them explicitly. The root
+# go.mod's directory replace directives keep the per-module runs coherent
+# with the root build.
 COMPONENT_MODULES=$(dir $(wildcard components/*/*/go.mod))
 
 test:

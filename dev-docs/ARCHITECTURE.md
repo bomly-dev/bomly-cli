@@ -561,16 +561,22 @@ The former `internal/system`, `internal/matchers/cache`, and `internal/testutil`
 
 Do not reintroduce CLI-internal copies of these helpers; new shared helper code goes into the appropriate SDK subpackage.
 
-### Decision: built-in analyzers are nested component modules consumed via the workspace
+### Decision: built-in analyzers are nested component modules consumed via replace directives
 
 Wave 1 of the component-extraction program moved the four reachability analyzers from `internal/analyzers/<name>` to `components/analyzers/<name>/`, each a nested Go module (`github.com/bomly-dev/bomly-cli/components/analyzers/<name>`) that depends only on the released SDK plus its own third-party dependencies. Each module exports `Module() sdk.Module`; `internal/composition`'s analyzer entries delegate to it, so entry names, kinds, and default-enabled flags are unchanged and the registry wiring is untouched.
 
-Consumption is deliberately two-phase:
+The root module consumes the component modules with a `require` + directory `replace` pair per module:
 
-- **In the wave PR**, the root module does *not* `require` the component modules — unpublished module paths cannot resolve, and `replace` directives are forbidden on main. The committed `go.work` makes root builds and tests resolve them in workspace mode. CI's workspace-off guards (the `pinned-build` job and the root half of the `modules` drift job) detect workspace-only component modules — a component `go.mod` whose module path is missing from the root `require` list — and skip with a notice instead of failing.
-- **After merge**, the release train (`make release-components ARGS=--apply`) tags every component module at the CLI release version, and the follow-up pin-bump PR adds the root `require` entries. From then on the workspace-off guards are enforced again, and released CLI builds consume the pinned component versions.
+```
+require github.com/bomly-dev/bomly-cli/components/analyzers/<name> v0.0.0
+replace github.com/bomly-dev/bomly-cli/components/analyzers/<name> => ./components/analyzers/<name>
+```
 
-The analyzers also adopted the SDK package-updates delta protocol (`CapabilityPackageUpdates`): every annotation they write is filling `Vulnerability.Reachability` on existing `(Source, ID)`-keyed registry vulnerabilities, which is exactly what `Package.MergeFrom` expresses, so when the host sets `AcceptPackageUpdates` they return only the packages they touched. The legacy full-registry/in-place path is unchanged, and per-module equivalence tests pin delta-applied output to the legacy output. The one in-place behavior the merge cannot express — replacing a `Reachability` written by a *different* analyzer — cannot occur between built-ins because analyzer dispatch is language-disjoint.
+Two consumption models were evaluated. The first — workspace-only consumption (committed `go.work`, no root requires) plus an automated post-merge release train that tags component modules and lands root pins before every root release tag — keeps `go.mod` replace-free and preserves remote `go install`, but at the cost of a pinned-build guard with a skip window, a workspace-unaware `go mod tidy` needing conditional CI logic, and a release pipeline whose correctness depends on strict tag ordering. The final decision takes the `replace` model for simplicity: every build — local, CI, GoReleaser — resolves the components from the checkout itself, `go mod tidy` works normally, there is no unpinned window or ordering constraint, and no committed `go.work` is needed. The accepted trade-off is that `go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest` no longer works: Go refuses remote installs of modules whose `go.mod` carries `replace` directives. Users install from release archives, package managers, or a clone; the docs say so explicitly.
+
+CI enforces a replace allowlist in the modules-drift job (via `go mod edit -json`, which catches block-form directives too): the root `go.mod` may only replace in-repo `./components/` paths, and component `go.mod` files may contain no replaces at all.
+
+The analyzers also adopted the SDK package-updates delta protocol (`CapabilityPackageUpdates`): every annotation they write is filling `Vulnerability.Reachability` on existing `(Source, ID)`-keyed registry vulnerabilities, which is exactly what `Package.MergeFrom` expresses, so when the host sets `AcceptPackageUpdates` they return only the packages they touched. The legacy full-registry path returns the annotated request registry (required across the managed-plugin process boundary, where in-place mutation is invisible), and per-module equivalence tests pin delta-applied output to the legacy output. The one in-place behavior the merge cannot express — replacing a `Reachability` written by a *different* analyzer — cannot occur between built-ins because analyzer dispatch is language-disjoint.
 
 ### Decision: syft-JSON SBOM ingest is removed; sniffing is retained for the migration error
 

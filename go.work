@@ -1,9 +1,0 @@
-go 1.26.3
-
-use (
-	.
-	./components/analyzers/govulncheck
-	./components/analyzers/jsreach
-	./components/analyzers/jvmreach
-	./components/analyzers/pyreach
-)

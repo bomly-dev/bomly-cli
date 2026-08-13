@@ -16,12 +16,6 @@ On Windows:
 winget install Bomly.BomlyCLI
 ```
 
-If you have Go on `PATH`:
-
-```bash
-go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
-```
-
 Or download a prebuilt archive from [GitHub Releases](https://github.com/bomly-dev/bomly-cli/releases) and put `bomly` on your `PATH`. See [Installation](INSTALLATION.md) for Linux packages, Scoop, checksums, and pinned versions. Verify:
 
 ```bash

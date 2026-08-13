@@ -98,11 +98,7 @@ curl -sSfL https://get.anchore.io/syft  | sh -s -- -b /usr/local/bin
 curl -sSfL https://get.anchore.io/grype | sh -s -- -b /usr/local/bin
 ```
 
-Or switch to the full `bomly` binary (Syft and Grype linked in):
-
-```bash
-go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
-```
+Or switch to the full `bomly` binary (Syft and Grype linked in): install it from [a release archive or package manager](INSTALLATION.md). Remote `go install ...@latest` is not supported for this repository.
 
 ## "plugin protocol mismatch"
 

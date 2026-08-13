@@ -33,7 +33,7 @@ SARIF 2.1.0 output uploads to the GitHub Security tab (and any other SARIF-aware
 
 ## Package managers and distribution
 
-Official install channels: Homebrew tap (`bomly-dev/tap`), WinGet (`Bomly.BomlyCLI`), Scoop, install scripts (`bomly.dev/install.sh`), Linux packages, `go install`, and prebuilt release archives with checksums and SLSA provenance.
+Official install channels: Homebrew tap (`bomly-dev/tap`), WinGet (`Bomly.BomlyCLI`), Scoop, install scripts (`bomly.dev/install.sh`), Linux packages, source builds from a clone, and prebuilt release archives with checksums and SLSA provenance.
 → [Installation](INSTALLATION.md)
 
 ## Plugins

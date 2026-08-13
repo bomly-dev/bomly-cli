@@ -27,7 +27,7 @@ make generate            # regenerate config reference, JSON schemas, schema doc
 Always run `make test` after changes. All tests must pass before marking work is done.
 If you change `internal/cli/config.go`, `internal/output/*`, or `internal/registry/support.go`, or bump the pinned `bomly-dev/bomly-sdk` version (its catalog or support-matrix data feeds the generated docs), also run `make generate` and commit the docs drift.
 
-`go.mod` pins released versions and must not contain `replace` directives on main (CI enforces this). The committed `go.work` lists in-repo modules only (root now; `components/*` as waves land). Local cross-repo SDK development: `go work use ../bomly-sdk` (never commit that entry).
+`go.mod` pins released versions. The only `replace` directives allowed on main point in-repo component modules at their `./components/<kind>/<name>` directories (CI enforces this allowlist; component go.mods carry no replaces at all). Trade-off, accepted deliberately: remote `go install ...@latest` is unsupported for replace-carrying modules — users install from releases, package managers, or a clone. Local cross-repo SDK development: `go work init . ../bomly-sdk` (never commit `go.work`).
 
 ### Git Worktrees
 
@@ -82,14 +82,14 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 
 - Shared helper code (bounded filesystem/subprocess ops, file cache, subprocess logging, detector/matcher helpers, test kit) lives in `bomly-sdk` subpackages: `system`, `filecache`, `logkit`, `detectorkit`, `matcherkit`, `testkit`. Do not reintroduce CLI-internal copies.
 - Extracted components will live under `components/<kind>/<name>/` as separate Go modules with their own `go.mod`, tagged per module as `components/<kind>/<name>/vX.Y.Z`.
-- The committed `go.work` puts the repo in workspace mode for local development; waves add `use ./components/...` entries. Release and pinned builds run with `GOWORK=off` (GoReleaser sets it explicitly; CI's `pinned-build` job verifies the module pins alone still build on pushes to `main`).
+- Component modules under `components/` are consumed through root `go.mod` `require` + directory `replace` entries, so every build — local, CI, and GoReleaser — resolves them from the checkout itself. There is no committed workspace file and no separate pinned-build guard; the regular build and test jobs cover the only resolution mode that exists.
 - Each extraction wave lands as **one atomic PR**: move the code into its component module, add the `use` entry, and keep the root module compiling in the same change.
 - `scripts/release-components.sh` (also `make release-components`) is the release train: component modules version in lockstep with the CLI — after a CLI release tag exists, the script tags every component module at that same version (idempotent; unchanged modules get empty releases by design); `--apply` (ARGS="--apply") creates and pushes the tags and prints the root `go get` pin bumps for the follow-up PR.
 
 ### Package Boundaries
 
 - `internal/detectors/*` must not import `internal/engine` or `internal/registry`. Concrete detectors may depend on `internal/detectors` (name constants), the SDK and its helper subpackages (`system` for bounded filesystem and subprocess operations, `detectorkit` for shared detector helpers), and local helpers.
-- Built-in analyzers live in nested component modules under `components/analyzers/<name>/` (own `go.mod`, consumed by `internal/composition` through the committed `go.work` until the release train pins them in the root `go.mod`). They may depend on the SDK and its helper subpackages (`system` for bounded filesystem and subprocess operations, `filecache`, `logkit`), and local helpers. They must not import any `internal/*` package.
+- Built-in analyzers live in nested component modules under `components/analyzers/<name>/` (own `go.mod`, consumed by `internal/composition` via the root `go.mod` require + directory replace pair). They may depend on the SDK and its helper subpackages (`system` for bounded filesystem and subprocess operations, `filecache`, `logkit`), and local helpers. They must not import any `internal/*` package.
 - `internal/detectors` owns detector-facing contracts such as `Detector`, `DetectorDescriptor`, `ResolveGraphRequest`, and detector helper functions.
 - The SDK owns neutral shared identifiers and support metadata that would otherwise create package cycles, including ecosystems, package managers, detector types, and support-matrix data.
 - `internal/baseline` owns the baseline document and matching implementation. It depends on the SDK policy contracts and must not be imported by `internal/engine`.

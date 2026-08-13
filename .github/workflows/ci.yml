@@ -65,62 +65,6 @@ jobs:
       - name: Build lite Bomly binary
         run: go build -tags "bomly_external_syft,bomly_external_grype" -o /tmp/bomly-lite ./cmd/bomly
 
-  pinned-build:
-    name: Pinned build (workspace off)
-    # Component-module pseudo-versions only resolve after a wave PR merges,
-    # so this pins-only guard runs on pushes to main rather than on PRs.
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    env:
-      GOWORK: off
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Set up Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: go.mod
-          cache: true
-          cache-dependency-path: go.sum
-      - name: Check component-module pins
-        id: pins
-        shell: bash
-        # A wave PR lands component modules consumed through the committed
-        # go.work; the root go.mod cannot require them until the release train
-        # tags them (make release-components ARGS=--apply) and the pin-bump PR
-        # merges. Until every component module under components/ is required
-        # by the root go.mod, a workspace-off build cannot succeed by design,
-        # so skip the pinned build instead of failing it.
-        run: |
-          set -euo pipefail
-          missing=0
-          for modfile in components/*/*/go.mod; do
-            [ -e "$modfile" ] || continue
-            module="$(sed -n 's/^module //p' "$modfile" | head -n 1)"
-            if ! go mod edit -json | jq -e --arg m "$module" '.Require[]? | select(.Path == $m)' > /dev/null; then
-              echo "::notice::component module $module is workspace-only (pin pending release train)"
-              missing=1
-            fi
-          done
-          if [ "$missing" -eq 1 ]; then
-            echo "pinned=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::skipping pinned build until the component release train adds root go.mod pins"
-          else
-            echo "pinned=true" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Build with module pins only
-        if: steps.pins.outputs.pinned == 'true'
-        run: go build ./cmd/bomly
-      - name: Build lite variant with module pins only
-        # Mirrors the regular build job's lite variant so a stale pin in a
-        # future extracted Syft/Grype component module fails here instead of
-        # only in GoReleaser.
-        if: steps.pins.outputs.pinned == 'true'
-        run: go build -tags "bomly_external_syft,bomly_external_grype" ./cmd/bomly
-      - name: Test with module pins only
-        if: steps.pins.outputs.pinned == 'true'
-        run: go test ./internal/... ./cmd/...
-
   format:
     name: Format
     runs-on: ubuntu-latest
@@ -150,28 +94,10 @@ jobs:
           cache-dependency-path: go.sum
       - name: Check module metadata drift
         shell: bash
-        # `go mod tidy` is workspace-unaware: it resolves the root module's
-        # requirements against published module versions only. While any
-        # component module under components/ is workspace-only (consumed via
-        # the committed go.work, not yet pinned in the root go.mod), root tidy
-        # cannot resolve the component import paths, so the root check is
-        # skipped until the release train tags the components and the
-        # pin-bump PR lands.
         run: |
           set -euo pipefail
-          skip=0
-          for modfile in components/*/*/go.mod; do
-            [ -e "$modfile" ] || continue
-            module="$(sed -n 's/^module //p' "$modfile" | head -n 1)"
-            if ! go mod edit -json | jq -e --arg m "$module" '.Require[]? | select(.Path == $m)' > /dev/null; then
-              echo "::notice::component module $module is workspace-only; skipping root go.mod tidy check until the release train pins it"
-              skip=1
-            fi
-          done
-          if [ "$skip" -eq 0 ]; then
-            go mod tidy
-            git diff --exit-code -- go.mod go.sum
-          fi
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
       - name: Check component module metadata drift
         shell: bash
         run: |
@@ -179,16 +105,26 @@ jobs:
           for modfile in components/*/*/go.mod; do
             [ -e "$modfile" ] || continue
             dir="$(dirname "$modfile")"
-            (cd "$dir" && GOWORK=off go mod tidy)
+            (cd "$dir" && go mod tidy)
           done
           git diff --exit-code -- components/
-      - name: Forbid replace directives
+      - name: Enforce the replace-directive allowlist
         shell: bash
+        # The root module intentionally replaces each in-repo component
+        # module with its ./components/ directory (documented trade-off:
+        # remote `go install ...@latest` is unsupported; install from
+        # releases or a clone). Any other replace target in the root, and
+        # any replace at all in a component module, is forbidden.
         # `go mod edit -json` sees single-line and block-form directives
         # alike, which a line-oriented grep would miss.
         run: |
           set -euo pipefail
-          for modfile in go.mod components/*/*/go.mod; do
+          bad="$(go mod edit -json | jq -r '.Replace[]? | select(.New.Path | startswith("./components/") | not) | .Old.Path')"
+          if [ -n "$bad" ]; then
+            echo "root go.mod may only replace in-repo ./components/ modules; found: $bad" >&2
+            exit 1
+          fi
+          for modfile in components/*/*/go.mod; do
             [ -e "$modfile" ] || continue
             count="$(go mod edit -json "$modfile" | jq '.Replace | length')"
             if [ "$count" != "0" ] && [ "$count" != "null" ]; then

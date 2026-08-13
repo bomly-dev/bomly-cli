@@ -86,11 +86,12 @@ jobs:
         id: pins
         shell: bash
         # A wave PR lands component modules consumed through the committed
-        # go.work; the root go.mod cannot require them until the release train
-        # tags them (make release-components ARGS=--apply) and the pin-bump PR
-        # merges. Until every component module under components/ is required
-        # by the root go.mod, a workspace-off build cannot succeed by design,
-        # so skip the pinned build instead of failing it.
+        # go.work; the root go.mod cannot require them until the automated
+        # release train in auto-version.yml tags them at the version-bump
+        # commit and pushes the pin commit. Until every component module under
+        # components/ is required by the root go.mod, a workspace-off build
+        # cannot succeed by design, so skip the pinned build instead of
+        # failing it.
         run: |
           set -euo pipefail
           missing=0
@@ -155,8 +156,8 @@ jobs:
         # component module under components/ is workspace-only (consumed via
         # the committed go.work, not yet pinned in the root go.mod), root tidy
         # cannot resolve the component import paths, so the root check is
-        # skipped until the release train tags the components and the
-        # pin-bump PR lands.
+        # skipped until auto-version.yml's automated release train tags the
+        # components and pushes the pin commit.
         run: |
           set -euo pipefail
           skip=0

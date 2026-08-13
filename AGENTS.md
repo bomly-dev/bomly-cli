@@ -84,7 +84,7 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - Extracted components will live under `components/<kind>/<name>/` as separate Go modules with their own `go.mod`, tagged per module as `components/<kind>/<name>/vX.Y.Z`.
 - The committed `go.work` puts the repo in workspace mode for local development; waves add `use ./components/...` entries. Release and pinned builds run with `GOWORK=off` (GoReleaser sets it explicitly; CI's `pinned-build` job verifies the module pins alone still build on pushes to `main`).
 - Each extraction wave lands as **one atomic PR**: move the code into its component module, add the `use` entry, and keep the root module compiling in the same change.
-- `scripts/release-components.sh` (also `make release-components`) is the release train: component modules version in lockstep with the CLI — after a CLI release tag exists, the script tags every component module at that same version (idempotent; unchanged modules get empty releases by design); `--apply` (ARGS="--apply") creates and pushes the tags and prints the root `go get` pin bumps for the follow-up PR.
+- The release train is fully automated in `.github/workflows/auto-version.yml` and is a two-commit flow: version-bump commit A on `main` → every `components/<kind>/<name>/vX.Y.Z` tag at A (so `go get <module>@vX.Y.Z` resolves) → root `go.mod`/`go.sum` pin commit B (`[skip ci]`) → root `vX.Y.Z` tag at B → release dispatch. The two commits exist so the root `go.mod` never needs `replace` directives: every root tag carries resolvable pins, preserving remote `go install .../cmd/bomly@latest` — the Go equivalent of Maven parent-version inheritance (one authoritative version; automation propagates it). Lockstep invariant: the `components/` tree is identical between A and B (commit B touches only root `go.mod`/`go.sum`), so unchanged modules get empty releases by design. `scripts/release-components.sh` (also `make release-components` for the dry run) provides the `tag` / `pin` / `verify` subcommands the workflow uses; run them manually only to recover from a partial failure.
 
 ### Package Boundaries
 
@@ -277,7 +277,7 @@ Any new user-visible feature needs a smoke case under `test/smoke/` — follow t
 
 ## Release
 
-Draft releases are created automatically after merges to `main` from commit prefixes: `feat:` → minor, other → patch, `type!:`/`BREAKING CHANGE:` → major, `[skip release]` → none. Squash titles count. Publishing runs GoReleaser with signed checksums and SLSA provenance; see `dev-docs/RELEASE_CHECKLIST.md`.
+Draft releases are created automatically after merges to `main` from commit prefixes: `feat:` → minor, other → patch, `type!:`/`BREAKING CHANGE:` → major, `[skip release]` → none. Squash titles count. The `Auto Version` workflow runs the whole lockstep release train (version-bump commit, component tags, pin commit, root tag, release dispatch). Publishing runs GoReleaser with signed checksums and SLSA provenance; see `dev-docs/RELEASE_CHECKLIST.md`.
 
 ## Reference Docs
 

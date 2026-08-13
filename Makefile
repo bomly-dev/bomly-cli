@@ -54,7 +54,11 @@ smoke:
 fuzz:
 	FUZZTIME="$(FUZZTIME)" scripts/run-fuzz.sh
 
-# Dry-run the component release train (pass ARGS="--apply" to tag and push).
+# Dry-run the component release train at the latest release tag. The train
+# itself is fully automated in .github/workflows/auto-version.yml; the script's
+# `tag`, `pin`, and `verify` subcommands (ARGS="tag --version vX.Y.Z --commit
+# <sha>", ARGS="pin --version vX.Y.Z", ARGS="verify --version vX.Y.Z") exist
+# for recovery after a partial failure.
 release-components:
 	./scripts/release-components.sh $(if $(ARGS),$(ARGS),)
 

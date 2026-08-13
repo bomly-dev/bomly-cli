@@ -101,10 +101,18 @@ jobs:
           echo "version=${next}" >> "$GITHUB_OUTPUT"
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
 
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+
       - name: Update source version
         shell: bash
         env:
           VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
           set -euo pipefail
           sed -i -E "s/^var version = \"[^\"]+\"/var version = \"${VERSION}\"/" cmd/bomly/main.go
@@ -119,7 +127,7 @@ jobs:
 
           git diff -- cmd/bomly/main.go npm/package.json server.json
 
-      - name: Commit version bump and tag
+      - name: Commit version bump (commit A)
         shell: bash
         env:
           TAG: ${{ steps.version.outputs.tag }}
@@ -130,11 +138,99 @@ jobs:
           git config user.email "${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
 
           git add cmd/bomly/main.go npm/package.json server.json
-          git commit -m "chore(release): ${TAG} [skip ci]"
-          git tag -a "${TAG}" -m "Release ${TAG}"
+          if git diff --cached --quiet; then
+            # Rerun after a partial failure: the bump commit is already on
+            # main, so fall through to the (idempotent) later phases.
+            echo "version bump for ${TAG} already committed on main; skipping commit A"
+          else
+            git commit -m "chore(release): ${TAG} [skip ci]"
+            git push origin HEAD:main
+          fi
 
-          git push origin HEAD:main
+      - name: Resolve component anchor commit (commit A)
+        id: anchor
+        shell: bash
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          # Component tags anchor at commit A, the version bump. On the first
+          # run that is HEAD. On a rerun after a partial failure, main may
+          # already carry the pin commit B; the component tags pushed before
+          # the failure then define A (they all point at it).
+          anchor="$(git ls-remote --tags origin 'refs/tags/components/*' |
+            { grep -F "/${TAG}^{}" || true; } | awk '{print $1; exit}')"
+          if [[ -z "${anchor}" ]]; then
+            anchor="$(git rev-parse HEAD)"
+          fi
+          echo "commit A (component tag anchor): ${anchor}"
+          echo "commit=${anchor}" >> "$GITHUB_OUTPUT"
+
+      - name: Tag component modules at commit A
+        shell: bash
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          ANCHOR: ${{ steps.anchor.outputs.commit }}
+        run: |
+          set -euo pipefail
+          # Lockstep: every component module is tagged at the version-bump
+          # commit A, making `go get <module>@${TAG}` resolvable before the
+          # root go.mod pins it. The script is idempotent (remote tags at the
+          # release commit are skipped; a remote tag anywhere else aborts), so
+          # a rerun after a partial failure completes the tag set.
+          ./scripts/release-components.sh tag --version "${TAG}" --commit "${ANCHOR}"
+
+      - name: Pin component modules (commit B)
+        shell: bash
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          # Pin the root go.mod/go.sum to the component tags just pushed and
+          # commit the result (commit B). The root tag lands on commit B, so
+          # every root tag carries resolvable pins and no replace directives —
+          # remote `go install .../cmd/bomly@latest` keeps working. With no
+          # component modules (or on a rerun that already pinned), this is a
+          # clean no-op.
+          ./scripts/release-components.sh pin --version "${TAG}"
+          git add go.mod go.sum
+          if git diff --cached --quiet; then
+            echo "component pins for ${TAG} already in place; skipping commit B"
+          else
+            git commit -m "chore(release): pin components ${TAG} [skip ci]"
+            git push origin HEAD:main
+          fi
+
+      - name: Tag root module and verify lockstep
+        shell: bash
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          ANCHOR: ${{ steps.anchor.outputs.commit }}
+        run: |
+          set -euo pipefail
+          head_commit="$(git rev-parse HEAD)"
+          # Lockstep invariant: commit B only touches the root go.mod/go.sum,
+          # so the components/ tree must be identical between the component
+          # tags (commit A) and the root tag (commit B). Component module zips
+          # contain only their own subtree, so tree identity means the tags
+          # describe exactly the code shipping in this release.
+          if [[ "${ANCHOR}" != "${head_commit}" ]]; then
+            if ! git diff --quiet "${ANCHOR}" "${head_commit}" -- components/; then
+              echo "components/ tree changed between commit A (${ANCHOR}) and commit B (${head_commit}); lockstep invariant violated" >&2
+              exit 1
+            fi
+          fi
+          if existing="$(git rev-parse -q --verify "refs/tags/${TAG}^{commit}")"; then
+            if [[ "${existing}" != "${head_commit}" ]]; then
+              echo "tag ${TAG} already exists at ${existing}, not ${head_commit}" >&2
+              exit 1
+            fi
+            echo "root tag ${TAG} already exists at ${head_commit}; pushing"
+          else
+            git tag -a "${TAG}" -m "Release ${TAG}"
+          fi
           git push origin "${TAG}"
+          ./scripts/release-components.sh verify --version "${TAG}"
 
       - name: Start release workflow
         env:

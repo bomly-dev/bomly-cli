@@ -12,7 +12,41 @@ Use this checklist when publishing a tagged Bomly CLI release.
 ## Release workflow
 
 - Run `Auto Version` from `main`, choosing `patch`, `minor`, or `major`.
+- `Auto Version` performs the whole lockstep release train in one dispatch,
+  as a two-commit flow:
+  1. Version-bump commit **A** on `main`: `cmd/bomly/main.go` plus the npm
+     wrapper and MCP Registry versions. No root tag yet.
+  2. Every component module tag (`components/<kind>/<name>/vX.Y.Z`) at
+     commit A. From here, `go get <module>@vX.Y.Z` resolves.
+  3. Pin commit **B** on `main` (`[skip ci]`): the root `go.mod`/`go.sum`
+     pinned to the just-tagged component versions (`GOWORK=off go get` +
+     `go mod tidy`).
+  4. The root tag `vX.Y.Z` at commit B, then a `Release` dispatch.
+- Why two commits: the root `go.mod` carries **no `replace` directives**, so
+  every root tag has resolvable pins and remote
+  `go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest` keeps
+  working. The component tags must exist before the pins can resolve — the
+  Go equivalent of Maven parent-version inheritance: one authoritative
+  version, propagated by automation.
+- Lockstep invariant (asserted by the workflow and by `verify`): the
+  `components/` tree is identical between commits A and B — commit B touches
+  only the root `go.mod`/`go.sum`, and component module zips contain only
+  their own subtree, so the component tags describe exactly the code that
+  ships in the CLI release.
+- Every phase is idempotent: rerunning a partially failed `Auto Version`
+  completes the missing pieces (component tags already on origin at commit A
+  are skipped; a tag on origin at any other commit aborts the run and must
+  be resolved on origin first; an already-present pin skips commit B). For
+  manual recovery, use
+  `./scripts/release-components.sh tag --version vX.Y.Z --commit <A>`,
+  `./scripts/release-components.sh pin --version vX.Y.Z` (then commit), and
+  check the invariant with
+  `./scripts/release-components.sh verify --version vX.Y.Z`. If the run
+  failed after the root tag was pushed, dispatch `Release` manually:
+  `gh workflow run release.yml --ref vX.Y.Z`.
 - Wait for `Release` to finish.
+- Run `./scripts/release-components.sh verify --version vX.Y.Z` if you want an
+  explicit post-release lockstep check (the workflow already ran it).
 - Review the published GitHub release:
   - `bomly` archives exist for Linux, macOS, and Windows on `amd64` and `arm64`.
   - `bomly-lite` archives exist for the same platforms.

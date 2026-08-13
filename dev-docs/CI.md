@@ -14,7 +14,7 @@ its own minimal CI in its own repository.
 | `Fuzz`                  | Nightly schedule, manual dispatch | Native Go fuzzing over the `scripts/run-fuzz.sh` target list; uploads minimized failures as artifacts |
 | `CodeQL`                | Pull requests, pushes, schedule  | Static analysis for Go and JavaScript                                |
 | `SBOM Interoperability` | Schedule, manual dispatch        | Binary-driven SBOM export/ingest checks against third-party tools    |
-| `Auto Version`          | Pushes to `main`                 | Computes the next semver from the squash-commit prefix and creates a draft release tag |
+| `Auto Version`          | Manual dispatch (from `main`)    | Fully automated lockstep release train: version-bump commit, component tags, pin commit, root tag, `Release` dispatch |
 | `Release`               | Release tags                     | GoReleaser build/publish with signed checksums and SLSA provenance   |
 | `Scorecard`, `Dependency Review`, `Bomly Guard` | Various | Supply-chain posture checks and dogfooding                         |
 
@@ -53,9 +53,34 @@ regression seed.
 
 ## Releases
 
-Merges to `main` create draft releases automatically from conventional-commit
-prefixes (`feat:` → minor, other → patch, `type!:`/`BREAKING CHANGE:` → major,
-`[skip release]` → none; squash titles count). Publishing runs GoReleaser —
-archives, Linux packages, Homebrew/Scoop/WinGet manifests, signed checksums,
-and SLSA provenance. See `dev-docs/RELEASE_CHECKLIST.md` and
-`docs/INSTALLATION.md` for the artifacts users receive.
+Releasing is one `Auto Version` dispatch from `main` (choose `patch`,
+`minor`, or `major`). The workflow runs the whole lockstep release train as
+a two-commit flow:
+
+1. Version-bump commit **A** on `main` — `cmd/bomly/main.go`, the npm
+   wrapper, and the MCP Registry versions. No root tag yet.
+2. Every `components/<kind>/<name>/vX.Y.Z` tag at commit A, making
+   `go get <module>@vX.Y.Z` resolvable.
+3. Pin commit **B** on `main` (`[skip ci]`) — the root `go.mod`/`go.sum`
+   pinned to the just-tagged component versions (`GOWORK=off`).
+4. The root tag `vX.Y.Z` at commit B, then a `Release` dispatch.
+
+The two commits exist because the root `go.mod` carries no `replace`
+directives: every root tag has resolvable pins, so remote
+`go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest` keeps working —
+the Go equivalent of Maven parent-version inheritance (one authoritative
+version, propagated by automation). The lockstep invariant is tree identity:
+commit B touches only the root `go.mod`/`go.sum`, so the `components/` tree
+is identical between A and B, and component module zips (which contain only
+their own subtree) describe exactly the code shipping in the CLI release.
+The workflow asserts this before tagging the root, and
+`scripts/release-components.sh verify` re-checks it against origin.
+
+Every phase is idempotent, so rerunning a partially failed `Auto Version`
+completes the train; `scripts/release-components.sh` exposes the same
+`tag` / `pin` / `verify` subcommands for manual recovery.
+
+Publishing runs GoReleaser — archives, Linux packages,
+Homebrew/Scoop/WinGet manifests, signed checksums, and SLSA provenance. See
+`dev-docs/RELEASE_CHECKLIST.md` and `docs/INSTALLATION.md` for the artifacts
+users receive.

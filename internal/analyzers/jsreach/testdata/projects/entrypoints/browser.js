@@ -1,1 +1,0 @@
-import "@scope/pkg/subpath";

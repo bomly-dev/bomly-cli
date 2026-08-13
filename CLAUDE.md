@@ -4,9 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Bomly is a **customer-facing, security-sensitive CLI** for dependency intelligence. Audience: professional developers, security managers, and CI workflows. Expect high standards: correct behavior, clear output, full logging, and no panics.
 
-This is the single public repository for the Bomly CLI: the full implementation (`internal/*`), the `cmd/bomly` entry point, user documentation (`docs/`), release automation, install scripts, the npm MCP wrapper, and the binary-driven smoke test suite. One module lives outside this repository:
+This is the main public repository for the Bomly CLI: the engine, auditors, and native detectors (`internal/*`), the `cmd/bomly` entry point, user documentation (`docs/`), release automation, install scripts, the npm MCP wrapper, and the binary-driven smoke test suite. Two kinds of modules live outside this repository:
 
-- **`github.com/bomly-dev/bomly-sdk`** (public, separate repo): the contract both built-in components and external managed plugins implement — domain types, plugin kinds, validation, support metadata. It has its own tests and releases; this repo pins released versions (pseudo-versions only during coordinated cross-repo changes). Any reference to `sdk.<Type>` below means that module. Plugin authors start there, with `docs/PLUGINS.md`, `docs/plugins/`, and the public plugin template repo.
+- **`github.com/bomly-dev/bomly-sdk`** (public, separate repo): the contract both built-in components and external managed plugins implement — domain types, plugin kinds, validation, support metadata, and the shared helper subpackages (`system`, `filecache`, `logkit`, `detectorkit`, `matcherkit`, `testkit`). It has its own tests and releases; this repo pins released versions. Any reference to `sdk.<Type>` below means that module. Plugin authors start there, with `docs/PLUGINS.md`, `docs/plugins/`, and the public plugin template repo.
+- **`github.com/bomly-dev/bomly-plugin-*`** (public, one repo per component): external-integration components consumed as ordinary pinned Go modules — the four reachability analyzers (`govulncheck`, `jsreach`, `pyreach`, `jvmreach`), the `osv` / `depsdev-license` / `scorecard` / `grype` matchers, and the `syft` detector. Their implementations are NOT under `internal/`; changes to them happen in their repos, and Dependabot bumps the pins here. Auditors and all other detectors are Bomly's own logic and stay in this repository.
 
 ## Build & Test
 
@@ -27,7 +28,7 @@ make generate            # regenerate config reference, JSON schemas, schema doc
 Always run `make test` after changes. All tests must pass before marking work is done.
 If you change `internal/cli/config.go`, `internal/output/*`, or `internal/registry/support.go`, or bump the pinned `bomly-dev/bomly-sdk` version (its catalog or support-matrix data feeds the generated docs), also run `make generate` and commit the docs drift.
 
-`go.mod` pins released versions and must not contain `replace` directives on main (CI enforces this). The committed `go.work` lists in-repo modules only (root now; `components/*` as waves land). Local cross-repo SDK development: `go work use ../bomly-sdk` (never commit that entry).
+`go.mod` pins released versions and must not contain `replace` directives on main (CI enforces this), so remote `go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest` stays supported. External component modules (`bomly-plugin-*`) are ordinary pinned dependencies bumped by Dependabot. Local cross-repo development: `go work init . ../bomly-sdk` (never commit `go.work`).
 
 ### Git Worktrees
 
@@ -47,10 +48,9 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 | `internal/detectors`   | Detector contracts, descriptors, requests/results, and detector-only helpers                      |
 | `internal/engine`      | Pipeline, engine, consolidation, auditors, matchers, and orchestration                            |
 | `internal/registry`    | Canonical support/discovery registry and built-in engine registry wiring                          |
-| `internal/detectors/*` | Concrete dependency resolution per ecosystem (gomod, gradle, maven, node, python, sbom, syft)     |
-| `internal/matchers/*`  | External enrichment matchers (osv, grype, deps.dev, scorecard; ClearlyDefined and eol run as external matcher plugins); the shared cache lives in `bomly-sdk/filecache` |
+| `internal/detectors/*` | Concrete native dependency resolution per ecosystem (gomod, gradle, maven, node, python, sbom); the Syft catch-all detector lives in `bomly-plugin-syft-detector` |
+| `bomly-plugin-*` (external modules) | External-integration components consumed as pinned Go modules: enrichment matchers (osv, grype, deps.dev license, scorecard), reachability analyzers (govulncheck, jsreach, pyreach, jvmreach), and the Syft detector; ClearlyDefined and eol run as external matcher plugins; the shared cache lives in `bomly-sdk/filecache` |
 | `internal/auditors/*`  | Policy evaluators and audit-only logic (policy, noop)                                             |
-| `internal/analyzers/*` | Built-in reachability analyzers (govulncheck, jsreach)                                            |
 | `internal/baseline`    | Portable package-finding baseline codec and audit-integrated policy-status resolver               |
 | `internal/remediation` | Canonical vulnerability fix status, version, detector-hint validation, and occurrence suggestions |
 | `internal/sbom`        | SBOM codec (SPDX 2.3, CycloneDX)                                                                  |
@@ -78,18 +78,18 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - Per-ecosystem detectors are consolidated packages with host-owned chains — e.g. `internal/detectors/node` hosts the npm/pnpm/yarn/bun sub-detectors, and detector name aliases keep old `--detectors` selections working.
 - Build composition lives in `internal/composition` (`composition_full.go` / `composition_lite.go` behind build tags); register new built-ins there and in `internal/registry/builder.go`.
 
-### Component modules (`components/`)
+### External component modules (`bomly-plugin-*`)
 
 - Shared helper code (bounded filesystem/subprocess ops, file cache, subprocess logging, detector/matcher helpers, test kit) lives in `bomly-sdk` subpackages: `system`, `filecache`, `logkit`, `detectorkit`, `matcherkit`, `testkit`. Do not reintroduce CLI-internal copies.
-- Extracted components will live under `components/<kind>/<name>/` as separate Go modules with their own `go.mod`, tagged per module as `components/<kind>/<name>/vX.Y.Z`.
-- The committed `go.work` puts the repo in workspace mode for local development; waves add `use ./components/...` entries. Release and pinned builds run with `GOWORK=off` (GoReleaser sets it explicitly; CI's `pinned-build` job verifies the module pins alone still build on pushes to `main`).
-- Each extraction wave lands as **one atomic PR**: move the code into its component module, add the `use` entry, and keep the root module compiling in the same change.
-- `scripts/release-components.sh` (also `make release-components`) is the release train: component modules version in lockstep with the CLI — after a CLI release tag exists, the script tags every component module at that same version (idempotent; unchanged modules get empty releases by design); `--apply` (ARGS="--apply") creates and pushes the tags and prints the root `go get` pin bumps for the follow-up PR.
+- External-integration components — the reachability analyzers (`bomly-plugin-{govulncheck,jsreach,pyreach,jvmreach}-analyzer`), the external enrichment matchers (`bomly-plugin-{osv,depsdev-license,scorecard,grype}-matcher`), and the Syft detector (`bomly-plugin-syft-detector`) — live in their own public repositories and are consumed as ordinary Go modules: `require` entries pinned in root `go.mod`, bumped by Dependabot like any other dependency. Each repo carries its own tests, fuzz targets, and releases.
+- Each module's `plugin` package exposes the embedded constructor surface (`Config`/`DefaultConfig`/`New`, or a plain struct literal) plus a `Module()` export for managed plugin execution; `internal/composition` and `internal/registry` construct them exactly like the old in-tree packages. The grype and syft modules carry both build-tag variants — the root build's `bomly_external_syft` / `bomly_external_grype` tags select files inside those modules.
+- Auditors and native detectors stay CLI-internal (`internal/auditors/*`, `internal/detectors/*`). New external-integration components start from the public plugin template repo, get their own `bomly-plugin-*` repository, and are wired into `internal/composition` (or `internal/registry` for detectors) as a pinned module.
+- Descriptor names are the compatibility contract: goldens, detector aliases, and generated docs key on them, so component repos must not rename descriptors without a coordinated CLI change.
 
 ### Package Boundaries
 
 - `internal/detectors/*` must not import `internal/engine` or `internal/registry`. Concrete detectors may depend on `internal/detectors` (name constants), the SDK and its helper subpackages (`system` for bounded filesystem and subprocess operations, `detectorkit` for shared detector helpers), and local helpers.
-- Built-in analyzers may depend on the SDK and its helper subpackages (`system` for bounded filesystem and subprocess operations, `filecache`, `logkit`), and local helpers. They must not import `internal/engine` or `internal/registry`.
+- Built-in reachability analyzers live in their own `bomly-plugin-*-analyzer` repositories, consumed as pinned Go modules. They depend only on the SDK and its helper subpackages (`system`, `filecache`, `logkit`) and must not import any `internal/*` package.
 - `internal/detectors` owns detector-facing contracts such as `Detector`, `DetectorDescriptor`, `ResolveGraphRequest`, and detector helper functions.
 - The SDK owns neutral shared identifiers and support metadata that would otherwise create package cycles, including ecosystems, package managers, detector types, and support-matrix data.
 - `internal/baseline` owns the baseline document and matching implementation. It depends on the SDK policy contracts and must not be imported by `internal/engine`.
@@ -154,7 +154,7 @@ Cache failures are **non-fatal** — log a warning and continue without caching.
 - Implement `detectors.Detector` for concrete detectors, or `engine.Auditor` / `engine.Matcher` for audit and license stages.
 - Detectors may implement `ReadyDetector`, `ApplicableDetector`, and `InstallFirstDetector`; auditors and matchers have parallel `Ready*` / `Applicable*` hooks.
 - Register built-ins in `internal/registry/builder.go`, which wires concrete detectors, auditors, matchers, and plugin stages into `engine.Registry`.
-- External enrichment is matcher-based; see `internal/matchers/depsdev`, `internal/matchers/clearlydefined`, `internal/matchers/osv`, `internal/matchers/grype`, `internal/matchers/eol`, and `internal/matchers/scorecard`.
+- External enrichment is matcher-based; the osv, deps.dev license, scorecard, and grype matchers live in their own `bomly-plugin-*-matcher` repositories, and ClearlyDefined and endoflife.date run as external matcher plugins.
 - Detector chains are explicit in `internal/registry/support.go` and `internal/registry/builder.go`; do not infer priority from technique alone.
 - Some native detectors are build-tool-backed primaries (`pub-native`, `swiftpm-native`, `sbt-native`) with committed-file fallbacks. Run the local benchmark and the smoke tests with `dart`, `swift`, or `sbt` on `PATH` before updating graph-shape expectations for those ecosystems.
 

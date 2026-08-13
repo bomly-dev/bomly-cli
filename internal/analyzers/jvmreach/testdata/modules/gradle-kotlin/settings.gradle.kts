@@ -1,4 +1,0 @@
-include(
-    ":app",
-    ":nested:shared",
-)

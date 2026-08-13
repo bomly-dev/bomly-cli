@@ -1,1 +1,0 @@
-require("@company/shared");

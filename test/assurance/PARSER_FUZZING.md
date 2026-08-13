@@ -18,7 +18,6 @@ the reader inventory, cache behavior, and intentional exclusions.
 | Shared JSON contracts | dependency graph, package registry |
 | Package identifiers and plugin paths | package URL canonicalization, plugin path sanitizers |
 | SBOM | automatic SPDX and CycloneDX decoding; Syft JSON identification and deterministic rejection (the format is no longer ingested) |
-| Analyzer output | govulncheck JSON stream, esbuild metafile |
 | Node lockfiles | npm, pnpm, Yarn, Bun |
 | Node project configuration | package.json, pnpm-workspace.yaml, and .npmrc behind the package-manager warning checks |
 | Python lockfiles | Poetry, uv, Pipenv |
@@ -45,6 +44,11 @@ oversized structures within the bound, and arbitrary path/reference text.
   and validation code around them is the target.
 - Filesystem discovery and package-manager subprocess orchestration are not
   parsers and remain covered by unit, integration, and smoke tests.
+- Reachability analyzers (govulncheck, jsreach, pyreach, jvmreach) and the
+  external matcher and Syft detector components live in their own
+  `bomly-plugin-*` repositories; their parsers (govulncheck JSON stream,
+  esbuild metafile, Python/JVM import scanning, Maven/Gradle project files)
+  carry native fuzz targets upstream in those repositories.
 
 Add every new pure parser target to `scripts/run-fuzz.sh`; the scheduled fuzz
 workflow invokes that manifest through `make fuzz`.

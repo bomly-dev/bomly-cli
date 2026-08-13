@@ -116,7 +116,7 @@ jobs:
           failed=0
           for iteration in $(seq 1 10); do
             echo "Java suite iteration ${iteration}"
-            if go test ./internal/detectors/gradle ./internal/detectors/maven ./internal/detectors/sbt ./internal/analyzers/jvmreach -count=1; then
+            if go test ./internal/detectors/gradle ./internal/detectors/maven ./internal/detectors/sbt -count=1; then
               completed="${iteration}"
             else
               failed="${iteration}"
@@ -262,7 +262,7 @@ jobs:
             echo "Open the failed step for the test name or release target. Reproduce the test checks with:"
             echo
             echo '```sh'
-            echo "go test ./internal/detectors/gradle ./internal/detectors/maven ./internal/detectors/sbt ./internal/analyzers/jvmreach -count=1"
+            echo "go test ./internal/detectors/gradle ./internal/detectors/maven ./internal/detectors/sbt -count=1"
             echo "go test ./... -count=1"
             echo '```'
             echo

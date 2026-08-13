@@ -5,7 +5,7 @@ package composition
 import (
 	"context"
 
-	"github.com/bomly-dev/bomly-cli/internal/matchers/grype"
+	grype "github.com/bomly-dev/bomly-plugin-grype-matcher/plugin"
 	"github.com/bomly-dev/bomly-sdk"
 )
 

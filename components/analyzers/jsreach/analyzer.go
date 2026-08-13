@@ -376,7 +376,7 @@ func (a Analyzer) cache() *resultCache {
 	if a.DisableCache {
 		return nil
 	}
-	return newResultCache(a.CacheDir, a.CacheTTL)
+	return newResultCache(a.CacheDir, a.CacheTTL, a.logger())
 }
 
 func resultFromRequest(req model.AnalyzeRequest) model.AnalyzeResult {

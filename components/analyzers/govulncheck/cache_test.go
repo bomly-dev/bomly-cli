@@ -7,11 +7,13 @@ import (
 	"testing"
 
 	model "github.com/bomly-dev/bomly-sdk"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 func TestResultCacheRoundTrip(t *testing.T) {
 	dir := t.TempDir()
-	cache := newResultCache(dir, 0)
+	cache := newResultCache(dir, 0, nil)
 	if cache == nil {
 		t.Fatal("newResultCache returned nil for a writable dir")
 	}
@@ -40,7 +42,7 @@ func TestResultCacheRoundTrip(t *testing.T) {
 
 func TestResultCacheIsolatesByRunnerName(t *testing.T) {
 	dir := t.TempDir()
-	cache := newResultCache(dir, 0)
+	cache := newResultCache(dir, 0, nil)
 	moduleDir := newGoModuleDir(t)
 
 	if err := cache.set(moduleDir, "builtin", RunnerResult{Findings: map[string]Finding{"A": {OSV: "A"}}}); err != nil {
@@ -53,7 +55,7 @@ func TestResultCacheIsolatesByRunnerName(t *testing.T) {
 
 func TestResultCacheInvalidatesOnGoSumChange(t *testing.T) {
 	dir := t.TempDir()
-	cache := newResultCache(dir, 0)
+	cache := newResultCache(dir, 0, nil)
 	moduleDir := newGoModuleDir(t)
 
 	// Seed go.sum so checksum is stable across writes.
@@ -143,5 +145,20 @@ func TestAnalyzerDisableCacheAlwaysRunsRunner(t *testing.T) {
 	}
 	if runner.called != 2 {
 		t.Errorf("DisableCache should re-run runner per call; got %d calls", runner.called)
+	}
+}
+
+func TestNewResultCacheWarnsWhenInitFails(t *testing.T) {
+	core, logs := observer.New(zap.WarnLevel)
+	blocker := filepath.Join(t.TempDir(), "blocker")
+	if err := os.WriteFile(blocker, []byte("not a directory"), 0o600); err != nil {
+		t.Fatalf("write blocker file: %v", err)
+	}
+	cache := newResultCache(filepath.Join(blocker, "nested"), 0, zap.New(core))
+	if cache != nil {
+		t.Fatal("expected nil cache when the cache root cannot be created")
+	}
+	if got := logs.FilterLevelExact(zap.WarnLevel).Len(); got != 1 {
+		t.Fatalf("expected exactly one WARN log, got %d: %v", got, logs.All())
 	}
 }

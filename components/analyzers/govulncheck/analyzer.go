@@ -219,7 +219,7 @@ func (a Analyzer) cache() *resultCache {
 	if a.DisableCache {
 		return nil
 	}
-	return newResultCache(a.CacheDir, a.CacheTTL)
+	return newResultCache(a.CacheDir, a.CacheTTL, a.logger())
 }
 
 func (a Analyzer) logger() *zap.Logger { return ensureLogger(a.Logger) }

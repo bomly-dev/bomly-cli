@@ -20,6 +20,7 @@ the reader inventory, cache behavior, and intentional exclusions.
 | SBOM | automatic SPDX and CycloneDX decoding; Syft JSON identification and deterministic rejection (the format is no longer ingested) |
 | Analyzer output | govulncheck JSON stream, esbuild metafile |
 | Analyzer source scanning | Python import scanner, JVM import scanner |
+| Analyzer project configuration | package.json entry-point helpers (jsreach), Maven pom.xml module reader and Gradle settings module reader (jvmreach) |
 | Node lockfiles | npm, pnpm, Yarn, Bun |
 | Node project configuration | package.json, pnpm-workspace.yaml, and .npmrc behind the package-manager warning checks |
 | Python lockfiles | Poetry, uv, Pipenv |
@@ -36,8 +37,10 @@ oversized structures within the bound, and arbitrary path/reference text.
 - Command-backed detectors are exercised through fake-binary unit tests and
   smoke tests. Their parsers are fuzzed only when the command output has an
   isolated, deterministic in-process parser.
-- Maven, Gradle, and SBT XML/tree output is coupled to command execution and
-  does not currently expose a pure parser boundary.
+- Maven, Gradle, and SBT XML/tree *command output* is coupled to command
+  execution and does not currently expose a pure parser boundary. The
+  jvmreach analyzer's file-backed pom.xml and Gradle settings readers are a
+  separate surface and are fuzzed (see the native-target table above).
 - Archive extraction uses Go standard-library readers plus explicit path
   containment checks; hostile archive path behavior remains covered by
   security tests coordinated with the threat-model work.

@@ -53,6 +53,30 @@ func TestLibraryRunnerWalksJSTestdata(t *testing.T) {
 	}
 }
 
+func TestLibraryRunnerHonorsCancelledContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	_, err := NewRunner(nil).Run(ctx, jsProjectFixture("entrypoints"))
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("err = %v, want context.Canceled", err)
+	}
+}
+
+func TestLibraryRunnerCancelRacingBuild(t *testing.T) {
+	// Cancel concurrently with Run so the cancellation lands anywhere
+	// between context creation and build completion — including before
+	// Rebuild has started an active build, the window where a single
+	// Cancel call would be a no-op. Either outcome is valid: the build
+	// finished first (nil error) or cancellation won (context.Canceled).
+	// The invariant is that Run returns and never reports anything else.
+	ctx, cancel := context.WithCancel(context.Background())
+	go cancel()
+	_, err := NewRunner(nil).Run(ctx, jsProjectFixture("entrypoints"))
+	if err != nil && !errors.Is(err, context.Canceled) {
+		t.Fatalf("err = %v, want nil or context.Canceled", err)
+	}
+}
+
 func TestJSDynamicImportDetectionFromTestdata(t *testing.T) {
 	if !detectDynamicImports(jsProjectFixture("entrypoints")) {
 		t.Fatal("dynamic fixture was not detected")

@@ -65,12 +65,7 @@ This is fast, offline, and useful for:
 - Re-running policy on an SBOM you produced in a previous CI step.
 - Diffing SBOMs across releases.
 
-Format is auto-detected by content. The supported ingest formats are SPDX 2.3 JSON and CycloneDX 1.4–1.7 JSON. Syft's own JSON format is not supported as ingest input — convert it first:
-
-```bash
-syft convert ./app.syft.json -o spdx-json > ./app.spdx.json
-bomly scan --sbom --path ./app.spdx.json
-```
+Format is auto-detected by content. The supported ingest formats are SPDX 2.3 JSON and CycloneDX 1.4–1.7 JSON; anything else is rejected as an unsupported format. Most SBOM producers, including Syft, can emit one of the supported formats directly (for example `syft <target> -o spdx-json`).
 
 ## Diffing SBOMs
 

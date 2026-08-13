@@ -60,5 +60,4 @@ bomly diff --sbom --base ./v1.0.cdx.json --head ./v1.1.cdx.json
 - **Vendor-specific extensions** (custom properties, non-standard package types) are passed through to the JSON output but are not used for policy decisions.
 - **SBOM ingest is exclusive** — combining `--sbom` with `--image` or `--url` is rejected with exit 4.
 - **Format versions other than SPDX 2.3 JSON and CycloneDX 1.4–1.7 JSON** are rejected. SPDX 3.0 ingest is tracked for follow-up.
-- **Syft's own JSON format is not ingested.** Bomly still recognizes it and tells you how to migrate: `syft convert <file> -o spdx-json`.
 - **Tag-Value SPDX** and **XML CycloneDX** are not currently ingested.

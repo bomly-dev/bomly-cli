@@ -45,7 +45,7 @@ func FuzzUnmarshalAutoJSON(f *testing.F) {
 			t.Fatalf("non-deterministic parse: (%q, %v) then (%q, %v)", target, err, target2, err2)
 		}
 		if err != nil {
-			for _, sentinel := range []error{ErrSyftJSONUnsupported, ErrMalformedJSON, ErrUnsupportedFormat} {
+			for _, sentinel := range []error{ErrMalformedJSON, ErrUnsupportedFormat} {
 				if errors.Is(err, sentinel) != errors.Is(err2, sentinel) {
 					t.Fatalf("non-deterministic error classification: %v then %v", err, err2)
 				}
@@ -55,13 +55,10 @@ func FuzzUnmarshalAutoJSON(f *testing.F) {
 		}
 
 		if err != nil {
-			if target == TargetSyftJSON && !errors.Is(err, ErrSyftJSONUnsupported) {
-				t.Fatalf("syft target must fail with ErrSyftJSONUnsupported, got %v", err)
-			}
 			return
 		}
-		if target == TargetSyftJSON {
-			t.Fatal("syft target must never parse successfully")
+		if target == "" {
+			t.Fatal("successful parse must report a concrete target")
 		}
 		if doc == nil {
 			t.Fatalf("successful %s parse returned nil document", target)

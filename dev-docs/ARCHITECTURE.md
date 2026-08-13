@@ -579,11 +579,11 @@ The embedded surface preserves the exact constructor shapes the CLI used in-tree
 
 Two nested-module designs were evaluated and abandoned before this: a committed `go.work` workspace with `components/<kind>/<name>/` modules plus a lockstep release train, and a variant consuming the same nested modules through root `replace` directives. Both kept the code in-repo but added machinery the ordinary-module model does not need — workspace/pinned-build split in CI, a replace-directive allowlist, a bespoke tagging script — and the replace-based variant broke remote `go install`. With external repositories, `go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest` keeps working, Dependabot handles version bumps, and each component repository owns its tests, fuzz targets, and releases.
 
-### Decision: syft-JSON SBOM ingest is removed; sniffing is retained for the migration error
+### Decision: syft-JSON SBOM ingest is removed; treated as any unsupported format
 
 Syft's proprietary JSON SBOM format is no longer an accepted `--sbom` ingest input. It had exactly one consumer in the codebase — the SBOM ingest detector — while the syft detector itself always shells out with `-o spdx-json`. The lite build (`bomly_external_syft`) never actually ingested it either: its fallback re-ran the generic decoder, which returned a nil document for the syft target, so `ToGraph(nil)` hard-failed with an unhelpful `sbom document is nil` error. The change therefore unifies full and lite behavior on one explicit, actionable rejection; the compatibility impact is on full builds only, which previously decoded the format. Removing the decode path made `internal/detectors/sbom` build-tag-free and dropped its `anchore/syft` dependency.
 
-The boundary: `internal/sbom` **keeps** syft-JSON identification in `DetectJSONTarget` solely so `UnmarshalAutoJSON` can fail with the precise, actionable `ErrSyftJSONUnsupported` ("convert with: `syft convert <file> -o spdx-json`") instead of a generic unsupported-format error. Sniffing is not a step toward re-adding ingest; supported ingest formats are SPDX 2.3 JSON and CycloneDX 1.4–1.7 JSON.
+Follow-up simplification (same decision, second pass): the format-specific sniffing and the `syft convert` migration error were removed too. There is nothing special about syft-JSON — an unsupported format is an unsupported format, and the generic `ErrUnsupportedFormat` rejection covers it. This also deleted the last root-module import of `github.com/anchore/syft` (the `syftjson` decoder used only for identification), so the anchore tree now reaches the binary exclusively through the syft/grype component modules. Supported ingest formats are SPDX 2.3 JSON and CycloneDX 1.4–1.7 JSON.
 
 ## Build Modes
 

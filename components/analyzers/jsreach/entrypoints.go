@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/bomly-dev/bomly-sdk/system"
 )
@@ -148,9 +149,17 @@ func binEntryStrings(raw json.RawMessage) []string {
 	}
 	var m map[string]string
 	if err := json.Unmarshal(raw, &m); err == nil {
-		out := make([]string, 0, len(m))
-		for _, value := range m {
-			if value != "" {
+		names := make([]string, 0, len(m))
+		for name := range m {
+			names = append(names, name)
+		}
+		// Emit in sorted key order so the entry list (and everything
+		// derived from it — logs, cache keys, fuzz determinism) is
+		// stable across runs.
+		sort.Strings(names)
+		out := make([]string, 0, len(names))
+		for _, name := range names {
+			if value := m[name]; value != "" {
 				out = append(out, value)
 			}
 		}
@@ -175,8 +184,15 @@ func walkJSONStrings(raw json.RawMessage, emit func(string)) {
 	}
 	var asObject map[string]json.RawMessage
 	if err := json.Unmarshal(raw, &asObject); err == nil {
-		for _, child := range asObject {
-			walkJSONStrings(child, emit)
+		// Walk object members in sorted key order so emission order is
+		// deterministic (Go map iteration is randomized).
+		keys := make([]string, 0, len(asObject))
+		for key := range asObject {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+		for _, key := range keys {
+			walkJSONStrings(asObject[key], emit)
 		}
 	}
 }

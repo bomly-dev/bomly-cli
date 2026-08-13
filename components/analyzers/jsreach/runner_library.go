@@ -109,14 +109,35 @@ func (r libraryRunner) Run(ctx context.Context, projectDir string) (RunnerResult
 		},
 	}
 
-	// Honor cancellation by surfacing it as a runner error. esbuild
-	// itself doesn't take a context; we check before/after so a
-	// long-running pass still cancels at boundary.
+	// Honor cancellation mid-build. esbuild's Build call doesn't take
+	// a context, but its incremental Context API exposes Cancel(), so
+	// we run one Rebuild through a build context and cancel it from a
+	// watcher goroutine when ctx is done. Dispose always runs so the
+	// context's service goroutines don't leak.
 	if err := ctx.Err(); err != nil {
 		return RunnerResult{}, err
 	}
 
-	result := api.Build(options)
+	buildCtx, ctxErr := api.Context(options)
+	if ctxErr != nil {
+		return RunnerResult{}, fmt.Errorf("esbuild context: %s", summarizeMessages(ctxErr.Errors, 3))
+	}
+	defer buildCtx.Dispose()
+
+	watchDone := make(chan struct{})
+	defer close(watchDone)
+	go func() {
+		select {
+		case <-ctx.Done():
+			// Cancel stops the in-flight build; Rebuild then returns
+			// promptly with a "The build was canceled" error, which the
+			// ctx.Err() check below converts into the cancellation error.
+			buildCtx.Cancel()
+		case <-watchDone:
+		}
+	}()
+
+	result := buildCtx.Rebuild()
 	if err := ctx.Err(); err != nil {
 		return RunnerResult{}, err
 	}

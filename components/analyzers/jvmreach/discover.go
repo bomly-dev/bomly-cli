@@ -232,6 +232,9 @@ func readGradleModules(root string) []jvmModule {
 	for _, module := range seen {
 		modules = append(modules, module)
 	}
+	// Sort so callers (and fuzz determinism checks) see a stable order
+	// regardless of Go's randomized map iteration.
+	sort.Slice(modules, func(i, j int) bool { return modules[i].Dir < modules[j].Dir })
 	return modules
 }
 

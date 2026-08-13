@@ -7,11 +7,13 @@ import (
 	"testing"
 
 	model "github.com/bomly-dev/bomly-sdk"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 func TestResultCacheRoundTrip(t *testing.T) {
 	dir := t.TempDir()
-	cache := newResultCache(dir, 0)
+	cache := newResultCache(dir, 0, nil)
 	if cache == nil {
 		t.Fatal("newResultCache returned nil")
 	}
@@ -41,7 +43,7 @@ func TestResultCacheRoundTrip(t *testing.T) {
 
 func TestResultCacheInvalidatesOnBuildFileChange(t *testing.T) {
 	dir := t.TempDir()
-	cache := newResultCache(dir, 0)
+	cache := newResultCache(dir, 0, nil)
 	projectDir := newJVMProjectDir(t)
 	pom := filepath.Join(projectDir, "pom.xml")
 	if err := cache.set(projectDir, "fake", "1.0", RunnerResult{}); err != nil {
@@ -87,5 +89,20 @@ func TestAnalyzerWithCacheServesSecondCallFromCache(t *testing.T) {
 	r := reachOf(t, reg2, dep2)
 	if r == nil || r.Status != model.ReachabilityReachable {
 		t.Errorf("cached path did not produce a reachable annotation: %+v", r)
+	}
+}
+
+func TestNewResultCacheWarnsWhenInitFails(t *testing.T) {
+	core, logs := observer.New(zap.WarnLevel)
+	blocker := filepath.Join(t.TempDir(), "blocker")
+	if err := os.WriteFile(blocker, []byte("not a directory"), 0o600); err != nil {
+		t.Fatalf("write blocker file: %v", err)
+	}
+	cache := newResultCache(filepath.Join(blocker, "nested"), 0, zap.New(core))
+	if cache != nil {
+		t.Fatal("expected nil cache when the cache root cannot be created")
+	}
+	if got := logs.FilterLevelExact(zap.WarnLevel).Len(); got != 1 {
+		t.Fatalf("expected exactly one WARN log, got %d: %v", got, logs.All())
 	}
 }

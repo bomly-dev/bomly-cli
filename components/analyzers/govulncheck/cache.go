@@ -11,6 +11,7 @@ import (
 	"time"
 
 	cachepkg "github.com/bomly-dev/bomly-sdk/filecache"
+	"go.uber.org/zap"
 
 	"github.com/bomly-dev/bomly-sdk/system"
 )
@@ -47,35 +48,44 @@ type cachedRunnerResult struct {
 
 // newResultCache constructs a result cache rooted at dir. If dir is
 // empty, the OS user cache directory is used. Errors creating the cache
-// directory are non-fatal — they return a nil resultCache that the caller
-// can use without checks.
-func newResultCache(dir string, ttl time.Duration) *resultCache {
+// directory are non-fatal — they log one WARN and return a nil
+// resultCache that the caller can use without checks.
+func newResultCache(dir string, ttl time.Duration, logger *zap.Logger) *resultCache {
+	logger = ensureLogger(logger)
 	if ttl <= 0 {
 		ttl = defaultCacheTTL
 	}
 	root := dir
 	if root == "" {
-		root = defaultCacheRoot()
-	}
-	if root == "" {
-		return nil
+		defaultRoot, err := defaultCacheRoot()
+		if err != nil {
+			logger.Warn("govulncheck: result cache disabled: user cache directory unavailable (non-fatal)",
+				zap.Error(err))
+			return nil
+		}
+		root = defaultRoot
 	}
 	store, err := cachepkg.NewFileCache(root, ttl)
 	if err != nil {
+		logger.Warn("govulncheck: result cache disabled: cache initialization failed (non-fatal)",
+			zap.String("dir", root), zap.Error(err))
 		return nil
 	}
 	return &resultCache{store: store}
 }
 
 // defaultCacheRoot returns the platform-appropriate cache directory for
-// govulncheck analyzer results, or "" if the user cache directory cannot
-// be determined.
-func defaultCacheRoot() string {
+// govulncheck analyzer results, or an error when the user cache
+// directory cannot be determined.
+func defaultCacheRoot() (string, error) {
 	base, err := os.UserCacheDir()
-	if err != nil || base == "" {
-		return ""
+	if err != nil {
+		return "", err
 	}
-	return filepath.Join(base, "bomly", "analyzers", "govulncheck")
+	if base == "" {
+		return "", errors.New("user cache directory is empty")
+	}
+	return filepath.Join(base, "bomly", "analyzers", "govulncheck"), nil
 }
 
 // keyFor builds a stable cache key for one module run. The key folds

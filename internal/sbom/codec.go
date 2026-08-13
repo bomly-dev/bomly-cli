@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/anchore/syft/syft/format/syftjson"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -15,11 +14,6 @@ var (
 	ErrUnsupportedTarget = errors.New("unsupported sbom target")
 	ErrUnsupportedFormat = errors.New("unsupported sbom format")
 	ErrMalformedJSON     = errors.New("malformed sbom json")
-
-	// ErrSyftJSONUnsupported reports that the input is a syft-format JSON SBOM,
-	// which Bomly no longer ingests. Detection is kept so callers can point the
-	// user at the conversion path instead of a generic format error.
-	ErrSyftJSONUnsupported = errors.New("syft JSON SBOMs are not supported; convert with: syft convert <file> -o spdx-json")
 )
 
 type codec interface {
@@ -63,10 +57,6 @@ func DetectJSONTarget(data []byte) (Target, error) {
 		return "", ErrMalformedJSON
 	}
 
-	if id, _ := syftjson.NewFormatDecoder().Identify(bytes.NewReader(trimmed)); id == syftjson.ID {
-		return TargetSyftJSON, nil
-	}
-
 	var sniff struct {
 		SPDXVersion string `json:"spdxVersion"`
 		BOMFormat   string `json:"bomFormat"`
@@ -102,10 +92,6 @@ func UnmarshalAutoJSON(data []byte) (*Document, Target, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	if target == TargetSyftJSON {
-		return nil, target, ErrSyftJSONUnsupported
-	}
-
 	doc, err := UnmarshalJSON(data, target)
 	if err != nil {
 		return nil, "", err

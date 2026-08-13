@@ -539,13 +539,8 @@ func TestScanSBOMSyftJSONRejected(t *testing.T) {
 			if code != 3 {
 				t.Fatalf("expected exit 3 (resolution failure) for syft-JSON ingest, got %d\nstderr:\n%s", code, stderr)
 			}
-			for _, want := range []string{
-				"syft JSON SBOMs are not supported",
-				"syft convert <file> -o spdx-json",
-			} {
-				if !strings.Contains(stderr, want) {
-					t.Fatalf("expected stderr to contain %q, got:\n%s", want, stderr)
-				}
+			if !strings.Contains(stderr, "unsupported sbom format") && !strings.Contains(stderr, "detect sbom format") {
+				t.Fatalf("expected stderr to report an unsupported sbom format, got:\n%s", stderr)
 			}
 		})
 	}

@@ -4,16 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"strings"
 	"testing"
 	"time"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
-	"github.com/anchore/syft/syft/artifact"
-	syftfile "github.com/anchore/syft/syft/file"
-	"github.com/anchore/syft/syft/format/syftjson"
-	syftpkg "github.com/anchore/syft/syft/pkg"
-	syftsbom "github.com/anchore/syft/syft/sbom"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/spdx/tools-golang/spdx/v2/common"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
@@ -477,8 +471,8 @@ func TestDetectJSONTarget_DetectsSupportedFormats(t *testing.T) {
 	}
 
 	syftData := mustSyftJSONFixture(t)
-	if target, err := DetectJSONTarget(syftData); err != nil || target != TargetSyftJSON {
-		t.Fatalf("DetectJSONTarget(syft) = (%q, %v)", target, err)
+	if _, err := DetectJSONTarget(syftData); !errors.Is(err, ErrUnsupportedFormat) {
+		t.Fatalf("DetectJSONTarget(syft) must report an unsupported format, got %v", err)
 	}
 }
 
@@ -489,8 +483,8 @@ func TestUnmarshalAutoJSON_RejectsUnsupportedOrMalformedJSON(t *testing.T) {
 	if _, _, err := UnmarshalAutoJSON([]byte(`{"hello":`)); err == nil || !errors.Is(err, ErrMalformedJSON) {
 		t.Fatalf("expected malformed-json error, got %v", err)
 	}
-	if _, target, err := UnmarshalAutoJSON(mustSyftJSONFixture(t)); !errors.Is(err, ErrSyftJSONUnsupported) || target != TargetSyftJSON {
-		t.Fatalf("expected syft-json-unsupported error with syft target, got (%q, %v)", target, err)
+	if _, _, err := UnmarshalAutoJSON(mustSyftJSONFixture(t)); !errors.Is(err, ErrUnsupportedFormat) {
+		t.Fatalf("expected unsupported-format error for syft JSON, got %v", err)
 	}
 }
 
@@ -692,44 +686,18 @@ func idsOfPackages(packages []*sdk.Dependency) []string {
 
 func mustSyftJSONFixture(t *testing.T) []byte {
 	t.Helper()
-
-	app := syftpkg.Package{
-		Name:      "demo-app",
-		Version:   "1.0.0",
-		Type:      syftpkg.NpmPkg,
-		PURL:      "pkg:npm/demo-app@1.0.0",
-		Locations: syftfile.NewLocationSet(syftfile.NewLocation("package-lock.json")),
-	}
-	app.SetID()
-
-	dependency := syftpkg.Package{
-		Name:      "react",
-		Version:   "18.2.0",
-		Type:      syftpkg.NpmPkg,
-		PURL:      "pkg:npm/react@18.2.0",
-		Locations: syftfile.NewLocationSet(syftfile.NewLocation("package-lock.json")),
-		Licenses:  syftpkg.NewLicenseSet(syftpkg.NewLicense("MIT")),
-	}
-	dependency.SetID()
-
-	doc := syftsbom.SBOM{
-		Artifacts: syftsbom.Artifacts{
-			Packages: syftpkg.NewCollection(app, dependency),
-		},
-		Relationships: []artifact.Relationship{
-			{From: dependency, To: app, Type: artifact.DependencyOfRelationship},
-		},
-	}
-
-	encoder, err := syftjson.NewFormatEncoderWithConfig(syftjson.EncoderConfig{Pretty: true})
-	if err != nil {
-		t.Fatalf("new syft encoder: %v", err)
-	}
-	var out bytes.Buffer
-	if err := encoder.Encode(&out, doc); err != nil {
-		t.Fatalf("encode syft json: %v", err)
-	}
-	return []byte(strings.TrimSpace(out.String()))
+	// A representative syft-format JSON document. Bomly treats the format as
+	// unsupported, so a static fixture is all these tests need.
+	return []byte(`{
+  "artifacts": [
+    {"id": "a1", "name": "demo-app", "version": "1.0.0", "type": "npm", "purl": "pkg:npm/demo-app@1.0.0"},
+    {"id": "a2", "name": "react", "version": "18.2.0", "type": "npm", "purl": "pkg:npm/react@18.2.0"}
+  ],
+  "artifactRelationships": [{"parent": "a2", "child": "a1", "type": "dependency-of"}],
+  "source": {"type": "directory", "target": "."},
+  "descriptor": {"name": "syft", "version": "1.0.0"},
+  "schema": {"version": "16.0.34", "url": "https://raw.githubusercontent.com/anchore/syft/main/schema/json/schema-16.0.34.json"}
+}`)
 }
 
 // A PURL Bomly emitted must name an ecosystem Bomly recognises when it is read

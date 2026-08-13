@@ -7,7 +7,6 @@ require (
 	github.com/CycloneDX/cyclonedx-go v0.11.0
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/anchore/packageurl-go v0.2.0
-	github.com/anchore/syft v1.51.0
 	github.com/bomly-dev/bomly-plugin-depsdev-license-matcher v0.1.0
 	github.com/bomly-dev/bomly-plugin-govulncheck-analyzer v0.1.0
 	github.com/bomly-dev/bomly-plugin-grype-matcher v0.1.0
@@ -36,6 +35,7 @@ require (
 require (
 	github.com/anchore/clio v0.1.1 // indirect
 	github.com/anchore/grype v0.117.0 // indirect
+	github.com/anchore/syft v1.51.0 // indirect
 	github.com/evanw/esbuild v0.28.1 // indirect
 	github.com/glebarez/sqlite v1.11.0 // indirect
 	github.com/pandatix/go-cvss v0.6.2 // indirect

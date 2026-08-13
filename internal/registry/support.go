@@ -24,7 +24,7 @@ import (
 	sbomdetector "github.com/bomly-dev/bomly-cli/internal/detectors/sbom"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/sbt"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/swiftpm"
-	"github.com/bomly-dev/bomly-cli/internal/detectors/syft"
+	syft "github.com/bomly-dev/bomly-plugin-syft-detector/plugin"
 	"github.com/bomly-dev/bomly-sdk"
 )
 

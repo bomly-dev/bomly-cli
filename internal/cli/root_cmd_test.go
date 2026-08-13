@@ -14,7 +14,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
-	syftdetector "github.com/bomly-dev/bomly-cli/internal/detectors/syft"
+	syftdetector "github.com/bomly-dev/bomly-plugin-syft-detector/plugin"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"github.com/spf13/cobra"
 )

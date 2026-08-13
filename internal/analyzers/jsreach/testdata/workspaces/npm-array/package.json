@@ -1,9 +1,0 @@
-{
-  "name": "npm-array-root",
-  "private": true,
-  "main": "index.js",
-  "workspaces": [
-    "packages/*",
-    "nested"
-  ]
-}

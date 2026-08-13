@@ -130,7 +130,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 	if len(projectRoots) == 0 {
 		logger.Info("pyreach: no Python project roots discovered; marking all Python vulnerabilities as unknown")
 		annotateAllUnknown(req, "no-project-root-discovered", time.Now())
-		return finishResult(req, resultForRequest()), nil
+		return finishResult(req, resultFromRequest(req)), nil
 	}
 
 	logger.Info("pyreach: starting reachability analysis",
@@ -199,7 +199,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		zap.Duration("duration", time.Since(overallStart)),
 	)
 
-	out := resultForRequest()
+	out := resultFromRequest(req)
 	out.AnalyzerStats = map[string]model.ReachabilityStats{Name: stats}
 	return finishResult(req, out), nil
 }
@@ -253,8 +253,12 @@ func (a Analyzer) cache() *resultCache {
 	return newResultCache(a.CacheDir, a.CacheTTL)
 }
 
-func resultForRequest() model.AnalyzeResult {
-	return model.AnalyzeResult{AnalyzerRuns: []string{Name}}
+// resultFromRequest returns the legacy-path result: the (in-place
+// annotated) request registry plus this analyzer's run marker. Returning
+// the registry keeps annotations visible across a managed-plugin process
+// boundary, where in-place mutation of req.Registry is not.
+func resultFromRequest(req model.AnalyzeRequest) model.AnalyzeResult {
+	return model.AnalyzeResult{Registry: req.Registry, AnalyzerRuns: []string{Name}}
 }
 
 // applyOutcome reports per-vuln Reachability outcomes for telemetry.

@@ -27,9 +27,11 @@ jobs:
           cache: true
           cache-dependency-path: go.sum
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
-        with:
-          version: v2.12.0
+        # make lint installs the Makefile-pinned golangci-lint and runs it
+        # for the root module and every nested component module; the
+        # golangci-lint-action's bare root invocation never descends into
+        # components/.
+        run: make lint
 
   test:
     name: Test

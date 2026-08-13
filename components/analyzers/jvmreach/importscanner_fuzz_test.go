@@ -8,6 +8,9 @@ import (
 	testutil "github.com/bomly-dev/bomly-sdk/testkit"
 )
 
+// FuzzScanImports verifies that the JVM import scanner never panics and
+// produces deterministic results for arbitrary (valid, malformed, or
+// truncated) source input within the shared fuzz input bound.
 func FuzzScanImports(f *testing.F) {
 	for _, seed := range []string{
 		"",

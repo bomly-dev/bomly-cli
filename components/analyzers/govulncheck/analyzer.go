@@ -104,7 +104,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		// Unknown so consumers know the analyzer was attempted.
 		logger.Info("govulncheck: no module roots discovered; marking all Go vulnerabilities as unknown")
 		annotateAllUnknown(req, "no-module-root-discovered", time.Now())
-		return finishResult(req, resultForRequest()), nil
+		return finishResult(req, resultFromRequest(req)), nil
 	}
 
 	logger.Info("govulncheck: starting reachability analysis",
@@ -171,7 +171,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		zap.Duration("duration", time.Since(overallStart)),
 	)
 
-	out := resultForRequest()
+	out := resultFromRequest(req)
 	out.AnalyzerStats = map[string]model.ReachabilityStats{Name: stats}
 	return finishResult(req, out), nil
 }
@@ -224,8 +224,12 @@ func (a Analyzer) cache() *resultCache {
 
 func (a Analyzer) logger() *zap.Logger { return ensureLogger(a.Logger) }
 
-func resultForRequest() model.AnalyzeResult {
-	return model.AnalyzeResult{AnalyzerRuns: []string{Name}}
+// resultFromRequest returns the legacy-path result: the (in-place
+// annotated) request registry plus this analyzer's run marker. Returning
+// the registry keeps annotations visible across a managed-plugin process
+// boundary, where in-place mutation of req.Registry is not.
+func resultFromRequest(req model.AnalyzeRequest) model.AnalyzeResult {
+	return model.AnalyzeResult{Registry: req.Registry, AnalyzerRuns: []string{Name}}
 }
 
 // vulnerabilitiesForDependency returns the registry vulnerabilities for a

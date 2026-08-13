@@ -64,6 +64,9 @@ func TestPackageUpdatesEquivalence(t *testing.T) {
 	if len(legacyRes.PackageUpdates) != 0 {
 		t.Fatalf("legacy path returned %d package updates, want 0", len(legacyRes.PackageUpdates))
 	}
+	if legacyRes.Registry != legacyReg {
+		t.Fatalf("legacy path must return the annotated request registry (got %p, want %p): plugin-boundary hosts cannot see in-place mutation", legacyRes.Registry, legacyReg)
+	}
 
 	deltaGraph, deltaReg := newGoGraph(moduleDir, vuln)
 	delta := Analyzer{DisableCache: true, Runner: &fakeRunner{result: runnerResult}}

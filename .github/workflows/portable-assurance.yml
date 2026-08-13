@@ -34,7 +34,9 @@ jobs:
           failed=0
           for iteration in 1 2; do
             echo "portable suite iteration ${iteration}"
-            if go test ./... -count=1; then
+            # make test covers the root module and every nested component
+            # module; root `go test ./...` alone would skip components/.
+            if make test GOFLAGS=-count=1; then
               completed="${iteration}"
             else
               failed="${iteration}"
@@ -84,7 +86,7 @@ jobs:
             echo "Open the **Repeat portable suite twice** step to find the failing package and test. To reproduce the same check locally:"
             echo
             echo '```sh'
-            echo "go test ./... -count=1"
+            echo "make test GOFLAGS=-count=1"
             echo '```'
           } >> "${GITHUB_STEP_SUMMARY}"
 

@@ -4,9 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Bomly is a **customer-facing, security-sensitive CLI** for dependency intelligence. Audience: professional developers, security managers, and CI workflows. Expect high standards: correct behavior, clear output, full logging, and no panics.
 
-This is the single public repository for the Bomly CLI: the full implementation (`internal/*`), the `cmd/bomly` entry point, user documentation (`docs/`), release automation, install scripts, the npm MCP wrapper, and the binary-driven smoke test suite. One module lives outside this repository:
+This is the main public repository for the Bomly CLI: the engine, auditors, and native detectors (`internal/*`), the `cmd/bomly` entry point, user documentation (`docs/`), release automation, install scripts, the npm MCP wrapper, and the binary-driven smoke test suite. Two kinds of modules live outside this repository:
 
-- **`github.com/bomly-dev/bomly-sdk`** (public, separate repo): the contract both built-in components and external managed plugins implement — domain types, plugin kinds, validation, support metadata. It has its own tests and releases; this repo pins released versions (pseudo-versions only during coordinated cross-repo changes). Any reference to `sdk.<Type>` below means that module. Plugin authors start there, with `docs/PLUGINS.md`, `docs/plugins/`, and the public plugin template repo.
+- **`github.com/bomly-dev/bomly-sdk`** (public, separate repo): the contract both built-in components and external managed plugins implement — domain types, plugin kinds, validation, support metadata, and the shared helper subpackages (`system`, `filecache`, `logkit`, `detectorkit`, `matcherkit`, `testkit`). It has its own tests and releases; this repo pins released versions. Any reference to `sdk.<Type>` below means that module. Plugin authors start there, with `docs/PLUGINS.md`, `docs/plugins/`, and the public plugin template repo.
+- **`github.com/bomly-dev/bomly-plugin-*`** (public, one repo per component): external-integration components consumed as ordinary pinned Go modules — the four reachability analyzers (`govulncheck`, `jsreach`, `pyreach`, `jvmreach`), the `osv` / `depsdev-license` / `scorecard` / `grype` matchers, and the `syft` detector. Their implementations are NOT under `internal/`; changes to them happen in their repos, and Dependabot bumps the pins here. Auditors and all other detectors are Bomly's own logic and stay in this repository.
 
 ## Build & Test
 

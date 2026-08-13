@@ -182,7 +182,7 @@ This is a correctness boundary, not a formatting preference. Grype searches its 
 2. **`sdk.Package`** (`sdk/package.go`) is a matching artifact keyed by PURL on a `sdk.PackageRegistry`. It carries `Licenses`, `Vulnerabilities` (OSV-aligned `sdk.Vulnerability`), `Scorecard`, `EOL`, and similar enrichment. There is one entry per unique PURL across the whole pipeline, so 50 dependencies referencing the same package share one set of CVEs and one license decision.
 3. **`sdk.Finding`** (`sdk/vulnerability.go`) is a reference-style audit result. It carries policy fields (`Severity`, `PolicyStatus`, `Reasons`, `Auditor`, stable `RuleID`) plus the references `PackageRef` (PURL) and, for vulnerability findings, `VulnerabilityID`. It does **not** copy CVSS / EPSS / KEV / CWE — consumers resolve those by following the references back into the registry.
 
-`sdk.Vulnerability` is OSV-aligned (id, aliases, summary, details, severity, affected, references, database_specific) and extended with Bomly's matching-stage fields (CVSS, EPSS, KEV, CWE, FixedVersions, AffectedSymbols, `Reachability`). The OSV matcher maps `internal/matchers/osv/response.go` directly to this shape; grype / depsdev / eol / scorecard and enabled external matchers write the equivalent records.
+`sdk.Vulnerability` is OSV-aligned (id, aliases, summary, details, severity, affected, references, database_specific) and extended with Bomly's matching-stage fields (CVSS, EPSS, KEV, CWE, FixedVersions, AffectedSymbols, `Reachability`). The OSV matcher (repo `bomly-plugin-osv-matcher`, `plugin/response.go`) maps OSV responses directly to this shape; grype / depsdev / eol / scorecard and enabled external matchers write the equivalent records.
 
 ### Decision: enrichment consolidates alias-equivalent vulnerabilities
 
@@ -423,7 +423,7 @@ driven: a package that reaches them without a distro matches nothing, and
 because Bomly passes no CPEs and leaves `UseCPEs` false the stock matcher does
 not pick up the slack — container OS packages came back clean rather than
 unchecked (issue #316). The builtin matcher
-(`internal/matchers/grype/purl_builtin.go`) derives the distro, and the upstream
+(`bomly-plugin-grype-matcher`, `plugin/purl_builtin.go`) derives the distro, and the upstream
 source package, from the `distro=` and `upstream=` PURL qualifiers Syft records,
 mirroring Grype's own PURL provider.
 
@@ -439,7 +439,7 @@ for hand-written PURLs, which is documented in `docs/matchers/grype.md`.
 
 ### Decision: Scorecard matcher reads precomputed runs, not the library
 
-The OpenSSF Scorecard matcher (`internal/matchers/scorecard`) fetches precomputed per-repo scores from `api.scorecard.dev` instead of importing `github.com/ossf/scorecard/v5` and running checks in-process. Three reasons:
+The OpenSSF Scorecard matcher (repo `bomly-plugin-scorecard-matcher`) fetches precomputed per-repo scores from `api.scorecard.dev` instead of importing `github.com/ossf/scorecard/v5` and running checks in-process. Three reasons:
 
 1. **Dependency cost.** The Scorecard Go library pulls in k8s, buildkit, containerd, bigquery, go-containerregistry, and osv-scanner transitive deps — roughly 150–250 MB of additional code that would land in every Bomly build, violating the "standard library + existing deps only" non-negotiable.
 2. **Credentials.** Running Scorecard live makes 60+ GitHub API calls per repo and is unusable without a `GITHUB_AUTH_TOKEN`. A customer-facing CLI that quietly demands a token would surprise users and complicate CI integration.

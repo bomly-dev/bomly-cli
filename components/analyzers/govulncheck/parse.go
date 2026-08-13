@@ -3,6 +3,7 @@ package govulncheck
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	model "github.com/bomly-dev/bomly-sdk"
@@ -90,7 +91,7 @@ func parseGovulncheckJSON(data []byte) (RunnerResult, error) {
 		mergeFinding(result.Findings, result.ImportedModules, *env.Finding)
 	}
 	if err := scanner.Err(); err != nil {
-		return RunnerResult{}, err
+		return RunnerResult{}, fmt.Errorf("scan govulncheck JSON stream: %w", err)
 	}
 
 	for id, f := range result.Findings {
@@ -114,11 +115,24 @@ func mergeFinding(into map[string]Finding, modules map[string]struct{}, src find
 		return
 	}
 
-	// govulncheck trace order: index 0 is the entry frame (e.g. main.main);
-	// the last frame is the call site of the vulnerable symbol.
+	// govulncheck trace order (x/vuln internal/govulncheck.Finding.Trace):
+	// index 0 is the imported vulnerable symbol (the sink) and the last
+	// frame is the entry point. Module-level findings carry a single frame
+	// with only a module; package-level findings a single frame with module
+	// and package but no symbol.
+	sink := src.Trace[0]
+	if sink.Module != "" {
+		current.Modules = appendUnique(current.Modules, sink.Module)
+	}
+	// Record imported modules only from frames that name a package: a
+	// module-level frame proves the module is required, not that any of
+	// its packages is imported.
+	// The SDK's CallPath contract is entry point → sink (Frames[0] is the
+	// entry point), the reverse of govulncheck's trace order.
 	frames := make([]model.CallFrame, 0, len(src.Trace))
-	for _, t := range src.Trace {
-		if t.Module != "" {
+	for i := len(src.Trace) - 1; i >= 0; i-- {
+		t := src.Trace[i]
+		if t.Module != "" && t.Package != "" {
 			modules[t.Module] = struct{}{}
 		}
 		frames = append(frames, model.CallFrame{
@@ -128,20 +142,28 @@ func mergeFinding(into map[string]Finding, modules map[string]struct{}, src find
 			Position: positionToSDK(t.Position),
 		})
 	}
-	last := src.Trace[len(src.Trace)-1]
-	current.CalledBy = true
-	current.ImportedBy = true
-	if last.Module != "" {
-		current.Modules = appendUnique(current.Modules, last.Module)
+	switch {
+	case sink.Function != "":
+		// Symbol-level finding: a call path into the vulnerable symbol.
+		current.CalledBy = true
+		current.ImportedBy = true
+		sym := model.AffectedSymbol{
+			Symbol:  sink.Function,
+			Kind:    symbolKind(sink),
+			Package: sink.Package,
+			Module:  sink.Module,
+		}
+		current.Symbols = appendUniqueSymbol(current.Symbols, sym)
+		current.CallPaths = append(current.CallPaths, model.CallPath{Sink: sym, Frames: frames})
+	case sink.Package != "":
+		// Package-level finding: the vulnerable package is imported but
+		// no call into a vulnerable symbol was found.
+		current.ImportedBy = true
+	default:
+		// Module-level finding: the vulnerable module is required but the
+		// vulnerable package is not imported. Record the module (above)
+		// and nothing else.
 	}
-	sym := model.AffectedSymbol{
-		Symbol:  last.Function,
-		Kind:    symbolKind(last),
-		Package: last.Package,
-		Module:  last.Module,
-	}
-	current.Symbols = appendUniqueSymbol(current.Symbols, sym)
-	current.CallPaths = append(current.CallPaths, model.CallPath{Sink: sym, Frames: frames})
 	into[src.OSV] = current
 }
 

@@ -70,7 +70,7 @@ func TestAnalyzerMarksReachableFromGovulncheckHit(t *testing.T) {
 	vuln := model.Vulnerability{ID: "GO-2024-1", Source: "osv", ParsedSeverity: "high"}
 	g, registry := newGoGraph(moduleDir, vuln)
 
-	a := Analyzer{Runner: &fakeRunner{
+	a := Analyzer{DisableCache: true, Runner: &fakeRunner{
 		result: RunnerResult{
 			Findings: map[string]Finding{
 				"GO-2024-1": {
@@ -119,7 +119,7 @@ func TestAnalyzerMarksUnreachableWhenImportedButNotCalled(t *testing.T) {
 	vuln := model.Vulnerability{ID: "GO-2024-2", Source: "osv", ParsedSeverity: "high"}
 	g, registry := newGoGraph(moduleDir, vuln)
 
-	a := Analyzer{Runner: &fakeRunner{
+	a := Analyzer{DisableCache: true, Runner: &fakeRunner{
 		result: RunnerResult{
 			Findings: map[string]Finding{
 				"GO-2024-2": {OSV: "GO-2024-2", ImportedBy: true, CalledBy: false},
@@ -142,7 +142,7 @@ func TestAnalyzerMarksUnreachableTierPackageWhenModuleNotImported(t *testing.T) 
 	g, registry := newGoGraph(moduleDir, vuln)
 
 	// Runner returns nothing — no findings, no imported modules.
-	a := Analyzer{Runner: &fakeRunner{result: RunnerResult{}}}
+	a := Analyzer{DisableCache: true, Runner: &fakeRunner{result: RunnerResult{}}}
 	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: registry, ProjectPath: moduleDir})
 	if err != nil {
 		t.Fatal(err)
@@ -158,7 +158,7 @@ func TestAnalyzerDegradesToUnknownOnRunnerError(t *testing.T) {
 	vuln := model.Vulnerability{ID: "GO-2024-4", Source: "osv", ParsedSeverity: "high"}
 	g, registry := newGoGraph(moduleDir, vuln)
 
-	a := Analyzer{Runner: &fakeRunner{err: errors.New("govulncheck binary not found")}}
+	a := Analyzer{DisableCache: true, Runner: &fakeRunner{err: errors.New("govulncheck binary not found")}}
 	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: registry, ProjectPath: moduleDir})
 	if err != nil {
 		t.Fatalf("Analyze should not error on runner failure: %v", err)
@@ -183,7 +183,7 @@ func TestAnalyzerBridgesCVEToGOIDViaAliases(t *testing.T) {
 	}
 	g, registry := newGoGraph(moduleDir, vuln)
 
-	a := Analyzer{Runner: &fakeRunner{
+	a := Analyzer{DisableCache: true, Runner: &fakeRunner{
 		result: RunnerResult{
 			Findings: map[string]Finding{
 				"GO-2024-5": {

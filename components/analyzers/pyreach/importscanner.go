@@ -62,10 +62,12 @@ func scanImports(r io.Reader) (map[string]struct{}, error) {
 			}
 			continue
 		}
-		// Detect opening triple-quote on this line.
-		if i := indexAny(line, `"""`, `'''`); i >= 0 {
-			marker := line[i : i+3]
-			rest := line[i+3:]
+		// Detect opening triple-quote on this line. Inspect the
+		// comment-stripped text so a marker inside a trailing comment
+		// cannot flip the block state.
+		if i := indexAny(stripped, `"""`, `'''`); i >= 0 {
+			marker := stripped[i : i+3]
+			rest := stripped[i+3:]
 			// If the closing triple-quote appears on the same line,
 			// it's a single-line docstring — not a block. Ignore it
 			// unless it's the only content; in either case, do not

@@ -10,6 +10,8 @@ targets=(
   "github.com/bomly-dev/bomly-cli/internal/config FuzzLoadFile"
   "github.com/bomly-dev/bomly-cli/components/analyzers/govulncheck FuzzParseGovulncheckJSON"
   "github.com/bomly-dev/bomly-cli/components/analyzers/jsreach FuzzExtractImportedPackages"
+  "github.com/bomly-dev/bomly-cli/components/analyzers/pyreach FuzzScanImports"
+  "github.com/bomly-dev/bomly-cli/components/analyzers/jvmreach FuzzScanImports"
   "github.com/bomly-dev/bomly-cli/internal/detectors/cargo FuzzDepGraphFromCargoLock"
   "github.com/bomly-dev/bomly-cli/internal/detectors/cocoapods FuzzDepGraphFromPodfileLock"
   "github.com/bomly-dev/bomly-cli/internal/detectors/composer FuzzDepGraphFromComposerLock"

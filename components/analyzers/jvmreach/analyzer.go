@@ -371,7 +371,7 @@ func (a Analyzer) runWithCache(
 	}
 	if cache != nil {
 		if err := cache.set(projectDir, runner.Name(), runner.Version(), result); err != nil {
-			logger.Debug("jvmreach: cache write failed (non-fatal)",
+			logger.Warn("jvmreach: cache write failed (non-fatal)",
 				zap.String("project_root", projectDir),
 				zap.Error(err))
 		}

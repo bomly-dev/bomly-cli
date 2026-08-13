@@ -137,7 +137,9 @@ jobs:
           failed=0
           for iteration in $(seq 1 5); do
             echo "complete suite iteration ${iteration}"
-            if go test ./... -count=1; then
+            # make test covers the root module and every nested component
+            # module; root `go test ./...` alone would skip components/.
+            if make test GOFLAGS=-count=1; then
               completed="${iteration}"
             else
               failed="${iteration}"
@@ -263,7 +265,7 @@ jobs:
             echo
             echo '```sh'
             echo "go test ./internal/detectors/gradle ./internal/detectors/maven ./internal/detectors/sbt ./components/analyzers/jvmreach -count=1"
-            echo "go test ./... -count=1"
+            echo "make test GOFLAGS=-count=1"
             echo '```'
             echo
             echo "For a failed release build, use the operating system, architecture, and variant shown in the table with the build command from **Cross-build release targets**."

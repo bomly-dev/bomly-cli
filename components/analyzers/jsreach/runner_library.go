@@ -123,11 +123,11 @@ func (r libraryRunner) Run(ctx context.Context, projectDir string) (RunnerResult
 
 	if len(result.Errors) > 0 {
 		// esbuild errors usually mean syntactically broken sources or
-		// genuinely missing files. We log them at debug and keep
-		// going; whatever metafile we got back is still useful for a
-		// best-effort import set.
+		// genuinely missing files. We warn and keep going; whatever
+		// metafile we got back is still useful for a best-effort
+		// import set.
 		preview := summarizeMessages(result.Errors, 3)
-		r.logger.Debug("jsreach: esbuild reported errors (continuing on best-effort)",
+		r.logger.Warn("jsreach: esbuild reported errors (continuing on best-effort)",
 			zap.String("project_dir", projectDir),
 			zap.Int("error_count", len(result.Errors)),
 			zap.String("preview", preview))

@@ -52,6 +52,10 @@ func walkSourceFiles(root string, fn func(path string) error) (skipped []string,
 	skippedSet := make(map[string]struct{})
 	walkErr := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
+			// Permission errors and similar issues skip the offending
+			// entry without aborting the whole walk: reachability here
+			// is deliberately best-effort (mirroring pyreach), and
+			// tier-3 "unreachable" is documented as not meaning safe.
 			if d != nil && d.IsDir() {
 				return filepath.SkipDir
 			}

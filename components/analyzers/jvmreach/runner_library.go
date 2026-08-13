@@ -29,8 +29,12 @@ func (libraryRunner) Name() string { return "library" }
 func (libraryRunner) Version() string { return runnerSchemaVersion }
 
 func (r libraryRunner) Run(ctx context.Context, projectDir string) (RunnerResult, error) {
-	if info, err := os.Stat(projectDir); err != nil || !info.IsDir() {
+	info, err := os.Stat(projectDir)
+	if err != nil {
 		return RunnerResult{}, fmt.Errorf("project dir not accessible: %w", err)
+	}
+	if !info.IsDir() {
+		return RunnerResult{}, fmt.Errorf("project dir not accessible: %q is not a directory", projectDir)
 	}
 
 	r.logger.Debug("jvmreach: executing in-process runner",

@@ -204,7 +204,7 @@ func (a Analyzer) runWithCache(
 	}
 	if cache != nil {
 		if err := cache.set(moduleDir, runner.Name(), result); err != nil {
-			logger.Debug("govulncheck: cache write failed (non-fatal)",
+			logger.Warn("govulncheck: cache write failed (non-fatal)",
 				zap.String("module_root", moduleDir),
 				zap.Error(err))
 		}

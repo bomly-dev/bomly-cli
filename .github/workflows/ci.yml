@@ -182,12 +182,18 @@ jobs:
           git diff --exit-code -- components/
       - name: Forbid replace directives
         shell: bash
+        # `go mod edit -json` sees single-line and block-form directives
+        # alike, which a line-oriented grep would miss.
         run: |
           set -euo pipefail
-          if grep -E '^replace ' go.mod components/*/*/go.mod; then
-            echo "go.mod files must not contain replace directives" >&2
-            exit 1
-          fi
+          for modfile in go.mod components/*/*/go.mod; do
+            [ -e "$modfile" ] || continue
+            count="$(go mod edit -json "$modfile" | jq '.Replace | length')"
+            if [ "$count" != "0" ] && [ "$count" != "null" ]; then
+              echo "$modfile must not contain replace directives" >&2
+              exit 1
+            fi
+          done
 
   generated-docs:
     name: Generated docs drift

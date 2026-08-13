@@ -310,3 +310,22 @@ func TestAnalyzerMarksUnknownWhenNoProjectRootDiscovered(t *testing.T) {
 		t.Errorf("reason = %q, want no-project-root-discovered", r.Reason)
 	}
 }
+
+// TestFindProjectRootBailsOutInsideVendoredTree pins the vendored-tree
+// guard: a dependency location below .venv/site-packages must not walk
+// upward and attribute the surrounding application project to the
+// installed dependency.
+func TestFindProjectRootBailsOutInsideVendoredTree(t *testing.T) {
+	projectDir := newPythonProjectDir(t)
+	depDir := filepath.Join(projectDir, ".venv", "lib", "python3.11", "site-packages", "requests")
+	if err := os.MkdirAll(depDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if got := findProjectRoot(depDir); got != "" {
+		t.Errorf("findProjectRoot(%q) = %q, want empty (vendored tree)", depDir, got)
+	}
+	// Control: an application source path still resolves to the project.
+	if got := findProjectRoot(filepath.Join(projectDir, "app.py")); got != projectDir {
+		t.Errorf("findProjectRoot(app.py) = %q, want %q", got, projectDir)
+	}
+}

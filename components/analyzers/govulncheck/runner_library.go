@@ -78,20 +78,25 @@ func (r libraryRunner) Run(ctx context.Context, moduleDir string) (RunnerResult,
 	return parseGovulncheckJSON(stdout.Bytes())
 }
 
-// isVulnsFound reports whether the wrapped error is the
-// "vulnerabilities found" sentinel govulncheck returns when it discovers
-// at least one finding. The error message is the canonical signal; the
-// library uses an unexported type so we match on text.
+// isVulnsFound reports whether err is the "vulnerabilities found"
+// sentinel govulncheck returns when it discovers at least one finding.
+// scan.Cmd.Wait documents that its error wraps an error implementing
+// ExitCode() int; exit code 3 is "vulnerabilities found". The message
+// comparisons walk the unwrap chain as a fallback for runners that
+// surface the plain exec message instead.
 func isVulnsFound(err error) bool {
 	if err == nil {
 		return false
 	}
-	type sentinel interface{ Error() string }
-	if typed, ok := errors.AsType[sentinel](err); ok {
-		msg := typed.Error()
-		// govulncheck's "exit code 3" surfaces here as either
-		// "exit status 3" (when shelling out to the toolchain) or as
-		// the in-process equivalent the library prints.
+	type exitCoder interface {
+		error
+		ExitCode() int
+	}
+	if coder, ok := errors.AsType[exitCoder](err); ok && coder.ExitCode() == 3 {
+		return true
+	}
+	for unwrapped := err; unwrapped != nil; unwrapped = errors.Unwrap(unwrapped) {
+		msg := unwrapped.Error()
 		if msg == "exit status 3" || msg == "vulnerabilities found" {
 			return true
 		}

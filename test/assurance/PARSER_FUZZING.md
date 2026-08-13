@@ -19,6 +19,7 @@ the reader inventory, cache behavior, and intentional exclusions.
 | Package identifiers and plugin paths | package URL canonicalization, plugin path sanitizers |
 | SBOM | automatic SPDX and CycloneDX decoding; Syft JSON identification and deterministic rejection (the format is no longer ingested) |
 | Analyzer output | govulncheck JSON stream, esbuild metafile |
+| Analyzer source scanning | Python import scanner, JVM import scanner |
 | Node lockfiles | npm, pnpm, Yarn, Bun |
 | Node project configuration | package.json, pnpm-workspace.yaml, and .npmrc behind the package-manager warning checks |
 | Python lockfiles | Poetry, uv, Pipenv |

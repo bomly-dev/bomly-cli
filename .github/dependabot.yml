@@ -6,7 +6,12 @@
 version: 2
 updates:
   - package-ecosystem: "gomod" # See documentation for possible values
-    directory: "/" # Location of package manifests
+    # The glob covers the root module and every nested component module
+    # (components/<kind>/<name>/go.mod); new component waves are picked up
+    # automatically.
+    directories:
+      - "/"
+      - "/components/*/*"
     schedule:
       interval: "weekly"
     groups:

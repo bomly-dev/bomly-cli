@@ -84,15 +84,10 @@ func findProjectRoot(start string) string {
 			return ""
 		}
 		if isInsideVendoredTree(dir) {
-			// Walking through a venv / site-packages would attribute
-			// dep source to the project. Bail out when we recognize
-			// we're below such a directory.
-			parent := filepath.Dir(dir)
-			if parent == dir {
-				return ""
-			}
-			dir = parent
-			continue
+			// Walking upward out of a venv / site-packages tree would
+			// attribute an installed dependency's source location to the
+			// surrounding application project. Bail out instead.
+			return ""
 		}
 		if hasProjectMarker(dir) {
 			return dir

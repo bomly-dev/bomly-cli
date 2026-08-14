@@ -688,6 +688,139 @@ func TestSPDXSummaryAndDescriptionStaySeparate(t *testing.T) {
 	t.Fatal("left-pad missing from output")
 }
 
+// TestCPE22ReferenceTypeIsPreserved keeps an SPDX round trip from relabelling
+// a CPE 2.2 locator as 2.3 without converting its syntax.
+func TestCPE22ReferenceTypeIsPreserved(t *testing.T) {
+	const in = `{
+      "spdxVersion": "SPDX-2.3",
+      "SPDXID": "SPDXRef-DOCUMENT",
+      "name": "doc",
+      "documentNamespace": "https://example.com/doc",
+      "creationInfo": {"created": "2024-01-01T00:00:00Z", "creators": ["Tool: t"]},
+      "packages": [{
+        "name": "left-pad",
+        "SPDXID": "SPDXRef-Package-left-pad",
+        "versionInfo": "1.3.0",
+        "downloadLocation": "NOASSERTION",
+        "filesAnalyzed": false,
+        "externalRefs": [
+          {"referenceCategory": "SECURITY", "referenceType": "cpe22Type", "referenceLocator": "cpe:/a:vendor:product:1.0"},
+          {"referenceCategory": "SECURITY", "referenceType": "cpe23Type", "referenceLocator": "cpe:2.3:a:vendor:product:1.0:*:*:*:*:*:*:*"}
+        ]
+      }]
+    }`
+
+	out := ingestAndReexport(t, []byte(in), TargetSPDX23JSON)
+	var doc v23.Document
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	byLocator := map[string]string{}
+	for _, p := range doc.Packages {
+		if p == nil {
+			continue
+		}
+		for _, ref := range p.PackageExternalReferences {
+			if ref != nil {
+				byLocator[ref.Locator] = ref.RefType
+			}
+		}
+	}
+	if got := byLocator["cpe:/a:vendor:product:1.0"]; got != "cpe22Type" {
+		t.Fatalf("cpe 2.2 locator emitted as %q, want cpe22Type", got)
+	}
+	if got := byLocator["cpe:2.3:a:vendor:product:1.0:*:*:*:*:*:*:*"]; got != "cpe23Type" {
+		t.Fatalf("cpe 2.3 locator emitted as %q, want cpe23Type", got)
+	}
+}
+
+// TestUrnExternalReferenceSurvives covers a valid non-HTTP IRI. CycloneDX
+// external-reference URLs are IRI references, so a "bom" reference to a
+// urn:uuid must not be dropped as an unknown scheme.
+func TestUrnExternalReferenceSurvives(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0",
+        "type": "library",
+        "name": "a",
+        "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "externalReferences": [
+          {"type": "bom", "url": "urn:uuid:3f2504e0-4f89-41d3-9a0c-0305e82c3301"}
+        ]
+      }]
+    }`
+
+	out := ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON)
+	if !strings.Contains(string(out), "urn:uuid:3f2504e0-4f89-41d3-9a0c-0305e82c3301") {
+		t.Fatalf("a valid urn external reference was dropped:\n%s", out)
+	}
+}
+
+// TestDuplicatePURLExternalRefsAreUnioned covers reference sets on two
+// components sharing a PURL. They are a set, not a single assertion, so a
+// fill-gaps merge would drop the second list whenever the first had any.
+func TestDuplicatePURLExternalRefsAreUnioned(t *testing.T) {
+	doc := &Document{
+		Components: []Component{
+			{
+				ID: "first", Name: "a", Version: "1.0.0", PURL: "pkg:npm/a@1.0.0",
+				ExternalRefs: []ExternalRef{{Type: "website", URL: "https://example.com/site"}},
+			},
+			{
+				ID: "second", Name: "a", Version: "1.0.0", PURL: "pkg:npm/a@1.0.0",
+				ExternalRefs: []ExternalRef{{Type: "documentation", URL: "https://example.com/docs"}},
+			},
+		},
+		Dependencies: []Dependency{{Ref: "first", DependsOn: []string{"second"}}},
+	}
+
+	graph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	out, err := MarshalDepGraphJSON(graph, TargetCycloneDX17JSON, BuildOptions{}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	for _, want := range []string{"https://example.com/site", "https://example.com/docs"} {
+		if !strings.Contains(string(out), want) {
+			t.Fatalf("merged component lost %q:\n%s", want, out)
+		}
+	}
+}
+
+// TestPrimaryComponentExternalRefsAreUnioned is the same set semantics for a
+// primary component described in both metadata.component and the inventory.
+func TestPrimaryComponentExternalRefsAreUnioned(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "metadata": {"component": {
+        "bom-ref": "root", "type": "application", "name": "app", "version": "1.0.0",
+        "purl": "pkg:npm/app@1.0.0",
+        "externalReferences": [{"type": "documentation", "url": "https://example.com/docs"}]
+      }},
+      "components": [
+        {"bom-ref": "root", "type": "application", "name": "app", "version": "1.0.0", "purl": "pkg:npm/app@1.0.0",
+         "externalReferences": [{"type": "website", "url": "https://example.com/site"}]},
+        {"bom-ref": "pkg:npm/dep@1.0.0", "type": "library", "name": "dep", "version": "1.0.0", "purl": "pkg:npm/dep@1.0.0"}
+      ],
+      "dependencies": [{"ref": "root", "dependsOn": ["pkg:npm/dep@1.0.0"]}]
+    }`
+
+	out := ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON)
+	for _, want := range []string{"https://example.com/site", "https://example.com/docs"} {
+		if !strings.Contains(string(out), want) {
+			t.Fatalf("primary component lost %q:\n%s", want, out)
+		}
+	}
+}
+
 // TestSPDXHomePageSurvivesSPDXRoundTrip covers a field SPDX represents
 // exactly, which an earlier revision decoded but never re-emitted.
 func TestSPDXHomePageSurvivesSPDXRoundTrip(t *testing.T) {

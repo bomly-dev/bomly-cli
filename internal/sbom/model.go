@@ -213,9 +213,32 @@ func mergeComponentAssertions(dst *Component, src Component) {
 	if len(dst.Licenses) == 0 {
 		dst.Licenses = src.Licenses
 	}
-	if len(dst.ExternalRefs) == 0 {
-		dst.ExternalRefs = src.ExternalRefs
+	// External references are a set, not a single assertion: each copy may
+	// name a different link, so a fill-gaps copy would drop the second one
+	// entirely whenever the first had any.
+	dst.ExternalRefs = unionExternalRefs(dst.ExternalRefs, src.ExternalRefs)
+}
+
+// unionExternalRefs appends references from extra that base does not already
+// carry, keyed by type and URL.
+func unionExternalRefs(base, extra []ExternalRef) []ExternalRef {
+	if len(extra) == 0 {
+		return base
 	}
+	type key struct{ refType, url string }
+	seen := make(map[key]struct{}, len(base))
+	for _, ref := range base {
+		seen[key{ref.Type, ref.URL}] = struct{}{}
+	}
+	for _, ref := range extra {
+		k := key{ref.Type, ref.URL}
+		if _, ok := seen[k]; ok {
+			continue
+		}
+		seen[k] = struct{}{}
+		base = append(base, ref)
+	}
+	return base
 }
 
 // ExternalRef is an external reference carried through from an ingested SBOM

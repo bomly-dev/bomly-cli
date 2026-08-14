@@ -424,9 +424,19 @@ func isPublishableReferenceURL(raw string) bool {
 	switch strings.ToLower(parsed.Scheme) {
 	case "http", "https":
 		return parsed.Host != "" && parsed.RawQuery == "" && parsed.Fragment == ""
-	case "mailto":
+	case "git", "ftp", "ftps":
+		// Network transports CycloneDX legitimately uses for distribution and
+		// version-control references.
+		return parsed.Host != "" && parsed.RawQuery == "" && parsed.Fragment == ""
+	case "mailto", "urn":
+		// Opaque identifiers with no host and no filesystem reach. A `bom`
+		// reference to "urn:uuid:..." is the common CycloneDX case.
 		return parsed.Opaque != "" && parsed.RawQuery == "" && parsed.Fragment == ""
 	default:
+		// Anything else — notably file:, data:, and javascript: — stays
+		// rejected. Denying unknown schemes is the safe default: these values
+		// are republished verbatim, and a scheme Bomly cannot reason about
+		// may reference the local machine or execute in a consumer.
 		return false
 	}
 }

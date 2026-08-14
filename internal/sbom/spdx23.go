@@ -588,7 +588,7 @@ func spdxExternalReferences(component Component) []*v23.PackageExternalReference
 		}
 		refs = append(refs, &v23.PackageExternalReference{
 			Category: "SECURITY",
-			RefType:  "cpe23Type",
+			RefType:  spdxCPERefType(cpe),
 			Locator:  cpe,
 		})
 	}
@@ -631,6 +631,20 @@ func parseSPDXLicenses(values ...string) []License {
 		}
 	}
 	return nil
+}
+
+// spdxCPERefType labels a CPE locator with the reference type matching its own
+// syntax.
+//
+// The two forms are self-describing — 2.3 is colon-delimited and starts
+// "cpe:2.3:", 2.2 starts "cpe:/" — so the type is derived rather than carried.
+// Emitting a 2.2 locator as cpe23Type would relabel it without converting it,
+// asserting a syntax the value does not use.
+func spdxCPERefType(cpe string) string {
+	if strings.HasPrefix(strings.TrimSpace(cpe), "cpe:/") {
+		return "cpe22Type"
+	}
+	return "cpe23Type"
 }
 
 // parseSPDXCPEs recovers CPE identifiers from a package's security external

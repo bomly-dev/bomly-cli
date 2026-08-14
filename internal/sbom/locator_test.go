@@ -170,9 +170,16 @@ func TestIsPublishableReferenceURL(t *testing.T) {
 		{"https://example.com/docs?token=s3cret", false},
 		{"https://example.com/docs#s3cret", false},
 		{"https://tok:s3cret@example.com/docs", false},
+		// CycloneDX external-reference URLs are IRI references, so safe
+		// non-HTTP identifiers must survive a round trip.
+		{"urn:uuid:3f2504e0-4f89-41d3-9a0c-0305e82c3301", true},
+		{"git://github.com/org/repo", true},
+		{"ftp://files.example.com/pkg.tgz", true},
+		{"urn:uuid:3f2504e0#s3cret", false},
 		{"file:///Users/victim/secret.html", false},
 		{"/Users/victim/secret.html", false},
 		{"javascript:alert(1)", false},
+		{"data:text/html,<script>alert(1)</script>", false},
 		{"https://", false},
 		{"mailto:", false},
 		{"", false},

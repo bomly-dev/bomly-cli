@@ -146,10 +146,61 @@ func mergeIngestedNode(existing, incoming *sdk.Dependency) {
 		if existing.Metadata == nil {
 			existing.Metadata = make(map[string]any, len(incoming.Metadata))
 		}
+		// External references are a set carried under one key, so a key-level
+		// fill-gaps merge would drop the duplicate's whole list whenever the
+		// first component had any. Union them instead.
+		if key == metadataKeyExternalRefs {
+			existing.Metadata[key] = unionExternalRefValues(existing.Metadata[key], value)
+			continue
+		}
 		if _, present := existing.Metadata[key]; !present {
 			existing.Metadata[key] = value
 		}
 	}
+}
+
+// unionExternalRefValues merges two serialized external-reference lists,
+// keyed by type and URL. Entries that are not the expected shape are kept
+// as-is on the base side and skipped on the incoming side.
+func unionExternalRefValues(base, extra any) any {
+	baseList, _ := base.([]any)
+	extraList, _ := extra.([]any)
+	if len(extraList) == 0 {
+		return base
+	}
+	if len(baseList) == 0 {
+		return extra
+	}
+
+	type key struct{ refType, url string }
+	refKey := func(entry any) (key, bool) {
+		fields, ok := entry.(map[string]any)
+		if !ok {
+			return key{}, false
+		}
+		refType, _ := fields["type"].(string)
+		url, _ := fields["url"].(string)
+		return key{refType, url}, true
+	}
+
+	seen := make(map[key]struct{}, len(baseList))
+	for _, entry := range baseList {
+		if k, ok := refKey(entry); ok {
+			seen[k] = struct{}{}
+		}
+	}
+	for _, entry := range extraList {
+		k, ok := refKey(entry)
+		if !ok {
+			continue
+		}
+		if _, present := seen[k]; present {
+			continue
+		}
+		seen[k] = struct{}{}
+		baseList = append(baseList, entry)
+	}
+	return baseList
 }
 
 // unionStrings appends values from extra that are not already in base.

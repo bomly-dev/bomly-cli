@@ -396,8 +396,10 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 		Description: comp.Description,
 		Originator:  comp.Publisher,
 	}
-	if isValidCPE(comp.CPE) {
-		component.CPEs = []string{comp.CPE}
+	// Store the trimmed value isValidCPE actually validated: a padded CPE
+	// would otherwise pass the check and be re-emitted with its whitespace.
+	if cpe := strings.TrimSpace(comp.CPE); isValidCPE(cpe) {
+		component.CPEs = []string{cpe}
 	}
 	// The name is optional on a CycloneDX organizational entity. Gating the
 	// whole block on it discarded the URLs and contacts of a supplier that
@@ -412,15 +414,26 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 				if c.Name == "" && c.Email == "" && c.Phone == "" {
 					continue
 				}
+				// A contact email is republished verbatim, so it needs the
+				// same validation a mailto reference gets — otherwise a
+				// credential-shaped address passes straight through.
+				email := c.Email
+				if email != "" && !isEmailAddress(email) {
+					email = ""
+				}
+				if c.Name == "" && email == "" && c.Phone == "" {
+					continue
+				}
 				component.SupplierContacts = append(component.SupplierContacts, Contact{
-					Name: c.Name, Email: c.Email, Phone: c.Phone,
+					Name: c.Name, Email: email, Phone: c.Phone,
 				})
 			}
 		}
 		if comp.Supplier.URL != nil {
 			for _, u := range *comp.Supplier.URL {
 				if isPublishableReferenceURL(u) {
-					component.SupplierURLs = append(component.SupplierURLs, u)
+					// Store the trimmed value the gate actually validated.
+					component.SupplierURLs = append(component.SupplierURLs, strings.TrimSpace(u))
 				}
 			}
 		}

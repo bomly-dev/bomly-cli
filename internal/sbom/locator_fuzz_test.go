@@ -1,6 +1,7 @@
 package sbom
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-sdk"
@@ -114,6 +115,62 @@ func FuzzNormalizeRepositoryURL(f *testing.F) {
 		assertPublishableLocator(t, Locator{Kind: LocatorVCS, URL: got}, raw)
 		if again := normalizeRepositoryURL(raw); again != got {
 			t.Fatalf("nondeterministic normalization of %q: %q vs %q", raw, got, again)
+		}
+	})
+}
+
+// FuzzIsValidCPE exercises the CPE validator, a hand-written parser over
+// values taken from untrusted SPDX and CycloneDX documents. It carries two
+// separate grammars — the 2.3 formatted string with backslash escapes, and the
+// 2.2 URI binding with percent encoding and a packed edition — so it meets the
+// repository's rule that every new parser of untrusted data gets a target.
+//
+// The invariant is the one that matters for output: anything accepted is
+// re-emitted as a package identity assertion, so an accepted value must be
+// printable ASCII with no delimiter that would change how a consumer parses it.
+func FuzzIsValidCPE(f *testing.F) {
+	for _, seed := range []string{
+		"cpe:2.3:a:example:left-pad:1.3.0:*:*:*:*:*:*:*",
+		"cpe:2.3:o:vendor:os:1.0:-:*:*:*:*:*:*",
+		`cpe:2.3:a:ven\:dor:prod:1.0:*:*:*:*:*:*:*`,
+		"cpe:/a:hp:insight_diagnostics:7.4.0.1570::~~online~win2003~x64~",
+		"cpe:/a:apache:log4j:2.14.1",
+		"cpe:/a:vendor%3Aname:product",
+		"cpe:/a:vendor%ZZ:product",
+		"cpe:2.3:a:vendor:product:1.0:*:*:*:*:*:*:*:extra",
+		"cpe:2.3:z:vendor:product:1.0:*:*:*:*:*:*:*",
+		"cpe:2.3:a:vendor with space:product:1.0:*:*:*:*:*:*:*",
+		`cpe:2.3:a:vendor:pro\`,
+		"cpe:2.3:", "cpe:/", "cpe:", "not-a-cpe", "", "   ",
+		"cpe:2.3:a:v:p:1.0:*:*:*:*:*:*:\x00",
+		"cpe:/a:v:\x7f",
+		"cpe:2.3:a:v:p:1.0:*:*:*:*:*:*:é",
+	} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, raw string) {
+		if len(raw) > testkit.MaxFuzzInputSize {
+			return
+		}
+		got := isValidCPE(raw)
+		if again := isValidCPE(raw); again != got {
+			t.Fatalf("nondeterministic validation of %q: %v vs %v", raw, got, again)
+		}
+		if !got {
+			return
+		}
+		// isValidCPE trims, so the value callers must store is the trimmed
+		// one. Every caller is responsible for storing that form; asserting
+		// on it here is what pins the contract.
+		trimmed := strings.TrimSpace(raw)
+		for _, r := range trimmed {
+			if r < '!' || r > '~' {
+				t.Fatalf("accepted %q containing a non-printable or non-ASCII rune %q", trimmed, r)
+			}
+		}
+		if !strings.HasPrefix(trimmed, "cpe:2.3:") && !strings.HasPrefix(trimmed, "cpe:/") {
+			t.Fatalf("accepted %q, which is neither CPE binding", trimmed)
 		}
 	})
 }

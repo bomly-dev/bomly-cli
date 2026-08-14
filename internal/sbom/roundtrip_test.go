@@ -2144,3 +2144,108 @@ func TestVCSToolIsNotRewrittenToGit(t *testing.T) {
 		}
 	}
 }
+
+// TestSchemeLessRepositoryCredentialIsRejected covers the second branch of
+// normalizeRepositoryURL. The absolute-URL branch got the path gate first;
+// its scheme-less sibling in the same function did not.
+func TestSchemeLessRepositoryCredentialIsRejected(t *testing.T) {
+	for _, value := range []string{
+		"github.com/ghp_abcd1234/repo",
+		"github.com/owner/glpat-Abc123",
+	} {
+		if got := normalizeRepositoryURL(value); got != "" {
+			t.Fatalf("normalizeRepositoryURL(%q) = %q, want a credential path rejected", value, got)
+		}
+	}
+	repo, _ := parseSPDXSourceInfo("Source repository: github.com/ghp_abcd1234/repo")
+	if repo != "" {
+		t.Fatalf("source info kept a credential path: %q", repo)
+	}
+	if got := normalizeRepositoryURL("github.com/owner/repo"); got != "https://github.com/owner/repo" {
+		t.Fatalf("an ordinary scheme-less repository was rejected: %q", got)
+	}
+}
+
+// TestSupplierContactEmailIsValidated covers organizational contacts, which
+// reach the output without passing through the mailto gate.
+func TestSupplierContactEmailIsValidated(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX", "specVersion": "1.6", "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0", "type": "library", "name": "a", "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "supplier": {"name": "Acme", "contact": [
+          {"name": "Bot", "email": "ghp_abcd1234@example.com"},
+          {"name": "Security Team", "email": "security@example.com"}
+        ]}
+      }]
+    }`
+
+	out := string(ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON))
+	if strings.Contains(out, "ghp_abcd1234") {
+		t.Fatalf("a credential-shaped contact email was republished:\n%s", out)
+	}
+	// The contact itself survives without its unusable address, and a real
+	// address is untouched.
+	for _, want := range []string{"Bot", "security@example.com"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("%q was dropped alongside the rejected email:\n%s", want, out)
+		}
+	}
+}
+
+// TestMalformedURNIsRejected covers the URN payload, which is re-emitted
+// verbatim and so must be a usable IRI reference.
+func TestMalformedURNIsRejected(t *testing.T) {
+	valid := []string{
+		"urn:uuid:3f2504e0-4f89-41d3-9a0c-0305e82c3301",
+		"urn:cdx:serial/1",
+		"urn:example:a%3Ab",
+	}
+	for _, value := range valid {
+		if !isPublishableReferenceURL(value) {
+			t.Fatalf("isPublishableReferenceURL(%q) = false, want a valid URN accepted", value)
+		}
+	}
+	invalid := []string{
+		"urn:foo bar", "urn:uuid:%ZZ", "urn:uuid:%4", "urn:a\x00b", "urn:a<b>c", "urn:",
+	}
+	for _, value := range invalid {
+		if isPublishableReferenceURL(value) {
+			t.Fatalf("isPublishableReferenceURL(%q) = true, want a malformed URN rejected", value)
+		}
+	}
+}
+
+// TestPaddedValuesAreStoredTrimmed covers the whole class: a gate that trims
+// its local copy while the caller stores the original.
+func TestPaddedValuesAreStoredTrimmed(t *testing.T) {
+	in := `{
+      "bomFormat": "CycloneDX", "specVersion": "1.6", "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0", "type": "library", "name": "a", "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "cpe": "  cpe:2.3:a:v:p:1.0:*:*:*:*:*:*:*  ",
+        "supplier": {"name": "Acme", "url": ["  https://supplier.example.com  "]},
+        "externalReferences": [{"type": "documentation", "url": "  https://docs.example  "}]
+      }]
+    }`
+
+	raw := ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON)
+	var bom cdx.BOM
+	if err := json.Unmarshal(raw, &bom); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	comp := (*bom.Components)[0]
+	if comp.CPE != "cpe:2.3:a:v:p:1.0:*:*:*:*:*:*:*" {
+		t.Fatalf("cpe = %q, want it stored trimmed", comp.CPE)
+	}
+	if comp.Supplier == nil || comp.Supplier.URL == nil || (*comp.Supplier.URL)[0] != "https://supplier.example.com" {
+		t.Fatalf("supplier url was not stored trimmed: %+v", comp.Supplier)
+	}
+	for _, ref := range *comp.ExternalReferences {
+		if ref.Type == cdx.ERTypeDocumentation && ref.URL != "https://docs.example" {
+			t.Fatalf("reference url = %q, want it stored trimmed", ref.URL)
+		}
+	}
+}

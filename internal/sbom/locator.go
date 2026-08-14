@@ -514,7 +514,7 @@ func normalizeRepositoryURL(repo string) string {
 	// something url.Parse rejects, such as an invalid percent-escape.
 	candidate := "https://" + repo
 	parsed, err := url.Parse(candidate)
-	if err != nil || parsed.Host != host || parsed.User != nil {
+	if err != nil || parsed.Host != host || parsed.User != nil || hasCredentialPath(parsed) {
 		return ""
 	}
 	return candidate
@@ -698,7 +698,10 @@ func isPublishableReferenceURL(raw string) bool {
 				return false
 			}
 		}
-		return true
+		// The raw value is re-emitted, so malformed opaque text such as
+		// "urn:foo bar" or a bad percent escape would break the document's
+		// IRI-reference constraint.
+		return isURNPayload(parsed.Opaque)
 	default:
 		// Anything else — notably file:, data:, and javascript: — stays
 		// rejected. Denying unknown schemes is the safe default: these values
@@ -748,6 +751,31 @@ func splitVCSToolPrefix(locator string) (prefix, rest string, ok bool) {
 		}
 	}
 	return "", locator, false
+}
+
+// isURNPayload reports whether a URN's opaque part is syntactically usable.
+//
+// This is a character and escape gate rather than full RFC 8141 parsing: its
+// job is to keep a value that cannot be a valid IRI reference from being
+// re-emitted into a document that must satisfy that constraint.
+func isURNPayload(value string) bool {
+	runes := []rune(value)
+	for i := 0; i < len(runes); i++ {
+		r := runes[i]
+		switch {
+		case r < '!' || r > '~':
+			// Spaces, control characters, and non-ASCII.
+			return false
+		case r == '%':
+			if i+2 >= len(runes) || !isHexRune(runes[i+1]) || !isHexRune(runes[i+2]) {
+				return false
+			}
+			i += 2
+		case r == '<' || r == '>' || r == '"' || r == '\\' || r == '^' || r == '`' || r == '{' || r == '}' || r == '|':
+			return false
+		}
+	}
+	return true
 }
 
 // isHostname reports whether value looks like a dotted DNS hostname.

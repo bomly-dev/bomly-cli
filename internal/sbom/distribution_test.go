@@ -489,3 +489,30 @@ func TestNormalizedAlgorithmsHaveLengthEntries(t *testing.T) {
 		}
 	}
 }
+
+// TestSwiftPMRevisionKeyIsRead covers the detector that records its resolved
+// commit under "revision" rather than "source_revision". Reading only the
+// latter exported a reproducible SwiftPM pin as a moving repository.
+func TestSwiftPMRevisionKeyIsRead(t *testing.T) {
+	g := sdk.New()
+	node := sdk.NewDependencyWithID("pkg@1.0.0", sdk.Dependency{
+		Coordinates: sdk.Coordinates{
+			Name: "swift-nio", Version: "2.0.0",
+			PURL: "pkg:swift/github.com/apple/swift-nio@2.0.0", Ecosystem: sdk.EcosystemSwift,
+		},
+		Source:      sdk.DependencySourceGit,
+		ResolvedURL: "https://github.com/apple/swift-nio",
+		Metadata:    map[string]any{"revision": "9f8e7d6c5b4a"},
+	})
+	if err := g.AddNode(node); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+
+	out, err := MarshalDepGraphJSON(g, TargetSPDX23JSON, BuildOptions{}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	if !strings.Contains(string(out), "git+https://github.com/apple/swift-nio@9f8e7d6c5b4a") {
+		t.Fatalf("swiftpm resolved revision was not pinned:\n%s", out)
+	}
+}

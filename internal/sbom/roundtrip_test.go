@@ -1267,6 +1267,12 @@ func TestVCSLocatorRevisionIsValidated(t *testing.T) {
 		{"git+https://github.com/org/repo@ghp_abcd1234", "git+https://github.com/org/repo"},
 		{"git+https://github.com/org/repo@glpat-Abc123", "git+https://github.com/org/repo"},
 		{"git+https://tok:s3cret@github.com/org/repo", ""},
+		// Userinfo with no path: splitting on "@" before parsing read
+		// "ghp_secret" as the host and "github.com" as a revision, then
+		// rebuilt the original credential.
+		{"git+https://ghp_secret@github.com", ""},
+		{"git+https://ghp_secret@github.com/org/repo", ""},
+		{"git+https://user@github.com/org/repo", ""},
 		{"git+file:///Users/victim/repo", ""},
 		{"https://github.com/org/repo", ""},
 		{"", ""},
@@ -1352,15 +1358,40 @@ func TestSupplierContactsAndReferenceHashesSurvive(t *testing.T) {
       }]
     }`
 
-	out := string(ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON))
+	raw := ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON)
 	for name, want := range map[string]string{
-		"contact name":   "Security Team",
-		"contact email":  "security@acme.example",
-		"reference hash": hash,
+		"contact name":  "Security Team",
+		"contact email": "security@acme.example",
 	} {
-		if !strings.Contains(out, want) {
-			t.Fatalf("%s was dropped:\n%s", name, out)
+		if !strings.Contains(string(raw), want) {
+			t.Fatalf("%s was dropped:\n%s", name, raw)
 		}
+	}
+
+	// Assert the reference hash structurally. A substring match on the value
+	// would still pass if the algorithm were relabelled underneath it.
+	var bom cdx.BOM
+	if err := json.Unmarshal(raw, &bom); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	comp := (*bom.Components)[0]
+	if comp.ExternalReferences == nil {
+		t.Fatalf("no external references in output:\n%s", raw)
+	}
+	found := false
+	for _, ref := range *comp.ExternalReferences {
+		if ref.Type != cdx.ERTypeDocumentation || ref.Hashes == nil {
+			continue
+		}
+		for _, h := range *ref.Hashes {
+			if h.Algorithm != cdx.HashAlgoSHA256 || h.Value != hash {
+				t.Fatalf("reference hash = %+v, want SHA-256 with the asserted value", h)
+			}
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("the reference integrity assertion was dropped:\n%s", raw)
 	}
 }
 
@@ -1427,7 +1458,11 @@ func TestNoneDownloadLocationOutranksRecoveredRepository(t *testing.T) {
 
 // TestDuplicatePURLVulnerabilitiesAndLicensesAreUnioned closes the last two
 // set-valued fields at the graph level.
-func TestDuplicatePURLVulnerabilitiesAndLicensesAreUnioned(t *testing.T) {
+// Only licenses are exercised here. Vulnerabilities are not carried by
+// ToGraph, so they cannot survive this path whatever the merge does;
+// TestMergeComponentAssertionsUnionsEverySet covers them at the helper level
+// instead of putting fixture data here that could never round-trip.
+func TestDuplicatePURLLicensesAreUnioned(t *testing.T) {
 	doc := &Document{
 		Components: []Component{
 			{
@@ -1489,5 +1524,95 @@ func TestDuplicatePURLSupplierContactsAreUnioned(t *testing.T) {
 		if !strings.Contains(string(out), want) {
 			t.Fatalf("contact %q was discarded by the graph merge:\n%s", want, out)
 		}
+	}
+}
+
+// TestRenderedVCSRevisionIsValidatedOnEveryPath covers the paths that reach
+// normalizeVCS without going through validatedVCSLocator: a CycloneDX vcs
+// reference and an SPDX downloadLocation. An already-rendered "@<revision>"
+// sits in the URL path, where url.Parse leaves it untouched, so it has to be
+// split off and checked there too.
+func TestRenderedVCSRevisionIsValidatedOnEveryPath(t *testing.T) {
+	cdxIn := `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0", "type": "library", "name": "a", "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "externalReferences": [{"type": "vcs", "url": "git+https://github.com/org/repo@ghp_abcd1234"}]
+      }]
+    }`
+
+	spdxIn := `{
+      "spdxVersion": "SPDX-2.3",
+      "SPDXID": "SPDXRef-DOCUMENT",
+      "name": "doc",
+      "documentNamespace": "https://example.com/doc",
+      "creationInfo": {"created": "2024-01-01T00:00:00Z", "creators": ["Tool: t"]},
+      "packages": [{
+        "name": "a", "SPDXID": "SPDXRef-a", "versionInfo": "1.0.0",
+        "downloadLocation": "git+https://github.com/org/repo@ghp_abcd1234",
+        "filesAnalyzed": false
+      }]
+    }`
+
+	for name, in := range map[string]string{"cyclonedx-vcs-ref": cdxIn, "spdx-download-location": spdxIn} {
+		for _, target := range []Target{TargetSPDX23JSON, TargetCycloneDX17JSON} {
+			out := string(ingestAndReexport(t, []byte(in), target))
+			if strings.Contains(out, "ghp_abcd1234") {
+				t.Fatalf("%s -> %s republished a token from a rendered revision:\n%s", name, target, out)
+			}
+			if !strings.Contains(out, "github.com/org/repo") {
+				t.Fatalf("%s -> %s dropped the repository along with the token:\n%s", name, target, out)
+			}
+		}
+	}
+}
+
+// TestMergeComponentAssertionsUnionsEverySet covers the merge helper directly,
+// including vulnerabilities, which no ingest path currently carries — the
+// union is part of the helper's contract even where an end-to-end fixture
+// cannot reach it.
+func TestMergeComponentAssertionsUnionsEverySet(t *testing.T) {
+	dst := Component{
+		Licenses:         []License{{Value: "MIT", SPDXExpression: "MIT"}},
+		CPEs:             []string{"cpe:2.3:a:v:p:1.0:*:*:*:*:*:*:*"},
+		Digests:          []Digest{{Algorithm: "sha256", Value: strings.Repeat("a", 64)}},
+		Vulnerabilities:  []Vulnerability{{ID: "CVE-2024-0001", Source: "osv"}},
+		SupplierURLs:     []string{"https://first.example"},
+		SupplierContacts: []Contact{{Name: "First"}},
+		ExternalRefs:     []ExternalRef{{Type: "website", URL: "https://site.example"}},
+	}
+	src := Component{
+		Licenses:         []License{{Value: "Apache-2.0", SPDXExpression: "Apache-2.0"}},
+		CPEs:             []string{"cpe:2.3:a:v:p:2.0:*:*:*:*:*:*:*"},
+		Digests:          []Digest{{Algorithm: "sha256", Value: strings.Repeat("b", 64)}},
+		Vulnerabilities:  []Vulnerability{{ID: "CVE-2024-0002", Source: "osv"}},
+		SupplierURLs:     []string{"https://second.example"},
+		SupplierContacts: []Contact{{Name: "Second"}},
+		ExternalRefs:     []ExternalRef{{Type: "documentation", URL: "https://docs.example"}},
+	}
+
+	mergeComponentAssertions(&dst, src)
+
+	for name, got := range map[string]int{
+		"licenses":        len(dst.Licenses),
+		"cpes":            len(dst.CPEs),
+		"digests":         len(dst.Digests),
+		"vulnerabilities": len(dst.Vulnerabilities),
+		"supplier urls":   len(dst.SupplierURLs),
+		"contacts":        len(dst.SupplierContacts),
+		"external refs":   len(dst.ExternalRefs),
+	} {
+		if got != 2 {
+			t.Fatalf("%s: got %d entries after merge, want both retained", name, got)
+		}
+	}
+
+	// Merging the same values again must not duplicate them.
+	mergeComponentAssertions(&dst, src)
+	if len(dst.Vulnerabilities) != 2 || len(dst.ExternalRefs) != 2 || len(dst.SupplierContacts) != 2 {
+		t.Fatalf("re-merging duplicated entries: %+v", dst)
 	}
 }

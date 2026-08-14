@@ -458,6 +458,7 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 					Type:    string(ref.Type),
 					URL:     vcs,
 					Comment: ref.Comment,
+					Digests: referenceDigests(ref.Hashes),
 				})
 			default:
 				if !isPublishableReferenceURL(ref.URL) {

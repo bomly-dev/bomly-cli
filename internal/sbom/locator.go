@@ -46,16 +46,20 @@ var artifactExtensions = []string{
 // metadataKeySourceRevision is the Dependency.Metadata key several detectors
 // (ruby, pub, and the python family) use to record the commit a git
 // dependency resolved to, separately from the repository URL.
-const metadataKeySourceRevision = "source_revision"
+// Detectors do not agree on one key: ruby, pub, and the python family write
+// "source_revision", while swiftpm writes "revision".
+var metadataRevisionKeys = []string{"source_revision", "revision"}
 
 // sourceRevisionFrom returns a detector-recorded resolved commit, or "".
 func sourceRevisionFrom(metadata map[string]any) string {
-	revision, _ := metadata[metadataKeySourceRevision].(string)
-	revision = strings.TrimSpace(revision)
-	if !isSafeRevision(revision) {
-		return ""
+	for _, key := range metadataRevisionKeys {
+		revision, _ := metadata[key].(string)
+		revision = strings.TrimSpace(revision)
+		if isSafeRevision(revision) {
+			return revision
+		}
 	}
-	return revision
+	return ""
 }
 
 // pinLocator attaches a detector-recorded revision to a VCS locator that does
@@ -302,9 +306,21 @@ func normalizeVCS(parsed *url.URL) Locator {
 	// token such as "#ghp_abcd1234" passes isSafeRevision and would then be
 	// republished after the "@". A query value is held to the looser rule
 	// because its key names it a revision.
+	// An already-rendered "@<revision>" lives in the path, where url.Parse
+	// leaves it untouched. Splitting it off here is what stops a token from
+	// riding through on a value that was normalized once already: this
+	// function is reached from paths that never call validatedVCSLocator.
+	parsed, pathRevision, ok := splitVCSRevision(parsed.String())
+	if !ok {
+		return Locator{}
+	}
+
 	revision := strings.TrimSpace(parsed.Fragment)
 	if !isCommitFragment(revision) {
 		revision = ""
+	}
+	if revision == "" {
+		revision = pathRevision
 	}
 	if revision == "" {
 		for _, key := range []string{"rev", "tag", "branch"} {
@@ -513,6 +529,31 @@ func classifyAssertedDownloadLocation(raw string) Locator {
 	return locator
 }
 
+// splitVCSRevision parses a version-control URL and separates any trailing
+// "@<revision>" that is already rendered into its path.
+//
+// Parsing has to happen first. "@" before the host is userinfo — a credential
+// — while "@" after the path is a revision, and the two are only
+// distinguishable once the URL is parsed. Splitting on "@" beforehand reads
+// "https://ghp_secret@github.com" as host "ghp_secret" with revision
+// "github.com", which passes every later check and reconstructs the original
+// credential.
+//
+// ok is false when the URL is unsafe to publish at all.
+func splitVCSRevision(raw string) (parsed *url.URL, revision string, ok bool) {
+	parsed, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil || parsed.User != nil || parsed.Host == "" {
+		return nil, "", false
+	}
+	if idx := strings.LastIndex(parsed.Path, "@"); idx >= 0 {
+		revision = parsed.Path[idx+1:]
+		clean := *parsed
+		clean.Path = parsed.Path[:idx]
+		parsed = &clean
+	}
+	return parsed, revision, true
+}
+
 // validatedVCSLocator checks an already-rendered "git+<transport>://…"
 // locator and returns it unchanged when it is safe to republish, or "".
 //
@@ -527,17 +568,8 @@ func validatedVCSLocator(locator string) string {
 	if !strings.HasPrefix(locator, "git+") {
 		return ""
 	}
-	base := strings.TrimPrefix(locator, "git+")
-
-	revision := ""
-	if scheme, rest, ok := strings.Cut(base, "://"); ok {
-		if path, suffix, found := strings.Cut(rest, "@"); found {
-			base, revision = scheme+"://"+path, suffix
-		}
-	}
-
-	parsed, err := url.Parse(base)
-	if err != nil || parsed.User != nil || parsed.Host == "" {
+	parsed, revision, ok := splitVCSRevision(strings.TrimPrefix(locator, "git+"))
+	if !ok {
 		return ""
 	}
 	switch strings.ToLower(parsed.Scheme) {
@@ -549,7 +581,7 @@ func validatedVCSLocator(locator string) string {
 		return ""
 	}
 
-	out := "git+" + base
+	out := "git+" + strings.TrimSuffix(parsed.String(), "/")
 	if isSafeRevision(revision) {
 		out += "@" + revision
 	}

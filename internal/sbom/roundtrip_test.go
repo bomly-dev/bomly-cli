@@ -864,7 +864,7 @@ func TestSPDXHomePageSurvivesSPDXRoundTrip(t *testing.T) {
 		// Assert both fields: a length check alone would not notice the
 		// algorithm degrading to a different family on the way through.
 		if got := p.PackageChecksums[0]; got.Algorithm != common.SHA3_256 || got.Value != "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" {
-			t.Fatalf("checksum = %+v, want SHA3-256/abc123", got)
+			t.Fatalf("checksum = %+v, want SHA3-256 with the asserted 64-character hex value", got)
 		}
 		return
 	}

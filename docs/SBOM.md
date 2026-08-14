@@ -106,7 +106,9 @@ Both formats carry:
 Lockfiles record very different things in the same field. Some name the exact
 file that was downloaded, some name only the registry the ecosystem fetches
 from, and some name a directory on the machine that ran the scan. Bomly sorts
-each value into one of three kinds and emits it accordingly:
+each value into one of three kinds — an exact package file, a source
+repository, or a registry root — and emits it accordingly. A value that fits
+none of them, such as a local path, is not published at all:
 
 | What the lockfile recorded | SPDX | CycloneDX |
 | --- | --- | --- |

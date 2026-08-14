@@ -7,6 +7,7 @@ import (
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/spdx/tools-golang/spdx/v2/common"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 )
 
@@ -218,27 +219,54 @@ func TestUnsafeDetectorRevisionIsIgnored(t *testing.T) {
 // TestBlake2bDigestsSurviveRoundTrip pairs with normalizeDigestAlgorithm: the
 // canonical names it preserves must exist in both encoders, or the checksum is
 // silently discarded after the graph hop.
+//
+// Both encoders skip an algorithm they cannot map, so a count check already
+// catches a missing case. The algorithm is asserted as well to catch the other
+// direction — a case mapped to the wrong constant, which would keep the count
+// at one while relabelling the digest as a different family.
 func TestBlake2bDigestsSurviveRoundTrip(t *testing.T) {
-	for _, algorithm := range []string{"blake2b-256", "blake2b-384", "blake2b-512", "sha3-256"} {
-		t.Run(algorithm, func(t *testing.T) {
+	const value = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+
+	cases := []struct {
+		algorithm string
+		wantSPDX  common.ChecksumAlgorithm
+		wantCDX   cdx.HashAlgorithm
+	}{
+		{"blake2b-256", common.BLAKE2b_256, cdx.HashAlgoBlake2b_256},
+		{"blake2b-384", common.BLAKE2b_384, cdx.HashAlgoBlake2b_384},
+		{"blake2b-512", common.BLAKE2b_512, cdx.HashAlgoBlake2b_512},
+		{"sha3-256", common.SHA3_256, cdx.HashAlgoSHA3_256},
+		{"sha256", common.SHA256, cdx.HashAlgoSHA256},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.algorithm, func(t *testing.T) {
 			g := sdk.New()
 			node := sdk.NewDependencyWithID("pkg@1.0.0", sdk.Dependency{
 				Coordinates: sdk.Coordinates{
 					Name: "pkg", Version: "1.0.0",
 					PURL: "pkg:npm/pkg@1.0.0", Ecosystem: sdk.EcosystemNPM,
 				},
-				Digests: []sdk.Digest{{Algorithm: sdk.DigestAlgorithm(algorithm), Value: "abc123"}},
+				Digests: []sdk.Digest{{Algorithm: sdk.DigestAlgorithm(tc.algorithm), Value: value}},
 			})
 			if err := g.AddNode(node); err != nil {
 				t.Fatalf("add node: %v", err)
 			}
 
-			if pkg := spdxPackageFor(t, g, BuildOptions{}); len(pkg.PackageChecksums) != 1 {
-				t.Fatalf("spdx dropped a %s checksum: %+v", algorithm, pkg.PackageChecksums)
+			pkg := spdxPackageFor(t, g, BuildOptions{})
+			if len(pkg.PackageChecksums) != 1 {
+				t.Fatalf("spdx dropped a %s checksum: %+v", tc.algorithm, pkg.PackageChecksums)
 			}
+			if got := pkg.PackageChecksums[0]; got.Algorithm != tc.wantSPDX || got.Value != value {
+				t.Fatalf("spdx checksum = %+v, want %s with the asserted value", got, tc.wantSPDX)
+			}
+
 			comp := cycloneDXComponentFor(t, g, BuildOptions{})
 			if comp.Hashes == nil || len(*comp.Hashes) != 1 {
-				t.Fatalf("cyclonedx dropped a %s hash: %+v", algorithm, comp.Hashes)
+				t.Fatalf("cyclonedx dropped a %s hash: %+v", tc.algorithm, comp.Hashes)
+			}
+			if got := (*comp.Hashes)[0]; got.Algorithm != tc.wantCDX || got.Value != value {
+				t.Fatalf("cyclonedx hash = %+v, want %s with the asserted value", got, tc.wantCDX)
 			}
 		})
 	}

@@ -1,6 +1,7 @@
 package sbom
 
 import (
+	"strings"
 	"time"
 
 	"github.com/bomly-dev/bomly-sdk"
@@ -17,7 +18,37 @@ const (
 	TargetCycloneDX17JSON Target = "cyclonedx-1.7+json"
 	defaultDocumentName          = "bomly-dependencies"
 	defaultToolName              = "bomly-cli"
+
+	// projectRootIDPrefix marks the synthesized primary component that
+	// represents the scanned project itself rather than a resolved package.
+	// SPDX encoding prefixes IDs with "SPDXRef-", so consumers must treat
+	// both "DocumentRoot-" and "SPDXRef-DocumentRoot-" as pseudo roots.
+	projectRootIDPrefix = "DocumentRoot-"
 )
+
+// ProjectRoot describes the scanned project so the projection can synthesize
+// a primary component when the graph itself has no single root (multiple
+// manifests, multiple ecosystems). Name is required; Version is optional.
+type ProjectRoot struct {
+	Name    string
+	Version string
+}
+
+// Provenance carries optional producer metadata emitted into SBOM documents.
+// The fields map onto EU CRA transparency expectations (manufacturer
+// identification, security contact, coordinated disclosure, support period)
+// but are format-agnostic and always optional.
+type Provenance struct {
+	Manufacturer               string
+	SecurityContact            string
+	VulnerabilityDisclosureURL string
+	SupportEnd                 string
+}
+
+// Empty reports whether no provenance field is set.
+func (p Provenance) Empty() bool {
+	return p.Manufacturer == "" && p.SecurityContact == "" && p.VulnerabilityDisclosureURL == "" && p.SupportEnd == ""
+}
 
 // BuildOptions controls how a depgraph is projected into the intermediate SBOM model.
 type BuildOptions struct {
@@ -25,9 +56,26 @@ type BuildOptions struct {
 	DocumentNS      string
 	ToolName        string
 	ToolNames       []string
+	ToolVersion     string
 	Created         time.Time
 	RootComponentID string
 	SerialNumber    string
+
+	// ProjectRoot, when non-nil, lets the projection synthesize a primary
+	// component for the scanned project when the graph has no single root.
+	ProjectRoot *ProjectRoot
+
+	Provenance Provenance
+
+	// Lifecycle is the CycloneDX lifecycle phase the document describes
+	// (for example "pre-build" for source scans, "post-build" for container
+	// images). Empty omits lifecycle metadata.
+	Lifecycle string
+
+	// Aggregate is the CycloneDX composition completeness declaration
+	// ("complete", "incomplete", ...). Empty omits the declaration; callers
+	// must only claim "complete" when nothing filtered or degraded the graph.
+	Aggregate string
 
 	// Registry, when non-nil, supplies matching-stage enrichment (licenses,
 	// vulnerabilities, CPEs, digests, EOL) resolved by PURL and folded onto
@@ -46,12 +94,27 @@ type Document struct {
 	Namespace    string
 	Tool         string
 	Tools        []string
+	ToolVersion  string
 	Created      time.Time
 	SerialNumber string
+	Provenance   Provenance
+	Lifecycle    string
+	Aggregate    string
 
 	Components   []Component
 	Dependencies []Dependency
 	Roots        []string
+}
+
+// IsProjectRootComponent reports whether a component is a synthesized pseudo
+// root that stands in for the scanned project rather than a resolved package.
+func IsProjectRootComponent(c Component) bool {
+	return isProjectRootID(c.ID)
+}
+
+func isProjectRootID(id string) bool {
+	id = strings.TrimSpace(id)
+	return strings.HasPrefix(id, projectRootIDPrefix) || strings.HasPrefix(id, "SPDXRef-"+projectRootIDPrefix)
 }
 
 // Component describes one package surfaced in the intermediate SBOM model.
@@ -107,6 +170,10 @@ type Vulnerability struct {
 	FixedVersions []string
 	Advisories    []string
 	Description   string
+
+	// Recommendation is remediation guidance derived from known fixed
+	// versions (CycloneDX `recommendation`; SPDX 2.3 has no equivalent).
+	Recommendation string
 }
 
 // EOL is a format-agnostic projection of end-of-life enrichment for a component.

@@ -1,8 +1,12 @@
 package sbom
 
 import (
+	"crypto/rand"
+	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -24,10 +28,16 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 	depsByRef := make(map[string][]string, componentCount)
 
 	g.WalkNodes(func(pkg *sdk.Dependency) bool {
+		version := pkg.Version
+		if version == "" && pkg.FirstParty && opts.ProjectRoot != nil {
+			// First-party nodes (the scanned project's own modules) have no
+			// registry version; the project version is theirs.
+			version = strings.TrimSpace(opts.ProjectRoot.Version)
+		}
 		component := Component{
 			ID:             pkg.ID,
 			Name:           pkg.EcosystemName(),
-			Version:        pkg.Version,
+			Version:        version,
 			Scope:          string(pkg.PrimaryScope()),
 			PURL:           pkg.PURL,
 			Ecosystem:      string(pkg.Ecosystem),
@@ -35,6 +45,7 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			Type:           string(pkg.Type),
 			Copyright:      pkg.Copyright,
 			Licenses:       componentLicenses(sdk.DetectionLicenses(pkg)),
+			Digests:        componentDigests(pkg.Digests),
 		}
 		enrichComponentFromRegistry(&component, opts.Registry, pkg.PURL)
 		components = append(components, component)
@@ -86,9 +97,38 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 	if documentName == "" {
 		documentName = defaultDocumentName
 	}
+
+	// When the graph has no single root (multiple manifests, multiple
+	// ecosystems) the primary component would otherwise be an arbitrary
+	// manifest node. Synthesize a pseudo root that represents the scanned
+	// project and depends on every graph root so both formats agree on the
+	// document's primary identity and the export forms one connected graph.
+	if opts.ProjectRoot != nil && strings.TrimSpace(opts.ProjectRoot.Name) != "" && opts.RootComponentID == "" && len(rootIDs) != 1 {
+		root := projectRootComponent(*opts.ProjectRoot)
+		sort.Strings(rootIDs)
+		components = append(components, root)
+		sort.Slice(components, func(i, j int) bool {
+			return components[i].ID < components[j].ID
+		})
+		dependencies = append(dependencies, Dependency{Ref: root.ID, DependsOn: rootIDs})
+		sort.Slice(dependencies, func(i, j int) bool {
+			return dependencies[i].Ref < dependencies[j].Ref
+		})
+		rootIDs = []string{root.ID}
+	}
+
+	serialNumber := strings.TrimSpace(opts.SerialNumber)
+	nonce := ""
+	if serialNumber == "" {
+		nonce = newUUIDv4()
+		serialNumber = "urn:uuid:" + nonce
+	}
 	documentNS := opts.DocumentNS
 	if documentNS == "" {
-		documentNS = fmt.Sprintf("https://bomly.dev/spdx/%d", created.UnixNano())
+		if nonce == "" {
+			nonce = newUUIDv4()
+		}
+		documentNS = "https://bomly.dev/spdx/" + nonce
 	}
 	toolName := opts.ToolName
 	if toolName == "" {
@@ -101,12 +141,107 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 		Namespace:    documentNS,
 		Tool:         toolName,
 		Tools:        toolNames,
+		ToolVersion:  strings.TrimSpace(opts.ToolVersion),
 		Created:      created,
-		SerialNumber: opts.SerialNumber,
+		SerialNumber: serialNumber,
+		Provenance:   opts.Provenance,
+		Lifecycle:    strings.TrimSpace(opts.Lifecycle),
+		Aggregate:    strings.TrimSpace(opts.Aggregate),
 		Components:   components,
 		Dependencies: dependencies,
 		Roots:        rootIDs,
 	}, nil
+}
+
+// projectRootComponent synthesizes the pseudo component representing the
+// scanned project. It carries a pkg:generic PURL so downstream consumers have
+// a stable identifier for the primary component across updates.
+func projectRootComponent(spec ProjectRoot) Component {
+	name := strings.TrimSpace(spec.Name)
+	version := strings.TrimSpace(spec.Version)
+	purl := "pkg:generic/" + url.PathEscape(strings.ToLower(name))
+	if version != "" {
+		purl += "@" + url.PathEscape(version)
+	}
+	return Component{
+		ID:      projectRootIDPrefix + sanitizeSPDXID(name),
+		Name:    name,
+		Version: version,
+		Type:    "application",
+		PURL:    purl,
+	}
+}
+
+// newUUIDv4 returns a random RFC 4122 version-4 UUID string.
+func newUUIDv4() string {
+	var b [16]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		// crypto/rand never fails on supported platforms; fall back to a
+		// time-derived nonce rather than emitting an empty identifier.
+		return fmt.Sprintf("00000000-0000-4000-8000-%012x", time.Now().UnixNano()&0xffffffffffff)
+	}
+	b[6] = (b[6] & 0x0f) | 0x40
+	b[8] = (b[8] & 0x3f) | 0x80
+	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
+}
+
+// componentDigests projects detection-time dependency digests into the SBOM
+// component model, normalizing values to lowercase hex so encoders can emit
+// them as schema-valid CycloneDX hashes / SPDX checksums. Digests whose value
+// cannot be normalized for a known algorithm are kept verbatim; encoders drop
+// entries with unsupported algorithms.
+func componentDigests(digests []sdk.Digest) []Digest {
+	if len(digests) == 0 {
+		return nil
+	}
+	out := make([]Digest, 0, len(digests))
+	for _, d := range digests {
+		value := strings.TrimSpace(d.Value)
+		if value == "" {
+			continue
+		}
+		out = append(out, Digest{Algorithm: string(d.Algorithm), Value: normalizeDigestValue(string(d.Algorithm), value)})
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
+
+// digestHexSizes maps digest algorithms onto their raw byte lengths, used to
+// validate base64-encoded values (npm SRI integrity) before hex re-encoding.
+var digestHexSizes = map[string]int{
+	"md5":      16,
+	"sha1":     20,
+	"sha-1":    20,
+	"sha224":   28,
+	"sha-224":  28,
+	"sha256":   32,
+	"sha-256":  32,
+	"sha384":   48,
+	"sha-384":  48,
+	"sha512":   64,
+	"sha-512":  64,
+	"sha3-256": 32,
+	"sha3-384": 48,
+	"sha3-512": 64,
+}
+
+func normalizeDigestValue(algorithm, value string) string {
+	size, ok := digestHexSizes[strings.ToLower(strings.TrimSpace(algorithm))]
+	if !ok {
+		return value
+	}
+	if len(value) == size*2 {
+		if _, err := hex.DecodeString(value); err == nil {
+			return strings.ToLower(value)
+		}
+	}
+	// npm-style SRI integrity values are standard base64 of the raw digest.
+	if raw, err := base64.StdEncoding.DecodeString(value); err == nil && len(raw) == size {
+		return hex.EncodeToString(raw)
+	}
+	return value
 }
 
 func uniqueToolNames(values []string) []string {
@@ -142,18 +277,11 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 	if len(pkg.CPEs) > 0 {
 		component.CPEs = append([]string(nil), pkg.CPEs...)
 	}
-	if len(pkg.Digests) > 0 {
-		digests := make([]Digest, 0, len(pkg.Digests))
-		for _, d := range pkg.Digests {
-			if d.Value == "" {
-				continue
-			}
-			digests = append(digests, Digest{Algorithm: string(d.Algorithm), Value: d.Value})
-		}
+	if digests := componentDigests(pkg.Digests); len(digests) > 0 {
 		component.Digests = digests
 	}
 	if len(pkg.Vulnerabilities) > 0 {
-		component.Vulnerabilities = vulnerabilitiesFromPackage(pkg.Vulnerabilities)
+		component.Vulnerabilities = vulnerabilitiesFromPackage(pkg.EcosystemName(), pkg.Vulnerabilities)
 	}
 	if pkg.EOL != nil {
 		component.EOL = &EOL{
@@ -168,15 +296,16 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 // vulnerabilitiesFromPackage projects matching-stage advisories into the
 // format-agnostic SBOM vulnerability model. Severity/score/vector come from the
 // first CVSS entry when present, falling back to the parsed severity band.
-func vulnerabilitiesFromPackage(vulns []sdk.Vulnerability) []Vulnerability {
+func vulnerabilitiesFromPackage(packageName string, vulns []sdk.Vulnerability) []Vulnerability {
 	out := make([]Vulnerability, 0, len(vulns))
 	for _, v := range vulns {
 		vuln := Vulnerability{
-			ID:            v.ID,
-			Source:        v.Source,
-			Severity:      string(v.ParsedSeverity),
-			FixedVersions: append([]string(nil), v.FixedVersions...),
-			Description:   v.Details,
+			ID:             v.ID,
+			Source:         v.Source,
+			Severity:       string(v.ParsedSeverity),
+			FixedVersions:  append([]string(nil), v.FixedVersions...),
+			Description:    v.Details,
+			Recommendation: vulnerabilityRecommendation(packageName, v.FixedVersions),
 		}
 		if vuln.Source == "" {
 			vuln.Source = v.DataSource
@@ -199,6 +328,26 @@ func vulnerabilitiesFromPackage(vulns []sdk.Vulnerability) []Vulnerability {
 		out = append(out, vuln)
 	}
 	return out
+}
+
+// vulnerabilityRecommendation renders remediation guidance from known fixed
+// versions. Returns "" when no fix is known so consumers never see fabricated
+// advice.
+func vulnerabilityRecommendation(packageName string, fixedVersions []string) string {
+	versions := make([]string, 0, len(fixedVersions))
+	for _, v := range fixedVersions {
+		if v = strings.TrimSpace(v); v != "" {
+			versions = append(versions, v)
+		}
+	}
+	if len(versions) == 0 {
+		return ""
+	}
+	subject := strings.TrimSpace(packageName)
+	if subject == "" {
+		subject = "the affected package"
+	}
+	return "Upgrade " + subject + " to " + strings.Join(versions, " or ")
 }
 
 // cweNumber extracts the integer portion of a CWE identifier such as
@@ -241,10 +390,68 @@ func componentLicenses(licenses []sdk.PackageLicense) []License {
 	out := make([]License, 0, len(licenses))
 	for _, license := range licenses {
 		out = append(out, License{
-			Value:          license.Value,
-			SPDXExpression: license.SPDXExpression,
+			Value:          normalizeSPDXLicenseExpression(license.Value),
+			SPDXExpression: normalizeSPDXLicenseExpression(license.SPDXExpression),
 			Type:           string(license.Type),
 		})
 	}
 	return out
+}
+
+// deprecatedSPDXLicenseIDs maps SPDX license identifiers that the SPDX license
+// list has deprecated onto their current replacements. Only unambiguous
+// renames are listed; anything else passes through untouched.
+var deprecatedSPDXLicenseIDs = map[string]string{
+	"AGPL-1.0":                         "AGPL-1.0-only",
+	"AGPL-3.0":                         "AGPL-3.0-only",
+	"GFDL-1.1":                         "GFDL-1.1-only",
+	"GFDL-1.2":                         "GFDL-1.2-only",
+	"GFDL-1.3":                         "GFDL-1.3-only",
+	"GPL-1.0":                          "GPL-1.0-only",
+	"GPL-1.0+":                         "GPL-1.0-or-later",
+	"GPL-2.0":                          "GPL-2.0-only",
+	"GPL-2.0+":                         "GPL-2.0-or-later",
+	"GPL-3.0":                          "GPL-3.0-only",
+	"GPL-3.0+":                         "GPL-3.0-or-later",
+	"LGPL-2.0":                         "LGPL-2.0-only",
+	"LGPL-2.0+":                        "LGPL-2.0-or-later",
+	"LGPL-2.1":                         "LGPL-2.1-only",
+	"LGPL-2.1+":                        "LGPL-2.1-or-later",
+	"LGPL-3.0":                         "LGPL-3.0-only",
+	"LGPL-3.0+":                        "LGPL-3.0-or-later",
+	"GPL-2.0-with-classpath-exception": "GPL-2.0-only WITH Classpath-exception-2.0",
+}
+
+// normalizeSPDXLicenseExpression replaces deprecated SPDX identifiers inside a
+// license expression with their current names, preserving expression
+// structure. Non-SPDX free-text values pass through unchanged.
+func normalizeSPDXLicenseExpression(expression string) string {
+	if strings.TrimSpace(expression) == "" {
+		return expression
+	}
+	var b strings.Builder
+	b.Grow(len(expression))
+	token := strings.Builder{}
+	flush := func() {
+		if token.Len() == 0 {
+			return
+		}
+		t := token.String()
+		if replacement, ok := deprecatedSPDXLicenseIDs[t]; ok {
+			b.WriteString(replacement)
+		} else {
+			b.WriteString(t)
+		}
+		token.Reset()
+	}
+	for _, r := range expression {
+		if r == ' ' || r == '(' || r == ')' {
+			flush()
+			b.WriteRune(r)
+			continue
+		}
+		token.WriteRune(r)
+	}
+	flush()
+	return b.String()
 }

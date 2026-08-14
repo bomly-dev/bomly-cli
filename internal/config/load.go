@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/bomly-dev/bomly-sdk/system"
 	"gopkg.in/yaml.v3"
@@ -363,6 +364,11 @@ func Validate(cfg Resolved) error {
 	case "", "warn", "fail":
 	default:
 		return fmt.Errorf("unsupported --typosquat-mode value %q (accepted: warn, fail)", cfg.TyposquatMode)
+	}
+	if supportEnd := strings.TrimSpace(cfg.SBOMSupportEnd); supportEnd != "" {
+		if _, err := time.Parse("2006-01-02", supportEnd); err != nil {
+			return fmt.Errorf("invalid sbom support_end %q: expected an ISO date such as 2030-12-31: %w", cfg.SBOMSupportEnd, err)
+		}
 	}
 	if err := validateProxyURL(cfg.HTTPProxy); err != nil {
 		return err

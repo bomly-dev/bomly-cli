@@ -7,6 +7,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-sdk"
+	"go.uber.org/zap"
 )
 
 func TestRenderScanReportShowsPackageCountAndDirectDeps(t *testing.T) {
@@ -193,5 +194,41 @@ func TestRenderScanReportTopLevelDepsCoverAllModules(t *testing.T) {
 		if !strings.Contains(report, want) {
 			t.Fatalf("expected %q in top-level dependencies, got:\n%s", want, report)
 		}
+	}
+}
+
+func TestSBOMLifecyclePhase(t *testing.T) {
+	cases := map[string]string{
+		"filesystem":      "pre-build",
+		"git repository":  "pre-build",
+		"container image": "post-build",
+		"sbom":            "",
+		"":                "",
+	}
+	for in, want := range cases {
+		if got := sbomLifecyclePhase(in); got != want {
+			t.Errorf("sbomLifecyclePhase(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
+func TestSBOMCompositionAggregate(t *testing.T) {
+	if got := sbomCompositionAggregate(sdk.ScopeUnknown, false); got != "complete" {
+		t.Fatalf("unfiltered clean scan should claim complete, got %q", got)
+	}
+	if got := sbomCompositionAggregate(sdk.ScopeRuntime, false); got != "incomplete" {
+		t.Fatalf("scope-filtered scan must not claim complete, got %q", got)
+	}
+	if got := sbomCompositionAggregate(sdk.ScopeUnknown, true); got != "unknown" {
+		t.Fatalf("degraded resolution must declare unknown completeness, got %q", got)
+	}
+}
+
+func TestGitDescribeVersion(t *testing.T) {
+	if got := gitDescribeVersion(zap.NewNop(), ""); got != "" {
+		t.Fatalf("empty path must yield no version, got %q", got)
+	}
+	if got := gitDescribeVersion(zap.NewNop(), t.TempDir()); got != "" {
+		t.Fatalf("non-git directory must yield no version, got %q", got)
 	}
 }

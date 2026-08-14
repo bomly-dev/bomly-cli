@@ -20,6 +20,12 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 
 	components := make([]cdx.Component, 0, len(doc.Components))
 	for _, comp := range doc.Components {
+		if IsProjectRootComponent(comp) {
+			// The synthesized project root lives in metadata.component (and
+			// keeps its entry in the dependencies section); repeating it in
+			// the component inventory would double-count it.
+			continue
+		}
 		component := cdx.Component{
 			BOMRef:     comp.ID,
 			Type:       cycloneDXComponentType(comp.Type),
@@ -63,18 +69,40 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 
 	metadata := &cdx.Metadata{
 		Timestamp: doc.CreatedOrNow().Format(time.RFC3339),
-		Tools:     cycloneDXTools(doc.ToolNamesOrDefault()),
+		Tools:     cycloneDXTools(doc.ToolNamesOrDefault(), doc.ToolOrDefault(), doc.ToolVersion),
 	}
 	if root := chooseRoot(doc); root != nil {
 		metadata.Component = &cdx.Component{
-			BOMRef:  root.ID,
-			Type:    cycloneDXComponentType(firstNonEmpty(root.Type, "application")),
-			Name:    root.NameOrID(),
-			Scope:   cycloneDXScope(root.Scope),
-			Version: root.Version,
+			BOMRef:     root.ID,
+			Type:       cycloneDXComponentType(firstNonEmpty(root.Type, "application")),
+			Name:       root.NameOrID(),
+			Scope:      cycloneDXScope(root.Scope),
+			Version:    root.Version,
+			PackageURL: root.PURL,
+		}
+		if refs := cycloneDXSecurityReferences(doc.Provenance); len(refs) > 0 {
+			metadata.Component.ExternalReferences = &refs
 		}
 	}
+	if doc.Provenance.Manufacturer != "" {
+		metadata.Manufacturer = &cdx.OrganizationalEntity{Name: doc.Provenance.Manufacturer}
+		author := cdx.OrganizationalContact{Name: doc.Provenance.Manufacturer}
+		if email := bareEmail(doc.Provenance.SecurityContact); email != "" {
+			author.Email = email
+		}
+		metadata.Authors = &[]cdx.OrganizationalContact{author}
+	}
+	if props := cycloneDXMetadataProperties(doc.Provenance); len(props) > 0 {
+		metadata.Properties = &props
+	}
+	if phase := cycloneDXLifecyclePhase(doc.Lifecycle); phase != "" {
+		metadata.Lifecycles = &[]cdx.Lifecycle{{Phase: phase}}
+	}
 	bom.Metadata = metadata
+
+	if aggregate := cycloneDXAggregate(doc.Aggregate); aggregate != "" {
+		bom.Compositions = &[]cdx.Composition{{Aggregate: aggregate}}
+	}
 
 	var out bytes.Buffer
 	enc := cdx.NewBOMEncoder(&out, cdx.BOMFileFormatJSON).SetPretty(opts.Pretty)
@@ -107,10 +135,21 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 		}
 	}
 
+	primaryRef := ""
+	if bom.Metadata != nil && bom.Metadata.Component != nil {
+		primaryRef = bom.Metadata.Component.BOMRef
+	}
+
 	dependencies := make([]Dependency, 0, len(componentByID))
 	inDegree := make(map[string]int, len(componentByID))
 	if bom.Dependencies != nil {
 		for _, dep := range *bom.Dependencies {
+			if _, known := componentByID[dep.Ref]; !known && (isProjectRootID(dep.Ref) || dep.Ref == primaryRef) {
+				// The primary component lives only in metadata.component; its
+				// dependency entry links the document root to the real graph
+				// roots and must not demote those roots on re-ingestion.
+				continue
+			}
 			ds := make([]string, 0)
 			if dep.Dependencies != nil {
 				ds = append(ds, *dep.Dependencies...)
@@ -183,7 +222,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 	}, nil
 }
 
-func cycloneDXTools(names []string) *cdx.ToolsChoice {
+func cycloneDXTools(names []string, primaryTool, toolVersion string) *cdx.ToolsChoice {
 	if len(names) == 0 {
 		return nil
 	}
@@ -192,15 +231,83 @@ func cycloneDXTools(names []string) *cdx.ToolsChoice {
 		if strings.TrimSpace(name) == "" {
 			continue
 		}
-		components = append(components, cdx.Component{
+		component := cdx.Component{
 			Type: cdx.ComponentTypeApplication,
 			Name: name,
-		})
+		}
+		if name == primaryTool {
+			component.Version = toolVersion
+		}
+		components = append(components, component)
 	}
 	if len(components) == 0 {
 		return nil
 	}
 	return &cdx.ToolsChoice{Components: &components}
+}
+
+// cycloneDXSecurityReferences maps provenance contact fields onto external
+// references attached to the primary component.
+func cycloneDXSecurityReferences(p Provenance) []cdx.ExternalReference {
+	refs := make([]cdx.ExternalReference, 0, 2)
+	if contact := strings.TrimSpace(p.SecurityContact); contact != "" {
+		if !strings.Contains(contact, ":") && strings.Contains(contact, "@") {
+			contact = "mailto:" + contact
+		}
+		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeSecurityContact, URL: contact})
+	}
+	if disclosure := strings.TrimSpace(p.VulnerabilityDisclosureURL); disclosure != "" {
+		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeAdvisories, URL: disclosure, Comment: "Coordinated vulnerability disclosure policy"})
+	}
+	if len(refs) == 0 {
+		return nil
+	}
+	return refs
+}
+
+// bareEmail returns value when it looks like a plain email address (no URI
+// scheme), otherwise "".
+func bareEmail(value string) string {
+	value = strings.TrimSpace(value)
+	if strings.Contains(value, "@") && !strings.Contains(value, ":") && !strings.Contains(value, "/") {
+		return value
+	}
+	return ""
+}
+
+// cycloneDXLifecyclePhase validates a lifecycle phase against the CycloneDX
+// vocabulary, returning "" for unknown values so an invalid phase can never
+// make the document non-conformant.
+func cycloneDXLifecyclePhase(value string) cdx.LifecyclePhase {
+	switch cdx.LifecyclePhase(strings.ToLower(strings.TrimSpace(value))) {
+	case cdx.LifecyclePhaseDesign, cdx.LifecyclePhasePreBuild, cdx.LifecyclePhaseBuild,
+		cdx.LifecyclePhasePostBuild, cdx.LifecyclePhaseOperations, cdx.LifecyclePhaseDiscovery,
+		cdx.LifecyclePhaseDecommission:
+		return cdx.LifecyclePhase(strings.ToLower(strings.TrimSpace(value)))
+	default:
+		return ""
+	}
+}
+
+// cycloneDXAggregate validates a composition aggregate value, returning "" for
+// unknown values.
+func cycloneDXAggregate(value string) cdx.CompositionAggregate {
+	switch cdx.CompositionAggregate(strings.ToLower(strings.TrimSpace(value))) {
+	case cdx.CompositionAggregateComplete, cdx.CompositionAggregateIncomplete,
+		cdx.CompositionAggregateIncompleteFirstPartyOnly, cdx.CompositionAggregateIncompleteFirstPartyOpenSourceOnly,
+		cdx.CompositionAggregateIncompleteThirdPartyOnly, cdx.CompositionAggregateIncompleteThirdPartyOpenSourceOnly,
+		cdx.CompositionAggregateNotSpecified, cdx.CompositionAggregateUnknown:
+		return cdx.CompositionAggregate(strings.ToLower(strings.TrimSpace(value)))
+	default:
+		return ""
+	}
+}
+
+func cycloneDXMetadataProperties(p Provenance) []cdx.Property {
+	if strings.TrimSpace(p.SupportEnd) == "" {
+		return nil
+	}
+	return []cdx.Property{{Name: "bomly:support_end_date", Value: strings.TrimSpace(p.SupportEnd)}}
 }
 
 func cycloneDXToolNames(metadata *cdx.Metadata) []string {
@@ -414,8 +521,9 @@ func cycloneDXVulnerabilities(components []Component) []cdx.Vulnerability {
 
 func cycloneDXVulnerability(v Vulnerability, refs []string) cdx.Vulnerability {
 	vuln := cdx.Vulnerability{
-		ID:          v.ID,
-		Description: v.Description,
+		ID:             v.ID,
+		Description:    v.Description,
+		Recommendation: v.Recommendation,
 	}
 	if v.Source != "" {
 		vuln.Source = &cdx.Source{Name: v.Source}

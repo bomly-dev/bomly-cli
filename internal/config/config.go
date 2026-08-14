@@ -85,6 +85,12 @@ type Resolved struct {
 	// startup from the build's version string; it is not user configuration
 	// and has no flag, environment variable, or YAML key.
 	CoreVersion string
+
+	// SBOM export metadata (optional EU-CRA transparency fields)
+	SBOMManufacturer               string `doc:"Organization name emitted as the SBOM manufacturer/supplier (EU CRA Art. 13(15))" env:"BOMLY_SBOM_MANUFACTURER"`
+	SBOMSecurityContact            string `doc:"Security contact URL or email emitted in exported SBOMs (EU CRA Art. 13(6))" env:"BOMLY_SBOM_SECURITY_CONTACT"`
+	SBOMVulnerabilityDisclosureURL string `doc:"Coordinated vulnerability disclosure policy URL emitted in exported SBOMs (EU CRA Art. 13(7))" env:"BOMLY_SBOM_VULNERABILITY_DISCLOSURE_URL"`
+	SBOMSupportEnd                 string `doc:"Support end date (YYYY-MM-DD) for security updates emitted in exported SBOMs (EU CRA Art. 13(8))" env:"BOMLY_SBOM_SUPPORT_END"`
 }
 
 // File is the nested YAML-deserialized shape of a Bomly config file. Leaf
@@ -101,7 +107,16 @@ type File struct {
 	Logging    LoggingFile    `yaml:"logging,omitempty"`
 	Network    NetworkFile    `yaml:"network,omitempty"`
 	Matchers   MatchersFile   `yaml:"matchers,omitempty"`
+	SBOM       SBOMFile       `yaml:"sbom,omitempty"`
 	Plugins    PluginsFile    `yaml:"plugins,omitempty" resolved:"Plugins"`
+}
+
+// SBOMFile configures optional metadata emitted into exported SBOM documents.
+type SBOMFile struct {
+	Manufacturer               *string `yaml:"manufacturer,omitempty" resolved:"SBOMManufacturer"`
+	SecurityContact            *string `yaml:"security_contact,omitempty" resolved:"SBOMSecurityContact"`
+	VulnerabilityDisclosureURL *string `yaml:"vulnerability_disclosure_url,omitempty" resolved:"SBOMVulnerabilityDisclosureURL"`
+	SupportEnd                 *string `yaml:"support_end,omitempty" resolved:"SBOMSupportEnd"`
 }
 
 // TargetFile configures the execution target selected for a scan.

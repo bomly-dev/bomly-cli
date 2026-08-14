@@ -8,13 +8,17 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	scanengine "github.com/bomly-dev/bomly-cli/internal/engine/scan"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-cli/internal/tui"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/logkit"
+	"github.com/bomly-dev/bomly-sdk/system"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 )
 
 func newScanCmd() *cobra.Command {
@@ -126,10 +130,11 @@ func newScanCmd() *cobra.Command {
 				return output.WriteSARIF(w, findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Analyze, LocationGraphs: []*sdk.Graph{pipeResult.Graph}})
 			}
 
+			sbomBuildOpts := scanSBOMBuildOptions(logger, payload.Project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry, selectedScope, len(pipeResult.DetectorWarnings) > 0)
+
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
 				stdout := streams.reportWriter()
-				sbomBuildOpts := sbom.BuildOptions{ToolNames: sbomToolNames(resolved), Registry: pipeResult.Registry}
 				for _, spec := range outputSpecs {
 					switch {
 					case spec.IsSBOM():
@@ -157,7 +162,7 @@ func newScanCmd() *cobra.Command {
 				if !ok {
 					return exit.InvalidInputError("output format %q is not supported by scan", graphOutputFormat)
 				}
-				rawDocument, err := sbom.MarshalDepGraphJSON(selectedGraph, target, sbom.BuildOptions{ToolNames: sbomToolNames(resolved), Registry: pipeResult.Registry}, sbom.EncodeOptions{Pretty: true})
+				rawDocument, err := sbom.MarshalDepGraphJSON(selectedGraph, target, sbomBuildOpts, sbom.EncodeOptions{Pretty: true})
 				if err != nil {
 					return fmt.Errorf("marshal %s sbom: %w", graphOutputFormat, err)
 				}
@@ -209,6 +214,89 @@ func scanPolicyExit(auditEnabled bool, findings []sdk.Finding) error {
 		}
 	}
 	return nil
+}
+
+// scanSBOMBuildOptions assembles the SBOM projection options for a scan: the
+// document is named after the scanned project, the primary component mirrors
+// it, and optional provenance metadata comes from configuration.
+func scanSBOMBuildOptions(logger *zap.Logger, project output.ProjectDescriptor, current config.Resolved, version string, resolved []sdk.DetectionResult, registry *sdk.PackageRegistry, selectedScope sdk.Scope, degraded bool) sbom.BuildOptions {
+	opts := sbom.BuildOptions{
+		ToolNames:   sbomToolNames(resolved),
+		ToolVersion: strings.TrimSpace(version),
+		Registry:    registry,
+		Lifecycle:   sbomLifecyclePhase(project.TargetType),
+		Aggregate:   sbomCompositionAggregate(selectedScope, degraded),
+		Provenance: sbom.Provenance{
+			Manufacturer:               strings.TrimSpace(current.SBOMManufacturer),
+			SecurityContact:            strings.TrimSpace(current.SBOMSecurityContact),
+			VulnerabilityDisclosureURL: strings.TrimSpace(current.SBOMVulnerabilityDisclosureURL),
+			SupportEnd:                 strings.TrimSpace(current.SBOMSupportEnd),
+		},
+	}
+	if name := strings.TrimSpace(project.Name); name != "" {
+		projectVersion := strings.TrimSpace(project.TargetRef)
+		if projectVersion == "" {
+			projectVersion = gitDescribeVersion(logger, project.Path)
+		}
+		opts.DocumentName = name
+		opts.ProjectRoot = &sbom.ProjectRoot{Name: name, Version: projectVersion}
+	}
+	return opts
+}
+
+// sbomLifecyclePhase maps the execution target type onto a CycloneDX
+// lifecycle phase: source trees are pre-build inventories, container images
+// describe a built artifact. Other targets (for example re-exported SBOMs)
+// carry no phase claim.
+func sbomLifecyclePhase(targetType string) string {
+	switch targetType {
+	case "filesystem", "git repository":
+		return "pre-build"
+	case "container image":
+		return "post-build"
+	default:
+		return ""
+	}
+}
+
+// sbomCompositionAggregate declares dependency-graph completeness. A scope
+// filter deliberately drops part of the graph, and degraded resolution means
+// completeness is unknown; only an unfiltered, warning-free scan may claim
+// "complete".
+func sbomCompositionAggregate(selectedScope sdk.Scope, degraded bool) string {
+	if degraded {
+		return "unknown"
+	}
+	if selectedScope != sdk.ScopeUnknown && selectedScope != "" {
+		return "incomplete"
+	}
+	return "complete"
+}
+
+// gitDescribeVersion derives a project version from Git history when the scan
+// target is a checkout with no explicit ref (local path scans). Returns ""
+// when Git or history is unavailable — the version is then simply omitted.
+func gitDescribeVersion(logger *zap.Logger, path string) string {
+	if logger == nil {
+		logger = zap.NewNop()
+	}
+	if strings.TrimSpace(path) == "" {
+		return ""
+	}
+	gitPath, err := system.LookPath("git")
+	if err != nil {
+		logger.Debug("sbom: git unavailable for project version", zap.Error(err))
+		return ""
+	}
+	args := []string{"-C", path, "describe", "--tags", "--always", "--dirty"}
+	logger.Debug("sbom: resolving project version", logkit.CommandFields(gitPath, args, path)...)
+	cmd := system.Command(gitPath, args...)
+	out, err := cmd.Output()
+	if err != nil {
+		logger.Debug("sbom: git describe failed; omitting project version", zap.Error(err))
+		return ""
+	}
+	return strings.TrimSpace(string(out))
 }
 
 func sbomToolNames(results []sdk.DetectionResult) []string {

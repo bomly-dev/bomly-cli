@@ -166,7 +166,7 @@ func TestDepGraphFromGoList_RuntimeScopeSkipsTestImports(t *testing.T) {
 {"ImportPath":"github.com/davecgh/go-spew/spew","Module":{"Path":"github.com/davecgh/go-spew","Version":"v1.1.1"}}
 `)
 
-	g, err := depGraphFromGoListWithScope(raw, "example.com/demo", nil, sdk.ScopeRuntime)
+	g, err := depGraphFromGoListWithScope(raw, "example.com/demo", nil, sdk.ScopeRuntime, nil)
 	if err != nil {
 		t.Fatalf("depGraphFromGoListWithScope() error = %v", err)
 	}
@@ -189,7 +189,7 @@ func TestDepGraphFromGoList_DevelopmentScopeFiltersRuntimeImports(t *testing.T) 
 {"ImportPath":"github.com/davecgh/go-spew/spew","Module":{"Path":"github.com/davecgh/go-spew","Version":"v1.1.1"}}
 `)
 
-	g, err := depGraphFromGoListWithScope(raw, "example.com/demo", nil, sdk.ScopeDevelopment)
+	g, err := depGraphFromGoListWithScope(raw, "example.com/demo", nil, sdk.ScopeDevelopment, nil)
 	if err != nil {
 		t.Fatalf("depGraphFromGoListWithScope() error = %v", err)
 	}
@@ -339,5 +339,40 @@ func TestDepGraphFromGoList_AttachesPositionToDirectDeps(t *testing.T) {
 	}
 	if len(trans.Locations) != 0 {
 		t.Errorf("transitive dep should have no Locations (not in go.mod); got %+v", trans.Locations)
+	}
+}
+
+func TestParseGoSumDigests(t *testing.T) {
+	projectDir := t.TempDir()
+	sumPath := filepath.Join(projectDir, "go.sum")
+	if err := os.WriteFile(sumPath, []byte(`github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+rsc.io/quote v1.5.2 h2:unsupported-hash-algorithm
+malformed line
+`), 0o644); err != nil {
+		t.Fatalf("write go.sum: %v", err)
+	}
+
+	digests, err := parseGoSumDigests(sumPath)
+	if err != nil {
+		t.Fatalf("parseGoSumDigests() error = %v", err)
+	}
+	if len(digests) != 1 {
+		t.Fatalf("expected exactly one module digest, got %#v", digests)
+	}
+	digest, ok := digests["github.com/google/uuid@v1.6.0"]
+	if !ok {
+		t.Fatalf("missing digest for github.com/google/uuid@v1.6.0: %#v", digests)
+	}
+	if digest.Algorithm != sdk.DigestAlgorithmSHA256 {
+		t.Fatalf("expected sha256 digest, got %q", digest.Algorithm)
+	}
+	// hex of base64 "NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0="
+	if digest.Value != "348bda24330eb231c0f27d630212d2833ac0cf2d4782bfa136b6f9edefbde05d" {
+		t.Fatalf("unexpected digest value %q", digest.Value)
+	}
+
+	if _, err := parseGoSumDigests(filepath.Join(projectDir, "missing", "go.sum")); err == nil {
+		t.Fatal("expected an error for a missing go.sum")
 	}
 }

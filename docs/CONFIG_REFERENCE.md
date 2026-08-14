@@ -89,6 +89,15 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | `matchers.scorecard.cache_dir` | `BOMLY_SCORECARD_CACHE_DIR` | `string` | - | Directory for the Scorecard response cache |
 | `matchers.scorecard.cache_ttl` | `BOMLY_SCORECARD_CACHE_TTL` | `string` | 24h | TTL for cached Scorecard responses (e.g. 24h) |
 
+## SBOM export metadata (optional EU-CRA transparency fields)
+
+| YAML Key | Environment Variable | Type | Default | Description |
+|----------|---------------------|------|---------|-------------|
+| `sbom.manufacturer` | `BOMLY_SBOM_MANUFACTURER` | `string` | - | Organization name emitted as the SBOM manufacturer/supplier (EU CRA Art. 13(15)) |
+| `sbom.security_contact` | `BOMLY_SBOM_SECURITY_CONTACT` | `string` | - | Security contact URL or email emitted in exported SBOMs (EU CRA Art. 13(6)) |
+| `sbom.vulnerability_disclosure_url` | `BOMLY_SBOM_VULNERABILITY_DISCLOSURE_URL` | `string` | - | Coordinated vulnerability disclosure policy URL emitted in exported SBOMs (EU CRA Art. 13(7)) |
+| `sbom.support_end` | `BOMLY_SBOM_SUPPORT_END` | `string` | - | Support end date (YYYY-MM-DD) for security updates emitted in exported SBOMs (EU CRA Art. 13(8)) |
+
 ## Flat YAML Migration
 
 Flat YAML keys are no longer accepted. Move each existing key to its nested replacement:
@@ -268,4 +277,13 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 #     cache_dir: ""
 #     TTL for cached Scorecard responses (e.g. 24h)
 #     cache_ttl: 24h
+# sbom:
+#   Organization name emitted as the SBOM manufacturer/supplier (EU CRA Art. 13(15))
+#   manufacturer: ""
+#   Security contact URL or email emitted in exported SBOMs (EU CRA Art. 13(6))
+#   security_contact: ""
+#   Coordinated vulnerability disclosure policy URL emitted in exported SBOMs (EU CRA Art. 13(7))
+#   vulnerability_disclosure_url: ""
+#   Support end date (YYYY-MM-DD) for security updates emitted in exported SBOMs (EU CRA Art. 13(8))
+#   support_end: ""
 ```

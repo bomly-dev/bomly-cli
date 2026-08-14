@@ -276,3 +276,16 @@ func TestValidatePluginConfigsWarnsOnSchemaUnknownKeys(t *testing.T) {
 		t.Fatalf("open schema produced warnings: %#v", warnings)
 	}
 }
+
+func TestValidateSBOMSupportEnd(t *testing.T) {
+	if err := Validate(Resolved{SBOMSupportEnd: "2030-12-31"}); err != nil {
+		t.Fatalf("Validate rejected a valid sbom support_end date: %v", err)
+	}
+	err := Validate(Resolved{SBOMSupportEnd: "31/12/2030"})
+	if err == nil {
+		t.Fatal("Validate returned nil for a malformed sbom support_end; want error")
+	}
+	if !strings.Contains(err.Error(), "support_end") {
+		t.Errorf("error message = %q, want it to mention support_end", err.Error())
+	}
+}

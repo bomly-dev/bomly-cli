@@ -432,3 +432,52 @@ func TestBlake3DigestSurvivesRoundTrip(t *testing.T) {
 		t.Fatalf("cyclonedx blake3 hash = %+v, want it preserved", comp.Hashes)
 	}
 }
+
+// TestEveryAcceptedDigestAlgorithmRoundTrips closes the class of bug that
+// produced three separate one-line fixes (BLAKE2b, BLAKE3, and the SHA-3
+// hyphen): an algorithm the decoder normalizes but an encoder does not know is
+// silently dropped, and an algorithm without a length entry skips validation.
+//
+// Rather than another per-algorithm test, this asserts the invariant directly
+// over the whole table, so a future addition cannot land half-wired.
+func TestEveryAcceptedDigestAlgorithmRoundTrips(t *testing.T) {
+	for algorithm, size := range digestHexSizes {
+		canonical := normalizeDigestAlgorithm(algorithm)
+		t.Run(algorithm, func(t *testing.T) {
+			// The formats do not agree on their algorithm sets — SHA-224 is
+			// SPDX-only, Streebog is CycloneDX-only — so the invariant is
+			// that a validated algorithm reaches at least one encoder. An
+			// entry reaching neither is dead weight that silently drops
+			// every value it accepts.
+			if spdxChecksumAlgorithm(canonical) == "" && cycloneDXHashAlgorithm(canonical) == "" {
+				t.Fatalf("%q has a length entry but no encoder mapping in either format", algorithm)
+			}
+
+			// A value of the declared width must survive; a short one must not.
+			value := strings.Repeat("a", size*2)
+			if _, ok := ingestedDigest(algorithm, value); !ok {
+				t.Fatalf("a correctly sized %q digest was rejected", algorithm)
+			}
+			if _, ok := ingestedDigest(algorithm, "ab"); ok {
+				t.Fatalf("a short %q digest was accepted", algorithm)
+			}
+		})
+	}
+}
+
+// TestNormalizedAlgorithmsHaveLengthEntries is the other direction: an
+// algorithm an encoder can emit must also be length-validated on ingest, or a
+// malformed value reaches the output unchecked.
+func TestNormalizedAlgorithmsHaveLengthEntries(t *testing.T) {
+	for _, algorithm := range []string{
+		"md5", "sha1", "sha256", "sha384", "sha512",
+		"sha3-256", "sha3-384", "sha3-512",
+		"blake2b-256", "blake2b-384", "blake2b-512", "blake3",
+		"streebog-256", "streebog-512",
+	} {
+		canonical := normalizeDigestAlgorithm(algorithm)
+		if _, ok := digestHexSizes[canonical]; !ok {
+			t.Fatalf("%q is emitted by the encoders but has no length entry, so ingest cannot validate it", algorithm)
+		}
+	}
+}

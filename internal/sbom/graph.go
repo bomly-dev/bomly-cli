@@ -149,6 +149,10 @@ func mergeIngestedNode(existing, incoming *sdk.Dependency) {
 		// External references are a set carried under one key, so a key-level
 		// fill-gaps merge would drop the duplicate's whole list whenever the
 		// first component had any. Union them instead.
+		if key == metadataKeySupplierURLs {
+			existing.Metadata[key] = unionAnyStrings(existing.Metadata[key], value)
+			continue
+		}
 		if key == metadataKeyExternalRefs {
 			existing.Metadata[key] = unionExternalRefValues(existing.Metadata[key], value)
 			continue
@@ -157,6 +161,37 @@ func mergeIngestedNode(existing, incoming *sdk.Dependency) {
 			existing.Metadata[key] = value
 		}
 	}
+}
+
+// unionAnyStrings merges two serialized string lists, preserving order and
+// dropping duplicates.
+func unionAnyStrings(base, extra any) any {
+	baseList, _ := base.([]any)
+	extraList, _ := extra.([]any)
+	if len(extraList) == 0 {
+		return base
+	}
+	if len(baseList) == 0 {
+		return extra
+	}
+	seen := make(map[string]struct{}, len(baseList))
+	for _, entry := range baseList {
+		if value, ok := entry.(string); ok {
+			seen[value] = struct{}{}
+		}
+	}
+	for _, entry := range extraList {
+		value, ok := entry.(string)
+		if !ok {
+			continue
+		}
+		if _, present := seen[value]; present {
+			continue
+		}
+		seen[value] = struct{}{}
+		baseList = append(baseList, entry)
+	}
+	return baseList
 }
 
 // unionExternalRefValues merges two serialized external-reference lists,

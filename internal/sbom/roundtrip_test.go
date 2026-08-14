@@ -1110,3 +1110,136 @@ func mustGraphFromDoc(t *testing.T, doc *Document) *sdk.Graph {
 	}
 	return graph
 }
+
+// TestSetValuedAssertionsSurviveDuplicateMerge is the sweep's regression net.
+// Every set-valued field on a component described twice must union rather than
+// let one copy win; this repeatedly turned up one field at a time in review.
+func TestSetValuedAssertionsSurviveDuplicateMerge(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "metadata": {"component": {
+        "bom-ref": "root", "type": "application", "name": "app", "version": "1.0.0",
+        "purl": "pkg:npm/app@1.0.0",
+        "licenses": [{"license": {"id": "Apache-2.0"}}],
+        "supplier": {"name": "Acme", "url": ["https://second.example"]},
+        "externalReferences": [{"type": "documentation", "url": "https://docs.example"}]
+      }},
+      "components": [
+        {"bom-ref": "root", "type": "application", "name": "app", "version": "1.0.0", "purl": "pkg:npm/app@1.0.0",
+         "licenses": [{"license": {"id": "MIT"}}],
+         "supplier": {"name": "Acme", "url": ["https://first.example"]},
+         "externalReferences": [{"type": "website", "url": "https://site.example"}]},
+        {"bom-ref": "pkg:npm/dep@1.0.0", "type": "library", "name": "dep", "version": "1.0.0", "purl": "pkg:npm/dep@1.0.0"}
+      ],
+      "dependencies": [{"ref": "root", "dependsOn": ["pkg:npm/dep@1.0.0"]}]
+    }`
+
+	out := string(ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON))
+	for name, want := range map[string]string{
+		"inventory license":      "MIT",
+		"metadata license":       "Apache-2.0",
+		"inventory supplier url": "https://first.example",
+		"metadata supplier url":  "https://second.example",
+		"inventory reference":    "https://site.example",
+		"metadata reference":     "https://docs.example",
+	} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("%s was discarded by the merge:\n%s", name, out)
+		}
+	}
+}
+
+// TestMultipleVCSReferencesArePreserved mirrors the distribution-mirror case:
+// CycloneDX types vcs as an array, so extra repositories must not overwrite.
+func TestMultipleVCSReferencesArePreserved(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0", "type": "library", "name": "a", "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "externalReferences": [
+          {"type": "vcs", "url": "https://github.com/org/primary"},
+          {"type": "vcs", "url": "https://gitlab.com/org/mirror"}
+        ]
+      }]
+    }`
+
+	out := string(ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON))
+	for _, want := range []string{"github.com/org/primary", "gitlab.com/org/mirror"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("vcs mirror %q was overwritten:\n%s", want, out)
+		}
+	}
+}
+
+// TestIngestedDistributionKeepsBenignQuery covers a source-declared download
+// with a benign query. The detector-oriented classifier drops every query,
+// which is right for a lockfile value and wrong for an asserted one.
+func TestIngestedDistributionKeepsBenignQuery(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0", "type": "library", "name": "a", "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "externalReferences": [
+          {"type": "distribution", "url": "https://repo.example/download?id=123"}
+        ]
+      }]
+    }`
+
+	for _, target := range []Target{TargetSPDX23JSON, TargetCycloneDX17JSON} {
+		out := string(ingestAndReexport(t, []byte(in), target))
+		if !strings.Contains(out, "https://repo.example/download?id=123") {
+			t.Fatalf("%s dropped an asserted download with a benign query:\n%s", target, out)
+		}
+	}
+
+	// A credential-bearing query is still rejected on the same path.
+	hostile := strings.Replace(in, "?id=123", "?token=s3cret", 1)
+	for _, target := range []Target{TargetSPDX23JSON, TargetCycloneDX17JSON} {
+		if out := string(ingestAndReexport(t, []byte(hostile), target)); strings.Contains(out, "s3cret") {
+			t.Fatalf("%s republished a credential query:\n%s", target, out)
+		}
+	}
+}
+
+// TestSPDXNoneDownloadLocationIsPreserved keeps two distinct SPDX assertions
+// apart: NONE says the package is not downloadable, NOASSERTION says the
+// producer made no claim.
+func TestSPDXNoneDownloadLocationIsPreserved(t *testing.T) {
+	const in = `{
+      "spdxVersion": "SPDX-2.3",
+      "SPDXID": "SPDXRef-DOCUMENT",
+      "name": "doc",
+      "documentNamespace": "https://example.com/doc",
+      "creationInfo": {"created": "2024-01-01T00:00:00Z", "creators": ["Tool: t"]},
+      "packages": [
+        {"name": "none-pkg", "SPDXID": "SPDXRef-a", "versionInfo": "1.0.0", "downloadLocation": "NONE", "filesAnalyzed": false},
+        {"name": "noassert-pkg", "SPDXID": "SPDXRef-b", "versionInfo": "1.0.0", "downloadLocation": "NOASSERTION", "filesAnalyzed": false}
+      ]
+    }`
+
+	out := ingestAndReexport(t, []byte(in), TargetSPDX23JSON)
+	var doc v23.Document
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	got := map[string]string{}
+	for _, p := range doc.Packages {
+		if p != nil {
+			got[p.PackageName] = p.PackageDownloadLocation
+		}
+	}
+	if got["none-pkg"] != "NONE" {
+		t.Fatalf("NONE became %q, want the assertion preserved", got["none-pkg"])
+	}
+	if got["noassert-pkg"] != "NOASSERTION" {
+		t.Fatalf("NOASSERTION became %q", got["noassert-pkg"])
+	}
+}

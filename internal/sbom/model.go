@@ -149,6 +149,12 @@ type Component struct {
 	// Comments a source document attached to the references above. Kept
 	// separately so an ingested comment is preserved rather than replaced by
 	// Bomly's own, which could contradict what the producer asserted.
+	// NoDownloadLocation records SPDX's "NONE" marker, which asserts the
+	// package is not downloadable. That is a different claim from
+	// NOASSERTION, which says the producer made none, so the two cannot
+	// collapse into an empty locator.
+	NoDownloadLocation bool
+
 	ArtifactComment string
 	VCSComment      string
 	RegistryComment string
@@ -162,7 +168,7 @@ type Component struct {
 	// matcher, actually asserted them.
 	Supplier       string
 	SupplierType   string
-	SupplierURL    string
+	SupplierURLs   []string
 	Originator     string
 	OriginatorType string
 	Description    string
@@ -186,7 +192,6 @@ func mergeComponentAssertions(dst *Component, src Component) {
 	}{
 		{&dst.Supplier, src.Supplier},
 		{&dst.SupplierType, src.SupplierType},
-		{&dst.SupplierURL, src.SupplierURL},
 		{&dst.Originator, src.Originator},
 		{&dst.OriginatorType, src.OriginatorType},
 		{&dst.Description, src.Description},
@@ -209,13 +214,38 @@ func mergeComponentAssertions(dst *Component, src Component) {
 	// discard the second set whenever the first had any.
 	dst.CPEs = unionStrings(dst.CPEs, src.CPEs)
 	dst.Digests = unionComponentDigests(dst.Digests, src.Digests)
-	if len(dst.Licenses) == 0 {
-		dst.Licenses = src.Licenses
+	dst.Licenses = unionLicenses(dst.Licenses, src.Licenses)
+	dst.SupplierURLs = unionStrings(dst.SupplierURLs, src.SupplierURLs)
+	if len(dst.Vulnerabilities) == 0 {
+		dst.Vulnerabilities = src.Vulnerabilities
+	}
+	if !dst.NoDownloadLocation {
+		dst.NoDownloadLocation = src.NoDownloadLocation
 	}
 	// External references are a set, not a single assertion: each copy may
 	// name a different link, so a fill-gaps copy would drop the second one
 	// entirely whenever the first had any.
 	dst.ExternalRefs = unionExternalRefs(dst.ExternalRefs, src.ExternalRefs)
+}
+
+// unionLicenses appends licenses from extra that base does not carry, keyed
+// by the normalized expression.
+func unionLicenses(base, extra []License) []License {
+	if len(extra) == 0 {
+		return base
+	}
+	seen := make(map[License]struct{}, len(base))
+	for _, license := range base {
+		seen[license] = struct{}{}
+	}
+	for _, license := range extra {
+		if _, ok := seen[license]; ok {
+			continue
+		}
+		seen[license] = struct{}{}
+		base = append(base, license)
+	}
+	return base
 }
 
 // unionComponentDigests appends digests from extra that base does not carry.

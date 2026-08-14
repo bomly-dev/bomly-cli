@@ -53,8 +53,8 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 		// compliance-relevant assertion, so that case is omitted instead.
 		if comp.Supplier != "" && !strings.EqualFold(comp.SupplierType, "Person") {
 			supplier := &cdx.OrganizationalEntity{Name: comp.Supplier}
-			if comp.SupplierURL != "" {
-				urls := []string{comp.SupplierURL}
+			if len(comp.SupplierURLs) > 0 {
+				urls := append([]string(nil), comp.SupplierURLs...)
 				supplier.URL = &urls
 			}
 			component.Supplier = supplier
@@ -370,8 +370,7 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 		if comp.Supplier.URL != nil {
 			for _, u := range *comp.Supplier.URL {
 				if isPublishableReferenceURL(u) {
-					component.SupplierURL = u
-					break
+					component.SupplierURLs = append(component.SupplierURLs, u)
 				}
 			}
 		}
@@ -392,7 +391,7 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 				// classified value takes it and the rest are preserved
 				// verbatim rather than overwriting the earlier assertion.
 				if component.ArtifactURL == "" && component.RegistryURL == "" {
-					applyLocatorComment(&component, classifyResolvedURL(ref.URL, "", ""), ref.Comment)
+					applyLocatorComment(&component, classifyAssertedDownloadLocation(ref.URL), ref.Comment)
 					if component.ArtifactURL != "" || component.RegistryURL != "" {
 						continue
 					}
@@ -408,10 +407,22 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 			case cdx.ERTypeVCS:
 				// Untrusted input: gate and normalize it exactly like a
 				// detector-supplied value, because it is re-emitted and also
-				// becomes the SPDX download location.
-				if vcs := classifyIngestedVCS(ref.URL); vcs != "" {
-					component.VCSURL, component.VCSComment = vcs, ref.Comment
+				// becomes the SPDX download location. CycloneDX types this as
+				// an array, so additional repositories are kept rather than
+				// overwriting the first.
+				vcs := classifyIngestedVCS(ref.URL)
+				if vcs == "" {
+					continue
 				}
+				if component.VCSURL == "" {
+					component.VCSURL, component.VCSComment = vcs, ref.Comment
+					continue
+				}
+				component.ExternalRefs = append(component.ExternalRefs, ExternalRef{
+					Type:    string(ref.Type),
+					URL:     vcs,
+					Comment: ref.Comment,
+				})
 			default:
 				if !isPublishableReferenceURL(ref.URL) {
 					continue
@@ -665,6 +676,10 @@ func cycloneDXHashAlgorithm(algorithm string) cdx.HashAlgorithm {
 		return cdx.HashAlgoSHA384
 	case "sha512", "sha-512":
 		return cdx.HashAlgoSHA512
+	case "streebog-256":
+		return cdx.HashAlgoStreebog256
+	case "streebog-512":
+		return cdx.HashAlgoStreebog512
 	case "blake3":
 		return cdx.HashAlgoBlake3
 	case "blake2b-256":

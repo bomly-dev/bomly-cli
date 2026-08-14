@@ -15,7 +15,8 @@ import (
 const (
 	metadataKeySupplier       = "bomly.sbom.supplier"
 	metadataKeySupplierType   = "bomly.sbom.supplier_type"
-	metadataKeySupplierURL    = "bomly.sbom.supplier_url"
+	metadataKeySupplierURLs   = "bomly.sbom.supplier_urls"
+	metadataKeyNoDownload     = "bomly.sbom.no_download_location"
 	metadataKeyOriginator     = "bomly.sbom.originator"
 	metadataKeyOriginatorType = "bomly.sbom.originator_type"
 	metadataKeyDescription    = "bomly.sbom.description"
@@ -39,7 +40,6 @@ func setIngestedMetadata(dep *sdk.Dependency, component Component) {
 	values := map[string]string{
 		metadataKeySupplier:       component.Supplier,
 		metadataKeySupplierType:   component.SupplierType,
-		metadataKeySupplierURL:    component.SupplierURL,
 		metadataKeyOriginator:     component.Originator,
 		metadataKeyOriginatorType: component.OriginatorType,
 		metadataKeyDescription:    component.Description,
@@ -60,6 +60,23 @@ func setIngestedMetadata(dep *sdk.Dependency, component Component) {
 			dep.Metadata = make(map[string]any)
 		}
 		dep.Metadata[key] = value
+	}
+
+	if len(component.SupplierURLs) > 0 {
+		urls := make([]any, 0, len(component.SupplierURLs))
+		for _, u := range component.SupplierURLs {
+			urls = append(urls, u)
+		}
+		if dep.Metadata == nil {
+			dep.Metadata = make(map[string]any)
+		}
+		dep.Metadata[metadataKeySupplierURLs] = urls
+	}
+	if component.NoDownloadLocation {
+		if dep.Metadata == nil {
+			dep.Metadata = make(map[string]any)
+		}
+		dep.Metadata[metadataKeyNoDownload] = true
 	}
 
 	if len(component.ExternalRefs) == 0 {
@@ -98,7 +115,6 @@ func applyIngestedMetadata(component *Component, metadata map[string]any) {
 	targets := map[string]*string{
 		metadataKeySupplier:       &component.Supplier,
 		metadataKeySupplierType:   &component.SupplierType,
-		metadataKeySupplierURL:    &component.SupplierURL,
 		metadataKeyOriginator:     &component.Originator,
 		metadataKeyOriginatorType: &component.OriginatorType,
 		metadataKeyDescription:    &component.Description,
@@ -122,6 +138,17 @@ func applyIngestedMetadata(component *Component, metadata map[string]any) {
 	registry, _ := metadata[metadataKeyRegistryURL].(string)
 	if artifact != "" || vcs != "" || registry != "" {
 		component.ArtifactURL, component.VCSURL, component.RegistryURL = artifact, vcs, registry
+	}
+
+	if urls, ok := metadata[metadataKeySupplierURLs].([]any); ok {
+		for _, entry := range urls {
+			if value, ok := entry.(string); ok && value != "" {
+				component.SupplierURLs = unionStrings(component.SupplierURLs, []string{value})
+			}
+		}
+	}
+	if none, ok := metadata[metadataKeyNoDownload].(bool); ok && none {
+		component.NoDownloadLocation = true
 	}
 
 	raw, ok := metadata[metadataKeyExternalRefs].([]any)

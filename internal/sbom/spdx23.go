@@ -190,6 +190,9 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 			component.Originator = parseSPDXEntity(p.PackageOriginator.Originator)
 			component.OriginatorType = p.PackageOriginator.OriginatorType
 		}
+		if strings.EqualFold(strings.TrimSpace(p.PackageDownloadLocation), "NONE") {
+			component.NoDownloadLocation = true
+		}
 		applyLocator(&component, classifyAssertedDownloadLocation(parseSPDXEntity(p.PackageDownloadLocation)))
 		if home := parseSPDXEntity(p.PackageHomePage); isPublishableReferenceURL(home) {
 			component.ExternalRefs = append(component.ExternalRefs, ExternalRef{Type: "website", URL: home})
@@ -524,6 +527,12 @@ const spdxSourceInfoPrefix = "Source repository: "
 func spdxDownloadLocation(component Component) string {
 	if location := firstNonEmpty(component.ArtifactURL, component.VCSURL); location != "" {
 		return location
+	}
+	// SPDX separates "there is no download location" from "no claim was
+	// made". Collapsing NONE to NOASSERTION would weaken an explicit
+	// assertion the source document made.
+	if component.NoDownloadLocation {
+		return "NONE"
 	}
 	return "NOASSERTION"
 }

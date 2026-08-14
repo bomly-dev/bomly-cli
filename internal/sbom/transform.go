@@ -234,10 +234,12 @@ var digestHexSizes = map[string]int{
 	"sha3-512": 64,
 	// Every algorithm the encoders accept needs an entry here, or an ingested
 	// value of the wrong length passes validation unchecked.
-	"blake3":      32,
-	"blake2b-256": 32,
-	"blake2b-384": 48,
-	"blake2b-512": 64,
+	"blake3":       32,
+	"streebog-256": 32,
+	"streebog-512": 64,
+	"blake2b-256":  32,
+	"blake2b-384":  48,
+	"blake2b-512":  64,
 }
 
 func normalizeDigestValue(algorithm, value string) string {
@@ -359,6 +361,10 @@ func normalizeDigestAlgorithm(algorithm string) string {
 		return "sha3-384"
 	case "sha3-512", "sha3512":
 		return "sha3-512"
+	case "streebog-256", "streebog256":
+		return "streebog-256"
+	case "streebog-512", "streebog512":
+		return "streebog-512"
 	case "blake2b-256", "blake2b256":
 		return "blake2b-256"
 	case "blake2b-384", "blake2b384":

@@ -225,22 +225,26 @@ func TestUnsafeDetectorRevisionIsIgnored(t *testing.T) {
 // direction — a case mapped to the wrong constant, which would keep the count
 // at one while relabelling the digest as a different family.
 func TestBlake2bDigestsSurviveRoundTrip(t *testing.T) {
-	const value = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-
 	cases := []struct {
 		algorithm string
-		wantSPDX  common.ChecksumAlgorithm
-		wantCDX   cdx.HashAlgorithm
+		// hexLen is the digest's real hex width. A wrong-width value is not
+		// merely unrealistic: normalizeDigestValue would read it as an
+		// npm-style base64 SRI digest and rewrite it, so the assertion would
+		// compare against something the encoder never saw.
+		hexLen   int
+		wantSPDX common.ChecksumAlgorithm
+		wantCDX  cdx.HashAlgorithm
 	}{
-		{"blake2b-256", common.BLAKE2b_256, cdx.HashAlgoBlake2b_256},
-		{"blake2b-384", common.BLAKE2b_384, cdx.HashAlgoBlake2b_384},
-		{"blake2b-512", common.BLAKE2b_512, cdx.HashAlgoBlake2b_512},
-		{"sha3-256", common.SHA3_256, cdx.HashAlgoSHA3_256},
-		{"sha256", common.SHA256, cdx.HashAlgoSHA256},
+		{"blake2b-256", 64, common.BLAKE2b_256, cdx.HashAlgoBlake2b_256},
+		{"blake2b-384", 96, common.BLAKE2b_384, cdx.HashAlgoBlake2b_384},
+		{"blake2b-512", 128, common.BLAKE2b_512, cdx.HashAlgoBlake2b_512},
+		{"sha3-256", 64, common.SHA3_256, cdx.HashAlgoSHA3_256},
+		{"sha256", 64, common.SHA256, cdx.HashAlgoSHA256},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.algorithm, func(t *testing.T) {
+			value := strings.Repeat("a", tc.hexLen)
 			g := sdk.New()
 			node := sdk.NewDependencyWithID("pkg@1.0.0", sdk.Dependency{
 				Coordinates: sdk.Coordinates{

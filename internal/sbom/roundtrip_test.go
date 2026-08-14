@@ -587,6 +587,7 @@ func TestMalformedIngestedDigestIsDropped(t *testing.T) {
         "purl": "pkg:npm/a@1.0.0",
         "hashes": [
           {"alg": "SHA-256", "content": "not-a-hash"},
+          {"alg": "BLAKE2b-256", "content": "ab"},
           {"alg": "SHA-256", "content": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}
         ]
       }]
@@ -596,6 +597,11 @@ func TestMalformedIngestedDigestIsDropped(t *testing.T) {
 		out := ingestAndReexport(t, []byte(in), target)
 		if strings.Contains(string(out), "not-a-hash") {
 			t.Fatalf("%s republished a malformed digest:\n%s", target, out)
+		}
+		// Hex but far too short. Every algorithm the encoders accept needs a
+		// length entry, or this passes validation unchecked.
+		if strings.Contains(string(out), `"ab"`) {
+			t.Fatalf("%s republished a short BLAKE2b digest:\n%s", target, out)
 		}
 		if !strings.Contains(string(out), "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc") {
 			t.Fatalf("%s dropped the valid digest alongside the malformed one:\n%s", target, out)

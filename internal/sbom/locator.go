@@ -293,6 +293,41 @@ func isCommitFragment(fragment string) bool {
 	return true
 }
 
+// credentialPrefixes are issuer prefixes used by common access-token formats.
+// No legitimate git tag, branch, or commit begins with one.
+var credentialPrefixes = []string{
+	"ghp_", "gho_", "ghu_", "ghs_", "ghr_", "github_pat_", // GitHub
+	"glpat-", "gldt-", // GitLab
+	"npm_",                                      // npm
+	"pypi-",                                     // PyPI
+	"xoxb-", "xoxp-", "xoxa-", "xoxr-", "xoxs-", // Slack
+	"sk_live_", "pk_live_", "sk-", // Stripe, OpenAI
+	"akia", "asia", // AWS access key ids
+	"aiza",               // Google
+	"hf_",                // Hugging Face
+	"dop_v1_", "doo_v1_", // DigitalOcean
+	"shpat_", "shpss_", // Shopify
+}
+
+// looksLikeCredential reports whether a value carries a recognizable
+// access-token prefix.
+//
+// A revision reaches an SBOM verbatim after the "@", and unlike a URL fragment
+// it cannot simply be required to be hex: tags and branches are legitimate
+// here, and they use the same character set a token does. Matching known
+// issuer prefixes is therefore the check available, and it is deliberately
+// narrow — a bespoke or unrecognized secret format would still pass. The
+// stronger guarantee lives on the fragment path, which requires bare hex.
+func looksLikeCredential(value string) bool {
+	lowered := strings.ToLower(strings.TrimSpace(value))
+	for _, prefix := range credentialPrefixes {
+		if strings.HasPrefix(lowered, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
 // isSafeRevision reports whether revision is a plausible git revision that can
 // be appended to an SPDX version-control locator verbatim.
 //
@@ -302,6 +337,9 @@ func isCommitFragment(fragment string) bool {
 // repository URL without a pinned revision.
 func isSafeRevision(revision string) bool {
 	if revision == "" || len(revision) > 256 {
+		return false
+	}
+	if looksLikeCredential(revision) {
 		return false
 	}
 	for _, r := range revision {

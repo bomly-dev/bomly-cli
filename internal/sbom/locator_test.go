@@ -81,6 +81,11 @@ func TestClassifyResolvedURL(t *testing.T) {
 		{"fine-grained pat fragment is not a revision", "https://github.com/org/repo#github_pat_11ABCDE", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo"},
 		{"non-hex fragment is not a revision", "https://github.com/org/repo#release-candidate", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo"},
 		{"named query revision still allows tags", "https://github.com/org/repo?tag=v1.2.3", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo@v1.2.3"},
+		// A query key names its value a revision, so tags and branches are
+		// legitimate there — but a recognizable token is not.
+		{"token in rev query is rejected", "https://github.com/org/repo?rev=ghp_abcd1234", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo"},
+		{"token in branch query is rejected", "https://github.com/org/repo?branch=glpat-Abc123", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo"},
+		{"underscored branch still allowed", "https://github.com/org/repo?branch=release_candidate", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo@release_candidate"},
 		{"requested rev used when no commit resolved", "https://github.com/a/b?rev=v1.2.3", sdk.DependencySourceGit, sdk.EcosystemPython, LocatorVCS, "git+https://github.com/a/b@v1.2.3"},
 
 		// Degenerate input.
@@ -188,6 +193,34 @@ func TestIsPublishableReferenceURL(t *testing.T) {
 	for _, tc := range cases {
 		if got := isPublishableReferenceURL(tc.in); got != tc.want {
 			t.Fatalf("isPublishableReferenceURL(%q) = %v, want %v", tc.in, got, tc.want)
+		}
+	}
+}
+
+func TestIsSafeRevisionRejectsCredentialShapes(t *testing.T) {
+	rejected := []string{
+		"ghp_abcd1234", "github_pat_11ABCDE_xyz", "gho_abc", "ghs_abc",
+		"glpat-Abc123", "npm_abcdef", "pypi-AgEIcHlwaS5vcmc",
+		"xoxb-123-456-abc", "sk-abcdef123456", "sk_live_abc",
+		"AKIAIOSFODNN7EXAMPLE", "AIzaSyA-abc123", "hf_abcDEF",
+		"dop_v1_abc", "shpat_abc123",
+	}
+	for _, value := range rejected {
+		if isSafeRevision(value) {
+			t.Fatalf("isSafeRevision(%q) = true, want it rejected as a credential shape", value)
+		}
+	}
+
+	// Real refs must keep working, including ones using the same characters a
+	// token does.
+	allowed := []string{
+		"main", "v1.2.3", "2.0.0-beta.1", "release_candidate", "feature/foo",
+		"9f8e7d6c5b4a", "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+		"skip-ci", "package_name", "AKIRA",
+	}
+	for _, value := range allowed {
+		if !isSafeRevision(value) {
+			t.Fatalf("isSafeRevision(%q) = false, want a legitimate ref accepted", value)
 		}
 	}
 }

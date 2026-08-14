@@ -424,12 +424,16 @@ func TestBlake3DigestSurvivesRoundTrip(t *testing.T) {
 	}
 
 	pkg := spdxPackageFor(t, g, BuildOptions{})
-	if len(pkg.PackageChecksums) != 1 || pkg.PackageChecksums[0].Algorithm != common.BLAKE3 {
-		t.Fatalf("spdx blake3 checksum = %+v, want it preserved", pkg.PackageChecksums)
+	if len(pkg.PackageChecksums) != 1 ||
+		pkg.PackageChecksums[0].Algorithm != common.BLAKE3 ||
+		pkg.PackageChecksums[0].Value != value {
+		t.Fatalf("spdx blake3 checksum = %+v, want it preserved with its value", pkg.PackageChecksums)
 	}
 	comp := cycloneDXComponentFor(t, g, BuildOptions{})
-	if comp.Hashes == nil || len(*comp.Hashes) != 1 || (*comp.Hashes)[0].Algorithm != cdx.HashAlgoBlake3 {
-		t.Fatalf("cyclonedx blake3 hash = %+v, want it preserved", comp.Hashes)
+	if comp.Hashes == nil || len(*comp.Hashes) != 1 ||
+		(*comp.Hashes)[0].Algorithm != cdx.HashAlgoBlake3 ||
+		(*comp.Hashes)[0].Value != value {
+		t.Fatalf("cyclonedx blake3 hash = %+v, want it preserved with its value", comp.Hashes)
 	}
 }
 
@@ -470,12 +474,16 @@ func TestEveryAcceptedDigestAlgorithmRoundTrips(t *testing.T) {
 // malformed value reaches the output unchecked.
 func TestNormalizedAlgorithmsHaveLengthEntries(t *testing.T) {
 	for _, algorithm := range []string{
-		"md5", "sha1", "sha256", "sha384", "sha512",
+		"md5", "md2", "md4", "md6", "adler32",
+		"sha1", "sha224", "sha256", "sha384", "sha512",
 		"sha3-256", "sha3-384", "sha3-512",
 		"blake2b-256", "blake2b-384", "blake2b-512", "blake3",
 		"streebog-256", "streebog-512",
 	} {
 		canonical := normalizeDigestAlgorithm(algorithm)
+		if _, variable := variableLengthDigests[canonical]; variable {
+			continue
+		}
 		if _, ok := digestHexSizes[canonical]; !ok {
 			t.Fatalf("%q is emitted by the encoders but has no length entry, so ingest cannot validate it", algorithm)
 		}

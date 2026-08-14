@@ -412,6 +412,14 @@ func spdxChecksumAlgorithm(algorithm string) common.ChecksumAlgorithm {
 		return common.SHA384
 	case "sha512", "sha-512":
 		return common.SHA512
+	case "adler32":
+		return common.ADLER32
+	case "md2":
+		return common.MD2
+	case "md4":
+		return common.MD4
+	case "md6":
+		return common.MD6
 	case "blake3":
 		return common.BLAKE3
 	case "blake2b-256":
@@ -525,14 +533,16 @@ const spdxSourceInfoPrefix = "Source repository: "
 // would read it as the artifact's origin, which is false. NOASSERTION is the
 // honest answer when only a registry root is known.
 func spdxDownloadLocation(component Component) string {
-	if location := firstNonEmpty(component.ArtifactURL, component.VCSURL); location != "" {
-		return location
-	}
 	// SPDX separates "there is no download location" from "no claim was
-	// made". Collapsing NONE to NOASSERTION would weaken an explicit
-	// assertion the source document made.
+	// made". The explicit NONE assertion outranks a recovered locator: a
+	// package can record a source repository in PackageSourceInfo while
+	// still declaring it is not downloadable, and letting that repository
+	// win would silently replace the stronger claim.
 	if component.NoDownloadLocation {
 		return "NONE"
+	}
+	if location := firstNonEmpty(component.ArtifactURL, component.VCSURL); location != "" {
+		return location
 	}
 	return "NOASSERTION"
 }

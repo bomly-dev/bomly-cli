@@ -166,12 +166,16 @@ type Component struct {
 	// Assertions preserved verbatim from an ingested SBOM. Bomly never
 	// invents these; they are present only when the source document, or a
 	// matcher, actually asserted them.
-	Supplier       string
-	SupplierType   string
-	SupplierURLs   []string
-	Originator     string
-	OriginatorType string
-	Description    string
+	Supplier     string
+	SupplierType string
+	SupplierURLs []string
+	// SupplierContacts are the supplier's own published contact entries.
+	// Preserving them republishes nothing the source document did not
+	// already publish, and CycloneDX represents them directly.
+	SupplierContacts []Contact
+	Originator       string
+	OriginatorType   string
+	Description      string
 	// Summary is SPDX's short-form description. SPDX 2.3 represents it and
 	// PackageDescription as distinct fields; CycloneDX has only one, so the
 	// summary is used there just as a fallback.
@@ -216,9 +220,8 @@ func mergeComponentAssertions(dst *Component, src Component) {
 	dst.Digests = unionComponentDigests(dst.Digests, src.Digests)
 	dst.Licenses = unionLicenses(dst.Licenses, src.Licenses)
 	dst.SupplierURLs = unionStrings(dst.SupplierURLs, src.SupplierURLs)
-	if len(dst.Vulnerabilities) == 0 {
-		dst.Vulnerabilities = src.Vulnerabilities
-	}
+	dst.SupplierContacts = unionContacts(dst.SupplierContacts, src.SupplierContacts)
+	dst.Vulnerabilities = unionVulnerabilities(dst.Vulnerabilities, src.Vulnerabilities)
 	if !dst.NoDownloadLocation {
 		dst.NoDownloadLocation = src.NoDownloadLocation
 	}
@@ -226,6 +229,47 @@ func mergeComponentAssertions(dst *Component, src Component) {
 	// name a different link, so a fill-gaps copy would drop the second one
 	// entirely whenever the first had any.
 	dst.ExternalRefs = unionExternalRefs(dst.ExternalRefs, src.ExternalRefs)
+}
+
+// unionContacts appends contacts from extra that base does not carry.
+func unionContacts(base, extra []Contact) []Contact {
+	if len(extra) == 0 {
+		return base
+	}
+	seen := make(map[Contact]struct{}, len(base))
+	for _, contact := range base {
+		seen[contact] = struct{}{}
+	}
+	for _, contact := range extra {
+		if _, ok := seen[contact]; ok {
+			continue
+		}
+		seen[contact] = struct{}{}
+		base = append(base, contact)
+	}
+	return base
+}
+
+// unionVulnerabilities appends advisories from extra that base does not carry,
+// keyed by the source and identifier pair that identifies one advisory.
+func unionVulnerabilities(base, extra []Vulnerability) []Vulnerability {
+	if len(extra) == 0 {
+		return base
+	}
+	type key struct{ source, id string }
+	seen := make(map[key]struct{}, len(base))
+	for _, vuln := range base {
+		seen[key{vuln.Source, vuln.ID}] = struct{}{}
+	}
+	for _, vuln := range extra {
+		k := key{vuln.Source, vuln.ID}
+		if _, ok := seen[k]; ok {
+			continue
+		}
+		seen[k] = struct{}{}
+		base = append(base, vuln)
+	}
+	return base
 }
 
 // unionLicenses appends licenses from extra that base does not carry, keyed
@@ -289,12 +333,23 @@ func unionExternalRefs(base, extra []ExternalRef) []ExternalRef {
 	return base
 }
 
+// Contact is one organizational contact entry on a supplier.
+type Contact struct {
+	Name  string
+	Email string
+	Phone string
+}
+
 // ExternalRef is an external reference carried through from an ingested SBOM
 // so that a format conversion does not silently discard it.
 type ExternalRef struct {
 	Type    string
 	URL     string
 	Comment string
+	// Digests are the reference's own integrity assertion, distinct from the
+	// component's hashes: a distribution URL may carry the checksum of the
+	// archive it points at.
+	Digests []Digest
 }
 
 // Dependency describes one package relationship list in the intermediate SBOM model.

@@ -57,6 +57,15 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 				urls := append([]string(nil), comp.SupplierURLs...)
 				supplier.URL = &urls
 			}
+			if len(comp.SupplierContacts) > 0 {
+				contacts := make([]cdx.OrganizationalContact, 0, len(comp.SupplierContacts))
+				for _, c := range comp.SupplierContacts {
+					contacts = append(contacts, cdx.OrganizationalContact{
+						Name: c.Name, Email: c.Email, Phone: c.Phone,
+					})
+				}
+				supplier.Contact = &contacts
+			}
 			component.Supplier = supplier
 		}
 		component.Publisher = comp.Originator
@@ -345,6 +354,22 @@ func externalReferenceType(value string) cdx.ExternalReferenceType {
 	return cdx.ERTypeOther
 }
 
+// referenceDigests validates the integrity assertion carried on an external
+// reference. It uses the same gate as component hashes, so a malformed value
+// cannot ride in on a reference instead.
+func referenceDigests(hashes *[]cdx.Hash) []Digest {
+	if hashes == nil {
+		return nil
+	}
+	var out []Digest
+	for _, hash := range *hashes {
+		if digest, ok := ingestedDigest(string(hash.Algorithm), hash.Value); ok {
+			out = append(out, digest)
+		}
+	}
+	return out
+}
+
 // componentFromCycloneDX projects one CycloneDX component onto the neutral
 // model. Both decode paths (the component inventory and the metadata-only
 // fallback) share it so they cannot drift apart.
@@ -367,6 +392,16 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 	if comp.Supplier != nil && comp.Supplier.Name != "" {
 		component.Supplier = comp.Supplier.Name
 		component.SupplierType = "Organization"
+		if comp.Supplier.Contact != nil {
+			for _, c := range *comp.Supplier.Contact {
+				if c.Name == "" && c.Email == "" && c.Phone == "" {
+					continue
+				}
+				component.SupplierContacts = append(component.SupplierContacts, Contact{
+					Name: c.Name, Email: c.Email, Phone: c.Phone,
+				})
+			}
+		}
 		if comp.Supplier.URL != nil {
 			for _, u := range *comp.Supplier.URL {
 				if isPublishableReferenceURL(u) {
@@ -403,6 +438,7 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 					Type:    string(ref.Type),
 					URL:     ref.URL,
 					Comment: ref.Comment,
+					Digests: referenceDigests(ref.Hashes),
 				})
 			case cdx.ERTypeVCS:
 				// Untrusted input: gate and normalize it exactly like a
@@ -431,6 +467,7 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 					Type:    string(ref.Type),
 					URL:     ref.URL,
 					Comment: ref.Comment,
+					Digests: referenceDigests(ref.Hashes),
 				})
 			}
 		}
@@ -473,11 +510,15 @@ func cycloneDXComponentReferences(component Component) []cdx.ExternalReference {
 	}
 
 	for _, ref := range component.ExternalRefs {
-		refs = append(refs, cdx.ExternalReference{
+		emitted := cdx.ExternalReference{
 			Type:    externalReferenceType(ref.Type),
 			URL:     ref.URL,
 			Comment: ref.Comment,
-		})
+		}
+		if hashes := cycloneDXHashes(ref.Digests); len(hashes) > 0 {
+			emitted.Hashes = &hashes
+		}
+		refs = append(refs, emitted)
 	}
 
 	if len(refs) == 0 {

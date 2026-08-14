@@ -17,6 +17,7 @@ const (
 	metadataKeySupplierType   = "bomly.sbom.supplier_type"
 	metadataKeySupplierURLs   = "bomly.sbom.supplier_urls"
 	metadataKeyNoDownload     = "bomly.sbom.no_download_location"
+	metadataKeySupplierPeople = "bomly.sbom.supplier_contacts"
 	metadataKeyOriginator     = "bomly.sbom.originator"
 	metadataKeyOriginatorType = "bomly.sbom.originator_type"
 	metadataKeyDescription    = "bomly.sbom.description"
@@ -72,6 +73,16 @@ func setIngestedMetadata(dep *sdk.Dependency, component Component) {
 		}
 		dep.Metadata[metadataKeySupplierURLs] = urls
 	}
+	if len(component.SupplierContacts) > 0 {
+		people := make([]any, 0, len(component.SupplierContacts))
+		for _, c := range component.SupplierContacts {
+			people = append(people, map[string]any{"name": c.Name, "email": c.Email, "phone": c.Phone})
+		}
+		if dep.Metadata == nil {
+			dep.Metadata = make(map[string]any)
+		}
+		dep.Metadata[metadataKeySupplierPeople] = people
+	}
 	if component.NoDownloadLocation {
 		if dep.Metadata == nil {
 			dep.Metadata = make(map[string]any)
@@ -84,11 +95,21 @@ func setIngestedMetadata(dep *sdk.Dependency, component Component) {
 	}
 	refs := make([]any, 0, len(component.ExternalRefs))
 	for _, ref := range component.ExternalRefs {
-		refs = append(refs, map[string]any{
+		entry := map[string]any{
 			"type":    ref.Type,
 			"url":     ref.URL,
 			"comment": ref.Comment,
-		})
+		}
+		if len(ref.Digests) > 0 {
+			digests := make([]any, 0, len(ref.Digests))
+			for _, digest := range ref.Digests {
+				digests = append(digests, map[string]any{
+					"algorithm": digest.Algorithm, "value": digest.Value,
+				})
+			}
+			entry["digests"] = digests
+		}
+		refs = append(refs, entry)
 	}
 	if dep.Metadata == nil {
 		dep.Metadata = make(map[string]any)
@@ -147,6 +168,22 @@ func applyIngestedMetadata(component *Component, metadata map[string]any) {
 			}
 		}
 	}
+	if people, ok := metadata[metadataKeySupplierPeople].([]any); ok {
+		for _, entry := range people {
+			fields, ok := entry.(map[string]any)
+			if !ok {
+				continue
+			}
+			name, _ := fields["name"].(string)
+			email, _ := fields["email"].(string)
+			phone, _ := fields["phone"].(string)
+			if name == "" && email == "" && phone == "" {
+				continue
+			}
+			component.SupplierContacts = unionContacts(component.SupplierContacts,
+				[]Contact{{Name: name, Email: email, Phone: phone}})
+		}
+	}
 	if none, ok := metadata[metadataKeyNoDownload].(bool); ok && none {
 		component.NoDownloadLocation = true
 	}
@@ -167,7 +204,21 @@ func applyIngestedMetadata(component *Component, metadata map[string]any) {
 		if refType == "" || refURL == "" {
 			continue
 		}
-		refs = append(refs, ExternalRef{Type: refType, URL: refURL, Comment: comment})
+		restored := ExternalRef{Type: refType, URL: refURL, Comment: comment}
+		if rawDigests, ok := fields["digests"].([]any); ok {
+			for _, entry := range rawDigests {
+				digestFields, ok := entry.(map[string]any)
+				if !ok {
+					continue
+				}
+				algorithm, _ := digestFields["algorithm"].(string)
+				value, _ := digestFields["value"].(string)
+				if digest, ok := ingestedDigest(algorithm, value); ok {
+					restored.Digests = append(restored.Digests, digest)
+				}
+			}
+		}
+		refs = append(refs, restored)
 	}
 	if len(refs) > 0 {
 		component.ExternalRefs = refs

@@ -235,6 +235,9 @@ var digestHexSizes = map[string]int{
 	// Every algorithm the encoders accept needs an entry here, or an ingested
 	// value of the wrong length passes validation unchecked.
 	"blake3":       32,
+	"adler32":      4,
+	"md2":          16,
+	"md4":          16,
 	"streebog-256": 32,
 	"streebog-512": 64,
 	"blake2b-256":  32,
@@ -257,6 +260,14 @@ func normalizeDigestValue(algorithm, value string) string {
 		return hex.EncodeToString(raw)
 	}
 	return value
+}
+
+// variableLengthDigests are algorithms with no single digest width, so a
+// length check is not available for them. They are still hex-validated; the
+// set is explicit so the encoder-coverage invariant can tell "deliberately
+// unmeasurable" apart from "forgotten".
+var variableLengthDigests = map[string]struct{}{
+	"md6": {},
 }
 
 // ingestedDigest normalizes and validates a digest taken from an untrusted

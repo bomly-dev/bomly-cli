@@ -74,10 +74,15 @@ func pinLocator(locator Locator, revision string) Locator {
 // credentialQueryKeys are query parameter names that carry a secret. A
 // download URL using one of them must not be published.
 var credentialQueryKeys = []string{
-	"token", "access_token", "auth", "authorization", "apikey", "api_key",
-	"key", "secret", "password", "passwd", "pwd", "credential", "sig",
-	"signature", "x-amz-signature", "x-amz-credential", "x-amz-security-token",
-	"x-goog-signature", "se", "sp", "sv", "sr", // Azure SAS parameters
+	"token", "access_token", "refresh_token", "id_token", "auth",
+	"authorization", "apikey", "api_key", "api-key", "key", "secret",
+	"client_secret", "client_id", "password", "passwd", "pwd", "pass",
+	"credential", "credentials", "session", "sessionid", "session_id",
+	"sig", "signature", "hmac", "nonce",
+	"x-amz-signature", "x-amz-credential", "x-amz-security-token",
+	"x-goog-signature", "goog-signature",
+	"se", "sp", "sv", "sr", "sig_", // Azure SAS parameters
+	"private_token", "personal_token", "auth_token", "authtoken",
 }
 
 // hasCredentialQuery reports whether a URL's query carries something that
@@ -150,8 +155,16 @@ func classifyURL(raw string, source sdk.DependencySource, ecosystem sdk.Ecosyste
 	// and `path`, pipenv `path`, pub `path`, npm link entries), and they do
 	// not consistently carry DependencySourceFile, so the check must be on
 	// the value rather than on source.
+	// Detector-derived values stay HTTP-only: nothing asserts what they are,
+	// so the narrowest gate is right. A value the source document declared a
+	// download location may also use the network transports the external
+	// reference gate accepts.
 	switch strings.ToLower(parsed.Scheme) {
 	case "http", "https":
+	case "ftp", "ftps":
+		if !allowBenignQuery {
+			return Locator{}
+		}
 	default:
 		return Locator{}
 	}
@@ -560,12 +573,12 @@ func isPublishableReferenceURL(raw string) bool {
 		return false
 	}
 	switch strings.ToLower(parsed.Scheme) {
-	case "http", "https":
-		return parsed.Host != "" && parsed.RawQuery == "" && parsed.Fragment == ""
-	case "git", "ftp", "ftps":
-		// Network transports CycloneDX legitimately uses for distribution and
-		// version-control references.
-		return parsed.Host != "" && parsed.RawQuery == "" && parsed.Fragment == ""
+	case "http", "https", "git", "ftp", "ftps":
+		// These are source-declared references, so a benign query such as
+		// "?version=1" is part of the assertion and only credential-shaped
+		// parameters disqualify it. Fragments stay rejected: they carry no
+		// meaning for a reference and are a common place to hide a secret.
+		return parsed.Host != "" && parsed.Fragment == "" && !hasCredentialQuery(parsed)
 	case "mailto", "urn":
 		// Opaque identifiers with no host and no filesystem reach. A `bom`
 		// reference to "urn:uuid:..." is the common CycloneDX case.

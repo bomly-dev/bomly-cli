@@ -137,11 +137,24 @@ func mergeIngestedNode(existing, incoming *sdk.Dependency) {
 	existing.CPEs = unionStrings(existing.CPEs, incoming.CPEs)
 	existing.Digests = unionDigests(existing.Digests, incoming.Digests)
 
-	if len(sdk.DetectionLicenses(existing)) == 0 {
-		if licenses := sdk.DetectionLicenses(incoming); len(licenses) > 0 {
-			sdk.SetDetectionLicenses(existing, licenses)
+	// Licenses are set-valued here too: two components collapsing onto one
+	// PURL may each declare a different choice.
+	if incomingLicenses := sdk.DetectionLicenses(incoming); len(incomingLicenses) > 0 {
+		merged := sdk.DetectionLicenses(existing)
+		seen := make(map[sdk.PackageLicense]struct{}, len(merged))
+		for _, license := range merged {
+			seen[license] = struct{}{}
 		}
+		for _, license := range incomingLicenses {
+			if _, ok := seen[license]; ok {
+				continue
+			}
+			seen[license] = struct{}{}
+			merged = append(merged, license)
+		}
+		sdk.SetDetectionLicenses(existing, merged)
 	}
+	mergeLocatorPairs(existing, incoming)
 	for key, value := range incoming.Metadata {
 		if existing.Metadata == nil {
 			existing.Metadata = make(map[string]any, len(incoming.Metadata))
@@ -149,6 +162,15 @@ func mergeIngestedNode(existing, incoming *sdk.Dependency) {
 		// External references are a set carried under one key, so a key-level
 		// fill-gaps merge would drop the duplicate's whole list whenever the
 		// first component had any. Union them instead.
+		if _, paired := locatorCommentKeys[key]; paired {
+			// Handled atomically below so a URL never picks up another
+			// locator's comment.
+			continue
+		}
+		if key == metadataKeySupplierPeople {
+			existing.Metadata[key] = unionAnyRecords(existing.Metadata[key], value, "name", "email", "phone")
+			continue
+		}
 		if key == metadataKeySupplierURLs {
 			existing.Metadata[key] = unionAnyStrings(existing.Metadata[key], value)
 			continue
@@ -159,6 +181,43 @@ func mergeIngestedNode(existing, incoming *sdk.Dependency) {
 		}
 		if _, present := existing.Metadata[key]; !present {
 			existing.Metadata[key] = value
+		}
+	}
+}
+
+// locatorCommentKeys pairs each classified locator with its comment. The two
+// must merge together: filling them independently can attach one locator's
+// comment to a different locator's URL.
+var locatorCommentKeys = map[string]string{
+	metadataKeyArtifactURL:  metadataKeyArtifactNote,
+	metadataKeyVCSURL:       metadataKeyVCSNote,
+	metadataKeyRegistryURL:  metadataKeyRegistryNote,
+	metadataKeyArtifactNote: metadataKeyArtifactURL,
+	metadataKeyVCSNote:      metadataKeyVCSURL,
+	metadataKeyRegistryNote: metadataKeyRegistryURL,
+}
+
+// mergeLocatorPairs fills each empty locator slot from incoming, moving the
+// URL and its comment as one unit.
+func mergeLocatorPairs(existing, incoming *sdk.Dependency) {
+	for _, pair := range []struct{ url, note string }{
+		{metadataKeyArtifactURL, metadataKeyArtifactNote},
+		{metadataKeyVCSURL, metadataKeyVCSNote},
+		{metadataKeyRegistryURL, metadataKeyRegistryNote},
+	} {
+		if _, present := existing.Metadata[pair.url]; present {
+			continue
+		}
+		value, ok := incoming.Metadata[pair.url]
+		if !ok {
+			continue
+		}
+		if existing.Metadata == nil {
+			existing.Metadata = make(map[string]any)
+		}
+		existing.Metadata[pair.url] = value
+		if note, ok := incoming.Metadata[pair.note]; ok {
+			existing.Metadata[pair.note] = note
 		}
 	}
 }
@@ -189,6 +248,52 @@ func unionAnyStrings(base, extra any) any {
 			continue
 		}
 		seen[value] = struct{}{}
+		baseList = append(baseList, entry)
+	}
+	return baseList
+}
+
+// unionAnyRecords merges two serialized lists of maps, deduplicating on the
+// named fields. Contacts are maps rather than strings, so the string union
+// would silently discard every one of them.
+func unionAnyRecords(base, extra any, keyFields ...string) any {
+	baseList, _ := base.([]any)
+	extraList, _ := extra.([]any)
+	if len(extraList) == 0 {
+		return base
+	}
+	if len(baseList) == 0 {
+		return extra
+	}
+
+	identity := func(entry any) (string, bool) {
+		fields, ok := entry.(map[string]any)
+		if !ok {
+			return "", false
+		}
+		parts := make([]string, 0, len(keyFields))
+		for _, name := range keyFields {
+			value, _ := fields[name].(string)
+			parts = append(parts, value)
+		}
+		return strings.Join(parts, "\x00"), true
+	}
+
+	seen := make(map[string]struct{}, len(baseList))
+	for _, entry := range baseList {
+		if id, ok := identity(entry); ok {
+			seen[id] = struct{}{}
+		}
+	}
+	for _, entry := range extraList {
+		id, ok := identity(entry)
+		if !ok {
+			continue
+		}
+		if _, present := seen[id]; present {
+			continue
+		}
+		seen[id] = struct{}{}
 		baseList = append(baseList, entry)
 	}
 	return baseList

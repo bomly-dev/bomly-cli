@@ -1327,3 +1327,167 @@ func TestRealWorldCPEsAccepted(t *testing.T) {
 		}
 	}
 }
+
+// TestSupplierContactsAndReferenceHashesSurvive covers two assertions the
+// producer already published: the supplier's contact entries and the integrity
+// hash attached to an external reference. Preserving them republishes nothing
+// new, and CycloneDX represents both directly.
+func TestSupplierContactsAndReferenceHashesSurvive(t *testing.T) {
+	hash := strings.Repeat("e", 64)
+	in := `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0", "type": "library", "name": "a", "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "supplier": {
+          "name": "Acme",
+          "contact": [{"name": "Security Team", "email": "security@acme.example"}]
+        },
+        "externalReferences": [
+          {"type": "documentation", "url": "https://docs.example/page",
+           "hashes": [{"alg": "SHA-256", "content": "` + hash + `"}]}
+        ]
+      }]
+    }`
+
+	out := string(ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON))
+	for name, want := range map[string]string{
+		"contact name":   "Security Team",
+		"contact email":  "security@acme.example",
+		"reference hash": hash,
+	} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("%s was dropped:\n%s", name, out)
+		}
+	}
+}
+
+// TestBenignQueryOnGeneralReferenceSurvives covers references other than
+// distribution. They are source-declared too, so a benign query is part of the
+// assertion while a credential-shaped one is not.
+func TestBenignQueryOnGeneralReferenceSurvives(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0", "type": "library", "name": "a", "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "externalReferences": [
+          {"type": "documentation", "url": "https://docs.example/page?version=1"},
+          {"type": "website", "url": "https://site.example/x?client_secret=s3cret"}
+        ]
+      }]
+    }`
+
+	out := string(ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON))
+	if !strings.Contains(out, "https://docs.example/page?version=1") {
+		t.Fatalf("a benign query on a general reference was dropped:\n%s", out)
+	}
+	if strings.Contains(out, "s3cret") {
+		t.Fatalf("a client_secret query was republished:\n%s", out)
+	}
+}
+
+// TestNoneDownloadLocationOutranksRecoveredRepository pins the precedence: a
+// package can record a source repository and still declare it is not
+// downloadable, and the explicit NONE must not be replaced by the repository.
+func TestNoneDownloadLocationOutranksRecoveredRepository(t *testing.T) {
+	const in = `{
+      "spdxVersion": "SPDX-2.3",
+      "SPDXID": "SPDXRef-DOCUMENT",
+      "name": "doc",
+      "documentNamespace": "https://example.com/doc",
+      "creationInfo": {"created": "2024-01-01T00:00:00Z", "creators": ["Tool: t"]},
+      "packages": [{
+        "name": "a", "SPDXID": "SPDXRef-a", "versionInfo": "1.0.0",
+        "downloadLocation": "NONE", "filesAnalyzed": false,
+        "sourceInfo": "Source repository: git+https://github.com/org/repo@deadbeef"
+      }]
+    }`
+
+	out := ingestAndReexport(t, []byte(in), TargetSPDX23JSON)
+	var doc v23.Document
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	for _, p := range doc.Packages {
+		if p == nil || p.PackageName != "a" {
+			continue
+		}
+		if p.PackageDownloadLocation != "NONE" {
+			t.Fatalf("downloadLocation = %q, want the explicit NONE preserved", p.PackageDownloadLocation)
+		}
+		return
+	}
+	t.Fatal("component missing from output")
+}
+
+// TestDuplicatePURLVulnerabilitiesAndLicensesAreUnioned closes the last two
+// set-valued fields at the graph level.
+func TestDuplicatePURLVulnerabilitiesAndLicensesAreUnioned(t *testing.T) {
+	doc := &Document{
+		Components: []Component{
+			{
+				ID: "first", Name: "a", Version: "1.0.0", PURL: "pkg:npm/a@1.0.0",
+				Licenses: []License{{Value: "MIT", SPDXExpression: "MIT"}},
+			},
+			{
+				ID: "second", Name: "a", Version: "1.0.0", PURL: "pkg:npm/a@1.0.0",
+				Licenses: []License{{Value: "Apache-2.0", SPDXExpression: "Apache-2.0"}},
+			},
+		},
+		Dependencies: []Dependency{{Ref: "first", DependsOn: []string{"second"}}},
+	}
+
+	graph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	out, err := MarshalDepGraphJSON(graph, TargetCycloneDX17JSON, BuildOptions{}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	for _, want := range []string{"MIT", "Apache-2.0"} {
+		if !strings.Contains(string(out), want) {
+			t.Fatalf("license %q was discarded by the graph merge:\n%s", want, out)
+		}
+	}
+}
+
+// TestDuplicatePURLSupplierContactsAreUnioned exercises the graph-level merge
+// for contacts specifically. Contacts are serialized as maps, so the string
+// union used for supplier URLs would silently discard every one of them.
+func TestDuplicatePURLSupplierContactsAreUnioned(t *testing.T) {
+	doc := &Document{
+		Components: []Component{
+			{
+				ID: "first", Name: "a", Version: "1.0.0", PURL: "pkg:npm/a@1.0.0",
+				Supplier:         "Acme",
+				SupplierContacts: []Contact{{Name: "First Contact", Email: "first@acme.example"}},
+			},
+			{
+				ID: "second", Name: "a", Version: "1.0.0", PURL: "pkg:npm/a@1.0.0",
+				Supplier:         "Acme",
+				SupplierContacts: []Contact{{Name: "Second Contact", Email: "second@acme.example"}},
+			},
+		},
+		Dependencies: []Dependency{{Ref: "first", DependsOn: []string{"second"}}},
+	}
+
+	graph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	out, err := MarshalDepGraphJSON(graph, TargetCycloneDX17JSON, BuildOptions{}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	for _, want := range []string{"First Contact", "Second Contact"} {
+		if !strings.Contains(string(out), want) {
+			t.Fatalf("contact %q was discarded by the graph merge:\n%s", want, out)
+		}
+	}
+}

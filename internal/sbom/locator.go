@@ -43,14 +43,6 @@ var artifactExtensions = []string{
 	".whl", ".gem", ".crate", ".jar", ".nupkg", ".egg", ".conda",
 }
 
-// classifyResolvedURL decides what raw points at, given the detector's own
-// source classification and the package ecosystem.
-//
-// The function is deliberately conservative: it emits nothing unless the value
-// is an unambiguous http(s) URL, and it prefers the weaker LocatorRegistryRoot
-// over LocatorArtifact whenever the path shape is not recognizably an archive.
-// An SBOM that omits a download location is correct; one that points at the
-// wrong place, or at the developer's home directory, is not.
 // metadataKeySourceRevision is the Dependency.Metadata key several detectors
 // (ruby, pub, and the python family) use to record the commit a git
 // dependency resolved to, separately from the repository URL.
@@ -79,7 +71,58 @@ func pinLocator(locator Locator, revision string) Locator {
 	return Locator{Kind: LocatorVCS, URL: locator.URL + "@" + revision}
 }
 
+// credentialQueryKeys are query parameter names that carry a secret. A
+// download URL using one of them must not be published.
+var credentialQueryKeys = []string{
+	"token", "access_token", "auth", "authorization", "apikey", "api_key",
+	"key", "secret", "password", "passwd", "pwd", "credential", "sig",
+	"signature", "x-amz-signature", "x-amz-credential", "x-amz-security-token",
+	"x-goog-signature", "se", "sp", "sv", "sr", // Azure SAS parameters
+}
+
+// hasCredentialQuery reports whether a URL's query carries something that
+// looks like a secret, by parameter name or by value shape.
+func hasCredentialQuery(parsed *url.URL) bool {
+	if parsed.RawQuery == "" {
+		return false
+	}
+	values, err := url.ParseQuery(parsed.RawQuery)
+	if err != nil {
+		// Unparseable query: cannot be inspected, so assume the worst.
+		return true
+	}
+	for key, vals := range values {
+		lowered := strings.ToLower(strings.TrimSpace(key))
+		for _, candidate := range credentialQueryKeys {
+			if lowered == candidate {
+				return true
+			}
+		}
+		for _, value := range vals {
+			if looksLikeCredential(value) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// classifyResolvedURL decides what raw points at, given the detector's own
+// source classification and the package ecosystem.
+//
+// The function is deliberately conservative: it emits nothing unless the value
+// is an unambiguous http(s) URL, and it prefers the weaker LocatorRegistryRoot
+// over LocatorArtifact whenever the path shape is not recognizably an archive.
+// An SBOM that omits a download location is correct; one that points at the
+// wrong place, or at the developer's home directory, is not.
 func classifyResolvedURL(raw string, source sdk.DependencySource, ecosystem sdk.Ecosystem) Locator {
+	return classifyURL(raw, source, ecosystem, false)
+}
+
+// classifyURL is the shared classifier. allowBenignQuery relaxes the blanket
+// query rejection to a credential-shape check, which is appropriate only when
+// the source document itself declared the value a download location.
+func classifyURL(raw string, source sdk.DependencySource, ecosystem sdk.Ecosystem, allowBenignQuery bool) Locator {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
 		return Locator{}
@@ -151,11 +194,19 @@ func classifyResolvedURL(raw string, source sdk.DependencySource, ecosystem sdk.
 
 	// Credentials also travel outside userinfo: signed and private-registry
 	// URLs carry them as query parameters or fragments
-	// ("...?token=<secret>", "...?X-Amz-Signature=..."). A benign query
-	// parameter cannot be told apart from a credential here, so any query
-	// disqualifies a non-VCS locator.
+	// ("...?token=<secret>", "...?X-Amz-Signature=...").
+	//
+	// For a detector-supplied value there is nothing asserting the URL is a
+	// download location, so any query disqualifies it — a benign parameter
+	// cannot be told apart from a credential, and omitting is cheap. When the
+	// source document itself declared the value a download location, dropping
+	// every query would discard a real assertion such as
+	// "https://repo.example/download?id=123", so the check narrows to
+	// credential-shaped parameters.
 	if parsed.RawQuery != "" {
-		return Locator{}
+		if !allowBenignQuery || hasCredentialQuery(parsed) {
+			return Locator{}
+		}
 	}
 
 	// A fragment is rejected on the same grounds, with one exception: Yarn
@@ -417,8 +468,12 @@ func classifyIngestedVCS(raw string) string {
 	if err != nil || parsed.User != nil || parsed.Host == "" {
 		return ""
 	}
+	// git:// is a legitimate transport for a version-control reference, and
+	// isPublishableReferenceURL already accepts it; rejecting it here would
+	// drop the repository on a CycloneDX round trip. SPDX renders it as
+	// "git+git://host/path", which its version-control grammar allows.
 	switch strings.ToLower(parsed.Scheme) {
-	case "http", "https":
+	case "http", "https", "git":
 	default:
 		return ""
 	}
@@ -429,14 +484,16 @@ func classifyIngestedVCS(raw string) string {
 // already declared to be a download location, such as SPDX
 // PackageDownloadLocation.
 //
-// The path-shape heuristic that guards detector-supplied values does not apply
-// here: an exact endpoint without a recognizable archive suffix
-// ("https://repo.example/download?id=123" reduced to its path) would be demoted
-// to a registry root and re-exported as NOASSERTION, discarding an assertion
-// the source document actually made. The safety gate still applies in full, so
-// local paths and credential-bearing URLs are still dropped.
+// Two guards that suit a detector-supplied value are relaxed here, because
+// they would discard an assertion the source document actually made:
+// the path-shape heuristic, which would demote an exact endpoint with no
+// archive suffix to a registry root, and the blanket query rejection, which
+// would drop "https://repo.example/download?id=123" entirely. Queries are
+// still rejected when a parameter looks like a credential, and the rest of the
+// safety gate — scheme, host, userinfo, fragment — applies unchanged, so local
+// paths and secrets are still dropped.
 func classifyAssertedDownloadLocation(raw string) Locator {
-	locator := classifyResolvedURL(raw, "", "")
+	locator := classifyURL(raw, "", "", true)
 	if locator.Kind == LocatorRegistryRoot {
 		locator.Kind = LocatorArtifact
 	}

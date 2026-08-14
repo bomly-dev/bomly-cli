@@ -827,6 +827,97 @@ func TestPrimaryComponentExternalRefsAreUnioned(t *testing.T) {
 	}
 }
 
+// TestGitTransportVCSReferenceSurvives covers a git:// repository reference.
+// isPublishableReferenceURL already accepts that transport, so the narrower
+// VCS path must not reject it and drop the repository.
+func TestGitTransportVCSReferenceSurvives(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0",
+        "type": "library",
+        "name": "a",
+        "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "externalReferences": [{"type": "vcs", "url": "git://github.com/org/repo"}]
+      }]
+    }`
+
+	for _, target := range []Target{TargetSPDX23JSON, TargetCycloneDX17JSON} {
+		out := ingestAndReexport(t, []byte(in), target)
+		if !strings.Contains(string(out), "github.com/org/repo") {
+			t.Fatalf("%s dropped a git:// repository reference:\n%s", target, out)
+		}
+	}
+}
+
+// TestMultipleDistributionReferencesArePreserved covers a component listing
+// several download mirrors. The neutral model has one artifact slot, so the
+// extras have to be kept rather than overwriting each other.
+func TestMultipleDistributionReferencesArePreserved(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0",
+        "type": "library",
+        "name": "a",
+        "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "externalReferences": [
+          {"type": "distribution", "url": "https://primary.example/a-1.0.0.tgz"},
+          {"type": "distribution", "url": "https://mirror.example/a-1.0.0.tgz"}
+        ]
+      }]
+    }`
+
+	out := ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON)
+	for _, want := range []string{"https://primary.example/a-1.0.0.tgz", "https://mirror.example/a-1.0.0.tgz"} {
+		if !strings.Contains(string(out), want) {
+			t.Fatalf("distribution mirror %q was overwritten:\n%s", want, out)
+		}
+	}
+}
+
+// TestPrimaryComponentDigestsAreUnioned covers set-valued integrity data on a
+// component described in both metadata.component and the inventory.
+func TestPrimaryComponentDigestsAreUnioned(t *testing.T) {
+	// Correct hex widths for each algorithm: a wrong-width value would be
+	// dropped by digest validation, and the test would then pass without ever
+	// exercising the union.
+	inventoryHash := strings.Repeat("a", 64) // SHA-256
+	metadataHash := strings.Repeat("b", 128) // SHA-512
+	in := `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "metadata": {"component": {
+        "bom-ref": "root", "type": "application", "name": "app", "version": "1.0.0",
+        "purl": "pkg:npm/app@1.0.0",
+        "hashes": [{"alg": "SHA-512", "content": "` + metadataHash + `"}]
+      }},
+      "components": [
+        {"bom-ref": "root", "type": "application", "name": "app", "version": "1.0.0", "purl": "pkg:npm/app@1.0.0",
+         "hashes": [{"alg": "SHA-256", "content": "` + inventoryHash + `"}]},
+        {"bom-ref": "pkg:npm/dep@1.0.0", "type": "library", "name": "dep", "version": "1.0.0", "purl": "pkg:npm/dep@1.0.0"}
+      ],
+      "dependencies": [{"ref": "root", "dependsOn": ["pkg:npm/dep@1.0.0"]}]
+    }`
+
+	out := ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON)
+	for name, want := range map[string]string{
+		"inventory": inventoryHash,
+		"metadata":  metadataHash,
+	} {
+		if !strings.Contains(string(out), want) {
+			t.Fatalf("%s hash was discarded by the merge:\n%s", name, out)
+		}
+	}
+}
+
 // TestSPDXHomePageSurvivesSPDXRoundTrip covers a field SPDX represents
 // exactly, which an earlier revision decoded but never re-emitted.
 func TestSPDXHomePageSurvivesSPDXRoundTrip(t *testing.T) {

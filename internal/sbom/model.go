@@ -204,12 +204,11 @@ func mergeComponentAssertions(dst *Component, src Component) {
 			*field.target = field.value
 		}
 	}
-	if len(dst.CPEs) == 0 {
-		dst.CPEs = src.CPEs
-	}
-	if len(dst.Digests) == 0 {
-		dst.Digests = src.Digests
-	}
+	// CPEs and digests are set-valued too: each copy of a component may carry
+	// an identifier or a hash the other lacks, so a fill-gaps copy would
+	// discard the second set whenever the first had any.
+	dst.CPEs = unionStrings(dst.CPEs, src.CPEs)
+	dst.Digests = unionComponentDigests(dst.Digests, src.Digests)
 	if len(dst.Licenses) == 0 {
 		dst.Licenses = src.Licenses
 	}
@@ -217,6 +216,25 @@ func mergeComponentAssertions(dst *Component, src Component) {
 	// name a different link, so a fill-gaps copy would drop the second one
 	// entirely whenever the first had any.
 	dst.ExternalRefs = unionExternalRefs(dst.ExternalRefs, src.ExternalRefs)
+}
+
+// unionComponentDigests appends digests from extra that base does not carry.
+func unionComponentDigests(base, extra []Digest) []Digest {
+	if len(extra) == 0 {
+		return base
+	}
+	seen := make(map[Digest]struct{}, len(base))
+	for _, digest := range base {
+		seen[digest] = struct{}{}
+	}
+	for _, digest := range extra {
+		if _, ok := seen[digest]; ok {
+			continue
+		}
+		seen[digest] = struct{}{}
+		base = append(base, digest)
+	}
+	return base
 }
 
 // unionExternalRefs appends references from extra that base does not already

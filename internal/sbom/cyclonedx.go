@@ -387,7 +387,24 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 		for _, ref := range *comp.ExternalReferences {
 			switch ref.Type {
 			case cdx.ERTypeDistribution:
-				applyLocatorComment(&component, classifyResolvedURL(ref.URL, "", ""), ref.Comment)
+				// A component may list several distribution URLs (mirrors).
+				// The neutral model has one artifact slot, so the first
+				// classified value takes it and the rest are preserved
+				// verbatim rather than overwriting the earlier assertion.
+				if component.ArtifactURL == "" && component.RegistryURL == "" {
+					applyLocatorComment(&component, classifyResolvedURL(ref.URL, "", ""), ref.Comment)
+					if component.ArtifactURL != "" || component.RegistryURL != "" {
+						continue
+					}
+				}
+				if !isPublishableReferenceURL(ref.URL) {
+					continue
+				}
+				component.ExternalRefs = append(component.ExternalRefs, ExternalRef{
+					Type:    string(ref.Type),
+					URL:     ref.URL,
+					Comment: ref.Comment,
+				})
 			case cdx.ERTypeVCS:
 				// Untrusted input: gate and normalize it exactly like a
 				// detector-supplied value, because it is re-emitted and also

@@ -197,6 +197,44 @@ func TestIsPublishableReferenceURL(t *testing.T) {
 	}
 }
 
+// TestClassifyAssertedDownloadLocation covers the relaxed path used when a
+// source document itself declared a value to be a download location. A benign
+// query survives; a credential-shaped one still does not.
+func TestClassifyAssertedDownloadLocation(t *testing.T) {
+	cases := []struct {
+		in       string
+		wantKind LocatorKind
+		wantURL  string
+	}{
+		// An exact endpoint with no archive suffix must not be demoted.
+		{"https://repo.example/download?id=123", LocatorArtifact, "https://repo.example/download?id=123"},
+		{"https://repo.example/download/left-pad", LocatorArtifact, "https://repo.example/download/left-pad"},
+		{"https://reg.example/a/b-1.0.tgz", LocatorArtifact, "https://reg.example/a/b-1.0.tgz"},
+		// Credentials stay rejected, by parameter name and by value shape.
+		{"https://repo.example/download?token=s3cret", LocatorNone, ""},
+		{"https://repo.example/download?X-Amz-Signature=deadbeef", LocatorNone, ""},
+		{"https://repo.example/download?id=ghp_abcd1234", LocatorNone, ""},
+		{"https://tok:s3cret@repo.example/download?id=123", LocatorNone, ""},
+		{"file:///Users/victim/pkg.tgz", LocatorNone, ""},
+		{"/Users/victim/pkg.tgz", LocatorNone, ""},
+		{"NOASSERTION", LocatorNone, ""},
+		{"", LocatorNone, ""},
+	}
+	for _, tc := range cases {
+		got := classifyAssertedDownloadLocation(tc.in)
+		if got.Kind != tc.wantKind || got.URL != tc.wantURL {
+			t.Fatalf("classifyAssertedDownloadLocation(%q) = %+v, want kind %v url %q",
+				tc.in, got, tc.wantKind, tc.wantURL)
+		}
+	}
+
+	// The relaxation must not leak into the detector path, which has no such
+	// assertion behind it.
+	if got := classifyResolvedURL("https://repo.example/download?id=123", "", ""); got.Kind != LocatorNone {
+		t.Fatalf("detector path accepted a query: %+v", got)
+	}
+}
+
 func TestIsSafeRevisionRejectsCredentialShapes(t *testing.T) {
 	rejected := []string{
 		"ghp_abcd1234", "github_pat_11ABCDE_xyz", "gho_abc", "ghs_abc",

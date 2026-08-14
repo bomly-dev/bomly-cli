@@ -57,7 +57,12 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageSourceInfo:         spdxSourceInfo(c),
 			PackageHomePage:           spdxHomePage(c),
 		}
-		if c.Originator != "" {
+		// SPDX has no untyped originator: the value must be declared a Person
+		// or an Organization. A CycloneDX `publisher` is a free string that
+		// the spec defines as either, so emitting one here would assert an
+		// entity type the source document never made. Emit only when the
+		// source established the type.
+		if c.Originator != "" && c.OriginatorType != "" {
 			pkg.PackageOriginator = &common.Originator{
 				OriginatorType: spdxEntityType(c.OriginatorType),
 				Originator:     c.Originator,
@@ -475,12 +480,18 @@ func parseSPDXEntity(value string) string {
 // parseSPDXSourceInfo recovers a source repository written by spdxSourceInfo.
 // Free text without the marker prefix is another producer's prose and is left
 // alone rather than guessed at.
+//
+// The recovered value is untrusted and is re-published in both formats — SPDX
+// PackageSourceInfo and a CycloneDX `vcs` reference — so it goes through the
+// same gate as every other ingested URL. A source document asserting
+// "Source repository: https://user:secret@github.com/org/repo", or a local
+// file:// path, yields nothing.
 func parseSPDXSourceInfo(value string) string {
 	value = strings.TrimSpace(value)
 	if !strings.HasPrefix(value, spdxSourceInfoPrefix) {
 		return ""
 	}
-	return strings.TrimSpace(strings.TrimPrefix(value, spdxSourceInfoPrefix))
+	return normalizeRepositoryURL(strings.TrimPrefix(value, spdxSourceInfoPrefix))
 }
 
 // spdxSourceInfoPrefix marks a source repository inside the free-text

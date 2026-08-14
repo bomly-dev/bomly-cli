@@ -124,10 +124,25 @@ func classifyResolvedURL(raw string, source sdk.DependencySource, ecosystem sdk.
 	// Credentials also travel outside userinfo: signed and private-registry
 	// URLs carry them as query parameters or fragments
 	// ("...?token=<secret>", "...?X-Amz-Signature=..."). A benign query
-	// parameter cannot be told apart from a credential here, so any query or
-	// fragment disqualifies a non-VCS locator.
-	if parsed.RawQuery != "" || parsed.Fragment != "" {
+	// parameter cannot be told apart from a credential here, so any query
+	// disqualifies a non-VCS locator.
+	if parsed.RawQuery != "" {
 		return Locator{}
+	}
+
+	// A fragment is rejected on the same grounds, with one exception: Yarn
+	// v1 appends the artifact's own checksum to every `resolved` URL
+	// ("...-1.4.0.tgz#71ee51fa..."). That is a fixed-format digest, not a
+	// secret, and rejecting it would drop the download location for every
+	// package in a Yarn lockfile. Strip it and keep the URL; anything that
+	// is not digest-shaped is still treated as a secret.
+	if parsed.Fragment != "" {
+		if !isChecksumFragment(parsed.Fragment) {
+			return Locator{}
+		}
+		clean := *parsed
+		clean.Fragment = ""
+		parsed = &clean
 	}
 
 	if hint == LocatorRegistryRoot {
@@ -138,6 +153,28 @@ func classifyResolvedURL(raw string, source sdk.DependencySource, ecosystem sdk.
 		return Locator{Kind: LocatorArtifact, URL: parsed.String()}
 	}
 	return Locator{Kind: LocatorRegistryRoot, URL: parsed.String()}
+}
+
+// isChecksumFragment reports whether a URL fragment is a bare hex digest of a
+// standard length, the form Yarn v1 and some registries append to an artifact
+// URL.
+//
+// The length allowlist is what keeps this from becoming a hole: an arbitrary
+// hex-looking secret of some other length is still rejected as a credential.
+func isChecksumFragment(fragment string) bool {
+	switch len(fragment) {
+	case 32, 40, 64, 96, 128: // md5, sha1, sha256, sha384, sha512
+	default:
+		return false
+	}
+	for _, r := range fragment {
+		switch {
+		case r >= '0' && r <= '9', r >= 'a' && r <= 'f', r >= 'A' && r <= 'F':
+		default:
+			return false
+		}
+	}
+	return true
 }
 
 // isConcreteArtifactPath reports whether the final path segment names a
@@ -163,15 +200,22 @@ func isConcreteArtifactPath(path string) bool {
 // "git+https://host/a/b?rev=abc" cannot be passed through as-is: the revision
 // is moved to the "@" suffix and the query is dropped.
 func normalizeVCS(parsed *url.URL) Locator {
-	revision := ""
-	for _, key := range []string{"rev", "tag", "branch"} {
-		if value := strings.TrimSpace(parsed.Query().Get(key)); value != "" {
-			revision = value
-			break
-		}
+	// The fragment carries the resolved commit and the query carries what was
+	// requested, so "?branch=main#abc123" locked abc123. Preferring the
+	// fragment records the immutable commit rather than a moving branch, and
+	// matches the precedence uvSourceRevision already applies when the same
+	// lockfile value is parsed for detection.
+	revision := strings.TrimSpace(parsed.Fragment)
+	if !isSafeRevision(revision) {
+		revision = ""
 	}
 	if revision == "" {
-		revision = strings.TrimSpace(parsed.Fragment)
+		for _, key := range []string{"rev", "tag", "branch"} {
+			if value := strings.TrimSpace(parsed.Query().Get(key)); value != "" {
+				revision = value
+				break
+			}
+		}
 	}
 
 	clean := *parsed

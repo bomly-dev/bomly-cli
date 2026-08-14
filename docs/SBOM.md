@@ -128,6 +128,15 @@ Two rules matter here:
   check applies to URLs read out of an SBOM Bomly ingests, since those are
   untrusted input too.
 
+  One fragment is recognized rather than dropped: Yarn appends the artifact's
+  own checksum to each `resolved` URL (`...-1.4.0.tgz#71ee51fa...`). That is a
+  fixed-length digest, not a secret, so it is stripped and the download
+  location is kept.
+
+For a dependency pinned to a source repository, Bomly records the resolved
+commit when the lockfile has one, in preference to the branch or tag that was
+requested. A branch moves; the commit is what was actually locked.
+
 Coverage follows what each ecosystem actually records. npm, pnpm, yarn, and bun
 lockfiles name the exact package archive, so those get a real download location.
 Bundler, Cargo, pub, and most Python lockfiles record only a registry or index
@@ -233,6 +242,12 @@ Some information necessarily becomes less specific during conversion:
   references other than `distribution` and `vcs` (for example `documentation`
   or `issue-tracker`) are dropped when converting to SPDX. They survive a
   CycloneDX-to-CycloneDX pass.
+- A CycloneDX `publisher` is a plain string that the format defines as either a
+  person or an organization. SPDX has no untyped equivalent — it requires the
+  value to be declared one or the other — so the publisher is dropped when
+  converting to SPDX rather than labelled with a guess. It survives a
+  CycloneDX-to-CycloneDX pass, and an SPDX originator that already states its
+  type is preserved.
 
 - CycloneDX vulnerability records preserve ratings, CWEs, affected component
   references, descriptions, and advisory URLs. SPDX 2.3 represents each

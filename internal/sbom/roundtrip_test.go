@@ -92,8 +92,12 @@ func TestIngestedAssertionsSurviveConversionToSPDX(t *testing.T) {
 	if pkg.PackageDescription != "String left padding" {
 		t.Fatalf("description = %q, want the ingested value", pkg.PackageDescription)
 	}
-	if pkg.PackageOriginator == nil || pkg.PackageOriginator.Originator != "azer" {
-		t.Fatalf("originator = %+v, want the ingested publisher", pkg.PackageOriginator)
+	// A CycloneDX publisher is a free string the spec defines as a person or
+	// an organization, and SPDX has no untyped originator. Emitting one would
+	// assert an entity type the source never made, so the field is omitted
+	// rather than guessed. It still round-trips through CycloneDX.
+	if pkg.PackageOriginator != nil {
+		t.Fatalf("originator = %+v, want it omitted rather than typed by guess", pkg.PackageOriginator)
 	}
 	if want := "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"; pkg.PackageDownloadLocation != want {
 		t.Fatalf("downloadLocation = %q, want %q", pkg.PackageDownloadLocation, want)
@@ -252,6 +256,55 @@ func TestIngestedUnsafeURLsAreNotRepublished(t *testing.T) {
 		// rather than discarding everything.
 		if target == TargetCycloneDX17JSON && !strings.Contains(rendered, "https://issues.example.com/evil") {
 			t.Fatalf("cyclonedx output dropped the safe reference:\n%s", rendered)
+		}
+	}
+}
+
+// TestSPDXSourceInfoRepositoryIsGated covers the other direction of the
+// ingest gate: a repository recovered from SPDX PackageSourceInfo is
+// re-published in both formats, so it needs the same validation as any other
+// ingested URL.
+func TestSPDXSourceInfoRepositoryIsGated(t *testing.T) {
+	cases := []struct {
+		name       string
+		sourceInfo string
+		wantRepo   string
+	}{
+		{"credentials", "Source repository: https://user:sp3csecret@github.com/org/repo", ""},
+		{"local path", "Source repository: file:///Users/victim/repo", ""},
+		{"query", "Source repository: https://github.com/org/repo?token=sp3csecret", ""},
+		{"safe", "Source repository: https://github.com/org/repo", "https://github.com/org/repo"},
+		{"unmarked prose", "Built from an internal mirror", ""},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := parseSPDXSourceInfo(tc.sourceInfo); got != tc.wantRepo {
+				t.Fatalf("parseSPDXSourceInfo(%q) = %q, want %q", tc.sourceInfo, got, tc.wantRepo)
+			}
+		})
+	}
+
+	const hostile = `{
+      "spdxVersion": "SPDX-2.3",
+      "SPDXID": "SPDXRef-DOCUMENT",
+      "name": "doc",
+      "documentNamespace": "https://example.com/doc",
+      "creationInfo": {"created": "2024-01-01T00:00:00Z", "creators": ["Tool: t"]},
+      "packages": [{
+        "name": "evil",
+        "SPDXID": "SPDXRef-Package-evil",
+        "versionInfo": "1.0.0",
+        "downloadLocation": "NOASSERTION",
+        "sourceInfo": "Source repository: https://user:sp3csecret@github.com/org/repo",
+        "filesAnalyzed": false
+      }]
+    }`
+
+	for _, target := range []Target{TargetSPDX23JSON, TargetCycloneDX17JSON} {
+		out := ingestAndReexport(t, []byte(hostile), target)
+		if strings.Contains(string(out), "sp3csecret") {
+			t.Fatalf("%s republished a credential from SPDX sourceInfo:\n%s", target, out)
 		}
 	}
 }

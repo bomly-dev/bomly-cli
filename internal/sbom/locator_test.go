@@ -55,6 +55,12 @@ func TestClassifyResolvedURL(t *testing.T) {
 		{"query token", "https://nexus.corp/a/b-1.0.tgz?token=s3cret", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
 		{"presigned signature", "https://s3.amazonaws.com/b/a-1.0.tgz?X-Amz-Signature=deadbeef", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
 		{"fragment secret", "https://nexus.corp/a/b-1.0.tgz#s3cret", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
+		{"hex fragment of odd length is still a secret", "https://nexus.corp/a/b-1.0.tgz#deadbeef", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
+		// Yarn v1 appends the artifact's own sha1 to every resolved URL.
+		// Treating that as a secret would drop the download location for
+		// every package in a Yarn lockfile.
+		{"yarn checksum fragment is stripped", "https://registry.yarnpkg.com/react/-/react-18.2.0.tgz#ceeba79ee36dfa7612b1ede82a3e37b2a30def1c", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorArtifact, "https://registry.yarnpkg.com/react/-/react-18.2.0.tgz"},
+		{"sha256 fragment is stripped", "https://reg.example/a/b-1.0.tgz#" + strings.Repeat("a", 64), sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorArtifact, "https://reg.example/a/b-1.0.tgz"},
 		{"registry root with query", "https://nexus.corp/?apiKey=s3cret", sdk.DependencySourceRegistry, sdk.EcosystemRuby, LocatorNone, ""},
 		// A VCS locator is exempt only because normalizeVCS discards the query
 		// and keeps a character-checked revision. Every VCS form must be
@@ -64,6 +70,12 @@ func TestClassifyResolvedURL(t *testing.T) {
 		{"dot-git path pin", "https://host/repo.git?rev=deadbeef", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorVCS, "git+https://host/repo.git@deadbeef"},
 		{"swift pin with revision", "https://github.com/apple/swift-nio?tag=2.0.0", sdk.DependencySourceRegistry, sdk.EcosystemSwift, LocatorVCS, "git+https://github.com/apple/swift-nio@2.0.0"},
 		{"git source drops a credential query", "https://github.com/a/b?token=s3cret", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/a/b"},
+		// The fragment is the resolved commit and the query is what was
+		// requested, so the immutable commit wins over a moving branch. This
+		// is the shape uv records: "?rev=main#abc123".
+		{"resolved commit beats requested branch", "https://github.com/a/b?branch=main#abc123", sdk.DependencySourceGit, sdk.EcosystemPython, LocatorVCS, "git+https://github.com/a/b@abc123"},
+		{"resolved commit beats requested rev", "https://github.com/example/git-helper?rev=main#abc123", sdk.DependencySourceGit, sdk.EcosystemPython, LocatorVCS, "git+https://github.com/example/git-helper@abc123"},
+		{"requested rev used when no commit resolved", "https://github.com/a/b?rev=v1.2.3", sdk.DependencySourceGit, sdk.EcosystemPython, LocatorVCS, "git+https://github.com/a/b@v1.2.3"},
 
 		// Degenerate input.
 		{"empty", "", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},

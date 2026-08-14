@@ -491,7 +491,10 @@ func spdxCopyrightValue(value string) string {
 // NOASSERTION and NONE markers as absent rather than as literal values.
 func parseSPDXEntity(value string) string {
 	value = strings.TrimSpace(value)
-	switch strings.ToUpper(value) {
+	// SPDX sentinels are the exact uppercase literals, so ordinary free text
+	// such as "None" or "NoAssertion" is a real description — case-folding
+	// here silently deleted it from the newly preserved text fields.
+	switch value {
 	case "", "NOASSERTION", "NONE":
 		return ""
 	}

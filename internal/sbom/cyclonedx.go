@@ -523,11 +523,15 @@ func cycloneDXComponentReferences(component Component) []cdx.ExternalReference {
 	case component.RegistryURL != "":
 		// Only explain the value when the producer said nothing: replacing a
 		// source document's own comment could contradict what it asserted.
-		refs = append(refs, cdx.ExternalReference{
+		registry := cdx.ExternalReference{
 			Type:    cdx.ERTypeDistribution,
 			URL:     component.RegistryURL,
 			Comment: firstNonEmpty(component.RegistryComment, registryRootMarker),
-		})
+		}
+		if hashes := cycloneDXHashes(component.RegistryDigests); len(hashes) > 0 {
+			registry.Hashes = &hashes
+		}
+		refs = append(refs, registry)
 	}
 
 	// VCSURL is detector-supplied and version-exact, so it wins over the

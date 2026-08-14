@@ -1906,3 +1906,152 @@ func TestIngestedVCSOutranksScorecardInSourceInfo(t *testing.T) {
 		t.Fatalf("sourceInfo = %q, want the ingested assertion to outrank the matcher", got)
 	}
 }
+
+// TestCredentialInPathIsRejected covers a token sitting in the URL path.
+// looksLikeCredential was applied to query names and values, revisions, mail
+// addresses, and URN segments, but never to path segments — where a value has
+// no userinfo, no query, and no fragment, so every other gate passes it.
+func TestCredentialInPathIsRejected(t *testing.T) {
+	tokenPaths := []string{
+		"https://repo.example/download/ghp_abcd1234/pkg.tgz",
+		"https://repo.example/glpat-Abc123/pkg.tgz",
+		"https://repo.example/download/%67hp_abcd1234/pkg.tgz",
+	}
+	for _, raw := range tokenPaths {
+		if got := classifyResolvedURL(raw, "", ""); got.Kind != LocatorNone {
+			t.Fatalf("classifyResolvedURL(%q) = %+v, want it rejected", raw, got)
+		}
+		if got := classifyAssertedDownloadLocation(raw); got.Kind != LocatorNone {
+			t.Fatalf("classifyAssertedDownloadLocation(%q) = %+v, want it rejected", raw, got)
+		}
+		if isPublishableReferenceURL(raw) {
+			t.Fatalf("isPublishableReferenceURL(%q) = true, want it rejected", raw)
+		}
+	}
+	// An ordinary package path is unaffected.
+	if got := classifyResolvedURL("https://registry.npmjs.org/a/-/a-1.0.0.tgz", "", ""); got.Kind == LocatorNone {
+		t.Fatal("an ordinary package path was rejected")
+	}
+}
+
+// TestNonGitVCSDownloadLocationRoundTrips covers an SPDX downloadLocation that
+// uses a non-Git tool prefix. The shared classifier recognized only "git+", so
+// the remaining compound scheme failed the transport gate.
+func TestNonGitVCSDownloadLocationRoundTrips(t *testing.T) {
+	for _, locator := range []string{
+		"svn+https://svn.example.org/project",
+		"hg+https://hg.example.org/project",
+	} {
+		in := `{
+          "spdxVersion": "SPDX-2.3", "SPDXID": "SPDXRef-DOCUMENT", "name": "doc",
+          "documentNamespace": "https://example.com/doc",
+          "creationInfo": {"created": "2024-01-01T00:00:00Z", "creators": ["Tool: t"]},
+          "packages": [{"name": "a", "SPDXID": "SPDXRef-a", "versionInfo": "1.0.0",
+            "downloadLocation": "` + locator + `", "filesAnalyzed": false}]
+        }`
+		out := string(ingestAndReexport(t, []byte(in), TargetSPDX23JSON))
+		if !strings.Contains(out, "example.org/project") {
+			t.Fatalf("%s was dropped on re-export:\n%s", locator, out)
+		}
+	}
+}
+
+// TestSPDXSentinelsAreCaseSensitive covers ordinary free text that happens to
+// spell a reserved marker in mixed case.
+func TestSPDXSentinelsAreCaseSensitive(t *testing.T) {
+	for _, value := range []string{"None", "NoAssertion", "none"} {
+		if got := parseSPDXEntity(value); got != value {
+			t.Fatalf("parseSPDXEntity(%q) = %q, want the free text preserved", value, got)
+		}
+	}
+	for _, value := range []string{"NONE", "NOASSERTION", ""} {
+		if got := parseSPDXEntity(value); got != "" {
+			t.Fatalf("parseSPDXEntity(%q) = %q, want the sentinel treated as absent", value, got)
+		}
+	}
+}
+
+// TestRegistryRootReferenceKeepsItsHashes covers the encoder branch that
+// recreated a marked registry-root reference without its integrity assertion.
+func TestRegistryRootReferenceKeepsItsHashes(t *testing.T) {
+	hash := strings.Repeat("e", 64)
+	in := `{
+      "bomFormat": "CycloneDX", "specVersion": "1.6", "version": 1,
+      "components": [{
+        "bom-ref": "pkg:gem/a@1.0.0", "type": "library", "name": "a", "version": "1.0.0",
+        "purl": "pkg:gem/a@1.0.0",
+        "externalReferences": [{
+          "type": "distribution", "url": "https://rubygems.org/",
+          "comment": "` + registryRootMarker + `",
+          "hashes": [{"alg": "SHA-256", "content": "` + hash + `"}]}]
+      }]
+    }`
+
+	raw := ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON)
+	var bom cdx.BOM
+	if err := json.Unmarshal(raw, &bom); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	for _, ref := range *(*bom.Components)[0].ExternalReferences {
+		if ref.URL != "https://rubygems.org/" {
+			continue
+		}
+		if ref.Hashes == nil || len(*ref.Hashes) != 1 {
+			t.Fatalf("registry-root reference lost its hashes: %+v", ref)
+		}
+		if h := (*ref.Hashes)[0]; h.Algorithm != cdx.HashAlgoSHA256 || h.Value != hash {
+			t.Fatalf("registry-root hash = %+v, want SHA-256 with the asserted value", h)
+		}
+		return
+	}
+	t.Fatalf("registry-root reference missing:\n%s", raw)
+}
+
+// TestGraphLocatorMergeMirrorsModel covers the graph layer, which had the same
+// three merge defects the model layer did: a conflicting locator discarded, a
+// matching locator's digests dropped, and a duplicate external reference
+// skipped instead of merged.
+func TestGraphLocatorMergeMirrorsModel(t *testing.T) {
+	first := strings.Repeat("a", 64)
+	second := strings.Repeat("b", 64)
+
+	doc := &Document{
+		Components: []Component{
+			{
+				ID: "first", Name: "a", Version: "1.0.0", PURL: "pkg:npm/a@1.0.0",
+				ArtifactURL:     "https://primary.example/a-1.0.0.tgz",
+				ArtifactDigests: []Digest{{Algorithm: "sha256", Value: first}},
+				ExternalRefs:    []ExternalRef{{Type: "documentation", URL: "https://docs.example"}},
+			},
+			{
+				ID: "second", Name: "a", Version: "1.0.0", PURL: "pkg:npm/a@1.0.0",
+				ArtifactURL:     "https://mirror.example/a-1.0.0.tgz",
+				ArtifactDigests: []Digest{{Algorithm: "sha256", Value: second}},
+				ExternalRefs: []ExternalRef{{
+					Type: "documentation", URL: "https://docs.example", Comment: "from the second copy",
+				}},
+			},
+		},
+		Dependencies: []Dependency{{Ref: "first", DependsOn: []string{"second"}}},
+	}
+
+	graph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	out, err := MarshalDepGraphJSON(graph, TargetCycloneDX17JSON, BuildOptions{}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	rendered := string(out)
+	for name, want := range map[string]string{
+		"primary URL":         "https://primary.example/a-1.0.0.tgz",
+		"mirror URL":          "https://mirror.example/a-1.0.0.tgz",
+		"primary hash":        first,
+		"duplicate's comment": "from the second copy",
+	} {
+		if !strings.Contains(rendered, want) {
+			t.Fatalf("%s was discarded by the graph merge:\n%s", name, rendered)
+		}
+	}
+}

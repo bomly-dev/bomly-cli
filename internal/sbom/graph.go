@@ -204,26 +204,79 @@ var locatorCommentKeys = map[string]string{
 // mergeLocatorPairs fills each empty locator slot from incoming, moving the
 // URL and its comment as one unit.
 func mergeLocatorPairs(existing, incoming *sdk.Dependency) {
-	for _, pair := range []struct{ url, note string }{
-		{metadataKeyArtifactURL, metadataKeyArtifactNote},
-		{metadataKeyVCSURL, metadataKeyVCSNote},
-		{metadataKeyRegistryURL, metadataKeyRegistryNote},
+	for _, pair := range []struct{ url, note, slot, refType string }{
+		{metadataKeyArtifactURL, metadataKeyArtifactNote, "artifact", "distribution"},
+		{metadataKeyVCSURL, metadataKeyVCSNote, "vcs", "vcs"},
+		{metadataKeyRegistryURL, metadataKeyRegistryNote, "registry", "distribution"},
 	} {
-		if _, present := existing.Metadata[pair.url]; present {
-			continue
-		}
-		value, ok := incoming.Metadata[pair.url]
-		if !ok {
+		incomingURL, ok := incoming.Metadata[pair.url].(string)
+		if !ok || incomingURL == "" {
 			continue
 		}
 		if existing.Metadata == nil {
 			existing.Metadata = make(map[string]any)
 		}
-		existing.Metadata[pair.url] = value
-		if note, ok := incoming.Metadata[pair.note]; ok {
-			existing.Metadata[pair.note] = note
+
+		existingURL, present := existing.Metadata[pair.url].(string)
+		switch {
+		case !present || existingURL == "":
+			existing.Metadata[pair.url] = incomingURL
+			if note, ok := incoming.Metadata[pair.note]; ok {
+				existing.Metadata[pair.note] = note
+			}
+			existing.Metadata[metadataKeyLocatorDigests] = mergeLocatorDigestSlot(
+				existing.Metadata[metadataKeyLocatorDigests], incoming.Metadata[metadataKeyLocatorDigests], pair.slot)
+		case existingURL == incomingURL:
+			// Same locator described twice: union its integrity assertions
+			// rather than keeping only the first list.
+			existing.Metadata[metadataKeyLocatorDigests] = mergeLocatorDigestSlot(
+				existing.Metadata[metadataKeyLocatorDigests], incoming.Metadata[metadataKeyLocatorDigests], pair.slot)
+			if note, ok := existing.Metadata[pair.note].(string); !ok || note == "" {
+				if incomingNote, ok := incoming.Metadata[pair.note]; ok {
+					existing.Metadata[pair.note] = incomingNote
+				}
+			}
+		default:
+			// A different locator for the same slot is a mirror, not a
+			// replacement. Keep it as an external reference so the assertion
+			// survives without displacing the first.
+			note, _ := incoming.Metadata[pair.note].(string)
+			ref := map[string]any{"type": pair.refType, "url": incomingURL, "comment": note}
+			if digests := locatorDigestSlot(incoming.Metadata[metadataKeyLocatorDigests], pair.slot); digests != nil {
+				ref["digests"] = digests
+			}
+			existing.Metadata[metadataKeyExternalRefs] = unionExternalRefValues(
+				existing.Metadata[metadataKeyExternalRefs], []any{ref})
 		}
 	}
+}
+
+// locatorDigestSlot returns the serialized digest list for one locator slot.
+func locatorDigestSlot(encoded any, slot string) any {
+	slots, ok := encoded.(map[string]any)
+	if !ok {
+		return nil
+	}
+	return slots[slot]
+}
+
+// mergeLocatorDigestSlot folds one slot's digests from incoming into existing,
+// leaving the other slots untouched.
+func mergeLocatorDigestSlot(existing, incoming any, slot string) any {
+	incomingDigests := locatorDigestSlot(incoming, slot)
+	if incomingDigests == nil {
+		return existing
+	}
+	slots, ok := existing.(map[string]any)
+	if !ok {
+		slots = map[string]any{}
+	}
+	merged := make(map[string]any, len(slots)+1)
+	for k, v := range slots {
+		merged[k] = v
+	}
+	merged[slot] = unionAnyRecords(merged[slot], incomingDigests, "algorithm", "value")
+	return merged
 }
 
 // unionAnyStrings merges two serialized string lists, preserving order and
@@ -354,10 +407,10 @@ func unionExternalRefValues(base, extra any) any {
 		return key{refType, url}, true
 	}
 
-	seen := make(map[key]struct{}, len(baseList))
-	for _, entry := range baseList {
+	index := make(map[key]int, len(baseList))
+	for i, entry := range baseList {
 		if k, ok := refKey(entry); ok {
-			seen[k] = struct{}{}
+			index[k] = i
 		}
 	}
 	for _, entry := range extraList {
@@ -365,11 +418,26 @@ func unionExternalRefValues(base, extra any) any {
 		if !ok {
 			continue
 		}
-		if _, present := seen[k]; present {
+		i, present := index[k]
+		if !present {
+			index[k] = len(baseList)
+			baseList = append(baseList, entry)
 			continue
 		}
-		seen[k] = struct{}{}
-		baseList = append(baseList, entry)
+		// Same reference, possibly different assertions about it: mirror the
+		// model-level merge rather than treating it as a plain duplicate.
+		existing, okExisting := baseList[i].(map[string]any)
+		fields, okIncoming := entry.(map[string]any)
+		if !okExisting || !okIncoming {
+			continue
+		}
+		existing["digests"] = unionAnyRecords(existing["digests"], fields["digests"], "algorithm", "value")
+		if comment, _ := existing["comment"].(string); comment == "" {
+			if incoming, ok := fields["comment"].(string); ok && incoming != "" {
+				existing["comment"] = incoming
+			}
+		}
+		baseList[i] = existing
 	}
 	return baseList
 }

@@ -89,6 +89,25 @@ var credentialQueryKeys = []string{
 	"private_token", "personal_token", "auth_token", "authtoken",
 }
 
+// hasCredentialPath reports whether any path segment looks like a secret.
+//
+// looksLikeCredential is applied to query names and values, revisions, mail
+// addresses, and URN segments, but a token can just as easily sit in the path:
+// "https://repo.example/download/ghp_abcd1234/pkg.tgz" has no userinfo, no
+// query, and no fragment, so every other gate passes it.
+func hasCredentialPath(parsed *url.URL) bool {
+	path := parsed.Path
+	if decoded, err := url.PathUnescape(path); err == nil {
+		path = decoded
+	}
+	for _, segment := range strings.Split(path, "/") {
+		if looksLikeCredential(segment) {
+			return true
+		}
+	}
+	return false
+}
+
 // hasCredentialQuery reports whether a URL's query carries something that
 // looks like a secret, by parameter name or by value shape.
 func hasCredentialQuery(parsed *url.URL) bool {
@@ -150,8 +169,13 @@ func classifyURL(raw string, source sdk.DependencySource, ecosystem sdk.Ecosyste
 		raw, hint = strings.TrimPrefix(raw, "registry+"), LocatorRegistryRoot
 	case strings.HasPrefix(raw, "sparse+"):
 		raw, hint = strings.TrimPrefix(raw, "sparse+"), LocatorRegistryRoot
-	case strings.HasPrefix(raw, "git+"):
-		raw, hint = strings.TrimPrefix(raw, "git+"), LocatorVCS
+	default:
+		// Any recognized version-control tool prefix, not just git+: an SPDX
+		// downloadLocation of "svn+https://…" is a valid VCS location, and
+		// leaving it prefixed makes the transport gate reject it outright.
+		if _, rest, isVCS := splitVCSToolPrefix(raw); isVCS {
+			raw, hint = rest, LocatorVCS
+		}
 	}
 
 	parsed, err := url.Parse(raw)
@@ -184,7 +208,7 @@ func classifyURL(raw string, source sdk.DependencySource, ecosystem sdk.Ecosyste
 	// A lockfile pointing at a private registry can embed a token. Publishing
 	// it in an SBOM would leak a live credential, so drop the value entirely
 	// rather than try to strip the userinfo and emit the rest.
-	if parsed.User != nil {
+	if parsed.User != nil || hasCredentialPath(parsed) {
 		return Locator{}
 	}
 
@@ -509,7 +533,7 @@ func classifyIngestedVCS(raw string) string {
 	}
 	raw = rest
 	parsed, err := url.Parse(raw)
-	if err != nil || parsed.User != nil || parsed.Host == "" {
+	if err != nil || parsed.User != nil || parsed.Host == "" || hasCredentialPath(parsed) {
 		return ""
 	}
 	// git:// is a legitimate transport for a version-control reference, and
@@ -577,7 +601,7 @@ func classifyAssertedReference(raw string) Locator {
 // ok is false when the URL is unsafe to publish at all.
 func splitVCSRevision(raw string) (parsed *url.URL, revision string, ok bool) {
 	parsed, err := url.Parse(strings.TrimSpace(raw))
-	if err != nil || parsed.User != nil || parsed.Host == "" {
+	if err != nil || parsed.User != nil || parsed.Host == "" || hasCredentialPath(parsed) {
 		return nil, "", false
 	}
 	if idx := strings.LastIndex(parsed.Path, "@"); idx >= 0 {
@@ -646,7 +670,8 @@ func isPublishableReferenceURL(raw string) bool {
 		// "?version=1" is part of the assertion and only credential-shaped
 		// parameters disqualify it. Fragments stay rejected: they carry no
 		// meaning for a reference and are a common place to hide a secret.
-		return parsed.Host != "" && parsed.Fragment == "" && !hasCredentialQuery(parsed)
+		return parsed.Host != "" && parsed.Fragment == "" &&
+			!hasCredentialQuery(parsed) && !hasCredentialPath(parsed)
 	case "mailto":
 		// The opaque body is never inspected by the userinfo, query, or
 		// revision gates, so "mailto:ghp_abcd1234" would otherwise be

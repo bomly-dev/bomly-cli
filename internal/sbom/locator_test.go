@@ -75,6 +75,12 @@ func TestClassifyResolvedURL(t *testing.T) {
 		// is the shape uv records: "?rev=main#abc123".
 		{"resolved commit beats requested branch", "https://github.com/a/b?branch=main#abc123", sdk.DependencySourceGit, sdk.EcosystemPython, LocatorVCS, "git+https://github.com/a/b@abc123"},
 		{"resolved commit beats requested rev", "https://github.com/example/git-helper?rev=main#abc123", sdk.DependencySourceGit, sdk.EcosystemPython, LocatorVCS, "git+https://github.com/example/git-helper@abc123"},
+		// A fragment must be commit-shaped, not merely character-safe: an
+		// access token passes isSafeRevision and would be republished.
+		{"pat fragment is not a revision", "https://github.com/org/repo#ghp_abcd1234", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo"},
+		{"fine-grained pat fragment is not a revision", "https://github.com/org/repo#github_pat_11ABCDE", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo"},
+		{"non-hex fragment is not a revision", "https://github.com/org/repo#release-candidate", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo"},
+		{"named query revision still allows tags", "https://github.com/org/repo?tag=v1.2.3", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo@v1.2.3"},
 		{"requested rev used when no commit resolved", "https://github.com/a/b?rev=v1.2.3", sdk.DependencySourceGit, sdk.EcosystemPython, LocatorVCS, "git+https://github.com/a/b@v1.2.3"},
 
 		// Degenerate input.

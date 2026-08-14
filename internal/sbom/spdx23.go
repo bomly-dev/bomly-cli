@@ -525,16 +525,23 @@ func spdxDownloadLocation(component Component) string {
 // (the package's home page) that Bomly does not know, and SPDX 2.3 has no
 // version-control external-reference category.
 func spdxSourceInfo(component Component) string {
-	// A detector-supplied VCS location is version-exact and already rendered
-	// as the download location. Emitting the matcher-derived repository too
-	// would make one package assert two different source repositories.
-	if component.VCSURL != "" {
+	// Suppress only when the VCS locator actually became the download
+	// location, which is the case that would make one package assert two
+	// different source repositories. An ingested component may carry both a
+	// distribution and a vcs reference; there the artifact owns
+	// downloadLocation, and dropping the repository as well would lose it
+	// entirely even though PackageSourceInfo can represent it.
+	if component.VCSURL != "" && component.ArtifactURL == "" {
 		return ""
 	}
-	if repo := strings.TrimSpace(component.Repository); repo != "" {
-		return spdxSourceInfoPrefix + repo
+	repo := strings.TrimSpace(component.Repository)
+	if repo == "" && component.ArtifactURL != "" {
+		repo = strings.TrimPrefix(component.VCSURL, "git+")
 	}
-	return ""
+	if repo == "" {
+		return ""
+	}
+	return spdxSourceInfoPrefix + repo
 }
 
 // spdxHomePage restores a home page carried on an ingested website reference.

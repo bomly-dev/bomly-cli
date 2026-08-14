@@ -175,9 +175,22 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 		}
 	}
 
-	if len(componentByID) == 0 && bom.Metadata != nil && bom.Metadata.Component != nil {
+	if bom.Metadata != nil && bom.Metadata.Component != nil {
 		root := bom.Metadata.Component
-		componentByID[root.BOMRef] = componentFromCycloneDX(*root)
+		switch existing, listed := componentByID[root.BOMRef]; {
+		case listed:
+			// A producer may describe the primary component in both places
+			// and put assertions only on the metadata copy. Fold those in;
+			// the inventory entry stays authoritative for anything it set.
+			mergeComponentAssertions(&existing, componentFromCycloneDX(*root))
+			componentByID[root.BOMRef] = existing
+		case len(componentByID) == 0:
+			componentByID[root.BOMRef] = componentFromCycloneDX(*root)
+		}
+		// A primary component that appears only in metadata.component while
+		// an inventory exists is deliberately not promoted to a node: it is
+		// the document's subject, re-synthesized on export, and adding it
+		// here would demote the real graph roots on re-ingestion.
 	}
 
 	components := make([]Component, 0, len(componentByID))

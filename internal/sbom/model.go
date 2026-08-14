@@ -162,6 +162,47 @@ type Component struct {
 	ExternalRefs   []ExternalRef
 }
 
+// mergeComponentAssertions fills gaps in dst from src, leaving anything dst
+// already asserts untouched. Used when one component is described in more than
+// one place in a source document.
+func mergeComponentAssertions(dst *Component, src Component) {
+	if dst == nil {
+		return
+	}
+	for _, field := range []struct {
+		target *string
+		value  string
+	}{
+		{&dst.Supplier, src.Supplier},
+		{&dst.SupplierType, src.SupplierType},
+		{&dst.SupplierURL, src.SupplierURL},
+		{&dst.Originator, src.Originator},
+		{&dst.OriginatorType, src.OriginatorType},
+		{&dst.Description, src.Description},
+		{&dst.Repository, src.Repository},
+		{&dst.ArtifactURL, src.ArtifactURL},
+		{&dst.VCSURL, src.VCSURL},
+		{&dst.RegistryURL, src.RegistryURL},
+		{&dst.Copyright, src.Copyright},
+	} {
+		if *field.target == "" {
+			*field.target = field.value
+		}
+	}
+	if len(dst.CPEs) == 0 {
+		dst.CPEs = src.CPEs
+	}
+	if len(dst.Digests) == 0 {
+		dst.Digests = src.Digests
+	}
+	if len(dst.Licenses) == 0 {
+		dst.Licenses = src.Licenses
+	}
+	if len(dst.ExternalRefs) == 0 {
+		dst.ExternalRefs = src.ExternalRefs
+	}
+}
+
 // ExternalRef is an external reference carried through from an ingested SBOM
 // so that a format conversion does not silently discard it.
 type ExternalRef struct {

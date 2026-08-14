@@ -454,6 +454,123 @@ func TestDuplicatePURLAssertionsAreMerged(t *testing.T) {
 	}
 }
 
+// TestIngestedVCSFragmentCredentialIsNotRepublished covers the version-control
+// normalization path, which is exempt from the query/fragment gate. A fragment
+// there is treated as a revision, so it must be commit-shaped rather than
+// merely character-safe — an access token satisfies the looser rule.
+func TestIngestedVCSFragmentCredentialIsNotRepublished(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0",
+        "type": "library",
+        "name": "a",
+        "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "externalReferences": [
+          {"type": "vcs", "url": "https://github.com/org/repo#ghp_abcd1234"}
+        ]
+      }]
+    }`
+
+	for _, target := range []Target{TargetSPDX23JSON, TargetCycloneDX17JSON} {
+		out := ingestAndReexport(t, []byte(in), target)
+		rendered := string(out)
+		if strings.Contains(rendered, "ghp_abcd1234") {
+			t.Fatalf("%s republished a token from a vcs fragment:\n%s", target, rendered)
+		}
+		// The repository itself is still a legitimate assertion.
+		if !strings.Contains(rendered, "github.com/org/repo") {
+			t.Fatalf("%s dropped the repository along with the token:\n%s", target, rendered)
+		}
+	}
+}
+
+// TestVCSSurvivesWhenArtifactOwnsDownloadLocation covers a component asserting
+// both a distribution and a vcs reference. The artifact takes SPDX's single
+// download-location field, so the repository has to land in PackageSourceInfo
+// rather than being dropped.
+func TestVCSSurvivesWhenArtifactOwnsDownloadLocation(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0",
+        "type": "library",
+        "name": "a",
+        "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "externalReferences": [
+          {"type": "distribution", "url": "https://registry.npmjs.org/a/-/a-1.0.0.tgz"},
+          {"type": "vcs", "url": "https://github.com/org/repo"}
+        ]
+      }]
+    }`
+
+	out := ingestAndReexport(t, []byte(in), TargetSPDX23JSON)
+	var doc v23.Document
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	for _, p := range doc.Packages {
+		if p == nil || p.PackageName != "a" {
+			continue
+		}
+		if p.PackageDownloadLocation != "https://registry.npmjs.org/a/-/a-1.0.0.tgz" {
+			t.Fatalf("downloadLocation = %q, want the artifact", p.PackageDownloadLocation)
+		}
+		if !strings.Contains(p.PackageSourceInfo, "github.com/org/repo") {
+			t.Fatalf("sourceInfo = %q, want the repository preserved", p.PackageSourceInfo)
+		}
+		return
+	}
+	t.Fatal("component missing from output")
+}
+
+// TestPrimaryComponentAssertionsMergeFromMetadata covers a producer that lists
+// the primary component in the inventory but puts its assertions only on
+// metadata.component.
+func TestPrimaryComponentAssertionsMergeFromMetadata(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "metadata": {"component": {
+        "bom-ref": "root", "type": "application", "name": "app", "version": "1.0.0",
+        "purl": "pkg:npm/app@1.0.0",
+        "description": "The scanned application",
+        "supplier": {"name": "Example Supplier Inc."}
+      }},
+      "components": [
+        {"bom-ref": "root", "type": "application", "name": "app", "version": "1.0.0", "purl": "pkg:npm/app@1.0.0"},
+        {"bom-ref": "pkg:npm/dep@1.0.0", "type": "library", "name": "dep", "version": "1.0.0", "purl": "pkg:npm/dep@1.0.0"}
+      ],
+      "dependencies": [{"ref": "root", "dependsOn": ["pkg:npm/dep@1.0.0"]}]
+    }`
+
+	out := ingestAndReexport(t, []byte(in), TargetSPDX23JSON)
+	var doc v23.Document
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	for _, p := range doc.Packages {
+		if p == nil || p.PackageName != "app" {
+			continue
+		}
+		if p.PackageDescription != "The scanned application" {
+			t.Fatalf("description = %q, want it merged from metadata.component", p.PackageDescription)
+		}
+		if p.PackageSupplier == nil || p.PackageSupplier.Supplier != "Example Supplier Inc." {
+			t.Fatalf("supplier = %+v, want it merged from metadata.component", p.PackageSupplier)
+		}
+		return
+	}
+	t.Fatal("app missing from output")
+}
+
 // TestSPDXHomePageSurvivesSPDXRoundTrip covers a field SPDX represents
 // exactly, which an earlier revision decoded but never re-emitted.
 func TestSPDXHomePageSurvivesSPDXRoundTrip(t *testing.T) {

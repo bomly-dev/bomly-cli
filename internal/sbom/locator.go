@@ -233,8 +233,13 @@ func normalizeVCS(parsed *url.URL) Locator {
 	// fragment records the immutable commit rather than a moving branch, and
 	// matches the precedence uvSourceRevision already applies when the same
 	// lockfile value is parsed for detection.
+	//
+	// A fragment must be commit-shaped, not merely character-safe: an access
+	// token such as "#ghp_abcd1234" passes isSafeRevision and would then be
+	// republished after the "@". A query value is held to the looser rule
+	// because its key names it a revision.
 	revision := strings.TrimSpace(parsed.Fragment)
-	if !isSafeRevision(revision) {
+	if !isCommitFragment(revision) {
 		revision = ""
 	}
 	if revision == "" {
@@ -264,6 +269,28 @@ func normalizeVCS(parsed *url.URL) Locator {
 		out += "@" + revision
 	}
 	return Locator{Kind: LocatorVCS, URL: out}
+}
+
+// isCommitFragment reports whether a URL fragment looks like a git object
+// name.
+//
+// Fragments on a version-control URL carry the resolved commit by convention
+// (uv and cargo both write one), so requiring bare hex is faithful to the
+// format and, unlike the looser isSafeRevision, excludes credential shapes:
+// "ghp_abcd1234" and "github_pat_11ABC_xyz" both fail on their underscores
+// and non-hex letters.
+func isCommitFragment(fragment string) bool {
+	if len(fragment) < 4 || len(fragment) > 64 {
+		return false
+	}
+	for _, r := range fragment {
+		switch {
+		case r >= '0' && r <= '9', r >= 'a' && r <= 'f', r >= 'A' && r <= 'F':
+		default:
+			return false
+		}
+	}
+	return true
 }
 
 // isSafeRevision reports whether revision is a plausible git revision that can

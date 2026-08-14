@@ -234,6 +234,7 @@ var digestHexSizes = map[string]int{
 	"sha3-512": 64,
 	// Every algorithm the encoders accept needs an entry here, or an ingested
 	// value of the wrong length passes validation unchecked.
+	"blake3":      32,
 	"blake2b-256": 32,
 	"blake2b-384": 48,
 	"blake2b-512": 64,
@@ -312,12 +313,10 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 	if len(pkg.Licenses) > 0 {
 		component.Licenses = componentLicenses(pkg.Licenses)
 	}
-	if len(pkg.CPEs) > 0 {
-		component.CPEs = append([]string(nil), pkg.CPEs...)
-	}
-	if digests := componentDigests(pkg.Digests); len(digests) > 0 {
-		component.Digests = digests
-	}
+	// Union rather than replace: an ingested document's identifiers are its
+	// own assertions, and enrichment fills gaps rather than overwriting.
+	component.CPEs = unionStrings(component.CPEs, pkg.CPEs)
+	component.Digests = unionComponentDigests(component.Digests, componentDigests(pkg.Digests))
 	if len(pkg.Vulnerabilities) > 0 {
 		component.Vulnerabilities = vulnerabilitiesFromPackage(pkg.EcosystemName(), pkg.Vulnerabilities)
 	}

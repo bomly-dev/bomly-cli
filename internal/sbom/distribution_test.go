@@ -365,3 +365,70 @@ func TestDetectorVCSWinsOverScorecardRepository(t *testing.T) {
 		t.Fatalf("expected exactly one vcs reference, got %d", vcsRefs)
 	}
 }
+
+// TestEnrichmentDoesNotClobberIngestedSets covers `scan --sbom --enrich`.
+// CPEs and digests are set-valued, so a matcher-supplied value must be added
+// to the source document's assertions rather than replacing them — the
+// ingest-wins / enrichment-fills-gaps ordering applies to sets too.
+func TestEnrichmentDoesNotClobberIngestedSets(t *testing.T) {
+	const purl = "pkg:npm/a@1.0.0"
+	const ingestedCPE = "cpe:2.3:a:ingested:a:1.0.0:*:*:*:*:*:*:*"
+	const matcherCPE = "cpe:2.3:a:matcher:a:1.0.0:*:*:*:*:*:*:*"
+	ingestedHash := strings.Repeat("a", 64)
+	matcherHash := strings.Repeat("b", 64)
+
+	g := sdk.New()
+	node := sdk.NewDependencyWithID(purl, sdk.Dependency{
+		Coordinates: sdk.Coordinates{Name: "a", Version: "1.0.0", PURL: purl, Ecosystem: sdk.EcosystemNPM},
+		CPEs:        []string{ingestedCPE},
+		Digests:     []sdk.Digest{{Algorithm: sdk.DigestAlgorithmSHA256, Value: ingestedHash}},
+	})
+	if err := g.AddNode(node); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+
+	registry := sdk.NewPackageRegistry()
+	pkg := registry.Ensure(purl)
+	pkg.Name, pkg.Version = "a", "1.0.0"
+	pkg.CPEs = []string{matcherCPE}
+	pkg.Digests = []sdk.Digest{{Algorithm: sdk.DigestAlgorithmSHA256, Value: matcherHash}}
+
+	out, err := MarshalDepGraphJSON(g, TargetSPDX23JSON, BuildOptions{Registry: registry}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	for name, want := range map[string]string{
+		"ingested CPE":  ingestedCPE,
+		"matcher CPE":   matcherCPE,
+		"ingested hash": ingestedHash,
+		"matcher hash":  matcherHash,
+	} {
+		if !strings.Contains(string(out), want) {
+			t.Fatalf("%s was discarded by enrichment:\n%s", name, out)
+		}
+	}
+}
+
+// TestBlake3DigestSurvivesRoundTrip pairs with the BLAKE3 encoder mappings:
+// parseSPDXChecksums accepts the algorithm, so both encoders must know it or
+// the checksum is silently dropped after the graph hop.
+func TestBlake3DigestSurvivesRoundTrip(t *testing.T) {
+	value := strings.Repeat("d", 64)
+	g := sdk.New()
+	node := sdk.NewDependencyWithID("pkg@1.0.0", sdk.Dependency{
+		Coordinates: sdk.Coordinates{Name: "pkg", Version: "1.0.0", PURL: "pkg:npm/pkg@1.0.0", Ecosystem: sdk.EcosystemNPM},
+		Digests:     []sdk.Digest{{Algorithm: "blake3", Value: value}},
+	})
+	if err := g.AddNode(node); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+
+	pkg := spdxPackageFor(t, g, BuildOptions{})
+	if len(pkg.PackageChecksums) != 1 || pkg.PackageChecksums[0].Algorithm != common.BLAKE3 {
+		t.Fatalf("spdx blake3 checksum = %+v, want it preserved", pkg.PackageChecksums)
+	}
+	comp := cycloneDXComponentFor(t, g, BuildOptions{})
+	if comp.Hashes == nil || len(*comp.Hashes) != 1 || (*comp.Hashes)[0].Algorithm != cdx.HashAlgoBlake3 {
+		t.Fatalf("cyclonedx blake3 hash = %+v, want it preserved", comp.Hashes)
+	}
+}

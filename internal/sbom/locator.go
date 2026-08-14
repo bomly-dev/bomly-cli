@@ -500,6 +500,32 @@ func classifyAssertedDownloadLocation(raw string) Locator {
 	return locator
 }
 
+// validatedVCSLocator checks an already-rendered "git+<transport>://…"
+// locator and returns it unchanged when it is safe to republish, or "".
+//
+// The locator is kept verbatim rather than reparsed and rebuilt: any pinned
+// revision after "@" is part of the value's meaning, and re-deriving it risks
+// changing what it says.
+func validatedVCSLocator(locator string) string {
+	locator = strings.TrimSpace(locator)
+	if !strings.HasPrefix(locator, "git+") {
+		return ""
+	}
+	parsed, err := url.Parse(strings.TrimPrefix(locator, "git+"))
+	if err != nil || parsed.User != nil || parsed.Host == "" {
+		return ""
+	}
+	switch strings.ToLower(parsed.Scheme) {
+	case "http", "https", "git":
+	default:
+		return ""
+	}
+	if hasCredentialQuery(parsed) || parsed.Fragment != "" {
+		return ""
+	}
+	return locator
+}
+
 // isPublishableReferenceURL reports whether a URL carried on an ingested
 // external reference is safe to re-emit.
 //

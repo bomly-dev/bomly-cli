@@ -361,7 +361,7 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 		Description: comp.Description,
 		Originator:  comp.Publisher,
 	}
-	if comp.CPE != "" {
+	if isValidCPE(comp.CPE) {
 		component.CPEs = []string{comp.CPE}
 	}
 	if comp.Supplier != nil && comp.Supplier.Name != "" {
@@ -665,6 +665,8 @@ func cycloneDXHashAlgorithm(algorithm string) cdx.HashAlgorithm {
 		return cdx.HashAlgoSHA384
 	case "sha512", "sha-512":
 		return cdx.HashAlgoSHA512
+	case "blake3":
+		return cdx.HashAlgoBlake3
 	case "blake2b-256":
 		return cdx.HashAlgoBlake2b_256
 	case "blake2b-384":

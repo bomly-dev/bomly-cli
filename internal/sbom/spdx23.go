@@ -178,10 +178,10 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 			Licenses:       parseSPDXLicenses(p.PackageLicenseConcluded, p.PackageLicenseDeclared),
 			Description:    parseSPDXEntity(p.PackageDescription),
 			Summary:        parseSPDXEntity(p.PackageSummary),
-			Repository:     parseSPDXSourceInfo(p.PackageSourceInfo),
 			CPEs:           parseSPDXCPEs(p.PackageExternalReferences),
 			Digests:        parseSPDXChecksums(p.PackageChecksums),
 		}
+		component.Repository, component.VCSURL = parseSPDXSourceInfo(p.PackageSourceInfo)
 		if p.PackageSupplier != nil {
 			component.Supplier = parseSPDXEntity(p.PackageSupplier.Supplier)
 			component.SupplierType = p.PackageSupplier.SupplierType
@@ -409,6 +409,8 @@ func spdxChecksumAlgorithm(algorithm string) common.ChecksumAlgorithm {
 		return common.SHA384
 	case "sha512", "sha-512":
 		return common.SHA512
+	case "blake3":
+		return common.BLAKE3
 	case "blake2b-256":
 		return common.BLAKE2b_256
 	case "blake2b-384":
@@ -494,12 +496,19 @@ func parseSPDXEntity(value string) string {
 // same gate as every other ingested URL. A source document asserting
 // "Source repository: https://user:secret@github.com/org/repo", or a local
 // file:// path, yields nothing.
-func parseSPDXSourceInfo(value string) string {
+func parseSPDXSourceInfo(value string) (repository, vcs string) {
 	value = strings.TrimSpace(value)
 	if !strings.HasPrefix(value, spdxSourceInfoPrefix) {
-		return ""
+		return "", ""
 	}
-	return normalizeRepositoryURL(strings.TrimPrefix(value, spdxSourceInfoPrefix))
+	locator := strings.TrimSpace(strings.TrimPrefix(value, spdxSourceInfoPrefix))
+	if strings.HasPrefix(locator, "git+") {
+		// spdxSourceInfo writes the version-control form when the artifact
+		// owns downloadLocation, so it has to be recognized here or the
+		// repository is lost on the way back.
+		return "", validatedVCSLocator(locator)
+	}
+	return normalizeRepositoryURL(locator), ""
 }
 
 // spdxSourceInfoPrefix marks a source repository inside the free-text
@@ -538,7 +547,11 @@ func spdxSourceInfo(component Component) string {
 	}
 	repo := strings.TrimSpace(component.Repository)
 	if repo == "" && component.ArtifactURL != "" {
-		repo = strings.TrimPrefix(component.VCSURL, "git+")
+		// Keep the version-control form intact. Stripping "git+" from
+		// "git+https://host/org/repo@deadbeef" turns the revision into part
+		// of the URL path, producing a repository address that does not
+		// exist — and one that re-ingests cleanly as if it did.
+		repo = component.VCSURL
 	}
 	if repo == "" {
 		return ""
@@ -633,6 +646,72 @@ func parseSPDXLicenses(values ...string) []License {
 	return nil
 }
 
+// isValidCPE reports whether a locator is a well-formed CPE in either the 2.3
+// formatted-string or the 2.2 URI binding.
+//
+// An ingested document can label any string cpe23Type. Preserving one
+// unchecked republishes a false package-identity assertion — it becomes an
+// SPDX security reference and CycloneDX's `cpe` field — and can make the
+// output non-conformant, so the shape is verified before it is stored.
+func isValidCPE(value string) bool {
+	value = strings.TrimSpace(value)
+	switch {
+	case strings.HasPrefix(value, "cpe:2.3:"):
+		// "cpe:2.3:" plus 11 colon-separated components: part, vendor,
+		// product, version, update, edition, language, sw_edition,
+		// target_sw, target_hw, other. Escaped colons ("\:") are literals.
+		parts := splitUnescaped(value, ':')
+		if len(parts) != 13 {
+			return false
+		}
+		return isCPEPart(parts[2])
+	case strings.HasPrefix(value, "cpe:/"):
+		// URI binding: "cpe:/" plus up to 7 components, the first the part.
+		parts := splitUnescaped(strings.TrimPrefix(value, "cpe:/"), ':')
+		if len(parts) == 0 || len(parts) > 7 {
+			return false
+		}
+		return isCPEPart(parts[0])
+	default:
+		return false
+	}
+}
+
+// isCPEPart reports whether a CPE part component is one of the defined values.
+func isCPEPart(part string) bool {
+	switch part {
+	case "a", "o", "h", "*", "-", "":
+		return true
+	default:
+		return false
+	}
+}
+
+// splitUnescaped splits on sep, treating a backslash-escaped separator as a
+// literal character rather than a delimiter.
+func splitUnescaped(value string, sep rune) []string {
+	var parts []string
+	var current strings.Builder
+	escaped := false
+	for _, r := range value {
+		switch {
+		case escaped:
+			current.WriteRune(r)
+			escaped = false
+		case r == '\\':
+			current.WriteRune(r)
+			escaped = true
+		case r == sep:
+			parts = append(parts, current.String())
+			current.Reset()
+		default:
+			current.WriteRune(r)
+		}
+	}
+	parts = append(parts, current.String())
+	return parts
+}
+
 // spdxCPERefType labels a CPE locator with the reference type matching its own
 // syntax.
 //
@@ -659,7 +738,7 @@ func parseSPDXCPEs(refs []*v23.PackageExternalReference) []string {
 		// but an ingested third-party document may use either.
 		switch strings.ToLower(strings.TrimSpace(ref.RefType)) {
 		case "cpe23type", "cpe22type":
-			if locator := strings.TrimSpace(ref.Locator); locator != "" {
+			if locator := strings.TrimSpace(ref.Locator); isValidCPE(locator) {
 				cpes = append(cpes, locator)
 			}
 		}

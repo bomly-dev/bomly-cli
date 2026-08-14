@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/bomly-dev/bomly-sdk"
 	"github.com/spdx/tools-golang/spdx/v2/common"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 )
@@ -279,7 +280,7 @@ func TestSPDXSourceInfoRepositoryIsGated(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := parseSPDXSourceInfo(tc.sourceInfo); got != tc.wantRepo {
+			if got, _ := parseSPDXSourceInfo(tc.sourceInfo); got != tc.wantRepo {
 				t.Fatalf("parseSPDXSourceInfo(%q) = %q, want %q", tc.sourceInfo, got, tc.wantRepo)
 			}
 		})
@@ -999,4 +1000,113 @@ func TestSPDXNoAssertionSupplierDecodesToAbsent(t *testing.T) {
 			t.Fatalf("NOASSERTION decoded to a distribution locator: %+v", component)
 		}
 	}
+}
+
+// TestIsValidCPE guards the package-identity assertion. An ingested document
+// can label any string cpe23Type, and an unchecked value is republished as an
+// SPDX security reference and CycloneDX's `cpe` field.
+func TestIsValidCPE(t *testing.T) {
+	valid := []string{
+		"cpe:2.3:a:example:left-pad:1.3.0:*:*:*:*:*:*:*",
+		"cpe:2.3:o:vendor:os:1.0:-:*:*:*:*:*:*",
+		`cpe:2.3:a:ven\:dor:prod:1.0:*:*:*:*:*:*:*`,
+		"cpe:/a:vendor:product:1.0",
+		"cpe:/o:vendor:os",
+	}
+	for _, value := range valid {
+		if !isValidCPE(value) {
+			t.Fatalf("isValidCPE(%q) = false, want a well-formed CPE accepted", value)
+		}
+	}
+
+	invalid := []string{
+		"not-a-cpe", "", "   ",
+		"cpe:2.3:a:example:left-pad",                           // too few components
+		"cpe:2.3:a:example:left-pad:1.3.0:*:*:*:*:*:*:*:extra", // too many
+		"cpe:2.3:z:vendor:product:1.0:*:*:*:*:*:*:*",           // bad part
+		"cpe:/z:vendor:product",                                // bad part
+		"cpe:/a:b:c:d:e:f:g:h",                                 // too many
+		"https://example.com",
+	}
+	for _, value := range invalid {
+		if isValidCPE(value) {
+			t.Fatalf("isValidCPE(%q) = true, want it rejected", value)
+		}
+	}
+}
+
+// TestMalformedCPEIsNotRepublished is the end-to-end counterpart.
+func TestMalformedCPEIsNotRepublished(t *testing.T) {
+	const in = `{
+      "spdxVersion": "SPDX-2.3",
+      "SPDXID": "SPDXRef-DOCUMENT",
+      "name": "doc",
+      "documentNamespace": "https://example.com/doc",
+      "creationInfo": {"created": "2024-01-01T00:00:00Z", "creators": ["Tool: t"]},
+      "packages": [{
+        "name": "a", "SPDXID": "SPDXRef-Package-a", "versionInfo": "1.0.0",
+        "downloadLocation": "NOASSERTION", "filesAnalyzed": false,
+        "externalRefs": [
+          {"referenceCategory": "SECURITY", "referenceType": "cpe23Type", "referenceLocator": "not-a-cpe"},
+          {"referenceCategory": "SECURITY", "referenceType": "cpe23Type", "referenceLocator": "cpe:2.3:a:v:p:1.0:*:*:*:*:*:*:*"}
+        ]
+      }]
+    }`
+
+	for _, target := range []Target{TargetSPDX23JSON, TargetCycloneDX17JSON} {
+		out := ingestAndReexport(t, []byte(in), target)
+		if strings.Contains(string(out), "not-a-cpe") {
+			t.Fatalf("%s republished a malformed CPE:\n%s", target, out)
+		}
+		if !strings.Contains(string(out), "cpe:2.3:a:v:p:1.0") {
+			t.Fatalf("%s dropped the valid CPE alongside it:\n%s", target, out)
+		}
+	}
+}
+
+// TestPinnedVCSSourceInfoKeepsItsSyntax covers a component with both an
+// artifact and a pinned repository. Stripping "git+" would turn the revision
+// into part of the URL path, yielding an address that does not exist and that
+// re-ingests cleanly as if it did.
+func TestPinnedVCSSourceInfoKeepsItsSyntax(t *testing.T) {
+	doc := &Document{
+		Components: []Component{{
+			ID: "a", Name: "a", Version: "1.0.0", PURL: "pkg:npm/a@1.0.0",
+			ArtifactURL: "https://reg.example/a-1.0.0.tgz",
+			VCSURL:      "git+https://github.com/org/repo@deadbeef",
+		}},
+	}
+	out, err := MarshalDepGraphJSON(mustGraphFromDoc(t, doc), TargetSPDX23JSON, BuildOptions{}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	var spdxDoc v23.Document
+	if err := json.Unmarshal(out, &spdxDoc); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	for _, p := range spdxDoc.Packages {
+		if p == nil || p.PackageName != "a" {
+			continue
+		}
+		if !strings.Contains(p.PackageSourceInfo, "git+https://github.com/org/repo@deadbeef") {
+			t.Fatalf("sourceInfo = %q, want the version-control form intact", p.PackageSourceInfo)
+		}
+		// And it must survive a re-ingest rather than decoding as a bare URL.
+		if _, vcs := parseSPDXSourceInfo(p.PackageSourceInfo); vcs != "git+https://github.com/org/repo@deadbeef" {
+			t.Fatalf("re-ingested vcs = %q, want the pinned locator", vcs)
+		}
+		return
+	}
+	t.Fatal("component missing from output")
+}
+
+// mustGraphFromDoc converts a neutral document to a graph for export tests.
+func mustGraphFromDoc(t *testing.T, doc *Document) *sdk.Graph {
+	t.Helper()
+	graph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	return graph
 }

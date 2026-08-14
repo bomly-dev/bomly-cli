@@ -36,7 +36,7 @@ const supplierRichCycloneDX = `{
       "publisher": "azer",
       "supplier": {"name": "Example Supplier Inc.", "url": ["https://supplier.example.com"]},
       "cpe": "cpe:2.3:a:example:left-pad:1.3.0:*:*:*:*:*:*:*",
-      "hashes": [{"alg": "SHA-256", "content": "abc123"}],
+      "hashes": [{"alg": "SHA-256", "content": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}],
       "externalReferences": [
         {"type": "distribution", "url": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"},
         {"type": "vcs", "url": "https://github.com/stevemao/left-pad"},
@@ -414,7 +414,7 @@ func TestDuplicatePURLAssertionsAreMerged(t *testing.T) {
 				Supplier:    "Example Supplier Inc.",
 				Description: "Root certificates",
 				ArtifactURL: "https://files.pythonhosted.org/x/certifi-2026.4.22-py3-none-any.whl",
-				Digests:     []Digest{{Algorithm: "sha256", Value: "abc123"}},
+				Digests:     []Digest{{Algorithm: "sha256", Value: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},
 			},
 		},
 		Dependencies: []Dependency{{Ref: "first", DependsOn: []string{"second"}}},
@@ -571,6 +571,123 @@ func TestPrimaryComponentAssertionsMergeFromMetadata(t *testing.T) {
 	t.Fatal("app missing from output")
 }
 
+// TestMalformedIngestedDigestIsDropped keeps a bogus hash out of the output.
+// The encoders filter on algorithm only, so an unvalidated value would be
+// re-emitted verbatim: schema-invalid, and a false integrity assertion.
+func TestMalformedIngestedDigestIsDropped(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0",
+        "type": "library",
+        "name": "a",
+        "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "hashes": [
+          {"alg": "SHA-256", "content": "not-a-hash"},
+          {"alg": "SHA-256", "content": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}
+        ]
+      }]
+    }`
+
+	for _, target := range []Target{TargetSPDX23JSON, TargetCycloneDX17JSON} {
+		out := ingestAndReexport(t, []byte(in), target)
+		if strings.Contains(string(out), "not-a-hash") {
+			t.Fatalf("%s republished a malformed digest:\n%s", target, out)
+		}
+		if !strings.Contains(string(out), "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc") {
+			t.Fatalf("%s dropped the valid digest alongside the malformed one:\n%s", target, out)
+		}
+	}
+}
+
+// TestIngestedReferenceCommentsArePreserved covers comments on the two
+// reference kinds Bomly classifies. Replacing a producer's comment with
+// Bomly's own could contradict what the source asserted.
+func TestIngestedReferenceCommentsArePreserved(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0",
+        "type": "library",
+        "name": "a",
+        "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "externalReferences": [
+          {"type": "distribution", "url": "https://reg.example/", "comment": "Exact authenticated download endpoint"},
+          {"type": "vcs", "url": "https://github.com/org/repo", "comment": "Mirror of the upstream repository"}
+        ]
+      }]
+    }`
+
+	out := ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON)
+	var bom cdx.BOM
+	if err := json.Unmarshal(out, &bom); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	comp := (*bom.Components)[0]
+	if comp.ExternalReferences == nil {
+		t.Fatal("no external references in output")
+	}
+	for _, ref := range *comp.ExternalReferences {
+		switch ref.Type {
+		case cdx.ERTypeDistribution:
+			if ref.Comment != "Exact authenticated download endpoint" {
+				t.Fatalf("distribution comment = %q, want the producer's own text", ref.Comment)
+			}
+		case cdx.ERTypeVCS:
+			if ref.Comment != "Mirror of the upstream repository" {
+				t.Fatalf("vcs comment = %q, want the producer's own text", ref.Comment)
+			}
+		}
+	}
+}
+
+// TestSPDXSummaryAndDescriptionStaySeparate covers two fields SPDX represents
+// distinctly. Folding the summary into the description moves it to a
+// semantically different field and loses it entirely when both are present.
+func TestSPDXSummaryAndDescriptionStaySeparate(t *testing.T) {
+	const in = `{
+      "spdxVersion": "SPDX-2.3",
+      "SPDXID": "SPDXRef-DOCUMENT",
+      "name": "doc",
+      "documentNamespace": "https://example.com/doc",
+      "creationInfo": {"created": "2024-01-01T00:00:00Z", "creators": ["Tool: t"]},
+      "packages": [{
+        "name": "left-pad",
+        "SPDXID": "SPDXRef-Package-left-pad",
+        "versionInfo": "1.3.0",
+        "downloadLocation": "NOASSERTION",
+        "summary": "Pads a string",
+        "description": "A longer explanation of the padding behaviour",
+        "filesAnalyzed": false
+      }]
+    }`
+
+	out := ingestAndReexport(t, []byte(in), TargetSPDX23JSON)
+	var doc v23.Document
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	for _, p := range doc.Packages {
+		if p == nil || p.PackageName != "left-pad" {
+			continue
+		}
+		if p.PackageSummary != "Pads a string" {
+			t.Fatalf("summary = %q, want it preserved separately", p.PackageSummary)
+		}
+		if p.PackageDescription != "A longer explanation of the padding behaviour" {
+			t.Fatalf("description = %q, want it preserved separately", p.PackageDescription)
+		}
+		return
+	}
+	t.Fatal("left-pad missing from output")
+}
+
 // TestSPDXHomePageSurvivesSPDXRoundTrip covers a field SPDX represents
 // exactly, which an earlier revision decoded but never re-emitted.
 func TestSPDXHomePageSurvivesSPDXRoundTrip(t *testing.T) {
@@ -586,7 +703,7 @@ func TestSPDXHomePageSurvivesSPDXRoundTrip(t *testing.T) {
         "versionInfo": "1.3.0",
         "downloadLocation": "https://repo.example/download/left-pad",
         "homepage": "https://left-pad.example.com",
-        "checksums": [{"algorithm": "SHA3-256", "checksumValue": "abc123"}],
+        "checksums": [{"algorithm": "SHA3-256", "checksumValue": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}],
         "filesAnalyzed": false
       }]
     }`
@@ -613,7 +730,7 @@ func TestSPDXHomePageSurvivesSPDXRoundTrip(t *testing.T) {
 		}
 		// Assert both fields: a length check alone would not notice the
 		// algorithm degrading to a different family on the way through.
-		if got := p.PackageChecksums[0]; got.Algorithm != common.SHA3_256 || got.Value != "abc123" {
+		if got := p.PackageChecksums[0]; got.Algorithm != common.SHA3_256 || got.Value != "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" {
 			t.Fatalf("checksum = %+v, want SHA3-256/abc123", got)
 		}
 		return

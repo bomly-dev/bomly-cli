@@ -60,7 +60,7 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 			component.Supplier = supplier
 		}
 		component.Publisher = comp.Originator
-		component.Description = comp.Description
+		component.Description = firstNonEmpty(comp.Description, comp.Summary)
 		if refs := cycloneDXComponentReferences(comp); len(refs) > 0 {
 			component.ExternalReferences = &refs
 		}
@@ -378,22 +378,23 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 	}
 	if comp.Hashes != nil {
 		for _, hash := range *comp.Hashes {
-			component.Digests = append(component.Digests, Digest{
-				Algorithm: normalizeDigestAlgorithm(string(hash.Algorithm)),
-				Value:     hash.Value,
-			})
+			if digest, ok := ingestedDigest(string(hash.Algorithm), hash.Value); ok {
+				component.Digests = append(component.Digests, digest)
+			}
 		}
 	}
 	if comp.ExternalReferences != nil {
 		for _, ref := range *comp.ExternalReferences {
 			switch ref.Type {
 			case cdx.ERTypeDistribution:
-				applyLocator(&component, classifyResolvedURL(ref.URL, "", ""))
+				applyLocatorComment(&component, classifyResolvedURL(ref.URL, "", ""), ref.Comment)
 			case cdx.ERTypeVCS:
 				// Untrusted input: gate and normalize it exactly like a
 				// detector-supplied value, because it is re-emitted and also
 				// becomes the SPDX download location.
-				component.VCSURL = classifyIngestedVCS(ref.URL)
+				if vcs := classifyIngestedVCS(ref.URL); vcs != "" {
+					component.VCSURL, component.VCSComment = vcs, ref.Comment
+				}
 			default:
 				if !isPublishableReferenceURL(ref.URL) {
 					continue
@@ -421,12 +422,18 @@ func cycloneDXComponentReferences(component Component) []cdx.ExternalReference {
 
 	switch {
 	case component.ArtifactURL != "":
-		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeDistribution, URL: component.ArtifactURL})
+		refs = append(refs, cdx.ExternalReference{
+			Type:    cdx.ERTypeDistribution,
+			URL:     component.ArtifactURL,
+			Comment: component.ArtifactComment,
+		})
 	case component.RegistryURL != "":
+		// Only explain the value when the producer said nothing: replacing a
+		// source document's own comment could contradict what it asserted.
 		refs = append(refs, cdx.ExternalReference{
 			Type:    cdx.ERTypeDistribution,
 			URL:     component.RegistryURL,
-			Comment: "Registry root; not the exact artifact location",
+			Comment: firstNonEmpty(component.RegistryComment, "Registry root; not the exact artifact location"),
 		})
 	}
 
@@ -434,7 +441,7 @@ func cycloneDXComponentReferences(component Component) []cdx.ExternalReference {
 	// scorecard repository. Emitting both would assert the same repository
 	// twice from two sources.
 	if vcs := firstNonEmpty(component.VCSURL, component.Repository); vcs != "" {
-		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeVCS, URL: vcs})
+		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeVCS, URL: vcs, Comment: component.VCSComment})
 	}
 
 	for _, ref := range component.ExternalRefs {

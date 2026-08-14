@@ -54,6 +54,7 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageExternalReferences: spdxExternalReferences(c),
 			PrimaryPackagePurpose:     spdxPrimaryPackagePurpose(c.Type),
 			PackageDescription:        c.Description,
+			PackageSummary:            c.Summary,
 			PackageSourceInfo:         spdxSourceInfo(c),
 			PackageHomePage:           spdxHomePage(c),
 		}
@@ -175,7 +176,8 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 			PackageManager: parseSPDXPackageManager(p.PackageExternalReferences),
 			Copyright:      parseSPDXCopyright(p.PackageCopyrightText),
 			Licenses:       parseSPDXLicenses(p.PackageLicenseConcluded, p.PackageLicenseDeclared),
-			Description:    firstNonEmpty(parseSPDXEntity(p.PackageDescription), parseSPDXEntity(p.PackageSummary)),
+			Description:    parseSPDXEntity(p.PackageDescription),
+			Summary:        parseSPDXEntity(p.PackageSummary),
 			Repository:     parseSPDXSourceInfo(p.PackageSourceInfo),
 			CPEs:           parseSPDXCPEs(p.PackageExternalReferences),
 			Digests:        parseSPDXChecksums(p.PackageChecksums),
@@ -658,11 +660,11 @@ func parseSPDXChecksums(checksums []common.Checksum) []Digest {
 	}
 	digests := make([]Digest, 0, len(checksums))
 	for _, checksum := range checksums {
-		algorithm := normalizeDigestAlgorithm(string(checksum.Algorithm))
-		if algorithm == "" || strings.TrimSpace(checksum.Value) == "" {
+		digest, ok := ingestedDigest(string(checksum.Algorithm), checksum.Value)
+		if !ok {
 			continue
 		}
-		digests = append(digests, Digest{Algorithm: algorithm, Value: strings.TrimSpace(checksum.Value)})
+		digests = append(digests, digest)
 	}
 	if len(digests) == 0 {
 		return nil

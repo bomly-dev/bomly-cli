@@ -19,6 +19,10 @@ const (
 	metadataKeyOriginator     = "bomly.sbom.originator"
 	metadataKeyOriginatorType = "bomly.sbom.originator_type"
 	metadataKeyDescription    = "bomly.sbom.description"
+	metadataKeySummary        = "bomly.sbom.summary"
+	metadataKeyArtifactNote   = "bomly.sbom.artifact_comment"
+	metadataKeyVCSNote        = "bomly.sbom.vcs_comment"
+	metadataKeyRegistryNote   = "bomly.sbom.registry_comment"
 	metadataKeyRepository     = "bomly.sbom.repository"
 	metadataKeyArtifactURL    = "bomly.sbom.artifact_url"
 	metadataKeyVCSURL         = "bomly.sbom.vcs_url"
@@ -39,6 +43,10 @@ func setIngestedMetadata(dep *sdk.Dependency, component Component) {
 		metadataKeyOriginator:     component.Originator,
 		metadataKeyOriginatorType: component.OriginatorType,
 		metadataKeyDescription:    component.Description,
+		metadataKeySummary:        component.Summary,
+		metadataKeyArtifactNote:   component.ArtifactComment,
+		metadataKeyVCSNote:        component.VCSComment,
+		metadataKeyRegistryNote:   component.RegistryComment,
 		metadataKeyRepository:     component.Repository,
 		metadataKeyArtifactURL:    component.ArtifactURL,
 		metadataKeyVCSURL:         component.VCSURL,
@@ -94,6 +102,10 @@ func applyIngestedMetadata(component *Component, metadata map[string]any) {
 		metadataKeyOriginator:     &component.Originator,
 		metadataKeyOriginatorType: &component.OriginatorType,
 		metadataKeyDescription:    &component.Description,
+		metadataKeySummary:        &component.Summary,
+		metadataKeyArtifactNote:   &component.ArtifactComment,
+		metadataKeyVCSNote:        &component.VCSComment,
+		metadataKeyRegistryNote:   &component.RegistryComment,
 		metadataKeyRepository:     &component.Repository,
 	}
 	for key, target := range targets {

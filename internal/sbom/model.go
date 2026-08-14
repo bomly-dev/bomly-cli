@@ -146,6 +146,13 @@ type Component struct {
 	VCSURL      string
 	RegistryURL string
 
+	// Comments a source document attached to the references above. Kept
+	// separately so an ingested comment is preserved rather than replaced by
+	// Bomly's own, which could contradict what the producer asserted.
+	ArtifactComment string
+	VCSComment      string
+	RegistryComment string
+
 	// Repository is a canonical "github.com/owner/repo" source repository
 	// supplied by the OpenSSF Scorecard matcher during enrichment.
 	Repository string
@@ -159,7 +166,11 @@ type Component struct {
 	Originator     string
 	OriginatorType string
 	Description    string
-	ExternalRefs   []ExternalRef
+	// Summary is SPDX's short-form description. SPDX 2.3 represents it and
+	// PackageDescription as distinct fields; CycloneDX has only one, so the
+	// summary is used there just as a fallback.
+	Summary      string
+	ExternalRefs []ExternalRef
 }
 
 // mergeComponentAssertions fills gaps in dst from src, leaving anything dst
@@ -179,10 +190,14 @@ func mergeComponentAssertions(dst *Component, src Component) {
 		{&dst.Originator, src.Originator},
 		{&dst.OriginatorType, src.OriginatorType},
 		{&dst.Description, src.Description},
+		{&dst.Summary, src.Summary},
 		{&dst.Repository, src.Repository},
 		{&dst.ArtifactURL, src.ArtifactURL},
 		{&dst.VCSURL, src.VCSURL},
 		{&dst.RegistryURL, src.RegistryURL},
+		{&dst.ArtifactComment, src.ArtifactComment},
+		{&dst.VCSComment, src.VCSComment},
+		{&dst.RegistryComment, src.RegistryComment},
 		{&dst.Copyright, src.Copyright},
 	} {
 		if *field.target == "" {

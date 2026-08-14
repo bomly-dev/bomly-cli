@@ -251,6 +251,32 @@ func normalizeDigestValue(algorithm, value string) string {
 	return value
 }
 
+// ingestedDigest normalizes and validates a digest taken from an untrusted
+// SBOM, returning ok=false when the value cannot be a digest of the stated
+// algorithm.
+//
+// The encoders filter on algorithm only, so a malformed value such as
+// {"alg":"SHA-256","content":"not-a-hash"} would otherwise be re-emitted
+// verbatim: schema-invalid in both formats, and a false integrity assertion
+// about the package. An algorithm with no known length is accepted only when
+// the value is plausible hex, since there is nothing else to check it against.
+func ingestedDigest(algorithm, value string) (Digest, bool) {
+	algorithm = normalizeDigestAlgorithm(algorithm)
+	value = strings.TrimSpace(value)
+	if algorithm == "" || value == "" {
+		return Digest{}, false
+	}
+
+	normalized := normalizeDigestValue(algorithm, value)
+	if size, known := digestHexSizes[algorithm]; known && len(normalized) != size*2 {
+		return Digest{}, false
+	}
+	if _, err := hex.DecodeString(normalized); err != nil {
+		return Digest{}, false
+	}
+	return Digest{Algorithm: algorithm, Value: strings.ToLower(normalized)}, true
+}
+
 func uniqueToolNames(values []string) []string {
 	out := make([]string, 0, len(values))
 	seen := make(map[string]struct{}, len(values))
@@ -343,13 +369,19 @@ func normalizeDigestAlgorithm(algorithm string) string {
 // LocatorNone leaves the component untouched, so an unpublishable value simply
 // results in no assertion.
 func applyLocator(component *Component, locator Locator) {
+	applyLocatorComment(component, locator, "")
+}
+
+// applyLocatorComment is applyLocator for an ingested reference, carrying the
+// producer's own comment alongside the classified URL.
+func applyLocatorComment(component *Component, locator Locator, comment string) {
 	switch locator.Kind {
 	case LocatorArtifact:
-		component.ArtifactURL = locator.URL
+		component.ArtifactURL, component.ArtifactComment = locator.URL, comment
 	case LocatorVCS:
-		component.VCSURL = locator.URL
+		component.VCSURL, component.VCSComment = locator.URL, comment
 	case LocatorRegistryRoot:
-		component.RegistryURL = locator.URL
+		component.RegistryURL, component.RegistryComment = locator.URL, comment
 	}
 }
 

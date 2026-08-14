@@ -103,6 +103,18 @@ func classifyResolvedURL(raw string, source sdk.DependencySource, ecosystem sdk.
 	if hint == LocatorVCS {
 		return normalizeVCS(parsed)
 	}
+
+	// Credentials also travel outside userinfo: signed and private-registry
+	// URLs carry them as query parameters or fragments
+	// ("...?token=<secret>", "...?X-Amz-Signature=..."). A benign query
+	// parameter cannot be told apart from a credential here, so any query or
+	// fragment disqualifies a non-VCS locator. VCS locators are exempt
+	// because normalizeVCS discards both, keeping only a character-checked
+	// revision.
+	if parsed.RawQuery != "" || parsed.Fragment != "" {
+		return Locator{}
+	}
+
 	if hint == LocatorRegistryRoot {
 		return Locator{Kind: LocatorRegistryRoot, URL: parsed.String()}
 	}
@@ -217,12 +229,18 @@ func normalizeRepositoryURL(repo string) string {
 		if err != nil || parsed.User != nil || parsed.Host == "" {
 			return ""
 		}
+		if parsed.RawQuery != "" || parsed.Fragment != "" {
+			return ""
+		}
 		switch strings.ToLower(parsed.Scheme) {
 		case "http", "https":
 			return parsed.String()
 		default:
 			return ""
 		}
+	}
+	if strings.ContainsAny(repo, "?#") {
+		return ""
 	}
 
 	host, rest, ok := strings.Cut(repo, "/")
@@ -238,6 +256,76 @@ func normalizeRepositoryURL(repo string) string {
 		return ""
 	}
 	return candidate
+}
+
+// classifyIngestedVCS renders a repository URL taken from an ingested SBOM in
+// the SPDX version-control form.
+//
+// CycloneDX permits a plain https repository URL in a `vcs` reference, but
+// SPDX 2.3 uses the `git+<transport>` notation and `spdxDownloadLocation`
+// emits this value directly — so an unnormalized value would make a repository
+// look like an ordinary package download. The value is untrusted, so it goes
+// through the same scheme, host, and userinfo gate as a detector-supplied one.
+func classifyIngestedVCS(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	raw = strings.TrimPrefix(raw, "git+")
+	parsed, err := url.Parse(raw)
+	if err != nil || parsed.User != nil || parsed.Host == "" {
+		return ""
+	}
+	switch strings.ToLower(parsed.Scheme) {
+	case "http", "https":
+	default:
+		return ""
+	}
+	return normalizeVCS(parsed).URL
+}
+
+// classifyAssertedDownloadLocation classifies a value that its source document
+// already declared to be a download location, such as SPDX
+// PackageDownloadLocation.
+//
+// The path-shape heuristic that guards detector-supplied values does not apply
+// here: an exact endpoint without a recognizable archive suffix
+// ("https://repo.example/download?id=123" reduced to its path) would be demoted
+// to a registry root and re-exported as NOASSERTION, discarding an assertion
+// the source document actually made. The safety gate still applies in full, so
+// local paths and credential-bearing URLs are still dropped.
+func classifyAssertedDownloadLocation(raw string) Locator {
+	locator := classifyResolvedURL(raw, "", "")
+	if locator.Kind == LocatorRegistryRoot {
+		locator.Kind = LocatorArtifact
+	}
+	return locator
+}
+
+// isPublishableReferenceURL reports whether a URL carried on an ingested
+// external reference is safe to re-emit.
+//
+// Ingested references are re-emitted verbatim, so they need the same gate a
+// detector-supplied value gets: no local paths, no credentials in userinfo,
+// and no credential-bearing query or fragment. `mailto:` is allowed because a
+// security-contact reference is a legitimate, path-free reference target.
+func isPublishableReferenceURL(raw string) bool {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return false
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil || parsed.User != nil {
+		return false
+	}
+	switch strings.ToLower(parsed.Scheme) {
+	case "http", "https":
+		return parsed.Host != "" && parsed.RawQuery == "" && parsed.Fragment == ""
+	case "mailto":
+		return parsed.Opaque != "" && parsed.RawQuery == ""
+	default:
+		return false
+	}
 }
 
 // isHostname reports whether value looks like a dotted DNS hostname.

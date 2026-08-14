@@ -48,7 +48,12 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 			component.Properties = &props
 		}
 		if comp.Supplier != "" {
-			component.Supplier = &cdx.OrganizationalEntity{Name: comp.Supplier}
+			supplier := &cdx.OrganizationalEntity{Name: comp.Supplier}
+			if comp.SupplierURL != "" {
+				urls := []string{comp.SupplierURL}
+				supplier.URL = &urls
+			}
+			component.Supplier = supplier
 		}
 		component.Publisher = comp.Originator
 		component.Description = comp.Description
@@ -277,11 +282,19 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 	if comp.Supplier != nil && comp.Supplier.Name != "" {
 		component.Supplier = comp.Supplier.Name
 		component.SupplierType = "Organization"
+		if comp.Supplier.URL != nil {
+			for _, u := range *comp.Supplier.URL {
+				if isPublishableReferenceURL(u) {
+					component.SupplierURL = u
+					break
+				}
+			}
+		}
 	}
 	if comp.Hashes != nil {
 		for _, hash := range *comp.Hashes {
 			component.Digests = append(component.Digests, Digest{
-				Algorithm: strings.ToLower(strings.ReplaceAll(string(hash.Algorithm), "-", "")),
+				Algorithm: normalizeDigestAlgorithm(string(hash.Algorithm)),
 				Value:     hash.Value,
 			})
 		}
@@ -292,8 +305,14 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 			case cdx.ERTypeDistribution:
 				applyLocator(&component, classifyResolvedURL(ref.URL, "", ""))
 			case cdx.ERTypeVCS:
-				component.VCSURL = ref.URL
+				// Untrusted input: gate and normalize it exactly like a
+				// detector-supplied value, because it is re-emitted and also
+				// becomes the SPDX download location.
+				component.VCSURL = classifyIngestedVCS(ref.URL)
 			default:
+				if !isPublishableReferenceURL(ref.URL) {
+					continue
+				}
 				component.ExternalRefs = append(component.ExternalRefs, ExternalRef{
 					Type:    string(ref.Type),
 					URL:     ref.URL,

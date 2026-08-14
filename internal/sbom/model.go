@@ -136,10 +136,12 @@ type Component struct {
 	Vulnerabilities []Vulnerability
 	EOL             *EOL
 
-	// Where the package came from, classified from the detector-supplied
-	// resolved URL. At most one of ArtifactURL and VCSURL is set;
-	// RegistryURL is the weaker fallback naming a registry or index root,
-	// and is deliberately never used as a download location.
+	// Where the package came from. Detection-time classification of a single
+	// resolved URL sets exactly one of these, but an ingested document may
+	// assert several independently — CycloneDX can carry both a
+	// `distribution` and a `vcs` reference — so more than one may be set.
+	// RegistryURL is the weakest of the three: it names a registry or index
+	// root, and is deliberately never used as a download location.
 	ArtifactURL string
 	VCSURL      string
 	RegistryURL string
@@ -153,6 +155,7 @@ type Component struct {
 	// matcher, actually asserted them.
 	Supplier       string
 	SupplierType   string
+	SupplierURL    string
 	Originator     string
 	OriginatorType string
 	Description    string

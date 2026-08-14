@@ -2,6 +2,7 @@ package sbom
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
@@ -32,7 +33,7 @@ const supplierRichCycloneDX = `{
       "purl": "pkg:npm/left-pad@1.3.0",
       "description": "String left padding",
       "publisher": "azer",
-      "supplier": {"name": "Example Supplier Inc."},
+      "supplier": {"name": "Example Supplier Inc.", "url": ["https://supplier.example.com"]},
       "cpe": "cpe:2.3:a:example:left-pad:1.3.0:*:*:*:*:*:*:*",
       "hashes": [{"alg": "SHA-256", "content": "abc123"}],
       "externalReferences": [
@@ -128,6 +129,11 @@ func TestIngestedAssertionsSurviveCycloneDXRoundTrip(t *testing.T) {
 	if comp.Supplier == nil || comp.Supplier.Name != "Example Supplier Inc." {
 		t.Fatalf("supplier = %+v, want the ingested value", comp.Supplier)
 	}
+	// A supplier's URL is part of the compliance assertion, so it must not be
+	// flattened away to a bare name.
+	if comp.Supplier.URL == nil || len(*comp.Supplier.URL) != 1 || (*comp.Supplier.URL)[0] != "https://supplier.example.com" {
+		t.Fatalf("supplier url = %+v, want the ingested value preserved", comp.Supplier.URL)
+	}
 	if comp.Description != "String left padding" {
 		t.Fatalf("description = %q, want the ingested value", comp.Description)
 	}
@@ -137,8 +143,11 @@ func TestIngestedAssertionsSurviveCycloneDXRoundTrip(t *testing.T) {
 	if got := externalRefURL(*comp, cdx.ERTypeDistribution); got != "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz" {
 		t.Fatalf("distribution ref = %q, want the ingested value", got)
 	}
-	if got := externalRefURL(*comp, cdx.ERTypeVCS); got != "https://github.com/stevemao/left-pad" {
-		t.Fatalf("vcs ref = %q, want the ingested value", got)
+	// Stored in the SPDX version-control form: this same value becomes the
+	// SPDX PackageDownloadLocation, where a bare https URL would make a
+	// repository look like an ordinary package download.
+	if got := externalRefURL(*comp, cdx.ERTypeVCS); got != "git+https://github.com/stevemao/left-pad" {
+		t.Fatalf("vcs ref = %q, want the normalized ingested value", got)
 	}
 	// An external reference type Bomly has no opinion about must pass through
 	// rather than be dropped as unrecognized.
@@ -188,6 +197,102 @@ func TestManufacturerWinsOnRootIngestedSupplierSurvivesElsewhere(t *testing.T) {
 			}
 		}
 	}
+}
+
+// hostileCycloneDX asserts URLs that must never be re-published: a local path,
+// embedded credentials in userinfo and in a query parameter, and a home-page
+// style reference pointing at the filesystem.
+const hostileCycloneDX = `{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "components": [
+    {
+      "bom-ref": "pkg:npm/evil@1.0.0",
+      "type": "library",
+      "name": "evil",
+      "version": "1.0.0",
+      "purl": "pkg:npm/evil@1.0.0",
+      "externalReferences": [
+        {"type": "distribution", "url": "file:///Users/victim/secret/evil-1.0.0.tgz"},
+        {"type": "vcs", "url": "https://tok:s3cret@github.com/a/b"},
+        {"type": "website", "url": "file:///Users/victim/secret/index.html"},
+        {"type": "documentation", "url": "https://docs.example.com/x?token=s3cret"},
+        {"type": "issue-tracker", "url": "https://issues.example.com/evil"}
+      ]
+    }
+  ]
+}`
+
+// TestIngestedUnsafeURLsAreNotRepublished is the counterpart to the
+// detector-side leak test. An ingested document is untrusted input, so its
+// URLs must pass the same gate a lockfile value does — otherwise a hostile or
+// merely careless SBOM could launder a credential or a local path into output
+// Bomly publishes.
+func TestIngestedUnsafeURLsAreNotRepublished(t *testing.T) {
+	for _, target := range []Target{TargetSPDX23JSON, TargetCycloneDX17JSON} {
+		out := ingestAndReexport(t, []byte(hostileCycloneDX), target)
+		rendered := string(out)
+
+		for _, forbidden := range []string{
+			"file://", "/Users/victim", "s3cret", "tok:", "token=",
+		} {
+			if strings.Contains(rendered, forbidden) {
+				t.Fatalf("%s output republished %q from an ingested document:\n%s", target, forbidden, rendered)
+			}
+		}
+
+		// The one safe reference must still survive, so the gate is filtering
+		// rather than discarding everything.
+		if target == TargetCycloneDX17JSON && !strings.Contains(rendered, "https://issues.example.com/evil") {
+			t.Fatalf("cyclonedx output dropped the safe reference:\n%s", rendered)
+		}
+	}
+}
+
+// TestSPDXHomePageSurvivesSPDXRoundTrip covers a field SPDX represents
+// exactly, which an earlier revision decoded but never re-emitted.
+func TestSPDXHomePageSurvivesSPDXRoundTrip(t *testing.T) {
+	const in = `{
+      "spdxVersion": "SPDX-2.3",
+      "SPDXID": "SPDXRef-DOCUMENT",
+      "name": "doc",
+      "documentNamespace": "https://example.com/doc",
+      "creationInfo": {"created": "2024-01-01T00:00:00Z", "creators": ["Tool: t"]},
+      "packages": [{
+        "name": "left-pad",
+        "SPDXID": "SPDXRef-Package-left-pad",
+        "versionInfo": "1.3.0",
+        "downloadLocation": "https://repo.example/download/left-pad",
+        "homepage": "https://left-pad.example.com",
+        "checksums": [{"algorithm": "SHA3-256", "checksumValue": "abc123"}],
+        "filesAnalyzed": false
+      }]
+    }`
+
+	out := ingestAndReexport(t, []byte(in), TargetSPDX23JSON)
+	var doc v23.Document
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("unmarshal spdx: %v", err)
+	}
+	for _, p := range doc.Packages {
+		if p == nil || p.PackageName != "left-pad" {
+			continue
+		}
+		if p.PackageHomePage != "https://left-pad.example.com" {
+			t.Fatalf("homepage = %q, want it preserved", p.PackageHomePage)
+		}
+		// An exact endpoint with no archive suffix: the source document
+		// declared it a download location, so it must not be demoted.
+		if p.PackageDownloadLocation != "https://repo.example/download/left-pad" {
+			t.Fatalf("downloadLocation = %q, want the asserted value", p.PackageDownloadLocation)
+		}
+		if len(p.PackageChecksums) != 1 {
+			t.Fatalf("SHA3-256 checksum did not survive: %+v", p.PackageChecksums)
+		}
+		return
+	}
+	t.Fatal("left-pad missing from output")
 }
 
 // TestSPDXNoAssertionSupplierDecodesToAbsent keeps the reserved marker from

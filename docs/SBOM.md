@@ -121,10 +121,12 @@ Two rules matter here:
   is a valid URL, so a validator would accept it, but it is not where that gem
   came from. Saying nothing is better than saying something false.
 - **Local filesystem paths are never written to an SBOM**, and neither are URLs
-  carrying a username or password. Several lockfile formats record a directory
-  on the build machine, or a private-registry URL with a token embedded in it.
-  Publishing either one would leak information about the machine that ran the
-  scan.
+  carrying a credential. Several lockfile formats record a directory on the
+  build machine, or a private-registry URL with a token in it — either in the
+  `user:password@host` position or as a query parameter such as `?token=` on a
+  signed download link. Any of these is dropped rather than published. The same
+  check applies to URLs read out of an SBOM Bomly ingests, since those are
+  untrusted input too.
 
 Coverage follows what each ecosystem actually records. npm, pnpm, yarn, and bun
 lockfiles name the exact package archive, so those get a real download location.

@@ -55,6 +55,7 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PrimaryPackagePurpose:     spdxPrimaryPackagePurpose(c.Type),
 			PackageDescription:        c.Description,
 			PackageSourceInfo:         spdxSourceInfo(c),
+			PackageHomePage:           spdxHomePage(c),
 		}
 		if c.Originator != "" {
 			pkg.PackageOriginator = &common.Originator{
@@ -182,8 +183,8 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 			component.Originator = parseSPDXEntity(p.PackageOriginator.Originator)
 			component.OriginatorType = p.PackageOriginator.OriginatorType
 		}
-		applyLocator(&component, classifyResolvedURL(parseSPDXEntity(p.PackageDownloadLocation), "", ""))
-		if home := strings.TrimSpace(p.PackageHomePage); home != "" && parseSPDXEntity(home) != "" {
+		applyLocator(&component, classifyAssertedDownloadLocation(parseSPDXEntity(p.PackageDownloadLocation)))
+		if home := parseSPDXEntity(p.PackageHomePage); isPublishableReferenceURL(home) {
 			component.ExternalRefs = append(component.ExternalRefs, ExternalRef{Type: "website", URL: home})
 		}
 		components = append(components, component)
@@ -507,8 +508,27 @@ func spdxDownloadLocation(component Component) string {
 // (the package's home page) that Bomly does not know, and SPDX 2.3 has no
 // version-control external-reference category.
 func spdxSourceInfo(component Component) string {
+	// A detector-supplied VCS location is version-exact and already rendered
+	// as the download location. Emitting the matcher-derived repository too
+	// would make one package assert two different source repositories.
+	if component.VCSURL != "" {
+		return ""
+	}
 	if repo := strings.TrimSpace(component.Repository); repo != "" {
 		return spdxSourceInfoPrefix + repo
+	}
+	return ""
+}
+
+// spdxHomePage restores a home page carried on an ingested website reference.
+//
+// SPDX has a first-class field for this, so an SPDX-to-SPDX pass would
+// otherwise drop a value the destination format represents exactly.
+func spdxHomePage(component Component) string {
+	for _, ref := range component.ExternalRefs {
+		if strings.EqualFold(ref.Type, "website") && isPublishableReferenceURL(ref.URL) {
+			return ref.URL
+		}
 	}
 	return ""
 }
@@ -595,7 +615,10 @@ func parseSPDXCPEs(refs []*v23.PackageExternalReference) []string {
 		if ref == nil {
 			continue
 		}
-		if strings.EqualFold(strings.TrimSpace(ref.RefType), "cpe23Type") {
+		// SPDX 2.3 defines both CPE reference types. Bomly writes cpe23Type,
+		// but an ingested third-party document may use either.
+		switch strings.ToLower(strings.TrimSpace(ref.RefType)) {
+		case "cpe23type", "cpe22type":
 			if locator := strings.TrimSpace(ref.Locator); locator != "" {
 				cpes = append(cpes, locator)
 			}
@@ -611,7 +634,7 @@ func parseSPDXChecksums(checksums []common.Checksum) []Digest {
 	}
 	digests := make([]Digest, 0, len(checksums))
 	for _, checksum := range checksums {
-		algorithm := strings.ToLower(strings.ReplaceAll(string(checksum.Algorithm), "-", ""))
+		algorithm := normalizeDigestAlgorithm(string(checksum.Algorithm))
 		if algorithm == "" || strings.TrimSpace(checksum.Value) == "" {
 			continue
 		}

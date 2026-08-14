@@ -49,9 +49,16 @@ func TestClassifyResolvedURL(t *testing.T) {
 		{"npm link local dir", "https://registry.npmjs.org/a/-/a-1.0.0.tgz", sdk.DependencySourceWorkspace, sdk.EcosystemNPM, LocatorNone, ""},
 		{"scp style git", "git@github.com:a/b.git", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorNone, ""},
 
-		// Credentials must never reach an SBOM.
+		// Credentials must never reach an SBOM, in userinfo or anywhere else.
 		{"userinfo token", "https://tok:s3cret@nexus.corp/a/b-1.0.tgz", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
 		{"username only", "https://tok@nexus.corp/a/b-1.0.tgz", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
+		{"query token", "https://nexus.corp/a/b-1.0.tgz?token=s3cret", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
+		{"presigned signature", "https://s3.amazonaws.com/b/a-1.0.tgz?X-Amz-Signature=deadbeef", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
+		{"fragment secret", "https://nexus.corp/a/b-1.0.tgz#s3cret", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
+		{"registry root with query", "https://nexus.corp/?apiKey=s3cret", sdk.DependencySourceRegistry, sdk.EcosystemRuby, LocatorNone, ""},
+		// A VCS locator is exempt only because normalizeVCS discards the query
+		// and keeps a character-checked revision.
+		{"vcs query keeps only the revision", "git+https://github.com/a/b?rev=deadbeef&token=s3cret", sdk.DependencySourceGit, sdk.EcosystemRust, LocatorVCS, "git+https://github.com/a/b@deadbeef"},
 
 		// Degenerate input.
 		{"empty", "", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},

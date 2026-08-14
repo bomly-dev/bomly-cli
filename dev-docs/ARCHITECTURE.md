@@ -172,7 +172,9 @@ Reachability data lives on `sdk.Vulnerability.Reachability` rather than on `Find
 
 `internal/sbom/locator.go` therefore classifies each value into artifact / VCS / registry-root / nothing before it can reach an SBOM, rather than mapping the field straight onto `PackageDownloadLocation`. Two rules are load-bearing:
 
-1. **An http(s) scheme is required, and userinfo is rejected.** This is what keeps build-machine directory layout and private-registry credentials out of a published document. The check is on the value, never on `Source` — uv's `path`/`editable` values arrive under non-`file` sources.
+1. **An http(s) scheme is required, and credentials are rejected.** This is what keeps build-machine directory layout and private-registry credentials out of a published document. Credentials travel in two places: `user:password@host` userinfo, and query or fragment values on signed and private-registry links (`?token=`, `?X-Amz-Signature=`). A benign query parameter cannot be told apart from a credential, so any query or fragment disqualifies a non-VCS locator; VCS locators are exempt only because `normalizeVCS` discards both and keeps a character-checked revision. The check is on the value, never on `Source` — uv's `path`/`editable` values arrive under non-`file` sources.
+
+   The same gate applies to URLs read out of an **ingested** SBOM. Those are untrusted input that gets re-emitted verbatim, so a hostile or careless document could otherwise launder a `file://` path or a credential into output Bomly publishes.
 2. **A registry root never becomes a download location.** `https://rubygems.org/` is schema-valid and both validators accept it, so the failure would be silent and plausible: every consumer would read it as the artifact's origin. `NOASSERTION` is the honest answer.
 
 Unrecognized shapes degrade toward the weaker claim (registry root, then nothing) rather than toward the stronger one. `FuzzClassifyResolvedURL` asserts the safety property directly: a classified value is either empty or an absolute http(s)/`git+http(s)` URL with no userinfo.

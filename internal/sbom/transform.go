@@ -295,12 +295,11 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 			LatestVersion: pkg.EOL.LatestVersion,
 		}
 	}
-	if pkg.Scorecard != nil {
-		// Only fill, never clear: an unnormalizable scorecard value must not
-		// erase a repository an ingested document asserted.
-		if repo := normalizeRepositoryURL(pkg.Scorecard.Repository); repo != "" {
-			component.Repository = repo
-		}
+	if pkg.Scorecard != nil && component.Repository == "" {
+		// Fill a gap only. The scorecard repository is matcher-derived, so an
+		// ingested document's own assertion outranks it under the
+		// detection-classifies / ingest-corrects / enrichment-fills-gaps rule.
+		component.Repository = normalizeRepositoryURL(pkg.Scorecard.Repository)
 	}
 	// The registry copy of ResolvedURL is normally the detection value echoed
 	// back, so it only fills a gap a matcher supplied. Source is not carried
@@ -308,6 +307,33 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 	if component.ArtifactURL == "" && component.VCSURL == "" && component.RegistryURL == "" {
 		applyLocator(component, classifyResolvedURL(pkg.ResolvedURL, "", pkg.Ecosystem))
 	}
+}
+
+// normalizeDigestAlgorithm renders a decoded checksum algorithm in the form
+// both encoders recognize.
+//
+// Stripping every separator is wrong for the SHA-3 family: "SHA3-256" would
+// become "sha3256", which neither spdxChecksumAlgorithm nor
+// cycloneDXHashAlgorithm matches, so the checksum would be silently dropped on
+// re-export. The SHA-3 names keep their hyphen; the others lose theirs.
+func normalizeDigestAlgorithm(algorithm string) string {
+	normalized := strings.ToLower(strings.TrimSpace(algorithm))
+	normalized = strings.ReplaceAll(normalized, "_", "-")
+	switch normalized {
+	case "sha3-256", "sha3256":
+		return "sha3-256"
+	case "sha3-384", "sha3384":
+		return "sha3-384"
+	case "sha3-512", "sha3512":
+		return "sha3-512"
+	case "blake2b-256", "blake2b256":
+		return "blake2b-256"
+	case "blake2b-384", "blake2b384":
+		return "blake2b-384"
+	case "blake2b-512", "blake2b512":
+		return "blake2b-512"
+	}
+	return strings.ReplaceAll(normalized, "-", "")
 }
 
 // applyLocator projects a classified resolved URL onto a component. A

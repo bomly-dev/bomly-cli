@@ -15,6 +15,7 @@ import (
 const (
 	metadataKeySupplier       = "bomly.sbom.supplier"
 	metadataKeySupplierType   = "bomly.sbom.supplier_type"
+	metadataKeySupplierURL    = "bomly.sbom.supplier_url"
 	metadataKeyOriginator     = "bomly.sbom.originator"
 	metadataKeyOriginatorType = "bomly.sbom.originator_type"
 	metadataKeyDescription    = "bomly.sbom.description"
@@ -34,6 +35,7 @@ func setIngestedMetadata(dep *sdk.Dependency, component Component) {
 	values := map[string]string{
 		metadataKeySupplier:       component.Supplier,
 		metadataKeySupplierType:   component.SupplierType,
+		metadataKeySupplierURL:    component.SupplierURL,
 		metadataKeyOriginator:     component.Originator,
 		metadataKeyOriginatorType: component.OriginatorType,
 		metadataKeyDescription:    component.Description,
@@ -88,6 +90,7 @@ func applyIngestedMetadata(component *Component, metadata map[string]any) {
 	targets := map[string]*string{
 		metadataKeySupplier:       &component.Supplier,
 		metadataKeySupplierType:   &component.SupplierType,
+		metadataKeySupplierURL:    &component.SupplierURL,
 		metadataKeyOriginator:     &component.Originator,
 		metadataKeyOriginatorType: &component.OriginatorType,
 		metadataKeyDescription:    &component.Description,

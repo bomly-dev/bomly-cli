@@ -603,13 +603,29 @@ func TestScanSBOMExportDistribution(t *testing.T) {
 	}
 
 	// Nothing about the machine that ran the scan may appear in either
-	// document. The temp dir stands in for any local path the detectors saw.
+	// document.
+	//
+	// Checking only `dir` would be too weak: that is the output directory
+	// passed to -o, while a --url scan clones the repository into a separate
+	// bomly-git-* temp directory. A detector leaking that clone path would go
+	// unnoticed. Assert on the shape of any local path instead, so the check
+	// covers paths this test never sees.
 	for name, raw := range map[string][]byte{"spdx": spdxRaw, "cyclonedx": cdxRaw} {
-		if strings.Contains(string(raw), dir) {
-			t.Fatalf("%s output leaked the scan working directory %q", name, dir)
+		rendered := string(raw)
+		if strings.Contains(rendered, dir) {
+			t.Fatalf("%s output leaked the output directory %q", name, dir)
 		}
-		if strings.Contains(string(raw), "file://") {
-			t.Fatalf("%s output contains a file:// locator", name)
+		for _, marker := range []string{
+			"file://", "bomly-git-", os.TempDir(),
+			`"/Users/`, `"/home/`, `"/var/folders/`, `"/private/`,
+			`:"/tmp/`, `":/tmp/`,
+		} {
+			if marker == "" {
+				continue
+			}
+			if strings.Contains(rendered, marker) {
+				t.Fatalf("%s output leaked a local path or clone directory (%q)", name, marker)
+			}
 		}
 	}
 }

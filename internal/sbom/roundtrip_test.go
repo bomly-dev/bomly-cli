@@ -1950,8 +1950,11 @@ func TestNonGitVCSDownloadLocationRoundTrips(t *testing.T) {
             "downloadLocation": "` + locator + `", "filesAnalyzed": false}]
         }`
 		out := string(ingestAndReexport(t, []byte(in), TargetSPDX23JSON))
-		if !strings.Contains(out, "example.org/project") {
-			t.Fatalf("%s was dropped on re-export:\n%s", locator, out)
+		// Assert the whole locator, not just the host and path: rebuilding it
+		// with "git+" would keep those while silently changing which
+		// version-control system the document asserts.
+		if !strings.Contains(out, locator) {
+			t.Fatalf("%s was not preserved verbatim on re-export:\n%s", locator, out)
 		}
 	}
 }
@@ -2052,6 +2055,92 @@ func TestGraphLocatorMergeMirrorsModel(t *testing.T) {
 	} {
 		if !strings.Contains(rendered, want) {
 			t.Fatalf("%s was discarded by the graph merge:\n%s", name, rendered)
+		}
+	}
+}
+
+// TestCredentialPathInSourceInfoIsRejected covers normalizeRepositoryURL, the
+// fifth entry point into the path gate. The other four were covered; this one
+// checked userinfo, query, and fragment but not path segments.
+func TestCredentialPathInSourceInfoIsRejected(t *testing.T) {
+	repo, vcs := parseSPDXSourceInfo("Source repository: https://github.com/ghp_abcd1234/repo")
+	if repo != "" || vcs != "" {
+		t.Fatalf("a credential-shaped path was accepted: repo=%q vcs=%q", repo, vcs)
+	}
+	if got := normalizeRepositoryURL("https://github.com/ghp_abcd1234/repo"); got != "" {
+		t.Fatalf("normalizeRepositoryURL kept a credential path: %q", got)
+	}
+	// A legitimate repository is unaffected.
+	if got := normalizeRepositoryURL("https://github.com/owner/repo"); got == "" {
+		t.Fatal("an ordinary repository URL was rejected")
+	}
+}
+
+// TestHostOnlyVCSLocatorIsRejected covers a locator that names no repository.
+func TestHostOnlyVCSLocatorIsRejected(t *testing.T) {
+	for _, locator := range []string{"git+https://github.com", "git+https://github.com/", "svn+https://svn.example.org"} {
+		if got := validatedVCSLocator(locator); got != "" {
+			t.Fatalf("validatedVCSLocator(%q) = %q, want a host-only locator rejected", locator, got)
+		}
+	}
+	if got := validatedVCSLocator("git+https://github.com/org/repo"); got == "" {
+		t.Fatal("a real repository locator was rejected")
+	}
+}
+
+// TestNoneDownloadLocationKeepsRepositoryAssertion covers a package that both
+// declares NONE and records a repository. NONE is emitted as the download
+// location, so the repository is not duplicated there — suppressing source
+// info as well would lose it outright.
+func TestNoneDownloadLocationKeepsRepositoryAssertion(t *testing.T) {
+	const in = `{
+      "spdxVersion": "SPDX-2.3", "SPDXID": "SPDXRef-DOCUMENT", "name": "doc",
+      "documentNamespace": "https://example.com/doc",
+      "creationInfo": {"created": "2024-01-01T00:00:00Z", "creators": ["Tool: t"]},
+      "packages": [{
+        "name": "a", "SPDXID": "SPDXRef-a", "versionInfo": "1.0.0",
+        "downloadLocation": "NONE",
+        "sourceInfo": "Source repository: git+https://github.com/org/repo@deadbeef",
+        "filesAnalyzed": false
+      }]
+    }`
+
+	out := ingestAndReexport(t, []byte(in), TargetSPDX23JSON)
+	var doc v23.Document
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	for _, p := range doc.Packages {
+		if p == nil || p.PackageName != "a" {
+			continue
+		}
+		if p.PackageDownloadLocation != "NONE" {
+			t.Fatalf("downloadLocation = %q, want the NONE assertion kept", p.PackageDownloadLocation)
+		}
+		if !strings.Contains(p.PackageSourceInfo, "git+https://github.com/org/repo@deadbeef") {
+			t.Fatalf("sourceInfo = %q, want the repository assertion kept alongside NONE", p.PackageSourceInfo)
+		}
+		return
+	}
+	t.Fatal("package missing from output")
+}
+
+// TestVCSToolIsNotRewrittenToGit covers the classifier itself: stripping a
+// tool prefix and rebuilding with "git+" changes which version-control system
+// the document asserts, rather than merely normalizing the locator.
+func TestVCSToolIsNotRewrittenToGit(t *testing.T) {
+	cases := map[string]string{
+		"svn+https://svn.example.org/project": "svn+https://svn.example.org/project",
+		"hg+https://hg.example.org/project":   "hg+https://hg.example.org/project",
+		"bzr+https://bzr.example.org/project": "bzr+https://bzr.example.org/project",
+		"git+https://github.com/org/repo":     "git+https://github.com/org/repo",
+	}
+	for in, want := range cases {
+		if got := classifyAssertedDownloadLocation(in); got.URL != want {
+			t.Fatalf("classifyAssertedDownloadLocation(%q).URL = %q, want %q", in, got.URL, want)
+		}
+		if got := classifyIngestedVCS(in); got != want {
+			t.Fatalf("classifyIngestedVCS(%q) = %q, want %q", in, got, want)
 		}
 	}
 }

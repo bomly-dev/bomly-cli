@@ -564,19 +564,23 @@ func spdxSourceInfo(component Component) string {
 	// distribution and a vcs reference; there the artifact owns
 	// downloadLocation, and dropping the repository as well would lose it
 	// entirely even though PackageSourceInfo can represent it.
-	if component.VCSURL != "" && component.ArtifactURL == "" {
+	// Suppress only when this VCS locator is the value spdxDownloadLocation
+	// actually emits. With NONE asserted, or with an artifact owning the
+	// field, the repository is not duplicated there — so dropping it here
+	// would lose the assertion outright.
+	if component.VCSURL != "" && component.ArtifactURL == "" && !component.NoDownloadLocation {
 		return ""
 	}
 	// The ingested VCS assertion outranks the matcher-derived Scorecard
 	// repository, matching the ingest-before-enrichment precedence.
 	repo := ""
-	if component.ArtifactURL != "" {
+	if component.ArtifactURL != "" || component.NoDownloadLocation {
 		repo = strings.TrimSpace(component.VCSURL)
 	}
 	if repo == "" {
 		repo = strings.TrimSpace(component.Repository)
 	}
-	if repo == "" && component.ArtifactURL != "" {
+	if repo == "" && (component.ArtifactURL != "" || component.NoDownloadLocation) {
 		// Keep the version-control form intact. Stripping "git+" from
 		// "git+https://host/org/repo@deadbeef" turns the revision into part
 		// of the URL path, producing a repository address that does not

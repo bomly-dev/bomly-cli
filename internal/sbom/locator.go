@@ -164,6 +164,7 @@ func classifyURL(raw string, source sdk.DependencySource, ecosystem sdk.Ecosyste
 	// Cargo records the raw Cargo.lock `source` string, which carries its own
 	// scheme prefix. The prefix is a stronger signal than anything else here.
 	hint := LocatorNone
+	vcsTool := ""
 	switch {
 	case strings.HasPrefix(raw, "registry+"):
 		raw, hint = strings.TrimPrefix(raw, "registry+"), LocatorRegistryRoot
@@ -173,8 +174,10 @@ func classifyURL(raw string, source sdk.DependencySource, ecosystem sdk.Ecosyste
 		// Any recognized version-control tool prefix, not just git+: an SPDX
 		// downloadLocation of "svn+https://…" is a valid VCS location, and
 		// leaving it prefixed makes the transport gate reject it outright.
-		if _, rest, isVCS := splitVCSToolPrefix(raw); isVCS {
-			raw, hint = rest, LocatorVCS
+		// The tool is carried through so normalization does not silently
+		// rewrite the asserted version-control system as Git.
+		if prefix, rest, isVCS := splitVCSToolPrefix(raw); isVCS {
+			raw, hint, vcsTool = rest, LocatorVCS, prefix
 		}
 	}
 
@@ -224,17 +227,17 @@ func classifyURL(raw string, source sdk.DependencySource, ecosystem sdk.Ecosyste
 	// ("https://host/repo.git?rev=<sha>"). Gating first would silently drop
 	// those pins.
 	if hint == LocatorVCS {
-		return normalizeVCS(parsed)
+		return normalizeVCS(parsed, vcsTool)
 	}
 	if hint != LocatorRegistryRoot {
 		// Swift package identity is the repository URL, so swiftpm records a
 		// repo even for `kind: registry` pins. Without this the extension
 		// check below would demote them to registry roots.
 		if ecosystem == sdk.EcosystemSwift {
-			return normalizeVCS(parsed)
+			return normalizeVCS(parsed, vcsTool)
 		}
 		if source == sdk.DependencySourceGit || strings.HasSuffix(parsed.Path, ".git") {
-			return normalizeVCS(parsed)
+			return normalizeVCS(parsed, vcsTool)
 		}
 	}
 
@@ -324,7 +327,7 @@ func isConcreteArtifactPath(path string) bool {
 // That grammar has no query component, so a cargo value such as
 // "git+https://host/a/b?rev=abc" cannot be passed through as-is: the revision
 // is moved to the "@" suffix and the query is dropped.
-func normalizeVCS(parsed *url.URL) Locator {
+func normalizeVCS(parsed *url.URL, tool string) Locator {
 	// The fragment carries the resolved commit and the query carries what was
 	// requested, so "?branch=main#abc123" locked abc123. Preferring the
 	// fragment records the immutable commit rather than a moving branch, and
@@ -373,7 +376,10 @@ func normalizeVCS(parsed *url.URL) Locator {
 	}
 
 	base := strings.TrimSuffix(clean.String(), "/")
-	out := "git+" + base
+	if tool == "" {
+		tool = "git+"
+	}
+	out := tool + base
 	if isSafeRevision(revision) {
 		out += "@" + revision
 	}
@@ -487,7 +493,7 @@ func normalizeRepositoryURL(repo string) string {
 			// The scheme-less branch below requires an owner/repo path;
 			// an absolute URL has to clear the same bar or it names no
 			// repository at all.
-			if strings.Trim(parsed.Path, "/") == "" {
+			if strings.Trim(parsed.Path, "/") == "" || hasCredentialPath(parsed) {
 				return ""
 			}
 			return parsed.String()
@@ -545,11 +551,7 @@ func classifyIngestedVCS(raw string) string {
 	default:
 		return ""
 	}
-	locator := normalizeVCS(parsed).URL
-	if locator == "" || tool == "git+" {
-		return locator
-	}
-	return tool + strings.TrimPrefix(locator, "git+")
+	return normalizeVCS(parsed, tool).URL
 }
 
 // classifyAssertedDownloadLocation classifies a value that its source document
@@ -641,6 +643,11 @@ func validatedVCSLocator(locator string) string {
 		return ""
 	}
 
+	// A repository needs a path: "git+https://github.com" names none, and the
+	// other normalization paths already reject that shape.
+	if strings.Trim(parsed.Path, "/") == "" {
+		return ""
+	}
 	out := tool + strings.TrimSuffix(parsed.String(), "/")
 	if isSafeRevision(revision) {
 		out += "@" + revision

@@ -503,15 +503,27 @@ func classifyAssertedDownloadLocation(raw string) Locator {
 // validatedVCSLocator checks an already-rendered "git+<transport>://…"
 // locator and returns it unchanged when it is safe to republish, or "".
 //
-// The locator is kept verbatim rather than reparsed and rebuilt: any pinned
-// revision after "@" is part of the value's meaning, and re-deriving it risks
-// changing what it says.
+// The pinned revision has to be split off and checked explicitly. In
+// "git+https://host/org/repo@ghp_abcd1234" the suffix parses as part of the
+// URL path, not as userinfo, so the scheme and userinfo checks never see it —
+// an earlier version returned that locator unchanged and republished the
+// token. An unsafe revision is dropped and the repository kept, matching what
+// normalizeVCS does.
 func validatedVCSLocator(locator string) string {
 	locator = strings.TrimSpace(locator)
 	if !strings.HasPrefix(locator, "git+") {
 		return ""
 	}
-	parsed, err := url.Parse(strings.TrimPrefix(locator, "git+"))
+	base := strings.TrimPrefix(locator, "git+")
+
+	revision := ""
+	if scheme, rest, ok := strings.Cut(base, "://"); ok {
+		if path, suffix, found := strings.Cut(rest, "@"); found {
+			base, revision = scheme+"://"+path, suffix
+		}
+	}
+
+	parsed, err := url.Parse(base)
 	if err != nil || parsed.User != nil || parsed.Host == "" {
 		return ""
 	}
@@ -523,7 +535,12 @@ func validatedVCSLocator(locator string) string {
 	if hasCredentialQuery(parsed) || parsed.Fragment != "" {
 		return ""
 	}
-	return locator
+
+	out := "git+" + base
+	if isSafeRevision(revision) {
+		out += "@" + revision
+	}
+	return out
 }
 
 // isPublishableReferenceURL reports whether a URL carried on an ingested

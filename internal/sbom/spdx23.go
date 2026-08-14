@@ -673,27 +673,86 @@ func isValidCPE(value string) bool {
 		if len(parts) != 13 {
 			return false
 		}
-		return isCPEPart(parts[2])
+		if !isCPEPart(parts[2]) {
+			return false
+		}
+		// Every remaining component must be a well-formed avstring. Checking
+		// only the field count let values such as
+		// "cpe:2.3:a:vendor with space:product:…" through.
+		for _, part := range parts[3:] {
+			if !isCPEComponent(part) {
+				return false
+			}
+		}
+		return true
 	case strings.HasPrefix(value, "cpe:/"):
 		// URI binding: "cpe:/" plus up to 7 components, the first the part.
 		parts := splitUnescaped(strings.TrimPrefix(value, "cpe:/"), ':')
 		if len(parts) == 0 || len(parts) > 7 {
 			return false
 		}
-		return isCPEPart(parts[0])
+		if !isCPEPart(parts[0]) {
+			return false
+		}
+		for _, part := range parts[1:] {
+			if !isCPEComponent(part) {
+				return false
+			}
+		}
+		return true
 	default:
 		return false
 	}
 }
 
 // isCPEPart reports whether a CPE part component is one of the defined values.
+//
+// An empty part is not among them: "cpe:2.3::vendor:…" names no component
+// class, so accepting it would preserve an identity assertion that identifies
+// nothing.
 func isCPEPart(part string) bool {
 	switch part {
-	case "a", "o", "h", "*", "-", "":
+	case "a", "o", "h", "*", "-":
 		return true
 	default:
 		return false
 	}
+}
+
+// isCPEComponent reports whether a CPE attribute value is well formed.
+//
+// The logical values "*" and "-" stand alone. Otherwise the value is a quoted
+// string of printable ASCII: whitespace and control characters are not
+// permitted, and the punctuation CPE reserves must be backslash-escaped. A
+// trailing lone backslash escapes nothing and is malformed.
+//
+// The wildcards "*" and "?" are allowed unescaped, because partial values such
+// as "1.3.*" are legal and common. Rejecting them would drop real identity
+// data, which is the same kind of harm as preserving a fabricated value.
+func isCPEComponent(value string) bool {
+	switch value {
+	case "*", "-":
+		return true
+	case "":
+		return false
+	}
+
+	escaped := false
+	for _, r := range value {
+		switch {
+		case escaped:
+			escaped = false
+		case r == '\\':
+			escaped = true
+		case r < '!' || r > '~':
+			// Space, control characters, and anything non-ASCII.
+			return false
+		case strings.ContainsRune(`!"#$%&'()+,/:;<=>@[]^`+"`"+`{|}~`, r):
+			// Reserved punctuation must be escaped to appear literally.
+			return false
+		}
+	}
+	return !escaped
 }
 
 // splitUnescaped splits on sep, treating a backslash-escaped separator as a

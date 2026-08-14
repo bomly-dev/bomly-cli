@@ -1012,6 +1012,10 @@ func TestIsValidCPE(t *testing.T) {
 		`cpe:2.3:a:ven\:dor:prod:1.0:*:*:*:*:*:*:*`,
 		"cpe:/a:vendor:product:1.0",
 		"cpe:/o:vendor:os",
+		// Wildcards inside a value are legal and common; rejecting them
+		// would drop real identity data.
+		"cpe:2.3:a:vendor:product:1.3.*:*:*:*:*:*:*:*",
+		"cpe:2.3:a:vendor:node.js:10.0:*:*:*:*:*:*:*",
 	}
 	for _, value := range valid {
 		if !isValidCPE(value) {
@@ -1027,6 +1031,13 @@ func TestIsValidCPE(t *testing.T) {
 		"cpe:/z:vendor:product",                                // bad part
 		"cpe:/a:b:c:d:e:f:g:h",                                 // too many
 		"https://example.com",
+		// Component-level checks: a correct field count is not enough.
+		"cpe:2.3:a:vendor with space:product:*:*:*:*:*:*:*:*", // unescaped whitespace
+		"cpe:2.3::vendor:product:*:*:*:*:*:*:*:*",             // empty part
+		"cpe:2.3:a:vendor:prod<uct:*:*:*:*:*:*:*:*",           // unescaped reserved punctuation
+		"cpe:2.3:a:vendor:product:1.0:*:*:*:*:*:*:" + `x\`,    // trailing lone backslash
+		"cpe:2.3:a:vendor::*:*:*:*:*:*:*:*",                   // empty component
+		"cpe:/a:vendor with space:product",                    // whitespace in the uri binding
 	}
 	for _, value := range invalid {
 		if isValidCPE(value) {
@@ -1241,5 +1252,78 @@ func TestSPDXNoneDownloadLocationIsPreserved(t *testing.T) {
 	}
 	if got["noassert-pkg"] != "NOASSERTION" {
 		t.Fatalf("NOASSERTION became %q", got["noassert-pkg"])
+	}
+}
+
+// TestVCSLocatorRevisionIsValidated covers an already-rendered
+// "git+…@<revision>" locator. The suffix parses as part of the URL path, so
+// the scheme and userinfo checks never see it — an earlier version returned
+// such a locator unchanged and republished the token in it.
+func TestVCSLocatorRevisionIsValidated(t *testing.T) {
+	cases := []struct{ in, want string }{
+		{"git+https://github.com/org/repo@deadbeef", "git+https://github.com/org/repo@deadbeef"},
+		{"git+https://github.com/org/repo@v1.2.3", "git+https://github.com/org/repo@v1.2.3"},
+		// Token-shaped revision: the repository survives, the secret does not.
+		{"git+https://github.com/org/repo@ghp_abcd1234", "git+https://github.com/org/repo"},
+		{"git+https://github.com/org/repo@glpat-Abc123", "git+https://github.com/org/repo"},
+		{"git+https://tok:s3cret@github.com/org/repo", ""},
+		{"git+file:///Users/victim/repo", ""},
+		{"https://github.com/org/repo", ""},
+		{"", ""},
+	}
+	for _, tc := range cases {
+		if got := validatedVCSLocator(tc.in); got != tc.want {
+			t.Fatalf("validatedVCSLocator(%q) = %q, want %q", tc.in, got, tc.want)
+		}
+	}
+}
+
+// TestVCSSourceInfoTokenIsNotRepublished is the end-to-end counterpart.
+func TestVCSSourceInfoTokenIsNotRepublished(t *testing.T) {
+	const in = `{
+      "spdxVersion": "SPDX-2.3",
+      "SPDXID": "SPDXRef-DOCUMENT",
+      "name": "doc",
+      "documentNamespace": "https://example.com/doc",
+      "creationInfo": {"created": "2024-01-01T00:00:00Z", "creators": ["Tool: t"]},
+      "packages": [{
+        "name": "a", "SPDXID": "SPDXRef-a", "versionInfo": "1.0.0",
+        "downloadLocation": "https://reg.example/a-1.0.0.tgz", "filesAnalyzed": false,
+        "sourceInfo": "Source repository: git+https://github.com/org/repo@ghp_abcd1234"
+      }]
+    }`
+
+	for _, target := range []Target{TargetSPDX23JSON, TargetCycloneDX17JSON} {
+		out := string(ingestAndReexport(t, []byte(in), target))
+		if strings.Contains(out, "ghp_abcd1234") {
+			t.Fatalf("%s republished a token from a rendered VCS locator:\n%s", target, out)
+		}
+		if !strings.Contains(out, "github.com/org/repo") {
+			t.Fatalf("%s dropped the repository along with the token:\n%s", target, out)
+		}
+	}
+}
+
+// Realistic CPEs drawn from NVD-style identifiers, to confirm the stricter
+// component validation does not reject genuine identity data.
+func TestRealWorldCPEsAccepted(t *testing.T) {
+	for _, value := range []string{
+		"cpe:2.3:a:apache:log4j:2.14.1:*:*:*:*:*:*:*",
+		"cpe:2.3:a:openbsd:openssh:8.9:p1:*:*:*:*:*:*",
+		"cpe:2.3:a:nodejs:node.js:16.13.0:*:*:*:*:*:*:*",
+		"cpe:2.3:o:linux:linux_kernel:5.15.0:*:*:*:*:*:*:*",
+		"cpe:2.3:a:facebook:react:18.2.0:*:*:*:*:*:*:*",
+		"cpe:2.3:a:python:cpython:3.11.0:rc1:*:*:*:*:*:*",
+		"cpe:2.3:a:microsoft:.net:6.0:*:*:*:*:*:*:*",
+		"cpe:2.3:a:vendor:product:1.3.*:*:*:*:*:*:*:*",
+		"cpe:2.3:h:cisco:asr_9000:-:*:*:*:*:*:*:*",
+		"cpe:2.3:a:gnu:glibc:2.35:*:*:*:*:*:*:*",
+		`cpe:2.3:a:acme:c\+\+_library:1.0:*:*:*:*:*:*:*`,
+		"cpe:/a:apache:log4j:2.14.1",
+		"cpe:/o:linux:linux_kernel:5.15.0",
+	} {
+		if !isValidCPE(value) {
+			t.Errorf("real-world CPE rejected: %q", value)
+		}
 	}
 }

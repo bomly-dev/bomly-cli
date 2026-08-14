@@ -1616,3 +1616,171 @@ func TestMergeComponentAssertionsUnionsEverySet(t *testing.T) {
 		t.Fatalf("re-merging duplicated entries: %+v", dst)
 	}
 }
+
+// TestBareTokenQueryIsRejected covers a query with no "=": url.ParseQuery
+// turns "?ghp_abcd1234" into a nameless key, so the credential-shape check has
+// to run on parameter names as well as values.
+func TestBareTokenQueryIsRejected(t *testing.T) {
+	for _, raw := range []string{
+		"https://repo.example/download?ghp_abcd1234",
+		"https://repo.example/download?glpat-Abc123",
+	} {
+		if got := classifyAssertedDownloadLocation(raw); got.Kind != LocatorNone {
+			t.Fatalf("classifyAssertedDownloadLocation(%q) = %+v, want it rejected", raw, got)
+		}
+		if isPublishableReferenceURL(raw) {
+			t.Fatalf("isPublishableReferenceURL(%q) = true, want it rejected", raw)
+		}
+	}
+	// A genuinely benign nameless query is still fine.
+	if got := classifyAssertedDownloadLocation("https://repo.example/download?raw"); got.Kind == LocatorNone {
+		t.Fatal("a benign nameless query was rejected")
+	}
+}
+
+// TestMailtoTargetIsValidated covers the opaque body of a mailto reference,
+// which none of the userinfo, query, or revision gates inspect.
+func TestMailtoTargetIsValidated(t *testing.T) {
+	valid := []string{"mailto:security@example.com", "mailto:first.last+tag@sub.example.org"}
+	for _, value := range valid {
+		if !isPublishableReferenceURL(value) {
+			t.Fatalf("isPublishableReferenceURL(%q) = false, want a real address accepted", value)
+		}
+	}
+	invalid := []string{
+		"mailto:ghp_abcd1234", "mailto:notanaddress", "mailto:", "mailto:@example.com",
+		"mailto:user@", "mailto:user@nodot",
+	}
+	for _, value := range invalid {
+		if isPublishableReferenceURL(value) {
+			t.Fatalf("isPublishableReferenceURL(%q) = true, want it rejected", value)
+		}
+	}
+}
+
+// TestNonGitVCSReferencesSurvive covers the other version-control tools. The
+// "git+" trim did not apply to them, so their scheme was rejected outright.
+func TestNonGitVCSReferencesSurvive(t *testing.T) {
+	for _, locator := range []string{
+		"svn+https://svn.example.org/project",
+		"hg+https://hg.example.org/project",
+		"bzr+https://bzr.example.org/project",
+	} {
+		if got := validatedVCSLocator(locator); got == "" {
+			t.Fatalf("validatedVCSLocator(%q) = \"\", want the repository preserved", locator)
+		}
+	}
+	// The safety gate still applies to them.
+	if got := validatedVCSLocator("svn+https://tok:s3cret@svn.example.org/p"); got != "" {
+		t.Fatalf("credential-bearing svn locator accepted: %q", got)
+	}
+}
+
+// TestNamelessSupplierEntitySurvives covers a CycloneDX organizational entity
+// that identifies itself only by URL or contact. The name is optional there,
+// so gating the whole entity on it discarded compliance-relevant assertions.
+func TestNamelessSupplierEntitySurvives(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0", "type": "library", "name": "a", "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "supplier": {
+          "url": ["https://supplier.example.com"],
+          "contact": [{"name": "Security Team", "email": "security@supplier.example.com"}]
+        }
+      }]
+    }`
+
+	out := string(ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON))
+	for _, want := range []string{"https://supplier.example.com", "Security Team", "security@supplier.example.com"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("nameless supplier lost %q:\n%s", want, out)
+		}
+	}
+}
+
+// TestURIBoundCPEUsesItsOwnGrammar covers CPE 2.2, whose components may be
+// empty and whose edition field packs five values with "~" separators.
+// Applying the 2.3 formatted-string rules rejected genuine identifiers.
+func TestURIBoundCPEUsesItsOwnGrammar(t *testing.T) {
+	valid := []string{
+		"cpe:/a:hp:insight_diagnostics:7.4.0.1570::~~online~win2003~x64~",
+		"cpe:/a:apache:log4j:2.14.1",
+		"cpe:/o:linux:linux_kernel",
+		"cpe:/a:vendor:product::update",
+	}
+	for _, value := range valid {
+		if !isValidCPE(value) {
+			t.Fatalf("isValidCPE(%q) = false, want a valid URI-bound CPE accepted", value)
+		}
+	}
+	for _, value := range []string{"cpe:/a:vendor with space:product", "cpe:/z:vendor:product"} {
+		if isValidCPE(value) {
+			t.Fatalf("isValidCPE(%q) = true, want it rejected", value)
+		}
+	}
+}
+
+// TestEscapedControlInCPEIsRejected covers the escape branch, which skipped
+// the printable-ASCII check for whatever followed a backslash.
+func TestEscapedControlInCPEIsRejected(t *testing.T) {
+	for _, value := range []string{
+		"cpe:2.3:a:vendor:pro\\\x00duct:1.0:*:*:*:*:*:*:*",
+		"cpe:2.3:a:vendor:pro\\ duct:1.0:*:*:*:*:*:*:*",
+		"cpe:2.3:a:vendor:pro\\é:1.0:*:*:*:*:*:*:*",
+	} {
+		if isValidCPE(value) {
+			t.Fatalf("isValidCPE(%q) = true, want an escaped non-printable rejected", value)
+		}
+	}
+	// A legitimately escaped delimiter still works.
+	if !isValidCPE(`cpe:2.3:a:ven\:dor:product:1.0:*:*:*:*:*:*:*`) {
+		t.Fatal("a legitimately escaped colon was rejected")
+	}
+}
+
+// TestClassifiedLocatorHashesSurvive covers integrity assertions attached to a
+// distribution or vcs reference. Those land in scalar locator fields, so they
+// bypassed the path where reference digests were preserved.
+func TestClassifiedLocatorHashesSurvive(t *testing.T) {
+	hash := strings.Repeat("f", 64)
+	in := `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0", "type": "library", "name": "a", "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "externalReferences": [
+          {"type": "distribution", "url": "https://reg.example/a-1.0.0.tgz",
+           "hashes": [{"alg": "SHA-256", "content": "` + hash + `"}]}
+        ]
+      }]
+    }`
+
+	raw := ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON)
+	var bom cdx.BOM
+	if err := json.Unmarshal(raw, &bom); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	comp := (*bom.Components)[0]
+	if comp.ExternalReferences == nil {
+		t.Fatalf("no external references:\n%s", raw)
+	}
+	for _, ref := range *comp.ExternalReferences {
+		if ref.Type != cdx.ERTypeDistribution {
+			continue
+		}
+		if ref.Hashes == nil || len(*ref.Hashes) != 1 {
+			t.Fatalf("distribution reference lost its integrity assertion: %+v", ref)
+		}
+		if h := (*ref.Hashes)[0]; h.Algorithm != cdx.HashAlgoSHA256 || h.Value != hash {
+			t.Fatalf("distribution hash = %+v, want SHA-256 with the asserted value", h)
+		}
+		return
+	}
+	t.Fatalf("distribution reference missing:\n%s", raw)
+}

@@ -162,6 +162,10 @@ func mergeIngestedNode(existing, incoming *sdk.Dependency) {
 		// External references are a set carried under one key, so a key-level
 		// fill-gaps merge would drop the duplicate's whole list whenever the
 		// first component had any. Union them instead.
+		if key == metadataKeyLocatorDigests {
+			existing.Metadata[key] = firstPresent(existing.Metadata[key], value)
+			continue
+		}
 		if _, paired := locatorCommentKeys[key]; paired {
 			// Handled atomically below so a URL never picks up another
 			// locator's comment.
@@ -251,6 +255,15 @@ func unionAnyStrings(base, extra any) any {
 		baseList = append(baseList, entry)
 	}
 	return baseList
+}
+
+// firstPresent keeps an existing value when there is one, matching the
+// fill-gaps rule the locator slots themselves follow.
+func firstPresent(existing, incoming any) any {
+	if existing != nil {
+		return existing
+	}
+	return incoming
 }
 
 // unionAnyRecords merges two serialized lists of maps, deduplicating on the

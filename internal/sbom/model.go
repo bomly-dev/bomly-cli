@@ -159,6 +159,13 @@ type Component struct {
 	VCSComment      string
 	RegistryComment string
 
+	// Digests asserted on the reference that supplied each locator. These
+	// belong to the referenced artifact, not to the component, so they are
+	// kept apart from Component.Digests.
+	ArtifactDigests []Digest
+	VCSDigests      []Digest
+	RegistryDigests []Digest
+
 	// Repository is a canonical "github.com/owner/repo" source repository
 	// supplied by the OpenSSF Scorecard matcher during enrichment.
 	Repository string
@@ -218,6 +225,9 @@ func mergeComponentAssertions(dst *Component, src Component) {
 	// discard the second set whenever the first had any.
 	dst.CPEs = unionStrings(dst.CPEs, src.CPEs)
 	dst.Digests = unionComponentDigests(dst.Digests, src.Digests)
+	dst.ArtifactDigests = unionComponentDigests(dst.ArtifactDigests, src.ArtifactDigests)
+	dst.VCSDigests = unionComponentDigests(dst.VCSDigests, src.VCSDigests)
+	dst.RegistryDigests = unionComponentDigests(dst.RegistryDigests, src.RegistryDigests)
 	dst.Licenses = unionLicenses(dst.Licenses, src.Licenses)
 	dst.SupplierURLs = unionStrings(dst.SupplierURLs, src.SupplierURLs)
 	dst.SupplierContacts = unionContacts(dst.SupplierContacts, src.SupplierContacts)
@@ -318,16 +328,21 @@ func unionExternalRefs(base, extra []ExternalRef) []ExternalRef {
 		return base
 	}
 	type key struct{ refType, url string }
-	seen := make(map[key]struct{}, len(base))
-	for _, ref := range base {
-		seen[key{ref.Type, ref.URL}] = struct{}{}
+	index := make(map[key]int, len(base))
+	for i, ref := range base {
+		index[key{ref.Type, ref.URL}] = i
 	}
 	for _, ref := range extra {
 		k := key{ref.Type, ref.URL}
-		if _, ok := seen[k]; ok {
+		if i, ok := index[k]; ok {
+			// Same reference, possibly different assertions about it.
+			base[i].Digests = unionComponentDigests(base[i].Digests, ref.Digests)
+			if base[i].Comment == "" {
+				base[i].Comment = ref.Comment
+			}
 			continue
 		}
-		seen[k] = struct{}{}
+		index[k] = len(base)
 		base = append(base, ref)
 	}
 	return base

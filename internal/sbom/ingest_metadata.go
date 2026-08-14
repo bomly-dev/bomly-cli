@@ -18,6 +18,7 @@ const (
 	metadataKeySupplierURLs   = "bomly.sbom.supplier_urls"
 	metadataKeyNoDownload     = "bomly.sbom.no_download_location"
 	metadataKeySupplierPeople = "bomly.sbom.supplier_contacts"
+	metadataKeyLocatorDigests = "bomly.sbom.locator_digests"
 	metadataKeyOriginator     = "bomly.sbom.originator"
 	metadataKeyOriginatorType = "bomly.sbom.originator_type"
 	metadataKeyDescription    = "bomly.sbom.description"
@@ -82,6 +83,29 @@ func setIngestedMetadata(dep *sdk.Dependency, component Component) {
 			dep.Metadata = make(map[string]any)
 		}
 		dep.Metadata[metadataKeySupplierPeople] = people
+	}
+	if locators := map[string][]Digest{
+		"artifact": component.ArtifactDigests,
+		"vcs":      component.VCSDigests,
+		"registry": component.RegistryDigests,
+	}; len(locators["artifact"])+len(locators["vcs"])+len(locators["registry"]) > 0 {
+		encoded := map[string]any{}
+		for slot, digests := range locators {
+			if len(digests) == 0 {
+				continue
+			}
+			entries := make([]any, 0, len(digests))
+			for _, digest := range digests {
+				entries = append(entries, map[string]any{
+					"algorithm": digest.Algorithm, "value": digest.Value,
+				})
+			}
+			encoded[slot] = entries
+		}
+		if dep.Metadata == nil {
+			dep.Metadata = make(map[string]any)
+		}
+		dep.Metadata[metadataKeyLocatorDigests] = encoded
 	}
 	if component.NoDownloadLocation {
 		if dep.Metadata == nil {
@@ -182,6 +206,30 @@ func applyIngestedMetadata(component *Component, metadata map[string]any) {
 			}
 			component.SupplierContacts = unionContacts(component.SupplierContacts,
 				[]Contact{{Name: name, Email: email, Phone: phone}})
+		}
+	}
+	if encoded, ok := metadata[metadataKeyLocatorDigests].(map[string]any); ok {
+		targets := map[string]*[]Digest{
+			"artifact": &component.ArtifactDigests,
+			"vcs":      &component.VCSDigests,
+			"registry": &component.RegistryDigests,
+		}
+		for slot, target := range targets {
+			entries, ok := encoded[slot].([]any)
+			if !ok {
+				continue
+			}
+			for _, entry := range entries {
+				fields, ok := entry.(map[string]any)
+				if !ok {
+					continue
+				}
+				algorithm, _ := fields["algorithm"].(string)
+				value, _ := fields["value"].(string)
+				if digest, ok := ingestedDigest(algorithm, value); ok {
+					*target = unionComponentDigests(*target, []Digest{digest})
+				}
+			}
 		}
 	}
 	if none, ok := metadata[metadataKeyNoDownload].(bool); ok && none {

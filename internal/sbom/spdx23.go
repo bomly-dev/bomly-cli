@@ -704,8 +704,12 @@ func isValidCPE(value string) bool {
 		if !isCPEPart(parts[0]) {
 			return false
 		}
+		// The URI binding has its own grammar: components may be empty, and
+		// the edition field packs five values with "~" separators
+		// ("~~online~win2003~x64~"). Applying the formatted-string rules here
+		// rejected genuine identifiers.
 		for _, part := range parts[1:] {
-			if !isCPEComponent(part) {
+			if !isCPEURIComponent(part) {
 				return false
 			}
 		}
@@ -727,6 +731,26 @@ func isCPEPart(part string) bool {
 	default:
 		return false
 	}
+}
+
+// isCPEURIComponent reports whether a component of a CPE 2.2 URI binding is
+// well formed.
+//
+// Unlike the formatted string, an empty component is legal here — it means
+// "unspecified" — values are percent-encoded rather than backslash-escaped,
+// and "~" is meaningful as the packed-edition separator. The check is
+// therefore a character gate: printable ASCII, no whitespace, and none of the
+// delimiters that would change the parse.
+func isCPEURIComponent(value string) bool {
+	for _, r := range value {
+		switch {
+		case r < '!' || r > '~':
+			return false
+		case r == ':' || r == '/' || r == '?' || r == '#' || r == '[' || r == ']' || r == '@':
+			return false
+		}
+	}
+	return true
 }
 
 // isCPEComponent reports whether a CPE attribute value is well formed.
@@ -751,6 +775,12 @@ func isCPEComponent(value string) bool {
 	for _, r := range value {
 		switch {
 		case escaped:
+			// An escape must introduce a printable ASCII character. Without
+			// this, "\" followed by a control byte or a non-ASCII rune
+			// skipped the check below entirely.
+			if r < '!' || r > '~' {
+				return false
+			}
 			escaped = false
 		case r == '\\':
 			escaped = true

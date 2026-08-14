@@ -172,12 +172,20 @@ Reachability data lives on `sdk.Vulnerability.Reachability` rather than on `Find
 
 `internal/sbom/locator.go` therefore classifies each value into artifact / VCS / registry-root / nothing before it can reach an SBOM, rather than mapping the field straight onto `PackageDownloadLocation`. Two rules are load-bearing:
 
-1. **An http(s) scheme is required, and credentials are rejected.** This is what keeps build-machine directory layout and private-registry credentials out of a published document. Credentials travel in two places: `user:password@host` userinfo, and query or fragment values on signed and private-registry links (`?token=`, `?X-Amz-Signature=`). A benign query parameter cannot be told apart from a credential, so any query or fragment disqualifies a non-VCS locator; VCS locators are exempt only because `normalizeVCS` discards both and keeps a character-checked revision. The check is on the value, never on `Source` — uv's `path`/`editable` values arrive under non-`file` sources.
+1. **A network scheme is required, and credentials are rejected.** This is what keeps build-machine directory layout and private-registry credentials out of a published document. Credentials travel in several places: `user:password@host` userinfo, query parameter names *and* values on signed and private-registry links (`?token=`, `?X-Amz-Signature=`, or a bare `?ghp_…` that parses as a nameless key), fragments, `mailto:` bodies, and the `@<revision>` suffix on a version-control locator. The check is on the value, never on `Source` — uv's `path`/`editable` values arrive under non-`file` sources.
 
-   The same gate applies to URLs read out of an **ingested** SBOM. Those are untrusted input that gets re-emitted verbatim, so a hostile or careless document could otherwise launder a `file://` path or a credential into output Bomly publishes.
+   **The gate is deliberately not uniform, and the distinction is the security boundary — do not collapse it.**
+
+   - A **detector-derived** value has nothing asserting what it is, so it gets the narrowest gate: `http(s)` only, and *any* query or fragment disqualifies it. Omitting costs nothing there, and a benign parameter cannot be told apart from a credential.
+   - A value the **source document itself declared** to be a download location or a reference — an SPDX `downloadLocation`, a CycloneDX `distribution`, or any other external reference — is a real assertion, and discarding it wholesale loses data the producer published. Those paths accept `ftp`/`ftps` alongside `http(s)`, and reject a query only when a parameter name or value is credential-shaped (`classifyAssertedDownloadLocation`, `isPublishableReferenceURL`, both via `hasCredentialQuery`). Fragments stay rejected.
+   - **VCS locators** are exempt from the query gate only because `normalizeVCS` discards query and fragment outright and keeps a revision that is separately validated: a fragment must be commit-shaped hex, and a query-named or metadata-supplied revision must not carry a known credential prefix.
+
+   Ingested URLs are untrusted input that gets re-emitted, so they are still gated — a hostile or careless document must not be able to launder a `file://` path or a credential into output Bomly publishes. The relaxation above is about *which* gate applies, never about skipping one.
+
+   One subtlety worth stating, because getting it backwards reintroduced a credential leak twice: **parse before splitting a revision.** In a URL, `@` before the host is userinfo and `@` after the path is a revision, and the two are only distinguishable once parsed. Splitting `https://ghp_secret@github.com` on `@` first reads the secret as the host and `github.com` as the revision, which passes every later check and rebuilds the credential. `splitVCSRevision` is the single place that ordering is encoded.
 2. **A registry root never becomes a download location.** `https://rubygems.org/` is schema-valid and both validators accept it, so the failure would be silent and plausible: every consumer would read it as the artifact's origin. `NOASSERTION` is the honest answer.
 
-Unrecognized shapes degrade toward the weaker claim (registry root, then nothing) rather than toward the stronger one. `FuzzClassifyResolvedURL` asserts the safety property directly: a classified value is either empty or an absolute http(s)/`git+http(s)` URL with no userinfo.
+Unrecognized shapes degrade toward the weaker claim (registry root, then nothing) rather than toward the stronger one. `FuzzClassifyResolvedURL` asserts the safety property directly: a classified value is either empty or an absolute network URL with no userinfo.
 
 ### Decision: ingested SBOM assertions ride `Dependency.Metadata`
 

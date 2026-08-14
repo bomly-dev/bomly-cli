@@ -47,11 +47,13 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 		if props := cycloneDXEOLProperties(comp.EOL); len(props) > 0 {
 			component.Properties = &props
 		}
-		// CycloneDX has no person-valued supplier: the field is an
-		// organizational entity. An SPDX document that explicitly said
-		// "Person: Alice" would be recast as an organization, changing a
-		// compliance-relevant assertion, so that case is omitted instead.
-		if comp.Supplier != "" && !strings.EqualFold(comp.SupplierType, "Person") {
+		// Emit whenever any part of the entity survives, not only when it has
+		// a name — the name is optional on a CycloneDX organizational entity.
+		// A Person-typed supplier is still omitted: CycloneDX has no
+		// person-valued supplier, so an SPDX "Person: Alice" would be recast
+		// as an organization, changing a compliance-relevant assertion.
+		hasSupplier := comp.Supplier != "" || len(comp.SupplierURLs) > 0 || len(comp.SupplierContacts) > 0
+		if hasSupplier && !strings.EqualFold(comp.SupplierType, "Person") {
 			supplier := &cdx.OrganizationalEntity{Name: comp.Supplier}
 			if len(comp.SupplierURLs) > 0 {
 				urls := append([]string(nil), comp.SupplierURLs...)
@@ -389,9 +391,14 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 	if isValidCPE(comp.CPE) {
 		component.CPEs = []string{comp.CPE}
 	}
-	if comp.Supplier != nil && comp.Supplier.Name != "" {
-		component.Supplier = comp.Supplier.Name
-		component.SupplierType = "Organization"
+	// The name is optional on a CycloneDX organizational entity. Gating the
+	// whole block on it discarded the URLs and contacts of a supplier that
+	// identifies itself only that way.
+	if comp.Supplier != nil {
+		if comp.Supplier.Name != "" {
+			component.Supplier = comp.Supplier.Name
+			component.SupplierType = "Organization"
+		}
 		if comp.Supplier.Contact != nil {
 			for _, c := range *comp.Supplier.Contact {
 				if c.Name == "" && c.Email == "" && c.Phone == "" {
@@ -426,7 +433,8 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 				// classified value takes it and the rest are preserved
 				// verbatim rather than overwriting the earlier assertion.
 				if component.ArtifactURL == "" && component.RegistryURL == "" {
-					applyLocatorComment(&component, classifyAssertedDownloadLocation(ref.URL), ref.Comment)
+					applyLocatorComment(&component, classifyAssertedDownloadLocation(ref.URL), ref.Comment,
+						referenceDigests(ref.Hashes)...)
 					if component.ArtifactURL != "" || component.RegistryURL != "" {
 						continue
 					}
@@ -436,7 +444,7 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 				}
 				component.ExternalRefs = append(component.ExternalRefs, ExternalRef{
 					Type:    string(ref.Type),
-					URL:     ref.URL,
+					URL:     strings.TrimSpace(ref.URL),
 					Comment: ref.Comment,
 					Digests: referenceDigests(ref.Hashes),
 				})
@@ -452,6 +460,7 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 				}
 				if component.VCSURL == "" {
 					component.VCSURL, component.VCSComment = vcs, ref.Comment
+					component.VCSDigests = referenceDigests(ref.Hashes)
 					continue
 				}
 				component.ExternalRefs = append(component.ExternalRefs, ExternalRef{
@@ -466,7 +475,7 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 				}
 				component.ExternalRefs = append(component.ExternalRefs, ExternalRef{
 					Type:    string(ref.Type),
-					URL:     ref.URL,
+					URL:     strings.TrimSpace(ref.URL),
 					Comment: ref.Comment,
 					Digests: referenceDigests(ref.Hashes),
 				})
@@ -488,11 +497,15 @@ func cycloneDXComponentReferences(component Component) []cdx.ExternalReference {
 
 	switch {
 	case component.ArtifactURL != "":
-		refs = append(refs, cdx.ExternalReference{
+		artifact := cdx.ExternalReference{
 			Type:    cdx.ERTypeDistribution,
 			URL:     component.ArtifactURL,
 			Comment: component.ArtifactComment,
-		})
+		}
+		if hashes := cycloneDXHashes(component.ArtifactDigests); len(hashes) > 0 {
+			artifact.Hashes = &hashes
+		}
+		refs = append(refs, artifact)
 	case component.RegistryURL != "":
 		// Only explain the value when the producer said nothing: replacing a
 		// source document's own comment could contradict what it asserted.
@@ -507,7 +520,11 @@ func cycloneDXComponentReferences(component Component) []cdx.ExternalReference {
 	// scorecard repository. Emitting both would assert the same repository
 	// twice from two sources.
 	if vcs := firstNonEmpty(component.VCSURL, component.Repository); vcs != "" {
-		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeVCS, URL: vcs, Comment: component.VCSComment})
+		emitted := cdx.ExternalReference{Type: cdx.ERTypeVCS, URL: vcs, Comment: component.VCSComment}
+		if hashes := cycloneDXHashes(component.VCSDigests); len(hashes) > 0 {
+			emitted.Hashes = &hashes
+		}
+		refs = append(refs, emitted)
 	}
 
 	for _, ref := range component.ExternalRefs {

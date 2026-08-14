@@ -107,6 +107,11 @@ func hasCredentialQuery(parsed *url.URL) bool {
 				return true
 			}
 		}
+		// A bare "?ghp_abcd1234" parses as a key with an empty value, so the
+		// shape check has to run on names as well as values.
+		if looksLikeCredential(key) {
+			return true
+		}
 		for _, value := range vals {
 			if looksLikeCredential(value) {
 				return true
@@ -492,7 +497,11 @@ func classifyIngestedVCS(raw string) string {
 	if raw == "" {
 		return ""
 	}
-	raw = strings.TrimPrefix(raw, "git+")
+	tool, rest, hadPrefix := splitVCSToolPrefix(raw)
+	if !hadPrefix {
+		tool = "git+"
+	}
+	raw = rest
 	parsed, err := url.Parse(raw)
 	if err != nil || parsed.User != nil || parsed.Host == "" {
 		return ""
@@ -506,7 +515,11 @@ func classifyIngestedVCS(raw string) string {
 	default:
 		return ""
 	}
-	return normalizeVCS(parsed).URL
+	locator := normalizeVCS(parsed).URL
+	if locator == "" || tool == "git+" {
+		return locator
+	}
+	return tool + strings.TrimPrefix(locator, "git+")
 }
 
 // classifyAssertedDownloadLocation classifies a value that its source document
@@ -565,10 +578,11 @@ func splitVCSRevision(raw string) (parsed *url.URL, revision string, ok bool) {
 // normalizeVCS does.
 func validatedVCSLocator(locator string) string {
 	locator = strings.TrimSpace(locator)
-	if !strings.HasPrefix(locator, "git+") {
+	tool, rest, hadPrefix := splitVCSToolPrefix(locator)
+	if !hadPrefix {
 		return ""
 	}
-	parsed, revision, ok := splitVCSRevision(strings.TrimPrefix(locator, "git+"))
+	parsed, revision, ok := splitVCSRevision(rest)
 	if !ok {
 		return ""
 	}
@@ -581,7 +595,7 @@ func validatedVCSLocator(locator string) string {
 		return ""
 	}
 
-	out := "git+" + strings.TrimSuffix(parsed.String(), "/")
+	out := tool + strings.TrimSuffix(parsed.String(), "/")
 	if isSafeRevision(revision) {
 		out += "@" + revision
 	}
@@ -611,10 +625,16 @@ func isPublishableReferenceURL(raw string) bool {
 		// parameters disqualify it. Fragments stay rejected: they carry no
 		// meaning for a reference and are a common place to hide a secret.
 		return parsed.Host != "" && parsed.Fragment == "" && !hasCredentialQuery(parsed)
-	case "mailto", "urn":
+	case "mailto":
+		// The opaque body is never inspected by the userinfo, query, or
+		// revision gates, so "mailto:ghp_abcd1234" would otherwise be
+		// republished verbatim. Require an actual address.
+		return parsed.RawQuery == "" && parsed.Fragment == "" && isEmailAddress(parsed.Opaque)
+	case "urn":
 		// Opaque identifiers with no host and no filesystem reach. A `bom`
 		// reference to "urn:uuid:..." is the common CycloneDX case.
-		return parsed.Opaque != "" && parsed.RawQuery == "" && parsed.Fragment == ""
+		return parsed.Opaque != "" && parsed.RawQuery == "" && parsed.Fragment == "" &&
+			!looksLikeCredential(parsed.Opaque)
 	default:
 		// Anything else — notably file:, data:, and javascript: — stays
 		// rejected. Denying unknown schemes is the safe default: these values
@@ -622,6 +642,48 @@ func isPublishableReferenceURL(raw string) bool {
 		// may reference the local machine or execute in a consumer.
 		return false
 	}
+}
+
+// isEmailAddress reports whether value is a plausible "local@domain" address.
+//
+// This is a safety check rather than RFC validation: its purpose is to stop an
+// arbitrary opaque string — a token, a path — from being published as a
+// mailto reference.
+func isEmailAddress(value string) bool {
+	value = strings.TrimSpace(value)
+	if value == "" || len(value) > 320 || looksLikeCredential(value) {
+		return false
+	}
+	local, domain, ok := strings.Cut(value, "@")
+	if !ok || local == "" || !isHostname(domain) {
+		return false
+	}
+	for _, r := range local {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9':
+		case r == '.', r == '_', r == '-', r == '+':
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+// vcsToolPrefixes are the version-control tool prefixes SPDX and CycloneDX
+// use ahead of a transport. Assuming every repository reference is Git would
+// drop the others outright.
+var vcsToolPrefixes = []string{"git+", "svn+", "hg+", "bzr+"}
+
+// splitVCSToolPrefix separates a recognized tool prefix from a locator,
+// returning the prefix (with its "+") and the remainder.
+func splitVCSToolPrefix(locator string) (prefix, rest string, ok bool) {
+	lowered := strings.ToLower(locator)
+	for _, candidate := range vcsToolPrefixes {
+		if strings.HasPrefix(lowered, candidate) {
+			return candidate, locator[len(candidate):], true
+		}
+	}
+	return "", locator, false
 }
 
 // isHostname reports whether value looks like a dotted DNS hostname.

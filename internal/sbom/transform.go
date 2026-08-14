@@ -394,15 +394,18 @@ func applyLocator(component *Component, locator Locator) {
 }
 
 // applyLocatorComment is applyLocator for an ingested reference, carrying the
-// producer's own comment alongside the classified URL.
-func applyLocatorComment(component *Component, locator Locator, comment string) {
+// producer's own comment and integrity assertion alongside the classified URL.
+func applyLocatorComment(component *Component, locator Locator, comment string, digests ...Digest) {
 	switch locator.Kind {
 	case LocatorArtifact:
 		component.ArtifactURL, component.ArtifactComment = locator.URL, comment
+		component.ArtifactDigests = digests
 	case LocatorVCS:
 		component.VCSURL, component.VCSComment = locator.URL, comment
+		component.VCSDigests = digests
 	case LocatorRegistryRoot:
 		component.RegistryURL, component.RegistryComment = locator.URL, comment
+		component.RegistryDigests = digests
 	}
 }
 

@@ -49,7 +49,10 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			CPEs:           append([]string(nil), pkg.CPEs...),
 		}
 		// Detection classifies, ingest corrects, enrichment fills gaps.
-		applyLocator(&component, classifyResolvedURL(pkg.ResolvedURL, pkg.Source, pkg.Ecosystem))
+		applyLocator(&component, pinLocator(
+			classifyResolvedURL(pkg.ResolvedURL, pkg.Source, pkg.Ecosystem),
+			sourceRevisionFrom(pkg.Metadata),
+		))
 		applyIngestedMetadata(&component, pkg.Metadata)
 		enrichComponentFromRegistry(&component, opts.Registry, pkg.PURL)
 		components = append(components, component)

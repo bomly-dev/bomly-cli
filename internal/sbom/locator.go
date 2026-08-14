@@ -51,6 +51,34 @@ var artifactExtensions = []string{
 // over LocatorArtifact whenever the path shape is not recognizably an archive.
 // An SBOM that omits a download location is correct; one that points at the
 // wrong place, or at the developer's home directory, is not.
+// metadataKeySourceRevision is the Dependency.Metadata key several detectors
+// (ruby, pub, and the python family) use to record the commit a git
+// dependency resolved to, separately from the repository URL.
+const metadataKeySourceRevision = "source_revision"
+
+// sourceRevisionFrom returns a detector-recorded resolved commit, or "".
+func sourceRevisionFrom(metadata map[string]any) string {
+	revision, _ := metadata[metadataKeySourceRevision].(string)
+	revision = strings.TrimSpace(revision)
+	if !isSafeRevision(revision) {
+		return ""
+	}
+	return revision
+}
+
+// pinLocator attaches a detector-recorded revision to a VCS locator that does
+// not already carry one.
+//
+// Bundler, pub, and the python detectors keep the resolved commit in metadata
+// while leaving ResolvedURL as the bare remote, so without this the export
+// would name a moving branch for a dependency whose commit is actually known.
+func pinLocator(locator Locator, revision string) Locator {
+	if locator.Kind != LocatorVCS || revision == "" || strings.Contains(locator.URL, "@") {
+		return locator
+	}
+	return Locator{Kind: LocatorVCS, URL: locator.URL + "@" + revision}
+}
+
 func classifyResolvedURL(raw string, source sdk.DependencySource, ecosystem sdk.Ecosystem) Locator {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {

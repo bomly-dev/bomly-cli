@@ -309,6 +309,151 @@ func TestSPDXSourceInfoRepositoryIsGated(t *testing.T) {
 	}
 }
 
+// TestUnknownExternalReferenceTypeIsMappedToOther keeps an ingested document
+// from producing schema-invalid output. The CycloneDX library's
+// version-downgrade pass only rewrites types it recognizes, so an arbitrary
+// string would otherwise be emitted verbatim against a closed enum.
+func TestUnknownExternalReferenceTypeIsMappedToOther(t *testing.T) {
+	const in = `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [{
+        "bom-ref": "pkg:npm/a@1.0.0",
+        "type": "library",
+        "name": "a",
+        "version": "1.0.0",
+        "purl": "pkg:npm/a@1.0.0",
+        "externalReferences": [
+          {"type": "totally-made-up", "url": "https://example.com/x"},
+          {"type": "issue-tracker", "url": "https://example.com/issues"}
+        ]
+      }]
+    }`
+
+	out := ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON)
+	if strings.Contains(string(out), "totally-made-up") {
+		t.Fatalf("unknown external reference type was emitted verbatim:\n%s", out)
+	}
+
+	var bom cdx.BOM
+	if err := json.Unmarshal(out, &bom); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	comp := (*bom.Components)[0]
+	if got := externalRefURL(comp, cdx.ERTypeOther); got != "https://example.com/x" {
+		t.Fatalf("expected the unknown type remapped to \"other\" with its URL kept, got %q", got)
+	}
+	if got := externalRefURL(comp, cdx.ERTypeIssueTracker); got != "https://example.com/issues" {
+		t.Fatalf("known type was not preserved, got %q", got)
+	}
+}
+
+// TestPersonSupplierIsNotRecastAsOrganization covers the counterpart of the
+// publisher rule: CycloneDX has no person-valued supplier, so an explicit
+// SPDX "Person:" supplier must not be relabelled.
+func TestPersonSupplierIsNotRecastAsOrganization(t *testing.T) {
+	const in = `{
+      "spdxVersion": "SPDX-2.3",
+      "SPDXID": "SPDXRef-DOCUMENT",
+      "name": "doc",
+      "documentNamespace": "https://example.com/doc",
+      "creationInfo": {"created": "2024-01-01T00:00:00Z", "creators": ["Tool: t"]},
+      "packages": [{
+        "name": "left-pad",
+        "SPDXID": "SPDXRef-Package-left-pad",
+        "versionInfo": "1.3.0",
+        "downloadLocation": "NOASSERTION",
+        "supplier": "Person: Alice",
+        "filesAnalyzed": false
+      }]
+    }`
+
+	cdxOut := ingestAndReexport(t, []byte(in), TargetCycloneDX17JSON)
+	if strings.Contains(string(cdxOut), "Alice") {
+		t.Fatalf("a person supplier was recast as a CycloneDX organization:\n%s", cdxOut)
+	}
+
+	// SPDX represents the type natively, so it must survive there.
+	spdxOut := ingestAndReexport(t, []byte(in), TargetSPDX23JSON)
+	var doc v23.Document
+	if err := json.Unmarshal(spdxOut, &doc); err != nil {
+		t.Fatalf("unmarshal spdx: %v", err)
+	}
+	for _, p := range doc.Packages {
+		if p == nil || p.PackageName != "left-pad" {
+			continue
+		}
+		if p.PackageSupplier == nil || p.PackageSupplier.SupplierType != "Person" || p.PackageSupplier.Supplier != "Alice" {
+			t.Fatalf("spdx supplier = %+v, want Person: Alice preserved", p.PackageSupplier)
+		}
+		return
+	}
+	t.Fatal("left-pad missing from spdx output")
+}
+
+// TestDuplicatePURLAssertionsAreMerged covers an ingest shape the codec
+// already supports: several component IDs mapping to one PURL. Only the first
+// becomes a graph node, so a later duplicate's assertions must be folded in
+// rather than discarded with it.
+func TestDuplicatePURLAssertionsAreMerged(t *testing.T) {
+	doc := &Document{
+		Components: []Component{
+			{
+				ID:      "first",
+				Name:    "certifi",
+				Version: "2026.4.22",
+				PURL:    "pkg:pypi/certifi@2026.4.22",
+				CPEs:    []string{"cpe:2.3:a:x:certifi:2026.4.22:*:*:*:*:*:*:*"},
+			},
+			{
+				ID:          "second",
+				Name:        "certifi",
+				Version:     "2026.4.22",
+				PURL:        "pkg:pypi/certifi@2026.4.22",
+				Supplier:    "Example Supplier Inc.",
+				Description: "Root certificates",
+				ArtifactURL: "https://files.pythonhosted.org/x/certifi-2026.4.22-py3-none-any.whl",
+				Digests:     []Digest{{Algorithm: "sha256", Value: "abc123"}},
+			},
+		},
+		Dependencies: []Dependency{{Ref: "first", DependsOn: []string{"second"}}},
+	}
+
+	graph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	out, err := MarshalDepGraphJSON(graph, TargetSPDX23JSON, BuildOptions{}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	var spdxDoc v23.Document
+	if err := json.Unmarshal(out, &spdxDoc); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if len(spdxDoc.Packages) != 1 {
+		t.Fatalf("expected one merged package, got %d", len(spdxDoc.Packages))
+	}
+	pkg := spdxDoc.Packages[0]
+	if pkg.PackageSupplier == nil || pkg.PackageSupplier.Supplier != "Example Supplier Inc." {
+		t.Fatalf("supplier from the duplicate was dropped: %+v", pkg.PackageSupplier)
+	}
+	if pkg.PackageDescription != "Root certificates" {
+		t.Fatalf("description from the duplicate was dropped: %q", pkg.PackageDescription)
+	}
+	if !strings.HasSuffix(pkg.PackageDownloadLocation, ".whl") {
+		t.Fatalf("download location from the duplicate was dropped: %q", pkg.PackageDownloadLocation)
+	}
+	if len(pkg.PackageChecksums) != 1 {
+		t.Fatalf("digest from the duplicate was dropped: %+v", pkg.PackageChecksums)
+	}
+	if len(parseSPDXCPEs(pkg.PackageExternalReferences)) != 1 {
+		t.Fatal("CPE from the first component was lost in the merge")
+	}
+}
+
 // TestSPDXHomePageSurvivesSPDXRoundTrip covers a field SPDX represents
 // exactly, which an earlier revision decoded but never re-emitted.
 func TestSPDXHomePageSurvivesSPDXRoundTrip(t *testing.T) {

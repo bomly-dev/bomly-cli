@@ -47,7 +47,11 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 		if props := cycloneDXEOLProperties(comp.EOL); len(props) > 0 {
 			component.Properties = &props
 		}
-		if comp.Supplier != "" {
+		// CycloneDX has no person-valued supplier: the field is an
+		// organizational entity. An SPDX document that explicitly said
+		// "Person: Alice" would be recast as an organization, changing a
+		// compliance-relevant assertion, so that case is omitted instead.
+		if comp.Supplier != "" && !strings.EqualFold(comp.SupplierType, "Person") {
 			supplier := &cdx.OrganizationalEntity{Name: comp.Supplier}
 			if comp.SupplierURL != "" {
 				urls := []string{comp.SupplierURL}
@@ -260,6 +264,74 @@ func cycloneDXSecurityReferences(p Provenance) []cdx.ExternalReference {
 	return refs
 }
 
+// knownExternalReferenceTypes is the CycloneDX externalReference type
+// vocabulary understood by the encoder.
+//
+// An ingested document can carry any string here, and the library's
+// version-downgrade pass only rewrites types it recognizes — an unknown string
+// falls through and is emitted verbatim, producing a schema-invalid document.
+// A type outside this set is rewritten to "other", which keeps the link while
+// staying valid. Per-version narrowing (a 1.7 type emitted as 1.4) is then
+// handled by the library.
+var knownExternalReferenceTypes = map[string]struct{}{
+	"adversary-model":           {},
+	"advisories":                {},
+	"attestation":               {},
+	"bom":                       {},
+	"build-meta":                {},
+	"build-system":              {},
+	"certification-report":      {},
+	"chat":                      {},
+	"citation":                  {},
+	"codified-infrastructure":   {},
+	"component-analysis-report": {},
+	"configuration":             {},
+	"digital-signature":         {},
+	"distribution":              {},
+	"distribution-intake":       {},
+	"documentation":             {},
+	"dynamic-analysis-report":   {},
+	"electronic-signature":      {},
+	"evidence":                  {},
+	"exploitability-statement":  {},
+	"formulation":               {},
+	"issue-tracker":             {},
+	"license":                   {},
+	"log":                       {},
+	"mailing-list":              {},
+	"maturity-report":           {},
+	"model-card":                {},
+	"other":                     {},
+	"patent":                    {},
+	"patent-assertion":          {},
+	"patent-family":             {},
+	"pentest-report":            {},
+	"poam":                      {},
+	"quality-metrics":           {},
+	"release-notes":             {},
+	"rfc-9116":                  {},
+	"risk-assessment":           {},
+	"runtime-analysis-report":   {},
+	"security-contact":          {},
+	"social":                    {},
+	"source-distribution":       {},
+	"static-analysis-report":    {},
+	"support":                   {},
+	"threat-model":              {},
+	"vcs":                       {},
+	"vulnerability-assertion":   {},
+	"website":                   {},
+}
+
+// externalReferenceType maps a preserved reference type onto the encoder
+// vocabulary, falling back to "other" for anything unrecognized.
+func externalReferenceType(value string) cdx.ExternalReferenceType {
+	if _, ok := knownExternalReferenceTypes[strings.ToLower(strings.TrimSpace(value))]; ok {
+		return cdx.ExternalReferenceType(strings.ToLower(strings.TrimSpace(value)))
+	}
+	return cdx.ERTypeOther
+}
+
 // componentFromCycloneDX projects one CycloneDX component onto the neutral
 // model. Both decode paths (the component inventory and the metadata-only
 // fallback) share it so they cannot drift apart.
@@ -354,7 +426,7 @@ func cycloneDXComponentReferences(component Component) []cdx.ExternalReference {
 
 	for _, ref := range component.ExternalRefs {
 		refs = append(refs, cdx.ExternalReference{
-			Type:    cdx.ExternalReferenceType(ref.Type),
+			Type:    externalReferenceType(ref.Type),
 			URL:     ref.URL,
 			Comment: ref.Comment,
 		})
@@ -556,6 +628,12 @@ func cycloneDXHashAlgorithm(algorithm string) cdx.HashAlgorithm {
 		return cdx.HashAlgoSHA384
 	case "sha512", "sha-512":
 		return cdx.HashAlgoSHA512
+	case "blake2b-256":
+		return cdx.HashAlgoBlake2b_256
+	case "blake2b-384":
+		return cdx.HashAlgoBlake2b_384
+	case "blake2b-512":
+		return cdx.HashAlgoBlake2b_512
 	case "sha3-256":
 		return cdx.HashAlgoSHA3_256
 	case "sha3-384":

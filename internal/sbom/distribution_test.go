@@ -165,6 +165,85 @@ func TestDistributionProjection(t *testing.T) {
 	}
 }
 
+// TestDetectorRevisionPinsVCSLocator covers the detectors (bundler, pub, the
+// python family) that keep a git dependency's resolved commit in metadata
+// while leaving ResolvedURL as the bare remote. Without folding it in, the
+// export names a moving branch for a package whose commit is known.
+func TestDetectorRevisionPinsVCSLocator(t *testing.T) {
+	g := sdk.New()
+	node := sdk.NewDependencyWithID("pkg@1.0.0", sdk.Dependency{
+		Coordinates: sdk.Coordinates{
+			Name: "pkg", Version: "1.0.0",
+			PURL: "pkg:gem/pkg@1.0.0", Ecosystem: sdk.EcosystemRuby,
+		},
+		Source:      sdk.DependencySourceGit,
+		ResolvedURL: "https://github.com/owner/repo",
+		Metadata:    map[string]any{"source_revision": "9f8e7d6c5b4a"},
+	})
+	if err := g.AddNode(node); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+
+	pkg := spdxPackageFor(t, g, BuildOptions{})
+	if want := "git+https://github.com/owner/repo@9f8e7d6c5b4a"; pkg.PackageDownloadLocation != want {
+		t.Fatalf("downloadLocation = %q, want the detector-resolved commit pinned (%q)",
+			pkg.PackageDownloadLocation, want)
+	}
+}
+
+// TestUnsafeDetectorRevisionIsIgnored keeps an unusable metadata value from
+// producing a malformed locator.
+func TestUnsafeDetectorRevisionIsIgnored(t *testing.T) {
+	g := sdk.New()
+	node := sdk.NewDependencyWithID("pkg@1.0.0", sdk.Dependency{
+		Coordinates: sdk.Coordinates{
+			Name: "pkg", Version: "1.0.0",
+			PURL: "pkg:gem/pkg@1.0.0", Ecosystem: sdk.EcosystemRuby,
+		},
+		Source:      sdk.DependencySourceGit,
+		ResolvedURL: "https://github.com/owner/repo",
+		Metadata:    map[string]any{"source_revision": "bad revision\x00"},
+	})
+	if err := g.AddNode(node); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+
+	pkg := spdxPackageFor(t, g, BuildOptions{})
+	if want := "git+https://github.com/owner/repo"; pkg.PackageDownloadLocation != want {
+		t.Fatalf("downloadLocation = %q, want the unpinned repository (%q)",
+			pkg.PackageDownloadLocation, want)
+	}
+}
+
+// TestBlake2bDigestsSurviveRoundTrip pairs with normalizeDigestAlgorithm: the
+// canonical names it preserves must exist in both encoders, or the checksum is
+// silently discarded after the graph hop.
+func TestBlake2bDigestsSurviveRoundTrip(t *testing.T) {
+	for _, algorithm := range []string{"blake2b-256", "blake2b-384", "blake2b-512", "sha3-256"} {
+		t.Run(algorithm, func(t *testing.T) {
+			g := sdk.New()
+			node := sdk.NewDependencyWithID("pkg@1.0.0", sdk.Dependency{
+				Coordinates: sdk.Coordinates{
+					Name: "pkg", Version: "1.0.0",
+					PURL: "pkg:npm/pkg@1.0.0", Ecosystem: sdk.EcosystemNPM,
+				},
+				Digests: []sdk.Digest{{Algorithm: sdk.DigestAlgorithm(algorithm), Value: "abc123"}},
+			})
+			if err := g.AddNode(node); err != nil {
+				t.Fatalf("add node: %v", err)
+			}
+
+			if pkg := spdxPackageFor(t, g, BuildOptions{}); len(pkg.PackageChecksums) != 1 {
+				t.Fatalf("spdx dropped a %s checksum: %+v", algorithm, pkg.PackageChecksums)
+			}
+			comp := cycloneDXComponentFor(t, g, BuildOptions{})
+			if comp.Hashes == nil || len(*comp.Hashes) != 1 {
+				t.Fatalf("cyclonedx dropped a %s hash: %+v", algorithm, comp.Hashes)
+			}
+		})
+	}
+}
+
 // TestDistributionNeverLeaksLocalPaths asserts on the encoded bytes, the way a
 // consumer would see them. A path leak is the one genuinely dangerous failure
 // mode of this feature.

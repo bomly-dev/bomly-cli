@@ -59,10 +59,14 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 		sdk.SetDetectionLicenses(pkg, graphLicenses(component.Licenses))
 		setIngestedMetadata(pkg, component)
 
-		if _, exists := depsGraph.Node(packageID); !exists {
-			if err := depsGraph.AddNode(pkg); err != nil {
-				return nil, fmt.Errorf("add package %q: %w", component.ID, err)
-			}
+		if existing, exists := depsGraph.Node(packageID); exists {
+			// Several component IDs can share one PURL (a lockfile entry and
+			// an installed-metadata entry for the same package). Only the
+			// first becomes a graph node, so the duplicate's assertions have
+			// to be folded in rather than dropped with the discarded object.
+			mergeIngestedNode(existing, pkg)
+		} else if err := depsGraph.AddNode(pkg); err != nil {
+			return nil, fmt.Errorf("add package %q: %w", component.ID, err)
 		}
 		idMap[component.ID] = packageID
 	}
@@ -111,6 +115,73 @@ func isDocumentRootPseudoPackage(component Component) bool {
 		return true
 	}
 	return false
+}
+
+// mergeIngestedNode folds a duplicate-PURL component's assertions into the
+// graph node that already represents that package.
+//
+// Fill-gaps semantics: the first component wins any conflict, and later ones
+// only supply what is still missing. Set-valued fields are unioned, since two
+// entries for the same package may each carry a digest or CPE the other does
+// not.
+func mergeIngestedNode(existing, incoming *sdk.Dependency) {
+	if existing == nil || incoming == nil {
+		return
+	}
+	if existing.Copyright == "" {
+		existing.Copyright = incoming.Copyright
+	}
+	if existing.ResolvedURL == "" {
+		existing.ResolvedURL = incoming.ResolvedURL
+	}
+	existing.CPEs = unionStrings(existing.CPEs, incoming.CPEs)
+	existing.Digests = unionDigests(existing.Digests, incoming.Digests)
+
+	if len(sdk.DetectionLicenses(existing)) == 0 {
+		if licenses := sdk.DetectionLicenses(incoming); len(licenses) > 0 {
+			sdk.SetDetectionLicenses(existing, licenses)
+		}
+	}
+	for key, value := range incoming.Metadata {
+		if existing.Metadata == nil {
+			existing.Metadata = make(map[string]any, len(incoming.Metadata))
+		}
+		if _, present := existing.Metadata[key]; !present {
+			existing.Metadata[key] = value
+		}
+	}
+}
+
+// unionStrings appends values from extra that are not already in base.
+func unionStrings(base, extra []string) []string {
+	seen := make(map[string]struct{}, len(base))
+	for _, value := range base {
+		seen[value] = struct{}{}
+	}
+	for _, value := range extra {
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		base = append(base, value)
+	}
+	return base
+}
+
+// unionDigests appends digests from extra that are not already in base.
+func unionDigests(base, extra []sdk.Digest) []sdk.Digest {
+	seen := make(map[sdk.Digest]struct{}, len(base))
+	for _, digest := range base {
+		seen[digest] = struct{}{}
+	}
+	for _, digest := range extra {
+		if _, ok := seen[digest]; ok {
+			continue
+		}
+		seen[digest] = struct{}{}
+		base = append(base, digest)
+	}
+	return base
 }
 
 // graphDigests projects component digests onto a graph node. Ingest dropped

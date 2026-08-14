@@ -407,6 +407,12 @@ func spdxChecksumAlgorithm(algorithm string) common.ChecksumAlgorithm {
 		return common.SHA384
 	case "sha512", "sha-512":
 		return common.SHA512
+	case "blake2b-256":
+		return common.BLAKE2b_256
+	case "blake2b-384":
+		return common.BLAKE2b_384
+	case "blake2b-512":
+		return common.BLAKE2b_512
 	case "sha3-256":
 		return common.SHA3_256
 	case "sha3-384":

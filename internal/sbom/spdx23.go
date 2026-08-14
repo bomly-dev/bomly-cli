@@ -44,7 +44,7 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageName:               c.NameOrID(),
 			PackageSPDXIdentifier:     spdxID,
 			PackageVersion:            c.Version,
-			PackageDownloadLocation:   "NOASSERTION",
+			PackageDownloadLocation:   spdxDownloadLocation(c),
 			FilesAnalyzed:             false,
 			PackageComment:            spdxPackageComment(c),
 			PackageLicenseDeclared:    spdxLicenseValue(c.Licenses),
@@ -53,11 +53,26 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageChecksums:          spdxChecksums(c.Digests),
 			PackageExternalReferences: spdxExternalReferences(c),
 			PrimaryPackagePurpose:     spdxPrimaryPackagePurpose(c.Type),
+			PackageDescription:        c.Description,
+			PackageSourceInfo:         spdxSourceInfo(c),
 		}
+		if c.Originator != "" {
+			pkg.PackageOriginator = &common.Originator{
+				OriginatorType: spdxEntityType(c.OriginatorType),
+				Originator:     c.Originator,
+			}
+		}
+		// The configured manufacturer is the user's own claim about their
+		// product, so it wins on the document's primary package. Everywhere
+		// else a supplier appears only when a source document asserted one.
+		supplier, supplierType := c.Supplier, c.SupplierType
 		if _, isRoot := rootComponents[c.ID]; isRoot || IsProjectRootComponent(c) {
 			if doc.Provenance.Manufacturer != "" {
-				pkg.PackageSupplier = &common.Supplier{SupplierType: "Organization", Supplier: doc.Provenance.Manufacturer}
+				supplier, supplierType = doc.Provenance.Manufacturer, "Organization"
 			}
+		}
+		if supplier != "" {
+			pkg.PackageSupplier = &common.Supplier{SupplierType: spdxEntityType(supplierType), Supplier: supplier}
 		}
 		packages = append(packages, pkg)
 	}
@@ -143,7 +158,7 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 			continue
 		}
 		id := common.RenderElementID(p.PackageSPDXIdentifier)
-		components = append(components, Component{
+		component := Component{
 			ID:             id,
 			Name:           p.PackageName,
 			Version:        p.PackageVersion,
@@ -154,7 +169,24 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 			PackageManager: parseSPDXPackageManager(p.PackageExternalReferences),
 			Copyright:      parseSPDXCopyright(p.PackageCopyrightText),
 			Licenses:       parseSPDXLicenses(p.PackageLicenseConcluded, p.PackageLicenseDeclared),
-		})
+			Description:    firstNonEmpty(parseSPDXEntity(p.PackageDescription), parseSPDXEntity(p.PackageSummary)),
+			Repository:     parseSPDXSourceInfo(p.PackageSourceInfo),
+			CPEs:           parseSPDXCPEs(p.PackageExternalReferences),
+			Digests:        parseSPDXChecksums(p.PackageChecksums),
+		}
+		if p.PackageSupplier != nil {
+			component.Supplier = parseSPDXEntity(p.PackageSupplier.Supplier)
+			component.SupplierType = p.PackageSupplier.SupplierType
+		}
+		if p.PackageOriginator != nil {
+			component.Originator = parseSPDXEntity(p.PackageOriginator.Originator)
+			component.OriginatorType = p.PackageOriginator.OriginatorType
+		}
+		applyLocator(&component, classifyResolvedURL(parseSPDXEntity(p.PackageDownloadLocation), "", ""))
+		if home := strings.TrimSpace(p.PackageHomePage); home != "" && parseSPDXEntity(home) != "" {
+			component.ExternalRefs = append(component.ExternalRefs, ExternalRef{Type: "website", URL: home})
+		}
+		components = append(components, component)
 	}
 
 	depsByRef := make(map[string][]string, len(components))
@@ -428,6 +460,72 @@ func spdxCopyrightValue(value string) string {
 	return value
 }
 
+// parseSPDXEntity normalizes an SPDX free-text field, treating the reserved
+// NOASSERTION and NONE markers as absent rather than as literal values.
+func parseSPDXEntity(value string) string {
+	value = strings.TrimSpace(value)
+	switch strings.ToUpper(value) {
+	case "", "NOASSERTION", "NONE":
+		return ""
+	}
+	return value
+}
+
+// parseSPDXSourceInfo recovers a source repository written by spdxSourceInfo.
+// Free text without the marker prefix is another producer's prose and is left
+// alone rather than guessed at.
+func parseSPDXSourceInfo(value string) string {
+	value = strings.TrimSpace(value)
+	if !strings.HasPrefix(value, spdxSourceInfoPrefix) {
+		return ""
+	}
+	return strings.TrimSpace(strings.TrimPrefix(value, spdxSourceInfoPrefix))
+}
+
+// spdxSourceInfoPrefix marks a source repository inside the free-text
+// PackageSourceInfo field so the decoder can recover it deterministically.
+const spdxSourceInfoPrefix = "Source repository: "
+
+// spdxDownloadLocation renders where the package was obtained.
+//
+// A registry root is deliberately not used: "https://rubygems.org/" is a
+// syntactically valid URL that both validators accept, and every consumer
+// would read it as the artifact's origin, which is false. NOASSERTION is the
+// honest answer when only a registry root is known.
+func spdxDownloadLocation(component Component) string {
+	if location := firstNonEmpty(component.ArtifactURL, component.VCSURL); location != "" {
+		return location
+	}
+	return "NOASSERTION"
+}
+
+// spdxSourceInfo renders the source repository into SPDX's free-text origin
+// field.
+//
+// PackageSourceInfo is defined as free text about the origin of the package,
+// which is what a source repository is. PackageHomePage is a different claim
+// (the package's home page) that Bomly does not know, and SPDX 2.3 has no
+// version-control external-reference category.
+func spdxSourceInfo(component Component) string {
+	if repo := strings.TrimSpace(component.Repository); repo != "" {
+		return spdxSourceInfoPrefix + repo
+	}
+	return ""
+}
+
+// spdxEntityType normalizes a supplier or originator type to one SPDX accepts,
+// defaulting to Organization.
+func spdxEntityType(value string) string {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "person":
+		return "Person"
+	case "noassertion":
+		return "NOASSERTION"
+	default:
+		return "Organization"
+	}
+}
+
 func spdxExternalReferences(component Component) []*v23.PackageExternalReference {
 	refs := make([]*v23.PackageExternalReference, 0, 1+len(component.CPEs)+len(component.Vulnerabilities))
 	if purl := strings.TrimSpace(component.PURL); purl != "" {
@@ -487,6 +585,42 @@ func parseSPDXLicenses(values ...string) []License {
 		}
 	}
 	return nil
+}
+
+// parseSPDXCPEs recovers CPE identifiers from a package's security external
+// references.
+func parseSPDXCPEs(refs []*v23.PackageExternalReference) []string {
+	var cpes []string
+	for _, ref := range refs {
+		if ref == nil {
+			continue
+		}
+		if strings.EqualFold(strings.TrimSpace(ref.RefType), "cpe23Type") {
+			if locator := strings.TrimSpace(ref.Locator); locator != "" {
+				cpes = append(cpes, locator)
+			}
+		}
+	}
+	return cpes
+}
+
+// parseSPDXChecksums projects SPDX checksums onto neutral digests.
+func parseSPDXChecksums(checksums []common.Checksum) []Digest {
+	if len(checksums) == 0 {
+		return nil
+	}
+	digests := make([]Digest, 0, len(checksums))
+	for _, checksum := range checksums {
+		algorithm := strings.ToLower(strings.ReplaceAll(string(checksum.Algorithm), "-", ""))
+		if algorithm == "" || strings.TrimSpace(checksum.Value) == "" {
+			continue
+		}
+		digests = append(digests, Digest{Algorithm: algorithm, Value: strings.TrimSpace(checksum.Value)})
+	}
+	if len(digests) == 0 {
+		return nil
+	}
+	return digests
 }
 
 func parseSPDXPURL(refs []*v23.PackageExternalReference) string {

@@ -46,7 +46,11 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			Copyright:      pkg.Copyright,
 			Licenses:       componentLicenses(sdk.DetectionLicenses(pkg)),
 			Digests:        componentDigests(pkg.Digests),
+			CPEs:           append([]string(nil), pkg.CPEs...),
 		}
+		// Detection classifies, ingest corrects, enrichment fills gaps.
+		applyLocator(&component, classifyResolvedURL(pkg.ResolvedURL, pkg.Source, pkg.Ecosystem))
+		applyIngestedMetadata(&component, pkg.Metadata)
 		enrichComponentFromRegistry(&component, opts.Registry, pkg.PURL)
 		components = append(components, component)
 		depsByRef[pkg.ID] = nil
@@ -290,6 +294,33 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 			Cycle:         pkg.EOL.Cycle,
 			LatestVersion: pkg.EOL.LatestVersion,
 		}
+	}
+	if pkg.Scorecard != nil {
+		// Only fill, never clear: an unnormalizable scorecard value must not
+		// erase a repository an ingested document asserted.
+		if repo := normalizeRepositoryURL(pkg.Scorecard.Repository); repo != "" {
+			component.Repository = repo
+		}
+	}
+	// The registry copy of ResolvedURL is normally the detection value echoed
+	// back, so it only fills a gap a matcher supplied. Source is not carried
+	// on Package, so classification here is shape-driven only.
+	if component.ArtifactURL == "" && component.VCSURL == "" && component.RegistryURL == "" {
+		applyLocator(component, classifyResolvedURL(pkg.ResolvedURL, "", pkg.Ecosystem))
+	}
+}
+
+// applyLocator projects a classified resolved URL onto a component. A
+// LocatorNone leaves the component untouched, so an unpublishable value simply
+// results in no assertion.
+func applyLocator(component *Component, locator Locator) {
+	switch locator.Kind {
+	case LocatorArtifact:
+		component.ArtifactURL = locator.URL
+	case LocatorVCS:
+		component.VCSURL = locator.URL
+	case LocatorRegistryRoot:
+		component.RegistryURL = locator.URL
 	}
 }
 

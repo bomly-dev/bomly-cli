@@ -47,6 +47,14 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 		if props := cycloneDXEOLProperties(comp.EOL); len(props) > 0 {
 			component.Properties = &props
 		}
+		if comp.Supplier != "" {
+			component.Supplier = &cdx.OrganizationalEntity{Name: comp.Supplier}
+		}
+		component.Publisher = comp.Originator
+		component.Description = comp.Description
+		if refs := cycloneDXComponentReferences(comp); len(refs) > 0 {
+			component.ExternalReferences = &refs
+		}
 		components = append(components, component)
 	}
 	bom.Components = &components
@@ -122,16 +130,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 	componentByID := make(map[string]Component)
 	if bom.Components != nil {
 		for _, comp := range *bom.Components {
-			componentByID[comp.BOMRef] = Component{
-				ID:        comp.BOMRef,
-				Name:      comp.Name,
-				Type:      string(comp.Type),
-				Scope:     string(comp.Scope),
-				Version:   comp.Version,
-				PURL:      comp.PackageURL,
-				Copyright: comp.Copyright,
-				Licenses:  parseCycloneDXLicenses(comp.Licenses),
-			}
+			componentByID[comp.BOMRef] = componentFromCycloneDX(comp)
 		}
 	}
 
@@ -169,16 +168,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 
 	if len(componentByID) == 0 && bom.Metadata != nil && bom.Metadata.Component != nil {
 		root := bom.Metadata.Component
-		componentByID[root.BOMRef] = Component{
-			ID:        root.BOMRef,
-			Name:      root.Name,
-			Type:      string(root.Type),
-			Scope:     string(root.Scope),
-			Version:   root.Version,
-			PURL:      root.PackageURL,
-			Copyright: root.Copyright,
-			Licenses:  parseCycloneDXLicenses(root.Licenses),
-		}
+		componentByID[root.BOMRef] = componentFromCycloneDX(*root)
 	}
 
 	components := make([]Component, 0, len(componentByID))
@@ -259,6 +249,98 @@ func cycloneDXSecurityReferences(p Provenance) []cdx.ExternalReference {
 	if disclosure := strings.TrimSpace(p.VulnerabilityDisclosureURL); disclosure != "" {
 		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeAdvisories, URL: disclosure, Comment: "Coordinated vulnerability disclosure policy"})
 	}
+	if len(refs) == 0 {
+		return nil
+	}
+	return refs
+}
+
+// componentFromCycloneDX projects one CycloneDX component onto the neutral
+// model. Both decode paths (the component inventory and the metadata-only
+// fallback) share it so they cannot drift apart.
+func componentFromCycloneDX(comp cdx.Component) Component {
+	component := Component{
+		ID:          comp.BOMRef,
+		Name:        comp.Name,
+		Type:        string(comp.Type),
+		Scope:       string(comp.Scope),
+		Version:     comp.Version,
+		PURL:        comp.PackageURL,
+		Copyright:   comp.Copyright,
+		Licenses:    parseCycloneDXLicenses(comp.Licenses),
+		Description: comp.Description,
+		Originator:  comp.Publisher,
+	}
+	if comp.CPE != "" {
+		component.CPEs = []string{comp.CPE}
+	}
+	if comp.Supplier != nil && comp.Supplier.Name != "" {
+		component.Supplier = comp.Supplier.Name
+		component.SupplierType = "Organization"
+	}
+	if comp.Hashes != nil {
+		for _, hash := range *comp.Hashes {
+			component.Digests = append(component.Digests, Digest{
+				Algorithm: strings.ToLower(strings.ReplaceAll(string(hash.Algorithm), "-", "")),
+				Value:     hash.Value,
+			})
+		}
+	}
+	if comp.ExternalReferences != nil {
+		for _, ref := range *comp.ExternalReferences {
+			switch ref.Type {
+			case cdx.ERTypeDistribution:
+				applyLocator(&component, classifyResolvedURL(ref.URL, "", ""))
+			case cdx.ERTypeVCS:
+				component.VCSURL = ref.URL
+			default:
+				component.ExternalRefs = append(component.ExternalRefs, ExternalRef{
+					Type:    string(ref.Type),
+					URL:     ref.URL,
+					Comment: ref.Comment,
+				})
+			}
+		}
+	}
+	return component
+}
+
+// cycloneDXComponentReferences builds the per-component external references:
+// where the package came from, its source repository, and anything preserved
+// from an ingested document.
+//
+// A registry root is emitted only when no exact artifact URL is known, and it
+// carries a comment saying so — it names where the ecosystem fetches from, not
+// where this package came from.
+func cycloneDXComponentReferences(component Component) []cdx.ExternalReference {
+	refs := make([]cdx.ExternalReference, 0, 3+len(component.ExternalRefs))
+
+	switch {
+	case component.ArtifactURL != "":
+		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeDistribution, URL: component.ArtifactURL})
+	case component.RegistryURL != "":
+		refs = append(refs, cdx.ExternalReference{
+			Type:    cdx.ERTypeDistribution,
+			URL:     component.RegistryURL,
+			Comment: "Registry root; not the exact artifact location",
+		})
+	}
+
+	// VCSURL is detector-supplied and version-exact, so it wins over the
+	// scorecard repository. Emitting both would assert the same repository
+	// twice from two sources.
+	if vcs := firstNonEmpty(component.VCSURL, component.Repository); vcs != "" {
+		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeVCS, URL: vcs})
+	}
+
+	for _, ref := range component.ExternalRefs {
+		refs = append(refs, cdx.ExternalReference{
+			Type:    cdx.ExternalReferenceType(ref.Type),
+			URL:     ref.URL,
+			Comment: ref.Comment,
+		})
+	}
+
 	if len(refs) == 0 {
 		return nil
 	}

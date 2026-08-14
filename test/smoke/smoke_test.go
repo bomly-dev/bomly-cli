@@ -511,6 +511,109 @@ func TestExplain(t *testing.T) {
 	}
 }
 
+// TestScanSBOMExportDistribution covers SBOM *export* end to end, which the
+// golden-backed cases above do not: they all emit `--format json`, so nothing
+// asserted the SPDX/CycloneDX bytes themselves.
+//
+// The case is deliberately property-asserting rather than golden-backed. An
+// SBOM document carries four volatile fields (documentNamespace, serialNumber,
+// created/timestamp, tool version) that normalizeJSON is not written for, so a
+// golden would flap on every run.
+//
+// It is pinned to bomly-dev/example-javascript-npm because npm lockfiles record
+// the exact package archive — the one ecosystem family where the artifact path
+// actually fires. The leak assertion is the important one: no scan-machine path
+// may ever reach a published SBOM.
+func TestScanSBOMExportDistribution(t *testing.T) {
+	t.Parallel()
+	requireTool(t, "npm")
+
+	dir := t.TempDir()
+	spdxPath := filepath.Join(dir, "out.spdx.json")
+	cdxPath := filepath.Join(dir, "out.cdx.json")
+
+	_, stderr, code := runBomly(t,
+		"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "v1.0.0",
+		"--detectors", "npm",
+		"-o", "spdx="+spdxPath, "-o", "cyclonedx="+cdxPath,
+	)
+	if code != 0 {
+		t.Fatalf("bomly exited %d\nstderr:\n%s", code, stderr)
+	}
+
+	spdxRaw, err := os.ReadFile(spdxPath)
+	if err != nil {
+		t.Fatalf("read spdx: %v", err)
+	}
+	cdxRaw, err := os.ReadFile(cdxPath)
+	if err != nil {
+		t.Fatalf("read cyclonedx: %v", err)
+	}
+
+	var spdxDoc struct {
+		Packages []struct {
+			Name             string `json:"name"`
+			DownloadLocation string `json:"downloadLocation"`
+		} `json:"packages"`
+	}
+	if err := json.Unmarshal(spdxRaw, &spdxDoc); err != nil {
+		t.Fatalf("unmarshal spdx: %v", err)
+	}
+
+	registryDownloads := 0
+	for _, pkg := range spdxDoc.Packages {
+		switch {
+		case pkg.DownloadLocation == "NOASSERTION":
+		case strings.HasPrefix(pkg.DownloadLocation, "https://"):
+			registryDownloads++
+		default:
+			t.Fatalf("package %q has a download location that is neither NOASSERTION nor https: %q",
+				pkg.Name, pkg.DownloadLocation)
+		}
+	}
+	if registryDownloads == 0 {
+		t.Fatal("expected npm packages to carry registry download locations, got none")
+	}
+
+	var cdxDoc struct {
+		Components []struct {
+			Name               string `json:"name"`
+			ExternalReferences []struct {
+				Type string `json:"type"`
+				URL  string `json:"url"`
+			} `json:"externalReferences"`
+		} `json:"components"`
+	}
+	if err := json.Unmarshal(cdxRaw, &cdxDoc); err != nil {
+		t.Fatalf("unmarshal cyclonedx: %v", err)
+	}
+	distributions := 0
+	for _, comp := range cdxDoc.Components {
+		for _, ref := range comp.ExternalReferences {
+			if ref.Type == "distribution" {
+				distributions++
+				if !strings.HasPrefix(ref.URL, "https://") {
+					t.Fatalf("component %q distribution reference is not https: %q", comp.Name, ref.URL)
+				}
+			}
+		}
+	}
+	if distributions == 0 {
+		t.Fatal("expected npm components to carry distribution references, got none")
+	}
+
+	// Nothing about the machine that ran the scan may appear in either
+	// document. The temp dir stands in for any local path the detectors saw.
+	for name, raw := range map[string][]byte{"spdx": spdxRaw, "cyclonedx": cdxRaw} {
+		if strings.Contains(string(raw), dir) {
+			t.Fatalf("%s output leaked the scan working directory %q", name, dir)
+		}
+		if strings.Contains(string(raw), "file://") {
+			t.Fatalf("%s output contains a file:// locator", name)
+		}
+	}
+}
+
 // TestScanSBOMSyftJSONRejected locks in the syft-JSON ingest removal end to
 // end: `--sbom` on a syft-format JSON file must exit 3 (resolution failure —
 // the detector cannot produce a graph) with the actionable conversion hint,

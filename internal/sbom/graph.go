@@ -38,6 +38,11 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 		if purl := strings.TrimSpace(component.PURL); purl != "" {
 			packageID = purl
 		}
+		// Deliberately no Source: sdk.Dependency.Source feeds
+		// RegistryMatchEligible, so classifying an ingested component as git
+		// or url would quietly make it ineligible for enrichment and break
+		// `scan --sbom --enrich`. ResolvedURL alone is safe — eligibility
+		// never reads it.
 		pkg := sdk.NewDependencyWithID(packageID, sdk.Dependency{Coordinates: sdk.Coordinates{Name: component.Name,
 			Version: component.Version,
 
@@ -46,9 +51,13 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 			Type:           sdk.ParsePackageType(component.Type),
 			PURL:           strings.TrimSpace(component.PURL)}, Scopes: sdk.ScopesOf(sdk.Scope(component.Scope)),
 
-			Copyright: component.Copyright,
+			Copyright:   component.Copyright,
+			CPEs:        append([]string(nil), component.CPEs...),
+			Digests:     graphDigests(component.Digests),
+			ResolvedURL: firstNonEmpty(component.ArtifactURL, component.VCSURL, component.RegistryURL),
 		})
 		sdk.SetDetectionLicenses(pkg, graphLicenses(component.Licenses))
+		setIngestedMetadata(pkg, component)
 
 		if _, exists := depsGraph.Node(packageID); !exists {
 			if err := depsGraph.AddNode(pkg); err != nil {
@@ -102,6 +111,23 @@ func isDocumentRootPseudoPackage(component Component) bool {
 		return true
 	}
 	return false
+}
+
+// graphDigests projects component digests onto a graph node. Ingest dropped
+// these previously, so an incoming document's hashes did not survive a format
+// conversion.
+func graphDigests(digests []Digest) []sdk.Digest {
+	if len(digests) == 0 {
+		return nil
+	}
+	out := make([]sdk.Digest, 0, len(digests))
+	for _, digest := range digests {
+		out = append(out, sdk.Digest{
+			Algorithm: sdk.DigestAlgorithm(digest.Algorithm),
+			Value:     digest.Value,
+		})
+	}
+	return out
 }
 
 func graphLicenses(licenses []License) []sdk.PackageLicense {

@@ -135,6 +135,36 @@ type Component struct {
 	Digests         []Digest
 	Vulnerabilities []Vulnerability
 	EOL             *EOL
+
+	// Where the package came from, classified from the detector-supplied
+	// resolved URL. At most one of ArtifactURL and VCSURL is set;
+	// RegistryURL is the weaker fallback naming a registry or index root,
+	// and is deliberately never used as a download location.
+	ArtifactURL string
+	VCSURL      string
+	RegistryURL string
+
+	// Repository is a canonical "github.com/owner/repo" source repository
+	// supplied by the OpenSSF Scorecard matcher during enrichment.
+	Repository string
+
+	// Assertions preserved verbatim from an ingested SBOM. Bomly never
+	// invents these; they are present only when the source document, or a
+	// matcher, actually asserted them.
+	Supplier       string
+	SupplierType   string
+	Originator     string
+	OriginatorType string
+	Description    string
+	ExternalRefs   []ExternalRef
+}
+
+// ExternalRef is an external reference carried through from an ingested SBOM
+// so that a format conversion does not silently discard it.
+type ExternalRef struct {
+	Type    string
+	URL     string
+	Comment string
 }
 
 // Dependency describes one package relationship list in the intermediate SBOM model.

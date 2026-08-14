@@ -97,7 +97,7 @@ jobs:
           - name: ruby
             run: 'TestScan$/scan-bundler'
           - name: sbom
-            run: 'TestScan$/scan-sbom|TestDiff/(diff-sbom$|diff-sbom-detail-change$)|TestLiteScan/lite-scan-sbom|TestScanSBOMSyftJSONRejected$'
+            run: 'TestScan$/scan-sbom|TestDiff/(diff-sbom$|diff-sbom-detail-change$)|TestLiteScan/lite-scan-sbom|TestScanSBOMSyftJSONRejected$|TestScanSBOMExportDistribution$'
           - name: dotnet
             run: 'TestScan$/scan-nuget'
             dotnet: true

@@ -2,6 +2,7 @@ package sbom
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	testkit "github.com/bomly-dev/bomly-sdk/testkit"
@@ -65,6 +66,47 @@ func FuzzUnmarshalAutoJSON(f *testing.F) {
 		}
 		if _, err := MarshalJSON(doc, target, EncodeOptions{}); err != nil {
 			return
+		}
+	})
+}
+
+// FuzzNormalizeSPDXLicenseExpression exercises the license-expression rewriter
+// that runs over every component license (detector- and registry-supplied,
+// both of which originate in untrusted repository or API data).
+func FuzzNormalizeSPDXLicenseExpression(f *testing.F) {
+	for _, seed := range []string{
+		"MIT",
+		"GPL-2.0",
+		"GPL-3.0+",
+		"(MIT OR GPL-2.0)",
+		"LGPL-2.1 WITH Classpath-exception-2.0",
+		"Apache-2.0 AND (MIT OR BSD-3-Clause)",
+		"",
+		"   ",
+		"(((",
+		")",
+		"GPL-2.0-with-classpath-exception",
+		"\x00�",
+	} {
+		f.Add(seed)
+	}
+	f.Fuzz(func(t *testing.T, expression string) {
+		if len(expression) > testkit.MaxFuzzInputSize {
+			return
+		}
+		first := normalizeSPDXLicenseExpression(expression)
+		if second := normalizeSPDXLicenseExpression(expression); first != second {
+			t.Fatalf("nondeterministic normalization: %q vs %q", first, second)
+		}
+		// Normalization only substitutes identifier tokens; it must never
+		// drop expression structure.
+		for _, r := range []rune{'(', ')'} {
+			if strings.Count(first, string(r)) != strings.Count(expression, string(r)) {
+				t.Fatalf("normalization changed %q grouping: %q -> %q", string(r), expression, first)
+			}
+		}
+		if strings.TrimSpace(expression) == "" && first != expression {
+			t.Fatalf("blank expression must pass through unchanged: %q -> %q", expression, first)
 		}
 	})
 }

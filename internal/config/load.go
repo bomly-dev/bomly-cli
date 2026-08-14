@@ -367,7 +367,7 @@ func Validate(cfg Resolved) error {
 	}
 	if supportEnd := strings.TrimSpace(cfg.SBOMSupportEnd); supportEnd != "" {
 		if _, err := time.Parse("2006-01-02", supportEnd); err != nil {
-			return fmt.Errorf("invalid sbom support_end %q: expected an ISO date such as 2030-12-31", cfg.SBOMSupportEnd)
+			return fmt.Errorf("invalid sbom support_end %q: expected an ISO date such as 2030-12-31: %w", cfg.SBOMSupportEnd, err)
 		}
 	}
 	if err := validateProxyURL(cfg.HTTPProxy); err != nil {

@@ -8,6 +8,7 @@ import (
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/spdx/tools-golang/spdx/v2/common"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 )
 
@@ -508,5 +509,50 @@ func TestMarshalDepGraphJSON_SPDX23PackagePurposes(t *testing.T) {
 	}
 	if purposes["demo"] != "APPLICATION" {
 		t.Fatalf("expected APPLICATION purpose for project root, got %q", purposes["demo"])
+	}
+}
+
+func TestMarshalDepGraphJSON_SPDX23SupplierOnNaturalPrimaryPackage(t *testing.T) {
+	// A single-root graph keeps its natural root as the primary component, so
+	// no pseudo root is synthesized. Provenance must still land on it, the
+	// way CycloneDX attaches it to metadata.component in both forms.
+	out, err := MarshalDepGraphJSON(mustGraph(t), TargetSPDX23JSON, BuildOptions{
+		ProjectRoot: &ProjectRoot{Name: "demo-project"},
+		Provenance:  Provenance{Manufacturer: "Example Org"},
+	}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal spdx: %v", err)
+	}
+
+	var d v23.Document
+	if err := json.Unmarshal(out, &d); err != nil {
+		t.Fatalf("unmarshal spdx: %v", err)
+	}
+
+	var describes common.ElementID
+	for _, rel := range d.Relationships {
+		if rel != nil && rel.Relationship == "DESCRIBES" {
+			describes = rel.RefB.ElementRefID
+		}
+	}
+	if describes == "" {
+		t.Fatal("expected a DESCRIBES relationship")
+	}
+
+	suppliers := 0
+	for _, p := range d.Packages {
+		if p.PackageSPDXIdentifier != describes {
+			if p.PackageSupplier != nil {
+				t.Fatalf("supplier leaked onto non-root package %q", p.PackageName)
+			}
+			continue
+		}
+		if p.PackageSupplier == nil || p.PackageSupplier.Supplier != "Example Org" {
+			t.Fatalf("expected supplier on the natural primary package, got %+v", p.PackageSupplier)
+		}
+		suppliers++
+	}
+	if suppliers != 1 {
+		t.Fatalf("expected exactly one supplied package, got %d", suppliers)
 	}
 }

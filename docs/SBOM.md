@@ -148,11 +148,13 @@ metadata property. SPDX 2.3 has no first-class fields for most of these, so
 Bomly emits an `Organization` creator, the supplier on the primary package,
 and the contact fields in the creation-info comment.
 
-Without these fields Bomly's exports satisfy the NTIA minimum elements
-(supplier defaults to the producing tool); third-party CRA profile checks
-will flag the missing manufacturer/contact metadata until the `sbom` section
-is configured. Per-component supplier and description data is not invented:
-those fields stay empty unless a data source actually provides them.
+When `manufacturer` is set, it becomes the supplier of the primary component
+in both formats (CycloneDX `metadata.manufacturer`, SPDX `PackageSupplier` on
+the package the document DESCRIBES). Supplier is not defaulted to anything
+when the field is unset, and per-component supplier and description data is
+never invented: those fields stay absent unless a data source actually
+provides them. Third-party CRA profile checks will flag the missing
+manufacturer/contact metadata until the `sbom` section is configured.
 
 When `--enrich` is set, components are enriched from the matching-stage package
 registry (keyed by PURL):

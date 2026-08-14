@@ -7,6 +7,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-sdk"
+	"go.uber.org/zap"
 )
 
 func TestRenderScanReportShowsPackageCountAndDirectDeps(t *testing.T) {
@@ -224,10 +225,10 @@ func TestSBOMCompositionAggregate(t *testing.T) {
 }
 
 func TestGitDescribeVersion(t *testing.T) {
-	if got := gitDescribeVersion(""); got != "" {
+	if got := gitDescribeVersion(zap.NewNop(), ""); got != "" {
 		t.Fatalf("empty path must yield no version, got %q", got)
 	}
-	if got := gitDescribeVersion(t.TempDir()); got != "" {
+	if got := gitDescribeVersion(zap.NewNop(), t.TempDir()); got != "" {
 		t.Fatalf("non-git directory must yield no version, got %q", got)
 	}
 }

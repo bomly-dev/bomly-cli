@@ -15,8 +15,10 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-cli/internal/tui"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 )
 
 func newScanCmd() *cobra.Command {
@@ -128,7 +130,7 @@ func newScanCmd() *cobra.Command {
 				return output.WriteSARIF(w, findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Analyze, LocationGraphs: []*sdk.Graph{pipeResult.Graph}})
 			}
 
-			sbomBuildOpts := scanSBOMBuildOptions(payload.Project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry, selectedScope, len(pipeResult.DetectorWarnings) > 0)
+			sbomBuildOpts := scanSBOMBuildOptions(logger, payload.Project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry, selectedScope, len(pipeResult.DetectorWarnings) > 0)
 
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -217,7 +219,7 @@ func scanPolicyExit(auditEnabled bool, findings []sdk.Finding) error {
 // scanSBOMBuildOptions assembles the SBOM projection options for a scan: the
 // document is named after the scanned project, the primary component mirrors
 // it, and optional provenance metadata comes from configuration.
-func scanSBOMBuildOptions(project output.ProjectDescriptor, current config.Resolved, version string, resolved []sdk.DetectionResult, registry *sdk.PackageRegistry, selectedScope sdk.Scope, degraded bool) sbom.BuildOptions {
+func scanSBOMBuildOptions(logger *zap.Logger, project output.ProjectDescriptor, current config.Resolved, version string, resolved []sdk.DetectionResult, registry *sdk.PackageRegistry, selectedScope sdk.Scope, degraded bool) sbom.BuildOptions {
 	opts := sbom.BuildOptions{
 		ToolNames:   sbomToolNames(resolved),
 		ToolVersion: strings.TrimSpace(version),
@@ -234,7 +236,7 @@ func scanSBOMBuildOptions(project output.ProjectDescriptor, current config.Resol
 	if name := strings.TrimSpace(project.Name); name != "" {
 		projectVersion := strings.TrimSpace(project.TargetRef)
 		if projectVersion == "" {
-			projectVersion = gitDescribeVersion(project.Path)
+			projectVersion = gitDescribeVersion(logger, project.Path)
 		}
 		opts.DocumentName = name
 		opts.ProjectRoot = &sbom.ProjectRoot{Name: name, Version: projectVersion}
@@ -274,17 +276,24 @@ func sbomCompositionAggregate(selectedScope sdk.Scope, degraded bool) string {
 // gitDescribeVersion derives a project version from Git history when the scan
 // target is a checkout with no explicit ref (local path scans). Returns ""
 // when Git or history is unavailable — the version is then simply omitted.
-func gitDescribeVersion(path string) string {
+func gitDescribeVersion(logger *zap.Logger, path string) string {
+	if logger == nil {
+		logger = zap.NewNop()
+	}
 	if strings.TrimSpace(path) == "" {
 		return ""
 	}
 	gitPath, err := system.LookPath("git")
 	if err != nil {
+		logger.Debug("sbom: git unavailable for project version", zap.Error(err))
 		return ""
 	}
-	cmd := system.Command(gitPath, "-C", path, "describe", "--tags", "--always", "--dirty")
+	args := []string{"-C", path, "describe", "--tags", "--always", "--dirty"}
+	logger.Debug("sbom: resolving project version", logkit.CommandFields(gitPath, args, path)...)
+	cmd := system.Command(gitPath, args...)
 	out, err := cmd.Output()
 	if err != nil {
+		logger.Debug("sbom: git describe failed; omitting project version", zap.Error(err))
 		return ""
 	}
 	return strings.TrimSpace(string(out))

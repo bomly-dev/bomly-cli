@@ -21,6 +21,15 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 	usedIDs := make(map[string]int, len(doc.Components))
 	packages := make([]*v23.Package, 0, len(doc.Components))
 
+	// Document roots are the packages SPDX DESCRIBES, i.e. the primary
+	// component in either form: the synthesized project root, or the graph's
+	// own single root when no pseudo root was needed. Provenance attaches to
+	// both so the SPDX export matches CycloneDX metadata.component.
+	rootComponents := make(map[string]struct{}, len(doc.Roots))
+	for _, root := range doc.Roots {
+		rootComponents[root] = struct{}{}
+	}
+
 	for _, c := range doc.Components {
 		base := sanitizeSPDXID(c.ID)
 		seq := usedIDs[base]
@@ -45,7 +54,7 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageExternalReferences: spdxExternalReferences(c),
 			PrimaryPackagePurpose:     spdxPrimaryPackagePurpose(c.Type),
 		}
-		if IsProjectRootComponent(c) {
+		if _, isRoot := rootComponents[c.ID]; isRoot || IsProjectRootComponent(c) {
 			if doc.Provenance.Manufacturer != "" {
 				pkg.PackageSupplier = &common.Supplier{SupplierType: "Organization", Supplier: doc.Provenance.Manufacturer}
 			}

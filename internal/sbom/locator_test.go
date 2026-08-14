@@ -57,8 +57,13 @@ func TestClassifyResolvedURL(t *testing.T) {
 		{"fragment secret", "https://nexus.corp/a/b-1.0.tgz#s3cret", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
 		{"registry root with query", "https://nexus.corp/?apiKey=s3cret", sdk.DependencySourceRegistry, sdk.EcosystemRuby, LocatorNone, ""},
 		// A VCS locator is exempt only because normalizeVCS discards the query
-		// and keeps a character-checked revision.
+		// and keeps a character-checked revision. Every VCS form must be
+		// classified before the gate, not just the cargo "git+" prefix.
 		{"vcs query keeps only the revision", "git+https://github.com/a/b?rev=deadbeef&token=s3cret", sdk.DependencySourceGit, sdk.EcosystemRust, LocatorVCS, "git+https://github.com/a/b@deadbeef"},
+		{"git source pin without prefix", "https://github.com/a/b?rev=deadbeef", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/a/b@deadbeef"},
+		{"dot-git path pin", "https://host/repo.git?rev=deadbeef", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorVCS, "git+https://host/repo.git@deadbeef"},
+		{"swift pin with revision", "https://github.com/apple/swift-nio?tag=2.0.0", sdk.DependencySourceRegistry, sdk.EcosystemSwift, LocatorVCS, "git+https://github.com/apple/swift-nio@2.0.0"},
+		{"git source drops a credential query", "https://github.com/a/b?token=s3cret", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/a/b"},
 
 		// Degenerate input.
 		{"empty", "", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
@@ -130,6 +135,35 @@ func assertPublishableLocator(t *testing.T, got Locator, input string) {
 	}
 	if parsed.User != nil {
 		t.Fatalf("emitted locator with userinfo %q for input %q", got.URL, input)
+	}
+}
+
+func TestIsPublishableReferenceURL(t *testing.T) {
+	cases := []struct {
+		in   string
+		want bool
+	}{
+		{"https://example.com/docs", true},
+		{"http://example.com/docs", true},
+		{"mailto:security@example.com", true},
+		// Credentials hide in every part of a reference, not just userinfo.
+		{"mailto:security@example.com#token=s3cret", false},
+		{"mailto:security@example.com?subject=s3cret", false},
+		{"https://example.com/docs?token=s3cret", false},
+		{"https://example.com/docs#s3cret", false},
+		{"https://tok:s3cret@example.com/docs", false},
+		{"file:///Users/victim/secret.html", false},
+		{"/Users/victim/secret.html", false},
+		{"javascript:alert(1)", false},
+		{"https://", false},
+		{"mailto:", false},
+		{"", false},
+		{"   ", false},
+	}
+	for _, tc := range cases {
+		if got := isPublishableReferenceURL(tc.in); got != tc.want {
+			t.Fatalf("isPublishableReferenceURL(%q) = %v, want %v", tc.in, got, tc.want)
+		}
 	}
 }
 

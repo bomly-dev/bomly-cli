@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/spdx/tools-golang/spdx/v2/common"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 )
 
@@ -217,7 +218,9 @@ const hostileCycloneDX = `{
         {"type": "distribution", "url": "file:///Users/victim/secret/evil-1.0.0.tgz"},
         {"type": "vcs", "url": "https://tok:s3cret@github.com/a/b"},
         {"type": "website", "url": "file:///Users/victim/secret/index.html"},
-        {"type": "documentation", "url": "https://docs.example.com/x?token=s3cret"},
+        {"type": "documentation", "url": "https://docs.example.com/x?token=qu3rysecret"},
+        {"type": "chat", "url": "https://chat.example.com/x#fr4gsecret"},
+        {"type": "support", "url": "mailto:help@example.com#m41lsecret"},
         {"type": "issue-tracker", "url": "https://issues.example.com/evil"}
       ]
     }
@@ -234,8 +237,11 @@ func TestIngestedUnsafeURLsAreNotRepublished(t *testing.T) {
 		out := ingestAndReexport(t, []byte(hostileCycloneDX), target)
 		rendered := string(out)
 
+		// Each secret is unique so a gate that rejects one form cannot mask
+		// another: the query case must not be what stops the fragment case.
 		for _, forbidden := range []string{
 			"file://", "/Users/victim", "s3cret", "tok:", "token=",
+			"qu3rysecret", "fr4gsecret", "m41lsecret",
 		} {
 			if strings.Contains(rendered, forbidden) {
 				t.Fatalf("%s output republished %q from an ingested document:\n%s", target, forbidden, rendered)
@@ -289,6 +295,11 @@ func TestSPDXHomePageSurvivesSPDXRoundTrip(t *testing.T) {
 		}
 		if len(p.PackageChecksums) != 1 {
 			t.Fatalf("SHA3-256 checksum did not survive: %+v", p.PackageChecksums)
+		}
+		// Assert both fields: a length check alone would not notice the
+		// algorithm degrading to a different family on the way through.
+		if got := p.PackageChecksums[0]; got.Algorithm != common.SHA3_256 || got.Value != "abc123" {
+			t.Fatalf("checksum = %+v, want SHA3-256/abc123", got)
 		}
 		return
 	}

@@ -100,34 +100,38 @@ func classifyResolvedURL(raw string, source sdk.DependencySource, ecosystem sdk.
 		return Locator{}
 	}
 
+	// Every VCS form is classified before the query and fragment gate below.
+	// normalizeVCS discards both and keeps only a character-checked revision,
+	// so it is safe on values the gate would otherwise reject — and a git
+	// dependency legitimately pins its revision that way
+	// ("https://host/repo.git?rev=<sha>"). Gating first would silently drop
+	// those pins.
 	if hint == LocatorVCS {
 		return normalizeVCS(parsed)
+	}
+	if hint != LocatorRegistryRoot {
+		// Swift package identity is the repository URL, so swiftpm records a
+		// repo even for `kind: registry` pins. Without this the extension
+		// check below would demote them to registry roots.
+		if ecosystem == sdk.EcosystemSwift {
+			return normalizeVCS(parsed)
+		}
+		if source == sdk.DependencySourceGit || strings.HasSuffix(parsed.Path, ".git") {
+			return normalizeVCS(parsed)
+		}
 	}
 
 	// Credentials also travel outside userinfo: signed and private-registry
 	// URLs carry them as query parameters or fragments
 	// ("...?token=<secret>", "...?X-Amz-Signature=..."). A benign query
 	// parameter cannot be told apart from a credential here, so any query or
-	// fragment disqualifies a non-VCS locator. VCS locators are exempt
-	// because normalizeVCS discards both, keeping only a character-checked
-	// revision.
+	// fragment disqualifies a non-VCS locator.
 	if parsed.RawQuery != "" || parsed.Fragment != "" {
 		return Locator{}
 	}
 
 	if hint == LocatorRegistryRoot {
 		return Locator{Kind: LocatorRegistryRoot, URL: parsed.String()}
-	}
-
-	// Swift package identity is the repository URL, so swiftpm records a repo
-	// even for `kind: registry` pins. Without this the extension check below
-	// would demote them to registry roots.
-	if ecosystem == sdk.EcosystemSwift {
-		return normalizeVCS(parsed)
-	}
-
-	if source == sdk.DependencySourceGit || strings.HasSuffix(parsed.Path, ".git") {
-		return normalizeVCS(parsed)
 	}
 
 	if isConcreteArtifactPath(parsed.Path) {
@@ -322,7 +326,7 @@ func isPublishableReferenceURL(raw string) bool {
 	case "http", "https":
 		return parsed.Host != "" && parsed.RawQuery == "" && parsed.Fragment == ""
 	case "mailto":
-		return parsed.Opaque != "" && parsed.RawQuery == ""
+		return parsed.Opaque != "" && parsed.RawQuery == "" && parsed.Fragment == ""
 	default:
 		return false
 	}

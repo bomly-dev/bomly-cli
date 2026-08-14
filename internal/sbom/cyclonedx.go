@@ -375,6 +375,14 @@ func referenceDigests(hashes *[]cdx.Hash) []Digest {
 // componentFromCycloneDX projects one CycloneDX component onto the neutral
 // model. Both decode paths (the component inventory and the metadata-only
 // fallback) share it so they cannot drift apart.
+// registryRootMarker is the comment Bomly attaches to a distribution
+// reference that names a registry rather than an exact artifact. Recognizing
+// it on ingest is what keeps Bomly's own round trip honest: CycloneDX defines
+// `distribution` as where the artifact can be obtained, so an unmarked
+// reference is promoted to a download location, and without the marker a
+// re-ingested "https://rubygems.org/" would be republished as one.
+const registryRootMarker = "Registry root; not the exact artifact location"
+
 func componentFromCycloneDX(comp cdx.Component) Component {
 	component := Component{
 		ID:          comp.BOMRef,
@@ -433,8 +441,14 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 				// classified value takes it and the rest are preserved
 				// verbatim rather than overwriting the earlier assertion.
 				if component.ArtifactURL == "" && component.RegistryURL == "" {
-					applyLocatorComment(&component, classifyAssertedDownloadLocation(ref.URL), ref.Comment,
-						referenceDigests(ref.Hashes)...)
+					locator := classifyAssertedDownloadLocation(ref.URL)
+					if strings.EqualFold(strings.TrimSpace(ref.Comment), registryRootMarker) &&
+						locator.Kind == LocatorArtifact {
+						// The producer said this is a registry, not the exact
+						// artifact. Believe it rather than the path shape.
+						locator.Kind = LocatorRegistryRoot
+					}
+					applyLocatorComment(&component, locator, ref.Comment, referenceDigests(ref.Hashes)...)
 					if component.ArtifactURL != "" || component.RegistryURL != "" {
 						continue
 					}
@@ -512,7 +526,7 @@ func cycloneDXComponentReferences(component Component) []cdx.ExternalReference {
 		refs = append(refs, cdx.ExternalReference{
 			Type:    cdx.ERTypeDistribution,
 			URL:     component.RegistryURL,
-			Comment: firstNonEmpty(component.RegistryComment, "Registry root; not the exact artifact location"),
+			Comment: firstNonEmpty(component.RegistryComment, registryRootMarker),
 		})
 	}
 

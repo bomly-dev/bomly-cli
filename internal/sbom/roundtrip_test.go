@@ -1784,3 +1784,125 @@ func TestClassifiedLocatorHashesSurvive(t *testing.T) {
 	}
 	t.Fatalf("distribution reference missing:\n%s", raw)
 }
+
+// TestRegistryRootSurvivesBomlyRoundTrip is the regression test for the
+// sharpest failure this classifier exists to prevent, reached through Bomly's
+// own output: a registry root republished as an exact download location.
+//
+// CycloneDX defines `distribution` as where the artifact can be obtained, so
+// an unmarked reference is promoted on ingest. Bomly marks its own
+// registry-root references, and that marker has to be believed over the URL's
+// path shape.
+func TestRegistryRootSurvivesBomlyRoundTrip(t *testing.T) {
+	in := `{
+      "bomFormat": "CycloneDX",
+      "specVersion": "1.6",
+      "version": 1,
+      "components": [
+        {"bom-ref": "pkg:gem/a@1.0.0", "type": "library", "name": "a", "version": "1.0.0",
+         "purl": "pkg:gem/a@1.0.0",
+         "externalReferences": [
+           {"type": "distribution", "url": "https://rubygems.org/", "comment": "` + registryRootMarker + `"}]},
+        {"bom-ref": "pkg:npm/b@1.0.0", "type": "library", "name": "b", "version": "1.0.0",
+         "purl": "pkg:npm/b@1.0.0",
+         "externalReferences": [
+           {"type": "distribution", "url": "https://registry.npmjs.org/b/-/b-1.0.0.tgz"}]}
+      ]
+    }`
+
+	out := ingestAndReexport(t, []byte(in), TargetSPDX23JSON)
+	var doc v23.Document
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	for _, p := range doc.Packages {
+		if p == nil {
+			continue
+		}
+		switch p.PackageName {
+		case "a":
+			if p.PackageDownloadLocation != "NOASSERTION" {
+				t.Fatalf("a marked registry root became a download location: %q", p.PackageDownloadLocation)
+			}
+		case "b":
+			if p.PackageDownloadLocation != "https://registry.npmjs.org/b/-/b-1.0.0.tgz" {
+				t.Fatalf("an unmarked exact artifact was not promoted: %q", p.PackageDownloadLocation)
+			}
+		}
+	}
+}
+
+// TestLocatorSlotsMergeAtomically covers the merge of two copies of one
+// component that each assert a different distribution URL with its own hash.
+// Merging URL, comment, and digests independently would attach one URL's hash
+// to the other — a false integrity assertion.
+func TestLocatorSlotsMergeAtomically(t *testing.T) {
+	first := strings.Repeat("a", 64)
+	second := strings.Repeat("b", 64)
+
+	dst := Component{
+		ArtifactURL:     "https://primary.example/a-1.0.0.tgz",
+		ArtifactDigests: []Digest{{Algorithm: "sha256", Value: first}},
+	}
+	src := Component{
+		ArtifactURL:     "https://mirror.example/a-1.0.0.tgz",
+		ArtifactComment: "mirror",
+		ArtifactDigests: []Digest{{Algorithm: "sha256", Value: second}},
+	}
+
+	mergeComponentAssertions(&dst, src)
+
+	if len(dst.ArtifactDigests) != 1 || dst.ArtifactDigests[0].Value != first {
+		t.Fatalf("the surviving URL picked up the other URL's hashes: %+v", dst.ArtifactDigests)
+	}
+	if dst.ArtifactComment != "" {
+		t.Fatalf("the surviving URL picked up the other URL's comment: %q", dst.ArtifactComment)
+	}
+	// The losing locator is preserved rather than dropped.
+	var kept *ExternalRef
+	for i := range dst.ExternalRefs {
+		if dst.ExternalRefs[i].URL == "https://mirror.example/a-1.0.0.tgz" {
+			kept = &dst.ExternalRefs[i]
+		}
+	}
+	if kept == nil {
+		t.Fatalf("the losing locator was discarded: %+v", dst.ExternalRefs)
+	}
+	if kept.Comment != "mirror" || len(kept.Digests) != 1 || kept.Digests[0].Value != second {
+		t.Fatalf("the preserved locator lost its own assertions: %+v", kept)
+	}
+}
+
+// TestURIBoundCPEPercentEscapes covers the URI binding's encoding rules.
+func TestURIBoundCPEPercentEscapes(t *testing.T) {
+	if !isValidCPE("cpe:/a:vendor%3Aname:product") {
+		t.Fatal("a valid percent escape was rejected")
+	}
+	for _, value := range []string{"cpe:/a:vendor%ZZ:product", "cpe:/a:vendor%:product", "cpe:/a:vendor%4:product"} {
+		if isValidCPE(value) {
+			t.Fatalf("isValidCPE(%q) = true, want a malformed percent escape rejected", value)
+		}
+	}
+}
+
+// TestNonGitSourceInfoRoundTrips covers the SPDX recovery branch, which only
+// recognized "git+" while the writer can emit any tool prefix.
+func TestNonGitSourceInfoRoundTrips(t *testing.T) {
+	repo, vcs := parseSPDXSourceInfo("Source repository: svn+https://svn.example.org/project")
+	if vcs != "svn+https://svn.example.org/project" || repo != "" {
+		t.Fatalf("parseSPDXSourceInfo dropped a non-Git locator: repo=%q vcs=%q", repo, vcs)
+	}
+}
+
+// TestIngestedVCSOutranksScorecardInSourceInfo pins the precedence when an
+// artifact owns the download location and both sources name a repository.
+func TestIngestedVCSOutranksScorecardInSourceInfo(t *testing.T) {
+	got := spdxSourceInfo(Component{
+		ArtifactURL: "https://reg.example/a-1.0.0.tgz",
+		VCSURL:      "git+https://github.com/ingested/repo",
+		Repository:  "https://github.com/scorecard/repo",
+	})
+	if !strings.Contains(got, "ingested/repo") {
+		t.Fatalf("sourceInfo = %q, want the ingested assertion to outrank the matcher", got)
+	}
+}

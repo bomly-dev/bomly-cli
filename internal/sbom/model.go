@@ -146,15 +146,15 @@ type Component struct {
 	VCSURL      string
 	RegistryURL string
 
-	// Comments a source document attached to the references above. Kept
-	// separately so an ingested comment is preserved rather than replaced by
-	// Bomly's own, which could contradict what the producer asserted.
 	// NoDownloadLocation records SPDX's "NONE" marker, which asserts the
 	// package is not downloadable. That is a different claim from
 	// NOASSERTION, which says the producer made none, so the two cannot
 	// collapse into an empty locator.
 	NoDownloadLocation bool
 
+	// Comments a source document attached to the references above. Kept
+	// separately so an ingested comment is preserved rather than replaced by
+	// Bomly's own, which could contradict what the producer asserted.
 	ArtifactComment string
 	VCSComment      string
 	RegistryComment string
@@ -208,12 +208,6 @@ func mergeComponentAssertions(dst *Component, src Component) {
 		{&dst.Description, src.Description},
 		{&dst.Summary, src.Summary},
 		{&dst.Repository, src.Repository},
-		{&dst.ArtifactURL, src.ArtifactURL},
-		{&dst.VCSURL, src.VCSURL},
-		{&dst.RegistryURL, src.RegistryURL},
-		{&dst.ArtifactComment, src.ArtifactComment},
-		{&dst.VCSComment, src.VCSComment},
-		{&dst.RegistryComment, src.RegistryComment},
 		{&dst.Copyright, src.Copyright},
 	} {
 		if *field.target == "" {
@@ -225,9 +219,15 @@ func mergeComponentAssertions(dst *Component, src Component) {
 	// discard the second set whenever the first had any.
 	dst.CPEs = unionStrings(dst.CPEs, src.CPEs)
 	dst.Digests = unionComponentDigests(dst.Digests, src.Digests)
-	dst.ArtifactDigests = unionComponentDigests(dst.ArtifactDigests, src.ArtifactDigests)
-	dst.VCSDigests = unionComponentDigests(dst.VCSDigests, src.VCSDigests)
-	dst.RegistryDigests = unionComponentDigests(dst.RegistryDigests, src.RegistryDigests)
+	// Each locator is one record: URL, its comment, and its digests. Merging
+	// those fields independently could attach one URL's comment or, worse,
+	// another URL's hashes to a different URL — a false integrity assertion.
+	mergeLocatorSlot(&dst.ArtifactURL, &dst.ArtifactComment, &dst.ArtifactDigests,
+		src.ArtifactURL, src.ArtifactComment, src.ArtifactDigests, "distribution", &dst.ExternalRefs)
+	mergeLocatorSlot(&dst.VCSURL, &dst.VCSComment, &dst.VCSDigests,
+		src.VCSURL, src.VCSComment, src.VCSDigests, "vcs", &dst.ExternalRefs)
+	mergeLocatorSlot(&dst.RegistryURL, &dst.RegistryComment, &dst.RegistryDigests,
+		src.RegistryURL, src.RegistryComment, src.RegistryDigests, "distribution", &dst.ExternalRefs)
 	dst.Licenses = unionLicenses(dst.Licenses, src.Licenses)
 	dst.SupplierURLs = unionStrings(dst.SupplierURLs, src.SupplierURLs)
 	dst.SupplierContacts = unionContacts(dst.SupplierContacts, src.SupplierContacts)
@@ -280,6 +280,34 @@ func unionVulnerabilities(base, extra []Vulnerability) []Vulnerability {
 		base = append(base, vuln)
 	}
 	return base
+}
+
+// mergeLocatorSlot folds one classified locator into another as a unit.
+//
+// An empty slot takes the incoming record whole. A slot that already holds a
+// different URL keeps its own and preserves the incoming one as an external
+// reference, so neither assertion is lost and neither borrows the other's
+// comment or hashes. The same URL merges its digests.
+func mergeLocatorSlot(
+	url, comment *string, digests *[]Digest,
+	srcURL, srcComment string, srcDigests []Digest,
+	refType string, refs *[]ExternalRef,
+) {
+	switch {
+	case srcURL == "":
+		return
+	case *url == "":
+		*url, *comment, *digests = srcURL, srcComment, srcDigests
+	case *url == srcURL:
+		*digests = unionComponentDigests(*digests, srcDigests)
+		if *comment == "" {
+			*comment = srcComment
+		}
+	default:
+		*refs = unionExternalRefs(*refs, []ExternalRef{{
+			Type: refType, URL: srcURL, Comment: srcComment, Digests: srcDigests,
+		}})
+	}
 }
 
 // unionLicenses appends licenses from extra that base does not carry, keyed

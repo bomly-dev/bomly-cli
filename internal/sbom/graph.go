@@ -163,7 +163,7 @@ func mergeIngestedNode(existing, incoming *sdk.Dependency) {
 		// fill-gaps merge would drop the duplicate's whole list whenever the
 		// first component had any. Union them instead.
 		if key == metadataKeyLocatorDigests {
-			existing.Metadata[key] = firstPresent(existing.Metadata[key], value)
+			existing.Metadata[key] = mergeLocatorDigestMaps(existing.Metadata[key], value)
 			continue
 		}
 		if _, paired := locatorCommentKeys[key]; paired {
@@ -257,13 +257,31 @@ func unionAnyStrings(base, extra any) any {
 	return baseList
 }
 
-// firstPresent keeps an existing value when there is one, matching the
-// fill-gaps rule the locator slots themselves follow.
-func firstPresent(existing, incoming any) any {
-	if existing != nil {
+// mergeLocatorDigestMaps merges the per-slot locator digest maps.
+//
+// The three slots ride under one key, so keeping the whole existing map
+// discarded a duplicate's hashes for a slot the first component never filled
+// — and mergeLocatorPairs can still adopt that duplicate's URL, which would
+// then be re-emitted without its asserted hash.
+func mergeLocatorDigestMaps(existing, incoming any) any {
+	incomingMap, ok := incoming.(map[string]any)
+	if !ok {
 		return existing
 	}
-	return incoming
+	existingMap, ok := existing.(map[string]any)
+	if !ok {
+		return incoming
+	}
+	merged := make(map[string]any, len(existingMap)+len(incomingMap))
+	for slot, value := range existingMap {
+		merged[slot] = value
+	}
+	for slot, value := range incomingMap {
+		if _, present := merged[slot]; !present {
+			merged[slot] = value
+		}
+	}
+	return merged
 }
 
 // unionAnyRecords merges two serialized lists of maps, deduplicating on the

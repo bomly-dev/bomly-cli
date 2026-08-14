@@ -460,6 +460,12 @@ func normalizeRepositoryURL(repo string) string {
 		}
 		switch strings.ToLower(parsed.Scheme) {
 		case "http", "https":
+			// The scheme-less branch below requires an owner/repo path;
+			// an absolute URL has to clear the same bar or it names no
+			// repository at all.
+			if strings.Trim(parsed.Path, "/") == "" {
+				return ""
+			}
 			return parsed.String()
 		default:
 			return ""
@@ -535,11 +541,27 @@ func classifyIngestedVCS(raw string) string {
 // safety gate — scheme, host, userinfo, fragment — applies unchanged, so local
 // paths and secrets are still dropped.
 func classifyAssertedDownloadLocation(raw string) Locator {
-	locator := classifyURL(raw, "", "", true)
+	locator := classifyAssertedReference(raw)
 	if locator.Kind == LocatorRegistryRoot {
 		locator.Kind = LocatorArtifact
 	}
 	return locator
+}
+
+// classifyAssertedReference classifies a URL a source document declared to be
+// a reference, without claiming it is an exact download location.
+//
+// The distinction matters because the two formats assert different things.
+// SPDX PackageDownloadLocation says "this is where the package came from", so
+// promoting a registry-shaped URL there is faithful. A CycloneDX
+// `distribution` external reference says only "a distribution point", which a
+// registry root legitimately is — promoting it would republish
+// "https://rubygems.org/" as an exact download location, which is the failure
+// this whole classifier exists to prevent. Bomly's own export marks such
+// references as registry roots, so promoting on ingest would corrupt its own
+// round trip.
+func classifyAssertedReference(raw string) Locator {
+	return classifyURL(raw, "", "", true)
 }
 
 // splitVCSRevision parses a version-control URL and separates any trailing
@@ -633,8 +655,18 @@ func isPublishableReferenceURL(raw string) bool {
 	case "urn":
 		// Opaque identifiers with no host and no filesystem reach. A `bom`
 		// reference to "urn:uuid:..." is the common CycloneDX case.
-		return parsed.Opaque != "" && parsed.RawQuery == "" && parsed.Fragment == "" &&
-			!looksLikeCredential(parsed.Opaque)
+		if parsed.Opaque == "" || parsed.RawQuery != "" || parsed.Fragment != "" {
+			return false
+		}
+		// "urn:uuid:ghp_abcd1234" has opaque "uuid:ghp_abcd1234", so a prefix
+		// check on the whole string never sees the token. Inspect each
+		// namespace segment.
+		for _, segment := range strings.Split(parsed.Opaque, ":") {
+			if looksLikeCredential(segment) {
+				return false
+			}
+		}
+		return true
 	default:
 		// Anything else — notably file:, data:, and javascript: — stays
 		// rejected. Denying unknown schemes is the safe default: these values

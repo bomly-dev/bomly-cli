@@ -513,7 +513,7 @@ func parseSPDXSourceInfo(value string) (repository, vcs string) {
 		return "", ""
 	}
 	locator := strings.TrimSpace(strings.TrimPrefix(value, spdxSourceInfoPrefix))
-	if strings.HasPrefix(locator, "git+") {
+	if _, _, isVCS := splitVCSToolPrefix(locator); isVCS {
 		// spdxSourceInfo writes the version-control form when the artifact
 		// owns downloadLocation, so it has to be recognized here or the
 		// repository is lost on the way back.
@@ -564,7 +564,15 @@ func spdxSourceInfo(component Component) string {
 	if component.VCSURL != "" && component.ArtifactURL == "" {
 		return ""
 	}
-	repo := strings.TrimSpace(component.Repository)
+	// The ingested VCS assertion outranks the matcher-derived Scorecard
+	// repository, matching the ingest-before-enrichment precedence.
+	repo := ""
+	if component.ArtifactURL != "" {
+		repo = strings.TrimSpace(component.VCSURL)
+	}
+	if repo == "" {
+		repo = strings.TrimSpace(component.Repository)
+	}
 	if repo == "" && component.ArtifactURL != "" {
 		// Keep the version-control form intact. Stripping "git+" from
 		// "git+https://host/org/repo@deadbeef" turns the revision into part
@@ -742,15 +750,29 @@ func isCPEPart(part string) bool {
 // therefore a character gate: printable ASCII, no whitespace, and none of the
 // delimiters that would change the parse.
 func isCPEURIComponent(value string) bool {
-	for _, r := range value {
+	runes := []rune(value)
+	for i := 0; i < len(runes); i++ {
+		r := runes[i]
 		switch {
 		case r < '!' || r > '~':
 			return false
 		case r == ':' || r == '/' || r == '?' || r == '#' || r == '[' || r == ']' || r == '@':
 			return false
+		case r == '%':
+			// The URI binding percent-encodes its specials, so a "%" that is
+			// not followed by two hex digits is malformed rather than literal.
+			if i+2 >= len(runes) || !isHexRune(runes[i+1]) || !isHexRune(runes[i+2]) {
+				return false
+			}
+			i += 2
 		}
 	}
 	return true
+}
+
+// isHexRune reports whether r is a hexadecimal digit.
+func isHexRune(r rune) bool {
+	return (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')
 }
 
 // isCPEComponent reports whether a CPE attribute value is well formed.

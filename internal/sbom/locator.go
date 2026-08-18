@@ -116,6 +116,7 @@ func classifyResolvedURL(raw string, source sdk.DependencySource, ecosystem sdk.
 	// scheme prefix. The prefix is a stronger signal than anything else here.
 	hint := LocatorNone
 	vcsTool := ""
+	gitArchive := false
 	switch {
 	case strings.HasPrefix(raw, "registry+"):
 		raw, hint = strings.TrimPrefix(raw, "registry+"), LocatorRegistryRoot
@@ -184,7 +185,15 @@ func classifyResolvedURL(raw string, source sdk.DependencySource, ecosystem sdk.
 			return normalizeVCS(parsed, vcsTool)
 		}
 		if source == sdk.DependencySourceGit || strings.HasSuffix(parsed.Path, ".git") {
-			return normalizeVCS(parsed, vcsTool)
+			// A git-sourced dependency can still resolve to an archive: Yarn
+			// stores the codeload tarball for a GitHub selector. Rendering
+			// that endpoint in git+ syntax would invent a repository that is
+			// not cloneable, so an archive-shaped path stays an artifact and
+			// falls through to the gates below.
+			if !pathContainsArchive(parsed.Path) {
+				return normalizeVCS(parsed, vcsTool)
+			}
+			gitArchive = true
 		}
 	}
 
@@ -225,7 +234,7 @@ func classifyResolvedURL(raw string, source sdk.DependencySource, ecosystem sdk.
 		return Locator{Kind: LocatorRegistryRoot, URL: parsed.String()}
 	}
 
-	if isConcreteArtifactPath(parsed.Path) {
+	if isConcreteArtifactPath(parsed.Path) || gitArchive {
 		return Locator{Kind: LocatorArtifact, URL: parsed.String()}
 	}
 	return Locator{Kind: LocatorRegistryRoot, URL: parsed.String()}
@@ -251,6 +260,21 @@ func isChecksumFragment(fragment string) bool {
 		}
 	}
 	return true
+}
+
+// pathContainsArchive reports whether any path segment is archive-shaped —
+// either carrying a package-archive extension or being one outright, the way
+// codeload URLs embed "tar.gz" as its own segment before the revision.
+func pathContainsArchive(path string) bool {
+	for _, segment := range strings.Split(path, "/") {
+		lowered := strings.ToLower(segment)
+		for _, ext := range artifactExtensions {
+			if strings.HasSuffix(lowered, ext) || lowered == strings.TrimPrefix(ext, ".") {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // isConcreteArtifactPath reports whether the final path segment names a
@@ -494,7 +518,12 @@ func isSafeRevision(revision string) bool {
 	if revision == "" || len(revision) > 256 {
 		return false
 	}
-	if looksLikeCredential(revision) {
+	// A revision is republished after the "@", so it needs both gates: the
+	// issuer-prefix scan and the opaque-shape check. A Pipenv or Poetry ref
+	// carrying an entitlement-style token has no recognizable prefix but is
+	// exactly the shape hasOpaqueSecretRun rejects. The cost of a false
+	// positive is an unpinned repository, which is the safe direction.
+	if looksLikeCredential(revision) || hasOpaqueSecretRun(revision) {
 		return false
 	}
 	for _, r := range revision {
@@ -580,7 +609,14 @@ func splitVCSRevision(raw string) (parsed *url.URL, revision string, ok bool) {
 	// for the credential scan, so leaving a "@<revision>" suffix in place
 	// would reject the whole locator for a bad revision instead of dropping
 	// just that revision and keeping the repository.
-	if idx := strings.LastIndex(parsed.Path, "@"); idx >= 0 {
+	// Only the SPDX locator form ".../repo@rev" is split: the "@" must sit
+	// inside the final segment (not open one, the way a scoped name like
+	// "/@core" does) and the suffix must not span segments. A literal "@" in
+	// a repository path such as "/teams/@core/library" is part of the
+	// repository, and splitting there would export "/teams" at revision
+	// "core/library" — a repository that does not exist.
+	if idx := strings.LastIndex(parsed.Path, "@"); idx > 0 &&
+		parsed.Path[idx-1] != '/' && !strings.Contains(parsed.Path[idx+1:], "/") {
 		revision = parsed.Path[idx+1:]
 		clean := *parsed
 		clean.Path = parsed.Path[:idx]

@@ -331,3 +331,28 @@ func TestSwiftPMRevisionKeyIsRead(t *testing.T) {
 		t.Fatalf("swiftpm resolved revision was not pinned:\n%s", out)
 	}
 }
+
+// TestOpaqueTokenRevisionIsNotPinned covers the metadata path: a Pipenv or
+// Poetry ref carrying an entitlement-style token reaches source_revision, and
+// pinning it would publish the token after the "@".
+func TestOpaqueTokenRevisionIsNotPinned(t *testing.T) {
+	g := sdk.New()
+	node := sdk.NewDependencyWithID("pkg@1.0.0", sdk.Dependency{
+		Coordinates: sdk.Coordinates{
+			Name: "pkg", Version: "1.0.0",
+			PURL: "pkg:pypi/pkg@1.0.0", Ecosystem: sdk.EcosystemPython,
+		},
+		Source:      sdk.DependencySourceGit,
+		ResolvedURL: "https://github.com/owner/repo",
+		Metadata:    map[string]any{"source_revision": "Xk9mPq2Lr8Tn4Vw7Yz"},
+	})
+	if err := g.AddNode(node); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+
+	pkg := spdxPackageFor(t, g, BuildOptions{})
+	if want := "git+https://github.com/owner/repo"; pkg.PackageDownloadLocation != want {
+		t.Fatalf("downloadLocation = %q, want the unpinned repository (%q)",
+			pkg.PackageDownloadLocation, want)
+	}
+}

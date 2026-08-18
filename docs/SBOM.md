@@ -136,10 +136,12 @@ Two rules matter here:
   (`...-1.4.0.tgz#71ee51fa...`). That is a fixed-length digest, not a secret,
   so it is stripped and the download location is kept.
 
-Coverage follows what each ecosystem actually records. npm, pnpm, Yarn Classic
+Coverage follows what each ecosystem actually records. npm, Yarn Classic
 (v1), and bun lockfiles name the exact package archive, so those get a real
-download location; Yarn Berry records only resolution identifiers such as
-`react@npm:18.2.0`, so its packages are omitted. Bundler, pub, and most Python
+download location, and pnpm does too when its lockfile records the optional
+`tarball` field — recent pnpm versions often record only an integrity hash,
+and those packages are omitted. Yarn Berry records only resolution
+identifiers such as `react@npm:18.2.0`, so its packages are omitted as well. Bundler, pub, and most Python
 lockfiles record only a registry or index root, so those get a registry
 reference and `NOASSERTION` — as do Cargo's registry dependencies, while its
 `git+` dependencies follow the source-repository row above with their pinned

@@ -62,6 +62,19 @@ func TestClassifyResolvedURL(t *testing.T) {
 		// Prefix matching is case-sensitive, so ordinary words that lowercase
 		// into an issuer prefix are not secrets.
 		{"asia as an ordinary word survives", "https://mirror.example/asia-packages/pkg-1.0.tgz", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorArtifact, "https://mirror.example/asia-packages/pkg-1.0.tgz"},
+		// A git-sourced dependency that resolved to an archive is the
+		// downloaded artifact, not a cloneable repository: rendering the
+		// codeload endpoint in git+ syntax would invent a repo.
+		{"git-sourced codeload tarball stays an artifact", "https://codeload.github.com/user/repo/tar.gz/9f8e7d6c5b4a", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorArtifact, "https://codeload.github.com/user/repo/tar.gz/9f8e7d6c5b4a"},
+		{"git-sourced tgz stays an artifact", "https://host.example/archives/pkg-1.0.0.tgz", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorArtifact, "https://host.example/archives/pkg-1.0.0.tgz"},
+		// A literal "@" opening a path segment is a scoped name, not the SPDX
+		// revision marker; splitting there would export a repo that does not
+		// exist.
+		{"literal @ in repository path survives", "https://git.example.com/teams/@core/library", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://git.example.com/teams/@core/library"},
+		{"spdx revision form still splits", "https://git.example.com/teams/library@9f8e7d6c", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://git.example.com/teams/library@9f8e7d6c"},
+		// An opaque mixed-case token is not a revision, whatever field the
+		// lockfile carried it in.
+		{"opaque token revision is dropped", "https://github.com/org/repo?rev=Xk9mPq2Lr8Tn4Vw7Yz", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo"},
 		// Mixed-case artifact names split at the extension dot, so no single
 		// run reaches the opaque threshold.
 		{"mixed-case wheel survives", "https://files.pythonhosted.org/packages/ab/cd/Django-4.2-py3-none-any.whl", sdk.DependencySourceURL, sdk.EcosystemPython, LocatorArtifact, "https://files.pythonhosted.org/packages/ab/cd/Django-4.2-py3-none-any.whl"},

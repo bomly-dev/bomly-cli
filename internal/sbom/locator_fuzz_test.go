@@ -1,6 +1,7 @@
 package sbom
 
 import (
+	"net/url"
 	"strings"
 	"testing"
 
@@ -171,6 +172,74 @@ func FuzzIsValidCPE(f *testing.F) {
 		}
 		if !strings.HasPrefix(trimmed, "cpe:2.3:") && !strings.HasPrefix(trimmed, "cpe:/") {
 			t.Fatalf("accepted %q, which is neither CPE binding", trimmed)
+		}
+	})
+}
+
+// FuzzIsPublishableReferenceURL exercises the gate every ingested external
+// reference passes through. It spans several schemes, HTTP queries and paths,
+// mail addresses, URN payloads, percent escapes, and credential detection, and
+// a value it accepts is re-emitted verbatim into a published document.
+//
+// The invariant is what that re-emission requires: an accepted value carries
+// no credential in any position and is a usable reference target.
+func FuzzIsPublishableReferenceURL(f *testing.F) {
+	for _, seed := range []string{
+		"https://example.com/docs",
+		"http://example.com/a?version=1",
+		"ftp://files.example.com/pkg.tgz",
+		"git://github.com/org/repo",
+		"mailto:security@example.com",
+		"urn:uuid:3f2504e0-4f89-41d3-9a0c-0305e82c3301",
+		"urn:example:a%3Ab",
+		"https://ghp_abcd1234.repo.example/a.tgz",
+		"https://repo.example/download/ghp_abcd1234/pkg.tgz",
+		"https://repo.example/download?token=s3cret",
+		"https://repo.example/download?ghp_abcd1234",
+		"https://tok:s3cret@example.com/a",
+		"mailto:ghp_abcd1234",
+		"mailto:ghp_abcd1234@example.com",
+		"urn:foo bar", "urn:uuid:%ZZ",
+		"file:///Users/victim/x", "javascript:alert(1)", "data:text/html,x",
+		"/Users/victim/x", "https://", "", "   ", "\x00", "%%%",
+	} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, raw string) {
+		if len(raw) > testkit.MaxFuzzInputSize {
+			return
+		}
+		got := isPublishableReferenceURL(raw)
+		if again := isPublishableReferenceURL(raw); again != got {
+			t.Fatalf("nondeterministic result for %q: %v vs %v", raw, got, again)
+		}
+		if !got {
+			return
+		}
+
+		trimmed := strings.TrimSpace(raw)
+		parsed, err := url.Parse(trimmed)
+		if err != nil {
+			t.Fatalf("accepted an unparseable reference %q", trimmed)
+		}
+		if parsed.User != nil {
+			t.Fatalf("accepted a reference carrying userinfo: %q", trimmed)
+		}
+		switch strings.ToLower(parsed.Scheme) {
+		case "http", "https", "git", "ftp", "ftps", "mailto", "urn":
+		default:
+			t.Fatalf("accepted an out-of-vocabulary scheme %q in %q", parsed.Scheme, trimmed)
+		}
+		// No credential may survive anywhere in the emitted value. Scanning
+		// the whole string keeps this independent of how the implementation
+		// happens to split components.
+		decoded := trimmed
+		if unescaped, err := url.PathUnescape(trimmed); err == nil {
+			decoded = unescaped
+		}
+		if containsCredential(decoded) {
+			t.Fatalf("accepted %q, which contains a recognizable credential", trimmed)
 		}
 	})
 }

@@ -154,7 +154,7 @@ func mergeIngestedNode(existing, incoming *sdk.Dependency) {
 		}
 		sdk.SetDetectionLicenses(existing, merged)
 	}
-	mergeLocatorPairs(existing, incoming)
+	conflictedSlots := mergeLocatorPairs(existing, incoming)
 	for key, value := range incoming.Metadata {
 		if existing.Metadata == nil {
 			existing.Metadata = make(map[string]any, len(incoming.Metadata))
@@ -163,7 +163,7 @@ func mergeIngestedNode(existing, incoming *sdk.Dependency) {
 		// fill-gaps merge would drop the duplicate's whole list whenever the
 		// first component had any. Union them instead.
 		if key == metadataKeyLocatorDigests {
-			existing.Metadata[key] = mergeLocatorDigestMaps(existing.Metadata[key], value)
+			existing.Metadata[key] = mergeLocatorDigestMaps(existing.Metadata[key], value, conflictedSlots)
 			continue
 		}
 		if _, paired := locatorCommentKeys[key]; paired {
@@ -203,7 +203,8 @@ var locatorCommentKeys = map[string]string{
 
 // mergeLocatorPairs fills each empty locator slot from incoming, moving the
 // URL and its comment as one unit.
-func mergeLocatorPairs(existing, incoming *sdk.Dependency) {
+func mergeLocatorPairs(existing, incoming *sdk.Dependency) (conflicted map[string]struct{}) {
+	conflicted = map[string]struct{}{}
 	for _, pair := range []struct{ url, note, slot, refType string }{
 		{metadataKeyArtifactURL, metadataKeyArtifactNote, "artifact", "distribution"},
 		{metadataKeyVCSURL, metadataKeyVCSNote, "vcs", "vcs"},
@@ -247,8 +248,14 @@ func mergeLocatorPairs(existing, incoming *sdk.Dependency) {
 			}
 			existing.Metadata[metadataKeyExternalRefs] = unionExternalRefValues(
 				existing.Metadata[metadataKeyExternalRefs], []any{ref})
+			// The incoming digests belong to the reference just preserved, not
+			// to the URL that kept the slot. Marking the slot conflicted stops
+			// the generic map merge below from attaching them to the survivor
+			// and fabricating an integrity assertion.
+			conflicted[pair.slot] = struct{}{}
 		}
 	}
+	return conflicted
 }
 
 // locatorDigestSlot returns the serialized digest list for one locator slot.
@@ -316,20 +323,22 @@ func unionAnyStrings(base, extra any) any {
 // discarded a duplicate's hashes for a slot the first component never filled
 // — and mergeLocatorPairs can still adopt that duplicate's URL, which would
 // then be re-emitted without its asserted hash.
-func mergeLocatorDigestMaps(existing, incoming any) any {
+func mergeLocatorDigestMaps(existing, incoming any, conflicted map[string]struct{}) any {
 	incomingMap, ok := incoming.(map[string]any)
 	if !ok {
 		return existing
 	}
-	existingMap, ok := existing.(map[string]any)
-	if !ok {
-		return incoming
-	}
+	existingMap, _ := existing.(map[string]any)
 	merged := make(map[string]any, len(existingMap)+len(incomingMap))
 	for slot, value := range existingMap {
 		merged[slot] = value
 	}
 	for slot, value := range incomingMap {
+		// A conflicted slot kept a different URL, and mergeLocatorPairs has
+		// already moved this slot's digests onto the preserved reference.
+		if _, isConflicted := conflicted[slot]; isConflicted {
+			continue
+		}
 		if _, present := merged[slot]; !present {
 			merged[slot] = value
 		}

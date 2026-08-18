@@ -449,23 +449,40 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 		for _, ref := range *comp.ExternalReferences {
 			switch ref.Type {
 			case cdx.ERTypeDistribution:
-				// A component may list several distribution URLs (mirrors).
-				// The neutral model has one artifact slot, so the first
-				// classified value takes it and the rest are preserved
-				// verbatim rather than overwriting the earlier assertion.
-				if component.ArtifactURL == "" && component.RegistryURL == "" {
-					locator := classifyAssertedDownloadLocation(ref.URL)
-					if strings.EqualFold(strings.TrimSpace(ref.Comment), registryRootMarker) &&
-						locator.Kind == LocatorArtifact {
-						// The producer said this is a registry, not the exact
-						// artifact. Believe it rather than the path shape.
-						locator.Kind = LocatorRegistryRoot
-					}
-					applyLocatorComment(&component, locator, ref.Comment, referenceDigests(ref.Hashes)...)
-					if component.ArtifactURL != "" || component.RegistryURL != "" {
-						continue
-					}
+				// Every distribution reference is classified, not just the
+				// first: an exact artifact must win the download-location slot
+				// no matter where it sits in the array. Listing a registry
+				// root ahead of the archive previously left the archive as a
+				// plain reference, which spdxDownloadLocation never reads.
+				locator := classifyAssertedDownloadLocation(ref.URL)
+				if strings.EqualFold(strings.TrimSpace(ref.Comment), registryRootMarker) &&
+					locator.Kind == LocatorArtifact {
+					// The producer said this is a registry, not the exact
+					// artifact. Believe it rather than the path shape.
+					locator.Kind = LocatorRegistryRoot
 				}
+				digests := referenceDigests(ref.Hashes)
+
+				switch {
+				case locator.Kind == LocatorArtifact && component.ArtifactURL == "":
+					// An artifact displaces a registry root already in the
+					// weaker slot; that root is kept as an extra reference.
+					if component.RegistryURL != "" {
+						component.ExternalRefs = append(component.ExternalRefs, ExternalRef{
+							Type:    string(ref.Type),
+							URL:     component.RegistryURL,
+							Comment: component.RegistryComment,
+							Digests: component.RegistryDigests,
+						})
+						component.RegistryURL, component.RegistryComment, component.RegistryDigests = "", "", nil
+					}
+					applyLocatorComment(&component, locator, ref.Comment, digests...)
+					continue
+				case locator.Kind == LocatorRegistryRoot && component.RegistryURL == "" && component.ArtifactURL == "":
+					applyLocatorComment(&component, locator, ref.Comment, digests...)
+					continue
+				}
+
 				if !isPublishableReferenceURL(ref.URL) {
 					continue
 				}
@@ -473,7 +490,7 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 					Type:    string(ref.Type),
 					URL:     strings.TrimSpace(ref.URL),
 					Comment: ref.Comment,
-					Digests: referenceDigests(ref.Hashes),
+					Digests: digests,
 				})
 			case cdx.ERTypeVCS:
 				// Untrusted input: gate and normalize it exactly like a

@@ -782,6 +782,10 @@ func isHexRune(r rune) bool {
 	return (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')
 }
 
+// cpeEscapable is the punctuation a CPE 2.3 formatted string may quote with
+// a backslash. Anything else after a backslash is malformed, not literal.
+const cpeEscapable = `!"#$%&'()*+,-./:;<=>?@[\]^` + "`" + `{|}~_`
+
 // isCPEComponent reports whether a CPE attribute value is well formed.
 //
 // The logical values "*" and "-" stand alone. Otherwise the value is a quoted
@@ -804,10 +808,10 @@ func isCPEComponent(value string) bool {
 	for _, r := range value {
 		switch {
 		case escaped:
-			// An escape must introduce a printable ASCII character. Without
-			// this, "\" followed by a control byte or a non-ASCII rune
-			// skipped the check below entirely.
-			if r < '!' || r > '~' {
+			// The formatted-string binding quotes only its own punctuation.
+			// Printable ASCII is broader than that vocabulary, so "\q" was
+			// accepted as a valid identity when it is malformed.
+			if !strings.ContainsRune(cpeEscapable, r) {
 				return false
 			}
 			escaped = false

@@ -1265,7 +1265,7 @@ func TestVCSLocatorRevisionIsValidated(t *testing.T) {
 		{"git+https://github.com/org/repo@v1.2.3", "git+https://github.com/org/repo@v1.2.3"},
 		// Token-shaped revision: the repository survives, the secret does not.
 		{"git+https://github.com/org/repo@ghp_abcd1234", "git+https://github.com/org/repo"},
-		{"git+https://github.com/org/repo@glpat-Abc123", "git+https://github.com/org/repo"},
+		{"git+https://github.com/org/repo@glpat-Abc123XYZ789def", "git+https://github.com/org/repo"},
 		{"git+https://tok:s3cret@github.com/org/repo", ""},
 		// Userinfo with no path: splitting on "@" before parsing read
 		// "ghp_secret" as the host and "github.com" as a revision, then
@@ -1623,7 +1623,7 @@ func TestMergeComponentAssertionsUnionsEverySet(t *testing.T) {
 func TestBareTokenQueryIsRejected(t *testing.T) {
 	for _, raw := range []string{
 		"https://repo.example/download?ghp_abcd1234",
-		"https://repo.example/download?glpat-Abc123",
+		"https://repo.example/download?glpat-Abc123XYZ789def",
 	} {
 		if got := classifyAssertedDownloadLocation(raw); got.Kind != LocatorNone {
 			t.Fatalf("classifyAssertedDownloadLocation(%q) = %+v, want it rejected", raw, got)
@@ -1914,7 +1914,7 @@ func TestIngestedVCSOutranksScorecardInSourceInfo(t *testing.T) {
 func TestCredentialInPathIsRejected(t *testing.T) {
 	tokenPaths := []string{
 		"https://repo.example/download/ghp_abcd1234/pkg.tgz",
-		"https://repo.example/glpat-Abc123/pkg.tgz",
+		"https://repo.example/glpat-Abc123XYZ789def/pkg.tgz",
 		"https://repo.example/download/%67hp_abcd1234/pkg.tgz",
 	}
 	for _, raw := range tokenPaths {
@@ -2151,7 +2151,7 @@ func TestVCSToolIsNotRewrittenToGit(t *testing.T) {
 func TestSchemeLessRepositoryCredentialIsRejected(t *testing.T) {
 	for _, value := range []string{
 		"github.com/ghp_abcd1234/repo",
-		"github.com/owner/glpat-Abc123",
+		"github.com/owner/glpat-Abc123XYZ789def",
 	} {
 		if got := normalizeRepositoryURL(value); got != "" {
 			t.Fatalf("normalizeRepositoryURL(%q) = %q, want a credential path rejected", value, got)

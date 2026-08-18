@@ -34,6 +34,7 @@ targets=(
   "github.com/bomly-dev/bomly-cli/internal/sbom FuzzClassifyResolvedURL"
   "github.com/bomly-dev/bomly-cli/internal/sbom FuzzNormalizeRepositoryURL"
   "github.com/bomly-dev/bomly-cli/internal/sbom FuzzIsValidCPE"
+  "github.com/bomly-dev/bomly-cli/internal/sbom FuzzIsPublishableReferenceURL"
   "github.com/bomly-dev/bomly-cli/internal/baseline FuzzLoad"
   "github.com/bomly-dev/bomly-cli/internal/engine FuzzConsolidateVulnerabilities"
   "github.com/bomly-dev/bomly-cli/internal/plugin FuzzPluginPathSanitizers"

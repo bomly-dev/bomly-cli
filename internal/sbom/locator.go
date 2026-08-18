@@ -100,12 +100,16 @@ func hasCredentialPath(parsed *url.URL) bool {
 	if decoded, err := url.PathUnescape(path); err == nil {
 		path = decoded
 	}
-	for _, segment := range strings.Split(path, "/") {
-		if looksLikeCredential(segment) {
-			return true
-		}
-	}
-	return false
+	return containsCredential(path)
+}
+
+// hasCredentialHost reports whether any hostname label looks like a secret.
+//
+// Userinfo, path, query, fragment, and revision positions are all gated, but
+// a token can sit in the host too: "https://ghp_abcd1234.repo.example/a.tgz"
+// has a nil User, a clean path, and no query, so every other check passes it.
+func hasCredentialHost(parsed *url.URL) bool {
+	return containsCredential(parsed.Hostname())
 }
 
 // hasCredentialQuery reports whether a URL's query carries something that
@@ -211,7 +215,7 @@ func classifyURL(raw string, source sdk.DependencySource, ecosystem sdk.Ecosyste
 	// A lockfile pointing at a private registry can embed a token. Publishing
 	// it in an SBOM would leak a live credential, so drop the value entirely
 	// rather than try to strip the userinfo and emit the rest.
-	if parsed.User != nil || hasCredentialPath(parsed) {
+	if parsed.User != nil || hasCredentialHost(parsed) {
 		return Locator{}
 	}
 
@@ -239,6 +243,14 @@ func classifyURL(raw string, source sdk.DependencySource, ecosystem sdk.Ecosyste
 		if source == sdk.DependencySourceGit || strings.HasSuffix(parsed.Path, ".git") {
 			return normalizeVCS(parsed, vcsTool)
 		}
+	}
+
+	// The path is checked here rather than above because every VCS branch has
+	// already returned: those go through normalizeVCS, which separates the
+	// "@<revision>" suffix and then checks what remains, so a bad revision
+	// costs only the revision instead of the whole repository.
+	if hasCredentialPath(parsed) {
+		return Locator{}
 	}
 
 	// Credentials also travel outside userinfo: signed and private-registry
@@ -424,6 +436,62 @@ var credentialPrefixes = []string{
 	"shpat_", "shpss_", // Shopify
 }
 
+// credentialBodyMinimum is how many token characters must follow an issuer
+// prefix before the value is treated as a real secret. A bare "ghp_" is a
+// prefix, not a credential, and rejecting it would discard ordinary URLs.
+const credentialBodyMinimum = 8
+
+// containsCredential reports whether text contains a recognizable access token
+// at a token boundary.
+//
+// This scans rather than splitting on delimiters. Splitting needs the exact
+// delimiter set for every position a token might sit in, and each missing
+// separator is a silent gap; a boundary-aware scan has no such gaps and is the
+// same check wherever it is applied — path, host, or query.
+//
+// The boundary requirement is what keeps it from firing on ordinary text: the
+// prefix must start the value or follow a non-token character, so "task-runner"
+// does not match the "sk-" prefix.
+func containsCredential(text string) bool {
+	lowered := strings.ToLower(text)
+	for _, prefix := range credentialPrefixes {
+		for offset := 0; ; {
+			idx := strings.Index(lowered[offset:], prefix)
+			if idx < 0 {
+				break
+			}
+			at := offset + idx
+			offset = at + 1
+
+			if at > 0 && isTokenRune(rune(lowered[at-1])) {
+				continue // mid-word, not a token boundary
+			}
+			body := 0
+			for _, r := range lowered[at+len(prefix):] {
+				if !isTokenRune(r) {
+					break
+				}
+				body++
+			}
+			if body >= credentialBodyMinimum {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// isTokenRune reports whether a rune can appear inside an access token.
+func isTokenRune(r rune) bool {
+	switch {
+	case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9':
+		return true
+	case r == '_', r == '-':
+		return true
+	}
+	return false
+}
+
 // looksLikeCredential reports whether a value carries a recognizable
 // access-token prefix.
 //
@@ -434,13 +502,7 @@ var credentialPrefixes = []string{
 // narrow — a bespoke or unrecognized secret format would still pass. The
 // stronger guarantee lives on the fragment path, which requires bare hex.
 func looksLikeCredential(value string) bool {
-	lowered := strings.ToLower(strings.TrimSpace(value))
-	for _, prefix := range credentialPrefixes {
-		if strings.HasPrefix(lowered, prefix) {
-			return true
-		}
-	}
-	return false
+	return containsCredential(strings.TrimSpace(value))
 }
 
 // isSafeRevision reports whether revision is a plausible git revision that can
@@ -493,7 +555,7 @@ func normalizeRepositoryURL(repo string) string {
 			// The scheme-less branch below requires an owner/repo path;
 			// an absolute URL has to clear the same bar or it names no
 			// repository at all.
-			if strings.Trim(parsed.Path, "/") == "" || hasCredentialPath(parsed) {
+			if strings.Trim(parsed.Path, "/") == "" || hasCredentialPath(parsed) || hasCredentialHost(parsed) {
 				return ""
 			}
 			return parsed.String()
@@ -514,7 +576,7 @@ func normalizeRepositoryURL(repo string) string {
 	// something url.Parse rejects, such as an invalid percent-escape.
 	candidate := "https://" + repo
 	parsed, err := url.Parse(candidate)
-	if err != nil || parsed.Host != host || parsed.User != nil || hasCredentialPath(parsed) {
+	if err != nil || parsed.Host != host || parsed.User != nil || hasCredentialPath(parsed) || hasCredentialHost(parsed) {
 		return ""
 	}
 	return candidate
@@ -539,7 +601,10 @@ func classifyIngestedVCS(raw string) string {
 	}
 	raw = rest
 	parsed, err := url.Parse(raw)
-	if err != nil || parsed.User != nil || parsed.Host == "" || hasCredentialPath(parsed) {
+	// The path is deliberately not checked here: normalizeVCS separates the
+	// "@<revision>" suffix first and checks what remains, so a bad revision
+	// costs the revision rather than the whole repository.
+	if err != nil || parsed.User != nil || parsed.Host == "" || hasCredentialHost(parsed) {
 		return ""
 	}
 	// git:// is a legitimate transport for a version-control reference, and
@@ -603,14 +668,21 @@ func classifyAssertedReference(raw string) Locator {
 // ok is false when the URL is unsafe to publish at all.
 func splitVCSRevision(raw string) (parsed *url.URL, revision string, ok bool) {
 	parsed, err := url.Parse(strings.TrimSpace(raw))
-	if err != nil || parsed.User != nil || parsed.Host == "" || hasCredentialPath(parsed) {
+	if err != nil || parsed.User != nil || parsed.Host == "" || hasCredentialHost(parsed) {
 		return nil, "", false
 	}
+	// Separate the revision before checking the path. "@" is a path delimiter
+	// for the credential scan, so leaving a "@<revision>" suffix in place
+	// would reject the whole locator for a bad revision instead of dropping
+	// just that revision and keeping the repository.
 	if idx := strings.LastIndex(parsed.Path, "@"); idx >= 0 {
 		revision = parsed.Path[idx+1:]
 		clean := *parsed
 		clean.Path = parsed.Path[:idx]
 		parsed = &clean
+	}
+	if hasCredentialPath(parsed) {
+		return nil, "", false
 	}
 	return parsed, revision, true
 }
@@ -678,7 +750,7 @@ func isPublishableReferenceURL(raw string) bool {
 		// parameters disqualify it. Fragments stay rejected: they carry no
 		// meaning for a reference and are a common place to hide a secret.
 		return parsed.Host != "" && parsed.Fragment == "" &&
-			!hasCredentialQuery(parsed) && !hasCredentialPath(parsed)
+			!hasCredentialQuery(parsed) && !hasCredentialPath(parsed) && !hasCredentialHost(parsed)
 	case "mailto":
 		// The opaque body is never inspected by the userinfo, query, or
 		// revision gates, so "mailto:ghp_abcd1234" would otherwise be

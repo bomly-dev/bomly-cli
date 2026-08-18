@@ -78,13 +78,13 @@ func TestClassifyResolvedURL(t *testing.T) {
 		// A fragment must be commit-shaped, not merely character-safe: an
 		// access token passes isSafeRevision and would be republished.
 		{"pat fragment is not a revision", "https://github.com/org/repo#ghp_abcd1234", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo"},
-		{"fine-grained pat fragment is not a revision", "https://github.com/org/repo#github_pat_11ABCDE", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo"},
+		{"fine-grained pat fragment is not a revision", "https://github.com/org/repo#github_pat_11ABCDEFGHIJKLMNOP", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo"},
 		{"non-hex fragment is not a revision", "https://github.com/org/repo#release-candidate", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo"},
 		{"named query revision still allows tags", "https://github.com/org/repo?tag=v1.2.3", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo@v1.2.3"},
 		// A query key names its value a revision, so tags and branches are
 		// legitimate there — but a recognizable token is not.
 		{"token in rev query is rejected", "https://github.com/org/repo?rev=ghp_abcd1234", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo"},
-		{"token in branch query is rejected", "https://github.com/org/repo?branch=glpat-Abc123", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo"},
+		{"token in branch query is rejected", "https://github.com/org/repo?branch=glpat-Abc123XYZ789def", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo"},
 		{"underscored branch still allowed", "https://github.com/org/repo?branch=release_candidate", sdk.DependencySourceGit, sdk.EcosystemNPM, LocatorVCS, "git+https://github.com/org/repo@release_candidate"},
 		{"requested rev used when no commit resolved", "https://github.com/a/b?rev=v1.2.3", sdk.DependencySourceGit, sdk.EcosystemPython, LocatorVCS, "git+https://github.com/a/b@v1.2.3"},
 
@@ -237,11 +237,11 @@ func TestClassifyAssertedDownloadLocation(t *testing.T) {
 
 func TestIsSafeRevisionRejectsCredentialShapes(t *testing.T) {
 	rejected := []string{
-		"ghp_abcd1234", "github_pat_11ABCDE_xyz", "gho_abc", "ghs_abc",
-		"glpat-Abc123", "npm_abcdef", "pypi-AgEIcHlwaS5vcmc",
-		"xoxb-123-456-abc", "sk-abcdef123456", "sk_live_abc",
-		"AKIAIOSFODNN7EXAMPLE", "AIzaSyA-abc123", "hf_abcDEF",
-		"dop_v1_abc", "shpat_abc123",
+		"ghp_abcd1234", "github_pat_11ABCDEFGHIJKLMNOP_xyz", "gho_abcdefghijklmnop", "ghs_abcdefghijklmnop",
+		"glpat-Abc123XYZ789def", "npm_abcdefghijklmnop", "pypi-AgEIcHlwaS5vcmc",
+		"xoxb-123456789-abcdefghijk", "sk-abcdef123456ghijk", "sk_live_abcdefghijkl",
+		"AKIAIOSFODNN7EXAMPLE", "AIzaSyA-abc123defghijklmnop", "hf_abcDEFghijklmnop",
+		"dop_v1_abcdefghijklmnop", "shpat_abc123defghijk",
 	}
 	for _, value := range rejected {
 		if isSafeRevision(value) {

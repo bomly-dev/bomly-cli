@@ -10,6 +10,7 @@ import (
 	"unicode"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -81,6 +82,10 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		if existing, ok := depsGraph.Node(pkgNode.ID); ok && existing.Type == sdk.PackageTypeApplication {
 			pkgNode = sdk.NewDependencyWithID(fmt.Sprintf("yarn-package:%d", idx), pkg)
 		}
+		// Yarn Classic records the tarball it fetched, with the package
+		// checksum as a URL fragment the invariant strips. Berry entries
+		// carry no resolved location, and git specs are rejected.
+		detectors.SetOriginArtifact(pkgNode, entry.Resolved)
 		if err := node.AddNodeIfMissing(depsGraph, pkgNode); err != nil {
 			return "", err
 		}

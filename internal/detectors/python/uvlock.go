@@ -71,6 +71,7 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 			Name:    normalizePythonName(pkg.Name),
 			Version: pkg.Version}, Source: uvDependencySource(pkg.Source), ResolvedURL: uvResolvedURL(pkg.Source), Metadata: sourceRevisionMetadata(uvSourceRevision(pkg.Source)),
 		})
+		setUVOrigin(node, pkg.Source)
 
 		nodesByName[normalizePythonName(pkg.Name)] = node
 	}

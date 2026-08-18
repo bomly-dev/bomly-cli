@@ -181,7 +181,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 			pkgType = "application"
 			source = sdk.DependencySourceWorkspace
 		}
-		return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
+		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
 			Name:           pkg.Name,
 			Version:        pkg.Version,
 			PackageManager: sdk.PackageManagerCargo,
@@ -189,6 +189,8 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 			Language:       "rust",
 			PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)}, Source: source, ResolvedURL: pkg.Source,
 		})
+		setCargoOrigin(node, pkg.Source)
+		return node
 	}
 	lockPackageFor := func(manifest cargoManifest) lockPackage {
 		if pkg, ok := byName[manifest.Name]; ok && pkg.Version != "" {

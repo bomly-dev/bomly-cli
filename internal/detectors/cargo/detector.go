@@ -382,7 +382,7 @@ func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}) 
 			source = sdk.DependencySourceWorkspace
 		}
 	}
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
+	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
 		Name:           pkg.Name,
 		Version:        pkg.Version,
 		PackageManager: sdk.PackageManagerCargo,
@@ -390,6 +390,8 @@ func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}) 
 		Language:       "rust",
 		PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)}, Source: source, ResolvedURL: pkg.Source,
 	})
+	setCargoOrigin(node, pkg.Source)
+	return node
 
 }
 

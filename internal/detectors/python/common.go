@@ -217,6 +217,7 @@ func depGraphFromPipInspect(raw []byte, rootNode *sdk.Dependency, declared map[s
 			Name:    normalizePythonName(pkg.Metadata.Name),
 			Version: pkg.Metadata.Version}, Source: pipInspectDependencySource(pkg.DirectURL), ResolvedURL: pipInspectResolvedURL(pkg.DirectURL), Metadata: sourceRevisionMetadata(pipInspectRevision(pkg.DirectURL)),
 		})
+		setPipInspectOrigin(node, pkg.DirectURL)
 
 		if _, exists := nodesByName[node.Name]; !exists {
 			nodesByName[node.Name] = node

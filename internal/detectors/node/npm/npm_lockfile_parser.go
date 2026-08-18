@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -247,6 +248,10 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 			pkg.Metadata = map[string]any{sdk.MetadataKeyNPM: meta}
 		}
 		pkgNode := sdk.NewDependency(pkg)
+		// npm records the registry tarball a package was installed from.
+		// Workspace members cleared ResolvedURL above (it names a local
+		// directory), and git or file specs are rejected by the invariant.
+		detectors.SetOriginArtifact(pkgNode, pkg.ResolvedURL)
 		if entry.License != "" {
 			sdk.SetDetectionLicenses(pkgNode, []sdk.PackageLicense{{Value: entry.License, Type: "declared"}})
 		}

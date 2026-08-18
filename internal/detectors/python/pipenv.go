@@ -242,6 +242,7 @@ func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Dependency, packages
 			Name:           normalizedName,
 			Version:        strings.TrimPrefix(pkg.Version, "==")}, Source: pipfileDependencySource(pkg), ResolvedURL: pipfileResolvedURL(pkg), Metadata: sourceRevisionMetadata(pkg.Ref), Scopes: sdk.ScopesOf(scope),
 		})
+		setPipenvOrigin(node, pkg)
 
 		if _, exists := depsGraph.Node(node.ID); !exists {
 			if err := depsGraph.AddNode(node); err != nil {

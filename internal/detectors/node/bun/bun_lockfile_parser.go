@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -141,6 +142,9 @@ func depGraphFromBunLockfile(projectPath string) (bunLockfileGraphs, error) {
 		if _, exists := graph.Node(pkgNode.ID); exists {
 			pkgNode = sdk.NewDependencyWithID("bun-package:"+key, dep)
 		}
+		// Bun's tuple carries the registry tarball it fetched. Workspace
+		// members and git specs resolve to values the invariant rejects.
+		detectors.SetOriginArtifact(pkgNode, entry.resolved)
 		if err := node.AddNodeIfMissing(graph, pkgNode); err != nil {
 			return bunLockfileGraphs{}, err
 		}

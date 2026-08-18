@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -138,6 +139,10 @@ func depGraphFromPNPMLockfile(projectPath string) (pnpmLockfileGraphs, error) {
 		if existing, ok := depsGraph.Node(pkgNode.ID); ok && existing.Type == sdk.PackageTypeApplication {
 			pkgNode = sdk.NewDependencyWithID("pnpm-package:"+key, pkg)
 		}
+		// pnpm records a tarball only when it resolved one; v9 lockfiles
+		// often carry just an integrity hash, and git or directory
+		// resolutions are not parsed, so those packages assert no origin.
+		detectors.SetOriginArtifact(pkgNode, entry.Resolution.Tarball)
 		if entry.License != "" {
 			sdk.SetDetectionLicenses(pkgNode, []sdk.PackageLicense{{Value: entry.License, Type: "declared"}})
 		}

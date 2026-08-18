@@ -135,6 +135,14 @@ type Component struct {
 	Digests         []Digest
 	Vulnerabilities []Vulnerability
 	EOL             *EOL
+
+	// Where the package came from, as asserted by the detector that resolved
+	// it. At most one of ArtifactURL and VCSURL is set, and VCSRevision only
+	// accompanies VCSURL. Both are plain absolute http(s) URLs; composing them
+	// into a format's locator grammar is the encoder's job.
+	ArtifactURL string
+	VCSURL      string
+	VCSRevision string
 }
 
 // Dependency describes one package relationship list in the intermediate SBOM model.

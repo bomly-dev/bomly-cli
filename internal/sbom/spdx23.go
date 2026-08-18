@@ -44,7 +44,7 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageName:               c.NameOrID(),
 			PackageSPDXIdentifier:     spdxID,
 			PackageVersion:            c.Version,
-			PackageDownloadLocation:   "NOASSERTION",
+			PackageDownloadLocation:   spdxDownloadLocation(c),
 			FilesAnalyzed:             false,
 			PackageComment:            spdxPackageComment(c),
 			PackageLicenseDeclared:    spdxLicenseValue(c.Licenses),
@@ -426,6 +426,35 @@ func spdxCopyrightValue(value string) string {
 		return ""
 	}
 	return value
+}
+
+// spdxDownloadLocation renders where a package came from. SPDX requires the
+// field, so a package whose detector asserted nothing keeps NOASSERTION rather
+// than a guess.
+func spdxDownloadLocation(component Component) string {
+	if artifact := strings.TrimSpace(component.ArtifactURL); artifact != "" {
+		return artifact
+	}
+	if locator := spdxVCSLocator(component); locator != "" {
+		return locator
+	}
+	return "NOASSERTION"
+}
+
+// spdxVCSLocator renders a repository in SPDX 2.3's version-control form,
+// "<tool>+<transport>://<host><path>[@<revision>]". The grammar has no query
+// component and no room for anything but the revision after "@", which is why
+// the origin invariant strips both before a URL gets here.
+func spdxVCSLocator(component Component) string {
+	repository := strings.TrimSpace(component.VCSURL)
+	if repository == "" {
+		return ""
+	}
+	locator := "git+" + repository
+	if revision := strings.TrimSpace(component.VCSRevision); revision != "" {
+		locator += "@" + revision
+	}
+	return locator
 }
 
 func spdxExternalReferences(component Component) []*v23.PackageExternalReference {

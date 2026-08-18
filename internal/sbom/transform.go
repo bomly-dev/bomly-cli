@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -47,6 +48,7 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			Licenses:       componentLicenses(sdk.DetectionLicenses(pkg)),
 			Digests:        componentDigests(pkg.Digests),
 		}
+		applyOrigin(&component, detectors.OriginFrom(pkg.Metadata))
 		enrichComponentFromRegistry(&component, opts.Registry, pkg.PURL)
 		components = append(components, component)
 		depsByRef[pkg.ID] = nil
@@ -263,6 +265,32 @@ func uniqueToolNames(values []string) []string {
 // enrichComponentFromRegistry folds matching-stage data resolved by PURL onto a
 // component: registry-learned licenses (preferred over detection-time when
 // present), CPEs, digests, vulnerabilities, and EOL. registry may be nil.
+// scorecardRepositoryURL renders a scorecard repository, which is a canonical
+// host/owner/name identifier with no scheme, as a URL. It is held to the same
+// invariant as detector-asserted origins.
+func scorecardRepositoryURL(scorecard *sdk.PackageScorecard) (string, bool) {
+	if scorecard == nil {
+		return "", false
+	}
+	repository := strings.TrimSpace(scorecard.Repository)
+	if repository == "" {
+		return "", false
+	}
+	if !strings.Contains(repository, "://") {
+		repository = "https://" + repository
+	}
+	return detectors.NormalizeOriginURL(repository, true)
+}
+
+// applyOrigin projects the origin a detector asserted onto a component. The
+// values were validated when they were read, so there is nothing to decide
+// here: export publishes what detection resolved, or nothing.
+func applyOrigin(component *Component, origin detectors.Origin) {
+	component.ArtifactURL = origin.ArtifactURL
+	component.VCSURL = origin.VCSURL
+	component.VCSRevision = origin.VCSRevision
+}
+
 func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegistry, purl string) {
 	if component == nil || registry == nil || purl == "" {
 		return
@@ -282,6 +310,12 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 	}
 	if len(pkg.Vulnerabilities) > 0 {
 		component.Vulnerabilities = vulnerabilitiesFromPackage(pkg.EcosystemName(), pkg.Vulnerabilities)
+	}
+	if repository, ok := scorecardRepositoryURL(pkg.Scorecard); ok && component.VCSURL == "" {
+		// The scorecard matcher resolved a canonical source repository for
+		// this package. A detector-asserted repository is the stronger claim
+		// (it came from the lockfile), so this only fills a gap.
+		component.VCSURL = repository
 	}
 	if pkg.EOL != nil {
 		component.EOL = &EOL{

@@ -1,0 +1,194 @@
+package detectors
+
+import (
+	"net/url"
+	"strings"
+
+	"github.com/bomly-dev/bomly-sdk"
+)
+
+// Origin metadata keys. Detectors record where a package came from under these
+// keys on sdk.Dependency.Metadata; SBOM export reads them back. The values are
+// a transport detail between detection and export, so command output filters
+// the shared prefix out rather than publishing it.
+const (
+	// MetadataKeyOriginPrefix is the common prefix of every origin key.
+	MetadataKeyOriginPrefix = "bomly.origin."
+	// MetadataKeyOriginArtifactURL holds the exact artifact a package was
+	// resolved from (a tarball, wheel, gem, crate, ...).
+	MetadataKeyOriginArtifactURL = MetadataKeyOriginPrefix + "artifact_url"
+	// MetadataKeyOriginVCSURL holds the source repository a package was
+	// resolved from.
+	MetadataKeyOriginVCSURL = MetadataKeyOriginPrefix + "vcs_url"
+	// MetadataKeyOriginVCSRevision holds the resolved revision (commit, tag)
+	// pinned alongside MetadataKeyOriginVCSURL.
+	MetadataKeyOriginVCSRevision = MetadataKeyOriginPrefix + "vcs_revision"
+)
+
+// maxOriginRevisionLength bounds a recorded revision. Real commit hashes and
+// tags are far shorter; anything longer is not a revision.
+const maxOriginRevisionLength = 128
+
+// Origin is where a package came from, as asserted by the detector that
+// resolved it. At most one location is set: a package is either downloaded as
+// an artifact or checked out from a repository. An empty Origin means the
+// detector had nothing publishable to say, which is the normal case for
+// registry-resolved packages whose lockfile records only an index root.
+type Origin struct {
+	// ArtifactURL is the exact file the package was downloaded from.
+	ArtifactURL string
+	// VCSURL is the source repository the package was resolved from.
+	VCSURL string
+	// VCSRevision is the revision pinned in VCSURL, when the lockfile
+	// recorded one. Never set without VCSURL.
+	VCSRevision string
+}
+
+// Empty reports whether no location is set.
+func (o Origin) Empty() bool {
+	return o.ArtifactURL == "" && o.VCSURL == ""
+}
+
+// NormalizeOriginURL is the single invariant every published origin URL must
+// satisfy. It is applied when a detector records a URL and again when export
+// reads one back, so a plugin-supplied or hand-built graph is held to the same
+// rule as a built-in detector.
+//
+// A value passes only when it is an absolute http or https URL with a host and
+// no embedded credentials; the result is always re-serialized from the parse,
+// never the caller's raw string. Everything else — local paths, file://,
+// git@host:org/repo, ssh://, git+ssh://, and URLs carrying userinfo — is
+// rejected, so filesystem layout and credentials cannot reach an SBOM.
+//
+// The vcs argument selects the repository form: query and fragment are dropped
+// (they carry the requested ref, not the resolved one, which callers pass
+// separately) and a non-empty path is required, since a bare host names no
+// repository. The artifact form instead drops the fragment (a checksum or
+// anchor, never part of the location) and rejects a value carrying a query,
+// which marks a signed or tokenized link rather than a stable location.
+func NormalizeOriginURL(raw string, vcs bool) (string, bool) {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return "", false
+	}
+	parsed, err := url.Parse(trimmed)
+	if err != nil {
+		return "", false
+	}
+	switch strings.ToLower(parsed.Scheme) {
+	case "http", "https":
+	default:
+		return "", false
+	}
+	// Hostname also rejects a malformed host such as "https://:8080/pkg".
+	if parsed.Hostname() == "" || parsed.User != nil {
+		return "", false
+	}
+	parsed.Scheme = strings.ToLower(parsed.Scheme)
+	parsed.Fragment = ""
+	parsed.RawFragment = ""
+	if vcs {
+		parsed.RawQuery = ""
+		parsed.ForceQuery = false
+		if strings.Trim(parsed.Path, "/") == "" {
+			return "", false
+		}
+	} else if parsed.RawQuery != "" || parsed.ForceQuery {
+		return "", false
+	}
+	normalized := parsed.String()
+	if normalized == "" {
+		return "", false
+	}
+	return normalized, true
+}
+
+// SetOriginArtifact records the exact artifact dep was resolved from. Callers
+// pass the lockfile field verbatim; values that are not publishable URLs are
+// dropped silently, since a missing origin is correct output and a wrong one
+// is not. No-op when dep is nil.
+func SetOriginArtifact(dep *sdk.Dependency, rawURL string) {
+	if dep == nil {
+		return
+	}
+	normalized, ok := NormalizeOriginURL(rawURL, false)
+	if !ok {
+		return
+	}
+	setOriginValue(dep, MetadataKeyOriginArtifactURL, normalized)
+}
+
+// SetOriginVCS records the source repository dep was resolved from, plus the
+// revision the lockfile pinned. An unpublishable URL drops the whole origin; an
+// unusable revision drops only the revision, keeping the repository. No-op when
+// dep is nil.
+func SetOriginVCS(dep *sdk.Dependency, rawURL, revision string) {
+	if dep == nil {
+		return
+	}
+	normalized, ok := NormalizeOriginURL(rawURL, true)
+	if !ok {
+		return
+	}
+	setOriginValue(dep, MetadataKeyOriginVCSURL, normalized)
+	if pinned := strings.TrimSpace(revision); isValidOriginRevision(pinned) {
+		setOriginValue(dep, MetadataKeyOriginVCSRevision, pinned)
+	}
+}
+
+// OriginFrom reads the origin a detector recorded on metadata, re-validating
+// every value. Anything that fails the invariant is dropped, so export cannot
+// publish a location no detector could legitimately have produced. An artifact
+// wins over a repository in the case — which the setters never produce — where
+// metadata carries both.
+func OriginFrom(metadata map[string]any) Origin {
+	if len(metadata) == 0 {
+		return Origin{}
+	}
+	if artifact, ok := NormalizeOriginURL(originString(metadata, MetadataKeyOriginArtifactURL), false); ok {
+		return Origin{ArtifactURL: artifact}
+	}
+	repository, ok := NormalizeOriginURL(originString(metadata, MetadataKeyOriginVCSURL), true)
+	if !ok {
+		return Origin{}
+	}
+	origin := Origin{VCSURL: repository}
+	if pinned := strings.TrimSpace(originString(metadata, MetadataKeyOriginVCSRevision)); isValidOriginRevision(pinned) {
+		origin.VCSRevision = pinned
+	}
+	return origin
+}
+
+// isValidOriginRevision reports whether revision is safe to publish beside a
+// repository URL. The charset keeps commit hashes, tags, and branch-style refs
+// while excluding whitespace, "@", and percent escapes, which would break the
+// SPDX "git+<url>@<revision>" locator grammar.
+func isValidOriginRevision(revision string) bool {
+	if revision == "" || len(revision) > maxOriginRevisionLength {
+		return false
+	}
+	for _, r := range revision {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9':
+		case r == '.', r == '_', r == '-', r == '+', r == '/':
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+// setOriginValue stores one origin fact, allocating the metadata map on demand.
+func setOriginValue(dep *sdk.Dependency, key, value string) {
+	if dep.Metadata == nil {
+		dep.Metadata = make(map[string]any, 1)
+	}
+	dep.Metadata[key] = value
+}
+
+// originString reads a string-valued metadata entry, tolerating a map built by
+// something other than the setters.
+func originString(metadata map[string]any, key string) string {
+	value, _ := metadata[key].(string)
+	return value
+}

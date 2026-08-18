@@ -4,6 +4,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -262,13 +263,24 @@ func cloneAffectedSymbols(src []sdk.AffectedSymbol) []sdk.AffectedSymbol {
 	return out
 }
 
+// cloneRefMetadata copies package metadata for command output, dropping keys
+// that carry data between pipeline stages rather than facts about the package.
+// Origin keys are such a transport: detectors record where a package came from
+// so SBOM export can publish it, and the SBOM is where users read it.
 func cloneRefMetadata(src map[string]any) map[string]any {
 	if len(src) == 0 {
 		return nil
 	}
 	clone := make(map[string]any, len(src))
 	for key, value := range src {
+		if strings.HasPrefix(key, detectors.MetadataKeyOriginPrefix) {
+			continue
+		}
 		clone[key] = value
+	}
+	// Metadata is omitempty; an emptied map must read as absent, not as {}.
+	if len(clone) == 0 {
+		return nil
 	}
 	return clone
 }

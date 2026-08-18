@@ -329,7 +329,11 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 	// Union rather than replace: an ingested document's identifiers are its
 	// own assertions, and enrichment fills gaps rather than overwriting.
 	component.CPEs = unionStrings(component.CPEs, pkg.CPEs)
-	component.Digests = unionComponentDigests(component.Digests, componentDigests(pkg.Digests))
+	// Merge by algorithm, not by whole record: two different SHA-256 values
+	// for one component are contradictory integrity assertions, and the
+	// ingested one wins under ingest-before-enrichment. Enrichment may still
+	// add an algorithm the document did not carry.
+	component.Digests = mergeDigestsByAlgorithm(component.Digests, componentDigests(pkg.Digests))
 	if len(pkg.Vulnerabilities) > 0 {
 		component.Vulnerabilities = vulnerabilitiesFromPackage(pkg.EcosystemName(), pkg.Vulnerabilities)
 	}
@@ -353,6 +357,27 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 	if component.ArtifactURL == "" && component.VCSURL == "" && component.RegistryURL == "" {
 		applyLocator(component, classifyResolvedURL(pkg.ResolvedURL, "", pkg.Ecosystem))
 	}
+}
+
+// mergeDigestsByAlgorithm keeps base's value for any algorithm it already
+// asserts and appends only algorithms base lacks.
+func mergeDigestsByAlgorithm(base, extra []Digest) []Digest {
+	if len(extra) == 0 {
+		return base
+	}
+	seen := make(map[string]struct{}, len(base))
+	for _, digest := range base {
+		seen[normalizeDigestAlgorithm(digest.Algorithm)] = struct{}{}
+	}
+	for _, digest := range extra {
+		algorithm := normalizeDigestAlgorithm(digest.Algorithm)
+		if _, present := seen[algorithm]; present {
+			continue
+		}
+		seen[algorithm] = struct{}{}
+		base = append(base, digest)
+	}
+	return base
 }
 
 // normalizeDigestAlgorithm renders a decoded checksum algorithm in the form

@@ -144,15 +144,32 @@ func assertPublishableLocator(t *testing.T, got Locator, input string) {
 		t.Fatalf("kind %v carried an empty url for input %q", got.Kind, input)
 	}
 	switch {
-	case strings.HasPrefix(got.URL, "https://"), strings.HasPrefix(got.URL, "http://"),
-		strings.HasPrefix(got.URL, "git+https://"), strings.HasPrefix(got.URL, "git+http://"):
+	case strings.HasPrefix(got.URL, "https://"), strings.HasPrefix(got.URL, "http://"):
 	default:
-		t.Fatalf("emitted non-http(s) locator %q for input %q", got.URL, input)
+		// The classifier deliberately keeps the asserted version-control tool
+		// rather than rewriting everything to git+, so accept every prefix it
+		// can produce. Hard-coding git+ here would fail `make fuzz` on valid
+		// behavior.
+		matched := false
+		for _, prefix := range vcsToolPrefixes {
+			if strings.HasPrefix(got.URL, prefix+"https://") || strings.HasPrefix(got.URL, prefix+"http://") ||
+				strings.HasPrefix(got.URL, prefix+"git://") {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			t.Fatalf("emitted an out-of-vocabulary locator %q for input %q", got.URL, input)
+		}
 	}
 	// Check userinfo structurally rather than by looking for "@": scoped npm
 	// packages ("/@babel/core/") and VCS revisions ("@deadbeef") both contain
 	// one legitimately.
-	parsed, err := url.Parse(strings.TrimPrefix(got.URL, "git+"))
+	bare := got.URL
+	for _, prefix := range vcsToolPrefixes {
+		bare = strings.TrimPrefix(bare, prefix)
+	}
+	parsed, err := url.Parse(bare)
 	if err != nil {
 		t.Fatalf("emitted unparseable locator %q for input %q", got.URL, input)
 	}

@@ -376,6 +376,7 @@ func TestEnrichmentDoesNotClobberIngestedSets(t *testing.T) {
 	const matcherCPE = "cpe:2.3:a:matcher:a:1.0.0:*:*:*:*:*:*:*"
 	ingestedHash := strings.Repeat("a", 64)
 	matcherHash := strings.Repeat("b", 64)
+	matcherSHA1 := strings.Repeat("c", 40)
 
 	g := sdk.New()
 	node := sdk.NewDependencyWithID(purl, sdk.Dependency{
@@ -391,21 +392,32 @@ func TestEnrichmentDoesNotClobberIngestedSets(t *testing.T) {
 	pkg := registry.Ensure(purl)
 	pkg.Name, pkg.Version = "a", "1.0.0"
 	pkg.CPEs = []string{matcherCPE}
-	pkg.Digests = []sdk.Digest{{Algorithm: sdk.DigestAlgorithmSHA256, Value: matcherHash}}
+	// Same algorithm as the ingested digest: a contradictory assertion, so the
+	// ingested value wins. The SHA-1 is a new algorithm and is additive.
+	pkg.Digests = []sdk.Digest{
+		{Algorithm: sdk.DigestAlgorithmSHA256, Value: matcherHash},
+		{Algorithm: sdk.DigestAlgorithmSHA1, Value: matcherSHA1},
+	}
 
 	out, err := MarshalDepGraphJSON(g, TargetSPDX23JSON, BuildOptions{Registry: registry}, EncodeOptions{})
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
 	for name, want := range map[string]string{
-		"ingested CPE":  ingestedCPE,
-		"matcher CPE":   matcherCPE,
-		"ingested hash": ingestedHash,
-		"matcher hash":  matcherHash,
+		"ingested CPE":            ingestedCPE,
+		"matcher CPE":             matcherCPE,
+		"ingested hash":           ingestedHash,
+		"matcher's new algorithm": matcherSHA1,
 	} {
 		if !strings.Contains(string(out), want) {
 			t.Fatalf("%s was discarded by enrichment:\n%s", name, out)
 		}
+	}
+	// Two different SHA-256 values for one component are contradictory rather
+	// than complementary, so the enrichment value must not appear beside the
+	// ingested one.
+	if strings.Contains(string(out), matcherHash) {
+		t.Fatalf("enrichment overrode the ingested SHA-256 with a conflicting value:\n%s", out)
 	}
 }
 

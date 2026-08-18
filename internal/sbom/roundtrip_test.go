@@ -2249,3 +2249,134 @@ func TestPaddedValuesAreStoredTrimmed(t *testing.T) {
 		}
 	}
 }
+
+// TestRestoredLocatorMetadataIsRevalidated covers the trust boundary on
+// Dependency.Metadata. Those keys are not private to the SBOM detector — any
+// detector, including an external plugin, can set them — so a value restored
+// from metadata must clear the same gate as one the classifier just produced.
+func TestRestoredLocatorMetadataIsRevalidated(t *testing.T) {
+	hostile := map[string]string{
+		"local path":          "file:///home/runner/secret",
+		"credential userinfo": "https://tok:s3cret@nexus.corp/a-1.0.tgz",
+		"credential path":     "https://repo.example/ghp_abcd1234abcd/a-1.0.tgz",
+		"not a url":           "/home/runner/secret",
+	}
+	for name, value := range hostile {
+		g := sdk.New()
+		node := sdk.NewDependencyWithID("pkg@1.0.0", sdk.Dependency{
+			Coordinates: sdk.Coordinates{
+				Name: "pkg", Version: "1.0.0",
+				PURL: "pkg:npm/pkg@1.0.0", Ecosystem: sdk.EcosystemNPM,
+			},
+			// A plugin-supplied node claiming an already-classified locator.
+			Metadata: map[string]any{"bomly.sbom.artifact_url": value},
+		})
+		if err := g.AddNode(node); err != nil {
+			t.Fatalf("add node: %v", err)
+		}
+
+		for _, target := range []Target{TargetSPDX23JSON, TargetCycloneDX17JSON} {
+			out, err := MarshalDepGraphJSON(g, target, BuildOptions{}, EncodeOptions{})
+			if err != nil {
+				t.Fatalf("marshal %s: %v", target, err)
+			}
+			needle := value
+			if idx := strings.Index(needle, "://"); idx >= 0 {
+				needle = needle[idx+3:]
+			}
+			if strings.Contains(string(out), needle) {
+				t.Fatalf("%s: restored metadata bypassed the gate for %s:\n%s", target, name, out)
+			}
+		}
+	}
+
+	// A legitimate value still round-trips.
+	g := sdk.New()
+	node := sdk.NewDependencyWithID("pkg@1.0.0", sdk.Dependency{
+		Coordinates: sdk.Coordinates{
+			Name: "pkg", Version: "1.0.0",
+			PURL: "pkg:npm/pkg@1.0.0", Ecosystem: sdk.EcosystemNPM,
+		},
+		Metadata: map[string]any{"bomly.sbom.artifact_url": "https://reg.example/a-1.0.0.tgz"},
+	})
+	if err := g.AddNode(node); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+	out, err := MarshalDepGraphJSON(g, TargetSPDX23JSON, BuildOptions{}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	if !strings.Contains(string(out), "https://reg.example/a-1.0.0.tgz") {
+		t.Fatalf("a valid restored locator was dropped:\n%s", out)
+	}
+}
+
+// TestAssertedReferenceKeepsItsFragment covers the checksum-fragment
+// exception, which exists for Yarn's detector-derived values. Stripping it from
+// a source-declared reference would silently change the asserted target.
+func TestAssertedReferenceKeepsItsFragment(t *testing.T) {
+	withDigestFragment := "https://reg.example/a-1.0.0.tgz#" + strings.Repeat("a", 40)
+
+	// Detector-derived: the Yarn shape, stripped and kept.
+	if got := classifyResolvedURL(withDigestFragment, "", ""); got.URL != "https://reg.example/a-1.0.0.tgz" {
+		t.Fatalf("detector value = %q, want the checksum fragment stripped", got.URL)
+	}
+	// Source-declared: rejected rather than silently rewritten.
+	if got := classifyAssertedDownloadLocation(withDigestFragment); got.Kind != LocatorNone {
+		t.Fatalf("asserted value = %+v, want a fragment rejected rather than stripped", got)
+	}
+}
+
+// TestURIBoundCPERejectsRawReservedCharacters covers characters the URI
+// binding requires to be percent-encoded.
+func TestURIBoundCPERejectsRawReservedCharacters(t *testing.T) {
+	for _, value := range []string{
+		`cpe:/a:ven\dor:product`,
+		`cpe:/a:ven"dor:product`,
+		"cpe:/a:ven<dor:product",
+		"cpe:/a:ven|dor:product",
+	} {
+		if isValidCPE(value) {
+			t.Fatalf("isValidCPE(%q) = true, want a raw reserved character rejected", value)
+		}
+	}
+	// Percent-encoded forms remain valid.
+	if !isValidCPE("cpe:/a:vendor%5Cname:product") {
+		t.Fatal("a percent-encoded reserved character was rejected")
+	}
+}
+
+// TestNoneMergesWithLocatorState covers duplicate PURLs where one asserts an
+// exact download and the other asserts NONE. Merging the marker alone made
+// SPDX emit NONE while CycloneDX still emitted the artifact.
+func TestNoneMergesWithLocatorState(t *testing.T) {
+	doc := &Document{
+		Components: []Component{
+			{
+				ID: "first", Name: "a", Version: "1.0.0", PURL: "pkg:npm/a@1.0.0",
+				ArtifactURL: "https://reg.example/a-1.0.0.tgz",
+			},
+			{
+				ID: "second", Name: "a", Version: "1.0.0", PURL: "pkg:npm/a@1.0.0",
+				NoDownloadLocation: true,
+			},
+		},
+		Dependencies: []Dependency{{Ref: "first", DependsOn: []string{"second"}}},
+	}
+
+	graph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	out, err := MarshalDepGraphJSON(graph, TargetSPDX23JSON, BuildOptions{}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	var spdxDoc v23.Document
+	if err := json.Unmarshal(out, &spdxDoc); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if got := spdxDoc.Packages[0].PackageDownloadLocation; got != "https://reg.example/a-1.0.0.tgz" {
+		t.Fatalf("downloadLocation = %q, want the first component's assertion to win", got)
+	}
+}

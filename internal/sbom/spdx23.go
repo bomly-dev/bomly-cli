@@ -765,6 +765,9 @@ func isCPEURIComponent(value string) bool {
 			return false
 		case r == ':' || r == '/' || r == '?' || r == '#' || r == '[' || r == ']' || r == '@':
 			return false
+		case r == '\\' || r == '"' || r == '<' || r == '>' || r == '{' || r == '}' || r == '|' || r == '^' || r == '`':
+			// The URI binding percent-encodes these; raw, they are malformed.
+			return false
 		case r == '%':
 			// The URI binding percent-encodes its specials, so a "%" that is
 			// not followed by two hex digits is malformed rather than literal.

@@ -1,6 +1,8 @@
 package sbom
 
 import (
+	"strings"
+
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -141,6 +143,26 @@ func setIngestedMetadata(dep *sdk.Dependency, component Component) {
 	dep.Metadata[metadataKeyExternalRefs] = refs
 }
 
+// restoredLocator re-validates a locator recovered from Dependency.Metadata,
+// returning "" when it is not publishable as the kind it claims to be.
+func restoredLocator(value any, kind LocatorKind) string {
+	raw, _ := value.(string)
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	if kind == LocatorVCS {
+		return validatedVCSLocator(raw)
+	}
+	locator := classifyAssertedReference(raw)
+	if locator.Kind == LocatorNone {
+		return ""
+	}
+	// An artifact slot may hold a value the classifier reads as a registry
+	// root and vice versa; what matters is that it is publishable at all.
+	return locator.URL
+}
+
 // applyIngestedMetadata restores assertions stashed by setIngestedMetadata.
 //
 // The ingested values win over anything Bomly derived: they are the source
@@ -178,9 +200,17 @@ func applyIngestedMetadata(component *Component, metadata map[string]any) {
 	// The three distribution fields move as a set: a partial overwrite could
 	// leave a component claiming both an ingested artifact URL and a stale
 	// derived registry root.
-	artifact, _ := metadata[metadataKeyArtifactURL].(string)
-	vcs, _ := metadata[metadataKeyVCSURL].(string)
-	registry, _ := metadata[metadataKeyRegistryURL].(string)
+	//
+	// Every value is re-validated rather than trusted. Dependency.Metadata is
+	// not private to the SBOM detector — any detector, including an external
+	// plugin, can set these keys — so an unchecked assignment here would let
+	// "file:///home/runner/secret" or a credential-bearing URL overwrite a
+	// locator that just passed the classifier and reach the published
+	// document. Restoring is an ingest path, so the assertion-level gate
+	// applies, matching how these values were validated on the way in.
+	artifact := restoredLocator(metadata[metadataKeyArtifactURL], LocatorArtifact)
+	vcs := restoredLocator(metadata[metadataKeyVCSURL], LocatorVCS)
+	registry := restoredLocator(metadata[metadataKeyRegistryURL], LocatorRegistryRoot)
 	if artifact != "" || vcs != "" || registry != "" {
 		component.ArtifactURL, component.VCSURL, component.RegistryURL = artifact, vcs, registry
 	}

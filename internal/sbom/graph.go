@@ -162,6 +162,22 @@ func mergeIngestedNode(existing, incoming *sdk.Dependency) {
 		// External references are a set carried under one key, so a key-level
 		// fill-gaps merge would drop the duplicate's whole list whenever the
 		// first component had any. Union them instead.
+		// NONE is part of the locator assertion, not an independent fact: a
+		// first component asserting an exact URL and a second asserting NONE
+		// are contradictory, and merging the marker alone would make SPDX emit
+		// NONE while CycloneDX still emitted the artifact. First component
+		// wins, matching the locator policy.
+		if key == metadataKeyNoDownload {
+			if _, hasLocator := existing.Metadata[metadataKeyArtifactURL]; hasLocator {
+				continue
+			}
+			if _, hasLocator := existing.Metadata[metadataKeyVCSURL]; hasLocator {
+				continue
+			}
+			if _, hasLocator := existing.Metadata[metadataKeyRegistryURL]; hasLocator {
+				continue
+			}
+		}
 		if key == metadataKeyLocatorDigests {
 			existing.Metadata[key] = mergeLocatorDigestMaps(existing.Metadata[key], value, conflictedSlots)
 			continue

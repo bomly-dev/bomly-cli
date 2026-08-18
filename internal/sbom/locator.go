@@ -277,7 +277,11 @@ func classifyURL(raw string, source sdk.DependencySource, ecosystem sdk.Ecosyste
 	// package in a Yarn lockfile. Strip it and keep the URL; anything that
 	// is not digest-shaped is still treated as a secret.
 	if parsed.Fragment != "" {
-		if !isChecksumFragment(parsed.Fragment) {
+		// The checksum exception exists for Yarn's detector-derived `resolved`
+		// values. A source-declared reference rejects fragments outright:
+		// stripping one there would silently change the target another
+		// producer asserted.
+		if allowBenignQuery || !isChecksumFragment(parsed.Fragment) {
 			return Locator{}
 		}
 		clean := *parsed

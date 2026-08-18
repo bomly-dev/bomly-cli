@@ -417,7 +417,7 @@ func componentFromCycloneDX(comp cdx.Component) Component {
 				// A contact email is republished verbatim, so it needs the
 				// same validation a mailto reference gets — otherwise a
 				// credential-shaped address passes straight through.
-				email := c.Email
+				email := strings.TrimSpace(c.Email)
 				if email != "" && !isEmailAddress(email) {
 					email = ""
 				}

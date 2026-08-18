@@ -38,6 +38,7 @@ func FuzzClassifyResolvedURL(f *testing.F) {
 		"workspace:*",
 		"git@github.com:a/b.git",
 		"https://",
+		"https://:8080/pkg.tgz",
 		// Regression: a host-only URL with a fragment once produced
 		// "git+http://0@0", whose "@<revision>" suffix re-parses as userinfo.
 		"http://0#0",
@@ -99,6 +100,7 @@ func FuzzNormalizeRepositoryURL(f *testing.F) {
 		"%./0",
 		// Regression: a scheme with no host once produced the bare "http:".
 		"http://",
+		"https://:8080/a/b",
 	} {
 		f.Add(seed)
 	}

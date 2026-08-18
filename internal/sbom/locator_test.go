@@ -119,6 +119,7 @@ func TestClassifyResolvedURL(t *testing.T) {
 		{"empty", "", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
 		{"whitespace", "   ", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
 		{"scheme only", "https://", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
+		{"port without hostname", "https://:8080/pkg.tgz", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
 		{"colons", "::::", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
 	}
 
@@ -203,6 +204,36 @@ func assertPublishableLocator(t *testing.T, got Locator, input string) {
 	if parsed.User != nil {
 		t.Fatalf("emitted locator with userinfo %q for input %q", got.URL, input)
 	}
+	if parsed.Hostname() == "" {
+		t.Fatalf("emitted locator without a hostname %q for input %q", got.URL, input)
+	}
+}
+
+func TestPinLocatorDistinguishesPathAtFromRevision(t *testing.T) {
+	cases := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{
+			name: "literal at path is pinned",
+			url:  "git+https://git.example.com/teams/@core/library",
+			want: "git+https://git.example.com/teams/@core/library@9f8e7d6c",
+		},
+		{
+			name: "existing revision is preserved",
+			url:  "git+https://git.example.com/teams/library@deadbeef",
+			want: "git+https://git.example.com/teams/library@deadbeef",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := pinLocator(Locator{Kind: LocatorVCS, URL: tc.url}, "9f8e7d6c")
+			if got.URL != tc.want {
+				t.Fatalf("url = %q, want %q", got.URL, tc.want)
+			}
+		})
+	}
 }
 
 func TestNormalizeRepositoryURL(t *testing.T) {
@@ -218,6 +249,7 @@ func TestNormalizeRepositoryURL(t *testing.T) {
 		{"/Users/ahmed/repo", ""},
 		{"has space/repo", ""},
 		{"ftp://github.com/a/b", ""},
+		{"https://:8080/a/b", ""},
 		{"https://tok:sec@github.com/a/b", ""},
 	}
 	for _, tc := range cases {

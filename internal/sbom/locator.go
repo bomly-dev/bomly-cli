@@ -69,7 +69,11 @@ func sourceRevisionFrom(metadata map[string]any) string {
 // while leaving ResolvedURL as the bare remote, so without this the export
 // would name a moving branch for a dependency whose commit is actually known.
 func pinLocator(locator Locator, revision string) Locator {
-	if locator.Kind != LocatorVCS || revision == "" || strings.Contains(locator.URL, "@") {
+	if locator.Kind != LocatorVCS || revision == "" {
+		return locator
+	}
+	_, existingRevision, ok := splitVCSRevision(locator.URL)
+	if !ok || existingRevision != "" {
 		return locator
 	}
 	return Locator{Kind: LocatorVCS, URL: locator.URL + "@" + revision}
@@ -152,7 +156,7 @@ func classifyResolvedURL(raw string, source sdk.DependencySource, ecosystem sdk.
 	default:
 		return Locator{}
 	}
-	if parsed.Host == "" {
+	if parsed.Hostname() == "" {
 		return Locator{}
 	}
 
@@ -551,7 +555,7 @@ func normalizeRepositoryURL(repo string) string {
 	}
 	if strings.Contains(repo, "://") {
 		parsed, err := url.Parse(repo)
-		if err != nil || parsed.User != nil || parsed.Host == "" {
+		if err != nil || parsed.User != nil || parsed.Hostname() == "" {
 			return ""
 		}
 		if parsed.RawQuery != "" || parsed.Fragment != "" {
@@ -602,7 +606,7 @@ func normalizeRepositoryURL(repo string) string {
 // ok is false when the URL is unsafe to publish at all.
 func splitVCSRevision(raw string) (parsed *url.URL, revision string, ok bool) {
 	parsed, err := url.Parse(strings.TrimSpace(raw))
-	if err != nil || parsed.User != nil || parsed.Host == "" || hasCredentialHost(parsed) {
+	if err != nil || parsed.User != nil || parsed.Hostname() == "" || hasCredentialHost(parsed) {
 		return nil, "", false
 	}
 	// Separate the revision before checking the path. "@" is a path delimiter

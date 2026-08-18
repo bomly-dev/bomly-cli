@@ -47,6 +47,9 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 		if props := cycloneDXEOLProperties(comp.EOL); len(props) > 0 {
 			component.Properties = &props
 		}
+		if refs := cycloneDXComponentReferences(comp); len(refs) > 0 {
+			component.ExternalReferences = &refs
+		}
 		components = append(components, component)
 	}
 	bom.Components = &components
@@ -259,6 +262,39 @@ func cycloneDXSecurityReferences(p Provenance) []cdx.ExternalReference {
 	if disclosure := strings.TrimSpace(p.VulnerabilityDisclosureURL); disclosure != "" {
 		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeAdvisories, URL: disclosure, Comment: "Coordinated vulnerability disclosure policy"})
 	}
+	if len(refs) == 0 {
+		return nil
+	}
+	return refs
+}
+
+// cycloneDXComponentReferences builds the per-component external references
+// describing where the package came from.
+//
+// A registry root is emitted only when no exact artifact URL is known, and it
+// carries a comment saying so — it names where the ecosystem fetches from, not
+// where this package came from.
+func cycloneDXComponentReferences(component Component) []cdx.ExternalReference {
+	refs := make([]cdx.ExternalReference, 0, 2)
+
+	switch {
+	case component.ArtifactURL != "":
+		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeDistribution, URL: component.ArtifactURL})
+	case component.RegistryURL != "":
+		refs = append(refs, cdx.ExternalReference{
+			Type:    cdx.ERTypeDistribution,
+			URL:     component.RegistryURL,
+			Comment: "Registry root; not the exact artifact location",
+		})
+	}
+
+	// VCSURL is detector-supplied and version-exact, so it wins over the
+	// scorecard repository. Emitting both would assert the same repository
+	// twice from two sources.
+	if vcs := firstNonEmpty(component.VCSURL, component.Repository); vcs != "" {
+		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeVCS, URL: vcs})
+	}
+
 	if len(refs) == 0 {
 		return nil
 	}

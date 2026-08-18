@@ -31,6 +31,8 @@ targets=(
   "github.com/bomly-dev/bomly-cli/internal/detectors/swiftpm FuzzDepGraphFromSwiftResolved"
   "github.com/bomly-dev/bomly-cli/internal/sbom FuzzUnmarshalAutoJSON"
   "github.com/bomly-dev/bomly-cli/internal/sbom FuzzNormalizeSPDXLicenseExpression"
+  "github.com/bomly-dev/bomly-cli/internal/sbom FuzzClassifyResolvedURL"
+  "github.com/bomly-dev/bomly-cli/internal/sbom FuzzNormalizeRepositoryURL"
   "github.com/bomly-dev/bomly-cli/internal/baseline FuzzLoad"
   "github.com/bomly-dev/bomly-cli/internal/engine FuzzConsolidateVulnerabilities"
   "github.com/bomly-dev/bomly-cli/internal/plugin FuzzPluginPathSanitizers"

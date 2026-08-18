@@ -47,6 +47,10 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			Licenses:       componentLicenses(sdk.DetectionLicenses(pkg)),
 			Digests:        componentDigests(pkg.Digests),
 		}
+		applyLocator(&component, pinLocator(
+			classifyResolvedURL(pkg.ResolvedURL, pkg.Source, pkg.Ecosystem),
+			sourceRevisionFrom(pkg.Metadata),
+		))
 		enrichComponentFromRegistry(&component, opts.Registry, pkg.PURL)
 		components = append(components, component)
 		depsByRef[pkg.ID] = nil
@@ -290,6 +294,31 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 			Cycle:         pkg.EOL.Cycle,
 			LatestVersion: pkg.EOL.LatestVersion,
 		}
+	}
+	if pkg.Scorecard != nil && component.Repository == "" {
+		// Fill a gap only: the scorecard repository is matcher-derived and
+		// must not displace a more specific detector-supplied location.
+		component.Repository = normalizeRepositoryURL(pkg.Scorecard.Repository)
+	}
+	// The registry copy of ResolvedURL is normally the detection value echoed
+	// back, so it only fills a gap a matcher supplied. Source is not carried
+	// on Package, so classification here is shape-driven only.
+	if component.ArtifactURL == "" && component.VCSURL == "" && component.RegistryURL == "" {
+		applyLocator(component, classifyResolvedURL(pkg.ResolvedURL, "", pkg.Ecosystem))
+	}
+}
+
+// applyLocator projects a classified resolved URL onto a component. A
+// LocatorNone leaves the component untouched, so an unpublishable value simply
+// results in no assertion.
+func applyLocator(component *Component, locator Locator) {
+	switch locator.Kind {
+	case LocatorArtifact:
+		component.ArtifactURL = locator.URL
+	case LocatorVCS:
+		component.VCSURL = locator.URL
+	case LocatorRegistryRoot:
+		component.RegistryURL = locator.URL
 	}
 }
 

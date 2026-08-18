@@ -99,6 +99,48 @@ Both formats carry:
   knows fixed versions, each vulnerability carries a `recommendation`
   ("Upgrade <package> to <version>"). No guidance is invented when no fix is
   known. SPDX 2.3 has no equivalent field.
+- Where each package came from, when the lockfile records it (see below).
+
+### Where a package came from
+
+Lockfiles record very different things in the same field. Some name the exact
+file that was downloaded, some name only the registry the ecosystem fetches
+from, and some name a directory on the machine that ran the scan. Bomly sorts
+each value into one of three kinds — an exact package file, a source
+repository, or a registry root — and emits it accordingly. A value that fits
+none of them, such as a local path, is not published at all:
+
+| What the lockfile recorded | SPDX | CycloneDX |
+| --- | --- | --- |
+| The exact package file | `downloadLocation` | `distribution` reference |
+| A source repository | `downloadLocation` (`git+` form) | `vcs` reference |
+| Only a registry root | `NOASSERTION` | `distribution` reference, marked as a registry root |
+| A local path, or nothing usable | `NOASSERTION` | nothing |
+
+For a dependency pinned to a source repository, Bomly records the resolved
+commit when the lockfile has one, in preference to the branch or tag that was
+requested. A branch moves; the commit is what was actually locked.
+
+Two rules matter here:
+
+- **A registry root is never used as a download location.** `https://rubygems.org/`
+  is a valid URL, so a validator would accept it, but it is not where that gem
+  came from. Saying nothing is better than saying something false.
+- **Local filesystem paths are never written to an SBOM**, and neither are URLs
+  carrying a credential. Several lockfile formats record a directory on the
+  build machine, or a private-registry URL with a token in it — in the
+  `user:password@host` position, in a query parameter such as `?token=` on a
+  signed download link, or embedded in the host or path. Any of these is
+  dropped rather than published. One fragment is recognized rather than
+  dropped: Yarn appends the artifact's own checksum to each `resolved` URL
+  (`...-1.4.0.tgz#71ee51fa...`). That is a fixed-length digest, not a secret,
+  so it is stripped and the download location is kept.
+
+Coverage follows what each ecosystem actually records. npm, pnpm, yarn, and bun
+lockfiles name the exact package archive, so those get a real download location.
+Bundler, Cargo, pub, and most Python lockfiles record only a registry or index
+root, so those get a registry reference and `NOASSERTION`. Go modules, Maven,
+Gradle, NuGet, and Composer record no location at all.
 
 ### Document identity
 
@@ -153,8 +195,12 @@ in both formats (CycloneDX `metadata.manufacturer`, SPDX `PackageSupplier` on
 the package the document DESCRIBES). Supplier is not defaulted to anything
 when the field is unset, and per-component supplier and description data is
 never invented: those fields stay absent unless a data source actually
-provides them. Third-party CRA profile checks will flag the missing
-manufacturer/contact metadata until the `sbom` section is configured.
+provides them. Bomly does not derive them from deps.dev either — its
+`GetVersion` payload asserts neither supplier nor description — and guessing
+(for example treating a PURL namespace as a supplier) would put invented
+claims into a compliance document. Third-party CRA profile checks will flag
+the missing manufacturer/contact metadata until the `sbom` section is
+configured.
 
 When `--enrich` is set, components are enriched from the matching-stage package
 registry (keyed by PURL):
@@ -165,14 +211,18 @@ registry (keyed by PURL):
 - Vulnerabilities — CycloneDX as a first-class `vulnerabilities` array (ratings,
   CWEs, advisories, `affects`); SPDX as `SECURITY`/`advisory` external references.
 - End-of-life status (CycloneDX `bomly:eol*` properties, SPDX package comment).
+- The source repository resolved by the OpenSSF Scorecard matcher (CycloneDX
+  `vcs` external reference, SPDX `PackageSourceInfo`). A repository recorded by
+  the detector itself is more precise, so it wins when both are known.
 
 Reachability annotations and other Bomly-specific metadata are emitted in the JSON output (`--json` or `--format json`), not in the standard SBOM formats. See [Output formats](OUTPUT_FORMATS.md).
 
 ### Preservation and conversion limits
 
 Bomly preserves component identity (including PURL), dependency edges, roots,
-scope, package type, licenses, digests, CPEs, and the enrichment fields described
-above when the destination format has an equivalent representation. Encoding is
+scope, package type, licenses, digests, CPEs, download and repository
+locations, and the enrichment fields described above when the destination
+format has an equivalent representation. Encoding is
 deterministic when the scan timestamp and document identifiers are fixed.
 
 Some information necessarily becomes less specific during conversion:

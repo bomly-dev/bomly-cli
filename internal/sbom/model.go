@@ -135,6 +135,18 @@ type Component struct {
 	Digests         []Digest
 	Vulnerabilities []Vulnerability
 	EOL             *EOL
+
+	// Where the package came from, classified from the detector- or
+	// matcher-supplied resolved URL. At most one of ArtifactURL and VCSURL is
+	// set; RegistryURL is the weaker fallback naming a registry or index
+	// root, and is deliberately never used as a download location.
+	ArtifactURL string
+	VCSURL      string
+	RegistryURL string
+
+	// Repository is a canonical source repository resolved by the OpenSSF
+	// Scorecard matcher during enrichment, rendered as an absolute https URL.
+	Repository string
 }
 
 // Dependency describes one package relationship list in the intermediate SBOM model.

@@ -166,6 +166,20 @@ inherit these checkout validation controls.
 
 Reachability data lives on `sdk.Vulnerability.Reachability` rather than on `Finding.Reachability` because `--analyze` must be useful without `--audit`. Matchers populate the OSV-aligned `Vulnerability` record on the PURL-keyed registry package; the analyzer enriches it in place; the output layer resolves the analyzer's annotation by `(Finding.PackageRef, Finding.VulnerabilityID)` when emitting SARIF and the JSON `Finding` projection. This keeps a single source of truth (the registry) and removes the per-manifest sync that the old graph-mutating model required.
 
+### Decision: SBOM distribution data is classified, not passed through
+
+`sdk.Dependency.ResolvedURL` is not a URL. Detectors write whatever their lockfile records: npm/pnpm/yarn/bun write the exact tarball, Bundler writes the `GEM remote:` registry root, Cargo writes a `registry+`/`sparse+`/`git+`-prefixed index or repo, swiftpm writes a repository, and uv, pipenv, pub, and npm link entries can all write a **local filesystem path**. Some private-registry URLs embed a token.
+
+`internal/sbom/locator.go` therefore classifies each value into artifact / VCS / registry-root / nothing before it can reach an SBOM, rather than mapping the field straight onto `PackageDownloadLocation`. Two rules are load-bearing:
+
+1. **An http(s) scheme is required, and credentials are rejected in every position.** This is what keeps build-machine directory layout and private-registry credentials out of a published document. Credentials travel in more places than userinfo: query parameter names and values, fragments, hostname labels, path segments, and the `@<revision>` suffix on a version-control locator. `containsCredential` scans whole components for issuer-prefixed tokens at token boundaries rather than splitting on delimiters — a split needs the exact delimiter set for every position, and each missing separator is a silent gap. The check is on the value, never on `Source` — uv's `path`/`editable` values arrive under non-`file` sources.
+
+   One subtlety worth stating, because getting it backwards leaks credentials: **parse before splitting a revision.** In a URL, `@` before the host is userinfo and `@` after the path is a revision, and the two are only distinguishable once parsed. Splitting `https://ghp_secret@github.com` on `@` first reads the secret as the host and `github.com` as the revision, which passes every later check and rebuilds the credential. `splitVCSRevision` is the single place that ordering is encoded.
+
+2. **A registry root never becomes a download location.** `https://rubygems.org/` is schema-valid and both validators accept it, so the failure would be silent and plausible: every consumer would read it as the artifact's origin. `NOASSERTION` is the honest answer.
+
+Unrecognized shapes degrade toward the weaker claim (registry root, then nothing) rather than toward the stronger one. `FuzzClassifyResolvedURL` asserts the safety property directly: a classified value is either empty or an absolute network URL with no credential in any position.
+
 ### Decision: external lookups use `Coordinates.EcosystemName()`, never the bare `Name`
 
 `Coordinates` stores identity as `Org` + `Name` following the PURL namespace/name split, so `Name` alone is `postcss` for both `postcss` and `@tailwindcss/postcss`. Anything that leaves the process under a name — Grype's DB search, the OSV name-keyed query, name-derived cache keys, SBOM component names, the bare specifiers `jsreach` matches imports against — must use `EcosystemName()`, which rebuilds the ecosystem-native form (`@org/name` for npm, `org:name` for the Maven family, `org/name` for Go, Composer, Swift, and GitHub Actions).

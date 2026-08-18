@@ -44,7 +44,7 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageName:               c.NameOrID(),
 			PackageSPDXIdentifier:     spdxID,
 			PackageVersion:            c.Version,
-			PackageDownloadLocation:   "NOASSERTION",
+			PackageDownloadLocation:   spdxDownloadLocation(c),
 			FilesAnalyzed:             false,
 			PackageComment:            spdxPackageComment(c),
 			PackageLicenseDeclared:    spdxLicenseValue(c.Licenses),
@@ -53,6 +53,7 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageChecksums:          spdxChecksums(c.Digests),
 			PackageExternalReferences: spdxExternalReferences(c),
 			PrimaryPackagePurpose:     spdxPrimaryPackagePurpose(c.Type),
+			PackageSourceInfo:         spdxSourceInfo(c),
 		}
 		if _, isRoot := rootComponents[c.ID]; isRoot || IsProjectRootComponent(c) {
 			if doc.Provenance.Manufacturer != "" {
@@ -426,6 +427,48 @@ func spdxCopyrightValue(value string) string {
 		return ""
 	}
 	return value
+}
+
+// spdxSourceInfoPrefix marks a source repository inside the free-text
+// PackageSourceInfo field so a reader can recover it deterministically.
+const spdxSourceInfoPrefix = "Source repository: "
+
+// spdxDownloadLocation renders where the package was obtained.
+//
+// A registry root is deliberately not used: "https://rubygems.org/" is a
+// syntactically valid URL that validators accept, and every consumer would
+// read it as the artifact's origin, which is false. NOASSERTION is the honest
+// answer when only a registry root is known.
+func spdxDownloadLocation(component Component) string {
+	if location := firstNonEmpty(component.ArtifactURL, component.VCSURL); location != "" {
+		return location
+	}
+	return "NOASSERTION"
+}
+
+// spdxSourceInfo renders the source repository into SPDX's free-text origin
+// field.
+//
+// PackageSourceInfo is defined as free text about the origin of the package,
+// which is what a source repository is. PackageHomePage is a different claim
+// (the package's home page) that Bomly does not know, and SPDX 2.3 has no
+// version-control external-reference category.
+func spdxSourceInfo(component Component) string {
+	// Suppress only when the VCS locator itself became the download location,
+	// which would make one package assert the same repository twice.
+	if component.VCSURL != "" && component.ArtifactURL == "" {
+		return ""
+	}
+	repo := strings.TrimSpace(component.Repository)
+	if repo == "" && component.ArtifactURL != "" {
+		// Keep the version-control form intact: stripping "git+" would fold a
+		// pinned revision into the URL path.
+		repo = component.VCSURL
+	}
+	if repo == "" {
+		return ""
+	}
+	return spdxSourceInfoPrefix + repo
 }
 
 func spdxExternalReferences(component Component) []*v23.PackageExternalReference {

@@ -615,14 +615,15 @@ func TestScanSBOMExportDistribution(t *testing.T) {
 		if strings.Contains(rendered, dir) {
 			t.Fatalf("%s output leaked the output directory %q", name, dir)
 		}
+		// os.TempDir() is deliberately absent: on Linux it is the bare
+		// "/tmp", which legitimately appears in npm package URLs such as
+		// registry.npmjs.org/tmp/-/tmp-0.0.33.tgz. The anchored markers
+		// below cover a leaked absolute temp path.
 		for _, marker := range []string{
-			"file://", "bomly-git-", os.TempDir(),
+			"file://", "bomly-git-",
 			`"/Users/`, `"/home/`, `"/var/folders/`, `"/private/`,
 			`:"/tmp/`, `":/tmp/`,
 		} {
-			if marker == "" {
-				continue
-			}
 			if strings.Contains(rendered, marker) {
 				t.Fatalf("%s output leaked a local path or clone directory (%q)", name, marker)
 			}

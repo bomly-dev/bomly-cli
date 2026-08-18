@@ -136,11 +136,15 @@ Two rules matter here:
   (`...-1.4.0.tgz#71ee51fa...`). That is a fixed-length digest, not a secret,
   so it is stripped and the download location is kept.
 
-Coverage follows what each ecosystem actually records. npm, pnpm, yarn, and bun
-lockfiles name the exact package archive, so those get a real download location.
-Bundler, Cargo, pub, and most Python lockfiles record only a registry or index
-root, so those get a registry reference and `NOASSERTION`. Go modules, Maven,
-Gradle, NuGet, and Composer record no location at all.
+Coverage follows what each ecosystem actually records. npm, pnpm, Yarn Classic
+(v1), and bun lockfiles name the exact package archive, so those get a real
+download location; Yarn Berry records only resolution identifiers such as
+`react@npm:18.2.0`, so its packages are omitted. Bundler, pub, and most Python
+lockfiles record only a registry or index root, so those get a registry
+reference and `NOASSERTION` — as do Cargo's registry dependencies, while its
+`git+` dependencies follow the source-repository row above with their pinned
+revision. Go modules, Maven, Gradle, NuGet, and Composer record no location at
+all.
 
 ### Document identity
 
@@ -220,9 +224,13 @@ Reachability annotations and other Bomly-specific metadata are emitted in the JS
 ### Preservation and conversion limits
 
 Bomly preserves component identity (including PURL), dependency edges, roots,
-scope, package type, licenses, digests, CPEs, download and repository
-locations, and the enrichment fields described above when the destination
-format has an equivalent representation. Encoding is
+scope, package type, licenses, digests, CPEs, and the enrichment fields described
+above when the destination format has an equivalent representation. Download and
+repository locations are an export-time projection of what Bomly's own detectors
+and matchers observed: they are written when scanning a project, but they are not
+read back when ingesting an existing SBOM, so `--sbom` conversion does not carry
+a source document's `downloadLocation` or external references through to the
+output. Encoding is
 deterministic when the scan timestamp and document identifiers are fixed.
 
 Some information necessarily becomes less specific during conversion:

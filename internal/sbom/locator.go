@@ -86,7 +86,7 @@ func hasCredentialPath(parsed *url.URL) bool {
 	if decoded, err := url.PathUnescape(path); err == nil {
 		path = decoded
 	}
-	return containsCredential(path)
+	return containsCredential(path) || hasOpaqueSecretRun(path)
 }
 
 // hasCredentialHost reports whether any hostname label looks like a secret.
@@ -95,7 +95,7 @@ func hasCredentialPath(parsed *url.URL) bool {
 // a token can sit in the host too: "https://ghp_abcd1234.repo.example/a.tgz"
 // has a nil User, a clean path, and no query, so every other check passes it.
 func hasCredentialHost(parsed *url.URL) bool {
-	return containsCredential(parsed.Hostname())
+	return containsCredential(parsed.Hostname()) || hasOpaqueSecretRun(parsed.Hostname())
 }
 
 // classifyResolvedURL decides what raw points at, given the detector's own
@@ -358,15 +358,22 @@ func isCommitFragment(fragment string) bool {
 
 // credentialPrefixes are issuer prefixes used by common access-token formats.
 // No legitimate git tag, branch, or commit begins with one.
+// Matching is case-sensitive: issuers fix the casing of their prefixes, and
+// folding case is what made ordinary words collide ("asia-packages" is not an
+// AWS key, but lowercased it matched "ASIA"). Generic prefixes that also occur
+// in real path segments (a bare "sk-") are narrowed to their issuer-specific
+// forms; secrets with no recognizable prefix are handled by the opaque-shape
+// check below.
 var credentialPrefixes = []string{
 	"ghp_", "gho_", "ghu_", "ghs_", "ghr_", "github_pat_", // GitHub
 	"glpat-", "gldt-", // GitLab
 	"npm_",                                      // npm
 	"pypi-",                                     // PyPI
 	"xoxb-", "xoxp-", "xoxa-", "xoxr-", "xoxs-", // Slack
-	"sk_live_", "pk_live_", "sk-", // Stripe, OpenAI
-	"akia", "asia", // AWS access key ids
-	"aiza",               // Google
+	"sk_live_", "pk_live_", // Stripe
+	"sk-proj-", "sk-ant-", // OpenAI, Anthropic
+	"AKIA", "ASIA", // AWS access key ids
+	"AIza",               // Google
 	"hf_",                // Hugging Face
 	"dop_v1_", "doo_v1_", // DigitalOcean
 	"shpat_", "shpss_", // Shopify
@@ -389,21 +396,20 @@ const credentialBodyMinimum = 8
 // prefix must start the value or follow a non-token character, so "task-runner"
 // does not match the "sk-" prefix.
 func containsCredential(text string) bool {
-	lowered := strings.ToLower(text)
 	for _, prefix := range credentialPrefixes {
 		for offset := 0; ; {
-			idx := strings.Index(lowered[offset:], prefix)
+			idx := strings.Index(text[offset:], prefix)
 			if idx < 0 {
 				break
 			}
 			at := offset + idx
 			offset = at + 1
 
-			if at > 0 && isTokenRune(rune(lowered[at-1])) {
+			if at > 0 && isTokenRune(rune(text[at-1])) {
 				continue // mid-word, not a token boundary
 			}
 			body := 0
-			for _, r := range lowered[at+len(prefix):] {
+			for _, r := range text[at+len(prefix):] {
 				if !isTokenRune(r) {
 					break
 				}
@@ -412,6 +418,42 @@ func containsCredential(text string) bool {
 			if body >= credentialBodyMinimum {
 				return true
 			}
+		}
+	}
+	return false
+}
+
+// hasOpaqueSecretRun reports whether text contains a maximal token run shaped
+// like an opaque credential with no recognizable issuer prefix — a JWT
+// segment, an entitlement token embedded in a download path, or similar.
+//
+// The prefix list cannot be complete, and origin metadata is optional, so an
+// unrecognizable-but-secret-shaped run is dropped rather than published. The
+// shape is deliberately narrow to keep legitimate values: a run must be long
+// and mix all three character classes (upper, lower, digit), which package
+// names (lowercase), version strings (short runs), and content hashes
+// (single-case hex) never produce. A bespoke all-lowercase secret still
+// passes; omission-preferred is a mitigation, not a guarantee.
+func hasOpaqueSecretRun(text string) bool {
+	for _, run := range strings.FieldsFunc(text, func(r rune) bool {
+		return !isTokenRune(r)
+	}) {
+		if len(run) < 16 {
+			continue
+		}
+		var hasUpper, hasLower, hasDigit bool
+		for _, r := range run {
+			switch {
+			case r >= 'A' && r <= 'Z':
+				hasUpper = true
+			case r >= 'a' && r <= 'z':
+				hasLower = true
+			case r >= '0' && r <= '9':
+				hasDigit = true
+			}
+		}
+		if hasUpper && hasLower && hasDigit {
+			return true
 		}
 	}
 	return false

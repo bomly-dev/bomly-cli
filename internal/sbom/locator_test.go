@@ -54,6 +54,17 @@ func TestClassifyResolvedURL(t *testing.T) {
 		{"token in hostname label", "https://ghp_abcd1234.repo.example/a.tgz", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
 		{"token in path segment", "https://repo.example/download/ghp_abcd1234/pkg.tgz", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
 		{"percent-encoded token in path", "https://repo.example/download/%67hp_abcd1234/pkg.tgz", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
+		// Secrets with no recognizable issuer prefix: the opaque-shape check
+		// (long single run mixing upper, lower, and digits) catches them.
+		{"jwt segment in path", "https://repo.example/download/eyJhbGciOiJIUzI1NiJ9/pkg.tgz", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
+		{"opaque entitlement token in path", "https://dl.example.io/Xk9mPq2Lr8Tn4Vw7Yz/owner/pkg-1.0.tgz", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
+		{"aws key id in path", "https://repo.example/AKIAIOSFODNN7EXAMPLE/pkg.tgz", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
+		// Prefix matching is case-sensitive, so ordinary words that lowercase
+		// into an issuer prefix are not secrets.
+		{"asia as an ordinary word survives", "https://mirror.example/asia-packages/pkg-1.0.tgz", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorArtifact, "https://mirror.example/asia-packages/pkg-1.0.tgz"},
+		// Mixed-case artifact names split at the extension dot, so no single
+		// run reaches the opaque threshold.
+		{"mixed-case wheel survives", "https://files.pythonhosted.org/packages/ab/cd/Django-4.2-py3-none-any.whl", sdk.DependencySourceURL, sdk.EcosystemPython, LocatorArtifact, "https://files.pythonhosted.org/packages/ab/cd/Django-4.2-py3-none-any.whl"},
 		{"username only", "https://tok@nexus.corp/a/b-1.0.tgz", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
 		{"query token", "https://nexus.corp/a/b-1.0.tgz?token=s3cret", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},
 		{"presigned signature", "https://s3.amazonaws.com/b/a-1.0.tgz?X-Amz-Signature=deadbeef", sdk.DependencySourceRegistry, sdk.EcosystemNPM, LocatorNone, ""},

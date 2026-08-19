@@ -215,6 +215,35 @@ func MergeOrigin(existing, duplicate *sdk.Dependency) {
 	}
 }
 
+// ReconcileOrigins settles the origin of several nodes that describe one
+// package, leaving every one of them carrying the same answer.
+//
+// Detectors resolve one manifest at a time, so a package used by two
+// subprojects arrives as two nodes, each with its own origin. They are merged
+// into a single node later, by a merge that keeps whichever it encounters
+// first and discards the rest -- which would publish one subproject's answer
+// for a package the scan saw resolved two different ways. Settling the
+// disagreement here means the surviving node carries the reconciled verdict
+// whichever one that turns out to be.
+func ReconcileOrigins(occurrences []*sdk.Dependency) {
+	if len(occurrences) < 2 {
+		return
+	}
+	verdict := occurrences[0]
+	for _, occurrence := range occurrences[1:] {
+		MergeOrigin(verdict, occurrence)
+	}
+
+	settled, conflicted := OriginFrom(verdict.Metadata), originConflicted(verdict)
+	for _, occurrence := range occurrences[1:] {
+		if conflicted {
+			markOriginConflict(occurrence)
+			continue
+		}
+		storeOrigin(occurrence, settled)
+	}
+}
+
 // originConflicted reports whether dep's occurrences already disagreed.
 func originConflicted(dep *sdk.Dependency) bool {
 	if dep == nil || dep.Metadata == nil {

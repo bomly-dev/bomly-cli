@@ -383,6 +383,37 @@ func TestMergeOrigin(t *testing.T) {
 		}
 	})
 
+	// Reconciling several occurrences leaves every one of them carrying the
+	// verdict, including the record of a disagreement -- otherwise a later
+	// fold against a node that still asserts something would revive it.
+	t.Run("every occurrence carries the settled verdict", func(t *testing.T) {
+		occurrences := []*sdk.Dependency{withArtifact(artifact), withArtifact(mirror), withArtifact(artifact)}
+		detectors.ReconcileOrigins(occurrences)
+
+		for i, occurrence := range occurrences {
+			if got := detectors.OriginFrom(occurrence.Metadata); !got.Empty() {
+				t.Fatalf("occurrence %d = %+v, want none", i, got)
+			}
+			// Whichever occurrence a later merge keeps must stay settled.
+			detectors.MergeOrigin(occurrence, withArtifact(artifact))
+			if got := detectors.OriginFrom(occurrence.Metadata); !got.Empty() {
+				t.Fatalf("occurrence %d revived %+v after the disagreement was settled", i, got)
+			}
+		}
+	})
+
+	t.Run("agreement is broadcast to every occurrence", func(t *testing.T) {
+		occurrences := []*sdk.Dependency{&sdk.Dependency{ID: "react@18.2.0"}, withArtifact(artifact), &sdk.Dependency{ID: "react@18.2.0"}}
+		detectors.ReconcileOrigins(occurrences)
+
+		want := detectors.Origin{ArtifactURL: artifact}
+		for i, occurrence := range occurrences {
+			if got := detectors.OriginFrom(occurrence.Metadata); got != want {
+				t.Fatalf("occurrence %d = %+v, want %+v", i, got, want)
+			}
+		}
+	})
+
 	t.Run("nil is a no-op", func(t *testing.T) {
 		detectors.MergeOrigin(nil, withArtifact(artifact))
 		detectors.MergeOrigin(withArtifact(artifact), nil)

@@ -254,3 +254,89 @@ func TestOriginEmpty(t *testing.T) {
 		t.Fatal("repository origin should not be empty")
 	}
 }
+
+// One package can appear at several places in a dependency tree. Its
+// occurrences must agree before an origin is published.
+func TestMergeOrigin(t *testing.T) {
+	const (
+		artifact = "https://registry.npmjs.org/react/-/react-18.2.0.tgz"
+		mirror   = "https://npm.corp/mirror/react/-/react-18.2.0.tgz"
+		repo     = "https://github.com/facebook/react"
+	)
+	withArtifact := func(url string) *sdk.Dependency {
+		dep := &sdk.Dependency{ID: "react@18.2.0"}
+		detectors.SetOriginArtifact(dep, url)
+		return dep
+	}
+
+	cases := []struct {
+		name      string
+		existing  *sdk.Dependency
+		duplicate *sdk.Dependency
+		want      detectors.Origin
+	}{
+		{
+			name:      "occurrences agree",
+			existing:  withArtifact(artifact),
+			duplicate: withArtifact(artifact),
+			want:      detectors.Origin{ArtifactURL: artifact},
+		},
+		{
+			name:      "occurrences disagree, so the graph cannot say",
+			existing:  withArtifact(artifact),
+			duplicate: withArtifact(mirror),
+		},
+		{
+			name:     "a different kind of origin is also a disagreement",
+			existing: withArtifact(artifact),
+			duplicate: func() *sdk.Dependency {
+				d := &sdk.Dependency{ID: "react@18.2.0"}
+				detectors.SetOriginVCS(d, repo, "")
+				return d
+			}(),
+		},
+		{
+			name:      "an occurrence asserting nothing is not a disagreement",
+			existing:  withArtifact(artifact),
+			duplicate: &sdk.Dependency{ID: "react@18.2.0"},
+			want:      detectors.Origin{ArtifactURL: artifact},
+		},
+		{
+			name:      "an occurrence fills a gap the first one left",
+			existing:  &sdk.Dependency{ID: "react@18.2.0"},
+			duplicate: withArtifact(artifact),
+			want:      detectors.Origin{ArtifactURL: artifact},
+		},
+		{
+			name:      "neither asserts anything",
+			existing:  &sdk.Dependency{ID: "react@18.2.0"},
+			duplicate: &sdk.Dependency{ID: "react@18.2.0"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			detectors.MergeOrigin(tc.existing, tc.duplicate)
+			if got := detectors.OriginFrom(tc.existing.Metadata); got != tc.want {
+				t.Fatalf("merged origin = %+v, want %+v", got, tc.want)
+			}
+		})
+	}
+
+	t.Run("a pinned repository merging with an unpinned one disagrees", func(t *testing.T) {
+		existing := &sdk.Dependency{ID: "react@18.2.0"}
+		detectors.SetOriginVCS(existing, repo, "e7f8091a2b3c4d5e6f708192a3b4c5d6e7f80912")
+		duplicate := &sdk.Dependency{ID: "react@18.2.0"}
+		detectors.SetOriginVCS(duplicate, repo, "")
+
+		detectors.MergeOrigin(existing, duplicate)
+		if got := detectors.OriginFrom(existing.Metadata); !got.Empty() {
+			t.Fatalf("merged origin = %+v, want none: the occurrences pin different commits", got)
+		}
+	})
+
+	t.Run("nil is a no-op", func(t *testing.T) {
+		detectors.MergeOrigin(nil, withArtifact(artifact))
+		detectors.MergeOrigin(withArtifact(artifact), nil)
+	})
+}

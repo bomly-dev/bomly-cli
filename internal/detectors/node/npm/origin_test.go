@@ -62,3 +62,64 @@ func TestNPMOriginByResolvedShape(t *testing.T) {
 		}
 	}
 }
+
+// A v1 lockfile repeats a package at every place it is installed, and the
+// copies can disagree: one nested under a package pinned to a private mirror,
+// one at the top level from the public registry. They share a name and version,
+// so they become one graph node, and the node must not report whichever copy
+// the traversal reached first.
+func TestNPMv1DuplicateEntriesReconcileOrigin(t *testing.T) {
+	projectDir := t.TempDir()
+	lockfile := `{
+      "name": "demo",
+      "version": "1.0.0",
+      "lockfileVersion": 1,
+      "dependencies": {
+        "a-first": {
+          "version": "1.0.0",
+          "resolved": "https://registry.npmjs.org/a-first/-/a-first-1.0.0.tgz",
+          "dependencies": {
+            "disputed": {"version": "2.0.0", "resolved": "https://npm.corp/mirror/disputed/-/disputed-2.0.0.tgz"},
+            "agreed": {"version": "3.0.0", "resolved": "https://registry.npmjs.org/agreed/-/agreed-3.0.0.tgz"}
+          }
+        },
+        "z-last": {
+          "version": "1.0.0",
+          "resolved": "https://registry.npmjs.org/z-last/-/z-last-1.0.0.tgz",
+          "dependencies": {
+            "disputed": {"version": "2.0.0", "resolved": "https://registry.npmjs.org/disputed/-/disputed-2.0.0.tgz"},
+            "agreed": {"version": "3.0.0", "resolved": "https://registry.npmjs.org/agreed/-/agreed-3.0.0.tgz"}
+          }
+        }
+      }
+    }`
+	if err := os.WriteFile(filepath.Join(projectDir, "package-lock.json"), []byte(lockfile), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Repeat: the traversal walks maps, so an order-dependent result would
+	// show up as a different answer between runs rather than a stable wrong one.
+	for range 25 {
+		graphs, err := depGraphFromNPMLockfile(projectDir)
+		if err != nil {
+			t.Fatalf("depGraphFromNPMLockfile() error = %v", err)
+		}
+
+		disputed, ok := graphs.graph.Node("disputed@2.0.0")
+		if !ok {
+			t.Fatal("expected disputed@2.0.0 in graph")
+		}
+		if origin := detectors.OriginFrom(disputed.Metadata); !origin.Empty() {
+			t.Fatalf("disputed origin = %+v, want none: its two copies name different locations", origin)
+		}
+
+		agreed, ok := graphs.graph.Node("agreed@3.0.0")
+		if !ok {
+			t.Fatal("expected agreed@3.0.0 in graph")
+		}
+		const want = "https://registry.npmjs.org/agreed/-/agreed-3.0.0.tgz"
+		if got := detectors.OriginFrom(agreed.Metadata).ArtifactURL; got != want {
+			t.Fatalf("agreed origin = %q, want %q: its copies agree", got, want)
+		}
+	}
+}

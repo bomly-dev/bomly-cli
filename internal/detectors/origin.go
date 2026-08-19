@@ -168,6 +168,47 @@ func OriginFrom(metadata map[string]any) Origin {
 	return origin
 }
 
+// MergeOrigin reconciles the origin of two nodes a detector resolved to the
+// same package, which happens when a lockfile records one package at several
+// places in a tree.
+//
+// Absence is not a disagreement: an occurrence that asserts nothing leaves an
+// existing origin standing, and an occurrence that asserts one fills a gap.
+// Two occurrences asserting *different* origins cancel. One graph node is one
+// package, so publishing whichever occurrence happened to be visited first
+// would make the output depend on traversal order rather than on the lockfile
+// -- and an SBOM that omits a location is honest, while one that picks a side
+// of a contradiction is not.
+func MergeOrigin(existing, duplicate *sdk.Dependency) {
+	if existing == nil || duplicate == nil {
+		return
+	}
+	incoming := OriginFrom(duplicate.Metadata)
+	if incoming.Empty() {
+		return
+	}
+	switch current := OriginFrom(existing.Metadata); {
+	case current.Empty():
+		storeOrigin(existing, incoming)
+	case current != incoming:
+		clearOrigin(existing)
+	}
+}
+
+// storeOrigin writes an already-validated origin onto dep.
+func storeOrigin(dep *sdk.Dependency, origin Origin) {
+	clearOrigin(dep)
+	switch {
+	case origin.ArtifactURL != "":
+		setOriginValue(dep, MetadataKeyOriginArtifactURL, origin.ArtifactURL)
+	case origin.VCSURL != "":
+		setOriginValue(dep, MetadataKeyOriginVCSURL, origin.VCSURL)
+		if origin.VCSRevision != "" {
+			setOriginValue(dep, MetadataKeyOriginVCSRevision, origin.VCSRevision)
+		}
+	}
+}
+
 // isValidOriginRevision reports whether revision is safe to publish beside a
 // repository URL. The charset keeps commit hashes, tags, and branch-style refs
 // while excluding whitespace, "@", and percent escapes, which would break the

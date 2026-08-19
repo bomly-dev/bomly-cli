@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
@@ -168,7 +169,16 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 		current := stack[len(stack)-1]
 		stack = stack[:len(stack)-1]
 
-		for depName, depNode := range current.deps {
+		depNames := make([]string, 0, len(current.deps))
+		for depName := range current.deps {
+			depNames = append(depNames, depName)
+		}
+		// Walk in a fixed order: a map's iteration order would let two
+		// occurrences of one package decide the graph differently per run.
+		sort.Strings(depNames)
+
+		for _, depName := range depNames {
+			depNode := current.deps[depName]
 			if depNode == nil {
 				continue
 			}
@@ -330,6 +340,7 @@ func splitYarnTreeName(value string) (string, string, error) {
 func AddNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
 	if existing, ok := depsGraph.Node(node.ID); ok {
 		existing.AddScope(node.PrimaryScope())
+		detectors.MergeOrigin(existing, node)
 		return nil
 	}
 	if err := depsGraph.AddNode(node); err != nil {

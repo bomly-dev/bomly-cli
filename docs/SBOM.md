@@ -113,7 +113,7 @@ A detector reports one of two things, or nothing at all:
 | What the lockfile records | SPDX 2.3 | CycloneDX |
 |---|---|---|
 | The exact file the package was fetched from | `downloadLocation` | `distribution` external reference |
-| The repository it was resolved from, plus the commit | `downloadLocation` as `git+<url>@<revision>` | `vcs` external reference (URL only) |
+| The repository it was resolved from, and the commit when the lockfile pinned one | `downloadLocation` as `git+<url>`, with `@<revision>` when pinned | `vcs` external reference (URL only) |
 | Neither | `NOASSERTION` | no reference |
 
 CycloneDX external references have no field for a revision, so the commit a
@@ -147,10 +147,13 @@ Four kinds of value are never published, in any ecosystem:
 - **URLs carrying credentials.** A lockfile pointing at a private registry can
   embed a token; publishing it in an SBOM would leak a live secret.
 
-Every published location is an absolute `http`/`https` URL with a host and no
-embedded credentials. Values are re-serialized from a parse rather than copied
-from the lockfile, and the same check runs again at export, so origin supplied
-by a plugin is held to the same rule as origin from a built-in detector.
+Every origin a detector reports is an absolute `http`/`https` URL with a host, a
+non-empty path, and no embedded credentials. Values are re-serialized from a
+parse rather than copied from the lockfile, and the same check runs again at
+export, so origin supplied by a plugin is held to the same rule as origin from a
+built-in detector. SPDX then composes the validated repository URL into its
+`git+<url>@<revision>` locator form, which is the only place a revision
+appears.
 
 ### Document identity
 
@@ -223,9 +226,8 @@ Reachability annotations and other Bomly-specific metadata are emitted in the JS
 ### Preservation and conversion limits
 
 Bomly preserves component identity (including PURL), dependency edges, roots,
-scope, package type, licenses, digests, CPEs, package origin, and the enrichment
-fields described above when the destination format has an equivalent
-representation. Encoding is
+scope, package type, licenses, digests, CPEs, and the enrichment fields
+described above when the destination format has an equivalent representation. Encoding is
 deterministic when the scan timestamp and document identifiers are fixed.
 
 Some information necessarily becomes less specific during conversion:
@@ -237,9 +239,10 @@ Some information necessarily becomes less specific during conversion:
   round trip.
 - Development scope maps to CycloneDX `excluded`; runtime scope maps to
   `required`. SPDX stores Bomly's normalized scope in the package comment.
-- A resolved commit survives an SPDX round trip (it is part of the
-  `git+<url>@<revision>` download location) but not a CycloneDX one, where an
-  external reference carries only the repository URL.
+- Package origin is written on export but not read back on ingest: scanning an
+  SBOM produces packages with no origin, so re-exporting that graph emits
+  `NOASSERTION` and no distribution or vcs reference. Origin comes from a
+  lockfile, and an ingested document is not one.
 - Bomly relationship confidence (`direct`, `transitive`, or `unknown`), source
   provenance, reachability analysis, policy findings, and run diagnostics are
   report data rather than portable SBOM fields. Use JSON when those distinctions

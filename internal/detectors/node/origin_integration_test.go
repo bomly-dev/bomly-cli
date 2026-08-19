@@ -41,6 +41,17 @@ func TestNPMLockfileOriginIsTheRegistryTarball(t *testing.T) {
 	requireArtifactOrigin(t, g, "jest", "29.7.0", "https://registry.npmjs.org/jest/-/jest-29.7.0.tgz")
 }
 
+// A v1 lockfile has no packages map, so it resolves through the flat
+// dependencies tree. It records the same tarball URLs, and must publish them.
+func TestNPMLockfileV1OriginIsTheRegistryTarball(t *testing.T) {
+	g, err := resolveLockfileGraph(t, npm.LockfileDetector{}, fixture("npm-v1"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	requireArtifactOrigin(t, g, "react", "18.2.0", "https://registry.npmjs.org/react/-/react-18.2.0.tgz")
+	requireArtifactOrigin(t, g, "loose-envify", "1.4.0", "https://registry.npmjs.org/loose-envify/-/loose-envify-1.4.0.tgz")
+}
+
 // Workspace members are local directories. npm records that directory as the
 // member's "resolved" value, which must never reach an SBOM.
 func TestNPMWorkspaceMembersAssertNoOrigin(t *testing.T) {

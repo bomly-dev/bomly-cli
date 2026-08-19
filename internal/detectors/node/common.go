@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-sdk"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
@@ -26,8 +27,12 @@ type BaseDetector struct {
 
 // NPMListNode is the npm list JSON node shape used by npm CLI and v1 package-lock parsing.
 type NPMListNode struct {
-	Name         string                  `json:"name"`
-	Version      string                  `json:"version"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	// Resolved is the tarball a package was installed from. Both sources of
+	// this shape record it: `npm ls --json` for registry packages, and the
+	// flat "dependencies" map of a v1 package-lock.json.
+	Resolved     string                  `json:"resolved"`
 	Dependencies map[string]*NPMListNode `json:"dependencies"`
 }
 
@@ -175,6 +180,7 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 				Name:    name,
 				Version: depNode.Version},
 			})
+			detectors.SetOriginArtifact(node, depNode.Resolved)
 
 			if err := AddNodeIfMissing(depsGraph, node); err != nil {
 				return nil, err

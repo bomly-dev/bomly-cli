@@ -136,10 +136,12 @@ type Component struct {
 	Vulnerabilities []Vulnerability
 	EOL             *EOL
 
-	// Where the package came from, as asserted by the detector that resolved
-	// it. At most one of ArtifactURL and VCSURL is set, and VCSRevision only
-	// accompanies VCSURL. Both are plain absolute http(s) URLs; composing them
-	// into a format's locator grammar is the encoder's job.
+	// Where the package came from. A detector asserts at most one of
+	// ArtifactURL and VCSURL; registry enrichment may then fill VCSURL from a
+	// resolved source repository when it is empty, so a component enriched
+	// under --enrich can carry both. VCSRevision only accompanies VCSURL.
+	// Both are plain absolute http(s) URLs; composing them into a format's
+	// locator grammar is the encoder's job.
 	ArtifactURL string
 	VCSURL      string
 	VCSRevision string

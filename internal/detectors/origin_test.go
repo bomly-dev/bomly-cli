@@ -30,6 +30,7 @@ func TestSetOriginArtifact(t *testing.T) {
 		{name: "windows path is dropped", raw: `C:\src\project`, want: ""},
 		{name: "malformed host is dropped", raw: "https://:8080/pkg.tgz", want: ""},
 		{name: "scheme without host is dropped", raw: "https://", want: ""},
+		{name: "registry root names no artifact", raw: "https://registry.example.test/", want: ""},
 		{name: "empty is dropped", raw: "   ", want: ""},
 	}
 
@@ -81,6 +82,7 @@ func TestSetOriginVCS(t *testing.T) {
 		{name: "whitespace revision keeps the repository", raw: "https://github.com/owner/repo", revision: "not a revision", wantURL: "https://github.com/owner/repo"},
 		{name: "overlong revision keeps the repository", raw: "https://github.com/owner/repo", revision: strings.Repeat("a", 129), wantURL: "https://github.com/owner/repo"},
 		{name: "bare host names no repository", raw: "https://github.com", revision: "9f8e7d6", wantURL: ""},
+		{name: "index root names no repository", raw: "https://index.crates.io/", revision: "9f8e7d6", wantURL: ""},
 		{name: "root path names no repository", raw: "https://github.com/", revision: "9f8e7d6", wantURL: ""},
 		{name: "userinfo is dropped", raw: "https://oauth2:glpat-xxxxxxxxxxxxxxxxxxxx@gitlab.corp/team/repo.git", revision: "9f8e7d6", wantURL: ""},
 		{name: "local checkout is dropped", raw: "/Users/someone/src/repo", revision: "9f8e7d6", wantURL: ""},
@@ -109,6 +111,62 @@ func TestSetOriginVCS(t *testing.T) {
 			}
 		})
 	}
+}
+
+// A package has one origin. A later assertion replaces an earlier one rather
+// than merging with it, so metadata never names two locations or pairs a
+// repository with a revision that belongs to a different one.
+func TestSetOriginReplacesRatherThanMerges(t *testing.T) {
+	const (
+		artifact   = "https://registry.npmjs.org/react/-/react-18.2.0.tgz"
+		repository = "https://github.com/facebook/react"
+		fork       = "https://github.com/facebook/react-fork"
+		revision   = "c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8"
+	)
+
+	t.Run("repository replaces artifact", func(t *testing.T) {
+		dep := &sdk.Dependency{ID: "pkg"}
+		detectors.SetOriginArtifact(dep, artifact)
+		detectors.SetOriginVCS(dep, repository, revision)
+
+		want := detectors.Origin{VCSURL: repository, VCSRevision: revision}
+		if got := detectors.OriginFrom(dep.Metadata); got != want {
+			t.Fatalf("origin = %+v, want %+v", got, want)
+		}
+	})
+
+	t.Run("artifact replaces repository", func(t *testing.T) {
+		dep := &sdk.Dependency{ID: "pkg"}
+		detectors.SetOriginVCS(dep, repository, revision)
+		detectors.SetOriginArtifact(dep, artifact)
+
+		want := detectors.Origin{ArtifactURL: artifact}
+		if got := detectors.OriginFrom(dep.Metadata); got != want {
+			t.Fatalf("origin = %+v, want %+v", got, want)
+		}
+	})
+
+	t.Run("an unpinned repository drops the earlier revision", func(t *testing.T) {
+		dep := &sdk.Dependency{ID: "pkg"}
+		detectors.SetOriginVCS(dep, repository, revision)
+		detectors.SetOriginVCS(dep, fork, "")
+
+		want := detectors.Origin{VCSURL: fork}
+		if got := detectors.OriginFrom(dep.Metadata); got != want {
+			t.Fatalf("origin = %+v, want %+v; a revision must not follow a repository it did not come from", got, want)
+		}
+	})
+
+	t.Run("a rejected value leaves the earlier origin intact", func(t *testing.T) {
+		dep := &sdk.Dependency{ID: "pkg"}
+		detectors.SetOriginArtifact(dep, artifact)
+		detectors.SetOriginVCS(dep, "/Users/someone/src/react", revision)
+
+		want := detectors.Origin{ArtifactURL: artifact}
+		if got := detectors.OriginFrom(dep.Metadata); got != want {
+			t.Fatalf("origin = %+v, want %+v", got, want)
+		}
+	})
 }
 
 func TestSetOriginAllocatesMetadataAndPreservesOtherKeys(t *testing.T) {

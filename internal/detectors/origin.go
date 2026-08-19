@@ -60,12 +60,15 @@ func (o Origin) Empty() bool {
 // git@host:org/repo, ssh://, git+ssh://, and URLs carrying userinfo — is
 // rejected, so filesystem layout and credentials cannot reach an SBOM.
 //
-// The vcs argument selects the repository form: query and fragment are dropped
-// (they carry the requested ref, not the resolved one, which callers pass
-// separately) and a non-empty path is required, since a bare host names no
-// repository. The artifact form instead drops the fragment (a checksum or
-// anchor, never part of the location) and rejects a value carrying a query,
-// which marks a signed or tokenized link rather than a stable location.
+// Both forms require a non-empty path, so a bare host -- a registry or index
+// root -- is never published.
+//
+// The vcs argument selects the repository form: query and fragment are dropped,
+// because they carry the requested ref rather than the resolved one, which
+// callers pass separately. The artifact form instead drops the fragment (a
+// checksum or anchor, never part of the location) and rejects a value carrying
+// a query, which marks a signed or tokenized link rather than a stable
+// location.
 func NormalizeOriginURL(raw string, vcs bool) (string, bool) {
 	trimmed := strings.TrimSpace(raw)
 	if trimmed == "" {
@@ -87,12 +90,16 @@ func NormalizeOriginURL(raw string, vcs bool) (string, bool) {
 	parsed.Scheme = strings.ToLower(parsed.Scheme)
 	parsed.Fragment = ""
 	parsed.RawFragment = ""
+	// A host root names a server, not a package: it is a registry or index
+	// root on the artifact side and no repository at all on the VCS side.
+	// An empty path would also make the SPDX "@<revision>" suffix re-parse
+	// as userinfo.
+	if strings.Trim(parsed.Path, "/") == "" {
+		return "", false
+	}
 	if vcs {
 		parsed.RawQuery = ""
 		parsed.ForceQuery = false
-		if strings.Trim(parsed.Path, "/") == "" {
-			return "", false
-		}
 	} else if parsed.RawQuery != "" || parsed.ForceQuery {
 		return "", false
 	}
@@ -103,10 +110,10 @@ func NormalizeOriginURL(raw string, vcs bool) (string, bool) {
 	return normalized, true
 }
 
-// SetOriginArtifact records the exact artifact dep was resolved from. Callers
-// pass the lockfile field verbatim; values that are not publishable URLs are
-// dropped silently, since a missing origin is correct output and a wrong one
-// is not. No-op when dep is nil.
+// SetOriginArtifact records the exact artifact dep was resolved from, replacing
+// any origin already recorded. Callers pass the lockfile field verbatim; values
+// that are not publishable URLs are dropped silently, since a missing origin is
+// correct output and a wrong one is not. No-op when dep is nil.
 func SetOriginArtifact(dep *sdk.Dependency, rawURL string) {
 	if dep == nil {
 		return
@@ -115,13 +122,14 @@ func SetOriginArtifact(dep *sdk.Dependency, rawURL string) {
 	if !ok {
 		return
 	}
+	clearOrigin(dep)
 	setOriginValue(dep, MetadataKeyOriginArtifactURL, normalized)
 }
 
 // SetOriginVCS records the source repository dep was resolved from, plus the
-// revision the lockfile pinned. An unpublishable URL drops the whole origin; an
-// unusable revision drops only the revision, keeping the repository. No-op when
-// dep is nil.
+// revision the lockfile pinned, replacing any origin already recorded. An
+// unpublishable URL drops the whole origin; an unusable revision drops only the
+// revision, keeping the repository. No-op when dep is nil.
 func SetOriginVCS(dep *sdk.Dependency, rawURL, revision string) {
 	if dep == nil {
 		return
@@ -130,6 +138,7 @@ func SetOriginVCS(dep *sdk.Dependency, rawURL, revision string) {
 	if !ok {
 		return
 	}
+	clearOrigin(dep)
 	setOriginValue(dep, MetadataKeyOriginVCSURL, normalized)
 	if pinned := strings.TrimSpace(revision); isValidOriginRevision(pinned) {
 		setOriginValue(dep, MetadataKeyOriginVCSRevision, pinned)
@@ -176,6 +185,20 @@ func isValidOriginRevision(revision string) bool {
 		}
 	}
 	return true
+}
+
+// clearOrigin drops any origin already recorded on dep, so a later assertion
+// replaces an earlier one rather than merging with it: a package has one
+// origin, and a stale revision left beside a new repository would name a commit
+// that repository may not contain. Only a value that passed the invariant
+// clears the previous one, so a rejected input leaves an earlier origin intact.
+func clearOrigin(dep *sdk.Dependency) {
+	if dep.Metadata == nil {
+		return
+	}
+	delete(dep.Metadata, MetadataKeyOriginArtifactURL)
+	delete(dep.Metadata, MetadataKeyOriginVCSURL)
+	delete(dep.Metadata, MetadataKeyOriginVCSRevision)
 }
 
 // setOriginValue stores one origin fact, allocating the metadata map on demand.

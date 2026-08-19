@@ -268,3 +268,38 @@ func TestScorecardRepositoryFillsTheOriginGap(t *testing.T) {
 		}
 	})
 }
+
+// Origin is written on export and not read back on ingest: it describes what a
+// lockfile said, and an ingested document is not a lockfile. Scanning an SBOM
+// therefore yields packages with no origin, and re-exporting that graph says
+// NOASSERTION rather than repeating a claim Bomly did not resolve itself.
+//
+// This pins the documented limitation; preserving third-party origin across
+// ingest is tracked separately.
+func TestOriginIsNotReadBackFromAnIngestedDocument(t *testing.T) {
+	g := originGraph(t, func(_, pkg *sdk.Dependency) {
+		detectors.SetOriginVCS(pkg, "https://github.com/facebook/react", "d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809")
+	})
+
+	exported, _ := marshalBoth(t, g)
+	if got := spdxPackageByName(t, exported, "react")["downloadLocation"]; got == "NOASSERTION" {
+		t.Fatal("precondition failed: the first export carried no origin")
+	}
+
+	ingested, _, err := UnmarshalAutoJSON(exported)
+	if err != nil {
+		t.Fatalf("ingest SPDX: %v", err)
+	}
+	reingestedGraph, err := ToGraph(ingested)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	reexported, err := MarshalDepGraphJSON(reingestedGraph, TargetSPDX23JSON, BuildOptions{DocumentName: "origin-test", ToolVersion: "test"}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("re-export SPDX: %v", err)
+	}
+
+	if got := spdxPackageByName(t, reexported, "react")["downloadLocation"]; got != "NOASSERTION" {
+		t.Fatalf("re-exported downloadLocation = %v, want NOASSERTION; if origin now survives ingest, docs/SBOM.md must say so", got)
+	}
+}

@@ -99,6 +99,16 @@ func NormalizeOriginURL(raw string, vcs bool) (string, bool) {
 	// and reconcile to a disagreement, losing an origin to formatting alone.
 	// The path is left alone: it is case-sensitive.
 	parsed.Host = strings.ToLower(parsed.Host)
+	// An explicit default port names the same origin as no port at all, so
+	// dropping it keeps two spellings of one location from reading as a
+	// disagreement.
+	if port := parsed.Port(); (parsed.Scheme == "https" && port == "443") || (parsed.Scheme == "http" && port == "80") {
+		host := parsed.Hostname()
+		if strings.Contains(host, ":") {
+			host = "[" + host + "]" // an IPv6 literal keeps its brackets
+		}
+		parsed.Host = host
+	}
 	parsed.Fragment = ""
 	parsed.RawFragment = ""
 	// A host root names a server, not a package: it is a registry or index

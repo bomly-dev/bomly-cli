@@ -214,6 +214,34 @@ func TestOriginHostCaseIsCanonical(t *testing.T) {
 	}
 }
 
+// An explicit default port names the same origin as no port at all.
+func TestOriginDefaultPortIsCanonical(t *testing.T) {
+	cases := []struct{ name, raw, want string }{
+		{name: "https default port", raw: "https://example.test:443/pkg-1.0.0.tgz", want: "https://example.test/pkg-1.0.0.tgz"},
+		{name: "http default port", raw: "http://example.test:80/pkg-1.0.0.tgz", want: "http://example.test/pkg-1.0.0.tgz"},
+		{name: "a non-default port is part of the location", raw: "https://example.test:8443/pkg-1.0.0.tgz", want: "https://example.test:8443/pkg-1.0.0.tgz"},
+		{name: "an IPv6 literal keeps its brackets", raw: "https://[2001:db8::1]:443/pkg-1.0.0.tgz", want: "https://[2001:db8::1]/pkg-1.0.0.tgz"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			dep := &sdk.Dependency{ID: "pkg"}
+			detectors.SetOriginArtifact(dep, tc.raw)
+			if got := detectors.OriginFrom(dep.Metadata).ArtifactURL; got != tc.want {
+				t.Fatalf("artifact = %q, want %q", got, tc.want)
+			}
+		})
+	}
+
+	withPort := &sdk.Dependency{ID: "pkg"}
+	detectors.SetOriginArtifact(withPort, "https://example.test:443/pkg-1.0.0.tgz")
+	without := &sdk.Dependency{ID: "pkg"}
+	detectors.SetOriginArtifact(without, "https://example.test/pkg-1.0.0.tgz")
+	detectors.MergeOrigin(withPort, without)
+	if detectors.OriginFrom(withPort.Metadata).Empty() {
+		t.Fatal("a default port alone must not read as a disagreement")
+	}
+}
+
 func TestSetOriginNilDependency(t *testing.T) {
 	// Must not panic: detectors call these on nodes that may not exist.
 	detectors.SetOriginArtifact(nil, "https://registry.npmjs.org/react/-/react-18.2.0.tgz")

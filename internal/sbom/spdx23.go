@@ -51,6 +51,7 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageLicenseConcluded:   spdxLicenseValue(c.Licenses),
 			PackageCopyrightText:      spdxCopyrightValue(c.Copyright),
 			PackageChecksums:          spdxChecksums(c.Digests),
+			PackageSourceInfo:         spdxSourceInfo(c),
 			PackageExternalReferences: spdxExternalReferences(c),
 			PrimaryPackagePurpose:     spdxPrimaryPackagePurpose(c.Type),
 		}
@@ -428,6 +429,10 @@ func spdxCopyrightValue(value string) string {
 	return value
 }
 
+// spdxSourceInfoPrefix labels the repository recorded in PackageSourceInfo,
+// which SPDX defines as free text.
+const spdxSourceInfoPrefix = "Source repository: "
+
 // spdxDownloadLocation renders where a package came from. SPDX requires the
 // field, so a package whose detector asserted nothing keeps NOASSERTION rather
 // than a guess.
@@ -455,6 +460,19 @@ func spdxVCSLocator(component Component) string {
 		locator += "@" + revision
 	}
 	return locator
+}
+
+// spdxSourceInfo records the source repository when it is not already the
+// download location. A package downloaded as an artifact still has a
+// repository worth naming, and SPDX has one download location per package, so
+// the repository goes here rather than being dropped.
+func spdxSourceInfo(component Component) string {
+	repository := strings.TrimSpace(component.VCSURL)
+	if repository == "" || strings.TrimSpace(component.ArtifactURL) == "" {
+		// With no artifact, the repository is the download location already.
+		return ""
+	}
+	return spdxSourceInfoPrefix + spdxVCSLocator(component)
 }
 
 func spdxExternalReferences(component Component) []*v23.PackageExternalReference {

@@ -49,6 +49,74 @@ func TestSetCargoOriginBySourcePrefix(t *testing.T) {
 	}
 }
 
+// Cargo can resolve one crate name and version from two sources -- the same
+// crate pulled from two git remotes. They share a PURL, so they become one
+// node, and that node must not claim whichever source was walked first.
+func TestCargoDuplicateCrateSourcesCancelOrigin(t *testing.T) {
+	metadata := []byte(`{
+      "packages": [
+        {"id": "demo 0.1.0 (path+file:///w)", "name": "demo", "version": "0.1.0", "source": null, "dependencies": []},
+        {"id": "helper 1.0.0 (git+https://github.com/a/helper#aaaa)", "name": "helper", "version": "1.0.0", "source": "git+https://github.com/a/helper#aaaabbbbccccddddeeeeffff0000111122223333", "dependencies": []},
+        {"id": "helper 1.0.0 (git+https://github.com/b/helper#bbbb)", "name": "helper", "version": "1.0.0", "source": "git+https://github.com/b/helper#bbbbccccddddeeeeffff00001111222233334444", "dependencies": []}
+      ],
+      "workspace_members": ["demo 0.1.0 (path+file:///w)"],
+      "resolve": {"nodes": [], "root": "demo 0.1.0 (path+file:///w)"}
+    }`)
+
+	// Repeat: the packages arrive in a map, so an order-dependent answer shows
+	// up as a different result between runs rather than a stable wrong one.
+	for range 25 {
+		graph, err := depGraphFromMetadata(metadata)
+		if err != nil {
+			t.Fatalf("depGraphFromMetadata() error = %v", err)
+		}
+		var checked int
+		graph.WalkNodes(func(dep *sdk.Dependency) bool {
+			if dep.Name != "helper" {
+				return true
+			}
+			checked++
+			if got := detectors.OriginFrom(dep.Metadata); !got.Empty() {
+				t.Fatalf("origin = %+v, want none: the crate resolved from two repositories", got)
+			}
+			return true
+		})
+		if checked != 1 {
+			t.Fatalf("found %d helper nodes, want 1", checked)
+		}
+	}
+}
+
+// Two records naming the same source still publish it.
+func TestCargoDuplicateCrateSameSourceKeepsOrigin(t *testing.T) {
+	metadata := []byte(`{
+      "packages": [
+        {"id": "demo 0.1.0 (path+file:///w)", "name": "demo", "version": "0.1.0", "source": null, "dependencies": []},
+        {"id": "helper 1.0.0 (git+https://github.com/a/helper#aaaa)", "name": "helper", "version": "1.0.0", "source": "git+https://github.com/a/helper#aaaabbbbccccddddeeeeffff0000111122223333", "dependencies": []},
+        {"id": "helper 1.0.0 (git+https://github.com/a/helper#aaaa2)", "name": "helper", "version": "1.0.0", "source": "git+https://github.com/a/helper#aaaabbbbccccddddeeeeffff0000111122223333", "dependencies": []}
+      ],
+      "workspace_members": ["demo 0.1.0 (path+file:///w)"],
+      "resolve": {"nodes": [], "root": "demo 0.1.0 (path+file:///w)"}
+    }`)
+
+	graph, err := depGraphFromMetadata(metadata)
+	if err != nil {
+		t.Fatalf("depGraphFromMetadata() error = %v", err)
+	}
+	want := detectors.Origin{
+		VCSURL:      "https://github.com/a/helper",
+		VCSRevision: "aaaabbbbccccddddeeeeffff0000111122223333",
+	}
+	graph.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep.Name == "helper" {
+			if got := detectors.OriginFrom(dep.Metadata); got != want {
+				t.Fatalf("origin = %+v, want %+v", got, want)
+			}
+		}
+		return true
+	})
+}
+
 // The lockfile path builds nodes through the same helper.
 func TestCargoLockGraphCarriesOrigin(t *testing.T) {
 	lock := []byte(`

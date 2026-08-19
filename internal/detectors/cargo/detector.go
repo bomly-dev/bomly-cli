@@ -304,7 +304,8 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 			return nil, nil, fmt.Errorf("add root node: %w", err)
 		}
 	}
-	for id, pkg := range packagesByID {
+	for _, id := range sortedPackageIDs(packagesByID) {
+		pkg := packagesByID[id]
 		node := packageNode(pkg, id, workspace)
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, nil, err
@@ -428,8 +429,25 @@ func sortedWorkspaceMembers(workspace map[string]struct{}) []string {
 	return values
 }
 
+// sortedPackageIDs orders cargo's package map so one lockfile always builds
+// the same graph: map iteration would let two records of one crate decide the
+// node differently per run.
+func sortedPackageIDs(packages map[string]metadataPackage) []string {
+	ids := make([]string, 0, len(packages))
+	for id := range packages {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	return ids
+}
+
 func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
-	if _, ok := g.Node(node.ID); ok {
+	if existing, ok := g.Node(node.ID); ok {
+		// Cargo can resolve one crate name and version from two sources -- the
+		// same crate pulled from two git remotes, say. They share a PURL, so
+		// they are one node, and the node must not claim whichever source was
+		// visited first.
+		detectors.MergeOrigin(existing, node)
 		return nil
 	}
 	if err := g.AddNode(node); err != nil {

@@ -113,7 +113,7 @@ A detector reports one of two things, or nothing at all:
 | What the lockfile records | SPDX 2.3 | CycloneDX |
 |---|---|---|
 | The exact file the package was fetched from | `downloadLocation` | `distribution` external reference |
-| The repository it was resolved from, and the commit when the lockfile pinned one | `downloadLocation` as `git+<url>`, with `@<revision>` when pinned | `vcs` external reference (URL only) |
+| The repository it was resolved from, and the commit when the lockfile pinned one | `downloadLocation` as `git+<url>`, with `@<revision>` when pinned; `sourceInfo` when a download location is already taken by an artifact | `vcs` external reference (URL only) |
 | Neither | `NOASSERTION` | no reference |
 
 CycloneDX external references have no field for a revision, so the commit a
@@ -139,14 +139,21 @@ What each ecosystem yields:
 
 With `--enrich`, a package can also get a repository it has no lockfile claim
 to. The OpenSSF Scorecard matcher resolves a canonical source repository from a
-package's identity, and that repository fills the `vcs` reference for any
-package whose own detector reported nothing — including the ecosystems listed
-above as yielding nothing, and Syft-detected packages. It is a network lookup
-keyed on package identity rather than a claim any manifest made, so it is
-weaker evidence: a detector-asserted repository always wins, and no revision is
-attached, since a Scorecard repository names a project rather than a resolved
-commit. Without `--enrich`, or without the scorecard matcher selected, nothing
-of this kind appears.
+package's identity, and that repository is used whenever the detector reported
+no repository of its own — including for the ecosystems listed above as
+yielding nothing, for Syft-detected packages, and **for packages that already
+have a download location**. An artifact and a repository answer different
+questions (which file was fetched, where the source lives), so a package can
+carry both: the artifact stays the SPDX `downloadLocation` and the CycloneDX
+`distribution` reference, while the repository becomes the `vcs` reference and,
+in SPDX, the package's source info. Only a detector-asserted repository
+displaces it.
+
+It is a network lookup keyed on package identity rather than a claim any
+manifest made, so it is weaker evidence, and no revision is attached: a
+Scorecard repository names a project, not a resolved commit. Without
+`--enrich`, or without the scorecard matcher selected, nothing of this kind
+appears.
 
 Four kinds of value are never published, in any ecosystem:
 

@@ -260,6 +260,63 @@ func TestScorecardRepositoryFillsTheOriginGap(t *testing.T) {
 		}
 	})
 
+	// An artifact says where the file was fetched; a repository says where the
+	// source lives. They are complementary, so an enriched package can carry
+	// both -- the repository as a vcs reference in CycloneDX, and as source
+	// info in SPDX, whose single download location the artifact holds.
+	t.Run("a repository accompanies an artifact", func(t *testing.T) {
+		g := sdk.New()
+		react := sdk.NewDependencyWithID("react@18.2.0", sdk.Dependency{Coordinates: sdk.Coordinates{
+			Name: "react", Version: "18.2.0", PURL: purl, Ecosystem: "npm"}})
+		detectors.SetOriginArtifact(react, "https://registry.npmjs.org/react/-/react-18.2.0.tgz")
+		if err := g.AddNode(react); err != nil {
+			t.Fatal(err)
+		}
+		registry := sdk.NewPackageRegistry()
+		pkg := registry.Ensure(purl)
+		pkg.Name, pkg.Version, pkg.Matched = "react", "18.2.0", true
+		pkg.Scorecard = &sdk.PackageScorecard{Source: "api.scorecard.dev", Repository: "github.com/facebook/react"}
+
+		opts := BuildOptions{Registry: registry}
+		cdxRaw, err := MarshalDepGraphJSON(g, TargetCycloneDX17JSON, opts, EncodeOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		spdxRaw, err := MarshalDepGraphJSON(g, TargetSPDX23JSON, opts, EncodeOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		refs := cycloneDXReferences(t, cdxRaw, "react")
+		if refs["distribution"] != "https://registry.npmjs.org/react/-/react-18.2.0.tgz" {
+			t.Errorf("distribution ref = %q, want the detector artifact", refs["distribution"])
+		}
+		if refs["vcs"] != "https://github.com/facebook/react" {
+			t.Errorf("vcs ref = %q, want the scorecard repository", refs["vcs"])
+		}
+
+		spdxPkg := spdxPackageByName(t, spdxRaw, "react")
+		if spdxPkg["downloadLocation"] != "https://registry.npmjs.org/react/-/react-18.2.0.tgz" {
+			t.Errorf("downloadLocation = %v, want the artifact", spdxPkg["downloadLocation"])
+		}
+		if got, _ := spdxPkg["sourceInfo"].(string); got != "Source repository: git+https://github.com/facebook/react" {
+			t.Errorf("sourceInfo = %q, want the repository", got)
+		}
+	})
+
+	// With no artifact, the repository is the download location, so repeating
+	// it as source info would say the same thing twice.
+	t.Run("a repository alone is not repeated as source info", func(t *testing.T) {
+		g := originGraph(t, func(_, pkg *sdk.Dependency) {
+			detectors.SetOriginVCS(pkg, "https://github.com/facebook/react", "")
+		})
+		spdxRaw, _ := marshalBoth(t, g)
+		spdxPkg := spdxPackageByName(t, spdxRaw, "react")
+		if got, found := spdxPkg["sourceInfo"]; found && got != "" {
+			t.Errorf("sourceInfo = %v, want none: the repository is the download location", got)
+		}
+	})
+
 	t.Run("absent without enrichment", func(t *testing.T) {
 		g := originGraph(t, func(_, _ *sdk.Dependency) {})
 		_, cdxRaw := marshalBoth(t, g)

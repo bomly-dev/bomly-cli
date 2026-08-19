@@ -186,6 +186,34 @@ func TestSetOriginAllocatesMetadataAndPreservesOtherKeys(t *testing.T) {
 	}
 }
 
+// Hosts are case-insensitive. Two lockfiles spelling one host differently name
+// the same place and must not reconcile to a disagreement.
+func TestOriginHostCaseIsCanonical(t *testing.T) {
+	upper := &sdk.Dependency{ID: "pkg"}
+	detectors.SetOriginVCS(upper, "https://GitHub.com/Owner/Repo", "aaaabbbbccccddddeeeeffff0000111122223333")
+	lower := &sdk.Dependency{ID: "pkg"}
+	detectors.SetOriginVCS(lower, "https://github.com/Owner/Repo", "aaaabbbbccccddddeeeeffff0000111122223333")
+
+	if got := detectors.OriginFrom(upper.Metadata).VCSURL; got != "https://github.com/Owner/Repo" {
+		t.Fatalf("repository = %q, want a lowercased host and an untouched path", got)
+	}
+
+	detectors.MergeOrigin(upper, lower)
+	if got := detectors.OriginFrom(upper.Metadata); got.Empty() {
+		t.Fatal("host casing alone must not read as a disagreement")
+	}
+
+	// The path is case-sensitive, so these really are different locations.
+	left := &sdk.Dependency{ID: "pkg"}
+	detectors.SetOriginArtifact(left, "https://example.test/Pkg-1.0.0.tgz")
+	right := &sdk.Dependency{ID: "pkg"}
+	detectors.SetOriginArtifact(right, "https://example.test/pkg-1.0.0.tgz")
+	detectors.MergeOrigin(left, right)
+	if got := detectors.OriginFrom(left.Metadata); !got.Empty() {
+		t.Fatalf("origin = %+v, want a disagreement: the paths differ", got)
+	}
+}
+
 func TestSetOriginNilDependency(t *testing.T) {
 	// Must not panic: detectors call these on nodes that may not exist.
 	detectors.SetOriginArtifact(nil, "https://registry.npmjs.org/react/-/react-18.2.0.tgz")

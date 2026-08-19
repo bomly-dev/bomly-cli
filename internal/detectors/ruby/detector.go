@@ -498,7 +498,7 @@ func gemNode(spec lockSpec) *sdk.Dependency {
 	if spec.Source == sdk.DependencySourceGit {
 		// A GIT section names the repository and the commit Bundler locked.
 		// A GEM section's remote is the gem server, and PATH is local.
-		detectors.SetOriginVCS(node, spec.ResolvedURL, spec.Revision)
+		node.Origin = sdk.RepositoryOrigin(spec.ResolvedURL, spec.Revision)
 	}
 	return node
 

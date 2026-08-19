@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -94,7 +93,7 @@ func marshalBoth(t *testing.T, g *sdk.Graph) (spdxRaw, cdxRaw []byte) {
 func TestArtifactOriginIsPublishedInBothFormats(t *testing.T) {
 	const artifact = "https://registry.npmjs.org/react/-/react-18.2.0.tgz"
 	g := originGraph(t, func(_, pkg *sdk.Dependency) {
-		detectors.SetOriginArtifact(pkg, artifact)
+		pkg.Origin = sdk.ArtifactOrigin(artifact)
 	})
 
 	spdxRaw, cdxRaw := marshalBoth(t, g)
@@ -113,7 +112,7 @@ func TestRepositoryOriginIsPublishedInBothFormats(t *testing.T) {
 		revision   = "b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7"
 	)
 	g := originGraph(t, func(_, pkg *sdk.Dependency) {
-		detectors.SetOriginVCS(pkg, repository, revision)
+		pkg.Origin = sdk.RepositoryOrigin(repository, revision)
 	})
 
 	spdxRaw, cdxRaw := marshalBoth(t, g)
@@ -136,7 +135,7 @@ func TestRepositoryOriginIsPublishedInBothFormats(t *testing.T) {
 func TestUnpinnedRepositoryOriginOmitsTheRevisionSuffix(t *testing.T) {
 	const repository = "https://github.com/facebook/react"
 	g := originGraph(t, func(_, pkg *sdk.Dependency) {
-		detectors.SetOriginVCS(pkg, repository, "")
+		pkg.Origin = sdk.RepositoryOrigin(repository, "")
 	})
 
 	spdxRaw, _ := marshalBoth(t, g)
@@ -160,43 +159,37 @@ func TestPackageWithoutOriginKeepsNOASSERTION(t *testing.T) {
 	}
 }
 
-// Origin metadata can reach export from a plugin or a hand-built graph that
-// never went through the setters. Export re-validates rather than trusting it,
+// A hand-built origin can reach export from a plugin or a caller that never
+// went through the constructors. Export re-validates rather than trusting it,
 // so a bad value is dropped instead of published.
-func TestExportRevalidatesOriginMetadata(t *testing.T) {
+func TestExportRevalidatesOrigin(t *testing.T) {
 	hostile := []struct {
-		name     string
-		metadata map[string]any
+		name   string
+		origin *sdk.PackageOrigin
 	}{
-		{name: "credentialed artifact", metadata: map[string]any{
-			detectors.MetadataKeyOriginArtifactURL: "https://build:s3cret-token-value@nexus.corp/repo/react-18.2.0.tgz",
+		{name: "credentialed artifact", origin: &sdk.PackageOrigin{ArtifactURL: "https://build:s3cret-token-value@nexus.corp/repo/react-18.2.0.tgz"}},
+		{name: "local path", origin: &sdk.PackageOrigin{ArtifactURL: "/Users/someone/src/project/react.tgz"}},
+		{name: "file url", origin: &sdk.PackageOrigin{Repository: "file:///Users/someone/src/react"}},
+		{name: "registry root", origin: &sdk.PackageOrigin{ArtifactURL: "https://registry.npmjs.org/"}},
+		{name: "revision breaking the locator grammar", origin: &sdk.PackageOrigin{
+			Repository: "https://github.com/facebook/react", Revision: "main@evil.test/x",
 		}},
-		{name: "local path", metadata: map[string]any{
-			detectors.MetadataKeyOriginArtifactURL: "/Users/someone/src/project/react.tgz",
-		}},
-		{name: "file url", metadata: map[string]any{
-			detectors.MetadataKeyOriginVCSURL: "file:///Users/someone/src/react",
-		}},
-		{name: "revision breaking the locator grammar", metadata: map[string]any{
-			detectors.MetadataKeyOriginVCSURL:      "https://github.com/facebook/react",
-			detectors.MetadataKeyOriginVCSRevision: "main@evil.test/x",
-		}},
-		{name: "non-string value", metadata: map[string]any{
-			detectors.MetadataKeyOriginArtifactURL: 42,
+		{name: "a recorded disagreement publishes nothing", origin: &sdk.PackageOrigin{
+			Disputed: true, ArtifactURL: "https://registry.npmjs.org/react/-/react-18.2.0.tgz",
 		}},
 	}
 
 	for _, tc := range hostile {
 		t.Run(tc.name, func(t *testing.T) {
 			g := originGraph(t, func(_, pkg *sdk.Dependency) {
-				pkg.Metadata = tc.metadata
+				pkg.Origin = tc.origin
 			})
 
 			spdxRaw, cdxRaw := marshalBoth(t, g)
 
 			download, _ := spdxPackageByName(t, spdxRaw, "react")["downloadLocation"].(string)
 			refs := cycloneDXReferences(t, cdxRaw, "react")
-			published := append([]string{download}, refs["distribution"], refs["vcs"])
+			published := []string{download, refs["distribution"], refs["vcs"]}
 			for _, value := range published {
 				for _, forbidden := range []string{"s3cret", "@nexus.corp", "/Users/", "file://", "evil.test"} {
 					if strings.Contains(value, forbidden) {
@@ -230,7 +223,7 @@ func TestScorecardRepositoryFillsTheOriginGap(t *testing.T) {
 		react := sdk.NewDependencyWithID("react@18.2.0", sdk.Dependency{Coordinates: sdk.Coordinates{
 			Name: "react", Version: "18.2.0", PURL: purl, Ecosystem: "npm"}})
 		if detectorRepository != "" {
-			detectors.SetOriginVCS(react, detectorRepository, "")
+			react.Origin = sdk.RepositoryOrigin(detectorRepository, "")
 		}
 		if err := g.AddNode(react); err != nil {
 			t.Fatalf("add node: %v", err)
@@ -268,7 +261,7 @@ func TestScorecardRepositoryFillsTheOriginGap(t *testing.T) {
 		g := sdk.New()
 		react := sdk.NewDependencyWithID("react@18.2.0", sdk.Dependency{Coordinates: sdk.Coordinates{
 			Name: "react", Version: "18.2.0", PURL: purl, Ecosystem: "npm"}})
-		detectors.SetOriginArtifact(react, "https://registry.npmjs.org/react/-/react-18.2.0.tgz")
+		react.Origin = sdk.ArtifactOrigin("https://registry.npmjs.org/react/-/react-18.2.0.tgz")
 		if err := g.AddNode(react); err != nil {
 			t.Fatal(err)
 		}
@@ -308,7 +301,7 @@ func TestScorecardRepositoryFillsTheOriginGap(t *testing.T) {
 	// it as source info would say the same thing twice.
 	t.Run("a repository alone is not repeated as source info", func(t *testing.T) {
 		g := originGraph(t, func(_, pkg *sdk.Dependency) {
-			detectors.SetOriginVCS(pkg, "https://github.com/facebook/react", "")
+			pkg.Origin = sdk.RepositoryOrigin("https://github.com/facebook/react", "")
 		})
 		spdxRaw, _ := marshalBoth(t, g)
 		spdxPkg := spdxPackageByName(t, spdxRaw, "react")
@@ -335,7 +328,7 @@ func TestScorecardRepositoryFillsTheOriginGap(t *testing.T) {
 // ingest is tracked separately.
 func TestOriginIsNotReadBackFromAnIngestedDocument(t *testing.T) {
 	g := originGraph(t, func(_, pkg *sdk.Dependency) {
-		detectors.SetOriginVCS(pkg, "https://github.com/facebook/react", "d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809")
+		pkg.Origin = sdk.RepositoryOrigin("https://github.com/facebook/react", "d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809")
 	})
 
 	exported, _ := marshalBoth(t, g)

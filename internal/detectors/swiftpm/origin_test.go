@@ -5,10 +5,21 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
+
+// originOf returns the origin a node publishes, or the zero value when it has
+// none, so cases can compare plain structs.
+func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
+	if dep == nil {
+		return sdk.PackageOrigin{}
+	}
+	if origin := dep.Origin.Normalized(); origin != nil {
+		return *origin
+	}
+	return sdk.PackageOrigin{}
+}
 
 // A Package.resolved pin says how SwiftPM obtained a package. Source-control
 // pins name a repository and the commit that was resolved; registry pins are
@@ -44,13 +55,13 @@ func TestSwiftPMOriginByPinKind(t *testing.T) {
 
 	var checked int
 	for _, node := range graph.Nodes() {
-		origin := detectors.OriginFrom(node.Metadata)
+		origin := originOf(node)
 		switch node.Name {
 		case "swift-argument-parser":
 			checked++
-			want := detectors.Origin{
-				VCSURL:      "https://github.com/apple/swift-argument-parser.git",
-				VCSRevision: "8192a3b4c5d6e7f8091a2b3c4d5e6f7081921324",
+			want := sdk.PackageOrigin{
+				Repository: "https://github.com/apple/swift-argument-parser.git",
+				Revision:   "8192a3b4c5d6e7f8091a2b3c4d5e6f7081921324",
 			}
 			if origin != want {
 				t.Errorf("%s origin = %+v, want %+v", node.Name, origin, want)
@@ -111,13 +122,13 @@ func TestSwiftPMNativeOriginIsPinnedFromPackageResolved(t *testing.T) {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
 
-	want := detectors.Origin{
-		VCSURL:      "https://github.com/apple/swift-argument-parser.git",
-		VCSRevision: "f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b",
+	want := sdk.PackageOrigin{
+		Repository: "https://github.com/apple/swift-argument-parser.git",
+		Revision:   "f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b",
 	}
 	var checked int
 	g.WalkNodes(func(dep *sdk.Dependency) bool {
-		origin := detectors.OriginFrom(dep.Metadata)
+		origin := originOf(dep)
 		switch dep.Name {
 		case "swift-argument-parser":
 			checked++
@@ -178,7 +189,7 @@ func TestSwiftPMEditedPackageIsNotCreditedToItsFormerPin(t *testing.T) {
 			return true
 		}
 		checked++
-		if got := detectors.OriginFrom(dep.Metadata); !got.Empty() {
+		if got := originOf(dep); !got.Empty() {
 			t.Fatalf("edited package origin = %+v, want none: it is built from a local checkout", got)
 		}
 		return true
@@ -204,12 +215,12 @@ func TestSwiftPMNativeOriginSurvivesMissingPackageResolved(t *testing.T) {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
 
-	want := detectors.Origin{VCSURL: "https://github.com/apple/swift-argument-parser.git"}
+	want := sdk.PackageOrigin{Repository: "https://github.com/apple/swift-argument-parser.git"}
 	var checked int
 	g.WalkNodes(func(dep *sdk.Dependency) bool {
 		if dep.Name == "swift-argument-parser" {
 			checked++
-			if got := detectors.OriginFrom(dep.Metadata); got != want {
+			if got := originOf(dep); got != want {
 				t.Fatalf("origin = %+v, want the unpinned repository %+v", got, want)
 			}
 		}
@@ -286,7 +297,7 @@ func TestSwiftPMNativeOriginDoesNotMatchAcrossPathCase(t *testing.T) {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
 	g.WalkNodes(func(dep *sdk.Dependency) bool {
-		if origin := detectors.OriginFrom(dep.Metadata); origin.VCSRevision == "5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f7081" {
+		if origin := originOf(dep); origin.Revision == "5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f7081" {
 			t.Fatalf("%s took a pin belonging to a differently-cased repository: %+v", dep.Name, origin)
 		}
 		return true

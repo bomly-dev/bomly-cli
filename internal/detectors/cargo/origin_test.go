@@ -3,9 +3,20 @@ package cargo
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 )
+
+// originOf returns the origin a node publishes, or the zero value when it has
+// none, so cases can compare plain structs.
+func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
+	if dep == nil {
+		return sdk.PackageOrigin{}
+	}
+	if origin := dep.Origin.Normalized(); origin != nil {
+		return *origin
+	}
+	return sdk.PackageOrigin{}
+}
 
 // Cargo.lock records one source string per package. Only "git+" names where the
 // code came from; the index prefixes name a registry, and path or workspace
@@ -14,22 +25,22 @@ func TestSetCargoOriginBySourcePrefix(t *testing.T) {
 	cases := []struct {
 		name   string
 		source string
-		want   detectors.Origin
+		want   sdk.PackageOrigin
 	}{
 		{
 			name:   "git dependency pins the resolved commit in the fragment",
 			source: "git+https://github.com/example/helper?rev=main#3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f",
-			want:   detectors.Origin{VCSURL: "https://github.com/example/helper", VCSRevision: "3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f"},
+			want:   sdk.PackageOrigin{Repository: "https://github.com/example/helper", Revision: "3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f"},
 		},
 		{
 			name:   "requested tag is used when no commit was recorded",
 			source: "git+https://github.com/example/helper?tag=v1.2.3",
-			want:   detectors.Origin{VCSURL: "https://github.com/example/helper", VCSRevision: "v1.2.3"},
+			want:   sdk.PackageOrigin{Repository: "https://github.com/example/helper", Revision: "v1.2.3"},
 		},
 		{
 			name:   "branch dependency without a pin keeps the repository",
 			source: "git+https://github.com/example/helper",
-			want:   detectors.Origin{VCSURL: "https://github.com/example/helper"},
+			want:   sdk.PackageOrigin{Repository: "https://github.com/example/helper"},
 		},
 		{name: "crates.io index root", source: "registry+https://github.com/rust-lang/crates.io-index"},
 		{name: "sparse index root", source: "sparse+https://index.crates.io/"},
@@ -42,7 +53,7 @@ func TestSetCargoOriginBySourcePrefix(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "helper", Version: "1.0.0"}})
 			setCargoOrigin(node, tc.source)
-			if got := detectors.OriginFrom(node.Metadata); got != tc.want {
+			if got := originOf(node); got != tc.want {
 				t.Fatalf("origin = %+v, want %+v", got, tc.want)
 			}
 		})
@@ -76,7 +87,7 @@ func TestCargoDuplicateCrateSourcesCancelOrigin(t *testing.T) {
 				return true
 			}
 			checked++
-			if got := detectors.OriginFrom(dep.Metadata); !got.Empty() {
+			if got := originOf(dep); !got.Empty() {
 				t.Fatalf("origin = %+v, want none: the crate resolved from two repositories", got)
 			}
 			return true
@@ -103,15 +114,15 @@ func TestCargoDuplicateCrateSameSourceKeepsOrigin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromMetadata() error = %v", err)
 	}
-	want := detectors.Origin{
-		VCSURL:      "https://github.com/a/helper",
-		VCSRevision: "aaaabbbbccccddddeeeeffff0000111122223333",
+	want := sdk.PackageOrigin{
+		Repository: "https://github.com/a/helper",
+		Revision:   "aaaabbbbccccddddeeeeffff0000111122223333",
 	}
 	var checked int
 	graph.WalkNodes(func(dep *sdk.Dependency) bool {
 		if dep.Name == "helper" {
 			checked++
-			if got := detectors.OriginFrom(dep.Metadata); got != want {
+			if got := originOf(dep); got != want {
 				t.Fatalf("origin = %+v, want %+v", got, want)
 			}
 		}
@@ -151,15 +162,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 	if !ok {
 		t.Fatal("expected helper in graph")
 	}
-	want := detectors.Origin{VCSURL: "https://github.com/example/helper", VCSRevision: "6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192"}
-	if got := detectors.OriginFrom(helper.Metadata); got != want {
+	want := sdk.PackageOrigin{Repository: "https://github.com/example/helper", Revision: "6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192"}
+	if got := originOf(helper); got != want {
 		t.Fatalf("helper origin = %+v, want %+v", got, want)
 	}
 	serde, ok := graph.Node("serde@1.0.0")
 	if !ok {
 		t.Fatal("expected serde in graph")
 	}
-	if got := detectors.OriginFrom(serde.Metadata); !got.Empty() {
+	if got := originOf(serde); !got.Empty() {
 		t.Fatalf("registry crate asserted an origin: %+v", got)
 	}
 }

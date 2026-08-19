@@ -4,9 +4,20 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 )
+
+// originOf returns the origin a node publishes, or the zero value when it has
+// none, so cases can compare plain structs.
+func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
+	if dep == nil {
+		return sdk.PackageOrigin{}
+	}
+	if origin := dep.Origin.Normalized(); origin != nil {
+		return *origin
+	}
+	return sdk.PackageOrigin{}
+}
 
 // subprojectResult builds one manifest's detection result carrying a single
 // package whose origin the caller chooses.
@@ -17,7 +28,7 @@ func subprojectResult(t *testing.T, relativePath, manifest, artifactURL string) 
 	pkg := sdk.NewDependencyWithID("lodash@4.17.21", sdk.Dependency{Coordinates: sdk.Coordinates{
 		Name: "lodash", Version: "4.17.21", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lodash@4.17.21"}})
 	if artifactURL != "" {
-		detectors.SetOriginArtifact(pkg, artifactURL)
+		pkg.Origin = sdk.ArtifactOrigin(artifactURL)
 	}
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
@@ -58,13 +69,13 @@ func TestConsolidateGraphsSettlesOriginAcrossManifests(t *testing.T) {
 		name  string
 		left  string
 		right string
-		want  detectors.Origin
+		want  sdk.PackageOrigin
 	}{
 		{
 			name:  "subprojects agree",
 			left:  public,
 			right: public,
-			want:  detectors.Origin{ArtifactURL: public},
+			want:  sdk.PackageOrigin{ArtifactURL: public},
 		},
 		{
 			name:  "one subproject resolved a private mirror",
@@ -75,7 +86,7 @@ func TestConsolidateGraphsSettlesOriginAcrossManifests(t *testing.T) {
 			name:  "one subproject recorded nothing",
 			left:  public,
 			right: "",
-			want:  detectors.Origin{ArtifactURL: public},
+			want:  sdk.PackageOrigin{ArtifactURL: public},
 		},
 	}
 
@@ -103,33 +114,9 @@ func TestConsolidateGraphsSettlesOriginAcrossManifests(t *testing.T) {
 			if node == nil {
 				t.Fatalf("expected lodash in the merged graph; ids present: %v", graphIDs(merged))
 			}
-			if got := detectors.OriginFrom(node.Metadata); got != tc.want {
+			if got := originOf(node); got != tc.want {
 				t.Fatalf("merged origin = %+v, want %+v", got, tc.want)
 			}
-		})
-	}
-}
-
-// The surviving node is whichever the merge happens to keep, so every
-// occurrence has to carry the settled answer, not just the first.
-func TestConsolidateGraphsSettlesEveryOccurrence(t *testing.T) {
-	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{
-		subprojectResult(t, "apps/web", "apps/web/package-lock.json", "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"),
-		subprojectResult(t, "services/api", "services/api/package-lock.json", "https://npm.corp/mirror/lodash/-/lodash-4.17.21.tgz"),
-	})
-	if err != nil {
-		t.Fatalf("ConsolidateGraphs() error = %v", err)
-	}
-
-	for _, entry := range consolidated.Graphs.Entries {
-		if entry.Graph == nil {
-			continue
-		}
-		entry.Graph.WalkNodes(func(node *sdk.Dependency) bool {
-			if got := detectors.OriginFrom(node.Metadata); !got.Empty() {
-				t.Errorf("%s still claims %+v after the subprojects disagreed", node.ID, got)
-			}
-			return true
 		})
 	}
 }
@@ -149,11 +136,11 @@ func TestConsolidateGraphsSettlesOriginWithinOneManifest(t *testing.T) {
 		name  string
 		left  string
 		right string
-		want  detectors.Origin
+		want  sdk.PackageOrigin
 	}{
-		{name: "entries agree", left: public, right: public, want: detectors.Origin{ArtifactURL: public}},
+		{name: "entries agree", left: public, right: public, want: sdk.PackageOrigin{ArtifactURL: public}},
 		{name: "entries disagree", left: public, right: private},
-		{name: "one entry says nothing", left: public, right: "", want: detectors.Origin{ArtifactURL: public}},
+		{name: "one entry says nothing", left: public, right: "", want: sdk.PackageOrigin{ArtifactURL: public}},
 	}
 
 	for _, tc := range cases {
@@ -168,7 +155,7 @@ func TestConsolidateGraphsSettlesOriginWithinOneManifest(t *testing.T) {
 						Name: "lodash", Version: "4.17.21", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lodash@4.17.21"}},
 				)
 				if artifactURL != "" {
-					detectors.SetOriginArtifact(pkg, artifactURL)
+					pkg.Origin = sdk.ArtifactOrigin(artifactURL)
 				}
 				if err := g.AddNode(pkg); err != nil {
 					t.Fatal(err)
@@ -200,7 +187,7 @@ func TestConsolidateGraphsSettlesOriginWithinOneManifest(t *testing.T) {
 					return true
 				}
 				checked++
-				if got := detectors.OriginFrom(dep.Metadata); got != tc.want {
+				if got := originOf(dep); got != tc.want {
 					t.Fatalf("origin = %+v, want %+v", got, tc.want)
 				}
 				return true

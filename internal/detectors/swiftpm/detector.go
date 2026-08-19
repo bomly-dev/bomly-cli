@@ -279,7 +279,7 @@ func packageNode(pkg swiftPackage) *sdk.Dependency {
 		// Source-control pins name the repository and the commit SwiftPM
 		// resolved. Registry pins are identity-only, and local packages
 		// point at a checkout on this machine.
-		detectors.SetOriginVCS(node, pkg.Repository, pkg.Revision)
+		node.Origin = sdk.RepositoryOrigin(pkg.Repository, pkg.Revision)
 	}
 
 	// SwiftPM does not distinguish dev scope; all packages are runtime.

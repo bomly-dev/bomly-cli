@@ -148,7 +148,7 @@ func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 		if pin.Revision == "" || swiftDependencySource(pin.SourceKind, pin.Repository) != sdk.DependencySourceGit {
 			return true
 		}
-		detectors.SetOriginVCS(dep, pin.Repository, pin.Revision)
+		dep.Origin = sdk.RepositoryOrigin(pin.Repository, pin.Revision)
 		pinned++
 		return true
 	})

@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/bun"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
@@ -12,22 +11,34 @@ import (
 	"github.com/bomly-dev/bomly-sdk"
 )
 
+// originOf returns the origin a node publishes, or the zero value when it has
+// none, so cases can compare plain structs.
+func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
+	if dep == nil {
+		return sdk.PackageOrigin{}
+	}
+	if origin := dep.Origin.Normalized(); origin != nil {
+		return *origin
+	}
+	return sdk.PackageOrigin{}
+}
+
 // requireArtifactOrigin asserts a package asserts exactly the given artifact.
 func requireArtifactOrigin(t *testing.T, g *sdk.Graph, name, version, want string) {
 	t.Helper()
-	origin := detectors.OriginFrom(requirePackage(t, g, name, version).Metadata)
+	origin := originOf(requirePackage(t, g, name, version))
 	if origin.ArtifactURL != want {
 		t.Errorf("%s@%s artifact origin = %q, want %q", name, version, origin.ArtifactURL, want)
 	}
-	if origin.VCSURL != "" {
-		t.Errorf("%s@%s also asserted a repository %q", name, version, origin.VCSURL)
+	if origin.Repository != "" {
+		t.Errorf("%s@%s also asserted a repository %q", name, version, origin.Repository)
 	}
 }
 
 // requireNoOrigin asserts a package publishes no location at all.
 func requireNoOrigin(t *testing.T, g *sdk.Graph, name, version string) {
 	t.Helper()
-	if origin := detectors.OriginFrom(requirePackage(t, g, name, version).Metadata); !origin.Empty() {
+	if origin := originOf(requirePackage(t, g, name, version)); !origin.Empty() {
 		t.Errorf("%s@%s asserted an origin it should not have: %+v", name, version, origin)
 	}
 }

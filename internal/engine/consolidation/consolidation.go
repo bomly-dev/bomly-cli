@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -40,32 +39,7 @@ func ConsolidateGraphs(results []sdk.DetectionResult) (sdk.ConsolidatedGraph, er
 		}
 		consolidated.Subprojects[idx].RootManifestIDs = append(consolidated.Subprojects[idx].RootManifestIDs, selected.RootManifestID)
 	}
-	reconcileEntryOrigins(consolidated.Graphs.Entries)
 	return consolidated, nil
-}
-
-// reconcileEntryOrigins settles package origin across the selected manifests
-// before their graphs are merged into one. Each manifest is resolved on its
-// own, so one package used by two subprojects arrives as two nodes; merging
-// keeps the first and drops the rest, which would publish one subproject's
-// answer for a package the scan saw resolved two different ways.
-func reconcileEntryOrigins(entries []sdk.GraphEntry) {
-	if len(entries) < 2 {
-		return
-	}
-	occurrences := make(map[string][]*sdk.Dependency)
-	for _, entry := range entries {
-		if entry.Graph == nil {
-			continue
-		}
-		entry.Graph.WalkNodes(func(node *sdk.Dependency) bool {
-			occurrences[node.ID] = append(occurrences[node.ID], node)
-			return true
-		})
-	}
-	for _, nodes := range occurrences {
-		detectors.ReconcileOrigins(nodes)
-	}
 }
 
 type consolidatedEntryCandidate struct {

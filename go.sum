@@ -259,6 +259,8 @@ github.com/bomly-dev/bomly-plugin-syft-detector v0.1.0 h1:izjWbFILBnjSrRyCwBQS2d
 github.com/bomly-dev/bomly-plugin-syft-detector v0.1.0/go.mod h1:uLBBHXzEJaNczZAyTIZjxfTSDoU+yLVC36qBE+vIAyk=
 github.com/bomly-dev/bomly-sdk v0.3.0 h1:JtC7qZ9yq3r4fUYyq7e/Os4f9wGMa4Qot8U0l9MepFA=
 github.com/bomly-dev/bomly-sdk v0.3.0/go.mod h1:yn1LBkoHG9gDBXKyRj0UNJo0BlXl8Bj9Ymb3WKLIh78=
+github.com/bomly-dev/bomly-sdk v0.4.0 h1:C+3gOVF6KFZ8KOq4jV94snP+qn8s1QzxG8PhE30yDaI=
+github.com/bomly-dev/bomly-sdk v0.4.0/go.mod h1:yn1LBkoHG9gDBXKyRj0UNJo0BlXl8Bj9Ymb3WKLIh78=
 github.com/bradleyjkemp/cupaloy/v2 v2.8.0 h1:any4BmKE+jGIaMpnU8YgH/I2LPiLBufr6oMMlVBbn9M=
 github.com/bradleyjkemp/cupaloy/v2 v2.8.0/go.mod h1:bm7JXdkRd4BHJk9HpwqAI8BoAY1lps46Enkdqw6aRX0=
 github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/FBatYVw=

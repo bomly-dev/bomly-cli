@@ -135,7 +135,7 @@ func applyLockOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 		if !ok || pubDependencySource(pkg.Source) != sdk.DependencySourceGit {
 			return true
 		}
-		detectors.SetOriginVCS(dep, descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref"))
+		dep.Origin = sdk.RepositoryOrigin(descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref"))
 		recorded++
 		return true
 	})

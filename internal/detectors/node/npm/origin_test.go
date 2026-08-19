@@ -1,12 +1,23 @@
 package npm
 
 import (
+	"github.com/bomly-dev/bomly-sdk"
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 )
+
+// originOf returns the origin a node publishes, or the zero value when it has
+// none, so cases can compare plain structs.
+func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
+	if dep == nil {
+		return sdk.PackageOrigin{}
+	}
+	if origin := dep.Origin.Normalized(); origin != nil {
+		return *origin
+	}
+	return sdk.PackageOrigin{}
+}
 
 // npm writes whatever it installed from into "resolved": a registry tarball,
 // but also a git remote or a local path. Only the first is a location an SBOM
@@ -48,12 +59,12 @@ func TestNPMOriginByResolvedShape(t *testing.T) {
 		if !ok {
 			t.Fatalf("expected %s in graph", tc.id)
 		}
-		origin := detectors.OriginFrom(node.Metadata)
+		origin := originOf(node)
 		if origin.ArtifactURL != tc.want {
 			t.Errorf("%s artifact origin = %q, want %q", tc.id, origin.ArtifactURL, tc.want)
 		}
-		if origin.VCSURL != "" {
-			t.Errorf("%s asserted a repository %q", tc.id, origin.VCSURL)
+		if origin.Repository != "" {
+			t.Errorf("%s asserted a repository %q", tc.id, origin.Repository)
 		}
 		// ResolvedURL is a separate contract (the scorecard matcher resolves
 		// repositories from it) and must keep carrying the raw lockfile value.
@@ -109,7 +120,7 @@ func TestNPMv1DuplicateEntriesReconcileOrigin(t *testing.T) {
 		if !ok {
 			t.Fatal("expected disputed@2.0.0 in graph")
 		}
-		if origin := detectors.OriginFrom(disputed.Metadata); !origin.Empty() {
+		if origin := originOf(disputed); !origin.Empty() {
 			t.Fatalf("disputed origin = %+v, want none: its two copies name different locations", origin)
 		}
 
@@ -118,7 +129,7 @@ func TestNPMv1DuplicateEntriesReconcileOrigin(t *testing.T) {
 			t.Fatal("expected agreed@3.0.0 in graph")
 		}
 		const want = "https://registry.npmjs.org/agreed/-/agreed-3.0.0.tgz"
-		if got := detectors.OriginFrom(agreed.Metadata).ArtifactURL; got != want {
+		if got := originOf(agreed).ArtifactURL; got != want {
 			t.Fatalf("agreed origin = %q, want %q: its copies agree", got, want)
 		}
 	}

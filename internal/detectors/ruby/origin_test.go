@@ -1,10 +1,21 @@
 package ruby
 
 import (
+	"github.com/bomly-dev/bomly-sdk"
 	"testing"
-
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 )
+
+// originOf returns the origin a node publishes, or the zero value when it has
+// none, so cases can compare plain structs.
+func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
+	if dep == nil {
+		return sdk.PackageOrigin{}
+	}
+	if origin := dep.Origin.Normalized(); origin != nil {
+		return *origin
+	}
+	return sdk.PackageOrigin{}
+}
 
 // A Gemfile.lock names its sources by section. GEM's remote is the gem server
 // every gem in that section came from, not a per-gem location; PATH is a
@@ -46,15 +57,15 @@ DEPENDENCIES
 
 	cases := []struct {
 		id   string
-		want detectors.Origin
+		want sdk.PackageOrigin
 	}{
 		{id: "rack@3.1.8"},
 		// A private gem server's remote has a path, so nothing but the
 		// section kind distinguishes it from a repository URL.
 		{id: "corp-auth@2.4.0"},
-		{id: "helper@1.0.0", want: detectors.Origin{
-			VCSURL:      "https://github.com/example/helper.git",
-			VCSRevision: "708192a3b4c5d6e7f8091a2b3c4d5e6f70819213",
+		{id: "helper@1.0.0", want: sdk.PackageOrigin{
+			Repository: "https://github.com/example/helper.git",
+			Revision:   "708192a3b4c5d6e7f8091a2b3c4d5e6f70819213",
 		}},
 		{id: "local-gem@0.1.0"},
 	}
@@ -63,7 +74,7 @@ DEPENDENCIES
 		if !ok {
 			t.Fatalf("expected %s in graph", tc.id)
 		}
-		if got := detectors.OriginFrom(node.Metadata); got != tc.want {
+		if got := originOf(node); got != tc.want {
 			t.Errorf("%s origin = %+v, want %+v", tc.id, got, tc.want)
 		}
 	}

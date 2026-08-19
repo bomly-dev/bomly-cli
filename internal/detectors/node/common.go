@@ -12,7 +12,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-sdk"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
@@ -190,7 +189,7 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 				Name:    name,
 				Version: depNode.Version},
 			})
-			detectors.SetOriginArtifact(node, depNode.Resolved)
+			node.Origin = sdk.ArtifactOrigin(depNode.Resolved)
 
 			if err := AddNodeIfMissing(depsGraph, node); err != nil {
 				return nil, err
@@ -340,7 +339,7 @@ func splitYarnTreeName(value string) (string, string, error) {
 func AddNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
 	if existing, ok := depsGraph.Node(node.ID); ok {
 		existing.AddScope(node.PrimaryScope())
-		detectors.MergeOrigin(existing, node)
+		existing.Origin = sdk.ReconcileOrigin(existing.Origin, node.Origin)
 		return nil
 	}
 	if err := depsGraph.AddNode(node); err != nil {

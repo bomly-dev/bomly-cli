@@ -5,10 +5,21 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
+
+// originOf returns the origin a node publishes, or the zero value when it has
+// none, so cases can compare plain structs.
+func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
+	if dep == nil {
+		return sdk.PackageOrigin{}
+	}
+	if origin := dep.Origin.Normalized(); origin != nil {
+		return *origin
+	}
+	return sdk.PackageOrigin{}
+}
 
 // A pubspec.lock hosted package's description URL is the pub server, shared by
 // every hosted package, and a path package is local. Only a git package names
@@ -62,15 +73,15 @@ func TestPubOriginBySourceType(t *testing.T) {
 
 	cases := []struct {
 		id   string
-		want detectors.Origin
+		want sdk.PackageOrigin
 	}{
 		{id: "collection@1.18.0"},
 		// A self-hosted pub server's URL has a path, so nothing but the
 		// source kind distinguishes it from a repository URL.
 		{id: "corp_widgets@3.1.0"},
-		{id: "helper@2.0.0", want: detectors.Origin{
-			VCSURL:      "https://github.com/example/helper.git",
-			VCSRevision: "a3b4c5d6e7f8091a2b3c4d5e6f70819213243546",
+		{id: "helper@2.0.0", want: sdk.PackageOrigin{
+			Repository: "https://github.com/example/helper.git",
+			Revision:   "a3b4c5d6e7f8091a2b3c4d5e6f70819213243546",
 		}},
 		{id: "local_tools@0.1.0"},
 	}
@@ -79,7 +90,7 @@ func TestPubOriginBySourceType(t *testing.T) {
 		if !ok {
 			t.Fatalf("expected %s in graph", tc.id)
 		}
-		if got := detectors.OriginFrom(node.Metadata); got != tc.want {
+		if got := originOf(node); got != tc.want {
 			t.Errorf("%s origin = %+v, want %+v", tc.id, got, tc.want)
 		}
 	}
@@ -137,13 +148,13 @@ func TestPubNativeOriginIsReadFromPubspecLock(t *testing.T) {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
 
-	want := detectors.Origin{
-		VCSURL:      "https://github.com/example/helper.git",
-		VCSRevision: "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d",
+	want := sdk.PackageOrigin{
+		Repository: "https://github.com/example/helper.git",
+		Revision:   "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d",
 	}
 	var checked int
 	g.WalkNodes(func(dep *sdk.Dependency) bool {
-		origin := detectors.OriginFrom(dep.Metadata)
+		origin := originOf(dep)
 		switch dep.Name {
 		case "helper":
 			checked++
@@ -201,7 +212,7 @@ func TestPubOverriddenPackageIsNotCreditedToTheLockedRepository(t *testing.T) {
 			return true
 		}
 		checked++
-		if got := detectors.OriginFrom(dep.Metadata); !got.Empty() {
+		if got := originOf(dep); !got.Empty() {
 			t.Fatalf("overridden package origin = %+v, want none", got)
 		}
 		return true
@@ -231,7 +242,7 @@ func TestPubNativeOriginSurvivesMissingLock(t *testing.T) {
 		if dep.Name == "helper" {
 			checked++
 		}
-		if got := detectors.OriginFrom(dep.Metadata); !got.Empty() {
+		if got := originOf(dep); !got.Empty() {
 			t.Fatalf("%s origin = %+v, want none", dep.Name, got)
 		}
 		return true

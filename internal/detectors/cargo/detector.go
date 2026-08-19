@@ -447,7 +447,7 @@ func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
 		// same crate pulled from two git remotes, say. They share a PURL, so
 		// they are one node, and the node must not claim whichever source was
 		// visited first.
-		detectors.MergeOrigin(existing, node)
+		existing.Origin = sdk.ReconcileOrigin(existing.Origin, node.Origin)
 		return nil
 	}
 	if err := g.AddNode(node); err != nil {

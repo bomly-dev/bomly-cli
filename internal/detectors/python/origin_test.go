@@ -5,18 +5,29 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
+// originOf returns the origin a node publishes, or the zero value when it has
+// none, so cases can compare plain structs.
+func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
+	if dep == nil {
+		return sdk.PackageOrigin{}
+	}
+	if origin := dep.Origin.Normalized(); origin != nil {
+		return *origin
+	}
+	return sdk.PackageOrigin{}
+}
+
 // requireOrigin asserts the exact origin a named package asserts.
-func requireOrigin(t *testing.T, graph *sdk.Graph, id string, want detectors.Origin) {
+func requireOrigin(t *testing.T, graph *sdk.Graph, id string, want sdk.PackageOrigin) {
 	t.Helper()
 	node, ok := graph.Node(id)
 	if !ok {
 		t.Fatalf("expected %s in graph", id)
 	}
-	if got := detectors.OriginFrom(node.Metadata); got != want {
+	if got := originOf(node); got != want {
 		t.Errorf("%s origin = %+v, want %+v", id, got, want)
 	}
 }
@@ -63,16 +74,16 @@ source = { path = "../vendor/from-path" }
 
 	// The fragment carries the commit uv resolved; the "rev" query carries
 	// what the manifest asked for.
-	requireOrigin(t, graph, "from-git@1.0.0", detectors.Origin{
-		VCSURL:      "https://github.com/example/from-git",
-		VCSRevision: "9f8e7d6c5b4a3928176554433221100ffeeddcc0",
+	requireOrigin(t, graph, "from-git@1.0.0", sdk.PackageOrigin{
+		Repository: "https://github.com/example/from-git",
+		Revision:   "9f8e7d6c5b4a3928176554433221100ffeeddcc0",
 	})
-	requireOrigin(t, graph, "from-url@2.0.0", detectors.Origin{
+	requireOrigin(t, graph, "from-url@2.0.0", sdk.PackageOrigin{
 		ArtifactURL: "https://files.pythonhosted.org/packages/ab/from_url-2.0.0-py3-none-any.whl",
 	})
 	// An index root is not this package's origin, and a path is local.
-	requireOrigin(t, graph, "from-registry@3.0.0", detectors.Origin{})
-	requireOrigin(t, graph, "from-path@4.0.0", detectors.Origin{})
+	requireOrigin(t, graph, "from-registry@3.0.0", sdk.PackageOrigin{})
+	requireOrigin(t, graph, "from-path@4.0.0", sdk.PackageOrigin{})
 }
 
 func TestPoetryLockOriginBySourceType(t *testing.T) {
@@ -123,17 +134,17 @@ url = "../vendor/from-directory"
 		t.Fatalf("depGraphFromPoetryLock() error = %v", err)
 	}
 
-	requireOrigin(t, graph, "from-pypi@1.0.0", detectors.Origin{})
+	requireOrigin(t, graph, "from-pypi@1.0.0", sdk.PackageOrigin{})
 	// resolved_reference is the commit poetry locked; reference is the branch.
-	requireOrigin(t, graph, "from-git@2.0.0", detectors.Origin{
-		VCSURL:      "https://github.com/example/from-git.git",
-		VCSRevision: "0a1b2c3d4e5f60718293a4b5c6d7e8f901234567",
+	requireOrigin(t, graph, "from-git@2.0.0", sdk.PackageOrigin{
+		Repository: "https://github.com/example/from-git.git",
+		Revision:   "0a1b2c3d4e5f60718293a4b5c6d7e8f901234567",
 	})
-	requireOrigin(t, graph, "from-url@3.0.0", detectors.Origin{
+	requireOrigin(t, graph, "from-url@3.0.0", sdk.PackageOrigin{
 		ArtifactURL: "https://files.pythonhosted.org/packages/cd/from_url-3.0.0.tar.gz",
 	})
-	requireOrigin(t, graph, "from-private-index@4.0.0", detectors.Origin{})
-	requireOrigin(t, graph, "from-directory@5.0.0", detectors.Origin{})
+	requireOrigin(t, graph, "from-private-index@4.0.0", sdk.PackageOrigin{})
+	requireOrigin(t, graph, "from-directory@5.0.0", sdk.PackageOrigin{})
 }
 
 func TestPipfileLockOriginBySourceType(t *testing.T) {
@@ -158,16 +169,16 @@ func TestPipfileLockOriginBySourceType(t *testing.T) {
 		t.Fatalf("depGraphFromPipfileLock() error = %v", err)
 	}
 
-	requireOrigin(t, graph, "from-pypi@1.0.0", detectors.Origin{})
-	requireOrigin(t, graph, "from-git", detectors.Origin{
-		VCSURL:      "https://github.com/example/from-git.git",
-		VCSRevision: "1f2e3d4c5b6a79880912a3b4c5d6e7f809172635",
+	requireOrigin(t, graph, "from-pypi@1.0.0", sdk.PackageOrigin{})
+	requireOrigin(t, graph, "from-git", sdk.PackageOrigin{
+		Repository: "https://github.com/example/from-git.git",
+		Revision:   "1f2e3d4c5b6a79880912a3b4c5d6e7f809172635",
 	})
-	requireOrigin(t, graph, "from-archive", detectors.Origin{
+	requireOrigin(t, graph, "from-archive", sdk.PackageOrigin{
 		ArtifactURL: "https://files.pythonhosted.org/packages/ef/from_archive-2.0.0.tar.gz",
 	})
-	requireOrigin(t, graph, "from-local", detectors.Origin{})
-	requireOrigin(t, graph, "from-path", detectors.Origin{})
+	requireOrigin(t, graph, "from-local", sdk.PackageOrigin{})
+	requireOrigin(t, graph, "from-path", sdk.PackageOrigin{})
 }
 
 // pip records a PEP 610 direct_url.json for anything not installed from an
@@ -176,7 +187,7 @@ func TestPipInspectOriginByDirectURLShape(t *testing.T) {
 	cases := []struct {
 		name      string
 		directURL map[string]any
-		want      detectors.Origin
+		want      sdk.PackageOrigin
 	}{
 		{name: "index install", directURL: nil},
 		{
@@ -185,12 +196,12 @@ func TestPipInspectOriginByDirectURLShape(t *testing.T) {
 				"url":      "https://github.com/example/pkg.git",
 				"vcs_info": map[string]any{"vcs": "git", "commit_id": "2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e", "requested_revision": "main"},
 			},
-			want: detectors.Origin{VCSURL: "https://github.com/example/pkg.git", VCSRevision: "2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e"},
+			want: sdk.PackageOrigin{Repository: "https://github.com/example/pkg.git", Revision: "2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e"},
 		},
 		{
 			name:      "archive URL",
 			directURL: map[string]any{"url": "https://example.test/pkg-1.0.0-py3-none-any.whl", "archive_info": map[string]any{}},
-			want:      detectors.Origin{ArtifactURL: "https://example.test/pkg-1.0.0-py3-none-any.whl"},
+			want:      sdk.PackageOrigin{ArtifactURL: "https://example.test/pkg-1.0.0-py3-none-any.whl"},
 		},
 		{
 			name:      "local directory",
@@ -206,7 +217,7 @@ func TestPipInspectOriginByDirectURLShape(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "pkg", Version: "1.0.0"}})
 			setPipInspectOrigin(node, tc.directURL)
-			if got := detectors.OriginFrom(node.Metadata); got != tc.want {
+			if got := originOf(node); got != tc.want {
 				t.Fatalf("origin = %+v, want %+v", got, tc.want)
 			}
 		})

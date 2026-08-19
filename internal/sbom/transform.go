@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -48,7 +47,7 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			Licenses:       componentLicenses(sdk.DetectionLicenses(pkg)),
 			Digests:        componentDigests(pkg.Digests),
 		}
-		applyOrigin(&component, detectors.OriginFrom(pkg.Metadata))
+		applyOrigin(&component, pkg.Origin.Normalized())
 		enrichComponentFromRegistry(&component, opts.Registry, pkg.PURL)
 		components = append(components, component)
 		depsByRef[pkg.ID] = nil
@@ -279,16 +278,20 @@ func scorecardRepositoryURL(scorecard *sdk.PackageScorecard) (string, bool) {
 	if !strings.Contains(repository, "://") {
 		repository = "https://" + repository
 	}
-	return detectors.NormalizeOriginURL(repository, true)
+	return sdk.NormalizeOriginURL(repository, true)
 }
 
 // applyOrigin projects the origin a detector asserted onto a component. The
-// values were validated when they were read, so there is nothing to decide
-// here: export publishes what detection resolved, or nothing.
-func applyOrigin(component *Component, origin detectors.Origin) {
+// value arrives already validated -- Normalized applies the SDK's rule and
+// returns nothing when a location does not survive it -- so there is nothing to
+// decide here: export publishes what detection resolved, or nothing.
+func applyOrigin(component *Component, origin *sdk.PackageOrigin) {
+	if origin == nil {
+		return
+	}
 	component.ArtifactURL = origin.ArtifactURL
-	component.VCSURL = origin.VCSURL
-	component.VCSRevision = origin.VCSRevision
+	component.VCSURL = origin.Repository
+	component.VCSRevision = origin.Revision
 }
 
 func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegistry, purl string) {

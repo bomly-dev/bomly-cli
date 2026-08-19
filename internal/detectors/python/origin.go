@@ -3,7 +3,6 @@ package python
 import (
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -19,9 +18,9 @@ func setUVOrigin(node *sdk.Dependency, source uvLockSource) {
 		// uv writes the resolved commit as the URL fragment and the
 		// requested ref as a query parameter; uvSourceRevision prefers the
 		// former, and the invariant drops both from the repository URL.
-		detectors.SetOriginVCS(node, source.Git, uvSourceRevision(source))
+		node.Origin = sdk.RepositoryOrigin(source.Git, uvSourceRevision(source))
 	case strings.TrimSpace(source.URL) != "":
-		detectors.SetOriginArtifact(node, source.URL)
+		node.Origin = sdk.ArtifactOrigin(source.URL)
 	}
 }
 
@@ -31,9 +30,9 @@ func setPoetryOrigin(node *sdk.Dependency, pkg *poetryLockPackage) {
 	case "git":
 		// ResolvedReference is the commit poetry locked; Reference is the
 		// branch or tag that was asked for.
-		detectors.SetOriginVCS(node, pkg.Source.URL, firstNonEmpty(pkg.Source.ResolvedReference, pkg.Source.Reference))
+		node.Origin = sdk.RepositoryOrigin(pkg.Source.URL, firstNonEmpty(pkg.Source.ResolvedReference, pkg.Source.Reference))
 	case "url":
-		detectors.SetOriginArtifact(node, pkg.Source.URL)
+		node.Origin = sdk.ArtifactOrigin(pkg.Source.URL)
 	}
 }
 
@@ -41,11 +40,11 @@ func setPoetryOrigin(node *sdk.Dependency, pkg *poetryLockPackage) {
 func setPipenvOrigin(node *sdk.Dependency, pkg pipfileLockPackage) {
 	switch {
 	case strings.TrimSpace(pkg.Git) != "":
-		detectors.SetOriginVCS(node, pkg.Git, pkg.Ref)
+		node.Origin = sdk.RepositoryOrigin(pkg.Git, pkg.Ref)
 	case strings.TrimSpace(pkg.File) != "":
 		// "file" holds a remote archive for URL requirements and a local
 		// path for file:// ones; the invariant keeps only the former.
-		detectors.SetOriginArtifact(node, pkg.File)
+		node.Origin = sdk.ArtifactOrigin(pkg.File)
 	}
 }
 
@@ -60,13 +59,13 @@ func setPipInspectOrigin(node *sdk.Dependency, directURL map[string]any) {
 	if vcsInfo, ok := directURL["vcs_info"].(map[string]any); ok {
 		vcs, _ := vcsInfo["vcs"].(string)
 		if strings.EqualFold(strings.TrimSpace(vcs), "git") {
-			detectors.SetOriginVCS(node, resolved, pipInspectRevision(directURL))
+			node.Origin = sdk.RepositoryOrigin(resolved, pipInspectRevision(directURL))
 		}
 		// Mercurial, Subversion, and Bazaar have no locator form here.
 		return
 	}
 	if _, ok := directURL["archive_info"]; ok {
-		detectors.SetOriginArtifact(node, resolved)
+		node.Origin = sdk.ArtifactOrigin(resolved)
 	}
 	// dir_info marks a local directory install.
 }

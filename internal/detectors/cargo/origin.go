@@ -4,7 +4,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -18,7 +17,7 @@ func setCargoOrigin(node *sdk.Dependency, source string) {
 		return
 	}
 	repository := strings.TrimPrefix(trimmed, "git+")
-	detectors.SetOriginVCS(node, repository, cargoSourceRevision(repository))
+	node.Origin = sdk.RepositoryOrigin(repository, cargoSourceRevision(repository))
 }
 
 // cargoSourceRevision returns the revision cargo locked. The URL fragment holds

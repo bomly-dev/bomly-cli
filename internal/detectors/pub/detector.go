@@ -201,7 +201,7 @@ func packageNode(name string, pkg pubLockPackage) *sdk.Dependency {
 	if pubDependencySource(pkg.Source) == sdk.DependencySourceGit {
 		// A git package names its repository and the commit pub resolved.
 		// A hosted package's "url" is the pub server, and path is local.
-		detectors.SetOriginVCS(node, descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref"))
+		node.Origin = sdk.RepositoryOrigin(descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref"))
 	}
 	return node
 }

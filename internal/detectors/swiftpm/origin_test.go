@@ -199,6 +199,59 @@ func TestSwiftPMEditedPackageIsNotCreditedToItsFormerPin(t *testing.T) {
 	}
 }
 
+// A package can be built from a mirror while Package.resolved still pins the
+// upstream host. The names match, so an identity fallback would credit the
+// build to a repository it never fetched from.
+func TestSwiftPMPinIsNotAttachedToADifferentRepository(t *testing.T) {
+	workingDir := t.TempDir()
+	resolved := `{
+      "pins": [
+        {
+          "identity": "helper",
+          "kind": "remoteSourceControl",
+          "location": "https://git.corp/team/helper.git",
+          "state": {"revision": "aaaabbbbccccddddeeeeffff0000111122223333", "version": "1.0.0"}
+        }
+      ],
+      "version": 2
+    }`
+	if err := os.WriteFile(filepath.Join(workingDir, "Package.resolved"), []byte(resolved), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	showDependencies := []byte(`{
+      "name": "demo",
+      "url": "/workspace/demo",
+      "version": "unspecified",
+      "dependencies": [
+        {"name": "helper", "url": "https://mirror.corp/team/helper.git", "version": "2.0.0", "dependencies": []}
+      ]
+    }`)
+
+	g, err := nativeGraph(showDependencies, workingDir, zap.NewNop())
+	if err != nil {
+		t.Fatalf("nativeGraph() error = %v", err)
+	}
+
+	var checked int
+	g.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep.ResolvedURL == "" {
+			return true
+		}
+		checked++
+		origin := originOf(dep)
+		if origin.Repository == "https://git.corp/team/helper.git" {
+			t.Fatalf("a package built from a mirror was credited to %q", origin.Repository)
+		}
+		if origin.Revision != "" {
+			t.Fatalf("origin = %+v, want no pin: the pinned repository is not this one", origin)
+		}
+		return true
+	})
+	if checked != 1 {
+		t.Fatalf("checked %d packages, want 1", checked)
+	}
+}
+
 // A project with no Package.resolved keeps whatever the native graph carried.
 func TestSwiftPMNativeOriginSurvivesMissingPackageResolved(t *testing.T) {
 	showDependencies := []byte(`{

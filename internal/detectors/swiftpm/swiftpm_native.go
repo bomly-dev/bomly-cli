@@ -141,6 +141,14 @@ func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 		}
 		pin, ok := byRepository[repositoryKey(dep.ResolvedURL)]
 		if !ok {
+			// Matching by identity is only safe when the graph offers nothing
+			// better. A node that names a repository and did not match one has
+			// a repository the pins do not describe -- a mirror, say -- and
+			// crediting it to a same-named pin would name a location the build
+			// did not use.
+			if strings.TrimSpace(dep.ResolvedURL) != "" {
+				return true
+			}
 			if pin, ok = pins[dep.Name]; !ok {
 				return true
 			}

@@ -2,6 +2,7 @@ package detectors
 
 import (
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/bomly-dev/bomly-sdk"
@@ -102,6 +103,14 @@ func NormalizeOriginURL(raw string, vcs bool) (string, bool) {
 	// An explicit default port names the same origin as no port at all, so
 	// dropping it keeps two spellings of one location from reading as a
 	// disagreement.
+	if port := parsed.Port(); port != "" {
+		// url.Parse only checks that a port is numeric, so a value no client
+		// could connect to still reaches here.
+		number, err := strconv.Atoi(port)
+		if err != nil || number < 1 || number > 65535 {
+			return "", false
+		}
+	}
 	if port := parsed.Port(); (parsed.Scheme == "https" && port == "443") || (parsed.Scheme == "http" && port == "80") {
 		host := parsed.Hostname()
 		if strings.Contains(host, ":") {

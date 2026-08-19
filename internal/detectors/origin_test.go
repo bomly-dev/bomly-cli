@@ -220,6 +220,9 @@ func TestOriginDefaultPortIsCanonical(t *testing.T) {
 		{name: "https default port", raw: "https://example.test:443/pkg-1.0.0.tgz", want: "https://example.test/pkg-1.0.0.tgz"},
 		{name: "http default port", raw: "http://example.test:80/pkg-1.0.0.tgz", want: "http://example.test/pkg-1.0.0.tgz"},
 		{name: "a non-default port is part of the location", raw: "https://example.test:8443/pkg-1.0.0.tgz", want: "https://example.test:8443/pkg-1.0.0.tgz"},
+		{name: "the highest usable port", raw: "https://example.test:65535/pkg-1.0.0.tgz", want: "https://example.test:65535/pkg-1.0.0.tgz"},
+		{name: "a port nothing can connect to", raw: "https://example.test:99999/pkg-1.0.0.tgz", want: ""},
+		{name: "port zero", raw: "https://example.test:0/pkg-1.0.0.tgz", want: ""},
 		{name: "an IPv6 literal keeps its brackets", raw: "https://[2001:db8::1]:443/pkg-1.0.0.tgz", want: "https://[2001:db8::1]/pkg-1.0.0.tgz"},
 	}
 	for _, tc := range cases {

@@ -135,7 +135,18 @@ What each ecosystem yields:
 - **Go modules, Maven, Gradle, NuGet, and the other detectors** — nothing yet;
   their manifests do not record a per-package location.
 - Packages found by Syft, and packages read from an ingested SBOM, carry no
-  origin.
+  detector origin.
+
+With `--enrich`, a package can also get a repository it has no lockfile claim
+to. The OpenSSF Scorecard matcher resolves a canonical source repository from a
+package's identity, and that repository fills the `vcs` reference for any
+package whose own detector reported nothing — including the ecosystems listed
+above as yielding nothing, and Syft-detected packages. It is a network lookup
+keyed on package identity rather than a claim any manifest made, so it is
+weaker evidence: a detector-asserted repository always wins, and no revision is
+attached, since a Scorecard repository names a project rather than a resolved
+commit. Without `--enrich`, or without the scorecard matcher selected, nothing
+of this kind appears.
 
 Four kinds of value are never published, in any ecosystem:
 
@@ -223,6 +234,9 @@ registry (keyed by PURL):
 - Vulnerabilities — CycloneDX as a first-class `vulnerabilities` array (ratings,
   CWEs, advisories, `affects`); SPDX as `SECURITY`/`advisory` external references.
 - End-of-life status (CycloneDX `bomly:eol*` properties, SPDX package comment).
+- A source repository resolved by the OpenSSF Scorecard matcher, used only when
+  the detector reported no repository of its own (see "Where a package came
+  from" above).
 
 Reachability annotations and other Bomly-specific metadata are emitted in the JSON output (`--json` or `--format json`), not in the standard SBOM formats. See [Output formats](OUTPUT_FORMATS.md).
 

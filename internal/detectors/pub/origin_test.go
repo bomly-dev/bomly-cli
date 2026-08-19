@@ -163,6 +163,54 @@ func TestPubNativeOriginIsReadFromPubspecLock(t *testing.T) {
 	}
 }
 
+// An override can point a package at a local path while pubspec.lock still
+// describes the git dependency it replaced. The built code is local, so it must
+// not be credited to that repository.
+func TestPubOverriddenPackageIsNotCreditedToTheLockedRepository(t *testing.T) {
+	workingDir := t.TempDir()
+	lock := `packages:
+  helper:
+    dependency: "direct main"
+    description:
+      url: "https://github.com/example/helper.git"
+      ref: main
+      resolved-ref: 3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f
+      path: "."
+    source: git
+    version: "2.0.0"
+`
+	if err := os.WriteFile(filepath.Join(workingDir, "pubspec.lock"), []byte(lock), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	depsJSON := []byte(`{
+      "root": "demo",
+      "packages": [
+        {"name": "demo", "version": "1.0.0", "kind": "root", "source": "root", "dependencies": ["helper"]},
+        {"name": "helper", "version": "2.0.0", "kind": "direct", "source": "path", "dependencies": []}
+      ]
+    }`)
+
+	g, err := nativeGraph(depsJSON, workingDir, zap.NewNop())
+	if err != nil {
+		t.Fatalf("nativeGraph() error = %v", err)
+	}
+
+	var checked int
+	g.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep.Name != "helper" {
+			return true
+		}
+		checked++
+		if got := detectors.OriginFrom(dep.Metadata); !got.Empty() {
+			t.Fatalf("overridden package origin = %+v, want none", got)
+		}
+		return true
+	})
+	if checked != 1 {
+		t.Fatal("expected the overridden package in the graph")
+	}
+}
+
 // A project with no pubspec.lock keeps the graph as it is.
 func TestPubNativeOriginSurvivesMissingLock(t *testing.T) {
 	depsJSON := []byte(`{

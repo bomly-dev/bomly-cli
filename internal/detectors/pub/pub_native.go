@@ -122,6 +122,12 @@ func applyLockOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 
 	recorded := 0
 	g.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep.Source != sdk.DependencySourceGit {
+			// An override can point a package at a local path while the lock
+			// still describes the git dependency it replaced. What pub
+			// resolved for this build is the truth.
+			return true
+		}
 		pkg, ok := lock.Packages[dep.Name]
 		if !ok || pubDependencySource(pkg.Source) != sdk.DependencySourceGit {
 			return true

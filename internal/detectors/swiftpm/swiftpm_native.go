@@ -128,6 +128,13 @@ func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 
 	pinned := 0
 	g.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep.Source != sdk.DependencySourceGit {
+			// `swift package edit` replaces a dependency with a local
+			// checkout while Package.resolved keeps the pin it replaced.
+			// What the build resolved is the truth, so a local node is left
+			// alone rather than credited to the repository it stands in for.
+			return true
+		}
 		pin, ok := byRepository[repositoryKey(dep.ResolvedURL)]
 		if !ok {
 			if pin, ok = pins[dep.Name]; !ok {

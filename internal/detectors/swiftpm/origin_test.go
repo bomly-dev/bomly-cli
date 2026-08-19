@@ -138,6 +138,56 @@ func TestSwiftPMNativeOriginIsPinnedFromPackageResolved(t *testing.T) {
 	}
 }
 
+// `swift package edit <name> --path ...` points a dependency at a local
+// checkout, and Package.resolved keeps the pin that checkout replaced. The
+// package being built is the local code, so it must not be credited to the
+// remote repository and commit that pin still names.
+func TestSwiftPMEditedPackageIsNotCreditedToItsFormerPin(t *testing.T) {
+	workingDir := t.TempDir()
+	resolved := `{
+      "pins": [
+        {
+          "identity": "helper",
+          "kind": "remoteSourceControl",
+          "location": "https://github.com/example/helper.git",
+          "state": {"revision": "2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e", "version": "1.0.0"}
+        }
+      ],
+      "version": 2
+    }`
+	if err := os.WriteFile(filepath.Join(workingDir, "Package.resolved"), []byte(resolved), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	showDependencies := []byte(`{
+      "name": "demo",
+      "url": "/workspace/demo",
+      "version": "unspecified",
+      "dependencies": [
+        {"name": "helper", "url": "/workspace/helper", "version": "unspecified", "dependencies": []}
+      ]
+    }`)
+
+	g, err := nativeGraph(showDependencies, workingDir, zap.NewNop())
+	if err != nil {
+		t.Fatalf("nativeGraph() error = %v", err)
+	}
+
+	var checked int
+	g.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep.Name != "helper" {
+			return true
+		}
+		checked++
+		if got := detectors.OriginFrom(dep.Metadata); !got.Empty() {
+			t.Fatalf("edited package origin = %+v, want none: it is built from a local checkout", got)
+		}
+		return true
+	})
+	if checked != 1 {
+		t.Fatal("expected the edited package in the graph")
+	}
+}
+
 // A project with no Package.resolved keeps whatever the native graph carried.
 func TestSwiftPMNativeOriginSurvivesMissingPackageResolved(t *testing.T) {
 	showDependencies := []byte(`{

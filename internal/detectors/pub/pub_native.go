@@ -107,6 +107,9 @@ func nativeGraph(raw []byte, workingDir string, logger *zap.Logger) (*sdk.Graph,
 //
 // Best effort: a project with no readable pubspec.lock keeps the graph as it is.
 func applyLockOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
+	if logger == nil {
+		logger = zap.NewNop()
+	}
 	raw, err := system.ReadRepositoryFile(filepath.Join(workingDir, "pubspec.lock"))
 	if err != nil {
 		return

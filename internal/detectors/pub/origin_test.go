@@ -226,10 +226,36 @@ func TestPubNativeOriginSurvivesMissingLock(t *testing.T) {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
 
+	var checked int
 	g.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep.Name == "helper" {
+			checked++
+		}
 		if got := detectors.OriginFrom(dep.Metadata); !got.Empty() {
 			t.Fatalf("%s origin = %+v, want none", dep.Name, got)
 		}
 		return true
 	})
+	if checked != 1 {
+		t.Fatalf("found %d helper nodes, want 1", checked)
+	}
+}
+
+// Loggers may be nil; a best-effort join must not be the thing that panics.
+func TestPubNativeOriginToleratesNilLogger(t *testing.T) {
+	workingDir := t.TempDir()
+	depsJSON := []byte(`{"root":"demo","packages":[{"name":"demo","version":"1.0.0","kind":"root","source":"root","dependencies":[]}]}`)
+	if err := os.WriteFile(filepath.Join(workingDir, "pubspec.lock"), []byte("packages:\n  helper:\n    source: git\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := nativeGraph(depsJSON, workingDir, nil); err != nil {
+		t.Fatalf("nativeGraph() error = %v", err)
+	}
+	// An unparseable lock reaches the debug log, which is where a nil logger bites.
+	if err := os.WriteFile(filepath.Join(workingDir, "pubspec.lock"), []byte("packages: [oops"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := nativeGraph(depsJSON, workingDir, nil); err != nil {
+		t.Fatalf("nativeGraph() error = %v", err)
+	}
 }

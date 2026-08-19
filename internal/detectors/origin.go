@@ -230,12 +230,18 @@ func ReconcileOrigins(occurrences []*sdk.Dependency) {
 		return
 	}
 	verdict := occurrences[0]
+	if verdict == nil {
+		return
+	}
 	for _, occurrence := range occurrences[1:] {
 		MergeOrigin(verdict, occurrence)
 	}
 
 	settled, conflicted := OriginFrom(verdict.Metadata), originConflicted(verdict)
 	for _, occurrence := range occurrences[1:] {
+		if occurrence == nil {
+			continue
+		}
 		if conflicted {
 			markOriginConflict(occurrence)
 			continue

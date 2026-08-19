@@ -107,14 +107,19 @@ func TestCargoDuplicateCrateSameSourceKeepsOrigin(t *testing.T) {
 		VCSURL:      "https://github.com/a/helper",
 		VCSRevision: "aaaabbbbccccddddeeeeffff0000111122223333",
 	}
+	var checked int
 	graph.WalkNodes(func(dep *sdk.Dependency) bool {
 		if dep.Name == "helper" {
+			checked++
 			if got := detectors.OriginFrom(dep.Metadata); got != want {
 				t.Fatalf("origin = %+v, want %+v", got, want)
 			}
 		}
 		return true
 	})
+	if checked != 1 {
+		t.Fatalf("found %d helper nodes, want 1", checked)
+	}
 }
 
 // The lockfile path builds nodes through the same helper.

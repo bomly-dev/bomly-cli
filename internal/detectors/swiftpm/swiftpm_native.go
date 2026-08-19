@@ -106,6 +106,9 @@ func nativeGraph(raw []byte, workingDir string, logger *zap.Logger) (*sdk.Graph,
 // Best effort: a project with no readable Package.resolved keeps the origins
 // the graph already carries.
 func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
+	if logger == nil {
+		logger = zap.NewNop()
+	}
 	raw, path, err := readFirstExisting(workingDir, []string{"Package.resolved", ".package.resolved", "project.xcworkspace/xcshareddata/swiftpm/Package.resolved"})
 	if err != nil || len(raw) == 0 {
 		return

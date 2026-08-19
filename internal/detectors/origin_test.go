@@ -414,6 +414,19 @@ func TestMergeOrigin(t *testing.T) {
 		}
 	})
 
+	// Exported, so a caller can hand it anything.
+	t.Run("nil occurrences are skipped", func(t *testing.T) {
+		detectors.ReconcileOrigins([]*sdk.Dependency{nil, withArtifact(artifact)})
+		detectors.ReconcileOrigins([]*sdk.Dependency{withArtifact(artifact), nil})
+		detectors.ReconcileOrigins([]*sdk.Dependency{nil, nil})
+
+		occurrences := []*sdk.Dependency{withArtifact(artifact), nil, withArtifact(mirror)}
+		detectors.ReconcileOrigins(occurrences)
+		if got := detectors.OriginFrom(occurrences[0].Metadata); !got.Empty() {
+			t.Fatalf("origin = %+v, want none: the non-nil occurrences disagreed", got)
+		}
+	})
+
 	t.Run("nil is a no-op", func(t *testing.T) {
 		detectors.MergeOrigin(nil, withArtifact(artifact))
 		detectors.MergeOrigin(withArtifact(artifact), nil)

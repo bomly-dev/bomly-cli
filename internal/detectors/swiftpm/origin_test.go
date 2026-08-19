@@ -219,3 +219,21 @@ func TestSwiftPMNativeOriginSurvivesMissingPackageResolved(t *testing.T) {
 		t.Fatal("expected the remote package in the graph")
 	}
 }
+
+// Loggers may be nil; a best-effort join must not be the thing that panics.
+func TestSwiftPMNativeOriginToleratesNilLogger(t *testing.T) {
+	workingDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(workingDir, "Package.resolved"), []byte(`{"pins":[],"version":2}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := nativeGraph([]byte(`{"name":"demo","url":"/w","version":"unspecified","dependencies":[]}`), workingDir, nil); err != nil {
+		t.Fatalf("nativeGraph() error = %v", err)
+	}
+	// An unparseable file reaches the debug log, which is where a nil logger bites.
+	if err := os.WriteFile(filepath.Join(workingDir, "Package.resolved"), []byte("{not json"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := nativeGraph([]byte(`{"name":"demo","url":"/w","version":"unspecified","dependencies":[]}`), workingDir, nil); err != nil {
+		t.Fatalf("nativeGraph() error = %v", err)
+	}
+}

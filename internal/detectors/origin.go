@@ -23,6 +23,12 @@ const (
 	// MetadataKeyOriginVCSRevision holds the resolved revision (commit, tag)
 	// pinned alongside MetadataKeyOriginVCSURL.
 	MetadataKeyOriginVCSRevision = MetadataKeyOriginPrefix + "vcs_revision"
+	// MetadataKeyOriginConflict marks a package whose occurrences disagreed
+	// about where it came from. The mark outlives the occurrence that caused
+	// it, so a later occurrence repeating one of the disputed values cannot
+	// revive it: with three occurrences claiming A, B, then A, the package
+	// still has no agreed origin.
+	MetadataKeyOriginConflict = MetadataKeyOriginPrefix + "conflict"
 )
 
 // maxOriginRevisionLength bounds a recorded revision. Real commit hashes and
@@ -154,6 +160,9 @@ func OriginFrom(metadata map[string]any) Origin {
 	if len(metadata) == 0 {
 		return Origin{}
 	}
+	if conflicted, _ := metadata[MetadataKeyOriginConflict].(bool); conflicted {
+		return Origin{}
+	}
 	if artifact, ok := NormalizeOriginURL(originString(metadata, MetadataKeyOriginArtifactURL), false); ok {
 		return Origin{ArtifactURL: artifact}
 	}
@@ -174,13 +183,24 @@ func OriginFrom(metadata map[string]any) Origin {
 //
 // Absence is not a disagreement: an occurrence that asserts nothing leaves an
 // existing origin standing, and an occurrence that asserts one fills a gap.
-// Two occurrences asserting *different* origins cancel. One graph node is one
-// package, so publishing whichever occurrence happened to be visited first
-// would make the output depend on traversal order rather than on the lockfile
-// -- and an SBOM that omits a location is honest, while one that picks a side
-// of a contradiction is not.
+// Two occurrences asserting *different* origins cancel, and stay cancelled: the
+// disagreement is recorded so a third occurrence repeating one of the disputed
+// values cannot revive it. One graph node is one package, so publishing
+// whichever occurrence happened to be visited first would make the output
+// depend on traversal order rather than on the lockfile -- and an SBOM that
+// omits a location is honest, while one that picks a side of a contradiction
+// is not.
 func MergeOrigin(existing, duplicate *sdk.Dependency) {
 	if existing == nil || duplicate == nil {
+		return
+	}
+	if originConflicted(existing) {
+		// Already cancelled. Nothing a later occurrence says can settle a
+		// disagreement that happened, so the mark is not lifted here.
+		return
+	}
+	if originConflicted(duplicate) {
+		markOriginConflict(existing)
 		return
 	}
 	incoming := OriginFrom(duplicate.Metadata)
@@ -191,8 +211,27 @@ func MergeOrigin(existing, duplicate *sdk.Dependency) {
 	case current.Empty():
 		storeOrigin(existing, incoming)
 	case current != incoming:
-		clearOrigin(existing)
+		markOriginConflict(existing)
 	}
+}
+
+// originConflicted reports whether dep's occurrences already disagreed.
+func originConflicted(dep *sdk.Dependency) bool {
+	if dep == nil || dep.Metadata == nil {
+		return false
+	}
+	conflicted, _ := dep.Metadata[MetadataKeyOriginConflict].(bool)
+	return conflicted
+}
+
+// markOriginConflict drops dep's origin and records that its occurrences
+// disagreed, so no later merge can restore one of the disputed values.
+func markOriginConflict(dep *sdk.Dependency) {
+	clearOrigin(dep)
+	if dep.Metadata == nil {
+		dep.Metadata = make(map[string]any, 1)
+	}
+	dep.Metadata[MetadataKeyOriginConflict] = true
 }
 
 // storeOrigin writes an already-validated origin onto dep.
@@ -240,6 +279,10 @@ func clearOrigin(dep *sdk.Dependency) {
 	delete(dep.Metadata, MetadataKeyOriginArtifactURL)
 	delete(dep.Metadata, MetadataKeyOriginVCSURL)
 	delete(dep.Metadata, MetadataKeyOriginVCSRevision)
+	// A detector setting an origin outright is asserting what it resolved,
+	// which supersedes a disagreement between earlier occurrences. Only
+	// merging leaves the mark in place.
+	delete(dep.Metadata, MetadataKeyOriginConflict)
 }
 
 // setOriginValue stores one origin fact, allocating the metadata map on demand.

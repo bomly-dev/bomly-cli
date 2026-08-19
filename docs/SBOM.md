@@ -128,7 +128,10 @@ What each ecosystem yields:
 - **uv, poetry, pipenv, pip** — a repository plus the commit that was locked,
   or a direct archive URL, depending on the recorded source type.
 - **cargo, Bundler, SwiftPM, pub** — the repository and resolved commit for
-  git dependencies and source-control pins.
+  git dependencies and source-control pins. SwiftPM and pub report the same
+  origin whether the build tool ran or Bomly read the committed file: the tools
+  do not print a commit, so it is read back from `Package.resolved` and
+  `pubspec.lock`.
 - **Go modules, Maven, Gradle, NuGet, and the other detectors** — nothing yet;
   their manifests do not record a per-package location.
 - Packages found by Syft, and packages read from an ingested SBOM, carry no

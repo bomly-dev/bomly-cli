@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
@@ -75,7 +76,7 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 		return sdk.DetectionResult{}, fmt.Errorf("swift package show-dependencies: %w", err)
 	}
 
-	g, err := depGraphFromSwiftShowDeps(out.Bytes())
+	g, err := nativeGraph(out.Bytes(), workingDir, logger)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("parse swift show-dependencies output: %w", err)
 	}
@@ -83,6 +84,72 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns)),
 	}, nil
+}
+
+// nativeGraph builds the dependency graph for a native SwiftPM run: the tool's
+// own output for structure, and the committed Package.resolved for the commits
+// that output omits.
+func nativeGraph(raw []byte, workingDir string, logger *zap.Logger) (*sdk.Graph, error) {
+	g, err := depGraphFromSwiftShowDeps(raw)
+	if err != nil {
+		return nil, err
+	}
+	applyResolvedOrigins(g, workingDir, logger)
+	return g, nil
+}
+
+// applyResolvedOrigins pins the repositories in a native graph to the commits
+// Package.resolved recorded. `swift package show-dependencies` reports a URL
+// and a version but no revision, so without this the default path would export
+// unpinned repositories while the committed-file fallback exports pinned ones.
+//
+// Best effort: a project with no readable Package.resolved keeps the origins
+// the graph already carries.
+func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
+	raw, path, err := readFirstExisting(workingDir, []string{"Package.resolved", ".package.resolved", "project.xcworkspace/xcshareddata/swiftpm/Package.resolved"})
+	if err != nil || len(raw) == 0 {
+		return
+	}
+	pins, err := parseResolved(raw)
+	if err != nil {
+		logger.Debug("swiftpm: could not read pins for origin", zap.String("path", path), zap.Error(err))
+		return
+	}
+	if len(pins) == 0 {
+		return
+	}
+
+	byRepository := make(map[string]swiftPackage, len(pins))
+	for _, pin := range pins {
+		if key := repositoryKey(pin.Repository); key != "" {
+			byRepository[key] = pin
+		}
+	}
+
+	pinned := 0
+	g.WalkNodes(func(dep *sdk.Dependency) bool {
+		pin, ok := byRepository[repositoryKey(dep.ResolvedURL)]
+		if !ok {
+			if pin, ok = pins[dep.Name]; !ok {
+				return true
+			}
+		}
+		if pin.Revision == "" || swiftDependencySource(pin.SourceKind, pin.Repository) != sdk.DependencySourceGit {
+			return true
+		}
+		detectors.SetOriginVCS(dep, pin.Repository, pin.Revision)
+		pinned++
+		return true
+	})
+	logger.Debug(fmt.Sprintf("swiftpm: pinned %d package origins from %s", pinned, path))
+}
+
+// repositoryKey normalizes a repository URL for matching a pin to a graph
+// node: SwiftPM reports the same repository with and without a ".git" suffix
+// and in either case.
+func repositoryKey(repository string) string {
+	key := strings.TrimSuffix(strings.TrimSuffix(strings.ToLower(strings.TrimSpace(repository)), "/"), ".git")
+	return key
 }
 
 // FallbackDetector returns the configured fallback detector.

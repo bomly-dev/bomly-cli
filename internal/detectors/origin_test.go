@@ -335,6 +335,54 @@ func TestMergeOrigin(t *testing.T) {
 		}
 	})
 
+	// A disagreement is a fact about the package, not about the pair of
+	// occurrences that exposed it: a third copy repeating one of the disputed
+	// values must not settle it.
+	t.Run("a disagreement stays cancelled", func(t *testing.T) {
+		existing := withArtifact(artifact)
+		detectors.MergeOrigin(existing, withArtifact(mirror))
+		detectors.MergeOrigin(existing, withArtifact(artifact))
+
+		if got := detectors.OriginFrom(existing.Metadata); !got.Empty() {
+			t.Fatalf("origin = %+v, want none: occurrences A, B, A never agreed", got)
+		}
+	})
+
+	t.Run("a cancelled origin does not spread by absence", func(t *testing.T) {
+		existing := withArtifact(artifact)
+		detectors.MergeOrigin(existing, withArtifact(mirror))
+		detectors.MergeOrigin(existing, &sdk.Dependency{ID: "react@18.2.0"})
+
+		if got := detectors.OriginFrom(existing.Metadata); !got.Empty() {
+			t.Fatalf("origin = %+v, want none", got)
+		}
+	})
+
+	t.Run("a conflicted duplicate cancels an agreed origin", func(t *testing.T) {
+		conflicted := withArtifact(artifact)
+		detectors.MergeOrigin(conflicted, withArtifact(mirror))
+
+		existing := withArtifact(artifact)
+		detectors.MergeOrigin(existing, conflicted)
+
+		if got := detectors.OriginFrom(existing.Metadata); !got.Empty() {
+			t.Fatalf("origin = %+v, want none: the duplicate had already disagreed with itself", got)
+		}
+	})
+
+	// Merging folds occurrences together; a detector setting an origin is
+	// asserting what it resolved, which is authoritative.
+	t.Run("a detector assertion supersedes a recorded disagreement", func(t *testing.T) {
+		dep := withArtifact(artifact)
+		detectors.MergeOrigin(dep, withArtifact(mirror))
+		detectors.SetOriginArtifact(dep, mirror)
+
+		want := detectors.Origin{ArtifactURL: mirror}
+		if got := detectors.OriginFrom(dep.Metadata); got != want {
+			t.Fatalf("origin = %+v, want %+v", got, want)
+		}
+	})
+
 	t.Run("nil is a no-op", func(t *testing.T) {
 		detectors.MergeOrigin(nil, withArtifact(artifact))
 		detectors.MergeOrigin(withArtifact(artifact), nil)

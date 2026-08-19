@@ -1,9 +1,13 @@
 package pub
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
+	"github.com/bomly-dev/bomly-sdk"
+	"go.uber.org/zap"
 )
 
 // A pubspec.lock hosted package's description URL is the pub server, shared by
@@ -79,4 +83,105 @@ func TestPubOriginBySourceType(t *testing.T) {
 			t.Errorf("%s origin = %+v, want %+v", tc.id, got, tc.want)
 		}
 	}
+}
+
+// `dart pub deps --json` reports a name, version, and kind but not a package's
+// source description, so the native path alone would export no origin for git
+// dependencies. The descriptions are read back from pubspec.lock.
+func TestPubNativeOriginIsReadFromPubspecLock(t *testing.T) {
+	workingDir := t.TempDir()
+	lock := `packages:
+  helper:
+    dependency: "direct main"
+    description:
+      url: "https://github.com/example/helper.git"
+      ref: main
+      resolved-ref: 1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d
+      path: "."
+    source: git
+    version: "2.0.0"
+  collection:
+    dependency: transitive
+    description:
+      name: collection
+      sha256: abc
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.18.0"
+  local_tools:
+    dependency: "direct dev"
+    description:
+      path: "../local_tools"
+      relative: true
+    source: path
+    version: "0.1.0"
+`
+	if err := os.WriteFile(filepath.Join(workingDir, "pubspec.lock"), []byte(lock), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// `dart pub deps --json` reports a name, version, kind, and source per
+	// package, and no source description at all.
+	depsJSON := []byte(`{
+      "root": "demo",
+      "packages": [
+        {"name": "demo", "version": "1.0.0", "kind": "root", "source": "root", "dependencies": ["helper", "collection", "local_tools"]},
+        {"name": "helper", "version": "2.0.0", "kind": "direct", "source": "git", "dependencies": []},
+        {"name": "collection", "version": "1.18.0", "kind": "transitive", "source": "hosted", "dependencies": []},
+        {"name": "local_tools", "version": "0.1.0", "kind": "dev", "source": "path", "dependencies": []}
+      ]
+    }`)
+
+	g, err := nativeGraph(depsJSON, workingDir, zap.NewNop())
+	if err != nil {
+		t.Fatalf("nativeGraph() error = %v", err)
+	}
+
+	want := detectors.Origin{
+		VCSURL:      "https://github.com/example/helper.git",
+		VCSRevision: "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d",
+	}
+	var checked int
+	g.WalkNodes(func(dep *sdk.Dependency) bool {
+		origin := detectors.OriginFrom(dep.Metadata)
+		switch dep.Name {
+		case "helper":
+			checked++
+			if origin != want {
+				t.Errorf("helper origin = %+v, want %+v", origin, want)
+			}
+		case "collection", "local_tools":
+			checked++
+			if !origin.Empty() {
+				t.Errorf("%s asserted an origin: %+v", dep.Name, origin)
+			}
+		}
+		return true
+	})
+	if checked != 3 {
+		t.Fatalf("checked %d packages, want 3", checked)
+	}
+}
+
+// A project with no pubspec.lock keeps the graph as it is.
+func TestPubNativeOriginSurvivesMissingLock(t *testing.T) {
+	depsJSON := []byte(`{
+      "root": "demo",
+      "packages": [
+        {"name": "demo", "version": "1.0.0", "kind": "root", "source": "root", "dependencies": ["helper"]},
+        {"name": "helper", "version": "2.0.0", "kind": "direct", "source": "git", "dependencies": []}
+      ]
+    }`)
+
+	g, err := nativeGraph(depsJSON, t.TempDir(), zap.NewNop())
+	if err != nil {
+		t.Fatalf("nativeGraph() error = %v", err)
+	}
+
+	g.WalkNodes(func(dep *sdk.Dependency) bool {
+		if got := detectors.OriginFrom(dep.Metadata); !got.Empty() {
+			t.Fatalf("%s origin = %+v, want none", dep.Name, got)
+		}
+		return true
+	})
 }

@@ -1,6 +1,7 @@
 package consolidation
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
@@ -129,6 +130,84 @@ func TestConsolidateGraphsSettlesEveryOccurrence(t *testing.T) {
 				t.Errorf("%s still claims %+v after the subprojects disagreed", node.ID, got)
 			}
 			return true
+		})
+	}
+}
+
+// One manifest can record a package twice with different locations -- a Bun
+// lockfile listing one name and version from two mirrors. Both nodes normalize
+// to one canonical identity and only one survives, so the disagreement has to
+// be settled while both are still there. This is the single-manifest case,
+// which never reaches cross-entry reconciliation.
+func TestConsolidateGraphsSettlesOriginWithinOneManifest(t *testing.T) {
+	const (
+		public  = "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
+		private = "https://npm.corp/mirror/lodash/-/lodash-4.17.21.tgz"
+	)
+
+	cases := []struct {
+		name  string
+		left  string
+		right string
+		want  detectors.Origin
+	}{
+		{name: "entries agree", left: public, right: public, want: detectors.Origin{ArtifactURL: public}},
+		{name: "entries disagree", left: public, right: private},
+		{name: "one entry says nothing", left: public, right: "", want: detectors.Origin{ArtifactURL: public}},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Distinct node IDs, one canonical PURL: what a lockfile parser
+			// produces when it disambiguates a duplicate package key.
+			g := sdk.New()
+			for i, artifactURL := range []string{tc.left, tc.right} {
+				pkg := sdk.NewDependencyWithID(
+					fmt.Sprintf("bun-package:lodash@4.17.21#%d", i),
+					sdk.Dependency{Coordinates: sdk.Coordinates{
+						Name: "lodash", Version: "4.17.21", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lodash@4.17.21"}},
+				)
+				if artifactURL != "" {
+					detectors.SetOriginArtifact(pkg, artifactURL)
+				}
+				if err := g.AddNode(pkg); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{{
+				SubprojectInfo: sdk.Subproject{
+					ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
+					RelativePath:            ".",
+					PrimaryDetector:         "bun-detector",
+					DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerBun},
+					Ecosystem:               sdk.EcosystemNPM,
+				},
+				DetectorName: "bun-detector",
+				Graphs:       sdk.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "bun.lock", Kind: "bun.lock"}),
+			}})
+			if err != nil {
+				t.Fatalf("ConsolidateGraphs() error = %v", err)
+			}
+
+			merged, err := consolidated.Graphs.ConsolidatedGraph()
+			if err != nil {
+				t.Fatalf("ConsolidatedGraph() error = %v", err)
+			}
+			var checked int
+			merged.WalkNodes(func(dep *sdk.Dependency) bool {
+				if dep.Name != "lodash" {
+					return true
+				}
+				checked++
+				if got := detectors.OriginFrom(dep.Metadata); got != tc.want {
+					t.Fatalf("origin = %+v, want %+v", got, tc.want)
+				}
+				return true
+			})
+			if checked != 1 {
+				t.Fatalf("found %d lodash nodes, want 1", checked)
+			}
 		})
 	}
 }

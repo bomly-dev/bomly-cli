@@ -237,3 +237,58 @@ func TestSwiftPMNativeOriginToleratesNilLogger(t *testing.T) {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
 }
+
+// Repository paths are case-sensitive on a self-hosted host, so two packages
+// differing only in path case are different repositories. Folding their keys
+// together would attach one repository's pin to the other's package.
+func TestSwiftPMRepositoryKeyPreservesPathCase(t *testing.T) {
+	if repositoryKey("https://git.corp/Team/Helper.git") == repositoryKey("https://git.corp/team/helper.git") {
+		t.Fatal("two repositories differing only in path case share a lookup key")
+	}
+	// Scheme and host are case-insensitive, so those spellings are one key.
+	if repositoryKey("HTTPS://Git.Corp/Team/Helper.git") != repositoryKey("https://git.corp/Team/Helper.git") {
+		t.Fatal("host casing should not change the key")
+	}
+	// The suffix and trailing slash still normalize away.
+	if repositoryKey("https://git.corp/Team/Helper/") != repositoryKey("https://git.corp/Team/Helper.git") {
+		t.Fatal("a trailing slash or .git suffix should not change the key")
+	}
+}
+
+// A pin for a differently-cased path must not be attached to this package.
+func TestSwiftPMNativeOriginDoesNotMatchAcrossPathCase(t *testing.T) {
+	workingDir := t.TempDir()
+	resolved := `{
+      "pins": [
+        {
+          "identity": "other-helper",
+          "kind": "remoteSourceControl",
+          "location": "https://git.corp/team/helper.git",
+          "state": {"revision": "5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f7081", "version": "1.0.0"}
+        }
+      ],
+      "version": 2
+    }`
+	if err := os.WriteFile(filepath.Join(workingDir, "Package.resolved"), []byte(resolved), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	showDependencies := []byte(`{
+      "name": "demo",
+      "url": "/workspace/demo",
+      "version": "unspecified",
+      "dependencies": [
+        {"name": "Helper", "url": "https://git.corp/Team/Helper.git", "version": "2.0.0", "dependencies": []}
+      ]
+    }`)
+
+	g, err := nativeGraph(showDependencies, workingDir, zap.NewNop())
+	if err != nil {
+		t.Fatalf("nativeGraph() error = %v", err)
+	}
+	g.WalkNodes(func(dep *sdk.Dependency) bool {
+		if origin := detectors.OriginFrom(dep.Metadata); origin.VCSRevision == "5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f7081" {
+			t.Fatalf("%s took a pin belonging to a differently-cased repository: %+v", dep.Name, origin)
+		}
+		return true
+	})
+}

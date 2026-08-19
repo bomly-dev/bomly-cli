@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"strings"
 	"time"
 
@@ -158,8 +159,21 @@ func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 // node: SwiftPM reports the same repository with and without a ".git" suffix
 // and in either case.
 func repositoryKey(repository string) string {
-	key := strings.TrimSuffix(strings.TrimSuffix(strings.ToLower(strings.TrimSpace(repository)), "/"), ".git")
-	return key
+	trimmed := strings.TrimSpace(repository)
+	if trimmed == "" {
+		return ""
+	}
+	parsed, err := url.Parse(trimmed)
+	if err != nil || parsed.Host == "" {
+		return strings.TrimSuffix(strings.TrimSuffix(trimmed, "/"), ".git")
+	}
+	parsed.Scheme = strings.ToLower(parsed.Scheme)
+	parsed.Host = strings.ToLower(parsed.Host)
+	// The path keeps its case: on a case-sensitive host "/Team/Helper" and
+	// "/team/helper" are different repositories, and folding them together
+	// would attach one repository's pin to the other's package.
+	parsed.Path = strings.TrimSuffix(strings.TrimSuffix(parsed.Path, "/"), ".git")
+	return parsed.String()
 }
 
 // FallbackDetector returns the configured fallback detector.

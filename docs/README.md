@@ -54,7 +54,7 @@ Specifications, matrices, and design deep dives. The generated pages are regener
 - [Architecture](ARCHITECTURE.md) — the scan pipeline, domain model, and network behavior
 - [Network and Privacy](NETWORK.md) — every network trigger, what it transmits, and how to stay offline
 - [Security and Trust Boundaries](SECURITY.md) — permissions, network behavior, plugins, input limits, and residual risks
-- [Reproducible Evidence](EVIDENCE.md) — public inputs, commands, results, and limitations behind important behavior claims
+- [Release assurance](ASSURANCE.md) — the checks every release goes through, what they prove, and where to read the per-release report
 - [Glossary](GLOSSARY.md) — every term, one sentence each
 
 ## Experimental

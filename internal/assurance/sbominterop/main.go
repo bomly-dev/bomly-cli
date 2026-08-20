@@ -1,6 +1,6 @@
-// Command sbomassurance generates canonical SBOMs and validates them with
-// checksum-pinned upstream tools. It is intended only for the explicit
-// interoperability assurance workflow.
+// Command sbominterop generates canonical SBOMs and validates them with
+// checksum-pinned upstream tools. It backs the SBOM interoperability check of
+// Bomly's release assurance framework.
 package main
 
 import (
@@ -44,6 +44,7 @@ type runManifest struct {
 	Validators    []validatorInfo `json:"validators"`
 	Artifacts     []artifactInfo  `json:"artifacts"`
 	Commands      []commandResult `json:"commands"`
+	Failure       string          `json:"failure,omitempty"`
 }
 
 type hostInfo struct {
@@ -301,6 +302,7 @@ func describeArtifact(format, path string) (artifactInfo, error) {
 
 func writeFailure(outputDir string, manifest *runManifest, cause error) error {
 	manifest.FinishedAt = time.Now().UTC().Format(time.RFC3339Nano)
+	manifest.Failure = cause.Error()
 	if err := writeManifest(outputDir, *manifest); err != nil {
 		return fmt.Errorf("%v; additionally write run manifest: %w", cause, err)
 	}

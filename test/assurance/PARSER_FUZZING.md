@@ -24,6 +24,7 @@ the reader inventory, cache behavior, and intentional exclusions.
 | Other lockfiles and manifests | Cargo, CocoaPods, Composer, Conan, Go list, Mix, NuGet lock and packages.config, Pub, Bundler, SwiftPM |
 | Workflow manifests | GitHub Actions workflow references |
 | Matcher evidence | vulnerability consolidation and advisory aliases |
+| Release assurance | check-result documents, the assurance catalog, and `go test -json` streams |
 
 Seeds include valid minimal documents and malformed/truncated structures.
 The fuzz engine supplies invalid encodings, deep nesting, duplicate values,

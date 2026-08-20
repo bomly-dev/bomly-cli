@@ -73,7 +73,15 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 		})
 		setUVOrigin(node, pkg.Source)
 
-		nodesByName[normalizePythonName(pkg.Name)] = node
+		// A universal lock can hold several records for one package. The last
+		// wins for the node itself, but its origin has to account for the
+		// records being replaced: two that name different sources cancel
+		// rather than the graph reporting whichever was listed last.
+		key := normalizePythonName(pkg.Name)
+		if existing, ok := nodesByName[key]; ok {
+			node.Origin = sdk.ReconcileOrigin(existing.Origin, node.Origin)
+		}
+		nodesByName[key] = node
 	}
 
 	// Locate the editable (project) package — it acts as the root.

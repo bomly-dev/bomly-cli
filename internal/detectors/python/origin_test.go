@@ -10,6 +10,71 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
+// A universal uv.lock can hold several records for one package. They fold to
+// one node, so records naming different sources must cancel rather than the
+// graph reporting whichever was listed last.
+func TestUVDuplicateRecordsReconcileOrigin(t *testing.T) {
+	cases := []struct {
+		name   string
+		second string
+		want   sdk.PackageOrigin
+	}{
+		{
+			name:   "records agree",
+			second: "https://public.example/helper-1.0.0.tar.gz",
+			want:   sdk.PackageOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
+		},
+		{name: "records name different sources", second: "https://mirror.corp/helper-1.0.0.tar.gz"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			lock := `version = 1
+
+[[package]]
+name = "demo"
+version = "0.1.0"
+source = { editable = "." }
+
+[[package]]
+name = "helper"
+version = "1.0.0"
+source = { url = "https://public.example/helper-1.0.0.tar.gz" }
+
+[[package]]
+name = "helper"
+version = "1.0.0"
+source = { url = "` + tc.second + `" }
+`
+			path := filepath.Join(dir, "uv.lock")
+			if err := os.WriteFile(path, []byte(lock), 0o644); err != nil {
+				t.Fatal(err)
+			}
+
+			graph, err := depGraphFromUVLock(path)
+			if err != nil {
+				t.Fatalf("depGraphFromUVLock() error = %v", err)
+			}
+
+			var checked int
+			graph.WalkNodes(func(dep *sdk.Dependency) bool {
+				if dep.Name != "helper" {
+					return true
+				}
+				checked++
+				if got := originOf(dep); got != tc.want {
+					t.Fatalf("origin = %+v, want %+v", got, tc.want)
+				}
+				return true
+			})
+			if checked != 1 {
+				t.Fatalf("found %d helper nodes, want 1", checked)
+			}
+		})
+	}
+}
+
 // A package can be listed in both the default and develop groups. They become
 // one node, so two groups naming different sources must cancel rather than
 // publishing whichever group was processed first.

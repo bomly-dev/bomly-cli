@@ -316,6 +316,13 @@ jobs:
         with:
           ref: ${{ inputs.source_ref }}
 
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+
       - name: Download regenerated goldens
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -365,7 +372,13 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git checkout -b "${branch_name}"
-          git add test/smoke/testdata/golden
+
+          # Public evidence claims record the checksum of the golden file that
+          # backs them. Regenerating a golden without refreshing the catalog
+          # would fail the catalog-valid gate and block the next release.
+          go run ./internal/assurance/cmd catalog-validate --refresh
+
+          git add test/smoke/testdata/golden docs/assurance/catalog.json
           git commit -m "test: update smoke golden files"
           git push --set-upstream origin "${branch_name}"
 

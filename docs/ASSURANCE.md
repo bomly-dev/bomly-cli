@@ -1,0 +1,117 @@
+# Release assurance
+
+Every Bomly release goes through the same set of quality checks, in the same
+order, and the results are published for that exact version. You can read them
+at **[bomly.dev/assurance](https://bomly.dev/assurance)**, pick any release from
+the selector, and print the page if you need a copy for a review file.
+
+This page explains what the checks are, when they run, and what they do and do
+not prove.
+
+## Three stages
+
+| Stage | When it runs | What it decides |
+| --- | --- | --- |
+| Release prerequisites | On the source tree, before a version is tagged | Whether the code is fit to be released at all |
+| Final pre-release checks | After the release files are built, while the release is still a draft | Whether the files about to be published are complete, unmodified, and signed |
+| Post-release assessment | After the release is published | How the binaries people actually download behave |
+
+Splitting the work this way is deliberate. Checks that can be flaky, or that
+need a fix in the source tree, run **before** a version number exists, so a
+problem is fixed by a normal pull request instead of by a broken release.
+Checks that describe the published files can only run once those files exist.
+
+## How the report is organised
+
+The report is grouped by subject, not by release stage: scanning real projects,
+dependency graphs, policy decisions, reachability, upgrade guidance, comparing
+two scans, other scan targets, SBOM compatibility, running everywhere, handling
+broken input, speed and repeatability, what you download, and installing it.
+Each section holds the checks that cover it and the evidence claims made about
+it. Every check still states which stage it ran in, because that is what
+decides how a failure gets fixed.
+
+The full list, with what every check proves and what it does not, lives in the
+machine-readable catalog at
+[`docs/assurance/catalog.json`](assurance/catalog.json). The assurance page
+renders the same catalog, so the page and the repository can never disagree —
+including the section order, which is the order the catalog declares its areas
+in.
+
+Highlights:
+
+- **End-to-end scans.** Every supported ecosystem is scanned from a pinned
+  public example project and compared against a checked-in expected result.
+- **Platform stability.** The full unit test suite runs twice on Linux, macOS,
+  and Windows, the Java detector suites run ten times because that is where
+  intermittent failures have appeared, and every release binary is
+  cross-compiled.
+- **Parser safety.** Fuzz targets feed malformed project, configuration,
+  baseline, and SBOM files to the parsers that read them.
+- **Release integrity.** Checksums, the Sigstore signature, and SLSA build
+  provenance are verified against the release files before publication.
+- **Installation.** The published install scripts are run on all three
+  operating systems against the new release.
+- **SBOM interoperability.** The SBOM documents Bomly writes are validated with
+  the official SPDX and CycloneDX tools, pinned by checksum.
+- **Speed and stability.** The same scan is repeated with a cold and a warm
+  cache to record timing and confirm the output does not change.
+
+Some checks stop a release when they fail; others are recorded without
+blocking. Either way, a claim that was not confirmed is shown on the page and
+raises a tracking issue for maintainers, so a known problem in a published
+release is never quietly dropped. Every count links to the job that produced
+it, so any number on the page is one click from its log.
+
+## Claims, checks, and evidence
+
+The report uses one vocabulary, and it is worth being precise about it:
+
+- A **claim** is one specific statement about what a release does — that it
+  reads an npm lockfile correctly, or that the files you download are the ones
+  we signed.
+- A **check** is what asserts a claim: something that ran against that exact
+  release and produced a result you can open.
+- The **report as a whole** is the evidence: every claim, whether it was
+  confirmed, and a link to what confirmed it.
+
+Some claims are asserted directly by a check. Others are asserted by comparing
+a pinned input — a public repository at a recorded commit, or a checked-in
+fixture — against a checksummed result file, and name the check that performed
+that comparison. Both appear as claims on the page, in the section they belong
+to. A claim earns a separate entry only when it adds something the check cannot
+say on its own.
+
+Check any claim yourself from a repository checkout:
+
+```sh
+make assurance-catalog
+```
+
+```sh
+go run ./internal/assurance/cmd catalog-validate --evidence graph-npm
+```
+
+The first command validates the whole catalog, including the checksums of every
+expected-result file it names. The second prints one claim with its reproduction
+command.
+
+## What a verified claim does not mean
+
+- A passing report describes the checks listed in the catalog. Software can
+  still fail in ways nobody has written a check for.
+- Checks that reach live advisory services record what those services said on
+  that day. That answer can change afterwards.
+- Timing numbers are observations from one continuous-integration machine, not
+  guarantees or limits.
+- "Unreachable" in a reachability result is a confidence signal, not proof that
+  a package is safe.
+- Release integrity checks prove the published files are the ones this
+  repository's release workflow built. They are not a review of what the code
+  does.
+
+## Related documents
+
+- [Security and trust boundaries](SECURITY.md)
+- [Network and privacy](NETWORK.md)
+- [Installation](INSTALLATION.md), including how to verify checksums yourself

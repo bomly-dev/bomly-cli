@@ -594,6 +594,45 @@ Document identity is shared across formats: one generated UUIDv4 becomes both th
 
 Further identity and claim rules follow the same only-say-what-we-know principle. The project version comes from `--ref` or `git describe` and is stamped onto the primary component and first-party (main-module) components only — third-party versions are never touched, and no version is emitted when Git has nothing to say. The CycloneDX composition declaration is `complete` only for an unfiltered scan with no detector warnings; a `--scope` filter downgrades it to `incomplete` and degraded resolution to `unknown`. Vulnerability `recommendation` text is rendered only from enrichment-known fixed versions. Deprecated SPDX license identifiers are normalized to their current names token-wise inside expressions (`GPL-2.0` → `GPL-2.0-only`), leaving free-text license values untouched. Every SPDX package carries a `PrimaryPackagePurpose`; decode still prefers the `bomly:type=` comment so round-trips keep the richer domain types (workflow, action) that SPDX's vocabulary lacks.
 
+### Decision: release assurance is a declarative catalog plus a per-check result contract
+
+Quality checks used to be independent workflows whose evidence was a job status
+and, in two cases, hand-written markdown in a step summary. Public claims lived
+in a separate `test/evidence/cases.json` catalog with its own checker. Nothing
+tied a claim to whether its check actually ran for a given release, and nothing
+verified the published release artifacts at all.
+
+The framework replaces that with three pieces:
+
+- one catalog (`docs/assurance/catalog.json`) declaring every check, its stage,
+  whether it gates a release, what it proves, and what it does not — plus the
+  public evidence claims, each naming the check that backs it;
+- one check-result contract (`bomly.assurance-check/v1`) that every check emits
+  through `internal/assurance/cmd`, so shell steps never hand-write JSON;
+- one report (`bomly.assurance-report/v1`), written per release into
+  `docs/assurance/reports/<tag>.json`, which is the only data source for the
+  public assurance page.
+
+Consequences worth stating:
+
+- A declared check with no result is reported as `missing` and blocks its stage
+  when it is a gate. Silence is never treated as success.
+- A result whose id the catalog does not declare fails report generation, so a
+  renamed check cannot quietly vanish.
+- Checks are grouped by *when they can still change the outcome*: prerequisites
+  run before a tag exists, so a stale golden file is fixed by an ordinary pull
+  request; pre-release checks run while the release is still a draft, because
+  published releases are immutable; the exhaustive assessment runs afterwards
+  against the binaries users actually download.
+- Workflow files are no longer pinned by checksum in the catalog. Pinning the
+  file proved only that the file had not changed; the per-release check result
+  proves the workflow ran and what it found. Fixture and expected-result files
+  are still checksummed, because a claim about a golden file is only as good as
+  that file.
+- Reports are committed to the default branch rather than attached to the
+  release, because the exhaustive stage runs after publication and GitHub
+  releases are immutable once published.
+
 ## Build Modes
 
 Syft and Grype each support two build modes:
@@ -687,6 +726,7 @@ Cache failures are non-fatal. The command should warn and continue rather than f
 | `internal/engine/scan` | Scan command pipeline API                                                                    |
 | `internal/output`     | Text, JSON, SARIF rendering, plus structured response payloads and schema generation            |
 | `internal/sbom`       | SPDX and CycloneDX codecs                                                                       |
+| `internal/assurance`  | Release assurance framework: check-result contract, catalog, report and index generation, release-asset verification, plus the `sbominterop` and `perfrun` check tools and the `cmd` entry point |
 | `internal/benchmark`  | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets      |
 | `sdk`      | Shared domain types                                                                             |
 | `internal/plugin`     | Managed plugin manifests, installation, verification, store state, adapters, and runtime glue  |
@@ -800,3 +840,4 @@ This keeps the scan engine recognizable while making it possible to migrate sele
 - `internal/engine` owns runtime planning, orchestration, and detector-chain reuse.
 - `internal/plugin` owns managed plugin installation, verification, store state, and external runtime adapters.
 - The CLI resolves user input but should not perform its own independent discovery pass.
+- `internal/assurance` is repository tooling. Nothing shipped in the binary may import it, and it may do things shipped packages may not: read arbitrary repository files, and download and execute released binaries.

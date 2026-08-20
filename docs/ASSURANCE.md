@@ -32,8 +32,10 @@ Highlights:
 
 - **End-to-end scans.** Every supported ecosystem is scanned from a pinned
   public example project and compared against a checked-in expected result.
-- **Platform stability.** The unit tests run repeatedly on Linux, macOS, and
-  Windows, and every release binary is cross-compiled.
+- **Platform stability.** The full unit test suite runs twice on Linux, macOS,
+  and Windows, the Java detector suites run ten times because that is where
+  intermittent failures have appeared, and every release binary is
+  cross-compiled.
 - **Parser safety.** Fuzz targets feed malformed project, configuration,
   baseline, and SBOM files to the parsers that read them.
 - **Release integrity.** Checksums, the Sigstore signature, and SLSA build
@@ -46,15 +48,22 @@ Highlights:
   cache to record timing and confirm the output does not change.
 
 Checks are either **gates**, which stop a release, or **advisory**, which are
-reported but never block. The report always says which is which.
+reported but never block. The report always says which is which, and every
+count links to the job that produced it, so any number on the page is one click
+from its log.
 
 ## Evidence claims
 
 Alongside the checks, the catalog carries **evidence claims**: specific
-statements about Bomly's behavior, each with the pinned input, the exact
-command to reproduce it, the expected result file, and its stated limitations.
-Each claim names the check that backs it, so the report can show whether that
-claim still held for the release you are looking at.
+statements about Bomly's behavior, each with a pinned input — a public
+repository at a recorded commit, or a checked-in fixture — the exact command to
+reproduce it, the checksummed result file it is compared against, and its
+stated limitations. Each claim names the check that backs it, so the report can
+show whether that claim still held for the release you are looking at.
+
+A claim earns its own entry only when it adds something a check result cannot:
+the pinned input and the committed file. Claims that would just restate their
+check are not repeated here.
 
 Reproduce any claim from a repository checkout:
 

@@ -28,8 +28,8 @@
 
 ### Needs attention
 
-- ⚠️ **Repeated scan speed and stability** (advisory, post-release) — canonical-sbom-scan completed 5 samples per cache mode with identical normalized output (cold median 705 ms, warm median 402 ms).
-- ❌ **Release files match their checksums** (gate, pre-release) — 1 assets do not match SHA256SUMS: bomly_9.9.9_linux_amd64.tar.gz.
+- ⚠️ **Repeated scan speed and stability** (advisory, post-release) — canonical-sbom-scan completed 5 samples per cache mode with identical normalized output (cold median 705 ms, warm median 402 ms). Logs: [job](https://github.com/bomly-dev/bomly-cli/actions/runs/11).
+- ❌ **Release files match their checksums** (gate, pre-release) — 1 assets do not match SHA256SUMS: bomly_9.9.9_linux_amd64.tar.gz. Logs: [job](https://github.com/bomly-dev/bomly-cli/actions/runs/10).
 - ❓ **End-to-end scans of real projects** (gate, prerequisites) — 1 instance passed, 1 instance reported nothing. Missing: node.
 - ❓ Result `mystery-check` is not declared in the assurance catalog.
 

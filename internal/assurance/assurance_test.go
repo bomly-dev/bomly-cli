@@ -368,3 +368,46 @@ func TestSkippedGateBlocks(t *testing.T) {
 		t.Fatal("a skipped gate check must block a release")
 	}
 }
+
+func TestMatchJobURLPicksTheRunningJobOnThisRunner(t *testing.T) {
+	payload := []byte(`{"jobs":[
+	  {"name":"Portable suite (ubuntu-latest)","status":"completed","runner_name":"GitHub Actions 3","html_url":"https://example.test/job/1"},
+	  {"name":"Portable suite (macos-latest)","status":"in_progress","runner_name":"GitHub Actions 7","html_url":"https://example.test/job/2"},
+	  {"name":"Portable suite (windows-latest)","status":"in_progress","runner_name":"GitHub Actions 9","html_url":"https://example.test/job/3"}
+	]}`)
+	url, err := MatchJobURL(payload, "GitHub Actions 7")
+	if err != nil {
+		t.Fatalf("match: %v", err)
+	}
+	if url != "https://example.test/job/2" {
+		t.Fatalf("url = %q, want the running job on this runner", url)
+	}
+
+	for name, args := range map[string][2]string{
+		"unknown runner": {string(payload), "GitHub Actions 42"},
+		"no runner name": {string(payload), ""},
+		"empty payload":  {`{"jobs":[]}`, "GitHub Actions 7"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			url, err := MatchJobURL([]byte(args[0]), args[1])
+			if err != nil {
+				t.Fatalf("match: %v", err)
+			}
+			if url != "" {
+				t.Fatalf("url = %q, want no match so the caller links the run", url)
+			}
+		})
+	}
+
+	ambiguous := []byte(`{"jobs":[
+	  {"name":"a","status":"in_progress","runner_name":"shared","html_url":"https://example.test/job/1"},
+	  {"name":"b","status":"in_progress","runner_name":"shared","html_url":"https://example.test/job/2"}
+	]}`)
+	if url, err := MatchJobURL(ambiguous, "shared"); err != nil || url != "" {
+		t.Fatalf("ambiguous match returned %q (err=%v), want no link", url, err)
+	}
+
+	if _, err := MatchJobURL([]byte("not json"), "runner"); err == nil {
+		t.Fatal("expected malformed payload to be reported")
+	}
+}

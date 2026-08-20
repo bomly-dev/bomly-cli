@@ -158,7 +158,7 @@ func baseResult(id, instance string) assurance.CheckResult {
 		StartedAt:     time.Now().UTC().Format(time.RFC3339),
 	}
 	result.Version = strings.TrimPrefix(result.Tag, "v")
-	result.RunURL = runURL()
+	result.RunURL = jobURL(runURL())
 	return result
 }
 

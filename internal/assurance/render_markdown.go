@@ -120,12 +120,41 @@ func attentionLines(report Report) []string {
 		if len(check.MissingInstances) > 0 {
 			line += fmt.Sprintf(" Missing: %s.", strings.Join(check.MissingInstances, ", "))
 		}
+		// Only the parts that need attention are linked: a reader of a red
+		// summary should reach the failing log in one click, and linking the
+		// passing rows too would bury it.
+		if logs := failingLogs(check); logs != "" {
+			line += " Logs: " + logs + "."
+		}
 		lines = append(lines, line)
 	}
 	for _, unknown := range report.Unknown {
 		lines = append(lines, fmt.Sprintf("❓ Result `%s` is not declared in the assurance catalog.", unknown.ID))
 	}
 	return lines
+}
+
+// failingLogs renders links to the jobs behind a check's failing instances.
+func failingLogs(check ReportCheck) string {
+	var links []string
+	for _, instance := range check.Instances {
+		if instance.Status == StatusPass || instance.RunURL == "" {
+			continue
+		}
+		name := instance.Name
+		if name == "default" {
+			name = "job"
+		}
+		links = append(links, fmt.Sprintf("[%s](%s)", name, instance.RunURL))
+	}
+	if len(links) == 0 {
+		return ""
+	}
+	if len(links) > 5 {
+		remaining := len(links) - 5
+		links = append(links[:5], fmt.Sprintf("and %d more", remaining))
+	}
+	return strings.Join(links, ", ")
 }
 
 func renderTrends(trends Trends) string {

@@ -1,0 +1,473 @@
+{
+  "schema_version": "bomly.assurance-report/v1",
+  "generated_at": "2026-08-19T12:00:00Z",
+  "release": {
+    "tag": "v9.9.9",
+    "version": "9.9.9",
+    "commit": "0f2103c7e671653e519cf5edb0d3e86020202ecf"
+  },
+  "verdict": {
+    "overall": "fail",
+    "checks": 3,
+    "passed": 0,
+    "failed": 1,
+    "degraded": 1,
+    "skipped": 0,
+    "missing": 1,
+    "gates_failed": [
+      "release-checksums"
+    ],
+    "advisories_failed": [
+      "perf-samples"
+    ],
+    "missing_checks": [
+      "smoke"
+    ]
+  },
+  "stages": [
+    {
+      "id": "prerequisites",
+      "title": "Release prerequisites",
+      "status": "missing",
+      "verdict": {
+        "overall": "missing",
+        "checks": 1,
+        "passed": 0,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 1,
+        "missing_checks": [
+          "smoke"
+        ]
+      },
+      "check_ids": [
+        "smoke"
+      ]
+    },
+    {
+      "id": "pre-release",
+      "title": "Final pre-release checks",
+      "status": "fail",
+      "verdict": {
+        "overall": "fail",
+        "checks": 1,
+        "passed": 0,
+        "failed": 1,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0,
+        "gates_failed": [
+          "release-checksums"
+        ]
+      },
+      "check_ids": [
+        "release-checksums"
+      ]
+    },
+    {
+      "id": "post-release",
+      "title": "Post-release assessment",
+      "status": "degraded",
+      "verdict": {
+        "overall": "degraded",
+        "checks": 1,
+        "passed": 0,
+        "failed": 0,
+        "degraded": 1,
+        "skipped": 0,
+        "missing": 0,
+        "advisories_failed": [
+          "perf-samples"
+        ]
+      },
+      "check_ids": [
+        "perf-samples"
+      ]
+    }
+  ],
+  "areas": [
+    {
+      "id": "end-to-end",
+      "title": "End-to-end behavior",
+      "description": "Running the real command line against real projects.",
+      "status": "missing",
+      "verdict": {
+        "overall": "missing",
+        "checks": 1,
+        "passed": 0,
+        "failed": 0,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 1,
+        "missing_checks": [
+          "smoke"
+        ]
+      }
+    },
+    {
+      "id": "release-integrity",
+      "title": "Release integrity",
+      "description": "Whether the published files are complete and unmodified.",
+      "status": "fail",
+      "verdict": {
+        "overall": "fail",
+        "checks": 1,
+        "passed": 0,
+        "failed": 1,
+        "degraded": 0,
+        "skipped": 0,
+        "missing": 0,
+        "gates_failed": [
+          "release-checksums"
+        ]
+      }
+    },
+    {
+      "id": "performance",
+      "title": "Speed and stability",
+      "description": "How long a repeated scan takes and whether it returns the same answer.",
+      "status": "degraded",
+      "verdict": {
+        "overall": "degraded",
+        "checks": 1,
+        "passed": 0,
+        "failed": 0,
+        "degraded": 1,
+        "skipped": 0,
+        "missing": 0,
+        "advisories_failed": [
+          "perf-samples"
+        ]
+      }
+    }
+  ],
+  "checks": [
+    {
+      "id": "perf-samples",
+      "title": "Repeated scan speed and stability",
+      "area": "performance",
+      "stage": "post-release",
+      "level": "advisory",
+      "description": "Runs the same scan several times and records timing.",
+      "status": "degraded",
+      "summary": "canonical-sbom-scan completed 5 samples per cache mode with identical normalized output (cold median 705 ms, warm median 402 ms).",
+      "duration_ms": 61000,
+      "source": {
+        "workflow": "assurance-assessment.yml",
+        "job": "perf-samples"
+      },
+      "instances": [
+        {
+          "name": "default",
+          "status": "degraded",
+          "summary": "canonical-sbom-scan completed 5 samples per cache mode with identical normalized output (cold median 705 ms, warm median 402 ms).",
+          "duration_ms": 61000,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/11",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.26.3"
+          },
+          "metrics": {
+            "cold_median_ms": 705,
+            "peak_memory_bytes": 120586240,
+            "samples_per_mode": 5,
+            "warm_median_ms": 402
+          }
+        }
+      ],
+      "metrics": {
+        "cold_median_ms": 705,
+        "peak_memory_bytes": 120586240,
+        "samples_per_mode": 5,
+        "warm_median_ms": 402
+      },
+      "reproduce": [
+        [
+          "make",
+          "benchmark-samples"
+        ]
+      ],
+      "proves": [
+        "Repeated runs produced identical normalized output."
+      ],
+      "limitations": [
+        "Timings are observations from one machine, not limits."
+      ]
+    },
+    {
+      "id": "release-checksums",
+      "title": "Release files match their checksums",
+      "area": "release-integrity",
+      "stage": "pre-release",
+      "level": "gate",
+      "description": "Hashes every release file and compares it with SHA256SUMS.",
+      "status": "fail",
+      "summary": "1 assets do not match SHA256SUMS: bomly_9.9.9_linux_amd64.tar.gz.",
+      "duration_ms": 3900,
+      "source": {
+        "workflow": "release.yml",
+        "job": "verify-draft"
+      },
+      "instances": [
+        {
+          "name": "default",
+          "status": "fail",
+          "summary": "1 assets do not match SHA256SUMS: bomly_9.9.9_linux_amd64.tar.gz.",
+          "duration_ms": 3900,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/10",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.26.3"
+          },
+          "metrics": {
+            "listed": 23,
+            "mismatched": 1,
+            "verified": 22
+          },
+          "details": [
+            {
+              "name": "bomly_9.9.9_linux_amd64.tar.gz",
+              "status": "fail",
+              "note": "hash does not match SHA256SUMS"
+            }
+          ]
+        }
+      ],
+      "metrics": {
+        "listed": 23,
+        "mismatched": 1,
+        "verified": 22
+      },
+      "reproduce": [
+        [
+          "sha256sum",
+          "--check",
+          "SHA256SUMS"
+        ]
+      ],
+      "proves": [
+        "Every published file hashes to the recorded value."
+      ],
+      "limitations": [
+        "Checksums prove the files were not altered after they were built."
+      ]
+    },
+    {
+      "id": "smoke",
+      "title": "End-to-end scans of real projects",
+      "area": "end-to-end",
+      "stage": "prerequisites",
+      "level": "gate",
+      "description": "Runs scan against pinned public repositories.",
+      "status": "missing",
+      "summary": "1 instance passed, 1 instance reported nothing.",
+      "duration_ms": 60000,
+      "source": {
+        "workflow": "smoke.yml",
+        "job": "smoke"
+      },
+      "instances": [
+        {
+          "name": "go",
+          "status": "pass",
+          "summary": "18 of 18 tests passed.",
+          "duration_ms": 60000,
+          "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/9",
+          "runner": {
+            "os": "linux",
+            "arch": "amd64",
+            "go_version": "go1.26.3"
+          },
+          "metrics": {
+            "tests_failed": 0,
+            "tests_passed": 18,
+            "tests_skipped": 0,
+            "tests_total": 18
+          }
+        }
+      ],
+      "missing_instances": [
+        "node"
+      ],
+      "metrics": {
+        "tests_failed": 0,
+        "tests_passed": 18,
+        "tests_skipped": 0,
+        "tests_total": 18
+      },
+      "reproduce": [
+        [
+          "make",
+          "smoke"
+        ]
+      ],
+      "proves": [
+        "Each ecosystem produces the dependency graph recorded in its golden file."
+      ],
+      "limitations": [
+        "Golden files pin one revision of one example project per ecosystem."
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "graph-go",
+      "title": "Go module graph",
+      "area": "end-to-end",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "go",
+      "status": "pass",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-go-gomod",
+          "ref": "v1.0.0",
+          "revision": "0f2103c7e671653e519cf5edb0d3e86020202ecf"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "go"
+      ],
+      "reproduce": [
+        [
+          "make",
+          "smoke"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "internal/assurance/testdata/fixtures/all-pass/results/smoke.go.json",
+          "sha256": "27a48399b6669f7b6a436080e277877dc9ef3c884634ceb3c0cdcab634eb97d0"
+        }
+      ],
+      "proves": [
+        "The Go detector resolves a build-tool-backed module graph."
+      ],
+      "limitations": [
+        "The result depends on a compatible Go toolchain."
+      ]
+    }
+  ],
+  "coverage": {
+    "ecosystems": [
+      "Go",
+      "JavaScript"
+    ],
+    "rows": [
+      {
+        "check_id": "smoke",
+        "title": "End-to-end scans of real projects",
+        "cells": {
+          "Go": "pass",
+          "JavaScript": "missing"
+        }
+      }
+    ]
+  },
+  "trends": {
+    "previous_tag": "v9.9.9",
+    "metrics": [
+      {
+        "check_id": "perf-samples",
+        "metric": "cold_median_ms",
+        "previous": 412,
+        "current": 705,
+        "delta": 293,
+        "delta_pct": 71.11650485436894,
+        "better": "lower"
+      },
+      {
+        "check_id": "perf-samples",
+        "metric": "peak_memory_bytes",
+        "previous": 91234304,
+        "current": 120586240,
+        "delta": 29351936,
+        "delta_pct": 32.172039148783334,
+        "better": "lower"
+      },
+      {
+        "check_id": "perf-samples",
+        "metric": "warm_median_ms",
+        "previous": 288,
+        "current": 402,
+        "delta": 114,
+        "delta_pct": 39.58333333333333,
+        "better": "lower"
+      },
+      {
+        "check_id": "release-checksums",
+        "metric": "mismatched",
+        "previous": 0,
+        "current": 1,
+        "delta": 1,
+        "better": "neutral"
+      },
+      {
+        "check_id": "release-checksums",
+        "metric": "verified",
+        "previous": 23,
+        "current": 22,
+        "delta": -1,
+        "delta_pct": -4.3478260869565215,
+        "better": "neutral"
+      },
+      {
+        "check_id": "smoke",
+        "metric": "tests_passed",
+        "previous": 42,
+        "current": 18,
+        "delta": -24,
+        "delta_pct": -57.14285714285714,
+        "better": "higher"
+      },
+      {
+        "check_id": "smoke",
+        "metric": "tests_total",
+        "previous": 42,
+        "current": 18,
+        "delta": -24,
+        "delta_pct": -57.14285714285714,
+        "better": "higher"
+      }
+    ],
+    "changed": [
+      {
+        "check_id": "perf-samples",
+        "previous": "pass",
+        "current": "degraded"
+      },
+      {
+        "check_id": "release-checksums",
+        "previous": "pass",
+        "current": "fail"
+      },
+      {
+        "check_id": "smoke",
+        "previous": "pass",
+        "current": "missing"
+      }
+    ]
+  },
+  "unknown_results": [
+    {
+      "id": "mystery-check",
+      "stage": "post-release",
+      "status": "pass"
+    }
+  ],
+  "environment": {
+    "runners": [
+      {
+        "os": "linux",
+        "arch": "amd64",
+        "go_version": "go1.26.3"
+      }
+    ],
+    "generated_by": "assurance-test"
+  }
+}

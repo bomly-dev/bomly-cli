@@ -20,7 +20,7 @@ make smoke ARGS="-update" # regenerate smoke golden files
 make fuzz FUZZTIME=5s    # run every registered fuzz target with a short per-target budget
 make benchmark           # run the hidden local dependency-graph benchmark
 make benchmark-report    # analyze local benchmark artifacts with Copilot CLI
-make evidence            # verify the public evidence catalog (test/evidence/cases.json)
+make assurance-catalog   # validate the release assurance catalog (docs/assurance/catalog.json)
 make run ARGS="scan"    # go run ./cmd/bomly <ARGS>
 make generate            # regenerate config reference, JSON schemas, schema docs, support matrix, and component docs (binary-driven)
 ```
@@ -54,6 +54,7 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 | `internal/baseline`    | Portable package-finding baseline codec and audit-integrated policy-status resolver               |
 | `internal/remediation` | Canonical vulnerability fix status, version, detector-hint validation, and occurrence suggestions |
 | `internal/sbom`        | SBOM codec (SPDX 2.3, CycloneDX)                                                                  |
+| `internal/assurance`   | Release assurance framework: check-result contract, catalog, report generation, release-asset verification, and the `sbominterop` and `perfrun` check tools |
 | `internal/benchmark`   | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets       |
 | `internal/output`      | Output rendering plus structured command payloads and schema generation for `scan`, `diff`, `explain`, JSON, and SARIF 2.1.0 |
 | `internal/plugin`      | Plugin discovery, protocol, handshake, and pooled subprocess execution                            |
@@ -95,6 +96,7 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - `internal/baseline` owns the baseline document and matching implementation. It depends on the SDK policy contracts and must not be imported by `internal/engine`.
 - `internal/remediation` owns canonical vulnerability remediation decisions. Detectors may supply validated read-only strategy hints, but they do not choose final actions or versions.
 - `internal/registry` owns package-manager discovery, support lookups, and built-in registry wiring in `internal/registry/builder.go`. Do not create or reintroduce a separate `registrybuilder` package.
+- `internal/assurance` owns the release assurance framework and must not be imported by any package under `cmd/`, `internal/cli`, or `internal/engine`: it is repository tooling, not shipped CLI behavior. It may read repository files and run downloaded release binaries, which no shipped package may do.
 - `internal/engine` may import `internal/detectors` and `internal/registry`, but detector packages must not point back into `internal/engine`. Runtime planning, prepared subprojects, and detector-chain reuse belong in `internal/engine`.
 
 ## Non-Negotiable
@@ -203,6 +205,24 @@ Smoke tests (`test/smoke/`, `make smoke`) drive the built binary end-to-end agai
 - Register new tests in both slice matrices (`smoke.yml` and exactly one slice in `update-smoke-goldens.yml`); `go test -run` elements are unanchored regexes — use `$` anchors to keep slice ownership exact.
 - `TestExamplePluginFixtureCompiles` runs in `make test` and must keep compiling against the pinned `bomly-dev/bomly-sdk` release; update the fixture source when the SDK contract changes.
 
+## Release assurance
+
+Every quality check belongs to one of three release stages and is declared in `docs/assurance/catalog.json` (schema `bomly.assurance-catalog/v1`):
+
+- **prerequisites** — run on the source tree before a tag exists (smoke, portable stability, cross-builds, fuzz, catalog validation).
+- **pre-release** — run inside `release.yml` against the still-draft release (asset completeness, checksums, cosign signature, SLSA provenance, released binaries).
+- **post-release** — run against the shipped binaries after publication (install scripts, public download, released-binary scans, SBOM interoperability, performance samples).
+
+Rules:
+
+- Every check writes one `bomly.assurance-check/v1` document per instance through `go run ./internal/assurance/cmd` (`emit`, `gotest`, `convert`, or `verify-release`) and uploads it as an `assurance-*` artifact. Never hand-write that JSON in a workflow.
+- Adding a check means adding a catalog entry **and** emitting its result; a declared check with no result is reported as `missing` and blocks its stage when it is a gate.
+- `proves` and `limitations` are mandatory, public, and written in plain language — they are rendered on bomly.dev/assurance.
+- Public evidence claims live in the same catalog (`evidence[]`), keep their pinned Git revisions and checksummed artifacts, and name the check that backs them. `make assurance-catalog` re-hashes every file they reference.
+- The per-release report (`docs/assurance/reports/<tag>.json`) and `docs/assurance/index.json` are written by the post-release assessment and are the only data source for the public page.
+
+See [`dev-docs/RELEASE_ASSURANCE.md`](dev-docs/RELEASE_ASSURANCE.md) for the contracts and how to add a check.
+
 ## Feature Checklist
 
 When adding a new user-visible feature (new CLI flag, new component class, new pipeline stage, new analyzer, etc.), walk this checklist before requesting review. The surfaces forgotten most often are **MCP**, **plugin command**, and **smoke test**.
@@ -287,6 +307,7 @@ Draft releases are created automatically after merges to `main` from commit pref
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)         | Public, user-facing architecture overview                                               |
 | [`dev-docs/MODELS.md`](dev-docs/MODELS.md)             | Domain model reference: Dependency, Package, Vulnerability, Finding, PackageRegistry    |
 | [`dev-docs/CI.md`](dev-docs/CI.md)                     | CI setup and workflow (GitHub Actions)                                                  |
+| [`dev-docs/RELEASE_ASSURANCE.md`](dev-docs/RELEASE_ASSURANCE.md) | Release assurance framework: stages, check contract, catalog, reports                   |
 | [`docs/CONFIG_REFERENCE.md`](docs/CONFIG_REFERENCE.md) | Generated config reference (all keys, env vars, defaults)                               |
 | [`docs/SUPPORT_MATRIX.md`](docs/SUPPORT_MATRIX.md)     | Ecosystem detector coverage                                                             |
 | `docs/schemas/*.json`, `docs/schemas/*.md`             | Generated JSON schemas and human-readable output docs for `scan`, `diff`, and `explain` |

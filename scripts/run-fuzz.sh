@@ -7,6 +7,9 @@ FUZZTIME="${FUZZTIME:-60s}"
 # transport JSON) moved with the sdk package to the bomly-sdk repository and
 # run there.
 targets=(
+  "github.com/bomly-dev/bomly-cli/internal/assurance FuzzParseCatalog"
+  "github.com/bomly-dev/bomly-cli/internal/assurance FuzzParseCheckResult"
+  "github.com/bomly-dev/bomly-cli/internal/assurance FuzzParseGoTestEvents"
   "github.com/bomly-dev/bomly-cli/internal/config FuzzLoadFile"
   "github.com/bomly-dev/bomly-cli/internal/detectors/cargo FuzzDepGraphFromCargoLock"
   "github.com/bomly-dev/bomly-cli/internal/detectors/cocoapods FuzzDepGraphFromPodfileLock"

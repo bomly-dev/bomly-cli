@@ -7,7 +7,7 @@ EXE_SUFFIX=$(if $(filter Windows_NT,$(OS)),.exe,)
 GOLANGCI_LINT=$(GOPATH_BIN)/golangci-lint$(EXE_SUFFIX)
 FUZZTIME?=60s
 
-.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test smoke fuzz run generate evidence benchmark benchmark-report licenses
+.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test smoke fuzz run generate assurance-catalog assurance-report benchmark benchmark-samples benchmark-report licenses
 
 build: build-full build-lite
 
@@ -41,14 +41,18 @@ smoke:
 fuzz:
 	FUZZTIME="$(FUZZTIME)" scripts/run-fuzz.sh
 
-evidence:
-	go run ./internal/tools/publicevidence $(if $(CASE),-case $(CASE),)
+assurance-catalog:
+	go run ./internal/assurance/cmd catalog-validate $(if $(CHECK),--check $(CHECK),) $(if $(EVIDENCE),--evidence $(EVIDENCE),)
+
+assurance-report:
+	go run ./internal/assurance/cmd report --results internal/assurance/testdata/fixtures/mixed-failure/results \
+		--catalog internal/assurance/testdata/catalog.json --out .assurance --tag v0.0.0-preview --previous none --allow-unknown
 
 benchmark: build-full
 	bin/$(BINARY_NAME)$(EXE_SUFFIX) benchmark $(if $(ARGS),$(ARGS),)
 
 benchmark-samples: build-lite
-	go run ./internal/tools/benchmarkrun -output .benchmark-runs/performance -case canonical-sbom-scan -samples 5 -network-state offline -- \
+	go run ./internal/assurance/perfrun -output .benchmark-runs/performance -case canonical-sbom-scan -samples 5 -network-state offline -- \
 		./bin/$(BINARY_NAME)-lite$(EXE_SUFFIX) scan --sbom --path test/smoke/testdata/sboms/go.spdx.json --detectors sbom --format json
 
 benchmark-report:

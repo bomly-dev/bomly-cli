@@ -1,0 +1,14 @@
+{
+  "schema_version": "bomly.assurance-check/v1",
+  "runner": {
+    "os": "linux",
+    "arch": "amd64",
+    "go_version": "go1.26.3"
+  },
+  "id": "mystery-check",
+  "stage": "post-release",
+  "level": "gate",
+  "status": "pass",
+  "duration_ms": 10,
+  "summary": "A check that the catalog does not declare."
+}

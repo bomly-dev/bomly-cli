@@ -384,14 +384,16 @@ jobs:
 
   report:
     name: Publish the release report
-    if: always()
+    # always(), so a failed check still gets a published report — but only when
+    # the release itself was resolved, since everything below needs its tag.
+    if: always() && needs.resolve.result == 'success'
     needs: [resolve, install-scripts, public-download, released-scan, sbom, perf-samples]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Mint release bot token
-        # Commits the report to main and manages the tracking issue. The same
-        # app already pushes the version-bump commits.
+        # Commits the report to main and dispatches to the landing page. The
+        # same app already pushes the version-bump commits.
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: app-token
         with:
@@ -402,6 +404,19 @@ jobs:
             bomly-cli
             bomly-landing-page
           permission-contents: write
+
+      - name: Mint issue token
+        # Issues is a newer grant on the release app than contents. Minting it
+        # separately means an app that has not been granted it yet loses the
+        # tracking issue, not the whole report.
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: issue-token
+        continue-on-error: true
+        with:
+          client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: bomly-dev
+          repositories: bomly-cli
           permission-issues: write
 
       - name: Check out main
@@ -443,13 +458,31 @@ jobs:
           set -uo pipefail
           parent="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${COMMIT}" --jq '.parents[0].sha // ""')"
 
+          # A workflow called with `uses:` produces no run of its own — the
+          # jobs live in the caller's run (Auto Version). So the search is over
+          # every run for the commit, looking for the verdict job by name.
+          find_verdict_run() {
+            local sha="$1"
+            [ -n "${sha}" ] || return 1
+            local run_id
+            for run_id in $(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${sha}&per_page=50" \
+              --jq '.workflow_runs[].id'); do
+              if gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100" \
+                --jq '.jobs[] | select(.conclusion == "success") | .name' \
+                | grep -q 'Prerequisites verdict$'; then
+                echo "${run_id}"
+                return 0
+              fi
+            done
+            return 1
+          }
+
           prerequisites_run=""
           for candidate in "${COMMIT}" "${parent}"; do
-            [ -n "${candidate}" ] || continue
-            prerequisites_run="$(gh api \
-              "repos/${GITHUB_REPOSITORY}/actions/workflows/assurance-prerequisites.yml/runs?head_sha=${candidate}&per_page=20" \
-              --jq '[.workflow_runs[] | select(.conclusion == "success")][0].id // ""')"
-            [ -n "${prerequisites_run}" ] && break
+            if prerequisites_run="$(find_verdict_run "${candidate}")"; then
+              break
+            fi
+            prerequisites_run=""
           done
           if [ -n "${prerequisites_run}" ]; then
             gh run download "${prerequisites_run}" --repo "${GITHUB_REPOSITORY}" \
@@ -459,7 +492,7 @@ jobs:
 
           release_run="$(gh api \
             "repos/${GITHUB_REPOSITORY}/actions/workflows/release.yml/runs?per_page=50" \
-            --jq --arg tag "${TAG}" '[.workflow_runs[] | select(.head_branch == $tag)][0].id // ""')"
+            | jq -r --arg tag "${TAG}" '[.workflow_runs[] | select(.head_branch == $tag)][0].id // ""')"
           if [ -n "${release_run}" ]; then
             gh run download "${release_run}" --repo "${GITHUB_REPOSITORY}" \
               --name assurance-stage-pre-release --dir assurance-results || true
@@ -487,7 +520,7 @@ jobs:
         env:
           TAG: ${{ needs.resolve.outputs.tag }}
         run: |
-          set -o pipefail
+          set -eo pipefail
           go run ./internal/assurance/cmd report \
             --results assurance-results \
             --catalog "${catalog}" --out docs/assurance \
@@ -558,9 +591,9 @@ jobs:
       # blocked. One issue per release: opened when something fails, updated on
       # a re-run, and closed when a re-run comes back clean.
       - name: Track the outcome
-        if: always()
+        if: always() && steps.issue-token.outputs.token != ''
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ steps.issue-token.outputs.token }}
           TAG: ${{ needs.resolve.outputs.tag }}
           VERDICT: ${{ steps.report.outputs.verdict }}
           REPORT_OUTCOME: ${{ steps.report.outcome }}

@@ -55,11 +55,11 @@ jobs:
       assurance_tag: ${{ inputs.assurance_tag }}
 
   # Fuzzing is advisory: a finding is recorded in the report and does not stop a
-  # release, so a failure here must not fail this workflow either. The verdict
-  # job below is what decides the stage.
+  # release. `continue-on-error` is not allowed on a job that calls a reusable
+  # workflow, so fuzz.yml itself skips its failing step when it is called in
+  # assurance mode; the verdict job below is what decides the stage.
   fuzz:
     name: Parser fuzzing
-    continue-on-error: true
     uses: ./.github/workflows/fuzz.yml
     with:
       ref: ${{ inputs.ref || github.ref }}
@@ -104,8 +104,11 @@ jobs:
             summary="The assurance catalog is invalid or one of the files it names has changed. Open the validation step for the exact entry."
           fi
           checks="$(grep -c '"stage":' docs/assurance/catalog.json || true)"
+          # --stage and --level are explicit: when the catalog is the thing
+          # that is broken, the emitter cannot look them up in it.
           go run ./internal/assurance/cmd emit \
-            --id catalog-valid --exit-code "${exit_code}" --summary "${summary}" \
+            --id catalog-valid --stage prerequisites --level gate \
+            --exit-code "${exit_code}" --summary "${summary}" \
             --metric checks="${checks}" --out assurance-results --step-summary
 
       - name: Upload check result

@@ -155,6 +155,21 @@ tracking issue and the published report records the failure honestly.
 the report without blocking a release. Use it for the first release after a
 framework change, then turn it back on.
 
+## What the automation needs
+
+- The Bomly Release app needs **Issues: Read and write** on `bomly-cli` for the
+  per-release tracking issue. Without it the assessment still publishes the
+  report and simply skips the issue.
+- The prerequisites stage is found by looking for a successful job whose name
+  ends in `Prerequisites verdict` among the runs for a commit. A workflow called
+  with `uses:` produces no run of its own, so searching for runs of
+  `assurance-prerequisites.yml` would miss every stage that Auto Version
+  triggered. Keep that job name stable, or update the lookup in `release.yml`
+  and `assurance-assessment.yml` with it.
+- Regenerating smoke goldens changes files the evidence claims are pinned to.
+  `Update Smoke Goldens` runs `catalog-validate --refresh` and commits the
+  catalog alongside them; do the same when refreshing goldens by hand.
+
 ## Related documents
 
 - [`docs/ASSURANCE.md`](../docs/ASSURANCE.md) — the public explanation

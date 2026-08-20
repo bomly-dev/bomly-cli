@@ -44,13 +44,28 @@ jobs:
           tag_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${RELEASE_TAG}" --jq '.sha')"
           parent_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${RELEASE_TAG}" --jq '.parents[0].sha // ""')"
 
+          # A workflow called with `uses:` produces no run of its own — the
+          # jobs live in the caller's run (Auto Version). So the search is over
+          # every run for the commit, looking for the verdict job by name.
+          find_verdict_run() {
+            local sha="$1"
+            [ -n "${sha}" ] || return 1
+            local run_id
+            for run_id in $(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?head_sha=${sha}&per_page=50" \
+              --jq '.workflow_runs[].id'); do
+              if gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100" \
+                --jq '.jobs[] | select(.conclusion == "success") | .name' \
+                | grep -q 'Prerequisites verdict$'; then
+                echo "${run_id}"
+                return 0
+              fi
+            done
+            return 1
+          }
+
           for candidate in "${tag_sha}" "${parent_sha}"; do
-            [ -n "${candidate}" ] || continue
-            conclusion="$(gh api \
-              "repos/${GITHUB_REPOSITORY}/actions/workflows/assurance-prerequisites.yml/runs?head_sha=${candidate}&per_page=20" \
-              --jq '[.workflow_runs[] | select(.conclusion == "success")] | length')"
-            if [ "${conclusion}" != "0" ]; then
-              echo "Release prerequisites passed for ${candidate}."
+            if run_id="$(find_verdict_run "${candidate}")"; then
+              echo "Release prerequisites passed for ${candidate} in run ${run_id}."
               exit 0
             fi
           done
@@ -243,7 +258,9 @@ jobs:
           private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
           owner: bomly-dev
           repositories: bomly-cli
-          permission-contents: read
+          # Draft releases are only listed to identities with push access, so
+          # read is not enough here even though this job only reads.
+          permission-contents: write
 
       - name: Download draft release assets
         shell: bash
@@ -441,7 +458,9 @@ jobs:
         with:
           name: assurance-stage-pre-release
           path: assurance-results
-          if-no-files-found: error
+          # warn, not error: when nothing was collected the gate step's message
+          # is the useful one, and an upload failure would hide it.
+          if-no-files-found: warn
           retention-days: 30
 
       - name: Fail when the stage did not pass

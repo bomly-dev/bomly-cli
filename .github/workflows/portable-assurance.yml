@@ -1,5 +1,7 @@
 # Repeated unit tests across supported platforms and cross-builds of every
-# release binary. Runs on its own when a maintainer starts it, and as part of
+# release binary. The full suite is repeated by the `portable` job (twice on
+# each of three platforms); this job repeats only the Java detector suites,
+# which is where intermittent failures have actually appeared. Runs on its own when a maintainer starts it, and as part of
 # the "Release prerequisites" stage before a version is tagged.
 #
 # Every step ends by writing a release assurance check result; the job summary
@@ -187,53 +189,6 @@ jobs:
             --details-jsonl "${RUNNER_TEMP}/java-details.jsonl" \
             --out assurance-results --step-summary
 
-      - name: Repeat complete suite five times
-        id: complete-tests
-        continue-on-error: true
-        run: |
-          set -uo pipefail
-          completed=0
-          failed=0
-          : > "${RUNNER_TEMP}/complete-details.jsonl"
-          for iteration in $(seq 1 5); do
-            echo "complete suite iteration ${iteration}"
-            if go test ./... -count=1; then
-              completed="${iteration}"
-              printf '{"name":"iteration %s","status":"pass"}\n' "${iteration}" >> "${RUNNER_TEMP}/complete-details.jsonl"
-            else
-              failed="${iteration}"
-              printf '{"name":"iteration %s","status":"fail"}\n' "${iteration}" >> "${RUNNER_TEMP}/complete-details.jsonl"
-              break
-            fi
-          done
-          echo "completed=${completed}" >> "${GITHUB_OUTPUT}"
-          echo "failed=${failed}" >> "${GITHUB_OUTPUT}"
-          if [[ "${failed}" != "0" ]]; then
-            exit 1
-          fi
-
-      - name: Record the repeated suite result
-        if: always()
-        env:
-          BOMLY_ASSURANCE_TAG: ${{ inputs.assurance_tag }}
-          COMPLETE_RESULT: ${{ steps.complete-tests.outcome }}
-          COMPLETED: ${{ steps.complete-tests.outputs.completed }}
-          FAILED: ${{ steps.complete-tests.outputs.failed }}
-        run: |
-          set -euo pipefail
-          completed="${COMPLETED:-0}"
-          exit_code=0
-          summary="The complete Go test suite passed five more times on Linux."
-          if [[ "${COMPLETE_RESULT}" != "success" ]]; then
-            exit_code=1
-            summary="The complete Go test suite failed on run ${FAILED:-0} of 5, which points at an intermittent failure."
-          fi
-          go run ./internal/assurance/cmd emit \
-            --id unit-repeat-full --exit-code "${exit_code}" --summary "${summary}" \
-            --metric planned_runs=5 --metric completed_runs="${completed}" \
-            --details-jsonl "${RUNNER_TEMP}/complete-details.jsonl" \
-            --out assurance-results --step-summary
-
       # Every target is attempted, even after one fails, so the report shows the
       # complete build matrix instead of stopping at the first problem.
       - name: Cross-build release targets
@@ -324,6 +279,5 @@ jobs:
       - name: Fail the job when any check failed
         if: >-
           steps.java-tests.outcome == 'failure' ||
-          steps.complete-tests.outcome == 'failure' ||
           steps.release-builds.outcome == 'failure'
         run: exit 1

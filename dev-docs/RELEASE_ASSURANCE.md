@@ -66,9 +66,16 @@ step only passes `--stage` when it emits something the catalog does not declare
 (which the report will then flag as unknown). `--details-jsonl` reads
 sub-results from a file, which keeps Windows command lines short.
 
-Every command fills the release tag, commit, run URL, job, and runner from the
+Every command fills the release tag, commit, job URL, job, and runner from the
 GitHub Actions environment. Set `BOMLY_ASSURANCE_TAG` when a stage runs for a
 tag that is not the checked-out ref.
+
+The job URL is resolved by reading the run's job list and matching the job
+running on this runner, because every instance of a matrix check shares one
+run and a run-level link cannot tell a reader which platform or slice a number
+came from. It costs one read of public workflow metadata, falls back to the run
+URL whenever that does not work, and can be set directly with
+`ASSURANCE_JOB_URL`.
 
 ## Judging a stage and building the report
 
@@ -128,12 +135,14 @@ Evidence claims are the public "we prove X, we do not prove Y" statements that
 used to live in `test/evidence/cases.json`. They keep the same rigor: pinned
 Git revisions, checksummed fixtures and expected-result files, explicit
 reproduction commands, and mandatory limitations. `make assurance-catalog`
-re-hashes every file a claim names, so a golden file cannot drift away from the
-claim it supports.
+verifies every hash a claim names, so a golden file cannot drift away from the
+claim it supports, and `--refresh` rewrites them when the goldens are
+deliberately regenerated.
 
-Claims proven by running a workflow against a release (`release-artifact` and
-`platform-matrix` levels) carry no repository checksum, because the per-release
-check result is the record that they ran.
+A claim must carry a pinned input **and** a committed artifact. That is the line
+between the two layers: if a statement would only restate what its check already
+reports — "the workflow ran and passed" — it belongs in the check's `proves`,
+not in a second entry that says the same thing again.
 
 ## Re-running things
 

@@ -44,8 +44,8 @@ GitHub Actions, and as part of the `Release prerequisites` stage before a
 version is tagged. It:
 
 - runs the Go unit tests twice on Linux, macOS, and Windows;
-- runs the Java-related unit tests ten times to catch intermittent failures;
-- runs all Go unit tests on Linux five more times;
+- runs the Java-related unit tests ten times to catch intermittent failures,
+  because those are the suites where intermittent failures have appeared;
 - builds both Bomly binaries for every supported Linux, macOS, and Windows
   processor target.
 

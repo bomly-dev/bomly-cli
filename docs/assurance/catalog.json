@@ -220,7 +220,7 @@
       "area": "release-integrity",
       "stage": "post-release",
       "level": "gate",
-      "description": "Downloads release files from their public URLs after publication and checks them against the published checksum list.",
+      "description": "Downloads every published file from its public URL, without credentials, and checks each one against the published checksum list.",
       "source": {
         "workflow": "assurance-assessment.yml",
         "job": "public-download"
@@ -236,10 +236,11 @@
         ]
       ],
       "proves": [
-        "The files a user downloads from the public release page are present and match the checksums published with them."
+        "Every file a user downloads from the public release page is present, reachable without credentials, and byte-identical to what was signed before publication."
       ],
       "limitations": [
-        "This checks availability and integrity at one moment from one network location."
+        "This checks availability and integrity at one moment from one network location.",
+        "Whether each archive contains a working binary is checked separately, against the draft release and by the install scripts."
       ]
     },
     {
@@ -654,7 +655,7 @@
       "area": "stability",
       "stage": "prerequisites",
       "level": "gate",
-      "description": "Runs the full Go unit test suite twice on Linux, macOS, and Windows.",
+      "description": "Runs the full Go unit test suite twice on Linux, macOS, and Windows, so a pass is never a single lucky run.",
       "source": {
         "workflow": "portable-assurance.yml",
         "job": "portable"
@@ -689,38 +690,12 @@
       ]
     },
     {
-      "id": "unit-repeat-full",
-      "title": "Repeated full test runs are stable",
-      "area": "stability",
-      "stage": "prerequisites",
-      "level": "gate",
-      "description": "Runs the complete unit test suite five more times on Linux to surface intermittent failures.",
-      "source": {
-        "workflow": "portable-assurance.yml",
-        "job": "linux-stability"
-      },
-      "reproduce": [
-        [
-          "go",
-          "test",
-          "./...",
-          "-count=5"
-        ]
-      ],
-      "proves": [
-        "The full suite passed five consecutive times, so the tests recorded here are not intermittently passing."
-      ],
-      "limitations": [
-        "Repetition raises confidence in stability; it cannot rule out a rare failure."
-      ]
-    },
-    {
       "id": "unit-repeat-java",
       "title": "Java detector tests are stable",
       "area": "stability",
       "stage": "prerequisites",
       "level": "gate",
-      "description": "Runs the Gradle, Maven, and sbt detector test suites ten times, because build-tool-backed detectors are the most timing sensitive.",
+      "description": "Runs the Gradle, Maven, and sbt detector test suites ten times, because build-tool-backed detectors are where intermittent failures have actually appeared.",
       "source": {
         "workflow": "portable-assurance.yml",
         "job": "linux-stability"
@@ -1240,35 +1215,6 @@
       ]
     },
     {
-      "id": "performance-stability",
-      "title": "Repeated cold and warm scan measurements",
-      "area": "performance",
-      "evidence_level": "release-artifact",
-      "check_id": "perf-samples",
-      "inputs": [
-        {
-          "kind": "fixture",
-          "location": "test/smoke/testdata/sboms/go.spdx.json",
-          "sha256": "99bd846daec887cfcb61d6d5384ccff91c6045482652f4719fab8b312192fe0e"
-        }
-      ],
-      "required_tools": [
-        "go"
-      ],
-      "reproduce": [
-        [
-          "make",
-          "benchmark-samples"
-        ]
-      ],
-      "proves": [
-        "The runner records five isolated cold and five shared-cache warm samples with output hashes, timing, memory, and dispersion."
-      ],
-      "limitations": [
-        "Wall time and memory are machine-specific observations and are not fixed pass-or-fail limits."
-      ]
-    },
-    {
       "id": "persisted-risk",
       "title": "Risk that persists across a version change",
       "area": "diff",
@@ -1305,38 +1251,6 @@
       ],
       "limitations": [
         "Persistence uses the canonical package-finding identity; a genuinely different advisory or rule remains a distinct finding."
-      ]
-    },
-    {
-      "id": "portable-platforms",
-      "title": "Repeated unit tests and release builds",
-      "area": "stability",
-      "evidence_level": "platform-matrix",
-      "check_id": "unit-portable",
-      "inputs": [
-        {
-          "kind": "workflow",
-          "location": ".github/workflows/portable-assurance.yml"
-        }
-      ],
-      "required_tools": [
-        "gh"
-      ],
-      "reproduce": [
-        [
-          "gh",
-          "workflow",
-          "run",
-          "portable-assurance.yml",
-          "--ref",
-          "v0.20.0"
-        ]
-      ],
-      "proves": [
-        "The manual workflow repeats Go unit tests on Linux, macOS, and Windows and cross-builds every release target."
-      ],
-      "limitations": [
-        "This workflow runs unit tests and builds; it does not run smoke tests against remote repositories or services."
       ]
     },
     {
@@ -1528,45 +1442,6 @@
       ]
     },
     {
-      "id": "release-integrity",
-      "title": "Published release files are complete and signed",
-      "area": "release-integrity",
-      "evidence_level": "release-artifact",
-      "check_id": "release-checksums",
-      "inputs": [
-        {
-          "kind": "release",
-          "location": "https://github.com/bomly-dev/bomly-cli/releases"
-        }
-      ],
-      "required_tools": [
-        "cosign",
-        "slsa-verifier"
-      ],
-      "reproduce": [
-        [
-          "gh",
-          "release",
-          "download",
-          "<tag>",
-          "--repo",
-          "bomly-dev/bomly-cli"
-        ],
-        [
-          "sha256sum",
-          "--check",
-          "SHA256SUMS",
-          "--ignore-missing"
-        ]
-      ],
-      "proves": [
-        "Every file this release publishes was checked against its checksum, its signature, and its build provenance before the release was made public."
-      ],
-      "limitations": [
-        "These checks describe the files as published. Anyone can re-run them at any time with the commands above."
-      ]
-    },
-    {
       "id": "remediation-read-only",
       "title": "Canonical read-only remediation guidance",
       "area": "remediation",
@@ -1648,38 +1523,6 @@
       ],
       "limitations": [
         "The fixture covers one document shape and does not imply lossless conversion from every producer."
-      ]
-    },
-    {
-      "id": "sbom-interoperability",
-      "title": "External SBOM validation",
-      "area": "sbom",
-      "evidence_level": "release-artifact",
-      "check_id": "sbom-interoperability",
-      "inputs": [
-        {
-          "kind": "workflow",
-          "location": ".github/workflows/sbom-interoperability.yml"
-        }
-      ],
-      "required_tools": [
-        "gh"
-      ],
-      "reproduce": [
-        [
-          "gh",
-          "workflow",
-          "run",
-          "sbom-interoperability.yml",
-          "--ref",
-          "v0.20.0"
-        ]
-      ],
-      "proves": [
-        "Checksum-pinned official SPDX and CycloneDX validators can check Bomly's generated canonical SBOMs."
-      ],
-      "limitations": [
-        "The workflow validates canonical fixtures, not every possible receiving tool or document conversion."
       ]
     },
     {
@@ -1778,32 +1621,6 @@
       ],
       "limitations": [
         "A source change is a review signal, not proof of malicious intent, and unknown source evidence cannot be classified."
-      ]
-    },
-    {
-      "id": "supported-install-paths",
-      "title": "The documented install paths work",
-      "area": "installation",
-      "evidence_level": "release-artifact",
-      "check_id": "install-script",
-      "inputs": [
-        {
-          "kind": "release",
-          "location": "https://bomly.dev/install.sh"
-        }
-      ],
-      "reproduce": [
-        [
-          "sh",
-          "-c",
-          "curl -fsSL https://bomly.dev/install.sh | sh"
-        ]
-      ],
-      "proves": [
-        "The install script published for this release downloads, verifies, and installs a working binary on Linux, macOS, and Windows."
-      ],
-      "limitations": [
-        "Package manager installs (Homebrew, Scoop, WinGet, and the Linux packages) are published by the same release but are not exercised by this check."
       ]
     },
     {

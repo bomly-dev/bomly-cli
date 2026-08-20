@@ -105,9 +105,15 @@ func TestCatalogRejectsInvalidDocuments(t *testing.T) {
 			}},
 			Evidence: []Evidence{{
 				ID: "graph-go", Title: "Go graph", Area: "end-to-end",
-				EvidenceLevel: EvidenceReleaseArtifact, CheckID: "smoke",
-				Inputs:      []Input{{Kind: "release", Location: "https://example.test/release"}},
-				Reproduce:   [][]string{{"make", "smoke"}},
+				EvidenceLevel: EvidencePinnedInput, CheckID: "smoke",
+				Inputs: []Input{{
+					Kind: "git", Location: "https://example.test/repo",
+					Revision: "0f2103c7e671653e519cf5edb0d3e86020202ecf",
+				}},
+				Reproduce: [][]string{{"make", "smoke"}},
+				Artifacts: []EvidenceArtifact{{
+					Path: "go.mod", SHA256: "0000000000000000000000000000000000000000000000000000000000000000",
+				}},
 				Proves:      []string{"It resolves."},
 				Limitations: []string{"One toolchain."},
 			}},
@@ -133,6 +139,10 @@ func TestCatalogRejectsInvalidDocuments(t *testing.T) {
 		"git without revision": func(c *Catalog) {
 			c.Evidence[0].Inputs = []Input{{Kind: "git", Location: "https://example.test/repo"}}
 		},
+		"unsupported input kind": func(c *Catalog) {
+			c.Evidence[0].Inputs = []Input{{Kind: "workflow", Location: ".github/workflows/smoke.yml"}}
+		},
+		"evidence without an artifact": func(c *Catalog) { c.Evidence[0].Artifacts = nil },
 		"fixture without hash": func(c *Catalog) {
 			c.Evidence[0].Inputs = []Input{{Kind: "fixture", Location: "go.mod"}}
 		},
@@ -141,9 +151,6 @@ func TestCatalogRejectsInvalidDocuments(t *testing.T) {
 				Kind: "fixture", Location: "../../../etc/passwd",
 				SHA256: "0000000000000000000000000000000000000000000000000000000000000000",
 			}}
-		},
-		"deterministic evidence needs an artifact": func(c *Catalog) {
-			c.Evidence[0].EvidenceLevel = EvidenceDeterministic
 		},
 		"unsorted checks": func(c *Catalog) {
 			c.Checks = append(c.Checks, c.Checks[0])

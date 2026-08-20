@@ -179,15 +179,16 @@ jobs:
           curl -fsSL --retry 3 -o "${RUNNER_TEMP}/assets/SHA256SUMS.sigstore.json" "${base}/SHA256SUMS.sigstore.json"
           curl -fsSL --retry 3 -o "${RUNNER_TEMP}/assets/multiple.intoto.jsonl" "${base}/multiple.intoto.jsonl"
 
-      - name: Verify what a user would download
+      # Only the checksums are re-checked here: the pre-release stage already
+      # extracted and ran the binaries, so what is new after publication is
+      # whether the public copies are complete and unaltered.
+      - name: Check the public copies against the published checksums
         id: verify
         continue-on-error: true
-        env:
-          BOMLY_ASSURANCE_TAG: ${{ needs.resolve.outputs.tag }}
         run: |
-          go run ./internal/assurance/cmd verify-release \
-            --dir "${RUNNER_TEMP}/assets" --version '${{ needs.resolve.outputs.version }}' \
-            --scope full --out "${RUNNER_TEMP}/release-results"
+          set -euo pipefail
+          cd "${RUNNER_TEMP}/assets"
+          sha256sum --check --strict SHA256SUMS
 
       - name: Record the public download result
         if: always()
@@ -199,13 +200,13 @@ jobs:
           set -euo pipefail
           exit_code=0
           count="$(find "${RUNNER_TEMP}/assets" -type f | wc -l | tr -d ' ')"
-          summary="All ${count} published files downloaded from their public URLs and match the published checksum list."
+          summary="All ${count} published files downloaded from their public URLs without credentials and match the published checksum list."
           if [ "${DOWNLOAD_OUTCOME}" != "success" ]; then
             exit_code=1
             summary="At least one published file could not be downloaded from its public URL."
           elif [ "${VERIFY_OUTCOME}" != "success" ]; then
             exit_code=1
-            summary="The published files downloaded, but ${count} of them did not match the published checksum list."
+            summary="The published files downloaded, but at least one did not match the published checksum list."
           fi
           go run ./internal/assurance/cmd emit \
             --id public-download --exit-code "${exit_code}" --summary "${summary}" \

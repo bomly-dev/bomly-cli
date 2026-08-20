@@ -39,17 +39,12 @@ const (
 	EvidenceSnapshot EvidenceLevel = "snapshot"
 	// EvidenceLiveService depends on data from a live service.
 	EvidenceLiveService EvidenceLevel = "live-service"
-	// EvidenceReleaseArtifact is measured against published release artifacts.
-	EvidenceReleaseArtifact EvidenceLevel = "release-artifact"
-	// EvidencePlatformMatrix comes from repeated runs across platforms.
-	EvidencePlatformMatrix EvidenceLevel = "platform-matrix"
 )
 
 // Valid reports whether the evidence level is known.
 func (e EvidenceLevel) Valid() bool {
 	switch e {
-	case EvidenceDeterministic, EvidencePinnedInput, EvidenceSnapshot,
-		EvidenceLiveService, EvidenceReleaseArtifact, EvidencePlatformMatrix:
+	case EvidenceDeterministic, EvidencePinnedInput, EvidenceSnapshot, EvidenceLiveService:
 		return true
 	default:
 		return false
@@ -117,8 +112,10 @@ type EvidenceArtifact struct {
 	SHA256 string `json:"sha256"`
 }
 
-// Evidence is one public claim about Bomly's behavior, backed by a check whose
-// per-release status shows whether the claim still holds.
+// Evidence is one public claim about Bomly's behavior, proven by a pinned input
+// and a committed result file, and backed by a check whose per-release status
+// shows whether the claim still holds. A claim that would only restate what its
+// check already reports does not belong here — the check card says it once.
 type Evidence struct {
 	ID            string             `json:"id"`
 	Title         string             `json:"title"`
@@ -129,7 +126,7 @@ type Evidence struct {
 	Inputs        []Input            `json:"inputs"`
 	RequiredTools []string           `json:"required_tools,omitempty"`
 	Reproduce     [][]string         `json:"reproduce"`
-	Artifacts     []EvidenceArtifact `json:"artifacts,omitempty"`
+	Artifacts     []EvidenceArtifact `json:"artifacts"`
 	Proves        []string           `json:"proves"`
 	Limitations   []string           `json:"limitations"`
 }
@@ -298,8 +295,8 @@ func validateEvidence(evidence Evidence, areas map[string]struct{}, checks map[s
 	if err := validateCommands(evidence.Reproduce); err != nil {
 		return err
 	}
-	if len(evidence.Artifacts) == 0 && requiresArtifact(evidence) {
-		return errCatalog("repository-backed evidence requires at least one hashed artifact")
+	if len(evidence.Artifacts) == 0 {
+		return errCatalog("evidence requires at least one hashed artifact")
 	}
 	for _, artifact := range evidence.Artifacts {
 		if !hashPattern.MatchString(artifact.SHA256) {
@@ -310,19 +307,6 @@ func validateEvidence(evidence Evidence, areas map[string]struct{}, checks map[s
 		}
 	}
 	return validateClaims(evidence.Proves, evidence.Limitations)
-}
-
-// requiresArtifact reports whether an evidence claim must point at a hashed
-// repository file. Claims proven by committed fixtures and goldens must; claims
-// proven by running a workflow against a release are recorded by the per-release
-// check result instead.
-func requiresArtifact(evidence Evidence) bool {
-	switch evidence.EvidenceLevel {
-	case EvidenceDeterministic, EvidencePinnedInput, EvidenceSnapshot, EvidenceLiveService:
-		return true
-	default:
-		return false
-	}
 }
 
 func hasInstance(check Check, name string) bool {
@@ -355,10 +339,6 @@ func validateInput(level EvidenceLevel, input Input) error {
 		if level == EvidencePinnedInput && !containerDigestPattern.MatchString(input.Ref) {
 			return errCatalog("pinned container input requires an immutable sha256 digest")
 		}
-	case "release", "service", "workflow":
-		// A published release asset, an external service, or a CI workflow:
-		// identified by location. The per-release check result is the record
-		// that it ran, so there is no repository hash to pin.
 	default:
 		return fmt.Errorf("unsupported input kind %q", input.Kind)
 	}

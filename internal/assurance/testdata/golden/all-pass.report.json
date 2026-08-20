@@ -82,7 +82,13 @@
         "degraded": 0,
         "skipped": 0,
         "missing": 0
-      }
+      },
+      "check_ids": [
+        "smoke"
+      ],
+      "evidence_ids": [
+        "graph-go"
+      ]
     },
     {
       "id": "release-integrity",
@@ -97,7 +103,10 @@
         "degraded": 0,
         "skipped": 0,
         "missing": 0
-      }
+      },
+      "check_ids": [
+        "release-checksums"
+      ]
     },
     {
       "id": "performance",
@@ -112,7 +121,10 @@
         "degraded": 0,
         "skipped": 0,
         "missing": 0
-      }
+      },
+      "check_ids": [
+        "perf-samples"
+      ]
     }
   ],
   "checks": [

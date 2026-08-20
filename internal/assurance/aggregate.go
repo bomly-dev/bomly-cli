@@ -104,25 +104,37 @@ func BuildReport(catalog Catalog, results []CheckResult, opts BuildOptions) Repo
 	}
 	report.Verdict = summarize(report.Checks)
 
+	if opts.IncludeEvidence {
+		report.Evidence = buildEvidence(catalog, report, selected)
+	}
+
+	// Areas are listed in catalog order, which is the order the published page
+	// reads in. An area earns a section when it has checks or evidence.
 	for _, area := range catalog.Areas {
+		reported := AreaReport{ID: area.ID, Title: area.Title, Description: area.Description}
 		var areaChecks []ReportCheck
 		for _, check := range report.Checks {
 			if check.Area == area.ID {
 				areaChecks = append(areaChecks, check)
+				reported.CheckIDs = append(reported.CheckIDs, check.ID)
 			}
 		}
-		if len(areaChecks) == 0 {
+		for _, evidence := range report.Evidence {
+			if evidence.Area == area.ID {
+				reported.EvidenceIDs = append(reported.EvidenceIDs, evidence.ID)
+			}
+		}
+		if len(reported.CheckIDs) == 0 && len(reported.EvidenceIDs) == 0 {
 			continue
 		}
-		verdict := summarize(areaChecks)
-		report.Areas = append(report.Areas, AreaReport{
-			ID: area.ID, Title: area.Title, Description: area.Description,
-			Status: verdict.Overall, Verdict: verdict,
-		})
-	}
-
-	if opts.IncludeEvidence {
-		report.Evidence = buildEvidence(catalog, report, selected)
+		reported.Verdict = summarize(areaChecks)
+		reported.Status = reported.Verdict.Overall
+		// An area proven only by evidence takes the status of the checks
+		// backing those claims, so it can never look better than they are.
+		if len(areaChecks) == 0 {
+			reported.Status = evidenceAreaStatus(report, reported.EvidenceIDs)
+		}
+		report.Areas = append(report.Areas, reported)
 	}
 	report.Coverage = buildCoverage(catalog, report, selected)
 	if opts.Previous != nil {
@@ -296,6 +308,19 @@ func summarize(checks []ReportCheck) Verdict {
 		verdict.Overall = StatusDegraded
 	}
 	return verdict
+}
+
+// evidenceAreaStatus is the worst status among the claims in an area.
+func evidenceAreaStatus(report Report, ids []string) Status {
+	status := StatusPass
+	for _, id := range ids {
+		for _, evidence := range report.Evidence {
+			if evidence.ID == id {
+				status = Worse(status, evidence.Status)
+			}
+		}
+	}
+	return status
 }
 
 func buildEvidence(catalog Catalog, report Report, selected map[Stage]struct{}) []ReportEvidence {

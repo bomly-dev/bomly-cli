@@ -2,74 +2,74 @@
   "schema_version": "bomly.assurance-catalog/v1",
   "areas": [
     {
+      "id": "end-to-end",
+      "title": "Scanning real projects",
+      "description": "Running the real command line against pinned example projects and comparing the entire result with a recorded one."
+    },
+    {
       "id": "dependency-graph",
       "title": "Dependency graphs",
-      "description": "Resolving the packages a project depends on, and how they got there."
-    },
-    {
-      "id": "diff",
-      "title": "Change detection",
-      "description": "Comparing two scans and classifying what changed."
-    },
-    {
-      "id": "end-to-end",
-      "title": "End-to-end behavior",
-      "description": "Running the real command line against real projects and comparing the whole result."
-    },
-    {
-      "id": "framework",
-      "title": "Assurance framework",
-      "description": "The catalog and contracts this report is built from."
-    },
-    {
-      "id": "installation",
-      "title": "Installation",
-      "description": "Getting the published release onto a machine the documented ways."
-    },
-    {
-      "id": "parsers",
-      "title": "Input parsing safety",
-      "description": "Reading untrusted project, configuration, and SBOM files without crashing."
-    },
-    {
-      "id": "performance",
-      "title": "Speed and stability",
-      "description": "How long a repeated scan takes and whether it returns the same answer."
+      "description": "Working out which packages a project depends on, and how each one got there."
     },
     {
       "id": "policy",
-      "title": "Policy and guidance",
-      "description": "Evaluating license, vulnerability, baseline, and source-change policy."
+      "title": "Policy decisions",
+      "description": "Deciding what counts as a problem: licences, vulnerabilities, baselines, and packages that change where they come from."
     },
     {
       "id": "reachability",
       "title": "Reachability",
-      "description": "Deciding whether a vulnerable package is actually used."
-    },
-    {
-      "id": "release-integrity",
-      "title": "Release integrity",
-      "description": "Whether the published files are complete, unmodified, and signed."
+      "description": "Judging whether a vulnerable package is actually used by the code that depends on it."
     },
     {
       "id": "remediation",
-      "title": "Remediation",
-      "description": "The upgrade guidance Bomly derives, without changing your project."
+      "title": "Upgrade guidance",
+      "description": "The fixes Bomly recommends, worked out without changing anything in your project."
     },
     {
-      "id": "sbom",
-      "title": "SBOM interoperability",
-      "description": "Reading and writing SBOM documents other tools accept."
-    },
-    {
-      "id": "stability",
-      "title": "Platform stability",
-      "description": "Behaving the same on every supported operating system and processor."
+      "id": "diff",
+      "title": "Comparing two scans",
+      "description": "Telling what genuinely changed between two scans, and what only looks new."
     },
     {
       "id": "targets",
-      "title": "Scan targets",
-      "description": "Scanning things other than a local source tree, such as container images."
+      "title": "Other scan targets",
+      "description": "Scanning things that are not a local source tree, such as container images."
+    },
+    {
+      "id": "sbom",
+      "title": "SBOM compatibility",
+      "description": "Reading SBOM documents other tools produce, and writing ones they accept."
+    },
+    {
+      "id": "stability",
+      "title": "Running everywhere",
+      "description": "Behaving the same on Linux, macOS, and Windows, and building for every processor a release supports."
+    },
+    {
+      "id": "parsers",
+      "title": "Handling broken input",
+      "description": "Reading damaged or hostile project, configuration, and SBOM files without crashing."
+    },
+    {
+      "id": "performance",
+      "title": "Speed and repeatability",
+      "description": "How long a repeated scan takes, and whether it returns the same answer every time."
+    },
+    {
+      "id": "release-integrity",
+      "title": "What you download",
+      "description": "Whether the published files are complete, unaltered, and signed by this project's release pipeline."
+    },
+    {
+      "id": "installation",
+      "title": "Installing it",
+      "description": "Whether the documented ways of installing this release actually work."
+    },
+    {
+      "id": "framework",
+      "title": "This report itself",
+      "description": "The catalog and contracts the report is built from, and the check that keeps them honest."
     }
   ],
   "checks": [

@@ -21,12 +21,22 @@ need a fix in the source tree, run **before** a version number exists, so a
 problem is fixed by a normal pull request instead of by a broken release.
 Checks that describe the published files can only run once those files exist.
 
-## What each check covers
+## How the report is organised
+
+The report is grouped by subject, not by release stage: scanning real projects,
+dependency graphs, policy decisions, reachability, upgrade guidance, comparing
+two scans, other scan targets, SBOM compatibility, running everywhere, handling
+broken input, speed and repeatability, what you download, and installing it.
+Each section holds the checks that cover it and the evidence claims made about
+it. Every check still states which stage it ran in, because that is what
+decides how a failure gets fixed.
 
 The full list, with what every check proves and what it does not, lives in the
 machine-readable catalog at
 [`docs/assurance/catalog.json`](assurance/catalog.json). The assurance page
-renders the same catalog, so the page and the repository can never disagree.
+renders the same catalog, so the page and the repository can never disagree —
+including the section order, which is the order the catalog declares its areas
+in.
 
 Highlights:
 

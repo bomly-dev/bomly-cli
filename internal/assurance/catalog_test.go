@@ -185,3 +185,68 @@ func mustJSON(t *testing.T, value any) []byte {
 	}
 	return data
 }
+
+// TestRepositoryCatalogProducesACompleteReport feeds the catalog a synthetic
+// passing result for every check and instance it declares. It guards the wiring
+// between the two: an evidence claim pointing at an instance no check can ever
+// report, or a check whose instances cannot all be satisfied, shows up here
+// instead of as a permanently "missing" entry in a published release report.
+func TestRepositoryCatalogProducesACompleteReport(t *testing.T) {
+	catalog := repositoryCatalog(t)
+	var results []CheckResult
+	for _, check := range catalog.Checks {
+		instances := []string{""}
+		if len(check.ExpectedInstances) > 0 {
+			instances = nil
+			for _, instance := range check.ExpectedInstances {
+				instances = append(instances, instance.Name)
+			}
+		}
+		for _, instance := range instances {
+			results = append(results, CheckResult{
+				SchemaVersion: CheckSchema, ID: check.ID, Instance: instance,
+				Stage: check.Stage, Level: check.Level, Status: StatusPass,
+				Summary: "Synthetic passing result.",
+			})
+		}
+	}
+	report := BuildReport(catalog, results, BuildOptions{
+		Release:         Release{Tag: "v0.0.0", Version: "0.0.0"},
+		IncludeEvidence: true,
+	})
+	if report.Verdict.Overall != StatusPass {
+		t.Fatalf("verdict = %s, want pass; missing=%v gates=%v",
+			report.Verdict.Overall, report.Verdict.MissingChecks, report.Verdict.GatesFailed)
+	}
+	if len(report.Unknown) != 0 {
+		t.Fatalf("unknown results = %+v", report.Unknown)
+	}
+	if len(report.Checks) != len(catalog.Checks) {
+		t.Fatalf("reported %d checks, catalog declares %d", len(report.Checks), len(catalog.Checks))
+	}
+	if len(report.Evidence) != len(catalog.Evidence) {
+		t.Fatalf("reported %d evidence claims, catalog declares %d", len(report.Evidence), len(catalog.Evidence))
+	}
+	for _, evidence := range report.Evidence {
+		if evidence.Status != StatusPass {
+			t.Errorf("evidence %q resolved to %s even though every check passed", evidence.ID, evidence.Status)
+		}
+	}
+	for _, stage := range Stages() {
+		var found bool
+		for _, reported := range report.Stages {
+			if reported.ID == stage {
+				found = true
+				if reported.Verdict.Checks == 0 {
+					t.Errorf("stage %s reported no checks", stage)
+				}
+			}
+		}
+		if !found {
+			t.Errorf("stage %s is missing from the report", stage)
+		}
+	}
+	if len(report.Coverage.Ecosystems) == 0 {
+		t.Fatal("the coverage matrix is empty")
+	}
+}

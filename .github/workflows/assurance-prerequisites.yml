@@ -1,0 +1,167 @@
+# Stage 1 of Bomly's release assurance framework: everything that must hold
+# before a version is tagged. It runs on the source tree, so a failure here is
+# fixed by an ordinary pull request rather than by a broken release.
+#
+# Auto Version calls this workflow and only tags when it passes. Release
+# preflight then looks for a successful run against the commit being released,
+# so a hand-made tag cannot skip it.
+#
+# The checks it collects are declared in docs/assurance/catalog.json.
+name: Release prerequisites
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit, branch, or tag to check (defaults to this ref).
+        type: string
+        required: false
+        default: ""
+  workflow_call:
+    inputs:
+      ref:
+        description: Commit, branch, or tag to check.
+        type: string
+        required: false
+        default: ""
+      assurance_tag:
+        description: Release tag recorded in the check results.
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: assurance-prerequisites-${{ inputs.ref || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: End-to-end scans
+    uses: ./.github/workflows/smoke.yml
+    with:
+      ref: ${{ inputs.ref || github.ref }}
+      assurance: true
+      assurance_tag: ${{ inputs.assurance_tag }}
+
+  portable:
+    name: Platform stability
+    uses: ./.github/workflows/portable-assurance.yml
+    with:
+      ref: ${{ inputs.ref || github.ref }}
+      assurance: true
+      assurance_tag: ${{ inputs.assurance_tag }}
+
+  # Fuzzing is advisory: a finding is recorded in the report and does not stop a
+  # release, so a failure here must not fail this workflow either. The verdict
+  # job below is what decides the stage.
+  fuzz:
+    name: Parser fuzzing
+    continue-on-error: true
+    uses: ./.github/workflows/fuzz.yml
+    with:
+      ref: ${{ inputs.ref || github.ref }}
+      fuzztime: 45s
+      assurance: true
+      assurance_tag: ${{ inputs.assurance_tag }}
+
+  catalog:
+    name: Assurance catalog
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Validate the assurance catalog
+        id: catalog
+        continue-on-error: true
+        run: make assurance-catalog
+
+      - name: Record the catalog result
+        if: always()
+        env:
+          BOMLY_ASSURANCE_TAG: ${{ inputs.assurance_tag }}
+          CATALOG_OUTCOME: ${{ steps.catalog.outcome }}
+        run: |
+          set -euo pipefail
+          exit_code=0
+          summary="The assurance catalog is valid and every fixture and expected-result file it names still matches its recorded checksum."
+          if [ "${CATALOG_OUTCOME}" != "success" ]; then
+            exit_code=1
+            summary="The assurance catalog is invalid or one of the files it names has changed. Open the validation step for the exact entry."
+          fi
+          checks="$(grep -c '"stage":' docs/assurance/catalog.json || true)"
+          go run ./internal/assurance/cmd emit \
+            --id catalog-valid --exit-code "${exit_code}" --summary "${summary}" \
+            --metric checks="${checks}" --out assurance-results --step-summary
+
+      - name: Upload check result
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: assurance-catalog
+          path: assurance-results
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Fail the job when the catalog is invalid
+        if: steps.catalog.outcome == 'failure'
+        run: exit 1
+
+  verdict:
+    name: Prerequisites verdict
+    if: always()
+    needs: [smoke, portable, fuzz, catalog]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Collect check results
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: assurance-*
+          merge-multiple: true
+          path: assurance-results
+
+      - name: Judge the prerequisites stage
+        env:
+          BOMLY_ASSURANCE_TAG: ${{ inputs.assurance_tag }}
+        run: |
+          go run ./internal/assurance/cmd verdict \
+            --results assurance-results --stage prerequisites \
+            --tag '${{ inputs.assurance_tag }}' \
+            --json assurance-results/stage-prerequisites.json --step-summary
+
+      - name: Upload the stage report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: assurance-stage-prerequisites
+          path: assurance-results
+          if-no-files-found: error
+          retention-days: 30

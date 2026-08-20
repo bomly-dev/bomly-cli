@@ -1,6 +1,7 @@
 # Measuring speed and stability
 
-`make benchmark-samples` measures the same offline Bomly scan ten times:
+`make benchmark-samples` (the `perfrun` tool under `internal/assurance/`)
+measures the same offline Bomly scan ten times:
 
 - five runs start with an empty cache;
 - five runs share a cache, like repeated scans normally do.
@@ -38,8 +39,9 @@ checksum. This comparison format is named
 
 ## Checking supported systems
 
-The `Portable stability assurance` workflow runs only when someone starts it
-from GitHub Actions. It:
+The `Portable stability assurance` workflow runs when someone starts it from
+GitHub Actions, and as part of the `Release prerequisites` stage before a
+version is tagged. It:
 
 - runs the Go unit tests twice on Linux, macOS, and Windows;
 - runs the Java-related unit tests ten times to catch intermittent failures;
@@ -57,10 +59,12 @@ when investigating platform-specific or intermittent failures.
 
 ## Reading a portable run
 
-Open the workflow run's **Summary** page first. The overall section explains
-what ran and whether each area passed. Each platform also has a short section
-showing how many test runs completed and which run failed, if any. The Linux
-section does the same for repeated tests and release builds.
+Open the workflow run's **Summary** page first. Each check writes its own
+section there — the repeated suites per platform, the repeated Java suites, the
+repeated complete suite, and the cross-build matrix — with the number of runs
+planned and completed and the exact point of failure. Those sections are
+rendered from the same check results the release assurance report is built
+from, so the summary and the published report always agree.
 
 If something fails, open the named job and failed step for the test or build
 output. To show only failed logs with the GitHub CLI, run:

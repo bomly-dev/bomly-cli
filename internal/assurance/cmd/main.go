@@ -200,7 +200,7 @@ func applyCatalog(result *assurance.CheckResult, catalog *assurance.Catalog, sta
 	return nil
 }
 
-func writeResult(outDir string, result assurance.CheckResult, stepSummary bool) error {
+func writeResult(outDir string, result assurance.CheckResult, stepSummary bool, reproduce [][]string) error {
 	if err := result.Validate(); err != nil {
 		return err
 	}
@@ -217,7 +217,7 @@ func writeResult(outDir string, result assurance.CheckResult, stepSummary bool) 
 	}
 	fmt.Printf("%s %s: %s\n", assurance.StatusIcon(result.Status), result.Key(), result.Summary)
 	if stepSummary {
-		if err := appendStepSummary(assurance.RenderResultMarkdown(result)); err != nil {
+		if err := appendStepSummary(assurance.RenderResultMarkdown(result, reproduce)); err != nil {
 			return err
 		}
 	}

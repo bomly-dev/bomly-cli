@@ -350,6 +350,6 @@ func TestOriginIsNotReadBackFromAnIngestedDocument(t *testing.T) {
 	}
 
 	if got := spdxPackageByName(t, reexported, "react")["downloadLocation"]; got != "NOASSERTION" {
-		t.Fatalf("re-exported downloadLocation = %v, want NOASSERTION; if origin now survives ingest, docs/SBOM.md must say so", got)
+		t.Fatalf("re-exported downloadLocation = %v, want NOASSERTION; if origin now survives ingest, docs/SBOM.md and dev-docs/ARCHITECTURE.md must say so", got)
 	}
 }

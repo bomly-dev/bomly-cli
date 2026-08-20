@@ -105,6 +105,7 @@ func TestCatalogRejectsInvalidDocuments(t *testing.T) {
 			}},
 			Evidence: []Evidence{{
 				ID: "graph-go", Title: "Go graph", Area: "end-to-end",
+				Description:   "Scans a pinned example project and compares the result with a recorded one.",
 				EvidenceLevel: EvidencePinnedInput, CheckID: "smoke",
 				Inputs: []Input{{
 					Kind: "git", Location: "https://example.test/repo",
@@ -124,18 +125,19 @@ func TestCatalogRejectsInvalidDocuments(t *testing.T) {
 	}
 
 	cases := map[string]func(*Catalog){
-		"bad schema":          func(c *Catalog) { c.SchemaVersion = "other/v1" },
-		"no areas":            func(c *Catalog) { c.Areas = nil },
-		"unknown check area":  func(c *Catalog) { c.Checks[0].Area = "nowhere" },
-		"bad stage":           func(c *Catalog) { c.Checks[0].Stage = "later" },
-		"bad level":           func(c *Catalog) { c.Checks[0].Level = "blocking" },
-		"no source":           func(c *Catalog) { c.Checks[0].Source = Source{} },
-		"blank claim":         func(c *Catalog) { c.Checks[0].Proves = []string{" "} },
-		"no limitations":      func(c *Catalog) { c.Checks[0].Limitations = nil },
-		"unknown backing":     func(c *Catalog) { c.Evidence[0].CheckID = "nothing" },
-		"undeclared instance": func(c *Catalog) { c.Evidence[0].Instance = "go" },
-		"bad evidence level":  func(c *Catalog) { c.Evidence[0].EvidenceLevel = "vibes" },
-		"no inputs":           func(c *Catalog) { c.Evidence[0].Inputs = nil },
+		"bad schema":           func(c *Catalog) { c.SchemaVersion = "other/v1" },
+		"no areas":             func(c *Catalog) { c.Areas = nil },
+		"unknown check area":   func(c *Catalog) { c.Checks[0].Area = "nowhere" },
+		"bad stage":            func(c *Catalog) { c.Checks[0].Stage = "later" },
+		"bad level":            func(c *Catalog) { c.Checks[0].Level = "blocking" },
+		"no source":            func(c *Catalog) { c.Checks[0].Source = Source{} },
+		"blank claim":          func(c *Catalog) { c.Checks[0].Proves = []string{" "} },
+		"no limitations":       func(c *Catalog) { c.Checks[0].Limitations = nil },
+		"unknown backing":      func(c *Catalog) { c.Evidence[0].CheckID = "nothing" },
+		"evidence description": func(c *Catalog) { c.Evidence[0].Description = " " },
+		"undeclared instance":  func(c *Catalog) { c.Evidence[0].Instance = "go" },
+		"bad evidence level":   func(c *Catalog) { c.Evidence[0].EvidenceLevel = "vibes" },
+		"no inputs":            func(c *Catalog) { c.Evidence[0].Inputs = nil },
 		"git without revision": func(c *Catalog) {
 			c.Evidence[0].Inputs = []Input{{Kind: "git", Location: "https://example.test/repo"}}
 		},

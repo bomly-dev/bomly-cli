@@ -329,6 +329,7 @@
       "id": "graph-go",
       "title": "Go module graph",
       "area": "end-to-end",
+      "description": "Scans a pinned Go example project and compares the whole dependency graph with a recorded one.",
       "evidence_level": "pinned-input",
       "check_id": "smoke",
       "instance": "go",
@@ -367,17 +368,13 @@
   ],
   "coverage": {
     "ecosystems": [
-      "Go",
-      "JavaScript"
-    ],
-    "rows": [
       {
-        "check_id": "smoke",
-        "title": "End-to-end scans of real projects",
-        "cells": {
-          "Go": "pass",
-          "JavaScript": "missing"
-        }
+        "name": "Go",
+        "status": "pass"
+      },
+      {
+        "name": "JavaScript",
+        "status": "missing"
       }
     ]
   },

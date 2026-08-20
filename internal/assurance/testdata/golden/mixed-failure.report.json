@@ -103,7 +103,13 @@
         "missing_checks": [
           "smoke"
         ]
-      }
+      },
+      "check_ids": [
+        "smoke"
+      ],
+      "evidence_ids": [
+        "graph-go"
+      ]
     },
     {
       "id": "release-integrity",
@@ -121,7 +127,10 @@
         "gates_failed": [
           "release-checksums"
         ]
-      }
+      },
+      "check_ids": [
+        "release-checksums"
+      ]
     },
     {
       "id": "performance",
@@ -139,7 +148,10 @@
         "advisories_failed": [
           "perf-samples"
         ]
-      }
+      },
+      "check_ids": [
+        "perf-samples"
+      ]
     }
   ],
   "checks": [

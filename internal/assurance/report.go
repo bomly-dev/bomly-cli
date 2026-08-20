@@ -51,13 +51,18 @@ type StageReport struct {
 	CheckIDs []string `json:"check_ids"`
 }
 
-// AreaReport summarises one catalog area.
+// AreaReport summarises one subject area: the checks that cover it and the
+// evidence claims made about it. Areas are what the published report is
+// organised by, because "what does this tell me about Bomly" is a more useful
+// question for a reader than "when in the release did this run".
 type AreaReport struct {
-	ID          string  `json:"id"`
-	Title       string  `json:"title"`
-	Description string  `json:"description"`
-	Status      Status  `json:"status"`
-	Verdict     Verdict `json:"verdict"`
+	ID          string   `json:"id"`
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	Status      Status   `json:"status"`
+	Verdict     Verdict  `json:"verdict"`
+	CheckIDs    []string `json:"check_ids,omitempty"`
+	EvidenceIDs []string `json:"evidence_ids,omitempty"`
 }
 
 // InstanceReport is one reported leg of a check.

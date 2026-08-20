@@ -117,7 +117,10 @@ dispatch then tells the landing page a new report is available.
 1. Add the entry to `docs/assurance/catalog.json`: `id`, `title`, `area`,
    `stage`, `level`, `description`, `source`, optional `expected_instances`,
    `reproduce`, and — required — `proves` and `limitations` in plain language.
-   Checks are sorted by `id`.
+   Checks are sorted by `id`. The `area` decides which section of the published
+   page the check appears in, and the order of `areas` in the catalog is the
+   order those sections are read in, so put a new area where it belongs in the
+   narrative rather than at the end.
 2. Emit a result from the workflow named in `source`, and upload it as an
    `assurance-<id>` artifact.
 3. If the check backs a public claim, add an `evidence` entry pointing at it

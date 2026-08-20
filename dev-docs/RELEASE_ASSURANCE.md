@@ -89,7 +89,21 @@ go run ./internal/assurance/cmd report --results assurance-results \
 `docs/assurance/index.json`, prints a markdown summary, and compares the release
 against the previous one listed in the index. It exits with code 3 when a result
 arrives for a check the catalog does not declare, so a renamed check cannot
-silently disappear from the report.
+silently disappear from the report (`--allow-unknown` downgrades that to a note,
+which the assessment uses because the matching declared check already shows as
+missing).
+
+The assessment judges a release against **the catalog as it was at that tag**,
+not the one on `main`, so a check added later is not counted as missing from an
+older release. The report tooling itself comes from `main`, which is what makes
+`gh workflow run assurance-assessment.yml -f tag=<old tag>` able to re-render an
+old release's report after a generator fix.
+
+The report is committed to `main` under `docs/assurance/`, because published
+GitHub releases are immutable and the assessment runs after publication. The
+commit uses the release app token, is marked `[skip ci]`, and retries onto
+`origin/main` if the branch moved. A `bomly-assurance-report` repository
+dispatch then tells the landing page a new report is available.
 
 ## Adding a check
 

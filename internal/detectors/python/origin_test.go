@@ -10,6 +10,59 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
+// A package can be listed in both the default and develop groups. They become
+// one node, so two groups naming different sources must cancel rather than
+// publishing whichever group was processed first.
+func TestPipenvGroupsReconcileOrigin(t *testing.T) {
+	cases := []struct {
+		name       string
+		develop    string
+		wantOrigin sdk.PackageOrigin
+	}{
+		{
+			name:       "groups agree",
+			develop:    "https://public.example/helper-1.0.0.tar.gz",
+			wantOrigin: sdk.PackageOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
+		},
+		{name: "groups name different sources", develop: "https://mirror.corp/helper-1.0.0.tar.gz"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			lock := `{
+      "_meta": {"hash": {"sha256": "x"}},
+      "default": {"helper": {"version": "==1.0.0", "file": "https://public.example/helper-1.0.0.tar.gz"}},
+      "develop": {"helper": {"version": "==1.0.0", "file": "` + tc.develop + `"}}
+    }`
+			path := filepath.Join(dir, "Pipfile.lock")
+			if err := os.WriteFile(path, []byte(lock), 0o644); err != nil {
+				t.Fatal(err)
+			}
+
+			graph, err := depGraphFromPipfileLock(path, "demo")
+			if err != nil {
+				t.Fatalf("depGraphFromPipfileLock() error = %v", err)
+			}
+
+			var checked int
+			graph.WalkNodes(func(dep *sdk.Dependency) bool {
+				if dep.Name != "helper" {
+					return true
+				}
+				checked++
+				if got := originOf(dep); got != tc.wantOrigin {
+					t.Fatalf("origin = %+v, want %+v", got, tc.wantOrigin)
+				}
+				return true
+			})
+			if checked != 1 {
+				t.Fatalf("found %d helper nodes, want 1", checked)
+			}
+		})
+	}
+}
+
 func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
 	if dep == nil {
 		return sdk.PackageOrigin{}

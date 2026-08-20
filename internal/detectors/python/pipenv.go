@@ -244,10 +244,15 @@ func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Dependency, packages
 		})
 		setPipenvOrigin(node, pkg)
 
-		if _, exists := depsGraph.Node(node.ID); !exists {
+		if existing, exists := depsGraph.Node(node.ID); !exists {
 			if err := depsGraph.AddNode(node); err != nil {
 				return fmt.Errorf("add Pipfile.lock package %q: %w", normalizedName, err)
 			}
+		} else {
+			// One package can be listed in both groups. The groups are one
+			// node, so where they name different sources the node must not
+			// report whichever group was walked first.
+			existing.Origin = sdk.ReconcileOrigin(existing.Origin, node.Origin)
 		}
 		if err := depsGraph.AddEdge(root.ID, node.ID); err != nil {
 			return fmt.Errorf("add Pipfile.lock dependency %q: %w", normalizedName, err)

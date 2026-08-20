@@ -324,11 +324,25 @@
       "area": "release-integrity",
       "stage": "pre-release",
       "level": "gate",
-      "description": "Hashes every downloaded release file and compares it with the published SHA256SUMS list.",
+      "description": "Hashes every release file each platform downloads and compares it with the published SHA256SUMS list.",
       "source": {
         "workflow": "release.yml",
         "job": "verify-draft"
       },
+      "expected_instances": [
+        {
+          "name": "linux-amd64",
+          "platform": "linux"
+        },
+        {
+          "name": "darwin-arm64",
+          "platform": "darwin"
+        },
+        {
+          "name": "windows-amd64",
+          "platform": "windows"
+        }
+      ],
       "reproduce": [
         [
           "sha256sum",

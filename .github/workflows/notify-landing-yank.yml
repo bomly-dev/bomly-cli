@@ -32,7 +32,7 @@ jobs:
           permission-contents: write
 
       - name: Trigger docs sync on landing page (published)
-        if: github.event.action == 'published'
+        if: github.event.action == 'published' && github.event.release.draft == false
         env:
           GH_TOKEN: ${{ steps.landing-token.outputs.token }}
           TAG: ${{ github.event.release.tag_name }}
@@ -45,8 +45,14 @@ jobs:
           {"event_type":"bomly-release","client_payload":{"version":"${TAG}","publishedAt":"${PUBLISHED_AT}"}}
           EOF
 
+      # A failed pre-release assurance gate leaves a draft release that a
+      # maintainer deletes. Deleting a draft fires the same `deleted` event as
+      # yanking a live release, so both yank paths ignore drafts: nothing was
+      # ever published for that version.
       - name: Trigger docs removal on landing page (yanked)
-        if: github.event.action == 'deleted' || github.event.action == 'unpublished'
+        if: >-
+          (github.event.action == 'deleted' || github.event.action == 'unpublished') &&
+          github.event.release.draft == false
         env:
           GH_TOKEN: ${{ steps.landing-token.outputs.token }}
           TAG: ${{ github.event.release.tag_name }}
@@ -59,7 +65,9 @@ jobs:
           EOF
 
   winget-yank:
-    if: github.event.action == 'deleted' || github.event.action == 'unpublished'
+    if: >-
+      (github.event.action == 'deleted' || github.event.action == 'unpublished') &&
+      github.event.release.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

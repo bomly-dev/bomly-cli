@@ -110,7 +110,7 @@ func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 	if logger == nil {
 		logger = zap.NewNop()
 	}
-	raw, path, err := readFirstExisting(workingDir, []string{"Package.resolved", ".package.resolved", "project.xcworkspace/xcshareddata/swiftpm/Package.resolved"})
+	raw, path, err := readFirstExisting(workingDir, resolvedCandidates)
 	if err != nil || len(raw) == 0 {
 		return
 	}

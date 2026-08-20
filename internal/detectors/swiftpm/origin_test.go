@@ -1,6 +1,7 @@
 package swiftpm
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -355,4 +356,71 @@ func TestSwiftPMNativeOriginDoesNotMatchAcrossPathCase(t *testing.T) {
 		}
 		return true
 	})
+}
+
+// Xcode keeps its SwiftPM lockfile inside the workspace. A project with only
+// that copy must still have its origins pinned: position attachment already
+// looked there, while the read paths did not, so the repositories came out
+// unpinned.
+func TestSwiftPMOriginIsPinnedFromTheXcodeLockfile(t *testing.T) {
+	workingDir := t.TempDir()
+	nested := filepath.Join(workingDir, ".swiftpm", "xcode", "package.xcworkspace", "xcshareddata", "swiftpm")
+	if err := os.MkdirAll(nested, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	resolved := `{
+      "pins": [
+        {
+          "identity": "swift-argument-parser",
+          "kind": "remoteSourceControl",
+          "location": "https://github.com/apple/swift-argument-parser.git",
+          "state": {"revision": "6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192", "version": "1.3.0"}
+        }
+      ],
+      "version": 2
+    }`
+	if err := os.WriteFile(filepath.Join(nested, "Package.resolved"), []byte(resolved), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	showDependencies := []byte(`{
+      "name": "demo",
+      "url": "/workspace/demo",
+      "version": "unspecified",
+      "dependencies": [
+        {"name": "swift-argument-parser", "url": "https://github.com/apple/swift-argument-parser.git", "version": "1.3.0", "dependencies": []}
+      ]
+    }`)
+
+	g, err := nativeGraph(showDependencies, workingDir, zap.NewNop())
+	if err != nil {
+		t.Fatalf("nativeGraph() error = %v", err)
+	}
+
+	want := sdk.PackageOrigin{
+		Repository: "https://github.com/apple/swift-argument-parser.git",
+		Revision:   "6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192",
+	}
+	var checked int
+	g.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep.Name != "swift-argument-parser" {
+			return true
+		}
+		checked++
+		if got := originOf(dep); got != want {
+			t.Fatalf("origin = %+v, want %+v", got, want)
+		}
+		return true
+	})
+	if checked != 1 {
+		t.Fatal("expected the pinned package in the graph")
+	}
+
+	// The same lockfile must also make the detector applicable and readable.
+	applicable, err := (Detector{WorkingDir: workingDir}).Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: workingDir})
+	if err != nil {
+		t.Fatalf("Applicable() error = %v", err)
+	}
+	if !applicable {
+		t.Fatal("a project with only the Xcode lockfile should be detectable")
+	}
 }

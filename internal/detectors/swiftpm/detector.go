@@ -24,7 +24,22 @@ type Detector struct {
 	Fallback   sdk.Detector
 }
 
-var evidencePatterns = []string{"Package.resolved", ".package.resolved", "Package.swift", "project.xcworkspace/xcshareddata/swiftpm/Package.resolved"}
+// resolvedCandidates lists every place a Package.resolved can live, in the
+// order a project is most likely to keep one. It is the single list: the
+// fallback detector reads it, the native detector reads it back to pin origins,
+// evidence detection is built from it, and position attachment walks it. They
+// had drifted into three different lists, so a project whose only lockfile sat
+// in the Xcode workspace was recognized for line numbers but not for reading.
+var resolvedCandidates = []string{
+	"Package.resolved",
+	".package.resolved",
+	filepath.Join(".swiftpm", "xcode", "package.xcworkspace", "xcshareddata", "swiftpm", "Package.resolved"),
+	filepath.Join("project.xcworkspace", "xcshareddata", "swiftpm", "Package.resolved"),
+}
+
+// evidencePatterns is what makes this detector applicable: any lockfile
+// location, or a manifest with no lockfile beside it.
+var evidencePatterns = append(append([]string{}, resolvedCandidates...), "Package.swift")
 
 type packageResolved struct {
 	Object struct {
@@ -102,7 +117,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
 	workingDir := d.workingDir(req.ProjectPath)
-	resolvedRaw, resolvedPath, err := readFirstExisting(workingDir, []string{"Package.resolved", ".package.resolved", "project.xcworkspace/xcshareddata/swiftpm/Package.resolved"})
+	resolvedRaw, resolvedPath, err := readFirstExisting(workingDir, resolvedCandidates)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}

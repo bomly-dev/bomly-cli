@@ -331,3 +331,40 @@ func TestParseGoTestEventsBuildFailure(t *testing.T) {
 		t.Fatalf("summary = %q", result.Summary)
 	}
 }
+
+// TestGoTestZeroTestsFailsInsteadOfSkipping guards the case where a -run
+// pattern stops matching: the command succeeds, no test runs, and the check
+// must not be able to slide past a gate.
+func TestGoTestZeroTestsFailsInsteadOfSkipping(t *testing.T) {
+	summary, err := ParseGoTestEvents(strings.NewReader(""), nil)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	result := summary.ToCheckResult(CheckResult{
+		SchemaVersion: CheckSchema, ID: "smoke", Instance: "go",
+		Stage: StagePrerequisites, Level: LevelGate,
+	}, 0)
+	if result.Status != StatusFail {
+		t.Fatalf("status = %s, want fail when no test ran", result.Status)
+	}
+	if !strings.Contains(result.Summary, "proved nothing") {
+		t.Fatalf("summary = %q", result.Summary)
+	}
+}
+
+// TestSkippedGateBlocks keeps a gate check that did not run from being counted
+// as a pass.
+func TestSkippedGateBlocks(t *testing.T) {
+	results := loadFixture(t, "all-pass")
+	for index := range results {
+		if results[index].ID == "release-checksums" {
+			results[index].Status = StatusSkip
+		}
+	}
+	report := BuildReport(fixtureCatalog(t), results, BuildOptions{
+		Release: Release{Tag: "v9.9.9"}, Now: time.Unix(0, 0).UTC(),
+	})
+	if !report.Verdict.Blocking() {
+		t.Fatal("a skipped gate check must block a release")
+	}
+}

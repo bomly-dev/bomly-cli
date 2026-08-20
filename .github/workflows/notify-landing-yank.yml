@@ -47,12 +47,13 @@ jobs:
 
       # A failed pre-release assurance gate leaves a draft release that a
       # maintainer deletes. Deleting a draft fires the same `deleted` event as
-      # yanking a live release, so both yank paths ignore drafts: nothing was
-      # ever published for that version.
+      # yanking a live release, so deletions of drafts are ignored: nothing was
+      # ever published for that version. `unpublished` always refers to a live
+      # release (it is what turns one back into a draft), so it is not guarded.
       - name: Trigger docs removal on landing page (yanked)
         if: >-
-          (github.event.action == 'deleted' || github.event.action == 'unpublished') &&
-          github.event.release.draft == false
+          github.event.action == 'unpublished' ||
+          (github.event.action == 'deleted' && github.event.release.draft == false)
         env:
           GH_TOKEN: ${{ steps.landing-token.outputs.token }}
           TAG: ${{ github.event.release.tag_name }}
@@ -66,8 +67,8 @@ jobs:
 
   winget-yank:
     if: >-
-      (github.event.action == 'deleted' || github.event.action == 'unpublished') &&
-      github.event.release.draft == false
+      github.event.action == 'unpublished' ||
+      (github.event.action == 'deleted' && github.event.release.draft == false)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

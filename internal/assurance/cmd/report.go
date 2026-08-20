@@ -238,12 +238,34 @@ func runCatalogValidate(args []string) error {
 	checkID := flags.String("check", "", "print one check")
 	evidenceID := flags.String("evidence", "", "print one evidence claim")
 	skipArtifacts := flags.Bool("skip-artifacts", false, "skip repository artifact hash verification")
+	refresh := flags.Bool("refresh", false, "rewrite recorded checksums from the files they name")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
 	catalog, catalogFile, err := mustLoadCatalog(*catalogPath)
 	if err != nil {
 		return err
+	}
+	if *refresh {
+		root, rootErr := repositoryRoot()
+		if rootErr != nil {
+			return rootErr
+		}
+		changed, refreshErr := catalog.RefreshArtifacts(root)
+		if refreshErr != nil {
+			return refreshErr
+		}
+		if changed > 0 {
+			data, encodeErr := catalog.Encode()
+			if encodeErr != nil {
+				return encodeErr
+			}
+			if err := os.WriteFile(catalogFile, data, 0o644); err != nil {
+				return fmt.Errorf("write assurance catalog: %w", err)
+			}
+		}
+		fmt.Printf("Refreshed %d recorded checksum(s) in %s.\n", changed, relativeToWorkingDir(catalogFile))
+		return nil
 	}
 	if !*skipArtifacts {
 		root, rootErr := repositoryRoot()

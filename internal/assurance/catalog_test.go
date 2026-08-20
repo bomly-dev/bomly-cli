@@ -250,3 +250,34 @@ func TestRepositoryCatalogProducesACompleteReport(t *testing.T) {
 		t.Fatal("the coverage matrix is empty")
 	}
 }
+
+func TestRefreshArtifactsRewritesDriftedHashes(t *testing.T) {
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "golden.json"), []byte("{}\n"), 0o644); err != nil {
+		t.Fatalf("write fixture: %v", err)
+	}
+	catalog := Catalog{Evidence: []Evidence{{
+		ID: "example",
+		Artifacts: []EvidenceArtifact{{
+			Path: "golden.json", SHA256: "1111111111111111111111111111111111111111111111111111111111111111",
+		}},
+		Inputs: []Input{{
+			Kind: "fixture", Location: "golden.json",
+			SHA256: "2222222222222222222222222222222222222222222222222222222222222222",
+		}},
+	}}}
+	changed, err := catalog.RefreshArtifacts(root)
+	if err != nil {
+		t.Fatalf("refresh: %v", err)
+	}
+	if changed != 2 {
+		t.Fatalf("refreshed %d hashes, want 2", changed)
+	}
+	if err := catalog.VerifyArtifacts(root); err != nil {
+		t.Fatalf("refreshed catalog still fails verification: %v", err)
+	}
+	again, err := catalog.RefreshArtifacts(root)
+	if err != nil || again != 0 {
+		t.Fatalf("second refresh changed %d hashes (err=%v), want 0", again, err)
+	}
+}

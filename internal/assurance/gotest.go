@@ -178,7 +178,10 @@ func (s GoTestSummary) ToCheckResult(base CheckResult, exitCode int) CheckResult
 	case s.Failed > 0 || exitCode != 0:
 		result.Status = StatusFail
 	case s.Total == 0:
-		result.Status = StatusSkip
+		// A test command that ran cleanly but executed nothing proves nothing:
+		// usually a -run pattern that no longer matches. Reporting that as a
+		// skip would let it slide past a gate, so it fails instead.
+		result.Status = StatusFail
 	}
 	result.Metrics = map[string]float64{
 		"tests_total":   float64(s.Total),
@@ -197,14 +200,14 @@ func (s GoTestSummary) ToCheckResult(base CheckResult, exitCode int) CheckResult
 
 func (s GoTestSummary) summaryLine(exitCode int) string {
 	if s.Total == 0 {
+		detail := ""
+		if len(s.Anomalies) > 0 {
+			detail = " " + s.Anomalies[0]
+		}
 		if exitCode != 0 {
-			detail := ""
-			if len(s.Anomalies) > 0 {
-				detail = " " + s.Anomalies[0]
-			}
 			return fmt.Sprintf("No tests ran and the command exited with code %d.%s", exitCode, detail)
 		}
-		return "No tests ran."
+		return "No tests ran, so this check proved nothing. The test selection most likely no longer matches any test." + detail
 	}
 	parts := []string{fmt.Sprintf("%d of %d tests passed", s.Passed, s.Total)}
 	if s.Failed > 0 {

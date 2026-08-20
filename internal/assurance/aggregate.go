@@ -278,7 +278,10 @@ func summarize(checks []ReportCheck) Verdict {
 		}
 		if check.Level == LevelGate {
 			gateStatus = Worse(gateStatus, check.Status)
-			if check.Status == StatusFail || check.Status == StatusDegraded {
+			// A gate that was skipped did not hold; it simply did not run, and
+			// treating that as a pass is exactly the silence this framework is
+			// meant to prevent.
+			if check.Status == StatusFail || check.Status == StatusDegraded || check.Status == StatusSkip {
 				verdict.GatesFailed = append(verdict.GatesFailed, check.ID)
 			}
 			continue

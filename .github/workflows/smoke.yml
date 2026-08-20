@@ -7,6 +7,26 @@ on:
   schedule:
     - cron: "0 8 * * *"
   workflow_dispatch:
+  # Called by "Release prerequisites" (assurance-prerequisites.yml). The
+  # `assurance` input turns on per-slice check results, which that stage
+  # collects to decide whether the code is fit to be tagged.
+  workflow_call:
+    inputs:
+      ref:
+        description: Commit, branch, or tag to check out.
+        type: string
+        required: false
+        default: ""
+      assurance:
+        description: Emit release assurance check results for each slice.
+        type: boolean
+        required: false
+        default: false
+      assurance_tag:
+        description: Release tag recorded in the check results.
+        type: string
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -26,6 +46,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
@@ -122,6 +144,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
@@ -254,7 +278,37 @@ jobs:
         env:
           BOMLY_SMOKE_BINARY: ${{ runner.temp }}/bomly-bin/bomly
           BOMLY_SMOKE_LITE_BINARY: ${{ runner.temp }}/bomly-bin/bomly-lite
-        run: go test -tags smoke ./test/smoke/ -v -count=1 -timeout 15m -run '${{ matrix.slice.run }}'
+        # -json instead of -v so the run can be summarised into an assurance
+        # check result; `assurance gotest --echo` below replays the same
+        # output, so the logs read exactly as they did before.
+        run: |
+          set -o pipefail
+          go test -tags smoke ./test/smoke/ -json -count=1 -timeout 15m \
+            -run '${{ matrix.slice.run }}' 2>&1 | tee "${RUNNER_TEMP}/smoke.jsonl" > /dev/null
+
+      - name: Summarise this slice
+        if: always()
+        env:
+          BOMLY_ASSURANCE_TAG: ${{ inputs.assurance_tag }}
+          SMOKE_OUTCOME: ${{ steps.smoke_tests.outcome }}
+        run: |
+          exit_code=0
+          if [ "${SMOKE_OUTCOME}" != "success" ]; then
+            exit_code=1
+          fi
+          go run ./internal/assurance/cmd gotest \
+            --id smoke --instance '${{ matrix.slice.name }}' \
+            --input "${RUNNER_TEMP}/smoke.jsonl" --exit-code "${exit_code}" \
+            --echo --out assurance-results
+
+      - name: Upload check result
+        if: always() && inputs.assurance
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: assurance-smoke-${{ matrix.slice.name }}
+          path: assurance-results
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Fail job if smoke tests failed
         if: steps.smoke_tests.outcome == 'failure'

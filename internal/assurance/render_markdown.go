@@ -154,7 +154,9 @@ func renderTrends(trends Trends) string {
 }
 
 // RenderResultMarkdown renders one check result for a workflow step summary.
-func RenderResultMarkdown(result CheckResult) string {
+// reproduce is the catalog's local reproduction command for the check, shown so
+// a reader can run the same thing without hunting for it.
+func RenderResultMarkdown(result CheckResult, reproduce [][]string) string {
 	var out strings.Builder
 	title := result.ID
 	if result.Instance != "" {
@@ -176,7 +178,32 @@ func RenderResultMarkdown(result CheckResult) string {
 		}
 		out.WriteString("\n")
 	}
+	if len(reproduce) > 0 {
+		out.WriteString("Reproduce locally:\n\n```sh\n")
+		for _, command := range reproduce {
+			out.WriteString(shellCommand(command) + "\n")
+		}
+		out.WriteString("```\n\n")
+	}
 	return out.String()
+}
+
+// shellCommand renders one argument list as a copyable shell command.
+func shellCommand(command []string) string {
+	quoted := make([]string, len(command))
+	for index, argument := range command {
+		if argument != "" && strings.IndexFunc(argument, func(r rune) bool {
+			if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') {
+				return false
+			}
+			return !strings.ContainsRune("@%_+=:,./-", r)
+		}) == -1 {
+			quoted[index] = argument
+			continue
+		}
+		quoted[index] = "'" + strings.ReplaceAll(argument, "'", "'\"'\"'") + "'"
+	}
+	return strings.Join(quoted, " ")
 }
 
 func markdownCell(value string) string {

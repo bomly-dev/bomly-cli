@@ -114,7 +114,7 @@ func runEmit(args []string) error {
 		}
 		result.Links = append(result.Links, assurance.Link{Label: label, URL: url})
 	}
-	return writeResult(*out, result, *stepSummary)
+	return writeResult(*out, result, *stepSummary, reproduceFor(catalogCtx.catalog, result.ID))
 }
 
 func parseDetail(entry string) (assurance.Detail, error) {
@@ -235,7 +235,18 @@ func runGoTest(args []string) error {
 	if err := applyCatalog(&result, catalogCtx.catalog, *stage, *level); err != nil {
 		return err
 	}
-	return writeResult(*out, summary.ToCheckResult(result, *exitCode), *stepSummary)
+	return writeResult(*out, summary.ToCheckResult(result, *exitCode), *stepSummary, reproduceFor(catalogCtx.catalog, result.ID))
+}
+
+// reproduceFor returns the catalog's local reproduction command for a check.
+func reproduceFor(catalog *assurance.Catalog, id string) [][]string {
+	if catalog == nil {
+		return nil
+	}
+	if check, found := catalog.Check(id); found {
+		return check.Reproduce
+	}
+	return nil
 }
 
 func writerOrNil(file *os.File) *os.File {
@@ -289,7 +300,7 @@ func runConvert(args []string) error {
 	if err != nil {
 		return err
 	}
-	return writeResult(*out, converted, *stepSummary)
+	return writeResult(*out, converted, *stepSummary, reproduceFor(catalogCtx.catalog, converted.ID))
 }
 
 // -------------------------------------------------------- verify-release ---
@@ -326,7 +337,7 @@ func runVerifyRelease(args []string) error {
 		if result.Status == assurance.StatusFail {
 			failures++
 		}
-		return writeResult(*out, result, *stepSummary)
+		return writeResult(*out, result, *stepSummary, reproduceFor(catalogCtx.catalog, result.ID))
 	}
 
 	if *scope == "full" {

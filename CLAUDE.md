@@ -21,6 +21,7 @@ make fuzz FUZZTIME=5s    # run every registered fuzz target with a short per-tar
 make benchmark           # run the hidden local dependency-graph benchmark
 make benchmark-report    # analyze local benchmark artifacts with Copilot CLI
 make assurance-catalog   # validate the release assurance catalog (docs/assurance/catalog.json)
+make assurance-report    # render a fixture assurance report into .assurance/ for local preview
 make run ARGS="scan"    # go run ./cmd/bomly <ARGS>
 make generate            # regenerate config reference, JSON schemas, schema docs, support matrix, and component docs (binary-driven)
 ```
@@ -231,6 +232,8 @@ Smoke tests (`test/smoke/`, `make smoke`) drive the built binary end-to-end agai
 - Scan cases come from `test/smoke/testdata/scan_targets.json`; keep it in sync with `internal/benchmark/testdata/scan_targets.json` (the benchmark target list) when cases change.
 - Pin every scan case's detectors with `--detectors`; normalize volatile fields in `helpers_test.go::normalizeJSON` before goldens.
 - Register new tests in both slice matrices (`smoke.yml` and exactly one slice in `update-smoke-goldens.yml`); `go test -run` elements are unanchored regexes — use `$` anchors to keep slice ownership exact.
+- A new slice also needs an entry in the `smoke` check's `expected_instances` in `docs/assurance/catalog.json` (with its `ecosystems`, which is what puts an ecosystem on the report's coverage list). `TestCatalogSmokeInstancesMatchWorkflowMatrix` fails when the two drift.
+- Regenerating goldens invalidates the checksums the catalog's claims pin. `Update Smoke Goldens` runs `catalog-validate --refresh` and commits the catalog with them; do the same when refreshing by hand.
 - `TestExamplePluginFixtureCompiles` runs in `make test` and must keep compiling against the pinned `bomly-dev/bomly-sdk` release; update the fixture source when the SDK contract changes.
 
 ## Release assurance
@@ -315,6 +318,12 @@ If a new analyzer / matcher / detector produces deterministic output for a fixed
 ### Smoke tests
 
 Any new user-visible feature needs a smoke case under `test/smoke/` — follow the golden/normalizer/slice-matrix rules in the Smoke tests section above.
+
+### Release assurance
+
+Ask whether the feature makes a claim worth publishing. If it does, add it to `docs/assurance/catalog.json` — a `check` when something new runs for every release, an `evidence` entry when a pinned input and a committed result file prove a specific behavior. Both carry the same fields (`title`, `description`, `proves`, `limitations`), because the public page renders one shape for every claim.
+
+A declared check with no result is reported as `missing` and blocks its stage, so add the catalog entry and the workflow step that emits it together.
 
 ### Documentation
 

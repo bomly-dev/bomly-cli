@@ -387,7 +387,8 @@ func runVerifyRelease(args []string) error {
 	if err != nil {
 		return err
 	}
-	checksums := baseResult("release-checksums", "")
+	platform := runtime.GOOS + "-" + runtime.GOARCH
+	checksums := baseResult("release-checksums", platform)
 	checksums.FinishedAt = time.Now().UTC().Format(time.RFC3339)
 	if err := applyCatalog(&checksums, catalogCtx.catalog, "", ""); err != nil {
 		return err
@@ -435,7 +436,7 @@ func runVerifyRelease(args []string) error {
 	if err != nil {
 		return err
 	}
-	binaries := baseResult("release-binaries", runtime.GOOS+"-"+runtime.GOARCH)
+	binaries := baseResult("release-binaries", platform)
 	binaries.FinishedAt = time.Now().UTC().Format(time.RFC3339)
 	if err := applyCatalog(&binaries, catalogCtx.catalog, "", ""); err != nil {
 		return err

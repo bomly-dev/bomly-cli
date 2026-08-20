@@ -167,6 +167,26 @@ tracking issue and the published report records the failure honestly.
 the report without blocking a release. Use it for the first release after a
 framework change, then turn it back on.
 
+## Changing a schema
+
+Four documents carry a schema version: the check result, the catalog, the
+report, and the index. The report and index are read by bomly.dev, so their
+versions are a contract with another repository.
+
+- Adding an optional field keeps the version. Every consumer ignores what it
+  does not know.
+- Removing a field, renaming one, or changing what one means raises the version
+  — and the site has to learn the new shape *first*, or reports stop appearing.
+  The order is: teach `bomly-landing-page` (`SUPPORTED_REPORT_SCHEMAS` in
+  `lib/assurance.ts`, `REPORT_SCHEMAS` in `scripts/sync-assurance.mjs`) to
+  render both versions, ship that, then raise the version here.
+- The site keeps rendering older reports it already mirrored, and skips reports
+  whose version it does not know with a warning, so a mismatch shows up as one
+  release missing from the page rather than a broken page.
+
+`TestSchemaVersionsArePinned` fails on any change to these strings, so raising
+one is always deliberate.
+
 ## What the automation needs
 
 - The Bomly Release app needs **Issues: Read and write** on `bomly-cli` for the

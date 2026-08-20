@@ -57,25 +57,32 @@ Highlights:
 - **Speed and stability.** The same scan is repeated with a cold and a warm
   cache to record timing and confirm the output does not change.
 
-Checks are either **gates**, which stop a release, or **advisory**, which are
-reported but never block. The report always says which is which, and every
-count links to the job that produced it, so any number on the page is one click
-from its log.
+Some checks stop a release when they fail; others are recorded without
+blocking. Either way, a claim that was not confirmed is shown on the page and
+raises a tracking issue for maintainers, so a known problem in a published
+release is never quietly dropped. Every count links to the job that produced
+it, so any number on the page is one click from its log.
 
-## Evidence claims
+## Claims, checks, and evidence
 
-Alongside the checks, the catalog carries **evidence claims**: specific
-statements about Bomly's behavior, each with a pinned input — a public
-repository at a recorded commit, or a checked-in fixture — the exact command to
-reproduce it, the checksummed result file it is compared against, and its
-stated limitations. Each claim names the check that backs it, so the report can
-show whether that claim still held for the release you are looking at.
+The report uses one vocabulary, and it is worth being precise about it:
 
-A claim earns its own entry only when it adds something a check result cannot:
-the pinned input and the committed file. Claims that would just restate their
-check are not repeated here.
+- A **claim** is one specific statement about what a release does — that it
+  reads an npm lockfile correctly, or that the files you download are the ones
+  we signed.
+- A **check** is what asserts a claim: something that ran against that exact
+  release and produced a result you can open.
+- The **report as a whole** is the evidence: every claim, whether it was
+  confirmed, and a link to what confirmed it.
 
-Reproduce any claim from a repository checkout:
+Some claims are asserted directly by a check. Others are asserted by comparing
+a pinned input — a public repository at a recorded commit, or a checked-in
+fixture — against a checksummed result file, and name the check that performed
+that comparison. Both appear as claims on the page, in the section they belong
+to. A claim earns a separate entry only when it adds something the check cannot
+say on its own.
+
+Check any claim yourself from a repository checkout:
 
 ```sh
 make assurance-catalog
@@ -89,7 +96,7 @@ The first command validates the whole catalog, including the checksums of every
 expected-result file it names. The second prints one claim with its reproduction
 command.
 
-## What a green report does not mean
+## What a verified claim does not mean
 
 - A passing report describes the checks listed in the catalog. Software can
   still fail in ways nobody has written a check for.

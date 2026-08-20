@@ -446,18 +446,11 @@ func sortedPackageIDs(packages map[string]metadataPackage) []string {
 }
 
 func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
-	if existing, ok := g.Node(node.ID); ok {
-		// Cargo can resolve one crate name and version from two sources -- the
-		// same crate pulled from two git remotes, say. They share a PURL, so
-		// they are one node, and the node must not claim whichever source was
-		// visited first.
-		detectors.FoldOrigin(existing, node)
-		return nil
-	}
-	if err := g.AddNode(node); err != nil {
-		return fmt.Errorf("add node %q: %w", node.ID, err)
-	}
-	return nil
+	// Cargo can resolve one crate name and version from two sources -- the same
+	// crate pulled from two git remotes, say. They share a PURL, so they are
+	// one node, and the shared helper settles what that node claims.
+	_, err := detectors.AddNodeFolding(g, node)
+	return err
 }
 
 type lockPackage struct {

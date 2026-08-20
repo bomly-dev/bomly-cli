@@ -505,13 +505,8 @@ func gemNode(spec lockSpec) *sdk.Dependency {
 }
 
 func addGemNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
-	if _, ok := depsGraph.Node(node.ID); ok {
-		return nil
-	}
-	if err := depsGraph.AddNode(node); err != nil {
-		return fmt.Errorf("add node %q: %w", node.ID, err)
-	}
-	return nil
+	_, err := detectors.AddNodeFolding(depsGraph, node)
+	return err
 }
 
 func appendUnique(values []string, value string) []string {

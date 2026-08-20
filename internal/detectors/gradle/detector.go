@@ -496,10 +496,12 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 		}
 		stack = stack[:depth+1]
 		parentID := stack[len(stack)-1]
-		if existing, ok := currentGraph.Node(node.ID); ok {
-			existing.AddScope(node.PrimaryScope())
-		} else if err := currentGraph.AddNode(node); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
-			return gradleParseResult{}, fmt.Errorf("add node %q: %w", node.ID, err)
+		surviving, err := detectors.AddNodeFolding(currentGraph, node)
+		if err != nil {
+			return gradleParseResult{}, err
+		}
+		if surviving != node {
+			surviving.AddScope(node.PrimaryScope())
 		}
 		if err := currentGraph.AddEdge(parentID, node.ID); err != nil {
 			return gradleParseResult{}, fmt.Errorf("add dependency %q -> %q: %w", parentID, node.ID, err)

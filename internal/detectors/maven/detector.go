@@ -401,10 +401,12 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 				return nil, err
 			}
 			tgfPackages[id] = node
-			if existing, ok := tgfGraph.Node(node.ID); ok {
-				existing.AddScope(node.PrimaryScope())
-			} else if err := tgfGraph.AddNode(node); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
-				return nil, fmt.Errorf("add maven package %q: %w", node.ID, err)
+			surviving, err := detectors.AddNodeFolding(tgfGraph, node)
+			if err != nil {
+				return nil, err
+			}
+			if surviving != node {
+				surviving.AddScope(node.PrimaryScope())
 			}
 		case looksLikeTGFEdgeLine(line):
 			fields := strings.Fields(line)

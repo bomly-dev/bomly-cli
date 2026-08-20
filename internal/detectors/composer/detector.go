@@ -292,13 +292,8 @@ func splitPackageName(value string) (string, string) {
 }
 
 func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
-	if _, ok := depsGraph.Node(node.ID); ok {
-		return nil
-	}
-	if err := depsGraph.AddNode(node); err != nil {
-		return fmt.Errorf("add node %q: %w", node.ID, err)
-	}
-	return nil
+	_, err := detectors.AddNodeFolding(depsGraph, node)
+	return err
 }
 
 func readComposerManifest(path string) (composerManifest, error) {

@@ -338,13 +338,13 @@ func splitYarnTreeName(value string) (string, string, error) {
 
 // AddNodeIfMissing adds a package to a graph or merges scope into the existing package.
 func AddNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
-	if existing, ok := depsGraph.Node(node.ID); ok {
-		existing.AddScope(node.PrimaryScope())
-		detectors.FoldOrigin(existing, node)
-		return nil
+	surviving, err := detectors.AddNodeFolding(depsGraph, node)
+	if err != nil {
+		return err
 	}
-	if err := depsGraph.AddNode(node); err != nil {
-		return fmt.Errorf("add node %q: %w", node.ID, err)
+	if surviving != node {
+		// A package reached twice carries both scopes.
+		surviving.AddScope(node.PrimaryScope())
 	}
 	return nil
 }

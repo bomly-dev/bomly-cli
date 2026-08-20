@@ -10,6 +10,53 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
+// An environment can report one distribution twice -- stale duplicate
+// .dist-info directories -- each with its own PEP 610 direct_url. They fold to
+// one node, so records naming different sources must cancel.
+func TestPipInspectDuplicateRecordsReconcileOrigin(t *testing.T) {
+	cases := []struct {
+		name   string
+		second string
+		want   sdk.PackageOrigin
+	}{
+		{
+			name:   "records agree",
+			second: "https://public.example/helper-1.0.0.tar.gz",
+			want:   sdk.PackageOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
+		},
+		{name: "records name different sources", second: "https://mirror.corp/helper-1.0.0.tar.gz"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			raw := []byte(`{"version":"1","installed":[
+              {"metadata":{"name":"helper","version":"1.0.0"},"direct_url":{"url":"https://public.example/helper-1.0.0.tar.gz","archive_info":{}}},
+              {"metadata":{"name":"helper","version":"1.0.0"},"direct_url":{"url":"` + tc.second + `","archive_info":{}}}
+            ]}`)
+
+			graph, err := depGraphFromPipInspect(raw, nil, nil)
+			if err != nil {
+				t.Fatalf("depGraphFromPipInspect() error = %v", err)
+			}
+
+			var checked int
+			graph.WalkNodes(func(dep *sdk.Dependency) bool {
+				if dep.Name != "helper" {
+					return true
+				}
+				checked++
+				if got := originOf(dep); got != tc.want {
+					t.Fatalf("origin = %+v, want %+v", got, tc.want)
+				}
+				return true
+			})
+			if checked != 1 {
+				t.Fatalf("found %d helper nodes, want 1", checked)
+			}
+		})
+	}
+}
+
 // poetry.lock can hold several marker-specific records for one package. They
 // fold to one node, so records naming different sources must cancel.
 func TestPoetryDuplicateRecordsReconcileOrigin(t *testing.T) {

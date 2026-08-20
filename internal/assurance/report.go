@@ -104,6 +104,7 @@ type ReportEvidence struct {
 	ID            string             `json:"id"`
 	Title         string             `json:"title"`
 	Area          string             `json:"area"`
+	Description   string             `json:"description"`
 	EvidenceLevel EvidenceLevel      `json:"evidence_level"`
 	CheckID       string             `json:"check_id"`
 	Instance      string             `json:"instance,omitempty"`
@@ -116,17 +117,19 @@ type ReportEvidence struct {
 	Limitations   []string           `json:"limitations"`
 }
 
-// CoverageRow is one check's status per ecosystem.
-type CoverageRow struct {
-	CheckID string            `json:"check_id"`
-	Title   string            `json:"title"`
-	Cells   map[string]Status `json:"cells"`
+// EcosystemCoverage is whether one language or package format was exercised
+// for this release. Which check did the exercising is deliberately not part of
+// it: the reader's question is "was my ecosystem covered", and answering it
+// with a grid of checks invites the false conclusion that a blank cell is a
+// gap when the ecosystem was covered by another check.
+type EcosystemCoverage struct {
+	Name   string `json:"name"`
+	Status Status `json:"status"`
 }
 
-// Coverage maps ecosystems against the checks that exercise them.
+// Coverage lists every ecosystem any check exercised, worst status first.
 type Coverage struct {
-	Ecosystems []string      `json:"ecosystems"`
-	Rows       []CoverageRow `json:"rows"`
+	Ecosystems []EcosystemCoverage `json:"ecosystems"`
 }
 
 // MetricTrend compares one metric against the previous release's report.

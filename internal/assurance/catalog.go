@@ -120,6 +120,7 @@ type Evidence struct {
 	ID            string             `json:"id"`
 	Title         string             `json:"title"`
 	Area          string             `json:"area"`
+	Description   string             `json:"description"`
 	EvidenceLevel EvidenceLevel      `json:"evidence_level"`
 	CheckID       string             `json:"check_id"`
 	Instance      string             `json:"instance,omitempty"`
@@ -260,8 +261,10 @@ func validateCheck(check Check, areas map[string]struct{}) error {
 }
 
 func validateEvidence(evidence Evidence, areas map[string]struct{}, checks map[string]Check) error {
-	if strings.TrimSpace(evidence.Title) == "" {
-		return errCatalog("title is required")
+	// Every claim carries the same fields whichever way it is asserted, so the
+	// published report can render one shape for all of them.
+	if strings.TrimSpace(evidence.Title) == "" || strings.TrimSpace(evidence.Description) == "" {
+		return errCatalog("title and description are required")
 	}
 	if _, exists := areas[evidence.Area]; !exists {
 		return fmt.Errorf("unknown area %q", evidence.Area)

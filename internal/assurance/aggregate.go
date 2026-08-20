@@ -348,6 +348,7 @@ func buildEvidence(catalog Catalog, report Report, selected map[Stage]struct{}) 
 		}
 		entries = append(entries, ReportEvidence{
 			ID: evidence.ID, Title: evidence.Title, Area: evidence.Area,
+			Description:   evidence.Description,
 			EvidenceLevel: evidence.EvidenceLevel, CheckID: evidence.CheckID,
 			Instance: evidence.Instance, Status: status, Inputs: evidence.Inputs,
 			RequiredTools: evidence.RequiredTools, Reproduce: evidence.Reproduce,
@@ -358,9 +359,11 @@ func buildEvidence(catalog Catalog, report Report, selected map[Stage]struct{}) 
 	return entries
 }
 
+// buildCoverage answers one question per ecosystem: was it exercised for this
+// release, and did that hold? An ecosystem covered by several checks takes the
+// worst of them, so a passing stamp cannot hide a failure elsewhere.
 func buildCoverage(catalog Catalog, report Report, selected map[Stage]struct{}) Coverage {
-	ecosystems := map[string]struct{}{}
-	var rows []CoverageRow
+	statuses := map[string]Status{}
 	for _, check := range catalog.Checks {
 		if _, wanted := selected[check.Stage]; !wanted {
 			continue
@@ -369,7 +372,6 @@ func buildCoverage(catalog Catalog, report Report, selected map[Stage]struct{}) 
 		if !found {
 			continue
 		}
-		cells := map[string]Status{}
 		for _, expected := range check.ExpectedInstances {
 			if len(expected.Ecosystems) == 0 {
 				continue
@@ -382,26 +384,24 @@ func buildCoverage(catalog Catalog, report Report, selected map[Stage]struct{}) 
 				}
 			}
 			for _, ecosystem := range expected.Ecosystems {
-				ecosystems[ecosystem] = struct{}{}
-				if existing, present := cells[ecosystem]; present {
-					cells[ecosystem] = Worse(existing, status)
+				if existing, present := statuses[ecosystem]; present {
+					statuses[ecosystem] = Worse(existing, status)
 					continue
 				}
-				cells[ecosystem] = status
+				statuses[ecosystem] = status
 			}
 		}
-		if len(cells) == 0 {
-			continue
-		}
-		rows = append(rows, CoverageRow{CheckID: check.ID, Title: check.Title, Cells: cells})
 	}
-	names := make([]string, 0, len(ecosystems))
-	for ecosystem := range ecosystems {
+	names := make([]string, 0, len(statuses))
+	for ecosystem := range statuses {
 		names = append(names, ecosystem)
 	}
 	sort.Strings(names)
-	sort.Slice(rows, func(i, j int) bool { return rows[i].CheckID < rows[j].CheckID })
-	return Coverage{Ecosystems: names, Rows: rows}
+	coverage := Coverage{}
+	for _, name := range names {
+		coverage.Ecosystems = append(coverage.Ecosystems, EcosystemCoverage{Name: name, Status: statuses[name]})
+	}
+	return coverage
 }
 
 func collectRunners(results []CheckResult) []Runner {

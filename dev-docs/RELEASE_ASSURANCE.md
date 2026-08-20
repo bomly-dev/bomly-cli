@@ -125,6 +125,9 @@ dispatch then tells the landing page a new report is available.
    `assurance-<id>` artifact.
 3. If the check backs a public claim, add an `evidence` entry pointing at it
    with `check_id` (and `instance`, when one specific leg proves the claim).
+   Both kinds of entry carry the same fields — title, description, proves,
+   limitations — because the published page renders one shape for every claim,
+   whichever way it is asserted.
 4. Run `make assurance-catalog`, then `go test ./internal/assurance/`.
    Refresh goldens with `go test ./internal/assurance/ -update` when the report
    shape changes.
@@ -166,6 +169,16 @@ tracking issue and the published report records the failure honestly.
 `vars.RELEASE_ASSURANCE_ENFORCE` set to `false` runs everything and publishes
 the report without blocking a release. Use it for the first release after a
 framework change, then turn it back on.
+
+## Ecosystem coverage
+
+`expected_instances[].ecosystems` is what puts a language or package format on
+the report's coverage list. Coverage is a single stamp per ecosystem, taking
+the worst status of every check that exercised it — not a grid of which check
+covered what. The reader's question is "was my ecosystem covered", and
+answering it per check invites the false conclusion that a blank cell is a gap
+when another check covered it. Adding an ecosystem to any check's instances is
+enough to have it appear.
 
 ## Changing a schema
 

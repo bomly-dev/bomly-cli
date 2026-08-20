@@ -189,7 +189,12 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 			Language:       "rust",
 			PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)}, Source: source, ResolvedURL: pkg.Source,
 		})
-		setCargoOrigin(node, pkg.Source)
+		if !application {
+			// A workspace member is the project's own code. It has no external
+			// origin, and a lock entry that merely shares its name -- an
+			// unrelated crate from a git remote -- must not be credited to it.
+			setCargoOrigin(node, pkg.Source)
+		}
 		return node
 	}
 	lockPackageFor := func(manifest cargoManifest) lockPackage {

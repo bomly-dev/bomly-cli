@@ -391,7 +391,11 @@ func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}) 
 		Language:       "rust",
 		PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)}, Source: source, ResolvedURL: pkg.Source,
 	})
-	setCargoOrigin(node, pkg.Source)
+	if !workspaceMember {
+		// A workspace member is the project's own code: it has no external
+		// origin, whatever a same-named lock entry says.
+		setCargoOrigin(node, pkg.Source)
+	}
 	return node
 
 }

@@ -133,6 +133,46 @@ func TestCargoDuplicateCrateSameSourceKeepsOrigin(t *testing.T) {
 	}
 }
 
+// A workspace member is the project's own code. A lock entry that merely shares
+// its name -- an unrelated crate pulled from a git remote -- must not be
+// credited to it, or the SBOM reports first-party code as coming from someone
+// else's repository.
+func TestCargoWorkspaceMemberTakesNoExternalOrigin(t *testing.T) {
+	lock := []byte(`version = 3
+
+[[package]]
+name = "helper"
+version = "0.1.0"
+
+[[package]]
+name = "helper"
+version = "1.0.0"
+source = "git+https://github.com/external/helper#aaaabbbbccccddddeeeeffff0000111122223333"
+`)
+	root := cargoManifest{Name: "demo", Version: "0.1.0"}
+	members := []cargoLockMember{{manifest: cargoManifest{Name: "helper", Version: "0.1.0"}, dir: "crates/helper"}}
+
+	graph, _, _, err := depGraphFromLockWorkspace(lock, root, members, sdk.Scope(""))
+	if err != nil {
+		t.Fatalf("depGraphFromLockWorkspace() error = %v", err)
+	}
+
+	var checked int
+	graph.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep.Type != sdk.PackageTypeApplication {
+			return true
+		}
+		checked++
+		if origin := originOf(dep); !origin.Empty() {
+			t.Fatalf("%s is the project's own code but claims %+v", dep.ID, origin)
+		}
+		return true
+	})
+	if checked == 0 {
+		t.Fatal("expected at least one workspace member in the graph")
+	}
+}
+
 // The lockfile path builds nodes through the same helper.
 func TestCargoLockGraphCarriesOrigin(t *testing.T) {
 	lock := []byte(`

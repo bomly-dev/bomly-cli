@@ -411,3 +411,28 @@ func TestMatchJobURLPicksTheRunningJobOnThisRunner(t *testing.T) {
 		t.Fatal("expected malformed payload to be reported")
 	}
 }
+
+// TestSchemaVersionsArePinned makes a schema change a deliberate act. The
+// published reports are read by bomly.dev, which renders a known list of
+// versions: adding an optional field keeps the version, while removing or
+// repurposing one has to raise it and be taught to the site first.
+func TestSchemaVersionsArePinned(t *testing.T) {
+	for name, actual := range map[string]string{
+		"check":   CheckSchema,
+		"catalog": CatalogSchema,
+		"report":  ReportSchema,
+		"index":   IndexSchema,
+	} {
+		expected := map[string]string{
+			"check":   "bomly.assurance-check/v1",
+			"catalog": "bomly.assurance-catalog/v1",
+			"report":  "bomly.assurance-report/v1",
+			"index":   "bomly.assurance-index/v1",
+		}[name]
+		if actual != expected {
+			t.Errorf("%s schema is %q, want %q; raising it requires teaching bomly.dev the new shape first "+
+				"(SUPPORTED_REPORT_SCHEMAS in lib/assurance.ts and REPORT_SCHEMAS in scripts/sync-assurance.mjs)",
+				name, actual, expected)
+		}
+	}
+}

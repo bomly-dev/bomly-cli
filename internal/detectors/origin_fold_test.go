@@ -98,3 +98,42 @@ func TestFoldOriginNilIsANoOp(t *testing.T) {
 		t.Fatal("folding against nil dropped the origin")
 	}
 }
+
+// The project's own code has no external origin. Folding treats absence as a
+// gap to fill, so without this a published package sharing a workspace member's
+// name and version would hand over its download location.
+func TestFoldOriginLeavesFirstPartyCodeAlone(t *testing.T) {
+	external := func() *sdk.Dependency {
+		dep := &sdk.Dependency{ID: "lib@1.0.0"}
+		dep.Origin = sdk.ArtifactOrigin("https://registry.npmjs.org/lib/-/lib-1.0.0.tgz")
+		return dep
+	}
+
+	t.Run("a flagged first-party node takes nothing", func(t *testing.T) {
+		member := &sdk.Dependency{ID: "lib@1.0.0", Coordinates: sdk.Coordinates{FirstParty: true}}
+		detectors.FoldOrigin(member, external())
+
+		if origin := member.Origin.Normalized(); origin != nil {
+			t.Fatalf("workspace member claims %+v", origin)
+		}
+	})
+
+	t.Run("an application node takes nothing", func(t *testing.T) {
+		member := &sdk.Dependency{ID: "lib@1.0.0", Coordinates: sdk.Coordinates{Type: sdk.PackageTypeApplication}}
+		detectors.FoldOrigin(member, external())
+
+		if origin := member.Origin.Normalized(); origin != nil {
+			t.Fatalf("application node claims %+v", origin)
+		}
+	})
+
+	// The reverse direction is unaffected: a consumed package still folds.
+	t.Run("a consumed package still folds", func(t *testing.T) {
+		pkg := &sdk.Dependency{ID: "lib@1.0.0"}
+		detectors.FoldOrigin(pkg, external())
+
+		if origin := pkg.Origin.Normalized(); origin == nil {
+			t.Fatal("a consumed package should still take the folded origin")
+		}
+	})
+}

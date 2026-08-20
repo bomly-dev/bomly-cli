@@ -28,7 +28,25 @@ func FoldOrigin(survivor, replaced *sdk.Dependency) {
 	if survivor == nil || replaced == nil {
 		return
 	}
+	if isFirstPartyNode(survivor) {
+		// The project's own code has no external origin. Folding treats an
+		// absent origin as a gap to fill, which would otherwise let a
+		// published package of the same name and version hand its download
+		// location to a workspace member -- first-party code credited to
+		// someone else's registry entry. Detectors already decline to set an
+		// origin on these nodes; this keeps folding from adding one behind
+		// their back.
+		return
+	}
 	survivor.Origin = sdk.ReconcileOrigin(survivor.Origin, replaced.Origin)
+}
+
+// isFirstPartyNode reports whether dep is the scanned project's own artifact
+// rather than a consumed package. Detectors mark this in two ways -- an
+// explicit FirstParty flag, or an application package type for a workspace
+// member -- and either is enough.
+func isFirstPartyNode(dep *sdk.Dependency) bool {
+	return dep.FirstParty || dep.Type == sdk.PackageTypeApplication
 }
 
 // AddNodeFolding inserts node into g, or folds it into the node already

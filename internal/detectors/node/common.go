@@ -12,6 +12,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-sdk"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
@@ -339,7 +340,7 @@ func splitYarnTreeName(value string) (string, string, error) {
 func AddNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
 	if existing, ok := depsGraph.Node(node.ID); ok {
 		existing.AddScope(node.PrimaryScope())
-		existing.Origin = sdk.ReconcileOrigin(existing.Origin, node.Origin)
+		detectors.FoldOrigin(existing, node)
 		return nil
 	}
 	if err := depsGraph.AddNode(node); err != nil {

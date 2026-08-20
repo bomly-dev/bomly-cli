@@ -252,7 +252,7 @@ func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Dependency, packages
 			// One package can be listed in both groups. The groups are one
 			// node, so where they name different sources the node must not
 			// report whichever group was walked first.
-			existing.Origin = sdk.ReconcileOrigin(existing.Origin, node.Origin)
+			detectors.FoldOrigin(existing, node)
 		}
 		if err := depsGraph.AddEdge(root.ID, node.ID); err != nil {
 			return fmt.Errorf("add Pipfile.lock dependency %q: %w", normalizedName, err)

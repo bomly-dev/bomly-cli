@@ -109,6 +109,33 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 
 ## Code Conventions
 
+### Fix at the right depth
+
+When the same defect can recur at more than one call site, centralize the rule
+instead of patching the sites. A fix that has to be remembered will be forgotten,
+and the next occurrence is found by a reviewer or a user rather than by the
+codebase.
+
+In practice:
+
+- **Two occurrences of one defect is the signal.** The first is a bug; the
+  second says the rule has no home. Give it one — a named helper, a shared
+  entry point, or an invariant enforced where the data is created — and route
+  every site through it.
+- **Name the concept, not the mechanics.** `detectors.FoldOrigin(survivor,
+  replaced)` says what the caller is doing; a bare `x = Reconcile(x, y)` at
+  each site says only what to type, and gets the argument order wrong
+  eventually.
+- **Add a guard when the rule can be bypassed by writing it out by hand.**
+  `TestOriginReconciliationGoesThroughFoldOrigin` fails if a hand-written
+  reconciliation reappears anywhere under `internal/`. A guard is cheap next to
+  the review round it replaces.
+- **Say so when you decline.** If centralizing is genuinely out of scope for
+  the change in hand, record why in `dev-docs/ARCHITECTURE.md` and what the
+  durable fix would be, so the next person inherits the reasoning rather than
+  the symptom.
+
+
 ### Shared Types
 
 - Use canonical shared types directly instead of creating local type aliases or re-exported constants just to rename them. For example, if `internal/output.Format` owns CLI output formats, downstream packages should store and compare `output.Format` / `output.FormatJSON` directly rather than introducing `render.OutputFormat` aliases.

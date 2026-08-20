@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
 )
@@ -79,7 +80,7 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 		// rather than the graph reporting whichever was listed last.
 		key := normalizePythonName(pkg.Name)
 		if existing, ok := nodesByName[key]; ok {
-			node.Origin = sdk.ReconcileOrigin(existing.Origin, node.Origin)
+			detectors.FoldOrigin(node, existing)
 		}
 		nodesByName[key] = node
 	}

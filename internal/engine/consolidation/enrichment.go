@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -42,7 +43,7 @@ func normalizeGraphPackageIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 			// survives, so the discarded occurrence still gets a say about
 			// where the package came from -- otherwise a lockfile recording
 			// one package from two mirrors publishes whichever came first.
-			existing.Origin = sdk.ReconcileOrigin(existing.Origin, clone.Origin)
+			detectors.FoldOrigin(existing, clone)
 		}
 		idMapping[node.ID] = clone.ID
 	}

@@ -8,8 +8,6 @@ import (
 	"github.com/bomly-dev/bomly-sdk"
 )
 
-// originOf returns the origin a node publishes, or the zero value when it has
-// none, so cases can compare plain structs.
 // An environment can report one distribution twice -- stale duplicate
 // .dist-info directories -- each with its own PEP 610 direct_url. They fold to
 // one node, so records naming different sources must cancel.
@@ -238,6 +236,8 @@ func TestPipenvGroupsReconcileOrigin(t *testing.T) {
 	}
 }
 
+// originOf returns the origin a node publishes, or the zero value when it has
+// none, so cases can compare plain structs.
 func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
 	if dep == nil {
 		return sdk.PackageOrigin{}

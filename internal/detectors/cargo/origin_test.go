@@ -137,6 +137,13 @@ func TestCargoDuplicateCrateSameSourceKeepsOrigin(t *testing.T) {
 // its name -- an unrelated crate pulled from a git remote -- must not be
 // credited to it, or the SBOM reports first-party code as coming from someone
 // else's repository.
+//
+// This covers origin only. The same name collision also makes the member take
+// the external record's version and ResolvedURL, and drops the external crate
+// from the graph, because workspace membership is resolved by name alone. That
+// is a separate identity defect, older than package origin and not fixed here;
+// this test deliberately asserts nothing about it rather than pinning the
+// current wrong shape as expected.
 func TestCargoWorkspaceMemberTakesNoExternalOrigin(t *testing.T) {
 	lock := []byte(`version = 3
 

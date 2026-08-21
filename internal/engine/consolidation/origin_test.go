@@ -650,3 +650,96 @@ func TestConsolidateGraphsPreservesOccurrencesWithinOneManifest(t *testing.T) {
 		})
 	}
 }
+
+// When two records witness one resolution, the fold must keep both witnesses'
+// usage facts: scopes, locations, and relationship aggregate onto the
+// surviving occurrence instead of vanishing with whichever record lost the
+// walk order. Exercised through the within-entry occurrence collision (A, B,
+// B), where both B clones derive the same occurrence ID.
+func TestConsolidateGraphsFoldedWitnessesKeepUsageFacts(t *testing.T) {
+	const (
+		public  = "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
+		private = "https://npm.corp/mirror/lodash/-/lodash-4.17.21.tgz"
+	)
+
+	type record struct {
+		url      string
+		scope    sdk.Scope
+		location string
+	}
+	witnessRuntime := record{url: private, scope: sdk.ScopeRuntime, location: "packages/app/bun.lock"}
+	witnessDev := record{url: private, scope: sdk.ScopeDevelopment, location: "packages/tools/bun.lock"}
+	other := record{url: public, scope: sdk.ScopeRuntime, location: "bun.lock"}
+
+	orderings := map[string][]record{
+		"runtime witness first": {other, witnessRuntime, witnessDev},
+		"dev witness first":     {other, witnessDev, witnessRuntime},
+		"witnesses surround":    {witnessRuntime, other, witnessDev},
+	}
+	for name, records := range orderings {
+		t.Run(name, func(t *testing.T) {
+			g := sdk.New()
+			for i, rec := range records {
+				pkg := sdk.NewDependencyWithID(
+					fmt.Sprintf("bun-package:lodash#%d", i),
+					sdk.Dependency{Coordinates: sdk.Coordinates{
+						Name: "lodash", Version: "4.17.21", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lodash@4.17.21"}},
+				)
+				pkg.Origin = sdk.ArtifactOrigin(rec.url)
+				pkg.AddScope(rec.scope)
+				pkg.Locations = []sdk.PackageLocation{{RealPath: rec.location}}
+				if err := g.AddNode(pkg); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{{
+				SubprojectInfo: sdk.Subproject{
+					ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
+					RelativePath:            ".",
+					PrimaryDetector:         "bun-detector",
+					DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerBun},
+					Ecosystem:               sdk.EcosystemNPM,
+				},
+				DetectorName: "bun-detector",
+				Graphs:       sdk.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "bun.lock", Kind: "bun.lock"}),
+			}})
+			if err != nil {
+				t.Fatalf("ConsolidateGraphs() error = %v", err)
+			}
+			merged, err := consolidated.Graphs.ConsolidatedGraph()
+			if err != nil {
+				t.Fatalf("ConsolidatedGraph() error = %v", err)
+			}
+
+			var folded *sdk.Dependency
+			merged.WalkNodes(func(dep *sdk.Dependency) bool {
+				if dep.Name == "lodash" && originOf(dep).ArtifactURL == private {
+					folded = dep
+				}
+				return true
+			})
+			if folded == nil {
+				t.Fatal("no surviving occurrence for the folded witnesses")
+			}
+
+			scopes := map[sdk.Scope]bool{}
+			for _, scope := range folded.Scopes {
+				scopes[scope] = true
+			}
+			if !scopes[sdk.ScopeRuntime] || !scopes[sdk.ScopeDevelopment] {
+				t.Fatalf("scopes = %v, want both witnesses' scopes", folded.Scopes)
+			}
+			locations := map[string]bool{}
+			for _, location := range folded.Locations {
+				locations[location.RealPath] = true
+			}
+			if !locations[witnessRuntime.location] || !locations[witnessDev.location] {
+				t.Fatalf("locations = %v, want both witnesses' locations", folded.Locations)
+			}
+			if locations[other.location] {
+				t.Fatalf("locations = %v: the other occurrence's location leaked into the fold", folded.Locations)
+			}
+		})
+	}
+}

@@ -55,9 +55,7 @@ func normalizeGraphPackageIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 			switch {
 			case detectors.IsProjectOwned(clone) && detectors.IsProjectOwned(existing):
 				// Two records of the project's own module fold.
-				if existing.Origin.Empty() && !clone.Origin.Empty() {
-					existing.Origin = clone.Origin
-				}
+				foldWitness(existing, clone)
 			case detectors.IsProjectOwned(clone):
 				externalID := detectors.OccurrenceID(existing.ID, resolutionKey(existing))
 				renameNode(normalized, existing, externalID)
@@ -71,18 +69,18 @@ func normalizeGraphPackageIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 				}
 			default:
 				clone.ID = detectors.OccurrenceID(clone.ID, resolutionKey(clone))
-				if _, taken := normalized.Node(clone.ID); !taken {
-					if err := normalized.AddNode(clone); err != nil {
-						return nil, fmt.Errorf("add occurrence %q: %w", clone.ID, err)
-					}
+				if survivor, taken := normalized.Node(clone.ID); taken {
+					// A repeated witness of this occurrence's resolution:
+					// its usage facts fold rather than vanishing with it.
+					foldWitness(survivor, clone)
+				} else if err := normalized.AddNode(clone); err != nil {
+					return nil, fmt.Errorf("add occurrence %q: %w", clone.ID, err)
 				}
 			}
 		} else {
-			// Two witnesses of one resolution fold; a gap fills from
-			// whichever record has an origin, matching the SDK's merge.
-			if existing.Origin.Empty() && !clone.Origin.Empty() {
-				existing.Origin = clone.Origin
-			}
+			// Two witnesses of one resolution fold, keeping every witness's
+			// usage facts.
+			foldWitness(existing, clone)
 		}
 		idMapping[node.ID] = clone.ID
 		sourcesByNormalized[clone.ID] = append(sourcesByNormalized[clone.ID], node.ID)
@@ -232,6 +230,44 @@ func preserveContradictingOccurrences(entries []sdk.GraphEntry) []map[string]str
 		}
 	}
 	return renames
+}
+
+// foldWitness merges one witness of a resolution into the surviving node.
+// Usage facts aggregate -- scope, relationship, and locations describe how and
+// where the package is used, and every witness contributes -- while origin
+// fills only a gap: the records witness one resolution, so there is nothing to
+// reconcile. Used wherever identical-resolution records fold during
+// normalization, so no witness's facts depend on which record sorted first.
+func foldWitness(surviving, witness *sdk.Dependency) {
+	surviving.Relationship = sdk.MergeDependencyRelationship(surviving.Relationship, witness.Relationship)
+	for _, scope := range witness.Scopes {
+		surviving.AddScope(scope)
+	}
+	for _, location := range witness.Locations {
+		if !hasLocation(surviving.Locations, location) {
+			surviving.Locations = append(surviving.Locations, location)
+		}
+	}
+	if surviving.Origin.Empty() && !witness.Origin.Empty() {
+		surviving.Origin = witness.Origin
+	}
+}
+
+// hasLocation mirrors the SDK merge's location identity: same paths, same
+// position (nil positions equal).
+func hasLocation(existing []sdk.PackageLocation, location sdk.PackageLocation) bool {
+	for _, have := range existing {
+		if have.RealPath != location.RealPath || have.AccessPath != location.AccessPath {
+			continue
+		}
+		switch {
+		case have.Position == nil && location.Position == nil:
+			return true
+		case have.Position != nil && location.Position != nil && *have.Position == *location.Position:
+			return true
+		}
+	}
+	return false
 }
 
 // resolutionKey identifies which resolution a record witnesses: the

@@ -98,6 +98,50 @@ func TestCargoDuplicateCrateSourcesStayDistinct(t *testing.T) {
 	}
 }
 
+// A crate can be resolved from the registry and from a git remote at one
+// name@version (renamed dependencies). Only the git occurrence has a
+// publishable origin, but they are still two resolutions: the registry
+// occurrence must not vanish into the git node and take its repository.
+func TestCargoRegistryAndGitOccurrencesStayDistinct(t *testing.T) {
+	metadata := []byte(`{
+      "packages": [
+        {"id": "demo 0.1.0 (path+file:///w)", "name": "demo", "version": "0.1.0", "source": null, "dependencies": []},
+        {"id": "helper 1.0.0 (git+https://github.com/a/helper#aaaa)", "name": "helper", "version": "1.0.0", "source": "git+https://github.com/a/helper#aaaabbbbccccddddeeeeffff0000111122223333", "dependencies": []},
+        {"id": "helper 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)", "name": "helper", "version": "1.0.0", "source": "registry+https://github.com/rust-lang/crates.io-index", "dependencies": []}
+      ],
+      "workspace_members": ["demo 0.1.0 (path+file:///w)"],
+      "resolve": {"nodes": [], "root": "demo 0.1.0 (path+file:///w)"}
+    }`)
+
+	graph, err := depGraphFromMetadata(metadata)
+	if err != nil {
+		t.Fatalf("depGraphFromMetadata() error = %v", err)
+	}
+
+	var nodes, withOrigin, without int
+	graph.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep.Name != "helper" {
+			return true
+		}
+		nodes++
+		if origin := originOf(dep); origin.Repository != "" {
+			withOrigin++
+			if dep.Source != sdk.DependencySourceGit {
+				t.Fatalf("the %s occurrence claims the git repository", dep.Source)
+			}
+		} else {
+			without++
+			if dep.Source != sdk.DependencySourceRegistry {
+				t.Fatalf("expected the origin-free occurrence to be the registry one, got %s", dep.Source)
+			}
+		}
+		return true
+	})
+	if nodes != 2 || withOrigin != 1 || without != 1 {
+		t.Fatalf("helper nodes = %d (with origin %d, without %d), want both occurrences distinct", nodes, withOrigin, without)
+	}
+}
+
 // Two records naming the same source still publish it.
 func TestCargoDuplicateCrateSameSourceKeepsOrigin(t *testing.T) {
 	metadata := []byte(`{

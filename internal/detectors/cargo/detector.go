@@ -317,7 +317,13 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 		if err != nil {
 			return nil, nil, err
 		}
-		if surviving != node && detectors.OriginsConflict(surviving.Origin, node.Origin) {
+		if surviving != node && strings.TrimSpace(surviving.ResolvedURL) != strings.TrimSpace(pkg.Source) {
+			// The manifest recorded two resolutions of one name@version --
+			// distinct cargo package IDs with different sources. They are
+			// distinct occurrences even when only one source yields a
+			// publishable origin: folding a registry occurrence into a git
+			// one would conflate their edges and credit registry-pulled
+			// code to the repository.
 			node.ID = node.ID + "#" + strings.TrimSpace(pkg.Source)
 			if surviving, err = detectors.EnsureNode(g, node); err != nil {
 				return nil, nil, err

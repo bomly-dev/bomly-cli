@@ -193,17 +193,20 @@ func TestConsolidateGraphsPreservesOccurrencesWithinOneManifest(t *testing.T) {
 
 	cases := []struct {
 		name      string
-		second    string
+		records   []string
 		wantNodes int
 	}{
-		{name: "entries agree", second: public, wantNodes: 1},
-		{name: "entries contradict", second: private, wantNodes: 2},
+		{name: "entries agree", records: []string{public, public}, wantNodes: 1},
+		{name: "entries contradict", records: []string{public, private}, wantNodes: 2},
+		// A third record repeating an origin folds into its occurrence:
+		// A, B, B is two occurrences, not three.
+		{name: "a repeated contradiction folds", records: []string{public, private, private}, wantNodes: 2},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			g := sdk.New()
-			for i, artifactURL := range []string{public, tc.second} {
+			for i, artifactURL := range tc.records {
 				pkg := sdk.NewDependencyWithID(
 					fmt.Sprintf("bun-package:lodash#%d", i),
 					sdk.Dependency{Coordinates: sdk.Coordinates{

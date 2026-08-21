@@ -268,7 +268,10 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		}
 		pathToID[packagePath] = surviving.ID
 		if member {
-			modules = append(modules, npmModuleGraph{dir: strings.TrimPrefix(filepath.ToSlash(packagePath), "./"), rootID: pkgNode.ID})
+			// The descriptor must track whatever node now represents this
+			// path -- the same node pathToID records -- not the candidate
+			// that may have folded or been re-identified.
+			modules = append(modules, npmModuleGraph{dir: strings.TrimPrefix(filepath.ToSlash(packagePath), "./"), rootID: surviving.ID})
 		}
 	}
 

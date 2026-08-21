@@ -41,15 +41,15 @@ func normalizeGraphPackageIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 		} else if detectors.OriginsConflict(existing.Origin, clone.Origin) {
 			// The manifest recorded two resolutions for one canonical
 			// identity -- one package from two places. They are different
-			// occurrences, so both stay, each in its own graph position:
-			// the second keeps the unique ID the detector gave it instead
-			// of collapsing onto the canonical one.
-			clone.ID = node.ID
-			if _, taken := normalized.Node(clone.ID); taken {
-				clone.ID = clone.ID + "#" + canonicalPURL
-			}
-			if err := normalized.AddNode(clone); err != nil {
-				return nil, fmt.Errorf("add occurrence %q: %w", clone.ID, err)
+			// occurrences, so both stay. The occurrence ID derives from the
+			// origin itself, not the detector position, so a third record
+			// repeating one of the origins folds into its occurrence
+			// instead of minting yet another node.
+			clone.ID = detectors.OccurrenceID(clone.ID, originKey(clone.Origin))
+			if _, taken := normalized.Node(clone.ID); !taken {
+				if err := normalized.AddNode(clone); err != nil {
+					return nil, fmt.Errorf("add occurrence %q: %w", clone.ID, err)
+				}
 			}
 		} else {
 			// Two witnesses of one resolution fold; a gap fills from

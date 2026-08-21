@@ -266,6 +266,94 @@ func TestConsolidateGraphsOccurrenceIdentityIsOrderFree(t *testing.T) {
 	}
 }
 
+// A registry record has no publishable origin but is still a distinct
+// resolution: consolidation must not re-collapse what the detector preserved,
+// nor gap-fill the git origin onto it -- within one manifest or across two.
+func TestConsolidationPreservesOriginFreeOccurrences(t *testing.T) {
+	const gitOrigin = "https://github.com/a/helper"
+
+	record := func(t *testing.T, id, resolvedURL string, withOrigin bool) *sdk.Dependency {
+		t.Helper()
+		pkg := sdk.NewDependencyWithID(id, sdk.Dependency{Coordinates: sdk.Coordinates{
+			Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemRust, PURL: "pkg:cargo/helper@1.0.0"}})
+		pkg.ResolvedURL = resolvedURL
+		if withOrigin {
+			pkg.Origin = sdk.RepositoryOrigin(gitOrigin, "aaaabbbbccccddddeeeeffff0000111122223333")
+		}
+		return pkg
+	}
+	result := func(t *testing.T, relativePath, manifest string, nodes ...*sdk.Dependency) sdk.DetectionResult {
+		t.Helper()
+		g := sdk.New()
+		for _, node := range nodes {
+			if err := g.AddNode(node); err != nil {
+				t.Fatal(err)
+			}
+		}
+		return sdk.DetectionResult{
+			SubprojectInfo: sdk.Subproject{
+				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
+				RelativePath:            relativePath,
+				PrimaryDetector:         "cargo",
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerCargo},
+				Ecosystem:               sdk.EcosystemRust,
+			},
+			DetectorName: "cargo",
+			Graphs:       sdk.SingleGraphContainer(g, sdk.ManifestMetadata{Path: manifest, Kind: "Cargo.lock"}),
+		}
+	}
+
+	cases := []struct {
+		name    string
+		results func(t *testing.T) []sdk.DetectionResult
+	}{
+		{name: "within one manifest", results: func(t *testing.T) []sdk.DetectionResult {
+			return []sdk.DetectionResult{result(t, ".", "Cargo.lock",
+				record(t, "helper@1.0.0", "git+https://github.com/a/helper#aaaa", true),
+				record(t, "helper@1.0.0#occ", "registry+https://github.com/rust-lang/crates.io-index", false),
+			)}
+		}},
+		{name: "across manifests", results: func(t *testing.T) []sdk.DetectionResult {
+			return []sdk.DetectionResult{
+				result(t, "crates/one", "crates/one/Cargo.lock",
+					record(t, "helper@1.0.0", "registry+https://github.com/rust-lang/crates.io-index", false)),
+				result(t, "crates/two", "crates/two/Cargo.lock",
+					record(t, "helper@1.0.0", "git+https://github.com/a/helper#aaaa", true)),
+			}
+		}},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			consolidated, err := ConsolidateGraphs(tc.results(t))
+			if err != nil {
+				t.Fatalf("ConsolidateGraphs() error = %v", err)
+			}
+			merged, err := consolidated.Graphs.ConsolidatedGraph()
+			if err != nil {
+				t.Fatalf("ConsolidatedGraph() error = %v", err)
+			}
+
+			var nodes, withOrigin, without int
+			merged.WalkNodes(func(dep *sdk.Dependency) bool {
+				if dep.Name != "helper" {
+					return true
+				}
+				nodes++
+				if origin := originOf(dep); origin.Repository == gitOrigin {
+					withOrigin++
+				} else if origin == (sdk.DependencyOrigin{}) {
+					without++
+				}
+				return true
+			})
+			if nodes != 2 || withOrigin != 1 || without != 1 {
+				t.Fatalf("nodes = %d (git %d, origin-free %d), want the registry occurrence preserved beside the git one", nodes, withOrigin, without)
+			}
+		})
+	}
+}
+
 // One manifest can also record a package twice -- a Bun lockfile listing one
 // name and version from two mirrors, under distinct per-entry IDs. Identity
 // normalization rewrites IDs to the canonical PURL; contradicting occurrences

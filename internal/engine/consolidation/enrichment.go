@@ -38,14 +38,15 @@ func normalizeGraphPackageIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 			if err := normalized.AddNode(clone); err != nil {
 				return nil, fmt.Errorf("add normalized dependency %q: %w", clone.ID, err)
 			}
-		} else if detectors.OriginsConflict(existing.Origin, clone.Origin) {
+		} else if resolutionKey(existing) != resolutionKey(clone) {
 			// The manifest recorded two resolutions for one canonical
 			// identity -- one package from two places. They are different
-			// occurrences, so both stay. The occurrence ID derives from the
-			// origin itself, not the detector position, so a third record
-			// repeating one of the origins folds into its occurrence
-			// instead of minting yet another node.
-			clone.ID = detectors.OccurrenceID(clone.ID, originKey(clone.Origin))
+			// occurrences even when only one yields a publishable origin
+			// (a registry record has none), so both stay. The occurrence
+			// ID derives from the resolution itself, not the detector
+			// position, so a third record repeating one of them folds into
+			// its occurrence instead of minting yet another node.
+			clone.ID = detectors.OccurrenceID(clone.ID, resolutionKey(clone))
 			if _, taken := normalized.Node(clone.ID); !taken {
 				if err := normalized.AddNode(clone); err != nil {
 					return nil, fmt.Errorf("add occurrence %q: %w", clone.ID, err)
@@ -157,7 +158,7 @@ func preserveContradictingOccurrences(entries []sdk.GraphEntry) {
 			if node == nil {
 				continue
 			}
-			if key := originKey(node.Origin); key != "" {
+			if key := resolutionKey(node); key != "" {
 				b := base(node)
 				if distinct[b] == nil {
 					distinct[b] = make(map[string]struct{})
@@ -179,14 +180,26 @@ func preserveContradictingOccurrences(entries []sdk.GraphEntry) {
 			if len(distinct[base(node)]) < 2 {
 				continue
 			}
-			if key := originKey(node.Origin); key != "" {
+			if key := resolutionKey(node); key != "" {
 				contested = append(contested, node)
 			}
 		}
 		for _, node := range contested {
-			renameNode(entry.Graph, node, detectors.OccurrenceID(base(node), originKey(node.Origin)))
+			renameNode(entry.Graph, node, detectors.OccurrenceID(base(node), resolutionKey(node)))
 		}
 	}
+}
+
+// resolutionKey identifies which resolution a record witnesses: the
+// normalized origin when one is publishable, else the manifest's raw
+// resolution string. A registry record has no publishable origin but is still
+// a distinct resolution from a git one, and must not fold into it. The raw
+// form is only ever hashed into an occurrence ID, never published.
+func resolutionKey(node *sdk.Dependency) string {
+	if key := originKey(node.Origin); key != "" {
+		return key
+	}
+	return strings.TrimSpace(node.ResolvedURL)
 }
 
 // originKey renders a normalized origin as a stable string, so occurrence IDs

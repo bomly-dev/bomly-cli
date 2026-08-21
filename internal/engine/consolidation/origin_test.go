@@ -181,6 +181,91 @@ func TestConsolidateGraphsFoldsRepeatedContradictions(t *testing.T) {
 	}
 }
 
+// Occurrence identity is a pure function of (package, origin): two manifests
+// carrying the same two origins in opposite positional orders must converge on
+// exactly two components, one per origin, with each origin's edges folded --
+// and a mixed contested/uncontested spread of the same origins must too.
+func TestConsolidateGraphsOccurrenceIdentityIsOrderFree(t *testing.T) {
+	const (
+		a = "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
+		b = "https://npm.corp/mirror/lodash/-/lodash-4.17.21.tgz"
+	)
+
+	// A manifest whose graph holds occurrences in the given order, built the
+	// way a positional detector emits them: distinct per-entry IDs.
+	multiRecord := func(t *testing.T, relativePath, manifest string, urls ...string) sdk.DetectionResult {
+		t.Helper()
+		g := sdk.New()
+		for i, url := range urls {
+			pkg := sdk.NewDependencyWithID(
+				fmt.Sprintf("bun-package:lodash#%d", i),
+				sdk.Dependency{Coordinates: sdk.Coordinates{
+					Name: "lodash", Version: "4.17.21", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lodash@4.17.21"}},
+			)
+			pkg.Origin = sdk.ArtifactOrigin(url)
+			if err := g.AddNode(pkg); err != nil {
+				t.Fatal(err)
+			}
+		}
+		return sdk.DetectionResult{
+			SubprojectInfo: sdk.Subproject{
+				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
+				RelativePath:            relativePath,
+				PrimaryDetector:         "bun-detector",
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerBun},
+				Ecosystem:               sdk.EcosystemNPM,
+			},
+			DetectorName: "bun-detector",
+			Graphs:       sdk.SingleGraphContainer(g, sdk.ManifestMetadata{Path: manifest, Kind: "bun.lock"}),
+		}
+	}
+
+	cases := []struct {
+		name    string
+		results func(t *testing.T) []sdk.DetectionResult
+	}{
+		{name: "opposite orders", results: func(t *testing.T) []sdk.DetectionResult {
+			return []sdk.DetectionResult{
+				multiRecord(t, "apps/one", "apps/one/bun.lock", a, b),
+				multiRecord(t, "apps/two", "apps/two/bun.lock", b, a),
+			}
+		}},
+		{name: "mixed contested and uncontested", results: func(t *testing.T) []sdk.DetectionResult {
+			return []sdk.DetectionResult{
+				subprojectResult(t, "apps/one", "apps/one/package-lock.json", a),
+				multiRecord(t, "apps/two", "apps/two/bun.lock", b, a),
+			}
+		}},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			consolidated, err := ConsolidateGraphs(tc.results(t))
+			if err != nil {
+				t.Fatalf("ConsolidateGraphs() error = %v", err)
+			}
+			merged, err := consolidated.Graphs.ConsolidatedGraph()
+			if err != nil {
+				t.Fatalf("ConsolidatedGraph() error = %v", err)
+			}
+
+			origins := map[string]int{}
+			var nodes int
+			merged.WalkNodes(func(dep *sdk.Dependency) bool {
+				if dep.Name != "lodash" {
+					return true
+				}
+				nodes++
+				origins[originOf(dep).ArtifactURL]++
+				return true
+			})
+			if nodes != 2 || origins[a] != 1 || origins[b] != 1 {
+				t.Fatalf("nodes = %d origins = %v, want exactly one component per origin", nodes, origins)
+			}
+		})
+	}
+}
+
 // One manifest can also record a package twice -- a Bun lockfile listing one
 // name and version from two mirrors, under distinct per-entry IDs. Identity
 // normalization rewrites IDs to the canonical PURL; contradicting occurrences

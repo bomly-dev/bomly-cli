@@ -132,38 +132,59 @@ func BuildPackageRegistry(consolidated sdk.ConsolidatedGraph) *sdk.PackageRegist
 	return registry
 }
 
-// preserveContradictingOccurrences walks the selected entries in order and
-// re-IDs any node whose origin contradicts the origin already established for
-// that ID by an earlier entry, so the later SDK graph merge folds only
-// witnesses of one resolution. The occurrence ID is derived from the origin
-// itself, not from which manifest carried it: with three manifests resolving
-// origins A, B, then B, both B witnesses land on one occurrence ID and fold,
-// whatever order the manifests are walked in. No tiebreak ever picks a winner.
+// preserveContradictingOccurrences makes occurrence identity a pure function
+// of (package, origin) across the whole scan. It collects the distinct origins
+// recorded for each canonical package; where there is more than one, *every*
+// node of that package -- in every entry, including whichever happened to hold
+// the canonical ID -- is renamed to an ID derived from its own origin. The
+// same origin therefore gets the same ID no matter which entry carried it or
+// in what order records appeared, so the later SDK graph merge folds exactly
+// the witnesses of one resolution and nothing else. A node with no origin
+// keeps the canonical ID as its own "resolution unknown" occurrence.
 func preserveContradictingOccurrences(entries []sdk.GraphEntry) {
-	established := make(map[string]*sdk.DependencyOrigin)
+	distinct := make(map[string]map[string]struct{})
+	base := func(node *sdk.Dependency) string {
+		if node.PURL != "" {
+			return node.PURL
+		}
+		return node.ID
+	}
 	for _, entry := range entries {
 		if entry.Graph == nil {
 			continue
 		}
-		var contradicting []*sdk.Dependency
 		for _, node := range entry.Graph.Nodes() {
 			if node == nil {
 				continue
 			}
-			recorded, seen := established[node.ID]
-			switch {
-			case !seen || recorded.Empty():
-				if origin := node.Origin.Normalized(); origin != nil {
-					established[node.ID] = origin
-				} else if !seen {
-					established[node.ID] = nil
+			if key := originKey(node.Origin); key != "" {
+				b := base(node)
+				if distinct[b] == nil {
+					distinct[b] = make(map[string]struct{})
 				}
-			case detectors.OriginsConflict(recorded, node.Origin):
-				contradicting = append(contradicting, node)
+				distinct[b][key] = struct{}{}
 			}
 		}
-		for _, node := range contradicting {
-			renameNode(entry.Graph, node, detectors.OccurrenceID(node.ID, originKey(node.Origin)))
+	}
+
+	for _, entry := range entries {
+		if entry.Graph == nil {
+			continue
+		}
+		var contested []*sdk.Dependency
+		for _, node := range entry.Graph.Nodes() {
+			if node == nil {
+				continue
+			}
+			if len(distinct[base(node)]) < 2 {
+				continue
+			}
+			if key := originKey(node.Origin); key != "" {
+				contested = append(contested, node)
+			}
+		}
+		for _, node := range contested {
+			renameNode(entry.Graph, node, detectors.OccurrenceID(base(node), originKey(node.Origin)))
 		}
 	}
 }

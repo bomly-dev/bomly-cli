@@ -72,11 +72,7 @@ func AttachPackageResolvedPositions(g *sdk.Graph, projectDir string) {
 	if g == nil || projectDir == "" {
 		return
 	}
-	candidates := []string{
-		"Package.resolved",
-		filepath.Join(".swiftpm", "xcode", "package.xcworkspace", "xcshareddata", "swiftpm", "Package.resolved"),
-		filepath.Join("project.xcworkspace", "xcshareddata", "swiftpm", "Package.resolved"),
-	}
+	candidates := resolvedCandidates
 	merged := make(map[string]*sdk.SourcePosition)
 	for _, rel := range candidates {
 		got := packageResolvedPositions(filepath.Join(projectDir, rel), filepath.ToSlash(rel))

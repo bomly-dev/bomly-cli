@@ -121,7 +121,8 @@ jobs:
           - name: cpp
             run: 'TestScan$/scan-cpp-conan'
           - name: sbom
-            run: 'TestScan$/scan-sbom|TestDiff/(diff-sbom$|diff-sbom-detail-change$)|TestLiteScan/lite-scan-sbom|TestScanSBOMSyftJSONRejected$'
+            run: 'TestScan$/scan-sbom|TestDiff/(diff-sbom$|diff-sbom-detail-change$)|TestLiteScan/lite-scan-sbom|TestScanSBOMSyftJSONRejected$|TestScanSBOMExportOrigin$'
+            node: true
           - name: plugin
             run: 'TestPluginWorkflows'
           - name: container

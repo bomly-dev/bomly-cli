@@ -71,7 +71,12 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 			Name:    normalizePythonName(pkg.Name),
 			Version: pkg.Version}, Source: uvDependencySource(pkg.Source), ResolvedURL: uvResolvedURL(pkg.Source), Metadata: sourceRevisionMetadata(uvSourceRevision(pkg.Source)),
 		})
+		setUVOrigin(node, pkg.Source)
 
+		// A universal lock can hold several records for one package (marker
+		// alternatives). References are by bare name, so one graph position
+		// exists: the last record wins as a whole, deterministically -- no
+		// field-level mixing between records.
 		nodesByName[normalizePythonName(pkg.Name)] = node
 	}
 

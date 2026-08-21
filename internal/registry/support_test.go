@@ -107,7 +107,7 @@ func TestSupportEntriesForTechniqueFiltersEvidencePatterns(t *testing.T) {
 			manager:        sdk.PackageManagerSwiftPM,
 			technique:      sdk.BuildToolTechnique,
 			wantDetectors:  []string{detectors.NameSwiftPMNative},
-			wantEvidence:   []string{"Package.resolved", ".package.resolved", "Package.swift", "project.xcworkspace/xcshareddata/swiftpm/Package.resolved"},
+			wantEvidence:   []string{"Package.resolved", ".package.resolved", ".swiftpm/xcode/package.xcworkspace/xcshareddata/swiftpm/Package.resolved", "project.xcworkspace/xcshareddata/swiftpm/Package.resolved", "Package.swift"},
 			rejectEvidence: []string{},
 		},
 		{
@@ -131,7 +131,7 @@ func TestSupportEntriesForTechniqueFiltersEvidencePatterns(t *testing.T) {
 			manager:        sdk.PackageManagerSwiftPM,
 			technique:      sdk.LockfileTechnique,
 			wantDetectors:  []string{detectors.NameSwiftPM},
-			wantEvidence:   []string{"Package.resolved", ".package.resolved", "Package.swift", "project.xcworkspace/xcshareddata/swiftpm/Package.resolved"},
+			wantEvidence:   []string{"Package.resolved", ".package.resolved", ".swiftpm/xcode/package.xcworkspace/xcshareddata/swiftpm/Package.resolved", "project.xcworkspace/xcshareddata/swiftpm/Package.resolved", "Package.swift"},
 			rejectEvidence: []string{},
 		},
 		{

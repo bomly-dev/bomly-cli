@@ -198,6 +198,11 @@ func packageNode(name string, pkg pubLockPackage) *sdk.Dependency {
 	if resolved := resolvedURL(pkg.Description); resolved != "" {
 		node.ResolvedURL = resolved
 	}
+	if pubDependencySource(pkg.Source) == sdk.DependencySourceGit {
+		// A git package names its repository and the commit pub resolved.
+		// A hosted package's "url" is the pub server, and path is local.
+		node.Origin = sdk.RepositoryOrigin(descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref"))
+	}
 	return node
 }
 
@@ -261,11 +266,6 @@ func sortedPackageNames(packages map[string]pubLockPackage) []string {
 }
 
 func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
-	if _, ok := g.Node(node.ID); ok {
-		return nil
-	}
-	if err := g.AddNode(node); err != nil {
-		return fmt.Errorf("add node %q: %w", node.ID, err)
-	}
-	return nil
+	_, err := detectors.EnsureNode(g, node)
+	return err
 }

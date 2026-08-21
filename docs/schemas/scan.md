@@ -107,6 +107,7 @@ Complete reference for the `bomly scan` JSON output.
 |-------|------|-------------|
 | `algorithm` | `string` | |
 | `value` | `string` | |
+| `subject` | `string` | |
 
 ### `EPSSScore`
 

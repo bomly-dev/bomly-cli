@@ -506,6 +506,73 @@ func TestConsolidationRefreshesRenamedRootIDs(t *testing.T) {
 	}
 }
 
+// Within one manifest, the canonical PURL ID belongs to the project's own
+// record whichever order normalization visits the records in: an external
+// record that got there first moves to its occurrence ID, and edges recorded
+// against it follow.
+func TestNormalizationReservesCanonicalIDForProjectRecords(t *testing.T) {
+	const purl = "pkg:npm/helper@1.0.0"
+
+	// IDs chosen so the external record sorts first and takes the canonical
+	// slot before the member arrives.
+	orderings := [][2]string{{"a-external", "z-member"}, {"z-external", "a-member"}}
+	for _, ids := range orderings {
+		externalID, memberID := ids[0], ids[1]
+		t.Run(externalID+"/"+memberID, func(t *testing.T) {
+			g := sdk.New()
+			external := sdk.NewDependencyWithID(externalID, sdk.Dependency{Coordinates: sdk.Coordinates{
+				Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: purl}})
+			external.ResolvedURL = "https://registry.npmjs.org/helper/-/helper-1.0.0.tgz"
+			external.Origin = sdk.ArtifactOrigin(external.ResolvedURL)
+			member := sdk.NewDependencyWithID(memberID, sdk.Dependency{Coordinates: sdk.Coordinates{
+				Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: purl, FirstParty: true}})
+			parent := sdk.NewDependencyWithID("consumer@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{
+				Name: "consumer", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/consumer@1.0.0"}})
+			for _, dep := range []*sdk.Dependency{external, member, parent} {
+				if err := g.AddNode(dep); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if err := g.AddEdge(parent.ID, external.ID); err != nil {
+				t.Fatal(err)
+			}
+
+			normalizedGraph, err := normalizeGraphPackageIdentity(g)
+			if err != nil {
+				t.Fatalf("normalizeGraphPackageIdentity() error = %v", err)
+			}
+
+			canonical, ok := normalizedGraph.Node(purl)
+			if !ok {
+				t.Fatalf("no node holds the canonical ID %q", purl)
+			}
+			if !canonical.FirstParty {
+				t.Fatalf("canonical ID held by a non-project record (origin %+v)", originOf(canonical))
+			}
+			if origin := originOf(canonical); origin != (sdk.DependencyOrigin{}) {
+				t.Fatalf("the project's record acquired an origin: %+v", origin)
+			}
+
+			// The external occurrence survives elsewhere, with the consumer's
+			// edge following it.
+			var externalNode *sdk.Dependency
+			normalizedGraph.WalkNodes(func(dep *sdk.Dependency) bool {
+				if dep.Name == "helper" && !dep.FirstParty {
+					externalNode = dep
+				}
+				return true
+			})
+			if externalNode == nil {
+				t.Fatal("the external occurrence was lost")
+			}
+			deps, err := normalizedGraph.DirectDependencies("pkg:npm/consumer@1.0.0")
+			if err != nil || len(deps) != 1 || deps[0].ID != externalNode.ID {
+				t.Fatalf("consumer edge = %v (err %v), want it to follow the external occurrence %q", deps, err, externalNode.ID)
+			}
+		})
+	}
+}
+
 // One manifest can also record a package twice -- a Bun lockfile listing one
 // name and version from two mirrors, under distinct per-entry IDs. Identity
 // normalization rewrites IDs to the canonical PURL; contradicting occurrences

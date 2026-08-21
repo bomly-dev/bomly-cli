@@ -16,6 +16,7 @@ func normalizeGraphPackageIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 
 	normalized := sdk.NewWithCapacity(src.Size())
 	idMapping := make(map[string]string, src.Size())
+	sourcesByNormalized := make(map[string][]string, src.Size())
 	for _, node := range src.Nodes() {
 		if node == nil {
 			continue
@@ -46,10 +47,34 @@ func normalizeGraphPackageIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 			// ID derives from the resolution itself, not the detector
 			// position, so a third record repeating one of them folds into
 			// its occurrence instead of minting yet another node.
-			clone.ID = detectors.OccurrenceID(clone.ID, resolutionKey(clone))
-			if _, taken := normalized.Node(clone.ID); !taken {
+			//
+			// The canonical ID is reserved for the project's own record: if
+			// an external record happened to normalize first, it moves to
+			// its occurrence ID and the project takes the canonical slot,
+			// whatever the traversal order.
+			switch {
+			case detectors.IsProjectOwned(clone) && detectors.IsProjectOwned(existing):
+				// Two records of the project's own module fold.
+				if existing.Origin.Empty() && !clone.Origin.Empty() {
+					existing.Origin = clone.Origin
+				}
+			case detectors.IsProjectOwned(clone):
+				externalID := detectors.OccurrenceID(existing.ID, resolutionKey(existing))
+				renameNode(normalized, existing, externalID)
+				for _, sourceID := range sourcesByNormalized[clone.ID] {
+					idMapping[sourceID] = externalID
+				}
+				sourcesByNormalized[externalID] = sourcesByNormalized[clone.ID]
+				sourcesByNormalized[clone.ID] = nil
 				if err := normalized.AddNode(clone); err != nil {
-					return nil, fmt.Errorf("add occurrence %q: %w", clone.ID, err)
+					return nil, fmt.Errorf("add project record %q: %w", clone.ID, err)
+				}
+			default:
+				clone.ID = detectors.OccurrenceID(clone.ID, resolutionKey(clone))
+				if _, taken := normalized.Node(clone.ID); !taken {
+					if err := normalized.AddNode(clone); err != nil {
+						return nil, fmt.Errorf("add occurrence %q: %w", clone.ID, err)
+					}
 				}
 			}
 		} else {
@@ -60,6 +85,7 @@ func normalizeGraphPackageIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 			}
 		}
 		idMapping[node.ID] = clone.ID
+		sourcesByNormalized[clone.ID] = append(sourcesByNormalized[clone.ID], node.ID)
 	}
 
 	for _, node := range src.Nodes() {

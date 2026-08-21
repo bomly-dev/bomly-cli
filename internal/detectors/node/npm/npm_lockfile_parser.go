@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -251,6 +252,14 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		// Workspace members cleared ResolvedURL above (it names a local
 		// directory), and git or file specs are rejected by the invariant.
 		pkgNode.Origin = sdk.ArtifactOrigin(pkg.ResolvedURL)
+		// Two package paths can install one name@version from different
+		// tarballs. The lockfile asserts two resolutions, so both stay as
+		// distinct occurrences; pathToID wires each position's edges to its
+		// own occurrence. The path is the stable positional key.
+		if existing, ok := depsGraph.Node(pkgNode.ID); ok &&
+			strings.TrimSpace(existing.ResolvedURL) != strings.TrimSpace(pkg.ResolvedURL) {
+			pkgNode.ID = detectors.OccurrenceID(pkgNode.ID, normalizedPackagePath)
+		}
 		if entry.License != "" {
 			sdk.SetDetectionLicenses(pkgNode, []sdk.PackageLicense{{Value: entry.License, Type: "declared"}})
 		}

@@ -1,6 +1,7 @@
 package cargo
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-sdk"
@@ -263,5 +264,52 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 	}
 	if got := originOf(serde); !got.Empty() {
 		t.Fatalf("registry crate asserted an origin: %+v", got)
+	}
+}
+
+// The Cargo.lock fallback carries the same source-qualified records as cargo
+// metadata, referenced by qualified dependency strings when a bare name would
+// be ambiguous. Both occurrences stay distinct there too, and no node ID
+// embeds the raw source URL -- IDs become SBOM component identifiers, and a
+// source can carry credentials.
+func TestCargoLockDuplicateSourcesStayDistinctWithOpaqueIDs(t *testing.T) {
+	lock := []byte(`version = 3
+
+[[package]]
+name = "demo"
+version = "0.1.0"
+dependencies = [
+ "helper 1.0.0 (git+https://token:s3cret@git.corp/a/helper)",
+]
+
+[[package]]
+name = "helper"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "helper"
+version = "1.0.0"
+source = "git+https://token:s3cret@git.corp/a/helper#aaaabbbbccccddddeeeeffff0000111122223333"
+`)
+	manifest := []byte("[package]\nname = \"demo\"\nversion = \"0.1.0\"\n")
+
+	graph, err := depGraphFromLockWithScope(lock, manifest, sdk.Scope(""))
+	if err != nil {
+		t.Fatalf("depGraphFromLockWithScope() error = %v", err)
+	}
+
+	var nodes int
+	graph.WalkNodes(func(dep *sdk.Dependency) bool {
+		if strings.Contains(dep.ID, "s3cret") || strings.Contains(dep.ID, "git.corp") {
+			t.Fatalf("node ID %q embeds the raw source", dep.ID)
+		}
+		if dep.Name == "helper" {
+			nodes++
+		}
+		return true
+	})
+	if nodes != 2 {
+		t.Fatalf("helper nodes = %d, want both source-qualified records", nodes)
 	}
 }

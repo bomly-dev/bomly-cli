@@ -6,8 +6,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
-	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 )
 
@@ -133,7 +134,7 @@ func cargoDetectionResultFromGraph(g *sdk.Graph, modules []cargoModuleGraph, roo
 		if _, ok := g.Node(module.rootID); !ok {
 			continue
 		}
-		moduleGraph, err := detectors.SubgraphFrom(g, module.rootID)
+		moduleGraph, err := detectorkit.SubgraphFrom(g, module.rootID)
 		if err != nil {
 			return sdk.DetectionResult{}, fmt.Errorf("extract cargo workspace member graph %q: %w", module.dir, err)
 		}
@@ -225,13 +226,25 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 		memberIDs[member.manifest.Name] = memberNode.ID
 		modules = append(modules, cargoModuleGraph{dir: member.dir, rootID: memberNode.ID})
 	}
+	index := &lockIndex{nodeID: make(map[string]string, len(packages)*3)}
 	for _, pkg := range packages {
 		if _, ok := applicationNames[pkg.Name]; ok {
 			continue
 		}
-		if err := addNodeIfMissing(g, nodeFor(pkg, false)); err != nil {
+		node := nodeFor(pkg, false)
+		surviving, err := detectors.EnsureNode(g, node)
+		if err != nil {
 			return nil, nil, "", err
 		}
+		if surviving != node && strings.TrimSpace(surviving.ResolvedURL) != strings.TrimSpace(pkg.Source) {
+			// The lockfile asserts two resolutions of one name@version
+			// (distinct source fields); both stay as distinct occurrences.
+			node.ID = detectors.OccurrenceID(node.ID, strings.TrimSpace(pkg.Source))
+			if surviving, err = detectors.EnsureNode(g, node); err != nil {
+				return nil, nil, "", err
+			}
+		}
+		index.record(pkg, surviving.ID)
 	}
 
 	idFor := func(name string) (string, bool) {
@@ -241,11 +254,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 		if rootManifest.Name != "" && name == rootManifest.Name && rootID != "" {
 			return rootID, true
 		}
-		pkg, ok := byName[name]
-		if !ok {
-			return "", false
-		}
-		return nodeFor(pkg, false).ID, true
+		return index.resolve(name)
 	}
 
 	// Transitive edges from the lockfile for non-application packages.
@@ -253,7 +262,10 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 		if _, ok := applicationNames[pkg.Name]; ok {
 			continue
 		}
-		parentID, ok := idFor(pkg.Name)
+		parentID, ok := idFor(strings.TrimSpace(pkg.Name + " " + pkg.Version + " (" + pkg.Source + ")"))
+		if !ok {
+			parentID, ok = idFor(pkg.Name)
+		}
 		if !ok {
 			continue
 		}

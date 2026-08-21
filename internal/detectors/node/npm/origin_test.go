@@ -128,3 +128,43 @@ func TestNPMv1DuplicateEntriesAreDeterministic(t *testing.T) {
 		}
 	}
 }
+
+// Two package paths can install one name@version from different tarballs
+// (nested overrides, mirror-pinned subtrees). The lockfile asserts two
+// resolutions, so both stay as distinct occurrences with their own origins,
+// and each path's edges attach to its own occurrence.
+func TestNPMv3DuplicatePathsWithDifferentTarballsStayDistinct(t *testing.T) {
+	projectDir := t.TempDir()
+	lockfile := `{
+      "name": "demo",
+      "version": "1.0.0",
+      "lockfileVersion": 3,
+      "packages": {
+        "": {"name": "demo", "version": "1.0.0", "dependencies": {"a": "1.0.0"}},
+        "node_modules/a": {"version": "1.0.0", "resolved": "https://registry.npmjs.org/a/-/a-1.0.0.tgz", "dependencies": {"shared": "2.0.0"}},
+        "node_modules/a/node_modules/shared": {"version": "2.0.0", "resolved": "https://npm.corp/mirror/shared/-/shared-2.0.0.tgz"},
+        "node_modules/shared": {"version": "2.0.0", "resolved": "https://registry.npmjs.org/shared/-/shared-2.0.0.tgz"}
+      }
+    }`
+	if err := os.WriteFile(filepath.Join(projectDir, "package-lock.json"), []byte(lockfile), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	graphs, err := depGraphFromNPMLockfile(projectDir)
+	if err != nil {
+		t.Fatalf("depGraphFromNPMLockfile() error = %v", err)
+	}
+
+	origins := map[string]int{}
+	graphs.graph.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep.Name == "shared" {
+			origins[originOf(dep).ArtifactURL]++
+		}
+		return true
+	})
+	if len(origins) != 2 ||
+		origins["https://registry.npmjs.org/shared/-/shared-2.0.0.tgz"] != 1 ||
+		origins["https://npm.corp/mirror/shared/-/shared-2.0.0.tgz"] != 1 {
+		t.Fatalf("shared occurrences = %v, want both tarballs as distinct nodes", origins)
+	}
+}

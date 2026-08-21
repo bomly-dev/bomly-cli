@@ -1,6 +1,8 @@
 package detectors
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 
 	"github.com/bomly-dev/bomly-sdk"
@@ -42,4 +44,15 @@ func OriginsConflict(left, right *sdk.DependencyOrigin) bool {
 		return false
 	}
 	return *l != *r
+}
+
+// OccurrenceID derives a distinct node ID for an additional occurrence of a
+// package, qualified by what distinguishes it. The qualifier is hashed rather
+// than embedded: node IDs become SBOM component identifiers (CycloneDX
+// bom-refs, SPDX element IDs), and a raw source string can carry credentials
+// or tokens that every other path in this feature exists to keep out of
+// published documents.
+func OccurrenceID(baseID, qualifier string) string {
+	digest := sha256.Sum256([]byte(qualifier))
+	return baseID + "#" + hex.EncodeToString(digest[:6])
 }

@@ -324,7 +324,7 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 			// publishable origin: folding a registry occurrence into a git
 			// one would conflate their edges and credit registry-pulled
 			// code to the repository.
-			node.ID = node.ID + "#" + strings.TrimSpace(pkg.Source)
+			node.ID = detectors.OccurrenceID(node.ID, strings.TrimSpace(pkg.Source))
 			if surviving, err = detectors.EnsureNode(g, node); err != nil {
 				return nil, nil, err
 			}
@@ -520,57 +520,54 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
-	byName := make(map[string]lockPackage, len(packages))
-	for _, pkg := range packages {
-		byName[pkg.Name] = pkg
-		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
-		if pkg.Name == manifest.Name {
-			continue
-		}
-		if err := addNodeIfMissing(g, node); err != nil {
-			return nil, err
-		}
+	index, err := buildLockIndex(g, packages, manifest.Name)
+	if err != nil {
+		return nil, err
 	}
+	rootID := root.ID
 	for _, pkg := range packages {
 		if pkg.Name == manifest.Name {
 			continue
 		}
-		parent := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
+		parentID, ok := index.resolve(strings.TrimSpace(pkg.Name + " " + pkg.Version + " (" + pkg.Source + ")"))
+		if !ok {
+			continue
+		}
+		if parentID == rootID {
+			continue
+		}
 		for _, depName := range pkg.Dependencies {
-			childPkg, ok := byName[depName]
-			if !ok || childPkg.Name == manifest.Name {
+			childID, ok := index.resolve(depName)
+			if !ok || childID == rootID {
 				continue
 			}
-			child := packageNode(metadataPackage{Name: childPkg.Name, Version: childPkg.Version, Source: childPkg.Source}, childPkg.Name+"@"+childPkg.Version, nil)
-			if err := g.AddEdge(parent.ID, child.ID); err != nil {
-				return nil, fmt.Errorf("add Cargo.lock dependency %q -> %q: %w", parent.ID, child.ID, err)
+			if err := g.AddEdge(parentID, childID); err != nil {
+				return nil, fmt.Errorf("add Cargo.lock dependency %q -> %q: %w", parentID, childID, err)
 			}
 		}
 	}
 	for _, depName := range manifest.Dependencies {
-		pkg, ok := byName[depName]
-		if !ok {
+		nodeID, ok := index.resolve(depName)
+		if !ok || nodeID == rootID {
 			continue
 		}
-		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
-		if existing, ok := g.Node(node.ID); ok {
+		if existing, ok := g.Node(nodeID); ok {
 			existing.AddScope(sdk.ScopeRuntime)
 		}
-		if err := g.AddEdge(root.ID, node.ID); err != nil {
-			return nil, fmt.Errorf("add Cargo root dependency %q: %w", node.ID, err)
+		if err := g.AddEdge(root.ID, nodeID); err != nil {
+			return nil, fmt.Errorf("add Cargo root dependency %q: %w", nodeID, err)
 		}
 	}
 	for _, depName := range manifest.DevDependencies {
-		pkg, ok := byName[depName]
-		if !ok {
+		nodeID, ok := index.resolve(depName)
+		if !ok || nodeID == rootID {
 			continue
 		}
-		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
-		if existing, ok := g.Node(node.ID); ok {
+		if existing, ok := g.Node(nodeID); ok {
 			existing.AddScope(sdk.ScopeDevelopment)
 		}
-		if err := g.AddEdge(root.ID, node.ID); err != nil {
-			return nil, fmt.Errorf("add Cargo dev dependency %q: %w", node.ID, err)
+		if err := g.AddEdge(root.ID, nodeID); err != nil {
+			return nil, fmt.Errorf("add Cargo dev dependency %q: %w", nodeID, err)
 		}
 	}
 

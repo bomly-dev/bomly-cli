@@ -304,12 +304,32 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 			return nil, nil, fmt.Errorf("add root node: %w", err)
 		}
 	}
+	// Cargo's package IDs are source-qualified, so two records sharing a
+	// name and version are still distinguishable occurrences. When their
+	// origins contradict, both stay as distinct nodes -- the second under a
+	// source-qualified ID -- and the resolve section's edges attach each
+	// parent to the exact occurrence it depends on via this map.
+	nodeIDByCargoID := make(map[string]string, len(packagesByID))
 	for _, id := range sortedPackageIDs(packagesByID) {
 		pkg := packagesByID[id]
 		node := packageNode(pkg, id, workspace)
-		if err := addNodeIfMissing(g, node); err != nil {
+		surviving, err := detectors.EnsureNode(g, node)
+		if err != nil {
 			return nil, nil, err
 		}
+		if surviving != node && detectors.OriginsConflict(surviving.Origin, node.Origin) {
+			node.ID = node.ID + "#" + strings.TrimSpace(pkg.Source)
+			if surviving, err = detectors.EnsureNode(g, node); err != nil {
+				return nil, nil, err
+			}
+		}
+		nodeIDByCargoID[id] = surviving.ID
+	}
+	idFor := func(cargoID string, pkg metadataPackage) string {
+		if nodeID, ok := nodeIDByCargoID[cargoID]; ok {
+			return nodeID
+		}
+		return packageNode(pkg, cargoID, workspace).ID
 	}
 	members := make([]metadataMember, 0, len(workspace))
 	for _, id := range sortedWorkspaceMembers(workspace) {
@@ -317,7 +337,7 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 		if !ok {
 			continue
 		}
-		members = append(members, metadataMember{nodeID: packageNode(pkg, id, workspace).ID, manifestPath: pkg.ManifestPath})
+		members = append(members, metadataMember{nodeID: idFor(id, pkg), manifestPath: pkg.ManifestPath})
 	}
 	if root != nil {
 		for _, id := range sortedWorkspaceMembers(workspace) {
@@ -325,9 +345,9 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 			if !ok {
 				continue
 			}
-			node := packageNode(pkg, id, workspace)
-			if err := g.AddEdge(root.ID, node.ID); err != nil {
-				return nil, nil, fmt.Errorf("add Cargo workspace root %q: %w", node.ID, err)
+			nodeID := idFor(id, pkg)
+			if err := g.AddEdge(root.ID, nodeID); err != nil {
+				return nil, nil, fmt.Errorf("add Cargo workspace root %q: %w", nodeID, err)
 			}
 		}
 	}
@@ -336,18 +356,18 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 		if !ok {
 			continue
 		}
-		parent := packageNode(parentPkg, node.ID, workspace)
+		parentID := idFor(node.ID, parentPkg)
 		for _, dep := range node.Deps {
 			childPkg, ok := packagesByID[dep.Package]
 			if !ok {
 				continue
 			}
-			child := packageNode(childPkg, dep.Package, workspace)
-			if err := g.AddEdge(parent.ID, child.ID); err != nil {
-				return nil, nil, fmt.Errorf("add Cargo dependency %q -> %q: %w", parent.ID, child.ID, err)
+			childID := idFor(dep.Package, childPkg)
+			if err := g.AddEdge(parentID, childID); err != nil {
+				return nil, nil, fmt.Errorf("add Cargo dependency %q -> %q: %w", parentID, childID, err)
 			}
-			if parent.Type == "application" {
-				if existing, ok := g.Node(child.ID); ok {
+			if parentNode, ok := g.Node(parentID); ok && parentNode.Type == "application" {
+				if existing, ok := g.Node(childID); ok {
 					existing.AddScope(scopeForDepKinds(dep.DepKinds))
 				}
 			}
@@ -449,7 +469,7 @@ func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
 	// Cargo can resolve one crate name and version from two sources -- the same
 	// crate pulled from two git remotes, say. They share a PURL, so they are
 	// one node, and the shared helper settles what that node claims.
-	_, err := detectors.AddNodeFolding(g, node)
+	_, err := detectors.EnsureNode(g, node)
 	return err
 }
 

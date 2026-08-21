@@ -39,6 +39,7 @@ func ConsolidateGraphs(results []sdk.DetectionResult) (sdk.ConsolidatedGraph, er
 		}
 		consolidated.Subprojects[idx].RootManifestIDs = append(consolidated.Subprojects[idx].RootManifestIDs, selected.RootManifestID)
 	}
+	preserveContradictingOccurrences(consolidated.Graphs.Entries)
 	return consolidated, nil
 }
 

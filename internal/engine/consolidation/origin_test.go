@@ -9,14 +9,14 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
+func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
 	if dep == nil {
-		return sdk.PackageOrigin{}
+		return sdk.DependencyOrigin{}
 	}
 	if origin := dep.Origin.Normalized(); origin != nil {
 		return *origin
 	}
-	return sdk.PackageOrigin{}
+	return sdk.DependencyOrigin{}
 }
 
 // subprojectResult builds one manifest's detection result carrying a single
@@ -57,9 +57,10 @@ func graphIDs(g *sdk.Graph) []string {
 }
 
 // Each manifest is resolved on its own, so a package two subprojects share
-// arrives as two nodes. Merging keeps one and drops the other, so the
-// disagreement has to be settled while both are still visible.
-func TestConsolidateGraphsSettlesOriginAcrossManifests(t *testing.T) {
+// arrives as two records. Two witnesses of one resolution fold; a gap fills;
+// and a contradiction survives as two nodes, each in its own manifest's graph
+// position -- no tiebreak ever picks a winner.
+func TestConsolidateGraphsPreservesContradictingOccurrences(t *testing.T) {
 	const (
 		public  = "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
 		private = "https://npm.corp/mirror/lodash/-/lodash-4.17.21.tgz"
@@ -69,24 +70,27 @@ func TestConsolidateGraphsSettlesOriginAcrossManifests(t *testing.T) {
 		name  string
 		left  string
 		right string
-		want  sdk.PackageOrigin
+		want  map[string]int // artifact URL -> node count in the merged graph
 	}{
 		{
-			name:  "subprojects agree",
-			left:  public,
-			right: public,
-			want:  sdk.PackageOrigin{ArtifactURL: public},
+			name: "subprojects agree",
+			left: public, right: public,
+			want: map[string]int{public: 1},
 		},
 		{
-			name:  "one subproject resolved a private mirror",
-			left:  public,
-			right: private,
+			name: "one subproject recorded nothing",
+			left: public, right: "",
+			want: map[string]int{public: 1},
 		},
 		{
-			name:  "one subproject recorded nothing",
-			left:  public,
-			right: "",
-			want:  sdk.PackageOrigin{ArtifactURL: public},
+			name: "a gap fills regardless of order",
+			left: "", right: public,
+			want: map[string]int{public: 1},
+		},
+		{
+			name: "subprojects contradict",
+			left: public, right: private,
+			want: map[string]int{public: 1, private: 1},
 		},
 	}
 
@@ -104,59 +108,66 @@ func TestConsolidateGraphsSettlesOriginAcrossManifests(t *testing.T) {
 			if err != nil {
 				t.Fatalf("ConsolidatedGraph() error = %v", err)
 			}
-			var node *sdk.Dependency
+			got := map[string]int{}
+			total := 0
 			merged.WalkNodes(func(dep *sdk.Dependency) bool {
-				if dep.Name == "lodash" {
-					node = dep
+				if dep.Name != "lodash" {
+					return true
+				}
+				total++
+				if origin := originOf(dep); origin.ArtifactURL != "" {
+					got[origin.ArtifactURL]++
 				}
 				return true
 			})
-			if node == nil {
-				t.Fatalf("expected lodash in the merged graph; ids present: %v", graphIDs(merged))
+			wantTotal := 0
+			for _, n := range tc.want {
+				wantTotal += n
 			}
-			if got := originOf(node); got != tc.want {
-				t.Fatalf("merged origin = %+v, want %+v", got, tc.want)
+			if wantTotal == 0 {
+				wantTotal = 1
+			}
+			if total != wantTotal {
+				t.Fatalf("lodash nodes = %d, want %d", total, wantTotal)
+			}
+			for url, n := range tc.want {
+				if got[url] != n {
+					t.Fatalf("origins = %v, want %v", got, tc.want)
+				}
 			}
 		})
 	}
 }
 
-// One manifest can record a package twice with different locations -- a Bun
-// lockfile listing one name and version from two mirrors. Both nodes normalize
-// to one canonical identity and only one survives, so the disagreement has to
-// be settled while both are still there. This is the single-manifest case,
-// which never reaches cross-entry reconciliation.
-func TestConsolidateGraphsSettlesOriginWithinOneManifest(t *testing.T) {
+// One manifest can also record a package twice -- a Bun lockfile listing one
+// name and version from two mirrors, under distinct per-entry IDs. Identity
+// normalization rewrites IDs to the canonical PURL; contradicting occurrences
+// must survive that collapse as distinct nodes, and agreeing ones must fold.
+func TestConsolidateGraphsPreservesOccurrencesWithinOneManifest(t *testing.T) {
 	const (
 		public  = "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
 		private = "https://npm.corp/mirror/lodash/-/lodash-4.17.21.tgz"
 	)
 
 	cases := []struct {
-		name  string
-		left  string
-		right string
-		want  sdk.PackageOrigin
+		name      string
+		second    string
+		wantNodes int
 	}{
-		{name: "entries agree", left: public, right: public, want: sdk.PackageOrigin{ArtifactURL: public}},
-		{name: "entries disagree", left: public, right: private},
-		{name: "one entry says nothing", left: public, right: "", want: sdk.PackageOrigin{ArtifactURL: public}},
+		{name: "entries agree", second: public, wantNodes: 1},
+		{name: "entries contradict", second: private, wantNodes: 2},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Distinct node IDs, one canonical PURL: what a lockfile parser
-			// produces when it disambiguates a duplicate package key.
 			g := sdk.New()
-			for i, artifactURL := range []string{tc.left, tc.right} {
+			for i, artifactURL := range []string{public, tc.second} {
 				pkg := sdk.NewDependencyWithID(
-					fmt.Sprintf("bun-package:lodash@4.17.21#%d", i),
+					fmt.Sprintf("bun-package:lodash#%d", i),
 					sdk.Dependency{Coordinates: sdk.Coordinates{
 						Name: "lodash", Version: "4.17.21", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lodash@4.17.21"}},
 				)
-				if artifactURL != "" {
-					pkg.Origin = sdk.ArtifactOrigin(artifactURL)
-				}
+				pkg.Origin = sdk.ArtifactOrigin(artifactURL)
 				if err := g.AddNode(pkg); err != nil {
 					t.Fatal(err)
 				}
@@ -176,24 +187,28 @@ func TestConsolidateGraphsSettlesOriginWithinOneManifest(t *testing.T) {
 			if err != nil {
 				t.Fatalf("ConsolidateGraphs() error = %v", err)
 			}
-
 			merged, err := consolidated.Graphs.ConsolidatedGraph()
 			if err != nil {
 				t.Fatalf("ConsolidatedGraph() error = %v", err)
 			}
-			var checked int
+
+			var nodes int
+			origins := map[string]int{}
 			merged.WalkNodes(func(dep *sdk.Dependency) bool {
 				if dep.Name != "lodash" {
 					return true
 				}
-				checked++
-				if got := originOf(dep); got != tc.want {
-					t.Fatalf("origin = %+v, want %+v", got, tc.want)
+				nodes++
+				if origin := originOf(dep); origin.ArtifactURL != "" {
+					origins[origin.ArtifactURL]++
 				}
 				return true
 			})
-			if checked != 1 {
-				t.Fatalf("found %d lodash nodes, want 1", checked)
+			if nodes != tc.wantNodes {
+				t.Fatalf("lodash nodes = %d (origins %v), want %d", nodes, origins, tc.wantNodes)
+			}
+			if tc.wantNodes == 2 && (origins[public] != 1 || origins[private] != 1) {
+				t.Fatalf("origins = %v, want both occurrences with their own origins", origins)
 			}
 		})
 	}

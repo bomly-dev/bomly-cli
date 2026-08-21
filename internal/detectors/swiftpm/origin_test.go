@@ -12,14 +12,14 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
+func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
 	if dep == nil {
-		return sdk.PackageOrigin{}
+		return sdk.DependencyOrigin{}
 	}
 	if origin := dep.Origin.Normalized(); origin != nil {
 		return *origin
 	}
-	return sdk.PackageOrigin{}
+	return sdk.DependencyOrigin{}
 }
 
 // A Package.resolved pin says how SwiftPM obtained a package. Source-control
@@ -60,7 +60,7 @@ func TestSwiftPMOriginByPinKind(t *testing.T) {
 		switch node.Name {
 		case "swift-argument-parser":
 			checked++
-			want := sdk.PackageOrigin{
+			want := sdk.DependencyOrigin{
 				Repository: "https://github.com/apple/swift-argument-parser.git",
 				Revision:   "8192a3b4c5d6e7f8091a2b3c4d5e6f7081921324",
 			}
@@ -123,7 +123,7 @@ func TestSwiftPMNativeOriginIsPinnedFromPackageResolved(t *testing.T) {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
 
-	want := sdk.PackageOrigin{
+	want := sdk.DependencyOrigin{
 		Repository: "https://github.com/apple/swift-argument-parser.git",
 		Revision:   "f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b",
 	}
@@ -269,7 +269,7 @@ func TestSwiftPMNativeOriginSurvivesMissingPackageResolved(t *testing.T) {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
 
-	want := sdk.PackageOrigin{Repository: "https://github.com/apple/swift-argument-parser.git"}
+	want := sdk.DependencyOrigin{Repository: "https://github.com/apple/swift-argument-parser.git"}
 	var checked int
 	g.WalkNodes(func(dep *sdk.Dependency) bool {
 		if dep.Name == "swift-argument-parser" {
@@ -396,7 +396,7 @@ func TestSwiftPMOriginIsPinnedFromTheXcodeLockfile(t *testing.T) {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
 
-	want := sdk.PackageOrigin{
+	want := sdk.DependencyOrigin{
 		Repository: "https://github.com/apple/swift-argument-parser.git",
 		Revision:   "6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192",
 	}

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
 )
@@ -98,13 +97,9 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 			}
 		}
 		// poetry.lock can hold several marker-specific records for one
-		// package; the last wins for the node, so its origin must account
-		// for the records it stands in for.
-		key := normalizePythonName(pkg.Name)
-		if existing, ok := nodesByName[key]; ok {
-			detectors.FoldOrigin(node, existing)
-		}
-		nodesByName[key] = node
+		// package. References are by bare name, so one graph position
+		// exists: the last record wins as a whole, deterministically.
+		nodesByName[normalizePythonName(pkg.Name)] = node
 	}
 
 	// Build the graph.

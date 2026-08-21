@@ -122,14 +122,15 @@ In practice:
   second says the rule has no home. Give it one — a named helper, a shared
   entry point, or an invariant enforced where the data is created — and route
   every site through it.
-- **Name the concept, not the mechanics.** `detectors.FoldOrigin(survivor,
-  replaced)` says what the caller is doing; a bare `x = Reconcile(x, y)` at
-  each site says only what to type, and gets the argument order wrong
-  eventually.
+- **Name the concept, not the mechanics.** `detectors.EnsureNode(g, node)`
+  says what the caller is doing — insert or return the existing node; a
+  hand-written lookup-then-insert at each site says only what to type, and
+  each copy decides duplicate handling differently.
 - **Add a guard when the rule can be bypassed by writing it out by hand.**
-  `TestOriginReconciliationGoesThroughFoldOrigin` fails if a hand-written
-  reconciliation reappears anywhere under `internal/`. A guard is cheap next to
-  the review round it replaces.
+  `TestNodeInsertionGoesThroughTheSharedHelper` fails if a lookup-then-insert
+  reappears anywhere under `internal/`, and `TestExportNeverReadsResolvedURL`
+  fails if the export layer touches raw manifest values. A guard is cheap next
+  to the review round it replaces.
 - **Say so when you decline.** If centralizing is genuinely out of scope for
   the change in hand, record why in `dev-docs/ARCHITECTURE.md` and what the
   durable fix would be, so the next person inherits the reasoning rather than

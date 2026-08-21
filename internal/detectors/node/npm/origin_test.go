@@ -9,14 +9,14 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
+func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
 	if dep == nil {
-		return sdk.PackageOrigin{}
+		return sdk.DependencyOrigin{}
 	}
 	if origin := dep.Origin.Normalized(); origin != nil {
 		return *origin
 	}
-	return sdk.PackageOrigin{}
+	return sdk.DependencyOrigin{}
 }
 
 // npm writes whatever it installed from into "resolved": a registry tarball,
@@ -74,12 +74,13 @@ func TestNPMOriginByResolvedShape(t *testing.T) {
 	}
 }
 
-// A v1 lockfile repeats a package at every place it is installed, and the
-// copies can disagree: one nested under a package pinned to a private mirror,
-// one at the top level from the public registry. They share a name and version,
-// so they become one graph node, and the node must not report whichever copy
-// the traversal reached first.
-func TestNPMv1DuplicateEntriesReconcileOrigin(t *testing.T) {
+// A v1 lockfile repeats a package at every place it is installed, and nested
+// references are positional only through the walk -- there is no stable
+// per-occurrence identity to key distinct nodes on. Duplicates therefore fold
+// to one node and the first-encountered record wins as a whole,
+// deterministically: the same lockfile always yields the same answer.
+// (Positional splitting for npm's tree is #399 territory.)
+func TestNPMv1DuplicateEntriesAreDeterministic(t *testing.T) {
 	projectDir := t.TempDir()
 	lockfile := `{
       "name": "demo",
@@ -90,16 +91,14 @@ func TestNPMv1DuplicateEntriesReconcileOrigin(t *testing.T) {
           "version": "1.0.0",
           "resolved": "https://registry.npmjs.org/a-first/-/a-first-1.0.0.tgz",
           "dependencies": {
-            "disputed": {"version": "2.0.0", "resolved": "https://npm.corp/mirror/disputed/-/disputed-2.0.0.tgz"},
-            "agreed": {"version": "3.0.0", "resolved": "https://registry.npmjs.org/agreed/-/agreed-3.0.0.tgz"}
+            "shared": {"version": "2.0.0", "resolved": "https://npm.corp/mirror/shared/-/shared-2.0.0.tgz"}
           }
         },
         "z-last": {
           "version": "1.0.0",
           "resolved": "https://registry.npmjs.org/z-last/-/z-last-1.0.0.tgz",
           "dependencies": {
-            "disputed": {"version": "2.0.0", "resolved": "https://registry.npmjs.org/disputed/-/disputed-2.0.0.tgz"},
-            "agreed": {"version": "3.0.0", "resolved": "https://registry.npmjs.org/agreed/-/agreed-3.0.0.tgz"}
+            "shared": {"version": "2.0.0", "resolved": "https://registry.npmjs.org/shared/-/shared-2.0.0.tgz"}
           }
         }
       }
@@ -108,29 +107,24 @@ func TestNPMv1DuplicateEntriesReconcileOrigin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Repeat: the traversal walks maps, so an order-dependent result would
-	// show up as a different answer between runs rather than a stable wrong one.
+	winners := map[string]int{}
 	for range 25 {
 		graphs, err := depGraphFromNPMLockfile(projectDir)
 		if err != nil {
 			t.Fatalf("depGraphFromNPMLockfile() error = %v", err)
 		}
-
-		disputed, ok := graphs.graph.Node("disputed@2.0.0")
+		shared, ok := graphs.graph.Node("shared@2.0.0")
 		if !ok {
-			t.Fatal("expected disputed@2.0.0 in graph")
+			t.Fatal("expected shared@2.0.0 in graph")
 		}
-		if origin := originOf(disputed); !origin.Empty() {
-			t.Fatalf("disputed origin = %+v, want none: its two copies name different locations", origin)
-		}
-
-		agreed, ok := graphs.graph.Node("agreed@3.0.0")
-		if !ok {
-			t.Fatal("expected agreed@3.0.0 in graph")
-		}
-		const want = "https://registry.npmjs.org/agreed/-/agreed-3.0.0.tgz"
-		if got := originOf(agreed).ArtifactURL; got != want {
-			t.Fatalf("agreed origin = %q, want %q: its copies agree", got, want)
+		winners[originOf(shared).ArtifactURL]++
+	}
+	if len(winners) != 1 {
+		t.Fatalf("winners = %v, want one deterministic answer across runs", winners)
+	}
+	for url := range winners {
+		if url == "" {
+			t.Fatal("the winning record should carry its origin")
 		}
 	}
 }

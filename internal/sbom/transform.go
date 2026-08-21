@@ -285,7 +285,7 @@ func scorecardRepositoryURL(scorecard *sdk.PackageScorecard) (string, bool) {
 // value arrives already validated -- Normalized applies the SDK's rule and
 // returns nothing when a location does not survive it -- so there is nothing to
 // decide here: export publishes what detection resolved, or nothing.
-func applyOrigin(component *Component, origin *sdk.PackageOrigin) {
+func applyOrigin(component *Component, origin *sdk.DependencyOrigin) {
 	if origin == nil {
 		return
 	}

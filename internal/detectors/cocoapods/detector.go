@@ -371,6 +371,6 @@ func sortedPodNames(specs map[string]podSpec) []string {
 }
 
 func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
-	_, err := detectors.AddNodeFolding(g, node)
+	_, err := detectors.EnsureNode(g, node)
 	return err
 }

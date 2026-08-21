@@ -401,7 +401,7 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 				return nil, err
 			}
 			tgfPackages[id] = node
-			surviving, err := detectors.AddNodeFolding(tgfGraph, node)
+			surviving, err := detectors.EnsureNode(tgfGraph, node)
 			if err != nil {
 				return nil, err
 			}

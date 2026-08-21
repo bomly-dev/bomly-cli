@@ -38,12 +38,25 @@ func normalizeGraphPackageIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 			if err := normalized.AddNode(clone); err != nil {
 				return nil, fmt.Errorf("add normalized dependency %q: %w", clone.ID, err)
 			}
+		} else if detectors.OriginsConflict(existing.Origin, clone.Origin) {
+			// The manifest recorded two resolutions for one canonical
+			// identity -- one package from two places. They are different
+			// occurrences, so both stay, each in its own graph position:
+			// the second keeps the unique ID the detector gave it instead
+			// of collapsing onto the canonical one.
+			clone.ID = node.ID
+			if _, taken := normalized.Node(clone.ID); taken {
+				clone.ID = clone.ID + "#" + canonicalPURL
+			}
+			if err := normalized.AddNode(clone); err != nil {
+				return nil, fmt.Errorf("add occurrence %q: %w", clone.ID, err)
+			}
 		} else {
-			// Two nodes normalizing to one identity are one package. Only one
-			// survives, so the discarded occurrence still gets a say about
-			// where the package came from -- otherwise a lockfile recording
-			// one package from two mirrors publishes whichever came first.
-			detectors.FoldOrigin(existing, clone)
+			// Two witnesses of one resolution fold; a gap fills from
+			// whichever record has an origin, matching the SDK's merge.
+			if existing.Origin.Empty() && !clone.Origin.Empty() {
+				existing.Origin = clone.Origin
+			}
 		}
 		idMapping[node.ID] = clone.ID
 	}
@@ -119,6 +132,81 @@ func BuildPackageRegistry(consolidated sdk.ConsolidatedGraph) *sdk.PackageRegist
 	return registry
 }
 
+// preserveContradictingOccurrences walks the selected entries in order and
+// re-IDs any node whose origin contradicts the origin already established for
+// that ID by an earlier entry, so the later SDK graph merge folds only
+// witnesses of one resolution. Two manifests resolving one package identically
+// fold; a gap fills; a contradiction survives as two nodes, each in its own
+// manifest's graph position. No tiebreak ever picks a winner.
+func preserveContradictingOccurrences(entries []sdk.GraphEntry) {
+	established := make(map[string]*sdk.DependencyOrigin)
+	for _, entry := range entries {
+		if entry.Graph == nil {
+			continue
+		}
+		var contradicting []*sdk.Dependency
+		for _, node := range entry.Graph.Nodes() {
+			if node == nil {
+				continue
+			}
+			recorded, seen := established[node.ID]
+			switch {
+			case !seen || recorded.Empty():
+				if origin := node.Origin.Normalized(); origin != nil {
+					established[node.ID] = origin
+				} else if !seen {
+					established[node.ID] = nil
+				}
+			case detectors.OriginsConflict(recorded, node.Origin):
+				contradicting = append(contradicting, node)
+			}
+		}
+		for _, node := range contradicting {
+			renameNode(entry.Graph, node, node.ID+"#"+entry.Manifest.Path)
+		}
+	}
+}
+
+// renameNode rebuilds a node under a new ID, remapping its edges. sdk.Graph
+// keys nodes by ID, so a rename is a remove-and-reinsert.
+func renameNode(g *sdk.Graph, node *sdk.Dependency, newID string) {
+	if g == nil || node == nil || newID == node.ID || newID == "" {
+		return
+	}
+	if _, taken := g.Node(newID); taken {
+		return // never overwrite an unrelated node; leave the original in place
+	}
+	var parents []*sdk.Dependency
+	g.WalkEdges(func(from, to *sdk.Dependency) bool {
+		if to != nil && to.ID == node.ID && from != nil {
+			parents = append(parents, from)
+		}
+		return true
+	})
+	children, err := g.DirectDependencies(node.ID)
+	if err != nil {
+		return
+	}
+	renamed := node.Clone()
+	renamed.ID = newID
+	if !g.RemoveNode(node.ID) {
+		return
+	}
+	if err := g.AddNode(renamed); err != nil {
+		return
+	}
+	for _, parent := range parents {
+		if parent != nil {
+			_ = g.AddEdge(parent.ID, newID)
+		}
+	}
+	for _, child := range children {
+		if child != nil {
+			_ = g.AddEdge(newID, child.ID)
+		}
+	}
+}
+
 func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
 	if node == nil {
 		return nil
@@ -127,7 +215,9 @@ func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
 	if err := g.AddNode(clone); errors.Is(err, sdk.ErrNodeAlreadyExist) {
 		if existing, ok := g.Node(node.ID); ok && existing != nil {
 			existing.Relationship = sdk.MergeDependencyRelationship(existing.Relationship, node.Relationship)
-			detectors.FoldOrigin(existing, clone)
+			if existing.Origin.Empty() {
+				existing.Origin = clone.Origin
+			}
 		}
 	} else if err != nil {
 		return fmt.Errorf("add dependency %q: %w", node.ID, err)

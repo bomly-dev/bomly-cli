@@ -292,7 +292,7 @@ func splitPackageName(value string) (string, string) {
 }
 
 func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
-	_, err := detectors.AddNodeFolding(depsGraph, node)
+	_, err := detectors.EnsureNode(depsGraph, node)
 	return err
 }
 

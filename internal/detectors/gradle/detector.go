@@ -496,7 +496,7 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 		}
 		stack = stack[:depth+1]
 		parentID := stack[len(stack)-1]
-		surviving, err := detectors.AddNodeFolding(currentGraph, node)
+		surviving, err := detectors.EnsureNode(currentGraph, node)
 		if err != nil {
 			return gradleParseResult{}, err
 		}

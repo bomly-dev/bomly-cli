@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
 )
@@ -74,15 +73,11 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 		})
 		setUVOrigin(node, pkg.Source)
 
-		// A universal lock can hold several records for one package. The last
-		// wins for the node itself, but its origin has to account for the
-		// records being replaced: two that name different sources cancel
-		// rather than the graph reporting whichever was listed last.
-		key := normalizePythonName(pkg.Name)
-		if existing, ok := nodesByName[key]; ok {
-			detectors.FoldOrigin(node, existing)
-		}
-		nodesByName[key] = node
+		// A universal lock can hold several records for one package (marker
+		// alternatives). References are by bare name, so one graph position
+		// exists: the last record wins as a whole, deterministically -- no
+		// field-level mixing between records.
+		nodesByName[normalizePythonName(pkg.Name)] = node
 	}
 
 	// Locate the editable (project) package — it acts as the root.

@@ -8,14 +8,14 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
+func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
 	if dep == nil {
-		return sdk.PackageOrigin{}
+		return sdk.DependencyOrigin{}
 	}
 	if origin := dep.Origin.Normalized(); origin != nil {
 		return *origin
 	}
-	return sdk.PackageOrigin{}
+	return sdk.DependencyOrigin{}
 }
 
 // Cargo.lock records one source string per package. Only "git+" names where the
@@ -25,22 +25,22 @@ func TestSetCargoOriginBySourcePrefix(t *testing.T) {
 	cases := []struct {
 		name   string
 		source string
-		want   sdk.PackageOrigin
+		want   sdk.DependencyOrigin
 	}{
 		{
 			name:   "git dependency pins the resolved commit in the fragment",
 			source: "git+https://github.com/example/helper?rev=main#3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f",
-			want:   sdk.PackageOrigin{Repository: "https://github.com/example/helper", Revision: "3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f"},
+			want:   sdk.DependencyOrigin{Repository: "https://github.com/example/helper", Revision: "3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f"},
 		},
 		{
 			name:   "requested tag is used when no commit was recorded",
 			source: "git+https://github.com/example/helper?tag=v1.2.3",
-			want:   sdk.PackageOrigin{Repository: "https://github.com/example/helper", Revision: "v1.2.3"},
+			want:   sdk.DependencyOrigin{Repository: "https://github.com/example/helper", Revision: "v1.2.3"},
 		},
 		{
 			name:   "branch dependency without a pin keeps the repository",
 			source: "git+https://github.com/example/helper",
-			want:   sdk.PackageOrigin{Repository: "https://github.com/example/helper"},
+			want:   sdk.DependencyOrigin{Repository: "https://github.com/example/helper"},
 		},
 		{name: "crates.io index root", source: "registry+https://github.com/rust-lang/crates.io-index"},
 		{name: "sparse index root", source: "sparse+https://index.crates.io/"},
@@ -61,9 +61,10 @@ func TestSetCargoOriginBySourcePrefix(t *testing.T) {
 }
 
 // Cargo can resolve one crate name and version from two sources -- the same
-// crate pulled from two git remotes. They share a PURL, so they become one
-// node, and that node must not claim whichever source was walked first.
-func TestCargoDuplicateCrateSourcesCancelOrigin(t *testing.T) {
+// crate pulled from two git remotes. Cargo's package IDs are source-qualified,
+// so these are distinguishable occurrences: both stay in the graph, each with
+// its own origin, rather than one being folded into the other.
+func TestCargoDuplicateCrateSourcesStayDistinct(t *testing.T) {
 	metadata := []byte(`{
       "packages": [
         {"id": "demo 0.1.0 (path+file:///w)", "name": "demo", "version": "0.1.0", "source": null, "dependencies": []},
@@ -74,26 +75,25 @@ func TestCargoDuplicateCrateSourcesCancelOrigin(t *testing.T) {
       "resolve": {"nodes": [], "root": "demo 0.1.0 (path+file:///w)"}
     }`)
 
-	// Repeat: the packages arrive in a map, so an order-dependent answer shows
-	// up as a different result between runs rather than a stable wrong one.
+	// Repeated: the packages arrive in a map, so an order-dependent result
+	// would show up as instability rather than a stable answer.
 	for range 25 {
 		graph, err := depGraphFromMetadata(metadata)
 		if err != nil {
 			t.Fatalf("depGraphFromMetadata() error = %v", err)
 		}
-		var checked int
+		repositories := map[string]int{}
 		graph.WalkNodes(func(dep *sdk.Dependency) bool {
 			if dep.Name != "helper" {
 				return true
 			}
-			checked++
-			if got := originOf(dep); !got.Empty() {
-				t.Fatalf("origin = %+v, want none: the crate resolved from two repositories", got)
+			if origin := originOf(dep); origin.Repository != "" {
+				repositories[origin.Repository]++
 			}
 			return true
 		})
-		if checked != 1 {
-			t.Fatalf("found %d helper nodes, want 1", checked)
+		if len(repositories) != 2 || repositories["https://github.com/a/helper"] != 1 || repositories["https://github.com/b/helper"] != 1 {
+			t.Fatalf("helper occurrences = %v, want both repositories as distinct nodes", repositories)
 		}
 	}
 }
@@ -114,7 +114,7 @@ func TestCargoDuplicateCrateSameSourceKeepsOrigin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromMetadata() error = %v", err)
 	}
-	want := sdk.PackageOrigin{
+	want := sdk.DependencyOrigin{
 		Repository: "https://github.com/a/helper",
 		Revision:   "aaaabbbbccccddddeeeeffff0000111122223333",
 	}
@@ -209,7 +209,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 	if !ok {
 		t.Fatal("expected helper in graph")
 	}
-	want := sdk.PackageOrigin{Repository: "https://github.com/example/helper", Revision: "6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192"}
+	want := sdk.DependencyOrigin{Repository: "https://github.com/example/helper", Revision: "6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192"}
 	if got := originOf(helper); got != want {
 		t.Fatalf("helper origin = %+v, want %+v", got, want)
 	}

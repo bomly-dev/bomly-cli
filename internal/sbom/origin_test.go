@@ -165,17 +165,14 @@ func TestPackageWithoutOriginKeepsNOASSERTION(t *testing.T) {
 func TestExportRevalidatesOrigin(t *testing.T) {
 	hostile := []struct {
 		name   string
-		origin *sdk.PackageOrigin
+		origin *sdk.DependencyOrigin
 	}{
-		{name: "credentialed artifact", origin: &sdk.PackageOrigin{ArtifactURL: "https://build:s3cret-token-value@nexus.corp/repo/react-18.2.0.tgz"}},
-		{name: "local path", origin: &sdk.PackageOrigin{ArtifactURL: "/Users/someone/src/project/react.tgz"}},
-		{name: "file url", origin: &sdk.PackageOrigin{Repository: "file:///Users/someone/src/react"}},
-		{name: "registry root", origin: &sdk.PackageOrigin{ArtifactURL: "https://registry.npmjs.org/"}},
-		{name: "revision breaking the locator grammar", origin: &sdk.PackageOrigin{
+		{name: "credentialed artifact", origin: &sdk.DependencyOrigin{ArtifactURL: "https://build:s3cret-token-value@nexus.corp/repo/react-18.2.0.tgz"}},
+		{name: "local path", origin: &sdk.DependencyOrigin{ArtifactURL: "/Users/someone/src/project/react.tgz"}},
+		{name: "file url", origin: &sdk.DependencyOrigin{Repository: "file:///Users/someone/src/react"}},
+		{name: "registry root", origin: &sdk.DependencyOrigin{ArtifactURL: "https://registry.npmjs.org/"}},
+		{name: "revision breaking the locator grammar", origin: &sdk.DependencyOrigin{
 			Repository: "https://github.com/facebook/react", Revision: "main@evil.test/x",
-		}},
-		{name: "a recorded disagreement publishes nothing", origin: &sdk.PackageOrigin{
-			Disputed: true, ArtifactURL: "https://registry.npmjs.org/react/-/react-18.2.0.tgz",
 		}},
 	}
 

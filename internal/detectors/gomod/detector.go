@@ -568,7 +568,7 @@ func appendUniqueModule(modules []moduleRef, seen map[string]struct{}, ref modul
 }
 
 func addOrMergeModuleNode(depsGraph *sdk.Graph, node *sdk.Dependency, scope sdk.Scope) error {
-	surviving, err := detectors.AddNodeFolding(depsGraph, node)
+	surviving, err := detectors.EnsureNode(depsGraph, node)
 	if err != nil {
 		return err
 	}

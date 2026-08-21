@@ -7,14 +7,14 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
+func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
 	if dep == nil {
-		return sdk.PackageOrigin{}
+		return sdk.DependencyOrigin{}
 	}
 	if origin := dep.Origin.Normalized(); origin != nil {
 		return *origin
 	}
-	return sdk.PackageOrigin{}
+	return sdk.DependencyOrigin{}
 }
 
 // A Gemfile.lock names its sources by section. GEM's remote is the gem server
@@ -57,13 +57,13 @@ DEPENDENCIES
 
 	cases := []struct {
 		id   string
-		want sdk.PackageOrigin
+		want sdk.DependencyOrigin
 	}{
 		{id: "rack@3.1.8"},
 		// A private gem server's remote has a path, so nothing but the
 		// section kind distinguishes it from a repository URL.
 		{id: "corp-auth@2.4.0"},
-		{id: "helper@1.0.0", want: sdk.PackageOrigin{
+		{id: "helper@1.0.0", want: sdk.DependencyOrigin{
 			Repository: "https://github.com/example/helper.git",
 			Revision:   "708192a3b4c5d6e7f8091a2b3c4d5e6f70819213",
 		}},

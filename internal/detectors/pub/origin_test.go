@@ -11,14 +11,14 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
+func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
 	if dep == nil {
-		return sdk.PackageOrigin{}
+		return sdk.DependencyOrigin{}
 	}
 	if origin := dep.Origin.Normalized(); origin != nil {
 		return *origin
 	}
-	return sdk.PackageOrigin{}
+	return sdk.DependencyOrigin{}
 }
 
 // A pubspec.lock hosted package's description URL is the pub server, shared by
@@ -73,13 +73,13 @@ func TestPubOriginBySourceType(t *testing.T) {
 
 	cases := []struct {
 		id   string
-		want sdk.PackageOrigin
+		want sdk.DependencyOrigin
 	}{
 		{id: "collection@1.18.0"},
 		// A self-hosted pub server's URL has a path, so nothing but the
 		// source kind distinguishes it from a repository URL.
 		{id: "corp_widgets@3.1.0"},
-		{id: "helper@2.0.0", want: sdk.PackageOrigin{
+		{id: "helper@2.0.0", want: sdk.DependencyOrigin{
 			Repository: "https://github.com/example/helper.git",
 			Revision:   "a3b4c5d6e7f8091a2b3c4d5e6f70819213243546",
 		}},
@@ -148,7 +148,7 @@ func TestPubNativeOriginIsReadFromPubspecLock(t *testing.T) {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
 
-	want := sdk.PackageOrigin{
+	want := sdk.DependencyOrigin{
 		Repository: "https://github.com/example/helper.git",
 		Revision:   "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d",
 	}

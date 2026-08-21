@@ -9,20 +9,25 @@ import (
 )
 
 // An environment can report one distribution twice -- stale duplicate
-// .dist-info directories -- each with its own PEP 610 direct_url. They fold to
-// one node, so records naming different sources must cancel.
-func TestPipInspectDuplicateRecordsReconcileOrigin(t *testing.T) {
+// .dist-info directories -- each with its own PEP 610 direct_url. References
+// carry no per-occurrence identity, so they fold to one node and the first
+// record wins as a whole, deterministically.
+func TestPipInspectDuplicateRecordsAreDeterministic(t *testing.T) {
 	cases := []struct {
 		name   string
 		second string
-		want   sdk.PackageOrigin
+		want   sdk.DependencyOrigin
 	}{
 		{
 			name:   "records agree",
 			second: "https://public.example/helper-1.0.0.tar.gz",
-			want:   sdk.PackageOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
+			want:   sdk.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
 		},
-		{name: "records name different sources", second: "https://mirror.corp/helper-1.0.0.tar.gz"},
+		{
+			name:   "records name different sources",
+			second: "https://mirror.corp/helper-1.0.0.tar.gz",
+			want:   sdk.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
+		},
 	}
 
 	for _, tc := range cases {
@@ -55,20 +60,25 @@ func TestPipInspectDuplicateRecordsReconcileOrigin(t *testing.T) {
 	}
 }
 
-// poetry.lock can hold several marker-specific records for one package. They
-// fold to one node, so records naming different sources must cancel.
-func TestPoetryDuplicateRecordsReconcileOrigin(t *testing.T) {
+// poetry.lock can hold several marker-specific records for one package.
+// References are by bare name, so they fold to one node and the last record
+// wins as a whole, deterministically.
+func TestPoetryDuplicateRecordsAreDeterministic(t *testing.T) {
 	cases := []struct {
 		name   string
 		second string
-		want   sdk.PackageOrigin
+		want   sdk.DependencyOrigin
 	}{
 		{
 			name:   "records agree",
 			second: "https://public.example/helper-1.0.0.tar.gz",
-			want:   sdk.PackageOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
+			want:   sdk.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
 		},
-		{name: "records name different sources", second: "https://mirror.corp/helper-1.0.0.tar.gz"},
+		{
+			name:   "records name different sources",
+			second: "https://mirror.corp/helper-1.0.0.tar.gz",
+			want:   sdk.DependencyOrigin{ArtifactURL: "https://mirror.corp/helper-1.0.0.tar.gz"},
+		},
 	}
 
 	for _, tc := range cases {
@@ -118,21 +128,25 @@ url = "` + tc.second + `"
 	}
 }
 
-// A universal uv.lock can hold several records for one package. They fold to
-// one node, so records naming different sources must cancel rather than the
-// graph reporting whichever was listed last.
-func TestUVDuplicateRecordsReconcileOrigin(t *testing.T) {
+// A universal uv.lock can hold several records for one package (marker
+// alternatives). References are by bare name, so they fold to one node and
+// the last record wins as a whole, deterministically.
+func TestUVDuplicateRecordsAreDeterministic(t *testing.T) {
 	cases := []struct {
 		name   string
 		second string
-		want   sdk.PackageOrigin
+		want   sdk.DependencyOrigin
 	}{
 		{
 			name:   "records agree",
 			second: "https://public.example/helper-1.0.0.tar.gz",
-			want:   sdk.PackageOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
+			want:   sdk.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
 		},
-		{name: "records name different sources", second: "https://mirror.corp/helper-1.0.0.tar.gz"},
+		{
+			name:   "records name different sources",
+			second: "https://mirror.corp/helper-1.0.0.tar.gz",
+			want:   sdk.DependencyOrigin{ArtifactURL: "https://mirror.corp/helper-1.0.0.tar.gz"},
+		},
 	}
 
 	for _, tc := range cases {
@@ -183,21 +197,26 @@ source = { url = "` + tc.second + `" }
 	}
 }
 
-// A package can be listed in both the default and develop groups. They become
-// one node, so two groups naming different sources must cancel rather than
-// publishing whichever group was processed first.
-func TestPipenvGroupsReconcileOrigin(t *testing.T) {
+// A package can be listed in both the default and develop groups. References
+// are by bare name, so they fold to one node and the default group's record --
+// processed first -- wins as a whole, deterministically. Scopes from both
+// groups still union: usage facts aggregate even when records replace.
+func TestPipenvGroupsAreDeterministic(t *testing.T) {
 	cases := []struct {
 		name       string
 		develop    string
-		wantOrigin sdk.PackageOrigin
+		wantOrigin sdk.DependencyOrigin
 	}{
 		{
 			name:       "groups agree",
 			develop:    "https://public.example/helper-1.0.0.tar.gz",
-			wantOrigin: sdk.PackageOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
+			wantOrigin: sdk.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
 		},
-		{name: "groups name different sources", develop: "https://mirror.corp/helper-1.0.0.tar.gz"},
+		{
+			name:       "groups name different sources",
+			develop:    "https://mirror.corp/helper-1.0.0.tar.gz",
+			wantOrigin: sdk.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
+		},
 	}
 
 	for _, tc := range cases {
@@ -238,18 +257,18 @@ func TestPipenvGroupsReconcileOrigin(t *testing.T) {
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.PackageOrigin {
+func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
 	if dep == nil {
-		return sdk.PackageOrigin{}
+		return sdk.DependencyOrigin{}
 	}
 	if origin := dep.Origin.Normalized(); origin != nil {
 		return *origin
 	}
-	return sdk.PackageOrigin{}
+	return sdk.DependencyOrigin{}
 }
 
 // requireOrigin asserts the exact origin a named package asserts.
-func requireOrigin(t *testing.T, graph *sdk.Graph, id string, want sdk.PackageOrigin) {
+func requireOrigin(t *testing.T, graph *sdk.Graph, id string, want sdk.DependencyOrigin) {
 	t.Helper()
 	node, ok := graph.Node(id)
 	if !ok {
@@ -302,16 +321,16 @@ source = { path = "../vendor/from-path" }
 
 	// The fragment carries the commit uv resolved; the "rev" query carries
 	// what the manifest asked for.
-	requireOrigin(t, graph, "from-git@1.0.0", sdk.PackageOrigin{
+	requireOrigin(t, graph, "from-git@1.0.0", sdk.DependencyOrigin{
 		Repository: "https://github.com/example/from-git",
 		Revision:   "9f8e7d6c5b4a3928176554433221100ffeeddcc0",
 	})
-	requireOrigin(t, graph, "from-url@2.0.0", sdk.PackageOrigin{
+	requireOrigin(t, graph, "from-url@2.0.0", sdk.DependencyOrigin{
 		ArtifactURL: "https://files.pythonhosted.org/packages/ab/from_url-2.0.0-py3-none-any.whl",
 	})
 	// An index root is not this package's origin, and a path is local.
-	requireOrigin(t, graph, "from-registry@3.0.0", sdk.PackageOrigin{})
-	requireOrigin(t, graph, "from-path@4.0.0", sdk.PackageOrigin{})
+	requireOrigin(t, graph, "from-registry@3.0.0", sdk.DependencyOrigin{})
+	requireOrigin(t, graph, "from-path@4.0.0", sdk.DependencyOrigin{})
 }
 
 func TestPoetryLockOriginBySourceType(t *testing.T) {
@@ -362,17 +381,17 @@ url = "../vendor/from-directory"
 		t.Fatalf("depGraphFromPoetryLock() error = %v", err)
 	}
 
-	requireOrigin(t, graph, "from-pypi@1.0.0", sdk.PackageOrigin{})
+	requireOrigin(t, graph, "from-pypi@1.0.0", sdk.DependencyOrigin{})
 	// resolved_reference is the commit poetry locked; reference is the branch.
-	requireOrigin(t, graph, "from-git@2.0.0", sdk.PackageOrigin{
+	requireOrigin(t, graph, "from-git@2.0.0", sdk.DependencyOrigin{
 		Repository: "https://github.com/example/from-git.git",
 		Revision:   "0a1b2c3d4e5f60718293a4b5c6d7e8f901234567",
 	})
-	requireOrigin(t, graph, "from-url@3.0.0", sdk.PackageOrigin{
+	requireOrigin(t, graph, "from-url@3.0.0", sdk.DependencyOrigin{
 		ArtifactURL: "https://files.pythonhosted.org/packages/cd/from_url-3.0.0.tar.gz",
 	})
-	requireOrigin(t, graph, "from-private-index@4.0.0", sdk.PackageOrigin{})
-	requireOrigin(t, graph, "from-directory@5.0.0", sdk.PackageOrigin{})
+	requireOrigin(t, graph, "from-private-index@4.0.0", sdk.DependencyOrigin{})
+	requireOrigin(t, graph, "from-directory@5.0.0", sdk.DependencyOrigin{})
 }
 
 func TestPipfileLockOriginBySourceType(t *testing.T) {
@@ -397,16 +416,16 @@ func TestPipfileLockOriginBySourceType(t *testing.T) {
 		t.Fatalf("depGraphFromPipfileLock() error = %v", err)
 	}
 
-	requireOrigin(t, graph, "from-pypi@1.0.0", sdk.PackageOrigin{})
-	requireOrigin(t, graph, "from-git", sdk.PackageOrigin{
+	requireOrigin(t, graph, "from-pypi@1.0.0", sdk.DependencyOrigin{})
+	requireOrigin(t, graph, "from-git", sdk.DependencyOrigin{
 		Repository: "https://github.com/example/from-git.git",
 		Revision:   "1f2e3d4c5b6a79880912a3b4c5d6e7f809172635",
 	})
-	requireOrigin(t, graph, "from-archive", sdk.PackageOrigin{
+	requireOrigin(t, graph, "from-archive", sdk.DependencyOrigin{
 		ArtifactURL: "https://files.pythonhosted.org/packages/ef/from_archive-2.0.0.tar.gz",
 	})
-	requireOrigin(t, graph, "from-local", sdk.PackageOrigin{})
-	requireOrigin(t, graph, "from-path", sdk.PackageOrigin{})
+	requireOrigin(t, graph, "from-local", sdk.DependencyOrigin{})
+	requireOrigin(t, graph, "from-path", sdk.DependencyOrigin{})
 }
 
 // pip records a PEP 610 direct_url.json for anything not installed from an
@@ -415,7 +434,7 @@ func TestPipInspectOriginByDirectURLShape(t *testing.T) {
 	cases := []struct {
 		name      string
 		directURL map[string]any
-		want      sdk.PackageOrigin
+		want      sdk.DependencyOrigin
 	}{
 		{name: "index install", directURL: nil},
 		{
@@ -424,12 +443,12 @@ func TestPipInspectOriginByDirectURLShape(t *testing.T) {
 				"url":      "https://github.com/example/pkg.git",
 				"vcs_info": map[string]any{"vcs": "git", "commit_id": "2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e", "requested_revision": "main"},
 			},
-			want: sdk.PackageOrigin{Repository: "https://github.com/example/pkg.git", Revision: "2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e"},
+			want: sdk.DependencyOrigin{Repository: "https://github.com/example/pkg.git", Revision: "2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e"},
 		},
 		{
 			name:      "archive URL",
 			directURL: map[string]any{"url": "https://example.test/pkg-1.0.0-py3-none-any.whl", "archive_info": map[string]any{}},
-			want:      sdk.PackageOrigin{ArtifactURL: "https://example.test/pkg-1.0.0-py3-none-any.whl"},
+			want:      sdk.DependencyOrigin{ArtifactURL: "https://example.test/pkg-1.0.0-py3-none-any.whl"},
 		},
 		{
 			name:      "local directory",

@@ -246,7 +246,7 @@ func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Dependency, packages
 
 		// One package can be listed in both groups; they are one node, and the
 		// shared helper settles what it claims.
-		if _, err := detectors.AddNodeFolding(depsGraph, node); err != nil {
+		if _, err := detectors.EnsureNode(depsGraph, node); err != nil {
 			return fmt.Errorf("add Pipfile.lock package %q: %w", normalizedName, err)
 		}
 		if err := depsGraph.AddEdge(root.ID, node.ID); err != nil {

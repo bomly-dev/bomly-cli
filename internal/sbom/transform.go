@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -48,7 +49,7 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			Digests:        componentDigests(pkg.Digests),
 		}
 		applyOrigin(&component, pkg.Origin.Normalized())
-		enrichComponentFromRegistry(&component, opts.Registry, pkg.PURL)
+		enrichComponentFromRegistry(&component, opts.Registry, pkg.PURL, detectors.IsProjectOwned(pkg))
 		components = append(components, component)
 		depsByRef[pkg.ID] = nil
 		return true
@@ -294,7 +295,7 @@ func applyOrigin(component *Component, origin *sdk.DependencyOrigin) {
 	component.VCSRevision = origin.Revision
 }
 
-func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegistry, purl string) {
+func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegistry, purl string, projectOwned bool) {
 	if component == nil || registry == nil || purl == "" {
 		return
 	}
@@ -314,7 +315,11 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 	if len(pkg.Vulnerabilities) > 0 {
 		component.Vulnerabilities = vulnerabilitiesFromPackage(pkg.EcosystemName(), pkg.Vulnerabilities)
 	}
-	if repository, ok := scorecardRepositoryURL(pkg.Scorecard); ok && component.VCSURL == "" {
+	if repository, ok := scorecardRepositoryURL(pkg.Scorecard); ok && component.VCSURL == "" && !projectOwned {
+		// The registry package is shared by every occurrence of a PURL, but
+		// a scorecard repository resolved for the consumed package must not
+		// be attributed to the project's own record -- a local workspace or
+		// fork that merely shares the identity.
 		// The scorecard matcher resolved a canonical source repository for
 		// this package. A detector-asserted repository is the stronger claim
 		// (it came from the lockfile), so this only fills a gap.

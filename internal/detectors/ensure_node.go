@@ -79,3 +79,14 @@ func EnsureOccurrence(g *sdk.Graph, node *sdk.Dependency, qualifier string) (*sd
 	node.ID = OccurrenceID(node.ID, qualifier)
 	return EnsureNode(g, node)
 }
+
+// IsProjectOwned reports whether dep is the scanned project's own artifact --
+// its root package, a workspace member, a reactor module -- rather than a
+// consumed package. Detectors mark this in two ways, an explicit FirstParty
+// flag or an application package type, and either is enough. The project's own
+// records never take an external origin, never fold into an external
+// occurrence, and never inherit enrichment resolved from a package identity
+// they merely share.
+func IsProjectOwned(dep *sdk.Dependency) bool {
+	return dep != nil && (dep.FirstParty || dep.Type == sdk.PackageTypeApplication)
+}

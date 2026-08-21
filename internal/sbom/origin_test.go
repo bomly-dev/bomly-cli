@@ -368,3 +368,68 @@ func TestOriginIsNotReadBackFromAnIngestedDocument(t *testing.T) {
 		t.Fatalf("re-exported CycloneDX carried references %v, want none", refs)
 	}
 }
+
+// The registry package is shared by every occurrence of a PURL, so a scorecard
+// repository resolved for a consumed package must not be projected onto the
+// project's own record -- a workspace member or fork that shares the identity.
+func TestScorecardRepositoryIsNotAttributedToProjectOwnedComponents(t *testing.T) {
+	const purl = "pkg:npm/helper@1.0.0"
+
+	g := sdk.New()
+	member := sdk.NewDependencyWithID("member", sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name: "helper", Version: "1.0.0", PURL: purl, Ecosystem: "npm", FirstParty: true}})
+	consumed := sdk.NewDependencyWithID("consumed", sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name: "helper", Version: "1.0.0", PURL: purl, Ecosystem: "npm"}})
+	for _, dep := range []*sdk.Dependency{member, consumed} {
+		if err := g.AddNode(dep); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	registry := sdk.NewPackageRegistry()
+	pkg := registry.Ensure(purl)
+	pkg.Name, pkg.Version, pkg.Matched = "helper", "1.0.0", true
+	pkg.Scorecard = &sdk.PackageScorecard{Source: "api.scorecard.dev", Repository: "github.com/upstream/helper"}
+
+	raw, err := MarshalDepGraphJSON(g, TargetCycloneDX17JSON, BuildOptions{Registry: registry}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	var doc struct {
+		Components []struct {
+			BOMRef             string `json:"bom-ref"`
+			ExternalReferences []struct {
+				Type string `json:"type"`
+				URL  string `json:"url"`
+			} `json:"externalReferences"`
+		} `json:"components"`
+	}
+	if err := json.Unmarshal(raw, &doc); err != nil {
+		t.Fatal(err)
+	}
+	var memberChecked, consumedChecked bool
+	for _, component := range doc.Components {
+		hasVCS := false
+		for _, ref := range component.ExternalReferences {
+			if ref.Type == "vcs" {
+				hasVCS = true
+			}
+		}
+		switch component.BOMRef {
+		case "member":
+			memberChecked = true
+			if hasVCS {
+				t.Fatal("the project's own component was attributed to the upstream repository")
+			}
+		case "consumed":
+			consumedChecked = true
+			if !hasVCS {
+				t.Fatal("the consumed component should carry the scorecard repository")
+			}
+		}
+	}
+	if !memberChecked || !consumedChecked {
+		t.Fatalf("expected both components in the document (member %v, consumed %v)", memberChecked, consumedChecked)
+	}
+}

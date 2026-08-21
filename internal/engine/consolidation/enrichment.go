@@ -185,7 +185,7 @@ func preserveContradictingOccurrences(entries []sdk.GraphEntry) []map[string]str
 			if len(distinct[base(node)]) < 2 {
 				continue
 			}
-			if node.FirstParty || node.Type == sdk.PackageTypeApplication {
+			if detectors.IsProjectOwned(node) {
 				// The project's own record is not an occurrence of an
 				// external resolution: it keeps its identity. Its key still
 				// counted above, so a contested external record is renamed
@@ -220,7 +220,7 @@ func resolutionKey(node *sdk.Dependency) string {
 	if raw := strings.TrimSpace(node.ResolvedURL); raw != "" {
 		return raw
 	}
-	if node.FirstParty || node.Type == sdk.PackageTypeApplication {
+	if detectors.IsProjectOwned(node) {
 		// The project's own record is a resolution in its own right -- the
 		// local source tree -- even when no resolution string exists. Without
 		// this, an external record sharing its PURL reads as uncontested,

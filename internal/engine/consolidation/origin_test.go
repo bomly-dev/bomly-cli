@@ -573,6 +573,105 @@ func TestNormalizationReservesCanonicalIDForProjectRecords(t *testing.T) {
 	}
 }
 
+// A project-owned record never folds with an external one, even when both
+// assert the identical resolution -- project-ownedness is part of resolution
+// identity, because the project record resolves from the local source tree
+// whatever origin metadata a producer stapled onto it. Otherwise the external
+// record could survive the fold holding the canonical ID, and export would
+// publish the origin the project-owned component suppresses.
+func TestProjectRecordsNeverFoldWithMatchingExternalResolutions(t *testing.T) {
+	const (
+		purl   = "pkg:npm/helper@1.0.0"
+		origin = "https://registry.npmjs.org/helper/-/helper-1.0.0.tgz"
+	)
+
+	newRecord := func(t *testing.T, id string, firstParty bool) *sdk.Dependency {
+		t.Helper()
+		dep := sdk.NewDependencyWithID(id, sdk.Dependency{Coordinates: sdk.Coordinates{
+			Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: purl, FirstParty: firstParty}})
+		dep.Origin = sdk.ArtifactOrigin(origin)
+		return dep
+	}
+	requireSplit := func(t *testing.T, g *sdk.Graph) {
+		t.Helper()
+		var project, external *sdk.Dependency
+		var nodes int
+		g.WalkNodes(func(dep *sdk.Dependency) bool {
+			if dep.Name != "helper" {
+				return true
+			}
+			nodes++
+			if dep.FirstParty {
+				project = dep
+			} else {
+				external = dep
+			}
+			return true
+		})
+		if nodes != 2 || project == nil || external == nil {
+			t.Fatalf("helper nodes = %d (project %v, external %v), want the project and external records distinct", nodes, project != nil, external != nil)
+		}
+		if project.ID != purl {
+			t.Fatalf("project record ID = %q, want the canonical %q", project.ID, purl)
+		}
+		if got := originOf(external); got.ArtifactURL != origin {
+			t.Fatalf("external origin = %+v, want %q", got, origin)
+		}
+	}
+
+	// Within one entry, in both visit orders.
+	orderings := [][2]string{{"a-external", "z-member"}, {"z-external", "a-member"}}
+	for _, ids := range orderings {
+		t.Run("within entry "+ids[0], func(t *testing.T) {
+			g := sdk.New()
+			for _, dep := range []*sdk.Dependency{newRecord(t, ids[0], false), newRecord(t, ids[1], true)} {
+				if err := g.AddNode(dep); err != nil {
+					t.Fatal(err)
+				}
+			}
+			normalizedGraph, err := normalizeGraphPackageIdentity(g)
+			if err != nil {
+				t.Fatalf("normalizeGraphPackageIdentity() error = %v", err)
+			}
+			requireSplit(t, normalizedGraph)
+		})
+	}
+
+	// Across two manifests, where the scan-wide split decides.
+	t.Run("across manifests", func(t *testing.T) {
+		buildEntry := func(t *testing.T, relativePath, manifest string, firstParty bool) sdk.DetectionResult {
+			t.Helper()
+			g := sdk.New()
+			if err := g.AddNode(newRecord(t, "helper@1.0.0", firstParty)); err != nil {
+				t.Fatal(err)
+			}
+			return sdk.DetectionResult{
+				SubprojectInfo: sdk.Subproject{
+					ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
+					RelativePath:            relativePath,
+					PrimaryDetector:         "npm-detector",
+					DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+					Ecosystem:               sdk.EcosystemNPM,
+				},
+				DetectorName: "npm-detector",
+				Graphs:       sdk.SingleGraphContainer(g, sdk.ManifestMetadata{Path: manifest, Kind: "package-lock.json"}),
+			}
+		}
+		consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{
+			buildEntry(t, "apps/consumer", "apps/consumer/package-lock.json", false),
+			buildEntry(t, "packages/helper", "packages/helper/package-lock.json", true),
+		})
+		if err != nil {
+			t.Fatalf("ConsolidateGraphs() error = %v", err)
+		}
+		merged, err := consolidated.Graphs.ConsolidatedGraph()
+		if err != nil {
+			t.Fatalf("ConsolidatedGraph() error = %v", err)
+		}
+		requireSplit(t, merged)
+	})
+}
+
 // One manifest can also record a package twice -- a Bun lockfile listing one
 // name and version from two mirrors, under distinct per-entry IDs. Identity
 // normalization rewrites IDs to the canonical PURL; contradicting occurrences

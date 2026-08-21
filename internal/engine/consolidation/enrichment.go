@@ -276,23 +276,22 @@ func hasLocation(existing []sdk.PackageLocation, location sdk.PackageLocation) b
 // a distinct resolution from a git one, and must not fold into it. The raw
 // form is only ever hashed into an occurrence ID, never published.
 func resolutionKey(node *sdk.Dependency) string {
-	if key := originKey(node.Origin); key != "" {
-		return key
-	}
-	if raw := strings.TrimSpace(node.ResolvedURL); raw != "" {
-		return raw
-	}
 	if detectors.IsProjectOwned(node) {
-		// The project's own record is a resolution in its own right -- the
-		// local source tree -- even when no resolution string exists. Without
-		// this, an external record sharing its PURL reads as uncontested,
-		// keeps the canonical ID, and the merge collapses the application
-		// into the fetched dependency. Ordinary records with no resolution
-		// stay empty-keyed, so gap-filling for origin-silent records is
+		// The project's own record resolves from the local source tree, no
+		// matter what origin or resolution metadata a producer stapled onto
+		// it -- so project-ownedness comes before the origin key. Otherwise
+		// an external record asserting the same origin would read as the
+		// same resolution, fold with the project record, and (when the
+		// external record survives) strip the project-owned suppression the
+		// SBOM export relies on. Ordinary records with no resolution stay
+		// empty-keyed, so gap-filling for origin-silent records is
 		// unaffected.
 		return "\x00first-party"
 	}
-	return ""
+	if key := originKey(node.Origin); key != "" {
+		return key
+	}
+	return strings.TrimSpace(node.ResolvedURL)
 }
 
 // originKey renders a normalized origin as a stable string, so occurrence IDs

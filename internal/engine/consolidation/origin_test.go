@@ -364,7 +364,9 @@ func TestConsolidationKeepsFirstPartyRootIdentity(t *testing.T) {
 	rootGraph := sdk.New()
 	projectRoot := sdk.NewDependencyWithID("helper@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{
 		Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemPython, PURL: purl, FirstParty: true, Type: sdk.PackageTypeApplication}})
-	projectRoot.ResolvedURL = "."
+	// Deliberately no ResolvedURL: npm workspace members clear it, and the
+	// project's record must contest the external one even with no resolution
+	// string of its own.
 	if err := rootGraph.AddNode(projectRoot); err != nil {
 		t.Fatal(err)
 	}

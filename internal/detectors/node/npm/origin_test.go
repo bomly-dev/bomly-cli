@@ -74,13 +74,11 @@ func TestNPMOriginByResolvedShape(t *testing.T) {
 	}
 }
 
-// A v1 lockfile repeats a package at every place it is installed, and nested
-// references are positional only through the walk -- there is no stable
-// per-occurrence identity to key distinct nodes on. Duplicates therefore fold
-// to one node and the first-encountered record wins as a whole,
-// deterministically: the same lockfile always yields the same answer.
-// (Positional splitting for npm's tree is #399 territory.)
-func TestNPMv1DuplicateEntriesAreDeterministic(t *testing.T) {
+// A v1 lockfile repeats a package at every place it is installed, and the
+// resolved string is each record's discriminator: positions pinning different
+// tarballs stay distinct occurrences with their own origins, while positions
+// pinning the same tarball fold as witnesses of one resolution.
+func TestNPMv1DuplicateEntriesKeepDistinctResolutions(t *testing.T) {
 	projectDir := t.TempDir()
 	lockfile := `{
       "name": "demo",
@@ -91,14 +89,16 @@ func TestNPMv1DuplicateEntriesAreDeterministic(t *testing.T) {
           "version": "1.0.0",
           "resolved": "https://registry.npmjs.org/a-first/-/a-first-1.0.0.tgz",
           "dependencies": {
-            "shared": {"version": "2.0.0", "resolved": "https://npm.corp/mirror/shared/-/shared-2.0.0.tgz"}
+            "shared": {"version": "2.0.0", "resolved": "https://npm.corp/mirror/shared/-/shared-2.0.0.tgz"},
+            "agreed": {"version": "3.0.0", "resolved": "https://registry.npmjs.org/agreed/-/agreed-3.0.0.tgz"}
           }
         },
         "z-last": {
           "version": "1.0.0",
           "resolved": "https://registry.npmjs.org/z-last/-/z-last-1.0.0.tgz",
           "dependencies": {
-            "shared": {"version": "2.0.0", "resolved": "https://registry.npmjs.org/shared/-/shared-2.0.0.tgz"}
+            "shared": {"version": "2.0.0", "resolved": "https://registry.npmjs.org/shared/-/shared-2.0.0.tgz"},
+            "agreed": {"version": "3.0.0", "resolved": "https://registry.npmjs.org/agreed/-/agreed-3.0.0.tgz"}
           }
         }
       }
@@ -107,24 +107,30 @@ func TestNPMv1DuplicateEntriesAreDeterministic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	winners := map[string]int{}
+	// Repeated: an order-dependent result shows up as instability.
 	for range 25 {
 		graphs, err := depGraphFromNPMLockfile(projectDir)
 		if err != nil {
 			t.Fatalf("depGraphFromNPMLockfile() error = %v", err)
 		}
-		shared, ok := graphs.graph.Node("shared@2.0.0")
-		if !ok {
-			t.Fatal("expected shared@2.0.0 in graph")
+		sharedOrigins := map[string]int{}
+		agreedNodes := 0
+		graphs.graph.WalkNodes(func(dep *sdk.Dependency) bool {
+			switch dep.Name {
+			case "shared":
+				sharedOrigins[originOf(dep).ArtifactURL]++
+			case "agreed":
+				agreedNodes++
+			}
+			return true
+		})
+		if len(sharedOrigins) != 2 ||
+			sharedOrigins["https://npm.corp/mirror/shared/-/shared-2.0.0.tgz"] != 1 ||
+			sharedOrigins["https://registry.npmjs.org/shared/-/shared-2.0.0.tgz"] != 1 {
+			t.Fatalf("shared occurrences = %v, want both resolutions distinct", sharedOrigins)
 		}
-		winners[originOf(shared).ArtifactURL]++
-	}
-	if len(winners) != 1 {
-		t.Fatalf("winners = %v, want one deterministic answer across runs", winners)
-	}
-	for url := range winners {
-		if url == "" {
-			t.Fatal("the winning record should carry its origin")
+		if agreedNodes != 1 {
+			t.Fatalf("agreed nodes = %d, want identical resolutions folded", agreedNodes)
 		}
 	}
 }

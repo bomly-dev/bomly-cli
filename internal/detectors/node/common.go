@@ -188,18 +188,29 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 			}
 			node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
 				Name:    name,
-				Version: depNode.Version},
+				Version: depNode.Version}, ResolvedURL: depNode.Resolved,
 			})
 			node.Origin = sdk.ArtifactOrigin(depNode.Resolved)
 
-			if err := AddNodeIfMissing(depsGraph, node); err != nil {
+			// Two tree positions can pin one name@version to different
+			// tarballs; the resolved string is the discriminator, so each
+			// distinct resolution keeps its own occurrence and each
+			// position's edge attaches to the occurrence it references.
+			surviving, err := detectors.EnsureOccurrence(depsGraph, node, depNode.Resolved)
+			if err != nil {
 				return nil, err
 			}
-			if err := depsGraph.AddEdge(current.parentID, node.ID); err != nil {
-				return nil, fmt.Errorf("add dependency %q -> %q: %w", current.parentID, node.ID, err)
+			if surviving == nil {
+				continue
+			}
+			if surviving != node {
+				surviving.AddScope(node.PrimaryScope())
+			}
+			if err := depsGraph.AddEdge(current.parentID, surviving.ID); err != nil {
+				return nil, fmt.Errorf("add dependency %q -> %q: %w", current.parentID, surviving.ID, err)
 			}
 			if len(depNode.Dependencies) > 0 {
-				stack = append(stack, frame{parentID: node.ID, deps: depNode.Dependencies})
+				stack = append(stack, frame{parentID: surviving.ID, deps: depNode.Dependencies})
 			}
 		}
 	}

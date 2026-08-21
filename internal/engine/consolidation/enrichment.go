@@ -217,7 +217,20 @@ func resolutionKey(node *sdk.Dependency) string {
 	if key := originKey(node.Origin); key != "" {
 		return key
 	}
-	return strings.TrimSpace(node.ResolvedURL)
+	if raw := strings.TrimSpace(node.ResolvedURL); raw != "" {
+		return raw
+	}
+	if node.FirstParty || node.Type == sdk.PackageTypeApplication {
+		// The project's own record is a resolution in its own right -- the
+		// local source tree -- even when no resolution string exists. Without
+		// this, an external record sharing its PURL reads as uncontested,
+		// keeps the canonical ID, and the merge collapses the application
+		// into the fetched dependency. Ordinary records with no resolution
+		// stay empty-keyed, so gap-filling for origin-silent records is
+		// unaffected.
+		return "\x00first-party"
+	}
+	return ""
 }
 
 // originKey renders a normalized origin as a stable string, so occurrence IDs

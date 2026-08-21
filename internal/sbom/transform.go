@@ -48,7 +48,14 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			Licenses:       componentLicenses(sdk.DetectionLicenses(pkg)),
 			Digests:        componentDigests(pkg.Digests),
 		}
-		applyOrigin(&component, pkg.Origin.Normalized())
+		if !detectors.IsProjectOwned(pkg) {
+			// The project's own records never take an external origin.
+			// Built-in detectors do not assert one, folding cannot add one,
+			// and the scorecard fallback skips them -- this guard closes the
+			// remaining path, a plugin-supplied graph asserting an origin on
+			// a first-party node directly.
+			applyOrigin(&component, pkg.Origin.Normalized())
+		}
 		enrichComponentFromRegistry(&component, opts.Registry, pkg.PURL, detectors.IsProjectOwned(pkg))
 		components = append(components, component)
 		depsByRef[pkg.ID] = nil

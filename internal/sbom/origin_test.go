@@ -369,6 +369,26 @@ func TestOriginIsNotReadBackFromAnIngestedDocument(t *testing.T) {
 	}
 }
 
+// The project's own records never take an external origin, and export is the
+// last line of that invariant: a plugin-supplied graph can assert an origin
+// directly on a first-party node, bypassing every detector- and fold-level
+// guard, so the projection itself must decline.
+func TestProjectOwnedComponentsPublishNoOrigin(t *testing.T) {
+	g := originGraph(t, func(_, pkg *sdk.Dependency) {
+		pkg.FirstParty = true
+		pkg.Origin = sdk.RepositoryOrigin("https://github.com/upstream/react", "b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7")
+	})
+
+	spdxRaw, cdxRaw := marshalBoth(t, g)
+
+	if got := spdxPackageByName(t, spdxRaw, "react")["downloadLocation"]; got != "NOASSERTION" {
+		t.Fatalf("downloadLocation = %v, want NOASSERTION for the project's own record", got)
+	}
+	if refs := cycloneDXReferences(t, cdxRaw, "react"); len(refs) != 0 {
+		t.Fatalf("project-owned component published references: %v", refs)
+	}
+}
+
 // The registry package is shared by every occurrence of a PURL, so a scorecard
 // repository resolved for a consumed package must not be projected onto the
 // project's own record -- a workspace member or fork that shares the identity.

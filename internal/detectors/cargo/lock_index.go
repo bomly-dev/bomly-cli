@@ -36,18 +36,9 @@ func buildLockIndex(g *sdk.Graph, packages []lockPackage, rootName string) (*loc
 			continue
 		}
 		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
-		surviving, err := detectors.EnsureNode(g, node)
+		surviving, err := detectors.EnsureOccurrence(g, node, strings.TrimSpace(pkg.Source))
 		if err != nil {
 			return nil, err
-		}
-		if surviving != node && strings.TrimSpace(surviving.ResolvedURL) != strings.TrimSpace(pkg.Source) {
-			// A second resolution of the same name@version. The lockfile
-			// asserts they are different (distinct source fields), so both
-			// stay, the newcomer under an opaque occurrence ID.
-			node.ID = detectors.OccurrenceID(node.ID, strings.TrimSpace(pkg.Source))
-			if surviving, err = detectors.EnsureNode(g, node); err != nil {
-				return nil, err
-			}
 		}
 		index.record(pkg, surviving.ID)
 	}

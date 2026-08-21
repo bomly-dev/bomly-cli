@@ -10,6 +10,7 @@ import (
 	"unicode"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -85,11 +86,18 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		// checksum as a URL fragment the invariant strips. Berry entries
 		// carry no resolved location, and git specs are rejected.
 		pkgNode.Origin = sdk.ArtifactOrigin(entry.Resolved)
-		if err := node.AddNodeIfMissing(depsGraph, pkgNode); err != nil {
+		// Two selector entries can pin one name@version to different
+		// tarballs; the shared helper keeps both as distinct occurrences,
+		// and each entry's edges attach to its own via entryNodeByIndex.
+		surviving, err := detectors.EnsureOccurrence(depsGraph, pkgNode, entry.Resolved)
+		if err != nil {
 			return "", err
 		}
-		entryNodeByIndex[idx] = pkgNode.ID
-		return pkgNode.ID, nil
+		if surviving != pkgNode {
+			surviving.AddScope(pkgNode.PrimaryScope())
+		}
+		entryNodeByIndex[idx] = surviving.ID
+		return surviving.ID, nil
 	}
 
 	// Inventory every resolved entry first. Edges and manifest roots are wired

@@ -139,6 +139,48 @@ func TestConsolidateGraphsPreservesContradictingOccurrences(t *testing.T) {
 	}
 }
 
+// Three manifests resolving origins A, B, then B must yield exactly two
+// occurrences: both B witnesses land on one origin-derived occurrence ID and
+// fold, whatever order the manifests are walked in.
+func TestConsolidateGraphsFoldsRepeatedContradictions(t *testing.T) {
+	const (
+		a = "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
+		b = "https://npm.corp/mirror/lodash/-/lodash-4.17.21.tgz"
+	)
+
+	orderings := [][3]string{{a, b, b}, {b, a, b}, {b, b, a}}
+	for _, order := range orderings {
+		t.Run(order[0][8:16]+"-first", func(t *testing.T) {
+			consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{
+				subprojectResult(t, "apps/one", "apps/one/package-lock.json", order[0]),
+				subprojectResult(t, "apps/two", "apps/two/package-lock.json", order[1]),
+				subprojectResult(t, "apps/three", "apps/three/package-lock.json", order[2]),
+			})
+			if err != nil {
+				t.Fatalf("ConsolidateGraphs() error = %v", err)
+			}
+			merged, err := consolidated.Graphs.ConsolidatedGraph()
+			if err != nil {
+				t.Fatalf("ConsolidatedGraph() error = %v", err)
+			}
+
+			origins := map[string]int{}
+			var nodes int
+			merged.WalkNodes(func(dep *sdk.Dependency) bool {
+				if dep.Name != "lodash" {
+					return true
+				}
+				nodes++
+				origins[originOf(dep).ArtifactURL]++
+				return true
+			})
+			if nodes != 2 || origins[a] != 1 || origins[b] != 1 {
+				t.Fatalf("nodes = %d origins = %v, want exactly one occurrence per distinct origin", nodes, origins)
+			}
+		})
+	}
+}
+
 // One manifest can also record a package twice -- a Bun lockfile listing one
 // name and version from two mirrors, under distinct per-entry IDs. Identity
 // normalization rewrites IDs to the canonical PURL; contradicting occurrences

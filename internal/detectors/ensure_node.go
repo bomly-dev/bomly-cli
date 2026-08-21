@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"github.com/bomly-dev/bomly-sdk"
 )
@@ -55,4 +56,26 @@ func OriginsConflict(left, right *sdk.DependencyOrigin) bool {
 func OccurrenceID(baseID, qualifier string) string {
 	digest := sha256.Sum256([]byte(qualifier))
 	return baseID + "#" + hex.EncodeToString(digest[:6])
+}
+
+// EnsureOccurrence inserts node, folding it into an existing node only when
+// both records claim the same resolution. When the graph already holds this ID
+// with a *different* ResolvedURL, the manifest has asserted two resolutions of
+// one name@version: the newcomer stays a distinct occurrence under an opaque
+// ID derived from qualifier (its stable positional key -- a lockfile path,
+// entry key, or source string).
+//
+// This is the one home for the collision rule. Five detectors grew the same
+// hand-written shape one review round at a time before it was centralized;
+// route new sites through here.
+func EnsureOccurrence(g *sdk.Graph, node *sdk.Dependency, qualifier string) (*sdk.Dependency, error) {
+	surviving, err := EnsureNode(g, node)
+	if err != nil || surviving == node || surviving == nil {
+		return surviving, err
+	}
+	if strings.TrimSpace(surviving.ResolvedURL) == strings.TrimSpace(node.ResolvedURL) {
+		return surviving, nil
+	}
+	node.ID = OccurrenceID(node.ID, qualifier)
+	return EnsureNode(g, node)
 }

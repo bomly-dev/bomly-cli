@@ -135,9 +135,10 @@ func BuildPackageRegistry(consolidated sdk.ConsolidatedGraph) *sdk.PackageRegist
 // preserveContradictingOccurrences walks the selected entries in order and
 // re-IDs any node whose origin contradicts the origin already established for
 // that ID by an earlier entry, so the later SDK graph merge folds only
-// witnesses of one resolution. Two manifests resolving one package identically
-// fold; a gap fills; a contradiction survives as two nodes, each in its own
-// manifest's graph position. No tiebreak ever picks a winner.
+// witnesses of one resolution. The occurrence ID is derived from the origin
+// itself, not from which manifest carried it: with three manifests resolving
+// origins A, B, then B, both B witnesses land on one occurrence ID and fold,
+// whatever order the manifests are walked in. No tiebreak ever picks a winner.
 func preserveContradictingOccurrences(entries []sdk.GraphEntry) {
 	established := make(map[string]*sdk.DependencyOrigin)
 	for _, entry := range entries {
@@ -162,9 +163,19 @@ func preserveContradictingOccurrences(entries []sdk.GraphEntry) {
 			}
 		}
 		for _, node := range contradicting {
-			renameNode(entry.Graph, node, node.ID+"#"+entry.Manifest.Path)
+			renameNode(entry.Graph, node, detectors.OccurrenceID(node.ID, originKey(node.Origin)))
 		}
 	}
+}
+
+// originKey renders a normalized origin as a stable string, so occurrence IDs
+// derived from it are identical for identical witnesses across manifests.
+func originKey(origin *sdk.DependencyOrigin) string {
+	normalized := origin.Normalized()
+	if normalized == nil {
+		return ""
+	}
+	return normalized.ArtifactURL + "\x00" + normalized.Repository + "\x00" + normalized.Revision
 }
 
 // renameNode rebuilds a node under a new ID, remapping its edges. sdk.Graph

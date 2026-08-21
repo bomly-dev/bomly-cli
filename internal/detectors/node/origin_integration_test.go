@@ -2,6 +2,8 @@ package node_test
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/bun"
@@ -134,4 +136,43 @@ func TestBunLockfileOriginIsTheRegistryTarball(t *testing.T) {
 	}
 	requireArtifactOrigin(t, g, "is-number", "7.0.0", "https://registry.npmjs.org/is-number/-/is-number-7.0.0.tgz")
 	requireNoOrigin(t, g, "workspace:packages/lib", "")
+}
+
+// Yarn Classic can pin one name@version to different tarballs under different
+// selectors. Both stay as distinct occurrences with their own origins.
+func TestYarnDuplicateResolvedEntriesStayDistinct(t *testing.T) {
+	dir := t.TempDir()
+	lock := `# yarn.lock classic (v1) format
+
+shared@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.npmjs.org/shared/-/shared-2.0.0.tgz"
+
+"shared@corp:^2.0.0":
+  version "2.0.0"
+  resolved "https://npm.corp/mirror/shared/-/shared-2.0.0.tgz"
+`
+	if err := os.WriteFile(filepath.Join(dir, "yarn.lock"), []byte(lock), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "package.json"), []byte(`{"name":"demo","version":"1.0.0","dependencies":{"shared":"^2.0.0"}}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	g, err := resolveLockfileGraph(t, yarn.LockfileDetector{}, dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	origins := map[string]int{}
+	g.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep.Name == "shared" {
+			origins[originOf(dep).ArtifactURL]++
+		}
+		return true
+	})
+	if len(origins) != 2 ||
+		origins["https://registry.npmjs.org/shared/-/shared-2.0.0.tgz"] != 1 ||
+		origins["https://npm.corp/mirror/shared/-/shared-2.0.0.tgz"] != 1 {
+		t.Fatalf("shared occurrences = %v, want both tarballs as distinct nodes", origins)
+	}
 }

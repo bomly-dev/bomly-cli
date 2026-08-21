@@ -232,17 +232,9 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 			continue
 		}
 		node := nodeFor(pkg, false)
-		surviving, err := detectors.EnsureNode(g, node)
+		surviving, err := detectors.EnsureOccurrence(g, node, strings.TrimSpace(pkg.Source))
 		if err != nil {
 			return nil, nil, "", err
-		}
-		if surviving != node && strings.TrimSpace(surviving.ResolvedURL) != strings.TrimSpace(pkg.Source) {
-			// The lockfile asserts two resolutions of one name@version
-			// (distinct source fields); both stay as distinct occurrences.
-			node.ID = detectors.OccurrenceID(node.ID, strings.TrimSpace(pkg.Source))
-			if surviving, err = detectors.EnsureNode(g, node); err != nil {
-				return nil, nil, "", err
-			}
 		}
 		index.record(pkg, surviving.ID)
 	}

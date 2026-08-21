@@ -313,21 +313,11 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 	for _, id := range sortedPackageIDs(packagesByID) {
 		pkg := packagesByID[id]
 		node := packageNode(pkg, id, workspace)
-		surviving, err := detectors.EnsureNode(g, node)
+		// Distinct cargo package IDs with different sources are two
+		// resolutions of one name@version; the shared helper keeps both.
+		surviving, err := detectors.EnsureOccurrence(g, node, strings.TrimSpace(pkg.Source))
 		if err != nil {
 			return nil, nil, err
-		}
-		if surviving != node && strings.TrimSpace(surviving.ResolvedURL) != strings.TrimSpace(pkg.Source) {
-			// The manifest recorded two resolutions of one name@version --
-			// distinct cargo package IDs with different sources. They are
-			// distinct occurrences even when only one source yields a
-			// publishable origin: folding a registry occurrence into a git
-			// one would conflate their edges and credit registry-pulled
-			// code to the repository.
-			node.ID = detectors.OccurrenceID(node.ID, strings.TrimSpace(pkg.Source))
-			if surviving, err = detectors.EnsureNode(g, node); err != nil {
-				return nil, nil, err
-			}
 		}
 		nodeIDByCargoID[id] = surviving.ID
 	}

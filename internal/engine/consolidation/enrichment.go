@@ -142,7 +142,12 @@ func BuildPackageRegistry(consolidated sdk.ConsolidatedGraph) *sdk.PackageRegist
 // in what order records appeared, so the later SDK graph merge folds exactly
 // the witnesses of one resolution and nothing else. A node with no origin
 // keeps the canonical ID as its own "resolution unknown" occurrence.
-func preserveContradictingOccurrences(entries []sdk.GraphEntry) {
+// It returns the applied renames per entry (old node ID to new, index-aligned
+// with entries), so callers can refresh stored references -- manifest root IDs
+// in particular. The maps are per entry because the same canonical ID can be
+// renamed to different occurrence IDs in different entries.
+func preserveContradictingOccurrences(entries []sdk.GraphEntry) []map[string]string {
+	renames := make([]map[string]string, len(entries))
 	distinct := make(map[string]map[string]struct{})
 	base := func(node *sdk.Dependency) string {
 		if node.PURL != "" {
@@ -168,7 +173,7 @@ func preserveContradictingOccurrences(entries []sdk.GraphEntry) {
 		}
 	}
 
-	for _, entry := range entries {
+	for entryIndex, entry := range entries {
 		if entry.Graph == nil {
 			continue
 		}
@@ -180,14 +185,27 @@ func preserveContradictingOccurrences(entries []sdk.GraphEntry) {
 			if len(distinct[base(node)]) < 2 {
 				continue
 			}
+			if node.FirstParty || node.Type == sdk.PackageTypeApplication {
+				// The project's own record is not an occurrence of an
+				// external resolution: it keeps its identity. Its key still
+				// counted above, so a contested external record is renamed
+				// away from it rather than folding into it.
+				continue
+			}
 			if key := resolutionKey(node); key != "" {
 				contested = append(contested, node)
 			}
 		}
 		for _, node := range contested {
-			renameNode(entry.Graph, node, detectors.OccurrenceID(base(node), resolutionKey(node)))
+			renamed := detectors.OccurrenceID(base(node), resolutionKey(node))
+			renameNode(entry.Graph, node, renamed)
+			if renames[entryIndex] == nil {
+				renames[entryIndex] = make(map[string]string)
+			}
+			renames[entryIndex][node.ID] = renamed
 		}
 	}
+	return renames
 }
 
 // resolutionKey identifies which resolution a record witnesses: the

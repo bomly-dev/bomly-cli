@@ -354,6 +354,156 @@ func TestConsolidationPreservesOriginFreeOccurrences(t *testing.T) {
 	}
 }
 
+// A first-party project can also appear as an external dependency elsewhere
+// (a uv editable project consumed as a git dependency by a sibling). The
+// project's own record keeps its identity -- manifest roots must stay valid --
+// while the external record is renamed away from it rather than folding in.
+func TestConsolidationKeepsFirstPartyRootIdentity(t *testing.T) {
+	const purl = "pkg:pypi/helper@1.0.0"
+
+	rootGraph := sdk.New()
+	projectRoot := sdk.NewDependencyWithID("helper@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemPython, PURL: purl, FirstParty: true, Type: sdk.PackageTypeApplication}})
+	projectRoot.ResolvedURL = "."
+	if err := rootGraph.AddNode(projectRoot); err != nil {
+		t.Fatal(err)
+	}
+
+	depGraph := sdk.New()
+	gitDep := sdk.NewDependencyWithID("helper@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemPython, PURL: purl}})
+	gitDep.Origin = sdk.RepositoryOrigin("https://github.com/example/helper", "aaaabbbbccccddddeeeeffff0000111122223333")
+	if err := depGraph.AddNode(gitDep); err != nil {
+		t.Fatal(err)
+	}
+
+	result := func(relativePath, manifest string, g *sdk.Graph, ecosystem sdk.Ecosystem) sdk.DetectionResult {
+		return sdk.DetectionResult{
+			SubprojectInfo: sdk.Subproject{
+				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
+				RelativePath:            relativePath,
+				PrimaryDetector:         "python",
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerUV},
+				Ecosystem:               ecosystem,
+			},
+			DetectorName: "python",
+			Graphs:       sdk.SingleGraphContainer(g, sdk.ManifestMetadata{Path: manifest, Kind: "uv.lock"}),
+		}
+	}
+
+	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{
+		result("helper", "helper/uv.lock", rootGraph, sdk.EcosystemPython),
+		result("consumer", "consumer/uv.lock", depGraph, sdk.EcosystemPython),
+	})
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs() error = %v", err)
+	}
+
+	// Every stored root ID must name a live node in its entry's graph.
+	for i, manifest := range consolidated.Manifests {
+		entry := consolidated.Graphs.Entries[i]
+		if manifest.RootManifestID == "" || entry.Graph == nil {
+			continue
+		}
+		if _, ok := entry.Graph.Node(manifest.RootManifestID); !ok {
+			t.Fatalf("manifest %d root %q names no node in its graph", i, manifest.RootManifestID)
+		}
+	}
+
+	merged, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	var firstParty, external int
+	merged.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep.Name != "helper" {
+			return true
+		}
+		if dep.FirstParty {
+			firstParty++
+			if origin := originOf(dep); origin != (sdk.DependencyOrigin{}) {
+				t.Fatalf("the project's own record acquired an origin: %+v", origin)
+			}
+			if dep.ID != purl {
+				t.Fatalf("first-party root ID = %q, want its canonical identity kept", dep.ID)
+			}
+		} else {
+			external++
+		}
+		return true
+	})
+	if firstParty != 1 || external != 1 {
+		t.Fatalf("first-party = %d external = %d, want the project and the external record distinct", firstParty, external)
+	}
+}
+
+// An entry root is not always first-party (an ingested document's root, say).
+// When occurrence renaming touches such a root, the stored manifest root ID
+// must follow the node to its new name.
+func TestConsolidationRefreshesRenamedRootIDs(t *testing.T) {
+	const purl = "pkg:npm/helper@1.0.0"
+
+	build := func(t *testing.T, repository string) *sdk.Graph {
+		t.Helper()
+		g := sdk.New()
+		pkg := sdk.NewDependencyWithID("helper@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{
+			Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: purl}})
+		pkg.Origin = sdk.RepositoryOrigin(repository, "aaaabbbbccccddddeeeeffff0000111122223333")
+		if err := g.AddNode(pkg); err != nil {
+			t.Fatal(err)
+		}
+		return g
+	}
+	result := func(relativePath, manifest string, g *sdk.Graph) sdk.DetectionResult {
+		return sdk.DetectionResult{
+			SubprojectInfo: sdk.Subproject{
+				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
+				RelativePath:            relativePath,
+				PrimaryDetector:         "sbom",
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+				Ecosystem:               sdk.EcosystemNPM,
+			},
+			DetectorName: "sbom",
+			Graphs:       sdk.SingleGraphContainer(g, sdk.ManifestMetadata{Path: manifest, Kind: "sbom"}),
+		}
+	}
+
+	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{
+		result("one", "one/bom.json", build(t, "https://github.com/a/helper")),
+		result("two", "two/bom.json", build(t, "https://github.com/b/helper")),
+	})
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs() error = %v", err)
+	}
+
+	for i, manifest := range consolidated.Manifests {
+		entry := consolidated.Graphs.Entries[i]
+		if manifest.RootManifestID == "" || entry.Graph == nil {
+			continue
+		}
+		if _, ok := entry.Graph.Node(manifest.RootManifestID); !ok {
+			t.Fatalf("manifest %d root %q names no node in its graph after renaming", i, manifest.RootManifestID)
+		}
+	}
+	for _, subproject := range consolidated.Subprojects {
+		for _, rootID := range subproject.RootManifestIDs {
+			found := false
+			for _, entry := range consolidated.Graphs.Entries {
+				if entry.Graph == nil {
+					continue
+				}
+				if _, ok := entry.Graph.Node(rootID); ok {
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Fatalf("subproject root %q names no node in any entry", rootID)
+			}
+		}
+	}
+}
+
 // One manifest can also record a package twice -- a Bun lockfile listing one
 // name and version from two mirrors, under distinct per-entry IDs. Identity
 // normalization rewrites IDs to the canonical PURL; contradicting occurrences

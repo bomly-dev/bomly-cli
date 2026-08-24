@@ -257,8 +257,8 @@ github.com/bomly-dev/bomly-plugin-scorecard-matcher v0.1.0 h1:Vyz2qtHvqGK1Wi+cai
 github.com/bomly-dev/bomly-plugin-scorecard-matcher v0.1.0/go.mod h1:N51fXsuj0NhJtCmqiL3fM7+XRPNDg7a8s9boJWrg670=
 github.com/bomly-dev/bomly-plugin-syft-detector v0.1.0 h1:izjWbFILBnjSrRyCwBQS2dtDYy70RfDBgR8/2aRIZcQ=
 github.com/bomly-dev/bomly-plugin-syft-detector v0.1.0/go.mod h1:uLBBHXzEJaNczZAyTIZjxfTSDoU+yLVC36qBE+vIAyk=
-github.com/bomly-dev/bomly-sdk v0.3.0 h1:JtC7qZ9yq3r4fUYyq7e/Os4f9wGMa4Qot8U0l9MepFA=
-github.com/bomly-dev/bomly-sdk v0.3.0/go.mod h1:yn1LBkoHG9gDBXKyRj0UNJo0BlXl8Bj9Ymb3WKLIh78=
+github.com/bomly-dev/bomly-sdk v0.4.2 h1:qF/o6rjk1AXYwQvP18XskIO/bisJBOG5VBOcpmexLi4=
+github.com/bomly-dev/bomly-sdk v0.4.2/go.mod h1:yn1LBkoHG9gDBXKyRj0UNJo0BlXl8Bj9Ymb3WKLIh78=
 github.com/bradleyjkemp/cupaloy/v2 v2.8.0 h1:any4BmKE+jGIaMpnU8YgH/I2LPiLBufr6oMMlVBbn9M=
 github.com/bradleyjkemp/cupaloy/v2 v2.8.0/go.mod h1:bm7JXdkRd4BHJk9HpwqAI8BoAY1lps46Enkdqw6aRX0=
 github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/FBatYVw=
@@ -722,8 +722,8 @@ github.com/magiconair/properties v1.8.5/go.mod h1:y3VJvCyxH9uVvJTWEGAELF3aiYNyPK
 github.com/magiconair/properties v1.18.11 h1:j5ozYZl0zCjG7ahMDH0GWIobOvvUzT0BdAguG0ViKy0=
 github.com/magiconair/properties v1.18.11/go.mod h1:Dhd985XPs7jluiymwWYZ0G4Z61jb3vdS329zhj2hYo0=
 github.com/mailru/easyjson v0.7.7/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
-github.com/mark3labs/mcp-go v0.57.0 h1:jzWKyCzdWnwnZt05cvcQQ+ngiUl2RnixXJa7Kj4qP1E=
-github.com/mark3labs/mcp-go v0.57.0/go.mod h1:+8WclSK1ZUweCP3hvktSji8n8ABG/95QaEkeVE/Uwas=
+github.com/mark3labs/mcp-go v0.58.0 h1:AWfBk8lgRR0KZYve7PaLbR2MIjpw1oK2eGpBApaNS+Q=
+github.com/mark3labs/mcp-go v0.58.0/go.mod h1:+8WclSK1ZUweCP3hvktSji8n8ABG/95QaEkeVE/Uwas=
 github.com/maruel/natural v1.3.0 h1:VsmCsBmEyrR46RomtgHs5hbKADGRVtliHTyCOLFBpsg=
 github.com/maruel/natural v1.3.0/go.mod h1:v+Rfd79xlw1AgVBjbO0BEQmptqb5HvL/k9GRHB7ZKEg=
 github.com/masahiro331/go-mvn-version v0.0.0-20250131095131-f4974fa13b8a h1:eLvAzVoRfHEOl64OxFhepPf3vj7SKvXY/tFc3BS0b7s=

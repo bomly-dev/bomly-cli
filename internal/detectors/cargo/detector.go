@@ -310,16 +310,37 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 	// source-qualified ID -- and the resolve section's edges attach each
 	// parent to the exact occurrence it depends on via this map.
 	nodeIDByCargoID := make(map[string]string, len(packagesByID))
-	for _, id := range sortedPackageIDs(packagesByID) {
+	insert := func(id string) error {
 		pkg := packagesByID[id]
 		node := packageNode(pkg, id, workspace)
 		// Distinct cargo package IDs with different sources are two
 		// resolutions of one name@version; the shared helper keeps both.
 		surviving, err := detectors.EnsureOccurrence(g, node, strings.TrimSpace(pkg.Source))
 		if err != nil {
-			return nil, nil, err
+			return err
 		}
 		nodeIDByCargoID[id] = surviving.ID
+		return nil
+	}
+	// Workspace members insert first: when an external record collides with a
+	// member at one name@version, the project's own package keeps the plain
+	// node ID and the external record becomes the qualified occurrence, not
+	// the other way around by accident of sort order.
+	for _, id := range sortedWorkspaceMembers(workspace) {
+		if _, ok := packagesByID[id]; !ok {
+			continue
+		}
+		if err := insert(id); err != nil {
+			return nil, nil, err
+		}
+	}
+	for _, id := range sortedPackageIDs(packagesByID) {
+		if _, ok := workspace[id]; ok {
+			continue
+		}
+		if err := insert(id); err != nil {
+			return nil, nil, err
+		}
 	}
 	idFor := func(cargoID string, pkg metadataPackage) string {
 		if nodeID, ok := nodeIDByCargoID[cargoID]; ok {
@@ -510,16 +531,16 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
-	index, err := buildLockIndex(g, packages, manifest.Name)
+	index, err := buildLockIndex(g, packages, manifest)
 	if err != nil {
 		return nil, err
 	}
 	rootID := root.ID
 	for _, pkg := range packages {
-		if pkg.Name == manifest.Name {
+		if isProjectLockRecord(pkg, manifest) {
 			continue
 		}
-		parentID, ok := index.resolve(strings.TrimSpace(pkg.Name + " " + pkg.Version + " (" + pkg.Source + ")"))
+		parentID, ok := index.resolve(qualifiedLockKey(pkg))
 		if !ok {
 			continue
 		}
@@ -536,8 +557,19 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 			}
 		}
 	}
+	// The root's own lock record names each direct dependency at whatever
+	// precision disambiguates it; prefer that over the manifest's bare name.
+	rootRefs := lockDependencyRefs(projectLockRecord(packages, manifest))
+	resolveDirect := func(depName string) (string, bool) {
+		if ref, ok := rootRefs[depName]; ok {
+			if id, ok := index.resolve(ref); ok {
+				return id, true
+			}
+		}
+		return index.resolve(depName)
+	}
 	for _, depName := range manifest.Dependencies {
-		nodeID, ok := index.resolve(depName)
+		nodeID, ok := resolveDirect(depName)
 		if !ok || nodeID == rootID {
 			continue
 		}
@@ -549,7 +581,7 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 		}
 	}
 	for _, depName := range manifest.DevDependencies {
-		nodeID, ok := index.resolve(depName)
+		nodeID, ok := resolveDirect(depName)
 		if !ok || nodeID == rootID {
 			continue
 		}
@@ -647,9 +679,13 @@ func parseCargoLockPackages(text string) []lockPackage {
 					if depLine == "]" {
 						break
 					}
+					// Keep the whole reference: Cargo.lock qualifies it with a
+					// version (and source) exactly when a bare name would be
+					// ambiguous, and truncating to the name resolved every
+					// reference to whichever same-named record came first.
 					depLine = trimTomlString(depLine)
 					if depLine != "" {
-						pkg.Dependencies = append(pkg.Dependencies, strings.Fields(depLine)[0])
+						pkg.Dependencies = append(pkg.Dependencies, depLine)
 					}
 				}
 			}

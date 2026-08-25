@@ -27,12 +27,66 @@ type lockIndex struct {
 	nodeID map[string]string
 }
 
+// qualifiedLockKey renders a lock record in the fully qualified reference form
+// Cargo.lock itself uses ("name version (source)", trimmed when the record has
+// no source). Both recording and resolving go through this one rendering so a
+// record always finds its own node.
+func qualifiedLockKey(pkg lockPackage) string {
+	return strings.TrimSpace(pkg.Name + " " + pkg.Version + " (" + pkg.Source + ")")
+}
+
+// isProjectLockRecord reports whether pkg is the lock record of the project's
+// own package described by manifest. Matching by name alone conflated members
+// with unrelated same-named crates (issue #399); the project's own records are
+// path-local, so they never carry a source, and they must match the manifest's
+// declared version. Workspace version inheritance can leave the manifest
+// without a version, in which case the source-less name match stands alone.
+func isProjectLockRecord(pkg lockPackage, manifest cargoManifest) bool {
+	if manifest.Name == "" || pkg.Name != manifest.Name {
+		return false
+	}
+	if strings.TrimSpace(pkg.Source) != "" {
+		return false
+	}
+	return manifest.Version == "" || pkg.Version == manifest.Version
+}
+
+// projectLockRecord returns the lock record owned by the project package
+// described by manifest, or a record synthesized from the manifest when the
+// lockfile holds none.
+func projectLockRecord(packages []lockPackage, manifest cargoManifest) lockPackage {
+	for _, pkg := range packages {
+		if isProjectLockRecord(pkg, manifest) {
+			return pkg
+		}
+	}
+	return lockPackage{Name: manifest.Name, Version: manifest.Version}
+}
+
+// lockDependencyRefs indexes a lock record's dependency reference strings by
+// crate name, so a manifest's bare dependency name resolves at the precision
+// the lockfile wrote -- "name", "name version", or "name version (source)".
+func lockDependencyRefs(pkg lockPackage) map[string]string {
+	refs := make(map[string]string, len(pkg.Dependencies))
+	for _, ref := range pkg.Dependencies {
+		fields := strings.Fields(ref)
+		if len(fields) == 0 {
+			continue
+		}
+		if _, ok := refs[fields[0]]; !ok {
+			refs[fields[0]] = ref
+		}
+	}
+	return refs
+}
+
 // buildLockIndex creates graph nodes for every lock record (skipping the root
-// package) and returns the index that resolves dependency strings to them.
-func buildLockIndex(g *sdk.Graph, packages []lockPackage, rootName string) (*lockIndex, error) {
+// package's own record) and returns the index that resolves dependency strings
+// to them.
+func buildLockIndex(g *sdk.Graph, packages []lockPackage, rootManifest cargoManifest) (*lockIndex, error) {
 	index := &lockIndex{nodeID: make(map[string]string, len(packages)*3)}
 	for _, pkg := range packages {
-		if pkg.Name == rootName {
+		if isProjectLockRecord(pkg, rootManifest) {
 			continue
 		}
 		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
@@ -51,7 +105,7 @@ func (x *lockIndex) record(pkg lockPackage, nodeID string) {
 	for _, key := range []string{
 		pkg.Name,
 		pkg.Name + " " + pkg.Version,
-		strings.TrimSpace(pkg.Name + " " + pkg.Version + " (" + pkg.Source + ")"),
+		qualifiedLockKey(pkg),
 	} {
 		if _, taken := x.nodeID[key]; !taken {
 			x.nodeID[key] = nodeID

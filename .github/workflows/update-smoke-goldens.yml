@@ -35,13 +35,16 @@ jobs:
         with:
           ref: ${{ inputs.source_ref }}
 
+      # This workflow executes code from an arbitrary source_ref while its
+      # cache scope is the trusted ref the dispatch ran on (normally main), so
+      # it must never WRITE caches: a poisoned entry would be served to every
+      # trusted workflow. Keep setup-go's cache off; the daily smoke.yml run
+      # on main is the only writer of the shared caches.
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-          cache: true
-          cache-dependency-path: |
-            go.sum
+          cache: false
 
       - name: Build bomly and bomly-lite
         run: make build
@@ -133,13 +136,14 @@ jobs:
         with:
           ref: ${{ inputs.source_ref }}
 
+      # cache: false for the same reason as the build job — this job runs
+      # source_ref code inside the trusted-branch cache scope and must never
+      # write caches.
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-          cache: true
-          cache-dependency-path: |
-            go.sum
+          cache: false
 
       - name: Set up Node.js
         if: matrix.slice.node
@@ -173,6 +177,9 @@ jobs:
       - name: Set up uv
         if: matrix.slice.uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          # No cache writes from this workflow (see the setup-go note above).
+          enable-cache: false
 
       - name: Install Python smoke-test dependencies
         if: matrix.slice.python
@@ -220,24 +227,27 @@ jobs:
           </settings>
           XML
 
-      # Smoke scans clone pinned repos at runtime, so there are no lockfiles
-      # in the workspace to hash — use a rolling key (unique per run, prefix
-      # restore) to keep the newest cache warm. Java derives user.home from
-      # passwd, not $HOME, so every bomly invocation shares the runner-level
-      # ~/.m2 despite the harness's per-test HOME override; a warm cache
-      # removes the cold-start Maven Central downloads that have stalled runs.
-      - name: Cache Maven repository
+      # Restore-only, never save: this job executes code from an arbitrary
+      # source_ref while the cache scope is the trusted ref the dispatch ran
+      # on, so saving here would let that code poison caches served to every
+      # trusted workflow. The daily smoke.yml run on main saves these rolling
+      # caches (unique key per run, prefix restore); we only read the newest
+      # one. Java derives user.home from passwd, not $HOME, so every bomly
+      # invocation shares the runner-level ~/.m2 despite the harness's
+      # per-test HOME override; a warm cache removes the cold-start Maven
+      # Central downloads that have stalled runs.
+      - name: Restore Maven repository cache
         if: matrix.slice.maven
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.m2/repository
           key: maven-repo-${{ runner.os }}-${{ matrix.slice.name }}-${{ github.run_id }}
           restore-keys: |
             maven-repo-${{ runner.os }}-
 
-      - name: Cache Gradle caches
+      - name: Restore Gradle caches
         if: matrix.slice.gradle
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.gradle/caches

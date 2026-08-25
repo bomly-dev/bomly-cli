@@ -1,6 +1,6 @@
 # ADR-0033: Package origin is detector-asserted; SBOM export only projects it
 
-- **Date:** 2026-08-25
+- **Date:** 2026-08-24
 - **Status:** Accepted
 
 An SBOM should say where each package came from — SPDX `downloadLocation`, CycloneDX `distribution`/`vcs` references. The obvious place to derive that is export, which already sees every package: classify `Dependency.ResolvedURL` by shape and map it onto the format's fields. That was built and abandoned. It does not work, and the reason generalizes.

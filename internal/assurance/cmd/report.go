@@ -239,6 +239,7 @@ func runCatalogValidate(args []string) error {
 	evidenceID := flags.String("evidence", "", "print one evidence claim")
 	skipArtifacts := flags.Bool("skip-artifacts", false, "skip repository artifact hash verification")
 	refresh := flags.Bool("refresh", false, "rewrite recorded checksums from the files they name")
+	root := flags.String("root", "", "repository the catalog's paths resolve against (default: the working directory's repository)")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -247,11 +248,11 @@ func runCatalogValidate(args []string) error {
 		return err
 	}
 	if *refresh {
-		root, rootErr := repositoryRoot()
+		resolvedRoot, rootErr := catalogRoot(*root)
 		if rootErr != nil {
 			return rootErr
 		}
-		changed, refreshErr := catalog.RefreshArtifacts(root)
+		changed, refreshErr := catalog.RefreshArtifacts(resolvedRoot)
 		if refreshErr != nil {
 			return refreshErr
 		}
@@ -268,11 +269,11 @@ func runCatalogValidate(args []string) error {
 		return nil
 	}
 	if !*skipArtifacts {
-		root, rootErr := repositoryRoot()
+		resolvedRoot, rootErr := catalogRoot(*root)
 		if rootErr != nil {
 			return rootErr
 		}
-		if err := catalog.VerifyArtifacts(root); err != nil {
+		if err := catalog.VerifyArtifacts(resolvedRoot); err != nil {
 			return err
 		}
 	}

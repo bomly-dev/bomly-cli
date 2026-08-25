@@ -103,7 +103,7 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - **Plugin protocol is versioned `v1`.** External plugins use the SDK/HashiCorp gRPC `Metadata` and role descriptor contract.
 - **No secrets or credentials in logs.** Ever.
 - **Matcher network calls require explicit enrichment.** Built-in matchers may contact OSV (`https://api.osv.dev`), CISA KEV, deps.dev (`https://api.deps.dev`), OpenSSF Scorecard (`https://api.scorecard.dev`), and Grype's database service (`https://grype.anchore.io/databases`, plus the archive URL it returns) only during `--enrich`. Installed external matcher plugins such as ClearlyDefined and endoflife.date may contact their documented services during `--enrich`. `--audit` evaluates existing package data and must not trigger matcher calls. Remote Git targets and build-tool detectors have separate, explicit network behavior.
-- **Record architecture decisions in [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md).** (`docs/ARCHITECTURE.md` is the public, user-facing overview.)
+- **Record architecture decisions as ADRs in [`dev-docs/adr/`](dev-docs/adr/README.md).** Copy [`dev-docs/adr/TEMPLATE.md`](dev-docs/adr/TEMPLATE.md), take the next number, and add a row to the index. `dev-docs/ARCHITECTURE.md` stays the architecture narrative; `docs/ARCHITECTURE.md` is the public, user-facing overview.
 - **Prefer `internal/`.** Add new packages inside `internal/` unless there is a clear public API need; genuinely public contract surface belongs in the SDK module.
 - **Standard library + Cobra + existing deps only.** Do not add new dependencies without discussion.
 
@@ -132,7 +132,7 @@ In practice:
   fails if the export layer touches raw manifest values. A guard is cheap next
   to the review round it replaces.
 - **Say so when you decline.** If centralizing is genuinely out of scope for
-  the change in hand, record why in `dev-docs/ARCHITECTURE.md` and what the
+  the change in hand, record why in an ADR under `dev-docs/adr/` and what the
   durable fix would be, so the next person inherits the reasoning rather than
   the symptom.
 
@@ -300,7 +300,7 @@ Any new user-visible feature needs a smoke case under `test/smoke/` — follow t
 
 - `make generate` regenerates `docs/CONFIG_REFERENCE.md`, `docs/schemas/*`, `docs/SUPPORT_MATRIX.md`, and the component docs through the built binary. Run it whenever `internal/config/config.go` or `internal/output/*` change, or when the pinned SDK version (catalog / support-matrix data) is bumped.
 - Add or update a feature page under `docs/` (e.g. `docs/REACHABILITY.md`) with quick-start usage, semantics, ecosystem coverage, output shape, and limitations. Be explicit about safety caveats (e.g. "tier-3 unreachable does not mean safe").
-- `dev-docs/ARCHITECTURE.md`: update the pipeline diagram if the stage list changed; add a decision-log entry for non-obvious design choices. Keep the public `docs/ARCHITECTURE.md` overview in sync when stages change.
+- `dev-docs/ARCHITECTURE.md`: update the pipeline diagram if the stage list changed; keep the public `docs/ARCHITECTURE.md` overview in sync when stages change. Add an ADR under `dev-docs/adr/` for non-obvious design choices (copy `TEMPLATE.md`, next number, index row).
 - `CLAUDE.md` and `AGENTS.md`: update the architecture tree and package-boundary list when introducing a new internal package.
 
 ## Release
@@ -311,7 +311,8 @@ Draft releases are created automatically after merges to `main` from commit pref
 
 | Doc                                                    | Covers                                                                                  |
 |--------------------------------------------------------|-----------------------------------------------------------------------------------------|
-| [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) | Full architecture: pipeline, detectors, auditors, plugins, trust model, decision log    |
+| [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) | Full architecture: pipeline, detectors, auditors, plugins, trust model                  |
+| [`dev-docs/adr/`](dev-docs/adr/README.md)              | Architecture decision records — one file per decision, plus template and index          |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)         | Public, user-facing architecture overview                                               |
 | [`dev-docs/MODELS.md`](dev-docs/MODELS.md)             | Domain model reference: Dependency, Package, Vulnerability, Finding, PackageRegistry    |
 | [`dev-docs/CI.md`](dev-docs/CI.md)                     | CI setup and workflow (GitHub Actions)                                                  |

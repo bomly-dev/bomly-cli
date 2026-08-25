@@ -1,0 +1,8 @@
+# ADR-0007: Package locations are detector-relative today
+
+- **Date:** 2026-06-25
+- **Status:** Accepted
+
+`PackageLocation.Position.File` is emitted by detectors in the coordinate space of the detector working directory. For single-root projects that is already repository-relative, which lets `bomly diff` compare SARIF locations with repo-relative changed-line ranges.
+
+Subproject discovery inspects only the execution-target root unless `--recursive` is set, so non-recursive subprojects resolve with `RelativePath` `"."` and detector positions are already repository-relative. Recursive discovery produces non-root subprojects, and detectors keep emitting paths in the coordinate space of their own working directory; consolidation rebases core-detector paths onto the subproject root so all output is repository-relative. `rebaseGraphLocations` (`internal/engine/consolidation/locations.go`) rewrites package location paths — a subproject discovered at `apps/web` reporting `package-lock.json` is rewritten to `apps/web/package-lock.json` — and `rebaseManifestPathToRoot` (`internal/engine/consolidation/manifest.go`) applies the same rewrite to manifest paths after `normalizeNativeManifestPath`. The manifest rewrite doubles as a correctness requirement: `manifestDedupKey` is the normalized manifest path alone, so without rebasing, same-named manifests in different subprojects (two nested `requirements.txt`) would collapse to one dedup key and silently drop an entry. Both rewrites are no-ops for `RelativePath` `"."`, and absolute or already-prefixed paths are left untouched, so the rewrite is idempotent. Location extraction remains best effort and the output layer only prefers changed lines when the detector path matches the git diff path.

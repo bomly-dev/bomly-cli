@@ -127,7 +127,8 @@ type EcosystemCoverage struct {
 	Status Status `json:"status"`
 }
 
-// Coverage lists every ecosystem any check exercised, worst status first.
+// Coverage lists every ecosystem any check exercised, in name order. Each
+// carries the worst status among the checks that covered it.
 type Coverage struct {
 	Ecosystems []EcosystemCoverage `json:"ecosystems"`
 }

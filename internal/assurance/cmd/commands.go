@@ -64,7 +64,10 @@ func runEmit(args []string) error {
 	if *status != "" {
 		result.Status = assurance.Status(*status)
 	}
-	catalogCtx := loadContext(*catalogPath)
+	catalogCtx, err := loadContext(*catalogPath)
+	if err != nil {
+		return err
+	}
 	if err := applyCatalog(&result, catalogCtx.catalog, *stage, *level); err != nil {
 		return err
 	}
@@ -231,7 +234,10 @@ func runGoTest(args []string) error {
 	}
 	result := baseResult(*id, *instance)
 	result.FinishedAt = time.Now().UTC().Format(time.RFC3339)
-	catalogCtx := loadContext(*catalogPath)
+	catalogCtx, err := loadContext(*catalogPath)
+	if err != nil {
+		return err
+	}
 	if err := applyCatalog(&result, catalogCtx.catalog, *stage, *level); err != nil {
 		return err
 	}
@@ -284,7 +290,10 @@ func runConvert(args []string) error {
 	}
 	result := baseResult(*id, *instance)
 	result.FinishedAt = time.Now().UTC().Format(time.RFC3339)
-	catalogCtx := loadContext(*catalogPath)
+	catalogCtx, err := loadContext(*catalogPath)
+	if err != nil {
+		return err
+	}
 	if err := applyCatalog(&result, catalogCtx.catalog, *stage, *level); err != nil {
 		return err
 	}
@@ -321,7 +330,10 @@ func runVerifyRelease(args []string) error {
 		return fmt.Errorf("verify-release requires --dir and --version")
 	}
 	trimmed := strings.TrimPrefix(*version, "v")
-	catalogCtx := loadContext(*catalogPath)
+	catalogCtx, err := loadContext(*catalogPath)
+	if err != nil {
+		return err
+	}
 	work := *workDir
 	if work == "" {
 		created, err := os.MkdirTemp("", "assurance-release-")
@@ -432,13 +444,35 @@ func runVerifyRelease(args []string) error {
 		return err
 	}
 
-	probes, err := assurance.ProbeNativeBinaries(context.Background(), *dir, trimmed, work)
-	if err != nil {
-		return err
-	}
 	binaries := baseResult("release-binaries", platform)
 	binaries.FinishedAt = time.Now().UTC().Format(time.RFC3339)
 	if err := applyCatalog(&binaries, catalogCtx.catalog, "", ""); err != nil {
+		return err
+	}
+
+	// Running a binary whose checksum did not match would invert the point of
+	// checking it: the checksum is what decides whether the file may be
+	// trusted, so a mismatch stops the probe rather than preceding it.
+	if untrusted := assurance.UntrustedNativeArchives(outcome, trimmed); len(untrusted) > 0 {
+		binaries.Status = assurance.StatusFail
+		binaries.Summary = fmt.Sprintf(
+			"Not run: %s did not match SHA256SUMS, so the binaries inside were not trusted enough to execute.",
+			strings.Join(untrusted, ", "))
+		for _, archive := range untrusted {
+			binaries.Details = append(binaries.Details, assurance.Detail{
+				Name: archive, Status: assurance.StatusFail, Note: "checksum mismatch, binary not run",
+			})
+		}
+		if err := emit(binaries); err != nil {
+			return err
+		}
+		return blockingError{
+			message: fmt.Sprintf("%d release verification check(s) failed", failures+1), code: 1,
+		}
+	}
+
+	probes, err := assurance.ProbeNativeBinaries(context.Background(), *dir, trimmed, work)
+	if err != nil {
 		return err
 	}
 	binaries.Status = assurance.StatusPass

@@ -61,7 +61,8 @@ jobs:
         continue-on-error: true
         env:
           FUZZ_RESULTS_JSONL: ${{ runner.temp }}/fuzz-details.jsonl
-        run: make fuzz FUZZTIME=${{ inputs.fuzztime || '2m' }}
+          FUZZTIME: ${{ inputs.fuzztime || '2m' }}
+        run: make fuzz FUZZTIME="${FUZZTIME}"
 
       - name: Record the fuzz result
         if: always()
@@ -84,10 +85,17 @@ jobs:
             exit_code=1
             summary="${failed} of ${targets} fuzz targets found a failing input. Reproducers are attached to this run."
           fi
+          # The details file is absent when the fuzz step died before writing
+          # it; the check still has to report, so the flag is conditional.
+          details_arg=""
+          if [ -f "${details}" ]; then
+            details_arg="--details-jsonl ${details}"
+          fi
+          # shellcheck disable=SC2086 # details_arg is a flag pair or empty
           go run ./internal/assurance/cmd emit \
             --id fuzz --exit-code "${exit_code}" --summary "${summary}" \
             --metric targets="${targets}" --metric targets_failed="${failed}" \
-            --details-jsonl "${details}" \
+            ${details_arg} \
             --out assurance-results --step-summary
 
       - name: Upload check result

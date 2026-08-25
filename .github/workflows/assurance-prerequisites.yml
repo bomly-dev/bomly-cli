@@ -157,7 +157,7 @@ jobs:
         run: |
           go run ./internal/assurance/cmd verdict \
             --results assurance-results --stage prerequisites \
-            --tag '${{ inputs.assurance_tag }}' \
+            --tag "${BOMLY_ASSURANCE_TAG}" \
             --json assurance-results/stage-prerequisites.json --step-summary
 
       - name: Upload the stage report

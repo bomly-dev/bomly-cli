@@ -58,9 +58,11 @@ Highlights:
   cache to record timing and confirm the output does not change.
 
 Some checks stop a release when they fail; others are recorded without
-blocking. Either way, a claim that was not confirmed is shown on the page and
-raises a tracking issue for maintainers, so a known problem in a published
-release is never quietly dropped. Every count links to the job that produced
+blocking. A claim that was not confirmed is always shown on the page. When the
+problem is found after the release is already published, it also raises a
+tracking issue for maintainers, so a known problem in a released version is
+never quietly dropped; problems found earlier stop the release instead, and are
+fixed before anything is published. Every count links to the job that produced
 it, so any number on the page is one click from its log.
 
 ## Claims, checks, and evidence

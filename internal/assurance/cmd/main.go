@@ -85,30 +85,41 @@ type resultContext struct {
 	root        string
 }
 
-func loadContext(catalogPath string) resultContext {
+// loadContext resolves the catalog a result is described by. A catalog that
+// cannot be read at all leaves the context empty, so a check running outside a
+// checkout can still emit with an explicit --stage and --level; a catalog that
+// exists but does not parse is reported, because silently treating every check
+// as undeclared would drop the stage and level a gate depends on.
+func loadContext(catalogPath string) (resultContext, error) {
 	ctx := resultContext{catalogPath: catalogPath}
 	root, err := repositoryRoot()
 	if err != nil {
-		return ctx
+		return ctx, nil
 	}
 	ctx.root = root
 	path := catalogPath
 	if path == "" {
 		path = filepath.Join(root, filepath.FromSlash(assurance.DefaultCatalogPath))
+		if _, statErr := os.Stat(path); statErr != nil {
+			return ctx, nil
+		}
 	} else if !filepath.IsAbs(path) {
 		path = filepath.Join(root, filepath.FromSlash(path))
 	}
 	catalog, err := assurance.LoadCatalog(path)
 	if err != nil {
-		return ctx
+		return ctx, err
 	}
 	ctx.catalog = &catalog
 	ctx.catalogPath = path
-	return ctx
+	return ctx, nil
 }
 
 func mustLoadCatalog(catalogPath string) (assurance.Catalog, string, error) {
-	ctx := loadContext(catalogPath)
+	ctx, err := loadContext(catalogPath)
+	if err != nil {
+		return assurance.Catalog{}, "", err
+	}
 	if ctx.catalog == nil {
 		path := catalogPath
 		if path == "" {

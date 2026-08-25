@@ -211,6 +211,33 @@ type BinaryProbe struct {
 	Note    string
 }
 
+// UntrustedNativeArchives returns the archives for the running platform that
+// this release's checksum verification did not vouch for — mismatched, or
+// absent from SHA256SUMS entirely. Their contents must not be executed.
+func UntrustedNativeArchives(outcome ChecksumOutcome, version string) []string {
+	suspect := map[string]struct{}{}
+	for _, name := range outcome.Mismatched {
+		suspect[name] = struct{}{}
+	}
+	verified := map[string]struct{}{}
+	for _, name := range outcome.Verified {
+		verified[name] = struct{}{}
+	}
+	var untrusted []string
+	for _, binary := range []string{"bomly", "bomly-lite"} {
+		archive := ArchiveName(binary, version, runtime.GOOS, runtime.GOARCH)
+		if _, bad := suspect[archive]; bad {
+			untrusted = append(untrusted, archive)
+			continue
+		}
+		if _, ok := verified[archive]; !ok {
+			untrusted = append(untrusted, archive)
+		}
+	}
+	sort.Strings(untrusted)
+	return untrusted
+}
+
 // ProbeNativeBinaries extracts the archives built for the host platform and
 // checks that each binary reports the released version.
 func ProbeNativeBinaries(ctx context.Context, dir, version, workDir string) ([]BinaryProbe, error) {

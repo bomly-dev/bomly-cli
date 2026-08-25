@@ -5,6 +5,7 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -434,5 +435,36 @@ func TestSchemaVersionsArePinned(t *testing.T) {
 				"(SUPPORTED_REPORT_SCHEMAS in lib/assurance.ts and REPORT_SCHEMAS in scripts/sync-assurance.mjs)",
 				name, actual, expected)
 		}
+	}
+}
+
+// TestUntrustedNativeArchivesGuardsTheProbe covers the rule that a release
+// verifier must never execute a file its own checksum check did not vouch for.
+func TestUntrustedNativeArchivesGuardsTheProbe(t *testing.T) {
+	full := ArchiveName("bomly", "9.9.9", runtime.GOOS, runtime.GOARCH)
+	lite := ArchiveName("bomly-lite", "9.9.9", runtime.GOOS, runtime.GOARCH)
+
+	for name, testCase := range map[string]struct {
+		outcome ChecksumOutcome
+		want    []string
+	}{
+		"both verified":  {ChecksumOutcome{Verified: []string{full, lite}}, nil},
+		"one mismatched": {ChecksumOutcome{Verified: []string{lite}, Mismatched: []string{full}}, []string{full}},
+		// The result is sorted, and "bomly-lite_" sorts before "bomly_".
+		"unlisted entirely": {ChecksumOutcome{Verified: []string{"unrelated.tar.gz"}},
+			[]string{lite, full}},
+		"nothing verified": {ChecksumOutcome{}, []string{lite, full}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			got := UntrustedNativeArchives(testCase.outcome, "9.9.9")
+			if len(got) != len(testCase.want) {
+				t.Fatalf("untrusted = %v, want %v", got, testCase.want)
+			}
+			for index, archive := range testCase.want {
+				if got[index] != archive {
+					t.Fatalf("untrusted = %v, want %v", got, testCase.want)
+				}
+			}
+		})
 	}
 }

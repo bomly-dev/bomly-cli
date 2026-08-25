@@ -179,15 +179,27 @@ jobs:
           curl -fsSL --retry 3 -o "${RUNNER_TEMP}/assets/SHA256SUMS.sigstore.json" "${base}/SHA256SUMS.sigstore.json"
           curl -fsSL --retry 3 -o "${RUNNER_TEMP}/assets/multiple.intoto.jsonl" "${base}/multiple.intoto.jsonl"
 
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
       # Only the checksums are re-checked here: the pre-release stage already
       # extracted and ran the binaries, so what is new after publication is
       # whether the public copies are complete and unaltered.
-      - name: Check the public copies against the published checksums
+      #
+      # The signature is verified first. Checking assets against a checksum
+      # list downloaded beside them only proves the two agree; the signature is
+      # what ties that list back to this repository's release workflow, so a
+      # replacement of both files cannot pass.
+      - name: Check the public copies against the signed checksum list
         id: verify
         continue-on-error: true
         run: |
           set -euo pipefail
           cd "${RUNNER_TEMP}/assets"
+          cosign verify-blob SHA256SUMS \
+            --bundle SHA256SUMS.sigstore.json \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --certificate-identity-regexp '^https://github.com/bomly-dev/bomly-cli/\.github/workflows/release\.yml@refs/tags/'
           sha256sum --check --strict SHA256SUMS
 
       - name: Record the public download result
@@ -200,13 +212,13 @@ jobs:
           set -euo pipefail
           exit_code=0
           count="$(find "${RUNNER_TEMP}/assets" -type f | wc -l | tr -d ' ')"
-          summary="All ${count} published files downloaded from their public URLs without credentials and match the published checksum list."
+          summary="All ${count} published files downloaded from their public URLs without credentials and match the signed checksum list."
           if [ "${DOWNLOAD_OUTCOME}" != "success" ]; then
             exit_code=1
             summary="At least one published file could not be downloaded from its public URL."
           elif [ "${VERIFY_OUTCOME}" != "success" ]; then
             exit_code=1
-            summary="The published files downloaded, but at least one did not match the published checksum list."
+            summary="The published files downloaded, but the checksum list signature or at least one file did not verify."
           fi
           go run ./internal/assurance/cmd emit \
             --id public-download --exit-code "${exit_code}" --summary "${summary}" \

@@ -238,6 +238,20 @@ func ParseReport(data []byte) (Report, error) {
 			return Report{}, fmt.Errorf("check %q has unsupported status %q", check.ID, check.Status)
 		}
 	}
+	// Claims carry the same fields whichever way they are asserted, because the
+	// published page renders one shape for all of them; a claim with no
+	// description would render as an empty card.
+	for _, evidence := range report.Evidence {
+		if !idPattern.MatchString(evidence.ID) {
+			return Report{}, fmt.Errorf("assurance report has invalid evidence id %q", evidence.ID)
+		}
+		if !evidence.Status.Valid() {
+			return Report{}, fmt.Errorf("evidence %q has unsupported status %q", evidence.ID, evidence.Status)
+		}
+		if strings.TrimSpace(evidence.Description) == "" {
+			return Report{}, fmt.Errorf("evidence %q is missing its description", evidence.ID)
+		}
+	}
 	return report, nil
 }
 

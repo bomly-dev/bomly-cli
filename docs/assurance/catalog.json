@@ -220,7 +220,7 @@
       "area": "release-integrity",
       "stage": "post-release",
       "level": "gate",
-      "description": "Downloads every published file from its public URL, without credentials, and checks each one against the published checksum list.",
+      "description": "Downloads every published file from its public URL, without credentials, verifies the signature on the published checksum list, and checks each file against it.",
       "source": {
         "workflow": "assurance-assessment.yml",
         "job": "public-download"
@@ -236,10 +236,11 @@
         ]
       ],
       "proves": [
-        "Every file a user downloads from the public release page is present, reachable without credentials, and byte-identical to what was signed before publication."
+        "Every file a user downloads from the public release page is present, reachable without credentials, and matches a checksum list signed by this repository's release workflow."
       ],
       "limitations": [
         "This checks availability and integrity at one moment from one network location.",
+        "It confirms the published files match the signed list; it does not re-check the provenance attestation, which is verified before publication.",
         "Whether each archive contains a working binary is checked separately, against the draft release and by the install scripts."
       ]
     },

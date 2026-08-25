@@ -106,7 +106,7 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - **Plugin protocol is versioned `v1`.** External plugins use the SDK/HashiCorp gRPC `Metadata` and role descriptor contract.
 - **No secrets or credentials in logs.** Ever.
 - **Matcher network calls require explicit enrichment.** Built-in matchers may contact OSV (`https://api.osv.dev`), CISA KEV, deps.dev (`https://api.deps.dev`), OpenSSF Scorecard (`https://api.scorecard.dev`), and Grype's database service (`https://grype.anchore.io/databases`, plus the archive URL it returns) only during `--enrich`. Installed external matcher plugins such as ClearlyDefined and endoflife.date may contact their documented services during `--enrich`. `--audit` evaluates existing package data and must not trigger matcher calls. Remote Git targets and build-tool detectors have separate, explicit network behavior.
-- **Record architecture decisions as ADRs in [`dev-docs/adr/`](dev-docs/adr/README.md).** Copy [`dev-docs/adr/TEMPLATE.md`](dev-docs/adr/TEMPLATE.md), take the next number, and add a row to the index. `dev-docs/ARCHITECTURE.md` stays the architecture narrative; `docs/ARCHITECTURE.md` is the public, user-facing overview.
+- **Record architecture decisions as architecture decision records (ADRs) in [`dev-docs/adr/`](dev-docs/adr/README.md).** Copy [`dev-docs/adr/TEMPLATE.md`](dev-docs/adr/TEMPLATE.md), take the next number, and add a row to the index. `dev-docs/ARCHITECTURE.md` stays the architecture narrative; `docs/ARCHITECTURE.md` is the public, user-facing overview.
 - **Prefer `internal/`.** Add new packages inside `internal/` unless there is a clear public API need; genuinely public contract surface belongs in the SDK module.
 - **Standard library + Cobra + existing deps only.** Do not add new dependencies without discussion.
 
@@ -241,7 +241,7 @@ Smoke tests (`test/smoke/`, `make smoke`) drive the built binary end-to-end agai
 Every quality check belongs to one of three release stages and is declared in `docs/assurance/catalog.json` (schema `bomly.assurance-catalog/v1`):
 
 - **prerequisites** — run on the source tree before a tag exists (smoke, portable stability, cross-builds, fuzz, catalog validation).
-- **pre-release** — run inside `release.yml` against the still-draft release (asset completeness, checksums, cosign signature, SLSA provenance, released binaries).
+- **pre-release** — run inside `release.yml` against the still-draft release (asset completeness, checksums, the Sigstore/cosign signature over the checksum list, SLSA build provenance, released binaries).
 - **post-release** — run against the shipped binaries after publication (install scripts, public download, released-binary scans, SBOM interoperability, performance samples).
 
 Rules:

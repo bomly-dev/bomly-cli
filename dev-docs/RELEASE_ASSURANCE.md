@@ -122,7 +122,10 @@ dispatch then tells the landing page a new report is available.
    order those sections are read in, so put a new area where it belongs in the
    narrative rather than at the end.
 2. Emit a result from the workflow named in `source`, and upload it as an
-   `assurance-<id>` artifact.
+   `assurance-*` artifact. The name only has to start with `assurance-`, since
+   the stage jobs download them all with `merge-multiple`; group results by job
+   when that is simpler, as the release workflow does with
+   `assurance-release-<os>`.
 3. If the check backs a public claim, add an `evidence` entry pointing at it
    with `check_id` (and `instance`, when one specific leg proves the claim).
    Both kinds of entry carry the same fields — title, description, proves,

@@ -468,3 +468,32 @@ func TestUntrustedNativeArchivesGuardsTheProbe(t *testing.T) {
 		})
 	}
 }
+
+// TestParseReportRequiresClaimDescriptions keeps a published report from
+// carrying a claim the page would render as an empty card.
+func TestParseReportRequiresClaimDescriptions(t *testing.T) {
+	golden, err := os.ReadFile(filepath.Join("testdata", "golden", "all-pass.report.json"))
+	if err != nil {
+		t.Fatalf("read golden report: %v", err)
+	}
+	if _, err := ParseReport(golden); err != nil {
+		t.Fatalf("golden report rejected: %v", err)
+	}
+
+	var report map[string]any
+	if err := json.Unmarshal(golden, &report); err != nil {
+		t.Fatalf("decode golden report: %v", err)
+	}
+	evidence, ok := report["evidence"].([]any)
+	if !ok || len(evidence) == 0 {
+		t.Fatal("golden report has no evidence to blank out")
+	}
+	evidence[0].(map[string]any)["description"] = "  "
+	blanked, err := json.Marshal(report)
+	if err != nil {
+		t.Fatalf("encode report: %v", err)
+	}
+	if _, err := ParseReport(blanked); err == nil {
+		t.Fatal("expected a claim with a blank description to be rejected")
+	}
+}

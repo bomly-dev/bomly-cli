@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -247,15 +248,30 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 			pkg.Metadata = map[string]any{sdk.MetadataKeyNPM: meta}
 		}
 		pkgNode := sdk.NewDependency(pkg)
+		// npm records the registry tarball a package was installed from.
+		// Workspace members cleared ResolvedURL above (it names a local
+		// directory), and git or file specs are rejected by the invariant.
+		pkgNode.Origin = sdk.ArtifactOrigin(pkg.ResolvedURL)
+
 		if entry.License != "" {
 			sdk.SetDetectionLicenses(pkgNode, []sdk.PackageLicense{{Value: entry.License, Type: "declared"}})
 		}
-		if err := node.AddNodeIfMissing(depsGraph, pkgNode); err != nil {
+		// Two package paths can install one name@version from different
+		// tarballs; the shared helper keeps both, and pathToID wires each
+		// position's edges to its own occurrence. The path is the key.
+		surviving, err := detectors.EnsureOccurrence(depsGraph, pkgNode, normalizedPackagePath)
+		if err != nil {
 			return npmLockfileGraphs{}, err
 		}
-		pathToID[packagePath] = pkgNode.ID
+		if surviving != pkgNode {
+			surviving.AddScope(pkgNode.PrimaryScope())
+		}
+		pathToID[packagePath] = surviving.ID
 		if member {
-			modules = append(modules, npmModuleGraph{dir: strings.TrimPrefix(filepath.ToSlash(packagePath), "./"), rootID: pkgNode.ID})
+			// The descriptor must track whatever node now represents this
+			// path -- the same node pathToID records -- not the candidate
+			// that may have folded or been re-identified.
+			modules = append(modules, npmModuleGraph{dir: strings.TrimPrefix(filepath.ToSlash(packagePath), "./"), rootID: surviving.ID})
 		}
 	}
 

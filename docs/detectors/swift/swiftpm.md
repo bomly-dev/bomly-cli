@@ -9,7 +9,7 @@ Bomly uses this chain when it finds `swiftpm` evidence.
 | Package manager | `swiftpm` |
 | Ecosystem | `swift` |
 | Detector chain | `swiftpm-native-detector`, `swiftpm-detector`, `syft-detector` |
-| Evidence patterns | `Package.resolved`, `.package.resolved`, `Package.swift`, `project.xcworkspace/xcshareddata/swiftpm/Package.resolved` |
+| Evidence patterns | `Package.resolved`, `.package.resolved`, `.swiftpm/xcode/package.xcworkspace/xcshareddata/swiftpm/Package.resolved`, `project.xcworkspace/xcshareddata/swiftpm/Package.resolved`, `Package.swift` |
 | Ignored directories | - |
 | Ignored directory markers | - |
 | Multi-module resolution | No |

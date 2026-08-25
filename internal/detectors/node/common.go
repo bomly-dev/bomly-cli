@@ -9,8 +9,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-sdk"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
@@ -26,8 +28,12 @@ type BaseDetector struct {
 
 // NPMListNode is the npm list JSON node shape used by npm CLI and v1 package-lock parsing.
 type NPMListNode struct {
-	Name         string                  `json:"name"`
-	Version      string                  `json:"version"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	// Resolved is the tarball a package was installed from. Both sources of
+	// this shape record it: `npm ls --json` for registry packages, and the
+	// flat "dependencies" map of a v1 package-lock.json.
+	Resolved     string                  `json:"resolved"`
 	Dependencies map[string]*NPMListNode `json:"dependencies"`
 }
 
@@ -163,7 +169,16 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 		current := stack[len(stack)-1]
 		stack = stack[:len(stack)-1]
 
-		for depName, depNode := range current.deps {
+		depNames := make([]string, 0, len(current.deps))
+		for depName := range current.deps {
+			depNames = append(depNames, depName)
+		}
+		// Walk in a fixed order: a map's iteration order would let two
+		// occurrences of one package decide the graph differently per run.
+		sort.Strings(depNames)
+
+		for _, depName := range depNames {
+			depNode := current.deps[depName]
 			if depNode == nil {
 				continue
 			}
@@ -173,17 +188,29 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 			}
 			node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
 				Name:    name,
-				Version: depNode.Version},
+				Version: depNode.Version}, ResolvedURL: depNode.Resolved,
 			})
+			node.Origin = sdk.ArtifactOrigin(depNode.Resolved)
 
-			if err := AddNodeIfMissing(depsGraph, node); err != nil {
+			// Two tree positions can pin one name@version to different
+			// tarballs; the resolved string is the discriminator, so each
+			// distinct resolution keeps its own occurrence and each
+			// position's edge attaches to the occurrence it references.
+			surviving, err := detectors.EnsureOccurrence(depsGraph, node, depNode.Resolved)
+			if err != nil {
 				return nil, err
 			}
-			if err := depsGraph.AddEdge(current.parentID, node.ID); err != nil {
-				return nil, fmt.Errorf("add dependency %q -> %q: %w", current.parentID, node.ID, err)
+			if surviving == nil {
+				continue
+			}
+			if surviving != node {
+				surviving.AddScope(node.PrimaryScope())
+			}
+			if err := depsGraph.AddEdge(current.parentID, surviving.ID); err != nil {
+				return nil, fmt.Errorf("add dependency %q -> %q: %w", current.parentID, surviving.ID, err)
 			}
 			if len(depNode.Dependencies) > 0 {
-				stack = append(stack, frame{parentID: node.ID, deps: depNode.Dependencies})
+				stack = append(stack, frame{parentID: surviving.ID, deps: depNode.Dependencies})
 			}
 		}
 	}
@@ -322,12 +349,13 @@ func splitYarnTreeName(value string) (string, string, error) {
 
 // AddNodeIfMissing adds a package to a graph or merges scope into the existing package.
 func AddNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
-	if existing, ok := depsGraph.Node(node.ID); ok {
-		existing.AddScope(node.PrimaryScope())
-		return nil
+	surviving, err := detectors.EnsureNode(depsGraph, node)
+	if err != nil {
+		return err
 	}
-	if err := depsGraph.AddNode(node); err != nil {
-		return fmt.Errorf("add node %q: %w", node.ID, err)
+	if surviving != node {
+		// A package reached twice carries both scopes.
+		surviving.AddScope(node.PrimaryScope())
 	}
 	return nil
 }

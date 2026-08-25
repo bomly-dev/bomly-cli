@@ -31,7 +31,7 @@ Some primary detectors execute the ecosystem build tool to recover richer depend
 | `rust` | `cargo` | `Cargo.lock`, `Cargo.toml` | - | Native detector |
 | `sbom` | `sbom` | `*.syft.json`, `*.bom.*`, `*.bom`, `bom`, `*.sbom.*`, `*.sbom`, `sbom`, `*.cdx.*`, `*.cdx`, `*.spdx.*`, `*.spdx` | - | Native SBOM detector |
 | `scala` | `sbt` | `build.sbt`, `project/plugins.sbt`, `project/build.properties` | `build.sbt`, `project/plugins.sbt`, `project/build.properties` | Native detector |
-| `swift` | `cocoapods`, `swiftpm` | `Podfile.lock`, `Podfile`, `Package.resolved`, `.package.resolved`, `Package.swift`, `project.xcworkspace/xcshareddata/swiftpm/Package.resolved` | `Package.resolved`, `.package.resolved`, `Package.swift`, `project.xcworkspace/xcshareddata/swiftpm/Package.resolved` | Native detector |
+| `swift` | `cocoapods`, `swiftpm` | `Podfile.lock`, `Podfile`, `Package.resolved`, `.package.resolved`, `.swiftpm/xcode/package.xcworkspace/xcshareddata/swiftpm/Package.resolved`, `project.xcworkspace/xcshareddata/swiftpm/Package.resolved`, `Package.swift` | `Package.resolved`, `.package.resolved`, `.swiftpm/xcode/package.xcworkspace/xcshareddata/swiftpm/Package.resolved`, `project.xcworkspace/xcshareddata/swiftpm/Package.resolved`, `Package.swift` | Native detector |
 
 ## Bundled Detectors
 

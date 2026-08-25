@@ -371,11 +371,6 @@ func sortedPodNames(specs map[string]podSpec) []string {
 }
 
 func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
-	if _, ok := g.Node(node.ID); ok {
-		return nil
-	}
-	if err := g.AddNode(node); err != nil {
-		return fmt.Errorf("add node %q: %w", node.ID, err)
-	}
-	return nil
+	_, err := detectors.EnsureNode(g, node)
+	return err
 }

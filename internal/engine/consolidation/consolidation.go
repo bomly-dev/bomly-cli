@@ -22,9 +22,24 @@ func ConsolidateGraphs(results []sdk.DetectionResult) (sdk.ConsolidatedGraph, er
 	consolidated.ExecutionTarget = selectedTarget
 	consolidated.Manifests = selectedManifests
 
-	subprojectIndex := make(map[string]int)
 	for _, selected := range selectedManifests {
 		consolidated.Graphs.Entries = append(consolidated.Graphs.Entries, selected.Entry)
+	}
+
+	// Occurrence renaming can touch an entry's root, so it runs before root
+	// IDs are recorded anywhere; each entry's stored root then reflects
+	// whatever its node is now called. The rename maps are per entry: the
+	// same canonical ID can become different occurrence IDs in different
+	// entries.
+	renames := preserveContradictingOccurrences(consolidated.Graphs.Entries)
+
+	subprojectIndex := make(map[string]int)
+	for i, selected := range selectedManifests {
+		rootManifestID := selected.RootManifestID
+		if renamed, ok := renames[i][rootManifestID]; ok {
+			rootManifestID = renamed
+			consolidated.Manifests[i].RootManifestID = renamed
+		}
 
 		subprojectKey := consolidatedSubprojectKey(selected.Subproject, selected.DetectorName)
 		idx, exists := subprojectIndex[subprojectKey]
@@ -33,11 +48,11 @@ func ConsolidateGraphs(results []sdk.DetectionResult) (sdk.ConsolidatedGraph, er
 			consolidated.Subprojects = append(consolidated.Subprojects, sdk.ConsolidatedSubproject{
 				Subproject:      selected.Subproject,
 				DetectorName:    selected.DetectorName,
-				RootManifestIDs: []string{selected.RootManifestID},
+				RootManifestIDs: []string{rootManifestID},
 			})
 			continue
 		}
-		consolidated.Subprojects[idx].RootManifestIDs = append(consolidated.Subprojects[idx].RootManifestIDs, selected.RootManifestID)
+		consolidated.Subprojects[idx].RootManifestIDs = append(consolidated.Subprojects[idx].RootManifestIDs, rootManifestID)
 	}
 	return consolidated, nil
 }

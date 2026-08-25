@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -138,13 +139,24 @@ func depGraphFromPNPMLockfile(projectPath string) (pnpmLockfileGraphs, error) {
 		if existing, ok := depsGraph.Node(pkgNode.ID); ok && existing.Type == sdk.PackageTypeApplication {
 			pkgNode = sdk.NewDependencyWithID("pnpm-package:"+key, pkg)
 		}
+		// pnpm records a tarball only when it resolved one; v9 lockfiles
+		// often carry just an integrity hash, and git or directory
+		// resolutions are not parsed, so those packages assert no origin.
+		pkgNode.Origin = sdk.ArtifactOrigin(entry.Resolution.Tarball)
 		if entry.License != "" {
 			sdk.SetDetectionLicenses(pkgNode, []sdk.PackageLicense{{Value: entry.License, Type: "declared"}})
 		}
-		if err := node.AddNodeIfMissing(depsGraph, pkgNode); err != nil {
+		// Two lockfile keys can pin one name@version to different tarballs;
+		// the shared helper keeps both, and byKey wires each key's edges to
+		// its own occurrence.
+		surviving, err := detectors.EnsureOccurrence(depsGraph, pkgNode, key)
+		if err != nil {
 			return pnpmLockfileGraphs{}, err
 		}
-		resolved := resolvedPackage{id: pkgNode.ID, name: name, version: node.NormalizeVersionToken(version)}
+		if surviving != pkgNode {
+			surviving.AddScope(pkgNode.PrimaryScope())
+		}
+		resolved := resolvedPackage{id: surviving.ID, name: name, version: node.NormalizeVersionToken(version)}
 		byKey[key] = resolved
 		byName[name] = append(byName[name], resolved)
 	}

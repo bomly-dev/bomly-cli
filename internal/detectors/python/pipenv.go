@@ -242,11 +242,12 @@ func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Dependency, packages
 			Name:           normalizedName,
 			Version:        strings.TrimPrefix(pkg.Version, "==")}, Source: pipfileDependencySource(pkg), ResolvedURL: pipfileResolvedURL(pkg), Metadata: sourceRevisionMetadata(pkg.Ref), Scopes: sdk.ScopesOf(scope),
 		})
+		setPipenvOrigin(node, pkg)
 
-		if _, exists := depsGraph.Node(node.ID); !exists {
-			if err := depsGraph.AddNode(node); err != nil {
-				return fmt.Errorf("add Pipfile.lock package %q: %w", normalizedName, err)
-			}
+		// One package can be listed in both groups; they are one node, and the
+		// shared helper settles what it claims.
+		if _, err := detectors.EnsureNode(depsGraph, node); err != nil {
+			return fmt.Errorf("add Pipfile.lock package %q: %w", normalizedName, err)
 		}
 		if err := depsGraph.AddEdge(root.ID, node.ID); err != nil {
 			return fmt.Errorf("add Pipfile.lock dependency %q: %w", normalizedName, err)

@@ -87,6 +87,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 			Type:           sdk.PackageTypePackage,
 			PURL:           sdk.BuildPackageURL("pypi", "", pkg.Name, pkg.Version)}, Source: poetryDependencySource(pkg.Source.Type), ResolvedURL: strings.TrimSpace(pkg.Source.URL), Metadata: sourceRevisionMetadata(firstNonEmpty(pkg.Source.ResolvedReference, pkg.Source.Reference)),
 		})
+		setPoetryOrigin(node, pkg)
 
 		for _, group := range pkg.Groups {
 			if group == "main" {
@@ -95,6 +96,9 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 				node.AddScope(sdk.ScopeDevelopment)
 			}
 		}
+		// poetry.lock can hold several marker-specific records for one
+		// package. References are by bare name, so one graph position
+		// exists: the last record wins as a whole, deterministically.
 		nodesByName[normalizePythonName(pkg.Name)] = node
 	}
 

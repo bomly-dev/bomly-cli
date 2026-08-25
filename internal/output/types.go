@@ -262,6 +262,7 @@ func cloneAffectedSymbols(src []sdk.AffectedSymbol) []sdk.AffectedSymbol {
 	return out
 }
 
+// cloneRefMetadata copies package metadata for command output.
 func cloneRefMetadata(src map[string]any) map[string]any {
 	if len(src) == 0 {
 		return nil

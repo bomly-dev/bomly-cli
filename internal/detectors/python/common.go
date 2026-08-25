@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-sdk"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
@@ -217,6 +218,7 @@ func depGraphFromPipInspect(raw []byte, rootNode *sdk.Dependency, declared map[s
 			Name:    normalizePythonName(pkg.Metadata.Name),
 			Version: pkg.Metadata.Version}, Source: pipInspectDependencySource(pkg.DirectURL), ResolvedURL: pipInspectResolvedURL(pkg.DirectURL), Metadata: sourceRevisionMetadata(pipInspectRevision(pkg.DirectURL)),
 		})
+		setPipInspectOrigin(node, pkg.DirectURL)
 
 		if _, exists := nodesByName[node.Name]; !exists {
 			nodesByName[node.Name] = node
@@ -852,13 +854,8 @@ func normalizePythonName(value string) string {
 }
 
 func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
-	if _, ok := depsGraph.Node(node.ID); ok {
-		return nil
-	}
-	if err := depsGraph.AddNode(node); err != nil {
-		return fmt.Errorf("add node %q: %w", node.ID, err)
-	}
-	return nil
+	_, err := detectors.EnsureNode(depsGraph, node)
+	return err
 }
 
 // annotateGraphScopes assigns runtime/development scope to packages in a pip-inspect-built

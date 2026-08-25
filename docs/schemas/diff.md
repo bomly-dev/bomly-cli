@@ -245,6 +245,7 @@ Complete reference for the `bomly diff` JSON output.
 |-------|------|-------------|
 | `algorithm` | `string` | |
 | `value` | `string` | |
+| `subject` | `string` | |
 
 ### `EPSSScore`
 

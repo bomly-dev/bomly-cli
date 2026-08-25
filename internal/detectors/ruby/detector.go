@@ -488,24 +488,25 @@ func gemNode(spec lockSpec) *sdk.Dependency {
 	if revision := strings.TrimSpace(spec.Revision); revision != "" {
 		metadata = map[string]any{"source_revision": revision}
 	}
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRuby,
+	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRuby,
 		Name:           strings.TrimSpace(spec.Name),
 		Version:        strings.TrimSpace(spec.Version),
 		PackageManager: sdk.PackageManagerBundler,
 		Type:           "gem",
 		Language:       "ruby"}, Source: spec.Source, ResolvedURL: strings.TrimSpace(spec.ResolvedURL), Metadata: metadata,
 	})
+	if spec.Source == sdk.DependencySourceGit {
+		// A GIT section names the repository and the commit Bundler locked.
+		// A GEM section's remote is the gem server, and PATH is local.
+		node.Origin = sdk.RepositoryOrigin(spec.ResolvedURL, spec.Revision)
+	}
+	return node
 
 }
 
 func addGemNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
-	if _, ok := depsGraph.Node(node.ID); ok {
-		return nil
-	}
-	if err := depsGraph.AddNode(node); err != nil {
-		return fmt.Errorf("add node %q: %w", node.ID, err)
-	}
-	return nil
+	_, err := detectors.EnsureNode(depsGraph, node)
+	return err
 }
 
 func appendUnique(values []string, value string) []string {

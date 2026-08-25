@@ -1,0 +1,8 @@
+# ADR-0017: Bun text lockfiles are native; binary lockfiles degrade explicitly
+
+- **Date:** 2026-07-17
+- **Status:** Accepted
+
+`bun-detector` parses JSONC `bun.lock` versions 0 and 1 directly in Go. The parser removes comments and trailing commas with a string-aware state machine, inventories package tuples before constructing edges, models workspace roots as application nodes, and runs the shared Node relationship finalizer before per-workspace graph partitioning. Bun workspace entries therefore use the same multi-entry `sdk.GraphContainer` contract described above. The lockfile path never invokes or installs Bun, so committed text lockfiles remain deterministic and offline.
+
+The legacy `bun.lockb` binary representation is not parsed in core. The detector chain next invokes `bun-native-detector` when Bun and a package manifest are available. It runs `bun pm ls --all`, preserves displayed nested edges, resolves workspace paths to application identities, normalizes direct npm aliases, and reconciles top-level installed occurrences with `package.json`. Direct edges are created only when one installed occurrence proves the declaration. Duplicate-name occurrences and hoisted packages without a provable parent are attached beneath the application root with `unknown` relationships; they remain eligible for every later pipeline stage. If Bun is unavailable or the installed inventory is empty, Syft remains the final fallback. Users who need full lockfile graph fidelity can migrate with `bun install --save-text-lockfile --frozen-lockfile --lockfile-only`. Install-first is supported only when explicitly requested and runs `bun install`; ordinary detection does not install packages.

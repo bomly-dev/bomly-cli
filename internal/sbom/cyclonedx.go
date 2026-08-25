@@ -47,6 +47,9 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 		if props := cycloneDXEOLProperties(comp.EOL); len(props) > 0 {
 			component.Properties = &props
 		}
+		if refs := cycloneDXComponentReferences(comp); len(refs) > 0 {
+			component.ExternalReferences = &refs
+		}
 		components = append(components, component)
 	}
 	bom.Components = &components
@@ -248,6 +251,22 @@ func cycloneDXTools(names []string, primaryTool, toolVersion string) *cdx.ToolsC
 
 // cycloneDXSecurityReferences maps provenance contact fields onto external
 // references attached to the primary component.
+// cycloneDXComponentReferences renders where a package came from: the exact
+// file it was fetched from as a distribution reference, or the repository it
+// was resolved from as a vcs reference. The repository is rendered as a plain
+// URL -- CycloneDX external references carry no revision, so the commit a
+// detector resolved is only expressible in the SPDX locator form.
+func cycloneDXComponentReferences(component Component) []cdx.ExternalReference {
+	refs := make([]cdx.ExternalReference, 0, 2)
+	if artifact := strings.TrimSpace(component.ArtifactURL); artifact != "" {
+		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeDistribution, URL: artifact})
+	}
+	if repository := strings.TrimSpace(component.VCSURL); repository != "" {
+		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeVCS, URL: repository})
+	}
+	return refs
+}
+
 func cycloneDXSecurityReferences(p Provenance) []cdx.ExternalReference {
 	refs := make([]cdx.ExternalReference, 0, 2)
 	if contact := strings.TrimSpace(p.SecurityContact); contact != "" {

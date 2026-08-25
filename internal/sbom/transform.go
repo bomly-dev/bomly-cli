@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -47,7 +48,15 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			Licenses:       componentLicenses(sdk.DetectionLicenses(pkg)),
 			Digests:        componentDigests(pkg.Digests),
 		}
-		enrichComponentFromRegistry(&component, opts.Registry, pkg.PURL)
+		if !detectors.IsProjectOwned(pkg) {
+			// The project's own records never take an external origin.
+			// Built-in detectors do not assert one, folding cannot add one,
+			// and the scorecard fallback skips them -- this guard closes the
+			// remaining path, a plugin-supplied graph asserting an origin on
+			// a first-party node directly.
+			applyOrigin(&component, pkg.Origin.Normalized())
+		}
+		enrichComponentFromRegistry(&component, opts.Registry, pkg.PURL, detectors.IsProjectOwned(pkg))
 		components = append(components, component)
 		depsByRef[pkg.ID] = nil
 		return true
@@ -263,7 +272,37 @@ func uniqueToolNames(values []string) []string {
 // enrichComponentFromRegistry folds matching-stage data resolved by PURL onto a
 // component: registry-learned licenses (preferred over detection-time when
 // present), CPEs, digests, vulnerabilities, and EOL. registry may be nil.
-func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegistry, purl string) {
+// scorecardRepositoryURL renders a scorecard repository, which is a canonical
+// host/owner/name identifier with no scheme, as a URL. It is held to the same
+// invariant as detector-asserted origins.
+func scorecardRepositoryURL(scorecard *sdk.PackageScorecard) (string, bool) {
+	if scorecard == nil {
+		return "", false
+	}
+	repository := strings.TrimSpace(scorecard.Repository)
+	if repository == "" {
+		return "", false
+	}
+	if !strings.Contains(repository, "://") {
+		repository = "https://" + repository
+	}
+	return sdk.NormalizeOriginURL(repository, true)
+}
+
+// applyOrigin projects the origin a detector asserted onto a component. The
+// value arrives already validated -- Normalized applies the SDK's rule and
+// returns nothing when a location does not survive it -- so there is nothing to
+// decide here: export publishes what detection resolved, or nothing.
+func applyOrigin(component *Component, origin *sdk.DependencyOrigin) {
+	if origin == nil {
+		return
+	}
+	component.ArtifactURL = origin.ArtifactURL
+	component.VCSURL = origin.Repository
+	component.VCSRevision = origin.Revision
+}
+
+func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegistry, purl string, projectOwned bool) {
 	if component == nil || registry == nil || purl == "" {
 		return
 	}
@@ -282,6 +321,16 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 	}
 	if len(pkg.Vulnerabilities) > 0 {
 		component.Vulnerabilities = vulnerabilitiesFromPackage(pkg.EcosystemName(), pkg.Vulnerabilities)
+	}
+	if repository, ok := scorecardRepositoryURL(pkg.Scorecard); ok && component.VCSURL == "" && !projectOwned {
+		// The registry package is shared by every occurrence of a PURL, but
+		// a scorecard repository resolved for the consumed package must not
+		// be attributed to the project's own record -- a local workspace or
+		// fork that merely shares the identity.
+		// The scorecard matcher resolved a canonical source repository for
+		// this package. A detector-asserted repository is the stronger claim
+		// (it came from the lockfile), so this only fills a gap.
+		component.VCSURL = repository
 	}
 	if pkg.EOL != nil {
 		component.EOL = &EOL{

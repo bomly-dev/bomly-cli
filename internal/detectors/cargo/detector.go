@@ -304,11 +304,28 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 			return nil, nil, fmt.Errorf("add root node: %w", err)
 		}
 	}
-	for id, pkg := range packagesByID {
+	// Cargo's package IDs are source-qualified, so two records sharing a
+	// name and version are still distinguishable occurrences. When their
+	// origins contradict, both stay as distinct nodes -- the second under a
+	// source-qualified ID -- and the resolve section's edges attach each
+	// parent to the exact occurrence it depends on via this map.
+	nodeIDByCargoID := make(map[string]string, len(packagesByID))
+	for _, id := range sortedPackageIDs(packagesByID) {
+		pkg := packagesByID[id]
 		node := packageNode(pkg, id, workspace)
-		if err := addNodeIfMissing(g, node); err != nil {
+		// Distinct cargo package IDs with different sources are two
+		// resolutions of one name@version; the shared helper keeps both.
+		surviving, err := detectors.EnsureOccurrence(g, node, strings.TrimSpace(pkg.Source))
+		if err != nil {
 			return nil, nil, err
 		}
+		nodeIDByCargoID[id] = surviving.ID
+	}
+	idFor := func(cargoID string, pkg metadataPackage) string {
+		if nodeID, ok := nodeIDByCargoID[cargoID]; ok {
+			return nodeID
+		}
+		return packageNode(pkg, cargoID, workspace).ID
 	}
 	members := make([]metadataMember, 0, len(workspace))
 	for _, id := range sortedWorkspaceMembers(workspace) {
@@ -316,7 +333,7 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 		if !ok {
 			continue
 		}
-		members = append(members, metadataMember{nodeID: packageNode(pkg, id, workspace).ID, manifestPath: pkg.ManifestPath})
+		members = append(members, metadataMember{nodeID: idFor(id, pkg), manifestPath: pkg.ManifestPath})
 	}
 	if root != nil {
 		for _, id := range sortedWorkspaceMembers(workspace) {
@@ -324,9 +341,9 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 			if !ok {
 				continue
 			}
-			node := packageNode(pkg, id, workspace)
-			if err := g.AddEdge(root.ID, node.ID); err != nil {
-				return nil, nil, fmt.Errorf("add Cargo workspace root %q: %w", node.ID, err)
+			nodeID := idFor(id, pkg)
+			if err := g.AddEdge(root.ID, nodeID); err != nil {
+				return nil, nil, fmt.Errorf("add Cargo workspace root %q: %w", nodeID, err)
 			}
 		}
 	}
@@ -335,18 +352,18 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 		if !ok {
 			continue
 		}
-		parent := packageNode(parentPkg, node.ID, workspace)
+		parentID := idFor(node.ID, parentPkg)
 		for _, dep := range node.Deps {
 			childPkg, ok := packagesByID[dep.Package]
 			if !ok {
 				continue
 			}
-			child := packageNode(childPkg, dep.Package, workspace)
-			if err := g.AddEdge(parent.ID, child.ID); err != nil {
-				return nil, nil, fmt.Errorf("add Cargo dependency %q -> %q: %w", parent.ID, child.ID, err)
+			childID := idFor(dep.Package, childPkg)
+			if err := g.AddEdge(parentID, childID); err != nil {
+				return nil, nil, fmt.Errorf("add Cargo dependency %q -> %q: %w", parentID, childID, err)
 			}
-			if parent.Type == "application" {
-				if existing, ok := g.Node(child.ID); ok {
+			if parentNode, ok := g.Node(parentID); ok && parentNode.Type == "application" {
+				if existing, ok := g.Node(childID); ok {
 					existing.AddScope(scopeForDepKinds(dep.DepKinds))
 				}
 			}
@@ -382,7 +399,7 @@ func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}) 
 			source = sdk.DependencySourceWorkspace
 		}
 	}
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
+	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
 		Name:           pkg.Name,
 		Version:        pkg.Version,
 		PackageManager: sdk.PackageManagerCargo,
@@ -390,6 +407,12 @@ func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}) 
 		Language:       "rust",
 		PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)}, Source: source, ResolvedURL: pkg.Source,
 	})
+	if !workspaceMember {
+		// A workspace member is the project's own code: it has no external
+		// origin, whatever a same-named lock entry says.
+		setCargoOrigin(node, pkg.Source)
+	}
+	return node
 
 }
 
@@ -426,14 +449,24 @@ func sortedWorkspaceMembers(workspace map[string]struct{}) []string {
 	return values
 }
 
+// sortedPackageIDs orders cargo's package map so one lockfile always builds
+// the same graph: map iteration would let two records of one crate decide the
+// node differently per run.
+func sortedPackageIDs(packages map[string]metadataPackage) []string {
+	ids := make([]string, 0, len(packages))
+	for id := range packages {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	return ids
+}
+
 func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
-	if _, ok := g.Node(node.ID); ok {
-		return nil
-	}
-	if err := g.AddNode(node); err != nil {
-		return fmt.Errorf("add node %q: %w", node.ID, err)
-	}
-	return nil
+	// Cargo can resolve one crate name and version from two sources -- the same
+	// crate pulled from two git remotes, say. They share a PURL, so they are
+	// one node, and the shared helper settles what that node claims.
+	_, err := detectors.EnsureNode(g, node)
+	return err
 }
 
 type lockPackage struct {
@@ -477,57 +510,54 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
-	byName := make(map[string]lockPackage, len(packages))
-	for _, pkg := range packages {
-		byName[pkg.Name] = pkg
-		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
-		if pkg.Name == manifest.Name {
-			continue
-		}
-		if err := addNodeIfMissing(g, node); err != nil {
-			return nil, err
-		}
+	index, err := buildLockIndex(g, packages, manifest.Name)
+	if err != nil {
+		return nil, err
 	}
+	rootID := root.ID
 	for _, pkg := range packages {
 		if pkg.Name == manifest.Name {
 			continue
 		}
-		parent := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
+		parentID, ok := index.resolve(strings.TrimSpace(pkg.Name + " " + pkg.Version + " (" + pkg.Source + ")"))
+		if !ok {
+			continue
+		}
+		if parentID == rootID {
+			continue
+		}
 		for _, depName := range pkg.Dependencies {
-			childPkg, ok := byName[depName]
-			if !ok || childPkg.Name == manifest.Name {
+			childID, ok := index.resolve(depName)
+			if !ok || childID == rootID {
 				continue
 			}
-			child := packageNode(metadataPackage{Name: childPkg.Name, Version: childPkg.Version, Source: childPkg.Source}, childPkg.Name+"@"+childPkg.Version, nil)
-			if err := g.AddEdge(parent.ID, child.ID); err != nil {
-				return nil, fmt.Errorf("add Cargo.lock dependency %q -> %q: %w", parent.ID, child.ID, err)
+			if err := g.AddEdge(parentID, childID); err != nil {
+				return nil, fmt.Errorf("add Cargo.lock dependency %q -> %q: %w", parentID, childID, err)
 			}
 		}
 	}
 	for _, depName := range manifest.Dependencies {
-		pkg, ok := byName[depName]
-		if !ok {
+		nodeID, ok := index.resolve(depName)
+		if !ok || nodeID == rootID {
 			continue
 		}
-		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
-		if existing, ok := g.Node(node.ID); ok {
+		if existing, ok := g.Node(nodeID); ok {
 			existing.AddScope(sdk.ScopeRuntime)
 		}
-		if err := g.AddEdge(root.ID, node.ID); err != nil {
-			return nil, fmt.Errorf("add Cargo root dependency %q: %w", node.ID, err)
+		if err := g.AddEdge(root.ID, nodeID); err != nil {
+			return nil, fmt.Errorf("add Cargo root dependency %q: %w", nodeID, err)
 		}
 	}
 	for _, depName := range manifest.DevDependencies {
-		pkg, ok := byName[depName]
-		if !ok {
+		nodeID, ok := index.resolve(depName)
+		if !ok || nodeID == rootID {
 			continue
 		}
-		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
-		if existing, ok := g.Node(node.ID); ok {
+		if existing, ok := g.Node(nodeID); ok {
 			existing.AddScope(sdk.ScopeDevelopment)
 		}
-		if err := g.AddEdge(root.ID, node.ID); err != nil {
-			return nil, fmt.Errorf("add Cargo dev dependency %q: %w", node.ID, err)
+		if err := g.AddEdge(root.ID, nodeID); err != nil {
+			return nil, fmt.Errorf("add Cargo dev dependency %q: %w", nodeID, err)
 		}
 	}
 

@@ -568,12 +568,10 @@ func appendUniqueModule(modules []moduleRef, seen map[string]struct{}, ref modul
 }
 
 func addOrMergeModuleNode(depsGraph *sdk.Graph, node *sdk.Dependency, scope sdk.Scope) error {
-	if existing, ok := depsGraph.Node(node.ID); ok {
-		existing.AddScope(scope)
-		return nil
+	surviving, err := detectors.EnsureNode(depsGraph, node)
+	if err != nil {
+		return err
 	}
-	if err := depsGraph.AddNode(node); err != nil {
-		return fmt.Errorf("add node %q: %w", node.ID, err)
-	}
+	surviving.AddScope(scope)
 	return nil
 }

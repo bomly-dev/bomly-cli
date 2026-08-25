@@ -99,6 +99,82 @@ Both formats carry:
   knows fixed versions, each vulnerability carries a `recommendation`
   ("Upgrade <package> to <version>"). No guidance is invented when no fix is
   known. SPDX 2.3 has no equivalent field.
+- Where each package came from, when its lockfile says: an exact download
+  location or a source repository. See "Where a package came from" below.
+
+### Where a package came from
+
+Each detector reports the origin of the packages it resolves, reading the field
+its own lockfile records it in. Bomly does not infer origin from the shape of a
+URL, because the same string means different things in different ecosystems.
+
+A detector reports one of two things, or nothing at all:
+
+| What the lockfile records | SPDX 2.3 | CycloneDX |
+|---|---|---|
+| The exact file the package was fetched from | `downloadLocation` | `distribution` external reference |
+| The repository it was resolved from, and the commit when the lockfile pinned one | `downloadLocation` as `git+<url>`, with `@<revision>` when pinned; `sourceInfo` when a download location is already taken by an artifact | `vcs` external reference (URL only) |
+| Neither | `NOASSERTION` | no reference |
+
+CycloneDX external references have no field for a revision, so the commit a
+detector resolved appears only in the SPDX form.
+
+What each ecosystem yields:
+
+- **npm, pnpm, yarn, bun** — the registry tarball recorded in the lockfile.
+  Yarn Classic appends the package checksum to that URL; it identifies
+  contents rather than a location, so it is dropped. pnpm v9 entries that
+  record only an integrity hash report nothing.
+- **uv, poetry, pipenv, pip** — a repository plus the commit that was locked,
+  or a direct archive URL, depending on the recorded source type.
+- **cargo, Bundler, SwiftPM, pub** — the repository and resolved commit for
+  git dependencies and source-control pins. SwiftPM and pub report the same
+  origin whether the build tool ran or Bomly read the committed file: the tools
+  do not print a commit, so it is read back from `Package.resolved` and
+  `pubspec.lock`.
+- **Go modules, Maven, Gradle, NuGet, and the other detectors** — nothing yet;
+  their manifests do not record a per-package location.
+- Packages found by Syft, and packages read from an ingested SBOM, carry no
+  detector origin.
+
+With `--enrich`, a package can also get a repository it has no lockfile claim
+to. The OpenSSF Scorecard matcher resolves a canonical source repository from a
+package's identity, and that repository is used whenever the detector reported
+no repository of its own — including for the ecosystems listed above as
+yielding nothing, for Syft-detected packages, and **for packages that already
+have a download location**. An artifact and a repository answer different
+questions (which file was fetched, where the source lives), so a package can
+carry both: the artifact stays the SPDX `downloadLocation` and the CycloneDX
+`distribution` reference, while the repository becomes the `vcs` reference and,
+in SPDX, the package's source info. Only a detector-asserted repository
+displaces it.
+
+It is a network lookup keyed on package identity rather than a claim any
+manifest made, so it is weaker evidence, and no revision is attached: a
+Scorecard repository names a project, not a resolved commit. Without
+`--enrich`, or without the scorecard matcher selected, nothing of this kind
+appears.
+
+Four kinds of value are never published, in any ecosystem:
+
+- **Registry and index roots** (`https://rubygems.org/`, `https://pub.dev`, the
+  crates.io index). They say where an ecosystem fetches from, not where a
+  package came from — and once out of context, a private server URL is
+  indistinguishable from a repository.
+- **Local paths** — workspace members, editable installs, `file:` and `path:`
+  dependencies. These describe the machine that ran the scan.
+- **Non-web locations** — `ssh://`, `git@host:org/repo`, and similar remotes
+  that name a transport rather than a fetchable address.
+- **URLs carrying credentials.** A lockfile pointing at a private registry can
+  embed a token; publishing it in an SBOM would leak a live secret.
+
+Every origin a detector reports is an absolute `http`/`https` URL with a host, a
+non-empty path, and no embedded credentials. Values are re-serialized from a
+parse rather than copied from the lockfile, and the same check runs again at
+export, so origin supplied by a plugin is held to the same rule as origin from a
+built-in detector. SPDX then composes the validated repository URL into its
+`git+<url>@<revision>` locator form, which is the only place a revision
+appears.
 
 ### Document identity
 
@@ -165,14 +241,17 @@ registry (keyed by PURL):
 - Vulnerabilities — CycloneDX as a first-class `vulnerabilities` array (ratings,
   CWEs, advisories, `affects`); SPDX as `SECURITY`/`advisory` external references.
 - End-of-life status (CycloneDX `bomly:eol*` properties, SPDX package comment).
+- A source repository resolved by the OpenSSF Scorecard matcher, used only when
+  the detector reported no repository of its own (see "Where a package came
+  from" above).
 
 Reachability annotations and other Bomly-specific metadata are emitted in the JSON output (`--json` or `--format json`), not in the standard SBOM formats. See [Output formats](OUTPUT_FORMATS.md).
 
 ### Preservation and conversion limits
 
 Bomly preserves component identity (including PURL), dependency edges, roots,
-scope, package type, licenses, digests, CPEs, and the enrichment fields described
-above when the destination format has an equivalent representation. Encoding is
+scope, package type, licenses, digests, CPEs, and the enrichment fields
+described above when the destination format has an equivalent representation. Encoding is
 deterministic when the scan timestamp and document identifiers are fixed.
 
 Some information necessarily becomes less specific during conversion:
@@ -184,6 +263,10 @@ Some information necessarily becomes less specific during conversion:
   round trip.
 - Development scope maps to CycloneDX `excluded`; runtime scope maps to
   `required`. SPDX stores Bomly's normalized scope in the package comment.
+- Package origin is written on export but not read back on ingest: scanning an
+  SBOM produces packages with no origin, so re-exporting that graph emits
+  `NOASSERTION` and no distribution or vcs reference. Origin comes from a
+  lockfile, and an ingested document is not one.
 - Bomly relationship confidence (`direct`, `transitive`, or `unknown`), source
   provenance, reachability analysis, policy findings, and run diagnostics are
   report data rather than portable SBOM fields. Use JSON when those distinctions

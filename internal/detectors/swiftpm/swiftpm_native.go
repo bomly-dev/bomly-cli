@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
@@ -75,7 +77,7 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 		return sdk.DetectionResult{}, fmt.Errorf("swift package show-dependencies: %w", err)
 	}
 
-	g, err := depGraphFromSwiftShowDeps(out.Bytes())
+	g, err := nativeGraph(out.Bytes(), workingDir, logger)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("parse swift show-dependencies output: %w", err)
 	}
@@ -83,6 +85,103 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns)),
 	}, nil
+}
+
+// nativeGraph builds the dependency graph for a native SwiftPM run: the tool's
+// own output for structure, and the committed Package.resolved for the commits
+// that output omits.
+func nativeGraph(raw []byte, workingDir string, logger *zap.Logger) (*sdk.Graph, error) {
+	g, err := depGraphFromSwiftShowDeps(raw)
+	if err != nil {
+		return nil, err
+	}
+	applyResolvedOrigins(g, workingDir, logger)
+	return g, nil
+}
+
+// applyResolvedOrigins pins the repositories in a native graph to the commits
+// Package.resolved recorded. `swift package show-dependencies` reports a URL
+// and a version but no revision, so without this the default path would export
+// unpinned repositories while the committed-file fallback exports pinned ones.
+//
+// Best effort: a project with no readable Package.resolved keeps the origins
+// the graph already carries.
+func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
+	if logger == nil {
+		logger = zap.NewNop()
+	}
+	raw, path, err := readFirstExisting(workingDir, resolvedCandidates)
+	if err != nil || len(raw) == 0 {
+		return
+	}
+	pins, err := parseResolved(raw)
+	if err != nil {
+		logger.Debug("swiftpm: could not read pins for origin", zap.String("path", path), zap.Error(err))
+		return
+	}
+	if len(pins) == 0 {
+		return
+	}
+
+	byRepository := make(map[string]swiftPackage, len(pins))
+	for _, pin := range pins {
+		if key := repositoryKey(pin.Repository); key != "" {
+			byRepository[key] = pin
+		}
+	}
+
+	pinned := 0
+	g.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep.Source != sdk.DependencySourceGit {
+			// `swift package edit` replaces a dependency with a local
+			// checkout while Package.resolved keeps the pin it replaced.
+			// What the build resolved is the truth, so a local node is left
+			// alone rather than credited to the repository it stands in for.
+			return true
+		}
+		pin, ok := byRepository[repositoryKey(dep.ResolvedURL)]
+		if !ok {
+			// Matching by identity is only safe when the graph offers nothing
+			// better. A node that names a repository and did not match one has
+			// a repository the pins do not describe -- a mirror, say -- and
+			// crediting it to a same-named pin would name a location the build
+			// did not use.
+			if strings.TrimSpace(dep.ResolvedURL) != "" {
+				return true
+			}
+			if pin, ok = pins[dep.Name]; !ok {
+				return true
+			}
+		}
+		if pin.Revision == "" || swiftDependencySource(pin.SourceKind, pin.Repository) != sdk.DependencySourceGit {
+			return true
+		}
+		dep.Origin = sdk.RepositoryOrigin(pin.Repository, pin.Revision)
+		pinned++
+		return true
+	})
+	logger.Debug(fmt.Sprintf("swiftpm: pinned %d package origins from %s", pinned, path))
+}
+
+// repositoryKey normalizes a repository URL for matching a pin to a graph
+// node: SwiftPM reports the same repository with and without a ".git" suffix
+// and in either case.
+func repositoryKey(repository string) string {
+	trimmed := strings.TrimSpace(repository)
+	if trimmed == "" {
+		return ""
+	}
+	parsed, err := url.Parse(trimmed)
+	if err != nil || parsed.Host == "" {
+		return strings.TrimSuffix(strings.TrimSuffix(trimmed, "/"), ".git")
+	}
+	parsed.Scheme = strings.ToLower(parsed.Scheme)
+	parsed.Host = strings.ToLower(parsed.Host)
+	// The path keeps its case: on a case-sensitive host "/Team/Helper" and
+	// "/team/helper" are different repositories, and folding them together
+	// would attach one repository's pin to the other's package.
+	parsed.Path = strings.TrimSuffix(strings.TrimSuffix(parsed.Path, "/"), ".git")
+	return parsed.String()
 }
 
 // FallbackDetector returns the configured fallback detector.

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
@@ -14,6 +15,7 @@ import (
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+	"gopkg.in/yaml.v3"
 )
 
 // NativeDetector resolves Dart pub dependency graphs by running `dart pub deps --json`.
@@ -75,7 +77,7 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 		return sdk.DetectionResult{}, fmt.Errorf("dart pub deps: %w", err)
 	}
 
-	g, err := depGraphFromPubDepsJSON(out.Bytes())
+	g, err := nativeGraph(out.Bytes(), workingDir, logger)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("parse dart pub deps output: %w", err)
 	}
@@ -83,6 +85,61 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns)),
 	}, nil
+}
+
+// nativeGraph builds the dependency graph for a native pub run: the tool's own
+// output for structure, and the committed pubspec.lock for the package sources
+// that output omits.
+func nativeGraph(raw []byte, workingDir string, logger *zap.Logger) (*sdk.Graph, error) {
+	g, err := depGraphFromPubDepsJSON(raw)
+	if err != nil {
+		return nil, err
+	}
+	applyLockOrigins(g, workingDir, logger)
+	return g, nil
+}
+
+// applyLockOrigins records where a native graph's git packages came from.
+// `dart pub deps --json` reports a name, version, and kind but not a package's
+// source description, so without this the default path would export no origin
+// for git dependencies while the committed-file fallback exports the
+// repository and the commit pub resolved.
+//
+// Best effort: a project with no readable pubspec.lock keeps the graph as it is.
+func applyLockOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
+	if logger == nil {
+		logger = zap.NewNop()
+	}
+	raw, err := system.ReadRepositoryFile(filepath.Join(workingDir, "pubspec.lock"))
+	if err != nil {
+		return
+	}
+	var lock pubLock
+	if err := yaml.Unmarshal(raw, &lock); err != nil {
+		logger.Debug("pub: could not read pubspec.lock for origin", zap.Error(err))
+		return
+	}
+	if len(lock.Packages) == 0 {
+		return
+	}
+
+	recorded := 0
+	g.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep.Source != sdk.DependencySourceGit {
+			// An override can point a package at a local path while the lock
+			// still describes the git dependency it replaced. What pub
+			// resolved for this build is the truth.
+			return true
+		}
+		pkg, ok := lock.Packages[dep.Name]
+		if !ok || pubDependencySource(pkg.Source) != sdk.DependencySourceGit {
+			return true
+		}
+		dep.Origin = sdk.RepositoryOrigin(descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref"))
+		recorded++
+		return true
+	})
+	logger.Debug(fmt.Sprintf("pub: recorded %d package origins from pubspec.lock", recorded))
 }
 
 // FallbackDetector returns the configured fallback detector.

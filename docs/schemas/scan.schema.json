@@ -330,6 +330,9 @@
                 "algorithm": {
                   "type": "string"
                 },
+                "subject": {
+                  "type": "string"
+                },
                 "value": {
                   "type": "string"
                 }

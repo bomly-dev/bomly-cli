@@ -12,11 +12,13 @@
 package smoke
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"testing"
@@ -545,6 +547,108 @@ func TestScanSBOMSyftJSONRejected(t *testing.T) {
 		})
 	}
 }
+
+// TestScanSBOMExportOrigin drives a real npm project end to end and asserts on
+// the exported SBOM bytes rather than a golden: SPDX and CycloneDX documents
+// carry a namespace, serial number, timestamp, and tool version that change on
+// every run, and normalizeJSON targets Bomly's scan document, not SBOM output.
+//
+// The properties asserted here are the ones that matter and that unit tests
+// cannot reach: a real lockfile from a real repository produces real download
+// locations, and nothing about the machine that ran the scan leaks into them.
+func TestScanSBOMExportOrigin(t *testing.T) {
+	t.Parallel()
+	requireTool(t, "npm")
+
+	outputDir := t.TempDir()
+	spdxPath := filepath.Join(outputDir, "out.spdx.json")
+	cdxPath := filepath.Join(outputDir, "out.cdx.json")
+
+	_, stderr, code := runBomly(t,
+		"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "v1.0.0",
+		"--detectors", "npm", "--format", "json",
+		"-o", "spdx="+spdxPath, "-o", "cyclonedx="+cdxPath,
+	)
+	if code != 0 {
+		t.Fatalf("bomly exited %d\nstderr:\n%s", code, stderr)
+	}
+
+	spdxRaw, err := os.ReadFile(spdxPath)
+	if err != nil {
+		t.Fatalf("read SPDX output: %v", err)
+	}
+	cdxRaw, err := os.ReadFile(cdxPath)
+	if err != nil {
+		t.Fatalf("read CycloneDX output: %v", err)
+	}
+
+	var spdxDoc struct {
+		Packages []struct {
+			Name             string `json:"name"`
+			DownloadLocation string `json:"downloadLocation"`
+		} `json:"packages"`
+	}
+	if err := json.Unmarshal(spdxRaw, &spdxDoc); err != nil {
+		t.Fatalf("decode SPDX output: %v", err)
+	}
+	var cdxDoc struct {
+		Components []struct {
+			Name               string `json:"name"`
+			ExternalReferences []struct {
+				Type string `json:"type"`
+				URL  string `json:"url"`
+			} `json:"externalReferences"`
+		} `json:"components"`
+	}
+	if err := json.Unmarshal(cdxRaw, &cdxDoc); err != nil {
+		t.Fatalf("decode CycloneDX output: %v", err)
+	}
+
+	// npm records a registry tarball for every installed package, so a real
+	// scan must produce real download locations, not a document of NOASSERTION.
+	downloads := 0
+	for _, pkg := range spdxDoc.Packages {
+		if strings.HasPrefix(pkg.DownloadLocation, "https://") {
+			downloads++
+		}
+	}
+	if downloads == 0 {
+		t.Fatalf("no SPDX package carried a download location; got %d packages", len(spdxDoc.Packages))
+	}
+	distributions := 0
+	for _, component := range cdxDoc.Components {
+		for _, ref := range component.ExternalReferences {
+			if ref.Type == "distribution" && strings.HasPrefix(ref.URL, "https://") {
+				distributions++
+			}
+		}
+	}
+	if distributions == 0 {
+		t.Fatalf("no CycloneDX component carried a distribution reference; got %d components", len(cdxDoc.Components))
+	}
+
+	// Nothing about the machine that ran the scan may reach the documents.
+	// The clone directory is the specific hazard: it is a real path that a
+	// detector could pass through verbatim.
+	cloneMarkers := []string{"file://", `:"/home/`, `:"/Users/`, `:"/var/folders/`, `:"/private/`}
+	for _, output := range []struct {
+		name string
+		raw  []byte
+	}{{"SPDX", spdxRaw}, {"CycloneDX", cdxRaw}} {
+		for _, marker := range cloneMarkers {
+			if bytes.Contains(output.raw, []byte(marker)) {
+				t.Errorf("%s output contains %q, which points at the scanning machine", output.name, marker)
+			}
+		}
+		// A URL of the form scheme://userinfo@host would carry a credential.
+		if credentialedURL.Match(output.raw) {
+			t.Errorf("%s output contains a URL with embedded credentials", output.name)
+		}
+	}
+}
+
+// credentialedURL matches an http(s) URL carrying userinfo before its host.
+var credentialedURL = regexp.MustCompile(`https?://[^"/\s]*@`)
 
 // ---------------------------------------------------------------------------
 // Helpers

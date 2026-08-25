@@ -203,9 +203,6 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 			if surviving == nil {
 				continue
 			}
-			if surviving != node {
-				surviving.AddScope(node.PrimaryScope())
-			}
 			if err := depsGraph.AddEdge(current.parentID, surviving.ID); err != nil {
 				return nil, fmt.Errorf("add dependency %q -> %q: %w", current.parentID, surviving.ID, err)
 			}
@@ -349,15 +346,10 @@ func splitYarnTreeName(value string) (string, string, error) {
 
 // AddNodeIfMissing adds a package to a graph or merges scope into the existing package.
 func AddNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
-	surviving, err := detectors.EnsureNode(depsGraph, node)
-	if err != nil {
-		return err
-	}
-	if surviving != node {
-		// A package reached twice carries both scopes.
-		surviving.AddScope(node.PrimaryScope())
-	}
-	return nil
+	// A package reached twice carries both scopes; the shared helper unions
+	// them on fold.
+	_, err := detectors.EnsureNode(depsGraph, node)
+	return err
 }
 
 // PackageJSONManifest is the subset of package.json used by Node detectors.

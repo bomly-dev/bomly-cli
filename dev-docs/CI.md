@@ -11,7 +11,7 @@ its own minimal CI in its own repository.
 | `CI`                    | Pull requests, pushes to `main`  | Lint, `go test ./...`, full and lite builds, npm wrapper tests, go.mod/go.sum tidy-drift and no-`replace` checks |
 | `Release prerequisites` | Called by `Auto Version`, manual dispatch | Stage 1 of release assurance: calls `Smoke`, `Portable stability assurance`, and `Fuzz`, validates the assurance catalog, and judges the stage |
 | `Smoke`                 | Merge queue, nightly, dispatch, `workflow_call` | End-to-end smoke slices driving the built binary against pinned public repositories |
-| `Update Smoke Goldens`  | Manual dispatch                  | Regenerates smoke golden files per slice and opens a PR with the drift |
+| `Update Smoke Goldens`  | Manual dispatch on the branch to regenerate from | Regenerates smoke golden files per slice and opens a PR with the drift |
 | `Portable stability assurance` | Manual dispatch, `workflow_call` | Repeated unit tests on Linux, macOS, and Windows plus cross-builds of every release binary |
 | `Fuzz`                  | Nightly schedule, dispatch, `workflow_call` | Native Go fuzzing over the `scripts/run-fuzz.sh` target list; uploads minimized failures as artifacts |
 | `CodeQL`                | Pull requests, pushes, schedule  | Static analysis for Go and JavaScript                                |

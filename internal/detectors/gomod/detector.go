@@ -286,7 +286,7 @@ func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires [
 		}
 		if !currentModule.Main {
 			currentNode := packageFromModuleNode(currentModule, mergedScope, directLines, sumDigests)
-			if err := addOrMergeModuleNode(depsGraph, currentNode, mergedScope); err != nil {
+			if err := addOrMergeModuleNode(depsGraph, currentNode); err != nil {
 				return nil, err
 			}
 		}
@@ -357,7 +357,7 @@ func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNod
 		}
 		if !to.Main {
 			pkg := packageFromModuleNode(to, scope, directLines, sumDigests)
-			if err := addOrMergeModuleNode(depsGraph, pkg, scope); err != nil {
+			if err := addOrMergeModuleNode(depsGraph, pkg); err != nil {
 				return err
 			}
 			if from.Path != to.Path || from.Version != to.Version {
@@ -567,11 +567,8 @@ func appendUniqueModule(modules []moduleRef, seen map[string]struct{}, ref modul
 	return append(modules, ref)
 }
 
-func addOrMergeModuleNode(depsGraph *sdk.Graph, node *sdk.Dependency, scope sdk.Scope) error {
-	surviving, err := detectors.EnsureNode(depsGraph, node)
-	if err != nil {
-		return err
-	}
-	surviving.AddScope(scope)
-	return nil
+func addOrMergeModuleNode(depsGraph *sdk.Graph, node *sdk.Dependency) error {
+	// The node carries its scope; the shared helper unions scopes on fold.
+	_, err := detectors.EnsureNode(depsGraph, node)
+	return err
 }

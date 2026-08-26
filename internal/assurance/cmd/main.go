@@ -138,28 +138,6 @@ func mustLoadCatalog(catalogPath string) (assurance.Catalog, string, error) {
 	return *ctx.catalog, ctx.catalogPath, nil
 }
 
-// catalogRoot resolves the repository a catalog's paths are relative to. An
-// explicit root lets the tool run from one checkout against another, which is
-// how the goldens workflow refreshes checksums without executing code from the
-// branch it is refreshing.
-func catalogRoot(explicit string) (string, error) {
-	if explicit == "" {
-		return repositoryRoot()
-	}
-	absolute, err := filepath.Abs(explicit)
-	if err != nil {
-		return "", fmt.Errorf("resolve --root: %w", err)
-	}
-	info, err := os.Stat(absolute)
-	if err != nil {
-		return "", fmt.Errorf("resolve --root: %w", err)
-	}
-	if !info.IsDir() {
-		return "", fmt.Errorf("--root %q is not a directory", explicit)
-	}
-	return absolute, nil
-}
-
 func repositoryRoot() (string, error) {
 	current, err := os.Getwd()
 	if err != nil {

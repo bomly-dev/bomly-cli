@@ -327,6 +327,44 @@ func TestDepGraphFromPipfileLock(t *testing.T) {
 	}
 }
 
+// A package listed in both the default and develop groups is reachable at
+// both scopes; folding the duplicate record must not drop the second group's
+// scope (https://github.com/bomly-dev/bomly-cli/issues/400).
+func TestDepGraphFromPipfileLockPackageInBothGroupsKeepsBothScopes(t *testing.T) {
+	path := t.TempDir() + "/Pipfile.lock"
+	raw := []byte(`{
+  "default": {
+    "requests": {"version": "==2.2.1"}
+  },
+  "develop": {
+    "requests": {"version": "==2.2.1"},
+    "pytest": {"version": "==9.0.3"}
+  }
+}`)
+	if err := os.WriteFile(path, raw, 0o644); err != nil {
+		t.Fatalf("write Pipfile.lock: %v", err)
+	}
+
+	g, err := depGraphFromPipfileLock(path, "")
+	if err != nil {
+		t.Fatalf("depGraphFromPipfileLock() error = %v", err)
+	}
+	shared, ok := g.Node("requests@2.2.1")
+	if !ok {
+		t.Fatalf("expected requests package, got %s", g.PrettyString())
+	}
+	if !shared.HasScope(sdk.ScopeRuntime) || !shared.HasScope(sdk.ScopeDevelopment) {
+		t.Fatalf("requests scopes = %v; want both the default and develop group scopes", shared.Scopes)
+	}
+	devOnly, ok := g.Node("pytest@9.0.3")
+	if !ok {
+		t.Fatalf("expected pytest package, got %s", g.PrettyString())
+	}
+	if devOnly.HasScope(sdk.ScopeRuntime) || !devOnly.HasScope(sdk.ScopeDevelopment) {
+		t.Fatalf("pytest scopes = %v; want the develop group scope only", devOnly.Scopes)
+	}
+}
+
 func TestFilterPythonToolPackagesRemovesUndeclaredTools(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "root"}})

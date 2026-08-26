@@ -401,12 +401,8 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 				return nil, err
 			}
 			tgfPackages[id] = node
-			surviving, err := detectors.EnsureNode(tgfGraph, node)
-			if err != nil {
+			if _, err := detectors.EnsureNode(tgfGraph, node); err != nil {
 				return nil, err
-			}
-			if surviving != node {
-				surviving.AddScope(node.PrimaryScope())
 			}
 		case looksLikeTGFEdgeLine(line):
 			fields := strings.Fields(line)

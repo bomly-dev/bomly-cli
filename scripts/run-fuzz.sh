@@ -18,6 +18,7 @@ targets=(
   "github.com/bomly-dev/bomly-cli/internal/assurance FuzzParseGoTestEvents"
   "github.com/bomly-dev/bomly-cli/internal/config FuzzLoadFile"
   "github.com/bomly-dev/bomly-cli/internal/detectors/cargo FuzzDepGraphFromCargoLock"
+  "github.com/bomly-dev/bomly-cli/internal/detectors/cargo FuzzDepGraphFromCargoLockWorkspace"
   "github.com/bomly-dev/bomly-cli/internal/detectors/cocoapods FuzzDepGraphFromPodfileLock"
   "github.com/bomly-dev/bomly-cli/internal/detectors/composer FuzzDepGraphFromComposerLock"
   "github.com/bomly-dev/bomly-cli/internal/detectors/conan FuzzDepGraphFromConanJSON"

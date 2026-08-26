@@ -263,9 +263,6 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		if err != nil {
 			return npmLockfileGraphs{}, err
 		}
-		if surviving != pkgNode {
-			surviving.AddScope(pkgNode.PrimaryScope())
-		}
 		pathToID[packagePath] = surviving.ID
 		if member {
 			// The descriptor must track whatever node now represents this

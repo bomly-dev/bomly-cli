@@ -217,6 +217,8 @@ one is always deliberate.
 - Regenerating smoke goldens changes files the evidence claims are pinned to.
   `Update Smoke Goldens` runs `catalog-validate --refresh` and commits the
   catalog alongside them; do the same when refreshing goldens by hand.
+  That workflow regenerates from the ref it was dispatched on, so the refresh
+  runs the same commit's tooling against that commit's goldens.
 
 ## Related documents
 

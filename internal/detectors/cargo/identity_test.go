@@ -1,6 +1,10 @@
 package cargo
 
 import (
+	"context"
+	"errors"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/bomly-dev/bomly-sdk"
@@ -121,6 +125,121 @@ source = "git+https://github.com/external/helper#aaaabbbbccccddddeeeeffff0000111
 	}
 	if _, ok := graph.Node("helper@1.0.0"); !ok {
 		t.Fatalf("expected external helper@1.0.0 to stay in the graph: %s", graph.PrettyString())
+	}
+}
+
+// A member inheriting its version (`version.workspace = true`) must resolve
+// the [workspace.package] version before lock-record matching: with the
+// version known, a same-named source-less path dependency at another version
+// cannot be claimed in its place.
+func TestCargoLockWorkspaceInheritedVersionDisambiguatesSourcelessRecords(t *testing.T) {
+	original := cargoExecLookPath
+	cargoExecLookPath = func(string) (string, error) { return "", errors.New("cargo unavailable") }
+	t.Cleanup(func() { cargoExecLookPath = original })
+
+	root := t.TempDir()
+	write := func(rel, content string) {
+		t.Helper()
+		full := filepath.Join(root, filepath.FromSlash(rel))
+		if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+			t.Fatalf("mkdir %s: %v", rel, err)
+		}
+		if err := os.WriteFile(full, []byte(content), 0o644); err != nil {
+			t.Fatalf("write %s: %v", rel, err)
+		}
+	}
+	write("Cargo.toml", "[workspace]\nmembers = [\"crates/*\"]\n\n[workspace.package]\nversion = \"1.0.0\"\n")
+	write("crates/helper/Cargo.toml", "[package]\nname = \"helper\"\nversion.workspace = true\n")
+	// The lockfile also holds a source-less path dependency named helper at
+	// 0.1.0, declared before the member's own 1.0.0 record.
+	write("Cargo.lock", `version = 3
+
+[[package]]
+name = "helper"
+version = "0.1.0"
+
+[[package]]
+name = "helper"
+version = "1.0.0"
+`)
+
+	result, err := Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: root})
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	entries := result.Graphs.Entries
+	if len(entries) != 1 {
+		t.Fatalf("expected one member entry, got %d", len(entries))
+	}
+	graph := entries[0].Graph
+	member, ok := graph.Node("helper@1.0.0")
+	if !ok || member.Type != sdk.PackageTypeApplication {
+		t.Fatalf("expected member helper@1.0.0 as an application node: %s", graph.PrettyString())
+	}
+}
+
+// A member with no resolvable version and several same-named source-less lock
+// records is genuinely ambiguous. No record may be claimed by file order --
+// that could hand the member another path package's identity -- so the member
+// keeps its manifest identity and every lock record stays in the graph.
+func TestCargoLockWorkspaceAmbiguousSourcelessRecordsClaimNothing(t *testing.T) {
+	lock := []byte(`version = 3
+
+[[package]]
+name = "helper"
+version = "0.1.0"
+
+[[package]]
+name = "helper"
+version = "0.2.0"
+`)
+	members := []cargoLockMember{{dir: "crates/helper", manifest: cargoManifest{Name: "helper"}}}
+
+	graph, modules, _, err := depGraphFromLockWorkspace(lock, cargoManifest{}, members, sdk.Scope(""))
+	if err != nil {
+		t.Fatalf("depGraphFromLockWorkspace() error = %v", err)
+	}
+	if len(modules) != 1 {
+		t.Fatalf("modules = %+v, want one member", modules)
+	}
+	member, ok := graph.Node(modules[0].rootID)
+	if !ok || member.Type != sdk.PackageTypeApplication || member.Version != "" {
+		t.Fatalf("member = %+v, want an application node under its manifest identity", member)
+	}
+	for _, id := range []string{"helper@0.1.0", "helper@0.2.0"} {
+		node, ok := graph.Node(id)
+		if !ok {
+			t.Fatalf("expected ambiguous record %q to stay in the graph: %s", id, graph.PrettyString())
+		}
+		if node.Type == sdk.PackageTypeApplication {
+			t.Fatalf("ambiguous record %q must not be claimed as the member", id)
+		}
+	}
+}
+
+// parseCargoManifest recognizes both spellings of workspace version
+// inheritance and never records the inline table as a literal version.
+func TestParseCargoManifestWorkspaceVersionInheritance(t *testing.T) {
+	cases := []struct {
+		name string
+		toml string
+	}{
+		{"dotted key", "[package]\nname = \"helper\"\nversion.workspace = true\n"},
+		{"inline table", "[package]\nname = \"helper\"\nversion = { workspace = true }\n"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			manifest := parseCargoManifest(tc.toml)
+			if !manifest.VersionInherited {
+				t.Fatal("expected VersionInherited to be set")
+			}
+			if manifest.Version != "" {
+				t.Fatalf("Version = %q, want empty until the workspace version is applied", manifest.Version)
+			}
+		})
+	}
+	if version := parseCargoWorkspaceInheritedVersion("[workspace]\nmembers = [\"crates/*\"]\n\n[workspace.package]\nversion = \"2.5.0\"\n"); version != "2.5.0" {
+		t.Fatalf("parseCargoWorkspaceInheritedVersion() = %q, want 2.5.0", version)
 	}
 }
 

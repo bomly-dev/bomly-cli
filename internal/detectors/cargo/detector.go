@@ -231,8 +231,9 @@ func (d Detector) resolveLockWorkspace(req sdk.DetectionRequest, workingDir stri
 		logger.Warn("cargo metadata failed for workspace lock; falling back to lockfile partitioning", zap.String("working_dir", workingDir))
 	}
 
-	rootManifest := parseCargoManifest(string(manifestRaw))
-	members := readCargoLockMembers(workingDir, memberDirs)
+	workspaceVersion := parseCargoWorkspaceInheritedVersion(string(manifestRaw))
+	rootManifest := applyWorkspaceVersion(parseCargoManifest(string(manifestRaw)), workspaceVersion)
+	members := readCargoLockMembers(workingDir, memberDirs, workspaceVersion)
 	if len(members) == 0 {
 		return sdk.DetectionResult{}, fmt.Errorf("cargo workspace members declared in Cargo.toml could not be read")
 	}
@@ -498,10 +499,13 @@ type lockPackage struct {
 }
 
 type cargoManifest struct {
-	Name            string
-	Version         string
-	Dependencies    []string
-	DevDependencies []string
+	Name    string
+	Version string
+	// VersionInherited marks `version.workspace = true`: the manifest defers
+	// its version to the workspace root's [workspace.package] table.
+	VersionInherited bool
+	Dependencies     []string
+	DevDependencies  []string
 }
 
 func depGraphFromLock(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
@@ -531,13 +535,15 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
-	index, err := buildLockIndex(g, packages, manifest)
+	rootRecord := projectLockRecord(packages, manifest)
+	rootKey := qualifiedLockKey(rootRecord)
+	index, err := buildLockIndex(g, packages, rootRecord)
 	if err != nil {
 		return nil, err
 	}
 	rootID := root.ID
 	for _, pkg := range packages {
-		if isProjectLockRecord(pkg, manifest) {
+		if qualifiedLockKey(pkg) == rootKey {
 			continue
 		}
 		parentID, ok := index.resolve(qualifiedLockKey(pkg))
@@ -559,7 +565,7 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 	}
 	// The root's own lock record names each direct dependency at whatever
 	// precision disambiguates it; prefer that over the manifest's bare name.
-	rootRefs := lockDependencyRefs(projectLockRecord(packages, manifest))
+	rootRefs := lockDependencyRefs(rootRecord)
 	resolveDirect := func(depName string) (string, bool) {
 		if ref, ok := rootRefs[depName]; ok {
 			if id, ok := index.resolve(ref); ok {
@@ -721,7 +727,18 @@ func parseCargoManifest(text string) cargoManifest {
 				manifest.Name = trimTomlString(value)
 			}
 			if key == "version" {
-				manifest.Version = trimTomlString(value)
+				// Inline-table form of workspace inheritance:
+				// version = { workspace = true }.
+				if strings.HasPrefix(value, "{") {
+					if strings.Contains(value, "workspace") && strings.Contains(value, "true") {
+						manifest.VersionInherited = true
+					}
+				} else {
+					manifest.Version = trimTomlString(value)
+				}
+			}
+			if key == "version.workspace" && trimTomlString(value) == "true" {
+				manifest.VersionInherited = true
 			}
 		case "dependencies":
 			manifest.Dependencies = append(manifest.Dependencies, key)

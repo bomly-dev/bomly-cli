@@ -83,6 +83,42 @@ func parseCargoWorkspaceMembers(text string) []string {
 	return members
 }
 
+// parseCargoWorkspaceInheritedVersion extracts the [workspace.package] version
+// that members inherit via `version.workspace = true`. Empty when the root
+// manifest declares none.
+func parseCargoWorkspaceInheritedVersion(text string) string {
+	section := ""
+	for _, rawLine := range strings.Split(text, "\n") {
+		line := strings.TrimSpace(rawLine)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		if strings.HasPrefix(line, "[") && strings.HasSuffix(line, "]") {
+			section = strings.TrimSpace(strings.Trim(line, "[]"))
+			continue
+		}
+		if section != "workspace.package" {
+			continue
+		}
+		key, value, ok := strings.Cut(line, "=")
+		if ok && strings.TrimSpace(key) == "version" {
+			return trimTomlString(strings.TrimSpace(value))
+		}
+	}
+	return ""
+}
+
+// applyWorkspaceVersion fills a manifest's version from the workspace root's
+// [workspace.package] version when the manifest inherits it. Resolving the
+// inherited version before lock-record matching keeps a member from being
+// mistaken for a same-named source-less package at another version.
+func applyWorkspaceVersion(manifest cargoManifest, workspaceVersion string) cargoManifest {
+	if manifest.Version == "" && manifest.VersionInherited && workspaceVersion != "" {
+		manifest.Version = workspaceVersion
+	}
+	return manifest
+}
+
 // expandCargoWorkspaceMemberDirs expands member patterns (exact dirs or
 // globs like "crates/*") against the workspace root, keeping directories
 // that contain a Cargo.toml. Returned paths are root-relative slash paths,
@@ -325,15 +361,16 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 }
 
 // readCargoLockMembers parses each member directory's Cargo.toml, skipping
-// unreadable or package-less members.
-func readCargoLockMembers(workingDir string, memberDirs []string) []cargoLockMember {
+// unreadable or package-less members. workspaceVersion is the root manifest's
+// [workspace.package] version, filled into members that inherit it.
+func readCargoLockMembers(workingDir string, memberDirs []string, workspaceVersion string) []cargoLockMember {
 	members := make([]cargoLockMember, 0, len(memberDirs))
 	for _, dir := range memberDirs {
 		raw, err := system.ReadRepositoryFile(filepath.Join(workingDir, filepath.FromSlash(dir), "Cargo.toml"))
 		if err != nil {
 			continue
 		}
-		manifest := parseCargoManifest(string(raw))
+		manifest := applyWorkspaceVersion(parseCargoManifest(string(raw)), workspaceVersion)
 		if manifest.Name == "" {
 			continue
 		}

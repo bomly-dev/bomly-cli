@@ -743,6 +743,12 @@ func parseCargoManifest(text string) cargoManifest {
 			if key == "version.workspace" && trimTomlString(value) == "true" {
 				manifest.VersionInherited = true
 			}
+		case "package.version":
+			// Table form of workspace inheritance: [package.version] with
+			// workspace = true.
+			if key == "workspace" && trimTomlString(value) == "true" {
+				manifest.VersionInherited = true
+			}
 		case "dependencies":
 			manifest.Dependencies = append(manifest.Dependencies, key)
 		case "dev-dependencies":

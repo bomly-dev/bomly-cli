@@ -275,6 +275,7 @@ func TestParseCargoManifestWorkspaceVersionInheritance(t *testing.T) {
 		{"dotted key", "[package]\nname = \"helper\"\nversion.workspace = true\n"},
 		{"inline table", "[package]\nname = \"helper\"\nversion = { workspace = true }\n"},
 		{"dotted key with inline comment", "[package]\nname = \"helper\"\nversion.workspace = true # inherited\n"},
+		{"section table", "[package]\nname = \"helper\"\n\n[package.version]\nworkspace = true\n"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

@@ -754,8 +754,32 @@ func parseCargoManifest(text string) cargoManifest {
 	return manifest
 }
 
+// trimTomlString decodes the string a TOML key's raw right-hand side names,
+// tolerating an inline comment after the value ("1.2.3" # release). A basic
+// or literal string is read to its closing quote (honoring \" escapes in
+// basic strings, whose content is kept verbatim -- the values read here never
+// carry escape sequences); a bare value is cut at the comment and trimmed.
+// Trimming quotes off the whole remainder instead left the comment glued to
+// the value.
 func trimTomlString(value string) string {
-	return strings.Trim(strings.TrimSpace(value), `"`)
+	value = strings.TrimSpace(value)
+	if len(value) >= 2 && (value[0] == '"' || value[0] == '\'') {
+		quote := value[0]
+		for i := 1; i < len(value); i++ {
+			if value[i] == '\\' && quote == '"' {
+				i++
+				continue
+			}
+			if value[i] == quote {
+				return value[1:i]
+			}
+		}
+		return strings.TrimPrefix(value, string(quote))
+	}
+	if cut := strings.IndexByte(value, '#'); cut >= 0 {
+		value = value[:cut]
+	}
+	return strings.TrimSpace(value)
 }
 
 // Install prepares Cargo dependencies before graph resolution.

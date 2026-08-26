@@ -274,6 +274,7 @@ func TestParseCargoManifestWorkspaceVersionInheritance(t *testing.T) {
 	}{
 		{"dotted key", "[package]\nname = \"helper\"\nversion.workspace = true\n"},
 		{"inline table", "[package]\nname = \"helper\"\nversion = { workspace = true }\n"},
+		{"dotted key with inline comment", "[package]\nname = \"helper\"\nversion.workspace = true # inherited\n"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -292,11 +293,18 @@ func TestParseCargoManifestWorkspaceVersionInheritance(t *testing.T) {
 	}{
 		{"section table", "[workspace]\nmembers = [\"crates/*\"]\n\n[workspace.package]\nversion = \"2.5.0\"\n"},
 		{"dotted key", "[workspace]\nmembers = [\"crates/*\"]\npackage.version = \"2.5.0\"\n"},
+		{"inline comment after the value", "[workspace]\n\n[workspace.package]\nversion = \"2.5.0\" # release train\n"},
+		{"literal string", "[workspace]\n\n[workspace.package]\nversion = '2.5.0'\n"},
 	}
 	for _, tc := range roots {
 		if version := parseCargoWorkspaceInheritedVersion(tc.toml); version != "2.5.0" {
 			t.Fatalf("parseCargoWorkspaceInheritedVersion(%s) = %q, want 2.5.0", tc.name, version)
 		}
+	}
+	// The same decoding applies to ordinary manifest values.
+	commented := parseCargoManifest("[package]\nname = \"helper\" # crate\nversion = \"1.2.3\" # release\n")
+	if commented.Name != "helper" || commented.Version != "1.2.3" {
+		t.Fatalf("manifest with inline comments = %+v, want name helper version 1.2.3", commented)
 	}
 }
 

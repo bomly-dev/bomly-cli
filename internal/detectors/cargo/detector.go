@@ -517,7 +517,10 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 	if len(packages) == 0 {
 		return nil, fmt.Errorf("cargo.lock does not contain any packages")
 	}
-	manifest := parseCargoManifest(string(manifestRaw))
+	// A root-only workspace carries [workspace.package] in this same manifest
+	// while its [package] declares `version.workspace = true`; resolve the
+	// inheritance here so both lock paths agree on the package's identity.
+	manifest := applyWorkspaceVersion(parseCargoManifest(string(manifestRaw)), parseCargoWorkspaceInheritedVersion(string(manifestRaw)))
 	if manifest.Name == "" {
 		return nil, fmt.Errorf("cargo.toml does not contain a package name")
 	}

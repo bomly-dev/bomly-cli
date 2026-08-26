@@ -217,6 +217,54 @@ version = "0.2.0"
 	}
 }
 
+// A root-only workspace keeps [workspace.package] in the same manifest as its
+// [package]; the single-package lock path must resolve `version.workspace =
+// true` from it so the application node and PURL carry the real version.
+func TestCargoLockRootOnlyWorkspaceInheritsVersion(t *testing.T) {
+	lock := []byte(`version = 3
+
+[[package]]
+name = "app"
+version = "1.2.3"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "serde"
+version = "1.0.210"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+`)
+	manifest := []byte(`[workspace]
+
+[workspace.package]
+version = "1.2.3"
+
+[package]
+name = "app"
+version.workspace = true
+
+[dependencies]
+serde = "1"
+`)
+
+	graph, err := depGraphFromLock(lock, manifest)
+	if err != nil {
+		t.Fatalf("depGraphFromLock() error = %v", err)
+	}
+	root, ok := graph.Node("app@1.2.3")
+	if !ok || !root.FirstParty {
+		t.Fatalf("expected first-party root app@1.2.3: %s", graph.PrettyString())
+	}
+	if root.Version != "1.2.3" {
+		t.Fatalf("root version = %q, want the inherited 1.2.3", root.Version)
+	}
+	rootDeps := directDependencyIDs(t, graph, root.ID)
+	if !rootDeps["serde@1.0.210"] {
+		t.Fatalf("root dependencies = %v, want serde@1.0.210", rootDeps)
+	}
+}
+
 // parseCargoManifest recognizes both spellings of workspace version
 // inheritance and never records the inline table as a literal version.
 func TestParseCargoManifestWorkspaceVersionInheritance(t *testing.T) {

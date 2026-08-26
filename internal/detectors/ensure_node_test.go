@@ -110,3 +110,59 @@ func TestEnsureNode(t *testing.T) {
 		t.Fatalf("EnsureNode(nil node) = %v, %v; want a no-op", surviving, err)
 	}
 }
+
+func scopedDependency(scope sdk.Scope, resolvedURL string) *sdk.Dependency {
+	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+		Name:    "requests",
+		Version: "2.31.0"}, ResolvedURL: resolvedURL, Scopes: sdk.ScopesOf(scope),
+	})
+}
+
+// One package listed in two dependency groups is reachable at both scopes.
+// The fold is where the second group's record disappears, so the fold is
+// where its scope must survive.
+func TestEnsureNodeUnionsScopesOnFold(t *testing.T) {
+	g := sdk.New()
+	runtime := scopedDependency(sdk.ScopeRuntime, "")
+	if _, err := detectors.EnsureNode(g, runtime); err != nil {
+		t.Fatalf("EnsureNode(runtime) error = %v", err)
+	}
+
+	surviving, err := detectors.EnsureNode(g, scopedDependency(sdk.ScopeDevelopment, ""))
+	if err != nil || surviving != runtime {
+		t.Fatalf("EnsureNode(duplicate) = %v, %v; want the existing node", surviving, err)
+	}
+	if !surviving.HasScope(sdk.ScopeRuntime) || !surviving.HasScope(sdk.ScopeDevelopment) {
+		t.Fatalf("surviving scopes = %v; want the union of both records' scopes", surviving.Scopes)
+	}
+}
+
+// A record that stays a distinct occurrence merges nothing: its scope belongs
+// to its own node, not to the node it collided with.
+func TestEnsureOccurrenceScopes(t *testing.T) {
+	g := sdk.New()
+	first := scopedDependency(sdk.ScopeRuntime, "https://a.example/requests-2.31.0.tar.gz")
+	if _, err := detectors.EnsureOccurrence(g, first, "a"); err != nil {
+		t.Fatalf("EnsureOccurrence(first) error = %v", err)
+	}
+
+	other := scopedDependency(sdk.ScopeDevelopment, "https://b.example/requests-2.31.0.tar.gz")
+	occurrence, err := detectors.EnsureOccurrence(g, other, "b")
+	if err != nil || occurrence == first {
+		t.Fatalf("EnsureOccurrence(conflicting resolution) = %v, %v; want a distinct occurrence", occurrence, err)
+	}
+	if first.HasScope(sdk.ScopeDevelopment) {
+		t.Fatalf("first occurrence scopes = %v; a distinct occurrence must not leak its scope", first.Scopes)
+	}
+	if !occurrence.HasScope(sdk.ScopeDevelopment) {
+		t.Fatalf("new occurrence scopes = %v; want its own scope kept", occurrence.Scopes)
+	}
+
+	folded, err := detectors.EnsureOccurrence(g, scopedDependency(sdk.ScopeDevelopment, "https://a.example/requests-2.31.0.tar.gz"), "a")
+	if err != nil || folded != first {
+		t.Fatalf("EnsureOccurrence(same resolution) = %v, %v; want a fold into the first occurrence", folded, err)
+	}
+	if !first.HasScope(sdk.ScopeRuntime) || !first.HasScope(sdk.ScopeDevelopment) {
+		t.Fatalf("first occurrence scopes = %v; want the union after folding", first.Scopes)
+	}
+}

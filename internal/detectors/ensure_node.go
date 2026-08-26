@@ -18,14 +18,22 @@ import (
 // this rather than calling Graph.AddNode after a Node lookup, so a detector
 // added later inherits the shared behavior instead of having to know about it.
 //
-// EnsureNode deliberately merges nothing. Records that genuinely differ are
-// different occurrences and belong in distinct nodes under distinct IDs (the
-// caller decides identity); records that are the same need nothing merged.
+// When it folds, the survivor takes the union of both records' scopes. Scopes
+// answer "where is this package reachable?", so one package listed in two
+// dependency groups is reachable at both -- a manifest's develop entry does
+// not stop being a develop dependency because the default group named the
+// package first. Everything else on the discarded record is dropped: records
+// that genuinely differ are different occurrences and belong in distinct
+// nodes under distinct IDs (the caller decides identity, EnsureOccurrence is
+// the shared rule for resolution-qualified identity).
 func EnsureNode(g *sdk.Graph, node *sdk.Dependency) (*sdk.Dependency, error) {
 	if g == nil || node == nil {
 		return nil, nil
 	}
 	if existing, ok := g.Node(node.ID); ok {
+		for _, scope := range node.Scopes {
+			existing.AddScope(scope)
+		}
 		return existing, nil
 	}
 	if err := g.AddNode(node); err != nil {
@@ -69,14 +77,16 @@ func OccurrenceID(baseID, qualifier string) string {
 // hand-written shape one review round at a time before it was centralized;
 // route new sites through here.
 func EnsureOccurrence(g *sdk.Graph, node *sdk.Dependency, qualifier string) (*sdk.Dependency, error) {
-	surviving, err := EnsureNode(g, node)
-	if err != nil || surviving == node || surviving == nil {
-		return surviving, err
+	if g == nil || node == nil {
+		return nil, nil
 	}
-	if strings.TrimSpace(surviving.ResolvedURL) == strings.TrimSpace(node.ResolvedURL) {
-		return surviving, nil
+	// Decide identity before inserting: a record that stays a distinct
+	// occurrence must not fold anything -- not even scopes -- onto the node
+	// it collided with.
+	if existing, ok := g.Node(node.ID); ok &&
+		strings.TrimSpace(existing.ResolvedURL) != strings.TrimSpace(node.ResolvedURL) {
+		node.ID = OccurrenceID(node.ID, qualifier)
 	}
-	node.ID = OccurrenceID(node.ID, qualifier)
 	return EnsureNode(g, node)
 }
 

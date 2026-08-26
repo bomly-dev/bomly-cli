@@ -1,0 +1,268 @@
+package sbom
+
+import (
+	"bytes"
+	"encoding/json"
+	"testing"
+
+	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/bomly-dev/bomly-sdk"
+	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
+)
+
+// licensedGraph builds a one-node graph whose single component declares the
+// given licenses at detection time.
+func licensedGraph(t *testing.T, licenses ...sdk.PackageLicense) *sdk.Graph {
+	t.Helper()
+	g := sdk.New()
+	dep := sdk.NewDependencyWithID("left-pad@1.3.0", sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name:      "left-pad",
+		Version:   "1.3.0",
+		PURL:      "pkg:npm/left-pad@1.3.0",
+		Ecosystem: "npm",
+	}})
+	sdk.SetDetectionLicenses(dep, licenses)
+	if err := g.AddNode(dep); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+	return g
+}
+
+func cycloneDXComponentLicenses(t *testing.T, g *sdk.Graph) cdx.Licenses {
+	t.Helper()
+	out, err := MarshalDepGraphJSON(g, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal cyclonedx: %v", err)
+	}
+	bom := new(cdx.BOM)
+	if err := cdx.NewBOMDecoder(bytes.NewReader(out), cdx.BOMFileFormatJSON).Decode(bom); err != nil {
+		t.Fatalf("decode cyclonedx: %v", err)
+	}
+	if bom.Components == nil || len(*bom.Components) != 1 {
+		t.Fatalf("expected exactly 1 component, got %#v", bom.Components)
+	}
+	comp := (*bom.Components)[0]
+	if comp.Licenses == nil {
+		return nil
+	}
+	return *comp.Licenses
+}
+
+func spdxPackageLicense(t *testing.T, g *sdk.Graph) *v23.Package {
+	t.Helper()
+	out, err := MarshalDepGraphJSON(g, TargetSPDX23JSON, BuildOptions{}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal spdx: %v", err)
+	}
+	var doc v23.Document
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("decode spdx: %v", err)
+	}
+	if len(doc.Packages) != 1 {
+		t.Fatalf("expected exactly 1 package, got %d", len(doc.Packages))
+	}
+	return doc.Packages[0]
+}
+
+// TestCycloneDXLicenseShapes pins how each kind of license value is published.
+// A recognized identifier must reach `license.id` (a checked SPDX list entry),
+// a compound value must reach `expression`, and only genuinely unrecognized
+// text may fall through to the free-text `license.name`.
+func TestCycloneDXLicenseShapes(t *testing.T) {
+	tests := []struct {
+		name       string
+		licenses   []sdk.PackageLicense
+		wantID     string
+		wantExpr   string
+		wantName   string
+		wantLength int
+	}{
+		{
+			name:       "plain identifier becomes license.id",
+			licenses:   []sdk.PackageLicense{{Value: "MIT"}},
+			wantID:     "MIT",
+			wantLength: 1,
+		},
+		{
+			name:       "identifier casing is canonicalized",
+			licenses:   []sdk.PackageLicense{{Value: "mit"}},
+			wantID:     "MIT",
+			wantLength: 1,
+		},
+		{
+			name:       "compound value stays an expression",
+			licenses:   []sdk.PackageLicense{{SPDXExpression: "MIT OR Apache-2.0"}},
+			wantExpr:   "MIT OR Apache-2.0",
+			wantLength: 1,
+		},
+		{
+			name:       "or-later operator stays an expression",
+			licenses:   []sdk.PackageLicense{{SPDXExpression: "LGPL-2.1-only+"}},
+			wantExpr:   "LGPL-2.1-only+",
+			wantLength: 1,
+		},
+		{
+			name:       "unrecognized text stays free text",
+			licenses:   []sdk.PackageLicense{{Value: "see LICENSE file"}},
+			wantName:   "see LICENSE file",
+			wantLength: 1,
+		},
+		{
+			// Registry sources write free text into the same field they write
+			// real expressions into. Publishing it as `expression` produced a
+			// document that fails CycloneDX expression validation.
+			name:       "unrecognized expression is demoted to free text",
+			licenses:   []sdk.PackageLicense{{Value: "non-standard", SPDXExpression: "non-standard"}},
+			wantName:   "non-standard",
+			wantLength: 1,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			licenses := cycloneDXComponentLicenses(t, licensedGraph(t, tc.licenses...))
+			if len(licenses) != tc.wantLength {
+				t.Fatalf("expected %d license entries, got %#v", tc.wantLength, licenses)
+			}
+			got := licenses[0]
+			switch {
+			case tc.wantID != "":
+				if got.License == nil || got.License.ID != tc.wantID {
+					t.Fatalf("expected license.id %q, got %#v", tc.wantID, got)
+				}
+				if got.License.Name != "" {
+					t.Fatalf("expected no free-text name alongside an id, got %q", got.License.Name)
+				}
+			case tc.wantExpr != "":
+				if got.Expression != tc.wantExpr {
+					t.Fatalf("expected expression %q, got %#v", tc.wantExpr, got)
+				}
+			case tc.wantName != "":
+				if got.License == nil || got.License.Name != tc.wantName {
+					t.Fatalf("expected license.name %q, got %#v", tc.wantName, got)
+				}
+				if got.License.ID != "" {
+					t.Fatalf("expected no id for unrecognized text, got %q", got.License.ID)
+				}
+				if got.Expression != "" {
+					t.Fatalf("expected no expression for unrecognized text, got %q", got.Expression)
+				}
+			}
+		})
+	}
+}
+
+// TestCycloneDXMultipleLicenses covers the format's either/or rule: a license
+// list holds license objects or one expression, never a mix and never two
+// expressions.
+func TestCycloneDXMultipleLicenses(t *testing.T) {
+	t.Run("all valid compose into one expression", func(t *testing.T) {
+		licenses := cycloneDXComponentLicenses(t, licensedGraph(t,
+			sdk.PackageLicense{Value: "MIT"},
+			sdk.PackageLicense{Value: "Apache-2.0"},
+		))
+		if len(licenses) != 1 {
+			t.Fatalf("expected a single composed entry, got %#v", licenses)
+		}
+		if licenses[0].Expression != "MIT AND Apache-2.0" {
+			t.Fatalf("expected composed expression, got %#v", licenses[0])
+		}
+	})
+
+	t.Run("mixed validity falls back to per-license objects", func(t *testing.T) {
+		licenses := cycloneDXComponentLicenses(t, licensedGraph(t,
+			sdk.PackageLicense{Value: "MIT"},
+			sdk.PackageLicense{Value: "non-standard"},
+		))
+		if len(licenses) != 2 {
+			t.Fatalf("expected 2 license entries, got %#v", licenses)
+		}
+		if licenses[0].License == nil || licenses[0].License.ID != "MIT" {
+			t.Fatalf("expected the recognized license to keep its id, got %#v", licenses[0])
+		}
+		if licenses[1].License == nil || licenses[1].License.Name != "non-standard" {
+			t.Fatalf("expected the unrecognized license as free text, got %#v", licenses[1])
+		}
+		for _, l := range licenses {
+			if l.Expression != "" {
+				t.Fatalf("expected no expression when emitting license objects, got %#v", l)
+			}
+		}
+	})
+}
+
+// TestSPDXLicenseComposition covers SPDX 2.3 holding one expression per
+// package: several declared licenses must compose rather than lose all but the
+// first.
+func TestSPDXLicenseComposition(t *testing.T) {
+	tests := []struct {
+		name     string
+		licenses []sdk.PackageLicense
+		want     string
+	}{
+		{
+			name: "no licenses",
+			want: "NOASSERTION",
+		},
+		{
+			name:     "single value passes through",
+			licenses: []sdk.PackageLicense{{Value: "MIT"}},
+			want:     "MIT",
+		},
+		{
+			name: "multiple licenses compose with AND",
+			licenses: []sdk.PackageLicense{
+				{Value: "MIT"},
+				{Value: "Apache-2.0"},
+			},
+			want: "MIT AND Apache-2.0",
+		},
+		{
+			name: "compound elements are parenthesized",
+			licenses: []sdk.PackageLicense{
+				{Value: "MIT"},
+				{SPDXExpression: "MIT OR GPL-2.0-only"},
+			},
+			want: "MIT AND (MIT OR GPL-2.0-only)",
+		},
+		{
+			// Joining free text would produce an expression that does not
+			// parse, so a mixed set keeps the previous first-value behavior.
+			name: "unparseable member falls back to the first value",
+			licenses: []sdk.PackageLicense{
+				{Value: "MIT"},
+				{Value: "non-standard"},
+			},
+			want: "MIT",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			pkg := spdxPackageLicense(t, licensedGraph(t, tc.licenses...))
+			if pkg.PackageLicenseDeclared != tc.want {
+				t.Fatalf("declared: expected %q, got %q", tc.want, pkg.PackageLicenseDeclared)
+			}
+			if pkg.PackageLicenseConcluded != tc.want {
+				t.Fatalf("concluded: expected %q, got %q", tc.want, pkg.PackageLicenseConcluded)
+			}
+		})
+	}
+}
+
+// TestLicenseCompositionAgreesAcrossFormats guards the property a cross-format
+// comparison measures: one scan's two exports describe the same licensing.
+func TestLicenseCompositionAgreesAcrossFormats(t *testing.T) {
+	licenses := []sdk.PackageLicense{{Value: "MIT"}, {Value: "Apache-2.0"}}
+
+	cdxLicenses := cycloneDXComponentLicenses(t, licensedGraph(t, licenses...))
+	if len(cdxLicenses) != 1 || cdxLicenses[0].Expression == "" {
+		t.Fatalf("expected one CycloneDX expression, got %#v", cdxLicenses)
+	}
+	spdxPkg := spdxPackageLicense(t, licensedGraph(t, licenses...))
+
+	if cdxLicenses[0].Expression != spdxPkg.PackageLicenseDeclared {
+		t.Fatalf("formats disagree: cyclonedx %q, spdx %q",
+			cdxLicenses[0].Expression, spdxPkg.PackageLicenseDeclared)
+	}
+}

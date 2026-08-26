@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/bomly-dev/bomly-cli/internal/licenseexpr"
 )
 
 type cycloneDXCodec struct {
@@ -26,31 +27,7 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 			// the component inventory would double-count it.
 			continue
 		}
-		component := cdx.Component{
-			BOMRef:     comp.ID,
-			Type:       cycloneDXComponentType(comp.Type),
-			Name:       comp.NameOrID(),
-			Scope:      cycloneDXScope(comp.Scope),
-			Version:    comp.Version,
-			PackageURL: comp.PURL,
-			Copyright:  comp.Copyright,
-		}
-		if licenses := cycloneDXLicenses(comp.Licenses); len(licenses) > 0 {
-			component.Licenses = &licenses
-		}
-		if len(comp.CPEs) > 0 {
-			component.CPE = comp.CPEs[0]
-		}
-		if hashes := cycloneDXHashes(comp.Digests); len(hashes) > 0 {
-			component.Hashes = &hashes
-		}
-		if props := cycloneDXEOLProperties(comp.EOL); len(props) > 0 {
-			component.Properties = &props
-		}
-		if refs := cycloneDXComponentReferences(comp); len(refs) > 0 {
-			component.ExternalReferences = &refs
-		}
-		components = append(components, component)
+		components = append(components, cycloneDXComponent(comp))
 	}
 	bom.Components = &components
 
@@ -75,17 +52,20 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 		Tools:     cycloneDXTools(doc.ToolNamesOrDefault(), doc.ToolOrDefault(), doc.ToolVersion),
 	}
 	if root := chooseRoot(doc); root != nil {
-		metadata.Component = &cdx.Component{
-			BOMRef:     root.ID,
-			Type:       cycloneDXComponentType(firstNonEmpty(root.Type, "application")),
-			Name:       root.NameOrID(),
-			Scope:      cycloneDXScope(root.Scope),
-			Version:    root.Version,
-			PackageURL: root.PURL,
-		}
+		// The primary component is built the same way as an inventory entry.
+		// A natural root appears in both places, and a reduced copy here would
+		// describe the scanned project with less detail -- no licenses, hashes,
+		// CPE, or origin -- than the same package carries a few lines below.
+		primary := cycloneDXComponent(*root)
+		primary.Type = cycloneDXComponentType(firstNonEmpty(root.Type, "application"))
 		if refs := cycloneDXSecurityReferences(doc.Provenance); len(refs) > 0 {
-			metadata.Component.ExternalReferences = &refs
+			merged := refs
+			if primary.ExternalReferences != nil {
+				merged = append(append([]cdx.ExternalReference(nil), *primary.ExternalReferences...), refs...)
+			}
+			primary.ExternalReferences = &merged
 		}
+		metadata.Component = &primary
 	}
 	if doc.Provenance.Manufacturer != "" {
 		metadata.Manufacturer = &cdx.OrganizationalEntity{Name: doc.Provenance.Manufacturer}
@@ -128,6 +108,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 			componentByID[comp.BOMRef] = Component{
 				ID:        comp.BOMRef,
 				Name:      comp.Name,
+				Org:       comp.Group,
 				Type:      string(comp.Type),
 				Scope:     string(comp.Scope),
 				Version:   comp.Version,
@@ -175,6 +156,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 		componentByID[root.BOMRef] = Component{
 			ID:        root.BOMRef,
 			Name:      root.Name,
+			Org:       root.Group,
 			Type:      string(root.Type),
 			Scope:     string(root.Scope),
 			Version:   root.Version,
@@ -428,18 +410,82 @@ func toCycloneDXVersion(target Target) cdx.SpecVersion {
 	}
 }
 
+// cycloneDXComponent renders one intermediate component into its CycloneDX
+// form. Both the component inventory and metadata.component go through it, so
+// the document describes a package the same way wherever it appears.
+func cycloneDXComponent(comp Component) cdx.Component {
+	component := cdx.Component{
+		BOMRef:     comp.ID,
+		Type:       cycloneDXComponentType(comp.Type),
+		Name:       comp.NameOrID(),
+		Group:      comp.Org,
+		Scope:      cycloneDXScope(comp.Scope),
+		Version:    comp.Version,
+		PackageURL: comp.PURL,
+		Copyright:  comp.Copyright,
+	}
+	if licenses := cycloneDXLicenses(comp.Licenses); len(licenses) > 0 {
+		component.Licenses = &licenses
+	}
+	if len(comp.CPEs) > 0 {
+		component.CPE = comp.CPEs[0]
+	}
+	if hashes := cycloneDXHashes(comp.Digests); len(hashes) > 0 {
+		component.Hashes = &hashes
+	}
+	if props := cycloneDXEOLProperties(comp.EOL); len(props) > 0 {
+		component.Properties = &props
+	}
+	if refs := cycloneDXComponentReferences(comp); len(refs) > 0 {
+		component.ExternalReferences = &refs
+	}
+	return component
+}
+
+// cycloneDXLicenses renders a component's licenses into CycloneDX.
+//
+// The format offers three shapes and scores them differently: `license.id` is
+// a checked SPDX list entry, `expression` is a checked SPDX expression, and
+// `license.name` is free text a consumer cannot reason about. Sources hand us
+// all three kinds in the same field -- deps.dev records "non-standard" where
+// it records "MIT" -- so the shape is chosen by validating the value, not by
+// trusting its origin.
+//
+// A CycloneDX license list is either license objects or a single expression,
+// never a mix and never two expressions. Several licenses that all validate
+// therefore compose into one expression, matching the string SPDX declares for
+// the same component; if any part is free text, each license is emitted as its
+// own object instead so the recognized ones keep their identifiers.
 func cycloneDXLicenses(licenses []License) cdx.Licenses {
-	if len(licenses) == 0 {
+	values := componentLicenseValues(licenses)
+	if len(values) == 0 {
 		return nil
 	}
-	out := make(cdx.Licenses, 0, len(licenses))
-	for _, license := range licenses {
-		switch {
-		case license.SPDXExpression != "":
-			out = append(out, cdx.LicenseChoice{Expression: license.SPDXExpression})
-		case license.Value != "":
-			out = append(out, cdx.LicenseChoice{License: &cdx.License{Name: license.Value}})
+
+	if len(values) == 1 {
+		value := values[0]
+		if id, ok := licenseexpr.Identifier(value); ok {
+			return cdx.Licenses{{License: &cdx.License{ID: id}}}
 		}
+		if licenseexpr.Valid(value) {
+			// A compound expression ("MIT OR Apache-2.0") has no license-object
+			// form; it can only be carried as an expression.
+			return cdx.Licenses{{Expression: value}}
+		}
+		return cdx.Licenses{{License: &cdx.License{Name: value}}}
+	}
+
+	if allValidSPDXExpressions(values) {
+		return cdx.Licenses{{Expression: licenseexpr.Compose(values)}}
+	}
+
+	out := make(cdx.Licenses, 0, len(values))
+	for _, value := range values {
+		if id, ok := licenseexpr.Identifier(value); ok {
+			out = append(out, cdx.LicenseChoice{License: &cdx.License{ID: id}})
+			continue
+		}
+		out = append(out, cdx.LicenseChoice{License: &cdx.License{Name: value}})
 	}
 	return out
 }

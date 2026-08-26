@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/licenseexpr"
 	testkit "github.com/bomly-dev/bomly-sdk/testkit"
 )
 
@@ -107,6 +108,75 @@ func FuzzNormalizeSPDXLicenseExpression(f *testing.F) {
 		}
 		if strings.TrimSpace(expression) == "" && first != expression {
 			t.Fatalf("blank expression must pass through unchanged: %q -> %q", expression, first)
+		}
+	})
+}
+
+// FuzzSPDXLicenseValue exercises the license classification and composition
+// that decides how a license reaches both export formats. The values arrive
+// from lockfiles and registry APIs, and classification now runs a third-party
+// SPDX expression parser over them, so this guards that path against panics
+// and non-determinism.
+func FuzzSPDXLicenseValue(f *testing.F) {
+	for _, seed := range []string{
+		"MIT",
+		"mit",
+		"Apache-2.0",
+		"MIT OR Apache-2.0",
+		"Apache-2.0 AND (MIT OR BSD-3-Clause)",
+		"GPL-2.0+",
+		"LGPL-2.1-only WITH Classpath-exception-2.0",
+		"LicenseRef-proprietary",
+		"non-standard",
+		"see LICENSE file",
+		"",
+		"   ",
+		"(((",
+		")",
+		"MIT AND",
+		"\x00�",
+	} {
+		f.Add(seed)
+	}
+	f.Fuzz(func(t *testing.T, value string) {
+		if len(value) > testkit.MaxFuzzInputSize {
+			return
+		}
+
+		id, ok := licenseexpr.Identifier(value)
+		if id2, ok2 := licenseexpr.Identifier(value); ok != ok2 || id != id2 {
+			t.Fatalf("nondeterministic identifier classification: (%q, %v) then (%q, %v)", id, ok, id2, ok2)
+		}
+		valid := licenseexpr.Valid(value)
+		if valid != licenseexpr.Valid(value) {
+			t.Fatalf("nondeterministic expression validation for %q", value)
+		}
+		if ok {
+			// Anything publishable as a bare `license.id` must also stand on
+			// its own as an expression; the two shapes carry the same claim.
+			if id == "" {
+				t.Fatalf("classified %q as an identifier but returned an empty id", value)
+			}
+			if !licenseexpr.Valid(id) {
+				t.Fatalf("identifier %q (from %q) is not a valid expression", id, value)
+			}
+		}
+
+		// Composition must not lose or reorder members, and must be stable.
+		composed := licenseexpr.Compose([]string{value, value})
+		if composed != licenseexpr.Compose([]string{value, value}) {
+			t.Fatalf("nondeterministic composition for %q", value)
+		}
+		if strings.TrimSpace(value) != "" && !strings.Contains(composed, " AND ") {
+			t.Fatalf("composition dropped a member: %q -> %q", value, composed)
+		}
+
+		// The two encoders read licenses through the same helpers, so neither
+		// may panic on any value a source can produce.
+		licenses := []License{{Value: value}, {SPDXExpression: value}}
+		_ = cycloneDXLicenses(licenses)
+		if got := spdxLicenseValue(licenses); got == "" {
+			t.Fatalf("spdx license value must never be empty, got %q for %q", got, value)
 		}
 	})
 }

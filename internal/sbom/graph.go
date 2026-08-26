@@ -40,6 +40,7 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 		}
 		pkg := sdk.NewDependencyWithID(packageID, sdk.Dependency{Coordinates: sdk.Coordinates{Name: component.Name,
 			Version: component.Version,
+			Org:     strings.TrimSpace(component.Org),
 
 			Ecosystem:      ecosystem,
 			PackageManager: packageManager,

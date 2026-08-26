@@ -92,7 +92,11 @@ Both formats carry:
   are normalized to lowercase hex so they are schema-valid in both formats.
 - License identifiers normalized to the current SPDX license list: deprecated
   ids such as `GPL-2.0` are rewritten to their replacements (`GPL-2.0-only`)
-  inside expressions, in both formats.
+  inside expressions, in both formats. See "How licenses are written" below.
+- The package namespace as CycloneDX `group` — an npm scope (`@scope`), a Go
+  module owner (`github.com/google`), a Maven group (`org.apache.commons`).
+  It is taken from the PURL, so the two always agree. SPDX 2.3 has no
+  equivalent field; there the namespace is carried inside the PURL.
 - An SPDX `primaryPackagePurpose` for every package (LIBRARY for registry
   packages, APPLICATION for the primary component, and so on).
 - Remediation guidance on CycloneDX vulnerability entries: when enrichment
@@ -101,6 +105,44 @@ Both formats carry:
   known. SPDX 2.3 has no equivalent field.
 - Where each package came from, when its lockfile says: an exact download
   location or a source repository. See "Where a package came from" below.
+
+### How licenses are written
+
+A license value can be a recognized SPDX identifier, a compound expression, or
+text that means nothing to a machine. The formats keep these apart and tools
+score them differently, so Bomly checks each value rather than guessing from
+where it came:
+
+| The value | CycloneDX | SPDX 2.3 |
+|---|---|---|
+| One SPDX identifier (`MIT`) | `license.id`, spelled canonically | the identifier |
+| A compound expression (`MIT OR Apache-2.0`) | `expression` | the expression |
+| Anything else (`see LICENSE file`) | `license.name`, as free text | the text as-is |
+| Nothing | no `licenses` key | `NOASSERTION` |
+
+When a package declares several licenses, they are joined into one expression
+with `AND` — a package offered under several licenses is bound by all of them.
+Both formats publish the same string, so the two exports of one scan describe
+licensing identically. If any part is free text, CycloneDX keeps each license
+as its own entry instead, so the recognized ones keep their identifiers.
+
+#### License data usually needs `--enrich`
+
+Most lockfiles do not record licenses. Only npm and pnpm write them into the
+lockfile, so for every other ecosystem — Go, Maven, Python, Cargo, and the rest
+— a plain `bomly scan -o cyclonedx=...` produces components with no license
+data at all (SPDX writes `NOASSERTION`).
+
+Add `--enrich` to fill them in from the deps.dev license matcher:
+
+```bash
+bomly scan --enrich -o cyclonedx=bom.cdx.json -o spdx=bom.spdx.json
+```
+
+This matters for compliance review. The EU Cyber Resilience Act expects an SBOM
+to identify component licensing, and third-party CRA profile checks report
+missing license data as an error. If you are producing an SBOM to hand to
+someone else, run it with `--enrich`.
 
 ### Where a package came from
 
@@ -275,7 +317,18 @@ Some information necessarily becomes less specific during conversion:
   multiple roots, every root remains in the dependency graph and the
   synthesized primary component (see "Document identity" above) links them;
   ingest paths that predate the synthesized root treat the first
-  deterministic root as the primary component.
+  deterministic root as the primary component. The primary component is
+  written with the same detail as an inventory entry, so a package that is
+  both the document's subject and a component describes itself the same way
+  in both places.
+- The CycloneDX `group` namespace survives a CycloneDX round trip. SPDX 2.3
+  has no group field, so an SPDX round trip recovers the namespace only from
+  the PURL.
+- SPDX 2.3 holds one license expression per package, so several declared
+  licenses are composed into one (see "How licenses are written" above). A
+  set that mixes real expressions with free text cannot be composed without
+  producing an expression that does not parse; SPDX then keeps the first
+  value, while CycloneDX keeps every license as its own entry.
 
 Before treating a generated file as a release artifact, validate it with the
 standard validator required by the receiving system. Bomly's tests parse every

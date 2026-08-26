@@ -9,6 +9,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/bomly-dev/bomly-cli/internal/licenseexpr"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/spdx/tools-golang/spdx/v2/common"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
@@ -40,6 +41,10 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 		spdxID := common.ElementID(base)
 		idByComponent[c.ID] = spdxID
 
+		// Concluded repeats declared: the value came from a lockfile or a
+		// registry that asserts it, so concluding it is reading evidence, not
+		// inventing a claim. NOASSERTION here would discard data we hold.
+		license := spdxLicenseValue(c.Licenses)
 		pkg := &v23.Package{
 			PackageName:               c.NameOrID(),
 			PackageSPDXIdentifier:     spdxID,
@@ -47,8 +52,8 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageDownloadLocation:   spdxDownloadLocation(c),
 			FilesAnalyzed:             false,
 			PackageComment:            spdxPackageComment(c),
-			PackageLicenseDeclared:    spdxLicenseValue(c.Licenses),
-			PackageLicenseConcluded:   spdxLicenseValue(c.Licenses),
+			PackageLicenseDeclared:    license,
+			PackageLicenseConcluded:   license,
 			PackageCopyrightText:      spdxCopyrightValue(c.Copyright),
 			PackageChecksums:          spdxChecksums(c.Digests),
 			PackageSourceInfo:         spdxSourceInfo(c),
@@ -408,17 +413,22 @@ func parseSPDXCommentField(comment, field string) string {
 	return ""
 }
 
+// spdxLicenseValue renders a component's licenses into one SPDX license field.
+//
+// SPDX 2.3 holds a single expression per package, so a component declaring
+// several licenses has to compose them rather than keep only the first, which
+// silently dropped the rest. Composition applies only when every part is a
+// valid expression; joining free text would manufacture an expression that
+// does not parse, so a mixed set falls back to the first value as before.
 func spdxLicenseValue(licenses []License) string {
-	if len(licenses) == 0 {
+	values := componentLicenseValues(licenses)
+	if len(values) == 0 {
 		return "NOASSERTION"
 	}
-	if licenses[0].SPDXExpression != "" {
-		return licenses[0].SPDXExpression
+	if len(values) == 1 || !allValidSPDXExpressions(values) {
+		return values[0]
 	}
-	if licenses[0].Value != "" {
-		return licenses[0].Value
-	}
-	return "NOASSERTION"
+	return licenseexpr.Compose(values)
 }
 
 func spdxCopyrightValue(value string) string {

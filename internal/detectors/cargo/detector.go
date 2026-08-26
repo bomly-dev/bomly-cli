@@ -231,8 +231,9 @@ func (d Detector) resolveLockWorkspace(req sdk.DetectionRequest, workingDir stri
 		logger.Warn("cargo metadata failed for workspace lock; falling back to lockfile partitioning", zap.String("working_dir", workingDir))
 	}
 
-	rootManifest := parseCargoManifest(string(manifestRaw))
-	members := readCargoLockMembers(workingDir, memberDirs)
+	workspaceVersion := parseCargoWorkspaceInheritedVersion(string(manifestRaw))
+	rootManifest := applyWorkspaceVersion(parseCargoManifest(string(manifestRaw)), workspaceVersion)
+	members := readCargoLockMembers(workingDir, memberDirs, workspaceVersion)
 	if len(members) == 0 {
 		return sdk.DetectionResult{}, fmt.Errorf("cargo workspace members declared in Cargo.toml could not be read")
 	}
@@ -310,16 +311,37 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 	// source-qualified ID -- and the resolve section's edges attach each
 	// parent to the exact occurrence it depends on via this map.
 	nodeIDByCargoID := make(map[string]string, len(packagesByID))
-	for _, id := range sortedPackageIDs(packagesByID) {
+	insert := func(id string) error {
 		pkg := packagesByID[id]
 		node := packageNode(pkg, id, workspace)
 		// Distinct cargo package IDs with different sources are two
 		// resolutions of one name@version; the shared helper keeps both.
 		surviving, err := detectors.EnsureOccurrence(g, node, strings.TrimSpace(pkg.Source))
 		if err != nil {
-			return nil, nil, err
+			return err
 		}
 		nodeIDByCargoID[id] = surviving.ID
+		return nil
+	}
+	// Workspace members insert first: when an external record collides with a
+	// member at one name@version, the project's own package keeps the plain
+	// node ID and the external record becomes the qualified occurrence, not
+	// the other way around by accident of sort order.
+	for _, id := range sortedWorkspaceMembers(workspace) {
+		if _, ok := packagesByID[id]; !ok {
+			continue
+		}
+		if err := insert(id); err != nil {
+			return nil, nil, err
+		}
+	}
+	for _, id := range sortedPackageIDs(packagesByID) {
+		if _, ok := workspace[id]; ok {
+			continue
+		}
+		if err := insert(id); err != nil {
+			return nil, nil, err
+		}
 	}
 	idFor := func(cargoID string, pkg metadataPackage) string {
 		if nodeID, ok := nodeIDByCargoID[cargoID]; ok {
@@ -477,10 +499,13 @@ type lockPackage struct {
 }
 
 type cargoManifest struct {
-	Name            string
-	Version         string
-	Dependencies    []string
-	DevDependencies []string
+	Name    string
+	Version string
+	// VersionInherited marks `version.workspace = true`: the manifest defers
+	// its version to the workspace root's [workspace.package] table.
+	VersionInherited bool
+	Dependencies     []string
+	DevDependencies  []string
 }
 
 func depGraphFromLock(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
@@ -492,7 +517,10 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 	if len(packages) == 0 {
 		return nil, fmt.Errorf("cargo.lock does not contain any packages")
 	}
-	manifest := parseCargoManifest(string(manifestRaw))
+	// A root-only workspace carries [workspace.package] in this same manifest
+	// while its [package] declares `version.workspace = true`; resolve the
+	// inheritance here so both lock paths agree on the package's identity.
+	manifest := applyWorkspaceVersion(parseCargoManifest(string(manifestRaw)), parseCargoWorkspaceInheritedVersion(string(manifestRaw)))
 	if manifest.Name == "" {
 		return nil, fmt.Errorf("cargo.toml does not contain a package name")
 	}
@@ -510,16 +538,18 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
-	index, err := buildLockIndex(g, packages, manifest.Name)
+	rootRecord := projectLockRecord(packages, manifest)
+	rootKey := qualifiedLockKey(rootRecord)
+	index, err := buildLockIndex(g, packages, rootRecord)
 	if err != nil {
 		return nil, err
 	}
 	rootID := root.ID
 	for _, pkg := range packages {
-		if pkg.Name == manifest.Name {
+		if qualifiedLockKey(pkg) == rootKey {
 			continue
 		}
-		parentID, ok := index.resolve(strings.TrimSpace(pkg.Name + " " + pkg.Version + " (" + pkg.Source + ")"))
+		parentID, ok := index.resolve(qualifiedLockKey(pkg))
 		if !ok {
 			continue
 		}
@@ -536,8 +566,19 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 			}
 		}
 	}
+	// The root's own lock record names each direct dependency at whatever
+	// precision disambiguates it; prefer that over the manifest's bare name.
+	rootRefs := lockDependencyRefs(rootRecord)
+	resolveDirect := func(depName string) (string, bool) {
+		if ref, ok := rootRefs[depName]; ok {
+			if id, ok := index.resolve(ref); ok {
+				return id, true
+			}
+		}
+		return index.resolve(depName)
+	}
 	for _, depName := range manifest.Dependencies {
-		nodeID, ok := index.resolve(depName)
+		nodeID, ok := resolveDirect(depName)
 		if !ok || nodeID == rootID {
 			continue
 		}
@@ -549,7 +590,7 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 		}
 	}
 	for _, depName := range manifest.DevDependencies {
-		nodeID, ok := index.resolve(depName)
+		nodeID, ok := resolveDirect(depName)
 		if !ok || nodeID == rootID {
 			continue
 		}
@@ -647,9 +688,13 @@ func parseCargoLockPackages(text string) []lockPackage {
 					if depLine == "]" {
 						break
 					}
+					// Keep the whole reference: Cargo.lock qualifies it with a
+					// version (and source) exactly when a bare name would be
+					// ambiguous, and truncating to the name resolved every
+					// reference to whichever same-named record came first.
 					depLine = trimTomlString(depLine)
 					if depLine != "" {
-						pkg.Dependencies = append(pkg.Dependencies, strings.Fields(depLine)[0])
+						pkg.Dependencies = append(pkg.Dependencies, depLine)
 					}
 				}
 			}
@@ -685,7 +730,24 @@ func parseCargoManifest(text string) cargoManifest {
 				manifest.Name = trimTomlString(value)
 			}
 			if key == "version" {
-				manifest.Version = trimTomlString(value)
+				// Inline-table form of workspace inheritance:
+				// version = { workspace = true }.
+				if strings.HasPrefix(value, "{") {
+					if strings.Contains(value, "workspace") && strings.Contains(value, "true") {
+						manifest.VersionInherited = true
+					}
+				} else {
+					manifest.Version = trimTomlString(value)
+				}
+			}
+			if key == "version.workspace" && trimTomlString(value) == "true" {
+				manifest.VersionInherited = true
+			}
+		case "package.version":
+			// Table form of workspace inheritance: [package.version] with
+			// workspace = true.
+			if key == "workspace" && trimTomlString(value) == "true" {
+				manifest.VersionInherited = true
 			}
 		case "dependencies":
 			manifest.Dependencies = append(manifest.Dependencies, key)
@@ -698,8 +760,32 @@ func parseCargoManifest(text string) cargoManifest {
 	return manifest
 }
 
+// trimTomlString decodes the string a TOML key's raw right-hand side names,
+// tolerating an inline comment after the value ("1.2.3" # release). A basic
+// or literal string is read to its closing quote (honoring \" escapes in
+// basic strings, whose content is kept verbatim -- the values read here never
+// carry escape sequences); a bare value is cut at the comment and trimmed.
+// Trimming quotes off the whole remainder instead left the comment glued to
+// the value.
 func trimTomlString(value string) string {
-	return strings.Trim(strings.TrimSpace(value), `"`)
+	value = strings.TrimSpace(value)
+	if len(value) >= 2 && (value[0] == '"' || value[0] == '\'') {
+		quote := value[0]
+		for i := 1; i < len(value); i++ {
+			if value[i] == '\\' && quote == '"' {
+				i++
+				continue
+			}
+			if value[i] == quote {
+				return value[1:i]
+			}
+		}
+		return strings.TrimPrefix(value, string(quote))
+	}
+	if cut := strings.IndexByte(value, '#'); cut >= 0 {
+		value = value[:cut]
+	}
+	return strings.TrimSpace(value)
 }
 
 // Install prepares Cargo dependencies before graph resolution.

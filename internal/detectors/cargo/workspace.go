@@ -83,6 +83,70 @@ func parseCargoWorkspaceMembers(text string) []string {
 	return members
 }
 
+// parseCargoWorkspaceInheritedVersion extracts the [workspace.package] version
+// that members inherit via `version.workspace = true`. TOML spells that table
+// three ways -- a [workspace.package] section, a dotted key inside [workspace]
+// (`package.version = "1.2.3"`), and an inline table
+// (`package = { version = "1.2.3" }`) -- and all are read. Empty when the
+// root manifest declares none.
+func parseCargoWorkspaceInheritedVersion(text string) string {
+	section := ""
+	for _, rawLine := range strings.Split(text, "\n") {
+		line := strings.TrimSpace(rawLine)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		if strings.HasPrefix(line, "[") && strings.HasSuffix(line, "]") {
+			section = strings.TrimSpace(strings.Trim(line, "[]"))
+			continue
+		}
+		key, value, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		key = strings.TrimSpace(key)
+		value = strings.TrimSpace(value)
+		if (section == "workspace.package" && key == "version") ||
+			(section == "workspace" && key == "package.version") {
+			return trimTomlString(value)
+		}
+		if section == "workspace" && key == "package" && strings.HasPrefix(value, "{") {
+			if version := inlineTableValue(value, "version"); version != "" {
+				return version
+			}
+		}
+	}
+	return ""
+}
+
+// inlineTableValue reads one key's string value out of a TOML inline-table
+// rendering ("{ version = \"1.2.3\", edition = \"2021\" }"). Keys match
+// exactly, so "version" never reads a "rust-version" entry.
+func inlineTableValue(table, key string) string {
+	table = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(table), "{"))
+	if end := strings.LastIndexByte(table, '}'); end >= 0 {
+		table = table[:end]
+	}
+	for _, fragment := range strings.Split(table, ",") {
+		k, v, ok := strings.Cut(fragment, "=")
+		if ok && strings.TrimSpace(k) == key {
+			return trimTomlString(strings.TrimSpace(v))
+		}
+	}
+	return ""
+}
+
+// applyWorkspaceVersion fills a manifest's version from the workspace root's
+// [workspace.package] version when the manifest inherits it. Resolving the
+// inherited version before lock-record matching keeps a member from being
+// mistaken for a same-named source-less package at another version.
+func applyWorkspaceVersion(manifest cargoManifest, workspaceVersion string) cargoManifest {
+	if manifest.Version == "" && manifest.VersionInherited && workspaceVersion != "" {
+		manifest.Version = workspaceVersion
+	}
+	return manifest
+}
+
 // expandCargoWorkspaceMemberDirs expands member patterns (exact dirs or
 // globs like "crates/*") against the workspace root, keeping directories
 // that contain a Cargo.toml. Returned paths are root-relative slash paths,
@@ -160,19 +224,6 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 	if len(packages) == 0 {
 		return nil, nil, "", fmt.Errorf("cargo.lock does not contain any packages")
 	}
-	byName := make(map[string]lockPackage, len(packages))
-	for _, pkg := range packages {
-		byName[pkg.Name] = pkg
-	}
-	applicationNames := map[string]struct{}{}
-	if rootManifest.Name != "" {
-		applicationNames[rootManifest.Name] = struct{}{}
-	}
-	for _, member := range members {
-		if member.manifest.Name != "" {
-			applicationNames[member.manifest.Name] = struct{}{}
-		}
-	}
 
 	g := sdk.New()
 	nodeFor := func(pkg lockPackage, application bool) *sdk.Dependency {
@@ -198,37 +249,61 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 		}
 		return node
 	}
-	lockPackageFor := func(manifest cargoManifest) lockPackage {
-		if pkg, ok := byName[manifest.Name]; ok && pkg.Version != "" {
-			return pkg
+	// Each application root claims its own lock record -- matched by name,
+	// declared version, and the absence of a source (isProjectLockRecord) --
+	// rather than by name alone, which credited a member with an unrelated
+	// same-named crate's version and source and dropped that crate from the
+	// graph entirely (issue #399). Only the claimed records are withheld from
+	// the ordinary dependency pass below; a same-named external crate keeps
+	// its own node.
+	type applicationRoot struct {
+		manifest cargoManifest
+		record   lockPackage
+		id       string
+	}
+	claimed := map[string]struct{}{}
+	applicationRefs := map[string]string{}
+	roots := make([]applicationRoot, 0, len(members)+1)
+	addRoot := func(manifest cargoManifest) (string, error) {
+		record := projectLockRecord(packages, manifest)
+		node := nodeFor(record, true)
+		if err := addNodeIfMissing(g, node); err != nil {
+			return "", err
 		}
-		return lockPackage{Name: manifest.Name, Version: manifest.Version}
+		claimed[qualifiedLockKey(record)] = struct{}{}
+		// Other lock records reference a member as "name" or "name version";
+		// first-wins keeps resolution deterministic in declaration order.
+		for _, ref := range []string{record.Name, strings.TrimSpace(record.Name + " " + record.Version)} {
+			if _, taken := applicationRefs[ref]; !taken {
+				applicationRefs[ref] = node.ID
+			}
+		}
+		roots = append(roots, applicationRoot{manifest: manifest, record: record, id: node.ID})
+		return node.ID, nil
 	}
 
 	rootID := ""
 	if rootManifest.Name != "" {
-		root := nodeFor(lockPackageFor(rootManifest), true)
-		if err := addNodeIfMissing(g, root); err != nil {
+		id, err := addRoot(rootManifest)
+		if err != nil {
 			return nil, nil, "", err
 		}
-		rootID = root.ID
+		rootID = id
 	}
 	modules := make([]cargoModuleGraph, 0, len(members))
-	memberIDs := map[string]string{}
 	for _, member := range members {
 		if member.manifest.Name == "" {
 			continue
 		}
-		memberNode := nodeFor(lockPackageFor(member.manifest), true)
-		if err := addNodeIfMissing(g, memberNode); err != nil {
+		id, err := addRoot(member.manifest)
+		if err != nil {
 			return nil, nil, "", err
 		}
-		memberIDs[member.manifest.Name] = memberNode.ID
-		modules = append(modules, cargoModuleGraph{dir: member.dir, rootID: memberNode.ID})
+		modules = append(modules, cargoModuleGraph{dir: member.dir, rootID: id})
 	}
 	index := &lockIndex{nodeID: make(map[string]string, len(packages)*3)}
 	for _, pkg := range packages {
-		if _, ok := applicationNames[pkg.Name]; ok {
+		if _, ok := claimed[qualifiedLockKey(pkg)]; ok {
 			continue
 		}
 		node := nodeFor(pkg, false)
@@ -239,30 +314,25 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 		index.record(pkg, surviving.ID)
 	}
 
-	idFor := func(name string) (string, bool) {
-		if id, ok := memberIDs[name]; ok {
+	idFor := func(ref string) (string, bool) {
+		ref = strings.TrimSpace(ref)
+		if id, ok := applicationRefs[ref]; ok {
 			return id, true
 		}
-		if rootManifest.Name != "" && name == rootManifest.Name && rootID != "" {
-			return rootID, true
-		}
-		return index.resolve(name)
+		return index.resolve(ref)
 	}
 
 	// Transitive edges from the lockfile for non-application packages.
 	for _, pkg := range packages {
-		if _, ok := applicationNames[pkg.Name]; ok {
+		if _, ok := claimed[qualifiedLockKey(pkg)]; ok {
 			continue
 		}
-		parentID, ok := idFor(strings.TrimSpace(pkg.Name + " " + pkg.Version + " (" + pkg.Source + ")"))
-		if !ok {
-			parentID, ok = idFor(pkg.Name)
-		}
+		parentID, ok := index.resolve(qualifiedLockKey(pkg))
 		if !ok {
 			continue
 		}
-		for _, depName := range pkg.Dependencies {
-			childID, ok := idFor(depName)
+		for _, depRef := range pkg.Dependencies {
+			childID, ok := idFor(depRef)
 			if !ok || childID == rootID {
 				continue
 			}
@@ -272,39 +342,40 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 		}
 	}
 
-	// Direct edges + scopes for application roots from their manifests.
-	applyManifestEdges := func(parentID string, manifest cargoManifest) error {
+	// Direct edges + scopes for application roots from their manifests. A
+	// root's own lock record names each dependency at whatever precision
+	// disambiguates it; prefer that over the manifest's bare name.
+	applyManifestEdges := func(root applicationRoot) error {
+		refs := lockDependencyRefs(root.record)
 		addDirect := func(names []string, scope sdk.Scope) error {
 			for _, depName := range names {
-				childID, ok := idFor(depName)
-				if !ok || childID == parentID {
+				ref := depName
+				if qualified, ok := refs[depName]; ok {
+					ref = qualified
+				}
+				childID, ok := idFor(ref)
+				if !ok && ref != depName {
+					childID, ok = idFor(depName)
+				}
+				if !ok || childID == root.id {
 					continue
 				}
 				if existing, ok := g.Node(childID); ok {
 					existing.AddScope(scope)
 				}
-				if err := g.AddEdge(parentID, childID); err != nil {
-					return fmt.Errorf("add Cargo direct dependency %q -> %q: %w", parentID, childID, err)
+				if err := g.AddEdge(root.id, childID); err != nil {
+					return fmt.Errorf("add Cargo direct dependency %q -> %q: %w", root.id, childID, err)
 				}
 			}
 			return nil
 		}
-		if err := addDirect(manifest.Dependencies, sdk.ScopeRuntime); err != nil {
+		if err := addDirect(root.manifest.Dependencies, sdk.ScopeRuntime); err != nil {
 			return err
 		}
-		return addDirect(manifest.DevDependencies, sdk.ScopeDevelopment)
+		return addDirect(root.manifest.DevDependencies, sdk.ScopeDevelopment)
 	}
-	if rootID != "" {
-		if err := applyManifestEdges(rootID, rootManifest); err != nil {
-			return nil, nil, "", err
-		}
-	}
-	for _, member := range members {
-		memberID, ok := memberIDs[member.manifest.Name]
-		if !ok {
-			continue
-		}
-		if err := applyManifestEdges(memberID, member.manifest); err != nil {
+	for _, root := range roots {
+		if err := applyManifestEdges(root); err != nil {
 			return nil, nil, "", err
 		}
 	}
@@ -318,15 +389,16 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 }
 
 // readCargoLockMembers parses each member directory's Cargo.toml, skipping
-// unreadable or package-less members.
-func readCargoLockMembers(workingDir string, memberDirs []string) []cargoLockMember {
+// unreadable or package-less members. workspaceVersion is the root manifest's
+// [workspace.package] version, filled into members that inherit it.
+func readCargoLockMembers(workingDir string, memberDirs []string, workspaceVersion string) []cargoLockMember {
 	members := make([]cargoLockMember, 0, len(memberDirs))
 	for _, dir := range memberDirs {
 		raw, err := system.ReadRepositoryFile(filepath.Join(workingDir, filepath.FromSlash(dir), "Cargo.toml"))
 		if err != nil {
 			continue
 		}
-		manifest := parseCargoManifest(string(raw))
+		manifest := applyWorkspaceVersion(parseCargoManifest(string(raw)), workspaceVersion)
 		if manifest.Name == "" {
 			continue
 		}

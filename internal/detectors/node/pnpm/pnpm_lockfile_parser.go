@@ -153,9 +153,6 @@ func depGraphFromPNPMLockfile(projectPath string) (pnpmLockfileGraphs, error) {
 		if err != nil {
 			return pnpmLockfileGraphs{}, err
 		}
-		if surviving != pkgNode {
-			surviving.AddScope(pkgNode.PrimaryScope())
-		}
 		resolved := resolvedPackage{id: surviving.ID, name: name, version: node.NormalizeVersionToken(version)}
 		byKey[key] = resolved
 		byName[name] = append(byName[name], resolved)

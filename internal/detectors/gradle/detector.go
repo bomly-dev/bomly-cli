@@ -477,9 +477,7 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 			if refNode != nil {
 				stack = stack[:depth+1]
 				parentID := stack[len(stack)-1]
-				if existing, ok := currentGraph.Node(refNode.ID); ok {
-					existing.AddScope(currentScope)
-				} else if err := currentGraph.AddNode(refNode); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
+				if _, err := detectors.EnsureNode(currentGraph, refNode); err != nil {
 					return gradleParseResult{}, fmt.Errorf("add project reference node %q: %w", refNode.ID, err)
 				}
 				if err := currentGraph.AddEdge(parentID, refNode.ID); err != nil {
@@ -496,12 +494,8 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 		}
 		stack = stack[:depth+1]
 		parentID := stack[len(stack)-1]
-		surviving, err := detectors.EnsureNode(currentGraph, node)
-		if err != nil {
+		if _, err := detectors.EnsureNode(currentGraph, node); err != nil {
 			return gradleParseResult{}, err
-		}
-		if surviving != node {
-			surviving.AddScope(node.PrimaryScope())
 		}
 		if err := currentGraph.AddEdge(parentID, node.ID); err != nil {
 			return gradleParseResult{}, fmt.Errorf("add dependency %q -> %q: %w", parentID, node.ID, err)

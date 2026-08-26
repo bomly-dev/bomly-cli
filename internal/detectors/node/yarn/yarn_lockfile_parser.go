@@ -93,9 +93,6 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		if err != nil {
 			return "", err
 		}
-		if surviving != pkgNode {
-			surviving.AddScope(pkgNode.PrimaryScope())
-		}
 		entryNodeByIndex[idx] = surviving.ID
 		return surviving.ID, nil
 	}

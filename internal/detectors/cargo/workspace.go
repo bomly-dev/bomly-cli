@@ -84,8 +84,9 @@ func parseCargoWorkspaceMembers(text string) []string {
 }
 
 // parseCargoWorkspaceInheritedVersion extracts the [workspace.package] version
-// that members inherit via `version.workspace = true`. Empty when the root
-// manifest declares none.
+// that members inherit via `version.workspace = true`. TOML also spells that
+// table as a dotted key inside [workspace] (`package.version = "1.2.3"`);
+// both renderings are read. Empty when the root manifest declares none.
 func parseCargoWorkspaceInheritedVersion(text string) string {
 	section := ""
 	for _, rawLine := range strings.Split(text, "\n") {
@@ -97,11 +98,13 @@ func parseCargoWorkspaceInheritedVersion(text string) string {
 			section = strings.TrimSpace(strings.Trim(line, "[]"))
 			continue
 		}
-		if section != "workspace.package" {
+		key, value, ok := strings.Cut(line, "=")
+		if !ok {
 			continue
 		}
-		key, value, ok := strings.Cut(line, "=")
-		if ok && strings.TrimSpace(key) == "version" {
+		key = strings.TrimSpace(key)
+		if (section == "workspace.package" && key == "version") ||
+			(section == "workspace" && key == "package.version") {
 			return trimTomlString(strings.TrimSpace(value))
 		}
 	}

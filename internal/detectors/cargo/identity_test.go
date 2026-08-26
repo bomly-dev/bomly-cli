@@ -286,8 +286,17 @@ func TestParseCargoManifestWorkspaceVersionInheritance(t *testing.T) {
 			}
 		})
 	}
-	if version := parseCargoWorkspaceInheritedVersion("[workspace]\nmembers = [\"crates/*\"]\n\n[workspace.package]\nversion = \"2.5.0\"\n"); version != "2.5.0" {
-		t.Fatalf("parseCargoWorkspaceInheritedVersion() = %q, want 2.5.0", version)
+	roots := []struct {
+		name string
+		toml string
+	}{
+		{"section table", "[workspace]\nmembers = [\"crates/*\"]\n\n[workspace.package]\nversion = \"2.5.0\"\n"},
+		{"dotted key", "[workspace]\nmembers = [\"crates/*\"]\npackage.version = \"2.5.0\"\n"},
+	}
+	for _, tc := range roots {
+		if version := parseCargoWorkspaceInheritedVersion(tc.toml); version != "2.5.0" {
+			t.Fatalf("parseCargoWorkspaceInheritedVersion(%s) = %q, want 2.5.0", tc.name, version)
+		}
 	}
 }
 
@@ -483,6 +492,60 @@ dependencies = [
 	rightDeps := directDependencyIDs(t, graph, "right@1.0.0")
 	if !rightDeps["helper@2.0.0"] || rightDeps["helper@1.0.0"] {
 		t.Fatalf("right dependencies = %v, want helper@2.0.0 only", rightDeps)
+	}
+}
+
+// Cargo qualifies a dependency reference with the source identity only:
+// records pin the resolved commit ("git+URL#sha"), references omit it
+// ("name version (git+URL)"). Such references must still resolve to the
+// exact occurrence, or the edge to a git crate silently disappears whenever
+// two same-named same-versioned records force source qualification.
+func TestCargoLockGitRefsWithoutPreciseFragmentResolve(t *testing.T) {
+	lock := []byte(`version = 3
+
+[[package]]
+name = "app"
+version = "0.1.0"
+dependencies = [
+ "consumer",
+]
+
+[[package]]
+name = "consumer"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "helper 1.0.0 (git+https://github.com/b/helper)",
+]
+
+[[package]]
+name = "helper"
+version = "1.0.0"
+source = "git+https://github.com/a/helper#aaaabbbbccccddddeeeeffff0000111122223333"
+
+[[package]]
+name = "helper"
+version = "1.0.0"
+source = "git+https://github.com/b/helper#bbbbccccddddeeeeffff00001111222233334444"
+`)
+	manifest := []byte("[package]\nname = \"app\"\nversion = \"0.1.0\"\n\n[dependencies]\nconsumer = \"2\"\n")
+
+	graph, err := depGraphFromLock(lock, manifest)
+	if err != nil {
+		t.Fatalf("depGraphFromLock() error = %v", err)
+	}
+	consumerDeps := directDependencyIDs(t, graph, "consumer@2.0.0")
+	if len(consumerDeps) != 1 {
+		t.Fatalf("consumer dependencies = %v, want exactly the b-remote helper occurrence", consumerDeps)
+	}
+	for id := range consumerDeps {
+		child, ok := graph.Node(id)
+		if !ok {
+			t.Fatalf("consumer dependency %q missing from graph", id)
+		}
+		if origin := originOf(child); origin.Repository != "https://github.com/b/helper" {
+			t.Fatalf("consumer edge reached %q with origin %+v, want the b-remote occurrence", id, origin)
+		}
 	}
 }
 

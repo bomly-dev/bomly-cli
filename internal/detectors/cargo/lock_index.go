@@ -118,14 +118,36 @@ func buildLockIndex(g *sdk.Graph, packages []lockPackage, rootRecord lockPackage
 	return index, nil
 }
 
+// sourceWithoutPrecise strips the resolved-commit fragment from a git source.
+// A record's source pins the commit ("git+URL#<sha>"), but Cargo qualifies
+// dependency references with the source identity only ("name version
+// (git+URL)") -- the fragment is not part of it.
+func sourceWithoutPrecise(source string) string {
+	source = strings.TrimSpace(source)
+	if !strings.HasPrefix(source, "git+") {
+		return source
+	}
+	if cut := strings.IndexByte(source, '#'); cut >= 0 {
+		return source[:cut]
+	}
+	return source
+}
+
 // record registers every reference form that can name this occurrence,
 // first-wins so bare forms stay deterministic in file order.
 func (x *lockIndex) record(pkg lockPackage, nodeID string) {
-	for _, key := range []string{
+	keys := []string{
 		pkg.Name,
 		pkg.Name + " " + pkg.Version,
 		qualifiedLockKey(pkg),
-	} {
+	}
+	// Dependency references qualify git sources without the precise commit
+	// fragment; register that rendering too, or references to same-named
+	// same-versioned git crates would resolve to nothing.
+	if stripped := sourceWithoutPrecise(pkg.Source); stripped != strings.TrimSpace(pkg.Source) {
+		keys = append(keys, qualifiedLockKey(lockPackage{Name: pkg.Name, Version: pkg.Version, Source: stripped}))
+	}
+	for _, key := range keys {
 		if _, taken := x.nodeID[key]; !taken {
 			x.nodeID[key] = nodeID
 		}

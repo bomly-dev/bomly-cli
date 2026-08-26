@@ -84,9 +84,11 @@ func parseCargoWorkspaceMembers(text string) []string {
 }
 
 // parseCargoWorkspaceInheritedVersion extracts the [workspace.package] version
-// that members inherit via `version.workspace = true`. TOML also spells that
-// table as a dotted key inside [workspace] (`package.version = "1.2.3"`);
-// both renderings are read. Empty when the root manifest declares none.
+// that members inherit via `version.workspace = true`. TOML spells that table
+// three ways -- a [workspace.package] section, a dotted key inside [workspace]
+// (`package.version = "1.2.3"`), and an inline table
+// (`package = { version = "1.2.3" }`) -- and all are read. Empty when the
+// root manifest declares none.
 func parseCargoWorkspaceInheritedVersion(text string) string {
 	section := ""
 	for _, rawLine := range strings.Split(text, "\n") {
@@ -103,9 +105,32 @@ func parseCargoWorkspaceInheritedVersion(text string) string {
 			continue
 		}
 		key = strings.TrimSpace(key)
+		value = strings.TrimSpace(value)
 		if (section == "workspace.package" && key == "version") ||
 			(section == "workspace" && key == "package.version") {
-			return trimTomlString(strings.TrimSpace(value))
+			return trimTomlString(value)
+		}
+		if section == "workspace" && key == "package" && strings.HasPrefix(value, "{") {
+			if version := inlineTableValue(value, "version"); version != "" {
+				return version
+			}
+		}
+	}
+	return ""
+}
+
+// inlineTableValue reads one key's string value out of a TOML inline-table
+// rendering ("{ version = \"1.2.3\", edition = \"2021\" }"). Keys match
+// exactly, so "version" never reads a "rust-version" entry.
+func inlineTableValue(table, key string) string {
+	table = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(table), "{"))
+	if end := strings.LastIndexByte(table, '}'); end >= 0 {
+		table = table[:end]
+	}
+	for _, fragment := range strings.Split(table, ",") {
+		k, v, ok := strings.Cut(fragment, "=")
+		if ok && strings.TrimSpace(k) == key {
+			return trimTomlString(strings.TrimSpace(v))
 		}
 	}
 	return ""

@@ -295,6 +295,8 @@ func TestParseCargoManifestWorkspaceVersionInheritance(t *testing.T) {
 		{"dotted key", "[workspace]\nmembers = [\"crates/*\"]\npackage.version = \"2.5.0\"\n"},
 		{"inline comment after the value", "[workspace]\n\n[workspace.package]\nversion = \"2.5.0\" # release train\n"},
 		{"literal string", "[workspace]\n\n[workspace.package]\nversion = '2.5.0'\n"},
+		{"inline table", "[workspace]\npackage = { version = \"2.5.0\" }\n"},
+		{"inline table with sibling keys", "[workspace]\npackage = { edition = \"2021\", version = \"2.5.0\", rust-version = \"1.70\" }\n"},
 	}
 	for _, tc := range roots {
 		if version := parseCargoWorkspaceInheritedVersion(tc.toml); version != "2.5.0" {

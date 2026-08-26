@@ -243,10 +243,49 @@ func TestSPDXLicenseComposition(t *testing.T) {
 			if pkg.PackageLicenseDeclared != tc.want {
 				t.Fatalf("declared: expected %q, got %q", tc.want, pkg.PackageLicenseDeclared)
 			}
-			if pkg.PackageLicenseConcluded != tc.want {
-				t.Fatalf("concluded: expected %q, got %q", tc.want, pkg.PackageLicenseConcluded)
-			}
 		})
+	}
+}
+
+// TestSPDXLicenseConcludedIsNeverAsserted pins that Bomly does not conclude a
+// license. Concluded is the document creator's own determination; every
+// license Bomly holds is declared by a source, and Bomly analyzes no package
+// contents, so SPDX's NOASSERTION is the honest value. The declared field
+// still carries what the source said.
+func TestSPDXLicenseConcludedIsNeverAsserted(t *testing.T) {
+	for _, licenses := range [][]sdk.PackageLicense{
+		nil,
+		{{Value: "MIT"}},
+		{{SPDXExpression: "MIT OR Apache-2.0"}},
+		{{Value: "MIT"}, {Value: "Apache-2.0"}},
+		{{Value: "see LICENSE file"}},
+	} {
+		pkg := spdxPackageLicense(t, licensedGraph(t, licenses...))
+		if pkg.PackageLicenseConcluded != "NOASSERTION" {
+			t.Fatalf("expected NOASSERTION concluded for %#v, got %q", licenses, pkg.PackageLicenseConcluded)
+		}
+	}
+}
+
+// TestSPDXConcludedNoAssertionSurvivesIngest covers the round trip: a document
+// whose concluded field is NOASSERTION must still yield the declared license
+// when read back, not a literal "NOASSERTION" license.
+func TestSPDXConcludedNoAssertionSurvivesIngest(t *testing.T) {
+	out, err := MarshalDepGraphJSON(licensedGraph(t, sdk.PackageLicense{Value: "MIT"}),
+		TargetSPDX23JSON, BuildOptions{}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal spdx: %v", err)
+	}
+	doc, _, err := UnmarshalAutoJSON(out)
+	if err != nil {
+		t.Fatalf("unmarshal document: %v", err)
+	}
+	if len(doc.Components) != 1 {
+		t.Fatalf("expected 1 component, got %d", len(doc.Components))
+	}
+	licenses := doc.Components[0].Licenses
+	if len(licenses) != 1 || licenses[0].Value != "MIT" {
+		t.Fatalf("expected the declared MIT license to survive ingest, got %#v", licenses)
 	}
 }
 

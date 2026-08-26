@@ -41,19 +41,23 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 		spdxID := common.ElementID(base)
 		idByComponent[c.ID] = spdxID
 
-		// Concluded repeats declared: the value came from a lockfile or a
-		// registry that asserts it, so concluding it is reading evidence, not
-		// inventing a claim. NOASSERTION here would discard data we hold.
-		license := spdxLicenseValue(c.Licenses)
 		pkg := &v23.Package{
-			PackageName:               c.NameOrID(),
-			PackageSPDXIdentifier:     spdxID,
-			PackageVersion:            c.Version,
-			PackageDownloadLocation:   spdxDownloadLocation(c),
-			FilesAnalyzed:             false,
-			PackageComment:            spdxPackageComment(c),
-			PackageLicenseDeclared:    license,
-			PackageLicenseConcluded:   license,
+			PackageName:             c.NameOrID(),
+			PackageSPDXIdentifier:   spdxID,
+			PackageVersion:          c.Version,
+			PackageDownloadLocation: spdxDownloadLocation(c),
+			FilesAnalyzed:           false,
+			PackageComment:          spdxPackageComment(c),
+			PackageLicenseDeclared:  spdxLicenseValue(c.Licenses),
+
+			// Concluded is the document creator's own determination. Every
+			// license Bomly carries is declared by a lockfile or a registry --
+			// the domain model has no other kind -- and Bomly does not analyze
+			// package contents, so it has nothing of its own to conclude.
+			// SPDX names that case: NOASSERTION when the creator made no
+			// attempt to determine the field. Nothing is lost; the declared
+			// value above still carries what a source asserted.
+			PackageLicenseConcluded:   "NOASSERTION",
 			PackageCopyrightText:      spdxCopyrightValue(c.Copyright),
 			PackageChecksums:          spdxChecksums(c.Digests),
 			PackageSourceInfo:         spdxSourceInfo(c),

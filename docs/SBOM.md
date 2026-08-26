@@ -113,7 +113,7 @@ text that means nothing to a machine. The formats keep these apart and tools
 score them differently, so Bomly checks each value rather than guessing from
 where it came:
 
-| The value | CycloneDX | SPDX 2.3 |
+| The value | CycloneDX | SPDX 2.3 `licenseDeclared` |
 |---|---|---|
 | One SPDX identifier (`MIT`) | `license.id`, spelled canonically | the identifier |
 | A compound expression (`MIT OR Apache-2.0`) | `expression` | the expression |
@@ -125,6 +125,13 @@ with `AND` — a package offered under several licenses is bound by all of them.
 Both formats publish the same string, so the two exports of one scan describe
 licensing identically. If any part is free text, CycloneDX keeps each license
 as its own entry instead, so the recognized ones keep their identifiers.
+
+SPDX `licenseConcluded` is always `NOASSERTION`. "Concluded" means the license
+the document's author determined for themselves, usually by examining the
+package's contents. Bomly reports what a lockfile or registry declares and
+analyzes no contents, so it has nothing of its own to conclude — and SPDX
+defines `NOASSERTION` for exactly that. The declared field still carries the
+license, and reading the document back recovers it.
 
 #### License data usually needs `--enrich`
 

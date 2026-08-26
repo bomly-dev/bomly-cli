@@ -43,10 +43,14 @@ valid expressions with free text cannot compose without producing something
 that does not parse, so CycloneDX falls back to one entry per license and SPDX
 to the first value.
 
-SPDX `licenseConcluded` repeats `licenseDeclared`. The values come from a
-lockfile or a registry that asserts them, so concluding from them reads
-evidence rather than inventing a claim; `NOASSERTION` would discard data Bomly
-holds.
+SPDX `licenseConcluded` is always `NOASSERTION`. Concluded is the document
+creator's own determination, and Bomly has none to offer: every license it
+holds is declared by a lockfile or a registry — `LicenseType` has no other
+value — and no stage analyzes package contents. SPDX names exactly this case,
+`NOASSERTION` when the creator made no attempt to determine the field, and
+Syft resolves it the same way for metadata-derived licenses. Nothing is lost,
+because `licenseDeclared` still carries what the source asserted, and ingest
+skips `NOASSERTION` and falls through to it.
 
 All SPDX expression parsing goes through `internal/licenseexpr`, which recovers
 from the parser's panics and reports the value as one it could not parse. No

@@ -11,13 +11,19 @@ did not: it published a license as an `expression` whenever the intermediate
 model happened to carry an `SPDXExpression`, and as a free-text `name`
 otherwise.
 
-The two fields do not correspond to those two shapes. Sources write whatever
-they have into both: the deps.dev matcher sets `Value` and `SPDXExpression` to
-the same string, "non-standard" as readily as "MIT". So a package licensed
-`MIT` was published as free text, unrecognized text was published as an
-expression that does not parse, and two licenses produced two `expression`
-entries, which CycloneDX does not allow. SPDX, holding one expression per
-package, kept `licenses[0]` and dropped the rest without saying so.
+Which field is populated says where a license came from, not what shape it has.
+Detection-time licenses carry only `Value`: the npm and pnpm parsers read a
+lockfile's plain `"MIT"` and set nothing else. Registry licenses carry both,
+because the deps.dev matcher copies one string into `Value` and
+`SPDXExpression` alike — "non-standard" as readily as "MIT".
+
+Selecting on the field therefore got both directions wrong. A package whose
+lockfile declared `MIT` was published as free text, because detection set no
+expression. Unrecognized registry text was published as an `expression` that
+does not parse, because the matcher set one. Two licenses produced two
+`expression` entries, which CycloneDX does not allow. And SPDX, holding one
+expression per package, kept `licenses[0]` and dropped the rest without
+saying so.
 
 Underneath, the SPDX expression parser Bomly depends on panics rather than
 returning an error on some malformed input — `(((` dereferences a nil operator.
@@ -59,6 +65,14 @@ the two exports of one scan now agree on every licensed component.
 `TestNoDirectSPDXExpressionUse` fails when any package under `internal/` imports
 the SPDX parser directly, so the panic guard cannot be bypassed by a new call
 site writing the call out by hand. `FuzzSPDXLicenseValue` exercises
-classification and composition over untrusted values; it is what found the
-parser panic, and it covers the auditor's crash as a side effect of the
-centralization.
+classification and composition over untrusted values on the export path; it is
+what found the parser panic. The auditor is covered by the wrapper's own tests
+rather than by that target, which does not call it: routing the auditor through
+`licenseexpr` is what fixes its crash.
+
+One limitation is knowingly left in place. SPDX has no free-text license field,
+so a single unrecognized value is still written verbatim into
+`licenseDeclared`, which is not a valid SPDX expression. Representing it as a
+`LicenseRef` with a matching `hasExtractedLicensingInfos` entry is the correct
+fix and is tracked separately; it is a different decision from this one, and
+folding it in would change what an unknown license means in the document.

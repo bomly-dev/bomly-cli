@@ -158,49 +158,103 @@ func TestCycloneDXComponentGroup(t *testing.T) {
 	}
 }
 
-// TestCycloneDXGroupSurvivesRoundTrip covers reading `group` back on ingest so
-// a re-ingested document keeps the namespace it published.
+// TestCycloneDXGroupSurvivesRoundTrip covers reading `group` back into the
+// document model, and — the part that matters — that ingesting a document does
+// not corrupt package names.
+//
+// A component's name is already ecosystem-native ("@scope/pkg"), while SDK
+// coordinates join Org with Name to build that same string. Carrying the group
+// into Coordinates.Org made the join happen twice ("@scope/@scope/pkg"), so
+// this asserts the name a re-ingested package reports, not just the field.
 func TestCycloneDXGroupSurvivesRoundTrip(t *testing.T) {
-	g := sdk.New()
-	dep := sdk.NewDependencyWithID("@scope/pkg@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{
-		Name:      "@scope/pkg",
-		Version:   "1.0.0",
-		PURL:      "pkg:npm/@scope/pkg@1.0.0",
-		Ecosystem: "npm",
-	}})
-	if err := g.AddNode(dep); err != nil {
-		t.Fatalf("add node: %v", err)
+	tests := []struct {
+		name      string
+		pkgName   string
+		purl      string
+		ecosystem string
+		wantGroup string
+	}{
+		{
+			name:      "npm scope",
+			pkgName:   "@scope/pkg",
+			purl:      "pkg:npm/@scope/pkg@1.0.0",
+			ecosystem: "npm",
+			wantGroup: "@scope",
+		},
+		{
+			name:      "go module",
+			pkgName:   "github.com/google/uuid",
+			purl:      "pkg:golang/github.com/google/uuid@v1.6.0",
+			ecosystem: "go",
+			wantGroup: "github.com/google",
+		},
+		{
+			name:      "maven coordinates",
+			pkgName:   "org.apache.commons:commons-lang3",
+			purl:      "pkg:maven/org.apache.commons/commons-lang3@3.14.0",
+			ecosystem: "maven",
+			wantGroup: "org.apache.commons",
+		},
 	}
 
-	out, err := MarshalDepGraphJSON(g, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{})
-	if err != nil {
-		t.Fatalf("marshal cyclonedx: %v", err)
-	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			g := sdk.New()
+			dep := sdk.NewDependencyWithID(tc.pkgName+"@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{
+				Name:      tc.pkgName,
+				Version:   "1.0.0",
+				PURL:      tc.purl,
+				Ecosystem: sdk.Ecosystem(tc.ecosystem),
+			}})
+			if err := g.AddNode(dep); err != nil {
+				t.Fatalf("add node: %v", err)
+			}
 
-	doc, _, err := UnmarshalAutoJSON(out)
-	if err != nil {
-		t.Fatalf("unmarshal document: %v", err)
-	}
-	if len(doc.Components) != 1 {
-		t.Fatalf("expected 1 component, got %d", len(doc.Components))
-	}
-	if doc.Components[0].Org != "@scope" {
-		t.Fatalf("expected Org %q, got %q", "@scope", doc.Components[0].Org)
-	}
+			out, err := MarshalDepGraphJSON(g, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{})
+			if err != nil {
+				t.Fatalf("marshal cyclonedx: %v", err)
+			}
 
-	graph, err := ToGraph(doc)
-	if err != nil {
-		t.Fatalf("to graph: %v", err)
-	}
-	found := false
-	graph.WalkNodes(func(pkg *sdk.Dependency) bool {
-		found = true
-		if pkg.Org != "@scope" {
-			t.Fatalf("expected coordinates Org %q, got %q", "@scope", pkg.Org)
-		}
-		return true
-	})
-	if !found {
-		t.Fatal("expected a node in the re-ingested graph")
+			doc, _, err := UnmarshalAutoJSON(out)
+			if err != nil {
+				t.Fatalf("unmarshal document: %v", err)
+			}
+			if len(doc.Components) != 1 {
+				t.Fatalf("expected 1 component, got %d", len(doc.Components))
+			}
+			if doc.Components[0].Org != tc.wantGroup {
+				t.Fatalf("expected Org %q, got %q", tc.wantGroup, doc.Components[0].Org)
+			}
+
+			graph, err := ToGraph(doc)
+			if err != nil {
+				t.Fatalf("to graph: %v", err)
+			}
+			found := false
+			graph.WalkNodes(func(pkg *sdk.Dependency) bool {
+				found = true
+				if got := pkg.EcosystemName(); got != tc.pkgName {
+					t.Fatalf("re-ingested name changed: expected %q, got %q", tc.pkgName, got)
+				}
+				return true
+			})
+			if !found {
+				t.Fatal("expected a node in the re-ingested graph")
+			}
+
+			// Re-exporting recovers the group from the PURL, so the namespace
+			// survives the full round trip without living on the coordinates.
+			out2, err := MarshalDepGraphJSON(graph, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{})
+			if err != nil {
+				t.Fatalf("re-marshal cyclonedx: %v", err)
+			}
+			doc2, _, err := UnmarshalAutoJSON(out2)
+			if err != nil {
+				t.Fatalf("re-unmarshal document: %v", err)
+			}
+			if len(doc2.Components) != 1 || doc2.Components[0].Org != tc.wantGroup {
+				t.Fatalf("group lost on re-export: %#v", doc2.Components)
+			}
+		})
 	}
 }

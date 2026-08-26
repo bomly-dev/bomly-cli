@@ -38,9 +38,13 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 		if purl := strings.TrimSpace(component.PURL); purl != "" {
 			packageID = purl
 		}
+		// Org is deliberately not set from the component's group. A component
+		// name is already ecosystem-native ("@scope/pkg", "github.com/google/
+		// uuid"), while Coordinates joins Org with Name for display -- setting
+		// both yields "@scope/@scope/pkg". The namespace stays recoverable from
+		// the PURL, which is where export reads it from anyway.
 		pkg := sdk.NewDependencyWithID(packageID, sdk.Dependency{Coordinates: sdk.Coordinates{Name: component.Name,
 			Version: component.Version,
-			Org:     strings.TrimSpace(component.Org),
 
 			Ecosystem:      ecosystem,
 			PackageManager: packageManager,

@@ -139,10 +139,11 @@ Add `--enrich` to fill them in from the deps.dev license matcher:
 bomly scan --enrich -o cyclonedx=bom.cdx.json -o spdx=bom.spdx.json
 ```
 
-This matters for compliance review. The EU Cyber Resilience Act expects an SBOM
-to identify component licensing, and third-party CRA profile checks report
-missing license data as an error. If you are producing an SBOM to hand to
-someone else, run it with `--enrich`.
+This matters for compliance review. Third-party SBOM quality checkers — the
+CRA-oriented profiles among them — report missing license data as an error, and
+a reviewer reading the file cannot tell "no license recorded" apart from "not
+looked up". If you are producing an SBOM to hand to someone else, run it with
+`--enrich`.
 
 ### Where a package came from
 
@@ -329,6 +330,11 @@ Some information necessarily becomes less specific during conversion:
   set that mixes real expressions with free text cannot be composed without
   producing an expression that does not parse; SPDX then keeps the first
   value, while CycloneDX keeps every license as its own entry.
+- SPDX has no free-text license field. CycloneDX carries an unrecognized
+  license as `license.name`, but SPDX writes it into `licenseDeclared`, where
+  it is not a valid SPDX expression. A strict SPDX consumer may reject such a
+  package. This only affects packages whose declared license is not an SPDX
+  identifier or expression.
 
 Before treating a generated file as a release artifact, validate it with the
 standard validator required by the receiving system. Bomly's tests parse every

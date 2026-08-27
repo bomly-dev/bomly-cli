@@ -67,6 +67,19 @@ derived from the stable facets alone — such nodes share an address and are
 disambiguated by the graph, not the address, and that limitation is stated
 rather than papered over.
 
+**When the occurrence facet is assigned.** The facet is set where
+contradiction is established — at consolidation — never at node creation.
+ADR-0033's rule is that a gap fills: a witness with no origin folds into the
+same-package witness that has one, and today's
+`preserveContradictingOccurrences` only re-IDs a package once more than one
+distinct non-empty resolution exists. Deriving a non-default occurrence
+facet from a node's own origin at creation would give the gap witness and
+the origin-bearing witness different IDs before consolidation ever ran,
+preventing the fold and duplicating nodes. So `NewDependency` derives the
+package-identity half only; the occurrence half defaults to empty, and the
+single consolidation entry point assigns non-default facets exactly to the
+records it has established as contradicting.
+
 **The readable ID.** `Dependency.ID` remains human-readable, because node IDs
 become CycloneDX bom-refs, SPDX element IDs, and `DependencyRefs` in scan
 JSON: the canonical PURL where one exists, with an occurrence suffix when

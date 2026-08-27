@@ -106,7 +106,7 @@ One sentence per decision; the ADRs carry the detail.
   SDK entry points.
 - **Model** (ADR-0037): every preserved SBOM assertion is a typed,
   `omitempty`, boundary-validated field with a declared merge class; typed
-  edges; a document-assertions carrier on `GraphContainer`; `Metadata`
+  edges; a per-entry document-assertions carrier on `GraphEntry`; `Metadata`
   returns to being an escape hatch.
 - **Kits** (ADR-0038): `purlkit` (parse/build/canonicalize with qualifiers +
   subpath, the one type-mapping table, `SplitEcosystemName`, the one
@@ -128,7 +128,7 @@ lands as normal PRs; nothing goes to main directly.
 |---|---|---|---|
 | 0.1 | sdk | Add an API-compatibility gate to CI (`gorelease`/`apidiff`) | Survey found none; prerequisite for doing deliberate breaks knowingly |
 | 0.2 | sdk, cli | Go 1.27 toolchain bump: `go` directive, CI matrices, release builders, CONTRIBUTING; absorb `go mod tidy` reshape and `stdversion` vet | ADR-0039 |
-| 0.3 | cli | File the five survey defects as issues; fix the two that are plain bugs now — CycloneDX scope reverse mapping, SPDX eol comment read-back | Neither depends on new SDK surface |
+| 0.3 | cli | File the five survey defects as issues; fix the SPDX eol comment read-back now (codec-local, CLI-owned behavior). The CycloneDX scope reverse-mapping fix is an explicit ADR-0040 loan: its durable home is the SDK scope mapping (1.4), so the CLI patch ships only with the SDK issue filed and linked from the code, and is replaced in 2.6 | The loan is taken because every CDX ingest today mints invalid scope values — waiting for phase 1.4 leaves a live bug |
 | 0.4 | cli | ADR-0033 stale-prose correction (supersede note re: scope union) | Doc-only |
 
 ### Phase 1 — SDK maturity (bomly-sdk v0.5.x → v0.7.x)
@@ -139,9 +139,9 @@ Breaking in-process changes are allowed (v0 policy); the wire stays additive
 | # | Work | Ships |
 |---|---|---|
 | 1.1 | `purlkit`: qualifiers/subpath-capable build/parse/canonicalize; the single purl-type ↔ ecosystem table (hex non-mapping recorded); `SplitEcosystemName`; canonical-ID rewrite entry point; import-boundary guard | v0.5.0 |
-| 1.2 | `spdxkit`: absorb `internal/licenseexpr` semantics (panic guards, `Valid`/`ValidateAll`/`Identifier`/`Compose`/`Satisfies`/`Extract`); deprecated-ID canonicalization from the license list; classification-by-validation; deterministic `LicenseRef-*` minting + extracted-text pairing; fix `matcherkit.NormalizeLicenseSet` to classify on write | v0.5.0 |
+| 1.2 | `spdxkit`: absorb `internal/licenseexpr` semantics (panic guards, `Valid`/`ValidateAll`/`Identifier`/`Compose`/`Satisfies`/`Extract`); deprecated-ID canonicalization via the audited replacement map relocated from `internal/sbom/transform.go` (the list marks deprecation; the map owns replacements); classification-by-validation; deterministic `LicenseRef-*` minting + extracted-text pairing; fix `matcherkit.NormalizeLicenseSet` to classify on write | v0.5.0 |
 | 1.3 | Identity (ADR-0036): facet definition, versioned content address, ecosystem-qualified `StableID` successor, `NewDependency` derivation; wire-compat fixtures extended | v0.6.0 |
-| 1.4 | Model fields (ADR-0037): supplier/originator/description/homepage; `ExternalReference`; `PackageLicense` declared/concluded + extracted text; digest-algorithm registry; scope ↔ CycloneDX vocabulary mapping; typed `DependencyEdge.Kind`; `GraphContainer` document assertions; per-field-class merge helpers; boundary validation codecs + fuzz targets for every new parser | v0.7.0 |
+| 1.4 | Model fields (ADR-0037): supplier/originator/description/homepage; `ExternalReference`; `PackageLicense` declared/concluded + extracted text; digest-algorithm registry; set-aware scope ↔ CycloneDX mapping with its scalar projection rule; typed `DependencyEdge.Kind`; per-`GraphEntry` document assertions; per-field-class merge helpers; boundary validation codecs + fuzz targets for every new parser | v0.7.0 |
 | 1.5 | Metadata policy: document reserved `bomly.` prefix; deprecate `MetadataKeyDetectionLicenses` in favor of the typed license field | v0.7.0 |
 
 Each SDK release is followed immediately by Dependabot-or-manual pin bumps in

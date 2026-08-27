@@ -10,7 +10,7 @@ its own minimal CI in its own repository.
 |-------------------------|----------------------------------|----------------------------------------------------------------------|
 | `CI`                    | Pull requests, pushes to `main`  | Lint, `go test ./...`, full and lite builds, npm wrapper tests, go.mod/go.sum tidy-drift and no-`replace` checks |
 | `Smoke`                 | Pull requests (labeled), nightly | End-to-end smoke slices driving the built binary against pinned public repositories |
-| `Update Smoke Goldens`  | Manual dispatch                  | Regenerates smoke golden files per slice and opens a PR with the drift |
+| `Update Smoke Goldens`  | Manual dispatch on the branch to regenerate from | Regenerates smoke golden files per slice and opens a PR with the drift |
 | `Fuzz`                  | Nightly schedule, manual dispatch | Native Go fuzzing over the `scripts/run-fuzz.sh` target list; uploads minimized failures as artifacts |
 | `CodeQL`                | Pull requests, pushes, schedule  | Static analysis for Go and JavaScript                                |
 | `SBOM Interoperability` | Schedule, manual dispatch        | Binary-driven SBOM export/ingest checks against third-party tools    |

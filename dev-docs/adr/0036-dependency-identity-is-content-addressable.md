@@ -48,7 +48,12 @@ identity-bearing keys, and URL-valued qualifiers pass the same
 credential/local-path gates as every published URL (ADR-0033), because an
 ingested PURL whose qualifier embeds a token must not become a published ID
 by canonicalization alone. When no PURL is derivable, package identity is
-the coordinate tuple `ecosystem, package manager, type, org, name, version`. The occurrence qualifier distinguishes contradicting
+the coordinate tuple `ecosystem, package manager, type, org, name, version` —
+taken only after `NormalizeDependencyIdentity` has run. The normalization
+pass owns the per-ecosystem case, separator, and format rules; identity adds
+no folding of its own beyond trimming surrounding whitespace, unnormalized
+records never reach identity derivation, and normalization idempotence is
+the stated invariant, guarded by test. The occurrence qualifier distinguishes contradicting
 resolutions of the same package per ADR-0033, but with a stricter admission
 rule than consolidation's current resolution key: only normalized,
 machine-independent, credential-free values enter the facet — the first-party
@@ -74,8 +79,11 @@ varies across machines and credential rotations for the same dependency, and
 hashing does not protect a low-entropy secret from offline guessing. A node
 whose resolution is distinguishable only by raw evidence still gets a
 distinct readable ID within the run, but its discriminator is ephemeral and
-content-free — a per-identity ordinal assigned deterministically during
-consolidation, never a hash of the evidence — because readable IDs are
+content-free — a per-identity ordinal assigned during consolidation in a
+stated order (the contradicting records sorted lexicographically by the
+resolution key that established the contradiction, ties broken by manifest
+path then location; never arrival or map-iteration order), never a hash of
+the evidence — because readable IDs are
 published in scan JSON and SBOMs, and a hash of a machine-specific path or
 low-entropy credential would carry the same instability and offline-guessing
 exposure into the published document. The persistent content address is
@@ -125,18 +133,34 @@ unescaped fallback base like `a@b 1` would be indistinguishable from base
 `a@b` plus suffix `1`. With both families escaping the delimiter, the
 suffix split is unambiguous by structure for every readable ID, and the
 delimiter change rides the same one-time ID change as the rest of this
-decision. What changes is who computes it: `NewDependency`
+decision. The decision-level parameters: the delimiter is a single ASCII
+space; the hash suffix is the first six bytes of the SHA-256 of the
+admitted occurrence facet, lowercase hex; the ordinal form is `o` followed
+by a decimal; fallback fields percent-encode space, percent, and control
+characters before joining; decoding splits on the last unescaped space
+before parsing the base. The full normative grammar, with examples covering
+subpaths, delimiter characters, and percent signs, ships as an SDK spec
+plus golden tests in the identity phase — the ADR fixes the parameters, the
+spec fixes every byte. What changes is who computes it: `NewDependency`
 and one SDK rewrite entry point derive it; detectors and the CLI stop minting
 IDs by string concatenation, and the three divergent rewrite sites collapse
 into one.
 
 **The content address.** The SDK additionally exposes a content address for
 each node: a SHA-256 digest over a versioned canonical encoding of the
-facets — the `bomly:node:v1` tag followed by each facet as a length-prefixed
-field, so the encoding stays injective even when untrusted input contains
-delimiter bytes (a NUL-joined tuple would let `("a\x00b", "c")` and
-`("a", "b\x00c")` collide) — truncated to 128 bits and hex-encoded. The
-version prefix means the facet set can evolve
+facets, and the encoding is fixed at the byte level: facets are UTF-8
+strings, each preceded by a four-byte big-endian length; the field order is
+the `bomly:node:v1` tag, the package identity, the occurrence facet; an
+absent facet is a zero-length field, still length-prefixed. Length prefixes
+keep the encoding injective even when untrusted input contains delimiter
+bytes (a NUL-joined tuple would let `("a\x00b", "c")` and `("a", "b\x00c")`
+collide). The digest is SHA-256 truncated to its first 16 bytes, rendered
+lowercase hex; golden test vectors covering representative and edge-case
+facet sets ship with the SDK implementation so independent implementations
+must agree. The address is defined only over finalized facets: computing it
+is a post-consolidation operation, the SDK exposes it on consolidated
+records, and anything that caches identity earlier must rekey after
+finalization. The version prefix means the facet set can evolve
 by bumping to `v2` without silently changing every stored address. The digest
 is deliberately derived, not stored as model state — it can always be
 recomputed from the facets, so persisting it is an optimization, never a
@@ -165,8 +189,10 @@ of `Dependency` is unchanged.
   address, so an address-keyed store must pair it with a store-local
   occurrence discriminator or persist those nodes at package granularity;
   the SDK documents the address as identifying the stable occurrence class,
-  never as a per-node primary key. Because it is versioned and truncatable,
-  the storage layer may shorten or re-derive it without a model change.
+  never as a per-node primary key. The full 128-bit address is the
+  canonical form everywhere: a store may re-derive it from the facets, but
+  never silently shorten it — a shortened rendering is presentation-only
+  and is never a comparison or storage key.
 - Two hashing choices are deliberately conservative: SHA-256 (already the
   digest of record in `filecache` and `OccurrenceID`), and no use of
   `hash/maphash` (its seeds are per-process, which is exactly what a

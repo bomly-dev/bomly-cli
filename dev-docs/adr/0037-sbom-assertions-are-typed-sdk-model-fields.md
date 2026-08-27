@@ -37,8 +37,14 @@ codecs are projections of it, not extensions to it.
 **Component-level fields.** `Dependency` and `Package` (or `Coordinates`
 where identity-adjacent) gain optional `omitempty` fields for supplier,
 originator, description, homepage, and a typed
-`ExternalReference{Type, Locator, Comment, Hashes}` list whose type
-vocabulary covers both formats' reference categories. The locator is typed
+`ExternalReference{Category, Type, Locator, Comment, Hashes}` list whose
+vocabulary covers both formats' reference categories — `Category` preserves
+SPDX's `referenceCategory` alongside the type, so the SPDX triple
+(category, type, locator) round-trips without re-derivation. Reference
+hashes round-trip natively in CycloneDX; SPDX 2.3 has no slot for them, so
+on SPDX export they ride the existing `bomly:` comment channel, and codec
+fixtures cover every supported category and reference hashes in both
+directions. The locator is typed
 by the reference category, not assumed to be a web URL: both formats carry
 non-URL locators — Bomly itself emits `pkg:` PURLs and `cpe:` values as
 SPDX external references today, and advisory references may be bare
@@ -55,11 +61,16 @@ exactly one place and is exercised in both directions — and it is defined
 for the scope *set*, not just a scalar. Both native fields hold one value
 (CycloneDX `scope` is a scalar, and the neutral component model mirrors it),
 so the SDK also defines the scalar projection rule for a multi-scope node
-(runtime presence wins) and the lossless side channel that carries the full
-set — a namespaced `bomly:scopes` CycloneDX property and the existing
-`bomly:scope` SPDX comment field, both read back on ingest — so the scope
-union PR #406 established survives the round trip instead of being
-flattened.
+and the lossless side channel that carries the full set — a namespaced
+`bomly:scopes` CycloneDX property and the existing `bomly:scope` SPDX
+comment field, both read back on ingest — so the scope union PR #406
+established survives the round trip instead of being flattened. The rules
+are complete, not illustrative: the scalar projection is any-runtime →
+`required`, otherwise `excluded`; the carrier is the lexicographically
+sorted, deduplicated, comma-joined list of SDK scope tokens; on ingest the
+carrier wins over the scalar when both are present, unknown tokens are
+dropped with a warning, and a bare scalar maps `required` → runtime and
+`optional`/`excluded` → development.
 
 **Usage facts carry their attribution.** Scope, relationship, and
 reachability answer questions about a *usage*, and filters compose them
@@ -78,10 +89,15 @@ summary of that list. A package present in several module roots is analyzed
 per root, so a singular annotation with one root field could retain at most
 one analysis after vulnerability consolidation; the evidence list keeps
 every record. The conjunctive join is evidence-to-location within the same
-module root — never the summary joined to every location. A conjunctive
-filter then selects usages, and the display shows the dependency path whose
-attribution satisfies every conjunct — instead of a node that satisfies
-each conjunct somewhere.
+module root — never the summary joined to every location. The join key is
+explicit: the usage unit is (module root, declaration site). Scope and
+relationship attach per site and are never combined across sites; a
+conjunctive filter must find its scope and relationship conjuncts on a
+single site, and its reachability on that site's module root — legitimate,
+because reachability is a fact about the module's own code and so covers
+every site within its root. A conjunctive filter then selects usages, and
+the display shows the dependency path whose attribution satisfies every
+conjunct — instead of a node that satisfies each conjunct somewhere.
 
 **Typed edges.** `DependencyEdge` gains an optional relationship kind
 (default depends-on; contains, describes, and the other members both formats
@@ -114,10 +130,20 @@ and one primary component, so a merged document *links* each source's
 identity rather than re-asserting it — SPDX `externalDocumentRefs`,
 CycloneDX an external reference of type `bom` carrying the source serial —
 while component-level assertions are preserved in full. The carrier retains
-what those link forms require, captured at ingest while the original bytes
-are still in hand: for SPDX, the source document namespace and a checksum
-over the original document (an `externalDocumentRef` is invalid without
-both); for CycloneDX, the source serial and version. The fixed-point
+what the link forms require, captured at ingest while the original bytes
+are still in hand — namespace or serial, document version, and a checksum
+over the original bytes, for every ingested document regardless of its
+format. The projection is then defined per output format. SPDX has no
+primary-component field, so the aggregate document `DESCRIBES` each root
+(the existing ADR-0032 mechanism, one relationship per root) and links each
+source via `externalDocumentRef` — the source's namespace, or its serial
+URN when the source was CycloneDX, plus the ingest-computed checksum, since
+the ref is invalid without both. CycloneDX links each source via an
+external reference of type `bom`: a BOM-Link `urn:cdx:<serial>/<version>`
+when the source has a serial (version captured at ingest, defaulting to 1),
+or the source namespace URI when it does not. Merged fixtures for both
+formats are validated through the codecs and the official format validators
+as part of the adoption phase. The fixed-point
 round-trip promise is correspondingly scoped to single-source flows: one
 ingested document re-exported reproduces its own assertions; a merged
 export preserves component assertions and references its sources.

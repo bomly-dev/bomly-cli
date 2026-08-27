@@ -37,9 +37,12 @@ the CLI moves with it.
 **Strict parsing for untrusted documents.** Parsers of untrusted input —
 SBOM ingest first, baseline and plugin-manifest codecs as they are touched —
 move to `encoding/json/v2` with duplicate-name rejection and UTF-8 validity
-enforced. A document that two readers could disagree about is rejected with
-an actionable error, and the change is documented as deliberate behavior in
-`docs/SBOM.md`. The plugin wire (`bomly.plugin.v1`) keeps its current
+enforced. The guarantee is exactly those two ambiguity classes — a document
+with duplicate object names or invalid UTF-8 is rejected with an actionable
+error. Other reader-divergence classes (case-variant field matching, for
+one) are not covered by json/v2's defaults and are not claimed here; closing
+any of them would be its own validation with its own decision. The change is
+documented as deliberate behavior in `docs/SBOM.md`. The plugin wire (`bomly.plugin.v1`) keeps its current
 decoding semantics: its compatibility contract is frozen fixtures, not
 strictness, and tightening it is a protocol decision that would need its own
 ADR.

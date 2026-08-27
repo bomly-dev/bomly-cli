@@ -64,8 +64,8 @@ escape hatch and does not survive the plugin wire as typed values.
 `hex` (`internal/sbom/identity.go:25` vs `internal/benchmark/summary.go:349`);
 `internal/cli/render/explain.go:118` parses PURLs by string surgery; 13
 detectors hardcode purl-type literals while 6 derive them; a hand-maintained
-18-entry deprecated-SPDX-ID table duplicates the license list
-(`internal/sbom/transform.go:455`); `ingestedCoordinateOrg`
+18-entry deprecated-SPDX-ID replacement table lives inside the SBOM codec
+instead of with the license machinery (`internal/sbom/transform.go:455`); `ingestedCoordinateOrg`
 (`internal/sbom/graph.go:122`) inverts `EcosystemName()` by prefix matching;
 `matcherkit.NormalizeLicenseSet` writes raw strings into `SPDXExpression`
 unvalidated; `internal/licenseexpr` (the panic-guarded SPDX parser) is
@@ -156,7 +156,7 @@ the golden refresh happens **once**:
 | # | Work | Replaces |
 |---|---|---|
 | 2.1 | Adopt `purlkit`: delete `internal/sbom/identity.go` table, `benchmark/summary.go` table, `render/explain.go` string surgery; detectors derive purl types (guard test forbids literals); one canonical-ID rewrite in consolidation, reused by SBOM ingest paths | Findings §2 duplication items |
-| 2.2 | Adopt `spdxkit`: delete `internal/licenseexpr` and the hand-rolled deprecated-ID table; export/import use kit classification | ADR-0035 stays behavioral truth, now SDK-enforced |
+| 2.2 | Adopt `spdxkit`: delete `internal/licenseexpr`; the deprecated-ID replacement map relocates into the kit; export/import use kit classification | ADR-0035 stays behavioral truth, now SDK-enforced |
 | 2.3 | Adopt identity: node IDs SDK-derived end to end; regenerate schemas, goldens, smoke; release-notes callout for the one-time ID change | ADR-0036 |
 | 2.4 | **Close #410**: `LicenseRef-*` + `hasExtractedLicensingInfos` emission, mixed-validity composition, canonical ingest coordinates via `SplitEcosystemName`; round-trip asserts `Org`+`Name`+`EcosystemName()` together | Also removes ADR-0035's recorded limitation |
 | 2.5 | **Close #396** on the typed model: ingest populates typed fields through their gates; export projects them; merge follows the declared classes; fixed-point test (export → ingest → export byte-stable for preserved fields); hostile-document fuzz coverage | Deferred #391 items stay deferred per ADR-0037 |

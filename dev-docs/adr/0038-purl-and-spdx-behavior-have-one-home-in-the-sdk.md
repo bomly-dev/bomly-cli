@@ -19,8 +19,11 @@ needed them, and the copies disagree:
   call sites while six rely on SDK derivation — two paths to one field, with
   the literals unvalidated at each site.
 - `internal/sbom/transform.go` hand-builds a `pkg:generic` PURL by string
-  concatenation, and hand-maintains an 18-entry deprecated-SPDX-ID table that
-  duplicates knowledge the vendored SPDX license list already has.
+  concatenation, and hand-maintains an 18-entry deprecated-SPDX-ID
+  replacement table inside the SBOM codec — the deprecation *marking*
+  duplicates the license list, while the replacement choices themselves are
+  original decisions living in a codec file rather than with the license
+  machinery.
 - The Org/Name split is inverted on SBOM ingest by prefix-matching
   heuristics (`ingestedCoordinateOrg`), re-deriving per-ecosystem rules that
   `EcosystemName()` and ADR-0021 already define in the forward direction —
@@ -55,7 +58,12 @@ heuristics; and the single canonical-identity rewrite used by consolidation
 **`spdxkit`** absorbs `internal/licenseexpr` — the panic guards travel with
 it, because license strings are untrusted everywhere, not just in the CLI —
 and adds what the current consumers hand-roll: deprecated-identifier
-canonicalization from the license list itself, classification-by-validation
+canonicalization backed by an explicit, audited replacement map (the license
+list marks an entry deprecated but does not encode what replaces it —
+`GPL-2.0` → `GPL-2.0-only`, `GPL-2.0-with-classpath-exception` → a
+license-plus-exception expression — so the map moves from
+`internal/sbom/transform.go` into the kit as the single authority; it is
+relocated, not deleted), classification-by-validation
 as the one way a license value becomes an identifier, expression, or free
 text (ADR-0035, now enforceable at write time in `NormalizeLicenseSet`
 rather than repair time at export), and deterministic `LicenseRef-*` minting

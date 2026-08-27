@@ -44,16 +44,29 @@ distinguish declared from concluded and to carry extracted license text for
 registry aligned with both formats' hash vocabularies rather than two string
 constants. Scope gains an SDK-owned mapping to and from the CycloneDX
 vocabulary (`required`/`optional`/`excluded`), so the mapping exists in
-exactly one place and is exercised in both directions.
+exactly one place and is exercised in both directions — and it is defined
+for the scope *set*, not just a scalar. Both native fields hold one value
+(CycloneDX `scope` is a scalar, and the neutral component model mirrors it),
+so the SDK also defines the scalar projection rule for a multi-scope node
+(runtime presence wins) and the lossless side channel that carries the full
+set — a namespaced `bomly:scopes` CycloneDX property and the existing
+`bomly:scope` SPDX comment field, both read back on ingest — so the scope
+union PR #406 established survives the round trip instead of being
+flattened.
 
 **Typed edges.** `DependencyEdge` gains an optional relationship kind
 (default depends-on; contains, describes, and the other members both formats
 need). Absence means depends-on, so the wire stays additive.
 
-**A document-level carrier.** `GraphContainer` gains a typed document
-assertions block (provenance, lifecycle, serial identity, primary-component
-assertions), so what a source document says about *itself* survives
-ingest → graph → re-export instead of being re-synthesized or lost.
+**A document-level carrier.** Document assertions (provenance, lifecycle,
+serial identity, primary-component assertions) attach to `GraphEntry`, next
+to the manifest metadata that already identifies each entry's source — not
+to `GraphContainer`, which is explicitly multi-entry: consolidation combines
+entries from several documents, and a container-level block would have to
+merge or discard per-document identity. What a source document says about
+*itself* thereby survives ingest → graph → re-export per document, and a
+merged export states its own aggregate identity rather than inheriting one
+source's.
 
 **Validation lives with the type.** Every field that carries untrusted input
 validates at the model boundary the way `DependencyOrigin` already does:

@@ -41,10 +41,14 @@ Node identity is defined once, in the SDK, as a versioned set of identity
 facets, and every identifier is derived from those facets by SDK code.
 
 **The facets.** A node's identity is the pair (package identity, occurrence
-qualifier). Package identity is the canonical PURL — including qualifiers and
-subpath once the SDK can carry them (ADR-0038) — or, when no PURL is
-derivable, the NUL-joined coordinate tuple `ecosystem, package manager, type,
-org, name, version`. The occurrence qualifier distinguishes contradicting
+qualifier). Package identity is the canonical PURL — including subpath and
+identity-safe qualifiers once the SDK can carry them (ADR-0038): qualifiers
+enter the identity form only through a `purlkit` allowlist of
+identity-bearing keys, and URL-valued qualifiers pass the same
+credential/local-path gates as every published URL (ADR-0033), because an
+ingested PURL whose qualifier embeds a token must not become a published ID
+by canonicalization alone. When no PURL is derivable, package identity is
+the coordinate tuple `ecosystem, package manager, type, org, name, version`. The occurrence qualifier distinguishes contradicting
 resolutions of the same package per ADR-0033, but with a stricter admission
 rule than consolidation's current resolution key: only normalized,
 machine-independent, credential-free values enter the facet — the first-party
@@ -53,17 +57,24 @@ never enters the facet encoding: it can carry local paths and credentials, it
 varies across machines and credential rotations for the same dependency, and
 hashing does not protect a low-entropy secret from offline guessing. A node
 whose resolution is distinguishable only by raw evidence still gets a
-distinct readable ID within the run (the full resolution key keeps doing that
-job), but its persistent content address is derived from the stable facets
-alone — two such nodes share an address and are disambiguated by the graph,
-not the address, and that limitation is stated rather than papered over.
+distinct readable ID within the run, but its discriminator is ephemeral and
+content-free — a per-identity ordinal assigned deterministically during
+consolidation, never a hash of the evidence — because readable IDs are
+published in scan JSON and SBOMs, and a hash of a machine-specific path or
+low-entropy credential would carry the same instability and offline-guessing
+exposure into the published document. The persistent content address is
+derived from the stable facets alone — such nodes share an address and are
+disambiguated by the graph, not the address, and that limitation is stated
+rather than papered over.
 
 **The readable ID.** `Dependency.ID` remains human-readable, because node IDs
 become CycloneDX bom-refs, SPDX element IDs, and `DependencyRefs` in scan
-JSON: the canonical PURL where one exists, with a truncated-hash occurrence
-suffix when the occurrence qualifier is non-default. The suffix keeps today's
-safety property — a hash, never the raw qualifier, because qualifiers can
-carry credentials and local paths — but its delimiter moves off `#`, which
+JSON: the canonical PURL where one exists, with an occurrence suffix when
+the occurrence qualifier is non-default — a truncated hash of the admitted
+occurrence facet, or the run-local ordinal where only raw evidence
+distinguishes records. Neither form ever embeds the raw qualifier or a hash
+of raw evidence, because these IDs are published and qualifiers can carry
+credentials and local paths. The suffix delimiter also moves off `#`, which
 PURL syntax already uses to introduce a subpath: once PURLs carry subpaths
 (ADR-0038), `pkg:golang/example@v1#module#abc123` cannot be split reliably.
 The occurrence marker is instead separated by a delimiter that cannot appear
@@ -76,9 +87,12 @@ IDs by string concatenation, and the three divergent rewrite sites collapse
 into one.
 
 **The content address.** The SDK additionally exposes a content address for
-each node: a SHA-256 digest over a versioned canonical encoding of the facets
-(`bomly:node:v1\x00<package identity>\x00<occurrence qualifier>`), truncated
-to 128 bits and hex-encoded. The version prefix means the facet set can evolve
+each node: a SHA-256 digest over a versioned canonical encoding of the
+facets — the `bomly:node:v1` tag followed by each facet as a length-prefixed
+field, so the encoding stays injective even when untrusted input contains
+delimiter bytes (a NUL-joined tuple would let `("a\x00b", "c")` and
+`("a", "b\x00c")` collide) — truncated to 128 bits and hex-encoded. The
+version prefix means the facet set can evolve
 by bumping to `v2` without silently changing every stored address. The digest
 is deliberately derived, not stored as model state — it can always be
 recomputed from the facets, so persisting it is an optimization, never a

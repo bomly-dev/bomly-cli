@@ -97,11 +97,16 @@ of raw evidence, because these IDs are published and qualifiers can carry
 credentials and local paths. The suffix delimiter also moves off `#`, which
 PURL syntax already uses to introduce a subpath: once PURLs carry subpaths
 (ADR-0038), `pkg:golang/example@v1#module#abc123` cannot be split reliably.
-The occurrence marker is instead separated by a delimiter that cannot appear
-in a canonical PURL (a single space serves: canonical PURLs percent-encode
-spaces), so the package-identity substring is recovered by structure, not
-guesswork, and the delimiter change rides the same one-time ID change as the
-rest of this decision. What changes is who computes it: `NewDependency`
+The occurrence marker is instead separated by a delimiter reserved in both
+ID families: a canonical PURL percent-encodes spaces by construction, and
+the fallback coordinate form (used when no PURL is derivable) is emitted in
+an escaped rendering that percent-encodes whitespace and the delimiter
+itself in each field — raw coordinate data may contain spaces, and an
+unescaped fallback base like `a@b 1` would be indistinguishable from base
+`a@b` plus suffix `1`. With both families escaping the delimiter, the
+suffix split is unambiguous by structure for every readable ID, and the
+delimiter change rides the same one-time ID change as the rest of this
+decision. What changes is who computes it: `NewDependency`
 and one SDK rewrite entry point derive it; detectors and the CLI stop minting
 IDs by string concatenation, and the three divergent rewrite sites collapse
 into one.

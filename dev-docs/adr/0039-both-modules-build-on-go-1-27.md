@@ -26,8 +26,13 @@ is.
 
 ## Decision
 
-Both modules move to `go 1.27` in the same coordinated release train as the
-model changes (ADR-0036/0037/0038), SDK first per the pin ordering.
+Both modules — and the nine `bomly-plugin-*` repositories that pin the
+SDK — move to `go 1.27` in the same coordinated release train as the model
+changes (ADR-0036/0037/0038). The ordering matters: a module's `go`
+directive must be at least its dependencies', so each plugin repo bumps its
+own toolchain (directive, CI, release builder) *before* adopting the first
+SDK tag that declares 1.27; the SDK tags first per the pin ordering, and
+the CLI moves with it.
 
 **Strict parsing for untrusted documents.** Parsers of untrusted input —
 SBOM ingest first, baseline and plugin-manifest codecs as they are touched —

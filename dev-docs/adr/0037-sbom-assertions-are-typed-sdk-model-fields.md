@@ -73,7 +73,15 @@ ever sees them. The export surface therefore takes the prepared entries (or
 a consolidated view that retains them) rather than a bare merged graph, and
 a single document exported from several entries follows the stated rule
 above — the document asserts its own aggregate identity while preserved
-per-source assertions ride the entries they came from.
+per-source assertions ride the entries they came from. That projection is
+defined, not implied: both formats give one document exactly one identity
+and one primary component, so a merged document *links* each source's
+identity rather than re-asserting it — SPDX `externalDocumentRefs`,
+CycloneDX an external reference of type `bom` carrying the source serial —
+while component-level assertions are preserved in full. The fixed-point
+round-trip promise is correspondingly scoped to single-source flows: one
+ingested document re-exported reproduces its own assertions; a merged
+export preserves component assertions and references its sources.
 
 **Validation lives with the type.** Every field that carries untrusted input
 validates at the model boundary the way `DependencyOrigin` already does:

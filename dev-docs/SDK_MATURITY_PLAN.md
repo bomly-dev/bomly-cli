@@ -127,7 +127,7 @@ lands as normal PRs; nothing goes to main directly.
 | # | Repo | Work | Notes |
 |---|---|---|---|
 | 0.1 | sdk | Add an API-compatibility gate to CI (`gorelease`/`apidiff`) | Survey found none; prerequisite for doing deliberate breaks knowingly |
-| 0.2 | sdk, cli | Go 1.27 toolchain bump: `go` directive, CI matrices, release builders, CONTRIBUTING; absorb `go mod tidy` reshape and `stdversion` vet | ADR-0039 |
+| 0.2 | sdk, cli, plugins | Go 1.27 toolchain bump: `go` directives, CI matrices, release builders, CONTRIBUTING; absorb `go mod tidy` reshape and `stdversion` vet. The nine `bomly-plugin-*` repos are part of this phase — a 1.27 SDK raises their minimum toolchain, so each must move before adopting the first 1.27 SDK tag | ADR-0039 |
 | 0.3 | cli | File the five survey defects as issues; fix the SPDX eol comment read-back now (codec-local, CLI-owned behavior). The CycloneDX scope reverse-mapping fix is an explicit ADR-0040 loan: its durable home is the SDK scope mapping (1.4), so the CLI patch ships only with the SDK issue filed and linked from the code, and is replaced in 2.6 | The loan is taken because every CDX ingest today mints invalid scope values — waiting for phase 1.4 leaves a live bug |
 | 0.4 | cli | ADR-0033 stale-prose correction (supersede note re: scope union) | Doc-only |
 
@@ -159,7 +159,7 @@ the golden refresh happens **once**:
 | 2.2 | Adopt `spdxkit`: delete `internal/licenseexpr`; the deprecated-ID replacement map relocates into the kit; export/import use kit classification | ADR-0035 stays behavioral truth, now SDK-enforced |
 | 2.3 | Adopt identity: node IDs SDK-derived end to end; regenerate schemas, goldens, smoke; release-notes callout for the one-time ID change | ADR-0036 |
 | 2.4 | **Close #410**: `LicenseRef-*` + `hasExtractedLicensingInfos` emission, mixed-validity composition, canonical ingest coordinates via `SplitEcosystemName`; round-trip asserts `Org`+`Name`+`EcosystemName()` together | Also removes ADR-0035's recorded limitation |
-| 2.5 | **Close #396** on the typed model: ingest populates typed fields through their gates; the export surface takes the prepared entries rather than the bare merged graph, so per-entry document assertions reach the codec; export projects them; merge follows the declared classes; fixed-point test (export → ingest → export byte-stable for preserved fields); hostile-document fuzz coverage | Deferred #391 items stay deferred per ADR-0037 |
+| 2.5 | **Close #396** on the typed model: ingest populates typed fields through their gates; the export surface takes the prepared entries rather than the bare merged graph, so per-entry document assertions reach the codec; export projects them; merge follows the declared classes; fixed-point test (single-source export → ingest → export byte-stable for preserved fields; a merged export links source identities per ADR-0037); hostile-document fuzz coverage | Deferred #391 items stay deferred per ADR-0037 |
 | 2.6 | Export full scope sets (fixes survey defect 2) and adopt json/v2 strict ingest with documented rejection behavior | ADR-0039 |
 | 2.7 | Registry-lookup and PURL-fallback helper consolidation across output/render/tui/mcp presentation layers | Survey §3 items 5–6 |
 

@@ -93,8 +93,18 @@ facet from a node's own origin at creation would give the gap witness and
 the origin-bearing witness different IDs before consolidation ever ran,
 preventing the fold and duplicating nodes. So `NewDependency` derives the
 package-identity half only; the occurrence half defaults to empty, and the
-single consolidation entry point assigns non-default facets exactly to the
-records it has established as contradicting.
+single consolidation entry point assigns durable non-default facets exactly
+to the records it has established as contradicting. One mechanical
+consequence follows from the graph being keyed by ID: when a single
+detector emits two same-package records with different resolutions, both
+must coexist in the graph *before* consolidation can classify them — which
+is why today's `EnsureOccurrence` rewrites the second ID pre-insertion. The
+SDK insertion entry point therefore assigns an ephemeral, explicitly
+non-durable discriminator at insert time to keep contradicting records
+alive, and consolidation finalizes each one: fold it as a gap, or replace
+the ephemeral discriminator with the durable occurrence facet. The
+ephemeral form never appears in output or persistence — finalization
+happens before either.
 
 **The readable ID.** `Dependency.ID` remains human-readable, because node IDs
 become CycloneDX bom-refs, SPDX element IDs, and `DependencyRefs` in scan

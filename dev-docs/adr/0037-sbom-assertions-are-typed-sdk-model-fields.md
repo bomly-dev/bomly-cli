@@ -85,7 +85,13 @@ each conjunct somewhere.
 
 **Typed edges.** `DependencyEdge` gains an optional relationship kind
 (default depends-on; contains, describes, and the other members both formats
-need). Absence means depends-on, so the wire stays additive.
+need). Absence means depends-on, so the wire stays additive. Kinds must
+also survive graph reconstruction: consolidation rebuilds edges during
+identity rewrites and renames via `AddEdge(fromID, toID)`, which would
+silently flatten every ingested kind back to depends-on. The SDK therefore
+provides a kind-preserving edge-copy/rename primitive, every reconstruction
+site routes through it, and a guard test fails on kind-blind edge rebuilding
+in copy paths.
 
 **A document-level carrier.** Document assertions (provenance, lifecycle,
 serial identity, primary-component assertions) attach to `GraphEntry`, next
@@ -107,7 +113,11 @@ defined, not implied: both formats give one document exactly one identity
 and one primary component, so a merged document *links* each source's
 identity rather than re-asserting it — SPDX `externalDocumentRefs`,
 CycloneDX an external reference of type `bom` carrying the source serial —
-while component-level assertions are preserved in full. The fixed-point
+while component-level assertions are preserved in full. The carrier retains
+what those link forms require, captured at ingest while the original bytes
+are still in hand: for SPDX, the source document namespace and a checksum
+over the original document (an `externalDocumentRef` is invalid without
+both); for CycloneDX, the source serial and version. The fixed-point
 round-trip promise is correspondingly scoped to single-source flows: one
 ingested document re-exported reproduces its own assertions; a merged
 export preserves component assertions and references its sources.

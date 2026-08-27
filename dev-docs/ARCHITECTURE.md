@@ -238,6 +238,7 @@ Cache failures are non-fatal. The command should warn and continue rather than f
 | `internal/output`     | Text, JSON, SARIF rendering, plus structured response payloads and schema generation            |
 | `internal/sbom`       | SPDX and CycloneDX codecs                                                                       |
 | `internal/assurance`  | Release assurance framework: check-result contract, catalog, report and index generation, release-asset verification, plus the `sbominterop` and `perfrun` check tools and the `cmd` entry point |
+| `internal/licenseexpr` | SPDX license expression parsing and identifier classification                                  |
 | `internal/benchmark`  | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets      |
 | `sdk`      | Shared domain types                                                                             |
 | `internal/plugin`     | Managed plugin manifests, installation, verification, store state, adapters, and runtime glue  |

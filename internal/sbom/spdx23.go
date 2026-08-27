@@ -9,6 +9,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/bomly-dev/bomly-cli/internal/licenseexpr"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/spdx/tools-golang/spdx/v2/common"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
@@ -41,14 +42,22 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 		idByComponent[c.ID] = spdxID
 
 		pkg := &v23.Package{
-			PackageName:               c.NameOrID(),
-			PackageSPDXIdentifier:     spdxID,
-			PackageVersion:            c.Version,
-			PackageDownloadLocation:   spdxDownloadLocation(c),
-			FilesAnalyzed:             false,
-			PackageComment:            spdxPackageComment(c),
-			PackageLicenseDeclared:    spdxLicenseValue(c.Licenses),
-			PackageLicenseConcluded:   spdxLicenseValue(c.Licenses),
+			PackageName:             c.NameOrID(),
+			PackageSPDXIdentifier:   spdxID,
+			PackageVersion:          c.Version,
+			PackageDownloadLocation: spdxDownloadLocation(c),
+			FilesAnalyzed:           false,
+			PackageComment:          spdxPackageComment(c),
+			PackageLicenseDeclared:  spdxLicenseValue(c.Licenses),
+
+			// Concluded is the document creator's own determination. Every
+			// license Bomly carries is declared by a lockfile or a registry --
+			// the domain model has no other kind -- and Bomly does not analyze
+			// package contents, so it has nothing of its own to conclude.
+			// SPDX names that case: NOASSERTION when the creator made no
+			// attempt to determine the field. Nothing is lost; the declared
+			// value above still carries what a source asserted.
+			PackageLicenseConcluded:   "NOASSERTION",
 			PackageCopyrightText:      spdxCopyrightValue(c.Copyright),
 			PackageChecksums:          spdxChecksums(c.Digests),
 			PackageSourceInfo:         spdxSourceInfo(c),
@@ -408,17 +417,31 @@ func parseSPDXCommentField(comment, field string) string {
 	return ""
 }
 
+// spdxLicenseValue renders a component's licenses into one SPDX license field.
+//
+// SPDX 2.3 holds a single expression per package and has no way to list
+// licenses without relating them, so a component carrying several has to
+// compose them rather than keep only the first, which silently dropped the
+// rest. AND is the conservative reading -- it overstates obligations rather
+// than understating them -- but it is still more than a source that merely
+// listed licenses actually said. CycloneDX lists them instead; this is the
+// one place the two formats differ, and it is recorded in docs/SBOM.md.
+//
+// A source that knows the relationship states it in one value ("Apache-2.0 OR
+// MIT"), which arrives here as a single value and passes through untouched.
+//
+// Composition applies only when every part is a valid expression; joining free
+// text would manufacture an expression that does not parse, so a mixed set
+// falls back to the first value as before.
 func spdxLicenseValue(licenses []License) string {
-	if len(licenses) == 0 {
+	values := componentLicenseValues(licenses)
+	if len(values) == 0 {
 		return "NOASSERTION"
 	}
-	if licenses[0].SPDXExpression != "" {
-		return licenses[0].SPDXExpression
+	if len(values) == 1 || !allValidSPDXExpressions(values) {
+		return values[0]
 	}
-	if licenses[0].Value != "" {
-		return licenses[0].Value
-	}
-	return "NOASSERTION"
+	return licenseexpr.Compose(values)
 }
 
 func spdxCopyrightValue(value string) string {

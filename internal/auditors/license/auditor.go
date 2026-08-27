@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/licenseexpr"
 	"github.com/bomly-dev/bomly-sdk"
-	"github.com/github/go-spdx/v2/spdxexp"
 )
 
 const (
@@ -100,7 +100,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 			findings = append(findings, finding(purl, dep.ID, "unknown-license", "Package license is unknown", sdk.FindingPolicyStatusWarn))
 			continue
 		}
-		valid, invalid := spdxexp.ValidateLicenses(licenses)
+		valid, invalid := licenseexpr.ValidateAll(licenses)
 		if !valid {
 			findings = append(findings, finding(purl, dep.ID, "invalid-license", "Package has invalid SPDX license: "+strings.Join(invalid, ", "), sdk.FindingPolicyStatusFail))
 			continue
@@ -108,7 +108,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 		if len(a.AllowLicenses) > 0 {
 			allowed := false
 			for _, expr := range licenses {
-				ok, err := spdxexp.Satisfies(expr, a.AllowLicenses)
+				ok, err := licenseexpr.Satisfies(expr, a.AllowLicenses)
 				if err == nil && ok {
 					allowed = true
 					break
@@ -121,7 +121,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 		}
 		if len(a.DenyLicenses) > 0 {
 			for _, expr := range licenses {
-				used, err := spdxexp.ExtractLicenses(expr)
+				used, err := licenseexpr.Extract(expr)
 				if err != nil {
 					continue
 				}

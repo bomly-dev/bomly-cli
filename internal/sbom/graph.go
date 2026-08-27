@@ -40,6 +40,7 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 		}
 		pkg := sdk.NewDependencyWithID(packageID, sdk.Dependency{Coordinates: sdk.Coordinates{Name: component.Name,
 			Version: component.Version,
+			Org:     ingestedCoordinateOrg(component),
 
 			Ecosystem:      ecosystem,
 			PackageManager: packageManager,
@@ -102,6 +103,54 @@ func isDocumentRootPseudoPackage(component Component) bool {
 		return true
 	}
 	return false
+}
+
+// ingestedCoordinateOrg returns the namespace to carry on an ingested
+// package's coordinates.
+//
+// SBOM producers split a namespaced package two ways. Bomly writes the whole
+// ecosystem-native name ("@scope/pkg", "github.com/google/uuid") and repeats
+// the namespace in `group`; most others write a bare name plus the namespace
+// in `group`. Coordinates joins Org with Name to rebuild the display name, so
+// which split arrived decides whether Org may be set at all: setting it on an
+// already-qualified name yields "@scope/@scope/pkg", and leaving it unset on a
+// bare name loses the namespace entirely.
+//
+// The name itself is never rewritten. Detectors and export both treat it as
+// the ecosystem-native identity, so this only fills in the namespace when the
+// name does not already carry it.
+func ingestedCoordinateOrg(component Component) string {
+	namespace := strings.TrimSpace(component.Org)
+	if purl := parsePURL(component.PURL); purl != nil {
+		if fromPURL := strings.TrimSpace(purl.Namespace); fromPURL != "" {
+			// The PURL is the stronger claim: it is structured, and export
+			// derives `group` from it in the first place.
+			namespace = fromPURL
+		}
+	}
+	if namespace == "" {
+		return ""
+	}
+
+	// Compared case-insensitively: PURL normalization lowercases the namespace
+	// for some types, so a Go module's namespace arrives as
+	// "github.com/burntsushi" while its name keeps "github.com/BurntSushi/toml".
+	// A case-sensitive test would miss that and double the namespace.
+	name := strings.TrimSpace(component.Name)
+	lowerName := strings.ToLower(name)
+	lowerNamespace := strings.ToLower(namespace)
+	if lowerName == lowerNamespace {
+		return ""
+	}
+	// "/" separates npm scopes and Go module paths; ":" separates Maven
+	// coordinates. A name already starting with the namespace and a separator
+	// carries it, so Org must stay empty to avoid doubling it.
+	for _, separator := range []string{"/", ":"} {
+		if strings.HasPrefix(lowerName, lowerNamespace+separator) {
+			return ""
+		}
+	}
+	return namespace
 }
 
 func graphLicenses(licenses []License) []sdk.PackageLicense {

@@ -1,4 +1,4 @@
-# ADR-0035: Release assurance is a declarative catalog plus a per-check result contract
+# ADR-0036: Release assurance is a declarative catalog plus a per-check result contract
 
 - **Date:** 2026-08-25
 - **Status:** Accepted

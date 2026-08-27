@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
+	"github.com/bomly-dev/bomly-cli/internal/licenseexpr"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -38,6 +39,7 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 		component := Component{
 			ID:             pkg.ID,
 			Name:           pkg.EcosystemName(),
+			Org:            componentOrg(pkg),
 			Version:        version,
 			Scope:          string(pkg.PrimaryScope()),
 			PURL:           pkg.PURL,
@@ -503,4 +505,58 @@ func normalizeSPDXLicenseExpression(expression string) string {
 	}
 	flush()
 	return b.String()
+}
+
+// componentOrg returns the namespace to publish as the component's group.
+//
+// The PURL's namespace is preferred over the raw coordinate because it is the
+// value the document already carries: PURL construction derives a namespace
+// for Go modules whose coordinates leave Org empty, and it spells npm scopes
+// with their leading "@". Reading it back keeps `group` and the PURL agreeing.
+func componentOrg(pkg *sdk.Dependency) string {
+	if pkg == nil {
+		return ""
+	}
+	if parsed := sdk.ParsePackageURL(pkg.PURL); parsed != nil {
+		if namespace := strings.TrimSpace(parsed.Namespace); namespace != "" {
+			return namespace
+		}
+	}
+	return strings.TrimSpace(pkg.Org)
+}
+
+// licenseExpressionValue returns the license string a component carries: the
+// SPDX expression when one was captured, otherwise the raw value. Both codecs
+// read licenses through this so CycloneDX and SPDX never disagree about which
+// string a license is.
+func licenseExpressionValue(license License) string {
+	if expression := strings.TrimSpace(license.SPDXExpression); expression != "" {
+		return expression
+	}
+	return strings.TrimSpace(license.Value)
+}
+
+// componentLicenseValues returns the non-empty license strings a component
+// carries, in order.
+func componentLicenseValues(licenses []License) []string {
+	values := make([]string, 0, len(licenses))
+	for _, license := range licenses {
+		if value := licenseExpressionValue(license); value != "" {
+			values = append(values, value)
+		}
+	}
+	return values
+}
+
+// allValidSPDXExpressions reports whether every value parses as an SPDX
+// license expression. Registry sources record free text ("non-standard") in
+// the same field as real expressions, so composing or publishing values as
+// expressions requires checking them rather than trusting where they came from.
+func allValidSPDXExpressions(values []string) bool {
+	for _, value := range values {
+		if !licenseexpr.Valid(value) {
+			return false
+		}
+	}
+	return true
 }

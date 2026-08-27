@@ -60,3 +60,4 @@ status to `Superseded by [ADR-NNNN](NNNN-slug.md)`; do not rewrite history
 | ADR-0037 | 2026-08-26 | [SBOM assertions are typed SDK model fields, not metadata keys](0037-sbom-assertions-are-typed-sdk-model-fields.md) | Accepted |
 | ADR-0038 | 2026-08-26 | [PURL and SPDX behavior have one home in the SDK](0038-purl-and-spdx-behavior-have-one-home-in-the-sdk.md) | Accepted |
 | ADR-0039 | 2026-08-26 | [Both modules build on Go 1.27; untrusted JSON parses strictly](0039-both-modules-build-on-go-1-27.md) | Accepted |
+| ADR-0040 | 2026-08-26 | [The SDK is the default home for behavior](0040-the-sdk-is-the-default-home-for-behavior.md) | Accepted |

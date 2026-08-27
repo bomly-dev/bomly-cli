@@ -13,6 +13,12 @@ which repository, in what order, and how we know the program is done. The
 goal is that future bugs land in one place with one fix, and new features
 start from a model that already carries what they need.
 
+The principle the whole program applies is recorded as a standing rule in
+[ADR-0040](adr/0040-the-sdk-is-the-default-home-for-behavior.md): behavior
+about shared domain objects lands in the SDK first, and the CLI and plugins
+keep only what is theirs by nature — so finishing this program is not a
+one-time cleanup but the point after which drift stops being the default.
+
 ## 1. Why now
 
 The last month of fixes shows one pattern: real defects, each patched at the

@@ -1,0 +1,203 @@
+# SDK Maturity Program
+
+- **Date:** 2026-08-26
+- **Owners:** bomly-sdk and bomly-cli maintainers
+- **Decisions:** [ADR-0036](adr/0036-dependency-identity-is-content-addressable.md)
+  (content-addressable identity), [ADR-0037](adr/0037-sbom-assertions-are-typed-sdk-model-fields.md)
+  (typed SBOM model), [ADR-0038](adr/0038-purl-and-spdx-behavior-have-one-home-in-the-sdk.md)
+  (PURL/SPDX single home), [ADR-0039](adr/0039-both-modules-build-on-go-1-27.md)
+  (Go 1.27, strict untrusted parsing)
+
+This document is the execution plan for those four decisions: what ships in
+which repository, in what order, and how we know the program is done. The
+goal is that future bugs land in one place with one fix, and new features
+start from a model that already carries what they need.
+
+## 1. Why now
+
+The last month of fixes shows one pattern: real defects, each patched at the
+site where it surfaced, because the rule that should have prevented it had no
+home.
+
+| Fix | Underlying gap |
+|---|---|
+| PR #406 — scopes lost when duplicate nodes fold; four detectors had private patches, ten silently dropped data | No single owner for node identity and fold semantics |
+| PR #407 — cargo workspace member misidentified by name alone; a real dependency vanished from matching | Same — identity resolved ad hoc per detector |
+| PR #409 — license shape decided by which field carried the value; first revision corrupted every namespaced name on ingest | No SDK license classification; Org/Name split invertible only by heuristics |
+| Issue #410 — SPDX free-text license emitted verbatim; every `--sbom` ingest loses `Org` (0 of 24 survive a round trip) | No `LicenseRef` machinery; no canonical name-split inverse |
+| Issue #396 / closed PR #391 — ingest drops supplier, checksums, CPEs, references; 20 review rounds could not make metadata-key smuggling safe | The model cannot carry SBOM assertions as typed, gated fields |
+
+The SDK sits at v0.4.2 with a stated policy that v0 minors may adjust the
+in-process Go API. That window is the cheapest this program will ever be;
+after a v1 freeze every one of these changes becomes a major-version event.
+
+## 2. Current state (survey, 2026-08-26)
+
+Full details live in the ADR context sections; the load-bearing facts:
+
+**Identity.** Three notions, none sufficient: `Dependency.ID` defaults to
+`StableID()` = `org:name@version` (not ecosystem-qualified — npm and PyPI
+`left-pad@1.0.0` collide); `IdentityKey()` is versionless diff grouping; the
+canonical PURL keys the registry but cannot carry qualifiers or subpath, and
+is reconstructed at three sites with three fallback chains
+(`internal/engine/consolidation/enrichment.go:26`,
+`internal/detectors/sbom/detector.go:164`, `internal/sbom/graph.go:37` — only
+the first canonicalizes). Nothing is content-addressable.
+
+**SBOM field coverage.** The SDK has no supplier, originator, description,
+homepage, external references, declared-vs-concluded license distinction,
+typed edges, or document-level assertions. `ToGraph` discards CPEs, digests,
+vulnerabilities, EOL, and origin URLs on ingest. `LicenseType` has one value.
+Digest algorithms are two string constants. The `Metadata` map is the only
+escape hatch and does not survive the plugin wire as typed values.
+
+**Duplication.** purl-type → ecosystem mapping exists twice and disagrees on
+`hex` (`internal/sbom/identity.go:25` vs `internal/benchmark/summary.go:349`);
+`internal/cli/render/explain.go:118` parses PURLs by string surgery; 13
+detectors hardcode purl-type literals while 6 derive them; a hand-maintained
+18-entry deprecated-SPDX-ID table duplicates the license list
+(`internal/sbom/transform.go:455`); `ingestedCoordinateOrg`
+(`internal/sbom/graph.go:122`) inverts `EcosystemName()` by prefix matching;
+`matcherkit.NormalizeLicenseSet` writes raw strings into `SPDXExpression`
+unvalidated; `internal/licenseexpr` (the panic-guarded SPDX parser) is
+unreachable from plugins that need it.
+
+**Fidelity defects found by this survey** (previously unreported — file as
+issues when the program starts):
+
+1. **CycloneDX scope does not round-trip.** Encode maps
+   `runtime→required` / `development→excluded` (`cyclonedx.go:374`), but
+   decode copies the raw token back (`cyclonedx.go:113,161`) and
+   `graph.go:48` mints nodes scoped `"required"`/`"excluded"` — values
+   outside the SDK vocabulary. No reverse mapping exists; tests cover only
+   the forward direction.
+2. **PR #406's scope union is discarded at export.** `transform.go:44`
+   exports `PrimaryScope()` — a single value — so a `[runtime, development]`
+   node loses the union at the SBOM boundary.
+3. **SPDX drops licenses on mixed validity.** `spdxLicenseValue`
+   (`spdx23.go:441`) falls back to `values[0]` when any member fails to
+   parse; CycloneDX's equivalent loses nothing. (Resolved by #410's
+   `LicenseRef` composition.)
+4. **SPDX writes `eol=`/`eol_date=` package-comment fields it never reads
+   back** (`spdx23.go:336` vs `:160,:397`).
+5. **ADR-0033's prose is stale**: it still says `EnsureNode` "deliberately
+   merges nothing"; #406 made scopes union. Supersede or annotate.
+
+**Go.** Both modules declare `go 1.26.3`. Go 1.27 shipped this month with
+`encoding/json/v2` (strict duplicate-key/UTF-8 rejection — a smuggling
+defense for SBOM ingest), stdlib `uuid`, generic methods, `strings.CutLast`.
+
+## 3. Target architecture
+
+One sentence per decision; the ADRs carry the detail.
+
+- **Identity** (ADR-0036): identity facets defined once in the SDK — a
+  readable ID (canonical PURL + hashed occurrence suffix) and a derived
+  128-bit content address over a versioned facet encoding — minted only by
+  SDK entry points.
+- **Model** (ADR-0037): every preserved SBOM assertion is a typed,
+  `omitempty`, boundary-validated field with a declared merge class; typed
+  edges; a document-assertions carrier on `GraphContainer`; `Metadata`
+  returns to being an escape hatch.
+- **Kits** (ADR-0038): `purlkit` (parse/build/canonicalize with qualifiers +
+  subpath, the one type-mapping table, `SplitEcosystemName`, the one
+  canonical-ID rewrite) and `spdxkit` (panic-guarded expression handling,
+  deprecated-ID canonicalization, classification-by-validation, `LicenseRef`
+  minting) — with import-boundary guard tests in both repos.
+- **Toolchain** (ADR-0039): both modules on Go 1.27; untrusted-document
+  parsers on json/v2 strict; stdlib `uuid`; one reviewed modernizer pass.
+
+## 4. Execution phases
+
+Ordering rule throughout (existing policy): **the SDK tags first, plugin
+repositories adopt the new tag, then the CLI updates its pin.** Every phase
+lands as normal PRs; nothing goes to main directly.
+
+### Phase 0 — Groundwork (small, independent PRs)
+
+| # | Repo | Work | Notes |
+|---|---|---|---|
+| 0.1 | sdk | Add an API-compatibility gate to CI (`gorelease`/`apidiff`) | Survey found none; prerequisite for doing deliberate breaks knowingly |
+| 0.2 | sdk, cli | Go 1.27 toolchain bump: `go` directive, CI matrices, release builders, CONTRIBUTING; absorb `go mod tidy` reshape and `stdversion` vet | ADR-0039 |
+| 0.3 | cli | File the five survey defects as issues; fix the two that are plain bugs now — CycloneDX scope reverse mapping, SPDX eol comment read-back | Neither depends on new SDK surface |
+| 0.4 | cli | ADR-0033 stale-prose correction (supersede note re: scope union) | Doc-only |
+
+### Phase 1 — SDK maturity (bomly-sdk v0.5.x → v0.7.x)
+
+Breaking in-process changes are allowed (v0 policy); the wire stays additive
+`bomly.plugin.v1` throughout, enforced by the existing frozen-fixture tests.
+
+| # | Work | Ships |
+|---|---|---|
+| 1.1 | `purlkit`: qualifiers/subpath-capable build/parse/canonicalize; the single purl-type ↔ ecosystem table (hex non-mapping recorded); `SplitEcosystemName`; canonical-ID rewrite entry point; import-boundary guard | v0.5.0 |
+| 1.2 | `spdxkit`: absorb `internal/licenseexpr` semantics (panic guards, `Valid`/`ValidateAll`/`Identifier`/`Compose`/`Satisfies`/`Extract`); deprecated-ID canonicalization from the license list; classification-by-validation; deterministic `LicenseRef-*` minting + extracted-text pairing; fix `matcherkit.NormalizeLicenseSet` to classify on write | v0.5.0 |
+| 1.3 | Identity (ADR-0036): facet definition, versioned content address, ecosystem-qualified `StableID` successor, `NewDependency` derivation; wire-compat fixtures extended | v0.6.0 |
+| 1.4 | Model fields (ADR-0037): supplier/originator/description/homepage; `ExternalReference`; `PackageLicense` declared/concluded + extracted text; digest-algorithm registry; scope ↔ CycloneDX vocabulary mapping; typed `DependencyEdge.Kind`; `GraphContainer` document assertions; per-field-class merge helpers; boundary validation codecs + fuzz targets for every new parser | v0.7.0 |
+| 1.5 | Metadata policy: document reserved `bomly.` prefix; deprecate `MetadataKeyDetectionLicenses` in favor of the typed license field | v0.7.0 |
+
+Each SDK release is followed immediately by Dependabot-or-manual pin bumps in
+the nine `bomly-plugin-*` repos (matcherkit and licence-writing matchers are
+the ones that materially change at 1.2).
+
+### Phase 2 — CLI adoption and cleanup (one coordinated train)
+
+The pin bump to v0.7.x and the following land as a short stacked series so
+the golden refresh happens **once**:
+
+| # | Work | Replaces |
+|---|---|---|
+| 2.1 | Adopt `purlkit`: delete `internal/sbom/identity.go` table, `benchmark/summary.go` table, `render/explain.go` string surgery; detectors derive purl types (guard test forbids literals); one canonical-ID rewrite in consolidation, reused by SBOM ingest paths | Findings §2 duplication items |
+| 2.2 | Adopt `spdxkit`: delete `internal/licenseexpr` and the hand-rolled deprecated-ID table; export/import use kit classification | ADR-0035 stays behavioral truth, now SDK-enforced |
+| 2.3 | Adopt identity: node IDs SDK-derived end to end; regenerate schemas, goldens, smoke; release-notes callout for the one-time ID change | ADR-0036 |
+| 2.4 | **Close #410**: `LicenseRef-*` + `hasExtractedLicensingInfos` emission, mixed-validity composition, canonical ingest coordinates via `SplitEcosystemName`; round-trip asserts `Org`+`Name`+`EcosystemName()` together | Also removes ADR-0035's recorded limitation |
+| 2.5 | **Close #396** on the typed model: ingest populates typed fields through their gates; export projects them; merge follows the declared classes; fixed-point test (export → ingest → export byte-stable for preserved fields); hostile-document fuzz coverage | Deferred #391 items stay deferred per ADR-0037 |
+| 2.6 | Export full scope sets (fixes survey defect 2) and adopt json/v2 strict ingest with documented rejection behavior | ADR-0039 |
+| 2.7 | Registry-lookup and PURL-fallback helper consolidation across output/render/tui/mcp presentation layers | Survey §3 items 5–6 |
+
+### Phase 3 — Hardening and documentation
+
+- Guard tests as first-class deliverables: no direct `packageurl-go`/
+  `go-spdx` imports outside kits; no hand-built PURL strings; no node-ID
+  minting outside SDK entry points; no second mapping tables.
+- `make generate` drift committed wherever config/output surfaces moved;
+  `docs/SBOM.md` preservation-limits section rewritten to the new (shorter)
+  truth; `dev-docs/MODELS.md` updated for identity facets and typed fields;
+  `CLAUDE.md`/`AGENTS.md` package maps updated.
+- Smoke: dispatch Update Smoke Goldens once after 2.3 and once after 2.5;
+  keep `test/smoke/testdata/scan_targets.json` and the benchmark list in
+  sync.
+- A modernizer (`go fix`) pass per repo, reviewed as its own PR.
+
+## 5. Compatibility and risk
+
+| Risk | Position |
+|---|---|
+| Node IDs change in scan JSON, bom-refs, `DependencyRefs` | One-time, phase 2.3 only, schemas regenerated, release-notes callout. Baselines key on package + finding references, not node IDs — verify with a baseline round-trip test before merging 2.3 |
+| Plugin wire compatibility | All model additions `omitempty`; frozen v1 fixtures must keep decoding; no field is renamed or repurposed. The wire-compat tests are the gate, extended per addition |
+| Nine plugin repos pinned to the SDK | Standard ordering (SDK tag → plugin bumps → CLI pin). Only matcher repos change behavior (license classification on write); the rest are mechanical bumps |
+| json/v2 strict ingest rejects previously-parsed SBOMs | Deliberate and documented; rejection error names the duplicate key. Only ingest is strict — the plugin wire keeps v1 semantics |
+| Golden churn | Batched to two refreshes (after 2.3, after 2.5); smoke runs capped at 5m per invocation as established |
+| `pub-native`/`swiftpm-native`/`sbt-native` graph-shape expectations | Run local benchmark + smoke with `dart`/`swift`/`sbt` on PATH before accepting shape drift in 2.3 |
+| SDK v1 pressure | Do **not** cut v1 during this program; v1 is the program's exit criterion, cut only after the CLI and all plugins run on the final surface for one release cycle |
+
+## 6. Definition of done
+
+1. Issues #410 and #396 closed by phase-2 PRs; survey defects 1–4 closed;
+   ADR-0033 prose corrected.
+2. `bomly scan` → export → ingest → export is a fixed point for every
+   preserved field, and a self-scan round trip preserves `org` for 24/24
+   packages (today: 0/24).
+3. Grep-level: zero purl-type string literals in detectors, zero
+   `packageurl-go`/`go-spdx` imports outside the kits, zero PURL string
+   concatenation outside `purlkit` — each enforced by a guard test, not a
+   review habit.
+4. One identity authority: every node ID and content address in the pipeline
+   is produced by an SDK entry point, and `left-pad@1.0.0` from two
+   ecosystems are two nodes in one merged graph, proven by test.
+5. Both modules on Go 1.27; untrusted SBOM ingest rejects duplicate-key
+   documents with an actionable error.
+6. `dev-docs/MODELS.md`, `docs/SBOM.md`, generated docs, and goldens reflect
+   the final state; SDK CI carries an API-compatibility gate.
+
+When all six hold for one full release cycle, propose the SDK v1 freeze as
+its own ADR.

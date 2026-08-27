@@ -11,6 +11,11 @@ is one file with an ID, date, and status. To record a new decision, copy
 the [index](adr/README.md). This document stays the architecture narrative;
 it links to ADRs where a section's behavior comes from a recorded decision.
 
+An active cross-repo program to mature the SDK model (content-addressable
+identity, SBOM-complete typed fields, single-home PURL/SPDX behavior, Go
+1.27) is planned in [`SDK_MATURITY_PLAN.md`](SDK_MATURITY_PLAN.md), backed by
+ADR-0036 through ADR-0039.
+
 ## Product Shape
 
 Bomly is a CLI-first dependency intelligence tool. The command-line interface is the public surface, while the analysis engine underneath is organized so the same runtime can support scanning, explanation, diffing, SBOM generation, and auditing without duplicating logic.

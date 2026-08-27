@@ -56,3 +56,7 @@ status to `Superseded by [ADR-NNNN](NNNN-slug.md)`; do not rewrite history
 | ADR-0033 | 2026-08-24 | [Package origin is detector-asserted; SBOM export only projects it](0033-package-origin-is-detector-asserted.md) | Accepted |
 | ADR-0034 | 2026-08-24 | [Decisions are recorded as individual ADRs](0034-decisions-are-recorded-as-individual-adrs.md) | Accepted |
 | ADR-0035 | 2026-08-25 | [License emission is validated, not assumed](0035-license-emission-is-validated-not-assumed.md) | Accepted |
+| ADR-0036 | 2026-08-26 | [Dependency identity is content-addressable and SDK-derived](0036-dependency-identity-is-content-addressable.md) | Accepted |
+| ADR-0037 | 2026-08-26 | [SBOM assertions are typed SDK model fields, not metadata keys](0037-sbom-assertions-are-typed-sdk-model-fields.md) | Accepted |
+| ADR-0038 | 2026-08-26 | [PURL and SPDX behavior have one home in the SDK](0038-purl-and-spdx-behavior-have-one-home-in-the-sdk.md) | Accepted |
+| ADR-0039 | 2026-08-26 | [Both modules build on Go 1.27; untrusted JSON parses strictly](0039-both-modules-build-on-go-1-27.md) | Accepted |

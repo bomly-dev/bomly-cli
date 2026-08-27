@@ -119,8 +119,15 @@ func isProjectRootID(id string) bool {
 
 // Component describes one package surfaced in the intermediate SBOM model.
 type Component struct {
-	ID             string
-	Name           string
+	ID   string
+	Name string
+
+	// Org is the package namespace -- an npm scope, a Go module host and
+	// owner, a Maven group. It is the PURL's namespace segment, emitted as
+	// CycloneDX `group`. SPDX 2.3 has no equivalent field, so there it is
+	// carried only inside the PURL external reference.
+	Org string
+
 	Version        string
 	Scope          string
 	PURL           string

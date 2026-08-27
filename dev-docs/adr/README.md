@@ -55,3 +55,4 @@ status to `Superseded by [ADR-NNNN](NNNN-slug.md)`; do not rewrite history
 | ADR-0032 | 2026-08-14 | [SBOM exports carry a synthesized primary component and shared document identity](0032-sbom-exports-carry-synthesized-primary-component.md) | Accepted |
 | ADR-0033 | 2026-08-24 | [Package origin is detector-asserted; SBOM export only projects it](0033-package-origin-is-detector-asserted.md) | Accepted |
 | ADR-0034 | 2026-08-24 | [Decisions are recorded as individual ADRs](0034-decisions-are-recorded-as-individual-adrs.md) | Accepted |
+| ADR-0035 | 2026-08-25 | [License emission is validated, not assumed](0035-license-emission-is-validated-not-assumed.md) | Accepted |

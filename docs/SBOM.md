@@ -92,7 +92,11 @@ Both formats carry:
   are normalized to lowercase hex so they are schema-valid in both formats.
 - License identifiers normalized to the current SPDX license list: deprecated
   ids such as `GPL-2.0` are rewritten to their replacements (`GPL-2.0-only`)
-  inside expressions, in both formats.
+  inside expressions, in both formats. See "How licenses are written" below.
+- The package namespace as CycloneDX `group` — an npm scope (`@scope`), a Go
+  module owner (`github.com/google`), a Maven group (`org.apache.commons`).
+  It is taken from the PURL, so the two always agree. SPDX 2.3 has no
+  equivalent field; there the namespace is carried inside the PURL.
 - An SPDX `primaryPackagePurpose` for every package (LIBRARY for registry
   packages, APPLICATION for the primary component, and so on).
 - Remediation guidance on CycloneDX vulnerability entries: when enrichment
@@ -101,6 +105,61 @@ Both formats carry:
   known. SPDX 2.3 has no equivalent field.
 - Where each package came from, when its lockfile says: an exact download
   location or a source repository. See "Where a package came from" below.
+
+### How licenses are written
+
+A license value can be a recognized SPDX identifier, a compound expression, or
+text that means nothing to a machine. The formats keep these apart and tools
+score them differently, so Bomly checks each value rather than guessing from
+where it came:
+
+| The value | CycloneDX | SPDX 2.3 `licenseDeclared` |
+|---|---|---|
+| One SPDX identifier (`MIT`) | `license.id`, spelled canonically | the identifier |
+| A compound expression (`MIT OR Apache-2.0`) | `expression` | the expression |
+| Anything else (`see LICENSE file`) | `license.name`, as free text | the text as-is |
+| Nothing | no `licenses` key | `NOASSERTION` |
+
+When a source records several licenses for one package, it is saying which
+licenses it found — not whether they all apply or whether you may choose
+between them. Bomly does not fill that gap in:
+
+- **CycloneDX** lists them as separate entries, which asserts no relationship.
+- **SPDX 2.3** has only one expression field and no way to list licenses
+  without relating them, so it joins them with `AND`. That overstates
+  obligations rather than understating them, but it does say more than the
+  source did. This is the one place the two formats differ on purpose.
+
+When a source *does* state the relationship, it puts it in one value —
+`Apache-2.0 OR MIT` is how registries record dual licensing — and both formats
+publish that expression exactly as given. Dual-licensed packages are therefore
+unaffected: Bomly never rewrites an `OR` into an `AND`.
+
+SPDX `licenseConcluded` is always `NOASSERTION`. "Concluded" means the license
+the document's author determined for themselves, usually by examining the
+package's contents. Bomly reports what a lockfile or registry declares and
+analyzes no contents, so it has nothing of its own to conclude — and SPDX
+defines `NOASSERTION` for exactly that. The declared field still carries the
+license, and reading the document back recovers it.
+
+#### License data usually needs `--enrich`
+
+Most lockfiles do not record licenses. Only npm and pnpm write them into the
+lockfile, so for every other ecosystem — Go, Maven, Python, Cargo, and the rest
+— a plain `bomly scan -o cyclonedx=...` produces components with no license
+data at all (SPDX writes `NOASSERTION`).
+
+Add `--enrich` to fill them in from the deps.dev license matcher:
+
+```bash
+bomly scan --enrich -o cyclonedx=bom.cdx.json -o spdx=bom.spdx.json
+```
+
+This matters for compliance review. Third-party SBOM quality checkers — the
+CRA-oriented profiles among them — report missing license data as an error, and
+a reviewer reading the file cannot tell "no license recorded" apart from "not
+looked up". If you are producing an SBOM to hand to someone else, run it with
+`--enrich`.
 
 ### Where a package came from
 
@@ -275,7 +334,23 @@ Some information necessarily becomes less specific during conversion:
   multiple roots, every root remains in the dependency graph and the
   synthesized primary component (see "Document identity" above) links them;
   ingest paths that predate the synthesized root treat the first
-  deterministic root as the primary component.
+  deterministic root as the primary component. The primary component is
+  written with the same detail as an inventory entry, so a package that is
+  both the document's subject and a component describes itself the same way
+  in both places.
+- The CycloneDX `group` namespace survives a CycloneDX round trip. SPDX 2.3
+  has no group field, so an SPDX round trip recovers the namespace only from
+  the PURL.
+- SPDX 2.3 holds one license expression per package, so several licenses are
+  composed with `AND` there while CycloneDX lists them (see "How licenses are
+  written" above). A set that mixes real expressions with free text cannot be
+  composed without producing an expression that does not parse; SPDX then
+  keeps the first value, while CycloneDX keeps every license as its own entry.
+- SPDX has no free-text license field. CycloneDX carries an unrecognized
+  license as `license.name`, but SPDX writes it into `licenseDeclared`, where
+  it is not a valid SPDX expression. A strict SPDX consumer may reject such a
+  package. This only affects packages whose declared license is not an SPDX
+  identifier or expression.
 
 Before treating a generated file as a release artifact, validate it with the
 standard validator required by the receiving system. Bomly's tests parse every

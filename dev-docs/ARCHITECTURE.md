@@ -237,6 +237,7 @@ Cache failures are non-fatal. The command should warn and continue rather than f
 | `internal/engine/scan` | Scan command pipeline API                                                                    |
 | `internal/output`     | Text, JSON, SARIF rendering, plus structured response payloads and schema generation            |
 | `internal/sbom`       | SPDX and CycloneDX codecs                                                                       |
+| `internal/licenseexpr` | SPDX license expression parsing and identifier classification                                  |
 | `internal/benchmark`  | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets      |
 | `sdk`      | Shared domain types                                                                             |
 | `internal/plugin`     | Managed plugin manifests, installation, verification, store state, adapters, and runtime glue  |

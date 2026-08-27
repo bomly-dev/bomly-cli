@@ -18,6 +18,7 @@ the reader inventory, cache behavior, and intentional exclusions.
 | Shared JSON contracts | dependency graph, package registry |
 | Package identifiers and plugin paths | package URL canonicalization, plugin path sanitizers |
 | SBOM | automatic SPDX and CycloneDX decoding; Syft JSON identification and deterministic rejection (the format is no longer ingested) |
+| License expressions | SPDX identifier classification, expression validation, and multi-license composition on the export path (`FuzzSPDXLicenseValue`), plus the deprecated-identifier rewriter (`FuzzNormalizeSPDXLicenseExpression`) |
 | Node lockfiles | npm, pnpm, Yarn, Bun |
 | Node project configuration | package.json, pnpm-workspace.yaml, and .npmrc behind the package-manager warning checks |
 | Python lockfiles | Poetry, uv, Pipenv |
@@ -42,6 +43,13 @@ oversized structures within the bound, and arbitrary path/reference text.
 - YAML, JSON, XML, TOML, URL, and CSV primitives provided directly by Go or
   existing dependencies are not fuzzed independently. Bomly-owned conversion
   and validation code around them is the target.
+- The SPDX expression parser (`github.com/github/go-spdx`) panics on some
+  malformed expressions rather than returning an error, and license strings
+  are untrusted repository and registry data. `internal/licenseexpr` contains
+  those panics and reports the value as unparseable, so `FuzzSPDXLicenseValue`
+  asserts the wrapper's behavior rather than the dependency's. A call site
+  that reaches the dependency directly would reintroduce the crash, which
+  `TestNoDirectSPDXExpressionUse` prevents.
 - Filesystem discovery and package-manager subprocess orchestration are not
   parsers and remain covered by unit, integration, and smoke tests.
 - Reachability analyzers (govulncheck, jsreach, pyreach, jvmreach) and the

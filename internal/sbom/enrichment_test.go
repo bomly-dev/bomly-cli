@@ -125,8 +125,11 @@ func TestFromDepGraphEnrichesSPDXFromRegistry(t *testing.T) {
 		t.Fatalf("expected 1 package, got %d", len(doc.Packages))
 	}
 	pkg := doc.Packages[0]
-	if pkg.PackageLicenseConcluded != "MIT" {
-		t.Fatalf("expected MIT license, got %q", pkg.PackageLicenseConcluded)
+	if pkg.PackageLicenseDeclared != "MIT" {
+		t.Fatalf("expected MIT declared license, got %q", pkg.PackageLicenseDeclared)
+	}
+	if pkg.PackageLicenseConcluded != "NOASSERTION" {
+		t.Fatalf("expected NOASSERTION concluded license, got %q", pkg.PackageLicenseConcluded)
 	}
 	if len(pkg.PackageChecksums) != 1 || string(pkg.PackageChecksums[0].Algorithm) != "SHA256" {
 		t.Fatalf("expected SHA256 checksum, got %#v", pkg.PackageChecksums)

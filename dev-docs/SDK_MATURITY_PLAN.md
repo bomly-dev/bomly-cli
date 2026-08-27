@@ -159,7 +159,7 @@ the golden refresh happens **once**:
 | 2.2 | Adopt `spdxkit`: delete `internal/licenseexpr`; the deprecated-ID replacement map relocates into the kit; export/import use kit classification | ADR-0035 stays behavioral truth, now SDK-enforced |
 | 2.3 | Adopt identity: node IDs SDK-derived end to end; regenerate schemas, goldens, smoke; release-notes callout for the one-time ID change | ADR-0036 |
 | 2.4 | **Close #410**: `LicenseRef-*` + `hasExtractedLicensingInfos` emission, mixed-validity composition, canonical ingest coordinates via `SplitEcosystemName`; round-trip asserts `Org`+`Name`+`EcosystemName()` together | Also removes ADR-0035's recorded limitation |
-| 2.5 | **Close #396** on the typed model: ingest populates typed fields through their gates; export projects them; merge follows the declared classes; fixed-point test (export → ingest → export byte-stable for preserved fields); hostile-document fuzz coverage | Deferred #391 items stay deferred per ADR-0037 |
+| 2.5 | **Close #396** on the typed model: ingest populates typed fields through their gates; the export surface takes the prepared entries rather than the bare merged graph, so per-entry document assertions reach the codec; export projects them; merge follows the declared classes; fixed-point test (export → ingest → export byte-stable for preserved fields); hostile-document fuzz coverage | Deferred #391 items stay deferred per ADR-0037 |
 | 2.6 | Export full scope sets (fixes survey defect 2) and adopt json/v2 strict ingest with documented rejection behavior | ADR-0039 |
 | 2.7 | Registry-lookup and PURL-fallback helper consolidation across output/render/tui/mcp presentation layers | Survey §3 items 5–6 |
 

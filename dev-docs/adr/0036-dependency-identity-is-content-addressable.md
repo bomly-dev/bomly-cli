@@ -52,7 +52,14 @@ the coordinate tuple `ecosystem, package manager, type, org, name, version`. The
 resolutions of the same package per ADR-0033, but with a stricter admission
 rule than consolidation's current resolution key: only normalized,
 machine-independent, credential-free values enter the facet — the first-party
-sentinel or the normalized origin (ADR-0033's gates). The raw `ResolvedURL`
+sentinel, or the origin under an identity-specific normalization that is
+deliberately stricter than ADR-0033's publication rule. ADR-0033 strips
+query and fragment from repository URLs but lets an asserted artifact URL
+keep a benign query; identity does not, because a signed or tokenized
+artifact query (`?token=...`, `?X-Amz-Signature=...`) is a rotating
+credential — so the facet uses the artifact URL with query and fragment
+stripped, while the published origin field keeps ADR-0033's own semantics
+untouched. The raw `ResolvedURL`
 never enters the facet encoding: it can carry local paths and credentials, it
 varies across machines and credential rotations for the same dependency, and
 hashing does not protect a low-entropy secret from offline guessing. A node
@@ -127,10 +134,15 @@ of `Dependency` is unchanged.
   per-detector patches.
 - A guard test in the CLI fails when a node ID is constructed outside the SDK
   entry points, in the spirit of `TestNodeInsertionGoesThroughTheSharedHelper`.
-- The content address gives cloud persistence and cross-run comparison a key
-  that is stable, collision-resistant, and free of resolution evidence — and
-  because it is versioned and truncatable, the storage layer may shorten or
-  re-derive it without a model change.
+- The content address gives cloud persistence and cross-run comparison a
+  stable, collision-resistant identifier free of resolution evidence — with
+  one stated bound: it is a stable-facet address, not a guaranteed-unique
+  node key. Occurrences distinguishable only by raw evidence share an
+  address, so an address-keyed store must pair it with a store-local
+  occurrence discriminator or persist those nodes at package granularity;
+  the SDK documents the address as identifying the stable occurrence class,
+  never as a per-node primary key. Because it is versioned and truncatable,
+  the storage layer may shorten or re-derive it without a model change.
 - Two hashing choices are deliberately conservative: SHA-256 (already the
   digest of record in `filecache` and `OccurrenceID`), and no use of
   `hash/maphash` (its seeds are per-process, which is exactly what a

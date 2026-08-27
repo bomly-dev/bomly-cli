@@ -66,7 +66,14 @@ entries from several documents, and a container-level block would have to
 merge or discard per-document identity. What a source document says about
 *itself* thereby survives ingest → graph → re-export per document, and a
 merged export states its own aggregate identity rather than inheriting one
-source's.
+source's. The carrier must also survive the export call path: today the
+pipeline merges entries into one `sdk.Graph` and the SBOM codec is handed
+only that graph, which would discard entry-level assertions before export
+ever sees them. The export surface therefore takes the prepared entries (or
+a consolidated view that retains them) rather than a bare merged graph, and
+a single document exported from several entries follows the stated rule
+above — the document asserts its own aggregate identity while preserved
+per-source assertions ride the entries they came from.
 
 **Validation lives with the type.** Every field that carries untrusted input
 validates at the model boundary the way `DependencyOrigin` already does:

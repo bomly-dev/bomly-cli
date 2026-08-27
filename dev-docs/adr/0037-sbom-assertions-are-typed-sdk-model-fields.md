@@ -71,10 +71,17 @@ and `Reachability` annotates the vulnerability with no link to the node or
 module whose analysis established it. So the model records usage facts where
 they are observed: `PackageLocation` gains the scopes and relationship
 observed at that declaration site (the node-level union becomes derived
-rather than primary), and `Reachability` gains the module root the analyzer
-established it in. A conjunctive filter then selects usages, and the display
-shows the dependency path whose attribution satisfies every conjunct —
-instead of a node that satisfies each conjunct somewhere.
+rather than primary), and reachability becomes repeatable evidence — each
+analysis contributes an evidence record keyed by the module root it was
+established in, and the vulnerability-level annotation becomes the derived
+summary of that list. A package present in several module roots is analyzed
+per root, so a singular annotation with one root field could retain at most
+one analysis after vulnerability consolidation; the evidence list keeps
+every record. The conjunctive join is evidence-to-location within the same
+module root — never the summary joined to every location. A conjunctive
+filter then selects usages, and the display shows the dependency path whose
+attribution satisfies every conjunct — instead of a node that satisfies
+each conjunct somewhere.
 
 **Typed edges.** `DependencyEdge` gains an optional relationship kind
 (default depends-on; contains, describes, and the other members both formats

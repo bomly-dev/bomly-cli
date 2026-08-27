@@ -32,6 +32,11 @@ public issue tracker.
 
 ## Development
 
+Building requires Go 1.27 or newer. On Go 1.21+ with the default
+`GOTOOLCHAIN=auto`, the right toolchain downloads automatically from the
+`go.mod` directive; with `GOTOOLCHAIN=local` or an older Go, install Go 1.27
+first.
+
 ```sh
 make build       # bin/bomly and bin/bomly-lite
 make test        # unit tests (includes the plugin fixture compile check)

@@ -40,3 +40,8 @@ qodana.yaml
 # accidental root-level build outputs
 /bomly
 /bomly-lite
+
+# local cross-repo workspace (go work init . ../bomly-sdk); never committed —
+# main must stay replace-free so remote go install keeps working
+go.work
+go.work.sum

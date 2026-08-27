@@ -105,9 +105,27 @@ relationship attach per site and are never combined across sites; a
 conjunctive filter must find its scope and relationship conjuncts on a
 single site, and its reachability on that site's module root — legitimate,
 because reachability is a fact about the module's own code and so covers
-every site within its root. A conjunctive filter then selects usages, and
-the display shows the dependency path whose attribution satisfies every
-conjunct — instead of a node that satisfies each conjunct somewhere.
+every site within its root. Evidence records may additionally carry
+`DependencyRefs` — the IDs of the exact graph nodes the analysis involved,
+final by analysis time because analyzers run after consolidation. The
+module root is the mandatory attribution floor (every analyzer knows its
+root; it arrives in the request), and node references are the optional
+precision ceiling for analyzers that can attribute to a specific
+occurrence: govulncheck knows the exact module version in the build,
+jsreach can distinguish nested `node_modules` copies through their
+locations, while others resolve one copy per environment and speak only at
+module granularity. Display follows the evidence honestly: with node
+references, the exact occurrence is highlighted; without them, the
+occurrences in the establishing root show "reachable via this module" and
+every other occurrence shows "not established here" — never "unreachable,"
+which no one asserted. The package → nodes direction needed for these joins
+stays derived, not stored: the stored truth is `Dependency.PackageRef`, and
+the SDK provides a reverse-index helper built from the graph — a stored
+back-reference list on `Package` would break the registry's position-free
+design (ADR-0006) and go stale on every consolidation rename. A conjunctive
+filter then selects usages, and the display shows the dependency path whose
+attribution satisfies every conjunct — instead of a node that satisfies
+each conjunct somewhere.
 
 **Typed edges.** `DependencyEdge` gains an optional relationship kind
 (default depends-on; contains, describes, and the other members both formats

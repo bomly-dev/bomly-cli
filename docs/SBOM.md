@@ -120,11 +120,20 @@ where it came:
 | Anything else (`see LICENSE file`) | `license.name`, as free text | the text as-is |
 | Nothing | no `licenses` key | `NOASSERTION` |
 
-When a package declares several licenses, they are joined into one expression
-with `AND` — a package offered under several licenses is bound by all of them.
-Both formats publish the same string, so the two exports of one scan describe
-licensing identically. If any part is free text, CycloneDX keeps each license
-as its own entry instead, so the recognized ones keep their identifiers.
+When a source records several licenses for one package, it is saying which
+licenses it found — not whether they all apply or whether you may choose
+between them. Bomly does not fill that gap in:
+
+- **CycloneDX** lists them as separate entries, which asserts no relationship.
+- **SPDX 2.3** has only one expression field and no way to list licenses
+  without relating them, so it joins them with `AND`. That overstates
+  obligations rather than understating them, but it does say more than the
+  source did. This is the one place the two formats differ on purpose.
+
+When a source *does* state the relationship, it puts it in one value —
+`Apache-2.0 OR MIT` is how registries record dual licensing — and both formats
+publish that expression exactly as given. Dual-licensed packages are therefore
+unaffected: Bomly never rewrites an `OR` into an `AND`.
 
 SPDX `licenseConcluded` is always `NOASSERTION`. "Concluded" means the license
 the document's author determined for themselves, usually by examining the
@@ -332,11 +341,11 @@ Some information necessarily becomes less specific during conversion:
 - The CycloneDX `group` namespace survives a CycloneDX round trip. SPDX 2.3
   has no group field, so an SPDX round trip recovers the namespace only from
   the PURL.
-- SPDX 2.3 holds one license expression per package, so several declared
-  licenses are composed into one (see "How licenses are written" above). A
-  set that mixes real expressions with free text cannot be composed without
-  producing an expression that does not parse; SPDX then keeps the first
-  value, while CycloneDX keeps every license as its own entry.
+- SPDX 2.3 holds one license expression per package, so several licenses are
+  composed with `AND` there while CycloneDX lists them (see "How licenses are
+  written" above). A set that mixes real expressions with free text cannot be
+  composed without producing an expression that does not parse; SPDX then
+  keeps the first value, while CycloneDX keeps every license as its own entry.
 - SPDX has no free-text license field. CycloneDX carries an unrecognized
   license as `license.name`, but SPDX writes it into `licenseDeclared`, where
   it is not a valid SPDX expression. A strict SPDX consumer may reject such a

@@ -419,11 +419,20 @@ func parseSPDXCommentField(comment, field string) string {
 
 // spdxLicenseValue renders a component's licenses into one SPDX license field.
 //
-// SPDX 2.3 holds a single expression per package, so a component declaring
-// several licenses has to compose them rather than keep only the first, which
-// silently dropped the rest. Composition applies only when every part is a
-// valid expression; joining free text would manufacture an expression that
-// does not parse, so a mixed set falls back to the first value as before.
+// SPDX 2.3 holds a single expression per package and has no way to list
+// licenses without relating them, so a component carrying several has to
+// compose them rather than keep only the first, which silently dropped the
+// rest. AND is the conservative reading -- it overstates obligations rather
+// than understating them -- but it is still more than a source that merely
+// listed licenses actually said. CycloneDX lists them instead; this is the
+// one place the two formats differ, and it is recorded in docs/SBOM.md.
+//
+// A source that knows the relationship states it in one value ("Apache-2.0 OR
+// MIT"), which arrives here as a single value and passes through untouched.
+//
+// Composition applies only when every part is a valid expression; joining free
+// text would manufacture an expression that does not parse, so a mixed set
+// falls back to the first value as before.
 func spdxLicenseValue(licenses []License) string {
 	values := componentLicenseValues(licenses)
 	if len(values) == 0 {

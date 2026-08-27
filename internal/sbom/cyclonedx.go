@@ -451,11 +451,22 @@ func cycloneDXComponent(comp Component) cdx.Component {
 // it records "MIT" -- so the shape is chosen by validating the value, not by
 // trusting its origin.
 //
-// A CycloneDX license list is either license objects or a single expression,
-// never a mix and never two expressions. Several licenses that all validate
-// therefore compose into one expression, matching the string SPDX declares for
-// the same component; if any part is free text, each license is emitted as its
-// own object instead so the recognized ones keep their identifiers.
+// Several licenses on one component carry no stated relationship: a source
+// reports the licenses it found, not whether they apply together or offer a
+// choice. CycloneDX can say exactly that -- a list of license entries asserts
+// nothing about how they combine -- so a multi-license component is listed
+// rather than composed, and "MIT AND Apache-2.0" is never claimed of a package
+// that may be offered under either.
+//
+// A source that does know the relationship states it in one value
+// ("Apache-2.0 OR MIT", which is how registries record dual licensing); that
+// arrives as a single expression and passes through untouched.
+//
+// The one case that must compose is a list where some member is itself
+// compound. A CycloneDX license list holds objects or one expression, never a
+// mix, and an object cannot carry an expression -- so listing would degrade a
+// real expression to free text. Composing keeps it, at the cost of asserting
+// AND across the members.
 func cycloneDXLicenses(licenses []License) cdx.Licenses {
 	values := componentLicenseValues(licenses)
 	if len(values) == 0 {
@@ -468,14 +479,14 @@ func cycloneDXLicenses(licenses []License) cdx.Licenses {
 			return cdx.Licenses{{License: &cdx.License{ID: id}}}
 		}
 		if licenseexpr.Valid(value) {
-			// A compound expression ("MIT OR Apache-2.0") has no license-object
-			// form; it can only be carried as an expression.
+			// A compound expression has no license-object form; it can only be
+			// carried as an expression.
 			return cdx.Licenses{{Expression: value}}
 		}
 		return cdx.Licenses{{License: &cdx.License{Name: value}}}
 	}
 
-	if allValidSPDXExpressions(values) {
+	if hasCompoundExpression(values) && allValidSPDXExpressions(values) {
 		return cdx.Licenses{{Expression: licenseexpr.Compose(values)}}
 	}
 
@@ -488,6 +499,17 @@ func cycloneDXLicenses(licenses []License) cdx.Licenses {
 		out = append(out, cdx.LicenseChoice{License: &cdx.License{Name: value}})
 	}
 	return out
+}
+
+// hasCompoundExpression reports whether any value is an expression rather than
+// a bare license identifier, and so cannot survive as a license object.
+func hasCompoundExpression(values []string) bool {
+	for _, value := range values {
+		if _, isID := licenseexpr.Identifier(value); !isID && licenseexpr.Valid(value) {
+			return true
+		}
+	}
+	return false
 }
 
 func cycloneDXHashes(digests []Digest) []cdx.Hash {

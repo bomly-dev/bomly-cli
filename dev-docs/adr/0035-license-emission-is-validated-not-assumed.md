@@ -36,12 +36,26 @@ been a second call site for the same defect.
 Every license value is classified by validating it, not by which field carried
 it. One SPDX list entry becomes CycloneDX `license.id` in its canonical
 spelling; a value that parses as an expression becomes `expression`; anything
-else stays free text in `license.name`. Several declared licenses compose into
-one `AND` expression — a package offered under several licenses is bound by all
-of them — and both formats publish the same composed string. A set that mixes
-valid expressions with free text cannot compose without producing something
-that does not parse, so CycloneDX falls back to one entry per license and SPDX
-to the first value.
+else stays free text in `license.name`.
+
+Several licenses on one component are *listed*, not related. A source reporting
+`["MIT", "Apache-2.0"]` says which licenses it found, not whether both apply or
+either may be chosen, so CycloneDX emits one entry per license — a list asserts
+no relationship — and `MIT AND Apache-2.0` is never claimed of a package that
+may be offered under either. A source that knows the relationship states it in
+one value (`Apache-2.0 OR MIT`, how registries record dual licensing), which
+arrives as a single expression and passes through untouched.
+
+SPDX 2.3 is the exception, because it holds one expression per package and has
+no form for an unrelated list. There the licenses join with `AND`: conservative
+in that it overstates obligations rather than understating them, but still more
+than the source said. This is the one deliberate cross-format difference, and
+it is recorded in `docs/SBOM.md`. CycloneDX composes only when a member is
+itself compound, where listing would degrade a real expression to free text.
+
+A set that mixes valid expressions with free text cannot compose without
+producing something that does not parse, so CycloneDX falls back to one entry
+per license and SPDX to the first value.
 
 SPDX `licenseConcluded` is always `NOASSERTION`. Concluded is the document
 creator's own determination, and Bomly has none to offer: every license it
@@ -63,8 +77,12 @@ than as `expression`. This is a visible change in output for packages whose
 declared license is not SPDX, and it is the point: the previous documents
 failed CycloneDX expression validation.
 
-Multi-license packages gain licenses in SPDX that were previously dropped, and
-the two exports of one scan now agree on every licensed component.
+Multi-license packages gain licenses in SPDX that were previously dropped. The
+two exports of one scan agree wherever a format can express the same thing;
+they differ for a multi-license component, where CycloneDX lists and SPDX must
+compose. A cross-format comparison will score that as a mismatch. Accuracy is
+worth more than the similarity number: making the documents agree would mean
+asserting a relationship in CycloneDX that no source stated.
 
 `TestNoDirectSPDXExpressionUse` fails when any package under `internal/` imports
 the SPDX parser directly, so the panic guard cannot be bypassed by a new call

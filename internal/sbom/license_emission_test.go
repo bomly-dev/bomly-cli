@@ -156,16 +156,38 @@ func TestCycloneDXLicenseShapes(t *testing.T) {
 // list holds license objects or one expression, never a mix and never two
 // expressions.
 func TestCycloneDXMultipleLicenses(t *testing.T) {
-	t.Run("all valid compose into one expression", func(t *testing.T) {
+	// Listing several licenses says only that they were found. Composing them
+	// with AND would claim a package offered under either is bound by both.
+	t.Run("several identifiers are listed, not composed", func(t *testing.T) {
 		licenses := cycloneDXComponentLicenses(t, licensedGraph(t,
 			sdk.PackageLicense{Value: "MIT"},
 			sdk.PackageLicense{Value: "Apache-2.0"},
 		))
+		if len(licenses) != 2 {
+			t.Fatalf("expected 2 license entries, got %#v", licenses)
+		}
+		for i, want := range []string{"MIT", "Apache-2.0"} {
+			if licenses[i].License == nil || licenses[i].License.ID != want {
+				t.Fatalf("expected license.id %q at %d, got %#v", want, i, licenses[i])
+			}
+			if licenses[i].Expression != "" {
+				t.Fatalf("expected no asserted relationship, got %q", licenses[i].Expression)
+			}
+		}
+	})
+
+	// A list cannot mix objects with an expression, and an object cannot hold
+	// one, so a compound member leaves composition as the only way to keep it.
+	t.Run("a compound member forces composition", func(t *testing.T) {
+		licenses := cycloneDXComponentLicenses(t, licensedGraph(t,
+			sdk.PackageLicense{SPDXExpression: "Apache-2.0 OR MIT"},
+			sdk.PackageLicense{Value: "Unicode-DFS-2016"},
+		))
 		if len(licenses) != 1 {
 			t.Fatalf("expected a single composed entry, got %#v", licenses)
 		}
-		if licenses[0].Expression != "MIT AND Apache-2.0" {
-			t.Fatalf("expected composed expression, got %#v", licenses[0])
+		if licenses[0].Expression != "(Apache-2.0 OR MIT) AND Unicode-DFS-2016" {
+			t.Fatalf("expected the compound member preserved, got %#v", licenses[0])
 		}
 	})
 
@@ -289,19 +311,35 @@ func TestSPDXConcludedNoAssertionSurvivesIngest(t *testing.T) {
 	}
 }
 
-// TestLicenseCompositionAgreesAcrossFormats guards the property a cross-format
-// comparison measures: one scan's two exports describe the same licensing.
-func TestLicenseCompositionAgreesAcrossFormats(t *testing.T) {
+// TestSourceStatedRelationshipSurvivesBothFormats covers the case that
+// actually matters for dual licensing: when a source states the relationship
+// itself ("Apache-2.0 OR MIT", how registries record it), both formats publish
+// that expression unchanged rather than reinterpreting it.
+func TestSourceStatedRelationshipSurvivesBothFormats(t *testing.T) {
+	const expression = "Apache-2.0 OR MIT"
+	licenses := []sdk.PackageLicense{{SPDXExpression: expression}}
+
+	cdxLicenses := cycloneDXComponentLicenses(t, licensedGraph(t, licenses...))
+	if len(cdxLicenses) != 1 || cdxLicenses[0].Expression != expression {
+		t.Fatalf("cyclonedx changed a source-stated expression: %#v", cdxLicenses)
+	}
+	if got := spdxPackageLicense(t, licensedGraph(t, licenses...)).PackageLicenseDeclared; got != expression {
+		t.Fatalf("spdx changed a source-stated expression: %q", got)
+	}
+}
+
+// TestMultipleLicensesDivergeByFormat pins the one deliberate cross-format
+// difference. CycloneDX can list licenses without relating them; SPDX 2.3
+// holds a single expression and has no such form, so it must compose. Both are
+// the most faithful thing each format can say.
+func TestMultipleLicensesDivergeByFormat(t *testing.T) {
 	licenses := []sdk.PackageLicense{{Value: "MIT"}, {Value: "Apache-2.0"}}
 
 	cdxLicenses := cycloneDXComponentLicenses(t, licensedGraph(t, licenses...))
-	if len(cdxLicenses) != 1 || cdxLicenses[0].Expression == "" {
-		t.Fatalf("expected one CycloneDX expression, got %#v", cdxLicenses)
+	if len(cdxLicenses) != 2 {
+		t.Fatalf("expected CycloneDX to list both licenses, got %#v", cdxLicenses)
 	}
-	spdxPkg := spdxPackageLicense(t, licensedGraph(t, licenses...))
-
-	if cdxLicenses[0].Expression != spdxPkg.PackageLicenseDeclared {
-		t.Fatalf("formats disagree: cyclonedx %q, spdx %q",
-			cdxLicenses[0].Expression, spdxPkg.PackageLicenseDeclared)
+	if got := spdxPackageLicense(t, licensedGraph(t, licenses...)).PackageLicenseDeclared; got != "MIT AND Apache-2.0" {
+		t.Fatalf("expected SPDX to compose, got %q", got)
 	}
 }

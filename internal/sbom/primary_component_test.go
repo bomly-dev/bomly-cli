@@ -158,6 +158,170 @@ func TestCycloneDXComponentGroup(t *testing.T) {
 	}
 }
 
+// TestIngestedCoordinateOrg covers both ways a producer splits a namespaced
+// package. Bomly writes the whole ecosystem-native name and repeats the
+// namespace in `group`; most other producers write a bare name plus `group`.
+// Coordinates joins Org with Name, so the split decides whether Org may be set:
+// setting it on an already-qualified name doubles the namespace, and leaving it
+// unset on a bare name loses it.
+func TestIngestedCoordinateOrg(t *testing.T) {
+	tests := []struct {
+		name      string
+		component Component
+		want      string
+	}{
+		{
+			name:      "bomly's own qualified npm name keeps Org empty",
+			component: Component{Name: "@scope/pkg", Org: "@scope", PURL: "pkg:npm/@scope/pkg@1.0.0"},
+			want:      "",
+		},
+		{
+			name:      "bomly's own qualified go name keeps Org empty",
+			component: Component{Name: "github.com/google/uuid", Org: "github.com/google", PURL: "pkg:golang/github.com/google/uuid@v1.6.0"},
+			want:      "",
+		},
+		{
+			name:      "bomly's own qualified maven name keeps Org empty",
+			component: Component{Name: "org.apache.commons:commons-lang3", Org: "org.apache.commons", PURL: "pkg:maven/org.apache.commons/commons-lang3@3.14.0"},
+			want:      "",
+		},
+		{
+			name:      "third-party bare npm name takes the namespace",
+			component: Component{Name: "pkg", Org: "@scope", PURL: "pkg:npm/@scope/pkg@1.0.0"},
+			want:      "@scope",
+		},
+		{
+			name:      "third-party bare go name takes the namespace",
+			component: Component{Name: "uuid", Org: "github.com/google", PURL: "pkg:golang/github.com/google/uuid@v1.6.0"},
+			want:      "github.com/google",
+		},
+		{
+			name:      "third-party bare maven name takes the namespace",
+			component: Component{Name: "commons-lang3", Org: "org.apache.commons", PURL: "pkg:maven/org.apache.commons/commons-lang3@3.14.0"},
+			want:      "org.apache.commons",
+		},
+		{
+			// The PURL is structured and export derives `group` from it, so it
+			// wins where the two disagree.
+			name:      "purl namespace outranks a differing group",
+			component: Component{Name: "pkg", Org: "scope", PURL: "pkg:npm/@scope/pkg@1.0.0"},
+			want:      "@scope",
+		},
+		{
+			name:      "group survives when the purl has no namespace",
+			component: Component{Name: "widget", Org: "acme", PURL: "pkg:generic/widget@1.0.0"},
+			want:      "acme",
+		},
+		{
+			// PURL normalization lowercases the Go namespace while the name
+			// keeps its original case. A case-sensitive prefix test misses
+			// this and doubles the namespace.
+			name:      "case-normalized purl namespace still matches the name",
+			component: Component{Name: "github.com/BurntSushi/toml", Org: "github.com/burntsushi", PURL: "pkg:golang/github.com/burntsushi/toml@v1.4.0"},
+			want:      "",
+		},
+		{
+			name:      "case-normalized namespace on a nested module path",
+			component: Component{Name: "github.com/Masterminds/semver/v3", Org: "github.com/masterminds/semver", PURL: "pkg:golang/github.com/masterminds/semver/v3@v3.3.0"},
+			want:      "",
+		},
+		{
+			name:      "no namespace anywhere",
+			component: Component{Name: "requests", PURL: "pkg:pypi/requests@2.31.0"},
+			want:      "",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := ingestedCoordinateOrg(tc.component); got != tc.want {
+				t.Fatalf("expected Org %q, got %q", tc.want, got)
+			}
+		})
+	}
+}
+
+// TestIngestBareNameRecoversQualifiedName covers a document written the way
+// most producers write one -- `group` plus a bare `name` -- reaching the graph
+// with its namespaced name intact, and keeping its group on re-export.
+func TestIngestBareNameRecoversQualifiedName(t *testing.T) {
+	tests := []struct {
+		name      string
+		component Component
+		ecosystem string
+		wantName  string
+		wantGroup string
+	}{
+		{
+			name:      "npm scope",
+			component: Component{ID: "pkg-1", Name: "pkg", Org: "@scope", Version: "1.0.0", PURL: "pkg:npm/@scope/pkg@1.0.0"},
+			ecosystem: "npm",
+			wantName:  "@scope/pkg",
+			wantGroup: "@scope",
+		},
+		{
+			name:      "go module",
+			component: Component{ID: "uuid-1", Name: "uuid", Org: "github.com/google", Version: "v1.6.0", PURL: "pkg:golang/github.com/google/uuid@v1.6.0"},
+			ecosystem: "go",
+			wantName:  "github.com/google/uuid",
+			wantGroup: "github.com/google",
+		},
+		{
+			// Generic packages do not join Org into the display name, but the
+			// group must still survive the round trip.
+			name:      "generic package keeps its group",
+			component: Component{ID: "widget-1", Name: "widget", Org: "acme", Version: "1.0.0", PURL: "pkg:generic/widget@1.0.0"},
+			ecosystem: "generic",
+			wantName:  "widget",
+			wantGroup: "acme",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			component := tc.component
+			component.Ecosystem = tc.ecosystem
+			doc := &Document{
+				Name:         "ingested",
+				Components:   []Component{component},
+				Dependencies: []Dependency{{Ref: component.ID}},
+				Roots:        []string{component.ID},
+			}
+
+			graph, err := ToGraph(doc)
+			if err != nil {
+				t.Fatalf("to graph: %v", err)
+			}
+			found := false
+			graph.WalkNodes(func(pkg *sdk.Dependency) bool {
+				found = true
+				if got := pkg.EcosystemName(); got != tc.wantName {
+					t.Fatalf("expected name %q, got %q", tc.wantName, got)
+				}
+				return true
+			})
+			if !found {
+				t.Fatal("expected a node in the ingested graph")
+			}
+
+			out, err := MarshalDepGraphJSON(graph, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{})
+			if err != nil {
+				t.Fatalf("marshal cyclonedx: %v", err)
+			}
+			var bom cdx.BOM
+			if err := json.Unmarshal(out, &bom); err != nil {
+				t.Fatalf("unmarshal cyclonedx: %v", err)
+			}
+			if bom.Components == nil || len(*bom.Components) != 1 {
+				t.Fatalf("expected 1 component, got %#v", bom.Components)
+			}
+			if got := (*bom.Components)[0].Group; got != tc.wantGroup {
+				t.Fatalf("expected group %q on re-export, got %q", tc.wantGroup, got)
+			}
+		})
+	}
+}
+
 // TestCycloneDXGroupSurvivesRoundTrip covers reading `group` back into the
 // document model, and — the part that matters — that ingesting a document does
 // not corrupt package names.

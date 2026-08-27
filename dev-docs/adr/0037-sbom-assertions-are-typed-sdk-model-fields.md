@@ -61,6 +61,21 @@ set — a namespaced `bomly:scopes` CycloneDX property and the existing
 union PR #406 established survives the round trip instead of being
 flattened.
 
+**Usage facts carry their attribution.** Scope, relationship, and
+reachability answer questions about a *usage*, and filters compose them
+conjunctively — "reachable, runtime, and direct" must hold of one usage, not
+of three different usages summarized onto the same node. Today each is a
+lossy summary: `Scopes` is a node-level union with no record of which
+declaration site contributed which scope, `Relationship` is a merged scalar,
+and `Reachability` annotates the vulnerability with no link to the node or
+module whose analysis established it. So the model records usage facts where
+they are observed: `PackageLocation` gains the scopes and relationship
+observed at that declaration site (the node-level union becomes derived
+rather than primary), and `Reachability` gains the module root the analyzer
+established it in. A conjunctive filter then selects usages, and the display
+shows the dependency path whose attribution satisfies every conjunct —
+instead of a node that satisfies each conjunct somewhere.
+
 **Typed edges.** `DependencyEdge` gains an optional relationship kind
 (default depends-on; contains, describes, and the other members both formats
 need). Absence means depends-on, so the wire stays additive.

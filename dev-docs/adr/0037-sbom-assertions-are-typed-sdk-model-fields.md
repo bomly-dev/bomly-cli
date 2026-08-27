@@ -37,8 +37,15 @@ codecs are projections of it, not extensions to it.
 **Component-level fields.** `Dependency` and `Package` (or `Coordinates`
 where identity-adjacent) gain optional `omitempty` fields for supplier,
 originator, description, homepage, and a typed
-`ExternalReference{Type, URL, Comment, Hashes}` list whose type vocabulary
-covers both formats' reference categories. `PackageLicense` grows to
+`ExternalReference{Type, Locator, Comment, Hashes}` list whose type
+vocabulary covers both formats' reference categories. The locator is typed
+by the reference category, not assumed to be a web URL: both formats carry
+non-URL locators — Bomly itself emits `pkg:` PURLs and `cpe:` values as
+SPDX external references today, and advisory references may be bare
+identifiers — so validation is selected per category: URL categories
+(website, distribution, vcs, issue tracker) pass the ADR-0033 gate family,
+while identifier categories validate against their own grammars (PURL
+parse, CPE validation, bounded identifier forms). `PackageLicense` grows to
 distinguish declared from concluded and to carry extracted license text for
 `LicenseRef-*` identifiers (issue #410). The digest algorithm set is a
 registry aligned with both formats' hash vocabularies rather than two string

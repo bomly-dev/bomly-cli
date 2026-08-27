@@ -59,7 +59,16 @@ keep a benign query; identity does not, because a signed or tokenized
 artifact query (`?token=...`, `?X-Amz-Signature=...`) is a rotating
 credential — so the facet uses the artifact URL with query and fragment
 stripped, while the published origin field keeps ADR-0033's own semantics
-untouched. The raw `ResolvedURL`
+untouched. Stripping can also erase a legitimate distinction: two artifacts
+served from one endpoint as `download?artifact=a` and `download?artifact=b`
+are distinct occurrences under ADR-0033 but share a stripped identity form.
+Contradiction detection therefore keeps using the ADR-0033-normalized
+origin (query intact), and when records established as contradicting
+coincide after identity normalization, they are handled exactly like
+raw-evidence-only occurrences: distinct run-local ordinals keep their
+readable IDs apart, and they share the stable-facet content address. Safety
+normalization may narrow what identity *persists*; it never causes
+consolidation to fold occurrences ADR-0033 keeps distinct. The raw `ResolvedURL`
 never enters the facet encoding: it can carry local paths and credentials, it
 varies across machines and credential rotations for the same dependency, and
 hashing does not protect a low-entropy secret from offline guessing. A node

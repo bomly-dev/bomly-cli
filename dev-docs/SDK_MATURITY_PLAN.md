@@ -44,8 +44,11 @@ Full details live in the ADR context sections; the load-bearing facts:
 **Identity.** Three notions, none sufficient: `Dependency.ID` defaults to
 `StableID()` = `org:name@version` (not ecosystem-qualified — npm and PyPI
 `left-pad@1.0.0` collide); `IdentityKey()` is versionless diff grouping; the
-canonical PURL keys the registry but cannot carry qualifiers or subpath, and
-is reconstructed at three sites with three fallback chains
+canonical PURL keys the registry, but the SDK cannot *reconstruct* qualifiers
+or subpath — an existing valid PURL keeps them through canonicalization,
+while the `BuildPackageURL` fallback accepts only type, namespace, name, and
+version — and the PURL-as-ID rewrite happens at three sites with three
+fallback chains
 (`internal/engine/consolidation/enrichment.go:26`,
 `internal/detectors/sbom/detector.go:164`, `internal/sbom/graph.go:37` — only
 the first canonicalizes). Nothing is content-addressable.
@@ -181,7 +184,7 @@ the golden refresh happens **once**:
 | Node IDs change in scan JSON, bom-refs, `DependencyRefs` | One-time, phase 2.3 only, schemas regenerated, release-notes callout. Baselines key on package + finding references, not node IDs — verify with a baseline round-trip test before merging 2.3 |
 | Plugin wire compatibility | All model additions `omitempty`; frozen v1 fixtures must keep decoding; no field is renamed or repurposed. The wire-compat tests are the gate, extended per addition |
 | Nine plugin repos pinned to the SDK | Standard ordering (SDK tag → plugin bumps → CLI pin). Only matcher repos change behavior (license classification on write); the rest are mechanical bumps |
-| json/v2 strict ingest rejects previously-parsed SBOMs | Deliberate and documented; rejection error names the duplicate key. Only ingest is strict — the plugin wire keeps v1 semantics |
+| json/v2 strict ingest rejects previously-parsed SBOMs | Deliberate and documented; the rejection error names the duplicate key or the invalid byte sequence. Only ingest is strict — the plugin wire keeps v1 semantics |
 | Golden churn | Batched to two refreshes (after 2.3, after 2.5); smoke runs capped at 5m per invocation as established |
 | `pub-native`/`swiftpm-native`/`sbt-native` graph-shape expectations | Run local benchmark + smoke with `dart`/`swift`/`sbt` on PATH before accepting shape drift in 2.3 |
 | SDK v1 pressure | Do **not** cut v1 during this program; v1 is the program's exit criterion, cut only after the CLI and all plugins run on the final surface for one release cycle |
@@ -200,8 +203,8 @@ the golden refresh happens **once**:
 4. One identity authority: every node ID and content address in the pipeline
    is produced by an SDK entry point, and `left-pad@1.0.0` from two
    ecosystems are two nodes in one merged graph, proven by test.
-5. Both modules on Go 1.27; untrusted SBOM ingest rejects duplicate-key
-   documents with an actionable error.
+5. Both modules on Go 1.27; untrusted SBOM ingest rejects documents with
+   duplicate object names or invalid UTF-8, each with an actionable error.
 6. `dev-docs/MODELS.md`, `docs/SBOM.md`, generated docs, and goldens reflect
    the final state; SDK CI carries an API-compatibility gate.
 

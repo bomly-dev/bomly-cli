@@ -44,17 +44,33 @@ facets, and every identifier is derived from those facets by SDK code.
 qualifier). Package identity is the canonical PURL — including qualifiers and
 subpath once the SDK can carry them (ADR-0038) — or, when no PURL is
 derivable, the NUL-joined coordinate tuple `ecosystem, package manager, type,
-org, name, version`. The occurrence qualifier is the resolution key already
-defined by consolidation (first-party sentinel, normalized origin, or raw
-resolved URL); it distinguishes contradicting resolutions of the same package
-per ADR-0033.
+org, name, version`. The occurrence qualifier distinguishes contradicting
+resolutions of the same package per ADR-0033, but with a stricter admission
+rule than consolidation's current resolution key: only normalized,
+machine-independent, credential-free values enter the facet — the first-party
+sentinel or the normalized origin (ADR-0033's gates). The raw `ResolvedURL`
+never enters the facet encoding: it can carry local paths and credentials, it
+varies across machines and credential rotations for the same dependency, and
+hashing does not protect a low-entropy secret from offline guessing. A node
+whose resolution is distinguishable only by raw evidence still gets a
+distinct readable ID within the run (the full resolution key keeps doing that
+job), but its persistent content address is derived from the stable facets
+alone — two such nodes share an address and are disambiguated by the graph,
+not the address, and that limitation is stated rather than papered over.
 
 **The readable ID.** `Dependency.ID` remains human-readable, because node IDs
 become CycloneDX bom-refs, SPDX element IDs, and `DependencyRefs` in scan
-JSON: the canonical PURL where one exists, with the existing `#<hex>`
-occurrence suffix when the occurrence qualifier is non-default. The suffix
-stays a truncated hash, never the raw qualifier, because qualifiers can carry
-credentials and local paths. What changes is who computes it: `NewDependency`
+JSON: the canonical PURL where one exists, with a truncated-hash occurrence
+suffix when the occurrence qualifier is non-default. The suffix keeps today's
+safety property — a hash, never the raw qualifier, because qualifiers can
+carry credentials and local paths — but its delimiter moves off `#`, which
+PURL syntax already uses to introduce a subpath: once PURLs carry subpaths
+(ADR-0038), `pkg:golang/example@v1#module#abc123` cannot be split reliably.
+The occurrence marker is instead separated by a delimiter that cannot appear
+in a canonical PURL (a single space serves: canonical PURLs percent-encode
+spaces), so the package-identity substring is recovered by structure, not
+guesswork, and the delimiter change rides the same one-time ID change as the
+rest of this decision. What changes is who computes it: `NewDependency`
 and one SDK rewrite entry point derive it; detectors and the CLI stop minting
 IDs by string concatenation, and the three divergent rewrite sites collapse
 into one.

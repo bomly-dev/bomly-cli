@@ -15,10 +15,14 @@ modernizers; and `go mod tidy` require-block consolidation for 1.27 modules.
 The json/v2 point is a security posture question, not a convenience. Bomly
 parses SBOM documents, plugin payloads, baselines, and lockfiles produced by
 untrusted parties. Under `encoding/json` v1 semantics, a document with a
-duplicated object key parses with last-writer-wins, which means two
-consumers of the same SBOM can read two different license or PURL values
-from one document — a classic smuggling vector against exactly the kind of
-tool Bomly is.
+duplicated object name still parses: members are processed in input order,
+and whether a later value replaces or merges with an earlier one depends on
+the target Go type — replacement for scalars, merging for structs and maps —
+with the documentation explicitly warning applications not to depend on the
+outcome. That is precisely the problem: two consumers decoding the same SBOM
+into different shapes can read two different license or PURL values from one
+document — a classic smuggling vector against exactly the kind of tool Bomly
+is.
 
 ## Decision
 
@@ -46,13 +50,16 @@ other change.
 ## Consequences
 
 - `go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest` now requires
-  a Go 1.27 toolchain (the `go` directive triggers automatic toolchain
-  download for module-aware users). CI matrices, release builders, and
-  CONTRIBUTING move to 1.27 in the same PRs.
+  a Go 1.27 toolchain. Users on Go 1.21 or later with the default
+  `GOTOOLCHAIN=auto` get it automatically — the `go` directive triggers the
+  toolchain download; users on older Go versions, or who set
+  `GOTOOLCHAIN=local`, must upgrade by hand. CI matrices, release builders,
+  and CONTRIBUTING move to 1.27 in the same PRs.
 - Strict SBOM ingest can reject documents that previously parsed. That is
   the point, and it is bounded: rejection only fires on documents whose
-  meaning was already ambiguous. The error names the offending key so users
-  can fix or re-generate the document.
+  meaning was already ambiguous or whose encoding was already malformed. The
+  error names the offending key or byte sequence so users can fix or
+  re-generate the document.
 - `go test` now runs the `stdversion` vet check by default and `go mod tidy`
   reshapes both go.mod files once; both are absorbed in the upgrade PRs.
 - The `simd` packages and other experiments in 1.27 are out of scope; nothing

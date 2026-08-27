@@ -44,14 +44,16 @@ SPDX's `referenceCategory` alongside the type, so the SPDX triple
 hashes round-trip natively in CycloneDX; SPDX 2.3 has no slot for them, so
 on SPDX export they ride the existing `bomly:` comment channel, and codec
 fixtures cover every supported category and reference hashes in both
-directions. The locator is typed
-by the reference category, not assumed to be a web URL: both formats carry
-non-URL locators — Bomly itself emits `pkg:` PURLs and `cpe:` values as
-SPDX external references today, and advisory references may be bare
-identifiers — so validation is selected per category: URL categories
-(website, distribution, vcs, issue tracker) pass the ADR-0033 gate family,
-while identifier categories validate against their own grammars (PURL
-parse, CPE validation, bounded identifier forms). `PackageLicense` grows to
+directions. The locator is typed,
+not assumed to be a web URL: both formats carry non-URL locators — Bomly
+itself emits `pkg:` PURLs and `cpe:` values as SPDX external references
+today, and advisory references may be bare identifiers. Validation
+dispatches on an explicit locator kind (url, purl, cpe, bounded
+identifier) that the SDK derives from the normalized format/category/type
+tuple — never from `Category` alone, which is an SPDX-only axis with no
+CycloneDX source value: url-kind locators pass the ADR-0033 gate family,
+purl and cpe locators their own grammars, and everything else — SPDX
+`OTHER` references included — the bounded-identifier form. `PackageLicense` grows to
 distinguish declared from concluded and to carry extracted license text for
 `LicenseRef-*` identifiers (issue #410). The digest algorithm set is a
 registry aligned with both formats' hash vocabularies rather than two string
@@ -70,7 +72,11 @@ are complete, not illustrative: the scalar projection is any-runtime →
 sorted, deduplicated, comma-joined list of SDK scope tokens; on ingest the
 carrier wins over the scalar when both are present, unknown tokens are
 dropped with a warning, and a bare scalar maps `required` → runtime and
-`optional`/`excluded` → development.
+`optional`/`excluded` → development for Bomly's own filtering semantics —
+while the ingested scalar itself is preserved as a source assertion and
+re-emitted verbatim on a single-source export unless Bomly's own scope set
+changed, so `optional` and `excluded` never collapse across a round trip
+that asserted neither.
 
 **Usage facts carry their attribution.** Scope, relationship, and
 reachability answer questions about a *usage*, and filters compose them
@@ -90,7 +96,11 @@ per root, so a singular annotation with one root field could retain at most
 one analysis after vulnerability consolidation; the evidence list keeps
 every record. The conjunctive join is evidence-to-location within the same
 module root — never the summary joined to every location. The join key is
-explicit: the usage unit is (module root, declaration site). Scope and
+explicit: the usage unit is (module root, declaration site), and the
+location record carries its module root as a field — two modules can share
+one lockfile or declaration path, so the site alone cannot identify the
+owning module, and without the stored key consolidation would discard the
+entry ownership the evidence join needs. Scope and
 relationship attach per site and are never combined across sites; a
 conjunctive filter must find its scope and relationship conjuncts on a
 single site, and its reachability on that site's module root — legitimate,

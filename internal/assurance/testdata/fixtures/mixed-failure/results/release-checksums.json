@@ -1,0 +1,27 @@
+{
+  "schema_version": "bomly.assurance-check/v1",
+  "runner": {
+    "os": "linux",
+    "arch": "amd64",
+    "go_version": "go1.26.3"
+  },
+  "id": "release-checksums",
+  "stage": "pre-release",
+  "level": "gate",
+  "status": "fail",
+  "duration_ms": 3900,
+  "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/10",
+  "summary": "1 assets do not match SHA256SUMS: bomly_9.9.9_linux_amd64.tar.gz.",
+  "metrics": {
+    "verified": 22,
+    "mismatched": 1,
+    "listed": 23
+  },
+  "details": [
+    {
+      "name": "bomly_9.9.9_linux_amd64.tar.gz",
+      "status": "fail",
+      "note": "hash does not match SHA256SUMS"
+    }
+  ]
+}

@@ -8,6 +8,28 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 8 * * *"
+  workflow_call:
+    inputs:
+      ref:
+        description: Commit, branch, or tag to check out.
+        type: string
+        required: false
+        default: ""
+      fuzztime:
+        description: Time budget per fuzz target.
+        type: string
+        required: false
+        default: 2m
+      assurance:
+        description: Upload a release assurance check result.
+        type: boolean
+        required: false
+        default: false
+      assurance_tag:
+        description: Release tag recorded in the check result.
+        type: string
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -24,6 +46,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.ref || github.ref }}
           persist-credentials: false
 
       - name: Set up Go
@@ -34,10 +57,58 @@ jobs:
           cache-dependency-path: go.sum
 
       - name: Run native Go fuzz targets
-        run: make fuzz FUZZTIME=2m
+        id: fuzz
+        continue-on-error: true
+        env:
+          FUZZ_RESULTS_JSONL: ${{ runner.temp }}/fuzz-details.jsonl
+          FUZZTIME: ${{ inputs.fuzztime || '2m' }}
+        run: make fuzz FUZZTIME="${FUZZTIME}"
+
+      - name: Record the fuzz result
+        if: always()
+        env:
+          BOMLY_ASSURANCE_TAG: ${{ inputs.assurance_tag }}
+          FUZZ_OUTCOME: ${{ steps.fuzz.outcome }}
+          FUZZTIME: ${{ inputs.fuzztime || '2m' }}
+        run: |
+          set -euo pipefail
+          details="${RUNNER_TEMP}/fuzz-details.jsonl"
+          targets=0
+          failed=0
+          if [ -f "${details}" ]; then
+            targets="$(wc -l < "${details}" | tr -d ' ')"
+            failed="$(grep -c '"exit_code":[^0]' "${details}" || true)"
+          fi
+          exit_code=0
+          summary="${targets} fuzz targets ran for ${FUZZTIME} each against their seed corpus without finding a crash."
+          if [ "${FUZZ_OUTCOME}" != "success" ]; then
+            exit_code=1
+            summary="${failed} of ${targets} fuzz targets found a failing input. Reproducers are attached to this run."
+          fi
+          # The details file is absent when the fuzz step died before writing
+          # it; the check still has to report, so the flag is conditional.
+          details_arg=""
+          if [ -f "${details}" ]; then
+            details_arg="--details-jsonl ${details}"
+          fi
+          # shellcheck disable=SC2086 # details_arg is a flag pair or empty
+          go run ./internal/assurance/cmd emit \
+            --id fuzz --exit-code "${exit_code}" --summary "${summary}" \
+            --metric targets="${targets}" --metric targets_failed="${failed}" \
+            ${details_arg} \
+            --out assurance-results --step-summary
+
+      - name: Upload check result
+        if: always() && inputs.assurance
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: assurance-fuzz
+          path: assurance-results
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Upload fuzz failures
-        if: failure()
+        if: steps.fuzz.outcome == 'failure'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: go-fuzz-failures
@@ -45,3 +116,10 @@ jobs:
             **/testdata/fuzz/**
           if-no-files-found: ignore
           retention-days: 7
+
+      # In the release prerequisites stage fuzzing is advisory: the finding is
+      # recorded in the check result and the stage verdict decides what happens.
+      # On the nightly and manual runs a finding still fails the job.
+      - name: Fail the job when a fuzz target failed
+        if: steps.fuzz.outcome == 'failure' && !inputs.assurance
+        run: exit 1

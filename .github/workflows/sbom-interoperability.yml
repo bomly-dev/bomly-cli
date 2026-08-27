@@ -1,21 +1,39 @@
+# Generates canonical SBOMs and validates them with the official SPDX and
+# CycloneDX tools, pinned by checksum. Runs weekly on its own, and as part of
+# the post-release assessment against the binary the release actually shipped.
+#
+# The download, generation, and validation logic lives in
+# internal/assurance/sbominterop, which records every command, exit code, and
+# checksum in a bomly.sbom-assurance-run/v1 manifest. This workflow only
+# arranges the inputs and turns that manifest into a check result.
 name: SBOM interoperability assurance
 
 on:
   schedule:
     - cron: "41 5 * * 1"
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        description: Commit, branch, or tag to check out.
+        type: string
+        required: false
+        default: ""
+      release_tag:
+        description: Validate the binary published for this release tag instead of a freshly built one.
+        type: string
+        required: false
+        default: ""
+      assurance:
+        description: Upload a release assurance check result.
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
 
 env:
-  SPDX_TOOLS_VERSION: "2.0.7"
-  SPDX_TOOLS_URL: https://github.com/spdx/tools-java/releases/download/v2.0.7/tools-java-2.0.7.zip
-  SPDX_TOOLS_SHA256: 2dc63c3399c5178058b1be8a3de6f13b9f24981cd86c4292ef98f4a7e90de36d
-  SPDX_TOOLS_JAR: tools-java-2.0.7-jar-with-dependencies.jar
-  CDX_CLI_VERSION: "0.32.0"
-  CDX_CLI_URL: https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.32.0/cyclonedx-linux-x64
-  CDX_CLI_SHA256: 454879e6a4a405c8a13bff49b8982adcb0596f3019b26b0811c66e4d7f0783e1
   FIXTURE_SBOM: test/smoke/testdata/sboms/go.spdx.json
   OUTPUT_DIR: sbom-assurance-artifacts
 
@@ -23,9 +41,13 @@ jobs:
   validate:
     name: Validate generated SBOMs
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          persist-credentials: false
 
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
@@ -41,58 +63,62 @@ jobs:
           java-version: "21"
 
       - name: Build the Bomly binary
+        if: inputs.release_tag == ''
         run: make build-full
 
-      - name: Download checksum-pinned validators
+      # The post-release assessment validates what users downloaded, not a
+      # rebuild of it, so the released archive is verified against the published
+      # checksum list before it is used.
+      - name: Download the released binary
+        if: inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
-          mkdir -p "${OUTPUT_DIR}/validators"
-          curl -fsSL --retry 3 -o "${OUTPUT_DIR}/validators/tools-java.zip" "${SPDX_TOOLS_URL}"
-          echo "${SPDX_TOOLS_SHA256}  ${OUTPUT_DIR}/validators/tools-java.zip" | sha256sum -c -
-          unzip -j -o "${OUTPUT_DIR}/validators/tools-java.zip" "${SPDX_TOOLS_JAR}" -d "${OUTPUT_DIR}/validators"
-          curl -fsSL --retry 3 -o "${OUTPUT_DIR}/validators/cyclonedx-cli" "${CDX_CLI_URL}"
-          echo "${CDX_CLI_SHA256}  ${OUTPUT_DIR}/validators/cyclonedx-cli" | sha256sum -c -
-          chmod +x "${OUTPUT_DIR}/validators/cyclonedx-cli"
+          version="${RELEASE_TAG#v}"
+          archive="bomly_${version}_linux_amd64.tar.gz"
+          mkdir -p "${RUNNER_TEMP}/release" bin
+          gh release download "${RELEASE_TAG}" --repo bomly-dev/bomly-cli \
+            --pattern "${archive}" --pattern SHA256SUMS --dir "${RUNNER_TEMP}/release"
+          (cd "${RUNNER_TEMP}/release" && sha256sum --check --ignore-missing SHA256SUMS)
+          tar -xzf "${RUNNER_TEMP}/release/${archive}" -C "${RUNNER_TEMP}/release" bomly
+          install -m 0755 "${RUNNER_TEMP}/release/bomly" bin/bomly
+          ./bin/bomly version
 
-      - name: Generate SBOMs with the built binary
+      - name: Generate and validate SBOMs
+        id: sbom
+        continue-on-error: true
         run: |
-          set -euo pipefail
-          ./bin/bomly scan --sbom --path "${FIXTURE_SBOM}" --detectors sbom \
-            --format spdx > "${OUTPUT_DIR}/bomly.spdx.json"
-          ./bin/bomly scan --sbom --path "${FIXTURE_SBOM}" --detectors sbom \
-            --format cyclonedx > "${OUTPUT_DIR}/bomly.cdx.json"
-          sha256sum "${OUTPUT_DIR}/bomly.spdx.json" "${OUTPUT_DIR}/bomly.cdx.json" \
-            | tee "${OUTPUT_DIR}/checksums.txt"
+          go run ./internal/assurance/sbominterop \
+            -bomly ./bin/bomly -input "${FIXTURE_SBOM}" -output "${OUTPUT_DIR}"
 
-      - name: Validate SPDX 2.3 output (spdx/tools-java)
-        run: |
-          set -euo pipefail
-          java -jar "${OUTPUT_DIR}/validators/${SPDX_TOOLS_JAR}" Verify \
-            "${OUTPUT_DIR}/bomly.spdx.json" 2>&1 | tee "${OUTPUT_DIR}/spdx-validation.log"
-
-      - name: Validate CycloneDX 1.7 output (cyclonedx-cli)
-        run: |
-          set -euo pipefail
-          "${OUTPUT_DIR}/validators/cyclonedx-cli" validate \
-            --input-file "${OUTPUT_DIR}/bomly.cdx.json" \
-            --input-format json --input-version v1_7 --fail-on-errors \
-            2>&1 | tee "${OUTPUT_DIR}/cyclonedx-validation.log"
-
-      - name: Summarize the result
+      - name: Record the interoperability result
         if: always()
+        env:
+          BOMLY_ASSURANCE_TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
-          {
-            printf '# SBOM interoperability assurance\n\n'
-            printf 'The built binary generated SPDX 2.3 and CycloneDX 1.7 SBOMs from a pinned fixture, and the official validators checked them.\n\n'
-            printf -- '- **Revision:** `%s`\n' "${GITHUB_SHA}"
-            printf -- '- **Validators:** spdx/tools-java `%s`, cyclonedx-cli `%s` (both checksum-pinned)\n\n' "${SPDX_TOOLS_VERSION}" "${CDX_CLI_VERSION}"
-            if [[ -f "${OUTPUT_DIR}/checksums.txt" ]]; then
-              printf '## Generated file checksums\n\n```\n'
-              cat "${OUTPUT_DIR}/checksums.txt"
-              printf '```\n'
-            fi
-          } >> "${GITHUB_STEP_SUMMARY}"
+          manifest="${OUTPUT_DIR}/run-manifest.json"
+          if [ -f "${manifest}" ]; then
+            go run ./internal/assurance/cmd convert sbom-assurance \
+              --id sbom-interoperability --input "${manifest}" \
+              --out assurance-results --step-summary
+          else
+            go run ./internal/assurance/cmd emit \
+              --id sbom-interoperability --status fail \
+              --summary "The SBOM interoperability run stopped before it could write a manifest. Open the generate step for the cause." \
+              --out assurance-results --step-summary
+          fi
+
+      - name: Upload check result
+        if: always() && inputs.assurance
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: assurance-sbom-interoperability
+          path: assurance-results
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Upload assurance evidence
         if: always()
@@ -102,8 +128,10 @@ jobs:
           path: |
             sbom-assurance-artifacts/bomly.spdx.json
             sbom-assurance-artifacts/bomly.cdx.json
-            sbom-assurance-artifacts/checksums.txt
-            sbom-assurance-artifacts/spdx-validation.log
-            sbom-assurance-artifacts/cyclonedx-validation.log
+            sbom-assurance-artifacts/run-manifest.json
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Fail the job when validation failed
+        if: steps.sbom.outcome == 'failure'
+        run: exit 1

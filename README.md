@@ -79,9 +79,9 @@ Bomly reads manifests, lockfiles, package-manager output, container layers, or e
 | Can I triage reachable findings first? | `bomly scan --enrich --audit --analyze --fail-on high --fail-on reachable` |
 
 For more recipes, see [Getting Started](docs/GETTING_STARTED.md) and
-[Use Cases](docs/USE_CASES.md). To review the public inputs, commands, expected
-results, and limitations behind important behavior claims, see
-[Reproducible Evidence](docs/EVIDENCE.md).
+[Use Cases](docs/USE_CASES.md). To see the checks every release goes through,
+what they prove, and where to read the per-release report, see
+[Release assurance](docs/ASSURANCE.md).
 
 ## Explore Interactively
 

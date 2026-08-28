@@ -133,6 +133,17 @@ In practice:
   reappears anywhere under `internal/`, and `TestExportNeverReadsResolvedURL`
   fails if the export layer touches raw manifest values. A guard is cheap next
   to the review round it replaces.
+- **The deepest home for shared meaning is the SDK (ADR-0040).** When a fix
+  or feature touches what a shared domain object *means* — identity,
+  coordinates, PURLs, licenses, SBOM assertions, graph or merge semantics,
+  validation gates — it lands in `bomly-dev/bomly-sdk` first and this repo
+  consumes the new release. CLI-level is presentation, command surface, and
+  orchestration (how Bomly *uses* the model); plugin-level is one external
+  tool's integration specifics. "Only the CLI needs this today" is not a
+  reason to keep model behavior local — a single consumer is how every
+  drifted copy started. If the release schedule genuinely cannot absorb the
+  SDK-first ordering, ship the local fix with the SDK issue already filed
+  and linked from the code.
 - **Say so when you decline.** If centralizing is genuinely out of scope for
   the change in hand, record why in an ADR under `dev-docs/adr/` and what the
   durable fix would be, so the next person inherits the reasoning rather than

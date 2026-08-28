@@ -43,9 +43,13 @@ error. Other reader-divergence classes (case-variant field matching, for
 one) are not covered by json/v2's defaults and are not claimed here; closing
 any of them would be its own validation with its own decision. The change is
 documented as deliberate behavior in `docs/SBOM.md`. The plugin wire (`bomly.plugin.v1`) keeps its current
-decoding semantics: its compatibility contract is frozen fixtures, not
-strictness, and tightening it is a protocol decision that would need its own
-ADR.
+decoding semantics: enabled plugins are trusted native processes, so its
+compatibility contract is frozen fixtures, not strictness, and tightening it
+is a protocol decision that would need its own ADR. When strict parsing
+lands, the wire's lenient decode is itself pinned by fixtures in the SDK's
+wire-compatibility suite (a payload with a duplicate name and one with
+replaced invalid UTF-8 must keep decoding under v1), so the json/v2
+migration cannot tighten the plugin wire by accident.
 
 **Standard library over dependencies where it now suffices.** The stdlib
 `uuid` package takes over document serial-number generation. New language

@@ -1,6 +1,6 @@
 BINARY_NAME=bomly
 LITE_BUILD_TAGS=bomly_external_syft,bomly_external_grype
-GOLANGCI_LINT_VERSION=v2.12.0
+GOLANGCI_LINT_VERSION=v2.13.2
 GO_LICENSES_VERSION=v1.6.0
 GOPATH_BIN=$(shell go env GOPATH)/bin
 EXE_SUFFIX=$(if $(filter Windows_NT,$(OS)),.exe,)

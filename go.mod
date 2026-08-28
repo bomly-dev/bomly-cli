@@ -1,6 +1,6 @@
 module github.com/bomly-dev/bomly-cli
 
-go 1.26.3
+go 1.27.0
 
 require (
 	github.com/BurntSushi/toml v1.6.0
@@ -16,6 +16,7 @@ require (
 	github.com/bomly-dev/bomly-plugin-pyreach-analyzer v0.1.0
 	github.com/bomly-dev/bomly-plugin-scorecard-matcher v0.1.0
 	github.com/bomly-dev/bomly-plugin-syft-detector v0.1.0
+	github.com/bomly-dev/bomly-sdk v0.4.2
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
@@ -30,18 +31,6 @@ require (
 	golang.org/x/term v0.45.0
 	google.golang.org/grpc v1.83.0
 	gopkg.in/yaml.v3 v3.0.1
-)
-
-require (
-	github.com/anchore/clio v0.1.1 // indirect
-	github.com/anchore/grype v0.117.0 // indirect
-	github.com/anchore/syft v1.51.0 // indirect
-	github.com/evanw/esbuild v0.28.1 // indirect
-	github.com/glebarez/sqlite v1.11.0 // indirect
-	github.com/pandatix/go-cvss v0.6.2 // indirect
-	golang.org/x/net v0.58.0 // indirect
-	golang.org/x/vuln v1.6.0 // indirect
-	google.golang.org/protobuf v1.36.12 // indirect
 )
 
 require (
@@ -70,6 +59,7 @@ require (
 	github.com/acobaugh/osrelease v0.1.0 // indirect
 	github.com/adrg/xdg v0.5.3 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
+	github.com/anchore/clio v0.1.1 // indirect
 	github.com/anchore/fangs v0.1.1 // indirect
 	github.com/anchore/go-collections v0.1.1 // indirect
 	github.com/anchore/go-homedir v0.1.1 // indirect
@@ -80,7 +70,9 @@ require (
 	github.com/anchore/go-struct-converter v0.2.0-rc2 // indirect
 	github.com/anchore/go-sync v0.1.1 // indirect
 	github.com/anchore/go-version v1.2.2-0.20210903204242-51efa5b487c4 // indirect
+	github.com/anchore/grype v0.117.0 // indirect
 	github.com/anchore/stereoscope v0.3.0 // indirect
+	github.com/anchore/syft v1.51.0 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/aquasecurity/go-pep440-version v0.0.1 // indirect
@@ -114,7 +106,6 @@ require (
 	github.com/bodgit/plumbing v1.3.0 // indirect
 	github.com/bodgit/sevenzip v1.6.1 // indirect
 	github.com/bodgit/windows v1.0.1 // indirect
-	github.com/bomly-dev/bomly-sdk v0.4.2
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/harmonica v0.2.0 // indirect
@@ -152,6 +143,7 @@ require (
 	github.com/envoyproxy/go-control-plane/envoy v1.37.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.3.3 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
+	github.com/evanw/esbuild v0.28.1 // indirect
 	github.com/facebookincubator/nvdtools v0.1.5 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/fgprof v0.9.5 // indirect
@@ -159,6 +151,7 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.15 // indirect
 	github.com/glebarez/go-sqlite v1.22.0 // indirect
+	github.com/glebarez/sqlite v1.11.0 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.9.1 // indirect
 	github.com/go-git/go-git/v5 v5.19.2 // indirect
@@ -252,6 +245,7 @@ require (
 	github.com/opencontainers/runtime-spec v1.3.0 // indirect
 	github.com/openvex/go-vex v0.2.8 // indirect
 	github.com/package-url/packageurl-go v0.1.5 // indirect
+	github.com/pandatix/go-cvss v0.6.2 // indirect
 	github.com/pborman/indent v1.2.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
@@ -315,6 +309,7 @@ require (
 	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
 	golang.org/x/mod v0.40.0 // indirect
+	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
@@ -322,12 +317,14 @@ require (
 	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
+	golang.org/x/vuln v1.6.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gonum.org/v1/gonum v0.17.0 // indirect
 	google.golang.org/api v0.271.0 // indirect
 	google.golang.org/genproto v0.0.0-20260128011058-8636f8732409 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260526163538-3dc84a4a5aaa // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gorm.io/gorm v1.31.2 // indirect
 	howett.net/plist v1.0.1 // indirect

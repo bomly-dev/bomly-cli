@@ -104,10 +104,12 @@ One sentence per decision; the ADRs carry the detail.
 
 - **Identity** (ADR-0041): a sealed typed node union — manifest, module,
   and dependency nodes — where a dependency node's identity is its
-  canonical PURL (valid by the PURL specification's own rules, missing
-  versions warned), the occurrence qualifier is the normalized origin, and
-  comparison is a kind-scoped equals/key pair with ADR-0033 gap-filling;
-  IDs and ordinals minted only by SDK entry points; no content address.
+  canonical PURL with qualifiers (valid by the PURL specification's own
+  rules, missing versions warned, URL-valued evidence qualifiers redirected
+  to Origin), the occurrence qualifier is the normalized origin (unknown
+  origin is its own occurrence; gap-filling is a detector decision), and
+  comparison is a kind-scoped equals/key pair; origin-hash suffixes and
+  ordinals minted only by SDK entry points; no content address.
 - **Model** (ADR-0037): every preserved SBOM assertion is a typed,
   `omitempty`, boundary-validated field with a declared merge class; typed
   edges; a per-entry document-assertions carrier on `GraphEntry`; `Metadata`
@@ -144,7 +146,7 @@ Breaking in-process changes are allowed (v0 policy); the wire stays additive
 |---|---|---|
 | 1.1 | `purlkit`: qualifiers/subpath-capable build/parse/canonicalize; the single purl-type ↔ ecosystem table (hex non-mapping recorded); `SplitEcosystemName`; canonical-ID rewrite entry point; import-boundary guard | v0.5.0 |
 | 1.2 | `spdxkit`: absorb `internal/licenseexpr` semantics (panic guards, `Valid`/`ValidateAll`/`Identifier`/`Compose`/`Satisfies`/`Extract`); deprecated-ID canonicalization via the audited replacement map relocated from `internal/sbom/transform.go` (the list marks deprecation; the map owns replacements); classification-by-validation; deterministic `LicenseRef-*` minting + extracted-text pairing; fix `matcherkit.NormalizeLicenseSet` to classify on write | v0.5.0 |
-| 1.3 | Identity (ADR-0041, superseding ADR-0036): sealed `GraphNode` union — manifest / module / dependency nodes (dependency nodes require a spec-valid canonical PURL, missing version warned; modules are the project's own artifacts; manifests structural, path-identified, never matched); kind-scoped identity equals/key over (canonical PURL, normalized origin) with ADR-0033 gap-filling; PURL identity-form readable IDs with per-PURL deterministic ordinals from 1 for coexisting occurrences; single insertion + finalization entry points; wire flat-node shape plus additive `kind` discriminator with frozen explicit/legacy/conflicting/unknown fixtures; no content address | v0.6.0 |
+| 1.3 | Identity (ADR-0041, superseding ADR-0036): sealed `GraphNode` union — manifest / module / dependency nodes (dependency nodes require a spec-valid canonical PURL, missing version warned; modules are the project's own artifacts; manifests structural, path-identified, never matched); kind-scoped identity equals/key over (canonical PURL, normalized origin) — unknown origin is a distinct occurrence, gap-filling is an ecosystem-detector decision; qualifier-carrying PURL readable IDs (URL-valued evidence qualifiers stripped to Origin) with stable origin-hash suffixes for coexisting occurrences and run-local ordinals only for raw-evidence-only contradictions; single insertion + finalization entry points; wire flat-node shape plus additive `kind` discriminator with frozen explicit/legacy/conflicting/unknown fixtures; no content address | v0.6.0 |
 | 1.4 | Model fields (ADR-0037): supplier/originator/description/homepage; `ExternalReference`; `PackageLicense` declared/concluded + extracted text; digest-algorithm registry; set-aware scope ↔ CycloneDX mapping with its scalar projection rule; typed `DependencyEdge.Kind` with a kind-preserving edge-copy/rename primitive for graph reconstruction sites; usage attribution (`PackageLocation` carries per-site scopes and relationship so the node-level union becomes derived; reachability becomes repeatable per-module-root evidence with the vulnerability annotation as derived summary, and evidence may carry optional `DependencyRefs` to the exact occurrence nodes where the analyzer can attribute — a conjunctive filter such as reachable ∧ runtime ∧ direct then joins evidence to locations within one module root, selecting one usage); a derived package → nodes reverse-index helper (the stored truth stays `Dependency.PackageRef`; the registry remains position-free); per-`GraphEntry` document assertions; per-field-class merge helpers; boundary validation codecs + fuzz targets for every new parser | v0.7.0 |
 | 1.5 | Metadata policy: document reserved `bomly.` prefix; deprecate `MetadataKeyDetectionLicenses` in favor of the typed license field | v0.7.0 |
 

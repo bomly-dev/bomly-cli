@@ -78,20 +78,29 @@ the same warning policy; a module that cannot mint a PURL falls back to
 path-based identity like a manifest, because it is the project's own
 record, not a registry lookup key.
 
-**The occurrence qualifier is the normalized origin, and comparison
-preserves the gap-fill rule.** The occurrence half of identity is the
+**The occurrence qualifier is the normalized origin, and an unknown origin
+is its own occurrence.** The occurrence half of identity is the
 ADR-0033-normalized `Origin` already on the node — no new storage, no
-facet renderings, no hashes — which makes comparison wire-stable by
-construction, since it uses exactly the view the JSON codec persists. The
-SDK exposes the Java-style pair — an identity-equality predicate and an
-identity key for map grouping — with a three-way origin relation rather
-than naive equality, so ADR-0033's folding semantics survive:
+facet renderings — which makes comparison wire-stable by construction,
+since it uses exactly the view the JSON codec persists. The SDK exposes
+the Java-style pair — an identity-equality predicate and an identity key
+for map grouping — with a three-way origin relation:
 
 - both records carry normalized origins and they are equal → the same
   occurrence; witnesses fold;
-- exactly one record carries an origin → a gap; the gap witness folds into
-  the origin-bearing record (ADR-0033's fill rule, unchanged);
-- both carry origins and they differ → distinct occurrences that coexist.
+- both carry origins and they differ → distinct occurrences that coexist;
+- exactly one record carries an origin → distinct occurrences. An absent
+  origin means "resolution unknown", which is a claim of its own, not a
+  gap for consolidation to fill: folding it into whichever origin-bearing
+  record appeared first would manufacture provenance the witness never
+  asserted. This deliberately narrows ADR-0033's consolidation-time
+  fill rule; where an ecosystem's semantics genuinely justify filling —
+  one lockfile entry split across records — that ecosystem's detector
+  fills the gap at detection time, before consolidation, where the
+  context to justify it exists. Two records that both lack origins fold
+  when nothing else distinguishes them, and stay distinct when raw
+  resolution evidence proves they differ (raw evidence is legal for
+  comparison, never for identity or publication).
 
 Comparison is kind-scoped: nodes of different kinds are never equal, so a
 module node and a dependency node sharing a PURL — or sharing the absence
@@ -102,24 +111,35 @@ Keys are in-process comparison values, kind-prefixed, and never appear in
 scan JSON, SBOMs, or any published document.
 
 **Readable IDs need no grammar of their own.** A dependency node's graph ID
-is its canonical PURL in identity form: qualifiers pass only through
-purlkit's identity-qualifier allowlist — empty today, so all are dropped —
-and the subpath is preserved. That gate exists because imported PURLs can
-carry resolution evidence and credentials in qualifiers
-(`repository_url=…`, signed download links), and node IDs are published as
-SBOM component identifiers; admitting the first allowlist key is a
-reviewed act that ships the ADR-0033 credential gates with it. When
-distinct occurrences of one canonical PURL must coexist, every one of them
-carries a deterministic run-local ordinal suffix — a single space and `o`
-plus a decimal. Numbering starts at 1, is scoped per canonical PURL, and
-is assigned in the sorted order of the occurrences' identity keys — never
-arrival order, never a hash of evidence; golden tests pin the assignment
-when the implementation lands. Raw resolution evidence (the verbatim
-`ResolvedURL`, tokenized URLs) never reaches an ID. Module and manifest
-nodes use their path-derived identities. The insertion entry point still
-parks contradicting records under an ephemeral in-process discriminator
-(NUL-marked, structurally disjoint from every readable ID) until
-consolidation finalizes them; the ephemeral form never reaches output.
+is its canonical PURL — qualifiers and subpath included, because the PURL
+specification defines qualifiers as qualifying data (`arch`, `distro`,
+`upstream`, `epoch`, `classifier`, …) and container scans genuinely carry
+one package/version under two architectures: dropping qualifiers would
+collide identities the spec keeps distinct. The exception is the
+specification's URL-valued evidence keys — `repository_url`,
+`download_url`, and `vcs_url` — whose values are resolution evidence that
+can embed credentials and signed links: identity normalization strips them
+from the PURL and their content belongs in `Origin`, behind the ADR-0033
+gates, so they shape the occurrence, never a published ID. When distinct
+occurrences of one canonical PURL must coexist, each origin-bearing
+occurrence carries a deterministic suffix — a single space and a short
+lowercase-hex hash of its kind-prefixed normalized origin. Deriving the
+suffix from the occurrence's own origin keeps IDs stable when the
+occurrence set changes: adding or removing a sibling never renumbers the
+others, which positional ordinals could not promise, and the normalized
+origin is already credential-free, so the hash publishes nothing the
+origin field does not. Occurrences distinguishable only by raw evidence
+have nothing publishable to hash; they carry run-local ordinal suffixes
+(`o1`, `o2`, … in sorted raw-key order) with the stated caveat that this
+rare class is run-scoped and not stable across evidence changes — never a
+hash of raw evidence, because raw resolution strings (the verbatim
+`ResolvedURL`, tokenized URLs) never reach an ID in any form. Module and
+manifest nodes use their path-derived identities. The insertion entry
+point still parks contradicting records under an ephemeral in-process
+discriminator (NUL-marked, structurally disjoint from every readable ID)
+until consolidation finalizes them; the ephemeral form never reaches
+output. Golden tests pin the suffix derivation and ordinal assignment when
+the implementation lands.
 
 **The wire stays inside `bomly.plugin.v1`, with a specified discriminator.**
 Nodes keep their flat JSON shape and gain one additive `omitempty` `kind`
@@ -154,10 +174,11 @@ not lost.
 - The review-hardened invariants from the closed first round survive as
   behavior and tests, not machinery: ownership survives folds (now by
   construction — kinds never cross-fold, and the cross-entry merge helper
-  must preserve module identity the same way), ordinals are never
-  recycled, identity comparison is stable across the plugin wire, raw
-  evidence is never provenance for a suffix, and discriminator
-  vocabularies fold before derivation.
+  must preserve module identity the same way), origin-derived suffixes are
+  stable under occurrence-set changes, identity comparison is stable
+  across the plugin wire, raw evidence is never provenance for a
+  published suffix, and discriminator vocabularies fold before
+  derivation.
 - ADR-0036 is superseded; the identity phase of `SDK_MATURITY_PLAN.md`
   (item 1.3) and every other identity reference in that plan are rescoped
   to this decision.

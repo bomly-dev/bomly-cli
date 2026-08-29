@@ -79,10 +79,14 @@ Go's generics are homogeneous with no sum types.)
 it.** The PURL is the industry standard and `purlkit` (backed by
 `package-url/packageurl-go`) is its one home; identity introduces no
 second grammar and no Bomly-invented validity rule. A dependency node is
-valid exactly when the library accepts its PURL under the specification:
-scheme, type, and name at minimum, plus each type's own requirements
-(Maven's group ID as the namespace, for example) — the library, not
-Bomly, decides. The one Bomly policy layered on top is about versions,
+valid exactly when its PURL satisfies the specification, enforced in two
+spec-owned layers: the library decides syntactic and canonical-form
+validity (scheme, type, and name at minimum), and a purlkit table
+transcribed from the specification's own per-type definitions decides
+each type's structural profile — Maven's group ID as the namespace, for
+example, which the library itself does not check (see the Clarifications
+section). Unknown types have no profile and pass on syntax alone. The one
+Bomly policy layered on top is about versions,
 which the specification leaves optional: a dependency node without a
 version is accepted with a recorded warning rather than rejected, because
 first-party-adjacent records and some imported SBOM components
@@ -95,15 +99,14 @@ record, not a registry lookup key.
 Qualifiers are part of identity, as the specification says they are
 (`arch`, `distro`, `upstream`, `epoch`, `classifier`, …): container scans
 genuinely carry one package/version under two architectures, and dropping
-qualifiers would collide identities the spec keeps distinct. Which
-qualifiers, exactly, is still the specification's call, not an open door:
-identity keeps the qualifier keys the specification knows — its
-registered keys and each type's documented keys — and an unrecognized
-custom key is dropped from identity with a recorded warning, because an
-imported document can invent a qualifier whose value embeds a token, and
-node IDs are published. The list is spec-derived, never Bomly-invented.
-Two of the spec's known keys are excluded by role rather than obscurity:
-the URL-valued evidence keys — `repository_url`, `download_url`, and
+qualifiers would collide identities the spec keeps distinct. Every
+qualifier stays on the identity — the specification's qualifier
+vocabulary is open, its per-type lists are documentation rather than
+closed sets, and a value the producer published inside its own purl is
+disclosed at the source, not by Bomly reproducing it (see the
+Clarifications section, which corrected an earlier drop-unrecognized-keys
+rule here). The one exclusion is by role, not obscurity: the universal
+URL-valued evidence keys — `repository_url`, `download_url`, and
 `vcs_url` — carry resolution evidence, so identity normalization strips
 them from the PURL and redirects their content through the ADR-0033
 origin constructors — a relocation, not a deletion: consumers that read
@@ -245,3 +248,53 @@ lost.
 - ADR-0036 is superseded; the identity phase of `SDK_MATURITY_PLAN.md`
   (item 1.3) and every other identity reference in that plan are rescoped
   to this decision.
+
+## Clarifications (2026-08-29, recorded at implementation)
+
+Three points sharpened while building bomly-sdk v0.6.0 (PRs #16–#18):
+
+- **What "the library decides" means.** packageurl-go v0.1.7 — the latest
+  release — validates purl syntax and canonical form plus seven types'
+  structural rules; it enforces no Maven-namespace rule and models no
+  qualifier registry, and upstream is trending looser. So the library owns
+  *syntactic and canonical-form* validity, while *type-profile* validity
+  (namespace required or prohibited per type, required qualifiers) lives in
+  a purlkit table transcribed from the purl specification's own
+  machine-readable per-type definitions — spec-derived, never
+  Bomly-invented, and applied only to types the table knows.
+- **The type vocabulary is open — that is the extensibility contract.** The purl type
+  grammar is open and unknown types validate on syntax alone — never
+  rejected for being unknown — so any ecosystem a detector author can
+  imagine expresses itself as a purl type and flows through registry,
+  matching, and SBOM export untouched. Relatedly, the earlier
+  drop-unknown-qualifiers sentence is corrected: the specification's
+  per-type qualifier lists are documentation, not closed sets (the apk
+  definition's own prose references a distro key its list omits), and
+  container purls legitimately carry arch/distro identity — so every
+  qualifier is identity except the three universal URL-valued evidence keys,
+  which relocate through the origin gates. Retaining the rest is not a new
+  exposure and is deliberately not guarded by a secret heuristic: a
+  qualifier value is identity data the producing document already published
+  in the very purl Bomly reproduces, so the reproduction discloses nothing
+  the source did not (the evidence keys differ in kind — the specification
+  designates them as resolution links, which is why they relocate); and a
+  "reject sensitive-looking values" gate is exactly the credential-prefix
+  list and secret-shape heuristic ADR-0033 deliberately eliminated —
+  hand-rolled secret detection is a second home for security semantics
+  with false positives on identity data and false confidence everywhere
+  else. A producer that embeds a credential in its own published package
+  identity has disclosed it at the source; the fix belongs there.
+- **Identity well-formedness is enforced at the wire decoder too.** A
+  dependency payload that cannot mint a well-formed package URL — custom
+  types included — is a decode error, per the maintainer's strict ruling:
+  legacy payloads keep decoding exactly when they are valid. This
+  knowingly narrows the v1 decode guarantee for one payload class — an
+  already-shipped detector emitting a dependency record with no derivable
+  package URL fails with an actionable error instead of flowing through
+  under a concatenated ID. The alternatives were weighed and rejected by
+  the maintainer: a lenient never-matched passthrough keeps invalid
+  identities alive in published documents, and coercing `pkg:generic`
+  invents identity claims no producer made. The failure is loud, names
+  the offending record, and the deferred plugin round is the migration
+  path; a plugin whose records genuinely lack registry identity expresses
+  them as its own purl type, which decodes fine.

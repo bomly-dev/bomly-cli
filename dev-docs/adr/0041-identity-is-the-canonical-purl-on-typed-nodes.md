@@ -172,8 +172,12 @@ discriminator.** Nodes keep their flat JSON shape and gain one additive
 and `dependency`. An explicit `kind` is authoritative and wins when it
 disagrees with the legacy package-type field; a payload without one —
 every pre-union binary — infers its kind deterministically: package-type
-manifest → manifest, first-party or package-type application → module,
-everything else → dependency. An unrecognized `kind` value is a decode
+manifest → manifest, the first-party marker → module, everything else —
+including an application-typed component without the marker — →
+dependency. Application type alone is not an ownership signal (ADR-0015's
+rule): an imported SBOM's application component stays a dependency node,
+matchable and enrichable, rather than being silently promoted to a
+never-matched module. An unrecognized `kind` value is a decode
 error, not a guess: a v1 payload can only carry v1 kinds, and a future
 kind means a v2 negotiation, per the additive-forever rule. The origins
 list is likewise an additive `omitempty` field beside the existing

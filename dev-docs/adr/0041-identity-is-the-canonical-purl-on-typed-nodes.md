@@ -95,15 +95,14 @@ record, not a registry lookup key.
 Qualifiers are part of identity, as the specification says they are
 (`arch`, `distro`, `upstream`, `epoch`, `classifier`, …): container scans
 genuinely carry one package/version under two architectures, and dropping
-qualifiers would collide identities the spec keeps distinct. Which
-qualifiers, exactly, is still the specification's call, not an open door:
-identity keeps the qualifier keys the specification knows — its
-registered keys and each type's documented keys — and an unrecognized
-custom key is dropped from identity with a recorded warning, because an
-imported document can invent a qualifier whose value embeds a token, and
-node IDs are published. The list is spec-derived, never Bomly-invented.
-Two of the spec's known keys are excluded by role rather than obscurity:
-the URL-valued evidence keys — `repository_url`, `download_url`, and
+qualifiers would collide identities the spec keeps distinct. Every
+qualifier stays on the identity — the specification's qualifier
+vocabulary is open, its per-type lists are documentation rather than
+closed sets, and a value the producer published inside its own purl is
+disclosed at the source, not by Bomly reproducing it (see the
+Clarifications section, which corrected an earlier drop-unrecognized-keys
+rule here). The one exclusion is by role, not obscurity: the universal
+URL-valued evidence keys — `repository_url`, `download_url`, and
 `vcs_url` — carry resolution evidence, so identity normalization strips
 them from the PURL and redirects their content through the ADR-0033
 origin constructors — a relocation, not a deletion: consumers that read

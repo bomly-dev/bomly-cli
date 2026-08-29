@@ -11,10 +11,12 @@ is one file with an ID, date, and status. To record a new decision, copy
 the [index](adr/README.md). This document stays the architecture narrative;
 it links to ADRs where a section's behavior comes from a recorded decision.
 
-An active cross-repo program to mature the SDK model (content-addressable
-identity, SBOM-complete typed fields, single-home PURL/SPDX behavior, Go
-1.27) is planned in [`SDK_MATURITY_PLAN.md`](SDK_MATURITY_PLAN.md), backed by
-ADR-0036 through ADR-0039. The standing placement rule the program restores —
+An active cross-repo program to mature the SDK model (canonical-PURL
+identity on a typed node union, SBOM-complete typed fields, single-home
+PURL/SPDX behavior, Go 1.27) is planned in
+[`SDK_MATURITY_PLAN.md`](SDK_MATURITY_PLAN.md), backed by ADR-0037 through
+ADR-0039 and [ADR-0041](adr/0041-identity-is-the-canonical-purl-on-typed-nodes.md)
+(which supersedes ADR-0036's content-addressable design). The standing placement rule the program restores —
 model behavior lands in the SDK first; the CLI and plugins hold only what is
 theirs by nature — is
 [ADR-0040](adr/0040-the-sdk-is-the-default-home-for-behavior.md).

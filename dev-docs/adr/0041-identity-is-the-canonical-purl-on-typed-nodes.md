@@ -269,7 +269,18 @@ Three points sharpened while building bomly-sdk v0.6.0 (PRs #16–#18):
   definition's own prose references a distro key its list omits), and
   container purls legitimately carry arch/distro identity — so every
   qualifier is identity except the three universal URL-valued evidence keys,
-  which relocate through the origin gates.
+  which relocate through the origin gates. Retaining the rest is not a new
+  exposure and is deliberately not guarded by a secret heuristic: a
+  qualifier value is identity data the producing document already published
+  in the very purl Bomly reproduces, so the reproduction discloses nothing
+  the source did not (the evidence keys differ in kind — the specification
+  designates them as resolution links, which is why they relocate); and a
+  "reject sensitive-looking values" gate is exactly the credential-prefix
+  list and secret-shape heuristic ADR-0033 deliberately eliminated —
+  hand-rolled secret detection is a second home for security semantics
+  with false positives on identity data and false confidence everywhere
+  else. A producer that embeds a credential in its own published package
+  identity has disclosed it at the source; the fix belongs there.
 - **Identity well-formedness is enforced at the wire decoder too.** A
   dependency payload that cannot mint a well-formed package URL — custom
   types included — is a decode error, per the maintainer's strict ruling:

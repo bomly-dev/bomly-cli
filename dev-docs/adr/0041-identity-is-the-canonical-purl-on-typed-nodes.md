@@ -245,3 +245,32 @@ lost.
 - ADR-0036 is superseded; the identity phase of `SDK_MATURITY_PLAN.md`
   (item 1.3) and every other identity reference in that plan are rescoped
   to this decision.
+
+## Clarifications (2026-08-29, recorded at implementation)
+
+Three points sharpened while building bomly-sdk v0.6.0 (PRs #16–#18):
+
+- **What "the library decides" means.** packageurl-go v0.1.7 — the latest
+  release — validates purl syntax and canonical form plus seven types'
+  structural rules; it enforces no Maven-namespace rule and models no
+  qualifier registry, and upstream is trending looser. So the library owns
+  *syntactic and canonical-form* validity, while *type-profile* validity
+  (namespace required or prohibited per type, required qualifiers) lives in
+  a purlkit table transcribed from the purl specification's own
+  machine-readable per-type definitions — spec-derived, never
+  Bomly-invented, and applied only to types the table knows.
+- **The open type vocabulary is the extensibility contract.** The purl type
+  grammar is open and unknown types validate on syntax alone — never
+  rejected for being unknown — so any ecosystem a detector author can
+  imagine expresses itself as a purl type and flows through registry,
+  matching, and SBOM export untouched. Relatedly, the earlier
+  drop-unknown-qualifiers sentence is corrected: the specification's
+  per-type qualifier lists are documentation, not closed sets (the apk
+  definition's own prose references a distro key its list omits), and
+  container purls legitimately carry arch/distro identity — so every
+  qualifier is identity except the three universal URL-valued evidence keys,
+  which relocate through the origin gates.
+- **Identity well-formedness is enforced at the wire decoder too.** A
+  dependency payload that cannot mint a well-formed package URL — custom
+  types included — is a decode error, per the maintainer's strict ruling:
+  legacy payloads keep decoding exactly when they are valid.

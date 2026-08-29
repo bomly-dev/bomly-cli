@@ -2,8 +2,10 @@
 
 - **Date:** 2026-08-26
 - **Owners:** bomly-sdk and bomly-cli maintainers
-- **Decisions:** [ADR-0036](adr/0036-dependency-identity-is-content-addressable.md)
-  (content-addressable identity), [ADR-0037](adr/0037-sbom-assertions-are-typed-sdk-model-fields.md)
+- **Decisions:** [ADR-0041](adr/0041-identity-is-the-canonical-purl-on-typed-nodes.md)
+  (PURL identity on typed nodes, superseding
+  [ADR-0036](adr/0036-dependency-identity-is-content-addressable.md)),
+  [ADR-0037](adr/0037-sbom-assertions-are-typed-sdk-model-fields.md)
   (typed SBOM model), [ADR-0038](adr/0038-purl-and-spdx-behavior-have-one-home-in-the-sdk.md)
   (PURL/SPDX single home), [ADR-0039](adr/0039-both-modules-build-on-go-1-27.md)
   (Go 1.27, strict untrusted parsing)
@@ -51,7 +53,7 @@ version — and the PURL-as-ID rewrite happens at three sites with three
 fallback chains
 (`internal/engine/consolidation/enrichment.go:26`,
 `internal/detectors/sbom/detector.go:164`, `internal/sbom/graph.go:37` — only
-the first canonicalizes). Nothing is content-addressable.
+the first canonicalizes). No single entry point owns identity.
 
 **SBOM field coverage.** The SDK has no supplier, originator, description,
 homepage, external references, declared-vs-concluded license distinction,
@@ -100,10 +102,12 @@ defense for SBOM ingest), stdlib `uuid`, generic methods, `strings.CutLast`.
 
 One sentence per decision; the ADRs carry the detail.
 
-- **Identity** (ADR-0036): identity facets defined once in the SDK — a
-  readable ID (canonical PURL + hashed occurrence suffix) and a derived
-  128-bit content address over a versioned facet encoding — minted only by
-  SDK entry points.
+- **Identity** (ADR-0041): a sealed typed node union — manifest, module,
+  and dependency nodes — where a dependency node's identity is its
+  canonical PURL (valid by the PURL specification's own rules, missing
+  versions warned), the occurrence qualifier is the normalized origin, and
+  comparison is a kind-scoped equals/key pair with ADR-0033 gap-filling;
+  IDs and ordinals minted only by SDK entry points; no content address.
 - **Model** (ADR-0037): every preserved SBOM assertion is a typed,
   `omitempty`, boundary-validated field with a declared merge class; typed
   edges; a per-entry document-assertions carrier on `GraphEntry`; `Metadata`
@@ -140,7 +144,7 @@ Breaking in-process changes are allowed (v0 policy); the wire stays additive
 |---|---|---|
 | 1.1 | `purlkit`: qualifiers/subpath-capable build/parse/canonicalize; the single purl-type ↔ ecosystem table (hex non-mapping recorded); `SplitEcosystemName`; canonical-ID rewrite entry point; import-boundary guard | v0.5.0 |
 | 1.2 | `spdxkit`: absorb `internal/licenseexpr` semantics (panic guards, `Valid`/`ValidateAll`/`Identifier`/`Compose`/`Satisfies`/`Extract`); deprecated-ID canonicalization via the audited replacement map relocated from `internal/sbom/transform.go` (the list marks deprecation; the map owns replacements); classification-by-validation; deterministic `LicenseRef-*` minting + extracted-text pairing; fix `matcherkit.NormalizeLicenseSet` to classify on write | v0.5.0 |
-| 1.3 | Identity (ADR-0041, superseding ADR-0036): typed `GraphNode` union (`PackageNode` requires a valid canonical PURL — type+name mandatory, missing version warned; `ManifestNode` is structural, path-identified, never matched); identity equals/key comparison over (canonical PURL, normalized origin); PURL-based readable IDs with deterministic run-local ordinals for contradicting occurrences; single insertion + finalization entry points; wire flat-node shape kept with an additive kind discriminator; no content address | v0.6.0 |
+| 1.3 | Identity (ADR-0041, superseding ADR-0036): sealed `GraphNode` union — manifest / module / dependency nodes (dependency nodes require a spec-valid canonical PURL, missing version warned; modules are the project's own artifacts; manifests structural, path-identified, never matched); kind-scoped identity equals/key over (canonical PURL, normalized origin) with ADR-0033 gap-filling; PURL identity-form readable IDs with per-PURL deterministic ordinals from 1 for coexisting occurrences; single insertion + finalization entry points; wire flat-node shape plus additive `kind` discriminator with frozen explicit/legacy/conflicting/unknown fixtures; no content address | v0.6.0 |
 | 1.4 | Model fields (ADR-0037): supplier/originator/description/homepage; `ExternalReference`; `PackageLicense` declared/concluded + extracted text; digest-algorithm registry; set-aware scope ↔ CycloneDX mapping with its scalar projection rule; typed `DependencyEdge.Kind` with a kind-preserving edge-copy/rename primitive for graph reconstruction sites; usage attribution (`PackageLocation` carries per-site scopes and relationship so the node-level union becomes derived; reachability becomes repeatable per-module-root evidence with the vulnerability annotation as derived summary, and evidence may carry optional `DependencyRefs` to the exact occurrence nodes where the analyzer can attribute — a conjunctive filter such as reachable ∧ runtime ∧ direct then joins evidence to locations within one module root, selecting one usage); a derived package → nodes reverse-index helper (the stored truth stays `Dependency.PackageRef`; the registry remains position-free); per-`GraphEntry` document assertions; per-field-class merge helpers; boundary validation codecs + fuzz targets for every new parser | v0.7.0 |
 | 1.5 | Metadata policy: document reserved `bomly.` prefix; deprecate `MetadataKeyDetectionLicenses` in favor of the typed license field | v0.7.0 |
 
@@ -157,7 +161,7 @@ the golden refresh happens **once**:
 |---|---|---|
 | 2.1 | Adopt `purlkit`: delete `internal/sbom/identity.go` table, `benchmark/summary.go` table, `render/explain.go` string surgery; detectors derive purl types (guard test forbids literals); one canonical-ID rewrite in consolidation, reused by SBOM ingest paths | Findings §2 duplication items |
 | 2.2 | Adopt `spdxkit`: delete `internal/licenseexpr`; the deprecated-ID replacement map relocates into the kit; export/import use kit classification | ADR-0035 stays behavioral truth, now SDK-enforced |
-| 2.3 | Adopt identity: node IDs SDK-derived end to end; regenerate schemas, goldens, smoke; release-notes callout for the one-time ID change | ADR-0036 |
+| 2.3 | Adopt identity: the typed node union and SDK-derived IDs end to end; regenerate schemas, goldens, smoke; release-notes callout for the one-time ID change | ADR-0041 |
 | 2.4 | **Close #410**: `LicenseRef-*` + `hasExtractedLicensingInfos` emission, mixed-validity composition, canonical ingest coordinates via `SplitEcosystemName`; round-trip asserts `Org`+`Name`+`EcosystemName()` together | Also removes ADR-0035's recorded limitation |
 | 2.5 | **Close #396** on the typed model: ingest populates typed fields through their gates; the export surface takes the prepared entries rather than the bare merged graph, so per-entry document assertions reach the codec; export projects them; merge follows the declared classes; fixed-point test (single-source export → ingest → export byte-stable for preserved fields; a merged export links source identities per ADR-0037, with merged fixtures for both formats validated through the codecs and the official format validators); hostile-document fuzz coverage | Deferred #391 items stay deferred per ADR-0037 |
 | 2.6 | Export full scope sets (fixes survey defect 2) and adopt json/v2 strict ingest with documented rejection behavior, and pin the v1 plugin wire's lenient decode with SDK wire fixtures so the migration cannot tighten it by accident | ADR-0039 |
@@ -201,8 +205,8 @@ the golden refresh happens **once**:
    `packageurl-go`/`go-spdx` imports outside the kits, zero PURL string
    concatenation outside `purlkit` — each enforced by a guard test, not a
    review habit.
-4. One identity authority: every node ID and content address in the pipeline
-   is produced by an SDK entry point, and `left-pad@1.0.0` from two
+4. One identity authority: every node ID in the pipeline is produced by an
+   SDK entry point on the typed node union, and `left-pad@1.0.0` from two
    ecosystems are two nodes in one merged graph, proven by test.
 5. Both modules on Go 1.27; untrusted SBOM ingest rejects documents with
    duplicate object names or invalid UTF-8, each with an actionable error.

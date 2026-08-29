@@ -105,8 +105,12 @@ for map grouping — with a three-way origin relation:
 Comparison is kind-scoped: nodes of different kinds are never equal, so a
 module node and a dependency node sharing a PURL — or sharing the absence
 of an origin — can never fold into each other, whatever the insertion
-order. Module nodes compare by canonical PURL when both carry one and by
-(declaring manifest path, name) otherwise; manifest nodes compare by path.
+order. Module nodes always compare with their declaring manifest path as
+part of the identity — beside the canonical PURL when one exists, beside
+the module name otherwise — because a recursive scan can legitimately
+discover two unrelated projects carrying the same ecosystem, name, and
+version, and a PURL-only comparison would fold those separate roots and
+union their dependency edges. Manifest nodes compare by path.
 Keys are in-process comparison values, kind-prefixed, and never appear in
 scan JSON, SBOMs, or any published document.
 
@@ -120,15 +124,33 @@ specification's URL-valued evidence keys — `repository_url`,
 `download_url`, and `vcs_url` — whose values are resolution evidence that
 can embed credentials and signed links: identity normalization strips them
 from the PURL and their content belongs in `Origin`, behind the ADR-0033
-gates, so they shape the occurrence, never a published ID. When distinct
+gates, so they shape the occurrence, never a published ID. Redirection
+means passing the value through the ADR-0033 origin constructors, never
+stapling it on: those constructors reject a query-carrying artifact URL
+outright — a signed or tokenized download link is discarded entirely, not
+sanitized into something publishable — so a credential embedded in a
+qualifier can reach neither a published ID nor an exported origin field. When distinct
 occurrences of one canonical PURL must coexist, each origin-bearing
 occurrence carries a deterministic suffix — a single space and a short
 lowercase-hex hash of its kind-prefixed normalized origin. Deriving the
-suffix from the occurrence's own origin keeps IDs stable when the
-occurrence set changes: adding or removing a sibling never renumbers the
-others, which positional ordinals could not promise, and the normalized
-origin is already credential-free, so the hash publishes nothing the
-origin field does not. Occurrences distinguishable only by raw evidence
+suffix from the occurrence's own origin means a contested occurrence keeps
+one suffix for as long as it is contested — adding or removing a sibling
+never renumbers the others, which positional ordinals could not promise —
+and the normalized origin is already credential-free, so the hash
+publishes nothing the origin field does not. A singleton keeps the bare
+PURL, and gaining a first sibling does change its rendered ID; that is
+deliberate, because readable IDs carry the reference semantics the major
+SBOM formats define: CycloneDX `bom-ref` and SPDX element IDs are
+document-local handles required only to be unique within one document,
+with cross-document identity carried by the data fields (the PURL,
+external references) rather than the handle. Bomly follows that industry
+contract — IDs are unique within a run's outputs and as human-meaningful
+as uniqueness allows, while cross-run identity lives in the identity
+fields (canonical PURL, normalized origin) that diff, baselines, and
+matching already join on. Suffixing every origin-bearing occurrence
+unconditionally was considered and rejected: it would trade the common
+case's readability for stability of a handle the formats define as
+document-local. Occurrences distinguishable only by raw evidence
 have nothing publishable to hash; they carry run-local ordinal suffixes
 (`o1`, `o2`, … in sorted raw-key order) with the stated caveat that this
 rare class is run-scoped and not stable across evidence changes — never a

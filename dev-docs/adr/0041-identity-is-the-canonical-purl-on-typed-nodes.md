@@ -79,10 +79,14 @@ Go's generics are homogeneous with no sum types.)
 it.** The PURL is the industry standard and `purlkit` (backed by
 `package-url/packageurl-go`) is its one home; identity introduces no
 second grammar and no Bomly-invented validity rule. A dependency node is
-valid exactly when the library accepts its PURL under the specification:
-scheme, type, and name at minimum, plus each type's own requirements
-(Maven's group ID as the namespace, for example) — the library, not
-Bomly, decides. The one Bomly policy layered on top is about versions,
+valid exactly when its PURL satisfies the specification, enforced in two
+spec-owned layers: the library decides syntactic and canonical-form
+validity (scheme, type, and name at minimum), and a purlkit table
+transcribed from the specification's own per-type definitions decides
+each type's structural profile — Maven's group ID as the namespace, for
+example, which the library itself does not check (see the Clarifications
+section). Unknown types have no profile and pass on syntax alone. The one
+Bomly policy layered on top is about versions,
 which the specification leaves optional: a dependency node without a
 version is accepted with a recorded warning rather than rejected, because
 first-party-adjacent records and some imported SBOM components

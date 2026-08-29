@@ -88,25 +88,34 @@ version is accepted with a recorded warning rather than rejected, because
 first-party-adjacent records and some imported SBOM components
 legitimately lack one, and their absence should be visible, not fatal.
 Module nodes derive a PURL when their coordinates allow one, under the
-same warning policy; a module that cannot mint one falls back to
-path-based identity like a manifest, because it is the project's own
+same warning policy; a module that cannot mint one is identified by its
+declaring manifest path plus its name, because it is the project's own
 record, not a registry lookup key.
 
 Qualifiers are part of identity, as the specification says they are
 (`arch`, `distro`, `upstream`, `epoch`, `classifier`, …): container scans
 genuinely carry one package/version under two architectures, and dropping
-qualifiers would collide identities the spec keeps distinct. The
-exception is the specification's URL-valued evidence keys —
-`repository_url`, `download_url`, and `vcs_url` — whose values are
-resolution evidence: identity normalization strips them from the PURL and
-redirects their content through the ADR-0033 origin constructors, which
-reject a query-carrying artifact URL outright — a signed or tokenized
-link is discarded entirely, not sanitized into something publishable — so
-a credential embedded in a qualifier can reach neither a published ID nor
-an exported origin field. Where an ecosystem genuinely treats source as
-part of package identity (Cargo's lockfile does), its detector expresses
-that in the PURL it mints — identity stays in the PURL, where the
-standard puts it.
+qualifiers would collide identities the spec keeps distinct. Which
+qualifiers, exactly, is still the specification's call, not an open door:
+identity keeps the qualifier keys the specification knows — its
+registered keys and each type's documented keys — and an unrecognized
+custom key is dropped from identity with a recorded warning, because an
+imported document can invent a qualifier whose value embeds a token, and
+node IDs are published. The list is spec-derived, never Bomly-invented.
+Two of the spec's known keys are excluded by role rather than obscurity:
+the URL-valued evidence keys — `repository_url`, `download_url`, and
+`vcs_url` — carry resolution evidence, so identity normalization strips
+them from the PURL and redirects their content through the ADR-0033
+origin constructors, which reject a query-carrying artifact URL outright
+— a signed or tokenized link is discarded entirely, not sanitized into
+something publishable — so a credential embedded in a qualifier can reach
+neither a published ID nor an exported origin field. (ADR-0033's prose
+spelled the query-strip rule only for repository URLs; this ADR amends it
+to record what the gate ships: the artifact form rejects query-carrying
+URLs rather than retaining them.) Where an ecosystem genuinely treats
+source as part of package identity (Cargo's lockfile does), its detector
+expresses that in the PURL it mints — identity stays in the PURL, where
+the standard puts it.
 
 **Origin is metadata, not identity.** A dependency node carries
 `Origins []DependencyOrigin` — ADR-0033-normalized, union-merged, almost
@@ -135,20 +144,27 @@ dependency nodes by canonical PURL; module nodes by declaring manifest
 path beside the PURL (or the name, when no PURL is derivable) — a
 recursive scan can discover two unrelated projects with identical
 coordinates, and the path keeps those roots apart; manifest nodes by
-path. Keys are in-process comparison values, kind-prefixed, and never
-appear in published documents. Merging is folding: records that compare
+path. Every path that participates in identity is the canonical
+repository-relative, slash-separated form, enforced by the SDK
+constructors — an absolute checkout path or a backslash spelling would
+split one module into two nodes and make IDs vary across machines. Keys
+are in-process comparison values, kind-prefixed, and never appear in
+published documents. Merging is folding: records that compare
 equal union their scopes, locations, and origins; records that do not
 compare equal are different nodes.
 
 **Readable IDs are the identity itself.** A dependency node's graph ID is
 its canonical PURL — unique within a graph by construction, because
 identity is the PURL and the graph holds one node per identity. Module
-and manifest nodes use their path-derived identities. No suffix grammar
-exists. This matches the reference semantics the major SBOM formats
-define: CycloneDX `bom-ref` and SPDX element IDs are document-local
-handles, with cross-document identity carried by the data fields — here
-the handle and the identity coincide, which is the most readable form a
-handle can take.
+and manifest nodes use their path-derived identities, rendered
+kind-qualified so a PURL-less module and the manifest that declares it —
+two nodes under the equality rule — can never share a published ID. No
+suffix grammar exists. Reference semantics follow the formats: CycloneDX
+`bom-ref` accepts the PURL directly, so there handle and identity
+coincide; SPDX element IDs have their own idstring grammar (no `:`, `/`,
+or `@`), so the SPDX encoder keeps its existing projection — sanitized
+`SPDXRef-` handles with a collision map — as a format-local rendering of
+the graph ID, never a second identity.
 
 **The wire stays inside `bomly.plugin.v1`, with a specified
 discriminator.** Nodes keep their flat JSON shape and gain one additive
@@ -161,9 +177,11 @@ everything else → dependency. An unrecognized `kind` value is a decode
 error, not a guess: a v1 payload can only carry v1 kinds, and a future
 kind means a v2 negotiation, per the additive-forever rule. The origins
 list is likewise an additive `omitempty` field beside the existing
-singular origin field, which remains readable for legacy payloads. Frozen
+singular origin field, which remains readable for legacy payloads; when a
+payload carries both, decoders union them and deduplicate by normalized
+value, so no combination drops or double-counts origin evidence. Frozen
 wire fixtures pin the discriminator cases — explicit, legacy-inferred,
-conflicting, and unknown.
+conflicting, and unknown — plus the both-origin-fields payload.
 
 **There is no content address.** Encode-then-hash identity is dropped
 entirely. If cloud persistence ever materializes, an address can be
@@ -189,6 +207,15 @@ lost.
   ecosystem's detector expresses the source in the PURL. Matching is
   PURL-keyed, so this costs no advisory precision — it never had any —
   and the origins list retains the observable difference.
+- Folding by PURL also unions dependency edges: when a lockfile carries
+  one canonical PURL at two positions with different child sets (npm's
+  duplicate-path corner), the folded node holds both edge sets, and path
+  traversal becomes PURL-granular rather than position-granular. That is
+  the granularity GitHub, Snyk, and CycloneDX operate at, and it is
+  accepted deliberately; the test pinning position-distinct duplicates
+  changes expectation at adoption, and an ecosystem that considers such
+  records genuinely different packages expresses that difference in the
+  PURLs its detector mints.
 - The typed node union is a one-time in-process break that every consumer
   absorbs at its own pin bump: the CLI in its phase-2 adoption train, the
   component repositories in the deferred plugin round. Matching and

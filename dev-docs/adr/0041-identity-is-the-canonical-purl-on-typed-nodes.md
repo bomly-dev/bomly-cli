@@ -106,7 +106,12 @@ Two of the spec's known keys are excluded by role rather than obscurity:
 the URL-valued evidence keys — `repository_url`, `download_url`, and
 `vcs_url` — carry resolution evidence, so identity normalization strips
 them from the PURL and redirects their content through the ADR-0033
-origin constructors, which reject a query-carrying artifact URL outright
+origin constructors — a relocation, not a deletion: consumers that read
+these qualifiers today (the Scorecard matcher resolves a package's
+repository from exactly these keys) receive the vetted origin signal
+instead, projected onto the match request when the registry package is
+seeded from the graph, so no lookup silently loses its input. The
+constructors reject a query-carrying artifact URL outright
 — a signed or tokenized link is discarded entirely, not sanitized into
 something publishable — so a credential embedded in a qualifier can reach
 neither a published ID nor an exported origin field. (ADR-0033's prose
@@ -210,7 +215,14 @@ lost.
 - A same-version registry package and git fork share a node unless the
   ecosystem's detector expresses the source in the PURL. Matching is
   PURL-keyed, so this costs no advisory precision — it never had any —
-  and the origins list retains the observable difference.
+  and the origins list retains the observable difference. Registry-match
+  eligibility folds toward eligible: the folded node is matchable when any
+  folded witness was, because withholding enrichment from a PURL that a
+  registry release genuinely uses would hide vulnerabilities, while the
+  reverse direction merely enriches a PURL the registry also serves. This
+  narrows ADR-0015's occurrence-level eligibility to the node level with
+  an any-witness rule — the per-source observations stay readable in the
+  origins list.
 - Folding by PURL also unions dependency edges: when a lockfile carries
   one canonical PURL at two positions with different child sets (npm's
   duplicate-path corner), the folded node holds both edge sets, and path

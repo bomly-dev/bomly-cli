@@ -150,6 +150,12 @@ Breaking in-process changes are allowed (v0 policy); the wire stays additive
 | 1.4 | Model fields (ADR-0037): supplier/originator/description/homepage; `ExternalReference`; `PackageLicense` declared/concluded + extracted text; digest-algorithm registry; set-aware scope ↔ CycloneDX mapping with its scalar projection rule; typed `DependencyEdge.Kind` with a kind-preserving edge-copy/rename primitive for graph reconstruction sites; usage attribution (`PackageLocation` carries per-site scopes and relationship so the node-level union becomes derived; reachability becomes repeatable per-module-root evidence with the vulnerability annotation as derived summary, and evidence may carry optional `DependencyRefs` to the exact occurrence nodes where the analyzer can attribute — a conjunctive filter such as reachable ∧ runtime ∧ direct then joins evidence to locations within one module root, selecting one usage); a derived package → nodes reverse-index helper (the stored truth stays `Dependency.PackageRef`; the registry remains position-free); per-`GraphEntry` document assertions; per-field-class merge helpers; boundary validation codecs + fuzz targets for every new parser | v0.7.0 |
 | 1.5 | Metadata policy: document reserved `bomly.` prefix; deprecate `MetadataKeyDetectionLicenses` in favor of the typed license field | v0.7.0 |
 
+The scorecard matcher's repository resolution reads the URL-valued PURL
+qualifiers that ADR-0041 relocates into origins; its bump at identity
+adoption is therefore behavioral, not mechanical — it must consume the
+projected origin signal from the match request (or an equivalent vetted
+repository field) before the qualifiers disappear from package PURLs.
+
 Each SDK release is followed immediately by Dependabot-or-manual pin bumps in
 the nine `bomly-plugin-*` repos (matcherkit and licence-writing matchers are
 the ones that materially change at 1.2).

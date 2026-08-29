@@ -287,4 +287,14 @@ Three points sharpened while building bomly-sdk v0.6.0 (PRs #16–#18):
 - **Identity well-formedness is enforced at the wire decoder too.** A
   dependency payload that cannot mint a well-formed package URL — custom
   types included — is a decode error, per the maintainer's strict ruling:
-  legacy payloads keep decoding exactly when they are valid.
+  legacy payloads keep decoding exactly when they are valid. This
+  knowingly narrows the v1 decode guarantee for one payload class — an
+  already-shipped detector emitting a dependency record with no derivable
+  package URL fails with an actionable error instead of flowing through
+  under a concatenated ID. The alternatives were weighed and rejected by
+  the maintainer: a lenient never-matched passthrough keeps invalid
+  identities alive in published documents, and coercing `pkg:generic`
+  invents identity claims no producer made. The failure is loud, names
+  the offending record, and the deferred plugin round is the migration
+  path; a plugin whose records genuinely lack registry identity expresses
+  them as its own purl type, which decodes fine.

@@ -258,7 +258,7 @@ Three points sharpened while building bomly-sdk v0.6.0 (PRs #16–#18):
   a purlkit table transcribed from the purl specification's own
   machine-readable per-type definitions — spec-derived, never
   Bomly-invented, and applied only to types the table knows.
-- **The open type vocabulary is the extensibility contract.** The purl type
+- **The type vocabulary is open — that is the extensibility contract.** The purl type
   grammar is open and unknown types validate on syntax alone — never
   rejected for being unknown — so any ecosystem a detector author can
   imagine expresses itself as a purl type and flows through registry,

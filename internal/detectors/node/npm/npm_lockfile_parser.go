@@ -163,10 +163,9 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		if len(roots) > 0 && roots[0] != nil {
 			rootID = roots[0].NodeID()
 		}
-		if rootNodeNode, ok := flat.Node(rootID); ok {
-			rootNode, _ := nodes.AsDependency(rootNodeNode)
-			if rootNode != nil {
-			}
+		if _, ok := flat.Node(rootID); ok {
+			// Nothing to mark on the root: DepGraphFromNPMNode already builds
+			// it as a module node, and ownership is that kind (ADR-0041).
 			for _, dependency := range flat.DependencyNodes() {
 				if dependency != nil && dependency.NodeID() != rootID {
 					dependency.Source = sdk.DependencySourceRegistry

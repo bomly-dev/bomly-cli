@@ -205,17 +205,11 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 		return nil
 	}
 
-	rootID := virtualManifestRootID(g, manifest, idx)
 	manifestLabel := strings.TrimSpace(manifest.Path)
 	if manifestLabel == "" {
 		manifestLabel = fmt.Sprintf("entry-%d", idx+1)
 	}
 	manifestLabel = strings.ReplaceAll(manifestLabel, "\\", "/")
-
-	kind := strings.TrimSpace(string(manifest.Kind))
-	if kind == "" {
-		kind = "manifest"
-	}
 
 	// A synthesized root standing in for the manifest is a manifest node.
 	// It was a dependency node typed PackageTypeManifest, which ADR-0041
@@ -228,7 +222,11 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 	if _, err := g.InsertNode(virtualRoot); err != nil {
 		return fmt.Errorf("add virtual manifest root %q: %w", manifestLabel, err)
 	}
-	rootID = virtualRoot.NodeID()
+	// The manifest grammar mints this ID from the path, and it cannot collide
+	// with a package URL or a module ID -- so there is no candidate-ID search
+	// any more, and no fallback kind: an empty kind is the manifest node's own
+	// business.
+	rootID := virtualRoot.NodeID()
 
 	targets := g.Roots()
 	if len(targets) == 0 {
@@ -280,28 +278,4 @@ func hasSingleRoot(g *sdk.Graph) bool {
 	}
 	roots := g.Roots()
 	return len(roots) == 1 && roots[0] != nil && strings.TrimSpace(roots[0].NodeID()) != ""
-}
-
-func virtualManifestRootID(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) string {
-	base := strings.TrimSpace(manifest.Path)
-	if base == "" {
-		base = fmt.Sprintf("entry-%d", idx+1)
-	}
-	base = strings.ReplaceAll(base, "\\", "/")
-
-	if _, exists := g.Node(base); !exists {
-		return base
-	}
-
-	candidate := "manifest:" + base
-	if _, exists := g.Node(candidate); !exists {
-		return candidate
-	}
-
-	for i := 2; ; i++ {
-		next := fmt.Sprintf("%s#%d", candidate, i)
-		if _, exists := g.Node(next); !exists {
-			return next
-		}
-	}
 }

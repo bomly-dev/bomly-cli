@@ -589,7 +589,9 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 		Type:           sdk.PackageTypeApplication,
 		Language:       "rust",
 		PURL:           sdk.BuildPackageURL("cargo", "", manifest.Name, manifest.Version)})
-
+	if err != nil {
+		return nil, fmt.Errorf("build root node: %w", err)
+	}
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}

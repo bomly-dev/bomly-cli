@@ -34,10 +34,6 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 		if packageManager == sdk.PackageManagerUnknown {
 			packageManager = packageManagerForPURL(component.PURL, string(ecosystem), component.PackageManager)
 		}
-		packageID := strings.TrimSpace(component.ID)
-		if purl := strings.TrimSpace(component.PURL); purl != "" {
-			packageID = purl
-		}
 		// Identity is minted by the constructor (ADR-0041): a node's ID is
 		// its canonical package URL, so the ingested component ID is not
 		// carried in. A component whose coordinates cannot mint a well-formed
@@ -58,7 +54,10 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 		}
 		pkg.Scopes = sdk.ScopesOf(sdk.Scope(component.Scope))
 		pkg.Copyright = component.Copyright
-		packageID = pkg.NodeID()
+		// The document's own component ID does not survive: the node answers
+		// to the identity its coordinates mint, and idMap below is what
+		// re-points the document's relationships onto it.
+		packageID := pkg.NodeID()
 		sdk.SetDetectionLicenses(pkg, graphLicenses(component.Licenses))
 
 		if _, exists := depsGraph.Node(packageID); !exists {

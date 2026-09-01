@@ -117,21 +117,27 @@ func TestNPMv1DuplicateEntriesKeepDistinctResolutions(t *testing.T) {
 		if err != nil {
 			t.Fatalf("depGraphFromNPMLockfile() error = %v", err)
 		}
+		sharedNodes, agreedNodes := 0, 0
 		sharedOrigins := map[string]int{}
-		agreedNodes := 0
-		graphs.graph.WalkNodes(func(dep sdk.GraphNode) bool {
-			switch mustDep(t, dep).Name {
+		graphs.graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+			switch dep.Name {
 			case "shared":
-				sharedOrigins[originOf(mustDep(t, dep)).ArtifactURL]++
+				sharedNodes++
+				for _, origin := range dep.Origins {
+					sharedOrigins[origin.ArtifactURL]++
+				}
 			case "agreed":
 				agreedNodes++
 			}
 			return true
 		})
+		if sharedNodes != 1 {
+			t.Fatalf("shared nodes = %d, want one node per identity", sharedNodes)
+		}
 		if len(sharedOrigins) != 2 ||
 			sharedOrigins["https://npm.corp/mirror/shared/-/shared-2.0.0.tgz"] != 1 ||
 			sharedOrigins["https://registry.npmjs.org/shared/-/shared-2.0.0.tgz"] != 1 {
-			t.Fatalf("shared occurrences = %v, want both resolutions distinct", sharedOrigins)
+			t.Fatalf("shared origins = %v, want both resolutions on the folded node", sharedOrigins)
 		}
 		if agreedNodes != 1 {
 			t.Fatalf("agreed nodes = %d, want identical resolutions folded", agreedNodes)
@@ -140,10 +146,10 @@ func TestNPMv1DuplicateEntriesKeepDistinctResolutions(t *testing.T) {
 }
 
 // Two package paths can install one name@version from different tarballs
-// (nested overrides, mirror-pinned subtrees). The lockfile asserts two
-// resolutions, so both stay as distinct occurrences with their own origins,
-// and each path's edges attach to its own occurrence.
-func TestNPMv3DuplicatePathsWithDifferentTarballsStayDistinct(t *testing.T) {
+// (nested overrides, mirror-pinned subtrees). They are one identity, so they
+// fold into one node -- and the node records both tarballs, which is the
+// mirror-substitution signal two indistinguishable nodes were standing in for.
+func TestNPMv3DuplicatePathsWithDifferentTarballsFoldKeepingBothOrigins(t *testing.T) {
 	projectDir := t.TempDir()
 	lockfile := `{
       "name": "demo",
@@ -165,17 +171,24 @@ func TestNPMv3DuplicatePathsWithDifferentTarballsStayDistinct(t *testing.T) {
 		t.Fatalf("depGraphFromNPMLockfile() error = %v", err)
 	}
 
+	shared := 0
 	origins := map[string]int{}
-	graphs.graph.WalkNodes(func(dep sdk.GraphNode) bool {
-		if mustDep(t, dep).Name == "shared" {
-			origins[originOf(mustDep(t, dep)).ArtifactURL]++
+	graphs.graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+		if dep.Name == "shared" {
+			shared++
+			for _, origin := range dep.Origins {
+				origins[origin.ArtifactURL]++
+			}
 		}
 		return true
 	})
+	if shared != 1 {
+		t.Fatalf("shared nodes = %d, want one node per identity", shared)
+	}
 	if len(origins) != 2 ||
 		origins["https://registry.npmjs.org/shared/-/shared-2.0.0.tgz"] != 1 ||
 		origins["https://npm.corp/mirror/shared/-/shared-2.0.0.tgz"] != 1 {
-		t.Fatalf("shared occurrences = %v, want both tarballs as distinct nodes", origins)
+		t.Fatalf("shared origins = %v, want both tarballs on the folded node", origins)
 	}
 }
 

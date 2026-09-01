@@ -79,15 +79,20 @@ func TestNPMLockfileWorkspaceLinkEntriesDoNotDuplicateNodes(t *testing.T) {
 	}
 	// The link alias node_modules/lib must resolve to the member node, not a
 	// synthetic versionless "lib" package.
-	if _, ok := testnodes.Find(graphs.graph, "lib"); ok {
-		t.Fatal("unexpected versionless link ghost node for lib")
+	for _, node := range graphs.graph.Nodes() {
+		name, version, _, _ := nodes.Display(node)
+		if name == "lib" && version == "" {
+			t.Fatalf("unexpected versionless link ghost node for lib: %s", node.NodeID())
+		}
 	}
-	member, ok := testnodes.FindDep(graphs.graph, "lib@1.0.0")
+	member, ok := testnodes.Find(graphs.graph, "lib@1.0.0")
 	if !ok {
 		t.Fatal("expected lib member node")
 	}
-	if member.Type != sdk.PackageTypeApplication {
-		t.Fatalf("expected member node to be an application, got %q", member.Type)
+	// A workspace member is the project's own code, so it is a module node:
+	// ownership is the kind now, not the application package type (ADR-0041).
+	if !nodes.IsProjectOwned(member) {
+		t.Fatalf("expected the member to be the project's own module, got a %s node", member.Kind())
 	}
 	// web depends on lib via the workspace link; the edge must target the member.
 	deps, err := graphs.graph.DirectDependencies(testnodes.ID(graphs.graph, "web@0.2.0"))

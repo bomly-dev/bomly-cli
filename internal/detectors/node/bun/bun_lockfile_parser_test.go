@@ -44,10 +44,10 @@ func TestDepGraphFromBunLockfile(t *testing.T) {
 		t.Fatalf("expected tuple integrity metadata, got %#v", realPackage.Digests)
 	}
 	root, _ := testnodes.Find(graphs.graph, graphs.rootID)
-	assertEdge(t, graphs.graph, mustDep(t, root), realPackage)
+	assertEdge(t, graphs.graph, root, realPackage)
 	workspace, _ := testnodes.Find(graphs.graph, graphs.modules[0].rootID)
-	assertEdge(t, graphs.graph, mustDep(t, root), mustDep(t, workspace))
-	assertEdge(t, graphs.graph, mustDep(t, workspace), realPackage)
+	assertEdge(t, graphs.graph, root, workspace)
+	assertEdge(t, graphs.graph, workspace, realPackage)
 	tool := dependencyByNameVersion(graphs.graph, "tool", "1.2.0")
 	if tool == nil || tool.PrimaryScope() != sdk.ScopeDevelopment {
 		t.Fatalf("expected exact dev dependency version and scope, got %#v", tool)
@@ -98,7 +98,7 @@ func dependencyByNameVersion(graph *sdk.Graph, name, version string) *sdk.Depend
 	return found
 }
 
-func assertEdge(t *testing.T, graph *sdk.Graph, from, to *sdk.DependencyNode) {
+func assertEdge(t *testing.T, graph *sdk.Graph, from, to sdk.GraphNode) {
 	t.Helper()
 	if from == nil || to == nil {
 		t.Fatalf("edge endpoint is nil: from=%#v to=%#v", from, to)

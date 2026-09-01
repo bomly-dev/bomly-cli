@@ -2,6 +2,7 @@ package bun
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
@@ -90,20 +91,25 @@ func main() { fmt.Print("/project node_modules\n├── @fixture/api@workspace
 	if err != nil {
 		t.Fatal(err)
 	}
-	if graph.Size() != 7 {
-		t.Fatalf("expected root, workspace, and five package occurrences, got %d", graph.Size())
+	// Six, not seven: the alias entry ("number-check": "npm:is-number@7.0.0")
+	// no longer mints a node of its own. The installed package is is-number,
+	// its identity is is-number's package URL, and the alias is a declaration
+	// detail (ADR-0041).
+	if graph.Size() != 6 {
+		t.Fatalf("expected the root, the workspace, and four packages, got %d", graph.Size())
 	}
 	leftPad, _ := testnodes.Find(graph, "left-pad@1.3.0")
 	if leftPad == nil || mustDep(t, leftPad).Relationship != sdk.DependencyRelationshipUnknown {
 		t.Fatalf("expected unproven package placement, got %#v", leftPad)
 	}
-	workspace, _ := testnodes.Find(graph, "workspace:apps/api")
-	if workspace == nil || mustDep(t, workspace).Type != sdk.PackageTypeApplication || mustDep(t, workspace).Version != "1.0.0" {
-		t.Fatalf("expected canonical workspace application, got %#v", workspace)
+	workspace, _ := testnodes.Find(graph, "api@1.0.0")
+	if workspace == nil || !nodes.IsProjectOwned(workspace) {
+		t.Fatalf("expected the workspace member to be the project's own module, got %#v", workspace)
 	}
-	alias, _ := testnodes.Find(graph, "bun-native-alias:number-check@7.0.0")
-	if alias == nil || mustDep(t, alias).Name != "is-number" || mustDep(t, alias).Version != "7.0.0" || mustDep(t, alias).PrimaryScope() != sdk.ScopeRuntime {
-		t.Fatalf("expected normalized direct alias occurrence, got %#v", alias)
+	// The alias resolves to the package it names, at that package's identity.
+	alias, _ := testnodes.FindDep(graph, "is-number@7.0.0")
+	if alias == nil || alias.PrimaryScope() != sdk.ScopeRuntime {
+		t.Fatalf("expected the alias target as a runtime dependency, got %#v", alias)
 	}
 	children, err := graph.DirectDependencies(testnodes.ID(graph, "is-odd@0.1.2"))
 	if err != nil || len(children) != 1 || !testnodes.Is(children[0], "is-number@3.0.0") {

@@ -122,14 +122,10 @@ func TestBunLockfileV1Workspaces(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	web, ok := testnodes.Find(g, "workspace:apps/web")
-	if !ok || mustDep(t, web).Name != "@fixture/web" || mustDep(t, web).Version != "1.0.0" {
-		t.Fatalf("expected web workspace identity, got %#v", web)
-	}
-	lib, ok := testnodes.Find(g, "workspace:packages/lib")
-	if !ok || mustDep(t, lib).Name != "@fixture/lib" || mustDep(t, lib).Version != "1.0.0" {
-		t.Fatalf("expected library workspace identity, got %#v", lib)
-	}
+	// Workspace members are module nodes now, keyed by the manifest that
+	// declares them rather than by a "workspace:<dir>" ID (ADR-0041).
+	requireModule(t, g, "@fixture/web", "1.0.0")
+	requireModule(t, g, "@fixture/lib", "1.0.0")
 	for _, duplicateID := range []string{"@fixture/web@apps/web", "@fixture/lib@packages/lib"} {
 		if duplicate, exists := testnodes.Find(g, duplicateID); exists {
 			t.Fatalf("workspace package tuple created duplicate registry node %#v", duplicate)
@@ -498,4 +494,16 @@ func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
 		t.Fatalf("expected a dependency node, got %T", node)
 	}
 	return dep
+}
+
+// requireModule asserts the graph holds the project's own module for a name
+// and version.
+func requireModule(t *testing.T, g *sdk.Graph, name, version string) {
+	t.Helper()
+	for _, module := range g.ModuleNodes() {
+		if module.Name == name && module.Version == version {
+			return
+		}
+	}
+	t.Fatalf("no module node %s@%s; modules: %v", name, version, g.ModuleNodes())
 }

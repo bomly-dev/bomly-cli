@@ -124,8 +124,8 @@ snapshots:
 		t.Fatalf("entries = %d", len(result.Graphs.Entries))
 	}
 	member := result.Graphs.Entries[1].Graph
-	if _, ok := testnodes.Find(member, "workspace:packages/cloudflare"); !ok {
-		t.Fatalf("workspace node missing: %#v", member.DependencyNodes())
+	if len(member.ModuleNodes()) == 0 {
+		t.Fatalf("workspace module node missing: %#v", member.Nodes())
 	}
 	if _, ok := testnodes.Find(member, "cloudflare@4.0.0"); !ok {
 		t.Fatal("registry package with the same name missing")

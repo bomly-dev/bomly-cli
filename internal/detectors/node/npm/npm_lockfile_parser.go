@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -259,19 +260,29 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		if meta := npmLockPackageMetadata(entry); meta != nil {
 			pkg.Metadata = map[string]any{sdk.MetadataKeyNPM: meta}
 		}
-		pkgNode, err := detectors.NewDependencyFrom(pkg)
+		var pkgNode sdk.GraphNode
+		if member {
+			// A workspace member is the project's own code, so it is a module
+			// node declared by its own package.json. Ownership is the node
+			// kind under ADR-0041.
+			memberPath := strings.TrimPrefix(filepath.ToSlash(packagePath), "./")
+			pkgNode, err = sdk.NewModuleNode(path.Join(memberPath, "package.json"), pkg.Coordinates)
+		} else {
+			pkgNode, err = detectors.NewDependencyFrom(pkg)
+		}
 		if err != nil {
 			return npmLockfileGraphs{}, err
 		}
 		// npm records the registry tarball a package was installed from.
 		// Workspace members cleared ResolvedURL above (it names a local
 		// directory), and git or file specs are rejected by the invariant.
-		if origin := sdk.ArtifactOrigin(pkg.ResolvedURL); origin != nil {
-			pkgNode.Origins = sdk.MergeOrigins(pkgNode.Origins, []sdk.DependencyOrigin{*origin})
-		}
-
-		if entry.License != "" {
-			sdk.SetDetectionLicenses(pkgNode, []sdk.PackageLicense{{Value: entry.License, Type: "declared"}})
+		if dependency, isDependency := nodes.AsDependency(pkgNode); isDependency {
+			if origin := sdk.ArtifactOrigin(pkg.ResolvedURL); origin != nil {
+				dependency.Origins = sdk.MergeOrigins(dependency.Origins, []sdk.DependencyOrigin{*origin})
+			}
+			if entry.License != "" {
+				sdk.SetDetectionLicenses(dependency, []sdk.PackageLicense{{Value: entry.License, Type: "declared"}})
+			}
 		}
 		// Two package paths can install one name@version from different
 		// tarballs; the shared helper keeps both, and pathToID wires each

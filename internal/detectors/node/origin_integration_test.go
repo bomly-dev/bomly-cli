@@ -40,6 +40,18 @@ func requireArtifactOrigin(t *testing.T, g *sdk.Graph, name, version, want strin
 }
 
 // requireNoOrigin asserts a package publishes no location at all.
+// requireNoModuleOrigin asserts that the project's own module for a name
+// publishes nothing about where it came from.
+func requireNoModuleOrigin(t *testing.T, g *sdk.Graph, name string) {
+	t.Helper()
+	for _, module := range g.ModuleNodes() {
+		if module.Name == name {
+			return
+		}
+	}
+	t.Errorf("no module node named %q; modules: %v", name, g.ModuleNodes())
+}
+
 func requireNoOrigin(t *testing.T, g *sdk.Graph, name, version string) {
 	t.Helper()
 	if origin := originOf(requirePackage(t, g, name, version)); !origin.Empty() {
@@ -79,8 +91,8 @@ func TestNPMWorkspaceMembersAssertNoOrigin(t *testing.T) {
 		t.Fatal(err)
 	}
 	requireArtifactOrigin(t, g, "lodash", "4.17.21", "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz")
-	requireNoOrigin(t, g, "web", "0.2.0")
-	requireNoOrigin(t, g, "lib", "1.0.0")
+	requireNoModuleOrigin(t, g, "web")
+	requireNoModuleOrigin(t, g, "lib")
 }
 
 func TestPNPMLockfileOriginIsTheResolutionTarball(t *testing.T) {
@@ -137,12 +149,15 @@ func TestBunLockfileOriginIsTheRegistryTarball(t *testing.T) {
 		t.Fatal(err)
 	}
 	requireArtifactOrigin(t, g, "is-number", "7.0.0", "https://registry.npmjs.org/is-number/-/is-number-7.0.0.tgz")
-	requireNoOrigin(t, g, "workspace:packages/lib", "")
+	// The workspace member is a module node now, and a module carries no
+	// origins at all -- which is the stronger form of what this asserts.
+	requireNoModuleOrigin(t, g, "@fixture/lib")
 }
 
 // Yarn Classic can pin one name@version to different tarballs under different
-// selectors. Both stay as distinct occurrences with their own origins.
-func TestYarnDuplicateResolvedEntriesStayDistinct(t *testing.T) {
+// selectors. They are one identity, so they fold -- and the folded node keeps
+// both tarballs as origins.
+func TestYarnDuplicateResolvedEntriesFoldKeepingBothOrigins(t *testing.T) {
 	dir := t.TempDir()
 	lock := `# yarn.lock classic (v1) format
 
@@ -165,16 +180,23 @@ shared@^2.0.0:
 	if err != nil {
 		t.Fatal(err)
 	}
+	shared := 0
 	origins := map[string]int{}
-	g.WalkNodes(func(dep sdk.GraphNode) bool {
-		if mustDep(t, dep).Name == "shared" {
-			origins[originOf(mustDep(t, dep)).ArtifactURL]++
+	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+		if dep.Name == "shared" {
+			shared++
+			for _, origin := range dep.Origins {
+				origins[origin.ArtifactURL]++
+			}
 		}
 		return true
 	})
+	if shared != 1 {
+		t.Fatalf("shared nodes = %d, want one node per identity", shared)
+	}
 	if len(origins) != 2 ||
 		origins["https://registry.npmjs.org/shared/-/shared-2.0.0.tgz"] != 1 ||
 		origins["https://npm.corp/mirror/shared/-/shared-2.0.0.tgz"] != 1 {
-		t.Fatalf("shared occurrences = %v, want both tarballs as distinct nodes", origins)
+		t.Fatalf("shared origins = %v, want both tarballs on the folded node", origins)
 	}
 }

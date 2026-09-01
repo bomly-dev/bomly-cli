@@ -70,7 +70,7 @@ func TestAttachUnknownComponentsRetainsDisconnectedCycle(t *testing.T) {
 	if len(components) != 1 || components[0].Size != 2 {
 		t.Fatalf("components = %#v", components)
 	}
-	if components[0].RootID != "a" || a.Relationship != sdk.DependencyRelationshipUnknown {
+	if components[0].RootID != a.NodeID() || a.Relationship != sdk.DependencyRelationshipUnknown {
 		t.Fatalf("cycle root = %#v, relationship=%q", components[0], a.Relationship)
 	}
 }

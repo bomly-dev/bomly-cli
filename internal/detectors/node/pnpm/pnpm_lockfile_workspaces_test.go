@@ -2,6 +2,7 @@ package pnpm
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"path/filepath"
 	"runtime"
@@ -71,8 +72,10 @@ func TestPNPMLockfileWorkspaceLinkDependenciesResolveToMembers(t *testing.T) {
 	for _, dep := range deps {
 		if testnodes.Is(dep, "lib@1.0.0") {
 			found = true
-			if mustDep(t, dep).Type != sdk.PackageTypeApplication {
-				t.Fatalf("expected member target to be an application, got %q", mustDep(t, dep).Type)
+			// A workspace member is the project's own code, so the link
+			// resolves to a module node (ADR-0041).
+			if !nodes.IsProjectOwned(dep) {
+				t.Fatalf("expected the member target to be a module, got a %s node", dep.Kind())
 			}
 		}
 	}

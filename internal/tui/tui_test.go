@@ -684,7 +684,7 @@ func TestScanInteractiveModel_EcosystemFilterUpdatesComponents(t *testing.T) {
 	g := sdk.New()
 	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
 	npmDep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm"}})
-	goDep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "cobra", Version: "1.8.0", Ecosystem: "go"}})
+	goDep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "github.com/spf13/cobra", Version: "1.8.0", Ecosystem: "go"}})
 	for _, pkg := range []*sdk.DependencyNode{root, npmDep, goDep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
@@ -1878,16 +1878,22 @@ func TestScanInteractiveModel_SourceTabListsSubprojects(t *testing.T) {
 
 func TestScanInteractiveModel_ModulesBranchFromParentRoot(t *testing.T) {
 	rootTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/reactor"}
-	parent := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "maven", Name: "parent", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	core := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "maven", Name: "core", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "maven", Name: "commons", Version: "3.12.0"}})
+	// Maven coordinates carry a group: the purl type requires a namespace, so
+	// a bare artifact ID has no identity to mint (ADR-0041). The reactor
+	// modules are the project's own code, so they are module nodes.
+	parent := testnodes.ModuleFrom("pom.xml", sdk.Coordinates{
+		Ecosystem: "maven", Org: "com.acme", Name: "parent", Version: "1.0.0", Type: sdk.PackageTypeApplication})
+	core := testnodes.ModuleFrom("core/pom.xml", sdk.Coordinates{
+		Ecosystem: "maven", Org: "com.acme", Name: "core", Version: "1.0.0", Type: sdk.PackageTypeApplication})
+	dep := testnodes.Dep(sdk.Coordinates{
+		Ecosystem: "maven", Org: "org.apache.commons", Name: "commons", Version: "3.12.0"})
 
 	parentGraph := sdk.New()
 	if err := parentGraph.AddNode(parent); err != nil {
 		t.Fatalf("add parent: %v", err)
 	}
 	coreGraph := sdk.New()
-	for _, pkg := range []*sdk.DependencyNode{core, dep} {
+	for _, pkg := range []sdk.GraphNode{core, dep} {
 		if err := coreGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add core node: %v", err)
 		}

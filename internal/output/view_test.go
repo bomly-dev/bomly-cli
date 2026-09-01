@@ -605,7 +605,7 @@ func TestBuildDiffResponseGatesReachability(t *testing.T) {
 	if err := headGraph.AddNode(pkg); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
-	if err := headGraph.AddEdge("app@1.0.0", pkg.NodeID()); err != nil {
+	if err := headGraph.AddEdge(testnodes.ID(headGraph, "app@1.0.0"), pkg.NodeID()); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -794,15 +794,19 @@ func TestBuildDiffResponsePrunesSBOMPseudoRootPackages(t *testing.T) {
 	}
 
 	headGraph := sdk.New()
-	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "root", PURL: "pkg:generic/root"}})
-	lockfile := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "package-lock.json", PURL: "pkg:generic/package-lock.json"}})
+	// The document's own pseudo-roots -- its root component and the lockfile
+	// it described -- are manifest nodes, not packages. That is what keeps
+	// them out of a package diff now: the diff walks dependency nodes, and a
+	// manifest is not one (ADR-0041).
+	root := testnodes.Manifest("bomly.sbom.json", sdk.ManifestKindSPDX)
+	lockfile := testnodes.Manifest("package-lock.json", sdk.ManifestKindPackageLockJSON)
 	added := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
 		PackageManager: sdk.PackageManagerNPM,
 		Name:           "zod",
 		Version:        "3.23.0",
 		PURL:           "pkg:npm/zod@3.23.0"},
 	})
-	for _, pkg := range []*sdk.DependencyNode{root, lockfile, shared, added} {
+	for _, pkg := range []sdk.GraphNode{root, lockfile, shared, added} {
 		if err := headGraph.AddNode(pkg); err != nil {
 			t.Fatalf("head add package %q: %v", pkg.NodeID(), err)
 		}
@@ -881,7 +885,9 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	})); err != nil {
 		t.Fatalf("add sbom react: %v", err)
 	}
-	if err := sbomGraph.AddEdge(testnodes.ID(sbomGraph, "SPDXRef-app"), testnodes.ID(sbomGraph, "SPDXRef-react")); err != nil {
+	// The SPDXRef- IDs the document used are not node IDs any more; the nodes
+	// carry the package URLs those refs described.
+	if err := sbomGraph.AddEdge("pkg:npm/app@1.0.0", "pkg:npm/react@18.2.0"); err != nil {
 		t.Fatalf("add sbom dependency: %v", err)
 	}
 
@@ -1164,11 +1170,14 @@ func TestBuildDiffResponseKeepsDuplicateOccurrenceTransitionsPerManifest(t *test
 func newViewTestGraph(t *testing.T) *sdk.Graph {
 	t.Helper()
 	g := sdk.New()
+	npm := func(name, version string) *sdk.DependencyNode {
+		return testnodes.Dep(sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: name, Version: version})
+	}
 	for _, pkg := range []*sdk.DependencyNode{
-		testnodes.Ref("app", "1.0.0"),
-		testnodes.Ref("react", "18.2.0"),
-		testnodes.Ref("zod", "3.23.0"),
-		testnodes.Ref("loose-envify", "1.4.0"),
+		npm("app", "1.0.0"),
+		npm("react", "18.2.0"),
+		npm("zod", "3.23.0"),
+		npm("loose-envify", "1.4.0"),
 	} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package %s: %v", pkg.NodeID(), err)

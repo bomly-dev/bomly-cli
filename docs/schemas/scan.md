@@ -262,6 +262,24 @@ Complete reference for the `bomly scan` JSON output.
 | `confidence` | `string` | |
 | `dynamic_imports_detected` | `boolean` | |
 | `analyzed_at` | `string` | |
+| `evidence` | Array<[`ReachabilityEvidence`](#reachabilityevidence)> | |
+
+### `ReachabilityEvidence`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `module_root` | `string` | |
+| `dependency_refs` | Array<`string`> | |
+| `status` | `string` | |
+| `tier` | `string` | |
+| `analyzer` | `string` | |
+| `reason` | `string` | |
+| `symbols` | Array<[`AffectedSymbol`](#affectedsymbol)> | |
+| `call_paths` | Array<[`CallPath`](#callpath)> | |
+| `hops` | `integer` | |
+| `confidence` | `string` | |
+| `dynamic_imports_detected` | `boolean` | |
+| `analyzed_at` | `string` | |
 
 ### `Reference`
 

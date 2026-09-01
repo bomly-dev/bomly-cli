@@ -800,6 +800,166 @@
                     "dynamic_imports_detected": {
                       "type": "boolean"
                     },
+                    "evidence": {
+                      "items": {
+                        "properties": {
+                          "analyzed_at": {
+                            "type": "string"
+                          },
+                          "analyzer": {
+                            "type": "string"
+                          },
+                          "call_paths": {
+                            "items": {
+                              "properties": {
+                                "frames": {
+                                  "items": {
+                                    "properties": {
+                                      "function": {
+                                        "type": "string"
+                                      },
+                                      "package": {
+                                        "type": "string"
+                                      },
+                                      "position": {
+                                        "properties": {
+                                          "column": {
+                                            "type": "integer"
+                                          },
+                                          "end_line": {
+                                            "type": "integer"
+                                          },
+                                          "file": {
+                                            "type": "string"
+                                          },
+                                          "line": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "type": "object"
+                                      },
+                                      "receiver": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "sink": {
+                                  "properties": {
+                                    "definition": {
+                                      "properties": {
+                                        "column": {
+                                          "type": "integer"
+                                        },
+                                        "end_line": {
+                                          "type": "integer"
+                                        },
+                                        "file": {
+                                          "type": "string"
+                                        },
+                                        "line": {
+                                          "type": "integer"
+                                        }
+                                      },
+                                      "type": "object"
+                                    },
+                                    "kind": {
+                                      "type": "string"
+                                    },
+                                    "module": {
+                                      "type": "string"
+                                    },
+                                    "package": {
+                                      "type": "string"
+                                    },
+                                    "symbol": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                }
+                              },
+                              "required": [
+                                "sink"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "confidence": {
+                            "type": "string"
+                          },
+                          "dependency_refs": {
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          "dynamic_imports_detected": {
+                            "type": "boolean"
+                          },
+                          "hops": {
+                            "type": "integer"
+                          },
+                          "module_root": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "symbols": {
+                            "items": {
+                              "properties": {
+                                "definition": {
+                                  "properties": {
+                                    "column": {
+                                      "type": "integer"
+                                    },
+                                    "end_line": {
+                                      "type": "integer"
+                                    },
+                                    "file": {
+                                      "type": "string"
+                                    },
+                                    "line": {
+                                      "type": "integer"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "kind": {
+                                  "type": "string"
+                                },
+                                "module": {
+                                  "type": "string"
+                                },
+                                "package": {
+                                  "type": "string"
+                                },
+                                "symbol": {
+                                  "type": "string"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "tier": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "status"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
                     "hops": {
                       "type": "integer"
                     },

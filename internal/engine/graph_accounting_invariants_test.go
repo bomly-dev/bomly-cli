@@ -20,13 +20,17 @@ func TestCanonicalGraphFixturePreservesOccurrenceAndPackageAccounting(t *testing
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 
+	// One more node than before ADR-0041, in both counts and in the
+	// structural tally: the synthesized root that stands in for a manifest
+	// with several roots is a manifest node now, alongside the two modules,
+	// where it used to be a dependency node typed "manifest".
 	const (
-		wantOccurrences = 12
-		wantPackages    = 11
+		wantOccurrences = 13
+		wantPackages    = 12
 		wantDirect      = 7
 		wantTransitive  = 1
 		wantUnknown     = 1
-		wantStructural  = 2
+		wantStructural  = 3
 		wantEligible    = 5
 	)
 
@@ -37,8 +41,14 @@ func TestCanonicalGraphFixturePreservesOccurrenceAndPackageAccounting(t *testing
 	if occurrences != wantOccurrences {
 		t.Fatalf("manifest occurrences = %d, want %d", occurrences, wantOccurrences)
 	}
-	if merged.Size() != wantPackages || registry.Len() != wantPackages {
-		t.Fatalf("deduplicated graph/registry = %d/%d, want %d", merged.Size(), registry.Len(), wantPackages)
+	if merged.Size() != wantPackages {
+		t.Fatalf("deduplicated graph = %d, want %d", merged.Size(), wantPackages)
+	}
+	// The registry holds consumed packages only: the project's own modules
+	// and the synthesized manifest are not packages anyone can be asked
+	// about, so they no longer take a registry entry (ADR-0041).
+	if registry.Len() != wantPackages-wantStructural {
+		t.Fatalf("registry = %d, want %d consumed packages", registry.Len(), wantPackages-wantStructural)
 	}
 
 	var direct, transitive, unknown, structural, eligible int
@@ -85,8 +95,11 @@ func TestCanonicalGraphFixturePreservesOccurrenceAndPackageAccounting(t *testing
 
 	assertOccurrenceSpecificFacts(t, consolidated, registry, merged)
 	assertUnknownSyntheticParentIsNotExecutableEvidence(t, merged)
-	assertStructuredAndCompactAccounting(t, consolidated, registry, merged, wantOccurrences, wantPackages)
-	assertExplainAndDiffAccounting(t, consolidated, registry, merged, wantPackages)
+	// The structured surfaces list packages, so the project's own modules and
+	// the synthesized manifest are not among them.
+	assertStructuredAndCompactAccounting(t, consolidated, registry, merged,
+		wantOccurrences-wantStructural, wantPackages-wantStructural)
+	assertExplainAndDiffAccounting(t, consolidated, registry, merged, wantPackages-wantStructural)
 }
 
 func canonicalAccountingFixture(t *testing.T) sdk.ConsolidatedGraph {

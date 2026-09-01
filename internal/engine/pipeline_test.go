@@ -929,7 +929,9 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	})); err != nil {
 		t.Fatalf("add sbom react: %v", err)
 	}
-	if err := sbomGraph.AddEdge(testnodes.ID(sbomGraph, "SPDXRef-app"), testnodes.ID(sbomGraph, "SPDXRef-react")); err != nil {
+	// The SPDXRef- IDs the document used are not node IDs any more; the nodes
+	// carry the package URLs those refs described.
+	if err := sbomGraph.AddEdge("pkg:npm/app@1.0.0", "pkg:npm/react@18.2.0"); err != nil {
 		t.Fatalf("add sbom dependency: %v", err)
 	}
 

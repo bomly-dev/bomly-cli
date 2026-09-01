@@ -12,8 +12,8 @@ import (
 
 func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 	g := model.New()
-	const libPURL = "pkg:go/lib@1.0.0"
-	pkg := testnodes.Dep(model.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: model.EcosystemGo, PURL: libPURL})
+	const libPURL = "pkg:golang/example.com/lib@1.0.0"
+	pkg := testnodes.Dep(model.Coordinates{Name: "example.com/lib", Version: "1.0.0", Ecosystem: model.EcosystemGo, PURL: libPURL})
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}
@@ -54,10 +54,11 @@ func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 }
 
 func TestScanMarkdownRendersReachabilityOnlyWhenEnabled(t *testing.T) {
+	const libPURL = "pkg:golang/example.com/lib@1.0.0"
 	payload := output.ScanResponse{
 		Metadata: output.Metadata{ReachabilityEnabled: true},
 		Packages: []output.ScanPackageEntry{{
-			Purl: "pkg:golang/lib@1.0.0",
+			Purl: libPURL,
 			Name: "lib",
 			Vulnerabilities: []output.VulnerabilityRef{{
 				ID:           "CVE-2024-0001",
@@ -69,7 +70,7 @@ func TestScanMarkdownRendersReachabilityOnlyWhenEnabled(t *testing.T) {
 			ID:              "CVE-2024-0001",
 			VulnerabilityID: "CVE-2024-0001",
 			Severity:        "high",
-			Package:         output.FindingPackageRef{Name: "lib", Purl: "pkg:golang/lib@1.0.0"},
+			Package:         output.FindingPackageRef{Name: "lib", Purl: libPURL},
 		}},
 	}
 	var out bytes.Buffer
@@ -106,7 +107,7 @@ func TestDiffTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 			},
 		},
 		Packages: []output.ScanPackageEntry{{
-			Purl: "pkg:golang/lib@1.0.0",
+			Purl: libPURL,
 			Name: "lib",
 			Vulnerabilities: []output.VulnerabilityRef{{
 				ID:           "CVE-2024-0001",
@@ -119,7 +120,7 @@ func TestDiffTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 				ID:              "CVE-2024-0001",
 				VulnerabilityID: "CVE-2024-0001",
 				Severity:        "high",
-				Package:         output.FindingPackageRef{Name: "lib", Version: "1.0.0", Purl: "pkg:golang/lib@1.0.0"},
+				Package:         output.FindingPackageRef{Name: "lib", Version: "1.0.0", Purl: libPURL},
 			}},
 		},
 	}

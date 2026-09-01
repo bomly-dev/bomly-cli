@@ -16,6 +16,7 @@ func TestStructuredAndSARIFFindingContractsAgree(t *testing.T) {
 			PURL: purl, Ecosystem: sdk.EcosystemNPM, Org: "scope", Name: "library", Version: "1.0.0",
 		},
 		Vulnerabilities: []sdk.Vulnerability{{
+			ID:             "GHSA-contract",
 			Aliases:        []string{"CVE-2026-4242"},
 			ParsedSeverity: sdk.SeverityHigh,
 			FixedIn:        "1.1.0",
@@ -27,6 +28,7 @@ func TestStructuredAndSARIFFindingContractsAgree(t *testing.T) {
 		}},
 	})
 	findings := []sdk.Finding{{
+		ID:              "GHSA-contract",
 		Kind:            sdk.FindingKindVulnerability,
 		Title:           "Contract fixture",
 		Severity:        sdk.SeverityHigh,

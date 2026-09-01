@@ -39,6 +39,7 @@ func enrichedGraphAndRegistry(t *testing.T) (*sdk.Graph, *sdk.PackageRegistry) {
 	pkg.Digests = []sdk.Digest{{Algorithm: "sha256", Value: "abc123"}}
 	pkg.EOL = &sdk.PackageEOL{EOL: true, EOLDate: "2025-01-01", Cycle: "18"}
 	pkg.Vulnerabilities = []sdk.Vulnerability{{
+		ID:             "CVE-2024-0001",
 		Source:         "osv",
 		ParsedSeverity: "high",
 		Details:        "prototype pollution",

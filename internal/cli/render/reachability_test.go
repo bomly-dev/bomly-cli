@@ -22,6 +22,7 @@ func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 	regPkg.Name = "lib"
 	regPkg.Version = "1.0.0"
 	regPkg.Vulnerabilities = []model.Vulnerability{{
+		ID:     "CVE-2024-0001",
 		Title:  "tls bypass",
 		Source: "osv",
 		Reachability: &model.Reachability{
@@ -32,6 +33,7 @@ func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 	}}
 	findings := []model.Finding{
 		{
+			ID:              "CVE-2024-0001",
 			VulnerabilityID: "CVE-2024-0001",
 			Kind:            model.FindingKindVulnerability,
 			PackageRef:      libPURL,
@@ -58,11 +60,13 @@ func TestScanMarkdownRendersReachabilityOnlyWhenEnabled(t *testing.T) {
 			Purl: "pkg:golang/lib@1.0.0",
 			Name: "lib",
 			Vulnerabilities: []output.VulnerabilityRef{{
+				ID:           "CVE-2024-0001",
 				Source:       "osv",
 				Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
 			}},
 		}},
 		Findings: []output.AuditFinding{{
+			ID:              "CVE-2024-0001",
 			VulnerabilityID: "CVE-2024-0001",
 			Severity:        "high",
 			Package:         output.FindingPackageRef{Name: "lib", Purl: "pkg:golang/lib@1.0.0"},
@@ -94,6 +98,7 @@ func TestDiffTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 				Added: []output.DiffVulnerabilityChange{{
 					Package: output.PackageRef{Name: "lib", Version: "1.0.0"},
 					Vulnerability: output.VulnerabilityRef{
+						ID:           "CVE-2024-0001",
 						Severity:     "high",
 						Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
 					},
@@ -104,12 +109,14 @@ func TestDiffTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 			Purl: "pkg:golang/lib@1.0.0",
 			Name: "lib",
 			Vulnerabilities: []output.VulnerabilityRef{{
+				ID:           "CVE-2024-0001",
 				Severity:     "high",
 				Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
 			}},
 		}},
 		Audit: &output.DiffAudit{
 			Introduced: []output.AuditFinding{{
+				ID:              "CVE-2024-0001",
 				VulnerabilityID: "CVE-2024-0001",
 				Severity:        "high",
 				Package:         output.FindingPackageRef{Name: "lib", Version: "1.0.0", Purl: "pkg:golang/lib@1.0.0"},
@@ -154,12 +161,14 @@ func TestExplainTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 		Dependency: output.ExplainDependency{PackageRef: output.PackageRef{
 			Name: "lib",
 			Vulnerabilities: []output.VulnerabilityRef{{
+				ID:           "CVE-2024-0001",
 				Source:       "osv",
 				Severity:     "high",
 				Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
 			}},
 		}},
 		Findings: []output.AuditFinding{{
+			ID:              "CVE-2024-0001",
 			VulnerabilityID: "CVE-2024-0001",
 			Severity:        "high",
 			Package:         output.FindingPackageRef{Name: "lib"},

@@ -31,6 +31,7 @@ func TestBuildScanResponseIncludesAuditData(t *testing.T) {
 	}}
 
 	findings := []sdk.Finding{{
+		ID:         "OSV-1",
 		Kind:       sdk.FindingKindVulnerability,
 		Severity:   sdk.SeverityHigh,
 		PackageRef: "pkg:npm/react@18.2.0",
@@ -124,6 +125,7 @@ func TestBuildScanResponseGatesReachability(t *testing.T) {
 	regPkg.Name = "react"
 	regPkg.Version = "18.2.0"
 	regPkg.Vulnerabilities = []sdk.Vulnerability{{
+		ID:     "OSV-REACH",
 		Source: "osv",
 		Reachability: &sdk.Reachability{
 			Status:   sdk.ReachabilityReachable,
@@ -143,6 +145,7 @@ func TestBuildScanResponseGatesReachability(t *testing.T) {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
 	finding := sdk.Finding{
+		ID:              "OSV-REACH",
 		VulnerabilityID: "OSV-REACH",
 		Kind:            sdk.FindingKindVulnerability,
 		PackageRef:      reactPURL,
@@ -332,19 +335,24 @@ func TestBuildExplainResponseGatesReachability(t *testing.T) {
 		Project: output.ProjectDescriptor{Name: "demo"},
 		Dependency: output.ExplainDependency{PackageRef: output.PackageRef{
 			Name: "react",
+			ID:   "react@18.2.0",
 			Vulnerabilities: []output.VulnerabilityRef{{
+				ID:           "OSV-REACH",
 				Source:       "osv",
 				Reachability: &sdk.Reachability{Status: sdk.ReachabilityReachable, Tier: sdk.TierPackage},
 			}},
 		}},
 		Paths: []output.DependencyPath{{Packages: []output.PackageRef{{
 			Name: "react",
+			ID:   "react@18.2.0",
 			Vulnerabilities: []output.VulnerabilityRef{{
+				ID:           "OSV-REACH",
 				Source:       "osv",
 				Reachability: &sdk.Reachability{Status: sdk.ReachabilityReachable, Tier: sdk.TierPackage},
 			}},
 		}}}},
 		Findings: []output.AuditFinding{{
+			ID:      "OSV-REACH",
 			Kind:    sdk.FindingKindVulnerability,
 			Package: output.FindingPackageRef{Name: "react"},
 		}},
@@ -626,12 +634,14 @@ func TestBuildDiffResponseGatesReachability(t *testing.T) {
 	headRegistry.Add(&sdk.Package{
 		Coordinates: sdk.Coordinates{PURL: pkg.NodeID(), Name: "newpkg", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM},
 		Vulnerabilities: []sdk.Vulnerability{{
+			ID:           "OSV-REACH",
 			Source:       "osv",
 			Reachability: reachable,
 		}},
 	})
 	audit := &output.DiffAudit{
 		Introduced: []output.AuditFinding{{
+			ID:              "OSV-REACH",
 			VulnerabilityID: "OSV-REACH",
 			Kind:            sdk.FindingKindVulnerability,
 			Package:         output.FindingPackageRef{Name: "newpkg", Version: "1.0.0", Purl: pkg.NodeID()},

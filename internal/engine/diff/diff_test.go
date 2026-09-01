@@ -367,6 +367,7 @@ func (f fakeAuditor) Applicable(context.Context, sdk.AuditRequest) (bool, error)
 func (f fakeAuditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
 	if f.detailFinding && len(req.DependencyDetailChanges) > 0 {
 		return sdk.AuditResult{Findings: []sdk.Finding{{
+			ID:             "detail-policy",
 			Kind:           sdk.FindingKindPackage,
 			PolicyStatus:   sdk.FindingPolicyStatusWarn,
 			RuleID:         "detail-policy",

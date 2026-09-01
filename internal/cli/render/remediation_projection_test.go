@@ -19,6 +19,7 @@ func TestExplainTextAndMarkdownShowRemediationAfterVulnerabilities(t *testing.T)
 				Purl:     "pkg:npm/example@1.0.0",
 				Licenses: []output.LicenseRef{},
 				Vulnerabilities: []output.VulnerabilityRef{{
+					ID:       "GHSA-example",
 					Severity: sdk.SeverityHigh,
 				}},
 			},
@@ -318,6 +319,7 @@ func remediationTestPackage(purl string) *sdk.Package {
 			Version: "1.0.0",
 		},
 		Vulnerabilities: []sdk.Vulnerability{{
+			ID:             "GHSA-example",
 			ParsedSeverity: sdk.SeverityHigh,
 		}},
 		Remediation: &sdk.PackageRemediation{

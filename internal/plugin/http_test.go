@@ -26,6 +26,7 @@ func TestInstallRemoteArchiveUsesConfiguredProxy(t *testing.T) {
 		t.Fatalf("build fake plugin: %v", err)
 	}
 	manifest := withCanonicalManifestDefaults(Manifest{
+		ID:      "acme.detector.proxy",
 		Name:    "Acme Proxy Detector",
 		Version: "1.0.0",
 		Kind:    plugschema.PluginKindDetector,
@@ -75,6 +76,7 @@ func TestInstallRemoteArchiveDoesNotUseUnsafeGitHubAssetName(t *testing.T) {
 		t.Fatalf("build fake plugin: %v", err)
 	}
 	manifest := withCanonicalManifestDefaults(Manifest{
+		ID:      "acme.detector.unsafe-name",
 		Name:    "Acme Unsafe Name Detector",
 		Version: "1.0.0",
 		Kind:    plugschema.PluginKindDetector,
@@ -125,6 +127,7 @@ func TestInstallArchiveRejectsUnsafeManifestEntrypoint(t *testing.T) {
 		t.Fatalf("build fake plugin: %v", err)
 	}
 	manifest := withCanonicalManifestDefaults(Manifest{
+		ID:      "acme.detector.unsafe-entrypoint",
 		Name:    "Acme Unsafe Entrypoint Detector",
 		Version: "1.0.0",
 		Kind:    plugschema.PluginKindDetector,

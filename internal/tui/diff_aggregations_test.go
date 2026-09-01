@@ -123,6 +123,7 @@ func TestDiffAggregateCounts_EmptyPayload(t *testing.T) {
 func TestDiffComponentsProjectDependencyDetailTransition(t *testing.T) {
 	transition := output.DiffDependencyTransition{
 		Before: output.DiffDependencyTransitionState{
+			ID:               "example@1.0.0",
 			Name:             "example",
 			Version:          "1.0.0",
 			Relationship:     "direct",
@@ -130,6 +131,7 @@ func TestDiffComponentsProjectDependencyDetailTransition(t *testing.T) {
 			RegistryEligible: true,
 		},
 		After: output.DiffDependencyTransitionState{
+			ID:               "example@1.0.0",
 			Name:             "example",
 			Version:          "1.0.0",
 			Relationship:     "transitive",
@@ -688,6 +690,7 @@ func TestAuditVerdict_WarnOnlyIntroducedYieldsPassWithCount(t *testing.T) {
 func TestAuditVerdict_SuppressedIntroducedIsCountedAsAccepted(t *testing.T) {
 	m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{{
+			ID:           "S-1",
 			Kind:         sdk.FindingKindVulnerability,
 			PolicyStatus: sdk.FindingPolicyStatusSuppressed,
 		}},

@@ -18,6 +18,7 @@ func scopedNPMRegistry(t *testing.T) *sdk.PackageRegistry {
 			Version:   "4.0.0",
 		},
 		Vulnerabilities: []sdk.Vulnerability{{
+			ID:             "GHSA-scoped",
 			Aliases:        []string{"CVE-2026-0001"},
 			Source:         "osv",
 			ParsedSeverity: sdk.SeverityHigh,
@@ -30,6 +31,7 @@ func scopedNPMRegistry(t *testing.T) *sdk.PackageRegistry {
 func TestFindingsFromScanPreservesScopedIdentity(t *testing.T) {
 	registry := scopedNPMRegistry(t)
 	findings := FindingsFromScan([]sdk.Finding{{
+		ID:              "GHSA-scoped",
 		Kind:            sdk.FindingKindVulnerability,
 		PackageRef:      "pkg:npm/@tailwindcss/postcss@4.0.0",
 		VulnerabilityID: "GHSA-scoped",
@@ -68,6 +70,7 @@ func TestFindingsFromScanPreservesScopedIdentity(t *testing.T) {
 
 func TestFindingsFromScanWithoutRegistryFallsBackToPurl(t *testing.T) {
 	findings := FindingsFromScan([]sdk.Finding{{
+		ID:         "GHSA-x",
 		Kind:       sdk.FindingKindVulnerability,
 		PackageRef: "pkg:npm/lib@1.0.0",
 	}}, nil)
@@ -80,6 +83,7 @@ func TestFindingVulnerabilityInPackagesJoinsByPurlAndAlias(t *testing.T) {
 	registry := scopedNPMRegistry(t)
 	packages := PackagesFromRegistry(registry)
 	finding := AuditFinding{
+		ID:              "CVE-2026-0001",
 		Kind:            sdk.FindingKindVulnerability,
 		VulnerabilityID: "CVE-2026-0001", // alias of GHSA-scoped
 		Package:         FindingPackageRef{Purl: "pkg:npm/@tailwindcss/postcss@4.0.0"},

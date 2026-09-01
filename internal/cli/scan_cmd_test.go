@@ -14,6 +14,7 @@ import (
 func TestRenderScanReportShowsPackageCountAndDirectDeps(t *testing.T) {
 	g, registry := newScanTestGraph(t)
 	findings := []sdk.Finding{{
+		ID:         "OSV-123",
 		Kind:       sdk.FindingKindVulnerability,
 		Severity:   "high",
 		PackageRef: "pkg:npm/react@18.2.0",

@@ -15,6 +15,7 @@ const sarifTestPURL = "pkg:npm/lodash@4.17.15"
 func TestWriteSARIF_ValidDocument(t *testing.T) {
 	findings := []sdk.Finding{
 		{
+			ID:         "CVE-2021-23337",
 			Kind:       sdk.FindingKindVulnerability,
 			PackageRef: sarifTestPURL,
 			Title:      "Prototype pollution in lodash",
@@ -23,6 +24,7 @@ func TestWriteSARIF_ValidDocument(t *testing.T) {
 			Source:     "osv",
 		},
 		{
+			ID:         "CVE-2020-8203",
 			Kind:       sdk.FindingKindVulnerability,
 			PackageRef: sarifTestPURL,
 			Title:      "Prototype pollution",
@@ -77,12 +79,14 @@ func TestWriteSARIFIgnoresPackageRemediationSummary(t *testing.T) {
 	pkg := registry.Add(&sdk.Package{
 		Coordinates: sdk.Coordinates{PURL: sarifTestPURL, Name: "lodash", Version: "4.17.15"},
 		Vulnerabilities: []sdk.Vulnerability{{
+			ID:            "CVE-2021-23337",
 			FixedIn:       "4.17.21",
 			FixedVersions: []string{"4.17.21"},
 			FixState:      sdk.FixStateFixed,
 		}},
 	})
 	findings := []sdk.Finding{{
+		ID:              "CVE-2021-23337",
 		Kind:            sdk.FindingKindVulnerability,
 		PackageRef:      sarifTestPURL,
 		VulnerabilityID: "CVE-2021-23337",
@@ -242,6 +246,7 @@ func TestSARIFLevelIgnoresSeverity(t *testing.T) {
 func TestWriteSARIF_SecuritySeverityAndFormattedHelp(t *testing.T) {
 	findings := []sdk.Finding{
 		{
+			ID:         "CVE-2025-48924",
 			Kind:       sdk.FindingKindVulnerability,
 			PackageRef: sarifTestPURL,
 			Title:      "Uncontrolled recursion in commons-lang",
@@ -254,6 +259,7 @@ func TestWriteSARIF_SecuritySeverityAndFormattedHelp(t *testing.T) {
 			},
 		},
 		{
+			ID:           "INVALID-abcd-efgh-ijkl",
 			Kind:         sdk.FindingKindLicense,
 			PackageRef:   sarifTestPURL,
 			Title:        "Package has invalid SPDX license: non-standard",
@@ -393,6 +399,7 @@ func TestWriteSARIF_UsesDependencyLocationsFromGraph(t *testing.T) {
 	}
 	findings := []sdk.Finding{
 		{
+			ID:             "CVE-2021-23337",
 			Kind:           sdk.FindingKindVulnerability,
 			PackageRef:     sarifTestPURL,
 			DependencyRefs: []string{dep.NodeID()},
@@ -453,6 +460,7 @@ func TestWriteSARIF_UnionsLocationsAcrossGraphs(t *testing.T) {
 	}
 	findings := []sdk.Finding{
 		{
+			ID:             "CVE-2022-42889",
 			Kind:           sdk.FindingKindVulnerability,
 			PackageRef:     sarifTestPURL,
 			DependencyRefs: []string{bare.NodeID()},
@@ -573,6 +581,7 @@ func TestWriteSARIF_SelectsChangedLocationsPerDependency(t *testing.T) {
 		t.Fatalf("AddNode unchanged: %v", err)
 	}
 	finding := sdk.Finding{
+		ID:             "policy:multi",
 		PackageRef:     touched.PackageRef,
 		DependencyRefs: []string{touched.NodeID(), unchanged.NodeID()},
 		Title:          "Denied package set",
@@ -621,6 +630,7 @@ func TestWriteSARIF_RewritesNonFileLocationSchemes(t *testing.T) {
 	}
 	findings := []sdk.Finding{
 		{
+			ID:             "policy:actions",
 			Kind:           sdk.FindingKindPackage,
 			PackageRef:     "actions:checkout@v5",
 			DependencyRefs: []string{dep.NodeID()},

@@ -139,6 +139,7 @@ func TestCloneAnalyzerDescriptorDeepCopiesSlices(t *testing.T) {
 
 func TestValidateManifestAcceptsAnalyzerKind(t *testing.T) {
 	manifest := withCanonicalManifestDefaults(Manifest{
+		ID:         "acme.analyzer.fake",
 		Name:       "acme analyzer",
 		Version:    "1.0.0",
 		Kind:       plugschema.PluginKindAnalyzer,
@@ -152,6 +153,7 @@ func TestValidateManifestAcceptsAnalyzerKind(t *testing.T) {
 func TestRuntimeSnapshotRoundTripWithAnalyzerDescriptor(t *testing.T) {
 	dir := t.TempDir()
 	snapshot := RuntimeDescriptorSnapshot{
+		ID:               "acme.analyzer.fake",
 		Kind:             plugschema.PluginKindAnalyzer,
 		PluginAPIVersion: plugschema.PluginAPIVersion,
 		AnalyzerDescriptor: &plugschema.AnalyzerDescriptor{
@@ -182,6 +184,7 @@ func TestRuntimeSnapshotRoundTripWithAnalyzerDescriptor(t *testing.T) {
 
 func TestProtocolV1DetectorSnapshotDefaultsAbsentOptionalCapabilities(t *testing.T) {
 	snapshot := RuntimeDescriptorSnapshot{
+		ID:               "legacy-detector",
 		Kind:             plugschema.PluginKindDetector,
 		PluginAPIVersion: plugschema.PluginAPIVersion,
 		DetectorDescriptor: &plugschema.DetectorDescriptor{

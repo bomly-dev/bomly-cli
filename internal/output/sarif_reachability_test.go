@@ -22,6 +22,7 @@ func fixtureRegistryWithVuln(purl string, vuln model.Vulnerability) *model.Packa
 func TestWriteSARIFEmitsCodeFlowsAndPropertiesForReachableFinding(t *testing.T) {
 	const purl = "pkg:go/lib@1.0.0"
 	reg := fixtureRegistryWithVuln(purl, model.Vulnerability{
+		ID:    "GHSA-test",
 		Title: "vuln",
 		Reachability: &model.Reachability{
 			Status:   model.ReachabilityReachable,
@@ -41,6 +42,7 @@ func TestWriteSARIFEmitsCodeFlowsAndPropertiesForReachableFinding(t *testing.T) 
 	})
 	findings := []model.Finding{
 		{
+			ID:              "GHSA-test",
 			VulnerabilityID: "GHSA-test",
 			Kind:            model.FindingKindVulnerability,
 			PackageRef:      purl,
@@ -74,6 +76,7 @@ func TestWriteSARIFEmitsCodeFlowsAndPropertiesForReachableFinding(t *testing.T) 
 func TestWriteSARIFOmitsReachabilityWhenDisabled(t *testing.T) {
 	const purl = "pkg:go/lib@1.0.0"
 	reg := fixtureRegistryWithVuln(purl, model.Vulnerability{
+		ID:      "GHSA-test",
 		FixedIn: "1.0.1",
 		Reachability: &model.Reachability{
 			Status: model.ReachabilityReachable,
@@ -86,6 +89,7 @@ func TestWriteSARIFOmitsReachabilityWhenDisabled(t *testing.T) {
 	})
 	findings := []model.Finding{
 		{
+			ID:              "GHSA-test",
 			VulnerabilityID: "GHSA-test",
 			Kind:            model.FindingKindVulnerability,
 			PackageRef:      purl,

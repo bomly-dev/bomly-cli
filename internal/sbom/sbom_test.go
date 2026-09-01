@@ -526,16 +526,19 @@ func TestToGraph_MergesDuplicatePURLComponents(t *testing.T) {
 	doc := &Document{
 		Components: []Component{
 			{
+				ID:      "SPDXRef-Package-python-certifi-from-lock",
 				Name:    "certifi",
 				Version: "2026.4.22",
 				PURL:    "pkg:pypi/certifi@2026.4.22",
 			},
 			{
+				ID:      "SPDXRef-Package-python-certifi-from-metadata",
 				Name:    "certifi",
 				Version: "2026.4.22",
 				PURL:    "pkg:pypi/certifi@2026.4.22",
 			},
 			{
+				ID:      "SPDXRef-Package-python-requests",
 				Name:    "requests",
 				Version: "2.21.0",
 				PURL:    "pkg:pypi/requests@2.21.0",

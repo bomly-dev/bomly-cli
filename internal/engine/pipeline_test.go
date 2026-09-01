@@ -643,6 +643,7 @@ func TestPipeline_Run_DerivesCanonicalRemediationAtEndOfEnrichment(t *testing.T)
 		name: "vulnerability-matcher",
 		run: func(packages *sdk.PackageRegistry) {
 			packages.Ensure(purl).Vulnerabilities = []sdk.Vulnerability{{
+				ID:      "GHSA-example",
 				FixedIn: "19.0.0",
 			}}
 		},

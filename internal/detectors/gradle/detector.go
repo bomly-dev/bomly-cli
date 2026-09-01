@@ -681,19 +681,18 @@ func gradleDependencyToken(value string) string {
 	return token
 }
 
-func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.DependencyNode, bool) {
+func gradleNodeFromToken(token string, scope sdk.Scope) (sdk.GraphNode, bool) {
 	if strings.HasPrefix(token, "project ") {
 		name := strings.TrimSpace(strings.TrimPrefix(token, "project "))
 		if name == "" {
 			return nil, false
 		}
-		// A placeholder for a project the settings walk does not know (e.g.
-		// a composite build's member) is still part of this build, never a
-		// published artifact.
-		// A placeholder for a project the settings walk does not know is
-		// still part of this build, but this helper yields the dependency
-		// node the caller graphs; consolidation promotes build members.
-		node, err := sdk.NewDependencyNode(sdk.Coordinates{
+		// A placeholder for a project the settings walk does not know (e.g. a
+		// composite build's member) is still part of this build, never a
+		// published artifact -- so it is a module node, declared by the build
+		// script this report came from. It carries no scope: scope is a claim
+		// about a consumed package.
+		node, err := sdk.NewModuleNode("build.gradle", sdk.Coordinates{
 			Ecosystem:      sdk.EcosystemMaven,
 			Name:           name,
 			PackageManager: sdk.PackageManagerGradle,
@@ -722,6 +721,7 @@ func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.DependencyNode, bo
 	if err != nil {
 		return nil, false
 	}
+	node.Scopes = sdk.ScopesOf(scope)
 	return node, true
 }
 

@@ -177,7 +177,13 @@ func labelMatches(node sdk.GraphNode, name, version string, loose bool) bool {
 		return false
 	}
 	if version != "" && coords.Version != version {
-		return false
+		// Coordinates are normalized at construction, and normalization
+		// lowercases a version that contains letters -- so a fixture label
+		// written as the manifest spelled it ("1.0-SNAPSHOT") no longer
+		// matches the stored version exactly. The loose pass accepts it.
+		if !loose || !strings.EqualFold(coords.Version, version) {
+			return false
+		}
 	}
 	actual := []string{coords.Name, coords.EcosystemName(), coords.DisplayName()}
 	for _, want := range labelSpellings(name, loose) {

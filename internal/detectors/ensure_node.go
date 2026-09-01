@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -30,7 +29,9 @@ import (
 // what it built.
 func EnsureNode[T sdk.GraphNode](g *sdk.Graph, node T) (T, error) {
 	var zero T
-	if g == nil || sdk.GraphNode(node) == nil {
+	// A typed nil is not an untyped one: comparing the interface against nil
+	// is false for (*DependencyNode)(nil), and the next call dereferences it.
+	if g == nil || isNilNode(node) {
 		return zero, nil
 	}
 	inserted, err := g.InsertNode(node)
@@ -42,6 +43,22 @@ func EnsureNode[T sdk.GraphNode](g *sdk.Graph, node T) (T, error) {
 		return zero, fmt.Errorf("node %q already exists as a %s node", node.NodeID(), inserted.Kind())
 	}
 	return surviving, nil
+}
+
+// isNilNode reports whether a node value carries no node, typed nil included.
+func isNilNode(node sdk.GraphNode) bool {
+	switch typed := node.(type) {
+	case nil:
+		return true
+	case *sdk.DependencyNode:
+		return typed == nil
+	case *sdk.ModuleNode:
+		return typed == nil
+	case *sdk.ManifestNode:
+		return typed == nil
+	default:
+		return false
+	}
 }
 
 // Occurrence machinery -- OriginsConflict, OccurrenceID, EnsureOccurrence --
@@ -76,35 +93,54 @@ func EnsureNode[T sdk.GraphNode](g *sdk.Graph, node T) (T, error) {
 // or matching keying on origin rather than on the package URL. Either makes
 // the two genuinely distinguishable, and then they deserve distinct nodes.
 
-// PromoteToModule replaces a dependency node with a module node carrying the
-// same coordinates, keeping its edges.
+// PromoteToModule replaces a node with a module node declared by a manifest
+// path, keeping its edges, and returns the surviving node's ID.
 //
-// A node's kind is fixed at construction under ADR-0041, so a detector that
-// only discovers ownership later -- Maven learns which graph roots are reactor
-// modules after parsing the dependency tree -- cannot set a flag afterwards.
-// It replaces the node instead, and this is the one place that knows how:
-// build the module, re-point every edge, remove the old node.
+// A node's kind and identity are both fixed at construction under ADR-0041, so
+// a detector that only learns ownership later -- Maven learns which graph
+// roots are reactor modules after parsing the dependency tree, and which
+// directory declares each one later still -- cannot set a flag or rewrite an
+// ID afterwards. It replaces the node instead, and this is the one place that
+// knows how: build the module, re-point every edge, remove the old node.
+//
+// It is idempotent for the path it is given: a module already declared by that
+// manifest is returned unchanged, and one declared by another manifest is
+// re-minted, because the declaring path is part of a module's identity.
 //
 // Edges are re-added by ID, so callers must not hold node pointers across the
-// call.
-func PromoteToModule(g *sdk.Graph, nodeID, manifestPath string) error {
+// call; the returned ID is what to hold instead.
+func PromoteToModule(g *sdk.Graph, nodeID, manifestPath string) (string, error) {
 	if g == nil || strings.TrimSpace(nodeID) == "" {
-		return nil
+		return nodeID, nil
 	}
 	existing, ok := g.Node(nodeID)
 	if !ok {
-		return nil
+		return nodeID, nil
 	}
-	dep, isDep := nodes.AsDependency(existing)
-	if !isDep {
-		// Already a module or a manifest: nothing to promote.
-		return nil
+
+	var coords sdk.Coordinates
+	var locations []sdk.PackageLocation
+	switch typed := existing.(type) {
+	case *sdk.DependencyNode:
+		coords, locations = typed.Coordinates, typed.Locations
+	case *sdk.ModuleNode:
+		if typed.DeclaringManifestPath == manifestPath {
+			return nodeID, nil
+		}
+		coords, locations = typed.Coordinates, typed.Locations
+	default:
+		// A manifest node is already structural and declares nothing.
+		return nodeID, nil
 	}
-	module, err := sdk.NewModuleNode(manifestPath, dep.Coordinates)
+
+	module, err := sdk.NewModuleNode(manifestPath, coords)
 	if err != nil {
-		return fmt.Errorf("promote %q to a module node: %w", nodeID, err)
+		return nodeID, fmt.Errorf("promote %q to a module node: %w", nodeID, err)
 	}
-	module.Locations = append([]sdk.PackageLocation(nil), dep.Locations...)
+	if module.NodeID() == nodeID {
+		return nodeID, nil
+	}
+	module.Locations = append([]sdk.PackageLocation(nil), locations...)
 
 	parents, _ := g.Dependents(nodeID)
 	children, _ := g.DirectDependencies(nodeID)
@@ -118,24 +154,26 @@ func PromoteToModule(g *sdk.Graph, nodeID, manifestPath string) error {
 	}
 
 	g.RemoveNode(nodeID)
-	if _, err := g.InsertNode(module); err != nil {
-		return fmt.Errorf("insert promoted module %q: %w", module.NodeID(), err)
+	surviving, err := g.InsertNode(module)
+	if err != nil {
+		return nodeID, fmt.Errorf("insert promoted module %q: %w", module.NodeID(), err)
 	}
+	survivingID := surviving.NodeID()
 	for _, parentID := range parentIDs {
-		if parentID == module.NodeID() {
+		if parentID == survivingID {
 			continue
 		}
-		if err := g.AddEdge(parentID, module.NodeID()); err != nil && !errors.Is(err, sdk.ErrSelfDependency) {
-			return fmt.Errorf("re-point %q -> %q: %w", parentID, module.NodeID(), err)
+		if err := g.AddEdge(parentID, survivingID); err != nil && !errors.Is(err, sdk.ErrSelfDependency) {
+			return survivingID, fmt.Errorf("re-point %q -> %q: %w", parentID, survivingID, err)
 		}
 	}
 	for _, childID := range childIDs {
-		if childID == module.NodeID() {
+		if childID == survivingID {
 			continue
 		}
-		if err := g.AddEdge(module.NodeID(), childID); err != nil && !errors.Is(err, sdk.ErrSelfDependency) {
-			return fmt.Errorf("re-point %q -> %q: %w", module.NodeID(), childID, err)
+		if err := g.AddEdge(survivingID, childID); err != nil && !errors.Is(err, sdk.ErrSelfDependency) {
+			return survivingID, fmt.Errorf("re-point %q -> %q: %w", survivingID, childID, err)
 		}
 	}
-	return nil
+	return survivingID, nil
 }

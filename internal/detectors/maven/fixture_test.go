@@ -143,15 +143,23 @@ func requireMavenEdge(t *testing.T, g *sdk.Graph, fromID, toID string) {
 
 func requireMavenRoots(t *testing.T, g *sdk.Graph, want ...string) {
 	t.Helper()
-	got := make(map[string]struct{})
-	for _, r := range g.Roots() {
+	roots := g.Roots()
+	got := make([]string, 0, len(roots))
+	for _, r := range roots {
 		if r != nil {
-			got[r.NodeID()] = struct{}{}
+			got = append(got, r.NodeID())
 		}
 	}
-	for _, id := range want {
-		if _, ok := got[id]; !ok {
-			t.Errorf("expected %s to be a graph root; roots = %v", id, got)
+	for _, label := range want {
+		found := false
+		for _, r := range roots {
+			if testnodes.Is(r, label) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("expected %s to be a graph root; roots = %v", label, got)
 		}
 	}
 }

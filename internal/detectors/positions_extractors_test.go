@@ -63,7 +63,7 @@ PLATFORMS
 	ruby.AttachGemfileLockPositions(g, filepath.Join(dir, "Gemfile.lock"), dir)
 	expect := map[string]int{"activesupport": 4, "nokogiri": 6, "rack": 7}
 	for name, wantLine := range expect {
-		p := nodeNamed(t, g, name, "1.0")
+		p := labelled(t, g, name, "1.0")
 		if p == nil {
 			t.Fatalf("missing %s", name)
 		}
@@ -74,7 +74,7 @@ PLATFORMS
 			t.Errorf("%s Position = %+v, want line %d", name, p.Locations[0].Position, wantLine)
 		}
 	}
-	un := nodeNamed(t, g, "unimported", "1.0")
+	un := labelled(t, g, "unimported", "1.0")
 	if un != nil && len(un.Locations) > 0 {
 		t.Errorf("unimported should have no Locations; got %v", un.Locations)
 	}
@@ -106,7 +106,7 @@ func TestNpmPackageLockPositions(t *testing.T) {
 	mustPkg(t, g, "@scope/pkg", "1.0.0")
 	npm.AttachPackageLockPositions(g, dir)
 
-	lodash := nodeNamed(t, g, "lodash", "4.17.21")
+	lodash := labelled(t, g, "lodash", "4.17.21")
 	if lodash == nil || len(lodash.Locations) == 0 {
 		t.Fatal("lodash missing Location")
 	}
@@ -114,7 +114,7 @@ func TestNpmPackageLockPositions(t *testing.T) {
 		t.Errorf("lodash line = %d, want 9", lodash.Locations[0].Position.Line)
 	}
 
-	scoped := nodeNamed(t, g, "@scope/pkg", "1.0.0")
+	scoped := labelled(t, g, "@scope/pkg", "1.0.0")
 	if scoped == nil || len(scoped.Locations) == 0 {
 		t.Fatal("scoped pkg missing Location")
 	}
@@ -139,7 +139,7 @@ func TestNpmPackageLockPositionsMatchPackageVersion(t *testing.T) {
 	g := sdk.New()
 	mustPkg(t, g, "lodash", "3.10.1")
 	npm.AttachPackageLockPositions(g, dir)
-	lodash := nodeNamed(t, g, "lodash", "3.10.1")
+	lodash := labelled(t, g, "lodash", "3.10.1")
 	if lodash == nil || len(lodash.Locations) == 0 || lodash.Locations[0].Position.Line != 7 {
 		t.Fatalf("lodash@3.10.1 locations = %+v, want version line 7", lodash.Locations)
 	}
@@ -158,7 +158,7 @@ func TestNpmPackageLockPositionsMatchColonScopedGraphName(t *testing.T) {
 	g := sdk.New()
 	mustPkg(t, g, "@scope:pkg", "1.2.3")
 	npm.AttachPackageLockPositions(g, dir)
-	scoped := nodeNamed(t, g, "@scope:pkg", "1.2.3")
+	scoped := labelled(t, g, "@scope:pkg", "1.2.3")
 	if scoped == nil {
 		t.Fatal("missing @scope:pkg")
 	}
@@ -192,7 +192,7 @@ packages:
 		name string
 		line int
 	}{{"foo", 10}, {"bar", 13}} {
-		p := nodeNamed(t, g, c.name, (map[string]string{"foo": "1.0.0", "bar": "2.0.0"})[c.name])
+		p := labelled(t, g, c.name, (map[string]string{"foo": "1.0.0", "bar": "2.0.0"})[c.name])
 		if p == nil || len(p.Locations) == 0 {
 			t.Fatalf("%s missing Location", c.name)
 		}
@@ -213,7 +213,7 @@ func TestPnpmLockPositionsMatchPackageVersion(t *testing.T) {
 	g := sdk.New()
 	mustPkg(t, g, "lodash", "3.10.1")
 	pnpm.AttachPnpmLockPositions(g, dir)
-	lodash := nodeNamed(t, g, "lodash", "3.10.1")
+	lodash := labelled(t, g, "lodash", "3.10.1")
 	if lodash == nil || len(lodash.Locations) == 0 || lodash.Locations[0].Position.Line != 4 {
 		t.Fatalf("lodash@3.10.1 locations = %+v, want lock entry line 4", lodash.Locations)
 	}
@@ -228,7 +228,7 @@ func TestPnpmLockPositionsMatchColonScopedGraphName(t *testing.T) {
 	g := sdk.New()
 	mustPkg(t, g, "@scope:pkg", "1.2.3")
 	pnpm.AttachPnpmLockPositions(g, dir)
-	scoped := nodeNamed(t, g, "@scope:pkg", "1.2.3")
+	scoped := labelled(t, g, "@scope:pkg", "1.2.3")
 	if scoped == nil {
 		t.Fatal("missing @scope:pkg")
 	}
@@ -251,11 +251,11 @@ lodash@^4.0.0, lodash@^4.17.0:
 	mustPkg(t, g, "@scope/pkg", "1.0.0")
 	mustPkg(t, g, "lodash", "4.17.21")
 	yarn.AttachYarnLockPositions(g, dir)
-	scoped := nodeNamed(t, g, "@scope/pkg", "1.0.0")
+	scoped := labelled(t, g, "@scope/pkg", "1.0.0")
 	if scoped == nil || len(scoped.Locations) == 0 || scoped.Locations[0].Position.Line != 3 {
 		t.Errorf("@scope/pkg location wrong: %+v", scoped.Locations)
 	}
-	lod := nodeNamed(t, g, "lodash", "4.17.21")
+	lod := labelled(t, g, "lodash", "4.17.21")
 	if lod == nil || len(lod.Locations) == 0 || lod.Locations[0].Position.Line != 6 {
 		t.Errorf("lodash location wrong: %+v", lod.Locations)
 	}
@@ -291,15 +291,15 @@ func TestMavenPomPositions(t *testing.T) {
 	mustPkg(t, g, "junit", "4.13.2", func(p *sdk.DependencyNode) { p.Org = "junit" })
 	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.DependencyNode) { p.Org = "org.apache.commons" })
 	maven.AttachPomPositions(g, dir, "pom.xml")
-	jd := nodeNamed(t, g, "com.fasterxml.jackson.core:jackson-databind", "2.17.0")
+	jd := labelled(t, g, "com.fasterxml.jackson.core:jackson-databind", "2.17.0")
 	if jd == nil || len(jd.Locations) == 0 || jd.Locations[0].Position.Line != 9 {
 		t.Errorf("jackson-databind location wrong: %+v", jd)
 	}
-	ju := nodeNamed(t, g, "junit:junit", "4.13.2")
+	ju := labelled(t, g, "junit:junit", "4.13.2")
 	if ju == nil || len(ju.Locations) == 0 || ju.Locations[0].Position.Line != 14 {
 		t.Errorf("junit location wrong: %+v", ju)
 	}
-	lang3 := nodeNamed(t, g, "org.apache.commons:commons-lang3", "3.17.0")
+	lang3 := labelled(t, g, "org.apache.commons:commons-lang3", "3.17.0")
 	if lang3 == nil || len(lang3.Locations) == 0 || lang3.Locations[0].Position.Line != 3 {
 		t.Errorf("commons-lang3 location wrong: %+v", lang3)
 	}
@@ -324,7 +324,7 @@ func TestMavenPomPositionsResolvePropertiesAfterDependencies(t *testing.T) {
 	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.DependencyNode) { p.Org = "org.apache.commons" })
 	maven.AttachPomPositions(g, dir, "pom.xml")
 
-	lang3 := nodeNamed(t, g, "org.apache.commons:commons-lang3", "3.17.0")
+	lang3 := labelled(t, g, "org.apache.commons:commons-lang3", "3.17.0")
 	if lang3 == nil || len(lang3.Locations) == 0 || lang3.Locations[0].Position.Line != 10 {
 		t.Fatalf("commons-lang3 location = %+v, want late property line 10", lang3)
 	}
@@ -348,7 +348,7 @@ func TestMavenPomPositionsUseArtifactPropertyForManagedDependency(t *testing.T) 
 	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.DependencyNode) { p.Org = "org.apache.commons" })
 	maven.AttachPomPositions(g, dir, "pom.xml")
 
-	lang3 := nodeNamed(t, g, "org.apache.commons:commons-lang3", "3.17.0")
+	lang3 := labelled(t, g, "org.apache.commons:commons-lang3", "3.17.0")
 	if lang3 == nil || len(lang3.Locations) != 1 || lang3.Locations[0].Position.Line != 3 {
 		t.Fatalf("commons-lang3 location = %+v, want artifact property line 3", lang3)
 	}
@@ -370,7 +370,7 @@ func TestMavenPomPositionsModuleRelativePath(t *testing.T) {
 	mustPkg(t, g, "commons-text", "1.9", func(p *sdk.DependencyNode) { p.Org = "org.apache.commons" })
 	maven.AttachPomPositions(g, dir, "core/pom.xml")
 
-	text := nodeNamed(t, g, "org.apache.commons:commons-text", "1.9")
+	text := labelled(t, g, "org.apache.commons:commons-text", "1.9")
 	if text == nil || len(text.Locations) == 0 {
 		t.Fatalf("commons-text location missing: %+v", text)
 	}
@@ -399,7 +399,7 @@ func TestGradlePositions(t *testing.T) {
 
 	cases := map[string]int{"jackson-databind": 2, "spring-core": 3, "junit": 4}
 	for name, wantLine := range cases {
-		p := nodeNamed(t, g, name, (map[string]string{"jackson-databind": "2.17.0", "spring-core": "6.0.0", "junit": "4.13.2"})[name])
+		p := labelled(t, g, name, (map[string]string{"jackson-databind": "2.17.0", "spring-core": "6.0.0", "junit": "4.13.2"})[name])
 		if p == nil || len(p.Locations) == 0 {
 			t.Fatalf("%s missing", name)
 		}
@@ -419,7 +419,7 @@ func TestGradlePositionsSubprojectRelDirPrefix(t *testing.T) {
 	mustPkg(t, g, "slf4j-api", "2.0.12")
 	gradle.AttachGradlePositions(g, dir, "lib")
 
-	p := nodeNamed(t, g, "slf4j-api", "2.0.12")
+	p := labelled(t, g, "slf4j-api", "2.0.12")
 	if p == nil || len(p.Locations) == 0 {
 		t.Fatalf("slf4j-api location missing: %+v", p)
 	}
@@ -445,11 +445,11 @@ libraryDependencies ++= Seq(
 	mustPkg(t, g, "scalatest_2.13", "3.2.15")
 	mustPkg(t, g, "akka-actor_2.13", "2.6.20")
 	sbt.AttachSBTPositions(g, dir)
-	st := nodeNamed(t, g, "scalatest_2.13", "3.2.15")
+	st := labelled(t, g, "scalatest_2.13", "3.2.15")
 	if st == nil || len(st.Locations) == 0 || st.Locations[0].Position.Line != 4 {
 		t.Errorf("scalatest location wrong: %+v", st)
 	}
-	ak := nodeNamed(t, g, "akka-actor_2.13", "2.6.20")
+	ak := labelled(t, g, "akka-actor_2.13", "2.6.20")
 	if ak == nil || len(ak.Locations) == 0 || ak.Locations[0].Position.Line != 5 {
 		t.Errorf("akka location wrong: %+v", ak)
 	}
@@ -472,11 +472,11 @@ version = "1.0.0"
 	mustPkg(t, g, "serde", "1.0.150")
 	mustPkg(t, g, "tokio", "1.0.0")
 	cargo.AttachCargoLockPositions(g, dir)
-	se := nodeNamed(t, g, "serde", "1.0.150")
+	se := labelled(t, g, "serde", "1.0.150")
 	if se == nil || len(se.Locations) == 0 || se.Locations[0].Position.Line != 5 {
 		t.Errorf("serde location wrong: %+v", se)
 	}
-	to := nodeNamed(t, g, "tokio", "1.0.0")
+	to := labelled(t, g, "tokio", "1.0.0")
 	if to == nil || len(to.Locations) == 0 || to.Locations[0].Position.Line != 9 {
 		t.Errorf("tokio location wrong: %+v", to)
 	}
@@ -497,11 +497,11 @@ DEPENDENCIES:
 	mustPkg(t, g, "AFNetworking", "4.0.1")
 	mustPkg(t, g, "Alamofire", "5.6.4")
 	cocoapods.AttachPodfileLockPositions(g, dir)
-	af := nodeNamed(t, g, "AFNetworking", "4.0.1")
+	af := labelled(t, g, "AFNetworking", "4.0.1")
 	if af == nil || len(af.Locations) == 0 || af.Locations[0].Position.Line != 2 {
 		t.Errorf("AFNetworking location wrong: %+v", af)
 	}
-	al := nodeNamed(t, g, "Alamofire", "5.6.4")
+	al := labelled(t, g, "Alamofire", "5.6.4")
 	if al == nil || len(al.Locations) == 0 || al.Locations[0].Position.Line != 5 {
 		t.Errorf("Alamofire location wrong: %+v", al)
 	}
@@ -526,11 +526,11 @@ func TestComposerLockPositions(t *testing.T) {
 	mustPkg(t, g, "console", "v6.0.0", func(p *sdk.DependencyNode) { p.Org = "symfony" })
 	mustPkg(t, g, "monolog", "3.0.0", func(p *sdk.DependencyNode) { p.Org = "monolog" })
 	composer.AttachComposerLockPositions(g, dir)
-	sc := nodeNamed(t, g, "symfony:console", "v6.0.0")
+	sc := labelled(t, g, "symfony:console", "v6.0.0")
 	if sc == nil || len(sc.Locations) == 0 || sc.Locations[0].Position.Line != 4 {
 		t.Errorf("symfony/console location wrong: %+v", sc)
 	}
-	mn := nodeNamed(t, g, "monolog:monolog", "3.0.0")
+	mn := labelled(t, g, "monolog:monolog", "3.0.0")
 	if mn == nil || len(mn.Locations) == 0 || mn.Locations[0].Position.Line != 8 {
 		t.Errorf("monolog location wrong: %+v", mn)
 	}
@@ -539,12 +539,15 @@ func TestComposerLockPositions(t *testing.T) {
 // nodeNamed finds the dependency node a case is about by name and version.
 // Node IDs are canonical package URLs now (ADR-0041), so a test can no longer
 // look one up by the "name@version" string these fixtures are built from.
-func nodeNamed(t *testing.T, g *sdk.Graph, name, version string) *sdk.DependencyNode {
+// labelled finds the dependency node a name and version label, in whatever
+// spelling the fixture used. Node IDs are canonical package URLs now
+// (ADR-0041), so these cases can no longer look one up by the "name@version"
+// string they were built from.
+func labelled(t *testing.T, g *sdk.Graph, name, version string) *sdk.DependencyNode {
 	t.Helper()
-	for _, node := range g.DependencyNodes() {
-		if node.Name == name && node.Version == version {
-			return node
-		}
+	dep, ok := testnodes.FindDep(g, name+"@"+version)
+	if !ok {
+		return nil
 	}
-	return nil
+	return dep
 }

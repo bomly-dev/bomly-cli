@@ -16,6 +16,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
@@ -158,46 +159,51 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 	matchedModules := make([]moduleEntry, 0, len(modules))
 	matchedIDs := map[string]struct{}{}
 	// Collected before promoting: promotion replaces nodes, so iterating the
-	// graph while promoting would walk a changing graph.
+	// graph while promoting would walk a changing graph. Every kind is
+	// considered -- the TGF pass already turned graph roots into modules
+	// declared by the top-level pom, and this pass is what learns which
+	// directory actually declares each one.
 	type pendingPromotion struct {
-		rootID  string
+		nodeID  string
+		module  mavenModule
 		pomPath string
 	}
 	promotions := make([]pendingPromotion, 0, len(modules))
-	for _, pkg := range depsGraph.DependencyNodes() {
-		if pkg == nil {
+	seen := map[string]struct{}{}
+	for _, node := range depsGraph.Nodes() {
+		coords, ok := nodes.Coordinates(node)
+		if !ok {
 			continue
 		}
-		if module, ok := moduleByKey[graphNodeModuleKey(pkg)]; ok {
-			if _, seen := matchedIDs[pkg.NodeID()]; seen {
-				continue
-			}
-			matchedIDs[pkg.NodeID()] = struct{}{}
-			// Reactor modules are the project's own applications; typing them
-			// lets downstream views treat their direct dependencies as
-			// top-level even when a sibling module depends on them, and the
-			// first-party mark keeps enrichment from querying them.
-			if pkg.Type == "" {
-				pkg.Type = sdk.PackageTypeApplication
-			}
-			// A reactor module is the project's own artifact, so it becomes a
-			// module node. Ownership is the kind under ADR-0041 and a kind is
-			// fixed at construction, so the node is replaced rather than
-			// flagged.
-			rootID := pkg.NodeID()
-			promotions = append(promotions, pendingPromotion{
-				rootID:  rootID,
-				pomPath: filepath.ToSlash(filepath.Join(module.Dir, "pom.xml")),
-			})
-			matchedModules = append(matchedModules, moduleEntry{module: module, rootID: rootID})
+		module, matched := moduleByKey[mavenCoordinatesModuleKey(coords)]
+		if !matched {
+			continue
 		}
+		if _, duplicate := seen[node.NodeID()]; duplicate {
+			continue
+		}
+		seen[node.NodeID()] = struct{}{}
+		// Reactor modules are the project's own applications; typing them lets
+		// downstream views treat their direct dependencies as top-level even
+		// when a sibling module depends on them.
+		if dep, isDependency := nodes.AsDependency(node); isDependency && dep.Type == "" {
+			dep.Type = sdk.PackageTypeApplication
+		}
+		promotions = append(promotions, pendingPromotion{
+			nodeID:  node.NodeID(),
+			module:  module,
+			pomPath: filepath.ToSlash(filepath.Join(module.Dir, "pom.xml")),
+		})
 	}
 	for _, promotion := range promotions {
-		if err := detectors.PromoteToModule(depsGraph, promotion.rootID, promotion.pomPath); err != nil {
-			// A module that cannot be promoted keeps its dependency node: the
-			// entry is still correct, it merely misses the ownership mark.
-			continue
+		// A module that cannot be promoted keeps the node it had: the entry is
+		// still correct, it merely misses the ownership mark.
+		moduleID, err := detectors.PromoteToModule(depsGraph, promotion.nodeID, promotion.pomPath)
+		if err != nil {
+			moduleID = promotion.nodeID
 		}
+		matchedIDs[moduleID] = struct{}{}
+		matchedModules = append(matchedModules, moduleEntry{module: promotion.module, rootID: moduleID})
 	}
 
 	rootIDs := make([]string, 0)
@@ -470,7 +476,7 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 		}
 	}
 	for _, rootID := range rootIDs {
-		if err := detectors.PromoteToModule(tgfGraph, rootID, "pom.xml"); err != nil {
+		if _, err := detectors.PromoteToModule(tgfGraph, rootID, "pom.xml"); err != nil {
 			return nil, err
 		}
 	}

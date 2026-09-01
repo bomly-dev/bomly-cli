@@ -3,6 +3,7 @@ package cargo
 import (
 	"context"
 	"errors"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -52,7 +53,7 @@ source = "git+https://github.com/external/helper?rev=main#aaaabbbbccccddddeeeeff
 		t.Fatalf("depGraphFromLockWorkspace() error = %v", err)
 	}
 
-	member, ok := graph.Node("helper@0.1.0")
+	member, ok := graph.DependencyNode("helper@0.1.0")
 	if !ok {
 		t.Fatalf("expected workspace member helper@0.1.0 in graph: %s", graph.PrettyString())
 	}
@@ -65,11 +66,11 @@ source = "git+https://github.com/external/helper?rev=main#aaaabbbbccccddddeeeeff
 	if origin := originOf(member); !origin.Empty() {
 		t.Fatalf("member claims external origin %+v", origin)
 	}
-	if len(modules) != 1 || modules[0].rootID != member.ID {
-		t.Fatalf("modules = %+v, want the member module rooted at %q", modules, member.ID)
+	if len(modules) != 1 || modules[0].rootID != member.NodeID() {
+		t.Fatalf("modules = %+v, want the member module rooted at %q", modules, member.NodeID())
 	}
 
-	external, ok := graph.Node("helper@1.0.0")
+	external, ok := graph.DependencyNode("helper@1.0.0")
 	if !ok {
 		t.Fatalf("expected external helper@1.0.0 in graph: %s", graph.PrettyString())
 	}
@@ -83,13 +84,13 @@ source = "git+https://github.com/external/helper?rev=main#aaaabbbbccccddddeeeeff
 	// consumer resolved "helper 1.0.0 (git+...)": its edge must reach the
 	// external crate, not the member.
 	consumerDeps := directDependencyIDs(t, graph, "consumer@2.0.0")
-	if !consumerDeps[external.ID] || consumerDeps[member.ID] {
+	if !consumerDeps[external.NodeID()] || consumerDeps[member.NodeID()] {
 		t.Fatalf("consumer dependencies = %v, want the external helper only", consumerDeps)
 	}
 
 	// demo resolved "helper 0.1.0": its direct helper edge is the member.
 	rootDeps := directDependencyIDs(t, graph, rootID)
-	if !rootDeps[member.ID] {
+	if !rootDeps[member.NodeID()] {
 		t.Fatalf("root dependencies = %v, want the member helper", rootDeps)
 	}
 }
@@ -116,7 +117,7 @@ source = "git+https://github.com/external/helper#aaaabbbbccccddddeeeeffff0000111
 	if err != nil {
 		t.Fatalf("depGraphFromLockWorkspace() error = %v", err)
 	}
-	member, ok := graph.Node("helper@0.1.0")
+	member, ok := graph.DependencyNode("helper@0.1.0")
 	if !ok {
 		t.Fatalf("expected member helper@0.1.0 (version from its lock record): %s", graph.PrettyString())
 	}
@@ -172,7 +173,7 @@ version = "1.0.0"
 		t.Fatalf("expected one member entry, got %d", len(entries))
 	}
 	graph := entries[0].Graph
-	member, ok := graph.Node("helper@1.0.0")
+	member, ok := graph.DependencyNode("helper@1.0.0")
 	if !ok || member.Type != sdk.PackageTypeApplication {
 		t.Fatalf("expected member helper@1.0.0 as an application node: %s", graph.PrettyString())
 	}
@@ -202,12 +203,12 @@ version = "0.2.0"
 	if len(modules) != 1 {
 		t.Fatalf("modules = %+v, want one member", modules)
 	}
-	member, ok := graph.Node(modules[0].rootID)
+	member, ok := graph.DependencyNode(modules[0].rootID)
 	if !ok || member.Type != sdk.PackageTypeApplication || member.Version != "" {
 		t.Fatalf("member = %+v, want an application node under its manifest identity", member)
 	}
 	for _, id := range []string{"helper@0.1.0", "helper@0.2.0"} {
-		node, ok := graph.Node(id)
+		node, ok := graph.DependencyNode(id)
 		if !ok {
 			t.Fatalf("expected ambiguous record %q to stay in the graph: %s", id, graph.PrettyString())
 		}
@@ -253,11 +254,11 @@ serde = "1"
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
 	root, ok := graph.Node("app@1.2.3")
-	if !ok || !root.FirstParty {
+	if !ok || !nodes.IsProjectOwned(root) {
 		t.Fatalf("expected first-party root app@1.2.3: %s", graph.PrettyString())
 	}
-	if root.Version != "1.2.3" {
-		t.Fatalf("root version = %q, want the inherited 1.2.3", root.Version)
+	if mustDep(t, root).Version != "1.2.3" {
+		t.Fatalf("root version = %q, want the inherited 1.2.3", mustDep(t, root).Version)
 	}
 	rootDeps := directDependencyIDs(t, graph, root.NodeID())
 	if !rootDeps["serde@1.0.210"] {
@@ -342,18 +343,18 @@ func TestCargoMetadataWorkspaceMemberNameCollisionKeepsBothIdentities(t *testing
 	if !ok {
 		t.Fatalf("expected member helper@0.1.0: %s", graph.PrettyString())
 	}
-	if member.Type != sdk.PackageTypeApplication || member.ResolvedURL != "" {
+	if mustDep(t, member).Type != sdk.PackageTypeApplication || mustDep(t, member).ResolvedURL != "" {
 		t.Fatalf("member = %+v, want an application node with no external source", member)
 	}
 	external, ok := graph.Node("helper@1.0.0")
 	if !ok {
 		t.Fatalf("expected external helper@1.0.0: %s", graph.PrettyString())
 	}
-	if origin := originOf(external); origin.Repository != "https://github.com/external/helper" {
+	if origin := originOf(mustDep(t, external)); origin.Repository != "https://github.com/external/helper" {
 		t.Fatalf("external origin = %+v, want the external repository", origin)
 	}
 	consumerDeps := directDependencyIDs(t, graph, "consumer@2.0.0")
-	if !consumerDeps[external.ID] || consumerDeps[member.ID] {
+	if !consumerDeps[external.NodeID()] || consumerDeps[member.NodeID()] {
 		t.Fatalf("consumer dependencies = %v, want the external helper only", consumerDeps)
 	}
 }
@@ -381,17 +382,17 @@ func TestCargoMetadataWorkspaceMemberKeepsPlainIDOnExactCollision(t *testing.T) 
 	if !ok {
 		t.Fatalf("expected plain helper@1.0.0 node: %s", graph.PrettyString())
 	}
-	if member.Type != sdk.PackageTypeApplication {
-		t.Fatalf("helper@1.0.0 type = %q, want the workspace member under the plain ID", member.Type)
+	if mustDep(t, member).Type != sdk.PackageTypeApplication {
+		t.Fatalf("helper@1.0.0 type = %q, want the workspace member under the plain ID", mustDep(t, member).Type)
 	}
-	if origin := originOf(member); !origin.Empty() {
+	if origin := originOf(mustDep(t, member)); !origin.Empty() {
 		t.Fatalf("member claims external origin %+v", origin)
 	}
 	var externals int
 	graph.WalkNodes(func(dep sdk.GraphNode) bool {
-		if dep.Name == "helper" && dep.NodeID() != member.ID {
+		if mustDep(t, dep).Name == "helper" && dep.NodeID() != member.NodeID() {
 			externals++
-			if origin := originOf(dep); origin.Repository != "https://github.com/external/helper" {
+			if origin := originOf(mustDep(t, dep)); origin.Repository != "https://github.com/external/helper" {
 				t.Fatalf("external occurrence origin = %+v, want the external repository", origin)
 			}
 		}
@@ -434,10 +435,10 @@ dependencies = [
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
 	root, ok := graph.Node("app@0.1.0")
-	if !ok || !root.FirstParty {
+	if !ok || !nodes.IsProjectOwned(root) {
 		t.Fatalf("expected first-party root app@0.1.0: %s", graph.PrettyString())
 	}
-	if origin := originOf(root); !origin.Empty() {
+	if origin := originOf(mustDep(t, root)); !origin.Empty() {
 		t.Fatalf("root claims external origin %+v", origin)
 	}
 	external, ok := graph.Node("app@2.0.0")
@@ -445,7 +446,7 @@ dependencies = [
 		t.Fatalf("expected external app@2.0.0 to stay in the graph: %s", graph.PrettyString())
 	}
 	consumerDeps := directDependencyIDs(t, graph, "consumer@2.0.0")
-	if !consumerDeps[external.ID] || consumerDeps[root.NodeID()] {
+	if !consumerDeps[external.NodeID()] || consumerDeps[root.NodeID()] {
 		t.Fatalf("consumer dependencies = %v, want the external app only", consumerDeps)
 	}
 }
@@ -554,7 +555,7 @@ source = "git+https://github.com/b/helper#bbbbccccddddeeeeffff000011112222333344
 		if !ok {
 			t.Fatalf("consumer dependency %q missing from graph", id)
 		}
-		if origin := originOf(child); origin.Repository != "https://github.com/b/helper" {
+		if origin := originOf(mustDep(t, child)); origin.Repository != "https://github.com/b/helper" {
 			t.Fatalf("consumer edge reached %q with origin %+v, want the b-remote occurrence", id, origin)
 		}
 	}
@@ -574,4 +575,15 @@ func directDependencyIDs(t *testing.T, g *sdk.Graph, nodeID string) map[string]b
 		}
 	}
 	return out
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

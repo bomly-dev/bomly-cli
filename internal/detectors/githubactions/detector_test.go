@@ -64,7 +64,7 @@ func TestDepGraphFromRepository(t *testing.T) {
 		t.Fatalf("expected 6 packages, got %d", g.Size())
 	}
 
-	cache, ok := g.Node("actions:cache@v4")
+	cache, ok := g.DependencyNode("actions:cache@v4")
 	if !ok {
 		t.Fatal("expected actions/cache package")
 	}
@@ -76,18 +76,18 @@ func TestDepGraphFromRepository(t *testing.T) {
 	if !ok {
 		t.Fatal("expected local action package")
 	}
-	deps, err := g.DirectDependencies(localAction.ID)
+	deps, err := g.DirectDependencies(localAction.NodeID())
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
-	if len(deps) != 1 || deps[0].ID != "actions:cache@v4" {
+	if len(deps) != 1 || deps[0].NodeID() != "actions:cache@v4" {
 		t.Fatalf("expected local action to depend on actions/cache, got %#v", deps)
 	}
 	workflowNode, ok := g.Node("workflow:.github/workflows/ci.yml")
 	if !ok {
 		t.Fatal("expected ci workflow package")
 	}
-	workflowDeps, err := g.DirectDependencies(workflowNode.ID)
+	workflowDeps, err := g.DirectDependencies(workflowNode.NodeID())
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
@@ -121,7 +121,7 @@ func TestDetectorResolveGraphAttachesUsesLineLocations(t *testing.T) {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 
-	dependencyReview, ok := g.Node("actions:dependency-review-action@v5")
+	dependencyReview, ok := g.DependencyNode("actions:dependency-review-action@v5")
 	if !ok {
 		t.Fatal("expected actions/dependency-review-action package")
 	}
@@ -136,7 +136,7 @@ func TestDetectorResolveGraphAttachesUsesLineLocations(t *testing.T) {
 		t.Fatalf("location position = %#v, want workflow uses line with column", loc.Position)
 	}
 
-	codeql, ok := g.Node("github:codeql-action/upload-sarif@v4")
+	codeql, ok := g.DependencyNode("github:codeql-action/upload-sarif@v4")
 	if !ok {
 		t.Fatal("expected github/codeql-action/upload-sarif package")
 	}
@@ -171,7 +171,7 @@ func TestDetectorResolveGraphPreservesDuplicateUsesLocations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	checkout, ok := g.Node("actions:checkout@v5")
+	checkout, ok := g.DependencyNode("actions:checkout@v5")
 	if !ok {
 		t.Fatal("expected actions/checkout package")
 	}
@@ -207,7 +207,7 @@ func TestDepGraphDigests(t *testing.T) {
 	}
 
 	found := map[string][]sdk.Digest{}
-	g.WalkNodes(func(node sdk.GraphNode) bool {
+	g.WalkDependencyNodes(func(node *sdk.DependencyNode) bool {
 		found[node.Name] = node.Digests
 		return true
 	})
@@ -234,4 +234,15 @@ func TestIsGitCommitSHA(t *testing.T) {
 			t.Fatalf("value %q must not be treated as a commit SHA", value)
 		}
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

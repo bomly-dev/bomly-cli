@@ -1,6 +1,7 @@
 package consolidation
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 
 	"github.com/bomly-dev/bomly-sdk"
@@ -8,14 +9,14 @@ import (
 
 func TestBuildPackageRegistry_DeduplicatesByPURLAndLinksDependencies(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	libA := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.2.3"}})
+	app := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	libA := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.2.3"}})
 	for _, node := range []*sdk.DependencyNode{app, libA} {
 		if err := g.AddNode(node); err != nil {
 			t.Fatalf("AddNode(%q): %v", node.NodeID(), err)
 		}
 	}
-	if err := g.AddEdge(app.ID, libA.ID); err != nil {
+	if err := g.AddEdge(app.NodeID(), libA.NodeID()); err != nil {
 		t.Fatalf("AddEdge: %v", err)
 	}
 
@@ -38,7 +39,7 @@ func TestBuildPackageRegistry_DeduplicatesByPURLAndLinksDependencies(t *testing.
 
 func TestBuildPackageRegistry_LiftsDetectionLicenses(t *testing.T) {
 	g := sdk.New()
-	lib := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.2.3"}})
+	lib := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.2.3"}})
 	sdk.SetDetectionLicenses(lib, []sdk.PackageLicense{{Value: "MIT", Type: "declared"}})
 	if err := g.AddNode(lib); err != nil {
 		t.Fatalf("AddNode: %v", err)

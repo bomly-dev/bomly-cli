@@ -2,6 +2,7 @@ package gomod
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -109,15 +110,15 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if !ok {
 		t.Fatal("expected main module root node")
 	}
-	if !rootNode.FirstParty || rootNode.RegistryMatchEligible() {
-		t.Fatalf("main module must be first-party and not enrichable, got %#v", rootNode.Coordinates)
+	if !nodes.IsProjectOwned(rootNode) {
+		t.Fatalf("main module must be first-party and not enrichable, got %#v", mustDep(t, rootNode).Coordinates)
 	}
 
 	uuidNode, ok := g.Node("github.com/google/uuid@v1.6.0")
 	if !ok {
 		t.Fatal("expected runtime dependency package")
 	}
-	if got := string(uuidNode.PrimaryScope()); got != string(sdk.ScopeRuntime) {
+	if got := string(mustDep(t, uuidNode).PrimaryScope()); got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope for uuid, got %q", got)
 	}
 
@@ -125,7 +126,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if !ok {
 		t.Fatal("expected transitive runtime dependency package")
 	}
-	if got := string(textNode.PrimaryScope()); got != string(sdk.ScopeRuntime) {
+	if got := string(mustDep(t, textNode).PrimaryScope()); got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope for golang.org/x/text, got %q", got)
 	}
 
@@ -133,7 +134,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if !ok {
 		t.Fatal("expected development dependency package")
 	}
-	if got := string(testifyNode.PrimaryScope()); got != string(sdk.ScopeDevelopment) {
+	if got := string(mustDep(t, testifyNode).PrimaryScope()); got != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected development scope for testify, got %q", got)
 	}
 
@@ -141,15 +142,15 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if !ok {
 		t.Fatal("expected transitive development dependency package")
 	}
-	if got := string(spewNode.PrimaryScope()); got != string(sdk.ScopeDevelopment) {
+	if got := string(mustDep(t, spewNode).PrimaryScope()); got != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected development scope for go-spew, got %q", got)
 	}
 
-	testifyDeps, err := g.DirectDependencies(testifyNode.ID)
+	testifyDeps, err := g.DirectDependencies(testifyNode.NodeID())
 	if err != nil {
 		t.Fatalf("Dependencies(testify) error = %v", err)
 	}
-	if len(testifyDeps) != 1 || testifyDeps[0].ID != spewNode.ID {
+	if len(testifyDeps) != 1 || testifyDeps[0].NodeID() != spewNode.NodeID() {
 		t.Fatalf("unexpected testify dependencies: %#v", testifyDeps)
 	}
 
@@ -224,7 +225,7 @@ func TestDepGraphFromGoList_PrefersRuntimeScope(t *testing.T) {
 	if !ok {
 		t.Fatal("expected shared dependency package")
 	}
-	if got := string(shared.PrimaryScope()); got != string(sdk.ScopeRuntime) {
+	if got := string(mustDep(t, shared).PrimaryScope()); got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope to win, got %q", got)
 	}
 }
@@ -323,10 +324,10 @@ func TestDepGraphFromGoList_AttachesPositionToDirectDeps(t *testing.T) {
 	if !ok {
 		t.Fatal("direct dep missing from graph")
 	}
-	if len(direct.Locations) != 1 {
-		t.Fatalf("direct dep Locations = %d, want 1", len(direct.Locations))
+	if len(mustDep(t, direct).Locations) != 1 {
+		t.Fatalf("direct dep Locations = %d, want 1", len(mustDep(t, direct).Locations))
 	}
-	loc := direct.Locations[0]
+	loc := mustDep(t, direct).Locations[0]
 	if loc.RealPath != "go.mod" {
 		t.Errorf("direct dep RealPath = %q, want go.mod", loc.RealPath)
 	}
@@ -337,8 +338,8 @@ func TestDepGraphFromGoList_AttachesPositionToDirectDeps(t *testing.T) {
 	if !ok {
 		t.Fatal("transitive dep missing from graph")
 	}
-	if len(trans.Locations) != 0 {
-		t.Errorf("transitive dep should have no Locations (not in go.mod); got %+v", trans.Locations)
+	if len(mustDep(t, trans).Locations) != 0 {
+		t.Errorf("transitive dep should have no Locations (not in go.mod); got %+v", mustDep(t, trans).Locations)
 	}
 }
 
@@ -375,4 +376,15 @@ malformed line
 	if _, err := parseGoSumDigests(filepath.Join(projectDir, "missing", "go.sum")); err == nil {
 		t.Fatal("expected an error for a missing go.sum")
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

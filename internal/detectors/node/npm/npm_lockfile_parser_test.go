@@ -68,11 +68,11 @@ func TestNPMLockfileRetainsUnknownComponent(t *testing.T) {
 		t.Fatal(err)
 	}
 	graph := result.Graphs.Entries[0].Graph
-	orphan, ok := graph.Node("orphan@1.0.0")
+	orphan, ok := graph.DependencyNode("orphan@1.0.0")
 	if !ok || orphan.Relationship != sdk.DependencyRelationshipUnknown {
 		t.Fatalf("orphan = %#v", orphan)
 	}
-	child, ok := graph.Node("child@2.0.0")
+	child, ok := graph.DependencyNode("child@2.0.0")
 	if !ok || child.Relationship != "" {
 		t.Fatalf("child = %#v", child)
 	}
@@ -102,7 +102,7 @@ func TestNPMLockfilePreservesMultipleInstalledVersions(t *testing.T) {
 		}
 	}
 	children, err := graphs.graph.DirectDependencies("legacy@1.0.0")
-	if err != nil || len(children) != 1 || children[0].ID != "lodash@3.10.1" {
+	if err != nil || len(children) != 1 || children[0].NodeID() != "lodash@3.10.1" {
 		t.Fatalf("legacy dependencies = %#v, err=%v", children, err)
 	}
 }
@@ -123,7 +123,7 @@ func TestNPMLockfileClassifiesLocalFileDependency(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	dependency, ok := graphs.graph.Node("local-lib@1.0.0")
+	dependency, ok := graphs.graph.DependencyNode("local-lib@1.0.0")
 	if !ok || dependency.Source != sdk.DependencySourceFile || dependency.Type == sdk.PackageTypeApplication {
 		t.Fatalf("local dependency = %#v", dependency)
 	}
@@ -162,7 +162,7 @@ func TestNPMLockfileParserAllowsArrayEngines(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromNPMLockfile() error = %v", err)
 	}
-	pkg, ok := graphs.graph.Node("benchmark@1.0.0")
+	pkg, ok := graphs.graph.DependencyNode("benchmark@1.0.0")
 	if !ok {
 		t.Fatalf("expected benchmark@1.0.0 package")
 	}

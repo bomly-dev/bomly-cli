@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"errors"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"strings"
 	"testing"
 
@@ -40,7 +41,7 @@ func (p *recordingProgress) Detail(label, detail string) {
 func TestResolveDetectors_RunsMatchingDetector(t *testing.T) {
 	registry := newTestRegistry()
 	nativeGraph := sdk.New()
-	if err := nativeGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := nativeGraph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 
@@ -69,7 +70,7 @@ func TestResolveDetectors_RunsMatchingDetector(t *testing.T) {
 func TestResolveDetectors_ReportsDetectorDetail(t *testing.T) {
 	registry := newTestRegistry()
 	graph := sdk.New()
-	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
 
@@ -105,7 +106,7 @@ func TestResolveDetectors_ReportsDetectorDetail(t *testing.T) {
 func TestResolveDetectors_FallsBackWhenPrimaryFails(t *testing.T) {
 	registry := newTestRegistry()
 	fallbackGraph := sdk.New()
-	if err := fallbackGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := fallbackGraph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 
@@ -138,7 +139,7 @@ func TestResolveDetectors_FallsBackWhenPrimaryFails(t *testing.T) {
 func TestResolveDetectors_DoesNotRunExcludedFallback(t *testing.T) {
 	registry := newTestRegistry()
 	fallbackGraph := sdk.New()
-	if err := fallbackGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := fallbackGraph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 
@@ -246,7 +247,7 @@ func TestResolveDetectors_KeepsRunFailuresVerbatim(t *testing.T) {
 func TestPipeline_UsesPlannedDetectorChainWithoutEagerFallbackExecution(t *testing.T) {
 	registry := newTestRegistry()
 	fallbackGraph := sdk.New()
-	if err := fallbackGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := fallbackGraph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 
@@ -300,7 +301,7 @@ func TestPipeline_UsesPlannedDetectorChainWithoutEagerFallbackExecution(t *testi
 func TestPipeline_DoesNotEnableDetectorEnrichmentForAuditOnly(t *testing.T) {
 	registry := newTestRegistry()
 	graph := sdk.New()
-	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
 
@@ -347,7 +348,7 @@ func TestPipeline_DoesNotEnableDetectorEnrichmentForAuditOnly(t *testing.T) {
 func TestPipeline_ThreadsEnrichEnabledIntoResolveRequest(t *testing.T) {
 	registry := newTestRegistry()
 	graph := sdk.New()
-	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
 
@@ -519,18 +520,18 @@ func TestPipeline_ThreadsScopeFilterIntoInstallFirstDetector(t *testing.T) {
 func scopedTestGraph(t *testing.T) *sdk.Graph {
 	t.Helper()
 	graph := sdk.New()
-	app := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	runtimeDep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
-	devDep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0", PURL: "pkg:npm/vitest@2.0.0"}, Scopes: sdk.ScopesOf(sdk.ScopeDevelopment)})
+	app := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	runtimeDep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	devDep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0", PURL: "pkg:npm/vitest@2.0.0"}, Scopes: sdk.ScopesOf(sdk.ScopeDevelopment)})
 	for _, dep := range []*sdk.DependencyNode{app, runtimeDep, devDep} {
 		if err := graph.AddNode(dep); err != nil {
 			t.Fatalf("add %q: %v", dep.NodeID(), err)
 		}
 	}
-	if err := graph.AddEdge(app.ID, runtimeDep.ID); err != nil {
+	if err := graph.AddEdge(app.NodeID(), runtimeDep.NodeID()); err != nil {
 		t.Fatalf("add runtime edge: %v", err)
 	}
-	if err := graph.AddEdge(app.ID, devDep.ID); err != nil {
+	if err := graph.AddEdge(app.NodeID(), devDep.NodeID()); err != nil {
 		t.Fatalf("add development edge: %v", err)
 	}
 	return graph
@@ -543,10 +544,10 @@ func scopedTestGraph(t *testing.T) *sdk.Graph {
 func TestPipeline_Run_ProducesConsolidatedResult(t *testing.T) {
 	registry := newTestRegistry()
 	g := sdk.New()
-	if err := g.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := g.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
-	if err := g.AddNode(sdk.NewDependencyRef("react", "18.2.0")); err != nil {
+	if err := g.AddNode(testnodes.Ref("react", "18.2.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 	if err := g.AddEdge("app@1.0.0", "react@18.2.0"); err != nil {
@@ -586,7 +587,7 @@ func TestPipeline_Run_DerivesCanonicalRemediationAtEndOfEnrichment(t *testing.T)
 	const purl = "pkg:npm/react@18.2.0"
 	registry := newTestRegistry()
 	graph := sdk.New()
-	root := sdk.NewDependencyNode("app", sdk.DependencyNode{
+	root := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			Name:           "app",
 			Type:           sdk.PackageTypeApplication,
@@ -595,7 +596,7 @@ func TestPipeline_Run_DerivesCanonicalRemediationAtEndOfEnrichment(t *testing.T)
 		Relationship: sdk.DependencyRelationshipDirect,
 		Source:       sdk.DependencySourceProject,
 	})
-	dependency := sdk.NewDependencyNode("react", sdk.DependencyNode{
+	dependency := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			Name:           "react",
 			Version:        "18.2.0",
@@ -642,7 +643,6 @@ func TestPipeline_Run_DerivesCanonicalRemediationAtEndOfEnrichment(t *testing.T)
 		name: "vulnerability-matcher",
 		run: func(packages *sdk.PackageRegistry) {
 			packages.Ensure(purl).Vulnerabilities = []sdk.Vulnerability{{
-				ID:      "GHSA-example",
 				FixedIn: "19.0.0",
 			}}
 		},
@@ -678,7 +678,7 @@ func TestPipeline_Run_DerivesCanonicalRemediationAtEndOfEnrichment(t *testing.T)
 func TestPipeline_Run_DeduplicatesAuditFindings(t *testing.T) {
 	registry := newTestRegistry()
 	g := sdk.New()
-	pkg := sdk.NewDependencyNode("pkg:npm/react@18.2.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	pkg := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		Name:    "react",
 		Version: "18.2.0",
 		PURL:    "pkg:npm/react@18.2.0"},
@@ -728,15 +728,15 @@ func TestPipeline_Run_DeduplicatesAuditFindings(t *testing.T) {
 func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testing.T) {
 	registry := newTestRegistry()
 	g := sdk.New()
-	app := sdk.NewDependencyNode("pkg:npm/app@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"}})
-	dep := sdk.NewDependencyNode("pkg:npm/dep@2.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "dep", Version: "2.0.0", PURL: "pkg:npm/dep@2.0.0"}})
+	app := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"}})
+	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "dep", Version: "2.0.0", PURL: "pkg:npm/dep@2.0.0"}})
 	if err := g.AddNode(app); err != nil {
 		t.Fatalf("add app: %v", err)
 	}
 	if err := g.AddNode(dep); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
-	if err := g.AddEdge(app.ID, dep.NodeID()); err != nil {
+	if err := g.AddEdge(app.NodeID(), dep.NodeID()); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 	registry.registerDetector(fakeDetector{
@@ -753,10 +753,10 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 	registry.registerAuditor(fakeAuditor{
 		descriptor: AuditorDescriptor{Name: "severity-policy"},
 		run: func(req AuditRequest) AuditResult {
-			if req.Target == nil || req.Target.ID != dep.NodeID() {
+			if req.Target == nil || req.Target.NodeID() != dep.NodeID() {
 				t.Fatalf("expected component target %q, got %#v", dep.NodeID(), req.Target)
 			}
-			return AuditResult{Findings: []Finding{{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "osv", PackageRef: req.Target.PURL}}}
+			return AuditResult{Findings: []Finding{{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "osv", PackageRef: req.Target.NodeID()}}}
 		},
 	})
 
@@ -816,7 +816,7 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 func TestPipeline_RunExplain_ReturnsNotFoundWhenQueryIsAbsent(t *testing.T) {
 	registry := newTestRegistry()
 	g := sdk.New()
-	if err := g.AddNode(sdk.NewDependencyNode("pkg:npm/app@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0"}})); err != nil {
+	if err := g.AddNode(testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0"}})); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
 	registry.registerDetector(fakeDetector{
@@ -889,7 +889,7 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	})
 
 	nativeGraph := sdk.New()
-	nativeApp := sdk.NewDependencyNode("pkg:npm/app@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	nativeApp := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "app",
 		Version:        "1.0.0",
@@ -898,7 +898,7 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	if err := nativeGraph.AddNode(nativeApp); err != nil {
 		t.Fatalf("add native app: %v", err)
 	}
-	nativeReact := sdk.NewDependencyNode("pkg:npm/react@18.2.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	nativeReact := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "react",
 		Version:        "18.2.0",
@@ -907,12 +907,12 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	if err := nativeGraph.AddNode(nativeReact); err != nil {
 		t.Fatalf("add native react: %v", err)
 	}
-	if err := nativeGraph.AddEdge(nativeApp.ID, nativeReact.ID); err != nil {
+	if err := nativeGraph.AddEdge(nativeApp.NodeID(), nativeReact.NodeID()); err != nil {
 		t.Fatalf("add native dependency: %v", err)
 	}
 
 	sbomGraph := sdk.New()
-	if err := sbomGraph.AddNode(sdk.NewDependencyNode("SPDXRef-app", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	if err := sbomGraph.AddNode(testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "app",
 		Version:        "1.0.0",
@@ -920,7 +920,7 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	})); err != nil {
 		t.Fatalf("add sbom app: %v", err)
 	}
-	if err := sbomGraph.AddNode(sdk.NewDependencyNode("SPDXRef-react", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	if err := sbomGraph.AddNode(testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "react",
 		Version:        "18.2.0",
@@ -1059,7 +1059,7 @@ func TestPipelineWarningsFromError_JoinedErrors(t *testing.T) {
 func TestPipeline_Run_CollectsDetectorReportedWarnings(t *testing.T) {
 	registry := newTestRegistry()
 	graph := sdk.New()
-	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 	warning := sdk.DetectorWarning{
@@ -1106,7 +1106,7 @@ func TestPipeline_Run_CollectsDetectorReportedWarnings(t *testing.T) {
 func TestPipeline_Run_DeduplicatesRepeatedDetectorWarnings(t *testing.T) {
 	registry := newTestRegistry()
 	graph := sdk.New()
-	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 	warning := sdk.DetectorWarning{
@@ -1144,7 +1144,7 @@ func TestPipeline_Run_DeduplicatesRepeatedDetectorWarnings(t *testing.T) {
 func TestPipeline_Run_TypesFallbackWarningsAsDegradedCoverage(t *testing.T) {
 	registry := newTestRegistry()
 	fallbackGraph := sdk.New()
-	if err := fallbackGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := fallbackGraph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 	registry.registerDetector(fakeDetector{

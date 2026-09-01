@@ -2,6 +2,7 @@ package registry
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
@@ -86,14 +87,13 @@ func remediationHintRequest(t *testing.T, manager sdk.PackageManager) sdk.Remedi
 	t.Helper()
 	const packageRef = "pkg:generic/example@1.0.0"
 	graph := sdk.New()
-	dependency := sdk.NewDependencyNode("example", sdk.DependencyNode{
+	dependency := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			PURL:           packageRef,
 			Name:           "example",
 			Version:        "1.0.0",
 			PackageManager: manager,
 		},
-		ID:         "example",
 		PackageRef: packageRef,
 		Source:     sdk.DependencySourceRegistry,
 	})

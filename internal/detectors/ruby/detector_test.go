@@ -24,14 +24,14 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	rack, ok := g.Node("rack@3.1.8")
+	rack, ok := g.DependencyNode("rack@3.1.8")
 	if !ok {
 		t.Fatal("expected rack package")
 	}
 	if string(rack.PrimaryScope()) != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", rack.PrimaryScope())
 	}
-	rake, ok := g.Node("rake@13.2.1")
+	rake, ok := g.DependencyNode("rake@13.2.1")
 	if !ok {
 		t.Fatal("expected rake package")
 	}
@@ -66,7 +66,7 @@ DEPENDENCIES
 		t.Fatalf("expected 4 packages, got %d", g.Size())
 	}
 
-	rake, ok := g.Node("rake@13.2.1")
+	rake, ok := g.DependencyNode("rake@13.2.1")
 	if !ok {
 		t.Fatal("expected rake package")
 	}
@@ -74,7 +74,7 @@ DEPENDENCIES
 		t.Fatalf("expected rake scope runtime, got %q", got)
 	}
 
-	activeSupport, ok := g.Node("activesupport@7.1.0")
+	activeSupport, ok := g.DependencyNode("activesupport@7.1.0")
 	if !ok {
 		t.Fatal("expected activesupport package")
 	}
@@ -136,7 +136,10 @@ DEPENDENCIES
 	if got := specs["helper"].Revision; got != "abc" {
 		t.Fatalf("helper revision = %q, want abc", got)
 	}
-	helper := gemNode(specs["helper"])
+	helper, err := gemNode(specs["helper"])
+	if err != nil {
+		t.Fatalf("gemNode() error = %v", err)
+	}
 	if helper.Metadata["source_revision"] != "abc" {
 		t.Fatalf("helper source revision = %#v, want abc", helper.Metadata["source_revision"])
 	}

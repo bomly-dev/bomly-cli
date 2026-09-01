@@ -90,8 +90,8 @@ func TestDetectionResultFromMetadataWorkspacePerModuleEntries(t *testing.T) {
 	if !ok {
 		t.Fatal("expected workspace member a")
 	}
-	if member.Source != sdk.DependencySourceWorkspace {
-		t.Fatalf("workspace member source = %q, want %q", member.Source, sdk.DependencySourceWorkspace)
+	if mustDep(t, member).Source != sdk.DependencySourceWorkspace {
+		t.Fatalf("workspace member source = %q, want %q", mustDep(t, member).Source, sdk.DependencySourceWorkspace)
 	}
 }
 
@@ -169,11 +169,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 		}
 	}
 	member, ok := a.Graph.Node("a@0.1.0")
-	if !ok || member.Source != sdk.DependencySourceWorkspace {
+	if !ok || mustDep(t, member).Source != sdk.DependencySourceWorkspace {
 		t.Fatalf("member a source = %#v, want workspace", member)
 	}
 	serde, ok := a.Graph.Node("serde@1.0.210")
-	if !ok || serde.Source != sdk.DependencySourceRegistry {
+	if !ok || mustDep(t, serde).Source != sdk.DependencySourceRegistry {
 		t.Fatalf("serde source = %#v, want registry", serde)
 	}
 	if _, ok := b.Graph.Node("a@0.1.0"); ok {
@@ -184,13 +184,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 		t.Fatal("expected member dev dependency in member b graph")
 	}
 	hasDev := false
-	for _, scope := range dev.Scopes {
+	for _, scope := range mustDep(t, dev).Scopes {
 		if scope == sdk.ScopeDevelopment {
 			hasDev = true
 		}
 	}
 	if !hasDev {
-		t.Fatalf("expected development scope on member dev dependency, got %v", dev.Scopes)
+		t.Fatalf("expected development scope on member dev dependency, got %v", mustDep(t, dev).Scopes)
 	}
 }
 

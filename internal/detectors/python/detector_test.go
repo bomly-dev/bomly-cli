@@ -1,6 +1,8 @@
 package python
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"sort"
@@ -40,7 +42,10 @@ func TestDepGraphFromPipInspect(t *testing.T) {
   ]
 }`)
 
-	root := pythonSyntheticRoot("")
+	root, err := pythonSyntheticRoot("")
+	if err != nil {
+		t.Fatalf("pythonSyntheticRoot() error = %v", err)
+	}
 	g, err := depGraphFromPipInspect(raw, root, nil)
 	if err != nil {
 		t.Fatalf("depGraphFromPipInspect() error = %v", err)
@@ -55,8 +60,8 @@ func TestDepGraphFromPipInspect(t *testing.T) {
 	if !ok {
 		t.Fatal("expected synthetic root node")
 	}
-	if !rootNode.FirstParty || rootNode.RegistryMatchEligible() {
-		t.Fatalf("pip-inspect root must be first-party and not enrichable, got %#v", rootNode.Coordinates)
+	if !nodes.IsProjectOwned(rootNode) {
+		t.Fatalf("pip-inspect root must be the project's own module node, got a %s node", rootNode.Kind())
 	}
 	// Only the requested distribution is direct; the rest reach the graph
 	// through requires_dist edges.
@@ -85,7 +90,10 @@ func TestDepGraphFromPipInspectScopesDirectDependencies(t *testing.T) {
 }`)
 
 	declared := map[string]struct{}{"flask": {}, "requests": {}}
-	root := pythonSyntheticRoot("")
+	root, err := pythonSyntheticRoot("")
+	if err != nil {
+		t.Fatalf("pythonSyntheticRoot() error = %v", err)
+	}
 	g, err := depGraphFromPipInspect(raw, root, declared)
 	if err != nil {
 		t.Fatalf("depGraphFromPipInspect() error = %v", err)
@@ -108,7 +116,10 @@ func TestDepGraphFromPipInspectAttachesOrphans(t *testing.T) {
   ]
 }`)
 
-	root := pythonSyntheticRoot("")
+	root, err := pythonSyntheticRoot("")
+	if err != nil {
+		t.Fatalf("pythonSyntheticRoot() error = %v", err)
+	}
 	g, err := depGraphFromPipInspect(raw, root, nil)
 	if err != nil {
 		t.Fatalf("depGraphFromPipInspect() error = %v", err)
@@ -131,7 +142,10 @@ func TestDepGraphFromPipInspectAttachesCycles(t *testing.T) {
   ]
 }`)
 
-	root := pythonSyntheticRoot("")
+	root, err := pythonSyntheticRoot("")
+	if err != nil {
+		t.Fatalf("pythonSyntheticRoot() error = %v", err)
+	}
 	g, err := depGraphFromPipInspect(raw, root, nil)
 	if err != nil {
 		t.Fatalf("depGraphFromPipInspect() error = %v", err)
@@ -322,7 +336,7 @@ func TestDepGraphFromPipfileLock(t *testing.T) {
 	if g.Size() != 4 {
 		t.Fatalf("expected root plus 3 packages, got %d", g.Size())
 	}
-	if _, ok := g.Node("requests@2.2.1"); !ok {
+	if _, ok := g.DependencyNode("pkg:pypi/requests@2.2.1"); !ok {
 		t.Fatalf("expected requests package, got %s", g.PrettyString())
 	}
 }
@@ -349,14 +363,14 @@ func TestDepGraphFromPipfileLockPackageInBothGroupsKeepsBothScopes(t *testing.T)
 	if err != nil {
 		t.Fatalf("depGraphFromPipfileLock() error = %v", err)
 	}
-	shared, ok := g.Node("requests@2.2.1")
+	shared, ok := g.DependencyNode("pkg:pypi/requests@2.2.1")
 	if !ok {
 		t.Fatalf("expected requests package, got %s", g.PrettyString())
 	}
 	if !shared.HasScope(sdk.ScopeRuntime) || !shared.HasScope(sdk.ScopeDevelopment) {
 		t.Fatalf("requests scopes = %v; want both the default and develop group scopes", shared.Scopes)
 	}
-	devOnly, ok := g.Node("pytest@9.0.3")
+	devOnly, ok := g.DependencyNode("pkg:pypi/pytest@9.0.3")
 	if !ok {
 		t.Fatalf("expected pytest package, got %s", g.PrettyString())
 	}
@@ -367,18 +381,18 @@ func TestDepGraphFromPipfileLockPackageInBothGroupsKeepsBothScopes(t *testing.T)
 
 func TestFilterPythonToolPackagesRemovesUndeclaredTools(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "root"}})
-	requests := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "requests", Version: "2.32.0"}})
-	pip := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pip", Version: "25.0"}})
+	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "root"}})
+	requests := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "requests", Version: "2.32.0"}})
+	pip := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pip", Version: "25.0"}})
 	for _, pkg := range []*sdk.DependencyNode{root, requests, pip} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
 	}
-	if err := g.AddEdge(root.NodeID(), requests.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), requests.NodeID()); err != nil {
 		t.Fatalf("add requests dependency: %v", err)
 	}
-	if err := g.AddEdge(root.NodeID(), pip.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), pip.NodeID()); err != nil {
 		t.Fatalf("add pip dependency: %v", err)
 	}
 
@@ -400,18 +414,18 @@ func TestFilterPythonToolPackagesKeepsDeclaredTools(t *testing.T) {
 		t.Fatalf("write requirements: %v", err)
 	}
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "root"}})
-	pip := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pip", Version: "25.0"}})
-	wheel := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "wheel", Version: "0.45.0"}})
+	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "root"}})
+	pip := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pip", Version: "25.0"}})
+	wheel := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "wheel", Version: "0.45.0"}})
 	for _, pkg := range []*sdk.DependencyNode{root, pip, wheel} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
 	}
-	if err := g.AddEdge(root.NodeID(), pip.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), pip.NodeID()); err != nil {
 		t.Fatalf("add pip dependency: %v", err)
 	}
-	if err := g.AddEdge(root.NodeID(), wheel.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), wheel.NodeID()); err != nil {
 		t.Fatalf("add wheel dependency: %v", err)
 	}
 
@@ -491,20 +505,20 @@ func TestAnnotateGraphScopes_DevelopmentFilterExcludesRuntime(t *testing.T) {
 	}
 
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "demo-app", Version: "1.0.0"}})
-	requests := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "requests", Version: "2.32.0"}})
-	pytest := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pytest", Version: "8.0.0"}})
-	shared := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pluggy", Version: "1.5.0"}})
+	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "demo-app", Version: "1.0.0"}})
+	requests := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "requests", Version: "2.32.0"}})
+	pytest := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pytest", Version: "8.0.0"}})
+	shared := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pluggy", Version: "1.5.0"}})
 	for _, pkg := range []*sdk.DependencyNode{root, requests, pytest, shared} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
 	}
 	for _, edge := range [][2]string{
-		{root.NodeID(), requests.ID},
-		{root.NodeID(), pytest.ID},
-		{requests.ID, shared.ID},
-		{pytest.ID, shared.ID},
+		{root.NodeID(), requests.NodeID()},
+		{root.NodeID(), pytest.NodeID()},
+		{requests.NodeID(), shared.NodeID()},
+		{pytest.NodeID(), shared.NodeID()},
 	} {
 		if err := g.AddEdge(edge[0], edge[1]); err != nil {
 			t.Fatalf("add dependency %q -> %q: %v", edge[0], edge[1], err)
@@ -516,13 +530,13 @@ func TestAnnotateGraphScopes_DevelopmentFilterExcludesRuntime(t *testing.T) {
 	if err != nil {
 		t.Fatalf("FilterGraphByScope() error = %v", err)
 	}
-	if _, ok := filtered.Node(pytest.ID); !ok {
+	if _, ok := filtered.Node(pytest.NodeID()); !ok {
 		t.Fatalf("expected development dependency to remain: %s", filtered.PrettyString())
 	}
-	if _, ok := filtered.Node(requests.ID); ok {
+	if _, ok := filtered.Node(requests.NodeID()); ok {
 		t.Fatalf("expected runtime dependency to be filtered: %s", filtered.PrettyString())
 	}
-	if _, ok := filtered.Node(shared.ID); ok {
+	if _, ok := filtered.Node(shared.NodeID()); ok {
 		t.Fatalf("expected runtime-primary shared dependency to be filtered: %s", filtered.PrettyString())
 	}
 }
@@ -541,7 +555,7 @@ func TestAttachDeclaredPositions(t *testing.T) {
 
 	g := sdk.New()
 	for _, name := range []string{"requests", "flask", "numpy", "urllib3"} {
-		pkg := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+		pkg := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
 			Name:    name,
 			Version: "0.0.0"},
 		})
@@ -561,11 +575,11 @@ func TestAttachDeclaredPositions(t *testing.T) {
 		if pkg == nil {
 			t.Fatalf("%s missing from graph", name)
 		}
-		if len(pkg.Locations) != 1 {
-			t.Errorf("%s Locations = %d, want 1", name, len(pkg.Locations))
+		if len(mustDep(t, pkg).Locations) != 1 {
+			t.Errorf("%s Locations = %d, want 1", name, len(mustDep(t, pkg).Locations))
 			continue
 		}
-		loc := pkg.Locations[0]
+		loc := mustDep(t, pkg).Locations[0]
 		if loc.RealPath != "requirements.txt" {
 			t.Errorf("%s RealPath = %q, want requirements.txt", name, loc.RealPath)
 		}
@@ -576,7 +590,18 @@ func TestAttachDeclaredPositions(t *testing.T) {
 
 	// Transitive (not declared) gets no Locations.
 	pkg, _ := g.Node("urllib3@0.0.0")
-	if pkg != nil && len(pkg.Locations) != 0 {
-		t.Errorf("urllib3 (undeclared) should have no Locations; got %+v", pkg.Locations)
+	if pkg != nil && len(mustDep(t, pkg).Locations) != 0 {
+		t.Errorf("urllib3 (undeclared) should have no Locations; got %+v", mustDep(t, pkg).Locations)
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

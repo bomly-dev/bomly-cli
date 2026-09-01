@@ -2,6 +2,7 @@ package python
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"path/filepath"
 	"testing"
 
@@ -52,7 +53,7 @@ func pyGraphIDs(g *sdk.Graph) []string {
 func requirePyPackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.DependencyNode {
 	t.Helper()
 	id := pyStableID(name, version)
-	pkg, ok := g.Node(id)
+	pkg, ok := g.DependencyNode(id)
 	if !ok {
 		t.Fatalf("expected package %s in graph; present: %v", id, pyGraphIDs(g))
 	}
@@ -163,7 +164,7 @@ func TestUVLockFixture(t *testing.T) {
 	requirePySingleRoot(t, g, pyStableID("demo-app", "1.0.0"))
 	// The editable package is the scanned project itself — first-party, so
 	// enrichment never queries it.
-	if root, ok := g.Node(pyStableID("demo-app", "1.0.0")); !ok || !root.FirstParty || root.RegistryMatchEligible() {
+	if root, ok := g.Node(pyStableID("demo-app", "1.0.0")); !ok || !nodes.IsProjectOwned(root) {
 		t.Fatalf("uv editable root must be first-party and not enrichable, got %#v", root)
 	}
 	for _, want := range [][2]string{

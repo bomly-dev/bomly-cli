@@ -1,6 +1,7 @@
 package node
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 
 	"github.com/bomly-dev/bomly-sdk"
@@ -8,19 +9,19 @@ import (
 
 func TestAttachUnknownComponentsMarksOnlyComponentRoots(t *testing.T) {
 	graph := sdk.New()
-	root := sdk.NewDependencyNode("app", sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "app", Type: sdk.PackageTypeApplication}})
-	direct := sdk.NewDependencyNode("direct", sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "direct"}})
-	orphan := sdk.NewDependencyNode("orphan", sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "orphan"}})
-	child := sdk.NewDependencyNode("child", sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "child"}})
+	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "app", Type: sdk.PackageTypeApplication}})
+	direct := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "direct"}})
+	orphan := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "orphan"}})
+	child := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "child"}})
 	for _, dep := range []*sdk.DependencyNode{root, direct, orphan, child} {
 		if err := graph.AddNode(dep); err != nil {
 			t.Fatal(err)
 		}
 	}
-	if err := graph.AddEdge(root.NodeID(), direct.ID); err != nil {
+	if err := graph.AddEdge(root.NodeID(), direct.NodeID()); err != nil {
 		t.Fatal(err)
 	}
-	if err := graph.AddEdge(orphan.ID, child.NodeID()); err != nil {
+	if err := graph.AddEdge(orphan.NodeID(), child.NodeID()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -28,7 +29,7 @@ func TestAttachUnknownComponentsMarksOnlyComponentRoots(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(components) != 1 || components[0].RootID != orphan.ID || components[0].Size != 2 {
+	if len(components) != 1 || components[0].RootID != orphan.NodeID() || components[0].Size != 2 {
 		t.Fatalf("components = %#v", components)
 	}
 	if orphan.Relationship != sdk.DependencyRelationshipUnknown {
@@ -48,18 +49,18 @@ func TestAttachUnknownComponentsMarksOnlyComponentRoots(t *testing.T) {
 
 func TestAttachUnknownComponentsRetainsDisconnectedCycle(t *testing.T) {
 	graph := sdk.New()
-	root := sdk.NewDependencyNode("app", sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "app", Type: sdk.PackageTypeApplication}})
-	a := sdk.NewDependencyRefWithID("a", "a", "1")
-	b := sdk.NewDependencyRefWithID("b", "b", "1")
+	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "app", Type: sdk.PackageTypeApplication}})
+	a := testnodes.Ref("a", "1")
+	b := testnodes.Ref("b", "1")
 	for _, dependency := range []*sdk.DependencyNode{root, a, b} {
 		if err := graph.AddNode(dependency); err != nil {
 			t.Fatal(err)
 		}
 	}
-	if err := graph.AddEdge(a.ID, b.ID); err != nil {
+	if err := graph.AddEdge(a.NodeID(), b.NodeID()); err != nil {
 		t.Fatal(err)
 	}
-	if err := graph.AddEdge(b.ID, a.ID); err != nil {
+	if err := graph.AddEdge(b.NodeID(), a.NodeID()); err != nil {
 		t.Fatal(err)
 	}
 	components, err := AttachUnknownComponents(graph, root.NodeID(), nil, "test", "yarn.lock")

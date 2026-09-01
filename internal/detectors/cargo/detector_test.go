@@ -22,7 +22,7 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	pkg, ok := g.Node("bomly-cargo-smoke-helper@0.1.0")
+	pkg, ok := g.DependencyNode("bomly-cargo-smoke-helper@0.1.0")
 	if !ok {
 		t.Fatal("expected helper package")
 	}
@@ -54,26 +54,26 @@ func TestDepGraphFromMetadataWorkspace(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromMetadata() error = %v", err)
 	}
-	app, ok := g.Node("app@0.1.0")
+	app, ok := g.DependencyNode("app@0.1.0")
 	if !ok {
 		t.Fatal("expected workspace package")
 	}
-	deps, err := g.DirectDependencies(app.ID)
+	deps, err := g.DirectDependencies(app.NodeID())
 	if err != nil {
 		t.Fatalf("app dependencies: %v", err)
 	}
 	if len(deps) != 2 {
 		t.Fatalf("expected two app dependencies, got %d", len(deps))
 	}
-	dev, ok := g.Node("pretty_assertions@1.4.1")
+	dev, ok := g.DependencyNode("pretty_assertions@1.4.1")
 	if !ok {
 		t.Fatal("expected dev package")
 	}
 	if string(dev.PrimaryScope()) != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected dev scope, got %q", string(dev.PrimaryScope()))
 	}
-	if dev.PURL != "pkg:cargo/pretty_assertions@1.4.1" {
-		t.Fatalf("unexpected purl %q", dev.PURL)
+	if dev.NodeID() != "pkg:cargo/pretty_assertions@1.4.1" {
+		t.Fatalf("unexpected purl %q", dev.NodeID())
 	}
 	if app.Source != sdk.DependencySourceProject {
 		t.Fatalf("single project source = %q, want %q", app.Source, sdk.DependencySourceProject)
@@ -192,7 +192,7 @@ dev-helper = { path = "dev-helper" }
 	if len(deps) != 2 {
 		t.Fatalf("expected two root dependencies, got %d", len(deps))
 	}
-	dev, ok := g.Node("dev-helper@0.1.0")
+	dev, ok := g.DependencyNode("dev-helper@0.1.0")
 	if !ok {
 		t.Fatal("expected dev-helper package")
 	}
@@ -202,7 +202,7 @@ dev-helper = { path = "dev-helper" }
 	if dev.Source != sdk.DependencySourceGit {
 		t.Fatalf("dev-helper source = %q, want %q", dev.Source, sdk.DependencySourceGit)
 	}
-	helper, ok := g.Node("helper@0.1.0")
+	helper, ok := g.DependencyNode("helper@0.1.0")
 	if !ok {
 		t.Fatal("expected helper package")
 	}

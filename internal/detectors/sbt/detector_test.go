@@ -26,14 +26,14 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if graph == nil {
 		t.Fatal("expected graph")
 	}
-	config, ok := graph.Node("com.typesafe:config@1.4.3")
+	config, ok := graph.DependencyNode("com.typesafe:config@1.4.3")
 	if !ok {
 		t.Fatalf("expected config package, got %v", graph.DependencyNodes())
 	}
-	if config.PURL != "pkg:maven/com.typesafe/config@1.4.3" {
-		t.Fatalf("expected config PURL, got %q", config.PURL)
+	if config.NodeID() != "pkg:maven/com.typesafe/config@1.4.3" {
+		t.Fatalf("expected config PURL, got %q", config.NodeID())
 	}
-	scalatest, ok := graph.Node("org.scalatest:scalatest@3.2.18")
+	scalatest, ok := graph.DependencyNode("org.scalatest:scalatest@3.2.18")
 	if !ok {
 		t.Fatalf("expected scalatest package, got %v", graph.DependencyNodes())
 	}
@@ -51,19 +51,19 @@ func TestDepGraphFromSBTDependencyTreePreservesScalaArtifactSuffix(t *testing.T)
 		t.Fatalf("depGraphFromSBTDependencyTree returned error: %v", err)
 	}
 
-	core, ok := graph.Node("org.typelevel:cats-core_2.13@2.10.0")
+	core, ok := graph.DependencyNode("org.typelevel:cats-core_2.13@2.10.0")
 	if !ok {
 		t.Fatalf("expected cats-core_2.13 package, got %v", graph.DependencyNodes())
 	}
-	if core.PURL != "pkg:maven/org.typelevel/cats-core_2.13@2.10.0" {
-		t.Fatalf("expected suffixed Maven PURL, got %q", core.PURL)
+	if core.NodeID() != "pkg:maven/org.typelevel/cats-core_2.13@2.10.0" {
+		t.Fatalf("expected suffixed Maven PURL, got %q", core.NodeID())
 	}
 
-	children, err := graph.DirectDependencies(core.ID)
+	children, err := graph.DirectDependencies(core.NodeID())
 	if err != nil {
 		t.Fatalf("core dependencies: %v", err)
 	}
-	if len(children) != 1 || children[0].Name != "cats-kernel_2.13" {
+	if len(children) != 1 || mustDep(t, children[0]).Name != "cats-kernel_2.13" {
 		t.Fatalf("expected cats-kernel_2.13 child, got %#v", children)
 	}
 }
@@ -207,4 +207,15 @@ func TestNativeDetectorApplicable_AllowsModernSBT(t *testing.T) {
 	if !applicable {
 		t.Fatalf("expected modern sbt project to use native detector")
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

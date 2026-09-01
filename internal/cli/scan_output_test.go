@@ -2,6 +2,7 @@ package cli
 
 import (
 	"encoding/json"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"strings"
 	"testing"
 	"time"
@@ -56,7 +57,7 @@ func TestReportOptionsFromPipelineResultsDisabledOmitsAnalyzerMetadata(t *testin
 
 func TestExplainPackageRefPlacesRemediationOnlyOnFocusedDependency(t *testing.T) {
 	const purl = "pkg:npm/example@1.0.0"
-	dependency := sdk.NewDependency(sdk.DependencyNode{
+	dependency := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			PURL:    purl,
 			Name:    "example",

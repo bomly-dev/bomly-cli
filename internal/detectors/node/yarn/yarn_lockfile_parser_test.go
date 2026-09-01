@@ -40,10 +40,10 @@ tweetnacl@^0.14.0:
 	if graph.Size() != 4 {
 		t.Fatalf("expected root plus every lockfile package, got %d", graph.Size())
 	}
-	if dependency, ok := graph.Node("bcrypt-pbkdf@1.0.2"); !ok || dependency.Relationship != sdk.DependencyRelationshipUnknown {
+	if dependency, ok := graph.DependencyNode("bcrypt-pbkdf@1.0.2"); !ok || dependency.Relationship != sdk.DependencyRelationshipUnknown {
 		t.Fatalf("expected unreferenced bcrypt-pbkdf entry with unknown relationship, got %#v", dependency)
 	}
-	if dependency, ok := graph.Node("tweetnacl@0.14.5"); !ok || dependency.Relationship != sdk.DependencyRelationshipUnknown {
+	if dependency, ok := graph.DependencyNode("tweetnacl@0.14.5"); !ok || dependency.Relationship != sdk.DependencyRelationshipUnknown {
 		t.Fatalf("expected unreferenced tweetnacl entry with unknown relationship, got %#v", dependency)
 	}
 	roots := graph.Roots()
@@ -82,7 +82,7 @@ func TestYarnBerryParsesQuotedNamesAliasesAndDependencies(t *testing.T) {
 		t.Fatal(err)
 	}
 	graph := result.Graphs.Entries[0].Graph
-	realPackage, ok := graph.Node("real-package@1.2.3")
+	realPackage, ok := graph.DependencyNode("real-package@1.2.3")
 	if !ok || realPackage.Source != sdk.DependencySourceRegistry {
 		t.Fatalf("real package = %#v", realPackage)
 	}
@@ -90,8 +90,8 @@ func TestYarnBerryParsesQuotedNamesAliasesAndDependencies(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected canonical scoped package name; nodes=%#v", graph.DependencyNodes())
 	}
-	children, err := graph.DirectDependencies(realPackage.ID)
-	if err != nil || len(children) != 1 || children[0].ID != esbuild.ID {
+	children, err := graph.DirectDependencies(realPackage.NodeID())
+	if err != nil || len(children) != 1 || children[0].NodeID() != esbuild.NodeID() {
 		t.Fatalf("dependencies = %#v, err=%v", children, err)
 	}
 }

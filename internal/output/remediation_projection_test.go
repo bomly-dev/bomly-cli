@@ -15,7 +15,6 @@ func TestScanAndDiffJSONKeepRemediationOnTopLevelPackages(t *testing.T) {
 	registry.Add(&sdk.Package{
 		Coordinates: sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
 		Vulnerabilities: []sdk.Vulnerability{{
-			ID:      "GHSA-example",
 			FixedIn: "1.2.0",
 		}},
 		Remediation: &sdk.PackageRemediation{

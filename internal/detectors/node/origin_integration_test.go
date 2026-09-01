@@ -19,10 +19,12 @@ func originOf(dep *sdk.DependencyNode) sdk.DependencyOrigin {
 	if dep == nil {
 		return sdk.DependencyOrigin{}
 	}
-	if origin := dep.Origin.Normalized(); origin != nil {
-		return *origin
+	// Origins are gated on the way in, so the first entry is already
+	// publishable; these cases assert on a single asserted origin.
+	if len(dep.Origins) == 0 {
+		return sdk.DependencyOrigin{}
 	}
-	return sdk.DependencyOrigin{}
+	return dep.Origins[0]
 }
 
 // requireArtifactOrigin asserts a package asserts exactly the given artifact.
@@ -165,8 +167,8 @@ shared@^2.0.0:
 	}
 	origins := map[string]int{}
 	g.WalkNodes(func(dep sdk.GraphNode) bool {
-		if dep.Name == "shared" {
-			origins[originOf(dep).ArtifactURL]++
+		if mustDep(t, dep).Name == "shared" {
+			origins[originOf(mustDep(t, dep)).ArtifactURL]++
 		}
 		return true
 	})

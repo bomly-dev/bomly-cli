@@ -37,7 +37,6 @@ func TestResolveGitHubReleaseAndInstall(t *testing.T) {
 	}
 
 	manifest := withCanonicalManifestDefaults(Manifest{
-		ID:      "acme.detector.release",
 		Name:    "Acme Release Detector",
 		Version: "1.0.0",
 		Kind:    plugschema.PluginKindDetector,
@@ -126,7 +125,6 @@ func TestInstallStaleTokenFallbackEndToEnd(t *testing.T) {
 	}
 
 	manifest := withCanonicalManifestDefaults(Manifest{
-		ID:      "acme.detector.release",
 		Name:    "Acme Release Detector",
 		Version: "1.0.0",
 		Kind:    plugschema.PluginKindDetector,

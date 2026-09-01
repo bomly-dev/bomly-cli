@@ -3,6 +3,7 @@ package render
 import (
 	"bytes"
 	"fmt"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"strings"
 	"testing"
 
@@ -128,7 +129,7 @@ func TestSanitizeUntrusted(t *testing.T) {
 
 func TestScanRendersWarningNotices(t *testing.T) {
 	g := model.New()
-	if err := g.AddNode(model.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := g.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 	out := Scan(g, nil, nil, nil, false, false, false, nil, nil, WarningNotices(fallbackWarnings()))
@@ -142,7 +143,7 @@ func TestScanRendersWarningNotices(t *testing.T) {
 
 func TestScanRendersWarningNoticesWithoutControlSequences(t *testing.T) {
 	g := model.New()
-	if err := g.AddNode(model.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := g.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 	warnings := []model.DetectorWarning{{

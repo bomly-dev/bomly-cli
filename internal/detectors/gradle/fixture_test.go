@@ -1,6 +1,7 @@
 package gradle
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -79,7 +80,7 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 	// Subproject roots are the build's own first-party applications, and the
 	// root project node is first-party too.
 	rootNode, ok := parsed.rootGraph.Node(parsed.rootID)
-	if !ok || !rootNode.FirstParty {
+	if !ok || !nodes.IsProjectOwned(rootNode) {
 		t.Fatalf("root project node must be first-party, got %#v", rootNode)
 	}
 	for _, moduleEntry := range parsed.modules {
@@ -87,8 +88,8 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 		if !ok {
 			t.Fatalf("missing subproject root node %q", moduleEntry.rootID)
 		}
-		if node.Type != sdk.PackageTypeApplication || !node.FirstParty {
-			t.Fatalf("subproject root %q = %#v, want first-party application", moduleEntry.rootID, node.Coordinates)
+		if !nodes.IsProjectOwned(node) {
+			t.Fatalf("subproject root %q = %#v, want first-party application", moduleEntry.rootID, mustDep(t, node).Coordinates)
 		}
 	}
 
@@ -121,13 +122,13 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 	if libRef == libOwnRoot {
 		t.Fatal("project reference must not share the module root node instance")
 	}
-	if !libRef.FirstParty || libRef.Type != sdk.PackageTypeApplication {
-		t.Fatalf("project reference node = %#v, want first-party application", libRef.Coordinates)
+	if !nodes.IsProjectOwned(libRef) {
+		t.Fatalf("project reference node = %#v, want first-party application", mustDep(t, libRef).Coordinates)
 	}
-	if got := libRef.PrimaryScope(); got != sdk.ScopeRuntime {
+	if got := mustDep(t, libRef).PrimaryScope(); got != sdk.ScopeRuntime {
 		t.Fatalf(":lib reference scope in app graph = %q, want runtime", got)
 	}
-	if got := libOwnRoot.PrimaryScope(); got != sdk.ScopeUnknown {
+	if got := mustDep(t, libOwnRoot).PrimaryScope(); got != sdk.ScopeUnknown {
 		t.Fatalf("lib's own root scope = %q, want unknown (no app-side leak)", got)
 	}
 
@@ -229,7 +230,18 @@ func requireGradleScope(t *testing.T, g *sdk.Graph, id string, scope sdk.Scope) 
 	if !ok {
 		t.Fatalf("missing node %s", id)
 	}
-	if got := n.PrimaryScope(); got != scope {
+	if got := mustDep(t, n).PrimaryScope(); got != scope {
 		t.Errorf("%s scope = %q, want %q", id, got, scope)
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

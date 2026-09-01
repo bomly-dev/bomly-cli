@@ -81,8 +81,8 @@ func TestMavenTGFInterModuleAndSharedScopes(t *testing.T) {
 	if !ok {
 		t.Fatalf("missing shared node")
 	}
-	if !shared.HasScope(sdk.ScopeRuntime) || !shared.HasScope(sdk.ScopeDevelopment) {
-		t.Errorf("commons-lang3 scopes = %v, want both runtime and development", shared.Scopes)
+	if !mustDep(t, shared).HasScope(sdk.ScopeRuntime) || !mustDep(t, shared).HasScope(sdk.ScopeDevelopment) {
+		t.Errorf("commons-lang3 scopes = %v, want both runtime and development", mustDep(t, shared).Scopes)
 	}
 }
 
@@ -161,7 +161,7 @@ func requireMavenScope(t *testing.T, g *sdk.Graph, id string, scope sdk.Scope) {
 	if !ok {
 		t.Fatalf("missing node %s", id)
 	}
-	if got := n.PrimaryScope(); got != scope {
+	if got := mustDep(t, n).PrimaryScope(); got != scope {
 		t.Errorf("%s scope = %q, want %q", id, got, scope)
 	}
 }

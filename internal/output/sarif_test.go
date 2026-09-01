@@ -3,6 +3,7 @@ package output
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"strings"
 	"testing"
 
@@ -14,7 +15,6 @@ const sarifTestPURL = "pkg:npm/lodash@4.17.15"
 func TestWriteSARIF_ValidDocument(t *testing.T) {
 	findings := []sdk.Finding{
 		{
-			ID:         "CVE-2021-23337",
 			Kind:       sdk.FindingKindVulnerability,
 			PackageRef: sarifTestPURL,
 			Title:      "Prototype pollution in lodash",
@@ -23,7 +23,6 @@ func TestWriteSARIF_ValidDocument(t *testing.T) {
 			Source:     "osv",
 		},
 		{
-			ID:         "CVE-2020-8203",
 			Kind:       sdk.FindingKindVulnerability,
 			PackageRef: sarifTestPURL,
 			Title:      "Prototype pollution",
@@ -78,14 +77,12 @@ func TestWriteSARIFIgnoresPackageRemediationSummary(t *testing.T) {
 	pkg := registry.Add(&sdk.Package{
 		Coordinates: sdk.Coordinates{PURL: sarifTestPURL, Name: "lodash", Version: "4.17.15"},
 		Vulnerabilities: []sdk.Vulnerability{{
-			ID:            "CVE-2021-23337",
 			FixedIn:       "4.17.21",
 			FixedVersions: []string{"4.17.21"},
 			FixState:      sdk.FixStateFixed,
 		}},
 	})
 	findings := []sdk.Finding{{
-		ID:              "CVE-2021-23337",
 		Kind:            sdk.FindingKindVulnerability,
 		PackageRef:      sarifTestPURL,
 		VulnerabilityID: "CVE-2021-23337",
@@ -232,7 +229,7 @@ func TestSARIFLevelIgnoresSeverity(t *testing.T) {
 	}
 	byID := map[string]sarifRule{}
 	for _, r := range doc.Runs[0].Tool.Driver.Rules {
-		byID[r.NodeID()] = r
+		byID[r.ID] = r
 	}
 	if got := byID["fail-low"].DefaultConfig.Level; got != "error" {
 		t.Errorf("low-severity failing finding level = %q, want error", got)
@@ -245,7 +242,6 @@ func TestSARIFLevelIgnoresSeverity(t *testing.T) {
 func TestWriteSARIF_SecuritySeverityAndFormattedHelp(t *testing.T) {
 	findings := []sdk.Finding{
 		{
-			ID:         "CVE-2025-48924",
 			Kind:       sdk.FindingKindVulnerability,
 			PackageRef: sarifTestPURL,
 			Title:      "Uncontrolled recursion in commons-lang",
@@ -258,7 +254,6 @@ func TestWriteSARIF_SecuritySeverityAndFormattedHelp(t *testing.T) {
 			},
 		},
 		{
-			ID:           "INVALID-abcd-efgh-ijkl",
 			Kind:         sdk.FindingKindLicense,
 			PackageRef:   sarifTestPURL,
 			Title:        "Package has invalid SPDX license: non-standard",
@@ -280,7 +275,7 @@ func TestWriteSARIF_SecuritySeverityAndFormattedHelp(t *testing.T) {
 	rules := doc.Runs[0].Tool.Driver.Rules
 	byID := map[string]sarifRule{}
 	for _, r := range rules {
-		byID[r.NodeID()] = r
+		byID[r.ID] = r
 	}
 
 	vuln, ok := byID["CVE-2025-48924"]
@@ -380,7 +375,7 @@ func TestWriteSARIF_LocationsFallBackToRepoFile(t *testing.T) {
 
 func TestWriteSARIF_UsesDependencyLocationsFromGraph(t *testing.T) {
 	graph := sdk.New()
-	dep := sdk.NewDependencyNode("lodash@4.17.15", sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lodash"}, PackageRef: sarifTestPURL,
+	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lodash"}, PackageRef: sarifTestPURL,
 		Locations: []sdk.PackageLocation{
 			{
 				RealPath: "package-lock.json",
@@ -398,7 +393,6 @@ func TestWriteSARIF_UsesDependencyLocationsFromGraph(t *testing.T) {
 	}
 	findings := []sdk.Finding{
 		{
-			ID:             "CVE-2021-23337",
 			Kind:           sdk.FindingKindVulnerability,
 			PackageRef:     sarifTestPURL,
 			DependencyRefs: []string{dep.NodeID()},
@@ -436,7 +430,7 @@ func TestWriteSARIF_UsesDependencyLocationsFromGraph(t *testing.T) {
 // of the location-less first match falling back to the repository file.
 func TestWriteSARIF_UnionsLocationsAcrossGraphs(t *testing.T) {
 	consumer := sdk.New()
-	bare := sdk.NewDependencyNode("org.apache.commons:commons-text@1.9", sdk.DependencyNode{
+	bare := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{Name: "commons-text"},
 		PackageRef:  sarifTestPURL,
 	})
@@ -444,7 +438,7 @@ func TestWriteSARIF_UnionsLocationsAcrossGraphs(t *testing.T) {
 		t.Fatalf("AddNode: %v", err)
 	}
 	declaring := sdk.New()
-	located := sdk.NewDependencyNode("org.apache.commons:commons-text@1.9", sdk.DependencyNode{
+	located := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{Name: "commons-text"},
 		PackageRef:  sarifTestPURL,
 		Locations: []sdk.PackageLocation{
@@ -459,10 +453,9 @@ func TestWriteSARIF_UnionsLocationsAcrossGraphs(t *testing.T) {
 	}
 	findings := []sdk.Finding{
 		{
-			ID:             "CVE-2022-42889",
 			Kind:           sdk.FindingKindVulnerability,
 			PackageRef:     sarifTestPURL,
-			DependencyRefs: []string{bare.ID},
+			DependencyRefs: []string{bare.NodeID()},
 			Title:          "Vuln",
 			Severity:       sdk.SeverityCritical,
 		},
@@ -490,7 +483,7 @@ func TestWriteSARIF_UnionsLocationsAcrossGraphs(t *testing.T) {
 
 func TestWriteSARIF_PrefersLocationIntersectingChangedLines(t *testing.T) {
 	graph := sdk.New()
-	dep := sdk.NewDependencyNode("actions:checkout@v5", sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "actions/checkout"}, PackageRef: "actions:checkout@v5",
+	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "actions/checkout"}, PackageRef: "actions:checkout@v5",
 		Locations: []sdk.PackageLocation{
 			{RealPath: ".github/workflows/old.yml", Position: &sdk.SourcePosition{File: ".github/workflows/old.yml", Line: 4}},
 			{RealPath: ".github/workflows/guard.yml", Position: &sdk.SourcePosition{File: ".github/workflows/guard.yml", Line: 12}},
@@ -526,7 +519,7 @@ func TestWriteSARIF_PrefersLocationIntersectingChangedLines(t *testing.T) {
 
 func TestWriteSARIF_PrefersChangedFileWhenLineDoesNotIntersect(t *testing.T) {
 	graph := sdk.New()
-	dep := sdk.NewDependencyNode("lodash@4.17.21", sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lodash"}, PackageRef: sarifTestPURL,
+	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lodash"}, PackageRef: sarifTestPURL,
 		Locations: []sdk.PackageLocation{
 			{RealPath: "package-lock.json", Position: &sdk.SourcePosition{File: "package-lock.json", Line: 8}},
 			{RealPath: "package.json", Position: &sdk.SourcePosition{File: "package.json", Line: 22}},
@@ -562,13 +555,13 @@ func TestWriteSARIF_PrefersChangedFileWhenLineDoesNotIntersect(t *testing.T) {
 
 func TestWriteSARIF_SelectsChangedLocationsPerDependency(t *testing.T) {
 	graph := sdk.New()
-	touched := sdk.NewDependencyNode("lodash@4.17.21", sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lodash"}, PackageRef: "pkg:npm/lodash@4.17.21",
+	touched := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lodash"}, PackageRef: "pkg:npm/lodash@4.17.21",
 		Locations: []sdk.PackageLocation{
 			{RealPath: "package-lock.json", Position: &sdk.SourcePosition{File: "package-lock.json", Line: 9}},
 			{RealPath: "package.json", Position: &sdk.SourcePosition{File: "package.json", Line: 22}},
 		},
 	})
-	unchanged := sdk.NewDependencyNode("minimist@1.2.8", sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "minimist"}, PackageRef: "pkg:npm/minimist@1.2.8",
+	unchanged := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "minimist"}, PackageRef: "pkg:npm/minimist@1.2.8",
 		Locations: []sdk.PackageLocation{
 			{RealPath: "yarn.lock", Position: &sdk.SourcePosition{File: "yarn.lock", Line: 33}},
 		},
@@ -580,9 +573,8 @@ func TestWriteSARIF_SelectsChangedLocationsPerDependency(t *testing.T) {
 		t.Fatalf("AddNode unchanged: %v", err)
 	}
 	finding := sdk.Finding{
-		ID:             "policy:multi",
 		PackageRef:     touched.PackageRef,
-		DependencyRefs: []string{touched.ID, unchanged.ID},
+		DependencyRefs: []string{touched.NodeID(), unchanged.NodeID()},
 		Title:          "Denied package set",
 	}
 
@@ -621,7 +613,7 @@ func TestWriteSARIF_SelectsChangedLocationsPerDependency(t *testing.T) {
 
 func TestWriteSARIF_RewritesNonFileLocationSchemes(t *testing.T) {
 	graph := sdk.New()
-	dep := sdk.NewDependencyNode("actions:checkout@v5", sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "actions/checkout"}, PackageRef: "actions:checkout@v5",
+	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "actions/checkout"}, PackageRef: "actions:checkout@v5",
 		Locations: []sdk.PackageLocation{{RealPath: "actions:checkout@v5"}},
 	})
 	if err := graph.AddNode(dep); err != nil {
@@ -629,7 +621,6 @@ func TestWriteSARIF_RewritesNonFileLocationSchemes(t *testing.T) {
 	}
 	findings := []sdk.Finding{
 		{
-			ID:             "policy:actions",
 			Kind:           sdk.FindingKindPackage,
 			PackageRef:     "actions:checkout@v5",
 			DependencyRefs: []string{dep.NodeID()},

@@ -2,6 +2,7 @@ package license
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"strings"
 	"testing"
 
@@ -16,9 +17,9 @@ func TestLicenseAuditorAllowDeny(t *testing.T) {
 	// (keyed by its PURL) carries the given license.
 	mkScenario := func(license string) (*sdk.Graph, *sdk.PackageRegistry) {
 		g := sdk.New()
-		root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
+		root := testnodes.Ref("app", "1.0.0")
 		_ = g.AddNode(root)
-		dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
+		dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
 		purl := dep.NodeID()
 		dep.PackageRef = purl
 		_ = g.AddNode(dep)
@@ -63,9 +64,9 @@ func TestLicenseAuditorAllowDeny(t *testing.T) {
 
 func TestLicenseAuditorUnknownLicenseUsesCompactFindingID(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
+	root := testnodes.Ref("app", "1.0.0")
 	_ = g.AddNode(root)
-	dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "very-long-package-name-with-output-hostile-length",
+	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "very-long-package-name-with-output-hostile-length",
 		Version:        "1.2.3",
 		Ecosystem:      sdk.EcosystemNPM,
 		PackageManager: sdk.PackageManagerNPM},
@@ -105,9 +106,9 @@ func TestLicenseAuditorUnknownLicenseUsesCompactFindingID(t *testing.T) {
 
 func TestLicenseAuditorDeniedLicensesUseErrorSeverity(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
+	root := testnodes.Ref("app", "1.0.0")
 	_ = g.AddNode(root)
-	dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
+	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
 	purl := dep.NodeID()
 	dep.PackageRef = purl
 	_ = g.AddNode(dep)
@@ -136,10 +137,10 @@ func TestLicenseAuditorDeniedLicensesUseErrorSeverity(t *testing.T) {
 
 func TestLicenseAuditorUnknownLicenseIDsDifferByPackage(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
+	root := testnodes.Ref("app", "1.0.0")
 	_ = g.AddNode(root)
 	for _, name := range []string{"left-pad", "is-odd"} {
-		dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: name, Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
+		dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: name, Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
 		dep.PackageRef = dep.NodeID()
 		_ = g.AddNode(dep)
 		_ = g.AddEdge(root.NodeID(), dep.NodeID())

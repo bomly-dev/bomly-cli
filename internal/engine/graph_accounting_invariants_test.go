@@ -1,6 +1,7 @@
 package engine_test
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 	"time"
 
@@ -41,8 +42,13 @@ func TestCanonicalGraphFixturePreservesOccurrenceAndPackageAccounting(t *testing
 	}
 
 	var direct, transitive, unknown, structural, eligible int
+	// Structural nodes -- the project's own modules and its manifests -- are
+	// no longer dependency nodes at all under the typed union, so they never
+	// reach this loop; the manifest-typed dependency clause is what is left
+	// of the old flag-based test.
+	structural += len(merged.ModuleNodes()) + len(merged.ManifestNodes())
 	for _, dependency := range merged.DependencyNodes() {
-		if dependency.FirstParty || dependency.Type == sdk.PackageTypeManifest {
+		if dependency.Type == sdk.PackageTypeManifest {
 			structural++
 		} else {
 			switch dependency.Relationship {
@@ -86,8 +92,7 @@ func TestCanonicalGraphFixturePreservesOccurrenceAndPackageAccounting(t *testing
 func canonicalAccountingFixture(t *testing.T) sdk.ConsolidatedGraph {
 	t.Helper()
 	first := sdk.New()
-	app := accountingDependency("app", "1.0.0", sdk.PackageTypeApplication, sdk.DependencySourceProject, "")
-	app.FirstParty = true
+	app := accountingModule("package.json", "app", "1.0.0")
 	actual := accountingDependency("actual", "1.0.0", "", sdk.DependencySourceRegistry, sdk.DependencyRelationshipDirect)
 	actual.Scopes = sdk.ScopesOf(sdk.ScopeRuntime)
 	actual.Metadata = map[string]any{sdk.MetadataKeyNPM: &sdk.NPMPackageMetadata{
@@ -101,18 +106,18 @@ func canonicalAccountingFixture(t *testing.T) sdk.ConsolidatedGraph {
 	gitDependency := accountingDependency("git-lib", "4.0.0", "", sdk.DependencySourceGit, sdk.DependencyRelationshipDirect)
 	workspace := accountingDependency("workspace-lib", "1.0.0", sdk.PackageTypeApplication, sdk.DependencySourceWorkspace, sdk.DependencyRelationshipDirect)
 	duplicateV2 := accountingDependency("duplicate", "2.0.0", "", sdk.DependencySourceRegistry, sdk.DependencyRelationshipDirect)
-	for _, dependency := range []*sdk.DependencyNode{app, actual, parent, duplicateV1, orphan, gitDependency, workspace, duplicateV2} {
+	for _, dependency := range []sdk.GraphNode{app, actual, parent, duplicateV1, orphan, gitDependency, workspace, duplicateV2} {
 		if err := first.AddNode(dependency); err != nil {
 			t.Fatalf("add first graph node: %v", err)
 		}
 	}
 	for _, edge := range [][2]string{
-		{app.ID, actual.ID},
-		{app.ID, parent.NodeID()},
-		{parent.NodeID(), duplicateV1.ID},
-		{app.ID, gitDependency.ID},
-		{app.ID, workspace.ID},
-		{app.ID, duplicateV2.ID},
+		{app.NodeID(), actual.NodeID()},
+		{app.NodeID(), parent.NodeID()},
+		{parent.NodeID(), duplicateV1.NodeID()},
+		{app.NodeID(), gitDependency.NodeID()},
+		{app.NodeID(), workspace.NodeID()},
+		{app.NodeID(), duplicateV2.NodeID()},
 	} {
 		if err := first.AddEdge(edge[0], edge[1]); err != nil {
 			t.Fatalf("add first graph edge: %v", err)
@@ -120,18 +125,17 @@ func canonicalAccountingFixture(t *testing.T) sdk.ConsolidatedGraph {
 	}
 
 	second := sdk.New()
-	tool := accountingDependency("tool", "1.0.0", sdk.PackageTypeApplication, sdk.DependencySourceProject, "")
-	tool.FirstParty = true
+	tool := accountingModule("tool/package.json", "tool", "1.0.0")
 	actualAgain := accountingDependency("actual", "1.0.0", "", sdk.DependencySourceRegistry, sdk.DependencyRelationshipDirect)
 	fileDependency := accountingDependency("file-lib", "1.0.0", "", sdk.DependencySourceFile, sdk.DependencyRelationshipDirect)
 	urlDependency := accountingDependency("url-lib", "1.0.0", "", sdk.DependencySourceURL, sdk.DependencyRelationshipDirect)
-	for _, dependency := range []*sdk.DependencyNode{tool, actualAgain, fileDependency, urlDependency} {
+	for _, dependency := range []sdk.GraphNode{tool, actualAgain, fileDependency, urlDependency} {
 		if err := second.AddNode(dependency); err != nil {
 			t.Fatalf("add second graph node: %v", err)
 		}
 	}
 	for _, dependency := range []*sdk.DependencyNode{actualAgain, fileDependency, urlDependency} {
-		if err := second.AddEdge(tool.ID, dependency.NodeID()); err != nil {
+		if err := second.AddEdge(tool.NodeID(), dependency.NodeID()); err != nil {
 			t.Fatalf("add second graph edge: %v", err)
 		}
 	}
@@ -157,8 +161,20 @@ func canonicalAccountingFixture(t *testing.T) sdk.ConsolidatedGraph {
 	return result
 }
 
+// accountingModule builds the scanned project's own node: a module, because
+// ownership is the node kind now (ADR-0041).
+func accountingModule(manifestPath, name, version string) *sdk.ModuleNode {
+	return testnodes.ModuleFrom(manifestPath, sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemNPM,
+		PackageManager: sdk.PackageManagerNPM,
+		Name:           name,
+		Version:        version,
+		Type:           sdk.PackageTypeApplication,
+	})
+}
+
 func accountingDependency(name, version string, packageType sdk.PackageType, source sdk.DependencySource, relationship sdk.DependencyRelationship) *sdk.DependencyNode {
-	return sdk.NewDependency(sdk.DependencyNode{
+	return testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			Ecosystem:      sdk.EcosystemNPM,
 			PackageManager: sdk.PackageManagerNPM,
@@ -184,7 +200,7 @@ func assertOccurrenceSpecificFacts(
 	unknownScopeOccurrences := 0
 	peerMetadataOccurrences := 0
 	for _, entry := range consolidated.Graphs.Entries {
-		dependency, ok := entry.Graph.Node(sharedPURL)
+		dependency, ok := entry.Graph.DependencyNode(sharedPURL)
 		if !ok {
 			continue
 		}
@@ -229,13 +245,13 @@ func assertOccurrenceSpecificFacts(
 	}
 	for id, want := range wantSources {
 		dependency, ok := graph.Node(id)
-		if !ok || dependency.Source != want {
-			t.Errorf("dependency %q source = %q, found=%t, want %q", id, dependencySource(dependency), ok, want)
+		if !ok || mustDep(t, dependency).Source != want {
+			t.Errorf("dependency %q source = %q, found=%t, want %q", id, dependencySource(mustDep(t, dependency)), ok, want)
 		}
 	}
 	development, ok := graph.Node("pkg:npm/duplicate@1.0.0")
-	if !ok || development.PrimaryScope() != sdk.ScopeDevelopment {
-		t.Fatalf("development occurrence missing or scope = %q", developmentScope(development))
+	if !ok || mustDep(t, development).PrimaryScope() != sdk.ScopeDevelopment {
+		t.Fatalf("development occurrence missing or scope = %q", developmentScope(mustDep(t, development)))
 	}
 }
 
@@ -405,4 +421,15 @@ func assertExplainAndDiffAccounting(
 		compactDiff.Summary.PackagesRemoved != 0 {
 		t.Fatalf("compact identical diff summary = %#v", compactDiff.Summary)
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

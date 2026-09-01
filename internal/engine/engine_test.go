@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"errors"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 
 	"github.com/bomly-dev/bomly-sdk"
@@ -160,8 +161,8 @@ func TestEngineAudit_ReturnsPartialResultsWhenAnAuditorFails(t *testing.T) {
 }
 
 func TestEngineAudit_ClonesDependencyDetailChangesPerAuditor(t *testing.T) {
-	before := sdk.NewDependencyNode("before", sdk.DependencyNode{Source: sdk.DependencySourceRegistry})
-	after := sdk.NewDependencyNode("after", sdk.DependencyNode{Source: sdk.DependencySourceGit})
+	before := testnodes.DepFrom(sdk.DependencyNode{Source: sdk.DependencySourceRegistry})
+	after := testnodes.DepFrom(sdk.DependencyNode{Source: sdk.DependencySourceGit})
 	request := AuditRequest{
 		Ecosystem:      EcosystemNPM,
 		PackageManager: PackageManagerNPM,

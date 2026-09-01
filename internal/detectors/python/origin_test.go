@@ -1,6 +1,7 @@
 package python
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -44,11 +45,11 @@ func TestPipInspectDuplicateRecordsAreDeterministic(t *testing.T) {
 
 			var checked int
 			graph.WalkNodes(func(dep sdk.GraphNode) bool {
-				if dep.Name != "helper" {
+				if mustDep(t, dep).Name != "helper" {
 					return true
 				}
 				checked++
-				if got := originOf(dep); got != tc.want {
+				if got := originOf(mustDep(t, dep)); got != tc.want {
 					t.Fatalf("origin = %+v, want %+v", got, tc.want)
 				}
 				return true
@@ -112,11 +113,11 @@ url = "` + tc.second + `"
 
 			var checked int
 			graph.WalkNodes(func(dep sdk.GraphNode) bool {
-				if dep.Name != "helper" {
+				if mustDep(t, dep).Name != "helper" {
 					return true
 				}
 				checked++
-				if got := originOf(dep); got != tc.want {
+				if got := originOf(mustDep(t, dep)); got != tc.want {
 					t.Fatalf("origin = %+v, want %+v", got, tc.want)
 				}
 				return true
@@ -180,7 +181,7 @@ source = { url = "` + tc.second + `" }
 			}
 
 			var checked int
-			graph.WalkNodes(func(dep sdk.GraphNode) bool {
+			graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
 				if dep.Name != "helper" {
 					return true
 				}
@@ -238,7 +239,7 @@ func TestPipenvGroupsAreDeterministic(t *testing.T) {
 			}
 
 			var checked int
-			graph.WalkNodes(func(dep sdk.GraphNode) bool {
+			graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
 				if dep.Name != "helper" {
 					return true
 				}
@@ -257,14 +258,17 @@ func TestPipenvGroupsAreDeterministic(t *testing.T) {
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.DependencyNode) sdk.DependencyOrigin {
-	if dep == nil {
+func originOf(node sdk.GraphNode) sdk.DependencyOrigin {
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok || dep == nil {
 		return sdk.DependencyOrigin{}
 	}
-	if origin := dep.Origin.Normalized(); origin != nil {
-		return *origin
+	// Origins are gated on the way in, so the first entry is already
+	// publishable; these cases assert on a single asserted origin.
+	if len(dep.Origins) == 0 {
+		return sdk.DependencyOrigin{}
 	}
-	return sdk.DependencyOrigin{}
+	return dep.Origins[0]
 }
 
 // requireOrigin asserts the exact origin a named package asserts.
@@ -462,7 +466,7 @@ func TestPipInspectOriginByDirectURLShape(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			node := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "pkg", Version: "1.0.0"}})
+			node := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "pkg", Version: "1.0.0"}})
 			setPipInspectOrigin(node, tc.directURL)
 			if got := originOf(node); got != tc.want {
 				t.Fatalf("origin = %+v, want %+v", got, tc.want)

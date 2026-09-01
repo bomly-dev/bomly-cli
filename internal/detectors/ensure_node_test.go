@@ -2,6 +2,7 @@ package detectors_test
 
 import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"os"
 	"path/filepath"
@@ -91,13 +92,13 @@ func TestExportNeverReadsResolvedURL(t *testing.T) {
 
 func TestEnsureNode(t *testing.T) {
 	g := sdk.New()
-	first := sdk.NewDependencyRef("lodash", "4.17.21")
+	first := testnodes.Ref("lodash", "4.17.21")
 	surviving, err := detectors.EnsureNode(g, first)
 	if err != nil || surviving != first {
 		t.Fatalf("EnsureNode(new) = %v, %v; want the inserted node", surviving, err)
 	}
 
-	duplicate := sdk.NewDependencyRef("lodash", "4.17.21")
+	duplicate := testnodes.Ref("lodash", "4.17.21")
 	surviving, err = detectors.EnsureNode(g, duplicate)
 	if err != nil || surviving != first {
 		t.Fatalf("EnsureNode(duplicate) = %v, %v; want the existing node", surviving, err)
@@ -106,13 +107,13 @@ func TestEnsureNode(t *testing.T) {
 	if surviving, err := detectors.EnsureNode(nil, first); surviving != nil || err != nil {
 		t.Fatalf("EnsureNode(nil graph) = %v, %v; want a no-op", surviving, err)
 	}
-	if surviving, err := detectors.EnsureNode(g, nil); surviving != nil || err != nil {
+	if surviving, err := detectors.EnsureNode(g, (*sdk.DependencyNode)(nil)); surviving != nil || err != nil {
 		t.Fatalf("EnsureNode(nil node) = %v, %v; want a no-op", surviving, err)
 	}
 }
 
 func scopedDependency(scope sdk.Scope, resolvedURL string) *sdk.DependencyNode {
-	return sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+	return testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
 		Name:    "requests",
 		Version: "2.31.0"}, ResolvedURL: resolvedURL, Scopes: sdk.ScopesOf(scope),
 	})
@@ -137,32 +138,41 @@ func TestEnsureNodeUnionsScopesOnFold(t *testing.T) {
 	}
 }
 
-// A record that stays a distinct occurrence merges nothing: its scope belongs
-// to its own node, not to the node it collided with.
-func TestEnsureOccurrenceScopes(t *testing.T) {
+// Two records that resolved one identity from different places fold into one
+// node. The occurrence machinery used to keep them apart; ADR-0041 keeps the
+// disagreement on a single identity instead, as two origins, which is the
+// dependency-confusion signal the split nodes were standing in for.
+func TestEnsureNodeFoldsRecordsThatResolvedFromDifferentPlaces(t *testing.T) {
 	g := sdk.New()
 	first := scopedDependency(sdk.ScopeRuntime, "https://a.example/requests-2.31.0.tar.gz")
-	if _, err := detectors.EnsureOccurrence(g, first, "a"); err != nil {
-		t.Fatalf("EnsureOccurrence(first) error = %v", err)
+	first.Origins = sdk.MergeOrigins(nil, originsFor("https://a.example/requests-2.31.0.tar.gz"))
+	if _, err := detectors.EnsureNode(g, first); err != nil {
+		t.Fatalf("EnsureNode(first) error = %v", err)
 	}
 
 	other := scopedDependency(sdk.ScopeDevelopment, "https://b.example/requests-2.31.0.tar.gz")
-	occurrence, err := detectors.EnsureOccurrence(g, other, "b")
-	if err != nil || occurrence == first {
-		t.Fatalf("EnsureOccurrence(conflicting resolution) = %v, %v; want a distinct occurrence", occurrence, err)
+	other.Origins = sdk.MergeOrigins(nil, originsFor("https://b.example/requests-2.31.0.tar.gz"))
+	surviving, err := detectors.EnsureNode(g, other)
+	if err != nil || surviving != first {
+		t.Fatalf("EnsureNode(other resolution) = %v, %v; want a fold into the one identity", surviving, err)
 	}
-	if first.HasScope(sdk.ScopeDevelopment) {
-		t.Fatalf("first occurrence scopes = %v; a distinct occurrence must not leak its scope", first.Scopes)
+	if g.Size() != 1 {
+		t.Fatalf("graph size = %d; want one node per identity", g.Size())
 	}
-	if !occurrence.HasScope(sdk.ScopeDevelopment) {
-		t.Fatalf("new occurrence scopes = %v; want its own scope kept", occurrence.Scopes)
+	if !surviving.HasScope(sdk.ScopeRuntime) || !surviving.HasScope(sdk.ScopeDevelopment) {
+		t.Fatalf("surviving scopes = %v; want the union of both records", surviving.Scopes)
 	}
+	if len(surviving.Origins) != 2 {
+		t.Fatalf("surviving origins = %v; want both resolutions kept on the folded node", surviving.Origins)
+	}
+}
 
-	folded, err := detectors.EnsureOccurrence(g, scopedDependency(sdk.ScopeDevelopment, "https://a.example/requests-2.31.0.tar.gz"), "a")
-	if err != nil || folded != first {
-		t.Fatalf("EnsureOccurrence(same resolution) = %v, %v; want a fold into the first occurrence", folded, err)
+// originsFor builds the origin list an artifact URL asserts, or nothing when
+// the URL is not one the publication gates accept.
+func originsFor(artifactURL string) []sdk.DependencyOrigin {
+	origin := sdk.ArtifactOrigin(artifactURL)
+	if origin == nil {
+		return nil
 	}
-	if !first.HasScope(sdk.ScopeRuntime) || !first.HasScope(sdk.ScopeDevelopment) {
-		t.Fatalf("first occurrence scopes = %v; want the union after folding", first.Scopes)
-	}
+	return []sdk.DependencyOrigin{*origin}
 }

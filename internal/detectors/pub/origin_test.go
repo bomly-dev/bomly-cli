@@ -11,14 +11,17 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.DependencyNode) sdk.DependencyOrigin {
-	if dep == nil {
+func originOf(node sdk.GraphNode) sdk.DependencyOrigin {
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok || dep == nil {
 		return sdk.DependencyOrigin{}
 	}
-	if origin := dep.Origin.Normalized(); origin != nil {
-		return *origin
+	// Origins are gated on the way in, so the first entry is already
+	// publishable; these cases assert on a single asserted origin.
+	if len(dep.Origins) == 0 {
+		return sdk.DependencyOrigin{}
 	}
-	return sdk.DependencyOrigin{}
+	return dep.Origins[0]
 }
 
 // A pubspec.lock hosted package's description URL is the pub server, shared by
@@ -155,7 +158,7 @@ func TestPubNativeOriginIsReadFromPubspecLock(t *testing.T) {
 	var checked int
 	g.WalkNodes(func(dep sdk.GraphNode) bool {
 		origin := originOf(dep)
-		switch dep.Name {
+		switch mustDep(t, dep).Name {
 		case "helper":
 			checked++
 			if origin != want {
@@ -164,7 +167,7 @@ func TestPubNativeOriginIsReadFromPubspecLock(t *testing.T) {
 		case "collection", "local_tools":
 			checked++
 			if !origin.Empty() {
-				t.Errorf("%s asserted an origin: %+v", dep.Name, origin)
+				t.Errorf("%s asserted an origin: %+v", mustDep(t, dep).Name, origin)
 			}
 		}
 		return true
@@ -208,7 +211,7 @@ func TestPubOverriddenPackageIsNotCreditedToTheLockedRepository(t *testing.T) {
 
 	var checked int
 	g.WalkNodes(func(dep sdk.GraphNode) bool {
-		if dep.Name != "helper" {
+		if mustDep(t, dep).Name != "helper" {
 			return true
 		}
 		checked++
@@ -238,7 +241,7 @@ func TestPubNativeOriginSurvivesMissingLock(t *testing.T) {
 	}
 
 	var checked int
-	g.WalkNodes(func(dep sdk.GraphNode) bool {
+	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
 		if dep.Name == "helper" {
 			checked++
 		}

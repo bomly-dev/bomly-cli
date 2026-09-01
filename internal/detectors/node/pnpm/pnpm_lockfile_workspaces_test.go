@@ -70,8 +70,8 @@ func TestPNPMLockfileWorkspaceLinkDependenciesResolveToMembers(t *testing.T) {
 	for _, dep := range deps {
 		if dep.NodeID() == "lib@1.0.0" {
 			found = true
-			if dep.Type != sdk.PackageTypeApplication {
-				t.Fatalf("expected member target to be an application, got %q", dep.Type)
+			if mustDep(t, dep).Type != sdk.PackageTypeApplication {
+				t.Fatalf("expected member target to be an application, got %q", mustDep(t, dep).Type)
 			}
 		}
 	}

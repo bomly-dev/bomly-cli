@@ -222,7 +222,6 @@ func TestColorPluginType_HighlightsExternal(t *testing.T) {
 func TestRenderPluginInfoShowsDetectorRemediationCapabilities(t *testing.T) {
 	info := managedplugin.Info{
 		Manifest: managedplugin.Manifest{
-			ID:      "example-detector",
 			Name:    "example-detector",
 			Kind:    plugschema.PluginKindDetector,
 			Version: "1.0.0",
@@ -253,7 +252,6 @@ func TestSortPluginInfos_EnabledEcosystemThenID(t *testing.T) {
 		{Manifest: managedplugin.Manifest{ID: "z-disabled", Kind: plugschema.PluginKindDetector}},
 		{
 			Manifest: managedplugin.Manifest{
-				ID:   "z-enabled-npm",
 				Kind: plugschema.PluginKindDetector,
 			},
 			DetectorDescriptor: &plugschema.DetectorDescriptor{
@@ -263,7 +261,6 @@ func TestSortPluginInfos_EnabledEcosystemThenID(t *testing.T) {
 		{Manifest: managedplugin.Manifest{ID: "b-enabled-matcher", Kind: plugschema.PluginKindMatcher}},
 		{
 			Manifest: managedplugin.Manifest{
-				ID:   "b-enabled-go",
 				Kind: plugschema.PluginKindDetector,
 			},
 			DetectorDescriptor: &plugschema.DetectorDescriptor{

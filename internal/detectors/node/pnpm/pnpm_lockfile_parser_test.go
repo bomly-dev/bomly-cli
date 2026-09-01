@@ -2,6 +2,7 @@ package pnpm
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -87,7 +88,8 @@ packages:
 	if !ok {
 		t.Fatal("root missing")
 	}
-	dependencies, err := graphs.graph.DirectDependencies(root.NodeID())
+	dependenciesNodes, err := graphs.graph.DirectDependencies(root.NodeID())
+	dependencies := nodes.DependenciesOf(dependenciesNodes)
 	if err != nil || len(dependencies) != 1 || dependencies[0].Name != "real-package" {
 		t.Fatalf("dependencies = %#v, err=%v", dependencies, err)
 	}
@@ -143,7 +145,18 @@ snapshots:
 		t.Fatal(err)
 	}
 	dependency, ok := graphs.graph.Node("@example/local@packages/local")
-	if !ok || dependency.Source != sdk.DependencySourceWorkspace {
+	if !ok || mustDep(t, dependency).Source != sdk.DependencySourceWorkspace {
 		t.Fatalf("dependency = %#v", dependency)
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

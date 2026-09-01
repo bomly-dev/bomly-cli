@@ -112,7 +112,6 @@ func (a *analyzer) Analyze(ctx context.Context, req *schemav1.AnalyzeRequest) (*
 	update := &schemav1.Package{
 		Coordinates: schemav1.Coordinates{PURL: "pkg:golang/example.com/demo@v1.0.0"},
 		Vulnerabilities: []schemav1.Vulnerability{{
-			ID: "GO-2026-0001",
 			Reachability: &schemav1.Reachability{
 				Status: schemav1.ReachabilityReachable,
 				Tier:   schemav1.TierSymbol,

@@ -2,6 +2,7 @@ package npm
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -80,7 +81,7 @@ func TestNPMLockfileWorkspaceLinkEntriesDoNotDuplicateNodes(t *testing.T) {
 	if _, ok := graphs.graph.Node("lib"); ok {
 		t.Fatal("unexpected versionless link ghost node for lib")
 	}
-	member, ok := graphs.graph.Node("lib@1.0.0")
+	member, ok := graphs.graph.DependencyNode("lib@1.0.0")
 	if !ok {
 		t.Fatal("expected lib member node")
 	}
@@ -99,7 +100,7 @@ func TestNPMLockfileWorkspaceLinkEntriesDoNotDuplicateNodes(t *testing.T) {
 		}
 	}
 	if !found {
-		t.Fatalf("expected web -> lib@1.0.0 edge, got %v", depIDs(deps))
+		t.Fatalf("expected web -> lib@1.0.0 edge, got %v", depIDs(nodes.DependenciesOf(deps)))
 	}
 }
 
@@ -108,7 +109,7 @@ func TestNPMLockfileWorkspaceMemberDevDependenciesScoped(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromNPMLockfile() error = %v", err)
 	}
-	devDep, ok := graphs.graph.Node("member-dev-tool@3.1.0")
+	devDep, ok := graphs.graph.DependencyNode("member-dev-tool@3.1.0")
 	if !ok {
 		t.Fatal("expected member devDependency in graph")
 	}

@@ -2,6 +2,7 @@ package render
 
 import (
 	"bytes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"strings"
 	"testing"
 
@@ -18,7 +19,6 @@ func TestExplainTextAndMarkdownShowRemediationAfterVulnerabilities(t *testing.T)
 				Purl:     "pkg:npm/example@1.0.0",
 				Licenses: []output.LicenseRef{},
 				Vulnerabilities: []output.VulnerabilityRef{{
-					ID:       "GHSA-example",
 					Severity: sdk.SeverityHigh,
 				}},
 			},
@@ -89,11 +89,10 @@ func TestScanTextSummaryFollowsEnrichmentAndMarkdownShowsDetails(t *testing.T) {
 	registry := sdk.NewPackageRegistry()
 	registry.Add(remediationTestPackage(purl))
 	graph := sdk.New()
-	if err := graph.AddNode(sdk.NewDependencyRefWithID("project", "project", "")); err != nil {
+	if err := graph.AddNode(testnodes.Ref("project", "")); err != nil {
 		t.Fatalf("AddNode(project) error = %v", err)
 	}
-	dependency := sdk.NewDependency(sdk.DependencyNode{
-		ID:           "example@1.0.0",
+	dependency := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates:  sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
 		Relationship: sdk.DependencyRelationshipDirect,
 	})
@@ -319,7 +318,6 @@ func remediationTestPackage(purl string) *sdk.Package {
 			Version: "1.0.0",
 		},
 		Vulnerabilities: []sdk.Vulnerability{{
-			ID:             "GHSA-example",
 			ParsedSeverity: sdk.SeverityHigh,
 		}},
 		Remediation: &sdk.PackageRemediation{

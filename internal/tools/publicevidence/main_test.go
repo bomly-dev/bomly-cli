@@ -65,7 +65,6 @@ func TestValidateCatalogRejectsUnpinnedGitAndChangedArtifact(t *testing.T) {
 	current := catalog{
 		SchemaVersion: catalogSchema,
 		Cases: []evidenceCase{{
-			ID:            "git-case",
 			Title:         "Git case",
 			Area:          "graph",
 			EvidenceLevel: "pinned-input",

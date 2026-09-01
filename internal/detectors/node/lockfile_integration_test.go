@@ -3,6 +3,7 @@ package node_test
 import (
 	"context"
 	"fmt"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -28,7 +29,7 @@ func stableID(name, version string) string {
 func requirePackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.DependencyNode {
 	t.Helper()
 	id := stableID(name, version)
-	pkg, ok := g.Node(id)
+	pkg, ok := g.DependencyNode(id)
 	if !ok {
 		t.Fatalf("expected package %s@%s in graph (id=%s); packages present: %v", name, version, id, graphPackageIDs(g))
 	}
@@ -85,7 +86,7 @@ func graphPackageIDs(g *sdk.Graph) []string {
 	pkgs := g.DependencyNodes()
 	ids := make([]string, len(pkgs))
 	for i, p := range pkgs {
-		ids[i] = p.ID
+		ids[i] = p.NodeID()
 	}
 	return ids
 }
@@ -121,11 +122,11 @@ func TestBunLockfileV1Workspaces(t *testing.T) {
 		t.Fatal(err)
 	}
 	web, ok := g.Node("workspace:apps/web")
-	if !ok || web.Name != "@fixture/web" || web.Version != "1.0.0" {
+	if !ok || mustDep(t, web).Name != "@fixture/web" || mustDep(t, web).Version != "1.0.0" {
 		t.Fatalf("expected web workspace identity, got %#v", web)
 	}
 	lib, ok := g.Node("workspace:packages/lib")
-	if !ok || lib.Name != "@fixture/lib" || lib.Version != "1.0.0" {
+	if !ok || mustDep(t, lib).Name != "@fixture/lib" || mustDep(t, lib).Version != "1.0.0" {
 		t.Fatalf("expected library workspace identity, got %#v", lib)
 	}
 	for _, duplicateID := range []string{"@fixture/web@apps/web", "@fixture/lib@packages/lib"} {
@@ -135,8 +136,8 @@ func TestBunLockfileV1Workspaces(t *testing.T) {
 	}
 	requirePackage(t, g, "is-number", "7.0.0")
 	requirePackage(t, g, "left-pad", "1.3.0")
-	requireEdgeByID(t, g, web.ID, lib.ID)
-	requireEdgeByID(t, g, lib.ID, stableID("is-number", "7.0.0"))
+	requireEdgeByID(t, g, web.NodeID(), lib.NodeID())
+	requireEdgeByID(t, g, lib.NodeID(), stableID("is-number", "7.0.0"))
 }
 
 func requireEdgeByID(t *testing.T, g *sdk.Graph, fromID, toID string) {
@@ -299,7 +300,7 @@ func TestPNPMLockfileV5_RootDependencyEdges(t *testing.T) {
 		t.Fatalf("dependencies(root): %v", err)
 	}
 	names := make(map[string]bool, len(rootDeps))
-	for _, d := range rootDeps {
+	for _, d := range nodes.DependenciesOf(rootDeps) {
 		names[d.Name] = true
 	}
 	for _, want := range []string{"react", "axios", "typescript"} {
@@ -485,4 +486,15 @@ func resolveLockfileGraph(t *testing.T, detector sdk.Detector, projectDir string
 		return nil, err
 	}
 	return result.Graphs.ConsolidatedGraph()
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

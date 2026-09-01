@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"slices"
 	"testing"
 
@@ -99,7 +100,7 @@ func TestPipelineRequiresExplicitMatcherIntent(t *testing.T) {
 func networkIntentDetector(t *testing.T) fakeDetector {
 	t.Helper()
 	graph := sdk.New()
-	dependency := sdk.NewDependencyNode("lodash@4.17.21", sdk.DependencyNode{
+	dependency := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			Ecosystem:      sdk.EcosystemNPM,
 			PackageManager: sdk.PackageManagerNPM,

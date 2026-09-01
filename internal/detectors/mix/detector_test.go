@@ -23,14 +23,14 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if graph == nil {
 		t.Fatal("expected graph")
 	}
-	plug, ok := graph.Node("plug@1.15.3")
+	plug, ok := graph.DependencyNode("plug@1.15.3")
 	if !ok {
 		t.Fatalf("expected plug package, got %v", graph.DependencyNodes())
 	}
-	if plug.PURL != "pkg:hex/plug@1.15.3" {
-		t.Fatalf("expected plug PURL, got %q", plug.PURL)
+	if plug.NodeID() != "pkg:hex/plug@1.15.3" {
+		t.Fatalf("expected plug PURL, got %q", plug.NodeID())
 	}
-	credo, ok := graph.Node("credo@1.7.7")
+	credo, ok := graph.DependencyNode("credo@1.7.7")
 	if !ok {
 		t.Fatalf("expected credo package, got %v", graph.DependencyNodes())
 	}

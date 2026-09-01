@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 	"time"
 
@@ -93,18 +94,18 @@ func TestMarshalDepGraphJSON_SPDX23ToolCreators(t *testing.T) {
 
 func TestMarshalDepGraphJSON_SPDX23Scope(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewDependencyRef("app", "1.0.0")
-	react := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf("runtime")})
-	vitest := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "vitest", Version: "2.0.0"}, Scopes: sdk.ScopesOf("development")})
+	app := testnodes.Ref("app", "1.0.0")
+	react := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf("runtime")})
+	vitest := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "vitest", Version: "2.0.0"}, Scopes: sdk.ScopesOf("development")})
 	for _, n := range []*sdk.DependencyNode{app, react, vitest} {
 		if err := g.AddNode(n); err != nil {
 			t.Fatalf("add package %s: %v", n.NodeID(), err)
 		}
 	}
-	if err := g.AddEdge(app.ID, react.ID); err != nil {
+	if err := g.AddEdge(app.NodeID(), react.NodeID()); err != nil {
 		t.Fatalf("add edge app->react: %v", err)
 	}
-	if err := g.AddEdge(app.ID, vitest.ID); err != nil {
+	if err := g.AddEdge(app.NodeID(), vitest.NodeID()); err != nil {
 		t.Fatalf("add edge app->vitest: %v", err)
 	}
 
@@ -140,7 +141,7 @@ func TestMarshalDepGraphJSON_SPDX23Scope(t *testing.T) {
 
 func TestMarshalDepGraphJSON_SPDX23PreservesPackageType(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	app := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		Name:    "demo",
 		Version: "1.0.0",
 		Type:    "application",
@@ -172,14 +173,14 @@ func TestMarshalDepGraphJSON_SPDX23PreservesPackageType(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected demo package, got %v", graph.DependencyNodes())
 	}
-	if pkg.Type != "application" {
-		t.Fatalf("expected application type, got %q", pkg.Type)
+	if mustDep(t, pkg).Type != "application" {
+		t.Fatalf("expected application type, got %q", mustDep(t, pkg).Type)
 	}
 }
 
 func TestMarshalDepGraphJSON_SPDX23PreservesPURLAndCopyright(t *testing.T) {
 	g := sdk.New()
-	pkg := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	pkg := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "accept",
 		Version:        "1.1.0",
@@ -258,18 +259,18 @@ func TestMarshalDepGraphJSON_CycloneDXVersions(t *testing.T) {
 
 func TestMarshalDepGraphJSON_CycloneDXScope(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewDependencyRef("app", "1.0.0")
-	runtimeDep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf("runtime")})
-	devDep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "vitest", Version: "2.0.0"}, Scopes: sdk.ScopesOf("development")})
+	app := testnodes.Ref("app", "1.0.0")
+	runtimeDep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf("runtime")})
+	devDep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "vitest", Version: "2.0.0"}, Scopes: sdk.ScopesOf("development")})
 	for _, n := range []*sdk.DependencyNode{app, runtimeDep, devDep} {
 		if err := g.AddNode(n); err != nil {
 			t.Fatalf("add package %s: %v", n.NodeID(), err)
 		}
 	}
-	if err := g.AddEdge(app.ID, runtimeDep.ID); err != nil {
+	if err := g.AddEdge(app.NodeID(), runtimeDep.NodeID()); err != nil {
 		t.Fatalf("add runtime edge: %v", err)
 	}
-	if err := g.AddEdge(app.ID, devDep.ID); err != nil {
+	if err := g.AddEdge(app.NodeID(), devDep.NodeID()); err != nil {
 		t.Fatalf("add development edge: %v", err)
 	}
 
@@ -366,7 +367,7 @@ func TestMarshalDepGraphJSON_IsDeterministicWithFixedMetadata(t *testing.T) {
 
 func TestUnmarshalJSON_SPDX23RestoresPackageIdentityFromPURL(t *testing.T) {
 	g := sdk.New()
-	if err := g.AddNode(sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	if err := g.AddNode(testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "accept",
 		Version:        "1.1.0",
@@ -414,14 +415,14 @@ func TestUnmarshalJSON_SPDX23RestoresPackageIdentityFromPURL(t *testing.T) {
 	if pkg.NodeID() != "pkg:npm/accept@1.1.0" {
 		t.Fatalf("expected graph package purl, got %q", pkg.NodeID())
 	}
-	if pkg.Ecosystem != "npm" || pkg.PackageManager != "npm" {
-		t.Fatalf("expected graph package identity restored, got ecosystem=%q packageManager=%q", pkg.Ecosystem, pkg.PackageManager)
+	if mustDep(t, pkg).Ecosystem != "npm" || mustDep(t, pkg).PackageManager != "npm" {
+		t.Fatalf("expected graph package identity restored, got ecosystem=%q packageManager=%q", mustDep(t, pkg).Ecosystem, mustDep(t, pkg).PackageManager)
 	}
 }
 
 func TestUnmarshalJSON_CycloneDXPreservesPURL(t *testing.T) {
 	g := sdk.New()
-	if err := g.AddNode(sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	if err := g.AddNode(testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "accept",
 		Version:        "1.1.0",
@@ -525,19 +526,16 @@ func TestToGraph_MergesDuplicatePURLComponents(t *testing.T) {
 	doc := &Document{
 		Components: []Component{
 			{
-				ID:      "SPDXRef-Package-python-certifi-from-lock",
 				Name:    "certifi",
 				Version: "2026.4.22",
 				PURL:    "pkg:pypi/certifi@2026.4.22",
 			},
 			{
-				ID:      "SPDXRef-Package-python-certifi-from-metadata",
 				Name:    "certifi",
 				Version: "2026.4.22",
 				PURL:    "pkg:pypi/certifi@2026.4.22",
 			},
 			{
-				ID:      "SPDXRef-Package-python-requests",
 				Name:    "requests",
 				Version: "2.21.0",
 				PURL:    "pkg:pypi/requests@2.21.0",
@@ -637,19 +635,19 @@ func mustGraph(t *testing.T) *sdk.Graph {
 	t.Helper()
 
 	g := sdk.New()
-	app := sdk.NewDependencyRef("app", "1.0.0")
-	react := sdk.NewDependencyRef("react", "18.2.0")
-	zod := sdk.NewDependencyRef("zod", "3.23.0")
+	app := testnodes.Ref("app", "1.0.0")
+	react := testnodes.Ref("react", "18.2.0")
+	zod := testnodes.Ref("zod", "3.23.0")
 
 	for _, n := range []*sdk.DependencyNode{app, react, zod} {
 		if err := g.AddNode(n); err != nil {
 			t.Fatalf("add package %s: %v", n.NodeID(), err)
 		}
 	}
-	if err := g.AddEdge(app.ID, react.ID); err != nil {
+	if err := g.AddEdge(app.NodeID(), react.NodeID()); err != nil {
 		t.Fatalf("add edge app->react: %v", err)
 	}
-	if err := g.AddEdge(app.ID, zod.ID); err != nil {
+	if err := g.AddEdge(app.NodeID(), zod.NodeID()); err != nil {
 		t.Fatalf("add edge app->zod: %v", err)
 	}
 	return g
@@ -676,7 +674,7 @@ func edgeCount(graph *sdk.Graph) int {
 	return count
 }
 
-func idsOfPackages(packages []*sdk.DependencyNode) []string {
+func idsOfPackages(packages []sdk.GraphNode) []string {
 	ids := make([]string, 0, len(packages))
 	for _, pkg := range packages {
 		ids = append(ids, pkg.NodeID())
@@ -762,10 +760,15 @@ func TestEncodeDecodeRoundTripPreservesErlangIdentity(t *testing.T) {
 	for _, tc := range cases {
 		for _, target := range targets {
 			t.Run(tc.name+"/"+string(target), func(t *testing.T) {
-				dep := sdk.NewDependencyRef(tc.depName, tc.version)
-				dep.Ecosystem = sdk.EcosystemErlang
-				dep.PackageManager = tc.manager
-				dep.NodeID() = dep.CanonicalPURL()
+				// The identity is minted from the coordinates at
+				// construction, so the ecosystem and manager have to be
+				// stated up front rather than patched on afterwards.
+				dep := testnodes.Dep(sdk.Coordinates{
+					Name:           tc.depName,
+					Version:        tc.version,
+					Ecosystem:      sdk.EcosystemErlang,
+					PackageManager: tc.manager,
+				})
 				if dep.NodeID() != tc.wantPURL {
 					t.Fatalf("emitted PURL = %q, want %q", dep.NodeID(), tc.wantPURL)
 				}
@@ -794,7 +797,7 @@ func TestEncodeDecodeRoundTripPreservesErlangIdentity(t *testing.T) {
 					t.Fatalf("to graph: %v", err)
 				}
 
-				node, ok := decoded.Node(tc.wantPURL)
+				node, ok := decoded.DependencyNode(tc.wantPURL)
 				if !ok {
 					t.Fatalf("decoded graph has no node %q", tc.wantPURL)
 				}
@@ -815,13 +818,13 @@ func TestEncodeDecodeRoundTripPreservesErlangIdentity(t *testing.T) {
 func TestFromDepGraph_ComponentNamesAreEcosystemNative(t *testing.T) {
 	g := sdk.New()
 	nodes := []*sdk.DependencyNode{
-		sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{
+		testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 			Ecosystem: sdk.EcosystemNPM, Org: "tailwindcss", Name: "postcss", Version: "4.3.3",
 		}}),
-		sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{
+		testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 			Ecosystem: sdk.EcosystemNPM, Name: "postcss", Version: "8.5.16",
 		}}),
-		sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{
+		testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 			Ecosystem: sdk.EcosystemMaven, Org: "com.example", Name: "demo", Version: "1.2.3",
 		}}),
 	}
@@ -848,4 +851,15 @@ func TestFromDepGraph_ComponentNamesAreEcosystemNative(t *testing.T) {
 	if got["tailwindcss:postcss"] {
 		t.Error("scoped npm component emitted with a colon-joined name")
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

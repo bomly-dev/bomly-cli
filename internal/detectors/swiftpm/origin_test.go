@@ -12,14 +12,17 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.DependencyNode) sdk.DependencyOrigin {
-	if dep == nil {
+func originOf(node sdk.GraphNode) sdk.DependencyOrigin {
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok || dep == nil {
 		return sdk.DependencyOrigin{}
 	}
-	if origin := dep.Origin.Normalized(); origin != nil {
-		return *origin
+	// Origins are gated on the way in, so the first entry is already
+	// publishable; these cases assert on a single asserted origin.
+	if len(dep.Origins) == 0 {
+		return sdk.DependencyOrigin{}
 	}
-	return sdk.DependencyOrigin{}
+	return dep.Origins[0]
 }
 
 // A Package.resolved pin says how SwiftPM obtained a package. Source-control
@@ -129,8 +132,8 @@ func TestSwiftPMNativeOriginIsPinnedFromPackageResolved(t *testing.T) {
 	}
 	var checked int
 	g.WalkNodes(func(dep sdk.GraphNode) bool {
-		origin := originOf(dep)
-		switch dep.Name {
+		origin := originOf(mustDep(t, dep))
+		switch mustDep(t, dep).Name {
 		case "swift-argument-parser":
 			checked++
 			if origin != want {
@@ -186,11 +189,11 @@ func TestSwiftPMEditedPackageIsNotCreditedToItsFormerPin(t *testing.T) {
 
 	var checked int
 	g.WalkNodes(func(dep sdk.GraphNode) bool {
-		if dep.Name != "helper" {
+		if mustDep(t, dep).Name != "helper" {
 			return true
 		}
 		checked++
-		if got := originOf(dep); !got.Empty() {
+		if got := originOf(mustDep(t, dep)); !got.Empty() {
 			t.Fatalf("edited package origin = %+v, want none: it is built from a local checkout", got)
 		}
 		return true
@@ -235,11 +238,11 @@ func TestSwiftPMPinIsNotAttachedToADifferentRepository(t *testing.T) {
 
 	var checked int
 	g.WalkNodes(func(dep sdk.GraphNode) bool {
-		if dep.ResolvedURL == "" {
+		if mustDep(t, dep).ResolvedURL == "" {
 			return true
 		}
 		checked++
-		origin := originOf(dep)
+		origin := originOf(mustDep(t, dep))
 		if origin.Repository == "https://git.corp/team/helper.git" {
 			t.Fatalf("a package built from a mirror was credited to %q", origin.Repository)
 		}
@@ -272,7 +275,7 @@ func TestSwiftPMNativeOriginSurvivesMissingPackageResolved(t *testing.T) {
 	want := sdk.DependencyOrigin{Repository: "https://github.com/apple/swift-argument-parser.git"}
 	var checked int
 	g.WalkNodes(func(dep sdk.GraphNode) bool {
-		if dep.Name == "swift-argument-parser" {
+		if mustDep(t, dep).Name == "swift-argument-parser" {
 			checked++
 			if got := originOf(dep); got != want {
 				t.Fatalf("origin = %+v, want the unpinned repository %+v", got, want)
@@ -352,7 +355,7 @@ func TestSwiftPMNativeOriginDoesNotMatchAcrossPathCase(t *testing.T) {
 	}
 	g.WalkNodes(func(dep sdk.GraphNode) bool {
 		if origin := originOf(dep); origin.Revision == "5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f7081" {
-			t.Fatalf("%s took a pin belonging to a differently-cased repository: %+v", dep.Name, origin)
+			t.Fatalf("%s took a pin belonging to a differently-cased repository: %+v", mustDep(t, dep).Name, origin)
 		}
 		return true
 	})
@@ -402,7 +405,7 @@ func TestSwiftPMOriginIsPinnedFromTheXcodeLockfile(t *testing.T) {
 	}
 	var checked int
 	g.WalkNodes(func(dep sdk.GraphNode) bool {
-		if dep.Name != "swift-argument-parser" {
+		if mustDep(t, dep).Name != "swift-argument-parser" {
 			return true
 		}
 		checked++
@@ -423,4 +426,15 @@ func TestSwiftPMOriginIsPinnedFromTheXcodeLockfile(t *testing.T) {
 	if !applicable {
 		t.Fatal("a project with only the Xcode lockfile should be detectable")
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

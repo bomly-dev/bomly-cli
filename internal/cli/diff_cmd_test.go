@@ -191,7 +191,6 @@ func TestRenderDiffMarkdownIncludesPatchedVersionsByDefault(t *testing.T) {
 				Added: []output.DiffVulnerabilityChange{{
 					Package: output.PackageRef{Name: "react", Version: "18.2.0"},
 					Vulnerability: output.VulnerabilityRef{
-						ID:       "OSV-123",
 						Severity: "high",
 						Source:   "osv",
 						Title:    "Prototype pollution in react",
@@ -204,14 +203,12 @@ func TestRenderDiffMarkdownIncludesPatchedVersionsByDefault(t *testing.T) {
 			Purl: "pkg:npm/react@18.2.0",
 			Name: "react",
 			Vulnerabilities: []output.VulnerabilityRef{{
-				ID:      "OSV-123",
 				Source:  "osv",
 				FixedIn: "18.2.1",
 			}},
 		}},
 		Audit: &output.DiffAudit{
 			Introduced: []output.AuditFinding{{
-				ID:              "OSV-123",
 				VulnerabilityID: "OSV-123",
 				Severity:        "high",
 				Auditor:         "vulnerability",
@@ -258,7 +255,6 @@ func TestRenderDiffMarkdownRendersScopedPolicyPayloadDirectly(t *testing.T) {
 		},
 		Audit: &output.DiffAudit{
 			Introduced: []output.AuditFinding{{
-				ID:           "license:unknown",
 				Auditor:      "license",
 				PolicyStatus: "warn",
 				Package:      output.FindingPackageRef{Name: "new-package", Version: "1.0.0"},

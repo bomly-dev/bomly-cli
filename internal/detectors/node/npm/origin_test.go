@@ -9,14 +9,17 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.DependencyNode) sdk.DependencyOrigin {
-	if dep == nil {
+func originOf(node sdk.GraphNode) sdk.DependencyOrigin {
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok || dep == nil {
 		return sdk.DependencyOrigin{}
 	}
-	if origin := dep.Origin.Normalized(); origin != nil {
-		return *origin
+	// Origins are gated on the way in, so the first entry is already
+	// publishable; these cases assert on a single asserted origin.
+	if len(dep.Origins) == 0 {
+		return sdk.DependencyOrigin{}
 	}
-	return sdk.DependencyOrigin{}
+	return dep.Origins[0]
 }
 
 // npm writes whatever it installed from into "resolved": a registry tarball,
@@ -59,7 +62,7 @@ func TestNPMOriginByResolvedShape(t *testing.T) {
 		if !ok {
 			t.Fatalf("expected %s in graph", tc.id)
 		}
-		origin := originOf(node)
+		origin := originOf(mustDep(t, node))
 		if origin.ArtifactURL != tc.want {
 			t.Errorf("%s artifact origin = %q, want %q", tc.id, origin.ArtifactURL, tc.want)
 		}
@@ -68,7 +71,7 @@ func TestNPMOriginByResolvedShape(t *testing.T) {
 		}
 		// ResolvedURL is a separate contract (the scorecard matcher resolves
 		// repositories from it) and must keep carrying the raw lockfile value.
-		if node.ResolvedURL == "" {
+		if mustDep(t, node).ResolvedURL == "" {
 			t.Errorf("%s lost its ResolvedURL", tc.id)
 		}
 	}
@@ -116,9 +119,9 @@ func TestNPMv1DuplicateEntriesKeepDistinctResolutions(t *testing.T) {
 		sharedOrigins := map[string]int{}
 		agreedNodes := 0
 		graphs.graph.WalkNodes(func(dep sdk.GraphNode) bool {
-			switch dep.Name {
+			switch mustDep(t, dep).Name {
 			case "shared":
-				sharedOrigins[originOf(dep).ArtifactURL]++
+				sharedOrigins[originOf(mustDep(t, dep)).ArtifactURL]++
 			case "agreed":
 				agreedNodes++
 			}
@@ -163,8 +166,8 @@ func TestNPMv3DuplicatePathsWithDifferentTarballsStayDistinct(t *testing.T) {
 
 	origins := map[string]int{}
 	graphs.graph.WalkNodes(func(dep sdk.GraphNode) bool {
-		if dep.Name == "shared" {
-			origins[originOf(dep).ArtifactURL]++
+		if mustDep(t, dep).Name == "shared" {
+			origins[originOf(mustDep(t, dep)).ArtifactURL]++
 		}
 		return true
 	})
@@ -173,4 +176,15 @@ func TestNPMv3DuplicatePathsWithDifferentTarballsStayDistinct(t *testing.T) {
 		origins["https://npm.corp/mirror/shared/-/shared-2.0.0.tgz"] != 1 {
 		t.Fatalf("shared occurrences = %v, want both tarballs as distinct nodes", origins)
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

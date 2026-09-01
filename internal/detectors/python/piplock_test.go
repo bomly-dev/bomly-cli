@@ -109,8 +109,8 @@ func TestRequirementsLockScopes(t *testing.T) {
 	if !ok {
 		t.Fatal("missing pytest node")
 	}
-	if pytest.PrimaryScope() != sdk.ScopeDevelopment {
-		t.Errorf("pytest scope = %v, want development", pytest.PrimaryScope())
+	if mustDep(t, pytest).PrimaryScope() != sdk.ScopeDevelopment {
+		t.Errorf("pytest scope = %v, want development", mustDep(t, pytest).PrimaryScope())
 	}
 	// urllib3 is reachable on a runtime path (requests) even though it is also
 	// listed as a direct runtime dep — runtime must win.
@@ -118,8 +118,8 @@ func TestRequirementsLockScopes(t *testing.T) {
 	if !ok {
 		t.Fatal("missing urllib3 node")
 	}
-	if urllib3.PrimaryScope() != sdk.ScopeRuntime {
-		t.Errorf("urllib3 scope = %v, want runtime", urllib3.PrimaryScope())
+	if mustDep(t, urllib3).PrimaryScope() != sdk.ScopeRuntime {
+		t.Errorf("urllib3 scope = %v, want runtime", mustDep(t, urllib3).PrimaryScope())
 	}
 }
 

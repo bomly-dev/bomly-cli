@@ -2,6 +2,7 @@ package cocoapods
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -24,7 +25,7 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	pkg, ok := g.Node("AppCenter/Analytics@5.0.6")
+	pkg, ok := g.DependencyNode("AppCenter/Analytics@5.0.6")
 	if !ok {
 		t.Fatal("expected AppCenter/Analytics package")
 	}
@@ -61,22 +62,23 @@ SPEC CHECKSUMS:
 	if len(deps) != 2 {
 		t.Fatalf("expected two root dependencies, got %#v", deps)
 	}
-	analytics, ok := g.Node("AppCenter/Analytics@5.0.6")
+	analytics, ok := g.DependencyNode("AppCenter/Analytics@5.0.6")
 	if !ok {
 		t.Fatal("expected AppCenter/Analytics package")
 	}
 	if string(analytics.PrimaryScope()) != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", string(analytics.PrimaryScope()))
 	}
-	children, err := g.DirectDependencies(analytics.ID)
+	childrenNodes, err := g.DirectDependencies(analytics.NodeID())
+	children := nodes.DependenciesOf(childrenNodes)
 	if err != nil {
 		t.Fatalf("analytics dependencies: %v", err)
 	}
 	if len(children) != 1 || children[0].Name != "AppCenter/Core" {
 		t.Fatalf("expected AppCenter/Core dependency, got %#v", children)
 	}
-	if analytics.PURL != "pkg:cocoapods/AppCenter%2FAnalytics@5.0.6" {
-		t.Fatalf("unexpected purl %q", analytics.PURL)
+	if analytics.NodeID() != "pkg:cocoapods/AppCenter%2FAnalytics@5.0.6" {
+		t.Fatalf("unexpected purl %q", analytics.NodeID())
 	}
 }
 

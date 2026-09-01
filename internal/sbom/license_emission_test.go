@@ -3,6 +3,7 @@ package sbom
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
@@ -15,7 +16,7 @@ import (
 func licensedGraph(t *testing.T, licenses ...sdk.PackageLicense) *sdk.Graph {
 	t.Helper()
 	g := sdk.New()
-	dep := sdk.NewDependencyNode("left-pad@1.3.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{
+	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 		Name:      "left-pad",
 		Version:   "1.3.0",
 		PURL:      "pkg:npm/left-pad@1.3.0",

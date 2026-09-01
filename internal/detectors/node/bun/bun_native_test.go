@@ -43,20 +43,20 @@ func TestDepGraphFromBunPMListPreservesUnprovenParents(t *testing.T) {
 		t.Fatal(err)
 	}
 	direct, _ := graph.Node("direct@1.0.0")
-	if direct == nil || direct.PrimaryScope() != sdk.ScopeRuntime || direct.Relationship == sdk.DependencyRelationshipUnknown {
+	if direct == nil || mustDep(t, direct).PrimaryScope() != sdk.ScopeRuntime || mustDep(t, direct).Relationship == sdk.DependencyRelationshipUnknown {
 		t.Fatalf("expected a known direct dependency, got %#v", direct)
 	}
 	for _, id := range []string{"transitive@2.0.0", "duplicate@1.0.0", "duplicate@2.0.0"} {
 		dependency, _ := graph.Node(id)
-		if dependency == nil || dependency.Relationship != sdk.DependencyRelationshipUnknown {
+		if dependency == nil || mustDep(t, dependency).Relationship != sdk.DependencyRelationshipUnknown {
 			t.Fatalf("expected %s to retain unknown placement, got %#v", id, dependency)
 		}
 	}
 	children, err := graph.DirectDependencies("transitive@2.0.0")
-	if err != nil || len(children) != 1 || children[0].ID != "nested@3.0.0" {
+	if err != nil || len(children) != 1 || children[0].NodeID() != "nested@3.0.0" {
 		t.Fatalf("expected proven nested edge, got children=%#v err=%v", children, err)
 	}
-	if children[0].Relationship == sdk.DependencyRelationshipUnknown {
+	if mustDep(t, children[0]).Relationship == sdk.DependencyRelationshipUnknown {
 		t.Fatalf("proven nested dependency must not be unknown: %#v", children[0])
 	}
 }
@@ -93,19 +93,19 @@ func main() { fmt.Print("/project node_modules\n├── @fixture/api@workspace
 		t.Fatalf("expected root, workspace, and five package occurrences, got %d", graph.Size())
 	}
 	leftPad, _ := graph.Node("left-pad@1.3.0")
-	if leftPad == nil || leftPad.Relationship != sdk.DependencyRelationshipUnknown {
+	if leftPad == nil || mustDep(t, leftPad).Relationship != sdk.DependencyRelationshipUnknown {
 		t.Fatalf("expected unproven package placement, got %#v", leftPad)
 	}
 	workspace, _ := graph.Node("workspace:apps/api")
-	if workspace == nil || workspace.Type != sdk.PackageTypeApplication || workspace.Version != "1.0.0" {
+	if workspace == nil || mustDep(t, workspace).Type != sdk.PackageTypeApplication || mustDep(t, workspace).Version != "1.0.0" {
 		t.Fatalf("expected canonical workspace application, got %#v", workspace)
 	}
 	alias, _ := graph.Node("bun-native-alias:number-check@7.0.0")
-	if alias == nil || alias.Name != "is-number" || alias.Version != "7.0.0" || alias.PrimaryScope() != sdk.ScopeRuntime {
+	if alias == nil || mustDep(t, alias).Name != "is-number" || mustDep(t, alias).Version != "7.0.0" || mustDep(t, alias).PrimaryScope() != sdk.ScopeRuntime {
 		t.Fatalf("expected normalized direct alias occurrence, got %#v", alias)
 	}
 	children, err := graph.DirectDependencies("is-odd@0.1.2")
-	if err != nil || len(children) != 1 || children[0].ID != "is-number@3.0.0" {
+	if err != nil || len(children) != 1 || children[0].NodeID() != "is-number@3.0.0" {
 		t.Fatalf("expected Bun tree edge, got children=%#v err=%v", children, err)
 	}
 }

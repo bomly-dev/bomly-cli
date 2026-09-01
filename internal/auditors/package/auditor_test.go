@@ -2,22 +2,21 @@ package packageauditor
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 
 	"github.com/bomly-dev/bomly-sdk"
 )
 
-// pkg is a convenience constructor for tests.
+// pkg is a convenience constructor for tests. The id argument is the PURL the
+// node's identity is minted from, so it is both the coordinates' PURL and the
+// resulting node ID -- there is no separate ID to set (ADR-0041).
 func pkg(id, name, version, scope string) *sdk.DependencyNode {
-	return &sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: name,
-		Version: version,
-
-		PURL: id}, ID: id,
-
-		Scopes: sdk.ScopesOf(sdk.Scope(scope)),
-
-		PackageRef: id,
-	}
+	return testnodes.DepFrom(sdk.DependencyNode{
+		Coordinates: sdk.Coordinates{Name: name, Version: version, PURL: id},
+		Scopes:      sdk.ScopesOf(sdk.Scope(scope)),
+		PackageRef:  id,
+	})
 }
 
 // graphOf builds a Graph from the provided packages, panicking on error.
@@ -275,7 +274,7 @@ func TestAudit(t *testing.T) {
 func TestAuditDependencySourceChanges(t *testing.T) {
 	const purl = "pkg:npm/example@1.0.0"
 	transition := func(id string, source sdk.DependencySource) sdk.DependencyDetailTransition {
-		before := sdk.NewDependencyNode(id, sdk.DependencyNode{
+		before := testnodes.DepFrom(sdk.DependencyNode{
 			Coordinates: sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
 			Source:      sdk.DependencySourceRegistry,
 			PackageRef:  purl,
@@ -338,7 +337,7 @@ func TestAuditDependencySourceChanges(t *testing.T) {
 }
 
 func TestAuditDependencySourceChangesIgnoresInformationalTransitions(t *testing.T) {
-	dependency := sdk.NewDependencyNode("example", sdk.DependencyNode{
+	dependency := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{Name: "example", Version: "1.0.0"},
 		Source:      sdk.DependencySourceRegistry,
 	})

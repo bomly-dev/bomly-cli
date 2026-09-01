@@ -257,7 +257,6 @@ func TestDiffMarkdownFindingsTableHasLegendNoPolicyStatus(t *testing.T) {
 	payload := output.DiffResponse{
 		Audit: &output.DiffAudit{
 			Introduced: []output.AuditFinding{{
-				ID:           "INVALID-abcd-efgh-ijkl",
 				Kind:         sdk.FindingKindLicense,
 				Auditor:      "license",
 				Severity:     sdk.SeverityWarning,

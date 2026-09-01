@@ -214,7 +214,7 @@ func TestMavenPerModuleEntriesAttachModuleRelativePositions(t *testing.T) {
 	if moduleA.Graph == nil {
 		t.Fatalf("module-a entry missing from %d entries", len(entries))
 	}
-	lang3, ok := moduleA.Graph.Node("org.apache.commons:commons-lang3@3.12.0")
+	lang3, ok := moduleA.Graph.DependencyNode("pkg:maven/org.apache.commons/commons-lang3@3.12.0")
 	if !ok || lang3 == nil || len(lang3.Locations) == 0 {
 		t.Fatalf("commons-lang3 location missing: %+v", lang3)
 	}

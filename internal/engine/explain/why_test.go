@@ -1,6 +1,7 @@
 package explain
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 
 	"github.com/bomly-dev/bomly-sdk"
@@ -8,27 +9,27 @@ import (
 
 func TestFindWhy_MarksCyclicPaths(t *testing.T) {
 	deps := sdk.New()
-	app := sdk.NewDependencyRef("app", "")
-	b := sdk.NewDependencyRef("b", "")
-	c := sdk.NewDependencyRef("c", "")
+	app := testnodes.Ref("app", "")
+	b := testnodes.Ref("b", "")
+	c := testnodes.Ref("c", "")
 
 	for _, pkg := range []*sdk.DependencyNode{app, b, c} {
 		if err := deps.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
 	}
-	for _, edge := range [][2]string{{app.ID, b.ID}, {b.ID, c.ID}, {c.ID, b.ID}} {
+	for _, edge := range [][2]string{{app.NodeID(), b.NodeID()}, {b.NodeID(), c.NodeID()}, {c.NodeID(), b.NodeID()}} {
 		if err := deps.AddEdge(edge[0], edge[1]); err != nil {
 			t.Fatalf("add dependency %q -> %q: %v", edge[0], edge[1], err)
 		}
 	}
 
-	target, paths, err := FindWhy(deps, b.ID)
+	target, paths, err := FindWhy(deps, b.NodeID())
 	if err != nil {
 		t.Fatalf("FindWhy(): %v", err)
 	}
-	if target.NodeID() != b.ID {
-		t.Fatalf("expected target %q, got %q", b.ID, target.NodeID())
+	if target.ID != b.NodeID() {
+		t.Fatalf("expected target %q, got %q", b.NodeID(), target.ID)
 	}
 	if len(paths) != 2 {
 		t.Fatalf("expected 2 paths, got %#v", paths)
@@ -42,8 +43,8 @@ func TestFindWhy_MarksCyclicPaths(t *testing.T) {
 	if !paths[1].Cyclic {
 		t.Fatalf("expected second path to be cyclic")
 	}
-	if paths[1].CycleTo != b.ID {
-		t.Fatalf("expected cycle to %q, got %q", b.ID, paths[1].CycleTo)
+	if paths[1].CycleTo != b.NodeID() {
+		t.Fatalf("expected cycle to %q, got %q", b.NodeID(), paths[1].CycleTo)
 	}
 	assertPathIDs(t, paths[1], []string{"app", "b", "c", "b"})
 }
@@ -51,10 +52,10 @@ func TestFindWhy_MarksCyclicPaths(t *testing.T) {
 func TestFindWhy_ReturnsAllPathsInDeterministicOrder(t *testing.T) {
 	deps := sdk.New()
 	nodes := []*sdk.DependencyNode{
-		sdk.NewDependencyRef("root-b", ""),
-		sdk.NewDependencyRef("middle", ""),
-		sdk.NewDependencyRef("target", ""),
-		sdk.NewDependencyRef("root-a", ""),
+		testnodes.Ref("root-b", ""),
+		testnodes.Ref("middle", ""),
+		testnodes.Ref("target", ""),
+		testnodes.Ref("root-a", ""),
 	}
 	for _, pkg := range nodes {
 		if err := deps.AddNode(pkg); err != nil {
@@ -90,8 +91,8 @@ func assertPathIDs(t *testing.T, path Path, want []string) {
 		t.Fatalf("expected %d packages, got %#v", len(want), path.Packages)
 	}
 	for i, pkg := range path.Packages {
-		if pkg.NodeID() != want[i] {
-			t.Fatalf("expected package %d to be %q, got %q", i, want[i], pkg.NodeID())
+		if pkg.ID != want[i] {
+			t.Fatalf("expected package %d to be %q, got %q", i, want[i], pkg.ID)
 		}
 	}
 }

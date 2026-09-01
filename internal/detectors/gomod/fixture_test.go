@@ -90,7 +90,7 @@ func requireScope(t *testing.T, g *sdk.Graph, id string, scope sdk.Scope) {
 	if !ok {
 		t.Fatalf("missing node %s", id)
 	}
-	if got := n.PrimaryScope(); got != scope {
+	if got := mustDep(t, n).PrimaryScope(); got != scope {
 		t.Errorf("%s scope = %q, want %q", id, got, scope)
 	}
 }

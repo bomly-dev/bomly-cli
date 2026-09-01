@@ -43,10 +43,10 @@ func TestDepGraphFromBunLockfile(t *testing.T) {
 		t.Fatalf("expected tuple integrity metadata, got %#v", realPackage.Digests)
 	}
 	root, _ := graphs.graph.Node(graphs.rootID)
-	assertEdge(t, graphs.graph, root, realPackage)
+	assertEdge(t, graphs.graph, mustDep(t, root), realPackage)
 	workspace, _ := graphs.graph.Node(graphs.modules[0].rootID)
-	assertEdge(t, graphs.graph, root, workspace)
-	assertEdge(t, graphs.graph, workspace, realPackage)
+	assertEdge(t, graphs.graph, mustDep(t, root), mustDep(t, workspace))
+	assertEdge(t, graphs.graph, mustDep(t, workspace), realPackage)
 	tool := dependencyByNameVersion(graphs.graph, "tool", "1.2.0")
 	if tool == nil || tool.PrimaryScope() != sdk.ScopeDevelopment {
 		t.Fatalf("expected exact dev dependency version and scope, got %#v", tool)
@@ -87,7 +87,7 @@ func FuzzNormalizeJSONC(f *testing.F) {
 
 func dependencyByNameVersion(graph *sdk.Graph, name, version string) *sdk.DependencyNode {
 	var found *sdk.DependencyNode
-	graph.WalkNodes(func(dep sdk.GraphNode) bool {
+	graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
 		if dep.Name == name && dep.Version == version {
 			found = dep
 			return false
@@ -112,4 +112,15 @@ func assertEdge(t *testing.T, graph *sdk.Graph, from, to *sdk.DependencyNode) {
 		}
 	}
 	t.Fatalf("expected edge %s -> %s", from.NodeID(), to.NodeID())
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

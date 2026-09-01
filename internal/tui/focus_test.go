@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"strings"
 	"testing"
 
@@ -14,9 +15,9 @@ import (
 func newScanModelWithPosture(t *testing.T, repo string, score float64) *ScanModel {
 	t.Helper()
 	g := sdk.New()
-	root := sdk.NewDependencyRef("demo-app", "1.0.0")
+	root := testnodes.Ref("demo-app", "1.0.0")
 	const libPURL = "pkg:npm/lib@1.0.0"
-	dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", PURL: libPURL}})
+	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", PURL: libPURL}})
 	registry := sdk.NewPackageRegistry()
 	regLib := registry.Ensure(libPURL)
 	regLib.Name = "lib"
@@ -150,11 +151,11 @@ func TestTabCycle_ResetsDetailsFocus(t *testing.T) {
 func TestPostureGrouping_ByCheckRendersFailingFirst(t *testing.T) {
 	t.Parallel()
 	g := sdk.New()
-	rootA := sdk.NewDependencyRef("app", "1.0.0")
+	rootA := testnodes.Ref("app", "1.0.0")
 	const aPURL = "pkg:npm/a@1"
 	const bPURL = "pkg:npm/b@1"
-	a := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "a", Version: "1", PURL: aPURL}})
-	b := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "b", Version: "1", PURL: bPURL}})
+	a := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "a", Version: "1", PURL: aPURL}})
+	b := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "b", Version: "1", PURL: bPURL}})
 	registry := sdk.NewPackageRegistry()
 	regA := registry.Ensure(aPURL)
 	regA.Name = "a"
@@ -175,10 +176,10 @@ func TestPostureGrouping_ByCheckRendersFailingFirst(t *testing.T) {
 			t.Fatalf("add: %v", err)
 		}
 	}
-	if err := g.AddEdge(rootA.ID, a.ID); err != nil {
+	if err := g.AddEdge(rootA.NodeID(), a.NodeID()); err != nil {
 		t.Fatalf("dep a: %v", err)
 	}
-	if err := g.AddEdge(rootA.ID, b.ID); err != nil {
+	if err := g.AddEdge(rootA.NodeID(), b.NodeID()); err != nil {
 		t.Fatalf("dep b: %v", err)
 	}
 	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{

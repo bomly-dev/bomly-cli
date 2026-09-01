@@ -24,7 +24,7 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	pkg, ok := g.Node("test@1.25.8")
+	pkg, ok := g.DependencyNode("test@1.25.8")
 	if !ok {
 		t.Fatal("expected test package")
 	}
@@ -79,15 +79,15 @@ func TestDepGraphFromLockScopesDirectDependencies(t *testing.T) {
 	if len(deps) != 3 {
 		t.Fatalf("expected three direct dependencies, got %d", len(deps))
 	}
-	dev, ok := g.Node("test@1.25.8")
+	dev, ok := g.DependencyNode("test@1.25.8")
 	if !ok {
 		t.Fatal("expected test package")
 	}
 	if string(dev.PrimaryScope()) != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected dev scope, got %q", string(dev.PrimaryScope()))
 	}
-	if dev.PURL != "pkg:pub/test@1.25.8" {
-		t.Fatalf("unexpected purl %q", dev.PURL)
+	if dev.NodeID() != "pkg:pub/test@1.25.8" {
+		t.Fatalf("unexpected purl %q", dev.NodeID())
 	}
 	if dev.Source != sdk.DependencySourceRegistry {
 		t.Fatalf("test source = %q, want %q", dev.Source, sdk.DependencySourceRegistry)
@@ -113,7 +113,7 @@ func TestPubDependencySource(t *testing.T) {
 }
 
 func TestPubPackagePreservesGitRevision(t *testing.T) {
-	node := packageNode("example", pubLockPackage{
+	node, err := packageNode("example", pubLockPackage{
 		Source:  "git",
 		Version: "1.0.0",
 		Description: map[string]any{
@@ -121,6 +121,9 @@ func TestPubPackagePreservesGitRevision(t *testing.T) {
 			"resolved-ref": "abc123",
 		},
 	})
+	if err != nil {
+		t.Fatalf("packageNode() error = %v", err)
+	}
 	if node.Source != sdk.DependencySourceGit {
 		t.Fatalf("source = %q, want %q", node.Source, sdk.DependencySourceGit)
 	}
@@ -151,16 +154,16 @@ func TestDepGraphFromPubDepsJSONBuildsTransitiveScopes(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected collection package, got %v", graph.DependencyNodes())
 	}
-	if string(collection.PrimaryScope()) != string(sdk.ScopeRuntime) {
-		t.Fatalf("expected shared transitive dependency to be runtime, got %q", string(collection.PrimaryScope()))
+	if string(mustDep(t, collection).PrimaryScope()) != string(sdk.ScopeRuntime) {
+		t.Fatalf("expected shared transitive dependency to be runtime, got %q", string(mustDep(t, collection).PrimaryScope()))
 	}
 
 	testPkg, ok := graph.Node("test@1.25.8")
 	if !ok {
 		t.Fatal("expected test package")
 	}
-	if string(testPkg.PrimaryScope()) != string(sdk.ScopeDevelopment) {
-		t.Fatalf("expected dev direct dependency, got %q", string(testPkg.PrimaryScope()))
+	if string(mustDep(t, testPkg).PrimaryScope()) != string(sdk.ScopeDevelopment) {
+		t.Fatalf("expected dev direct dependency, got %q", string(mustDep(t, testPkg).PrimaryScope()))
 	}
 }
 
@@ -199,4 +202,15 @@ sdks:
 	if got := positions["path"]; got == nil || got.Line != 15 {
 		t.Fatalf("path position = %#v, want version line 15", got)
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

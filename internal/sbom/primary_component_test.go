@@ -3,6 +3,7 @@ package sbom
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
@@ -72,14 +73,14 @@ func TestCycloneDXPrimaryComponentCarriesFullDetail(t *testing.T) {
 // first, and the document-level security references follow.
 func TestCycloneDXPrimaryComponentKeepsSecurityReferencesLast(t *testing.T) {
 	g := sdk.New()
-	dep := sdk.NewDependencyNode("left-pad@1.3.0", sdk.DependencyNode{
+	dep := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			Name:      "left-pad",
 			Version:   "1.3.0",
 			PURL:      "pkg:npm/left-pad@1.3.0",
 			Ecosystem: "npm",
 		},
-		Origin: &sdk.DependencyOrigin{ArtifactURL: "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"},
+		Origins: []sdk.DependencyOrigin{{ArtifactURL: "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}},
 	})
 	if err := g.AddNode(dep); err != nil {
 		t.Fatalf("add node: %v", err)
@@ -131,7 +132,7 @@ func TestCycloneDXComponentGroup(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			g := sdk.New()
-			dep := sdk.NewDependencyNode("pkg@1", sdk.DependencyNode{Coordinates: sdk.Coordinates{
+			dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 				Name:    "pkg",
 				Version: "1",
 				PURL:    tc.purl,
@@ -293,7 +294,7 @@ func TestIngestBareNameRecoversQualifiedName(t *testing.T) {
 				t.Fatalf("to graph: %v", err)
 			}
 			found := false
-			graph.WalkNodes(func(pkg sdk.GraphNode) bool {
+			graph.WalkDependencyNodes(func(pkg *sdk.DependencyNode) bool {
 				found = true
 				if got := pkg.EcosystemName(); got != tc.wantName {
 					t.Fatalf("expected name %q, got %q", tc.wantName, got)
@@ -364,7 +365,7 @@ func TestCycloneDXGroupSurvivesRoundTrip(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			g := sdk.New()
-			dep := sdk.NewDependencyNode(tc.pkgName+"@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{
+			dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 				Name:      tc.pkgName,
 				Version:   "1.0.0",
 				PURL:      tc.purl,
@@ -395,7 +396,7 @@ func TestCycloneDXGroupSurvivesRoundTrip(t *testing.T) {
 				t.Fatalf("to graph: %v", err)
 			}
 			found := false
-			graph.WalkNodes(func(pkg sdk.GraphNode) bool {
+			graph.WalkDependencyNodes(func(pkg *sdk.DependencyNode) bool {
 				found = true
 				if got := pkg.EcosystemName(); got != tc.pkgName {
 					t.Fatalf("re-ingested name changed: expected %q, got %q", tc.pkgName, got)

@@ -2,6 +2,7 @@ package maven
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -36,18 +37,18 @@ func TestDepGraphFromMavenTGF(t *testing.T) {
 	if err != nil {
 		t.Fatalf("dependencies(root) error = %v", err)
 	}
-	if len(rootDeps) != 1 || rootDeps[0].ID != "ch.qos.logback:logback-classic@1.5.6" {
+	if len(rootDeps) != 1 || rootDeps[0].NodeID() != "ch.qos.logback:logback-classic@1.5.6" {
 		t.Fatalf("unexpected root deps: %#v", rootDeps)
 	}
 
 	// The TGF block root is the project's own artifact: first-party, so
 	// enrichment never queries it; its dependencies stay enrichable.
 	rootNode, _ := g.Node("com.example:demo-app@1.0.0")
-	if !rootNode.FirstParty || rootNode.RegistryMatchEligible() {
-		t.Fatalf("project artifact must be first-party and not enrichable, got %#v", rootNode.Coordinates)
+	if !nodes.IsProjectOwned(rootNode) {
+		t.Fatalf("project artifact must be first-party and not enrichable, got %#v", mustDep(t, rootNode).Coordinates)
 	}
-	if rootDeps[0].FirstParty || !rootDeps[0].RegistryMatchEligible() {
-		t.Fatalf("fetched dependency must stay enrichable, got %#v", rootDeps[0].Coordinates)
+	if dep, isDep := nodes.AsDependency(rootDeps[0]); !isDep || !dep.RegistryMatchEligible() {
+		t.Fatalf("fetched dependency must stay enrichable, got %#v", mustDep(t, rootDeps[0]).Coordinates)
 	}
 
 	logbackDeps, err := g.DirectDependencies("ch.qos.logback:logback-classic@1.5.6")
@@ -57,7 +58,7 @@ func TestDepGraphFromMavenTGF(t *testing.T) {
 	if len(logbackDeps) != 2 {
 		t.Fatalf("expected 2 transitive deps, got %d", len(logbackDeps))
 	}
-	if logbackDeps[0].ID != "ch.qos.logback:logback-core@1.5.6" || logbackDeps[1].ID != "org.slf4j:slf4j-api@2.0.13" {
+	if logbackDeps[0].NodeID() != "ch.qos.logback:logback-core@1.5.6" || logbackDeps[1].NodeID() != "org.slf4j:slf4j-api@2.0.13" {
 		t.Fatalf("unexpected logback deps: %#v", logbackDeps)
 	}
 }
@@ -89,7 +90,7 @@ func TestDepGraphFromMavenTGF_LongLineExceedsDefaultBuffer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("dependencies(root) error = %v", err)
 	}
-	if len(rootDeps) != 1 || rootDeps[0].ID != "org.slf4j:slf4j-api@2.0.13" {
+	if len(rootDeps) != 1 || rootDeps[0].NodeID() != "org.slf4j:slf4j-api@2.0.13" {
 		t.Fatalf("unexpected root deps: %#v", rootDeps)
 	}
 }
@@ -127,7 +128,7 @@ func TestDepGraphFromMavenTGF_WithMavenLogPrefixes(t *testing.T) {
 	if len(rootDeps) != 2 {
 		t.Fatalf("expected 2 root deps, got %d", len(rootDeps))
 	}
-	if rootDeps[0].ID != "org.apache.struts:struts2-core@2.5.12" || rootDeps[1].ID != "org.mindrot:jbcrypt@0.3m" {
+	if rootDeps[0].NodeID() != "org.apache.struts:struts2-core@2.5.12" || rootDeps[1].NodeID() != "org.mindrot:jbcrypt@0.3m" {
 		t.Fatalf("unexpected root deps: %#v", rootDeps)
 	}
 
@@ -135,7 +136,7 @@ func TestDepGraphFromMavenTGF_WithMavenLogPrefixes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("dependencies(struts2-core) error = %v", err)
 	}
-	if len(strutsDeps) != 1 || strutsDeps[0].ID != "org.freemarker:freemarker@2.3.23" {
+	if len(strutsDeps) != 1 || strutsDeps[0].NodeID() != "org.freemarker:freemarker@2.3.23" {
 		t.Fatalf("unexpected struts deps: %#v", strutsDeps)
 	}
 }
@@ -403,4 +404,15 @@ func TestMavenDetectorResolveRunner_FallsBackToInstalledMaven(t *testing.T) {
 	if len(prefixArgs) != 0 {
 		t.Fatalf("expected no prefix args, got %#v", prefixArgs)
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

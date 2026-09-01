@@ -3,6 +3,7 @@ package mcp
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
@@ -20,11 +21,11 @@ func remediationFixture(t *testing.T) remediationInput {
 	t.Helper()
 	g := sdk.New()
 	nodes := []*sdk.DependencyNode{
-		sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "app", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/app@1.0.0"}}),
-		sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib-a", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lib-a@1.0.0"}}),
-		sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib-b", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lib-b@1.0.0"}}),
-		sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Org: "scope", Name: "deep", Version: "2.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/@scope/deep@2.0.0"}}),
-		sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "legacy", Version: "0.1.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/legacy@0.1.0"}}),
+		testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "app", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/app@1.0.0"}}),
+		testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib-a", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lib-a@1.0.0"}}),
+		testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib-b", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lib-b@1.0.0"}}),
+		testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Org: "scope", Name: "deep", Version: "2.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/@scope/deep@2.0.0"}}),
+		testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "legacy", Version: "0.1.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/legacy@0.1.0"}}),
 	}
 	for _, node := range nodes {
 		if err := g.AddNode(node); err != nil {
@@ -416,7 +417,7 @@ func TestShortestPathBoundsLongChains(t *testing.T) {
 	g := sdk.New()
 	var previous string
 	for i := 0; i < 10; i++ {
-		node := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{
+		node := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 			Name: fmt.Sprintf("chain-%d", i), Version: "1.0.0", Ecosystem: sdk.EcosystemNPM,
 			PURL: fmt.Sprintf("pkg:npm/chain-%d@1.0.0", i),
 		}})

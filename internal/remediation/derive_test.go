@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"reflect"
 	"strings"
 	"testing"
@@ -26,7 +27,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 		{
 			name: "one fixed in version",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:       "VULN-1",
 				FixState: sdk.FixStateFixed,
 				FixedIn:  "1.2.0",
 			}},
@@ -39,13 +39,11 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name: "uses preferred source and highest required version",
 			vulnerabilities: []sdk.Vulnerability{
 				{
-					ID:            "VULN-1",
 					FixedIn:       "1.4.0",
 					FixAvailable:  []sdk.FixAvailable{{Version: "9.0.0"}},
 					FixedVersions: []string{"8.0.0"},
 				},
 				{
-					ID: "VULN-2",
 					FixAvailable: []sdk.FixAvailable{
 						{Version: "2.1.0"},
 						{Version: "2.0.0"},
@@ -53,7 +51,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 					FixedVersions: []string{"7.0.0"},
 				},
 				{
-					ID:            "VULN-3",
 					FixedVersions: []string{"1.5.0", "1.6.0"},
 				},
 			},
@@ -66,7 +63,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "selects fix from current release line",
 			currentVersion: "1.2.5",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:            "VULN-1",
 				FixedVersions: []string{"0.2.4", "1.2.6"},
 			}},
 			want: &sdk.PackageRemediation{
@@ -78,7 +74,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "does not recommend a downgrade",
 			currentVersion: "1.2.5",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:            "VULN-1",
 				FixedVersions: []string{"0.2.4", "1.2.4"},
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -87,7 +82,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "does not recommend installed version",
 			currentVersion: "1.2.5",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:      "VULN-1",
 				FixedIn: "1.2.5",
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -96,7 +90,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "current version requires comparable fixes",
 			currentVersion: "1.2.5",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:            "VULN-1",
 				FixedVersions: []string{"release-a", "1.2.6"},
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -105,7 +98,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "unparseable installed version cannot prove an upgrade",
 			currentVersion: "1:2.0",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:      "VULN-1",
 				FixedIn: "1.5.0",
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -114,7 +106,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "distribution installed version cannot prove an upgrade",
 			currentVersion: "2:1.2.3-1ubuntu1",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:      "VULN-1",
 				FixedIn: "2.0.0",
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -122,7 +113,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 		{
 			name: "unparseable fix evidence is not a version",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:      "VULN-1",
 				FixedIn: "see advisory",
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -131,7 +121,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "prerelease-only fix is not recommended",
 			currentVersion: "1.0.0",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:      "VULN-1",
 				FixedIn: "2.0.0-rc.1",
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -140,7 +129,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "stable fix is preferred over prerelease",
 			currentVersion: "1.0.0",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:            "VULN-1",
 				FixedVersions: []string{"2.0.0-rc.1", "2.0.0"},
 			}},
 			want: &sdk.PackageRemediation{
@@ -183,7 +171,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 		{
 			name: "contradictory evidence",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:       "VULN-1",
 				FixState: sdk.FixStateWontFix,
 				FixedIn:  "1.2.0",
 			}},
@@ -200,7 +187,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 		{
 			name: "incomparable versions within one source",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:            "VULN-1",
 				FixedVersions: []string{"release-a", "release-b"},
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -222,7 +208,6 @@ func TestDerivePackageRemediationsOverwritesAndIsIdempotent(t *testing.T) {
 	pkg := registry.Add(&sdk.Package{
 		Coordinates: sdk.Coordinates{PURL: "pkg:npm/example@1.0.0"},
 		Vulnerabilities: []sdk.Vulnerability{{
-			ID:      "VULN-1",
 			FixedIn: "1.2.0",
 		}},
 		Remediation: &sdk.PackageRemediation{
@@ -460,10 +445,10 @@ func TestDeriveGroupsEquivalentOccurrencesWithoutCollapsingManifests(t *testing.
 			t.Fatalf("AddNode(%s) error = %v", dependency.NodeID(), err)
 		}
 	}
-	if err := secondGraph.AddEdge(secondRoot.ID, secondParent.ID); err != nil {
+	if err := secondGraph.AddEdge(secondRoot.NodeID(), secondParent.NodeID()); err != nil {
 		t.Fatalf("AddEdge() error = %v", err)
 	}
-	if err := secondGraph.AddEdge(secondParent.ID, secondOccurrence.ID); err != nil {
+	if err := secondGraph.AddEdge(secondParent.NodeID(), secondOccurrence.NodeID()); err != nil {
 		t.Fatalf("AddEdge() error = %v", err)
 	}
 
@@ -493,7 +478,6 @@ func TestDeriveGroupsEquivalentOccurrencesWithoutCollapsingManifests(t *testing.
 	registry.Add(&sdk.Package{
 		Coordinates: sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
 		Vulnerabilities: []sdk.Vulnerability{{
-			ID:      "VULN-1",
 			FixedIn: "1.2.0",
 		}},
 	})
@@ -538,19 +522,19 @@ func TestInferredPlacementUsesRealProjectRootsOnly(t *testing.T) {
 			t.Fatalf("AddNode(%s) error = %v", dependency.NodeID(), err)
 		}
 	}
-	if err := graph.AddEdge(root.NodeID(), direct.ID); err != nil {
+	if err := graph.AddEdge(root.NodeID(), direct.NodeID()); err != nil {
 		t.Fatalf("AddEdge(root, direct) error = %v", err)
 	}
-	if err := graph.AddEdge(direct.ID, transitive.ID); err != nil {
+	if err := graph.AddEdge(direct.NodeID(), transitive.NodeID()); err != nil {
 		t.Fatalf("AddEdge(direct, transitive) error = %v", err)
 	}
 
-	if relationship, target, ok := inferredPlacement(graph, direct.ID); !ok ||
-		relationship != sdk.DependencyRelationshipDirect || target != direct.ID {
+	if relationship, target, ok := inferredPlacement(graph, direct.NodeID()); !ok ||
+		relationship != sdk.DependencyRelationshipDirect || target != direct.NodeID() {
 		t.Fatalf("direct placement = (%q, %q, %t)", relationship, target, ok)
 	}
-	if relationship, target, ok := inferredPlacement(graph, transitive.ID); !ok ||
-		relationship != sdk.DependencyRelationshipTransitive || target != direct.ID {
+	if relationship, target, ok := inferredPlacement(graph, transitive.NodeID()); !ok ||
+		relationship != sdk.DependencyRelationshipTransitive || target != direct.NodeID() {
 		t.Fatalf("transitive placement = (%q, %q, %t)", relationship, target, ok)
 	}
 
@@ -563,11 +547,11 @@ func TestInferredPlacementUsesRealProjectRootsOnly(t *testing.T) {
 			t.Fatalf("AddNode(%s) error = %v", dependency.NodeID(), err)
 		}
 	}
-	if err := virtualGraph.AddEdge(virtualRoot.ID, orphan.ID); err != nil {
+	if err := virtualGraph.AddEdge(virtualRoot.NodeID(), orphan.NodeID()); err != nil {
 		t.Fatalf("AddEdge(manifest, orphan) error = %v", err)
 	}
-	if relationship, target, ok := inferredPlacement(virtualGraph, orphan.ID); ok ||
-		relationship != sdk.DependencyRelationshipUnknown || target != orphan.ID {
+	if relationship, target, ok := inferredPlacement(virtualGraph, orphan.NodeID()); ok ||
+		relationship != sdk.DependencyRelationshipUnknown || target != orphan.NodeID() {
 		t.Fatalf("virtual-root placement = (%q, %q, %t)", relationship, target, ok)
 	}
 }
@@ -725,7 +709,6 @@ func TestDeriveRejectsUnadvertisedAndUnknownHints(t *testing.T) {
 	registry.Add(&sdk.Package{
 		Coordinates: dependency.Coordinates,
 		Vulnerabilities: []sdk.Vulnerability{{
-			ID:      "VULN-1",
 			FixedIn: "1.2.0",
 		}},
 	})
@@ -782,12 +765,11 @@ func TestDeriveResolvesRebasedHintAndWarnsWhenManifestResolutionFails(t *testing
 		manifestPath = "package-lock.json"
 	)
 	detectionGraph := sdk.New()
-	rawDependency := sdk.NewDependencyNode("raw-lockfile-id", sdk.DependencyNode{
+	rawDependency := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			PURL: purl, Name: "example", Version: "1.0.0",
 			PackageManager: sdk.PackageManagerNPM,
 		},
-		ID:           "raw-lockfile-id",
 		Relationship: sdk.DependencyRelationshipDirect,
 		Source:       sdk.DependencySourceRegistry,
 	})
@@ -811,7 +793,7 @@ func TestDeriveResolvesRebasedHintAndWarnsWhenManifestResolutionFails(t *testing
 			}},
 		},
 		response: sdk.RemediationHintResponse{Hints: []sdk.RemediationHint{{
-			DependencyRef: rawDependency.ID,
+			DependencyRef: rawDependency.NodeID(),
 			ManifestPath:  manifestPath,
 			Strategies: []sdk.RemediationStrategyHint{{
 				Action: sdk.RemediationActionDirectBump,
@@ -893,7 +875,6 @@ func TestDeriveFallsBackToManualReviewWhenProviderFails(t *testing.T) {
 	registry.Add(&sdk.Package{
 		Coordinates: dependency.Coordinates,
 		Vulnerabilities: []sdk.Vulnerability{{
-			ID:      "VULN-1",
 			FixedIn: "1.2.0",
 		}},
 	})
@@ -930,7 +911,7 @@ func TestDeriveFallsBackToManualReviewWhenProviderFails(t *testing.T) {
 }
 
 func testDependency(id, purl string, relationship sdk.DependencyRelationship, source sdk.DependencySource) *sdk.DependencyNode {
-	return sdk.NewDependencyNode(id, sdk.DependencyNode{
+	return testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			PURL:           purl,
 			Name:           id,
@@ -938,7 +919,6 @@ func testDependency(id, purl string, relationship sdk.DependencyRelationship, so
 			PackageManager: sdk.PackageManagerNPM,
 			Type:           sdk.PackageTypePackage,
 		},
-		ID:           id,
 		Relationship: relationship,
 		Source:       source,
 		PackageRef:   purl,

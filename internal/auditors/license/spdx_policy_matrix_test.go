@@ -2,6 +2,7 @@ package license
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"strings"
 	"testing"
 
@@ -223,23 +224,27 @@ func TestLicenseAuditorInvalidSPDXExpressionMatrix(t *testing.T) {
 
 func TestLicenseAuditorExemptionIsPackageSpecificAndVersionAgnostic(t *testing.T) {
 	graph := sdk.New()
-	root := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{
+	// The scanned project's own artifact is a module node; ownership is the
+	// node kind now (ADR-0041).
+	root := testnodes.ModuleFrom("package.json", sdk.Coordinates{
 		Ecosystem: sdk.EcosystemNPM, Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication,
-	}})
-	root.FirstParty = true
-	exempt := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{
+	})
+	exempt := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 		Ecosystem: sdk.EcosystemNPM, Name: "exempt", Version: "2.0.0",
 	}})
-	blocked := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{
+	blocked := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 		Ecosystem: sdk.EcosystemNPM, Name: "blocked", Version: "1.0.0",
 	}})
 	registry := sdk.NewPackageRegistry()
-	for _, dependency := range []*sdk.DependencyNode{root, exempt, blocked} {
+	if err := graph.AddNode(root); err != nil {
+		t.Fatal(err)
+	}
+	for _, dependency := range []*sdk.DependencyNode{exempt, blocked} {
 		dependency.PackageRef = dependency.NodeID()
 		if err := graph.AddNode(dependency); err != nil {
 			t.Fatal(err)
 		}
-		if dependency != root {
+		{
 			if err := graph.AddEdge(root.NodeID(), dependency.NodeID()); err != nil {
 				t.Fatal(err)
 			}
@@ -262,11 +267,12 @@ func TestLicenseAuditorExemptionIsPackageSpecificAndVersionAgnostic(t *testing.T
 func auditLicenseExpressions(t *testing.T, auditor Auditor, expressions ...string) []sdk.Finding {
 	t.Helper()
 	graph := sdk.New()
-	root := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{
+	// The scanned project's own artifact is a module node; ownership is the
+	// node kind now (ADR-0041).
+	root := testnodes.ModuleFrom("package.json", sdk.Coordinates{
 		Ecosystem: sdk.EcosystemNPM, Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication,
-	}})
-	root.FirstParty = true
-	dependency := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{
+	})
+	dependency := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 		Ecosystem: sdk.EcosystemNPM, Name: "library", Version: "1.0.0",
 	}})
 	dependency.PackageRef = dependency.NodeID()

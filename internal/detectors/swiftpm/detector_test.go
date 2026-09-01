@@ -24,7 +24,7 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if graph == nil {
 		t.Fatal("expected graph")
 	}
-	pkg, ok := graph.Node("github.com/apple:swift-argument-parser@1.3.0")
+	pkg, ok := graph.DependencyNode("github.com/apple:swift-argument-parser@1.3.0")
 	if !ok {
 		t.Fatalf("expected swift-argument-parser package, got %v", graph.DependencyNodes())
 	}
@@ -123,7 +123,7 @@ func TestDepGraphFromSwiftShowDepsBuildsTransitiveGraph(t *testing.T) {
 	if err != nil {
 		t.Fatalf("swift-argument-parser dependencies: %v", err)
 	}
-	if len(children) != 1 || children[0].ID != "github.com/apple:swift-system@1.2.0" {
+	if len(children) != 1 || children[0].NodeID() != "github.com/apple:swift-system@1.2.0" {
 		t.Fatalf("expected swift-system transitive dependency, got %#v", children)
 	}
 }

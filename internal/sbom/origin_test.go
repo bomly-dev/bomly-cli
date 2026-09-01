@@ -370,14 +370,25 @@ func TestOriginIsNotReadBackFromAnIngestedDocument(t *testing.T) {
 	}
 }
 
-// The project's own records never take an external origin, and export is the
-// last line of that invariant: a plugin-supplied graph can assert an origin
-// directly on a first-party node, bypassing every detector- and fold-level
-// guard, so the projection itself must decline.
+// The project's own records never publish an external origin. Under ADR-0041
+// that holds by construction -- a module node has no Origins field for a
+// plugin-supplied graph to write into -- and export is where the guarantee is
+// visible: the component for a module asserts nothing about where it came
+// from, in either format.
 func TestProjectOwnedComponentsPublishNoOrigin(t *testing.T) {
-	g := originGraph(t, func(_, pkg *sdk.DependencyNode) {
-		pkg.Origins = sdk.MergeOrigins(nil, repositoryOriginsFor("https://github.com/upstream/react", "b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7"))
+	g := sdk.New()
+	app := testnodes.Module("package.json", "app", "1.0.0")
+	member := testnodes.ModuleFrom("packages/react/package.json", sdk.Coordinates{
+		Ecosystem: "npm", Name: "react", Version: "18.2.0",
 	})
+	for _, node := range []sdk.GraphNode{app, member} {
+		if err := g.AddNode(node); err != nil {
+			t.Fatalf("add node %s: %v", node.NodeID(), err)
+		}
+	}
+	if err := g.AddEdge(app.NodeID(), member.NodeID()); err != nil {
+		t.Fatalf("add edge: %v", err)
+	}
 
 	spdxRaw, cdxRaw := marshalBoth(t, g)
 
@@ -396,12 +407,15 @@ func TestScorecardRepositoryIsNotAttributedToProjectOwnedComponents(t *testing.T
 	const purl = "pkg:npm/helper@1.0.0"
 
 	g := sdk.New()
-	member := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
-		Name: "helper", Version: "1.0.0", PURL: purl, Ecosystem: "npm"}})
+	// The workspace member and the consumed package share a package URL, so
+	// they are separated by kind: the member is a module declared by its own
+	// manifest, and its ID cannot collide with the consumed package's.
+	member := testnodes.ModuleFrom("packages/helper/package.json", sdk.Coordinates{
+		Name: "helper", Version: "1.0.0", PURL: purl, Ecosystem: "npm"})
 	consumed := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 		Name: "helper", Version: "1.0.0", PURL: purl, Ecosystem: "npm"}})
-	for _, dep := range []*sdk.DependencyNode{member, consumed} {
-		if err := g.AddNode(dep); err != nil {
+	for _, node := range []sdk.GraphNode{member, consumed} {
+		if err := g.AddNode(node); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -437,12 +451,12 @@ func TestScorecardRepositoryIsNotAttributedToProjectOwnedComponents(t *testing.T
 			}
 		}
 		switch component.BOMRef {
-		case "member":
+		case member.NodeID():
 			memberChecked = true
 			if hasVCS {
 				t.Fatal("the project's own component was attributed to the upstream repository")
 			}
-		case "consumed":
+		case consumed.NodeID():
 			consumedChecked = true
 			if !hasVCS {
 				t.Fatal("the consumed component should carry the scorecard repository")

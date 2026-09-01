@@ -55,7 +55,7 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 		component := Component{
 			ID:             pkg.NodeID(),
 			Name:           coords.EcosystemName(),
-			Org:            strings.TrimSpace(coords.Org),
+			Org:            componentOrg(node),
 			Version:        version,
 			PURL:           pkg.NodeID(),
 			Ecosystem:      string(coords.Ecosystem),
@@ -538,16 +538,17 @@ func normalizeSPDXLicenseExpression(expression string) string {
 // value the document already carries: PURL construction derives a namespace
 // for Go modules whose coordinates leave Org empty, and it spells npm scopes
 // with their leading "@". Reading it back keeps `group` and the PURL agreeing.
-func componentOrg(pkg *sdk.DependencyNode) string {
-	if pkg == nil {
+func componentOrg(node sdk.GraphNode) string {
+	coords, ok := nodes.Coordinates(node)
+	if !ok {
 		return ""
 	}
-	if parsed := parsePURL(pkg.NodeID()); parsed != nil {
+	if parsed := parsePURL(node.NodeID()); parsed != nil {
 		if namespace := strings.TrimSpace(parsed.Namespace); namespace != "" {
 			return namespace
 		}
 	}
-	return strings.TrimSpace(pkg.Org)
+	return strings.TrimSpace(coords.Org)
 }
 
 // licenseExpressionValue returns the license string a component carries: the

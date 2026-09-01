@@ -514,10 +514,10 @@ func TestToGraph_AllowsCycles(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Dependencies(b): %v", err)
 	}
-	if got := idsOfPackages(aDeps); len(got) != 1 || got[0] != "b" {
+	if got := idsOfPackages(aDeps); len(got) != 1 || got[0] != testnodes.ID(depsGraph, "b") {
 		t.Fatalf("expected a -> b, got %#v", got)
 	}
-	if got := idsOfPackages(bDeps); len(got) != 1 || got[0] != "a" {
+	if got := idsOfPackages(bDeps); len(got) != 1 || got[0] != testnodes.ID(depsGraph, "a") {
 		t.Fatalf("expected b -> a, got %#v", got)
 	}
 }

@@ -106,8 +106,8 @@ func TestFromDepGraphEnrichesCycloneDXFromRegistry(t *testing.T) {
 	if vuln.CWEs == nil || len(*vuln.CWEs) != 1 || (*vuln.CWEs)[0] != 1321 {
 		t.Fatalf("expected CWE 1321, got %#v", vuln.CWEs)
 	}
-	if vuln.Affects == nil || len(*vuln.Affects) != 1 || (*vuln.Affects)[0].Ref != "react@18.2.0" {
-		t.Fatalf("expected affects ref react@18.2.0, got %#v", vuln.Affects)
+	if vuln.Affects == nil || len(*vuln.Affects) != 1 || (*vuln.Affects)[0].Ref != "pkg:npm/react@18.2.0" {
+		t.Fatalf("expected affects ref pkg:npm/react@18.2.0, got %#v", vuln.Affects)
 	}
 }
 

@@ -268,10 +268,22 @@ func TestIngestBareNameRecoversQualifiedName(t *testing.T) {
 			wantGroup: "github.com/google",
 		},
 		{
-			// Generic packages do not join Org into the display name, but the
-			// group must still survive the round trip.
-			name:      "generic package keeps its group",
+			// A group the package URL does not encode is not part of the
+			// package's identity, and identity is what a node adopts
+			// (ADR-0041): ingesting "pkg:generic/widget@1.0.0" yields a node
+			// with no namespace, so the re-export publishes none either
+			// rather than a group the PURL contradicts.
+			name:      "generic group outside the package URL is not republished",
 			component: Component{ID: "widget-1", Name: "widget", Org: "acme", Version: "1.0.0", PURL: "pkg:generic/widget@1.0.0"},
+			ecosystem: "generic",
+			wantName:  "widget",
+			wantGroup: "",
+		},
+		{
+			// A group the package URL does encode survives, because it is
+			// part of the identity.
+			name:      "generic group inside the package URL survives",
+			component: Component{ID: "widget-2", Name: "widget", Org: "acme", Version: "1.0.0", PURL: "pkg:generic/acme/widget@1.0.0"},
 			ecosystem: "generic",
 			wantName:  "widget",
 			wantGroup: "acme",

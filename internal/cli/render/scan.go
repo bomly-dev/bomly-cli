@@ -20,11 +20,20 @@ func ScanGraphDisplayName(g *sdk.Graph, fallback string) string {
 	if len(roots) != 1 {
 		return fallback
 	}
-	if roots[0].QualifiedName() != "" {
-		return roots[0].QualifiedName()
+	// QualifiedName lives on the typed nodes; a manifest root has only its
+	// path, which NodeID already carries.
+	switch typed := roots[0].(type) {
+	case *sdk.DependencyNode:
+		if name := typed.QualifiedName(); name != "" {
+			return name
+		}
+	case *sdk.ModuleNode:
+		if name := typed.QualifiedName(); name != "" {
+			return name
+		}
 	}
-	if roots[0].ID != "" {
-		return roots[0].ID
+	if roots[0].NodeID() != "" {
+		return roots[0].NodeID()
 	}
 	return fallback
 }
@@ -355,15 +364,15 @@ func topLevelParentIDs(g *sdk.Graph) map[string]struct{} {
 	parents := make(map[string]struct{})
 	for _, root := range g.Roots() {
 		if root != nil {
-			parents[root.ID] = struct{}{}
+			parents[root.NodeID()] = struct{}{}
 		}
 	}
-	for _, pkg := range g.Nodes() {
+	for _, pkg := range g.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
 		if pkg.Type == sdk.PackageTypeApplication {
-			parents[pkg.ID] = struct{}{}
+			parents[pkg.NodeID()] = struct{}{}
 		}
 	}
 	return parents
@@ -388,24 +397,24 @@ func renderDirectDepsTable(g *sdk.Graph, registry *sdk.PackageRegistry) string {
 		vulns   string
 	}
 	var rows []row
-	for _, pkg := range g.Nodes() {
+	for _, pkg := range g.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
-		if _, isRoot := rootIDs[pkg.ID]; isRoot {
+		if _, isRoot := rootIDs[pkg.NodeID()]; isRoot {
 			continue
 		}
 		if pkg.Relationship == sdk.DependencyRelationshipUnknown {
 			continue
 		}
-		dependents, err := g.Dependents(pkg.ID)
+		dependents, err := g.Dependents(pkg.NodeID())
 		if err != nil {
 			continue
 		}
 		isDirect := false
 		for _, dep := range dependents {
 			if dep != nil {
-				if _, isRoot := rootIDs[dep.ID]; isRoot {
+				if _, isRoot := rootIDs[dep.NodeID()]; isRoot {
 					isDirect = true
 					break
 				}
@@ -594,9 +603,9 @@ func lookupFindingPkgAndVuln(registry *sdk.PackageRegistry, f sdk.Finding) (*sdk
 // licensesForDependency returns the licenses to render for a dependency:
 // matching-stage licenses on the registry package when present, otherwise
 // the detection-time licenses stashed on the dependency.
-func licensesForDependency(dep *sdk.Dependency, registry *sdk.PackageRegistry) []sdk.PackageLicense {
-	if registry != nil && dep != nil && dep.PURL != "" {
-		if pkg, ok := registry.Get(dep.PURL); ok && pkg != nil && len(pkg.Licenses) > 0 {
+func licensesForDependency(dep *sdk.DependencyNode, registry *sdk.PackageRegistry) []sdk.PackageLicense {
+	if registry != nil && dep != nil && dep.NodeID() != "" {
+		if pkg, ok := registry.Get(dep.NodeID()); ok && pkg != nil && len(pkg.Licenses) > 0 {
 			return pkg.Licenses
 		}
 	}
@@ -648,25 +657,25 @@ func scanRelationshipCounts(g *sdk.Graph) (roots, direct, transitive, unknown in
 	}
 	rootIDs := topLevelParentIDs(g)
 	roots = len(rootIDs)
-	for _, pkg := range g.Nodes() {
+	for _, pkg := range g.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
-		if _, isRoot := rootIDs[pkg.ID]; isRoot {
+		if _, isRoot := rootIDs[pkg.NodeID()]; isRoot {
 			continue
 		}
 		if pkg.Relationship == sdk.DependencyRelationshipUnknown {
 			unknown++
 			continue
 		}
-		dependents, err := g.Dependents(pkg.ID)
+		dependents, err := g.Dependents(pkg.NodeID())
 		if err != nil {
 			continue
 		}
 		isDirect := false
 		for _, dependent := range dependents {
 			if dependent != nil {
-				if _, isRoot := rootIDs[dependent.ID]; isRoot {
+				if _, isRoot := rootIDs[dependent.NodeID()]; isRoot {
 					isDirect = true
 					break
 				}
@@ -689,11 +698,11 @@ func scanScopeCounts(g *sdk.Graph) (runtimeCount, developmentCount, unscopedCoun
 		return 0, 0, 0
 	}
 	structural := topLevelParentIDs(g)
-	for _, pkg := range g.Nodes() {
+	for _, pkg := range g.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
-		if _, isStructural := structural[pkg.ID]; isStructural {
+		if _, isStructural := structural[pkg.NodeID()]; isStructural {
 			continue
 		}
 		switch pkg.PrimaryScope() {
@@ -713,7 +722,7 @@ func scanUniqueLicenseCount(g *sdk.Graph, registry *sdk.PackageRegistry) int {
 		return 0
 	}
 	licenseSet := make(map[string]struct{})
-	for _, pkg := range g.Nodes() {
+	for _, pkg := range g.DependencyNodes() {
 		for _, license := range licensesForDependency(pkg, registry) {
 			switch {
 			case strings.TrimSpace(license.SPDXExpression) != "":
@@ -728,11 +737,11 @@ func scanUniqueLicenseCount(g *sdk.Graph, registry *sdk.PackageRegistry) int {
 
 // formatDepVulnCounts returns a compact coloured vuln-count string like "1C 2H" for a
 // direct dependency. Returns "-" when the registry has no vulnerability data.
-func formatDepVulnCounts(dep *sdk.Dependency, registry *sdk.PackageRegistry) string {
-	if registry == nil || dep == nil || dep.PURL == "" {
+func formatDepVulnCounts(dep *sdk.DependencyNode, registry *sdk.PackageRegistry) string {
+	if registry == nil || dep == nil || dep.NodeID() == "" {
 		return "-"
 	}
-	regPkg, ok := registry.Get(dep.PURL)
+	regPkg, ok := registry.Get(dep.NodeID())
 	if !ok || regPkg == nil || len(regPkg.Vulnerabilities) == 0 {
 		return "-"
 	}

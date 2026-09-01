@@ -25,14 +25,14 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	}
 	plug, ok := graph.Node("plug@1.15.3")
 	if !ok {
-		t.Fatalf("expected plug package, got %v", graph.Nodes())
+		t.Fatalf("expected plug package, got %v", graph.DependencyNodes())
 	}
 	if plug.PURL != "pkg:hex/plug@1.15.3" {
 		t.Fatalf("expected plug PURL, got %q", plug.PURL)
 	}
 	credo, ok := graph.Node("credo@1.7.7")
 	if !ok {
-		t.Fatalf("expected credo package, got %v", graph.Nodes())
+		t.Fatalf("expected credo package, got %v", graph.DependencyNodes())
 	}
 	if string(credo.PrimaryScope()) != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected credo development scope, got %q", string(credo.PrimaryScope()))

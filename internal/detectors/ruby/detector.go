@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -180,35 +181,44 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRuby,
+	rootNode, err := sdk.NewModuleNode("Gemfile", sdk.Coordinates{Ecosystem: sdk.EcosystemRuby,
 		Name:           "root",
 		PackageManager: sdk.PackageManagerBundler,
 		Type:           sdk.PackageTypeApplication,
-		FirstParty:     true,
-		Language:       "ruby"},
-	})
-
+		Language:       "ruby"})
+	if err != nil {
+		return nil, fmt.Errorf("build root node: %w", err)
+	}
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
 	for _, spec := range specs {
-		node := gemNode(spec)
+		node, err := gemNode(spec)
+		if err != nil {
+			return nil, err
+		}
 		if err := addGemNodeIfMissing(depsGraph, node); err != nil {
 			return nil, err
 		}
 	}
 
 	for _, spec := range specs {
-		parent := gemNode(spec)
+		parent, err := gemNode(spec)
+		if err != nil {
+			return nil, err
+		}
 		for _, dependencyName := range spec.Dependencies {
 			childSpec, ok := specs[dependencyName]
 			if !ok {
 				continue
 			}
-			child := gemNode(childSpec)
-			if err := depsGraph.AddEdge(parent.ID, child.ID); err != nil {
-				return nil, fmt.Errorf("add dependency %q -> %q: %w", parent.ID, child.ID, err)
+			child, err := gemNode(childSpec)
+			if err != nil {
+				return nil, err
+			}
+			if err := depsGraph.AddEdge(parent.NodeID(), child.NodeID()); err != nil {
+				return nil, fmt.Errorf("add dependency %q -> %q: %w", parent.NodeID(), child.NodeID(), err)
 			}
 		}
 	}
@@ -218,21 +228,29 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 		if !ok {
 			spec = lockSpec{Name: dependencyName}
 			specs[dependencyName] = spec
-			node := gemNode(spec)
+			node, err := gemNode(spec)
+			if err != nil {
+				return nil, err
+			}
 			if err := addGemNodeIfMissing(depsGraph, node); err != nil {
 				return nil, err
 			}
 		}
-		node := gemNode(spec)
+		node, err := gemNode(spec)
+		if err != nil {
+			return nil, err
+		}
 		scope := directScopes[dependencyName]
 		if scope == sdk.ScopeUnknown {
 			scope = sdk.ScopeRuntime
 		}
-		if existing, ok := depsGraph.Node(node.ID); ok {
-			existing.AddScope(scope)
+		if existingNode, ok := depsGraph.Node(node.NodeID()); ok {
+			if existing, isDep := nodes.AsDependency(existingNode); isDep {
+				existing.AddScope(scope)
+			}
 		}
-		if err := depsGraph.AddEdge(rootNode.ID, node.ID); err != nil {
-			return nil, fmt.Errorf("add root dependency %q: %w", node.ID, err)
+		if err := depsGraph.AddEdge(rootNode.NodeID(), node.NodeID()); err != nil {
+			return nil, fmt.Errorf("add root dependency %q: %w", node.NodeID(), err)
 		}
 	}
 
@@ -248,9 +266,18 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 			if !ok {
 				return
 			}
-			node := gemNode(spec)
-			if existing, ok := depsGraph.Node(node.ID); ok {
-				existing.AddScope(scope)
+			// walk only visits names present in specs, and every spec was
+			// built once already in the loop above -- an error here would
+			// have returned there, so there is nothing to report from a
+			// closure with no error channel.
+			node, err := gemNode(spec)
+			if err != nil {
+				return
+			}
+			if existingNode, ok := depsGraph.Node(node.NodeID()); ok {
+				if existing, isDep := nodes.AsDependency(existingNode); isDep {
+					existing.AddScope(scope)
+				}
 			}
 			for _, child := range spec.Dependencies {
 				walk(child, scope)
@@ -483,28 +510,34 @@ func scopeForGroupLabels(labels []string) sdk.Scope {
 	return sdk.ScopeDevelopment
 }
 
-func gemNode(spec lockSpec) *sdk.Dependency {
+func gemNode(spec lockSpec) (*sdk.DependencyNode, error) {
 	var metadata map[string]any
 	if revision := strings.TrimSpace(spec.Revision); revision != "" {
 		metadata = map[string]any{"source_revision": revision}
 	}
-	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRuby,
+	node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemRuby,
 		Name:           strings.TrimSpace(spec.Name),
 		Version:        strings.TrimSpace(spec.Version),
 		PackageManager: sdk.PackageManagerBundler,
 		Type:           "gem",
-		Language:       "ruby"}, Source: spec.Source, ResolvedURL: strings.TrimSpace(spec.ResolvedURL), Metadata: metadata,
-	})
+		Language:       "ruby"})
+	if err != nil {
+		return nil, fmt.Errorf("build dependency node: %w", err)
+	}
+	node.Source = spec.Source
+	node.ResolvedURL = strings.TrimSpace(spec.ResolvedURL)
+	node.Metadata = metadata
 	if spec.Source == sdk.DependencySourceGit {
 		// A GIT section names the repository and the commit Bundler locked.
 		// A GEM section's remote is the gem server, and PATH is local.
-		node.Origin = sdk.RepositoryOrigin(spec.ResolvedURL, spec.Revision)
+		if origin := sdk.RepositoryOrigin(spec.ResolvedURL, spec.Revision); origin != nil {
+			node.Origins = sdk.MergeOrigins(node.Origins, []sdk.DependencyOrigin{*origin})
+		}
 	}
-	return node
-
+	return node, nil
 }
 
-func addGemNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
+func addGemNodeIfMissing(depsGraph *sdk.Graph, node *sdk.DependencyNode) error {
 	_, err := detectors.EnsureNode(depsGraph, node)
 	return err
 }

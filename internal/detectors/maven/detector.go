@@ -157,15 +157,22 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 	// longer a root, yet still needs its own manifest entry.
 	matchedModules := make([]moduleEntry, 0, len(modules))
 	matchedIDs := map[string]struct{}{}
-	for _, pkg := range depsGraph.Nodes() {
+	// Collected before promoting: promotion replaces nodes, so iterating the
+	// graph while promoting would walk a changing graph.
+	type pendingPromotion struct {
+		rootID  string
+		pomPath string
+	}
+	promotions := make([]pendingPromotion, 0, len(modules))
+	for _, pkg := range depsGraph.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
 		if module, ok := moduleByKey[graphNodeModuleKey(pkg)]; ok {
-			if _, seen := matchedIDs[pkg.ID]; seen {
+			if _, seen := matchedIDs[pkg.NodeID()]; seen {
 				continue
 			}
-			matchedIDs[pkg.ID] = struct{}{}
+			matchedIDs[pkg.NodeID()] = struct{}{}
 			// Reactor modules are the project's own applications; typing them
 			// lets downstream views treat their direct dependencies as
 			// top-level even when a sibling module depends on them, and the
@@ -173,19 +180,35 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 			if pkg.Type == "" {
 				pkg.Type = sdk.PackageTypeApplication
 			}
-			pkg.FirstParty = true
-			matchedModules = append(matchedModules, moduleEntry{module: module, rootID: pkg.ID})
+			// A reactor module is the project's own artifact, so it becomes a
+			// module node. Ownership is the kind under ADR-0041 and a kind is
+			// fixed at construction, so the node is replaced rather than
+			// flagged.
+			rootID := pkg.NodeID()
+			promotions = append(promotions, pendingPromotion{
+				rootID:  rootID,
+				pomPath: filepath.ToSlash(filepath.Join(module.Dir, "pom.xml")),
+			})
+			matchedModules = append(matchedModules, moduleEntry{module: module, rootID: rootID})
 		}
 	}
+	for _, promotion := range promotions {
+		if err := detectors.PromoteToModule(depsGraph, promotion.rootID, promotion.pomPath); err != nil {
+			// A module that cannot be promoted keeps its dependency node: the
+			// entry is still correct, it merely misses the ownership mark.
+			continue
+		}
+	}
+
 	rootIDs := make([]string, 0)
 	for _, root := range depsGraph.Roots() {
 		if root == nil {
 			continue
 		}
-		if _, ok := matchedIDs[root.ID]; ok {
+		if _, ok := matchedIDs[root.NodeID()]; ok {
 			continue
 		}
-		rootIDs = append(rootIDs, root.ID)
+		rootIDs = append(rootIDs, root.NodeID())
 	}
 	if len(matchedModules) == 0 {
 		return nil, 0
@@ -363,7 +386,7 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 	// routinely exceed that and fail with "token too long", so raise the cap.
 	scanner.Buffer(make([]byte, 0, 64*1024), maxTGFTokenSize)
 
-	tgfPackages := make(map[string]*sdk.Dependency)
+	tgfPackages := make(map[string]*sdk.DependencyNode)
 	tgfGraph := sdk.New()
 	type edge struct {
 		from string
@@ -426,8 +449,8 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 		if !ok {
 			return nil, fmt.Errorf("maven tgf references unknown package %q", item.to)
 		}
-		if err := tgfGraph.AddEdge(fromNode.ID, toNode.ID); err != nil {
-			return nil, fmt.Errorf("add maven dependency %q -> %q: %w", fromNode.ID, toNode.ID, err)
+		if err := tgfGraph.AddEdge(fromNode.NodeID(), toNode.NodeID()); err != nil {
+			return nil, fmt.Errorf("add maven dependency %q -> %q: %w", fromNode.NodeID(), toNode.NodeID(), err)
 		}
 	}
 
@@ -436,9 +459,19 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 	// dependency: mark them first-party so enrichment skips them. Reactor
 	// modules consumed by siblings are not graph roots; reactorGraphEntries
 	// marks those when it matches pom-declared coordinates.
+	// Graph roots here are the project's own artifacts -- the single-module
+	// project or the aggregator pom -- never a fetched dependency, so they
+	// become module nodes. Collected first: promotion replaces nodes, so
+	// iterating Roots() while promoting would walk a changing graph.
+	rootIDs := make([]string, 0)
 	for _, root := range tgfGraph.Roots() {
 		if root != nil {
-			root.FirstParty = true
+			rootIDs = append(rootIDs, root.NodeID())
+		}
+	}
+	for _, rootID := range rootIDs {
+		if err := detectors.PromoteToModule(tgfGraph, rootID, "pom.xml"); err != nil {
+			return nil, err
 		}
 	}
 
@@ -514,7 +547,7 @@ func looksLikeMavenCoords(coords string) bool {
 	return strings.Count(coords, ":") >= 3
 }
 
-func parseTGFNodeLine(line string) (string, *sdk.Dependency, error) {
+func parseTGFNodeLine(line string) (string, *sdk.DependencyNode, error) {
 	parts := strings.Fields(line)
 	if len(parts) < 2 {
 		return "", nil, fmt.Errorf("parse maven tgf package %q: expected identifier and coordinates", line)
@@ -527,7 +560,7 @@ func parseTGFNodeLine(line string) (string, *sdk.Dependency, error) {
 	return parts[0], node, nil
 }
 
-func nodeFromMavenCoords(coords string) (*sdk.Dependency, error) {
+func nodeFromMavenCoords(coords string) (*sdk.DependencyNode, error) {
 	parts := strings.Split(coords, ":")
 	if len(parts) < 4 {
 		return nil, fmt.Errorf("parse maven coordinates %q: expected at least 4 segments", coords)
@@ -553,13 +586,18 @@ func nodeFromMavenCoords(coords string) (*sdk.Dependency, error) {
 		}
 	}
 
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemMaven,
-		Name:    name,
-		Version: parts[versionIndex],
-
+	node, err := sdk.NewDependencyNode(sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemMaven,
+		Name:           name,
+		Version:        parts[versionIndex],
 		Org:            groupID,
-		PackageManager: sdk.PackageManagerMaven}, Scopes: sdk.ScopesOf(scope),
-	}), nil
+		PackageManager: sdk.PackageManagerMaven,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("build maven node %s:%s: %w", groupID, name, err)
+	}
+	node.Scopes = sdk.ScopesOf(scope)
+	return node, nil
 }
 
 func scopeFromMavenScope(value string) sdk.Scope {

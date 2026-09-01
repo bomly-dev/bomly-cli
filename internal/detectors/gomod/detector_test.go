@@ -109,7 +109,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if !ok {
 		t.Fatal("expected main module root node")
 	}
-	if !rootNode.FirstParty || sdk.NodeIsEnrichable(rootNode) {
+	if !rootNode.FirstParty || rootNode.RegistryMatchEligible() {
 		t.Fatalf("main module must be first-party and not enrichable, got %#v", rootNode.Coordinates)
 	}
 

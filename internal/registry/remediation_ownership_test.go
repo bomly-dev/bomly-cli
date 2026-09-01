@@ -86,7 +86,7 @@ func remediationHintRequest(t *testing.T, manager sdk.PackageManager) sdk.Remedi
 	t.Helper()
 	const packageRef = "pkg:generic/example@1.0.0"
 	graph := sdk.New()
-	dependency := sdk.NewDependencyWithID("example", sdk.Dependency{
+	dependency := sdk.NewDependencyNode("example", sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			PURL:           packageRef,
 			Name:           "example",

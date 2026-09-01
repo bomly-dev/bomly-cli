@@ -218,14 +218,17 @@ func depGraphFromSBTDependencyTree(raw []byte) (*sdk.Graph, error) {
 	lines := strings.Split(string(raw), "\n")
 
 	g := sdk.New()
-	root := rootNode()
+	root, err := rootNode()
+	if err != nil {
+		return nil, err
+	}
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
 	// parentStack[depth] = nodeID of the package at that depth.
 	// Depth 0 = root.
-	parentStack := []string{root.ID}
+	parentStack := []string{root.NodeID()}
 	seen := make(map[string]bool)
 
 	for _, line := range lines {
@@ -266,16 +269,19 @@ func depGraphFromSBTDependencyTree(raw []byte) (*sdk.Graph, error) {
 			Version: version,
 			Scope:   sdk.ScopeRuntime,
 		}
-		node := packageNode(pkg)
+		node, err := packageNode(pkg)
+		if err != nil {
+			return nil, err
+		}
 
-		if !seen[node.ID] {
-			seen[node.ID] = true
+		if !seen[node.NodeID()] {
+			seen[node.NodeID()] = true
 			if err := addNodeIfMissing(g, node); err != nil {
 				return nil, err
 			}
 		}
 
-		existing, ok := g.Node(node.ID)
+		existing, ok := g.Node(node.NodeID())
 		if !ok {
 			continue
 		}
@@ -284,7 +290,7 @@ func depGraphFromSBTDependencyTree(raw []byte) (*sdk.Graph, error) {
 		if depth >= len(parentStack) {
 			// Extend the stack.
 			for len(parentStack) <= depth {
-				parentStack = append(parentStack, root.ID)
+				parentStack = append(parentStack, root.NodeID())
 			}
 		} else {
 			// Trim the stack back.
@@ -292,16 +298,16 @@ func depGraphFromSBTDependencyTree(raw []byte) (*sdk.Graph, error) {
 		}
 
 		parentID := parentStack[depth]
-		if err := g.AddEdge(parentID, existing.ID); err != nil {
+		if err := g.AddEdge(parentID, existing.NodeID()); err != nil {
 			// Duplicate edges are silently ignored.
 			_ = err
 		}
 
 		// Push this node as the parent for the next (deeper) level.
 		if depth+1 < len(parentStack) {
-			parentStack[depth+1] = existing.ID
+			parentStack[depth+1] = existing.NodeID()
 		} else {
-			parentStack = append(parentStack, existing.ID)
+			parentStack = append(parentStack, existing.NodeID())
 		}
 	}
 

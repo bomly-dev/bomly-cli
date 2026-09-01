@@ -461,8 +461,8 @@ func detectionOccurrences(
 			continue
 		}
 		path := strings.TrimSpace(entry.Manifest.Path)
-		for _, dependency := range entry.Graph.Nodes() {
-			if dependency == nil || dependency.ID == "" {
+		for _, dependency := range entry.Graph.DependencyNodes() {
+			if dependency == nil || dependency.NodeID() == "" {
 				continue
 			}
 			manager := dependency.PackageManager
@@ -474,7 +474,7 @@ func detectionOccurrences(
 				manager:      manager,
 				canonicalRef: canonicalDependencyRef(dependency),
 			}
-			result[dependency.ID] = append(result[dependency.ID], occurrence)
+			result[dependency.NodeID()] = append(result[dependency.NodeID()], occurrence)
 		}
 	}
 	return result
@@ -495,14 +495,14 @@ func detectedManager(
 	return sdk.PackageManagerUnknown
 }
 
-func canonicalDependencyRef(dependency *sdk.Dependency) string {
+func canonicalDependencyRef(dependency *sdk.DependencyNode) string {
 	if dependency == nil {
 		return ""
 	}
-	if purl := sdk.CanonicalPackageURLFromDependency(dependency); purl != "" {
+	if purl := dependency.NodeID(); purl != "" {
 		return purl
 	}
-	return dependency.ID
+	return dependency.NodeID()
 }
 
 func selectedOccurrence(
@@ -635,7 +635,7 @@ func deriveSuggestions(
 			continue
 		}
 		manifestPath := strings.TrimSpace(manifest.Entry.Manifest.Path)
-		for _, dependency := range graph.Nodes() {
+		for _, dependency := range graph.DependencyNodes() {
 			if dependency == nil || dependency.PackageRef == "" {
 				continue
 			}
@@ -643,7 +643,7 @@ func deriveSuggestions(
 			if !ok || pkg == nil || pkg.Remediation == nil {
 				continue
 			}
-			hintKey := manifest.DetectorName + "\x00" + manifestPath + "\x00" + dependency.ID
+			hintKey := manifest.DetectorName + "\x00" + manifestPath + "\x00" + dependency.NodeID()
 			hint := hintsByOccurrence[hintKey]
 			action, targetRef, advice := selectAction(graph, dependency, pkg.Remediation, hint)
 			key := suggestionKey{
@@ -656,7 +656,7 @@ func deriveSuggestions(
 			if grouped[key] == nil {
 				grouped[key] = map[string]struct{}{}
 			}
-			grouped[key][dependency.ID] = struct{}{}
+			grouped[key][dependency.NodeID()] = struct{}{}
 		}
 	}
 
@@ -706,18 +706,18 @@ func deriveSuggestions(
 
 func selectAction(
 	graph *sdk.Graph,
-	dependency *sdk.Dependency,
+	dependency *sdk.DependencyNode,
 	remediation *sdk.PackageRemediation,
 	hint validatedHint,
 ) (sdk.RemediationAction, string, string) {
-	targetRef := dependency.ID
+	targetRef := dependency.NodeID()
 	relationship := dependency.Relationship
 	if relationship == "" {
 		var ok bool
-		relationship, targetRef, ok = inferredPlacement(graph, dependency.ID)
+		relationship, targetRef, ok = inferredPlacement(graph, dependency.NodeID())
 		if !ok {
 			relationship = sdk.DependencyRelationshipUnknown
-			targetRef = dependency.ID
+			targetRef = dependency.NodeID()
 		}
 	}
 	if remediation.Status == sdk.PackageRemediationUnavailable {
@@ -737,13 +737,13 @@ func selectAction(
 	case sdk.DependencyRelationshipTransitive:
 		if dependency.Relationship == sdk.DependencyRelationshipTransitive {
 			var ok bool
-			_, targetRef, ok = inferredPlacement(graph, dependency.ID)
+			_, targetRef, ok = inferredPlacement(graph, dependency.NodeID())
 			if !ok {
-				return sdk.RemediationActionManualReview, dependency.ID, ""
+				return sdk.RemediationActionManualReview, dependency.NodeID(), ""
 			}
 		}
-		if targetRef == dependency.ID {
-			return sdk.RemediationActionManualReview, dependency.ID, ""
+		if targetRef == dependency.NodeID() {
+			return sdk.RemediationActionManualReview, dependency.NodeID(), ""
 		}
 		if advice, ok := hint.strategies[sdk.RemediationActionTransitiveOverride]; ok {
 			return sdk.RemediationActionTransitiveOverride, targetRef, advice
@@ -786,7 +786,7 @@ func inferredPlacement(
 			}
 			root, _ := graph.Node(nodeID)
 			path := currentLayer[nodeID]
-			if executableRoot(root) && len(path) >= 2 {
+			if executableRootOf(root) && len(path) >= 2 {
 				if len(path) == 2 {
 					return sdk.DependencyRelationshipDirect, dependencyID, true
 				}
@@ -805,15 +805,15 @@ func inferredPlacement(
 					continue
 				}
 				nextDistance := distance + 1
-				if previous, seen := bestDistance[parent.ID]; seen && previous < nextDistance {
+				if previous, seen := bestDistance[parent.NodeID()]; seen && previous < nextDistance {
 					continue
 				}
-				candidatePath := append(append([]string(nil), currentLayer[nodeID]...), parent.ID)
-				if existing, ok := nextLayer[parent.ID]; ok && !pathLess(candidatePath, existing) {
+				candidatePath := append(append([]string(nil), currentLayer[nodeID]...), parent.NodeID())
+				if existing, ok := nextLayer[parent.NodeID()]; ok && !pathLess(candidatePath, existing) {
 					continue
 				}
-				bestDistance[parent.ID] = nextDistance
-				nextLayer[parent.ID] = candidatePath
+				bestDistance[parent.NodeID()] = nextDistance
+				nextLayer[parent.NodeID()] = candidatePath
 			}
 		}
 		currentLayer = nextLayer
@@ -830,11 +830,11 @@ func pathLess(left, right []string) bool {
 	return len(left) < len(right)
 }
 
-func executableRoot(dependency *sdk.Dependency) bool {
+func executableRoot(dependency *sdk.DependencyNode) bool {
 	if dependency == nil || dependency.Type == sdk.PackageTypeManifest {
 		return false
 	}
-	return dependency.FirstParty ||
+	return dependency.Kind() == sdk.NodeKindModule ||
 		dependency.Source == sdk.DependencySourceProject ||
 		dependency.Type == sdk.PackageTypeApplication
 }
@@ -892,17 +892,27 @@ func cloneGraph(graph *sdk.Graph) *sdk.Graph {
 		return nil
 	}
 	clone := sdk.NewWithCapacity(graph.Size())
-	for _, dependency := range graph.Nodes() {
+	for _, dependency := range graph.DependencyNodes() {
 		_ = clone.AddNode(dependency.Clone())
 	}
-	for _, dependency := range graph.Nodes() {
-		children, err := graph.DirectDependencies(dependency.ID)
+	for _, dependency := range graph.DependencyNodes() {
+		children, err := graph.DirectDependencies(dependency.NodeID())
 		if err != nil {
 			continue
 		}
 		for _, child := range children {
-			_ = clone.AddEdge(dependency.ID, child.ID)
+			_ = clone.AddEdge(dependency.NodeID(), child.NodeID())
 		}
 	}
 	return clone
+}
+
+// executableRootOf narrows a graph root to a dependency before asking whether
+// it is an executable root; structural nodes never are.
+func executableRootOf(node sdk.GraphNode) bool {
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		return false
+	}
+	return executableRoot(dep)
 }

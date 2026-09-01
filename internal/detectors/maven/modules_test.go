@@ -141,8 +141,8 @@ func TestMavenPerModuleEntriesFromTGF(t *testing.T) {
 	}
 	if _, ok := a.Graph.Node("com.bomly:module-a@1.0.0"); !ok {
 		names := []string{}
-		for _, pkg := range a.Graph.Nodes() {
-			names = append(names, pkg.ID)
+		for _, pkg := range a.Graph.DependencyNodes() {
+			names = append(names, pkg.NodeID())
 		}
 		t.Fatalf("expected module-a root in its entry, got %v", names)
 	}

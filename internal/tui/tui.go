@@ -210,8 +210,8 @@ type listPackageRow struct {
 }
 
 type rootDependencyGroup struct {
-	direct     []*sdk.Dependency
-	transitive []*sdk.Dependency
+	direct     []sdk.GraphNode
+	transitive []sdk.GraphNode
 }
 
 type scanMode string

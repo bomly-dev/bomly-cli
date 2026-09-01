@@ -8,11 +8,11 @@ import (
 
 func TestBuildPackageRegistry_DeduplicatesByPURLAndLinksDependencies(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	libA := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.2.3"}})
-	for _, node := range []*sdk.Dependency{app, libA} {
+	app := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	libA := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.2.3"}})
+	for _, node := range []*sdk.DependencyNode{app, libA} {
 		if err := g.AddNode(node); err != nil {
-			t.Fatalf("AddNode(%q): %v", node.ID, err)
+			t.Fatalf("AddNode(%q): %v", node.NodeID(), err)
 		}
 	}
 	if err := g.AddEdge(app.ID, libA.ID); err != nil {
@@ -24,7 +24,7 @@ func TestBuildPackageRegistry_DeduplicatesByPURLAndLinksDependencies(t *testing.
 	}
 
 	registry := BuildPackageRegistry(consolidated)
-	libPURL := sdk.CanonicalPackageURLFromDependency(libA)
+	libPURL := libA.NodeID()
 	if libPURL == "" {
 		t.Fatal("expected non-empty PURL for lib")
 	}
@@ -38,7 +38,7 @@ func TestBuildPackageRegistry_DeduplicatesByPURLAndLinksDependencies(t *testing.
 
 func TestBuildPackageRegistry_LiftsDetectionLicenses(t *testing.T) {
 	g := sdk.New()
-	lib := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.2.3"}})
+	lib := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.2.3"}})
 	sdk.SetDetectionLicenses(lib, []sdk.PackageLicense{{Value: "MIT", Type: "declared"}})
 	if err := g.AddNode(lib); err != nil {
 		t.Fatalf("AddNode: %v", err)
@@ -48,7 +48,7 @@ func TestBuildPackageRegistry_LiftsDetectionLicenses(t *testing.T) {
 		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{Graph: g}}},
 	}
 	registry := BuildPackageRegistry(consolidated)
-	pkg, ok := registry.Get(sdk.CanonicalPackageURLFromDependency(lib))
+	pkg, ok := registry.Get(lib.NodeID())
 	if !ok {
 		t.Fatal("expected registry package for lib")
 	}

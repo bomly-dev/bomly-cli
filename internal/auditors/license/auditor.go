@@ -55,9 +55,9 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 	if req.Graph == nil || req.Registry == nil {
 		return sdk.AuditResult{}, nil
 	}
-	deps := req.Graph.Nodes()
+	deps := req.Graph.DependencyNodes()
 	if req.Target != nil {
-		deps = []*sdk.Dependency{req.Target}
+		deps = []*sdk.DependencyNode{req.Target}
 	}
 
 	// Root packages are the project itself — they rarely declare a license in
@@ -67,7 +67,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 	if req.Target == nil {
 		for _, r := range req.Graph.Roots() {
 			if r != nil {
-				rootIDs[r.ID] = struct{}{}
+				rootIDs[r.NodeID()] = struct{}{}
 			}
 		}
 	}
@@ -80,12 +80,12 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 		if dep == nil || packageExempt(dep, a.ExemptPackages) {
 			continue
 		}
-		if _, isRoot := rootIDs[dep.ID]; isRoot {
+		if _, isRoot := rootIDs[dep.NodeID()]; isRoot {
 			continue
 		}
 		purl := dep.PackageRef
 		if purl == "" {
-			purl = sdk.CanonicalPackageURLFromDependency(dep)
+			purl = dep.NodeID()
 		}
 		if purl == "" {
 			continue
@@ -97,12 +97,12 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 
 		licenses := registryLicenseValues(req.Registry, purl)
 		if len(licenses) == 0 {
-			findings = append(findings, finding(purl, dep.ID, "unknown-license", "Package license is unknown", sdk.FindingPolicyStatusWarn))
+			findings = append(findings, finding(purl, dep.NodeID(), "unknown-license", "Package license is unknown", sdk.FindingPolicyStatusWarn))
 			continue
 		}
 		valid, invalid := licenseexpr.ValidateAll(licenses)
 		if !valid {
-			findings = append(findings, finding(purl, dep.ID, "invalid-license", "Package has invalid SPDX license: "+strings.Join(invalid, ", "), sdk.FindingPolicyStatusFail))
+			findings = append(findings, finding(purl, dep.NodeID(), "invalid-license", "Package has invalid SPDX license: "+strings.Join(invalid, ", "), sdk.FindingPolicyStatusFail))
 			continue
 		}
 		if len(a.AllowLicenses) > 0 {
@@ -115,7 +115,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 				}
 			}
 			if !allowed {
-				findings = append(findings, finding(purl, dep.ID, "denied-license", "Package license is not allowlisted", sdk.FindingPolicyStatusFail))
+				findings = append(findings, finding(purl, dep.NodeID(), "denied-license", "Package license is not allowlisted", sdk.FindingPolicyStatusFail))
 			}
 			continue
 		}
@@ -126,7 +126,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 					continue
 				}
 				if intersectsLicenseList(used, a.DenyLicenses) {
-					findings = append(findings, finding(purl, dep.ID, "denied-license", "Package license is denylisted", sdk.FindingPolicyStatusFail))
+					findings = append(findings, finding(purl, dep.NodeID(), "denied-license", "Package license is denylisted", sdk.FindingPolicyStatusFail))
 					break
 				}
 			}
@@ -192,8 +192,8 @@ func licenseFindingID(prefix, purl string) string {
 	return fmt.Sprintf("%s-%s-%s-%s", prefix, encoded[:4], encoded[4:8], encoded[8:12])
 }
 
-func packageExempt(dep *sdk.Dependency, exemptions []string) bool {
-	base := sdk.PackageURLBase(sdk.CanonicalPackageURLFromDependency(dep))
+func packageExempt(dep *sdk.DependencyNode, exemptions []string) bool {
+	base := sdk.PackageURLBase(dep.NodeID())
 	if base == "" {
 		return false
 	}

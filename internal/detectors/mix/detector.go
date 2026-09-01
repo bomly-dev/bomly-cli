@@ -3,6 +3,7 @@ package mix
 import (
 	"context"
 	"fmt"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -133,22 +134,30 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 	}
 
 	g := sdk.New()
-	root := rootNode()
+	root, err := rootNode()
+	if err != nil {
+		return nil, err
+	}
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
 	// Add all package nodes first.
-	nodesByName := make(map[string]*sdk.Dependency, len(packages))
+	nodesByName := make(map[string]*sdk.DependencyNode, len(packages))
 	for _, name := range sortedMixNames(packages) {
 		pkg := packages[name]
-		node := packageNode(pkg)
+		node, err := packageNode(pkg)
+		if err != nil {
+			return nil, err
+		}
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
 		}
 		if pkg.Scope != "" {
-			if existing, ok := g.Node(node.ID); ok {
-				existing.AddScope(pkg.Scope)
+			if existingNode, ok := g.Node(node.NodeID()); ok {
+				if existing, isDep := nodes.AsDependency(existingNode); isDep {
+					existing.AddScope(pkg.Scope)
+				}
 			}
 		}
 		nodesByName[name] = node
@@ -164,8 +173,8 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 		if node == nil {
 			continue
 		}
-		if err := g.AddEdge(root.ID, node.ID); err != nil {
-			return nil, fmt.Errorf("add Mix root dependency %q: %w", node.ID, err)
+		if err := g.AddEdge(root.NodeID(), node.NodeID()); err != nil {
+			return nil, fmt.Errorf("add Mix root dependency %q: %w", node.NodeID(), err)
 		}
 	}
 
@@ -178,10 +187,10 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 		}
 		for _, depName := range pkg.Deps {
 			child := nodesByName[depName]
-			if child == nil || child.ID == root.ID || child.ID == parent.ID {
+			if child == nil || child.NodeID() == root.NodeID() || child.NodeID() == parent.NodeID() {
 				continue
 			}
-			_ = g.AddEdge(parent.ID, child.ID)
+			_ = g.AddEdge(parent.NodeID(), child.NodeID())
 		}
 	}
 
@@ -190,16 +199,17 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 		if node == nil {
 			continue
 		}
-		dependents, _ := g.Dependents(node.ID)
+		dependents, _ := g.Dependents(node.NodeID())
 		if len(dependents) == 0 {
-			_ = g.AddEdge(root.ID, node.ID)
+			_ = g.AddEdge(root.NodeID(), node.NodeID())
 		}
 	}
 
 	// BFS scope propagation: runtime always beats development.
-	directDeps, _ := g.DirectDependencies(root.ID)
+	directDepsNodes, _ := g.DirectDependencies(root.NodeID())
+	directDeps := nodes.DependenciesOf(directDepsNodes)
 	propagated := make(map[string]sdk.Scope, g.Size())
-	queue := make([]*sdk.Dependency, 0, len(directDeps))
+	queue := make([]*sdk.DependencyNode, 0, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
@@ -208,37 +218,38 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 		if scope == sdk.ScopeUnknown {
 			scope = sdk.ScopeRuntime
 		}
-		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
-		dep.AddScope(propagated[dep.ID])
+		propagated[dep.NodeID()] = sdk.MergeScope(propagated[dep.NodeID()], scope)
+		dep.AddScope(propagated[dep.NodeID()])
 		queue = append(queue, dep)
 	}
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
-		scope := propagated[current.ID]
+		scope := propagated[current.NodeID()]
 		if scope == sdk.ScopeUnknown {
 			continue
 		}
-		children, err := g.DirectDependencies(current.ID)
+		childrenNodes, err := g.DirectDependencies(current.NodeID())
+		children := nodes.DependenciesOf(childrenNodes)
 		if err != nil {
 			continue
 		}
 		for _, child := range children {
-			if child == nil || child.ID == root.ID {
+			if child == nil || child.NodeID() == root.NodeID() {
 				continue
 			}
-			next := sdk.MergeScope(propagated[child.ID], scope)
-			if next == propagated[child.ID] && child.PrimaryScope() == next {
+			next := sdk.MergeScope(propagated[child.NodeID()], scope)
+			if next == propagated[child.NodeID()] && child.PrimaryScope() == next {
 				continue
 			}
-			propagated[child.ID] = next
+			propagated[child.NodeID()] = next
 			child.AddScope(next)
 			queue = append(queue, child)
 		}
 	}
 	// Any remaining unscoped non-root packages default to runtime.
-	for _, pkg := range g.Nodes() {
-		if pkg != nil && pkg.ID != root.ID && pkg.PrimaryScope() == sdk.ScopeUnknown {
+	for _, pkg := range g.DependencyNodes() {
+		if pkg != nil && pkg.NodeID() != root.NodeID() && pkg.PrimaryScope() == sdk.ScopeUnknown {
 			pkg.AddScope(sdk.ScopeRuntime)
 		}
 	}
@@ -373,34 +384,38 @@ func parseMixManifest(raw string) map[string]mixPackage {
 	return packages
 }
 
-func rootNode() *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemElixir,
+// rootNode is the scanned project's own artifact: a module node, since
+// ADR-0041 made ownership the node kind.
+func rootNode() (*sdk.ModuleNode, error) {
+	return sdk.NewModuleNode("mix.exs", sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemElixir,
 		Name:           "root",
 		PackageManager: sdk.PackageManagerMix,
 		Type:           sdk.PackageTypeApplication,
-		FirstParty:     true,
-		Language:       "elixir"},
+		Language:       "elixir",
 	})
-
 }
 
-func packageNode(pkg mixPackage) *sdk.Dependency {
+func packageNode(pkg mixPackage) (*sdk.DependencyNode, error) {
 	version := strings.TrimSpace(pkg.Version)
 	source := strings.TrimSpace(pkg.Source)
 	if source == "" {
 		source = "hex"
 	}
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemElixir,
+	node, err := sdk.NewDependencyNode(sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemElixir,
 		Name:           strings.TrimSpace(pkg.Name),
 		Version:        version,
 		PackageManager: sdk.PackageManagerMix,
 		Type:           sdk.PackageTypePackage,
 		Language:       "elixir",
-		PURL:           sdk.BuildPackageURL("hex", "", pkg.Name, version)}, Metadata: map[string]any{
-		"source": source,
-	},
+		PURL:           sdk.BuildPackageURL("hex", "", pkg.Name, version),
 	})
-
+	if err != nil {
+		return nil, fmt.Errorf("build mix node %q: %w", pkg.Name, err)
+	}
+	node.Metadata = map[string]any{"source": source}
+	return node, nil
 }
 
 func sortedMixNames(packages map[string]mixPackage) []string {
@@ -412,7 +427,7 @@ func sortedMixNames(packages map[string]mixPackage) []string {
 	return values
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
+func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
 	_, err := detectors.EnsureNode(g, node)
 	return err
 }

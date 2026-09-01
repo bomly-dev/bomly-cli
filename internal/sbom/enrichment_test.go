@@ -19,7 +19,7 @@ func enrichedGraphAndRegistry(t *testing.T) (*sdk.Graph, *sdk.PackageRegistry) {
 	const purl = "pkg:npm/react@18.2.0"
 
 	g := sdk.New()
-	react := sdk.NewDependencyWithID("react@18.2.0", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react",
+	react := sdk.NewDependencyNode("react@18.2.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react",
 		Version:   "18.2.0",
 		PURL:      purl,
 		Ecosystem: "npm"},

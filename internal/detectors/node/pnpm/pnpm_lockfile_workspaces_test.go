@@ -68,7 +68,7 @@ func TestPNPMLockfileWorkspaceLinkDependenciesResolveToMembers(t *testing.T) {
 	}
 	found := false
 	for _, dep := range deps {
-		if dep.ID == "lib@1.0.0" {
+		if dep.NodeID() == "lib@1.0.0" {
 			found = true
 			if dep.Type != sdk.PackageTypeApplication {
 				t.Fatalf("expected member target to be an application, got %q", dep.Type)
@@ -78,7 +78,7 @@ func TestPNPMLockfileWorkspaceLinkDependenciesResolveToMembers(t *testing.T) {
 	if !found {
 		ids := make([]string, 0, len(deps))
 		for _, dep := range deps {
-			ids = append(ids, dep.ID)
+			ids = append(ids, dep.NodeID())
 		}
 		t.Fatalf("expected web -> lib@1.0.0 workspace link edge, got %v", ids)
 	}

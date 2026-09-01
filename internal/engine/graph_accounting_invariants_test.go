@@ -41,7 +41,7 @@ func TestCanonicalGraphFixturePreservesOccurrenceAndPackageAccounting(t *testing
 	}
 
 	var direct, transitive, unknown, structural, eligible int
-	for _, dependency := range merged.Nodes() {
+	for _, dependency := range merged.DependencyNodes() {
 		if dependency.FirstParty || dependency.Type == sdk.PackageTypeManifest {
 			structural++
 		} else {
@@ -53,16 +53,16 @@ func TestCanonicalGraphFixturePreservesOccurrenceAndPackageAccounting(t *testing
 			case sdk.DependencyRelationshipUnknown:
 				unknown++
 			default:
-				t.Errorf("non-structural dependency %q has no relationship", dependency.ID)
+				t.Errorf("non-structural dependency %q has no relationship", dependency.NodeID())
 			}
 		}
 		if dependency.RegistryMatchEligible() {
 			eligible++
 		}
-		if dependency.PackageRef == "" || dependency.PackageRef != sdk.CanonicalPackageURLFromDependency(dependency) {
-			t.Errorf("dependency %q package_ref = %q", dependency.ID, dependency.PackageRef)
+		if dependency.PackageRef == "" || dependency.PackageRef != dependency.NodeID() {
+			t.Errorf("dependency %q package_ref = %q", dependency.NodeID(), dependency.PackageRef)
 		} else if _, ok := registry.Get(dependency.PackageRef); !ok {
-			t.Errorf("dependency %q does not join to registry package %q", dependency.ID, dependency.PackageRef)
+			t.Errorf("dependency %q does not join to registry package %q", dependency.NodeID(), dependency.PackageRef)
 		}
 	}
 	if direct != wantDirect || transitive != wantTransitive || unknown != wantUnknown || structural != wantStructural {
@@ -101,15 +101,15 @@ func canonicalAccountingFixture(t *testing.T) sdk.ConsolidatedGraph {
 	gitDependency := accountingDependency("git-lib", "4.0.0", "", sdk.DependencySourceGit, sdk.DependencyRelationshipDirect)
 	workspace := accountingDependency("workspace-lib", "1.0.0", sdk.PackageTypeApplication, sdk.DependencySourceWorkspace, sdk.DependencyRelationshipDirect)
 	duplicateV2 := accountingDependency("duplicate", "2.0.0", "", sdk.DependencySourceRegistry, sdk.DependencyRelationshipDirect)
-	for _, dependency := range []*sdk.Dependency{app, actual, parent, duplicateV1, orphan, gitDependency, workspace, duplicateV2} {
+	for _, dependency := range []*sdk.DependencyNode{app, actual, parent, duplicateV1, orphan, gitDependency, workspace, duplicateV2} {
 		if err := first.AddNode(dependency); err != nil {
 			t.Fatalf("add first graph node: %v", err)
 		}
 	}
 	for _, edge := range [][2]string{
 		{app.ID, actual.ID},
-		{app.ID, parent.ID},
-		{parent.ID, duplicateV1.ID},
+		{app.ID, parent.NodeID()},
+		{parent.NodeID(), duplicateV1.ID},
 		{app.ID, gitDependency.ID},
 		{app.ID, workspace.ID},
 		{app.ID, duplicateV2.ID},
@@ -125,13 +125,13 @@ func canonicalAccountingFixture(t *testing.T) sdk.ConsolidatedGraph {
 	actualAgain := accountingDependency("actual", "1.0.0", "", sdk.DependencySourceRegistry, sdk.DependencyRelationshipDirect)
 	fileDependency := accountingDependency("file-lib", "1.0.0", "", sdk.DependencySourceFile, sdk.DependencyRelationshipDirect)
 	urlDependency := accountingDependency("url-lib", "1.0.0", "", sdk.DependencySourceURL, sdk.DependencyRelationshipDirect)
-	for _, dependency := range []*sdk.Dependency{tool, actualAgain, fileDependency, urlDependency} {
+	for _, dependency := range []*sdk.DependencyNode{tool, actualAgain, fileDependency, urlDependency} {
 		if err := second.AddNode(dependency); err != nil {
 			t.Fatalf("add second graph node: %v", err)
 		}
 	}
-	for _, dependency := range []*sdk.Dependency{actualAgain, fileDependency, urlDependency} {
-		if err := second.AddEdge(tool.ID, dependency.ID); err != nil {
+	for _, dependency := range []*sdk.DependencyNode{actualAgain, fileDependency, urlDependency} {
+		if err := second.AddEdge(tool.ID, dependency.NodeID()); err != nil {
 			t.Fatalf("add second graph edge: %v", err)
 		}
 	}
@@ -157,8 +157,8 @@ func canonicalAccountingFixture(t *testing.T) sdk.ConsolidatedGraph {
 	return result
 }
 
-func accountingDependency(name, version string, packageType sdk.PackageType, source sdk.DependencySource, relationship sdk.DependencyRelationship) *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{
+func accountingDependency(name, version string, packageType sdk.PackageType, source sdk.DependencySource, relationship sdk.DependencyRelationship) *sdk.DependencyNode {
+	return sdk.NewDependency(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			Ecosystem:      sdk.EcosystemNPM,
 			PackageManager: sdk.PackageManagerNPM,
@@ -239,14 +239,14 @@ func assertOccurrenceSpecificFacts(
 	}
 }
 
-func developmentScope(dependency *sdk.Dependency) sdk.Scope {
+func developmentScope(dependency *sdk.DependencyNode) sdk.Scope {
 	if dependency == nil {
 		return sdk.ScopeUnknown
 	}
 	return dependency.PrimaryScope()
 }
 
-func dependencySource(dependency *sdk.Dependency) sdk.DependencySource {
+func dependencySource(dependency *sdk.DependencyNode) sdk.DependencySource {
 	if dependency == nil {
 		return ""
 	}

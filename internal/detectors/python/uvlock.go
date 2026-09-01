@@ -2,12 +2,14 @@ package python
 
 import (
 	"fmt"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
 )
@@ -61,16 +63,21 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 	}
 
 	// Index all packages by normalized name.
-	nodesByName := make(map[string]*sdk.Dependency, len(lock.Package))
+	nodesByName := make(map[string]sdk.GraphNode, len(lock.Package))
 	for i := range lock.Package {
 		pkg := &lock.Package[i]
 		if pkg.Name == "" {
 			continue
 		}
-		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+		node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
 			Name:    normalizePythonName(pkg.Name),
-			Version: pkg.Version}, Source: uvDependencySource(pkg.Source), ResolvedURL: uvResolvedURL(pkg.Source), Metadata: sourceRevisionMetadata(uvSourceRevision(pkg.Source)),
-		})
+			Version: pkg.Version})
+		if err != nil {
+			return nil, fmt.Errorf("build dependency node: %w", err)
+		}
+		node.Source = uvDependencySource(pkg.Source)
+		node.ResolvedURL = uvResolvedURL(pkg.Source)
+		node.Metadata = sourceRevisionMetadata(uvSourceRevision(pkg.Source))
 		setUVOrigin(node, pkg.Source)
 
 		// A universal lock can hold several records for one package (marker
@@ -94,13 +101,24 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 
 	depsGraph := sdk.New()
 
-	// The root node represents the editable project itself.
-	rootNode := nodesByName[normalizePythonName(editablePkg.Name)]
-	if rootNode == nil {
+	// The editable package is the scanned project itself, so it is a module
+	// node: ownership is the node kind now, not a flag set on a dependency
+	// after the fact (ADR-0041). It replaces the dependency node the index
+	// built for it, so every reference by name resolves to the module.
+	rootName := normalizePythonName(editablePkg.Name)
+	if _, indexed := nodesByName[rootName]; !indexed {
 		return nil, fmt.Errorf("uv.lock editable package %q not found in package index", editablePkg.Name)
 	}
-	// The editable package is the scanned project itself.
-	rootNode.FirstParty = true
+	rootNode, err := sdk.NewModuleNode("pyproject.toml", sdk.Coordinates{
+		Ecosystem: sdk.EcosystemPython,
+		Name:      rootName,
+		Version:   editablePkg.Version,
+		Type:      sdk.PackageTypeApplication,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("build root node: %w", err)
+	}
+	nodesByName[rootName] = rootNode
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
@@ -121,8 +139,10 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 		if child == nil {
 			continue
 		}
-		child.AddScope(sdk.ScopeRuntime)
-		if err := depsGraph.AddEdge(rootNode.ID, child.ID); err != nil {
+		if dependency, ok := nodes.AsDependency(child); ok {
+			dependency.AddScope(sdk.ScopeRuntime)
+		}
+		if err := depsGraph.AddEdge(rootNode.NodeID(), child.NodeID()); err != nil {
 			return nil, fmt.Errorf("add runtime dep %q: %w", dep.Name, err)
 		}
 	}
@@ -135,8 +155,10 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 				continue
 			}
 			// Runtime wins if this package is also a runtime dep.
-			child.AddScope(sdk.ScopeDevelopment)
-			if err := depsGraph.AddEdge(rootNode.ID, child.ID); err != nil {
+			if dependency, ok := nodes.AsDependency(child); ok {
+				dependency.AddScope(sdk.ScopeDevelopment)
+			}
+			if err := depsGraph.AddEdge(rootNode.NodeID(), child.NodeID()); err != nil {
 				return nil, fmt.Errorf("add dev dep %q: %w", dep.Name, err)
 			}
 		}
@@ -146,7 +168,7 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 	for i := range lock.Package {
 		pkg := &lock.Package[i]
 		parent := nodesByName[normalizePythonName(pkg.Name)]
-		if parent == nil || parent.ID == rootNode.ID {
+		if parent == nil || parent.NodeID() == rootNode.NodeID() {
 			continue
 		}
 		for _, dep := range pkg.Dependencies {
@@ -154,67 +176,17 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 				continue
 			}
 			child := nodesByName[normalizePythonName(dep.Name)]
-			if child == nil || child.ID == rootNode.ID {
+			if child == nil || child.NodeID() == rootNode.NodeID() {
 				continue
 			}
-			if err := depsGraph.AddEdge(parent.ID, child.ID); err != nil {
-				return nil, fmt.Errorf("add dep %q -> %q: %w", parent.Name, dep.Name, err)
+			if err := depsGraph.AddEdge(parent.NodeID(), child.NodeID()); err != nil {
+				return nil, fmt.Errorf("add dep %q -> %q: %w", pkg.Name, dep.Name, err)
 			}
 		}
 	}
 
-	// BFS to propagate scope from root's direct deps into the transitive tree.
-	// Runtime always wins over development.
-	directDeps, err := depsGraph.DirectDependencies(rootNode.ID)
-	if err != nil || len(directDeps) == 0 {
-		return depsGraph, nil
-	}
-
-	propagated := make(map[string]sdk.Scope, depsGraph.Size())
-	queue := make([]*sdk.Dependency, 0, len(directDeps))
-	for _, dep := range directDeps {
-		if dep == nil {
-			continue
-		}
-		scope := dep.PrimaryScope()
-		if scope == sdk.ScopeUnknown {
-			scope = sdk.ScopeRuntime
-		}
-		propagated[dep.ID] = scope
-		queue = append(queue, dep)
-	}
-
-	for len(queue) > 0 {
-		current := queue[0]
-		queue = queue[1:]
-		scope := propagated[current.ID]
-		if scope == sdk.ScopeUnknown {
-			continue
-		}
-		children, err := depsGraph.DirectDependencies(current.ID)
-		if err != nil {
-			continue
-		}
-		for _, child := range children {
-			if child == nil || child.ID == rootNode.ID {
-				continue
-			}
-			nextScope := sdk.MergeScope(propagated[child.ID], scope)
-			if nextScope == propagated[child.ID] && child.PrimaryScope() == nextScope {
-				continue
-			}
-			propagated[child.ID] = nextScope
-			child.AddScope(nextScope)
-			queue = append(queue, child)
-		}
-	}
-
-	// Any unscoped non-root package defaults to runtime.
-	for _, pkg := range depsGraph.Nodes() {
-		if pkg != nil && pkg.ID != rootNode.ID && pkg.PrimaryScope() == sdk.ScopeUnknown {
-			pkg.AddScope(sdk.ScopeRuntime)
-		}
-	}
+	// Runtime always beats development on any path that reaches a package.
+	detectors.PropagateScopes(depsGraph, rootNode.NodeID(), nil)
 
 	return depsGraph, nil
 }

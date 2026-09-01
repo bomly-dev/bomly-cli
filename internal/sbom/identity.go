@@ -3,12 +3,19 @@ package sbom
 import (
 	"strings"
 
-	"github.com/anchore/packageurl-go"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/purlkit"
 )
 
-func parsePURL(value string) *packageurl.PackageURL {
-	return sdk.ParsePackageURL(strings.TrimSpace(value))
+// parsePURL delegates to purlkit, the SDK's kit over the official
+// packageurl-go. sdk.ParsePackageURL was the deprecated anchore-fork entry
+// point and is gone; the nil-on-failure shape is kept for callers.
+func parsePURL(value string) *purlkit.PURL {
+	parsed, err := purlkit.Parse(strings.TrimSpace(value))
+	if err != nil {
+		return nil
+	}
+	return &parsed
 }
 
 // purlTypeEcosystems inverts sdk.PackageURLTypeForValues for the purl types
@@ -22,45 +29,26 @@ func parsePURL(value string) *packageurl.PackageURL {
 // it and SPDX rebuilds it from the PURL — guessing here would relabel every
 // round-tripped Erlang dependency as Elixir, and packageManagerForPURLType
 // would then call it Mix. Leaving it unknown keeps the ambiguity visible.
-var purlTypeEcosystems = map[string]sdk.Ecosystem{
-	"golang": sdk.EcosystemGo,
-	// pkg:otp, unlike pkg:hex, names exactly one ecosystem.
-	"otp":       sdk.EcosystemErlang,
-	"hackage":   sdk.EcosystemHaskell,
-	"cran":      sdk.EcosystemR,
-	"opam":      sdk.EcosystemOCaml,
-	"deb":       sdk.EcosystemDPKG,
-	"cargo":     sdk.EcosystemRust,
-	"nuget":     sdk.EcosystemDotNet,
-	"pypi":      sdk.EcosystemPython,
-	"gem":       sdk.EcosystemRuby,
-	"composer":  sdk.EcosystemPHP,
-	"pub":       sdk.EcosystemDart,
-	"conan":     sdk.EcosystemCPP,
-	"cocoapods": sdk.EcosystemSwift,
-	"swift":     sdk.EcosystemSwift,
-	// pkg:maven covers Scala too and is ambiguous in the same way as pkg:hex,
-	// but ParseEcosystem already resolved it to maven before this table
-	// existed; dropping it now would regress every Java SBOM to unknown.
-	"maven":         sdk.EcosystemMaven,
-	"githubactions": sdk.EcosystemGitHub,
-}
-
+// The purl-type -> ecosystem table that lived here is purlkit's
+// (EcosystemForType). It was a second copy of the SDK's mapping, and a second
+// copy is a mapping that drifts: purl-spec adds a type, one table learns it
+// and the other keeps answering unknown. Phase 2.1 deletes the copy.
 func ecosystemFromPURLType(purlType string) sdk.Ecosystem {
 	normalized := strings.ToLower(strings.TrimSpace(purlType))
-	if ecosystem, ok := purlTypeEcosystems[normalized]; ok {
-		return ecosystem
-	}
-	switch normalized {
-	case "":
+	if normalized == "" {
 		return sdk.EcosystemUnknown
-	default:
-		ecosystem, err := sdk.ParseEcosystem(normalized)
-		if err != nil {
-			return sdk.EcosystemUnknown
-		}
-		return ecosystem
 	}
+	if name, ok := purlkit.EcosystemForType(normalized); ok {
+		if ecosystem, err := sdk.ParseEcosystem(name); err == nil {
+			return ecosystem
+		}
+	}
+	// A type purlkit does not map may still be an ecosystem name Bomly knows.
+	ecosystem, err := sdk.ParseEcosystem(normalized)
+	if err != nil {
+		return sdk.EcosystemUnknown
+	}
+	return ecosystem
 }
 
 func packageManagerForPURL(value string, ecosystemHint, packageManagerHint string) sdk.PackageManager {

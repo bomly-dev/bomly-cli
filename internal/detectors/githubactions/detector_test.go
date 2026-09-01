@@ -207,7 +207,7 @@ func TestDepGraphDigests(t *testing.T) {
 	}
 
 	found := map[string][]sdk.Digest{}
-	g.WalkNodes(func(node *sdk.Dependency) bool {
+	g.WalkNodes(func(node sdk.GraphNode) bool {
 		found[node.Name] = node.Digests
 		return true
 	})

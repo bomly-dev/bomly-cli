@@ -158,12 +158,12 @@ func hasWindowsVolume(path string) bool {
 func consolidatedEntryRootID(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) string {
 	if g != nil {
 		roots := g.Roots()
-		if len(roots) > 0 && roots[0] != nil && strings.TrimSpace(roots[0].ID) != "" {
-			return roots[0].ID
+		if len(roots) > 0 && roots[0] != nil && strings.TrimSpace(roots[0].NodeID()) != "" {
+			return roots[0].NodeID()
 		}
-		nodes := g.Nodes()
-		if len(nodes) > 0 && nodes[0] != nil && strings.TrimSpace(nodes[0].ID) != "" {
-			return nodes[0].ID
+		nodes := g.DependencyNodes()
+		if len(nodes) > 0 && nodes[0] != nil && strings.TrimSpace(nodes[0].NodeID()) != "" {
+			return nodes[0].NodeID()
 		}
 	}
 	if strings.TrimSpace(manifest.Path) != "" {
@@ -181,17 +181,25 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 	}
 
 	roots := g.Roots()
-	if preferred := selectApplicationRoot(roots); preferred != nil {
-		for _, target := range roots {
-			if target == nil || target.ID == preferred.ID {
+	// Only dependency roots can be an application root or carry a
+	// relationship; manifests and modules are structure.
+	depRoots := make([]*sdk.DependencyNode, 0, len(roots))
+	for _, root := range roots {
+		if dep, ok := root.(*sdk.DependencyNode); ok {
+			depRoots = append(depRoots, dep)
+		}
+	}
+	if preferred := selectApplicationRoot(depRoots); preferred != nil {
+		for _, target := range depRoots {
+			if target == nil || target.NodeID() == preferred.NodeID() {
 				continue
 			}
 			target.Relationship = sdk.DependencyRelationshipUnknown
-			if err := g.AddEdge(preferred.ID, target.ID); err != nil {
+			if err := g.AddEdge(preferred.NodeID(), target.NodeID()); err != nil {
 				if errors.Is(err, sdk.ErrSelfDependency) {
 					continue
 				}
-				return fmt.Errorf("attach application root %q -> %q: %w", preferred.ID, target.ID, err)
+				return fmt.Errorf("attach application root %q -> %q: %w", preferred.NodeID(), target.NodeID(), err)
 			}
 		}
 		return nil
@@ -209,37 +217,44 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 		kind = "manifest"
 	}
 
-	virtualRoot := sdk.NewDependencyWithID(rootID, sdk.Dependency{Coordinates: sdk.Coordinates{Name: manifestLabel,
-		Type:           sdk.PackageTypeManifest,
-		PackageManager: packageManagerFromManifestKind(kind)},
-	})
-	if err := addNodeIfMissing(g, virtualRoot); err != nil {
-		return err
+	// A synthesized root standing in for the manifest is a manifest node.
+	// It was a dependency node typed PackageTypeManifest, which ADR-0041
+	// replaced with the kind itself -- a structural node that is never
+	// matched, never enriched, and never diffed as a package.
+	virtualRoot, err := sdk.NewManifestNode(manifestLabel, manifest.Kind)
+	if err != nil {
+		return fmt.Errorf("build virtual manifest root %q: %w", manifestLabel, err)
 	}
+	if _, err := g.InsertNode(virtualRoot); err != nil {
+		return fmt.Errorf("add virtual manifest root %q: %w", manifestLabel, err)
+	}
+	rootID = virtualRoot.NodeID()
 
 	targets := g.Roots()
 	if len(targets) == 0 {
-		targets = g.Nodes()
+		for _, dep := range g.DependencyNodes() {
+			targets = append(targets, dep)
+		}
 	}
 	for _, target := range targets {
-		if target == nil || target.ID == rootID {
+		if target == nil || target.NodeID() == rootID {
 			continue
 		}
-		if target.Relationship == "" {
-			target.Relationship = sdk.DependencyRelationshipUnknown
+		if dep, ok := target.(*sdk.DependencyNode); ok && dep.Relationship == "" {
+			dep.Relationship = sdk.DependencyRelationshipUnknown
 		}
-		if err := g.AddEdge(rootID, target.ID); err != nil {
+		if err := g.AddEdge(rootID, target.NodeID()); err != nil {
 			if errors.Is(err, sdk.ErrSelfDependency) {
 				continue
 			}
-			return fmt.Errorf("attach virtual root %q -> %q: %w", rootID, target.ID, err)
+			return fmt.Errorf("attach virtual root %q -> %q: %w", rootID, target.NodeID(), err)
 		}
 	}
 
 	return nil
 }
 
-func selectApplicationRoot(roots []*sdk.Dependency) *sdk.Dependency {
+func selectApplicationRoot(roots []*sdk.DependencyNode) *sdk.DependencyNode {
 	for _, root := range roots {
 		if root == nil {
 			continue
@@ -264,7 +279,7 @@ func hasSingleRoot(g *sdk.Graph) bool {
 		return false
 	}
 	roots := g.Roots()
-	return len(roots) == 1 && roots[0] != nil && strings.TrimSpace(roots[0].ID) != ""
+	return len(roots) == 1 && roots[0] != nil && strings.TrimSpace(roots[0].NodeID()) != ""
 }
 
 func virtualManifestRootID(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) string {

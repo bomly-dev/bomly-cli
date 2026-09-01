@@ -99,7 +99,7 @@ func TestPipelineRequiresExplicitMatcherIntent(t *testing.T) {
 func networkIntentDetector(t *testing.T) fakeDetector {
 	t.Helper()
 	graph := sdk.New()
-	dependency := sdk.NewDependencyWithID("lodash@4.17.21", sdk.Dependency{
+	dependency := sdk.NewDependencyNode("lodash@4.17.21", sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			Ecosystem:      sdk.EcosystemNPM,
 			PackageManager: sdk.PackageManagerNPM,

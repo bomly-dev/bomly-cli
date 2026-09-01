@@ -15,7 +15,7 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
+func originOf(dep *sdk.DependencyNode) sdk.DependencyOrigin {
 	if dep == nil {
 		return sdk.DependencyOrigin{}
 	}
@@ -164,7 +164,7 @@ shared@^2.0.0:
 		t.Fatal(err)
 	}
 	origins := map[string]int{}
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkNodes(func(dep sdk.GraphNode) bool {
 		if dep.Name == "shared" {
 			origins[originOf(dep).ArtifactURL]++
 		}

@@ -94,7 +94,7 @@ func TestNPMLockfileWorkspaceLinkEntriesDoNotDuplicateNodes(t *testing.T) {
 	}
 	found := false
 	for _, dep := range deps {
-		if dep.ID == "lib@1.0.0" {
+		if dep.NodeID() == "lib@1.0.0" {
 			found = true
 		}
 	}
@@ -146,10 +146,10 @@ func keysOf(m map[string]sdk.GraphEntry) []string {
 	return keys
 }
 
-func depIDs(deps []*sdk.Dependency) []string {
+func depIDs(deps []*sdk.DependencyNode) []string {
 	ids := make([]string, 0, len(deps))
 	for _, dep := range deps {
-		ids = append(ids, dep.ID)
+		ids = append(ids, dep.NodeID())
 	}
 	return ids
 }

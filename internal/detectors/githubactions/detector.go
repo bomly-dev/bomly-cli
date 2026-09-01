@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"io/fs"
 	"os"
 	"path"
@@ -110,11 +111,14 @@ func depGraphContainerFromRepository(projectPath string) (*sdk.GraphContainer, e
 	}
 
 	depsGraph := sdk.New()
-	workflowNodes := make(map[string]*sdk.Dependency, len(workflowFiles))
-	actionNodes := make(map[string]*sdk.Dependency, len(actionFiles))
+	workflowNodes := make(map[string]*sdk.DependencyNode, len(workflowFiles))
+	actionNodes := make(map[string]*sdk.DependencyNode, len(actionFiles))
 
 	for _, relPath := range workflowFiles {
-		node := localWorkflowNode(relPath)
+		node, err := localWorkflowNode(relPath)
+		if err != nil {
+			return nil, err
+		}
 		node.Digests = manifestFileDigests(projectPath, relPath)
 		workflowNodes[relPath] = node
 		if err := addNodeIfMissing(depsGraph, node); err != nil {
@@ -123,7 +127,10 @@ func depGraphContainerFromRepository(projectPath string) (*sdk.GraphContainer, e
 	}
 	for _, relManifestPath := range actionFiles {
 		relActionPath := filepath.ToSlash(filepath.Dir(relManifestPath))
-		node := localActionNode(relActionPath)
+		node, err := localActionNode(relActionPath)
+		if err != nil {
+			return nil, err
+		}
 		node.Digests = manifestFileDigests(projectPath, relManifestPath)
 		actionNodes[relActionPath] = node
 		if err := addNodeIfMissing(depsGraph, node); err != nil {
@@ -154,7 +161,11 @@ func depGraphContainerFromRepository(projectPath string) (*sdk.GraphContainer, e
 
 	entries := make([]sdk.GraphEntry, 0, len(workflowFiles)+len(actionFiles))
 	for _, relPath := range workflowFiles {
-		rootID := localWorkflowNode(relPath).ID
+		rootNode, err := localWorkflowNode(relPath)
+		if err != nil {
+			return nil, err
+		}
+		rootID := rootNode.NodeID()
 		entryGraph, err := graphReachableFromRoot(depsGraph, rootID)
 		if err != nil {
 			return nil, err
@@ -169,7 +180,11 @@ func depGraphContainerFromRepository(projectPath string) (*sdk.GraphContainer, e
 	}
 	for _, relManifestPath := range actionFiles {
 		relActionPath := filepath.ToSlash(filepath.Dir(relManifestPath))
-		rootID := localActionNode(relActionPath).ID
+		actionRoot, err := localActionNode(relActionPath)
+		if err != nil {
+			return nil, err
+		}
+		rootID := actionRoot.NodeID()
 		entryGraph, err := graphReachableFromRoot(depsGraph, rootID)
 		if err != nil {
 			return nil, err
@@ -192,7 +207,7 @@ func graphReachableFromRoot(source *sdk.Graph, rootID string) (*sdk.Graph, error
 		return nil, fmt.Errorf("github actions root %q not found", rootID)
 	}
 	out := sdk.New()
-	if err := addNodeIfMissing(out, root.Clone()); err != nil {
+	if _, err := out.InsertNode(root.CloneNode()); err != nil {
 		return nil, err
 	}
 	queue := []string{rootID}
@@ -200,22 +215,23 @@ func graphReachableFromRoot(source *sdk.Graph, rootID string) (*sdk.Graph, error
 	for len(queue) > 0 {
 		currentID := queue[0]
 		queue = queue[1:]
-		deps, err := source.DirectDependencies(currentID)
+		depsNodes, err := source.DirectDependencies(currentID)
+		deps := nodes.DependenciesOf(depsNodes)
 		if err != nil {
 			return nil, err
 		}
 		for _, dep := range deps {
-			if err := addNodeIfMissing(out, dep.Clone()); err != nil {
+			if _, err := out.InsertNode(dep.CloneNode()); err != nil {
 				return nil, err
 			}
-			if err := out.AddEdge(currentID, dep.ID); err != nil {
+			if err := out.AddEdge(currentID, dep.NodeID()); err != nil {
 				return nil, err
 			}
-			if _, ok := seen[dep.ID]; ok {
+			if _, ok := seen[dep.NodeID()]; ok {
 				continue
 			}
-			seen[dep.ID] = struct{}{}
-			queue = append(queue, dep.ID)
+			seen[dep.NodeID()] = struct{}{}
+			queue = append(queue, dep.NodeID())
 		}
 	}
 	return out, nil
@@ -309,7 +325,7 @@ func parseActionRefs(path string) ([]string, error) {
 	return uniqueStrings(refs), nil
 }
 
-func addReferenceEdges(depsGraph *sdk.Graph, parent *sdk.Dependency, callerRelPath string, refs []string, workflowNodes map[string]*sdk.Dependency, actionNodes map[string]*sdk.Dependency) error {
+func addReferenceEdges(depsGraph *sdk.Graph, parent *sdk.DependencyNode, callerRelPath string, refs []string, workflowNodes map[string]*sdk.DependencyNode, actionNodes map[string]*sdk.DependencyNode) error {
 	for _, ref := range refs {
 		node, err := resolveReference(ref, callerRelPath, workflowNodes, actionNodes)
 		if err != nil {
@@ -321,14 +337,14 @@ func addReferenceEdges(depsGraph *sdk.Graph, parent *sdk.Dependency, callerRelPa
 		if err := addNodeIfMissing(depsGraph, node); err != nil {
 			return err
 		}
-		if err := depsGraph.AddEdge(parent.ID, node.ID); err != nil {
-			return fmt.Errorf("add dependency %q -> %q: %w", parent.ID, node.ID, err)
+		if err := depsGraph.AddEdge(parent.NodeID(), node.NodeID()); err != nil {
+			return fmt.Errorf("add dependency %q -> %q: %w", parent.NodeID(), node.NodeID(), err)
 		}
 	}
 	return nil
 }
 
-func resolveReference(ref, callerRelPath string, workflowNodes map[string]*sdk.Dependency, actionNodes map[string]*sdk.Dependency) (*sdk.Dependency, error) {
+func resolveReference(ref, callerRelPath string, workflowNodes map[string]*sdk.DependencyNode, actionNodes map[string]*sdk.DependencyNode) (*sdk.DependencyNode, error) {
 	ref = strings.TrimSpace(ref)
 	if ref == "" || strings.HasPrefix(ref, "docker://") {
 		return nil, nil
@@ -351,7 +367,7 @@ func resolveReference(ref, callerRelPath string, workflowNodes map[string]*sdk.D
 				}
 			}
 		}
-		return localActionNode(strings.TrimPrefix(filepath.ToSlash(filepath.Clean(strings.TrimPrefix(ref, "./"))), "./")), nil
+		return localActionNode(strings.TrimPrefix(filepath.ToSlash(filepath.Clean(strings.TrimPrefix(ref, "./"))), "./"))
 	}
 
 	name, version := splitVersionRef(ref)
@@ -363,15 +379,18 @@ func resolveReference(ref, callerRelPath string, workflowNodes map[string]*sdk.D
 	if strings.Contains(name, ".github/workflows/") {
 		typeName = "workflow"
 	}
-	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGitHub,
+	node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemGitHub,
 		Org:     org,
 		Name:    packageName,
 		Version: version,
 
 		PackageManager: sdk.PackageManagerGitHubActions,
 		Type:           sdk.ParsePackageType(typeName),
-		Language:       "yaml"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime),
-	})
+		Language:       "yaml"})
+	if err != nil {
+		return nil, fmt.Errorf("build dependency node: %w", err)
+	}
+	node.Scopes = sdk.ScopesOf(sdk.ScopeRuntime)
 	// A SHA-pinned ref is the content-addressed identity of the action's
 	// source tree; record it so SBOM consumers can verify the pin.
 	if isGitCommitSHA(version) {
@@ -416,29 +435,39 @@ func splitExternalActionName(value string) (string, string) {
 	return parts[0], strings.Join(parts[1:], "/")
 }
 
-func localWorkflowNode(relPath string) *sdk.Dependency {
+func localWorkflowNode(relPath string) (*sdk.DependencyNode, error) {
 	cleanPath := filepath.ToSlash(filepath.Clean(relPath))
-	return sdk.NewDependencyWithID("workflow:"+cleanPath, sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGitHub,
-		Name:    cleanPath,
-		Version: "local",
-
+	node, err := sdk.NewDependencyNode(sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemGitHub,
+		Name:           cleanPath,
+		Version:        "local",
 		PackageManager: sdk.PackageManagerGitHubActions,
 		Type:           sdk.PackageTypeWorkflow,
-		Language:       "yaml"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime),
+		Language:       "yaml",
 	})
+	if err != nil {
+		return nil, fmt.Errorf("build local workflow node %q: %w", cleanPath, err)
+	}
+	node.Scopes = sdk.ScopesOf(sdk.ScopeRuntime)
+	return node, nil
 
 }
 
-func localActionNode(relPath string) *sdk.Dependency {
+func localActionNode(relPath string) (*sdk.DependencyNode, error) {
 	cleanPath := filepath.ToSlash(filepath.Clean(relPath))
-	return sdk.NewDependencyWithID("action:"+cleanPath, sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGitHub,
-		Name:    cleanPath,
-		Version: "local",
-
+	node, err := sdk.NewDependencyNode(sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemGitHub,
+		Name:           cleanPath,
+		Version:        "local",
 		PackageManager: sdk.PackageManagerGitHubActions,
 		Type:           sdk.PackageTypeAction,
-		Language:       "yaml"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime),
+		Language:       "yaml",
 	})
+	if err != nil {
+		return nil, fmt.Errorf("build local action node %q: %w", cleanPath, err)
+	}
+	node.Scopes = sdk.ScopesOf(sdk.ScopeRuntime)
+	return node, nil
 
 }
 
@@ -454,7 +483,7 @@ func manifestFileDigests(projectPath, relPath string) []sdk.Digest {
 	return []sdk.Digest{{Algorithm: sdk.DigestAlgorithmSHA256, Value: hex.EncodeToString(sum[:])}}
 }
 
-func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
+func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.DependencyNode) error {
 	_, err := detectors.EnsureNode(depsGraph, node)
 	return err
 }

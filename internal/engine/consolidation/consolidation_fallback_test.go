@@ -8,7 +8,7 @@ import (
 
 func TestConsolidateGraphs_PreservesOriginAndFallbackProvenance(t *testing.T) {
 	graph := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.example", Name: "app", Version: "1.0.0", PURL: "pkg:maven/org.example/app@1.0.0"}})
+	root := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.example", Name: "app", Version: "1.0.0", PURL: "pkg:maven/org.example/app@1.0.0"}})
 	if err := graph.AddNode(root); err != nil {
 		t.Fatalf("add root: %v", err)
 	}

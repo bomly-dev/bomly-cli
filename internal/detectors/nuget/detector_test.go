@@ -28,8 +28,8 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if !ok {
 		t.Fatal("expected Newtonsoft.Json package")
 	}
-	if pkg.PURL != "pkg:nuget/Newtonsoft.Json@13.0.3" {
-		t.Fatalf("unexpected purl %q", pkg.PURL)
+	if pkg.NodeID() != "pkg:nuget/Newtonsoft.Json@13.0.3" {
+		t.Fatalf("unexpected purl %q", pkg.NodeID())
 	}
 }
 
@@ -69,7 +69,7 @@ func TestDepGraphFromLockMultiTarget(t *testing.T) {
 	if !ok {
 		t.Fatal("expected root package")
 	}
-	deps, err := g.DirectDependencies(root.ID)
+	deps, err := g.DirectDependencies(root.NodeID())
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}
@@ -95,8 +95,8 @@ func TestDepGraphFromPackagesConfig(t *testing.T) {
 	if !ok {
 		t.Fatal("expected NUnit package")
 	}
-	if pkg.PURL != "pkg:nuget/NUnit@4.2.2" {
-		t.Fatalf("unexpected purl %q", pkg.PURL)
+	if pkg.NodeID() != "pkg:nuget/NUnit@4.2.2" {
+		t.Fatalf("unexpected purl %q", pkg.NodeID())
 	}
 }
 
@@ -277,7 +277,7 @@ func TestDepGraphFromDepsFiles(t *testing.T) {
 	}
 	gotDeps := make(map[string]struct{}, len(deps))
 	for _, dep := range deps {
-		gotDeps[dep.ID] = struct{}{}
+		gotDeps[dep.NodeID()] = struct{}{}
 	}
 	for _, want := range []string{"Antlr@3.5.0.2", "FSharp.Core@6.0.7"} {
 		if _, ok := gotDeps[want]; !ok {

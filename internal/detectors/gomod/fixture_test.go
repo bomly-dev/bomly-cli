@@ -76,10 +76,10 @@ func TestGoModFixture_Scopes(t *testing.T) {
 }
 
 func nodeIDs(g *sdk.Graph) []string {
-	nodes := g.Nodes()
+	nodes := g.DependencyNodes()
 	ids := make([]string, len(nodes))
 	for i, n := range nodes {
-		ids[i] = n.ID
+		ids[i] = n.NodeID()
 	}
 	return ids
 }

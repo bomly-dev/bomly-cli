@@ -12,7 +12,7 @@ import (
 func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 	g := model.New()
 	const libPURL = "pkg:go/lib@1.0.0"
-	pkg := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: model.EcosystemGo, PURL: libPURL}})
+	pkg := model.NewDependency(model.DependencyNode{Coordinates: model.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: model.EcosystemGo, PURL: libPURL}})
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}
@@ -211,12 +211,12 @@ func TestExplainTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 
 func TestScanOmitsReachabilityColumnWhenDisabled(t *testing.T) {
 	g := model.New()
-	pkg := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: model.EcosystemGo}})
+	pkg := model.NewDependency(model.DependencyNode{Coordinates: model.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: model.EcosystemGo}})
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}
 	findings := []model.Finding{
-		{ID: "CVE-2024-0001", Kind: model.FindingKindVulnerability, PackageRef: pkg.PURL, Severity: "high", Title: "x", Source: "osv"},
+		{ID: "CVE-2024-0001", Kind: model.FindingKindVulnerability, PackageRef: pkg.NodeID(), Severity: "high", Title: "x", Source: "osv"},
 	}
 	out := Scan(g, nil, findings, nil, true, true, false, nil, nil, nil)
 	// Compact text format never shows a REACHABILITY column; detailed info is in JSON/Markdown.

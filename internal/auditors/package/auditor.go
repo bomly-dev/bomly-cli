@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/purlkit"
 )
 
 const auditorName = "package"
@@ -50,9 +51,9 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 	if req.Graph == nil {
 		return sdk.AuditResult{Findings: findings}, nil
 	}
-	packages := req.Graph.Nodes()
+	packages := req.Graph.DependencyNodes()
 	if req.Target != nil {
-		packages = []*sdk.Dependency{req.Target}
+		packages = []*sdk.DependencyNode{req.Target}
 	}
 	baseNames := protectedNames(req.BaselineGraph, a.ProtectedPackages)
 	baseIDs := packageIDs(req.BaselineGraph)
@@ -75,7 +76,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 			findings = append(findings, finding(pkg, "denied-group", "Package group is denylisted", sdk.FindingPolicyStatusFail))
 			continue
 		}
-		if _, existed := baseIDs[pkg.ID]; existed {
+		if _, existed := baseIDs[pkg.NodeID()]; existed {
 			continue
 		}
 		// Skip typosquat check for packages whose name already existed in the
@@ -121,11 +122,11 @@ func dependencySourceChangeFindings(transitions []sdk.DependencyDetailTransition
 			}
 			purl := transition.After.PackageRef
 			if purl == "" {
-				purl = sdk.CanonicalPackageURLFromDependency(transition.After)
+				purl = transition.After.NodeID()
 			}
 			identity := purl
 			if identity == "" {
-				identity = transition.After.ID
+				identity = transition.After.NodeID()
 			}
 			status := sdk.FindingPolicyStatusWarn
 			if sourceChangeMatchesConstraints(constraints) {
@@ -133,7 +134,7 @@ func dependencySourceChangeFindings(transitions []sdk.DependencyDetailTransition
 			}
 			key := findingKey{ruleID: ruleID, identity: identity}
 			if existing := grouped[key]; existing != nil {
-				existing.DependencyRefs = appendUniqueString(existing.DependencyRefs, transition.After.ID)
+				existing.DependencyRefs = appendUniqueString(existing.DependencyRefs, transition.After.NodeID())
 				continue
 			}
 			grouped[key] = &sdk.Finding{
@@ -147,7 +148,7 @@ func dependencySourceChangeFindings(transitions []sdk.DependencyDetailTransition
 				RuleID:         ruleID,
 				PolicyStatus:   status,
 				PackageRef:     purl,
-				DependencyRefs: appendUniqueString(nil, transition.After.ID),
+				DependencyRefs: appendUniqueString(nil, transition.After.NodeID()),
 			}
 		}
 	}
@@ -191,13 +192,13 @@ func appendUniqueString(values []string, value string) []string {
 	return append(values, value)
 }
 
-func finding(pkg *sdk.Dependency, id, title string, policyStatus sdk.FindingPolicyStatus) sdk.Finding {
+func finding(pkg *sdk.DependencyNode, id, title string, policyStatus sdk.FindingPolicyStatus) sdk.Finding {
 	purl := pkg.PackageRef
 	if purl == "" {
-		purl = sdk.CanonicalPackageURLFromDependency(pkg)
+		purl = pkg.NodeID()
 	}
 	return sdk.Finding{
-		ID:             fmt.Sprintf("%s:%s:%s", auditorName, id, pkg.ID),
+		ID:             fmt.Sprintf("%s:%s:%s", auditorName, id, pkg.NodeID()),
 		Kind:           sdk.FindingKindPackage,
 		Title:          title,
 		Severity:       packageFindingSeverity(policyStatus),
@@ -206,7 +207,7 @@ func finding(pkg *sdk.Dependency, id, title string, policyStatus sdk.FindingPoli
 		RuleID:         id,
 		PolicyStatus:   policyStatus,
 		PackageRef:     purl,
-		DependencyRefs: []string{pkg.ID},
+		DependencyRefs: []string{pkg.NodeID()},
 	}
 }
 
@@ -224,9 +225,9 @@ func packageIDs(graph *sdk.Graph) map[string]struct{} {
 	if graph == nil {
 		return ids
 	}
-	for _, pkg := range graph.Nodes() {
+	for _, pkg := range graph.DependencyNodes() {
 		if pkg != nil {
-			ids[pkg.ID] = struct{}{}
+			ids[pkg.NodeID()] = struct{}{}
 		}
 	}
 	return ids
@@ -237,7 +238,7 @@ func packageDisplayNames(graph *sdk.Graph) map[string]struct{} {
 	if graph == nil {
 		return names
 	}
-	for _, pkg := range graph.Nodes() {
+	for _, pkg := range graph.DependencyNodes() {
 		if pkg != nil {
 			names[strings.ToLower(strings.TrimSpace(pkg.DisplayName()))] = struct{}{}
 		}
@@ -250,7 +251,7 @@ func protectedNames(graph *sdk.Graph, configured []string) []string {
 	if graph == nil {
 		return names
 	}
-	for _, pkg := range graph.Nodes() {
+	for _, pkg := range graph.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
@@ -259,8 +260,8 @@ func protectedNames(graph *sdk.Graph, configured []string) []string {
 	return names
 }
 
-func deniedPackage(pkg *sdk.Dependency, denied []string) bool {
-	canonical := sdk.CanonicalPackageURLFromDependency(pkg)
+func deniedPackage(pkg *sdk.DependencyNode, denied []string) bool {
+	canonical := pkg.NodeID()
 	base := sdk.PackageURLBase(canonical)
 	if canonical == "" || base == "" {
 		return false
@@ -270,7 +271,7 @@ func deniedPackage(pkg *sdk.Dependency, denied []string) bool {
 		if canonicalCandidate == "" {
 			continue
 		}
-		parsed := sdk.ParsePackageURL(canonicalCandidate)
+		parsed := purlkitParse(canonicalCandidate)
 		hasVersion := parsed != nil && strings.TrimSpace(parsed.Version) != ""
 		if hasVersion && canonical == canonicalCandidate {
 			return true
@@ -282,8 +283,8 @@ func deniedPackage(pkg *sdk.Dependency, denied []string) bool {
 	return false
 }
 
-func deniedGroup(pkg *sdk.Dependency, denied []string) bool {
-	base := sdk.PackageURLBase(sdk.CanonicalPackageURLFromDependency(pkg))
+func deniedGroup(pkg *sdk.DependencyNode, denied []string) bool {
+	base := sdk.PackageURLBase(pkg.NodeID())
 	if base == "" {
 		return false
 	}
@@ -381,4 +382,15 @@ func maxInt(values ...int) int {
 		}
 	}
 	return best
+}
+
+// purlkitParse delegates to purlkit, the SDK's kit over the official
+// packageurl-go. sdk.ParsePackageURL was the deprecated anchore-fork entry
+// point and is gone; it returned nil on failure, so this keeps that shape.
+func purlkitParse(value string) *purlkit.PURL {
+	parsed, err := purlkit.Parse(value)
+	if err != nil {
+		return nil
+	}
+	return &parsed
 }

@@ -8,7 +8,7 @@ import (
 
 func TestRebaseGraphLocations_PrefixesSubprojectPath(t *testing.T) {
 	g := sdk.New()
-	dep := sdk.NewDependencyWithID("lodash@4.17.21", sdk.Dependency{
+	dep := sdk.NewDependencyNode("lodash@4.17.21", sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{Name: "lodash", Version: "4.17.21"},
 		Locations: []sdk.PackageLocation{{
 			RealPath:   "package-lock.json",
@@ -38,7 +38,7 @@ func TestRebaseGraphLocations_PrefixesSubprojectPath(t *testing.T) {
 func TestRebaseGraphLocations_RootIsNoOp(t *testing.T) {
 	for _, rel := range []string{".", "", "  "} {
 		g := sdk.New()
-		dep := sdk.NewDependencyWithID("lodash@4.17.21", sdk.Dependency{
+		dep := sdk.NewDependencyNode("lodash@4.17.21", sdk.DependencyNode{
 			Coordinates: sdk.Coordinates{Name: "lodash", Version: "4.17.21"},
 			Locations:   []sdk.PackageLocation{{RealPath: "package-lock.json", Position: &sdk.SourcePosition{File: "package-lock.json", Line: 8}}},
 		})
@@ -57,7 +57,7 @@ func TestRebaseGraphLocations_RootIsNoOp(t *testing.T) {
 
 func TestRebaseGraphLocations_SkipsAbsoluteAndAlreadyPrefixed(t *testing.T) {
 	g := sdk.New()
-	dep := sdk.NewDependencyWithID("pkg@1.0.0", sdk.Dependency{
+	dep := sdk.NewDependencyNode("pkg@1.0.0", sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{Name: "pkg", Version: "1.0.0"},
 		Locations: []sdk.PackageLocation{
 			{RealPath: "/abs/pom.xml", Position: &sdk.SourcePosition{File: "/abs/pom.xml", Line: 1}},
@@ -83,7 +83,7 @@ func TestRebaseGraphLocations_SkipsAbsoluteAndAlreadyPrefixed(t *testing.T) {
 // rebasing fires through the real consolidation entry point.
 func TestConsolidateGraphs_RebasesCoreDetectorLocations(t *testing.T) {
 	g := sdk.New()
-	dep := sdk.NewDependency(sdk.Dependency{
+	dep := sdk.NewDependency(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"},
 		Locations:   []sdk.PackageLocation{{RealPath: "package-lock.json", Position: &sdk.SourcePosition{File: "package-lock.json", Line: 8}}},
 	})
@@ -112,15 +112,15 @@ func TestConsolidateGraphs_RebasesCoreDetectorLocations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	var node *sdk.Dependency
-	for _, n := range graph.Nodes() {
+	var node *sdk.DependencyNode
+	for _, n := range graph.DependencyNodes() {
 		if n != nil && n.Name == "lodash" {
 			node = n
 			break
 		}
 	}
 	if node == nil {
-		t.Fatalf("expected lodash node, got %v", graph.Nodes())
+		t.Fatalf("expected lodash node, got %v", graph.DependencyNodes())
 	}
 	if len(node.Locations) == 0 || node.Locations[0].Position == nil || node.Locations[0].Position.File != "apps/web/package-lock.json" {
 		t.Fatalf("consolidated location = %#v, want apps/web/package-lock.json", node.Locations)

@@ -185,16 +185,16 @@ type DependencyPath struct {
 // matching-stage enrichment (Vulnerabilities, Scorecard, EOL, licenses
 // learned during matching) must come from the registry — use
 // PackageFromDependencyAndRegistry when a registry is in scope.
-func PackageFromGraphPackage(dep *sdk.Dependency) PackageRef {
+func PackageFromGraphPackage(dep *sdk.DependencyNode) PackageRef {
 	return PackageFromDependencyAndRegistry(dep, nil)
 }
 
 // PackageFromDependencyAndRegistry builds a PackageRef from a graph Dependency
 // node and layers in matching-stage enrichment (vulnerabilities, scorecard,
-// licenses learned during matching) by resolving dep.PURL against the
+// licenses learned during matching) by resolving dep.NodeID() against the
 // registry. registry may be nil — callers without a registry get the
 // detection-only projection.
-func PackageFromDependencyAndRegistry(dep *sdk.Dependency, registry *sdk.PackageRegistry) PackageRef {
+func PackageFromDependencyAndRegistry(dep *sdk.DependencyNode, registry *sdk.PackageRegistry) PackageRef {
 	if dep == nil {
 		return PackageRef{Licenses: []LicenseRef{}, Vulnerabilities: []VulnerabilityRef{}}
 	}
@@ -202,15 +202,15 @@ func PackageFromDependencyAndRegistry(dep *sdk.Dependency, registry *sdk.Package
 		Name:            dep.DisplayName(),
 		Version:         dep.Version,
 		Scope:           string(dep.PrimaryScope()),
-		Purl:            dep.PURL,
-		ID:              dep.ID,
+		Purl:            dep.NodeID(),
+		ID:              dep.NodeID(),
 		Relationship:    string(dep.Relationship),
 		Metadata:        cloneRefMetadata(dep.Metadata),
 		Locations:       LocationRefsFromGraphLocations(dep.Locations),
 		Licenses:        LicenseRefsFromGraphLicenses(sdk.DetectionLicenses(dep)),
 		Vulnerabilities: []VulnerabilityRef{},
 	}
-	pkg := lookupRegistryPackage(registry, dep.PURL)
+	pkg := lookupRegistryPackage(registry, dep.NodeID())
 	if pkg != nil {
 		// Prefer registry-learned licenses when detection produced none.
 		if len(ref.Licenses) == 0 && len(pkg.Licenses) > 0 {
@@ -561,7 +561,7 @@ type ScanTargetResponse struct {
 }
 
 // ScanDependency is one detection-stage dependency node in a manifest. It is a
-// lean projection of sdk.Dependency: identity, scopes, edges, detection-time
+// lean projection of sdk.DependencyNode: identity, scopes, edges, detection-time
 // licenses, and a package_ref (PURL) link into the top-level packages
 // collection. Matching-stage enrichment (vulnerabilities, scorecard, EOL,
 // licenses learned during matching) is NOT carried here — it lives on the
@@ -580,7 +580,7 @@ type ScanDependency struct {
 }
 
 // PrimaryScope returns the merged precedence scope across the dependency's
-// recorded scopes, mirroring sdk.Dependency.PrimaryScope so text/markdown
+// recorded scopes, mirroring sdk.DependencyNode.PrimaryScope so text/markdown
 // renderers reproduce the same scope label as before the model split.
 func (d ScanDependency) PrimaryScope() string {
 	result := sdk.ScopeUnknown
@@ -629,20 +629,20 @@ func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDe
 		return nil
 	}
 
-	nodes := g.Nodes()
+	nodes := g.DependencyNodes()
 	payload := make([]ScanDependency, 0, len(nodes))
 	for _, dep := range nodes {
 		if dep == nil {
 			continue
 		}
-		deps, err := g.DirectDependencies(dep.ID)
+		deps, err := g.DirectDependencies(dep.NodeID())
 		dependencyIDs := make([]string, 0, len(deps))
 		if err == nil {
 			for _, child := range deps {
 				if child == nil {
 					continue
 				}
-				dependencyIDs = append(dependencyIDs, child.ID)
+				dependencyIDs = append(dependencyIDs, child.NodeID())
 			}
 		}
 		scopes := make([]string, 0, len(dep.Scopes))
@@ -650,14 +650,14 @@ func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDe
 			scopes = append(scopes, string(scope))
 		}
 		matched := dep.Matched
-		if pkg := lookupRegistryPackage(registry, dep.PURL); pkg != nil {
+		if pkg := lookupRegistryPackage(registry, dep.NodeID()); pkg != nil {
 			matched = matched || pkg.Matched
 		}
 		payload = append(payload, ScanDependency{
-			ID:         dep.ID,
+			ID:         dep.NodeID(),
 			Name:       dep.DisplayName(),
 			Version:    dep.Version,
-			Purl:       dep.PURL,
+			Purl:       dep.NodeID(),
 			Scopes:     scopes,
 			DependsOn:  dependencyIDs,
 			Matched:    matched,

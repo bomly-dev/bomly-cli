@@ -9,7 +9,7 @@ import (
 
 func TestProjectedDependencyDetailReviewReasonsMatchCanonicalTransition(t *testing.T) {
 	const purl = "pkg:npm/example@1.0.0"
-	before := sdk.NewDependencyWithID("npm:example", sdk.Dependency{
+	before := sdk.NewDependencyNode("npm:example", sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			PURL:    purl,
 			Name:    "example",

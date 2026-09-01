@@ -6,13 +6,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"net/url"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/licenseexpr"
 	"github.com/bomly-dev/bomly-sdk"
 )
@@ -29,47 +29,72 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 	components := make([]Component, 0, componentCount)
 	depsByRef := make(map[string][]string, componentCount)
 
-	g.WalkNodes(func(pkg *sdk.Dependency) bool {
-		version := pkg.Version
-		if version == "" && pkg.FirstParty && opts.ProjectRoot != nil {
-			// First-party nodes (the scanned project's own modules) have no
-			// registry version; the project version is theirs.
+	// Modules are emitted alongside dependencies: they are the scanned
+	// project's own artifacts, and an SBOM that omitted them would describe
+	// the dependencies of a project it never named. Manifests are structural
+	// and stay out.
+	graphNodes := make([]sdk.GraphNode, 0, componentCount)
+	for _, module := range g.ModuleNodes() {
+		graphNodes = append(graphNodes, module)
+	}
+	for _, dep := range g.DependencyNodes() {
+		graphNodes = append(graphNodes, dep)
+	}
+	for _, node := range graphNodes {
+		coords, ok := componentCoordinates(node)
+		if !ok {
+			continue
+		}
+		version := coords.Version
+		if version == "" && nodes.IsProjectOwned(node) && opts.ProjectRoot != nil {
+			// The project's own modules have no registry version; the
+			// project version is theirs.
 			version = strings.TrimSpace(opts.ProjectRoot.Version)
 		}
+		pkg := node
 		component := Component{
-			ID:             pkg.ID,
-			Name:           pkg.EcosystemName(),
-			Org:            componentOrg(pkg),
+			ID:             pkg.NodeID(),
+			Name:           coords.EcosystemName(),
+			Org:            strings.TrimSpace(coords.Org),
 			Version:        version,
-			Scope:          string(pkg.PrimaryScope()),
-			PURL:           pkg.PURL,
-			Ecosystem:      string(pkg.Ecosystem),
-			PackageManager: pkg.PackageManager.Name(),
-			Type:           string(pkg.Type),
-			Copyright:      pkg.Copyright,
-			Licenses:       componentLicenses(sdk.DetectionLicenses(pkg)),
-			Digests:        componentDigests(pkg.Digests),
+			PURL:           pkg.NodeID(),
+			Ecosystem:      string(coords.Ecosystem),
+			PackageManager: coords.PackageManager.Name(),
+			Type:           string(coords.Type),
 		}
-		if !detectors.IsProjectOwned(pkg) {
-			// The project's own records never take an external origin.
-			// Built-in detectors do not assert one, folding cannot add one,
-			// and the scorecard fallback skips them -- this guard closes the
-			// remaining path, a plugin-supplied graph asserting an origin on
-			// a first-party node directly.
-			applyOrigin(&component, pkg.Origin.Normalized())
+		if dep, isDep := pkg.(*sdk.DependencyNode); isDep {
+			component.Scope = string(dep.PrimaryScope())
+			component.Copyright = dep.Copyright
+			component.Licenses = componentLicenses(sdk.DetectionLicenses(dep))
+			component.Digests = componentDigests(dep.Digests)
+			// The project's own records never take an external origin. This
+			// guard closes the one remaining path -- a plugin-supplied graph
+			// asserting an origin directly -- and module nodes cannot reach
+			// it at all now, since origins live on dependency nodes.
+			if !nodes.IsProjectOwned(pkg) && len(dep.Origins) > 0 {
+				applyOrigin(&component, dep.Origins[0].Normalized())
+			}
 		}
-		enrichComponentFromRegistry(&component, opts.Registry, pkg.PURL, detectors.IsProjectOwned(pkg))
+		enrichComponentFromRegistry(&component, opts.Registry, pkg.NodeID(), nodes.IsProjectOwned(pkg))
 		components = append(components, component)
-		depsByRef[pkg.ID] = nil
-		return true
-	})
+		depsByRef[pkg.NodeID()] = nil
+	}
 
 	sort.Slice(components, func(i, j int) bool {
 		return components[i].ID < components[j].ID
 	})
 
-	g.WalkEdges(func(from, to *sdk.Dependency) bool {
-		depsByRef[from.ID] = append(depsByRef[from.ID], to.ID)
+	// Only depends-on edges become a document's dependency list: a
+	// manifest-to-module edge is structural, and emitting it would assert a
+	// relationship no detector made.
+	g.WalkTypedEdges(func(from, to sdk.GraphNode, kind sdk.EdgeKind) bool {
+		if kind != sdk.EdgeKindDependsOn {
+			return true
+		}
+		if _, ok := depsByRef[from.NodeID()]; !ok {
+			return true
+		}
+		depsByRef[from.NodeID()] = append(depsByRef[from.NodeID()], to.NodeID())
 		return true
 	})
 
@@ -88,7 +113,7 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 	roots := g.Roots()
 	rootIDs := make([]string, 0, len(roots))
 	for _, r := range roots {
-		rootIDs = append(rootIDs, r.ID)
+		rootIDs = append(rootIDs, r.NodeID())
 	}
 	if opts.RootComponentID != "" {
 		for _, c := range components {
@@ -513,11 +538,11 @@ func normalizeSPDXLicenseExpression(expression string) string {
 // value the document already carries: PURL construction derives a namespace
 // for Go modules whose coordinates leave Org empty, and it spells npm scopes
 // with their leading "@". Reading it back keeps `group` and the PURL agreeing.
-func componentOrg(pkg *sdk.Dependency) string {
+func componentOrg(pkg *sdk.DependencyNode) string {
 	if pkg == nil {
 		return ""
 	}
-	if parsed := sdk.ParsePackageURL(pkg.PURL); parsed != nil {
+	if parsed := parsePURL(pkg.NodeID()); parsed != nil {
 		if namespace := strings.TrimSpace(parsed.Namespace); namespace != "" {
 			return namespace
 		}
@@ -559,4 +584,18 @@ func allValidSPDXExpressions(values []string) bool {
 		}
 	}
 	return true
+}
+
+// componentCoordinates returns the coordinates a node contributes to an SBOM
+// component, and whether it contributes one at all. Manifests do not: they are
+// structure, not artifacts.
+func componentCoordinates(node sdk.GraphNode) (sdk.Coordinates, bool) {
+	switch typed := node.(type) {
+	case *sdk.DependencyNode:
+		return typed.Coordinates, true
+	case *sdk.ModuleNode:
+		return typed.Coordinates, true
+	default:
+		return sdk.Coordinates{}, false
+	}
 }

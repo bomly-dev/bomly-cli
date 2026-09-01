@@ -108,12 +108,15 @@ func buildLockIndex(g *sdk.Graph, packages []lockPackage, rootRecord lockPackage
 		if qualifiedLockKey(pkg) == rootKey {
 			continue
 		}
-		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
-		surviving, err := detectors.EnsureOccurrence(g, node, strings.TrimSpace(pkg.Source))
+		node, err := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
 		if err != nil {
 			return nil, err
 		}
-		index.record(pkg, surviving.ID)
+		surviving, err := detectors.EnsureNode(g, node)
+		if err != nil {
+			return nil, err
+		}
+		index.record(pkg, surviving.NodeID())
 	}
 	return index, nil
 }

@@ -11,7 +11,7 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
+func originOf(dep *sdk.DependencyNode) sdk.DependencyOrigin {
 	if dep == nil {
 		return sdk.DependencyOrigin{}
 	}
@@ -153,7 +153,7 @@ func TestPubNativeOriginIsReadFromPubspecLock(t *testing.T) {
 		Revision:   "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d",
 	}
 	var checked int
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkNodes(func(dep sdk.GraphNode) bool {
 		origin := originOf(dep)
 		switch dep.Name {
 		case "helper":
@@ -207,7 +207,7 @@ func TestPubOverriddenPackageIsNotCreditedToTheLockedRepository(t *testing.T) {
 	}
 
 	var checked int
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkNodes(func(dep sdk.GraphNode) bool {
 		if dep.Name != "helper" {
 			return true
 		}
@@ -238,7 +238,7 @@ func TestPubNativeOriginSurvivesMissingLock(t *testing.T) {
 	}
 
 	var checked int
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkNodes(func(dep sdk.GraphNode) bool {
 		if dep.Name == "helper" {
 			checked++
 		}

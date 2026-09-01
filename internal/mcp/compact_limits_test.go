@@ -74,7 +74,7 @@ func TestCompactRemediationCapsAliasesAndFindingsWithCounters(t *testing.T) {
 			VulnerabilityID: id,
 			Kind:            sdk.FindingKindVulnerability,
 			Severity:        sdk.SeverityLow,
-			PackageRef:      pkg.PURL,
+			PackageRef:      pkg.NodeID(),
 			DependencyRefs:  append([]string(nil), in.Findings[0].DependencyRefs...),
 		})
 	}

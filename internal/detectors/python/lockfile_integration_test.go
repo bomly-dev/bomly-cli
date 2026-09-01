@@ -41,15 +41,15 @@ func resolvePyLockGraph(t *testing.T, detector sdk.Detector, projectDir string) 
 }
 
 func pyGraphIDs(g *sdk.Graph) []string {
-	nodes := g.Nodes()
+	nodes := g.DependencyNodes()
 	ids := make([]string, len(nodes))
 	for i, n := range nodes {
-		ids[i] = n.ID
+		ids[i] = n.NodeID()
 	}
 	return ids
 }
 
-func requirePyPackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.Dependency {
+func requirePyPackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.DependencyNode {
 	t.Helper()
 	id := pyStableID(name, version)
 	pkg, ok := g.Node(id)
@@ -68,7 +68,7 @@ func requirePyEdge(t *testing.T, g *sdk.Graph, fromName, fromVersion, toName, to
 		t.Fatalf("dependencies(%s): %v", fromID, err)
 	}
 	for _, dep := range deps {
-		if dep.ID == toID {
+		if dep.NodeID() == toID {
 			return
 		}
 	}
@@ -98,8 +98,8 @@ func requirePySingleRoot(t *testing.T, g *sdk.Graph, rootID string) {
 	if len(roots) != 1 {
 		t.Fatalf("expected exactly one root, got %d: %v", len(roots), pyGraphIDs(g))
 	}
-	if roots[0].ID != rootID {
-		t.Errorf("expected root %q, got %q", rootID, roots[0].ID)
+	if roots[0].NodeID() != rootID {
+		t.Errorf("expected root %q, got %q", rootID, roots[0].NodeID())
 	}
 }
 
@@ -163,7 +163,7 @@ func TestUVLockFixture(t *testing.T) {
 	requirePySingleRoot(t, g, pyStableID("demo-app", "1.0.0"))
 	// The editable package is the scanned project itself — first-party, so
 	// enrichment never queries it.
-	if root, ok := g.Node(pyStableID("demo-app", "1.0.0")); !ok || !root.FirstParty || sdk.NodeIsEnrichable(root) {
+	if root, ok := g.Node(pyStableID("demo-app", "1.0.0")); !ok || !root.FirstParty || root.RegistryMatchEligible() {
 		t.Fatalf("uv editable root must be first-party and not enrichable, got %#v", root)
 	}
 	for _, want := range [][2]string{

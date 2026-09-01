@@ -25,7 +25,7 @@ func stableID(name, version string) string {
 }
 
 // requirePackage asserts a package with the given name@version exists in the graph.
-func requirePackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.Dependency {
+func requirePackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.DependencyNode {
 	t.Helper()
 	id := stableID(name, version)
 	pkg, ok := g.Node(id)
@@ -45,7 +45,7 @@ func requireEdge(t *testing.T, g *sdk.Graph, fromName, fromVersion, toName, toVe
 		t.Fatalf("dependencies(%s@%s): %v", fromName, fromVersion, err)
 	}
 	for _, dep := range deps {
-		if dep.ID == toID {
+		if dep.NodeID() == toID {
 			return
 		}
 	}
@@ -82,7 +82,7 @@ func requireScope(t *testing.T, g *sdk.Graph, name, version string, scope sdk.Sc
 }
 
 func graphPackageIDs(g *sdk.Graph) []string {
-	pkgs := g.Nodes()
+	pkgs := g.DependencyNodes()
 	ids := make([]string, len(pkgs))
 	for i, p := range pkgs {
 		ids[i] = p.ID
@@ -146,7 +146,7 @@ func requireEdgeByID(t *testing.T, g *sdk.Graph, fromID, toID string) {
 		t.Fatal(err)
 	}
 	for _, dependency := range dependencies {
-		if dependency.ID == toID {
+		if dependency.NodeID() == toID {
 			return
 		}
 	}
@@ -264,8 +264,8 @@ func TestNPMLockfileV3_SingleApplicationRoot(t *testing.T) {
 	if len(roots) != 1 {
 		t.Fatalf("expected exactly one root package, got %d: %v", len(roots), graphPackageIDs(g))
 	}
-	if roots[0].ID != stableID("demo-app", "3.0.0") {
-		t.Fatalf("expected npm root %q, got %q", stableID("demo-app", "3.0.0"), roots[0].ID)
+	if roots[0].NodeID() != stableID("demo-app", "3.0.0") {
+		t.Fatalf("expected npm root %q, got %q", stableID("demo-app", "3.0.0"), roots[0].NodeID())
 	}
 }
 
@@ -396,8 +396,8 @@ func TestYarnLockfileV1_SingleApplicationRoot(t *testing.T) {
 	if len(roots) != 1 {
 		t.Fatalf("expected exactly one root package, got %d: %v", len(roots), graphPackageIDs(g))
 	}
-	if roots[0].ID != stableID("demo-app", "1.0.0") {
-		t.Fatalf("expected yarn root %q, got %q", stableID("demo-app", "1.0.0"), roots[0].ID)
+	if roots[0].NodeID() != stableID("demo-app", "1.0.0") {
+		t.Fatalf("expected yarn root %q, got %q", stableID("demo-app", "1.0.0"), roots[0].NodeID())
 	}
 }
 
@@ -425,7 +425,7 @@ func TestYarnBerry_MetadataStanzaNotIngested(t *testing.T) {
 		t.Fatalf("depGraphFromYarnLockfile(yarn-berry): %v", err)
 	}
 	// __metadata must never appear as a package
-	for _, pkg := range g.Nodes() {
+	for _, pkg := range g.DependencyNodes() {
 		if pkg.Name == "__metadata" {
 			t.Errorf("__metadata was incorrectly ingested as a package node")
 		}

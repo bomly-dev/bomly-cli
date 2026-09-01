@@ -9,7 +9,7 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
+func originOf(dep *sdk.DependencyNode) sdk.DependencyOrigin {
 	if dep == nil {
 		return sdk.DependencyOrigin{}
 	}
@@ -115,7 +115,7 @@ func TestNPMv1DuplicateEntriesKeepDistinctResolutions(t *testing.T) {
 		}
 		sharedOrigins := map[string]int{}
 		agreedNodes := 0
-		graphs.graph.WalkNodes(func(dep *sdk.Dependency) bool {
+		graphs.graph.WalkNodes(func(dep sdk.GraphNode) bool {
 			switch dep.Name {
 			case "shared":
 				sharedOrigins[originOf(dep).ArtifactURL]++
@@ -162,7 +162,7 @@ func TestNPMv3DuplicatePathsWithDifferentTarballsStayDistinct(t *testing.T) {
 	}
 
 	origins := map[string]int{}
-	graphs.graph.WalkNodes(func(dep *sdk.Dependency) bool {
+	graphs.graph.WalkNodes(func(dep sdk.GraphNode) bool {
 		if dep.Name == "shared" {
 			origins[originOf(dep).ArtifactURL]++
 		}

@@ -43,7 +43,7 @@ func TestPipInspectDuplicateRecordsAreDeterministic(t *testing.T) {
 			}
 
 			var checked int
-			graph.WalkNodes(func(dep *sdk.Dependency) bool {
+			graph.WalkNodes(func(dep sdk.GraphNode) bool {
 				if dep.Name != "helper" {
 					return true
 				}
@@ -111,7 +111,7 @@ url = "` + tc.second + `"
 			}
 
 			var checked int
-			graph.WalkNodes(func(dep *sdk.Dependency) bool {
+			graph.WalkNodes(func(dep sdk.GraphNode) bool {
 				if dep.Name != "helper" {
 					return true
 				}
@@ -180,7 +180,7 @@ source = { url = "` + tc.second + `" }
 			}
 
 			var checked int
-			graph.WalkNodes(func(dep *sdk.Dependency) bool {
+			graph.WalkNodes(func(dep sdk.GraphNode) bool {
 				if dep.Name != "helper" {
 					return true
 				}
@@ -238,7 +238,7 @@ func TestPipenvGroupsAreDeterministic(t *testing.T) {
 			}
 
 			var checked int
-			graph.WalkNodes(func(dep *sdk.Dependency) bool {
+			graph.WalkNodes(func(dep sdk.GraphNode) bool {
 				if dep.Name != "helper" {
 					return true
 				}
@@ -257,7 +257,7 @@ func TestPipenvGroupsAreDeterministic(t *testing.T) {
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
+func originOf(dep *sdk.DependencyNode) sdk.DependencyOrigin {
 	if dep == nil {
 		return sdk.DependencyOrigin{}
 	}
@@ -462,7 +462,7 @@ func TestPipInspectOriginByDirectURLShape(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "pkg", Version: "1.0.0"}})
+			node := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "pkg", Version: "1.0.0"}})
 			setPipInspectOrigin(node, tc.directURL)
 			if got := originOf(node); got != tc.want {
 				t.Fatalf("origin = %+v, want %+v", got, tc.want)

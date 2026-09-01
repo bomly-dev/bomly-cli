@@ -7,7 +7,7 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
+func originOf(dep *sdk.DependencyNode) sdk.DependencyOrigin {
 	if dep == nil {
 		return sdk.DependencyOrigin{}
 	}

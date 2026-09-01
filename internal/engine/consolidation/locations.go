@@ -26,7 +26,7 @@ func rebaseGraphLocations(g *sdk.Graph, relativePath string) {
 	if g == nil || rel == "" || rel == "." {
 		return
 	}
-	for _, pkg := range g.Nodes() {
+	for _, pkg := range g.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}

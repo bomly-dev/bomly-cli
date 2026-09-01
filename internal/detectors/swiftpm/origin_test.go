@@ -12,7 +12,7 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
+func originOf(dep *sdk.DependencyNode) sdk.DependencyOrigin {
 	if dep == nil {
 		return sdk.DependencyOrigin{}
 	}
@@ -55,7 +55,7 @@ func TestSwiftPMOriginByPinKind(t *testing.T) {
 	}
 
 	var checked int
-	for _, node := range graph.Nodes() {
+	for _, node := range graph.DependencyNodes() {
 		origin := originOf(node)
 		switch node.Name {
 		case "swift-argument-parser":
@@ -128,7 +128,7 @@ func TestSwiftPMNativeOriginIsPinnedFromPackageResolved(t *testing.T) {
 		Revision:   "f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b",
 	}
 	var checked int
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkNodes(func(dep sdk.GraphNode) bool {
 		origin := originOf(dep)
 		switch dep.Name {
 		case "swift-argument-parser":
@@ -185,7 +185,7 @@ func TestSwiftPMEditedPackageIsNotCreditedToItsFormerPin(t *testing.T) {
 	}
 
 	var checked int
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkNodes(func(dep sdk.GraphNode) bool {
 		if dep.Name != "helper" {
 			return true
 		}
@@ -234,7 +234,7 @@ func TestSwiftPMPinIsNotAttachedToADifferentRepository(t *testing.T) {
 	}
 
 	var checked int
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkNodes(func(dep sdk.GraphNode) bool {
 		if dep.ResolvedURL == "" {
 			return true
 		}
@@ -271,7 +271,7 @@ func TestSwiftPMNativeOriginSurvivesMissingPackageResolved(t *testing.T) {
 
 	want := sdk.DependencyOrigin{Repository: "https://github.com/apple/swift-argument-parser.git"}
 	var checked int
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkNodes(func(dep sdk.GraphNode) bool {
 		if dep.Name == "swift-argument-parser" {
 			checked++
 			if got := originOf(dep); got != want {
@@ -350,7 +350,7 @@ func TestSwiftPMNativeOriginDoesNotMatchAcrossPathCase(t *testing.T) {
 	if err != nil {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkNodes(func(dep sdk.GraphNode) bool {
 		if origin := originOf(dep); origin.Revision == "5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f7081" {
 			t.Fatalf("%s took a pin belonging to a differently-cased repository: %+v", dep.Name, origin)
 		}
@@ -401,7 +401,7 @@ func TestSwiftPMOriginIsPinnedFromTheXcodeLockfile(t *testing.T) {
 		Revision:   "6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192",
 	}
 	var checked int
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkNodes(func(dep sdk.GraphNode) bool {
 		if dep.Name != "swift-argument-parser" {
 			return true
 		}

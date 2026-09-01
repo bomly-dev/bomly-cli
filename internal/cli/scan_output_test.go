@@ -56,7 +56,7 @@ func TestReportOptionsFromPipelineResultsDisabledOmitsAnalyzerMetadata(t *testin
 
 func TestExplainPackageRefPlacesRemediationOnlyOnFocusedDependency(t *testing.T) {
 	const purl = "pkg:npm/example@1.0.0"
-	dependency := sdk.NewDependency(sdk.Dependency{
+	dependency := sdk.NewDependency(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			PURL:    purl,
 			Name:    "example",
@@ -71,8 +71,8 @@ func TestExplainPackageRefPlacesRemediationOnlyOnFocusedDependency(t *testing.T)
 			RecommendedVersion: "1.2.0",
 			Suggestions: []sdk.PackageRemediationSuggestion{
 				{
-					AffectedDependencyRefs:       []string{dependency.ID},
-					SuggestedActionDependencyRef: dependency.ID,
+					AffectedDependencyRefs:       []string{dependency.NodeID()},
+					SuggestedActionDependencyRef: dependency.NodeID(),
 					Action:                       sdk.RemediationActionDirectBump,
 				},
 				{

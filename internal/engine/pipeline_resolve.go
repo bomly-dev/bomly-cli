@@ -508,7 +508,7 @@ func graphContainerStats(container *sdk.GraphContainer) (packages, edges int) {
 			continue
 		}
 		packages += entry.Graph.Size()
-		entry.Graph.WalkEdges(func(_, _ *sdk.Dependency) bool {
+		entry.Graph.WalkEdges(func(_, _ sdk.GraphNode) bool {
 			edges++
 			return true
 		})

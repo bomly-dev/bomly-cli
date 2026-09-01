@@ -223,8 +223,10 @@ func manifestModuleDir(row listPackageRow) string {
 // file name when the root carries no name.
 func (m *ScanModel) manifestRootName(manifest listPackageRow) string {
 	if m.graphValue != nil && manifest.rootID != "" {
-		if pkg, ok := m.graphValue.Node(manifest.rootID); ok && pkg != nil && strings.TrimSpace(pkg.Name) != "" {
-			return pkg.Name
+		if pkg, ok := m.graphValue.Node(manifest.rootID); ok && pkg != nil {
+			if name, _, _, _ := nodeDisplay(pkg); strings.TrimSpace(name) != "" {
+				return name
+			}
 		}
 	}
 	return manifest.displayName
@@ -323,7 +325,7 @@ func (m *ScanModel) rootPackageSection(rootID string) []string {
 		"",
 		render.Style("Root package", render.Bold, render.Cyan),
 		render.Style("  Name: ", render.Dim) + packageDisplayName(pkg),
-		render.Style("  PURL: ", render.Dim) + valueOrDash(pkg.PURL),
+		render.Style("  PURL: ", render.Dim) + valueOrDash(pkg.NodeID()),
 		render.Style("  Licenses: ", render.Dim) + valueOrDash(strings.Join(licenseValues, ", ")),
 		render.Style("  Vulnerabilities: ", render.Dim) + vulnerabilitySummary,
 	}

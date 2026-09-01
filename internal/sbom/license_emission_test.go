@@ -15,7 +15,7 @@ import (
 func licensedGraph(t *testing.T, licenses ...sdk.PackageLicense) *sdk.Graph {
 	t.Helper()
 	g := sdk.New()
-	dep := sdk.NewDependencyWithID("left-pad@1.3.0", sdk.Dependency{Coordinates: sdk.Coordinates{
+	dep := sdk.NewDependencyNode("left-pad@1.3.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{
 		Name:      "left-pad",
 		Version:   "1.3.0",
 		PURL:      "pkg:npm/left-pad@1.3.0",

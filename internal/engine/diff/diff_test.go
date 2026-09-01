@@ -284,21 +284,21 @@ func diffTestRequest() engine.PipelineRequest {
 	}
 }
 
-func npmPackage(name, version string) *sdk.Dependency {
+func npmPackage(name, version string) *sdk.DependencyNode {
 	purl := "pkg:npm/" + name + "@" + version
-	return sdk.NewDependencyWithID(purl, sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+	return sdk.NewDependencyNode(purl, sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
 		Name:    name,
 		Version: version,
 		PURL:    purl},
 	})
 }
 
-func graphFixture(t *testing.T, packages ...*sdk.Dependency) *sdk.Graph {
+func graphFixture(t *testing.T, packages ...*sdk.DependencyNode) *sdk.Graph {
 	t.Helper()
 	g := sdk.New()
 	for _, pkg := range packages {
 		if err := g.AddNode(pkg.Clone()); err != nil {
-			t.Fatalf("add package %q: %v", pkg.ID, err)
+			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
 	}
 	return g
@@ -378,12 +378,12 @@ func (f fakeAuditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditRe
 		return sdk.AuditResult{}, nil
 	}
 	var findings []sdk.Finding
-	for _, pkg := range req.Graph.Nodes() {
+	for _, pkg := range req.Graph.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
-		for _, finding := range f.findingsByPackage[pkg.ID] {
-			finding.PackageRef = pkg.PURL
+		for _, finding := range f.findingsByPackage[pkg.NodeID()] {
+			finding.PackageRef = pkg.NodeID()
 			findings = append(findings, finding)
 		}
 	}

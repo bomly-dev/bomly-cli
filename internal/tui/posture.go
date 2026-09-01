@@ -40,17 +40,17 @@ func postureRowsFromGraph(graphValue *sdk.Graph, registry *sdk.PackageRegistry) 
 		return nil
 	}
 	byRepo := make(map[string]*postureRow)
-	for _, dep := range graphValue.Nodes() {
-		if dep == nil || dep.PURL == "" {
+	for _, dep := range graphValue.DependencyNodes() {
+		if dep == nil || dep.NodeID() == "" {
 			continue
 		}
-		pkg, ok := registry.Get(dep.PURL)
+		pkg, ok := registry.Get(dep.NodeID())
 		if !ok || pkg == nil || pkg.Scorecard == nil {
 			continue
 		}
 		repo := pkg.Scorecard.Repository
 		if repo == "" {
-			repo = dep.PURL
+			repo = dep.NodeID()
 		}
 		row, ok := byRepo[repo]
 		if !ok {
@@ -62,7 +62,7 @@ func postureRowsFromGraph(graphValue *sdk.Graph, registry *sdk.PackageRegistry) 
 			byRepo[repo] = row
 		}
 		row.packages = append(row.packages, posturePackageRef{
-			id:          dep.ID,
+			id:          dep.NodeID(),
 			displayName: dep.DisplayName(),
 			version:     dep.Version,
 		})

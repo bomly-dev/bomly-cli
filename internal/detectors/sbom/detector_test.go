@@ -61,23 +61,23 @@ func TestDetectorResolveGraph_NormalizesImportedComponentIDs(t *testing.T) {
 
 func TestDetectorResolveGraph_PrefersImportedPURLIdentity(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	app := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "demo-app",
 		Version:        "1.0.0",
 		PURL:           "pkg:npm/demo-app@1.0.0"},
 	})
 
-	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	react := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "react",
 		Version:        "18.2.0",
 		PURL:           "pkg:npm/react@18.2.0"},
 	})
 
-	for _, pkg := range []*sdk.Dependency{app, react} {
+	for _, pkg := range []*sdk.DependencyNode{app, react} {
 		if err := g.AddNode(pkg); err != nil {
-			t.Fatalf("add package %s: %v", pkg.ID, err)
+			t.Fatalf("add package %s: %v", pkg.NodeID(), err)
 		}
 	}
 	if err := g.AddEdge(app.ID, react.ID); err != nil {
@@ -209,7 +209,7 @@ func writeSBOMFixture(t *testing.T, target sbom.Target) string {
 	g := sdk.New()
 	app := sdk.NewDependencyRef("demo-app", "1.0.0")
 	react := sdk.NewDependencyRef("react", "18.2.0")
-	for _, pkg := range []*sdk.Dependency{app, react} {
+	for _, pkg := range []*sdk.DependencyNode{app, react} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
@@ -241,7 +241,7 @@ func verifyResolvedGraph(t *testing.T, result sdk.DetectionResult, wantDependenc
 	if g == nil || g.Size() == 0 {
 		t.Fatal("expected resolved graph")
 	}
-	for _, pkg := range g.Nodes() {
+	for _, pkg := range g.DependencyNodes() {
 		if pkg != nil && pkg.StableID() == wantDependencyID {
 			return
 		}

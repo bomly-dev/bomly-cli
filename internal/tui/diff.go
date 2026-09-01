@@ -918,8 +918,8 @@ func classifyRelationships(g *sdk.Graph) map[string]string {
 		if r == nil {
 			continue
 		}
-		rootIDs[r.ID] = struct{}{}
-		out[r.ID] = "root"
+		rootIDs[r.NodeID()] = struct{}{}
+		out[r.NodeID()] = "root"
 	}
 	for rid := range rootIDs {
 		deps, _ := g.DirectDependencies(rid)
@@ -927,21 +927,21 @@ func classifyRelationships(g *sdk.Graph) map[string]string {
 			if d == nil {
 				continue
 			}
-			if _, isRoot := rootIDs[d.ID]; isRoot {
+			if _, isRoot := rootIDs[d.NodeID()]; isRoot {
 				continue
 			}
-			if _, alreadyLabeled := out[d.ID]; alreadyLabeled {
+			if _, alreadyLabeled := out[d.NodeID()]; alreadyLabeled {
 				continue
 			}
-			out[d.ID] = "direct"
+			out[d.NodeID()] = "direct"
 		}
 	}
-	for _, pkg := range g.Nodes() {
+	for _, pkg := range g.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
-		if _, ok := out[pkg.ID]; !ok {
-			out[pkg.ID] = "transitive"
+		if _, ok := out[pkg.NodeID()]; !ok {
+			out[pkg.NodeID()] = "transitive"
 		}
 	}
 	return out
@@ -3260,7 +3260,7 @@ func diffSourceItems(consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRe
 				items = append(items, sourceNode("(no consolidated graph)", "", prefix+"└─ ", 2, false, false))
 				break
 			}
-			pkgs := graph.Nodes()
+			pkgs := graph.DependencyNodes()
 			sort.Slice(pkgs, func(i, j int) bool { return packageSortKey(pkgs[i]) < packageSortKey(pkgs[j]) })
 			limit := len(pkgs)
 			truncated := false
@@ -3272,9 +3272,9 @@ func diffSourceItems(consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRe
 				pkg := pkgs[i]
 				last := i == limit-1 && !truncated
 				tree := prefix + branch(last)
-				key := "package:" + pkg.ID
+				key := "package:" + pkg.NodeID()
 				isExp := expandedValue(expanded, key, false)
-				items = append(items, sourceNode(fmt.Sprintf("%q: {}", pkg.ID), key, tree, 2, true, isExp))
+				items = append(items, sourceNode(fmt.Sprintf("%q: {}", pkg.NodeID()), key, tree, 2, true, isExp))
 				if !isExp {
 					continue
 				}

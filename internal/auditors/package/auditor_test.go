@@ -8,8 +8,8 @@ import (
 )
 
 // pkg is a convenience constructor for tests.
-func pkg(id, name, version, scope string) *sdk.Dependency {
-	return &sdk.Dependency{Coordinates: sdk.Coordinates{Name: name,
+func pkg(id, name, version, scope string) *sdk.DependencyNode {
+	return &sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: name,
 		Version: version,
 
 		PURL: id}, ID: id,
@@ -21,7 +21,7 @@ func pkg(id, name, version, scope string) *sdk.Dependency {
 }
 
 // graphOf builds a Graph from the provided packages, panicking on error.
-func graphOf(pkgs ...*sdk.Dependency) *sdk.Graph {
+func graphOf(pkgs ...*sdk.DependencyNode) *sdk.Graph {
 	g := sdk.New()
 	for _, p := range pkgs {
 		if err := g.AddNode(p); err != nil {
@@ -275,7 +275,7 @@ func TestAudit(t *testing.T) {
 func TestAuditDependencySourceChanges(t *testing.T) {
 	const purl = "pkg:npm/example@1.0.0"
 	transition := func(id string, source sdk.DependencySource) sdk.DependencyDetailTransition {
-		before := sdk.NewDependencyWithID(id, sdk.Dependency{
+		before := sdk.NewDependencyNode(id, sdk.DependencyNode{
 			Coordinates: sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
 			Source:      sdk.DependencySourceRegistry,
 			PackageRef:  purl,
@@ -338,7 +338,7 @@ func TestAuditDependencySourceChanges(t *testing.T) {
 }
 
 func TestAuditDependencySourceChangesIgnoresInformationalTransitions(t *testing.T) {
-	dependency := sdk.NewDependencyWithID("example", sdk.Dependency{
+	dependency := sdk.NewDependencyNode("example", sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{Name: "example", Version: "1.0.0"},
 		Source:      sdk.DependencySourceRegistry,
 	})

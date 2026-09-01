@@ -397,13 +397,15 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 	}
 
 	rootGraph := sdk.New()
-	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemMaven,
+	rootNode, err := sdk.NewModuleNode("build.gradle", sdk.Coordinates{Ecosystem: sdk.EcosystemMaven,
 		Name:           rootName,
 		PackageManager: sdk.PackageManagerGradle,
 		// The root project node is synthesized from the build's own settings
 		// script; it is never a published artifact.
-		FirstParty: true},
 	})
+	if err != nil {
+		return gradleParseResult{}, err
+	}
 
 	if err := rootGraph.AddNode(rootNode); err != nil {
 		return gradleParseResult{}, fmt.Errorf("add root node: %w", err)
@@ -416,7 +418,7 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 	projects := &gradleProjectGraphs{byPath: moduleByPath}
 
 	currentGraph := rootGraph
-	stack := []string{rootNode.ID}
+	stack := []string{rootNode.NodeID()}
 	currentScope := sdk.ScopeUnknown
 	for _, line := range strings.Split(strings.ReplaceAll(string(raw), "\r\n", "\n"), "\n") {
 		trimmed := strings.TrimSpace(line)
@@ -427,7 +429,7 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 		// graph the following configuration sections build into.
 		if gradleRootProjectBanner.MatchString(trimmed) {
 			currentGraph = rootGraph
-			stack = []string{rootNode.ID}
+			stack = []string{rootNode.NodeID()}
 			currentScope = sdk.ScopeUnknown
 			continue
 		}
@@ -444,7 +446,7 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 				// (e.g. a composite build): attribute its sections to the
 				// root project rather than the previous section's project.
 				currentGraph = rootGraph
-				stack = []string{rootNode.ID}
+				stack = []string{rootNode.NodeID()}
 			}
 			currentScope = sdk.ScopeUnknown
 			continue
@@ -478,12 +480,12 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 				stack = stack[:depth+1]
 				parentID := stack[len(stack)-1]
 				if _, err := detectors.EnsureNode(currentGraph, refNode); err != nil {
-					return gradleParseResult{}, fmt.Errorf("add project reference node %q: %w", refNode.ID, err)
+					return gradleParseResult{}, fmt.Errorf("add project reference node %q: %w", refNode.NodeID(), err)
 				}
-				if err := currentGraph.AddEdge(parentID, refNode.ID); err != nil {
-					return gradleParseResult{}, fmt.Errorf("add dependency %q -> %q: %w", parentID, refNode.ID, err)
+				if err := currentGraph.AddEdge(parentID, refNode.NodeID()); err != nil {
+					return gradleParseResult{}, fmt.Errorf("add dependency %q -> %q: %w", parentID, refNode.NodeID(), err)
 				}
-				stack = append(stack, refNode.ID)
+				stack = append(stack, refNode.NodeID())
 				continue
 			}
 		}
@@ -497,14 +499,14 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 		if _, err := detectors.EnsureNode(currentGraph, node); err != nil {
 			return gradleParseResult{}, err
 		}
-		if err := currentGraph.AddEdge(parentID, node.ID); err != nil {
-			return gradleParseResult{}, fmt.Errorf("add dependency %q -> %q: %w", parentID, node.ID, err)
+		if err := currentGraph.AddEdge(parentID, node.NodeID()); err != nil {
+			return gradleParseResult{}, fmt.Errorf("add dependency %q -> %q: %w", parentID, node.NodeID(), err)
 		}
 
-		stack = append(stack, node.ID)
+		stack = append(stack, node.NodeID())
 	}
 
-	return gradleParseResult{rootGraph: rootGraph, rootID: rootNode.ID, modules: projects.seen}, nil
+	return gradleParseResult{rootGraph: rootGraph, rootID: rootNode.NodeID(), modules: projects.seen}, nil
 }
 
 // gradleProjectGraphs lazily creates one graph per subproject the report
@@ -528,8 +530,7 @@ func gradleModuleCoordinates(module gradleModule) sdk.Coordinates {
 		PackageManager: sdk.PackageManagerGradle,
 		// Subprojects are the build's own applications: enrichment skips
 		// them and views treat their direct dependencies as top-level.
-		Type:       sdk.PackageTypeApplication,
-		FirstParty: true,
+		Type: sdk.PackageTypeApplication,
 	}
 }
 
@@ -546,11 +547,14 @@ func (p *gradleProjectGraphs) ensure(projectPath string) (*gradleModuleEntry, er
 		return entry, nil
 	}
 	graph := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Coordinates: gradleModuleCoordinates(module)})
+	root, err := sdk.NewDependencyNode(gradleModuleCoordinates(module))
+	if err != nil {
+		return nil, fmt.Errorf("build dependency node: %w", err)
+	}
 	if err := graph.AddNode(root); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
 		return nil, fmt.Errorf("add subproject root %q: %w", module.ProjectPath, err)
 	}
-	entry := &gradleModuleEntry{module: module, graph: graph, rootID: root.ID}
+	entry := &gradleModuleEntry{module: module, graph: graph, rootID: root.NodeID()}
 	if p.entries == nil {
 		p.entries = map[string]*gradleModuleEntry{}
 	}
@@ -563,15 +567,17 @@ func (p *gradleProjectGraphs) ensure(projectPath string) (*gradleModuleEntry, er
 // token, scoped to the section it appeared in. The node is a new instance for
 // the current project's graph — never the referenced module's own root — so
 // scopes recorded here cannot leak into the referenced module's entry.
-func (p *gradleProjectGraphs) localRefNode(projectPath string, scope sdk.Scope) (*sdk.Dependency, error) {
+func (p *gradleProjectGraphs) localRefNode(projectPath string, scope sdk.Scope) (*sdk.DependencyNode, error) {
 	entry, err := p.ensure(projectPath)
 	if err != nil || entry == nil {
 		return nil, err
 	}
-	return sdk.NewDependency(sdk.Dependency{
-		Coordinates: gradleModuleCoordinates(entry.module),
-		Scopes:      sdk.ScopesOf(scope),
-	}), nil
+	node, err := sdk.NewDependencyNode(gradleModuleCoordinates(entry.module))
+	if err != nil {
+		return nil, fmt.Errorf("build gradle module node: %w", err)
+	}
+	node.Scopes = sdk.ScopesOf(scope)
+	return node, nil
 }
 
 // gradleProjectRef reports whether a dependency token is an inter-project
@@ -675,7 +681,7 @@ func gradleDependencyToken(value string) string {
 	return token
 }
 
-func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.Dependency, bool) {
+func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.DependencyNode, bool) {
 	if strings.HasPrefix(token, "project ") {
 		name := strings.TrimSpace(strings.TrimPrefix(token, "project "))
 		if name == "" {
@@ -684,14 +690,19 @@ func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.Dependency, bool) 
 		// A placeholder for a project the settings walk does not know (e.g.
 		// a composite build's member) is still part of this build, never a
 		// published artifact.
-		return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemMaven,
-				Name: name,
-
-				PackageManager: sdk.PackageManagerGradle,
-				FirstParty:     true}, Scopes: sdk.ScopesOf(scope),
-			}),
-
-			true
+		// A placeholder for a project the settings walk does not know is
+		// still part of this build, but this helper yields the dependency
+		// node the caller graphs; consolidation promotes build members.
+		node, err := sdk.NewDependencyNode(sdk.Coordinates{
+			Ecosystem:      sdk.EcosystemMaven,
+			Name:           name,
+			PackageManager: sdk.PackageManagerGradle,
+			Type:           sdk.PackageTypeApplication,
+		})
+		if err != nil {
+			return nil, false
+		}
+		return node, true
 	}
 
 	parts := strings.Split(token, ":")
@@ -701,15 +712,17 @@ func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.Dependency, bool) 
 
 	version := parts[len(parts)-1]
 	name := strings.Join(parts[1:len(parts)-1], ":")
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemMaven,
-			Name:    name,
-			Version: version,
-
-			Org:            parts[0],
-			PackageManager: sdk.PackageManagerGradle}, Scopes: sdk.ScopesOf(scope),
-		}),
-
-		true
+	node, err := sdk.NewDependencyNode(sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemMaven,
+		Name:           name,
+		Version:        version,
+		Org:            parts[0],
+		PackageManager: sdk.PackageManagerGradle,
+	})
+	if err != nil {
+		return nil, false
+	}
+	return node, true
 }
 
 func scopeFromGradleConfiguration(value string) sdk.Scope {

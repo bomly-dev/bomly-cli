@@ -26,13 +26,13 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	}
 	pkg, ok := graph.Node("github.com/apple:swift-argument-parser@1.3.0")
 	if !ok {
-		t.Fatalf("expected swift-argument-parser package, got %v", graph.Nodes())
+		t.Fatalf("expected swift-argument-parser package, got %v", graph.DependencyNodes())
 	}
 	if pkg.Org != "github.com/apple" {
 		t.Fatalf("expected SwiftPM namespace, got %q", pkg.Org)
 	}
-	if pkg.PURL != "pkg:swift/github.com/apple/swift-argument-parser@1.3.0" {
-		t.Fatalf("expected SwiftPM PURL, got %q", pkg.PURL)
+	if pkg.NodeID() != "pkg:swift/github.com/apple/swift-argument-parser@1.3.0" {
+		t.Fatalf("expected SwiftPM PURL, got %q", pkg.NodeID())
 	}
 	if pkg.Source != sdk.DependencySourceGit {
 		t.Fatalf("expected Git source, got %q", pkg.Source)
@@ -117,9 +117,9 @@ func TestDepGraphFromSwiftShowDepsBuildsTransitiveGraph(t *testing.T) {
 	parentID := "github.com/apple:swift-argument-parser@1.3.0"
 	parent, ok := graph.Node(parentID)
 	if !ok {
-		t.Fatalf("expected swift-argument-parser package, got %v", graph.Nodes())
+		t.Fatalf("expected swift-argument-parser package, got %v", graph.DependencyNodes())
 	}
-	children, err := graph.DirectDependencies(parent.ID)
+	children, err := graph.DirectDependencies(parent.NodeID())
 	if err != nil {
 		t.Fatalf("swift-argument-parser dependencies: %v", err)
 	}

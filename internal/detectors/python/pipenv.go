@@ -215,13 +215,15 @@ func depGraphFromPipfileLock(path, rootName string) (*sdk.Graph, error) {
 		return nil, fmt.Errorf("pipfile.lock does not contain dependencies")
 	}
 	depsGraph := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+	root, err := sdk.NewModuleNode("requirements.txt", sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemPython,
 		PackageManager: sdk.PackageManagerPipenv,
 		Name:           pythonRootNameOrDefault(rootName, filepath.Dir(path)),
 		Type:           sdk.PackageTypeProject,
-		FirstParty:     true},
 	})
-
+	if err != nil {
+		return nil, fmt.Errorf("build root node: %w", err)
+	}
 	if err := depsGraph.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root package: %w", err)
 	}
@@ -234,14 +236,20 @@ func depGraphFromPipfileLock(path, rootName string) (*sdk.Graph, error) {
 	return depsGraph, nil
 }
 
-func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Dependency, packages map[string]pipfileLockPackage, scope sdk.Scope) error {
+func addPipfileLockPackages(depsGraph *sdk.Graph, root sdk.GraphNode, packages map[string]pipfileLockPackage, scope sdk.Scope) error {
 	for name, pkg := range packages {
 		normalizedName := normalizePythonName(name)
-		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+		node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
 			PackageManager: sdk.PackageManagerPipenv,
 			Name:           normalizedName,
-			Version:        strings.TrimPrefix(pkg.Version, "==")}, Source: pipfileDependencySource(pkg), ResolvedURL: pipfileResolvedURL(pkg), Metadata: sourceRevisionMetadata(pkg.Ref), Scopes: sdk.ScopesOf(scope),
-		})
+			Version:        strings.TrimPrefix(pkg.Version, "==")})
+		if err != nil {
+			return fmt.Errorf("build dependency node: %w", err)
+		}
+		node.Source = pipfileDependencySource(pkg)
+		node.ResolvedURL = pipfileResolvedURL(pkg)
+		node.Metadata = sourceRevisionMetadata(pkg.Ref)
+		node.Scopes = sdk.ScopesOf(scope)
 		setPipenvOrigin(node, pkg)
 
 		// One package can be listed in both groups; they are one node, and the
@@ -249,7 +257,7 @@ func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Dependency, packages
 		if _, err := detectors.EnsureNode(depsGraph, node); err != nil {
 			return fmt.Errorf("add Pipfile.lock package %q: %w", normalizedName, err)
 		}
-		if err := depsGraph.AddEdge(root.ID, node.ID); err != nil {
+		if err := depsGraph.AddEdge(root.NodeID(), node.NodeID()); err != nil {
 			return fmt.Errorf("add Pipfile.lock dependency %q: %w", normalizedName, err)
 		}
 	}

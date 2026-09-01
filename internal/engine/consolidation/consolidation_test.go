@@ -8,18 +8,18 @@ import (
 
 func TestNormalizeGraphPackageIdentity_CollapsesEquivalentPythonPackages(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependencyWithID("app@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "app", Version: "1.0.0"}})
-	pyA := sdk.NewDependencyWithID("Requests_Toolbelt@1.0.0RC1", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "python", Name: "Requests_Toolbelt", Version: "1.0.0RC1"}})
-	pyB := sdk.NewDependencyWithID("requests-toolbelt@1.0.0rc1", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "python", Name: "requests-toolbelt", Version: "1.0.0rc1"}})
-	for _, pkg := range []*sdk.Dependency{root, pyA, pyB} {
+	root := sdk.NewDependencyNode("app@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "app", Version: "1.0.0"}})
+	pyA := sdk.NewDependencyNode("Requests_Toolbelt@1.0.0RC1", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "python", Name: "Requests_Toolbelt", Version: "1.0.0RC1"}})
+	pyB := sdk.NewDependencyNode("requests-toolbelt@1.0.0rc1", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "python", Name: "requests-toolbelt", Version: "1.0.0rc1"}})
+	for _, pkg := range []*sdk.DependencyNode{root, pyA, pyB} {
 		if err := g.AddNode(pkg); err != nil {
-			t.Fatalf("AddPackage(%q) error = %v", pkg.ID, err)
+			t.Fatalf("AddPackage(%q) error = %v", pkg.NodeID(), err)
 		}
 	}
-	if err := g.AddEdge(root.ID, pyA.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), pyA.ID); err != nil {
 		t.Fatalf("AddDependency(pyA) error = %v", err)
 	}
-	if err := g.AddEdge(root.ID, pyB.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), pyB.ID); err != nil {
 		t.Fatalf("AddDependency(pyB) error = %v", err)
 	}
 
@@ -40,8 +40,8 @@ func TestNormalizeGraphPackageIdentity_CollapsesEquivalentPythonPackages(t *test
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
-	if len(deps) != 1 || deps[0].ID != dep.ID {
-		t.Fatalf("expected single collapsed dependency %q, got %#v", dep.ID, deps)
+	if len(deps) != 1 || deps[0].ID != dep.NodeID() {
+		t.Fatalf("expected single collapsed dependency %q, got %#v", dep.NodeID(), deps)
 	}
 	if dep.Metadata == nil {
 		t.Fatal("expected normalization metadata on collapsed dependency")
@@ -126,8 +126,8 @@ func TestConsolidateGraphs_RejectsMultipleExecutionTargets(t *testing.T) {
 
 func TestConsolidateGraphs_DeduplicatesManifestAndPrefersNative(t *testing.T) {
 	nativeGraph := sdk.New()
-	nativeRoot := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0"}})
-	nativeDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.slf4j", Name: "slf4j-api", Version: "2.0.9"}})
+	nativeRoot := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0"}})
+	nativeDep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.slf4j", Name: "slf4j-api", Version: "2.0.9"}})
 	if err := nativeGraph.AddNode(nativeRoot); err != nil {
 		t.Fatalf("add native root: %v", err)
 	}
@@ -139,7 +139,7 @@ func TestConsolidateGraphs_DeduplicatesManifestAndPrefersNative(t *testing.T) {
 	}
 
 	syftGraph := sdk.New()
-	syftRoot := sdk.NewDependencyWithID("1234567890123456", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0", PURL: "pkg:maven/org.owasp.webgoat/webgoat@1.0.0"}})
+	syftRoot := sdk.NewDependencyNode("1234567890123456", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0", PURL: "pkg:maven/org.owasp.webgoat/webgoat@1.0.0"}})
 	if err := syftGraph.AddNode(syftRoot); err != nil {
 		t.Fatalf("add syft root: %v", err)
 	}
@@ -203,8 +203,8 @@ func TestManifestDedupPriorityPrefersNativeOverSyft(t *testing.T) {
 
 func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *testing.T) {
 	actionsGraph := sdk.New()
-	checkout := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "github-actions", Name: "actions/checkout", Version: "v4.1.6"}})
-	setupJava := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "github-actions", Name: "actions/setup-java", Version: "v5"}})
+	checkout := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "github-actions", Name: "actions/checkout", Version: "v4.1.6"}})
+	setupJava := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "github-actions", Name: "actions/setup-java", Version: "v5"}})
 	if err := actionsGraph.AddNode(checkout); err != nil {
 		t.Fatalf("add checkout: %v", err)
 	}
@@ -255,12 +255,12 @@ func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *t
 
 func TestConsolidateGraphs_PrefersApplicationRootWhenEntryHasMultipleRoots(t *testing.T) {
 	npmGraph := sdk.New()
-	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
-	orphan := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "string-width", Version: "2.1.1"}})
-	for _, pkg := range []*sdk.Dependency{app, react, orphan} {
+	app := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	react := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
+	orphan := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "string-width", Version: "2.1.1"}})
+	for _, pkg := range []*sdk.DependencyNode{app, react, orphan} {
 		if err := npmGraph.AddNode(pkg); err != nil {
-			t.Fatalf("add %s: %v", pkg.ID, err)
+			t.Fatalf("add %s: %v", pkg.NodeID(), err)
 		}
 	}
 	if err := npmGraph.AddEdge(app.ID, react.ID); err != nil {
@@ -407,12 +407,12 @@ func TestConsolidateGraphs_AcceptsNestedSubprojectExecutionTargets(t *testing.T)
 func TestConsolidateGraphs_SharedDependencyAcrossModuleEntriesCountsOnce(t *testing.T) {
 	// Two module entries from one workspace resolution share a transitive
 	// dependency. The consolidated graph must contain it once.
-	shared := sdk.NewDependencyWithID("shared@2.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "shared", Version: "2.0.0"}})
-	webRoot := sdk.NewDependencyWithID("web@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "web", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	libRoot := sdk.NewDependencyWithID("lib@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	shared := sdk.NewDependencyNode("shared@2.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "shared", Version: "2.0.0"}})
+	webRoot := sdk.NewDependencyNode("web@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "web", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	libRoot := sdk.NewDependencyNode("lib@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
 
 	webGraph := sdk.New()
-	for _, pkg := range []*sdk.Dependency{webRoot, shared} {
+	for _, pkg := range []*sdk.DependencyNode{webRoot, shared} {
 		if err := webGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add web node: %v", err)
 		}
@@ -421,7 +421,7 @@ func TestConsolidateGraphs_SharedDependencyAcrossModuleEntriesCountsOnce(t *test
 		t.Fatalf("add web edge: %v", err)
 	}
 	libGraph := sdk.New()
-	for _, pkg := range []*sdk.Dependency{libRoot, shared} {
+	for _, pkg := range []*sdk.DependencyNode{libRoot, shared} {
 		if err := libGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add lib node: %v", err)
 		}
@@ -450,7 +450,7 @@ func TestConsolidateGraphs_SharedDependencyAcrossModuleEntriesCountsOnce(t *test
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 	sharedCount := 0
-	for _, pkg := range merged.Nodes() {
+	for _, pkg := range merged.DependencyNodes() {
 		if pkg != nil && pkg.Name == "shared" {
 			sharedCount++
 		}

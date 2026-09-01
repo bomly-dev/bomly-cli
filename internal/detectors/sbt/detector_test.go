@@ -28,14 +28,14 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	}
 	config, ok := graph.Node("com.typesafe:config@1.4.3")
 	if !ok {
-		t.Fatalf("expected config package, got %v", graph.Nodes())
+		t.Fatalf("expected config package, got %v", graph.DependencyNodes())
 	}
 	if config.PURL != "pkg:maven/com.typesafe/config@1.4.3" {
 		t.Fatalf("expected config PURL, got %q", config.PURL)
 	}
 	scalatest, ok := graph.Node("org.scalatest:scalatest@3.2.18")
 	if !ok {
-		t.Fatalf("expected scalatest package, got %v", graph.Nodes())
+		t.Fatalf("expected scalatest package, got %v", graph.DependencyNodes())
 	}
 	if string(scalatest.PrimaryScope()) != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected scalatest development scope, got %q", string(scalatest.PrimaryScope()))
@@ -53,7 +53,7 @@ func TestDepGraphFromSBTDependencyTreePreservesScalaArtifactSuffix(t *testing.T)
 
 	core, ok := graph.Node("org.typelevel:cats-core_2.13@2.10.0")
 	if !ok {
-		t.Fatalf("expected cats-core_2.13 package, got %v", graph.Nodes())
+		t.Fatalf("expected cats-core_2.13 package, got %v", graph.DependencyNodes())
 	}
 	if core.PURL != "pkg:maven/org.typelevel/cats-core_2.13@2.10.0" {
 		t.Fatalf("expected suffixed Maven PURL, got %q", core.PURL)

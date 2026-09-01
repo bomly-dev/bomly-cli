@@ -133,7 +133,7 @@ func requireMavenEdge(t *testing.T, g *sdk.Graph, fromID, toID string) {
 		t.Fatalf("dependencies(%s): %v", fromID, err)
 	}
 	for _, d := range deps {
-		if d.ID == toID {
+		if d.NodeID() == toID {
 			return
 		}
 	}
@@ -145,7 +145,7 @@ func requireMavenRoots(t *testing.T, g *sdk.Graph, want ...string) {
 	got := make(map[string]struct{})
 	for _, r := range g.Roots() {
 		if r != nil {
-			got[r.ID] = struct{}{}
+			got[r.NodeID()] = struct{}{}
 		}
 	}
 	for _, id := range want {

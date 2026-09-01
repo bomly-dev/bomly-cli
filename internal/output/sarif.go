@@ -523,19 +523,25 @@ func sarifLocationDiffScore(uri string, region *sarifRegion, changedLines map[st
 // graph), and only the declaring module's instance carries manifest
 // locations. Pointer-identical instances shared across graphs are collected
 // once.
-func dependenciesForFinding(f sdk.Finding, options []SARIFOptions) []*sdk.Dependency {
+func dependenciesForFinding(f sdk.Finding, options []SARIFOptions) []*sdk.DependencyNode {
 	if len(options) == 0 || len(options[0].LocationGraphs) == 0 || len(f.DependencyRefs) == 0 {
 		return nil
 	}
-	out := make([]*sdk.Dependency, 0, len(f.DependencyRefs))
-	seen := make(map[*sdk.Dependency]struct{}, len(f.DependencyRefs))
+	out := make([]*sdk.DependencyNode, 0, len(f.DependencyRefs))
+	seen := make(map[*sdk.DependencyNode]struct{}, len(f.DependencyRefs))
 	for _, ref := range f.DependencyRefs {
 		for _, graph := range options[0].LocationGraphs {
 			if graph == nil {
 				continue
 			}
-			dep, ok := graph.Node(ref)
-			if !ok || dep == nil {
+			node, ok := graph.Node(ref)
+			if !ok || node == nil {
+				continue
+			}
+			// A finding references a package, so only dependency nodes are
+			// relevant; the graph also holds manifests and modules now.
+			dep, ok := node.(*sdk.DependencyNode)
+			if !ok {
 				continue
 			}
 			if _, dup := seen[dep]; dup {

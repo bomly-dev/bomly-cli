@@ -9,7 +9,7 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
+func originOf(dep *sdk.DependencyNode) sdk.DependencyOrigin {
 	if dep == nil {
 		return sdk.DependencyOrigin{}
 	}
@@ -25,7 +25,7 @@ func subprojectResult(t *testing.T, relativePath, manifest, artifactURL string) 
 	t.Helper()
 
 	g := sdk.New()
-	pkg := sdk.NewDependencyWithID("lodash@4.17.21", sdk.Dependency{Coordinates: sdk.Coordinates{
+	pkg := sdk.NewDependencyNode("lodash@4.17.21", sdk.DependencyNode{Coordinates: sdk.Coordinates{
 		Name: "lodash", Version: "4.17.21", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lodash@4.17.21"}})
 	if artifactURL != "" {
 		pkg.Origin = sdk.ArtifactOrigin(artifactURL)
@@ -49,8 +49,8 @@ func subprojectResult(t *testing.T, relativePath, manifest, artifactURL string) 
 // graphIDs lists node ids for failure messages.
 func graphIDs(g *sdk.Graph) []string {
 	var ids []string
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
-		ids = append(ids, dep.ID)
+	g.WalkNodes(func(dep sdk.GraphNode) bool {
+		ids = append(ids, dep.NodeID())
 		return true
 	})
 	return ids
@@ -110,7 +110,7 @@ func TestConsolidateGraphsPreservesContradictingOccurrences(t *testing.T) {
 			}
 			got := map[string]int{}
 			total := 0
-			merged.WalkNodes(func(dep *sdk.Dependency) bool {
+			merged.WalkNodes(func(dep sdk.GraphNode) bool {
 				if dep.Name != "lodash" {
 					return true
 				}
@@ -166,7 +166,7 @@ func TestConsolidateGraphsFoldsRepeatedContradictions(t *testing.T) {
 
 			origins := map[string]int{}
 			var nodes int
-			merged.WalkNodes(func(dep *sdk.Dependency) bool {
+			merged.WalkNodes(func(dep sdk.GraphNode) bool {
 				if dep.Name != "lodash" {
 					return true
 				}
@@ -197,9 +197,9 @@ func TestConsolidateGraphsOccurrenceIdentityIsOrderFree(t *testing.T) {
 		t.Helper()
 		g := sdk.New()
 		for i, url := range urls {
-			pkg := sdk.NewDependencyWithID(
+			pkg := sdk.NewDependencyNode(
 				fmt.Sprintf("bun-package:lodash#%d", i),
-				sdk.Dependency{Coordinates: sdk.Coordinates{
+				sdk.DependencyNode{Coordinates: sdk.Coordinates{
 					Name: "lodash", Version: "4.17.21", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lodash@4.17.21"}},
 			)
 			pkg.Origin = sdk.ArtifactOrigin(url)
@@ -251,7 +251,7 @@ func TestConsolidateGraphsOccurrenceIdentityIsOrderFree(t *testing.T) {
 
 			origins := map[string]int{}
 			var nodes int
-			merged.WalkNodes(func(dep *sdk.Dependency) bool {
+			merged.WalkNodes(func(dep sdk.GraphNode) bool {
 				if dep.Name != "lodash" {
 					return true
 				}
@@ -272,9 +272,9 @@ func TestConsolidateGraphsOccurrenceIdentityIsOrderFree(t *testing.T) {
 func TestConsolidationPreservesOriginFreeOccurrences(t *testing.T) {
 	const gitOrigin = "https://github.com/a/helper"
 
-	record := func(t *testing.T, id, resolvedURL string, withOrigin bool) *sdk.Dependency {
+	record := func(t *testing.T, id, resolvedURL string, withOrigin bool) *sdk.DependencyNode {
 		t.Helper()
-		pkg := sdk.NewDependencyWithID(id, sdk.Dependency{Coordinates: sdk.Coordinates{
+		pkg := sdk.NewDependencyNode(id, sdk.DependencyNode{Coordinates: sdk.Coordinates{
 			Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemRust, PURL: "pkg:cargo/helper@1.0.0"}})
 		pkg.ResolvedURL = resolvedURL
 		if withOrigin {
@@ -282,7 +282,7 @@ func TestConsolidationPreservesOriginFreeOccurrences(t *testing.T) {
 		}
 		return pkg
 	}
-	result := func(t *testing.T, relativePath, manifest string, nodes ...*sdk.Dependency) sdk.DetectionResult {
+	result := func(t *testing.T, relativePath, manifest string, nodes ...*sdk.DependencyNode) sdk.DetectionResult {
 		t.Helper()
 		g := sdk.New()
 		for _, node := range nodes {
@@ -335,7 +335,7 @@ func TestConsolidationPreservesOriginFreeOccurrences(t *testing.T) {
 			}
 
 			var nodes, withOrigin, without int
-			merged.WalkNodes(func(dep *sdk.Dependency) bool {
+			merged.WalkNodes(func(dep sdk.GraphNode) bool {
 				if dep.Name != "helper" {
 					return true
 				}
@@ -362,7 +362,7 @@ func TestConsolidationKeepsFirstPartyRootIdentity(t *testing.T) {
 	const purl = "pkg:pypi/helper@1.0.0"
 
 	rootGraph := sdk.New()
-	projectRoot := sdk.NewDependencyWithID("helper@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{
+	projectRoot := sdk.NewDependencyNode("helper@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{
 		Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemPython, PURL: purl, FirstParty: true, Type: sdk.PackageTypeApplication}})
 	// Deliberately no ResolvedURL: npm workspace members clear it, and the
 	// project's record must contest the external one even with no resolution
@@ -372,7 +372,7 @@ func TestConsolidationKeepsFirstPartyRootIdentity(t *testing.T) {
 	}
 
 	depGraph := sdk.New()
-	gitDep := sdk.NewDependencyWithID("helper@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{
+	gitDep := sdk.NewDependencyNode("helper@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{
 		Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemPython, PURL: purl}})
 	gitDep.Origin = sdk.RepositoryOrigin("https://github.com/example/helper", "aaaabbbbccccddddeeeeffff0000111122223333")
 	if err := depGraph.AddNode(gitDep); err != nil {
@@ -417,7 +417,7 @@ func TestConsolidationKeepsFirstPartyRootIdentity(t *testing.T) {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 	var firstParty, external int
-	merged.WalkNodes(func(dep *sdk.Dependency) bool {
+	merged.WalkNodes(func(dep sdk.GraphNode) bool {
 		if dep.Name != "helper" {
 			return true
 		}
@@ -426,8 +426,8 @@ func TestConsolidationKeepsFirstPartyRootIdentity(t *testing.T) {
 			if origin := originOf(dep); origin != (sdk.DependencyOrigin{}) {
 				t.Fatalf("the project's own record acquired an origin: %+v", origin)
 			}
-			if dep.ID != purl {
-				t.Fatalf("first-party root ID = %q, want its canonical identity kept", dep.ID)
+			if dep.NodeID() != purl {
+				t.Fatalf("first-party root ID = %q, want its canonical identity kept", dep.NodeID())
 			}
 		} else {
 			external++
@@ -448,7 +448,7 @@ func TestConsolidationRefreshesRenamedRootIDs(t *testing.T) {
 	build := func(t *testing.T, repository string) *sdk.Graph {
 		t.Helper()
 		g := sdk.New()
-		pkg := sdk.NewDependencyWithID("helper@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{
+		pkg := sdk.NewDependencyNode("helper@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{
 			Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: purl}})
 		pkg.Origin = sdk.RepositoryOrigin(repository, "aaaabbbbccccddddeeeeffff0000111122223333")
 		if err := g.AddNode(pkg); err != nil {
@@ -520,20 +520,20 @@ func TestNormalizationReservesCanonicalIDForProjectRecords(t *testing.T) {
 		externalID, memberID := ids[0], ids[1]
 		t.Run(externalID+"/"+memberID, func(t *testing.T) {
 			g := sdk.New()
-			external := sdk.NewDependencyWithID(externalID, sdk.Dependency{Coordinates: sdk.Coordinates{
+			external := sdk.NewDependencyNode(externalID, sdk.DependencyNode{Coordinates: sdk.Coordinates{
 				Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: purl}})
 			external.ResolvedURL = "https://registry.npmjs.org/helper/-/helper-1.0.0.tgz"
 			external.Origin = sdk.ArtifactOrigin(external.ResolvedURL)
-			member := sdk.NewDependencyWithID(memberID, sdk.Dependency{Coordinates: sdk.Coordinates{
+			member := sdk.NewDependencyNode(memberID, sdk.DependencyNode{Coordinates: sdk.Coordinates{
 				Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: purl, FirstParty: true}})
-			parent := sdk.NewDependencyWithID("consumer@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{
+			parent := sdk.NewDependencyNode("consumer@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{
 				Name: "consumer", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/consumer@1.0.0"}})
-			for _, dep := range []*sdk.Dependency{external, member, parent} {
+			for _, dep := range []*sdk.DependencyNode{external, member, parent} {
 				if err := g.AddNode(dep); err != nil {
 					t.Fatal(err)
 				}
 			}
-			if err := g.AddEdge(parent.ID, external.ID); err != nil {
+			if err := g.AddEdge(parent.NodeID(), external.ID); err != nil {
 				t.Fatal(err)
 			}
 
@@ -555,8 +555,8 @@ func TestNormalizationReservesCanonicalIDForProjectRecords(t *testing.T) {
 
 			// The external occurrence survives elsewhere, with the consumer's
 			// edge following it.
-			var externalNode *sdk.Dependency
-			normalizedGraph.WalkNodes(func(dep *sdk.Dependency) bool {
+			var externalNode *sdk.DependencyNode
+			normalizedGraph.WalkNodes(func(dep sdk.GraphNode) bool {
 				if dep.Name == "helper" && !dep.FirstParty {
 					externalNode = dep
 				}
@@ -585,18 +585,18 @@ func TestProjectRecordsNeverFoldWithMatchingExternalResolutions(t *testing.T) {
 		origin = "https://registry.npmjs.org/helper/-/helper-1.0.0.tgz"
 	)
 
-	newRecord := func(t *testing.T, id string, firstParty bool) *sdk.Dependency {
+	newRecord := func(t *testing.T, id string, firstParty bool) *sdk.DependencyNode {
 		t.Helper()
-		dep := sdk.NewDependencyWithID(id, sdk.Dependency{Coordinates: sdk.Coordinates{
+		dep := sdk.NewDependencyNode(id, sdk.DependencyNode{Coordinates: sdk.Coordinates{
 			Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: purl, FirstParty: firstParty}})
 		dep.Origin = sdk.ArtifactOrigin(origin)
 		return dep
 	}
 	requireSplit := func(t *testing.T, g *sdk.Graph) {
 		t.Helper()
-		var project, external *sdk.Dependency
+		var project, external *sdk.DependencyNode
 		var nodes int
-		g.WalkNodes(func(dep *sdk.Dependency) bool {
+		g.WalkNodes(func(dep sdk.GraphNode) bool {
 			if dep.Name != "helper" {
 				return true
 			}
@@ -624,7 +624,7 @@ func TestProjectRecordsNeverFoldWithMatchingExternalResolutions(t *testing.T) {
 	for _, ids := range orderings {
 		t.Run("within entry "+ids[0], func(t *testing.T) {
 			g := sdk.New()
-			for _, dep := range []*sdk.Dependency{newRecord(t, ids[0], false), newRecord(t, ids[1], true)} {
+			for _, dep := range []*sdk.DependencyNode{newRecord(t, ids[0], false), newRecord(t, ids[1], true)} {
 				if err := g.AddNode(dep); err != nil {
 					t.Fatal(err)
 				}
@@ -698,9 +698,9 @@ func TestConsolidateGraphsPreservesOccurrencesWithinOneManifest(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			g := sdk.New()
 			for i, artifactURL := range tc.records {
-				pkg := sdk.NewDependencyWithID(
+				pkg := sdk.NewDependencyNode(
 					fmt.Sprintf("bun-package:lodash#%d", i),
-					sdk.Dependency{Coordinates: sdk.Coordinates{
+					sdk.DependencyNode{Coordinates: sdk.Coordinates{
 						Name: "lodash", Version: "4.17.21", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lodash@4.17.21"}},
 				)
 				pkg.Origin = sdk.ArtifactOrigin(artifactURL)
@@ -730,7 +730,7 @@ func TestConsolidateGraphsPreservesOccurrencesWithinOneManifest(t *testing.T) {
 
 			var nodes int
 			origins := map[string]int{}
-			merged.WalkNodes(func(dep *sdk.Dependency) bool {
+			merged.WalkNodes(func(dep sdk.GraphNode) bool {
 				if dep.Name != "lodash" {
 					return true
 				}
@@ -779,9 +779,9 @@ func TestConsolidateGraphsFoldedWitnessesKeepUsageFacts(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			g := sdk.New()
 			for i, rec := range records {
-				pkg := sdk.NewDependencyWithID(
+				pkg := sdk.NewDependencyNode(
 					fmt.Sprintf("bun-package:lodash#%d", i),
-					sdk.Dependency{Coordinates: sdk.Coordinates{
+					sdk.DependencyNode{Coordinates: sdk.Coordinates{
 						Name: "lodash", Version: "4.17.21", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lodash@4.17.21"}},
 				)
 				pkg.Origin = sdk.ArtifactOrigin(rec.url)
@@ -811,8 +811,8 @@ func TestConsolidateGraphsFoldedWitnessesKeepUsageFacts(t *testing.T) {
 				t.Fatalf("ConsolidatedGraph() error = %v", err)
 			}
 
-			var folded *sdk.Dependency
-			merged.WalkNodes(func(dep *sdk.Dependency) bool {
+			var folded *sdk.DependencyNode
+			merged.WalkNodes(func(dep sdk.GraphNode) bool {
 				if dep.Name == "lodash" && originOf(dep).ArtifactURL == private {
 					folded = dep
 				}

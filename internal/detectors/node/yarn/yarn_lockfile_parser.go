@@ -51,7 +51,15 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: manifest.Version, Type: sdk.PackageTypeApplication, FirstParty: true}, Source: sdk.DependencySourceProject})
+	rootNode, err := sdk.NewModuleNode("package.json", sdk.Coordinates{
+		Ecosystem: sdk.EcosystemNPM,
+		Name:      rootName,
+		Version:   manifest.Version,
+		Type:      sdk.PackageTypeApplication,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("build yarn root module node: %w", err)
+	}
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add yarn root node: %w", err)
 	}
@@ -73,28 +81,33 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 			return id, nil
 		}
 		entry := entries[idx]
-		pkg := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+		pkg := sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
 			Name:    entry.Name,
 			Version: entry.Version}, Source: yarnEntrySource(entry), ResolvedURL: entry.Resolved,
 			Digests: node.ParseIntegrityDigests(entry.Integrity),
 		}
-		pkgNode := sdk.NewDependency(pkg)
-		if existing, ok := depsGraph.Node(pkgNode.ID); ok && existing.Type == sdk.PackageTypeApplication {
-			pkgNode = sdk.NewDependencyWithID(fmt.Sprintf("yarn-package:%d", idx), pkg)
+		// One identity is one node: a collision folds rather than minting a
+		// second ID for the same package, which is the occurrence machinery
+		// ADR-0041 removed.
+		pkgNode, err := sdk.NewDependencyNode(pkg.Coordinates)
+		if err != nil {
+			return "", err
 		}
 		// Yarn Classic records the tarball it fetched, with the package
 		// checksum as a URL fragment the invariant strips. Berry entries
 		// carry no resolved location, and git specs are rejected.
-		pkgNode.Origin = sdk.ArtifactOrigin(entry.Resolved)
+		if origin := sdk.ArtifactOrigin(entry.Resolved); origin != nil {
+			pkgNode.Origins = sdk.MergeOrigins(pkgNode.Origins, []sdk.DependencyOrigin{*origin})
+		}
 		// Two selector entries can pin one name@version to different
 		// tarballs; the shared helper keeps both as distinct occurrences,
 		// and each entry's edges attach to its own via entryNodeByIndex.
-		surviving, err := detectors.EnsureOccurrence(depsGraph, pkgNode, entry.Resolved)
+		surviving, err := detectors.EnsureNode(depsGraph, pkgNode)
 		if err != nil {
 			return "", err
 		}
-		entryNodeByIndex[idx] = surviving.ID
-		return surviving.ID, nil
+		entryNodeByIndex[idx] = surviving.NodeID()
+		return surviving.NodeID(), nil
 	}
 
 	// Inventory every resolved entry first. Edges and manifest roots are wired
@@ -125,12 +138,16 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 				}
 				continue
 			}
-			synthetic := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)}, Source: node.DependencySourceFromSpecifier(requested)})
+			synthetic, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)})
+			if err != nil {
+				return nil, fmt.Errorf("build dependency node: %w", err)
+			}
+			synthetic.Source = node.DependencySourceFromSpecifier(requested)
 			if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
 				return nil, err
 			}
-			if err := depsGraph.AddEdge(parentID, synthetic.ID); err != nil {
-				return nil, fmt.Errorf("add yarn synthetic dependency %q -> %q: %w", parentID, synthetic.ID, err)
+			if err := depsGraph.AddEdge(parentID, synthetic.NodeID()); err != nil {
+				return nil, fmt.Errorf("add yarn synthetic dependency %q -> %q: %w", parentID, synthetic.NodeID(), err)
 			}
 		}
 	}
@@ -140,13 +157,17 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 	for dependencyName, requested := range directDeps {
 		entryIdx, ok := selectYarnEntry(entries, entriesByName, dependencyName, requested)
 		if !ok {
-			synthetic := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)}, Source: node.DependencySourceFromSpecifier(requested)})
+			synthetic, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)})
+			if err != nil {
+				return nil, fmt.Errorf("build dependency node: %w", err)
+			}
+			synthetic.Source = node.DependencySourceFromSpecifier(requested)
 			if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
 				return nil, err
 			}
-			if rootNode.ID != synthetic.ID {
-				if err := depsGraph.AddEdge(rootNode.ID, synthetic.ID); err != nil {
-					return nil, fmt.Errorf("add yarn root dependency %q -> %q: %w", rootNode.ID, synthetic.ID, err)
+			if rootNode.NodeID() != synthetic.NodeID() {
+				if err := depsGraph.AddEdge(rootNode.NodeID(), synthetic.NodeID()); err != nil {
+					return nil, fmt.Errorf("add yarn root dependency %q -> %q: %w", rootNode.NodeID(), synthetic.NodeID(), err)
 				}
 			}
 			continue
@@ -155,15 +176,15 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		if err != nil {
 			return nil, err
 		}
-		if rootNode.ID == entryID {
+		if rootNode.NodeID() == entryID {
 			continue
 		}
-		if err := depsGraph.AddEdge(rootNode.ID, entryID); err != nil {
-			return nil, fmt.Errorf("add yarn root dependency %q -> %q: %w", rootNode.ID, entryID, err)
+		if err := depsGraph.AddEdge(rootNode.NodeID(), entryID); err != nil {
+			return nil, fmt.Errorf("add yarn root dependency %q -> %q: %w", rootNode.NodeID(), entryID, err)
 		}
 	}
 
-	node.ApplyDirectDependencyScopes(depsGraph, rootNode.ID, node.DirectDependencyScopes(manifest))
+	node.ApplyDirectDependencyScopes(depsGraph, rootNode.NodeID(), node.DirectDependencyScopes(manifest))
 	return depsGraph, nil
 }
 

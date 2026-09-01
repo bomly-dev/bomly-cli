@@ -12,9 +12,9 @@ func TestFindWhy_MarksCyclicPaths(t *testing.T) {
 	b := sdk.NewDependencyRef("b", "")
 	c := sdk.NewDependencyRef("c", "")
 
-	for _, pkg := range []*sdk.Dependency{app, b, c} {
+	for _, pkg := range []*sdk.DependencyNode{app, b, c} {
 		if err := deps.AddNode(pkg); err != nil {
-			t.Fatalf("add package %q: %v", pkg.ID, err)
+			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
 	}
 	for _, edge := range [][2]string{{app.ID, b.ID}, {b.ID, c.ID}, {c.ID, b.ID}} {
@@ -27,8 +27,8 @@ func TestFindWhy_MarksCyclicPaths(t *testing.T) {
 	if err != nil {
 		t.Fatalf("FindWhy(): %v", err)
 	}
-	if target.ID != b.ID {
-		t.Fatalf("expected target %q, got %q", b.ID, target.ID)
+	if target.NodeID() != b.ID {
+		t.Fatalf("expected target %q, got %q", b.ID, target.NodeID())
 	}
 	if len(paths) != 2 {
 		t.Fatalf("expected 2 paths, got %#v", paths)
@@ -50,7 +50,7 @@ func TestFindWhy_MarksCyclicPaths(t *testing.T) {
 
 func TestFindWhy_ReturnsAllPathsInDeterministicOrder(t *testing.T) {
 	deps := sdk.New()
-	nodes := []*sdk.Dependency{
+	nodes := []*sdk.DependencyNode{
 		sdk.NewDependencyRef("root-b", ""),
 		sdk.NewDependencyRef("middle", ""),
 		sdk.NewDependencyRef("target", ""),
@@ -58,7 +58,7 @@ func TestFindWhy_ReturnsAllPathsInDeterministicOrder(t *testing.T) {
 	}
 	for _, pkg := range nodes {
 		if err := deps.AddNode(pkg); err != nil {
-			t.Fatalf("add package %q: %v", pkg.ID, err)
+			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
 	}
 	for _, edge := range [][2]string{
@@ -90,8 +90,8 @@ func assertPathIDs(t *testing.T, path Path, want []string) {
 		t.Fatalf("expected %d packages, got %#v", len(want), path.Packages)
 	}
 	for i, pkg := range path.Packages {
-		if pkg.ID != want[i] {
-			t.Fatalf("expected package %d to be %q, got %q", i, want[i], pkg.ID)
+		if pkg.NodeID() != want[i] {
+			t.Fatalf("expected package %d to be %q, got %q", i, want[i], pkg.NodeID())
 		}
 	}
 }

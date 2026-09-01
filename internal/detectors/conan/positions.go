@@ -64,7 +64,7 @@ func AttachConanPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositionCandidates(g, positions, func(pkg *sdk.Dependency) []string {
+	detectors.AttachPositionCandidates(g, positions, func(pkg *sdk.DependencyNode) []string {
 		if pkg == nil {
 			return nil
 		}

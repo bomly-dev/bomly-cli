@@ -16,7 +16,7 @@ func newScanModelWithPosture(t *testing.T, repo string, score float64) *ScanMode
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")
 	const libPURL = "pkg:npm/lib@1.0.0"
-	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", PURL: libPURL}})
+	dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", PURL: libPURL}})
 	registry := sdk.NewPackageRegistry()
 	regLib := registry.Ensure(libPURL)
 	regLib.Name = "lib"
@@ -25,12 +25,12 @@ func newScanModelWithPosture(t *testing.T, repo string, score float64) *ScanMode
 		sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 2, Reason: "off"},
 		sdk.PackageScorecardCheck{Name: "Code-Review", Score: 8, Reason: "ok"},
 	)
-	for _, pkg := range []*sdk.Dependency{root, dep} {
+	for _, pkg := range []*sdk.DependencyNode{root, dep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add: %v", err)
 		}
 	}
-	if err := g.AddEdge(root.ID, dep.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), dep.NodeID()); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
 	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
@@ -153,8 +153,8 @@ func TestPostureGrouping_ByCheckRendersFailingFirst(t *testing.T) {
 	rootA := sdk.NewDependencyRef("app", "1.0.0")
 	const aPURL = "pkg:npm/a@1"
 	const bPURL = "pkg:npm/b@1"
-	a := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "a", Version: "1", PURL: aPURL}})
-	b := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "b", Version: "1", PURL: bPURL}})
+	a := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "a", Version: "1", PURL: aPURL}})
+	b := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "b", Version: "1", PURL: bPURL}})
 	registry := sdk.NewPackageRegistry()
 	regA := registry.Ensure(aPURL)
 	regA.Name = "a"
@@ -170,7 +170,7 @@ func TestPostureGrouping_ByCheckRendersFailingFirst(t *testing.T) {
 		sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 0},
 		sdk.PackageScorecardCheck{Name: "Code-Review", Score: 7},
 	)
-	for _, pkg := range []*sdk.Dependency{rootA, a, b} {
+	for _, pkg := range []*sdk.DependencyNode{rootA, a, b} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add: %v", err)
 		}

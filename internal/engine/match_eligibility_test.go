@@ -11,7 +11,7 @@ type eligibilityCapturingMatcher struct {
 	calls    int
 	graph    *sdk.Graph
 	registry *sdk.PackageRegistry
-	target   *sdk.Dependency
+	target   *sdk.DependencyNode
 }
 
 func (m *eligibilityCapturingMatcher) Descriptor() sdk.MatcherDescriptor {
@@ -67,7 +67,7 @@ func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T)
 	git := matchTestDependency("git-package", "1.0.0", "", sdk.DependencySourceGit)
 	url := matchTestDependency("url-package", "1.0.0", "", sdk.DependencySourceURL)
 
-	all := []*sdk.Dependency{app, manifest, registryRelease, legacy, mirror, workspace, externalShared, project, file, git, url}
+	all := []*sdk.DependencyNode{app, manifest, registryRelease, legacy, mirror, workspace, externalShared, project, file, git, url}
 	registry := sdk.NewPackageRegistry()
 	for _, dependency := range all {
 		if err := graph.AddNode(dependency); err != nil {
@@ -76,7 +76,7 @@ func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T)
 		registry.Add(sdk.PackageFromDependency(dependency))
 	}
 	for _, dependency := range all[2:] {
-		if err := graph.AddEdge(app.ID, dependency.ID); err != nil {
+		if err := graph.AddEdge(app.ID, dependency.NodeID()); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -100,10 +100,10 @@ func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T)
 	}
 	wantEligible := map[string]bool{registryRelease.ID: true, legacy.ID: true, mirror.ID: true, externalShared.ID: true}
 	if matcher.graph.Size() != len(wantEligible) {
-		t.Fatalf("matcher graph size = %d, want %d: %#v", matcher.graph.Size(), len(wantEligible), matcher.graph.Nodes())
+		t.Fatalf("matcher graph size = %d, want %d: %#v", matcher.graph.Size(), len(wantEligible), matcher.graph.DependencyNodes())
 	}
-	for _, dependency := range matcher.graph.Nodes() {
-		if !wantEligible[dependency.ID] {
+	for _, dependency := range matcher.graph.DependencyNodes() {
+		if !wantEligible[dependency.NodeID()] {
 			t.Fatalf("unexpected matcher dependency %#v", dependency)
 		}
 	}
@@ -150,11 +150,11 @@ func TestEngineMatchDoesNotWidenIneligibleTarget(t *testing.T) {
 	if _, err := engine.Match(context.Background(), sdk.MatchRequest{Graph: graph, Registry: sdk.NewPackageRegistry(), Target: external}); err != nil {
 		t.Fatalf("Match() eligible target error = %v", err)
 	}
-	if matcher.calls != 1 || matcher.target == nil || matcher.target.ID != external.ID {
+	if matcher.calls != 1 || matcher.target == nil || matcher.target.NodeID() != external.ID {
 		t.Fatalf("expected eligible target to be preserved, calls=%d target=%#v", matcher.calls, matcher.target)
 	}
 }
 
-func matchTestDependency(name, version string, typ sdk.PackageType, source sdk.DependencySource) *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: name, Version: version, Type: typ}, Source: source})
+func matchTestDependency(name, version string, typ sdk.PackageType, source sdk.DependencySource) *sdk.DependencyNode {
+	return sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: name, Version: version, Type: typ}, Source: source})
 }

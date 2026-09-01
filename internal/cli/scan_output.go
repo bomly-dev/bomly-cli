@@ -92,26 +92,27 @@ func matcherRan(name string, statSets ...[]sdk.MatcherStats) bool {
 	return false
 }
 
-func explainPackageRef(pkg *sdk.Dependency, registry *sdk.PackageRegistry) output.ExplainDependency {
+func explainPackageRef(pkg *sdk.DependencyNode, registry *sdk.PackageRegistry) output.ExplainDependency {
 	ref := output.PackageFromDependencyAndRegistry(pkg, registry)
 	if pkg == nil {
 		return output.ExplainDependency{PackageRef: ref}
 	}
 	result := output.ExplainDependency{PackageRef: ref}
-	if registry != nil && pkg.PURL != "" {
-		if matched, ok := registry.Get(pkg.PURL); ok && matched != nil {
+	if registry != nil && pkg.NodeID() != "" {
+		if matched, ok := registry.Get(pkg.NodeID()); ok && matched != nil {
 			result.Remediation = matched.Remediation.Clone()
 			if result.Remediation != nil {
 				result.Remediation.Suggestions = remediationSuggestionsForDependency(
 					result.Remediation.Suggestions,
-					pkg.ID,
+					pkg.NodeID(),
 				)
 			}
 		}
 	}
-	if legacyID := pkg.StableID(); legacyID != "" {
-		result.ID = legacyID
-	}
+	// The published ID is the node's identity: a canonical package URL. The
+	// separate "stable ID" this used to emit was the pre-ADR-0041 identity
+	// machinery, minted alongside the node ID and free to disagree with it.
+	result.ID = pkg.NodeID()
 	return result
 }
 

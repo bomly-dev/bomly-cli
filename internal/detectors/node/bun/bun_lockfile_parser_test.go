@@ -85,9 +85,9 @@ func FuzzNormalizeJSONC(f *testing.F) {
 	})
 }
 
-func dependencyByNameVersion(graph *sdk.Graph, name, version string) *sdk.Dependency {
-	var found *sdk.Dependency
-	graph.WalkNodes(func(dep *sdk.Dependency) bool {
+func dependencyByNameVersion(graph *sdk.Graph, name, version string) *sdk.DependencyNode {
+	var found *sdk.DependencyNode
+	graph.WalkNodes(func(dep sdk.GraphNode) bool {
 		if dep.Name == name && dep.Version == version {
 			found = dep
 			return false
@@ -97,19 +97,19 @@ func dependencyByNameVersion(graph *sdk.Graph, name, version string) *sdk.Depend
 	return found
 }
 
-func assertEdge(t *testing.T, graph *sdk.Graph, from, to *sdk.Dependency) {
+func assertEdge(t *testing.T, graph *sdk.Graph, from, to *sdk.DependencyNode) {
 	t.Helper()
 	if from == nil || to == nil {
 		t.Fatalf("edge endpoint is nil: from=%#v to=%#v", from, to)
 	}
-	children, err := graph.DirectDependencies(from.ID)
+	children, err := graph.DirectDependencies(from.NodeID())
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, child := range children {
-		if child.ID == to.ID {
+		if child.NodeID() == to.NodeID() {
 			return
 		}
 	}
-	t.Fatalf("expected edge %s -> %s", from.ID, to.ID)
+	t.Fatalf("expected edge %s -> %s", from.NodeID(), to.NodeID())
 }

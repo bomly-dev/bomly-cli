@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"os"
 	"path/filepath"
 	"sort"
@@ -159,17 +160,19 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		roots := flat.Roots()
 		rootID := ""
 		if len(roots) > 0 && roots[0] != nil {
-			rootID = roots[0].ID
+			rootID = roots[0].NodeID()
 		}
-		if rootNode, ok := flat.Node(rootID); ok {
-			rootNode.Source = sdk.DependencySourceProject
-		}
-		for _, dependency := range flat.Nodes() {
-			if dependency != nil && dependency.ID != rootID {
-				dependency.Source = sdk.DependencySourceRegistry
+		if rootNodeNode, ok := flat.Node(rootID); ok {
+			rootNode, _ := nodes.AsDependency(rootNodeNode)
+			if rootNode != nil {
 			}
+			for _, dependency := range flat.DependencyNodes() {
+				if dependency != nil && dependency.NodeID() != rootID {
+					dependency.Source = sdk.DependencySourceRegistry
+				}
+			}
+			return npmLockfileGraphs{graph: flat, rootID: rootID, lockfileName: lockfileName, lockfileVersion: lockfile.LockfileVersion}, nil
 		}
-		return npmLockfileGraphs{graph: flat, rootID: rootID, lockfileName: lockfileName, lockfileVersion: lockfile.LockfileVersion}, nil
 	}
 
 	depsGraph := sdk.New()
@@ -186,7 +189,15 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: rootVersion, Type: sdk.PackageTypeApplication, FirstParty: true}, Source: sdk.DependencySourceProject})
+	rootNode, err := sdk.NewModuleNode("package.json", sdk.Coordinates{
+		Ecosystem: sdk.EcosystemNPM,
+		Name:      rootName,
+		Version:   rootVersion,
+		Type:      sdk.PackageTypeApplication,
+	})
+	if err != nil {
+		return npmLockfileGraphs{}, fmt.Errorf("build npm root module node: %w", err)
+	}
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return npmLockfileGraphs{}, fmt.Errorf("add npm root node: %w", err)
 	}
@@ -197,7 +208,7 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 	}
 	sort.Strings(paths)
 
-	pathToID := map[string]string{"": rootNode.ID}
+	pathToID := map[string]string{"": rootNode.NodeID()}
 	modules := make([]npmModuleGraph, 0)
 	workspaceTargets := make(map[string]struct{})
 	for _, entry := range lockfile.Packages {
@@ -231,27 +242,33 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		if name == "" {
 			continue
 		}
-		pkg := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+		pkg := sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
 			Name:    name,
 			Version: entry.Version}, Source: npmPackageSource(entry), Scopes: sdk.ScopesOf(scopeFromNPMLockPackage(entry)),
 			ResolvedURL: entry.Resolved,
 			Digests:     node.ParseIntegrityDigests(entry.Integrity),
 		}
 		if member {
-			// Workspace members are local applications, not fetched packages.
+			// A workspace member is the project's own code, not a fetched
+			// package: it becomes a module node below, and ownership is that
+			// kind rather than a flag on coordinates (ADR-0041).
 			pkg.Type = sdk.PackageTypeApplication
-			pkg.FirstParty = true
 			pkg.ResolvedURL = ""
 			pkg.Source = sdk.DependencySourceWorkspace
 		}
 		if meta := npmLockPackageMetadata(entry); meta != nil {
 			pkg.Metadata = map[string]any{sdk.MetadataKeyNPM: meta}
 		}
-		pkgNode := sdk.NewDependency(pkg)
+		pkgNode, err := sdk.NewDependencyNode(pkg.Coordinates)
+		if err != nil {
+			return npmLockfileGraphs{}, err
+		}
 		// npm records the registry tarball a package was installed from.
 		// Workspace members cleared ResolvedURL above (it names a local
 		// directory), and git or file specs are rejected by the invariant.
-		pkgNode.Origin = sdk.ArtifactOrigin(pkg.ResolvedURL)
+		if origin := sdk.ArtifactOrigin(pkg.ResolvedURL); origin != nil {
+			pkgNode.Origins = sdk.MergeOrigins(pkgNode.Origins, []sdk.DependencyOrigin{*origin})
+		}
 
 		if entry.License != "" {
 			sdk.SetDetectionLicenses(pkgNode, []sdk.PackageLicense{{Value: entry.License, Type: "declared"}})
@@ -259,16 +276,16 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		// Two package paths can install one name@version from different
 		// tarballs; the shared helper keeps both, and pathToID wires each
 		// position's edges to its own occurrence. The path is the key.
-		surviving, err := detectors.EnsureOccurrence(depsGraph, pkgNode, normalizedPackagePath)
+		surviving, err := detectors.EnsureNode(depsGraph, pkgNode)
 		if err != nil {
 			return npmLockfileGraphs{}, err
 		}
-		pathToID[packagePath] = surviving.ID
+		pathToID[packagePath] = surviving.NodeID()
 		if member {
 			// The descriptor must track whatever node now represents this
 			// path -- the same node pathToID records -- not the candidate
 			// that may have folded or been re-identified.
-			modules = append(modules, npmModuleGraph{dir: strings.TrimPrefix(filepath.ToSlash(packagePath), "./"), rootID: surviving.ID})
+			modules = append(modules, npmModuleGraph{dir: strings.TrimPrefix(filepath.ToSlash(packagePath), "./"), rootID: surviving.NodeID()})
 		}
 	}
 
@@ -291,7 +308,7 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		if entry.Link {
 			continue
 		}
-		parentID := rootNode.ID
+		parentID := rootNode.NodeID()
 		if packagePath != "" {
 			id, ok := pathToID[packagePath]
 			if !ok {
@@ -303,11 +320,15 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		for dependencyName, dependencyVersion := range packageDependencyVersions(packagePath, entry, member) {
 			targetID, ok := resolveNPMLockDependencyID(packagePath, dependencyName, dependencyVersion, lockfile, pathToID)
 			if !ok {
-				synthetic := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(dependencyVersion)}, Source: node.DependencySourceFromSpecifier(dependencyVersion)})
+				synthetic, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(dependencyVersion)})
+				if err != nil {
+					return npmLockfileGraphs{}, fmt.Errorf("build dependency node: %w", err)
+				}
+				synthetic.Source = node.DependencySourceFromSpecifier(dependencyVersion)
 				if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
 					return npmLockfileGraphs{}, err
 				}
-				targetID = synthetic.ID
+				targetID = synthetic.NodeID()
 			}
 			if err := depsGraph.AddEdge(parentID, targetID); err != nil {
 				return npmLockfileGraphs{}, fmt.Errorf("add npm dependency %q -> %q: %w", parentID, targetID, err)
@@ -316,14 +337,14 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 	}
 
 	if rootEntry, ok := lockfile.Packages[""]; ok {
-		node.ApplyDirectDependencyScopes(depsGraph, rootNode.ID, npmRootDirectScopes(rootEntry))
+		node.ApplyDirectDependencyScopes(depsGraph, rootNode.NodeID(), npmRootDirectScopes(rootEntry))
 	}
 	for _, module := range modules {
 		if entry, ok := lockfile.Packages[module.dir]; ok {
 			node.ApplyDirectDependencyScopes(depsGraph, module.rootID, npmRootDirectScopes(entry))
 		}
 	}
-	return npmLockfileGraphs{graph: depsGraph, rootID: rootNode.ID, modules: modules, lockfileName: lockfileName, lockfileVersion: lockfile.LockfileVersion}, nil
+	return npmLockfileGraphs{graph: depsGraph, rootID: rootNode.NodeID(), modules: modules, lockfileName: lockfileName, lockfileVersion: lockfile.LockfileVersion}, nil
 }
 
 func npmLockfileName(projectPath string) (string, error) {

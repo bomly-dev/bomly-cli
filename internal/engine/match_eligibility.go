@@ -15,27 +15,27 @@ func registryMatchRequest(req sdk.MatchRequest) (sdk.MatchRequest, error) {
 		return req, nil
 	}
 
-	eligible := make(map[string]*sdk.Dependency)
-	for _, dependency := range req.Graph.Nodes() {
+	eligible := make(map[string]*sdk.DependencyNode)
+	for _, dependency := range req.Graph.DependencyNodes() {
 		if !dependency.RegistryMatchEligible() {
 			continue
 		}
 		clone := dependency.Clone()
 		if err := filtered.AddNode(clone); err != nil {
-			return sdk.MatchRequest{}, fmt.Errorf("add registry-match dependency %q: %w", dependency.ID, err)
+			return sdk.MatchRequest{}, fmt.Errorf("add registry-match dependency %q: %w", dependency.NodeID(), err)
 		}
-		eligible[dependency.ID] = clone
+		eligible[dependency.NodeID()] = clone
 	}
 	var edgeErr error
-	req.Graph.WalkEdges(func(from, to *sdk.Dependency) bool {
-		if _, ok := eligible[from.ID]; !ok {
+	req.Graph.WalkEdges(func(from, to sdk.GraphNode) bool {
+		if _, ok := eligible[from.NodeID()]; !ok {
 			return true
 		}
-		if _, ok := eligible[to.ID]; !ok {
+		if _, ok := eligible[to.NodeID()]; !ok {
 			return true
 		}
-		if err := filtered.AddEdge(from.ID, to.ID); err != nil {
-			edgeErr = fmt.Errorf("add registry-match dependency edge %q -> %q: %w", from.ID, to.ID, err)
+		if err := filtered.AddEdge(from.NodeID(), to.NodeID()); err != nil {
+			edgeErr = fmt.Errorf("add registry-match dependency edge %q -> %q: %w", from.NodeID(), to.NodeID(), err)
 		}
 		return edgeErr == nil
 	})
@@ -44,10 +44,10 @@ func registryMatchRequest(req sdk.MatchRequest) (sdk.MatchRequest, error) {
 	}
 
 	if req.Target != nil {
-		target, ok := eligible[req.Target.ID]
+		target, ok := eligible[req.Target.NodeID()]
 		if !ok {
-			// A targeted match must never widen to all other eligible packages
-			// when the requested occurrence itself is ineligible.
+			// A targeted match must never widen to all other eligible
+			// packages when the requested node itself is ineligible.
 			req.Graph = sdk.New()
 			req.Target = nil
 			return req, nil

@@ -259,7 +259,7 @@ serde = "1"
 	if root.Version != "1.2.3" {
 		t.Fatalf("root version = %q, want the inherited 1.2.3", root.Version)
 	}
-	rootDeps := directDependencyIDs(t, graph, root.ID)
+	rootDeps := directDependencyIDs(t, graph, root.NodeID())
 	if !rootDeps["serde@1.0.210"] {
 		t.Fatalf("root dependencies = %v, want serde@1.0.210", rootDeps)
 	}
@@ -388,8 +388,8 @@ func TestCargoMetadataWorkspaceMemberKeepsPlainIDOnExactCollision(t *testing.T) 
 		t.Fatalf("member claims external origin %+v", origin)
 	}
 	var externals int
-	graph.WalkNodes(func(dep *sdk.Dependency) bool {
-		if dep.Name == "helper" && dep.ID != member.ID {
+	graph.WalkNodes(func(dep sdk.GraphNode) bool {
+		if dep.Name == "helper" && dep.NodeID() != member.ID {
 			externals++
 			if origin := originOf(dep); origin.Repository != "https://github.com/external/helper" {
 				t.Fatalf("external occurrence origin = %+v, want the external repository", origin)
@@ -445,7 +445,7 @@ dependencies = [
 		t.Fatalf("expected external app@2.0.0 to stay in the graph: %s", graph.PrettyString())
 	}
 	consumerDeps := directDependencyIDs(t, graph, "consumer@2.0.0")
-	if !consumerDeps[external.ID] || consumerDeps[root.ID] {
+	if !consumerDeps[external.ID] || consumerDeps[root.NodeID()] {
 		t.Fatalf("consumer dependencies = %v, want the external app only", consumerDeps)
 	}
 }
@@ -570,7 +570,7 @@ func directDependencyIDs(t *testing.T, g *sdk.Graph, nodeID string) map[string]b
 	out := make(map[string]bool, len(deps))
 	for _, dep := range deps {
 		if dep != nil {
-			out[dep.ID] = true
+			out[dep.NodeID()] = true
 		}
 	}
 	return out

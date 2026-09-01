@@ -72,7 +72,7 @@ func TestDepGraphFromLockScopesDirectDependencies(t *testing.T) {
 	if !ok {
 		t.Fatal("expected root package")
 	}
-	deps, err := g.DirectDependencies(root.ID)
+	deps, err := g.DirectDependencies(root.NodeID())
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}
@@ -149,7 +149,7 @@ func TestDepGraphFromPubDepsJSONBuildsTransitiveScopes(t *testing.T) {
 
 	collection, ok := graph.Node("collection@1.18.0")
 	if !ok {
-		t.Fatalf("expected collection package, got %v", graph.Nodes())
+		t.Fatalf("expected collection package, got %v", graph.DependencyNodes())
 	}
 	if string(collection.PrimaryScope()) != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected shared transitive dependency to be runtime, got %q", string(collection.PrimaryScope()))

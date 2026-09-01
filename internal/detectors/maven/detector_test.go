@@ -43,10 +43,10 @@ func TestDepGraphFromMavenTGF(t *testing.T) {
 	// The TGF block root is the project's own artifact: first-party, so
 	// enrichment never queries it; its dependencies stay enrichable.
 	rootNode, _ := g.Node("com.example:demo-app@1.0.0")
-	if !rootNode.FirstParty || sdk.NodeIsEnrichable(rootNode) {
+	if !rootNode.FirstParty || rootNode.RegistryMatchEligible() {
 		t.Fatalf("project artifact must be first-party and not enrichable, got %#v", rootNode.Coordinates)
 	}
-	if rootDeps[0].FirstParty || !sdk.NodeIsEnrichable(rootDeps[0]) {
+	if rootDeps[0].FirstParty || !rootDeps[0].RegistryMatchEligible() {
 		t.Fatalf("fetched dependency must stay enrichable, got %#v", rootDeps[0].Coordinates)
 	}
 
@@ -177,8 +177,8 @@ func TestNodeFromMavenCoords_WithClassifier(t *testing.T) {
 	if node.QualifiedName() != "com.example:demo-artifact:sources" {
 		t.Fatalf("unexpected qualified name %q", node.QualifiedName())
 	}
-	if node.ID != "com.example:demo-artifact:sources@1.0.0" {
-		t.Fatalf("unexpected package id %q", node.ID)
+	if node.NodeID() != "com.example:demo-artifact:sources@1.0.0" {
+		t.Fatalf("unexpected package id %q", node.NodeID())
 	}
 	if string(node.PrimaryScope()) != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected development scope, got %q", string(node.PrimaryScope()))

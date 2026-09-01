@@ -26,13 +26,13 @@ func FindWhy(deps *sdk.Graph, query string) (output.PackageRef, []Path, error) {
 }
 
 // FindWhyPackage resolves a target package and returns the package plus all root-to-target paths.
-func FindWhyPackage(deps *sdk.Graph, query string) (*sdk.Dependency, []Path, error) {
+func FindWhyPackage(deps *sdk.Graph, query string) (*sdk.DependencyNode, []Path, error) {
 	target, err := resolveTarget(deps, query)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	rawPaths, err := deps.CollectPathsTo(target.ID)
+	rawPaths, err := deps.CollectPathsTo(target.NodeID())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -48,11 +48,11 @@ func FindWhyPackage(deps *sdk.Graph, query string) (*sdk.Dependency, []Path, err
 	return target, paths, nil
 }
 
-func resolveTarget(deps *sdk.Graph, query string) (*sdk.Dependency, error) {
-	var exact *sdk.Dependency
-	var matches []*sdk.Dependency
-	for _, pkg := range deps.Nodes() {
-		if pkg.ID == query {
+func resolveTarget(deps *sdk.Graph, query string) (*sdk.DependencyNode, error) {
+	var exact *sdk.DependencyNode
+	var matches []*sdk.DependencyNode
+	for _, pkg := range deps.DependencyNodes() {
+		if pkg.NodeID() == query {
 			exact = pkg
 			break
 		}
@@ -66,14 +66,25 @@ func resolveTarget(deps *sdk.Graph, query string) (*sdk.Dependency, error) {
 	if len(matches) == 0 {
 		return nil, fmt.Errorf("%w: %s", ErrDependencyNotFound, query)
 	}
-	sort.Slice(matches, func(i, j int) bool { return matches[i].ID < matches[j].ID })
+	sort.Slice(matches, func(i, j int) bool { return matches[i].NodeID() < matches[j].NodeID() })
 	return matches[0], nil
 }
 
-func toPath(packages []*sdk.Dependency, cyclic bool, cycleTo string) Path {
+// Takes the union type: a path runs through manifests and modules as well
+// as dependencies, and RelationshipForPath counts only the dependency hops.
+func toPath(packages []sdk.GraphNode, cyclic bool, cycleTo string) Path {
 	refs := make([]output.PackageRef, 0, len(packages))
-	for _, pkg := range packages {
+	for _, node := range packages {
+		// Only dependency nodes become package references; the structural
+		// nodes on a path are the manifest and module it runs through.
+		pkg, ok := node.(*sdk.DependencyNode)
+		if !ok {
+			continue
+		}
 		refs = append(refs, output.PackageFromGraphPackage(pkg))
+	}
+	if len(refs) == 0 {
+		return Path{Cyclic: cyclic, CycleTo: cycleTo}
 	}
 	relationship := sdk.RelationshipForPath(packages)
 	introducedVia := refs[0].ID
@@ -107,8 +118,8 @@ func GraphFromPaths(source *sdk.Graph, paths []Path) (*sdk.Graph, error) {
 			if !ok || pkg == nil {
 				continue
 			}
-			if _, exists := focused.Node(pkg.ID); !exists {
-				if err := focused.AddNode(pkg.Clone()); err != nil {
+			if _, exists := focused.Node(pkg.NodeID()); !exists {
+				if err := focused.AddNode(pkg.CloneNode()); err != nil {
 					return nil, err
 				}
 			}
@@ -120,12 +131,12 @@ func GraphFromPaths(source *sdk.Graph, paths []Path) (*sdk.Graph, error) {
 			if !ok || parent == nil {
 				continue
 			}
-			if _, exists := focused.Node(parent.ID); !exists {
-				if err := focused.AddNode(parent.Clone()); err != nil {
+			if _, exists := focused.Node(parent.NodeID()); !exists {
+				if err := focused.AddNode(parent.CloneNode()); err != nil {
 					return nil, err
 				}
 			}
-			if err := focused.AddEdge(parent.ID, pkg.ID); err != nil && !errors.Is(err, sdk.ErrCycleDetected) {
+			if err := focused.AddEdge(parent.NodeID(), pkg.NodeID()); err != nil && !errors.Is(err, sdk.ErrCycleDetected) {
 				return nil, err
 			}
 		}

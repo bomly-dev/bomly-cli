@@ -568,35 +568,44 @@ func comparisonPolicy(graph *sdk.Graph, target Target) ComparisonPolicy {
 		return policy
 	}
 	extensionIDs := make(map[string]string)
-	graph.WalkNodes(func(dependency *sdk.Dependency) bool {
-		if dependency == nil || dependency.RegistryMatchEligible() {
+	// The project's own structural nodes -- manifests and modules -- are graph
+	// identity rather than packages a registry could match, so they extend the
+	// policy without any type check: the kind says it.
+	graph.WalkNodes(func(node sdk.GraphNode) bool {
+		if node == nil {
 			return true
 		}
-		purl := sdk.CanonicalizePackageURL(dependency.PURL)
+		dependency, isDep := node.(*sdk.DependencyNode)
+		if isDep && dependency.RegistryMatchEligible() {
+			return true
+		}
+		// The node ID is the canonical package URL under ADR-0041, so there
+		// is nothing left to canonicalize.
+		purl := node.NodeID()
 		if purl == "" {
 			return true
 		}
-		reason := "non-registry graph occurrence: " + string(dependency.Source)
-		if dependency.Type == sdk.PackageTypeApplication || dependency.Type == sdk.PackageTypeManifest {
-			reason = "project graph identity"
+		reason := "project graph identity"
+		if isDep {
+			reason = "non-registry graph occurrence: " + string(dependency.Source)
 		}
 		policy.PackageExtensions[purl] = reason
-		extensionIDs[dependency.ID] = reason
+		extensionIDs[node.NodeID()] = reason
 		return true
 	})
-	graph.WalkEdges(func(from, to *sdk.Dependency) bool {
+	graph.WalkEdges(func(from, to sdk.GraphNode) bool {
 		if from == nil || to == nil {
 			return true
 		}
-		reason := extensionIDs[from.ID]
+		reason := extensionIDs[from.NodeID()]
 		if reason == "" {
-			reason = extensionIDs[to.ID]
+			reason = extensionIDs[to.NodeID()]
 		}
 		if reason == "" {
 			return true
 		}
-		fromPURL := sdk.CanonicalizePackageURL(from.PURL)
-		toPURL := sdk.CanonicalizePackageURL(to.PURL)
+		fromPURL := from.NodeID()
+		toPURL := to.NodeID()
 		if fromPURL != "" && toPURL != "" {
 			policy.RelationshipExtensions[relationshipKey(fromPURL, toPURL)] = reason
 		}

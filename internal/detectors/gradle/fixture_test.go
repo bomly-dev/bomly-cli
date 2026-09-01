@@ -216,7 +216,7 @@ func requireGradleEdge(t *testing.T, g *sdk.Graph, fromID, toID string) {
 		t.Fatalf("dependencies(%s): %v", fromID, err)
 	}
 	for _, d := range deps {
-		if d.ID == toID {
+		if d.NodeID() == toID {
 			return
 		}
 	}

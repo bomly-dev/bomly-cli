@@ -122,10 +122,10 @@ func TestGitHubTokenUsesBenchmarkTokenFirst(t *testing.T) {
 
 func TestComparisonPolicyClassifiesNonRegistryGraphAndPinnedEdges(t *testing.T) {
 	graph := sdk.New()
-	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{PURL: "pkg:npm/app@1.0.0", Ecosystem: sdk.EcosystemNPM, Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication}, Source: sdk.DependencySourceProject})
-	registry := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{PURL: "pkg:npm/registry@1.0.0", Ecosystem: sdk.EcosystemNPM, Name: "registry", Version: "1.0.0"}, Source: sdk.DependencySourceRegistry})
-	gitDependency := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{PURL: "pkg:npm/git-dependency@1.0.0", Ecosystem: sdk.EcosystemNPM, Name: "git-dependency", Version: "1.0.0"}, Source: sdk.DependencySourceGit})
-	for _, dependency := range []*sdk.Dependency{app, registry, gitDependency} {
+	app := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{PURL: "pkg:npm/app@1.0.0", Ecosystem: sdk.EcosystemNPM, Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication}, Source: sdk.DependencySourceProject})
+	registry := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{PURL: "pkg:npm/registry@1.0.0", Ecosystem: sdk.EcosystemNPM, Name: "registry", Version: "1.0.0"}, Source: sdk.DependencySourceRegistry})
+	gitDependency := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{PURL: "pkg:npm/git-dependency@1.0.0", Ecosystem: sdk.EcosystemNPM, Name: "git-dependency", Version: "1.0.0"}, Source: sdk.DependencySourceGit})
+	for _, dependency := range []*sdk.DependencyNode{app, registry, gitDependency} {
 		if err := graph.AddNode(dependency); err != nil {
 			t.Fatal(err)
 		}

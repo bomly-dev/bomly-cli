@@ -349,12 +349,12 @@ func TestComputeOverviewStats_RemovedPkgUsesBaseGraphForRelationship(t *testing.
 	baseG := sdk.New()
 	root := sdk.NewDependencyRef("root", "1")
 	old := sdk.NewDependencyRef("old-pkg", "1.0.0")
-	for _, p := range []*sdk.Dependency{root, old} {
+	for _, p := range []*sdk.DependencyNode{root, old} {
 		if err := baseG.AddNode(p); err != nil {
 			t.Fatalf("add: %v", err)
 		}
 	}
-	if err := baseG.AddEdge(root.ID, old.ID); err != nil {
+	if err := baseG.AddEdge(root.NodeID(), old.ID); err != nil {
 		t.Fatalf("dep: %v", err)
 	}
 
@@ -826,15 +826,15 @@ func TestClassifyRelationships(t *testing.T) {
 	root2 := sdk.NewDependencyRef("root2", "1")
 	child := sdk.NewDependencyRef("child", "1")
 	grandchild := sdk.NewDependencyRef("grandchild", "1")
-	for _, p := range []*sdk.Dependency{root1, root2, child, grandchild} {
+	for _, p := range []*sdk.DependencyNode{root1, root2, child, grandchild} {
 		if err := g.AddNode(p); err != nil {
 			t.Fatalf("add %s: %v", p.ID, err)
 		}
 	}
-	if err := g.AddEdge(root1.ID, child.ID); err != nil {
+	if err := g.AddEdge(root1.ID, child.NodeID()); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
-	if err := g.AddEdge(child.ID, grandchild.ID); err != nil {
+	if err := g.AddEdge(child.NodeID(), grandchild.ID); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
 
@@ -845,7 +845,7 @@ func TestClassifyRelationships(t *testing.T) {
 	if got := rels[root2.ID]; got != "root" {
 		t.Errorf("root2 -> %q, want root", got)
 	}
-	if got := rels[child.ID]; got != "direct" {
+	if got := rels[child.NodeID()]; got != "direct" {
 		t.Errorf("child -> %q, want direct", got)
 	}
 	if got := rels[grandchild.ID]; got != "transitive" {

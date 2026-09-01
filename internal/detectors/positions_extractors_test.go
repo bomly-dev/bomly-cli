@@ -29,9 +29,9 @@ func writeFile(t *testing.T, dir, name, body string) {
 	}
 }
 
-func mustPkg(t *testing.T, g *sdk.Graph, name, version string, extra ...func(*sdk.Dependency)) *sdk.Dependency {
+func mustPkg(t *testing.T, g *sdk.Graph, name, version string, extra ...func(*sdk.DependencyNode)) *sdk.DependencyNode {
 	t.Helper()
-	d := sdk.Dependency{Coordinates: sdk.Coordinates{Name: name, Version: version, Ecosystem: "test"}}
+	d := sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: name, Version: version, Ecosystem: "test"}}
 	for _, f := range extra {
 		f(&d)
 	}
@@ -286,9 +286,9 @@ func TestMavenPomPositions(t *testing.T) {
 </project>
 `)
 	g := sdk.New()
-	mustPkg(t, g, "jackson-databind", "2.17.0", func(p *sdk.Dependency) { p.Org = "com.fasterxml.jackson.core" })
-	mustPkg(t, g, "junit", "4.13.2", func(p *sdk.Dependency) { p.Org = "junit" })
-	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.Dependency) { p.Org = "org.apache.commons" })
+	mustPkg(t, g, "jackson-databind", "2.17.0", func(p *sdk.DependencyNode) { p.Org = "com.fasterxml.jackson.core" })
+	mustPkg(t, g, "junit", "4.13.2", func(p *sdk.DependencyNode) { p.Org = "junit" })
+	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.DependencyNode) { p.Org = "org.apache.commons" })
 	maven.AttachPomPositions(g, dir, "pom.xml")
 	jd, _ := g.Node("com.fasterxml.jackson.core:jackson-databind@2.17.0")
 	if jd == nil || len(jd.Locations) == 0 || jd.Locations[0].Position.Line != 9 {
@@ -320,7 +320,7 @@ func TestMavenPomPositionsResolvePropertiesAfterDependencies(t *testing.T) {
 </project>
 `)
 	g := sdk.New()
-	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.Dependency) { p.Org = "org.apache.commons" })
+	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.DependencyNode) { p.Org = "org.apache.commons" })
 	maven.AttachPomPositions(g, dir, "pom.xml")
 
 	lang3, _ := g.Node("org.apache.commons:commons-lang3@3.17.0")
@@ -344,7 +344,7 @@ func TestMavenPomPositionsUseArtifactPropertyForManagedDependency(t *testing.T) 
 </project>
 `)
 	g := sdk.New()
-	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.Dependency) { p.Org = "org.apache.commons" })
+	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.DependencyNode) { p.Org = "org.apache.commons" })
 	maven.AttachPomPositions(g, dir, "pom.xml")
 
 	lang3, _ := g.Node("org.apache.commons:commons-lang3@3.17.0")
@@ -366,7 +366,7 @@ func TestMavenPomPositionsModuleRelativePath(t *testing.T) {
 </project>
 `)
 	g := sdk.New()
-	mustPkg(t, g, "commons-text", "1.9", func(p *sdk.Dependency) { p.Org = "org.apache.commons" })
+	mustPkg(t, g, "commons-text", "1.9", func(p *sdk.DependencyNode) { p.Org = "org.apache.commons" })
 	maven.AttachPomPositions(g, dir, "core/pom.xml")
 
 	text, _ := g.Node("org.apache.commons:commons-text@1.9")
@@ -522,8 +522,8 @@ func TestComposerLockPositions(t *testing.T) {
 }
 `)
 	g := sdk.New()
-	mustPkg(t, g, "console", "v6.0.0", func(p *sdk.Dependency) { p.Org = "symfony" })
-	mustPkg(t, g, "monolog", "3.0.0", func(p *sdk.Dependency) { p.Org = "monolog" })
+	mustPkg(t, g, "console", "v6.0.0", func(p *sdk.DependencyNode) { p.Org = "symfony" })
+	mustPkg(t, g, "monolog", "3.0.0", func(p *sdk.DependencyNode) { p.Org = "monolog" })
 	composer.AttachComposerLockPositions(g, dir)
 	sc, _ := g.Node("symfony:console@v6.0.0")
 	if sc == nil || len(sc.Locations) == 0 || sc.Locations[0].Position.Line != 4 {

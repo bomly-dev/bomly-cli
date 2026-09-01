@@ -111,8 +111,8 @@ func TestEnsureNode(t *testing.T) {
 	}
 }
 
-func scopedDependency(scope sdk.Scope, resolvedURL string) *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+func scopedDependency(scope sdk.Scope, resolvedURL string) *sdk.DependencyNode {
+	return sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
 		Name:    "requests",
 		Version: "2.31.0"}, ResolvedURL: resolvedURL, Scopes: sdk.ScopesOf(scope),
 	})

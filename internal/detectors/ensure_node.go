@@ -1,11 +1,11 @@
 package detectors
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
+	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -18,85 +18,124 @@ import (
 // this rather than calling Graph.AddNode after a Node lookup, so a detector
 // added later inherits the shared behavior instead of having to know about it.
 //
-// When it folds, the survivor takes the union of both records' scopes. Scopes
-// answer "where is this package reachable?", so one package listed in two
-// dependency groups is reachable at both -- a manifest's develop entry does
-// not stop being a develop dependency because the default group named the
-// package first. Everything else on the discarded record is dropped: records
-// that genuinely differ are different occurrences and belong in distinct
-// nodes under distinct IDs (the caller decides identity, EnsureOccurrence is
-// the shared rule for resolution-qualified identity).
-func EnsureNode(g *sdk.Graph, node *sdk.Dependency) (*sdk.Dependency, error) {
-	if g == nil || node == nil {
-		return nil, nil
-	}
-	if existing, ok := g.Node(node.ID); ok {
-		for _, scope := range node.Scopes {
-			existing.AddScope(scope)
-		}
-		return existing, nil
-	}
-	if err := g.AddNode(node); err != nil {
-		return nil, fmt.Errorf("add node %q: %w", node.ID, err)
-	}
-	return node, nil
-}
-
-// OriginsConflict reports whether two records assert different publishable
-// origins. Absence is never a conflict, and neither is one location written
-// two ways: contradiction means both publish and they disagree. Callers use
-// this to decide that two records are distinct occurrences deserving distinct
-// nodes, never to pick a winner.
-func OriginsConflict(left, right *sdk.DependencyOrigin) bool {
-	l, r := left.Normalized(), right.Normalized()
-	if l == nil || r == nil {
-		return false
-	}
-	return *l != *r
-}
-
-// OccurrenceID derives a distinct node ID for an additional occurrence of a
-// package, qualified by what distinguishes it. The qualifier is hashed rather
-// than embedded: node IDs become SBOM component identifiers (CycloneDX
-// bom-refs, SPDX element IDs), and a raw source string can carry credentials
-// or tokens that every other path in this feature exists to keep out of
-// published documents.
-func OccurrenceID(baseID, qualifier string) string {
-	digest := sha256.Sum256([]byte(qualifier))
-	return baseID + "#" + hex.EncodeToString(digest[:6])
-}
-
-// EnsureOccurrence inserts node, folding it into an existing node only when
-// both records claim the same resolution. When the graph already holds this ID
-// with a *different* ResolvedURL, the manifest has asserted two resolutions of
-// one name@version: the newcomer stays a distinct occurrence under an opaque
-// ID derived from qualifier (its stable positional key -- a lockfile path,
-// entry key, or source string).
+// The fold itself is the SDK's (ADR-0041): Graph.InsertNode unions scopes,
+// locations and origins onto the survivor. This wrapper exists for the typed
+// return and the nil tolerance detectors rely on -- the rule lives in one
+// place, and that place is now the model rather than here.
 //
-// This is the one home for the collision rule. Five detectors grew the same
-// hand-written shape one review round at a time before it was centralized;
-// route new sites through here.
-func EnsureOccurrence(g *sdk.Graph, node *sdk.Dependency, qualifier string) (*sdk.Dependency, error) {
-	if g == nil || node == nil {
-		return nil, nil
+// It is generic in the node type so a caller inserting a module gets a module
+// back without asserting. A survivor of a different kind is an error rather
+// than a silent nil: two nodes sharing one ID across kinds means the ID
+// grammars collided, and a detector must not carry on with a node that is not
+// what it built.
+func EnsureNode[T sdk.GraphNode](g *sdk.Graph, node T) (T, error) {
+	var zero T
+	if g == nil || sdk.GraphNode(node) == nil {
+		return zero, nil
 	}
-	// Decide identity before inserting: a record that stays a distinct
-	// occurrence must not fold anything -- not even scopes -- onto the node
-	// it collided with.
-	if existing, ok := g.Node(node.ID); ok &&
-		strings.TrimSpace(existing.ResolvedURL) != strings.TrimSpace(node.ResolvedURL) {
-		node.ID = OccurrenceID(node.ID, qualifier)
+	inserted, err := g.InsertNode(node)
+	if err != nil {
+		return zero, fmt.Errorf("add node %q: %w", node.NodeID(), err)
 	}
-	return EnsureNode(g, node)
+	surviving, ok := inserted.(T)
+	if !ok {
+		return zero, fmt.Errorf("node %q already exists as a %s node", node.NodeID(), inserted.Kind())
+	}
+	return surviving, nil
 }
 
-// IsProjectOwned reports whether dep is the scanned project's own artifact --
-// its root package, a workspace member, a reactor module -- rather than a
-// consumed package. Detectors mark this in two ways, an explicit FirstParty
-// flag or an application package type, and either is enough. The project's own
-// records never take an external origin, never fold into an external
-// occurrence, and never inherit enrichment resolved from a package identity
-// they merely share.
-func IsProjectOwned(dep *sdk.Dependency) bool {
-	return dep != nil && (dep.FirstParty || dep.Type == sdk.PackageTypeApplication)
+// Occurrence machinery -- OriginsConflict, OccurrenceID, EnsureOccurrence --
+// was deleted with ADR-0041. Identity is the canonical package URL and is
+// unique by construction, so there is no suffix to mint and nothing to
+// qualify: two records that resolved one name@version from different places
+// fold into one node whose Origins list carries both. That list is the
+// dependency-confusion signal the suffixes were standing in for, and it says
+// more than two nodes did, because it keeps the disagreement on one identity
+// rather than splitting it across two.
+//
+// Cargo is the case that made this worth checking rather than assuming.
+// Its package IDs are source-qualified upstream, so one crate name and
+// version can appear twice -- from two git remotes, or from a git remote and
+// the registry -- and cargo builds both: it has no nearest-wins rule, and the
+// crate that asked for each gets the one it asked for. Those really are two
+// pieces of code in the artifact.
+//
+// They still fold, and folding is the right answer here rather than a
+// concession. Identity is the canonical package URL, and a cargo PURL carries
+// no source: both records mint "pkg:cargo/<name>@<version>" whatever they
+// resolved from. Keeping them apart would produce two components with byte-
+// identical identity -- same purl, same package reference, same matching
+// result, same vulnerabilities -- which is the duplicate-identity problem
+// ADR-0041 exists to remove, and it is worse than one node that records both
+// sources. Nothing is lost: Origins is union-merged, so the node carries
+// every source it was resolved from, which is the dependency-confusion signal
+// the old distinct nodes were standing in for.
+//
+// What would reopen this: cargo PURLs gaining a source qualifier (the three
+// URL-valued keys cannot serve -- SplitIdentity relocates them into origins),
+// or matching keying on origin rather than on the package URL. Either makes
+// the two genuinely distinguishable, and then they deserve distinct nodes.
+
+// PromoteToModule replaces a dependency node with a module node carrying the
+// same coordinates, keeping its edges.
+//
+// A node's kind is fixed at construction under ADR-0041, so a detector that
+// only discovers ownership later -- Maven learns which graph roots are reactor
+// modules after parsing the dependency tree -- cannot set a flag afterwards.
+// It replaces the node instead, and this is the one place that knows how:
+// build the module, re-point every edge, remove the old node.
+//
+// Edges are re-added by ID, so callers must not hold node pointers across the
+// call.
+func PromoteToModule(g *sdk.Graph, nodeID, manifestPath string) error {
+	if g == nil || strings.TrimSpace(nodeID) == "" {
+		return nil
+	}
+	existing, ok := g.Node(nodeID)
+	if !ok {
+		return nil
+	}
+	dep, isDep := nodes.AsDependency(existing)
+	if !isDep {
+		// Already a module or a manifest: nothing to promote.
+		return nil
+	}
+	module, err := sdk.NewModuleNode(manifestPath, dep.Coordinates)
+	if err != nil {
+		return fmt.Errorf("promote %q to a module node: %w", nodeID, err)
+	}
+	module.Locations = append([]sdk.PackageLocation(nil), dep.Locations...)
+
+	parents, _ := g.Dependents(nodeID)
+	children, _ := g.DirectDependencies(nodeID)
+	parentIDs := make([]string, 0, len(parents))
+	for _, parent := range parents {
+		parentIDs = append(parentIDs, parent.NodeID())
+	}
+	childIDs := make([]string, 0, len(children))
+	for _, child := range children {
+		childIDs = append(childIDs, child.NodeID())
+	}
+
+	g.RemoveNode(nodeID)
+	if _, err := g.InsertNode(module); err != nil {
+		return fmt.Errorf("insert promoted module %q: %w", module.NodeID(), err)
+	}
+	for _, parentID := range parentIDs {
+		if parentID == module.NodeID() {
+			continue
+		}
+		if err := g.AddEdge(parentID, module.NodeID()); err != nil && !errors.Is(err, sdk.ErrSelfDependency) {
+			return fmt.Errorf("re-point %q -> %q: %w", parentID, module.NodeID(), err)
+		}
+	}
+	for _, childID := range childIDs {
+		if childID == module.NodeID() {
+			continue
+		}
+		if err := g.AddEdge(module.NodeID(), childID); err != nil && !errors.Is(err, sdk.ErrSelfDependency) {
+			return fmt.Errorf("re-point %q -> %q: %w", module.NodeID(), childID, err)
+		}
+	}
+	return nil
 }

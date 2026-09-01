@@ -519,12 +519,12 @@ func TestPipeline_ThreadsScopeFilterIntoInstallFirstDetector(t *testing.T) {
 func scopedTestGraph(t *testing.T) *sdk.Graph {
 	t.Helper()
 	graph := sdk.New()
-	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	runtimeDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
-	devDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0", PURL: "pkg:npm/vitest@2.0.0"}, Scopes: sdk.ScopesOf(sdk.ScopeDevelopment)})
-	for _, dep := range []*sdk.Dependency{app, runtimeDep, devDep} {
+	app := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	runtimeDep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	devDep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0", PURL: "pkg:npm/vitest@2.0.0"}, Scopes: sdk.ScopesOf(sdk.ScopeDevelopment)})
+	for _, dep := range []*sdk.DependencyNode{app, runtimeDep, devDep} {
 		if err := graph.AddNode(dep); err != nil {
-			t.Fatalf("add %q: %v", dep.ID, err)
+			t.Fatalf("add %q: %v", dep.NodeID(), err)
 		}
 	}
 	if err := graph.AddEdge(app.ID, runtimeDep.ID); err != nil {
@@ -586,7 +586,7 @@ func TestPipeline_Run_DerivesCanonicalRemediationAtEndOfEnrichment(t *testing.T)
 	const purl = "pkg:npm/react@18.2.0"
 	registry := newTestRegistry()
 	graph := sdk.New()
-	root := sdk.NewDependencyWithID("app", sdk.Dependency{
+	root := sdk.NewDependencyNode("app", sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			Name:           "app",
 			Type:           sdk.PackageTypeApplication,
@@ -595,7 +595,7 @@ func TestPipeline_Run_DerivesCanonicalRemediationAtEndOfEnrichment(t *testing.T)
 		Relationship: sdk.DependencyRelationshipDirect,
 		Source:       sdk.DependencySourceProject,
 	})
-	dependency := sdk.NewDependencyWithID("react", sdk.Dependency{
+	dependency := sdk.NewDependencyNode("react", sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			Name:           "react",
 			Version:        "18.2.0",
@@ -606,12 +606,12 @@ func TestPipeline_Run_DerivesCanonicalRemediationAtEndOfEnrichment(t *testing.T)
 		Source:       sdk.DependencySourceRegistry,
 		PackageRef:   purl,
 	})
-	for _, node := range []*sdk.Dependency{root, dependency} {
+	for _, node := range []*sdk.DependencyNode{root, dependency} {
 		if err := graph.AddNode(node); err != nil {
-			t.Fatalf("AddNode(%s) error = %v", node.ID, err)
+			t.Fatalf("AddNode(%s) error = %v", node.NodeID(), err)
 		}
 	}
-	if err := graph.AddEdge(root.ID, dependency.ID); err != nil {
+	if err := graph.AddEdge(root.NodeID(), dependency.NodeID()); err != nil {
 		t.Fatalf("AddEdge() error = %v", err)
 	}
 	registry.registerDetector(fakeRemediationDetector{
@@ -631,7 +631,7 @@ func TestPipeline_Run_DerivesCanonicalRemediationAtEndOfEnrichment(t *testing.T)
 			)},
 		},
 		hints: sdk.RemediationHintResponse{Hints: []sdk.RemediationHint{{
-			DependencyRef: dependency.ID,
+			DependencyRef: dependency.NodeID(),
 			ManifestPath:  "/repo/package-lock.json",
 			Strategies: []sdk.RemediationStrategyHint{{
 				Action: sdk.RemediationActionDirectBump,
@@ -678,7 +678,7 @@ func TestPipeline_Run_DerivesCanonicalRemediationAtEndOfEnrichment(t *testing.T)
 func TestPipeline_Run_DeduplicatesAuditFindings(t *testing.T) {
 	registry := newTestRegistry()
 	g := sdk.New()
-	pkg := sdk.NewDependencyWithID("pkg:npm/react@18.2.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	pkg := sdk.NewDependencyNode("pkg:npm/react@18.2.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		Name:    "react",
 		Version: "18.2.0",
 		PURL:    "pkg:npm/react@18.2.0"},
@@ -693,8 +693,8 @@ func TestPipeline_Run_DeduplicatesAuditFindings(t *testing.T) {
 	registry.registerAuditor(fakeAuditor{
 		descriptor: AuditorDescriptor{Name: "severity-policy"},
 		result: AuditResult{Findings: []Finding{
-			{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "osv", PackageRef: pkg.PURL},
-			{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "grype", PackageRef: pkg.PURL},
+			{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "osv", PackageRef: pkg.NodeID()},
+			{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "grype", PackageRef: pkg.NodeID()},
 		}},
 	})
 
@@ -728,15 +728,15 @@ func TestPipeline_Run_DeduplicatesAuditFindings(t *testing.T) {
 func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testing.T) {
 	registry := newTestRegistry()
 	g := sdk.New()
-	app := sdk.NewDependencyWithID("pkg:npm/app@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"}})
-	dep := sdk.NewDependencyWithID("pkg:npm/dep@2.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "dep", Version: "2.0.0", PURL: "pkg:npm/dep@2.0.0"}})
+	app := sdk.NewDependencyNode("pkg:npm/app@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"}})
+	dep := sdk.NewDependencyNode("pkg:npm/dep@2.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "dep", Version: "2.0.0", PURL: "pkg:npm/dep@2.0.0"}})
 	if err := g.AddNode(app); err != nil {
 		t.Fatalf("add app: %v", err)
 	}
 	if err := g.AddNode(dep); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
-	if err := g.AddEdge(app.ID, dep.ID); err != nil {
+	if err := g.AddEdge(app.ID, dep.NodeID()); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 	registry.registerDetector(fakeDetector{
@@ -746,15 +746,15 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 	registry.registerMatcher(fakeMatcher{
 		name: "license-matcher",
 		run: func(reg *sdk.PackageRegistry) {
-			pkg := reg.Ensure(dep.PURL)
+			pkg := reg.Ensure(dep.NodeID())
 			pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
 		},
 	})
 	registry.registerAuditor(fakeAuditor{
 		descriptor: AuditorDescriptor{Name: "severity-policy"},
 		run: func(req AuditRequest) AuditResult {
-			if req.Target == nil || req.Target.ID != dep.ID {
-				t.Fatalf("expected component target %q, got %#v", dep.ID, req.Target)
+			if req.Target == nil || req.Target.ID != dep.NodeID() {
+				t.Fatalf("expected component target %q, got %#v", dep.NodeID(), req.Target)
 			}
 			return AuditResult{Findings: []Finding{{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "osv", PackageRef: req.Target.PURL}}}
 		},
@@ -788,9 +788,9 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 	if result.Registry == nil {
 		t.Fatalf("expected explain result to expose package registry")
 	}
-	pkg, ok := result.Registry.Get(dep.PURL)
+	pkg, ok := result.Registry.Get(dep.NodeID())
 	if !ok || len(pkg.Licenses) != 1 {
-		t.Fatalf("expected registry to carry matcher-supplied license for %s, got %#v", dep.PURL, pkg)
+		t.Fatalf("expected registry to carry matcher-supplied license for %s, got %#v", dep.NodeID(), pkg)
 	}
 	if len(result.Targets[0].Findings) != 1 || len(result.Findings) != 1 {
 		t.Fatalf("expected component audit findings, target=%#v all=%#v", result.Targets[0].Findings, result.Findings)
@@ -816,7 +816,7 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 func TestPipeline_RunExplain_ReturnsNotFoundWhenQueryIsAbsent(t *testing.T) {
 	registry := newTestRegistry()
 	g := sdk.New()
-	if err := g.AddNode(sdk.NewDependencyWithID("pkg:npm/app@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0"}})); err != nil {
+	if err := g.AddNode(sdk.NewDependencyNode("pkg:npm/app@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0"}})); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
 	registry.registerDetector(fakeDetector{
@@ -889,7 +889,7 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	})
 
 	nativeGraph := sdk.New()
-	nativeApp := sdk.NewDependencyWithID("pkg:npm/app@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	nativeApp := sdk.NewDependencyNode("pkg:npm/app@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "app",
 		Version:        "1.0.0",
@@ -898,7 +898,7 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	if err := nativeGraph.AddNode(nativeApp); err != nil {
 		t.Fatalf("add native app: %v", err)
 	}
-	nativeReact := sdk.NewDependencyWithID("pkg:npm/react@18.2.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	nativeReact := sdk.NewDependencyNode("pkg:npm/react@18.2.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "react",
 		Version:        "18.2.0",
@@ -912,7 +912,7 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	}
 
 	sbomGraph := sdk.New()
-	if err := sbomGraph.AddNode(sdk.NewDependencyWithID("SPDXRef-app", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	if err := sbomGraph.AddNode(sdk.NewDependencyNode("SPDXRef-app", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "app",
 		Version:        "1.0.0",
@@ -920,7 +920,7 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	})); err != nil {
 		t.Fatalf("add sbom app: %v", err)
 	}
-	if err := sbomGraph.AddNode(sdk.NewDependencyWithID("SPDXRef-react", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	if err := sbomGraph.AddNode(sdk.NewDependencyNode("SPDXRef-react", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "react",
 		Version:        "18.2.0",

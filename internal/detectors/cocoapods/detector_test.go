@@ -54,7 +54,7 @@ SPEC CHECKSUMS:
 	if !ok {
 		t.Fatal("expected root package")
 	}
-	deps, err := g.DirectDependencies(root.ID)
+	deps, err := g.DirectDependencies(root.NodeID())
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}

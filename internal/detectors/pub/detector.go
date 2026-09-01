@@ -142,13 +142,19 @@ func depGraphFromLock(raw []byte, manifest pubspec) (*sdk.Graph, error) {
 		return nil, fmt.Errorf("pub lockfile does not contain any packages")
 	}
 	g := sdk.New()
-	root := rootNode(manifest)
+	root, err := rootNode(manifest)
+	if err != nil {
+		return nil, err
+	}
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 	for _, name := range sortedPackageNames(lock.Packages) {
 		pkg := lock.Packages[name]
-		node := packageNode(name, pkg)
+		node, err := packageNode(name, pkg)
+		if err != nil {
+			return nil, err
+		}
 		scope := scopeForPackage(name, pkg, manifest)
 		if scope != "" {
 			node.AddScope(scope)
@@ -156,44 +162,46 @@ func depGraphFromLock(raw []byte, manifest pubspec) (*sdk.Graph, error) {
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
 		}
-		if err := g.AddEdge(root.ID, node.ID); err != nil {
-			return nil, fmt.Errorf("add pub dependency %q: %w", node.ID, err)
+		if err := g.AddEdge(root.NodeID(), node.NodeID()); err != nil {
+			return nil, fmt.Errorf("add pub dependency %q: %w", node.NodeID(), err)
 		}
 	}
 	return g, nil
 }
 
-func rootNode(manifest pubspec) *sdk.Dependency {
+func rootNode(manifest pubspec) (*sdk.ModuleNode, error) {
 	name := strings.TrimSpace(manifest.Name)
 	if name == "" {
 		name = "root"
 	}
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemDart,
+	return sdk.NewModuleNode("pubspec.yaml", sdk.Coordinates{Ecosystem: sdk.EcosystemDart,
 		Name:           name,
 		Version:        strings.TrimSpace(manifest.Version),
 		PackageManager: sdk.PackageManagerPub,
 		Type:           sdk.PackageTypeApplication,
-		FirstParty:     true,
-		Language:       "dart"},
-	})
+		Language:       "dart"})
 
 }
 
-func packageNode(name string, pkg pubLockPackage) *sdk.Dependency {
+func packageNode(name string, pkg pubLockPackage) (*sdk.DependencyNode, error) {
 	metadata := map[string]any{
 		"source": strings.TrimSpace(pkg.Source),
 	}
 	if revision := descriptionString(pkg.Description, "resolved-ref"); revision != "" {
 		metadata["source_revision"] = revision
 	}
-	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemDart,
+	node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemDart,
 		Name:           name,
 		Version:        strings.TrimSpace(pkg.Version),
 		PackageManager: sdk.PackageManagerPub,
 		Type:           sdk.PackageTypePackage,
 		Language:       "dart",
-		PURL:           sdk.BuildPackageURL("pub", "", name, pkg.Version)}, Source: pubDependencySource(pkg.Source), Metadata: metadata,
-	})
+		PURL:           sdk.BuildPackageURL("pub", "", name, pkg.Version)})
+	if err != nil {
+		return nil, fmt.Errorf("build dependency node: %w", err)
+	}
+	node.Source = pubDependencySource(pkg.Source)
+	node.Metadata = metadata
 
 	if resolved := resolvedURL(pkg.Description); resolved != "" {
 		node.ResolvedURL = resolved
@@ -201,9 +209,11 @@ func packageNode(name string, pkg pubLockPackage) *sdk.Dependency {
 	if pubDependencySource(pkg.Source) == sdk.DependencySourceGit {
 		// A git package names its repository and the commit pub resolved.
 		// A hosted package's "url" is the pub server, and path is local.
-		node.Origin = sdk.RepositoryOrigin(descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref"))
+		if origin := sdk.RepositoryOrigin(descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref")); origin != nil {
+			node.Origins = sdk.MergeOrigins(node.Origins, []sdk.DependencyOrigin{*origin})
+		}
 	}
-	return node
+	return node, nil
 }
 
 func pubDependencySource(source string) sdk.DependencySource {
@@ -265,7 +275,7 @@ func sortedPackageNames(packages map[string]pubLockPackage) []string {
 	return values
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
+func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
 	_, err := detectors.EnsureNode(g, node)
 	return err
 }

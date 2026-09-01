@@ -119,7 +119,7 @@ func (m mavenModule) moduleKey() string {
 
 // graphNodeModuleKey derives the groupId:artifactId key for a graph node,
 // stripping the ":classifier" suffix depGraphFromMavenTGF appends to names.
-func graphNodeModuleKey(pkg *sdk.Dependency) string {
+func graphNodeModuleKey(pkg *sdk.DependencyNode) string {
 	name := pkg.Name
 	if idx := strings.Index(name, ":"); idx >= 0 {
 		name = name[:idx]

@@ -48,7 +48,7 @@ func directDepIDs(t *testing.T, g *sdk.Graph, id string) []string {
 	}
 	ids := make([]string, 0, len(deps))
 	for _, d := range deps {
-		ids = append(ids, d.ID)
+		ids = append(ids, d.NodeID())
 	}
 	sort.Strings(ids)
 	return ids
@@ -157,9 +157,9 @@ func TestPipLockFilePath(t *testing.T) {
 
 func findRootID(t *testing.T, g *sdk.Graph) string {
 	t.Helper()
-	for _, n := range g.Nodes() {
+	for _, n := range g.DependencyNodes() {
 		if n.Type == sdk.PackageTypeApplication {
-			return n.ID
+			return n.NodeID()
 		}
 	}
 	t.Fatal("no application root node")

@@ -160,8 +160,8 @@ func TestEngineAudit_ReturnsPartialResultsWhenAnAuditorFails(t *testing.T) {
 }
 
 func TestEngineAudit_ClonesDependencyDetailChangesPerAuditor(t *testing.T) {
-	before := sdk.NewDependencyWithID("before", sdk.Dependency{Source: sdk.DependencySourceRegistry})
-	after := sdk.NewDependencyWithID("after", sdk.Dependency{Source: sdk.DependencySourceGit})
+	before := sdk.NewDependencyNode("before", sdk.DependencyNode{Source: sdk.DependencySourceRegistry})
+	after := sdk.NewDependencyNode("after", sdk.DependencyNode{Source: sdk.DependencySourceGit})
 	request := AuditRequest{
 		Ecosystem:      EcosystemNPM,
 		PackageManager: PackageManagerNPM,

@@ -27,7 +27,7 @@ func TestPostureTab_ScanRendersList(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")
 	const libPURL = "pkg:npm/lib@1.0.0"
-	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", PURL: libPURL}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", PURL: libPURL}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
 	registry := sdk.NewPackageRegistry()
 	regLib := registry.Ensure(libPURL)
 	regLib.Name = "lib"
@@ -36,12 +36,12 @@ func TestPostureTab_ScanRendersList(t *testing.T) {
 		sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 2, Reason: "branch protection disabled"},
 		sdk.PackageScorecardCheck{Name: "Code-Review", Score: 7, Reason: "most changes reviewed"},
 	)
-	for _, pkg := range []*sdk.Dependency{root, dep} {
+	for _, pkg := range []*sdk.DependencyNode{root, dep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	if err := g.AddEdge(root.ID, dep.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), dep.NodeID()); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -114,7 +114,7 @@ func TestPostureTab_CheckNotesFitSplitPane(t *testing.T) {
 	g := sdk.New()
 	registry := sdk.NewPackageRegistry()
 	const purl = "pkg:golang/github.com/anchore/go-struct-converter@1.0.0"
-	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "go-struct-converter", Version: "1.0.0", PURL: purl}})
+	dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "go-struct-converter", Version: "1.0.0", PURL: purl}})
 	regPkg := registry.Ensure(purl)
 	regPkg.Name = "go-struct-converter"
 	regPkg.Version = "1.0.0"
@@ -153,7 +153,7 @@ func TestPostureTab_CheckNotesFitSplitPane(t *testing.T) {
 }
 
 func TestTopAffectedLines_FitBoxBudget(t *testing.T) {
-	pkg := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "org.springframework:spring-web",
+	pkg := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "org.springframework:spring-web",
 		Version: "6.0.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime),
 	})
 	rows := make([]packageVulnerabilityRow, 0, 12)
@@ -182,8 +182,8 @@ func TestTopAffectedLines_FitBoxBudget(t *testing.T) {
 func TestPostureRowsFromGraph_DedupesAndSortsWorstFirst(t *testing.T) {
 	g := sdk.New()
 	registry := sdk.NewPackageRegistry()
-	add := func(name, purl, repo string, score float64) *sdk.Dependency {
-		dep := sdk.NewDependencyWithID(purl, sdk.Dependency{Coordinates: sdk.Coordinates{Name: name, Version: "1", PURL: purl}})
+	add := func(name, purl, repo string, score float64) *sdk.DependencyNode {
+		dep := sdk.NewDependencyNode(purl, sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: name, Version: "1", PURL: purl}})
 		regPkg := registry.Ensure(purl)
 		regPkg.Name = name
 		regPkg.Version = "1"
@@ -195,7 +195,7 @@ func TestPostureRowsFromGraph_DedupesAndSortsWorstFirst(t *testing.T) {
 	mid := add("mid", "pkg:npm/mid@1", "github.com/mid/repo", 6.0)
 	monoA := add("a", "pkg:npm/a@1", "github.com/mono/repo", 7.5)
 	monoB := add("b", "pkg:npm/b@1", "github.com/mono/repo", 7.5)
-	for _, pkg := range []*sdk.Dependency{low, high, mid, monoA, monoB} {
+	for _, pkg := range []*sdk.DependencyNode{low, high, mid, monoA, monoB} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add: %v", err)
 		}

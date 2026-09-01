@@ -92,7 +92,7 @@ func TestScanTextSummaryFollowsEnrichmentAndMarkdownShowsDetails(t *testing.T) {
 	if err := graph.AddNode(sdk.NewDependencyRefWithID("project", "project", "")); err != nil {
 		t.Fatalf("AddNode(project) error = %v", err)
 	}
-	dependency := sdk.NewDependency(sdk.Dependency{
+	dependency := sdk.NewDependency(sdk.DependencyNode{
 		ID:           "example@1.0.0",
 		Coordinates:  sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
 		Relationship: sdk.DependencyRelationshipDirect,
@@ -100,7 +100,7 @@ func TestScanTextSummaryFollowsEnrichmentAndMarkdownShowsDetails(t *testing.T) {
 	if err := graph.AddNode(dependency); err != nil {
 		t.Fatalf("AddNode() error = %v", err)
 	}
-	if err := graph.AddEdge("project", dependency.ID); err != nil {
+	if err := graph.AddEdge("project", dependency.NodeID()); err != nil {
 		t.Fatalf("AddEdge() error = %v", err)
 	}
 

@@ -50,7 +50,7 @@ tweetnacl@^0.14.0:
 	if len(roots) != 1 {
 		t.Fatalf("expected single root package, got %d", len(roots))
 	}
-	if roots[0] == nil || roots[0].ID != "demo-app@1.0.0" {
+	if roots[0] == nil || roots[0].NodeID() != "demo-app@1.0.0" {
 		t.Fatalf("expected app root demo-app@1.0.0, got %#v", roots[0])
 	}
 }
@@ -88,7 +88,7 @@ func TestYarnBerryParsesQuotedNamesAliasesAndDependencies(t *testing.T) {
 	}
 	esbuild, ok := graph.Node("@esbuild/aix-ppc64@0.25.0")
 	if !ok {
-		t.Fatalf("expected canonical scoped package name; nodes=%#v", graph.Nodes())
+		t.Fatalf("expected canonical scoped package name; nodes=%#v", graph.DependencyNodes())
 	}
 	children, err := graph.DirectDependencies(realPackage.ID)
 	if err != nil || len(children) != 1 || children[0].ID != esbuild.ID {
@@ -175,13 +175,13 @@ request@^2.70.0, request@^2.72.0:
 	if !ok {
 		t.Fatal("missing parent")
 	}
-	children, err := graph.DirectDependencies(parent.ID)
+	children, err := graph.DirectDependencies(parent.NodeID())
 	if err != nil {
 		t.Fatal(err)
 	}
 	got := make(map[string]bool, len(children))
 	for _, child := range children {
-		got[child.ID] = true
+		got[child.NodeID()] = true
 	}
 	for _, want := range []string{"debug@0.8.1", "mime@1.3.4", "request@2.79.0"} {
 		if !got[want] {

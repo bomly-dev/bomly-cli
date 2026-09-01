@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
@@ -156,44 +155,39 @@ func normalizeSBOMGraphIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 
 	normalized := sdk.NewWithCapacity(src.Size())
 	idMap := make(map[string]string, src.Size())
-	for _, pkg := range src.Nodes() {
+	for _, pkg := range src.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
+		// Nothing to rewrite: a node's ID is its canonical package URL,
+		// minted by the constructor (ADR-0041). The PURL-then-StableID
+		// fallback this ran is the identity machinery that replaced.
 		clone := pkg.Clone()
-		if purl := strings.TrimSpace(clone.PURL); purl != "" {
-			clone.ID = purl
-		} else if stableID := strings.TrimSpace(clone.StableID()); stableID != "" {
-			clone.ID = stableID
-		}
-		if clone.ID == "" {
-			clone.ID = pkg.ID
-		}
-		if _, exists := normalized.Node(clone.ID); !exists {
+		if _, exists := normalized.Node(clone.NodeID()); !exists {
 			if err := normalized.AddNode(clone); err != nil {
-				return nil, fmt.Errorf("normalize sbom package %q: %w", clone.ID, err)
+				return nil, fmt.Errorf("normalize sbom package %q: %w", clone.NodeID(), err)
 			}
 		}
-		idMap[pkg.ID] = clone.ID
+		idMap[pkg.NodeID()] = clone.NodeID()
 	}
 
-	for _, pkg := range src.Nodes() {
+	for _, pkg := range src.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
-		fromID := idMap[pkg.ID]
+		fromID := idMap[pkg.NodeID()]
 		if fromID == "" {
 			continue
 		}
-		deps, err := src.DirectDependencies(pkg.ID)
+		deps, err := src.DirectDependencies(pkg.NodeID())
 		if err != nil {
-			return nil, fmt.Errorf("normalize sbom dependencies for %q: %w", pkg.ID, err)
+			return nil, fmt.Errorf("normalize sbom dependencies for %q: %w", pkg.NodeID(), err)
 		}
 		for _, dep := range deps {
 			if dep == nil {
 				continue
 			}
-			toID := idMap[dep.ID]
+			toID := idMap[dep.NodeID()]
 			if toID == "" || toID == fromID {
 				continue
 			}

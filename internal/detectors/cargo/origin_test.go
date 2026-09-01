@@ -9,7 +9,7 @@ import (
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
+func originOf(dep *sdk.DependencyNode) sdk.DependencyOrigin {
 	if dep == nil {
 		return sdk.DependencyOrigin{}
 	}
@@ -52,7 +52,7 @@ func TestSetCargoOriginBySourcePrefix(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "helper", Version: "1.0.0"}})
+			node := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "helper", Version: "1.0.0"}})
 			setCargoOrigin(node, tc.source)
 			if got := originOf(node); got != tc.want {
 				t.Fatalf("origin = %+v, want %+v", got, tc.want)
@@ -84,7 +84,7 @@ func TestCargoDuplicateCrateSourcesStayDistinct(t *testing.T) {
 			t.Fatalf("depGraphFromMetadata() error = %v", err)
 		}
 		repositories := map[string]int{}
-		graph.WalkNodes(func(dep *sdk.Dependency) bool {
+		graph.WalkNodes(func(dep sdk.GraphNode) bool {
 			if dep.Name != "helper" {
 				return true
 			}
@@ -120,7 +120,7 @@ func TestCargoRegistryAndGitOccurrencesStayDistinct(t *testing.T) {
 	}
 
 	var nodes, withOrigin, without int
-	graph.WalkNodes(func(dep *sdk.Dependency) bool {
+	graph.WalkNodes(func(dep sdk.GraphNode) bool {
 		if dep.Name != "helper" {
 			return true
 		}
@@ -164,7 +164,7 @@ func TestCargoDuplicateCrateSameSourceKeepsOrigin(t *testing.T) {
 		Revision:   "aaaabbbbccccddddeeeeffff0000111122223333",
 	}
 	var checked int
-	graph.WalkNodes(func(dep *sdk.Dependency) bool {
+	graph.WalkNodes(func(dep sdk.GraphNode) bool {
 		if dep.Name == "helper" {
 			checked++
 			if got := originOf(dep); got != want {
@@ -207,13 +207,13 @@ source = "git+https://github.com/external/helper#aaaabbbbccccddddeeeeffff0000111
 	}
 
 	var checked int
-	graph.WalkNodes(func(dep *sdk.Dependency) bool {
+	graph.WalkNodes(func(dep sdk.GraphNode) bool {
 		if dep.Type != sdk.PackageTypeApplication {
 			return true
 		}
 		checked++
 		if origin := originOf(dep); !origin.Empty() {
-			t.Fatalf("%s is the project's own code but claims %+v", dep.ID, origin)
+			t.Fatalf("%s is the project's own code but claims %+v", dep.NodeID(), origin)
 		}
 		return true
 	})
@@ -297,9 +297,9 @@ source = "git+https://token:s3cret@git.corp/a/helper#aaaabbbbccccddddeeeeffff000
 	}
 
 	var nodes int
-	graph.WalkNodes(func(dep *sdk.Dependency) bool {
-		if strings.Contains(dep.ID, "s3cret") || strings.Contains(dep.ID, "git.corp") {
-			t.Fatalf("node ID %q embeds the raw source", dep.ID)
+	graph.WalkNodes(func(dep sdk.GraphNode) bool {
+		if strings.Contains(dep.NodeID(), "s3cret") || strings.Contains(dep.NodeID(), "git.corp") {
+			t.Fatalf("node ID %q embeds the raw source", dep.NodeID())
 		}
 		if dep.Name == "helper" {
 			nodes++

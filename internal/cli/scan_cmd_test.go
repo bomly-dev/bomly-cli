@@ -84,7 +84,7 @@ func newScanTestGraph(t *testing.T) (*sdk.Graph, *sdk.PackageRegistry) {
 		{id: "zod@3.23.0", name: "zod", version: "3.23.0", purl: "pkg:npm/zod@3.23.0", scope: sdk.ScopeDevelopment, license: "Apache-2.0"},
 		{id: "loose-envify@1.4.0", name: "loose-envify", version: "1.4.0", purl: "pkg:npm/loose-envify@1.4.0", scope: sdk.ScopeRuntime},
 	} {
-		dep := sdk.NewDependencyWithID(f.id, sdk.Dependency{Coordinates: sdk.Coordinates{Name: f.name,
+		dep := sdk.NewDependencyNode(f.id, sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: f.name,
 			Version: f.version,
 			PURL:    f.purl}, Scopes: sdk.ScopesOf(f.scope),
 		})
@@ -172,12 +172,12 @@ func TestRenderScanReportMergedNodeUsesPackageName(t *testing.T) {
 
 func TestRenderScanReportTopLevelDepsCoverAllModules(t *testing.T) {
 	g := sdk.New()
-	parent := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "parent", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	web := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "web", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	core := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "core", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	coreDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "commons-lang3", Version: "3.12.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
-	webDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "jackson-databind", Version: "2.13.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
-	for _, pkg := range []*sdk.Dependency{parent, web, core, coreDep, webDep} {
+	parent := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "parent", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	web := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "web", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	core := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "core", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	coreDep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "commons-lang3", Version: "3.12.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	webDep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "jackson-databind", Version: "2.13.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	for _, pkg := range []*sdk.DependencyNode{parent, web, core, coreDep, webDep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add node: %v", err)
 		}

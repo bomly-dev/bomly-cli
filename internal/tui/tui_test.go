@@ -26,7 +26,7 @@ func TestInteractiveManifestRows_OnlyIncludesManifests(t *testing.T) {
 	if err := g.AddNode(transitive); err != nil {
 		t.Fatalf("add transitive: %v", err)
 	}
-	if err := g.AddEdge(root.ID, direct.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), direct.ID); err != nil {
 		t.Fatalf("add root->direct: %v", err)
 	}
 	if err := g.AddEdge(direct.ID, transitive.ID); err != nil {
@@ -59,14 +59,14 @@ func TestInteractiveManifestRows_OnlyIncludesManifests(t *testing.T) {
 func TestInteractiveListModel_ViewIncludesDetails(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")
-	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
 	if err := g.AddNode(root); err != nil {
 		t.Fatalf("add root: %v", err)
 	}
 	if err := g.AddNode(dep); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
-	if err := g.AddEdge(root.ID, dep.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), dep.NodeID()); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -158,14 +158,14 @@ func TestNewDiffInteractiveModel_ViewIncludesManifestChanges(t *testing.T) {
 func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")
-	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
 	if err := g.AddNode(root); err != nil {
 		t.Fatalf("add root: %v", err)
 	}
 	if err := g.AddNode(dep); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
-	if err := g.AddEdge(root.ID, dep.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), dep.NodeID()); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -206,7 +206,7 @@ func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
 }
 
 func TestInteractivePackageDisplayName_IncludesScope(t *testing.T) {
-	pkg := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	pkg := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
 	if got := packageDisplayName(pkg); got != "react@18.2.0 [runtime]" {
 		t.Fatalf("expected scoped display name, got %q", got)
 	}
@@ -218,7 +218,7 @@ func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
 	r2 := sdk.NewDependencyRef("api", "2.0.0")
 	c1 := sdk.NewDependencyRef("react", "18.2.0")
 	c2 := sdk.NewDependencyRef("zod", "3.23.0")
-	for _, pkg := range []*sdk.Dependency{r1, r2, c1, c2} {
+	for _, pkg := range []*sdk.DependencyNode{r1, r2, c1, c2} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
@@ -284,7 +284,7 @@ func TestScanInteractiveModel_SingleManifestAutoEntry_NoBackNavigation(t *testin
 	g := sdk.New()
 	r1 := sdk.NewDependencyRef("web-app", "1.0.0")
 	c1 := sdk.NewDependencyRef("react", "18.2.0")
-	for _, pkg := range []*sdk.Dependency{r1, c1} {
+	for _, pkg := range []*sdk.DependencyNode{r1, c1} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
@@ -322,15 +322,15 @@ func TestScanInteractiveModel_SingleManifestAutoEntry_NoBackNavigation(t *testin
 	}
 }
 
-func graphFixtureForInteractive(t *testing.T, root, dep *sdk.Dependency) *sdk.Graph {
+func graphFixtureForInteractive(t *testing.T, root, dep *sdk.DependencyNode) *sdk.Graph {
 	t.Helper()
 	g := sdk.New()
-	for _, pkg := range []*sdk.Dependency{root, dep} {
+	for _, pkg := range []*sdk.DependencyNode{root, dep} {
 		if err := g.AddNode(pkg.Clone()); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	if err := g.AddEdge(root.ID, dep.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), dep.NodeID()); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 	return g
@@ -624,17 +624,17 @@ func TestInteractiveListModel_HelpWrapsAcrossMultipleLines(t *testing.T) {
 func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")
-	runtimeDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
-	devDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "vitest", Version: "2.0.0"}, Scopes: sdk.ScopesOf(sdk.ScopeDevelopment)})
-	for _, pkg := range []*sdk.Dependency{root, runtimeDep, devDep} {
+	runtimeDep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	devDep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "vitest", Version: "2.0.0"}, Scopes: sdk.ScopesOf(sdk.ScopeDevelopment)})
+	for _, pkg := range []*sdk.DependencyNode{root, runtimeDep, devDep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	if err := g.AddEdge(root.ID, runtimeDep.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), runtimeDep.ID); err != nil {
 		t.Fatalf("add dependency runtime: %v", err)
 	}
-	if err := g.AddEdge(root.ID, devDep.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), devDep.ID); err != nil {
 		t.Fatalf("add dependency development: %v", err)
 	}
 
@@ -681,16 +681,16 @@ func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
 
 func TestScanInteractiveModel_EcosystemFilterUpdatesComponents(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
-	npmDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm"}})
-	goDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "cobra", Version: "1.8.0", Ecosystem: "go"}})
-	for _, pkg := range []*sdk.Dependency{root, npmDep, goDep} {
+	root := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
+	npmDep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm"}})
+	goDep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "cobra", Version: "1.8.0", Ecosystem: "go"}})
+	for _, pkg := range []*sdk.DependencyNode{root, npmDep, goDep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	for _, dep := range []*sdk.Dependency{npmDep, goDep} {
-		if err := g.AddEdge(root.ID, dep.ID); err != nil {
+	for _, dep := range []*sdk.DependencyNode{npmDep, goDep} {
+		if err := g.AddEdge(root.NodeID(), dep.NodeID()); err != nil {
 			t.Fatalf("add dependency: %v", err)
 		}
 	}
@@ -727,7 +727,7 @@ func TestScanInteractiveModel_EcosystemFilterUpdatesComponents(t *testing.T) {
 
 func TestScanInteractiveModel_ManifestDetailsIncludeDetectorMetadata(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
+	root := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
 	if err := g.AddNode(root); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
@@ -803,9 +803,9 @@ func TestScanInteractiveModel_FindingsCanGroupByEcosystem(t *testing.T) {
 
 func TestScanInteractiveModel_UsesEnrichedVulnerabilitiesWithoutFindings(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
+	root := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
 	const reactPURL = "pkg:npm/react@18.2.0"
-	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm", PURL: reactPURL}})
+	dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm", PURL: reactPURL}})
 	registry := sdk.NewPackageRegistry()
 	regPkg := registry.Ensure(reactPURL)
 	regPkg.Name = "react"
@@ -814,12 +814,12 @@ func TestScanInteractiveModel_UsesEnrichedVulnerabilitiesWithoutFindings(t *test
 	regPkg.Vulnerabilities = []sdk.Vulnerability{{
 		ID: "CVE-2026-0001", Source: "osv", Title: "demo issue", ParsedSeverity: "high",
 	}}
-	for _, pkg := range []*sdk.Dependency{root, dep} {
+	for _, pkg := range []*sdk.DependencyNode{root, dep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	if err := g.AddEdge(root.ID, dep.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), dep.NodeID()); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
@@ -875,11 +875,11 @@ func TestScanInteractiveModel_UsesEnrichedVulnerabilitiesWithoutFindings(t *test
 
 func TestScanInteractiveModel_VulnerabilityFilterKeepsGlobalSummaries(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
+	root := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
 	const reactPURL = "pkg:npm/react@18.2.0"
 	const lodashPURL = "pkg:npm/lodash@4.17.20"
-	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm", PURL: reactPURL}})
-	lodash := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lodash", Version: "4.17.20", Ecosystem: "npm", PURL: lodashPURL}})
+	react := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm", PURL: reactPURL}})
+	lodash := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lodash", Version: "4.17.20", Ecosystem: "npm", PURL: lodashPURL}})
 	registry := sdk.NewPackageRegistry()
 	rp := registry.Ensure(reactPURL)
 	rp.Name, rp.Version, rp.Ecosystem = "react", "18.2.0", "npm"
@@ -887,13 +887,13 @@ func TestScanInteractiveModel_VulnerabilityFilterKeepsGlobalSummaries(t *testing
 	lp := registry.Ensure(lodashPURL)
 	lp.Name, lp.Version, lp.Ecosystem = "lodash", "4.17.20", "npm"
 	lp.Vulnerabilities = []sdk.Vulnerability{{ID: "CVE-LOW", ParsedSeverity: "low"}}
-	for _, pkg := range []*sdk.Dependency{root, react, lodash} {
+	for _, pkg := range []*sdk.DependencyNode{root, react, lodash} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	for _, dep := range []*sdk.Dependency{react, lodash} {
-		if err := g.AddEdge(root.ID, dep.ID); err != nil {
+	for _, dep := range []*sdk.DependencyNode{react, lodash} {
+		if err := g.AddEdge(root.NodeID(), dep.NodeID()); err != nil {
 			t.Fatalf("add dependency: %v", err)
 		}
 	}
@@ -938,19 +938,19 @@ func TestScanInteractiveModel_VulnerabilityFilterKeepsGlobalSummaries(t *testing
 
 func TestScanInteractiveModel_VulnerabilityFilterEmptyStateDistinguishesNoMatchesFromNoEnrich(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
+	root := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
 	const reactPURL = "pkg:npm/react@18.2.0"
-	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm", PURL: reactPURL}})
+	dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm", PURL: reactPURL}})
 	registry := sdk.NewPackageRegistry()
 	rp := registry.Ensure(reactPURL)
 	rp.Name, rp.Version, rp.Ecosystem = "react", "18.2.0", "npm"
 	rp.Vulnerabilities = []sdk.Vulnerability{{ID: "CVE-HIGH", ParsedSeverity: "high"}}
-	for _, pkg := range []*sdk.Dependency{root, dep} {
+	for _, pkg := range []*sdk.DependencyNode{root, dep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	if err := g.AddEdge(root.ID, dep.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), dep.NodeID()); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
@@ -1132,15 +1132,15 @@ func newScanReachabilityFilterModel(t *testing.T, enabled bool) *ScanModel {
 		return sdk.Vulnerability{ID: id, ParsedSeverity: "high", Reachability: reachability}
 	}
 	registry := sdk.NewPackageRegistry()
-	mkDep := func(name, purl string, vulns ...sdk.Vulnerability) *sdk.Dependency {
-		dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: name, Version: "1.0.0", Ecosystem: "npm", PURL: purl}})
+	mkDep := func(name, purl string, vulns ...sdk.Vulnerability) *sdk.DependencyNode {
+		dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: name, Version: "1.0.0", Ecosystem: "npm", PURL: purl}})
 		regPkg := registry.Ensure(purl)
 		regPkg.Name = name
 		regPkg.Version = "1.0.0"
 		regPkg.Vulnerabilities = vulns
 		return dep
 	}
-	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
+	root := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
 	reachable := mkDep("reachable-lib", "pkg:npm/reachable-lib@1.0.0",
 		vulnerability("CVE-REACHABLE", &sdk.Reachability{Status: sdk.ReachabilityReachable}))
 	unreachable := mkDep("unreachable-lib", "pkg:npm/unreachable-lib@1.0.0",
@@ -1153,13 +1153,13 @@ func newScanReachabilityFilterModel(t *testing.T, enabled bool) *ScanModel {
 	nilReachability := mkDep("nil-lib", "pkg:npm/nil-lib@1.0.0",
 		vulnerability("CVE-NIL", nil))
 	g := sdk.New()
-	for _, pkg := range []*sdk.Dependency{root, reachable, unreachable, mixed, unknown, nilReachability} {
+	for _, pkg := range []*sdk.DependencyNode{root, reachable, unreachable, mixed, unknown, nilReachability} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	for _, pkg := range []*sdk.Dependency{reachable, unreachable, mixed, unknown, nilReachability} {
-		if err := g.AddEdge(root.ID, pkg.ID); err != nil {
+	for _, pkg := range []*sdk.DependencyNode{reachable, unreachable, mixed, unknown, nilReachability} {
+		if err := g.AddEdge(root.NodeID(), pkg.NodeID()); err != nil {
 			t.Fatalf("add dependency: %v", err)
 		}
 	}
@@ -1265,13 +1265,13 @@ func TestTopDependedOnComponentStats_UsesTransitiveDependents(t *testing.T) {
 	altRoot := sdk.NewDependencyRef("alt-root", "1.0.0")
 	mid := sdk.NewDependencyRef("mid", "1.0.0")
 	leaf := sdk.NewDependencyRef("leaf", "1.0.0")
-	for _, pkg := range []*sdk.Dependency{root, altRoot, mid, leaf} {
+	for _, pkg := range []*sdk.DependencyNode{root, altRoot, mid, leaf} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
 	for _, edge := range [][2]string{
-		{root.ID, mid.ID},
+		{root.NodeID(), mid.ID},
 		{altRoot.ID, mid.ID},
 		{mid.ID, leaf.ID},
 	} {
@@ -1292,14 +1292,14 @@ func TestTopDependedOnComponentStats_UsesTransitiveDependents(t *testing.T) {
 func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")
-	direct := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
-	transitive := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "loose-envify", Version: "1.4.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
-	for _, pkg := range []*sdk.Dependency{root, direct, transitive} {
+	direct := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	transitive := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "loose-envify", Version: "1.4.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	for _, pkg := range []*sdk.DependencyNode{root, direct, transitive} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	if err := g.AddEdge(root.ID, direct.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), direct.ID); err != nil {
 		t.Fatalf("add root dependency: %v", err)
 	}
 	if err := g.AddEdge(direct.ID, transitive.ID); err != nil {
@@ -1346,14 +1346,14 @@ func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
 func TestScanInteractiveModel_ComponentExpandCollapseAllProgressesByLayer(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")
-	direct := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}})
-	transitive := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "loose-envify", Version: "1.4.0"}})
-	for _, pkg := range []*sdk.Dependency{root, direct, transitive} {
+	direct := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}})
+	transitive := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "loose-envify", Version: "1.4.0"}})
+	for _, pkg := range []*sdk.DependencyNode{root, direct, transitive} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	if err := g.AddEdge(root.ID, direct.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), direct.ID); err != nil {
 		t.Fatalf("add root dependency: %v", err)
 	}
 	if err := g.AddEdge(direct.ID, transitive.ID); err != nil {
@@ -1413,15 +1413,15 @@ func assertViewContains(t *testing.T, model *ScanModel, contains, excludes []str
 
 func TestScanInteractiveModel_OverviewDashboardUsesBordersAndBars(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
-	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm"}})
+	root := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
+	dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm"}})
 	sdk.SetDetectionLicenses(dep, []sdk.PackageLicense{{Value: "MIT"}})
-	for _, pkg := range []*sdk.Dependency{root, dep} {
+	for _, pkg := range []*sdk.DependencyNode{root, dep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	if err := g.AddEdge(root.ID, dep.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), dep.NodeID()); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -1586,11 +1586,11 @@ func TestInteractiveListModel_SearchIgnoresDependencyDetailText(t *testing.T) {
 func TestBuildLicensesListModel_GroupsByUniqueLicense(t *testing.T) {
 	g := sdk.New()
 	app := sdk.NewDependencyRef("demo-app", "1.0.0")
-	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	react := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
 	sdk.SetDetectionLicenses(react, []sdk.PackageLicense{{Value: "MIT"}})
-	vite := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "vite", Version: "5.4.0"}, Scopes: sdk.ScopesOf(sdk.ScopeDevelopment)})
+	vite := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "vite", Version: "5.4.0"}, Scopes: sdk.ScopesOf(sdk.ScopeDevelopment)})
 	sdk.SetDetectionLicenses(vite, []sdk.PackageLicense{{Value: "MIT"}, {Value: "Apache-2.0"}})
-	for _, pkg := range []*sdk.Dependency{app, react, vite} {
+	for _, pkg := range []*sdk.DependencyNode{app, react, vite} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
@@ -1802,12 +1802,12 @@ func TestScanInteractiveModel_SingleRootScanHasNoGroupNodes(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")
 	dep := sdk.NewDependencyRef("react", "18.2.0")
-	for _, pkg := range []*sdk.Dependency{root, dep} {
+	for _, pkg := range []*sdk.DependencyNode{root, dep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	if err := g.AddEdge(root.ID, dep.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), dep.NodeID()); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
@@ -1877,21 +1877,21 @@ func TestScanInteractiveModel_SourceTabListsSubprojects(t *testing.T) {
 
 func TestScanInteractiveModel_ModulesBranchFromParentRoot(t *testing.T) {
 	rootTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/reactor"}
-	parent := sdk.NewDependencyWithID("parent@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Name: "parent", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	core := sdk.NewDependencyWithID("core@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Name: "core", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	dep := sdk.NewDependencyWithID("commons@3.12.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Name: "commons", Version: "3.12.0"}})
+	parent := sdk.NewDependencyNode("parent@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "maven", Name: "parent", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	core := sdk.NewDependencyNode("core@1.0.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "maven", Name: "core", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	dep := sdk.NewDependencyNode("commons@3.12.0", sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "maven", Name: "commons", Version: "3.12.0"}})
 
 	parentGraph := sdk.New()
 	if err := parentGraph.AddNode(parent); err != nil {
 		t.Fatalf("add parent: %v", err)
 	}
 	coreGraph := sdk.New()
-	for _, pkg := range []*sdk.Dependency{core, dep} {
+	for _, pkg := range []*sdk.DependencyNode{core, dep} {
 		if err := coreGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add core node: %v", err)
 		}
 	}
-	if err := coreGraph.AddEdge(core.ID, dep.ID); err != nil {
+	if err := coreGraph.AddEdge(core.ID, dep.NodeID()); err != nil {
 		t.Fatalf("add core edge: %v", err)
 	}
 

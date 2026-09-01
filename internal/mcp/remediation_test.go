@@ -19,23 +19,23 @@ import (
 func remediationFixture(t *testing.T) remediationInput {
 	t.Helper()
 	g := sdk.New()
-	nodes := []*sdk.Dependency{
-		sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "app", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/app@1.0.0"}}),
-		sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lib-a", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lib-a@1.0.0"}}),
-		sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lib-b", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lib-b@1.0.0"}}),
-		sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Org: "scope", Name: "deep", Version: "2.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/@scope/deep@2.0.0"}}),
-		sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "legacy", Version: "0.1.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/legacy@0.1.0"}}),
+	nodes := []*sdk.DependencyNode{
+		sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "app", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/app@1.0.0"}}),
+		sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib-a", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lib-a@1.0.0"}}),
+		sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib-b", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lib-b@1.0.0"}}),
+		sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Org: "scope", Name: "deep", Version: "2.0.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/@scope/deep@2.0.0"}}),
+		sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "legacy", Version: "0.1.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/legacy@0.1.0"}}),
 	}
 	for _, node := range nodes {
 		if err := g.AddNode(node); err != nil {
-			t.Fatalf("add node %s: %v", node.ID, err)
+			t.Fatalf("add node %s: %v", node.NodeID(), err)
 		}
 	}
 	edges := [][2]string{
-		{nodes[0].ID, nodes[1].ID},
-		{nodes[0].ID, nodes[2].ID},
-		{nodes[2].ID, nodes[3].ID},
-		{nodes[0].ID, nodes[4].ID},
+		{nodes[0].NodeID(), nodes[1].NodeID()},
+		{nodes[0].NodeID(), nodes[2].NodeID()},
+		{nodes[2].NodeID(), nodes[3].NodeID()},
+		{nodes[0].NodeID(), nodes[4].NodeID()},
 	}
 	for _, edge := range edges {
 		if err := g.AddEdge(edge[0], edge[1]); err != nil {
@@ -50,8 +50,8 @@ func remediationFixture(t *testing.T) remediationInput {
 			Status:             sdk.PackageRemediationComplete,
 			RecommendedVersion: "1.2.0",
 			Suggestions: []sdk.PackageRemediationSuggestion{{
-				AffectedDependencyRefs:       []string{nodes[1].ID},
-				SuggestedActionDependencyRef: nodes[1].ID,
+				AffectedDependencyRefs:       []string{nodes[1].NodeID()},
+				SuggestedActionDependencyRef: nodes[1].NodeID(),
 				ManifestPath:                 "package.json",
 				Action:                       sdk.RemediationActionDirectBump,
 			}},
@@ -67,8 +67,8 @@ func remediationFixture(t *testing.T) remediationInput {
 			Status:             sdk.PackageRemediationComplete,
 			RecommendedVersion: "2.1.0",
 			Suggestions: []sdk.PackageRemediationSuggestion{{
-				AffectedDependencyRefs:       []string{nodes[3].ID},
-				SuggestedActionDependencyRef: nodes[2].ID,
+				AffectedDependencyRefs:       []string{nodes[3].NodeID()},
+				SuggestedActionDependencyRef: nodes[2].NodeID(),
 				ManifestPath:                 "package.json",
 				Action:                       sdk.RemediationActionTransitiveOverride,
 				OverrideAdvice:               `add "overrides": {"@scope/deep": "2.1.0"} to package.json and run npm install`,
@@ -86,8 +86,8 @@ func remediationFixture(t *testing.T) remediationInput {
 		Remediation: &sdk.PackageRemediation{
 			Status: sdk.PackageRemediationUnavailable,
 			Suggestions: []sdk.PackageRemediationSuggestion{{
-				AffectedDependencyRefs:       []string{nodes[4].ID},
-				SuggestedActionDependencyRef: nodes[4].ID,
+				AffectedDependencyRefs:       []string{nodes[4].NodeID()},
+				SuggestedActionDependencyRef: nodes[4].NodeID(),
 				ManifestPath:                 "package.json",
 				Action:                       sdk.RemediationActionNoFixUpstream,
 			}},
@@ -102,11 +102,11 @@ func remediationFixture(t *testing.T) remediationInput {
 		Path:           "package.json",
 		PackageManager: sdk.PackageManagerNPM,
 		Dependencies: []output.ScanDependency{
-			{ID: nodes[0].ID, Name: "app", Version: "1.0.0"},
-			{ID: nodes[1].ID, Name: "lib-a", Version: "1.0.0"},
-			{ID: nodes[2].ID, Name: "lib-b", Version: "1.0.0"},
-			{ID: nodes[3].ID, Name: "@scope/deep", Version: "2.0.0"},
-			{ID: nodes[4].ID, Name: "legacy", Version: "0.1.0"},
+			{ID: nodes[0].NodeID(), Name: "app", Version: "1.0.0"},
+			{ID: nodes[1].NodeID(), Name: "lib-a", Version: "1.0.0"},
+			{ID: nodes[2].NodeID(), Name: "lib-b", Version: "1.0.0"},
+			{ID: nodes[3].NodeID(), Name: "@scope/deep", Version: "2.0.0"},
+			{ID: nodes[4].NodeID(), Name: "legacy", Version: "0.1.0"},
 		},
 	}
 
@@ -114,24 +114,24 @@ func remediationFixture(t *testing.T) remediationInput {
 		{
 			ID: "GHSA-liba", VulnerabilityID: "GHSA-liba", Kind: sdk.FindingKindVulnerability,
 			Severity: sdk.SeverityHigh, Source: "osv", Auditor: "vulnerability",
-			PackageRef: "pkg:npm/lib-a@1.0.0", DependencyRefs: []string{nodes[1].ID},
+			PackageRef: "pkg:npm/lib-a@1.0.0", DependencyRefs: []string{nodes[1].NodeID()},
 		},
 		{
 			ID: "GHSA-deep", VulnerabilityID: "GHSA-deep", Kind: sdk.FindingKindVulnerability,
 			Severity: sdk.SeverityMedium, Source: "osv", Auditor: "vulnerability",
-			PackageRef: "pkg:npm/@scope/deep@2.0.0", DependencyRefs: []string{nodes[3].ID},
+			PackageRef: "pkg:npm/@scope/deep@2.0.0", DependencyRefs: []string{nodes[3].NodeID()},
 		},
 		{
 			ID: "GHSA-legacy", VulnerabilityID: "GHSA-legacy", Kind: sdk.FindingKindVulnerability,
 			Severity: sdk.SeverityCritical, Source: "osv", Auditor: "vulnerability",
-			PackageRef: "pkg:npm/legacy@0.1.0", DependencyRefs: []string{nodes[4].ID},
+			PackageRef: "pkg:npm/legacy@0.1.0", DependencyRefs: []string{nodes[4].NodeID()},
 		},
 		{
 			ID: "license:unknown-license:lib-a@1.0.0", Kind: sdk.FindingKindLicense,
 			Severity: "n/a", Source: "license", Auditor: "license",
 			RuleID:       "unknown-license",
 			PolicyStatus: sdk.FindingPolicyStatusWarn,
-			PackageRef:   "pkg:npm/lib-a@1.0.0", DependencyRefs: []string{nodes[1].ID},
+			PackageRef:   "pkg:npm/lib-a@1.0.0", DependencyRefs: []string{nodes[1].NodeID()},
 		},
 	}
 
@@ -416,7 +416,7 @@ func TestShortestPathBoundsLongChains(t *testing.T) {
 	g := sdk.New()
 	var previous string
 	for i := 0; i < 10; i++ {
-		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+		node := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 			Name: fmt.Sprintf("chain-%d", i), Version: "1.0.0", Ecosystem: sdk.EcosystemNPM,
 			PURL: fmt.Sprintf("pkg:npm/chain-%d@1.0.0", i),
 		}})
@@ -424,11 +424,11 @@ func TestShortestPathBoundsLongChains(t *testing.T) {
 			t.Fatal(err)
 		}
 		if previous != "" {
-			if err := g.AddEdge(previous, node.ID); err != nil {
+			if err := g.AddEdge(previous, node.NodeID()); err != nil {
 				t.Fatal(err)
 			}
 		}
-		previous = node.ID
+		previous = node.NodeID()
 	}
 	path := shortestPathToRoot(g, previous)
 	if len(path) != 10 {

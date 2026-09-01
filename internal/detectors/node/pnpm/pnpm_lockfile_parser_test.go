@@ -64,7 +64,7 @@ packages:
 		t.Fatal(err)
 	}
 	if _, ok := graphs.graph.Node("@scope/pkg@1.2.3"); !ok {
-		t.Fatalf("nodes = %#v", graphs.graph.Nodes())
+		t.Fatalf("nodes = %#v", graphs.graph.DependencyNodes())
 	}
 }
 
@@ -87,7 +87,7 @@ packages:
 	if !ok {
 		t.Fatal("root missing")
 	}
-	dependencies, err := graphs.graph.DirectDependencies(root.ID)
+	dependencies, err := graphs.graph.DirectDependencies(root.NodeID())
 	if err != nil || len(dependencies) != 1 || dependencies[0].Name != "real-package" {
 		t.Fatalf("dependencies = %#v, err=%v", dependencies, err)
 	}
@@ -122,7 +122,7 @@ snapshots:
 	}
 	member := result.Graphs.Entries[1].Graph
 	if _, ok := member.Node("workspace:packages/cloudflare"); !ok {
-		t.Fatalf("workspace node missing: %#v", member.Nodes())
+		t.Fatalf("workspace node missing: %#v", member.DependencyNodes())
 	}
 	if _, ok := member.Node("cloudflare@4.0.0"); !ok {
 		t.Fatal("registry package with the same name missing")

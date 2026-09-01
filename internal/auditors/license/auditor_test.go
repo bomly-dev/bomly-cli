@@ -18,11 +18,11 @@ func TestLicenseAuditorAllowDeny(t *testing.T) {
 		g := sdk.New()
 		root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
 		_ = g.AddNode(root)
-		dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
-		purl := sdk.CanonicalPackageURLFromDependency(dep)
+		dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
+		purl := dep.NodeID()
 		dep.PackageRef = purl
 		_ = g.AddNode(dep)
-		_ = g.AddEdge(root.ID, dep.ID)
+		_ = g.AddEdge(root.NodeID(), dep.NodeID())
 
 		registry := sdk.NewPackageRegistry()
 		registry.Ensure(purl).Licenses = []sdk.PackageLicense{{SPDXExpression: license}}
@@ -65,15 +65,15 @@ func TestLicenseAuditorUnknownLicenseUsesCompactFindingID(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
 	_ = g.AddNode(root)
-	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "very-long-package-name-with-output-hostile-length",
+	dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "very-long-package-name-with-output-hostile-length",
 		Version:        "1.2.3",
 		Ecosystem:      sdk.EcosystemNPM,
 		PackageManager: sdk.PackageManagerNPM},
 	})
-	purl := sdk.CanonicalPackageURLFromDependency(dep)
+	purl := dep.NodeID()
 	dep.PackageRef = purl
 	_ = g.AddNode(dep)
-	_ = g.AddEdge(root.ID, dep.ID)
+	_ = g.AddEdge(root.NodeID(), dep.NodeID())
 
 	result, err := Auditor{}.Audit(context.Background(), sdk.AuditRequest{
 		Graph:    g,
@@ -107,11 +107,11 @@ func TestLicenseAuditorDeniedLicensesUseErrorSeverity(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
 	_ = g.AddNode(root)
-	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
-	purl := sdk.CanonicalPackageURLFromDependency(dep)
+	dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
+	purl := dep.NodeID()
 	dep.PackageRef = purl
 	_ = g.AddNode(dep)
-	_ = g.AddEdge(root.ID, dep.ID)
+	_ = g.AddEdge(root.NodeID(), dep.NodeID())
 
 	registry := sdk.NewPackageRegistry()
 	registry.Ensure(purl).Licenses = []sdk.PackageLicense{{SPDXExpression: "GPL-3.0-only"}}
@@ -139,10 +139,10 @@ func TestLicenseAuditorUnknownLicenseIDsDifferByPackage(t *testing.T) {
 	root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
 	_ = g.AddNode(root)
 	for _, name := range []string{"left-pad", "is-odd"} {
-		dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: name, Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
-		dep.PackageRef = sdk.CanonicalPackageURLFromDependency(dep)
+		dep := sdk.NewDependency(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: name, Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
+		dep.PackageRef = dep.NodeID()
 		_ = g.AddNode(dep)
-		_ = g.AddEdge(root.ID, dep.ID)
+		_ = g.AddEdge(root.NodeID(), dep.NodeID())
 	}
 
 	result, err := Auditor{}.Audit(context.Background(), sdk.AuditRequest{

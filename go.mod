@@ -6,7 +6,6 @@ require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/CycloneDX/cyclonedx-go v0.11.0
 	github.com/Masterminds/semver/v3 v3.5.0
-	github.com/anchore/packageurl-go v0.2.0
 	github.com/bomly-dev/bomly-plugin-depsdev-license-matcher v0.2.0
 	github.com/bomly-dev/bomly-plugin-govulncheck-analyzer v0.2.0
 	github.com/bomly-dev/bomly-plugin-grype-matcher v0.2.0
@@ -71,6 +70,7 @@ require (
 	github.com/anchore/go-sync v0.1.1 // indirect
 	github.com/anchore/go-version v1.2.2-0.20210903204242-51efa5b487c4 // indirect
 	github.com/anchore/grype v0.117.0 // indirect
+	github.com/anchore/packageurl-go v0.2.0 // indirect
 	github.com/anchore/stereoscope v0.3.0 // indirect
 	github.com/anchore/syft v1.51.0 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect

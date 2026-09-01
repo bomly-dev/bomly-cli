@@ -51,6 +51,8 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 | `internal/detectors/*` | Concrete native dependency resolution per ecosystem (gomod, gradle, maven, node, python, sbom); the Syft catch-all detector lives in `bomly-plugin-syft-detector` |
 | `bomly-plugin-*` (external modules) | External-integration components consumed as pinned Go modules: enrichment matchers (osv, grype, deps.dev license, scorecard), reachability analyzers (govulncheck, jsreach, pyreach, jvmreach), and the Syft detector; ClearlyDefined and eol run as external matcher plugins; the shared cache lives in `bomly-sdk/filecache` |
 | `internal/auditors/*`  | Policy evaluators and audit-only logic (policy, noop)                                             |
+| `internal/nodes`       | Reads graph nodes of any kind: coordinates, display fields, and narrowing over the sealed union |
+| `internal/testnodes`   | Test-only builders and label lookups for graph nodes (panics on an unbuildable fixture)          |
 | `internal/baseline`    | Portable package-finding baseline codec and audit-integrated policy-status resolver               |
 | `internal/remediation` | Canonical vulnerability fix status, version, detector-hint validation, and occurrence suggestions |
 | `internal/sbom`        | SBOM codec (SPDX 2.3, CycloneDX)                                                                  |
@@ -93,6 +95,8 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - Built-in reachability analyzers live in their own `bomly-plugin-*-analyzer` repositories, consumed as pinned Go modules. They depend only on the SDK and its helper subpackages (`system`, `filecache`, `logkit`) and must not import any `internal/*` package.
 - `internal/detectors` owns detector-facing contracts such as `Detector`, `DetectorDescriptor`, `ResolveGraphRequest`, and detector helper functions.
 - The SDK owns neutral shared identifiers and support metadata that would otherwise create package cycles, including ecosystems, package managers, detector types, and support-matrix data.
+- `internal/nodes` owns reading a node of any kind -- coordinates, display fields, narrowing. The SDK's `GraphNode` exposes only what every kind has, so without one home every renderer writes its own type switch and they disagree about what a manifest looks like. Helpers that *build or mutate* a detector graph stay in `internal/detectors`. It is the CLI's stand-in until the SDK exposes a coordinates accessor (bomly-dev/bomly-sdk#33).
+- `internal/testnodes` is test-only: it routes fixture shapes through the real node constructors and resolves "name@version" labels to the canonical package URLs node IDs now are. Non-test code must not import it.
 - `internal/baseline` owns the baseline document and matching implementation. It depends on the SDK policy contracts and must not be imported by `internal/engine`.
 - `internal/remediation` owns canonical vulnerability remediation decisions. Detectors may supply validated read-only strategy hints, but they do not choose final actions or versions.
 - `internal/licenseexpr` owns all SPDX license expression parsing. The underlying parser panics on some malformed input, and license strings come from untrusted lockfiles and registry APIs, so no other package under `internal/` may import `github.com/github/go-spdx` directly; `TestNoDirectSPDXExpressionUse` enforces this.

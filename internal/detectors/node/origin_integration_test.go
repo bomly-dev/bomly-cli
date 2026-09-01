@@ -45,11 +45,13 @@ func requireArtifactOrigin(t *testing.T, g *sdk.Graph, name, version, want strin
 func requireNoModuleOrigin(t *testing.T, g *sdk.Graph, name string) {
 	t.Helper()
 	for _, module := range g.ModuleNodes() {
-		if module.Name == name {
+		// EcosystemName, not Name: normalization splits a scoped npm name
+		// into Org and Name.
+		if module.EcosystemName() == name {
 			return
 		}
 	}
-	t.Errorf("no module node named %q; modules: %v", name, g.ModuleNodes())
+	t.Errorf("no module node named %q; modules: %v", name, moduleLabels(g))
 }
 
 func requireNoOrigin(t *testing.T, g *sdk.Graph, name, version string) {

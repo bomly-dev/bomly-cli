@@ -108,7 +108,7 @@ func buildLockIndex(g *sdk.Graph, packages []lockPackage, rootRecord lockPackage
 		if qualifiedLockKey(pkg) == rootKey {
 			continue
 		}
-		node, err := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil)
+		node, err := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version, Source: pkg.Source}, pkg.Name+"@"+pkg.Version, nil, "")
 		if err != nil {
 			return nil, err
 		}

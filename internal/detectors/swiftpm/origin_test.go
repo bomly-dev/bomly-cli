@@ -131,9 +131,9 @@ func TestSwiftPMNativeOriginIsPinnedFromPackageResolved(t *testing.T) {
 		Revision:   "f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b",
 	}
 	var checked int
-	g.WalkNodes(func(dep sdk.GraphNode) bool {
-		origin := originOf(mustDep(t, dep))
-		switch mustDep(t, dep).Name {
+	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+		origin := originOf(dep)
+		switch dep.Name {
 		case "swift-argument-parser":
 			checked++
 			if origin != want {
@@ -188,8 +188,8 @@ func TestSwiftPMEditedPackageIsNotCreditedToItsFormerPin(t *testing.T) {
 	}
 
 	var checked int
-	g.WalkNodes(func(dep sdk.GraphNode) bool {
-		if mustDep(t, dep).Name != "helper" {
+	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+		if dep.Name != "helper" {
 			return true
 		}
 		checked++
@@ -237,12 +237,12 @@ func TestSwiftPMPinIsNotAttachedToADifferentRepository(t *testing.T) {
 	}
 
 	var checked int
-	g.WalkNodes(func(dep sdk.GraphNode) bool {
-		if mustDep(t, dep).ResolvedURL == "" {
+	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+		if dep.ResolvedURL == "" {
 			return true
 		}
 		checked++
-		origin := originOf(mustDep(t, dep))
+		origin := originOf(dep)
 		if origin.Repository == "https://git.corp/team/helper.git" {
 			t.Fatalf("a package built from a mirror was credited to %q", origin.Repository)
 		}
@@ -274,8 +274,8 @@ func TestSwiftPMNativeOriginSurvivesMissingPackageResolved(t *testing.T) {
 
 	want := sdk.DependencyOrigin{Repository: "https://github.com/apple/swift-argument-parser.git"}
 	var checked int
-	g.WalkNodes(func(dep sdk.GraphNode) bool {
-		if mustDep(t, dep).Name == "swift-argument-parser" {
+	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+		if dep.Name == "swift-argument-parser" {
 			checked++
 			if got := originOf(dep); got != want {
 				t.Fatalf("origin = %+v, want the unpinned repository %+v", got, want)
@@ -404,8 +404,8 @@ func TestSwiftPMOriginIsPinnedFromTheXcodeLockfile(t *testing.T) {
 		Revision:   "6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192",
 	}
 	var checked int
-	g.WalkNodes(func(dep sdk.GraphNode) bool {
-		if mustDep(t, dep).Name != "swift-argument-parser" {
+	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+		if dep.Name != "swift-argument-parser" {
 			return true
 		}
 		checked++

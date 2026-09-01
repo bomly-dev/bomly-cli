@@ -283,7 +283,7 @@ func packageNode(pkg swiftPackage) (*sdk.DependencyNode, error) {
 		metadata["requirement"] = pkg.Requirement
 	}
 	namespace, name := packageIdentity(pkg.Repository, pkg.Name)
-	node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemSwift,
+	node, err := detectors.NewDependencyOrGeneric(sdk.Coordinates{Ecosystem: sdk.EcosystemSwift,
 		Org:            namespace,
 		Name:           name,
 		Version:        strings.TrimSpace(pkg.Version),

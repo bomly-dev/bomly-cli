@@ -141,7 +141,7 @@ func applyLockOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 			return true
 		}
 		if origin := sdk.RepositoryOrigin(descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref")); origin != nil {
-			dep.Origins = sdk.MergeOrigins(dep.Origins, []sdk.DependencyOrigin{*origin})
+			dep.Origins = detectors.RefineOrigins(dep.Origins, []sdk.DependencyOrigin{*origin})
 		}
 		recorded++
 		return true

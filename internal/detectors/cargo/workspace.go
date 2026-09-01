@@ -3,6 +3,7 @@ package cargo
 import (
 	"fmt"
 	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -227,31 +228,40 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 	}
 
 	g := sdk.New()
-	nodeFor := func(pkg lockPackage, application bool) (*sdk.DependencyNode, error) {
-		pkgType := "crate"
-		source := cargoDependencySource(pkg.Source)
-		if application {
-			pkgType = "application"
-			source = sdk.DependencySourceWorkspace
+	// A workspace member is the project's own code, so it is a module node
+	// declared by its own manifest: ownership is the node kind (ADR-0041), and
+	// a module carries no origin at all -- so a lock entry that merely shares
+	// its name, an unrelated crate from a git remote, cannot be credited to
+	// it by construction rather than by a guard.
+	moduleFor := func(pkg lockPackage, manifestPath string) (*sdk.ModuleNode, error) {
+		node, err := sdk.NewModuleNode(manifestPath, sdk.Coordinates{
+			Ecosystem:      sdk.EcosystemRust,
+			Name:           pkg.Name,
+			Version:        pkg.Version,
+			PackageManager: sdk.PackageManagerCargo,
+			Type:           sdk.PackageTypeApplication,
+			Language:       "rust",
+			PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version),
+		})
+		if err != nil {
+			return nil, fmt.Errorf("build cargo module node %q: %w", pkg.Name, err)
 		}
+		return node, nil
+	}
+	nodeFor := func(pkg lockPackage) (*sdk.DependencyNode, error) {
 		node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
 			Name:           pkg.Name,
 			Version:        pkg.Version,
 			PackageManager: sdk.PackageManagerCargo,
-			Type:           sdk.ParsePackageType(pkgType),
+			Type:           sdk.ParsePackageType("crate"),
 			Language:       "rust",
 			PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)})
 		if err != nil {
 			return nil, fmt.Errorf("build cargo node %q: %w", pkg.Name, err)
 		}
-		node.Source = source
+		node.Source = cargoDependencySource(pkg.Source)
 		node.ResolvedURL = pkg.Source
-		if !application {
-			// A workspace member is the project's own code. It has no external
-			// origin, and a lock entry that merely shares its name -- an
-			// unrelated crate from a git remote -- must not be credited to it.
-			setCargoOrigin(node, pkg.Source)
-		}
+		setCargoOrigin(node, pkg.Source)
 		return node, nil
 	}
 	// Each application root claims its own lock record -- matched by name,
@@ -269,9 +279,9 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 	claimed := map[string]struct{}{}
 	applicationRefs := map[string]string{}
 	roots := make([]applicationRoot, 0, len(members)+1)
-	addRoot := func(manifest cargoManifest) (string, error) {
+	addRoot := func(manifest cargoManifest, manifestPath string) (string, error) {
 		record := projectLockRecord(packages, manifest)
-		node, err := nodeFor(record, true)
+		node, err := moduleFor(record, manifestPath)
 		if err != nil {
 			return "", err
 		}
@@ -292,7 +302,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 
 	rootID := ""
 	if rootManifest.Name != "" {
-		id, err := addRoot(rootManifest)
+		id, err := addRoot(rootManifest, "Cargo.toml")
 		if err != nil {
 			return nil, nil, "", err
 		}
@@ -303,7 +313,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 		if member.manifest.Name == "" {
 			continue
 		}
-		id, err := addRoot(member.manifest)
+		id, err := addRoot(member.manifest, path.Join(member.dir, "Cargo.toml"))
 		if err != nil {
 			return nil, nil, "", err
 		}
@@ -314,7 +324,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 		if _, ok := claimed[qualifiedLockKey(pkg)]; ok {
 			continue
 		}
-		node, err := nodeFor(pkg, false)
+		node, err := nodeFor(pkg)
 		if err != nil {
 			return nil, nil, "", err
 		}

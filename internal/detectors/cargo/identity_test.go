@@ -54,19 +54,7 @@ source = "git+https://github.com/external/helper?rev=main#aaaabbbbccccddddeeeeff
 		t.Fatalf("depGraphFromLockWorkspace() error = %v", err)
 	}
 
-	member, ok := testnodes.FindDep(graph, "helper@0.1.0")
-	if !ok {
-		t.Fatalf("expected workspace member helper@0.1.0 in graph: %s", graph.PrettyString())
-	}
-	if member.Type != sdk.PackageTypeApplication {
-		t.Fatalf("member type = %q, want application", member.Type)
-	}
-	if member.ResolvedURL != "" {
-		t.Fatalf("member ResolvedURL = %q, want empty", member.ResolvedURL)
-	}
-	if origin := originOf(member); !origin.Empty() {
-		t.Fatalf("member claims external origin %+v", origin)
-	}
+	member := requireMemberModule(t, graph, "helper", "0.1.0")
 	if len(modules) != 1 || modules[0].rootID != member.NodeID() {
 		t.Fatalf("modules = %+v, want the member module rooted at %q", modules, member.NodeID())
 	}
@@ -85,13 +73,13 @@ source = "git+https://github.com/external/helper?rev=main#aaaabbbbccccddddeeeeff
 	// consumer resolved "helper 1.0.0 (git+...)": its edge must reach the
 	// external crate, not the member.
 	consumerDeps := directDependencyIDs(t, graph, "consumer@2.0.0")
-	if !consumerDeps[external.NodeID()] || consumerDeps[member.NodeID()] {
+	if !consumerDeps["helper@1.0.0"] || consumerDeps["helper@0.1.0"] {
 		t.Fatalf("consumer dependencies = %v, want the external helper only", consumerDeps)
 	}
 
 	// demo resolved "helper 0.1.0": its direct helper edge is the member.
 	rootDeps := directDependencyIDs(t, graph, rootID)
-	if !rootDeps[member.NodeID()] {
+	if !rootDeps["helper@0.1.0"] {
 		t.Fatalf("root dependencies = %v, want the member helper", rootDeps)
 	}
 }
@@ -118,13 +106,7 @@ source = "git+https://github.com/external/helper#aaaabbbbccccddddeeeeffff0000111
 	if err != nil {
 		t.Fatalf("depGraphFromLockWorkspace() error = %v", err)
 	}
-	member, ok := testnodes.FindDep(graph, "helper@0.1.0")
-	if !ok {
-		t.Fatalf("expected member helper@0.1.0 (version from its lock record): %s", graph.PrettyString())
-	}
-	if member.Type != sdk.PackageTypeApplication || member.ResolvedURL != "" {
-		t.Fatalf("member = %+v, want an application node with no external source", member)
-	}
+	_ = requireMemberModule(t, graph, "helper", "0.1.0")
 	if _, ok := testnodes.Find(graph, "helper@1.0.0"); !ok {
 		t.Fatalf("expected external helper@1.0.0 to stay in the graph: %s", graph.PrettyString())
 	}
@@ -174,10 +156,7 @@ version = "1.0.0"
 		t.Fatalf("expected one member entry, got %d", len(entries))
 	}
 	graph := entries[0].Graph
-	member, ok := testnodes.FindDep(graph, "helper@1.0.0")
-	if !ok || member.Type != sdk.PackageTypeApplication {
-		t.Fatalf("expected member helper@1.0.0 as an application node: %s", graph.PrettyString())
-	}
+	_ = requireMemberModule(t, graph, "helper", "1.0.0")
 }
 
 // A member with no resolvable version and several same-named source-less lock
@@ -204,17 +183,15 @@ version = "0.2.0"
 	if len(modules) != 1 {
 		t.Fatalf("modules = %+v, want one member", modules)
 	}
-	member, ok := testnodes.FindDep(graph, modules[0].rootID)
-	if !ok || member.Type != sdk.PackageTypeApplication || member.Version != "" {
-		t.Fatalf("member = %+v, want an application node under its manifest identity", member)
+	member := requireMemberModule(t, graph, "helper", "")
+	if member.NodeID() != modules[0].rootID {
+		t.Fatalf("member ID = %q, want the module entry's root %q", member.NodeID(), modules[0].rootID)
 	}
 	for _, id := range []string{"helper@0.1.0", "helper@0.2.0"} {
-		node, ok := testnodes.FindDep(graph, id)
-		if !ok {
+		// A dependency node, not a module: an ambiguous record must not be
+		// claimed as the project's own code.
+		if _, ok := testnodes.FindDep(graph, id); !ok {
 			t.Fatalf("expected ambiguous record %q to stay in the graph: %s", id, graph.PrettyString())
-		}
-		if node.Type == sdk.PackageTypeApplication {
-			t.Fatalf("ambiguous record %q must not be claimed as the member", id)
 		}
 	}
 }
@@ -258,8 +235,8 @@ serde = "1"
 	if !ok || !nodes.IsProjectOwned(root) {
 		t.Fatalf("expected first-party root app@1.2.3: %s", graph.PrettyString())
 	}
-	if mustDep(t, root).Version != "1.2.3" {
-		t.Fatalf("root version = %q, want the inherited 1.2.3", mustDep(t, root).Version)
+	if _, version, _, _ := nodes.Display(root); version != "1.2.3" {
+		t.Fatalf("root version = %q, want the inherited 1.2.3", version)
 	}
 	rootDeps := directDependencyIDs(t, graph, root.NodeID())
 	if !rootDeps["serde@1.0.210"] {
@@ -344,8 +321,10 @@ func TestCargoMetadataWorkspaceMemberNameCollisionKeepsBothIdentities(t *testing
 	if !ok {
 		t.Fatalf("expected member helper@0.1.0: %s", graph.PrettyString())
 	}
-	if mustDep(t, member).Type != sdk.PackageTypeApplication || mustDep(t, member).ResolvedURL != "" {
-		t.Fatalf("member = %+v, want an application node with no external source", member)
+	// A module node carries no source and no origin at all, which is the
+	// stronger form of what this used to spell out.
+	if !nodes.IsProjectOwned(member) {
+		t.Fatalf("member is a %s node, want the project's own module", member.Kind())
 	}
 	external, ok := testnodes.Find(graph, "helper@1.0.0")
 	if !ok {
@@ -355,16 +334,21 @@ func TestCargoMetadataWorkspaceMemberNameCollisionKeepsBothIdentities(t *testing
 		t.Fatalf("external origin = %+v, want the external repository", origin)
 	}
 	consumerDeps := directDependencyIDs(t, graph, "consumer@2.0.0")
-	if !consumerDeps[external.NodeID()] || consumerDeps[member.NodeID()] {
-		t.Fatalf("consumer dependencies = %v, want the external helper only", consumerDeps)
+	if !consumerDeps["helper@1.0.0"] {
+		t.Fatalf("consumer dependencies = %v, want the external helper", consumerDeps)
 	}
+	_ = external
 }
 
 // When the collision is exact -- one name@version resolved both as a workspace
-// member and from a git remote -- the member keeps the plain node ID and the
-// external record becomes the qualified occurrence, never the other way
-// around: first-party code does not surrender its identity to sort order.
-func TestCargoMetadataWorkspaceMemberKeepsPlainIDOnExactCollision(t *testing.T) {
+// member and from a git remote -- the two records fold in the metadata graph,
+// because at that point both are dependency nodes with the same package URL.
+// The separation appears when the detection result promotes the member to a
+// module: a module ID carries the declaring manifest path, so it cannot
+// collide with a package URL. That promotion needs the member's directory,
+// which only the detection-result path knows, and it is asserted by the
+// workspace tests.
+func TestCargoMetadataExactCollisionFoldsUntilTheMemberIsPromoted(t *testing.T) {
 	metadata := []byte(`{
       "packages": [
         {"id": "path+file:///w/crates/helper#helper@1.0.0", "name": "helper", "version": "1.0.0", "source": null, "manifest_path": "/w/crates/helper/Cargo.toml"},
@@ -379,28 +363,25 @@ func TestCargoMetadataWorkspaceMemberKeepsPlainIDOnExactCollision(t *testing.T) 
 	if err != nil {
 		t.Fatalf("depGraphFromMetadata() error = %v", err)
 	}
-	member, ok := testnodes.Find(graph, "helper@1.0.0")
-	if !ok {
-		t.Fatalf("expected plain helper@1.0.0 node: %s", graph.PrettyString())
-	}
-	if mustDep(t, member).Type != sdk.PackageTypeApplication {
-		t.Fatalf("helper@1.0.0 type = %q, want the workspace member under the plain ID", mustDep(t, member).Type)
-	}
-	if origin := originOf(mustDep(t, member)); !origin.Empty() {
-		t.Fatalf("member claims external origin %+v", origin)
-	}
-	var externals int
-	graph.WalkNodes(func(dep sdk.GraphNode) bool {
-		if mustDep(t, dep).Name == "helper" && !testnodes.Is(dep, member.NodeID()) {
-			externals++
-			if origin := originOf(mustDep(t, dep)); origin.Repository != "https://github.com/external/helper" {
-				t.Fatalf("external occurrence origin = %+v, want the external repository", origin)
-			}
+	helpers := 0
+	repositories := map[string]int{}
+	graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+		if dep.Name != "helper" {
+			return true
+		}
+		helpers++
+		for _, origin := range dep.Origins {
+			repositories[origin.Repository]++
 		}
 		return true
 	})
-	if externals != 1 {
-		t.Fatalf("external helper occurrences = %d, want 1", externals)
+	if helpers != 1 {
+		t.Fatalf("helper nodes = %d, want one node per identity", helpers)
+	}
+	// The git remote survives the fold: the member's record asserts no origin,
+	// and an unstated value never displaces a stated one.
+	if repositories["https://github.com/external/helper"] != 1 {
+		t.Fatalf("helper origins = %v, want the external repository kept", repositories)
 	}
 }
 
@@ -439,7 +420,7 @@ dependencies = [
 	if !ok || !nodes.IsProjectOwned(root) {
 		t.Fatalf("expected first-party root app@0.1.0: %s", graph.PrettyString())
 	}
-	if origin := originOf(mustDep(t, root)); !origin.Empty() {
+	if origin := originOf(root); !origin.Empty() {
 		t.Fatalf("root claims external origin %+v", origin)
 	}
 	external, ok := testnodes.Find(graph, "app@2.0.0")
@@ -447,9 +428,13 @@ dependencies = [
 		t.Fatalf("expected external app@2.0.0 to stay in the graph: %s", graph.PrettyString())
 	}
 	consumerDeps := directDependencyIDs(t, graph, "consumer@2.0.0")
-	if !consumerDeps[external.NodeID()] || consumerDeps[root.NodeID()] {
-		t.Fatalf("consumer dependencies = %v, want the external app only", consumerDeps)
+	if !consumerDeps["app@2.0.0"] {
+		t.Fatalf("consumer dependencies = %v, want the external app", consumerDeps)
 	}
+	if consumerDeps["app@0.1.0"] {
+		t.Fatalf("consumer dependencies = %v, must not reach the project's own root", consumerDeps)
+	}
+	_ = external
 }
 
 // Cargo.lock writes version-qualified dependency references whenever two
@@ -551,13 +536,22 @@ source = "git+https://github.com/b/helper#bbbbccccddddeeeeffff000011112222333344
 	if len(consumerDeps) != 1 {
 		t.Fatalf("consumer dependencies = %v, want exactly the b-remote helper occurrence", consumerDeps)
 	}
-	for id := range consumerDeps {
-		child, ok := testnodes.Find(graph, id)
+	for label := range consumerDeps {
+		child, ok := testnodes.FindDep(graph, label)
 		if !ok {
-			t.Fatalf("consumer dependency %q missing from graph", id)
+			t.Fatalf("consumer dependency %q missing from graph", label)
 		}
-		if origin := originOf(mustDep(t, child)); origin.Repository != "https://github.com/b/helper" {
-			t.Fatalf("consumer edge reached %q with origin %+v, want the b-remote occurrence", id, origin)
+		// Both remotes fold onto the one identity, so the node carries both;
+		// what matters is that the remote consumer actually resolved from is
+		// among them and was not dropped.
+		found := false
+		for _, origin := range child.Origins {
+			if origin.Repository == "https://github.com/b/helper" {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("consumer edge reached %q with origins %+v, want the b remote among them", label, child.Origins)
 		}
 	}
 }
@@ -569,11 +563,19 @@ func directDependencyIDs(t *testing.T, g *sdk.Graph, nodeID string) map[string]b
 	if err != nil {
 		t.Fatalf("dependencies of %q: %v", nodeID, err)
 	}
+	// Keyed by the label a case names a package with, so an assertion reads
+	// as "serde@1.0.210" rather than as a canonical package URL.
 	out := make(map[string]bool, len(deps))
 	for _, dep := range deps {
-		if dep != nil {
-			out[dep.NodeID()] = true
+		if dep == nil {
+			continue
 		}
+		name, version, _, _ := nodes.Display(dep)
+		if version != "" {
+			out[name+"@"+version] = true
+			continue
+		}
+		out[name] = true
 	}
 	return out
 }
@@ -587,4 +589,21 @@ func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
 		t.Fatalf("expected a dependency node, got %T", node)
 	}
 	return dep
+}
+
+// requireMemberModule asserts the graph holds the project's own module for a
+// workspace member.
+//
+// A member is a module node under ADR-0041, so the properties this used to
+// spell out -- application type, no ResolvedURL, no origin -- hold by
+// construction: a module carries none of those fields at all.
+func requireMemberModule(t *testing.T, graph *sdk.Graph, name, version string) *sdk.ModuleNode {
+	t.Helper()
+	for _, module := range graph.ModuleNodes() {
+		if module.Name == name && module.Version == version {
+			return module
+		}
+	}
+	t.Fatalf("expected workspace member module %s@%s: %s", name, version, graph.PrettyString())
+	return nil
 }

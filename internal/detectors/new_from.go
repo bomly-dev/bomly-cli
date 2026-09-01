@@ -44,3 +44,37 @@ func NewDependencyFrom(proto sdk.DependencyNode) (*sdk.DependencyNode, error) {
 	node.PackageRef = proto.PackageRef
 	return node, nil
 }
+
+// NewDependencyOrGeneric builds a dependency node, falling back to a generic
+// package URL when the ecosystem's own type cannot express the coordinates.
+//
+// Identity is a valid package URL under ADR-0041, and some type profiles
+// require more than a resolver gives. A SwiftPM registry pin, for example,
+// names a package by identity alone: with no repository there is no namespace,
+// and the swift purl type requires one, so the constructor refuses. Dropping
+// the package would be worse than typing it loosely -- it was installed, it is
+// in the artifact, and an inventory that omits it is wrong in a way a generic
+// type is not.
+//
+// The ecosystem stays on the coordinates either way, so display and support
+// lookups still say "swift"; only the identity's type is generic.
+//
+// The deeper answer is the SDK's: what identity a package has when its own
+// type cannot express it is a question about the model (ADR-0040), and this
+// is the CLI's stopgap until bomly-dev/bomly-sdk#34 answers it.
+func NewDependencyOrGeneric(coords sdk.Coordinates) (*sdk.DependencyNode, error) {
+	node, err := sdk.NewDependencyNode(coords)
+	if err == nil {
+		return node, nil
+	}
+	fallback := coords
+	fallback.PURL = sdk.BuildPackageURL("generic", coords.Org, coords.Name, coords.Version)
+	if fallback.PURL == "" {
+		return nil, err
+	}
+	generic, genericErr := sdk.NewDependencyNode(fallback)
+	if genericErr != nil {
+		return nil, err
+	}
+	return generic, nil
+}

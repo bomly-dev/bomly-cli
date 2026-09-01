@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -34,6 +35,10 @@ type metadataOutput struct {
 	Packages         []metadataPackage `json:"packages"`
 	Resolve          metadataResolve   `json:"resolve"`
 	WorkspaceMembers []string          `json:"workspace_members"`
+	// WorkspaceRoot is the absolute directory cargo resolved the workspace
+	// from. It is what makes a member's manifest_path expressible as the
+	// repo-relative path a module ID needs.
+	WorkspaceRoot string `json:"workspace_root"`
 }
 
 type metadataPackage struct {
@@ -161,7 +166,16 @@ func (d Detector) detectionResultFromMetadata(req sdk.DetectionRequest, raw []by
 				dir = filepath.ToSlash(rel)
 			}
 		}
-		modules = append(modules, cargoModuleGraph{dir: dir, rootID: member.nodeID})
+		// A workspace member is the project's own code, so it becomes a
+		// module node declared by its own Cargo.toml. This is the first point
+		// that knows the member's directory -- cargo reports an absolute
+		// manifest path, and a module ID must be repo-relative -- so the node
+		// is promoted here rather than built as a module upstream.
+		rootID, err := detectors.PromoteToModule(g, member.nodeID, path.Join(dir, "Cargo.toml"))
+		if err != nil {
+			return sdk.DetectionResult{}, err
+		}
+		modules = append(modules, cargoModuleGraph{dir: dir, rootID: rootID})
 	}
 	result, err := cargoDetectionResultFromGraph(g, modules, rootManifest)
 	if err != nil {
@@ -319,7 +333,7 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 	nodeIDByCargoID := make(map[string]string, len(packagesByID))
 	insert := func(id string) error {
 		pkg := packagesByID[id]
-		node, err := packageNode(pkg, id, workspace)
+		node, err := packageNode(pkg, id, workspace, out.WorkspaceRoot)
 		if err != nil {
 			return err
 		}
@@ -360,7 +374,7 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 		}
 		// A node that cannot mint an identity has no ID to resolve an edge
 		// to; the caller skips the edge rather than inventing one.
-		node, err := packageNode(pkg, cargoID, workspace)
+		node, err := packageNode(pkg, cargoID, workspace, out.WorkspaceRoot)
 		if err != nil {
 			return ""
 		}
@@ -402,9 +416,7 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 				return nil, nil, fmt.Errorf("add Cargo dependency %q -> %q: %w", parentID, childID, err)
 			}
 			// A workspace member's direct dependencies take its scope. The
-			// member is a module node now, so the check is the kind rather
-			// than an application package type.
-			if parentNode, ok := g.Node(parentID); ok && parentNode.Kind() == sdk.NodeKindModule {
+			if parentNode, ok := g.Node(parentID); ok && isCargoProjectRoot(parentNode) {
 				if existingNode, ok := g.Node(childID); ok {
 					if existing, isDep := nodes.AsDependency(existingNode); isDep {
 						existing.AddScope(scopeForDepKinds(dep.DepKinds))
@@ -430,34 +442,56 @@ func rootNode() (*sdk.ModuleNode, error) {
 
 }
 
-func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}) (*sdk.DependencyNode, error) {
-	pkgType := "crate"
-	_, workspaceMember := workspace[id]
-	source := cargoDependencySource(pkg.Source)
-	if workspaceMember {
-		pkgType = "application"
-		source = sdk.DependencySourceProject
-		if len(workspace) > 1 {
-			source = sdk.DependencySourceWorkspace
-		}
+// cargoModuleManifest returns the repo-relative manifest path that declares a
+// workspace member, given the workspace root cargo reported. It falls back to
+// the top-level Cargo.toml when the paths do not relate -- a module still
+// needs a declaring manifest, and the root one is the honest answer when the
+// member's own cannot be expressed relative to the scan.
+func cargoModuleManifest(manifestPath, workspaceRoot string) string {
+	if manifestPath == "" || workspaceRoot == "" {
+		return "Cargo.toml"
 	}
-	node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
+	rel, err := filepath.Rel(workspaceRoot, manifestPath)
+	if err != nil {
+		return "Cargo.toml"
+	}
+	slashed := filepath.ToSlash(rel)
+	if slashed == "" || strings.HasPrefix(slashed, "../") {
+		return "Cargo.toml"
+	}
+	return slashed
+}
+
+func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}, workspaceRoot string) (sdk.GraphNode, error) {
+	coords := sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemRust,
 		Name:           pkg.Name,
 		Version:        pkg.Version,
 		PackageManager: sdk.PackageManagerCargo,
-		Type:           sdk.ParsePackageType(pkgType),
+		Type:           sdk.ParsePackageType("crate"),
 		Language:       "rust",
-		PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)})
+		PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version),
+	}
+	if _, workspaceMember := workspace[id]; workspaceMember {
+		// A workspace member is the project's own code, so it is a module
+		// node declared by its own Cargo.toml (ADR-0041). It asserts no
+		// origin at all, which is the stronger form of the rule the old
+		// dependency node needed a guard for: a same-named lock entry cannot
+		// credit the project's code to someone else's remote.
+		coords.Type = sdk.PackageTypeApplication
+		node, err := sdk.NewModuleNode(cargoModuleManifest(pkg.ManifestPath, workspaceRoot), coords)
+		if err != nil {
+			return nil, fmt.Errorf("build cargo module node %q: %w", pkg.Name, err)
+		}
+		return node, nil
+	}
+	node, err := sdk.NewDependencyNode(coords)
 	if err != nil {
 		return nil, fmt.Errorf("build dependency node: %w", err)
 	}
-	node.Source = source
+	node.Source = cargoDependencySource(pkg.Source)
 	node.ResolvedURL = pkg.Source
-	if !workspaceMember {
-		// A workspace member is the project's own code: it has no external
-		// origin, whatever a same-named lock entry says.
-		setCargoOrigin(node, pkg.Source)
-	}
+	setCargoOrigin(node, pkg.Source)
 	return node, nil
 }
 
@@ -506,7 +540,7 @@ func sortedPackageIDs(packages map[string]metadataPackage) []string {
 	return ids
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
+func addNodeIfMissing(g *sdk.Graph, node sdk.GraphNode) error {
 	// Cargo can resolve one crate name and version from two sources -- the same
 	// crate pulled from two git remotes, say. They share a PURL, so they are
 	// one node, and the shared helper settles what that node claims.
@@ -638,14 +672,36 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 	return sdk.FilterGraphByScope(g, scopeFilter)
 }
 
+// isCargoProjectRoot reports whether a node stands for the project's own code.
+//
+// A workspace member is a module node once the detection-result path has
+// promoted it, and an application-typed dependency node before that -- the
+// metadata graph is built before the member's directory is known. Both spell
+// the same thing, so the predicate accepts either rather than each caller
+// picking one and quietly missing the other.
+func isCargoProjectRoot(node sdk.GraphNode) bool {
+	if nodes.IsProjectOwned(node) {
+		return true
+	}
+	dep, ok := nodes.AsDependency(node)
+	return ok && dep.Type == sdk.PackageTypeApplication
+}
+
 func propagateScopesFromApplicationRoots(g *sdk.Graph) {
 	if g == nil {
 		return
 	}
-	for _, root := range g.DependencyNodes() {
-		if root == nil || root.Type != "application" {
-			continue
+	// Roots are the project's own artifacts: the module nodes, plus any
+	// application-typed dependency node the metadata path has not promoted
+	// yet. Reading only dependency nodes lost every propagation once the
+	// workspace root became a module.
+	roots := make([]sdk.GraphNode, 0, g.Size())
+	for _, node := range g.Nodes() {
+		if isCargoProjectRoot(node) {
+			roots = append(roots, node)
 		}
+	}
+	for _, root := range roots {
 		directDepNodes, err := g.DirectDependencies(root.NodeID())
 		directDeps := nodes.DependenciesOf(directDepNodes)
 		if err != nil {

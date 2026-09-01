@@ -162,7 +162,7 @@ func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 			return true
 		}
 		if origin := sdk.RepositoryOrigin(pin.Repository, pin.Revision); origin != nil {
-			dep.Origins = sdk.MergeOrigins(dep.Origins, []sdk.DependencyOrigin{*origin})
+			dep.Origins = detectors.RefineOrigins(dep.Origins, []sdk.DependencyOrigin{*origin})
 		}
 		pinned++
 		return true

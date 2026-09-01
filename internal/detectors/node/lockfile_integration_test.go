@@ -124,8 +124,7 @@ func TestBunLockfileV1Workspaces(t *testing.T) {
 	}
 	// Workspace members are module nodes now, keyed by the manifest that
 	// declares them rather than by a "workspace:<dir>" ID (ADR-0041).
-	requireModule(t, g, "@fixture/web", "1.0.0")
-	requireModule(t, g, "@fixture/lib", "1.0.0")
+
 	for _, duplicateID := range []string{"@fixture/web@apps/web", "@fixture/lib@packages/lib"} {
 		if duplicate, exists := testnodes.Find(g, duplicateID); exists {
 			t.Fatalf("workspace package tuple created duplicate registry node %#v", duplicate)
@@ -133,6 +132,8 @@ func TestBunLockfileV1Workspaces(t *testing.T) {
 	}
 	requirePackage(t, g, "is-number", "7.0.0")
 	requirePackage(t, g, "left-pad", "1.3.0")
+	web := requireModule(t, g, "@fixture/web", "1.0.0")
+	lib := requireModule(t, g, "@fixture/lib", "1.0.0")
 	requireEdgeByID(t, g, web.NodeID(), lib.NodeID())
 	requireEdgeByID(t, g, lib.NodeID(), stableID("is-number", "7.0.0"))
 }
@@ -498,12 +499,25 @@ func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
 
 // requireModule asserts the graph holds the project's own module for a name
 // and version.
-func requireModule(t *testing.T, g *sdk.Graph, name, version string) {
+func requireModule(t *testing.T, g *sdk.Graph, name, version string) *sdk.ModuleNode {
 	t.Helper()
 	for _, module := range g.ModuleNodes() {
-		if module.Name == name && module.Version == version {
-			return
+		// EcosystemName, not Name: normalization splits a scoped npm name
+		// into Org and Name, and the ecosystem-native spelling is what joins
+		// them back into "@fixture/web".
+		if module.EcosystemName() == name && module.Version == version {
+			return module
 		}
 	}
-	t.Fatalf("no module node %s@%s; modules: %v", name, version, g.ModuleNodes())
+	t.Fatalf("no module node %s@%s; modules: %v", name, version, moduleLabels(g))
+	return nil
+}
+
+// moduleLabels lists the modules a graph holds, for failure messages.
+func moduleLabels(g *sdk.Graph) []string {
+	labels := make([]string, 0, len(g.ModuleNodes()))
+	for _, module := range g.ModuleNodes() {
+		labels = append(labels, module.EcosystemName()+"@"+module.Version)
+	}
+	return labels
 }

@@ -302,9 +302,16 @@ func assertDirectDependencies(t *testing.T, g *sdk.Graph, parentID string, want 
 	if err != nil {
 		t.Fatalf("DirectDependencies(%q) error = %v", parentID, err)
 	}
+	// Compared by the label a case names a package with, not by the canonical
+	// package URL an ID is now.
 	got := make([]string, 0, len(deps))
 	for _, dep := range deps {
-		got = append(got, dep.NodeID())
+		name, version, _, _ := nodes.Display(dep)
+		if version != "" {
+			got = append(got, name+"@"+version)
+			continue
+		}
+		got = append(got, name)
 	}
 	sort.Strings(got)
 	sorted := append([]string{}, want...)

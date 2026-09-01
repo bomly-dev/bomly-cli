@@ -157,9 +157,9 @@ func TestPubNativeOriginIsReadFromPubspecLock(t *testing.T) {
 		Revision:   "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d",
 	}
 	var checked int
-	g.WalkNodes(func(dep sdk.GraphNode) bool {
+	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
 		origin := originOf(dep)
-		switch mustDep(t, dep).Name {
+		switch dep.Name {
 		case "helper":
 			checked++
 			if origin != want {
@@ -211,8 +211,8 @@ func TestPubOverriddenPackageIsNotCreditedToTheLockedRepository(t *testing.T) {
 	}
 
 	var checked int
-	g.WalkNodes(func(dep sdk.GraphNode) bool {
-		if mustDep(t, dep).Name != "helper" {
+	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+		if dep.Name != "helper" {
 			return true
 		}
 		checked++

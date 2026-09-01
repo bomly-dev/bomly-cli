@@ -3,6 +3,7 @@ package cargo
 import (
 	"context"
 	"errors"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
@@ -91,8 +92,10 @@ func TestDetectionResultFromMetadataWorkspacePerModuleEntries(t *testing.T) {
 	if !ok {
 		t.Fatal("expected workspace member a")
 	}
-	if mustDep(t, member).Source != sdk.DependencySourceWorkspace {
-		t.Fatalf("workspace member source = %q, want %q", mustDep(t, member).Source, sdk.DependencySourceWorkspace)
+	// A workspace member is a module node now: ownership is the kind, not a
+	// DependencySourceWorkspace value on a dependency node (ADR-0041).
+	if !nodes.IsProjectOwned(member) {
+		t.Fatalf("workspace member is a %s node, want the project's own module", member.Kind())
 	}
 }
 
@@ -170,8 +173,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 		}
 	}
 	member, ok := testnodes.Find(a.Graph, "a@0.1.0")
-	if !ok || mustDep(t, member).Source != sdk.DependencySourceWorkspace {
-		t.Fatalf("member a source = %#v, want workspace", member)
+	if !ok || !nodes.IsProjectOwned(member) {
+		t.Fatalf("member a = %#v, want the project's own module", member)
 	}
 	serde, ok := testnodes.Find(a.Graph, "serde@1.0.210")
 	if !ok || mustDep(t, serde).Source != sdk.DependencySourceRegistry {

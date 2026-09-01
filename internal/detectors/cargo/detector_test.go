@@ -2,6 +2,7 @@ package cargo
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 
@@ -55,9 +56,9 @@ func TestDepGraphFromMetadataWorkspace(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromMetadata() error = %v", err)
 	}
-	app, ok := testnodes.FindDep(g, "app@0.1.0")
-	if !ok {
-		t.Fatal("expected workspace package")
+	app, ok := testnodes.Find(g, "app@0.1.0")
+	if !ok || !nodes.IsProjectOwned(app) {
+		t.Fatal("expected the workspace package as the project's own module")
 	}
 	deps, err := g.DirectDependencies(app.NodeID())
 	if err != nil {
@@ -76,8 +77,8 @@ func TestDepGraphFromMetadataWorkspace(t *testing.T) {
 	if !testnodes.Is(dev, "pkg:cargo/pretty_assertions@1.4.1") {
 		t.Fatalf("unexpected purl %q", dev.NodeID())
 	}
-	if app.Source != sdk.DependencySourceProject {
-		t.Fatalf("single project source = %q, want %q", app.Source, sdk.DependencySourceProject)
+	if !nodes.IsProjectOwned(app) {
+		t.Fatalf("single project node is a %s node, want the project's own module", app.Kind())
 	}
 	if dev.Source != sdk.DependencySourceRegistry {
 		t.Fatalf("registry package source = %q, want %q", dev.Source, sdk.DependencySourceRegistry)

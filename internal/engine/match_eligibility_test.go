@@ -56,7 +56,9 @@ func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T)
 	app := testnodes.ModuleFrom("package.json", sdk.Coordinates{
 		Ecosystem: sdk.EcosystemNPM, Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication,
 	})
-	manifest := matchTestDependency("manifest", "1.0.0", sdk.PackageTypeManifest, "")
+	// A manifest is a manifest node now; there is no dependency node typed
+	// "manifest" for a matcher to consider (ADR-0041).
+	manifest := testnodes.Manifest("package.json", sdk.ManifestKindLockfile)
 	registryRelease := matchTestDependency("registry-package", "1.0.0", "", sdk.DependencySourceRegistry)
 	registryRelease.Relationship = sdk.DependencyRelationshipUnknown
 	legacy := matchTestDependency("legacy-package", "1.0.0", "", "")

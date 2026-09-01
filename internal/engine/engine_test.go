@@ -161,8 +161,11 @@ func TestEngineAudit_ReturnsPartialResultsWhenAnAuditorFails(t *testing.T) {
 }
 
 func TestEngineAudit_ClonesDependencyDetailChangesPerAuditor(t *testing.T) {
-	before := testnodes.DepFrom(sdk.DependencyNode{Source: sdk.DependencySourceRegistry})
-	after := testnodes.DepFrom(sdk.DependencyNode{Source: sdk.DependencySourceGit})
+	// Named coordinates, because a node's identity is minted from them and a
+	// nameless one has no package URL to mint (ADR-0041).
+	coords := sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: "example", Version: "1.0.0"}
+	before := testnodes.DepFrom(sdk.DependencyNode{Coordinates: coords, Source: sdk.DependencySourceRegistry})
+	after := testnodes.DepFrom(sdk.DependencyNode{Coordinates: coords, Source: sdk.DependencySourceGit})
 	request := AuditRequest{
 		Ecosystem:      EcosystemNPM,
 		PackageManager: PackageManagerNPM,

@@ -377,7 +377,7 @@ func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 	if err := headGraph.AddNode(testnodes.Ref("newpkg", "1.0.0")); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
-	if err := headGraph.AddEdge("app@1.0.0", "newpkg@1.0.0"); err != nil {
+	if err := headGraph.AddEdge(testnodes.ID(headGraph, "app@1.0.0"), testnodes.ID(headGraph, "newpkg@1.0.0")); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -667,7 +667,7 @@ func TestBuildDiffResponseMatchesSameManifestWhenKindDiffers(t *testing.T) {
 	if err := headGraph.AddNode(testnodes.Ref("newpkg", "1.0.0")); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
-	if err := headGraph.AddEdge("app@1.0.0", "newpkg@1.0.0"); err != nil {
+	if err := headGraph.AddEdge(testnodes.ID(headGraph, "app@1.0.0"), testnodes.ID(headGraph, "newpkg@1.0.0")); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -713,7 +713,7 @@ func TestBuildDiffResponseTreatsSBOMFilesAsSameManifestWhenOnlyEvidencePathDiffe
 	if err := headGraph.AddNode(testnodes.Ref("newpkg", "1.0.0")); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
-	if err := headGraph.AddEdge("app@1.0.0", "newpkg@1.0.0"); err != nil {
+	if err := headGraph.AddEdge(testnodes.ID(headGraph, "app@1.0.0"), testnodes.ID(headGraph, "newpkg@1.0.0")); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -881,7 +881,7 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	})); err != nil {
 		t.Fatalf("add sbom react: %v", err)
 	}
-	if err := sbomGraph.AddEdge("SPDXRef-app", "SPDXRef-react"); err != nil {
+	if err := sbomGraph.AddEdge(testnodes.ID(sbomGraph, "SPDXRef-app"), testnodes.ID(sbomGraph, "SPDXRef-react")); err != nil {
 		t.Fatalf("add sbom dependency: %v", err)
 	}
 
@@ -1174,13 +1174,13 @@ func newViewTestGraph(t *testing.T) *sdk.Graph {
 			t.Fatalf("add package %s: %v", pkg.NodeID(), err)
 		}
 	}
-	if err := g.AddEdge("app@1.0.0", "react@18.2.0"); err != nil {
+	if err := g.AddEdge(testnodes.ID(g, "app@1.0.0"), testnodes.ID(g, "react@18.2.0")); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
-	if err := g.AddEdge("app@1.0.0", "zod@3.23.0"); err != nil {
+	if err := g.AddEdge(testnodes.ID(g, "app@1.0.0"), testnodes.ID(g, "zod@3.23.0")); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
-	if err := g.AddEdge("react@18.2.0", "loose-envify@1.4.0"); err != nil {
+	if err := g.AddEdge(testnodes.ID(g, "react@18.2.0"), testnodes.ID(g, "loose-envify@1.4.0")); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 	return g

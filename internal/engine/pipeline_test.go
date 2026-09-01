@@ -550,7 +550,7 @@ func TestPipeline_Run_ProducesConsolidatedResult(t *testing.T) {
 	if err := g.AddNode(testnodes.Ref("react", "18.2.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
-	if err := g.AddEdge("app@1.0.0", "react@18.2.0"); err != nil {
+	if err := g.AddEdge(testnodes.ID(g, "app@1.0.0"), testnodes.ID(g, "react@18.2.0")); err != nil {
 		t.Fatalf("add edge: %v", err)
 	}
 
@@ -929,7 +929,7 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	})); err != nil {
 		t.Fatalf("add sbom react: %v", err)
 	}
-	if err := sbomGraph.AddEdge("SPDXRef-app", "SPDXRef-react"); err != nil {
+	if err := sbomGraph.AddEdge(testnodes.ID(sbomGraph, "SPDXRef-app"), testnodes.ID(sbomGraph, "SPDXRef-react")); err != nil {
 		t.Fatalf("add sbom dependency: %v", err)
 	}
 

@@ -68,12 +68,12 @@ func TestFindWhy_ReturnsAllPathsInDeterministicOrder(t *testing.T) {
 		{"root-a", "target"},
 		{"root-b", "target"},
 	} {
-		if err := deps.AddEdge(edge[0], edge[1]); err != nil {
+		if err := deps.AddEdge(testnodes.ID(deps, edge[0]), testnodes.ID(deps, edge[1])); err != nil {
 			t.Fatalf("add dependency %q -> %q: %v", edge[0], edge[1], err)
 		}
 	}
 
-	_, paths, err := FindWhy(deps, "target")
+	_, paths, err := FindWhy(deps, testnodes.ID(deps, "target"))
 	if err != nil {
 		t.Fatalf("FindWhy(): %v", err)
 	}
@@ -91,8 +91,10 @@ func assertPathIDs(t *testing.T, path Path, want []string) {
 		t.Fatalf("expected %d packages, got %#v", len(want), path.Packages)
 	}
 	for i, pkg := range path.Packages {
-		if pkg.ID != want[i] {
-			t.Fatalf("expected package %d to be %q, got %q", i, want[i], pkg.ID)
+		// Compared by name: a package reference's ID is a canonical package
+		// URL now, and these cases are about the shape of the path.
+		if pkg.Name != want[i] {
+			t.Fatalf("expected package %d to be %q, got %q", i, want[i], pkg.Name)
 		}
 	}
 }

@@ -7,62 +7,58 @@ import (
 	"github.com/bomly-dev/bomly-sdk"
 )
 
-func TestNormalizeGraphPackageIdentity_CollapsesEquivalentPythonPackages(t *testing.T) {
+// Two spellings of one Python package -- case, separators, a release-candidate
+// version -- mint the same identity, so the second insertion folds into the
+// first and the consumer's edges point at one node.
+//
+// Normalization moved into the constructor with ADR-0041, which is why this
+// case no longer builds two nodes and then collapses them: the second node
+// never exists.
+func TestEquivalentPythonSpellingsFoldOnInsertion(t *testing.T) {
 	g := sdk.New()
-	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "app", Version: "1.0.0"}})
-	pyA := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "python", Name: "Requests_Toolbelt", Version: "1.0.0RC1"}})
-	pyB := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "python", Name: "requests-toolbelt", Version: "1.0.0rc1"}})
+	root := testnodes.Ref("app", "1.0.0")
+	pyA := testnodes.Dep(sdk.Coordinates{Ecosystem: "python", Name: "Requests_Toolbelt", Version: "1.0.0RC1"})
+	pyB := testnodes.Dep(sdk.Coordinates{Ecosystem: "python", Name: "requests-toolbelt", Version: "1.0.0rc1"})
+
+	const want = "pkg:pypi/requests-toolbelt@1.0.0rc1"
+	if pyA.NodeID() != want || pyB.NodeID() != want {
+		t.Fatalf("identities = %q and %q, want both to mint %q", pyA.NodeID(), pyB.NodeID(), want)
+	}
 	for _, pkg := range []*sdk.DependencyNode{root, pyA, pyB} {
-		if err := g.AddNode(pkg); err != nil {
-			t.Fatalf("AddPackage(%q) error = %v", pkg.NodeID(), err)
+		if _, err := g.InsertNode(pkg); err != nil {
+			t.Fatalf("InsertNode(%q) error = %v", pkg.NodeID(), err)
 		}
 	}
 	if err := g.AddEdge(root.NodeID(), pyA.NodeID()); err != nil {
-		t.Fatalf("AddDependency(pyA) error = %v", err)
+		t.Fatalf("AddEdge(pyA) error = %v", err)
 	}
 	if err := g.AddEdge(root.NodeID(), pyB.NodeID()); err != nil {
-		t.Fatalf("AddDependency(pyB) error = %v", err)
+		t.Fatalf("AddEdge(pyB) error = %v", err)
 	}
 
 	normalized, err := normalizeGraphPackageIdentity(g)
 	if err != nil {
 		t.Fatalf("normalizeGraphPackageIdentity() error = %v", err)
 	}
-
 	if normalized.Size() != 2 {
-		t.Fatalf("expected duplicate python packages to collapse to 2 nodes, got %d", normalized.Size())
+		t.Fatalf("graph size = %d, want the root plus one folded package", normalized.Size())
 	}
-	depID := "pkg:pypi/requests-toolbelt@1.0.0rc1"
-	dep, ok := testnodes.FindDep(normalized, depID)
-	if !ok {
-		t.Fatalf("expected normalized python package %q", depID)
-	}
-	deps, err := normalized.DirectDependencies("pkg:generic/app@1.0.0")
+	deps, err := normalized.DirectDependencies(root.NodeID())
 	if err != nil {
-		t.Fatalf("Dependencies() error = %v", err)
+		t.Fatalf("DirectDependencies() error = %v", err)
 	}
-	if len(deps) != 1 || !testnodes.Is(deps[0], dep.NodeID()) {
-		t.Fatalf("expected single collapsed dependency %q, got %#v", dep.NodeID(), deps)
-	}
-	if dep.Metadata == nil {
-		t.Fatal("expected normalization metadata on collapsed dependency")
+	if len(deps) != 1 || deps[0].NodeID() != want {
+		t.Fatalf("root dependencies = %#v, want the one folded package", deps)
 	}
 }
 
-func TestNormalizeGraphPackageIdentity_NormalizesScopedNPMPackage(t *testing.T) {
-	g := graphFixture(
-		[]nodeFixture{{id: "@Types/Node@20.11.30", name: "@Types/Node", version: "20.11.30"}},
-		nil,
-	)
-	pkg, _ := testnodes.FindDep(g, "@Types/Node@20.11.30")
-	pkg.Ecosystem = "npm"
-
-	normalized, err := normalizeGraphPackageIdentity(g)
-	if err != nil {
-		t.Fatalf("normalizeGraphPackageIdentity() error = %v", err)
-	}
-	if _, ok := normalized.Node("pkg:npm/%40types/node@20.11.30"); !ok {
-		t.Fatal("expected scoped npm package to normalize to canonical namespace and name")
+// A scoped npm name is canonicalized into namespace and name by the same
+// constructor gate, so the identity is percent-encoded exactly as the purl
+// spec requires.
+func TestScopedNPMNameMintsTheCanonicalIdentity(t *testing.T) {
+	pkg := testnodes.Dep(sdk.Coordinates{Ecosystem: "npm", Name: "@Types/Node", Version: "20.11.30"})
+	if pkg.NodeID() != "pkg:npm/%40types/node@20.11.30" {
+		t.Fatalf("identity = %q, want the canonical scoped npm package URL", pkg.NodeID())
 	}
 }
 
@@ -236,13 +232,15 @@ func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *t
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 
+	// A synthesized root standing in for a manifest is a manifest node now,
+	// not a dependency node typed "manifest" (ADR-0041).
 	virtualRootID := ".github/actions/java-setup"
-	virtualRoot, ok := testnodes.FindDep(mergedGraph, virtualRootID)
+	virtualRoot, ok := testnodes.Find(mergedGraph, virtualRootID)
 	if !ok {
-		t.Fatalf("expected synthesized virtual root package %q", virtualRootID)
+		t.Fatalf("expected a synthesized root for %q", virtualRootID)
 	}
-	if virtualRoot.Type != "manifest" {
-		t.Fatalf("expected virtual root type manifest, got %q", virtualRoot.Type)
+	if virtualRoot.Kind() != sdk.NodeKindManifest {
+		t.Fatalf("synthesized root is a %s node, want a manifest node", virtualRoot.Kind())
 	}
 
 	deps, err := mergedGraph.DirectDependencies(testnodes.ID(mergedGraph, virtualRootID))
@@ -331,7 +329,11 @@ func graphFixture(packages []nodeFixture, relationships [][2]string) *sdk.Graph 
 		}
 	}
 	for _, relationship := range relationships {
-		if err := g.AddEdge(relationship[0], relationship[1]); err != nil {
+		// Resolved from the label the fixture names, because a node ID is a
+		// canonical package URL now (ADR-0041).
+		from := testnodes.ID(g, relationship[0])
+		to := testnodes.ID(g, relationship[1])
+		if err := g.AddEdge(from, to); err != nil {
 			panic(err)
 		}
 	}

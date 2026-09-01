@@ -427,7 +427,7 @@ func TestDeriveGroupsEquivalentOccurrencesWithoutCollapsingManifests(t *testing.
 			t.Fatalf("AddNode(%s) error = %v", dependency.NodeID(), err)
 		}
 	}
-	if err := firstGraph.AddEdge("root", "parent"); err != nil {
+	if err := firstGraph.AddEdge(testnodes.ID(firstGraph, "root"), testnodes.ID(firstGraph, "parent")); err != nil {
 		t.Fatalf("AddEdge(parent) error = %v", err)
 	}
 	for _, dependencyRef := range []string{"example", "alias-example"} {

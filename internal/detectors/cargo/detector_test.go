@@ -73,7 +73,7 @@ func TestDepGraphFromMetadataWorkspace(t *testing.T) {
 	if string(dev.PrimaryScope()) != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected dev scope, got %q", string(dev.PrimaryScope()))
 	}
-	if dev.NodeID() != "pkg:cargo/pretty_assertions@1.4.1" {
+	if !testnodes.Is(dev, "pkg:cargo/pretty_assertions@1.4.1") {
 		t.Fatalf("unexpected purl %q", dev.NodeID())
 	}
 	if app.Source != sdk.DependencySourceProject {

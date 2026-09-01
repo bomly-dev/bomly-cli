@@ -391,7 +391,7 @@ func TestCargoMetadataWorkspaceMemberKeepsPlainIDOnExactCollision(t *testing.T) 
 	}
 	var externals int
 	graph.WalkNodes(func(dep sdk.GraphNode) bool {
-		if mustDep(t, dep).Name == "helper" && dep.NodeID() != member.NodeID() {
+		if mustDep(t, dep).Name == "helper" && !testnodes.Is(dep, member.NodeID()) {
 			externals++
 			if origin := originOf(mustDep(t, dep)); origin.Repository != "https://github.com/external/helper" {
 				t.Fatalf("external occurrence origin = %+v, want the external repository", origin)
@@ -565,7 +565,7 @@ source = "git+https://github.com/b/helper#bbbbccccddddeeeeffff000011112222333344
 // directDependencyIDs returns the IDs a node points at, as a set.
 func directDependencyIDs(t *testing.T, g *sdk.Graph, nodeID string) map[string]bool {
 	t.Helper()
-	deps, err := g.DirectDependencies(nodeID)
+	deps, err := g.DirectDependencies(testnodes.ID(g, nodeID))
 	if err != nil {
 		t.Fatalf("dependencies of %q: %v", nodeID, err)
 	}

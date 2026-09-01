@@ -30,7 +30,7 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if !ok {
 		t.Fatal("expected Newtonsoft.Json package")
 	}
-	if pkg.NodeID() != "pkg:nuget/Newtonsoft.Json@13.0.3" {
+	if !testnodes.Is(pkg, "pkg:nuget/Newtonsoft.Json@13.0.3") {
 		t.Fatalf("unexpected purl %q", pkg.NodeID())
 	}
 }
@@ -98,7 +98,7 @@ func TestDepGraphFromPackagesConfig(t *testing.T) {
 	if !ok {
 		t.Fatal("expected NUnit package")
 	}
-	if pkg.NodeID() != "pkg:nuget/NUnit@4.2.2" {
+	if !testnodes.Is(pkg, "pkg:nuget/NUnit@4.2.2") {
 		t.Fatalf("unexpected purl %q", pkg.NodeID())
 	}
 }
@@ -274,7 +274,7 @@ func TestDepGraphFromDepsFiles(t *testing.T) {
 	if _, ok := testnodes.Find(g, "demo@1.0.0"); ok {
 		t.Fatalf("project package should not be included: %s", g.PrettyString())
 	}
-	deps, err := g.DirectDependencies("GSF.Core@2.1.326-beta")
+	deps, err := g.DirectDependencies(testnodes.ID(g, "GSF.Core@2.1.326-beta"))
 	if err != nil {
 		t.Fatalf("GSF.Core dependencies: %v", err)
 	}

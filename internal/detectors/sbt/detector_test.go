@@ -31,7 +31,7 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected config package, got %v", graph.DependencyNodes())
 	}
-	if config.NodeID() != "pkg:maven/com.typesafe/config@1.4.3" {
+	if !testnodes.Is(config, "pkg:maven/com.typesafe/config@1.4.3") {
 		t.Fatalf("expected config PURL, got %q", config.NodeID())
 	}
 	scalatest, ok := testnodes.FindDep(graph, "org.scalatest:scalatest@3.2.18")
@@ -56,7 +56,7 @@ func TestDepGraphFromSBTDependencyTreePreservesScalaArtifactSuffix(t *testing.T)
 	if !ok {
 		t.Fatalf("expected cats-core_2.13 package, got %v", graph.DependencyNodes())
 	}
-	if core.NodeID() != "pkg:maven/org.typelevel/cats-core_2.13@2.10.0" {
+	if !testnodes.Is(core, "pkg:maven/org.typelevel/cats-core_2.13@2.10.0") {
 		t.Fatalf("expected suffixed Maven PURL, got %q", core.NodeID())
 	}
 

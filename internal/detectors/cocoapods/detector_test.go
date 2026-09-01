@@ -78,7 +78,7 @@ SPEC CHECKSUMS:
 	if len(children) != 1 || children[0].Name != "AppCenter/Core" {
 		t.Fatalf("expected AppCenter/Core dependency, got %#v", children)
 	}
-	if analytics.NodeID() != "pkg:cocoapods/AppCenter%2FAnalytics@5.0.6" {
+	if !testnodes.Is(analytics, "pkg:cocoapods/AppCenter%2FAnalytics@5.0.6") {
 		t.Fatalf("unexpected purl %q", analytics.NodeID())
 	}
 }

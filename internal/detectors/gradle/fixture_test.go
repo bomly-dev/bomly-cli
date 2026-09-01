@@ -96,7 +96,7 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 
 	// Root project's graph keeps only its own dependency.
 	requireGradleEdge(t, parsed.rootGraph, "demo", "org.apache.commons:commons-lang3@3.14.0")
-	rootDeps, err := parsed.rootGraph.DirectDependencies("demo")
+	rootDeps, err := parsed.rootGraph.DirectDependencies(testnodes.ID(parsed.rootGraph, "demo"))
 	if err != nil {
 		t.Fatalf("dependencies(demo): %v", err)
 	}
@@ -213,12 +213,12 @@ func TestGradleMultiProjectUnknownProjectTokenFallsBack(t *testing.T) {
 
 func requireGradleEdge(t *testing.T, g *sdk.Graph, fromID, toID string) {
 	t.Helper()
-	deps, err := g.DirectDependencies(fromID)
+	deps, err := g.DirectDependencies(testnodes.ID(g, fromID))
 	if err != nil {
 		t.Fatalf("dependencies(%s): %v", fromID, err)
 	}
 	for _, d := range deps {
-		if d.NodeID() == toID {
+		if testnodes.Is(d, toID) {
 			return
 		}
 	}

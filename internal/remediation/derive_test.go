@@ -311,7 +311,7 @@ func TestDeriveBuildsCanonicalOccurrenceSuggestions(t *testing.T) {
 	registry := sdk.NewPackageRegistry()
 	for _, node := range nodes[1:] {
 		vulnerability := sdk.Vulnerability{ID: "VULN-" + node.NodeID(), FixedIn: "1.2.0"}
-		if node.NodeID() == "unavailable" {
+		if testnodes.Is(node, "unavailable") {
 			vulnerability = sdk.Vulnerability{ID: "VULN-unavailable", FixState: sdk.FixStateNotFixed}
 		}
 		registry.Add(&sdk.Package{

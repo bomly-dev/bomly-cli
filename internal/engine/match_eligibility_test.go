@@ -113,7 +113,7 @@ func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T)
 		}
 	}
 	children, err := matcher.graph.DirectDependencies(registryRelease.NodeID())
-	if err != nil || len(children) != 1 || children[0].NodeID() != legacy.NodeID() {
+	if err != nil || len(children) != 1 || !testnodes.Is(children[0], legacy.NodeID()) {
 		t.Fatalf("expected eligible internal edge to survive, children=%#v err=%v", children, err)
 	}
 	if matcher.registry != registry || result.Registry != registry || matcher.registry.Len() != registry.Len() {
@@ -155,7 +155,7 @@ func TestEngineMatchDoesNotWidenIneligibleTarget(t *testing.T) {
 	if _, err := engine.Match(context.Background(), sdk.MatchRequest{Graph: graph, Registry: sdk.NewPackageRegistry(), Target: external}); err != nil {
 		t.Fatalf("Match() eligible target error = %v", err)
 	}
-	if matcher.calls != 1 || matcher.target == nil || matcher.target.NodeID() != external.NodeID() {
+	if matcher.calls != 1 || matcher.target == nil || !testnodes.Is(matcher.target, external.NodeID()) {
 		t.Fatalf("expected eligible target to be preserved, calls=%d target=%#v", matcher.calls, matcher.target)
 	}
 }

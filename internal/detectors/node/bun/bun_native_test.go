@@ -53,8 +53,8 @@ func TestDepGraphFromBunPMListPreservesUnprovenParents(t *testing.T) {
 			t.Fatalf("expected %s to retain unknown placement, got %#v", id, dependency)
 		}
 	}
-	children, err := graph.DirectDependencies("transitive@2.0.0")
-	if err != nil || len(children) != 1 || children[0].NodeID() != "nested@3.0.0" {
+	children, err := graph.DirectDependencies(testnodes.ID(graph, "transitive@2.0.0"))
+	if err != nil || len(children) != 1 || !testnodes.Is(children[0], "nested@3.0.0") {
 		t.Fatalf("expected proven nested edge, got children=%#v err=%v", children, err)
 	}
 	if mustDep(t, children[0]).Relationship == sdk.DependencyRelationshipUnknown {
@@ -105,8 +105,8 @@ func main() { fmt.Print("/project node_modules\n├── @fixture/api@workspace
 	if alias == nil || mustDep(t, alias).Name != "is-number" || mustDep(t, alias).Version != "7.0.0" || mustDep(t, alias).PrimaryScope() != sdk.ScopeRuntime {
 		t.Fatalf("expected normalized direct alias occurrence, got %#v", alias)
 	}
-	children, err := graph.DirectDependencies("is-odd@0.1.2")
-	if err != nil || len(children) != 1 || children[0].NodeID() != "is-number@3.0.0" {
+	children, err := graph.DirectDependencies(testnodes.ID(graph, "is-odd@0.1.2"))
+	if err != nil || len(children) != 1 || !testnodes.Is(children[0], "is-number@3.0.0") {
 		t.Fatalf("expected Bun tree edge, got children=%#v err=%v", children, err)
 	}
 }

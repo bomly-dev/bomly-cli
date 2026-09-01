@@ -97,7 +97,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 		t.Fatalf("expected 5 packages, got %d", g.Size())
 	}
 
-	rootDeps, err := g.DirectDependencies("example.com/demo")
+	rootDeps, err := g.DirectDependencies(testnodes.ID(g, "example.com/demo"))
 	if err != nil {
 		t.Fatalf("Dependencies(root) error = %v", err)
 	}
@@ -151,7 +151,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Dependencies(testify) error = %v", err)
 	}
-	if len(testifyDeps) != 1 || testifyDeps[0].NodeID() != spewNode.NodeID() {
+	if len(testifyDeps) != 1 || !testnodes.Is(testifyDeps[0], spewNode.NodeID()) {
 		t.Fatalf("unexpected testify dependencies: %#v", testifyDeps)
 	}
 

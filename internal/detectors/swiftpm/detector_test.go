@@ -32,7 +32,7 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if pkg.Org != "github.com/apple" {
 		t.Fatalf("expected SwiftPM namespace, got %q", pkg.Org)
 	}
-	if pkg.NodeID() != "pkg:swift/github.com/apple/swift-argument-parser@1.3.0" {
+	if !testnodes.Is(pkg, "pkg:swift/github.com/apple/swift-argument-parser@1.3.0") {
 		t.Fatalf("expected SwiftPM PURL, got %q", pkg.NodeID())
 	}
 	if pkg.Source != sdk.DependencySourceGit {
@@ -41,7 +41,7 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if !pkg.RegistryMatchEligible() {
 		t.Fatal("Swift remote source-control package must remain eligible for vulnerability matching")
 	}
-	deps, err := graph.DirectDependencies("root")
+	deps, err := graph.DirectDependencies(testnodes.ID(graph, "root"))
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}
@@ -124,7 +124,7 @@ func TestDepGraphFromSwiftShowDepsBuildsTransitiveGraph(t *testing.T) {
 	if err != nil {
 		t.Fatalf("swift-argument-parser dependencies: %v", err)
 	}
-	if len(children) != 1 || children[0].NodeID() != "github.com/apple:swift-system@1.2.0" {
+	if len(children) != 1 || !testnodes.Is(children[0], "github.com/apple:swift-system@1.2.0") {
 		t.Fatalf("expected swift-system transitive dependency, got %#v", children)
 	}
 }

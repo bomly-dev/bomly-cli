@@ -125,7 +125,7 @@ func TestDepGraphFromPipInspectAttachesOrphans(t *testing.T) {
 		t.Fatalf("depGraphFromPipInspect() error = %v", err)
 	}
 	assertDirectDependencies(t, g, root.NodeID(), []string{"flask@3.1.1", "mystery@0.1.0"})
-	if roots := g.Roots(); len(roots) != 1 || roots[0].NodeID() != root.NodeID() {
+	if roots := g.Roots(); len(roots) != 1 || !testnodes.Is(roots[0], root.NodeID()) {
 		t.Fatalf("expected a single graph root, got %s", g.PrettyString())
 	}
 }
@@ -150,11 +150,11 @@ func TestDepGraphFromPipInspectAttachesCycles(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromPipInspect() error = %v", err)
 	}
-	if roots := g.Roots(); len(roots) != 1 || roots[0].NodeID() != root.NodeID() {
+	if roots := g.Roots(); len(roots) != 1 || !testnodes.Is(roots[0], root.NodeID()) {
 		t.Fatalf("expected a single graph root, got %s", g.PrettyString())
 	}
 	for _, member := range []string{"left@1.0.0", "right@1.0.0"} {
-		paths, err := g.CollectPathsTo(member)
+		paths, err := g.CollectPathsTo(testnodes.ID(g, member))
 		if err != nil || len(paths) == 0 {
 			t.Fatalf("cycle member %s is unreachable from the root (err=%v): %s", member, err, g.PrettyString())
 		}
@@ -298,7 +298,7 @@ func TestPythonRootNameFromRequest(t *testing.T) {
 
 func assertDirectDependencies(t *testing.T, g *sdk.Graph, parentID string, want []string) {
 	t.Helper()
-	deps, err := g.DirectDependencies(parentID)
+	deps, err := g.DirectDependencies(testnodes.ID(g, parentID))
 	if err != nil {
 		t.Fatalf("DirectDependencies(%q) error = %v", parentID, err)
 	}

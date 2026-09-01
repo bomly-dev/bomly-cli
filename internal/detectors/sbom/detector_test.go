@@ -51,11 +51,11 @@ func TestDetectorResolveGraph_NormalizesImportedComponentIDs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	deps, err := g.DirectDependencies("demo-app@1.0.0")
+	deps, err := g.DirectDependencies(testnodes.ID(g, "demo-app@1.0.0"))
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
-	if len(deps) != 1 || deps[0].NodeID() != "react@18.2.0" {
+	if len(deps) != 1 || !testnodes.Is(deps[0], "react@18.2.0") {
 		t.Fatalf("expected normalized dependency edge, got %#v", deps)
 	}
 }
@@ -106,7 +106,7 @@ func TestDetectorResolveGraph_PrefersImportedPURLIdentity(t *testing.T) {
 	if !ok || reactPkg == nil {
 		t.Fatalf("expected PURL-normalized react package, got %s", resolvedGraph.PrettyString())
 	}
-	if reactPkg.NodeID() != "pkg:npm/react@18.2.0" {
+	if !testnodes.Is(reactPkg, "pkg:npm/react@18.2.0") {
 		t.Fatalf("expected react purl to be preserved, got %q", reactPkg.NodeID())
 	}
 	if reactPkg.Ecosystem != "npm" || reactPkg.PackageManager != "npm" {
@@ -243,7 +243,7 @@ func verifyResolvedGraph(t *testing.T, result sdk.DetectionResult, wantDependenc
 		t.Fatal("expected resolved graph")
 	}
 	for _, pkg := range g.DependencyNodes() {
-		if pkg != nil && pkg.NodeID() == wantDependencyID {
+		if pkg != nil && testnodes.Is(pkg, wantDependencyID) {
 			return
 		}
 	}

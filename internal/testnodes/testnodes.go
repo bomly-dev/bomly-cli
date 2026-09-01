@@ -111,9 +111,14 @@ func Find(g *sdk.Graph, label string) (sdk.GraphNode, bool) {
 		return node, true
 	}
 	name, version := splitLabel(label)
-	for _, node := range g.Nodes() {
-		if labelMatches(node, name, version) {
-			return node, true
+	// Exact spellings first, then the loose ones, so a label that names one
+	// node exactly is never answered with a near miss from elsewhere in the
+	// graph.
+	for _, loose := range []bool{false, true} {
+		for _, node := range g.Nodes() {
+			if labelMatches(node, name, version, loose) {
+				return node, true
+			}
 		}
 	}
 	return nil, false
@@ -138,7 +143,28 @@ func splitLabel(label string) (name, version string) {
 	return label, ""
 }
 
-func labelMatches(node sdk.GraphNode, name, version string) bool {
+// labelSpellings lists the ways a label may name one node.
+//
+// The loose forms exist because these labels were the pre-ADR-0041 node IDs,
+// and several detectors minted those with their own separators and kind
+// prefixes: composer wrote "vendor:shared" for the package "vendor/shared",
+// GitHub Actions wrote "action:.github/actions/local-setup" for a local action
+// whose name is the path. Rewriting each such label to a package URL would
+// have meant deciding, literal by literal, what a detector's identity is --
+// which is the thing under test.
+func labelSpellings(name string, loose bool) []string {
+	spellings := []string{name}
+	if !loose {
+		return spellings
+	}
+	spellings = append(spellings, strings.ReplaceAll(name, ":", "/"))
+	if colon := strings.Index(name, ":"); colon > 0 {
+		spellings = append(spellings, name[colon+1:])
+	}
+	return spellings
+}
+
+func labelMatches(node sdk.GraphNode, name, version string, loose bool) bool {
 	var coords sdk.Coordinates
 	switch typed := node.(type) {
 	case *sdk.DependencyNode:
@@ -153,10 +179,43 @@ func labelMatches(node sdk.GraphNode, name, version string) bool {
 	if version != "" && coords.Version != version {
 		return false
 	}
-	for _, spelling := range []string{coords.Name, coords.EcosystemName(), coords.DisplayName()} {
-		if spelling == name {
-			return true
+	actual := []string{coords.Name, coords.EcosystemName(), coords.DisplayName()}
+	for _, want := range labelSpellings(name, loose) {
+		for _, got := range actual {
+			if got == want {
+				return true
+			}
 		}
 	}
 	return false
+}
+
+// ID returns the node ID a "name@version" label names, or the label unchanged
+// when no node matches -- so a lookup that is meant to fail still fails, with
+// the label in the error where a reader expects it.
+//
+// Use it where a graph method takes an ID rather than returning a node:
+// DirectDependencies, Dependents, CollectPathsTo.
+func ID(g *sdk.Graph, label string) string {
+	if node, ok := Find(g, label); ok {
+		return node.NodeID()
+	}
+	return label
+}
+
+// Is reports whether a node answers to a "name@version" label: by ID, or by
+// any of the spellings its coordinates carry.
+//
+// It is the comparison form of Find, for the many assertions that hold a node
+// and want to know which one it is. An exact ID still matches exactly, so a
+// case that names a package URL keeps asserting on the package URL.
+func Is(node sdk.GraphNode, label string) bool {
+	if node == nil {
+		return false
+	}
+	if node.NodeID() == label {
+		return true
+	}
+	name, version := splitLabel(label)
+	return labelMatches(node, name, version, true)
 }

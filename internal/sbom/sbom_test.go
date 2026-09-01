@@ -412,7 +412,7 @@ func TestUnmarshalJSON_SPDX23RestoresPackageIdentityFromPURL(t *testing.T) {
 	if !ok || pkg == nil {
 		t.Fatalf("expected round-tripped graph package, got %s", roundTrippedGraph.PrettyString())
 	}
-	if pkg.NodeID() != "pkg:npm/accept@1.1.0" {
+	if !testnodes.Is(pkg, "pkg:npm/accept@1.1.0") {
 		t.Fatalf("expected graph package purl, got %q", pkg.NodeID())
 	}
 	if mustDep(t, pkg).Ecosystem != "npm" || mustDep(t, pkg).PackageManager != "npm" {
@@ -506,11 +506,11 @@ func TestToGraph_AllowsCycles(t *testing.T) {
 		t.Fatalf("ToGraph(): %v", err)
 	}
 
-	aDeps, err := depsGraph.DirectDependencies("a")
+	aDeps, err := depsGraph.DirectDependencies(testnodes.ID(depsGraph, "a"))
 	if err != nil {
 		t.Fatalf("Dependencies(a): %v", err)
 	}
-	bDeps, err := depsGraph.DirectDependencies("b")
+	bDeps, err := depsGraph.DirectDependencies(testnodes.ID(depsGraph, "b"))
 	if err != nil {
 		t.Fatalf("Dependencies(b): %v", err)
 	}
@@ -772,7 +772,7 @@ func TestEncodeDecodeRoundTripPreservesErlangIdentity(t *testing.T) {
 					Ecosystem:      sdk.EcosystemErlang,
 					PackageManager: tc.manager,
 				})
-				if dep.NodeID() != tc.wantPURL {
+				if !testnodes.Is(dep, tc.wantPURL) {
 					t.Fatalf("emitted PURL = %q, want %q", dep.NodeID(), tc.wantPURL)
 				}
 

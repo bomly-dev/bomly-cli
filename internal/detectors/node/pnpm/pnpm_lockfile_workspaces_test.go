@@ -63,13 +63,13 @@ func TestPNPMLockfileWorkspaceLinkDependenciesResolveToMembers(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromPNPMLockfile() error = %v", err)
 	}
-	deps, err := graphs.graph.DirectDependencies("web@0.2.0")
+	deps, err := graphs.graph.DirectDependencies(testnodes.ID(graphs.graph, "web@0.2.0"))
 	if err != nil {
 		t.Fatalf("DirectDependencies(web) error = %v", err)
 	}
 	found := false
 	for _, dep := range deps {
-		if dep.NodeID() == "lib@1.0.0" {
+		if testnodes.Is(dep, "lib@1.0.0") {
 			found = true
 			if mustDep(t, dep).Type != sdk.PackageTypeApplication {
 				t.Fatalf("expected member target to be an application, got %q", mustDep(t, dep).Type)

@@ -117,7 +117,7 @@ func TestBuildScanResponseGatesReachability(t *testing.T) {
 	// the fixture's coordinates already carry it -- there is nothing to
 	// assign (ADR-0041).
 	const reactPURL = "pkg:npm/react@18.2.0"
-	if pkg.NodeID() != reactPURL {
+	if !testnodes.Is(pkg, reactPURL) {
 		t.Fatalf("react node ID = %q, want %q", pkg.NodeID(), reactPURL)
 	}
 	registry := sdk.NewPackageRegistry()

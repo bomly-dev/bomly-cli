@@ -42,12 +42,12 @@ func requireEdge(t *testing.T, g *sdk.Graph, fromName, fromVersion, toName, toVe
 	t.Helper()
 	fromID := stableID(fromName, fromVersion)
 	toID := stableID(toName, toVersion)
-	deps, err := g.DirectDependencies(fromID)
+	deps, err := g.DirectDependencies(testnodes.ID(g, fromID))
 	if err != nil {
 		t.Fatalf("dependencies(%s@%s): %v", fromName, fromVersion, err)
 	}
 	for _, dep := range deps {
-		if dep.NodeID() == toID {
+		if testnodes.Is(dep, toID) {
 			return
 		}
 	}
@@ -143,12 +143,12 @@ func TestBunLockfileV1Workspaces(t *testing.T) {
 
 func requireEdgeByID(t *testing.T, g *sdk.Graph, fromID, toID string) {
 	t.Helper()
-	dependencies, err := g.DirectDependencies(fromID)
+	dependencies, err := g.DirectDependencies(testnodes.ID(g, fromID))
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, dependency := range dependencies {
-		if dependency.NodeID() == toID {
+		if testnodes.Is(dependency, toID) {
 			return
 		}
 	}
@@ -266,7 +266,7 @@ func TestNPMLockfileV3_SingleApplicationRoot(t *testing.T) {
 	if len(roots) != 1 {
 		t.Fatalf("expected exactly one root package, got %d: %v", len(roots), graphPackageIDs(g))
 	}
-	if roots[0].NodeID() != stableID("demo-app", "3.0.0") {
+	if !testnodes.Is(roots[0], stableID("demo-app", "3.0.0")) {
 		t.Fatalf("expected npm root %q, got %q", stableID("demo-app", "3.0.0"), roots[0].NodeID())
 	}
 }
@@ -296,7 +296,7 @@ func TestPNPMLockfileV5_RootDependencyEdges(t *testing.T) {
 	// Root must depend on the three top-level packages.
 	// Root package has name "demo-app" and version "1.0.0" from package.json.
 	rootID := stableID("demo-app", "1.0.0")
-	rootDeps, err := g.DirectDependencies(rootID)
+	rootDeps, err := g.DirectDependencies(testnodes.ID(g, rootID))
 	if err != nil {
 		t.Fatalf("dependencies(root): %v", err)
 	}
@@ -398,7 +398,7 @@ func TestYarnLockfileV1_SingleApplicationRoot(t *testing.T) {
 	if len(roots) != 1 {
 		t.Fatalf("expected exactly one root package, got %d: %v", len(roots), graphPackageIDs(g))
 	}
-	if roots[0].NodeID() != stableID("demo-app", "1.0.0") {
+	if !testnodes.Is(roots[0], stableID("demo-app", "1.0.0")) {
 		t.Fatalf("expected yarn root %q, got %q", stableID("demo-app", "1.0.0"), roots[0].NodeID())
 	}
 }

@@ -43,7 +43,7 @@ func writeLock(t *testing.T, body string) (string, string) {
 
 func directDepIDs(t *testing.T, g *sdk.Graph, id string) []string {
 	t.Helper()
-	deps, err := g.DirectDependencies(id)
+	deps, err := g.DirectDependencies(testnodes.ID(g, id))
 	if err != nil {
 		t.Fatalf("direct deps of %s: %v", id, err)
 	}

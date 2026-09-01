@@ -90,13 +90,13 @@ func TestNPMLockfileWorkspaceLinkEntriesDoNotDuplicateNodes(t *testing.T) {
 		t.Fatalf("expected member node to be an application, got %q", member.Type)
 	}
 	// web depends on lib via the workspace link; the edge must target the member.
-	deps, err := graphs.graph.DirectDependencies("web@0.2.0")
+	deps, err := graphs.graph.DirectDependencies(testnodes.ID(graphs.graph, "web@0.2.0"))
 	if err != nil {
 		t.Fatalf("DirectDependencies(web) error = %v", err)
 	}
 	found := false
 	for _, dep := range deps {
-		if dep.NodeID() == "lib@1.0.0" {
+		if testnodes.Is(dep, "lib@1.0.0") {
 			found = true
 		}
 	}

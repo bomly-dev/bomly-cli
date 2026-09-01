@@ -28,7 +28,7 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected plug package, got %v", graph.DependencyNodes())
 	}
-	if plug.NodeID() != "pkg:hex/plug@1.15.3" {
+	if !testnodes.Is(plug, "pkg:hex/plug@1.15.3") {
 		t.Fatalf("expected plug PURL, got %q", plug.NodeID())
 	}
 	credo, ok := testnodes.FindDep(graph, "credo@1.7.7")
@@ -38,7 +38,7 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if string(credo.PrimaryScope()) != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected credo development scope, got %q", string(credo.PrimaryScope()))
 	}
-	deps, err := graph.DirectDependencies("root")
+	deps, err := graph.DirectDependencies(testnodes.ID(graph, "root"))
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}

@@ -65,12 +65,12 @@ func requirePyEdge(t *testing.T, g *sdk.Graph, fromName, fromVersion, toName, to
 	t.Helper()
 	fromID := pyStableID(fromName, fromVersion)
 	toID := pyStableID(toName, toVersion)
-	deps, err := g.DirectDependencies(fromID)
+	deps, err := g.DirectDependencies(testnodes.ID(g, fromID))
 	if err != nil {
 		t.Fatalf("dependencies(%s): %v", fromID, err)
 	}
 	for _, dep := range deps {
-		if dep.NodeID() == toID {
+		if testnodes.Is(dep, toID) {
 			return
 		}
 	}
@@ -100,7 +100,7 @@ func requirePySingleRoot(t *testing.T, g *sdk.Graph, rootID string) {
 	if len(roots) != 1 {
 		t.Fatalf("expected exactly one root, got %d: %v", len(roots), pyGraphIDs(g))
 	}
-	if roots[0].NodeID() != rootID {
+	if !testnodes.Is(roots[0], rootID) {
 		t.Errorf("expected root %q, got %q", rootID, roots[0].NodeID())
 	}
 }

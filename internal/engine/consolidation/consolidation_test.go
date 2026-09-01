@@ -41,7 +41,7 @@ func TestNormalizeGraphPackageIdentity_CollapsesEquivalentPythonPackages(t *test
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
-	if len(deps) != 1 || deps[0].NodeID() != dep.NodeID() {
+	if len(deps) != 1 || !testnodes.Is(deps[0], dep.NodeID()) {
 		t.Fatalf("expected single collapsed dependency %q, got %#v", dep.NodeID(), deps)
 	}
 	if dep.Metadata == nil {
@@ -245,7 +245,7 @@ func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *t
 		t.Fatalf("expected virtual root type manifest, got %q", virtualRoot.Type)
 	}
 
-	deps, err := mergedGraph.DirectDependencies(virtualRootID)
+	deps, err := mergedGraph.DirectDependencies(testnodes.ID(mergedGraph, virtualRootID))
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}

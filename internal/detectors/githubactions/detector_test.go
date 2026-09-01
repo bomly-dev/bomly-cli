@@ -81,7 +81,7 @@ func TestDepGraphFromRepository(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
-	if len(deps) != 1 || deps[0].NodeID() != "actions:cache@v4" {
+	if len(deps) != 1 || !testnodes.Is(deps[0], "actions:cache@v4") {
 		t.Fatalf("expected local action to depend on actions/cache, got %#v", deps)
 	}
 	workflowNode, ok := testnodes.Find(g, "workflow:.github/workflows/ci.yml")

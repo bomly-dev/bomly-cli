@@ -129,12 +129,12 @@ func TestMavenTGFFixture(t *testing.T) {
 
 func requireMavenEdge(t *testing.T, g *sdk.Graph, fromID, toID string) {
 	t.Helper()
-	deps, err := g.DirectDependencies(fromID)
+	deps, err := g.DirectDependencies(testnodes.ID(g, fromID))
 	if err != nil {
 		t.Fatalf("dependencies(%s): %v", fromID, err)
 	}
 	for _, d := range deps {
-		if d.NodeID() == toID {
+		if testnodes.Is(d, toID) {
 			return
 		}
 	}

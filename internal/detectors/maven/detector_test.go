@@ -34,11 +34,11 @@ func TestDepGraphFromMavenTGF(t *testing.T) {
 		t.Fatalf("expected 4 packages, got %d", g.Size())
 	}
 
-	rootDeps, err := g.DirectDependencies("com.example:demo-app@1.0.0")
+	rootDeps, err := g.DirectDependencies(testnodes.ID(g, "com.example:demo-app@1.0.0"))
 	if err != nil {
 		t.Fatalf("dependencies(root) error = %v", err)
 	}
-	if len(rootDeps) != 1 || rootDeps[0].NodeID() != "ch.qos.logback:logback-classic@1.5.6" {
+	if len(rootDeps) != 1 || !testnodes.Is(rootDeps[0], "ch.qos.logback:logback-classic@1.5.6") {
 		t.Fatalf("unexpected root deps: %#v", rootDeps)
 	}
 
@@ -52,14 +52,14 @@ func TestDepGraphFromMavenTGF(t *testing.T) {
 		t.Fatalf("fetched dependency must stay enrichable, got %#v", mustDep(t, rootDeps[0]).Coordinates)
 	}
 
-	logbackDeps, err := g.DirectDependencies("ch.qos.logback:logback-classic@1.5.6")
+	logbackDeps, err := g.DirectDependencies(testnodes.ID(g, "ch.qos.logback:logback-classic@1.5.6"))
 	if err != nil {
 		t.Fatalf("dependencies(logback-classic) error = %v", err)
 	}
 	if len(logbackDeps) != 2 {
 		t.Fatalf("expected 2 transitive deps, got %d", len(logbackDeps))
 	}
-	if logbackDeps[0].NodeID() != "ch.qos.logback:logback-core@1.5.6" || logbackDeps[1].NodeID() != "org.slf4j:slf4j-api@2.0.13" {
+	if !testnodes.Is(logbackDeps[0], "ch.qos.logback:logback-core@1.5.6") || !testnodes.Is(logbackDeps[1], "org.slf4j:slf4j-api@2.0.13") {
 		t.Fatalf("unexpected logback deps: %#v", logbackDeps)
 	}
 }
@@ -87,11 +87,11 @@ func TestDepGraphFromMavenTGF_LongLineExceedsDefaultBuffer(t *testing.T) {
 	if g.Size() != 2 {
 		t.Fatalf("expected 2 packages, got %d", g.Size())
 	}
-	rootDeps, err := g.DirectDependencies("com.example:demo-app@1.0.0")
+	rootDeps, err := g.DirectDependencies(testnodes.ID(g, "com.example:demo-app@1.0.0"))
 	if err != nil {
 		t.Fatalf("dependencies(root) error = %v", err)
 	}
-	if len(rootDeps) != 1 || rootDeps[0].NodeID() != "org.slf4j:slf4j-api@2.0.13" {
+	if len(rootDeps) != 1 || !testnodes.Is(rootDeps[0], "org.slf4j:slf4j-api@2.0.13") {
 		t.Fatalf("unexpected root deps: %#v", rootDeps)
 	}
 }
@@ -122,22 +122,22 @@ func TestDepGraphFromMavenTGF_WithMavenLogPrefixes(t *testing.T) {
 		t.Fatalf("expected 4 packages, got %d", g.Size())
 	}
 
-	rootDeps, err := g.DirectDependencies("com.bomly:example-java-maven@1.0-SNAPSHOT")
+	rootDeps, err := g.DirectDependencies(testnodes.ID(g, "com.bomly:example-java-maven@1.0-SNAPSHOT"))
 	if err != nil {
 		t.Fatalf("dependencies(root) error = %v", err)
 	}
 	if len(rootDeps) != 2 {
 		t.Fatalf("expected 2 root deps, got %d", len(rootDeps))
 	}
-	if rootDeps[0].NodeID() != "org.apache.struts:struts2-core@2.5.12" || rootDeps[1].NodeID() != "org.mindrot:jbcrypt@0.3m" {
+	if !testnodes.Is(rootDeps[0], "org.apache.struts:struts2-core@2.5.12") || !testnodes.Is(rootDeps[1], "org.mindrot:jbcrypt@0.3m") {
 		t.Fatalf("unexpected root deps: %#v", rootDeps)
 	}
 
-	strutsDeps, err := g.DirectDependencies("org.apache.struts:struts2-core@2.5.12")
+	strutsDeps, err := g.DirectDependencies(testnodes.ID(g, "org.apache.struts:struts2-core@2.5.12"))
 	if err != nil {
 		t.Fatalf("dependencies(struts2-core) error = %v", err)
 	}
-	if len(strutsDeps) != 1 || strutsDeps[0].NodeID() != "org.freemarker:freemarker@2.3.23" {
+	if len(strutsDeps) != 1 || !testnodes.Is(strutsDeps[0], "org.freemarker:freemarker@2.3.23") {
 		t.Fatalf("unexpected struts deps: %#v", strutsDeps)
 	}
 }
@@ -179,7 +179,7 @@ func TestNodeFromMavenCoords_WithClassifier(t *testing.T) {
 	if node.QualifiedName() != "com.example:demo-artifact:sources" {
 		t.Fatalf("unexpected qualified name %q", node.QualifiedName())
 	}
-	if node.NodeID() != "com.example:demo-artifact:sources@1.0.0" {
+	if !testnodes.Is(node, "com.example:demo-artifact:sources@1.0.0") {
 		t.Fatalf("unexpected package id %q", node.NodeID())
 	}
 	if string(node.PrimaryScope()) != string(sdk.ScopeDevelopment) {

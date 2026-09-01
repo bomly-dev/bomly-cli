@@ -195,7 +195,7 @@ testRuntimeClasspath - Test runtime classpath of source set 'test'.
 		t.Fatalf("expected 7 packages, got %d", g.Size())
 	}
 
-	rootDeps, err := g.DirectDependencies("demo")
+	rootDeps, err := g.DirectDependencies(testnodes.ID(g, "demo"))
 	if err != nil {
 		t.Fatalf("dependencies(root) error = %v", err)
 	}
@@ -203,7 +203,7 @@ testRuntimeClasspath - Test runtime classpath of source set 'test'.
 		t.Fatalf("expected 3 root deps, got %d", len(rootDeps))
 	}
 
-	guavaDeps, err := g.DirectDependencies("com.google.guava:guava@33.0.0-jre")
+	guavaDeps, err := g.DirectDependencies(testnodes.ID(g, "com.google.guava:guava@33.0.0-jre"))
 	if err != nil {
 		t.Fatalf("dependencies(guava) error = %v", err)
 	}

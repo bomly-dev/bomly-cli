@@ -102,8 +102,8 @@ func TestNPMLockfilePreservesMultipleInstalledVersions(t *testing.T) {
 			t.Fatalf("missing %s", id)
 		}
 	}
-	children, err := graphs.graph.DirectDependencies("legacy@1.0.0")
-	if err != nil || len(children) != 1 || children[0].NodeID() != "lodash@3.10.1" {
+	children, err := graphs.graph.DirectDependencies(testnodes.ID(graphs.graph, "legacy@1.0.0"))
+	if err != nil || len(children) != 1 || !testnodes.Is(children[0], "lodash@3.10.1") {
 		t.Fatalf("legacy dependencies = %#v, err=%v", children, err)
 	}
 }

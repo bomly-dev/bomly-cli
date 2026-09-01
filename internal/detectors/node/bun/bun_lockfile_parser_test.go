@@ -108,7 +108,7 @@ func assertEdge(t *testing.T, graph *sdk.Graph, from, to *sdk.DependencyNode) {
 		t.Fatal(err)
 	}
 	for _, child := range children {
-		if child.NodeID() == to.NodeID() {
+		if testnodes.Is(child, to.NodeID()) {
 			return
 		}
 	}

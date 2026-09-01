@@ -272,7 +272,7 @@ func dependencySource(dependency *sdk.DependencyNode) sdk.DependencySource {
 func assertUnknownSyntheticParentIsNotExecutableEvidence(t *testing.T, graph *sdk.Graph) {
 	t.Helper()
 	orphanID := "pkg:npm/orphan@3.0.0"
-	paths, err := graph.CollectPathsTo(orphanID)
+	paths, err := graph.CollectPathsTo(testnodes.ID(graph, orphanID))
 	if err != nil {
 		t.Fatalf("CollectPathsTo(orphan) error = %v", err)
 	}

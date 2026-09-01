@@ -754,7 +754,7 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 	registry.registerAuditor(fakeAuditor{
 		descriptor: AuditorDescriptor{Name: "severity-policy"},
 		run: func(req AuditRequest) AuditResult {
-			if req.Target == nil || req.Target.NodeID() != dep.NodeID() {
+			if req.Target == nil || !testnodes.Is(req.Target, dep.NodeID()) {
 				t.Fatalf("expected component target %q, got %#v", dep.NodeID(), req.Target)
 			}
 			return AuditResult{Findings: []Finding{{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "osv", PackageRef: req.Target.NodeID()}}}

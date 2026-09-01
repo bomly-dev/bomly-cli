@@ -29,7 +29,7 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected zlib package, got %v", graph.DependencyNodes())
 	}
-	if zlib.NodeID() != "pkg:conan/zlib@1.2.13" {
+	if !testnodes.Is(zlib, "pkg:conan/zlib@1.2.13") {
 		t.Fatalf("expected zlib PURL, got %q", zlib.NodeID())
 	}
 	cmake, ok := testnodes.FindDep(graph, "cmake@3.27.0")

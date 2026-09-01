@@ -51,7 +51,7 @@ tweetnacl@^0.14.0:
 	if len(roots) != 1 {
 		t.Fatalf("expected single root package, got %d", len(roots))
 	}
-	if roots[0] == nil || roots[0].NodeID() != "demo-app@1.0.0" {
+	if roots[0] == nil || !testnodes.Is(roots[0], "demo-app@1.0.0") {
 		t.Fatalf("expected app root demo-app@1.0.0, got %#v", roots[0])
 	}
 }
@@ -92,7 +92,7 @@ func TestYarnBerryParsesQuotedNamesAliasesAndDependencies(t *testing.T) {
 		t.Fatalf("expected canonical scoped package name; nodes=%#v", graph.DependencyNodes())
 	}
 	children, err := graph.DirectDependencies(realPackage.NodeID())
-	if err != nil || len(children) != 1 || children[0].NodeID() != esbuild.NodeID() {
+	if err != nil || len(children) != 1 || !testnodes.Is(children[0], esbuild.NodeID()) {
 		t.Fatalf("dependencies = %#v, err=%v", children, err)
 	}
 }

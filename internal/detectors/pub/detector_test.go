@@ -87,7 +87,7 @@ func TestDepGraphFromLockScopesDirectDependencies(t *testing.T) {
 	if string(dev.PrimaryScope()) != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected dev scope, got %q", string(dev.PrimaryScope()))
 	}
-	if dev.NodeID() != "pkg:pub/test@1.25.8" {
+	if !testnodes.Is(dev, "pkg:pub/test@1.25.8") {
 		t.Fatalf("unexpected purl %q", dev.NodeID())
 	}
 	if dev.Source != sdk.DependencySourceRegistry {

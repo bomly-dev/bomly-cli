@@ -3,6 +3,7 @@ package plugin_test
 import (
 	"archive/zip"
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -271,7 +272,7 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 	if graph == nil || graph.Size() != 1 {
 		t.Fatalf("expected one package in plugin graph, got %#v", graph)
 	}
-	if _, ok := graph.Node("example.com/runtime@v1.0.0"); !ok {
+	if _, ok := testnodes.Find(graph, "example.com/runtime@v1.0.0"); !ok {
 		t.Fatalf("expected plugin detector to receive runtime scope, got %s", graph.PrettyString())
 	}
 	if len(detectors[0].Descriptor().RemediationCapabilities) != 0 {

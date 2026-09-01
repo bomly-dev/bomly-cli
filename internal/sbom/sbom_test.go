@@ -797,7 +797,7 @@ func TestEncodeDecodeRoundTripPreservesErlangIdentity(t *testing.T) {
 					t.Fatalf("to graph: %v", err)
 				}
 
-				node, ok := decoded.DependencyNode(tc.wantPURL)
+				node, ok := testnodes.FindDep(decoded, tc.wantPURL)
 				if !ok {
 					t.Fatalf("decoded graph has no node %q", tc.wantPURL)
 				}

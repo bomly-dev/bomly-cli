@@ -1,6 +1,7 @@
 package python
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"sort"
@@ -69,7 +70,7 @@ func TestDepGraphFromRequirementsLock(t *testing.T) {
 		"urllib3@1.24.3",
 		"pytest@7.4.3",
 	} {
-		if _, ok := g.Node(want); !ok {
+		if _, ok := testnodes.Find(g, want); !ok {
 			t.Errorf("missing node %s", want)
 		}
 	}
@@ -105,7 +106,7 @@ func TestRequirementsLockScopes(t *testing.T) {
 		t.Fatalf("depGraphFromRequirementsLock: %v", err)
 	}
 	// pytest is dev-only (via requirements-dev.in).
-	pytest, ok := g.Node("pytest@7.4.3")
+	pytest, ok := testnodes.Find(g, "pytest@7.4.3")
 	if !ok {
 		t.Fatal("missing pytest node")
 	}
@@ -114,7 +115,7 @@ func TestRequirementsLockScopes(t *testing.T) {
 	}
 	// urllib3 is reachable on a runtime path (requests) even though it is also
 	// listed as a direct runtime dep — runtime must win.
-	urllib3, ok := g.Node("urllib3@1.24.3")
+	urllib3, ok := testnodes.Find(g, "urllib3@1.24.3")
 	if !ok {
 		t.Fatal("missing urllib3 node")
 	}

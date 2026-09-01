@@ -1,6 +1,7 @@
 package npm
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"os"
 	"path/filepath"
@@ -58,7 +59,7 @@ func TestNPMOriginByResolvedShape(t *testing.T) {
 		{id: "from-private@1.0.0"}, // carries a credential
 	}
 	for _, tc := range cases {
-		node, ok := graphs.graph.Node(tc.id)
+		node, ok := testnodes.Find(graphs.graph, tc.id)
 		if !ok {
 			t.Fatalf("expected %s in graph", tc.id)
 		}

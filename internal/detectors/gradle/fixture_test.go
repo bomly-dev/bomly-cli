@@ -2,6 +2,7 @@ package gradle
 
 import (
 	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -31,7 +32,7 @@ func TestGradleDependenciesFixture(t *testing.T) {
 		"org.junit.jupiter:junit-jupiter@5.10.2",
 		"org.mockito:mockito-core@5.10.0",
 	} {
-		if _, ok := g.Node(want); !ok {
+		if _, ok := testnodes.Find(g, want); !ok {
 			t.Errorf("missing node %s", want)
 		}
 	}
@@ -79,12 +80,12 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 
 	// Subproject roots are the build's own first-party applications, and the
 	// root project node is first-party too.
-	rootNode, ok := parsed.rootGraph.Node(parsed.rootID)
+	rootNode, ok := testnodes.Find(parsed.rootGraph, parsed.rootID)
 	if !ok || !nodes.IsProjectOwned(rootNode) {
 		t.Fatalf("root project node must be first-party, got %#v", rootNode)
 	}
 	for _, moduleEntry := range parsed.modules {
-		node, ok := moduleEntry.graph.Node(moduleEntry.rootID)
+		node, ok := testnodes.Find(moduleEntry.graph, moduleEntry.rootID)
 		if !ok {
 			t.Fatalf("missing subproject root node %q", moduleEntry.rootID)
 		}
@@ -114,11 +115,11 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 	// The :lib reference in app's graph is a project-local instance carrying
 	// the section scope — it shares the ID of lib's own root, but not the
 	// node instance, so app-side scopes cannot leak into lib's entry.
-	libRef, ok := appGraph.Node(libEntry.rootID)
+	libRef, ok := testnodes.Find(appGraph, libEntry.rootID)
 	if !ok {
 		t.Fatalf("missing :lib reference node in app graph")
 	}
-	libOwnRoot, _ := libEntry.graph.Node(libEntry.rootID)
+	libOwnRoot, _ := testnodes.Find(libEntry.graph, libEntry.rootID)
 	if libRef == libOwnRoot {
 		t.Fatal("project reference must not share the module root node instance")
 	}
@@ -135,17 +136,17 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 	// lib's graph: only its own dependency, with lib-local scope.
 	libGraph := libEntry.graph
 	requireGradleEdge(t, libGraph, libEntry.rootID, "org.slf4j:slf4j-api@2.0.12")
-	if _, ok := libGraph.Node("com.google.guava:guava@33.0.0-jre"); ok {
+	if _, ok := testnodes.Find(libGraph, "com.google.guava:guava@33.0.0-jre"); ok {
 		t.Fatal("lib graph must not contain app dependencies")
 	}
-	if _, ok := libGraph.Node("org.junit.jupiter:junit-jupiter@5.10.2"); ok {
+	if _, ok := testnodes.Find(libGraph, "org.junit.jupiter:junit-jupiter@5.10.2"); ok {
 		t.Fatal("lib graph must not contain app test dependencies")
 	}
 
 	// No placeholder nodes — both the resolved `project :lib` token and the
 	// declared-only `project lib (n)` form resolve to the reference node.
 	for _, placeholder := range []string{":lib", "lib"} {
-		if _, ok := appGraph.Node(placeholder); ok {
+		if _, ok := testnodes.Find(appGraph, placeholder); ok {
 			t.Fatalf("expected project token to resolve to the module identity, found placeholder node %q", placeholder)
 		}
 	}
@@ -186,7 +187,7 @@ func TestGradleMultiProjectRuntimeScopeFilterKeepsProjectEdges(t *testing.T) {
 	libEntry := parsed.modules[1]
 	requireGradleEdge(t, appGraph, appEntry.rootID, libEntry.rootID)
 	requireGradleEdge(t, appGraph, libEntry.rootID, "org.slf4j:slf4j-api@2.0.12")
-	if _, ok := appGraph.Node("org.junit.jupiter:junit-jupiter@5.10.2"); ok {
+	if _, ok := testnodes.Find(appGraph, "org.junit.jupiter:junit-jupiter@5.10.2"); ok {
 		t.Fatal("runtime filter must drop the test-only dependency")
 	}
 }
@@ -202,7 +203,7 @@ func TestGradleMultiProjectUnknownProjectTokenFallsBack(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromGradleOutput: %v", err)
 	}
-	if _, ok := parsed.rootGraph.Node(":composite-part"); !ok {
+	if _, ok := testnodes.Find(parsed.rootGraph, ":composite-part"); !ok {
 		t.Fatal("expected placeholder node for unknown project token")
 	}
 	if len(parsed.modules) != 0 {
@@ -226,7 +227,7 @@ func requireGradleEdge(t *testing.T, g *sdk.Graph, fromID, toID string) {
 
 func requireGradleScope(t *testing.T, g *sdk.Graph, id string, scope sdk.Scope) {
 	t.Helper()
-	n, ok := g.Node(id)
+	n, ok := testnodes.Find(g, id)
 	if !ok {
 		t.Fatalf("missing node %s", id)
 	}

@@ -2,6 +2,7 @@ package sbt
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -26,14 +27,14 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if graph == nil {
 		t.Fatal("expected graph")
 	}
-	config, ok := graph.DependencyNode("com.typesafe:config@1.4.3")
+	config, ok := testnodes.FindDep(graph, "com.typesafe:config@1.4.3")
 	if !ok {
 		t.Fatalf("expected config package, got %v", graph.DependencyNodes())
 	}
 	if config.NodeID() != "pkg:maven/com.typesafe/config@1.4.3" {
 		t.Fatalf("expected config PURL, got %q", config.NodeID())
 	}
-	scalatest, ok := graph.DependencyNode("org.scalatest:scalatest@3.2.18")
+	scalatest, ok := testnodes.FindDep(graph, "org.scalatest:scalatest@3.2.18")
 	if !ok {
 		t.Fatalf("expected scalatest package, got %v", graph.DependencyNodes())
 	}
@@ -51,7 +52,7 @@ func TestDepGraphFromSBTDependencyTreePreservesScalaArtifactSuffix(t *testing.T)
 		t.Fatalf("depGraphFromSBTDependencyTree returned error: %v", err)
 	}
 
-	core, ok := graph.DependencyNode("org.typelevel:cats-core_2.13@2.10.0")
+	core, ok := testnodes.FindDep(graph, "org.typelevel:cats-core_2.13@2.10.0")
 	if !ok {
 		t.Fatalf("expected cats-core_2.13 package, got %v", graph.DependencyNodes())
 	}

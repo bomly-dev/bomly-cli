@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -210,17 +211,17 @@ testRuntimeClasspath - Test runtime classpath of source set 'test'.
 		t.Fatalf("expected 2 guava deps, got %d", len(guavaDeps))
 	}
 
-	if _, ok := g.Node("org.springframework:spring-jcl@6.1.1"); !ok {
+	if _, ok := testnodes.Find(g, "org.springframework:spring-jcl@6.1.1"); !ok {
 		t.Fatalf("expected transitive dependency package")
 	}
-	guava, _ := g.DependencyNode("com.google.guava:guava@33.0.0-jre")
+	guava, _ := testnodes.FindDep(g, "com.google.guava:guava@33.0.0-jre")
 	if guava.Ecosystem != "maven" || guava.Org != "com.google.guava" || guava.Name != "guava" || guava.PackageManager != "gradle" {
 		t.Fatalf("unexpected gradle coordinates: %#v", guava)
 	}
 	if string(guava.PrimaryScope()) != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope for guava, got %q", string(guava.PrimaryScope()))
 	}
-	junit, ok := g.DependencyNode("org.junit:junit-bom@5.10.2")
+	junit, ok := testnodes.FindDep(g, "org.junit:junit-bom@5.10.2")
 	if !ok {
 		t.Fatal("expected junit package")
 	}
@@ -239,7 +240,7 @@ func TestDepGraphFromGradleOutput_UsesResolvedVersion(t *testing.T) {
 		t.Fatalf("depGraphFromGradleOutput() error = %v", err)
 	}
 
-	if _, ok := parsed.rootGraph.Node("org.slf4j:slf4j-api@2.0.12"); !ok {
+	if _, ok := testnodes.Find(parsed.rootGraph, "org.slf4j:slf4j-api@2.0.12"); !ok {
 		t.Fatalf("expected resolved version package to exist")
 	}
 }
@@ -277,10 +278,10 @@ func TestRunDependencies_UsesSettingsGradleRootName(t *testing.T) {
 	if err != nil {
 		t.Fatalf("runDependencies() error = %v", err)
 	}
-	if _, ok := parsed.rootGraph.Node("example-java-gradle"); !ok {
+	if _, ok := testnodes.Find(parsed.rootGraph, "example-java-gradle"); !ok {
 		t.Fatalf("expected settings.gradle root node")
 	}
-	if _, ok := parsed.rootGraph.Node(filepath.Base(projectDir)); ok {
+	if _, ok := testnodes.Find(parsed.rootGraph, filepath.Base(projectDir)); ok {
 		t.Fatalf("did not expect temp directory root node")
 	}
 }
@@ -329,24 +330,24 @@ func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
 	}
 
 	// Root entry: root project node + its own dependency only.
-	if _, ok := entries[0].Graph.Node("org.apache.commons:commons-lang3@3.14.0"); !ok {
+	if _, ok := testnodes.Find(entries[0].Graph, "org.apache.commons:commons-lang3@3.14.0"); !ok {
 		t.Fatal("root entry must contain the root project's own dependency")
 	}
-	if _, ok := entries[0].Graph.Node("com.google.guava:guava@33.0.0-jre"); ok {
+	if _, ok := testnodes.Find(entries[0].Graph, "com.google.guava:guava@33.0.0-jre"); ok {
 		t.Fatal("root entry must not absorb subproject dependencies")
 	}
 
 	// app entry: its deps plus the lib subtree through the project edge.
 	appGraph := entries[1].Graph
 	for _, want := range []string{"com.google.guava:guava@33.0.0-jre", "org.slf4j:slf4j-api@2.0.12"} {
-		if _, ok := appGraph.Node(want); !ok {
+		if _, ok := testnodes.Find(appGraph, want); !ok {
 			t.Fatalf("app entry missing %s", want)
 		}
 	}
 
 	// lib entry: rooted at an application-typed node with only its own dep.
 	libGraph := entries[2].Graph
-	if _, ok := libGraph.Node("com.google.guava:guava@33.0.0-jre"); ok {
+	if _, ok := testnodes.Find(libGraph, "com.google.guava:guava@33.0.0-jre"); ok {
 		t.Fatal("lib entry must not contain app dependencies")
 	}
 	libRoots := nodes.DependenciesOf(libGraph.Roots())
@@ -356,14 +357,14 @@ func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
 
 	// Regression: subproject positions must keep the module directory prefix
 	// so SARIF/diff annotations point at the child build file, not the root.
-	guava, _ := appGraph.DependencyNode("com.google.guava:guava@33.0.0-jre")
+	guava, _ := testnodes.FindDep(appGraph, "com.google.guava:guava@33.0.0-jre")
 	if guava == nil || len(guava.Locations) == 0 {
 		t.Fatalf("guava location missing: %+v", guava)
 	}
 	if loc := guava.Locations[0]; loc.RealPath != "app/build.gradle" || loc.Position == nil || loc.Position.File != "app/build.gradle" || loc.Position.Line != 3 {
 		t.Fatalf("guava location = %+v, want app/build.gradle line 3", loc)
 	}
-	libSlf4j, _ := libGraph.DependencyNode("org.slf4j:slf4j-api@2.0.12")
+	libSlf4j, _ := testnodes.FindDep(libGraph, "org.slf4j:slf4j-api@2.0.12")
 	if libSlf4j == nil || len(libSlf4j.Locations) == 0 {
 		t.Fatalf("lib slf4j-api location missing: %+v", libSlf4j)
 	}
@@ -373,7 +374,7 @@ func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
 	// The consuming subproject's copy of the api dependency is a distinct
 	// node instance with no declaration in app/build.gradle, so it carries no
 	// location; SARIF unions locations across entry graphs to compensate.
-	appSlf4j, _ := appGraph.DependencyNode("org.slf4j:slf4j-api@2.0.12")
+	appSlf4j, _ := testnodes.FindDep(appGraph, "org.slf4j:slf4j-api@2.0.12")
 	if appSlf4j == nil {
 		t.Fatal("app entry must expose lib's api dependency through the project edge")
 	}
@@ -419,7 +420,7 @@ func TestResolveGraphMultiTaskFailureRetriesRootOnly(t *testing.T) {
 	if len(result.Graphs.Entries) != 1 {
 		t.Fatalf("expected root-only fallback single entry, got %d", len(result.Graphs.Entries))
 	}
-	if _, ok := result.Graphs.Entries[0].Graph.Node("org.springframework:spring-core@6.1.1"); !ok {
+	if _, ok := testnodes.Find(result.Graphs.Entries[0].Graph, "org.springframework:spring-core@6.1.1"); !ok {
 		t.Fatal("expected root-only graph from the fallback run")
 	}
 }

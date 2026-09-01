@@ -3,6 +3,7 @@ package gomod
 import (
 	"context"
 	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -106,7 +107,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 
 	// The main module is the scanned project itself: first-party, so
 	// enrichment (OSV/deps.dev/scorecard) never queries it.
-	rootNode, ok := g.Node("example.com/demo")
+	rootNode, ok := testnodes.Find(g, "example.com/demo")
 	if !ok {
 		t.Fatal("expected main module root node")
 	}
@@ -114,7 +115,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 		t.Fatalf("main module must be first-party and not enrichable, got %#v", mustDep(t, rootNode).Coordinates)
 	}
 
-	uuidNode, ok := g.Node("github.com/google/uuid@v1.6.0")
+	uuidNode, ok := testnodes.Find(g, "github.com/google/uuid@v1.6.0")
 	if !ok {
 		t.Fatal("expected runtime dependency package")
 	}
@@ -122,7 +123,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 		t.Fatalf("expected runtime scope for uuid, got %q", got)
 	}
 
-	textNode, ok := g.Node("golang.org/x/text@v0.14.0")
+	textNode, ok := testnodes.Find(g, "golang.org/x/text@v0.14.0")
 	if !ok {
 		t.Fatal("expected transitive runtime dependency package")
 	}
@@ -130,7 +131,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 		t.Fatalf("expected runtime scope for golang.org/x/text, got %q", got)
 	}
 
-	testifyNode, ok := g.Node("github.com/stretchr/testify@v1.9.0")
+	testifyNode, ok := testnodes.Find(g, "github.com/stretchr/testify@v1.9.0")
 	if !ok {
 		t.Fatal("expected development dependency package")
 	}
@@ -138,7 +139,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 		t.Fatalf("expected development scope for testify, got %q", got)
 	}
 
-	spewNode, ok := g.Node("github.com/davecgh/go-spew@v1.1.1")
+	spewNode, ok := testnodes.Find(g, "github.com/davecgh/go-spew@v1.1.1")
 	if !ok {
 		t.Fatal("expected transitive development dependency package")
 	}
@@ -154,7 +155,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 		t.Fatalf("unexpected testify dependencies: %#v", testifyDeps)
 	}
 
-	if _, ok := g.Node("fmt"); ok {
+	if _, ok := testnodes.Find(g, "fmt"); ok {
 		t.Fatal("did not expect stdlib package to be included")
 	}
 }
@@ -171,13 +172,13 @@ func TestDepGraphFromGoList_RuntimeScopeSkipsTestImports(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromGoListWithScope() error = %v", err)
 	}
-	if _, ok := g.Node("github.com/google/uuid@v1.6.0"); !ok {
+	if _, ok := testnodes.Find(g, "github.com/google/uuid@v1.6.0"); !ok {
 		t.Fatal("expected runtime dependency package")
 	}
-	if _, ok := g.Node("github.com/stretchr/testify@v1.9.0"); ok {
+	if _, ok := testnodes.Find(g, "github.com/stretchr/testify@v1.9.0"); ok {
 		t.Fatalf("did not expect test dependency in runtime graph: %s", g.PrettyString())
 	}
-	if _, ok := g.Node("github.com/davecgh/go-spew@v1.1.1"); ok {
+	if _, ok := testnodes.Find(g, "github.com/davecgh/go-spew@v1.1.1"); ok {
 		t.Fatalf("did not expect transitive test dependency in runtime graph: %s", g.PrettyString())
 	}
 }
@@ -198,13 +199,13 @@ func TestDepGraphFromGoList_DevelopmentScopeFiltersRuntimeImports(t *testing.T) 
 	if err != nil {
 		t.Fatalf("FilterGraphByScope() error = %v", err)
 	}
-	if _, ok := filtered.Node("github.com/stretchr/testify@v1.9.0"); !ok {
+	if _, ok := testnodes.Find(filtered, "github.com/stretchr/testify@v1.9.0"); !ok {
 		t.Fatalf("expected test dependency in development graph: %s", filtered.PrettyString())
 	}
-	if _, ok := filtered.Node("github.com/davecgh/go-spew@v1.1.1"); !ok {
+	if _, ok := testnodes.Find(filtered, "github.com/davecgh/go-spew@v1.1.1"); !ok {
 		t.Fatalf("expected transitive test dependency in development graph: %s", filtered.PrettyString())
 	}
-	if _, ok := filtered.Node("github.com/google/uuid@v1.6.0"); ok {
+	if _, ok := testnodes.Find(filtered, "github.com/google/uuid@v1.6.0"); ok {
 		t.Fatalf("did not expect runtime dependency in development graph: %s", filtered.PrettyString())
 	}
 }
@@ -221,7 +222,7 @@ func TestDepGraphFromGoList_PrefersRuntimeScope(t *testing.T) {
 		t.Fatalf("depGraphFromGoList() error = %v", err)
 	}
 
-	shared, ok := g.Node("example.com/shared@v1.2.3")
+	shared, ok := testnodes.Find(g, "example.com/shared@v1.2.3")
 	if !ok {
 		t.Fatal("expected shared dependency package")
 	}
@@ -241,7 +242,7 @@ func TestDepGraphFromGoList_UsesOriginalModuleIdentityForReplace(t *testing.T) {
 		t.Fatalf("depGraphFromGoList() error = %v", err)
 	}
 
-	if _, ok := g.Node("example.com/original@v1.2.3"); !ok {
+	if _, ok := testnodes.Find(g, "example.com/original@v1.2.3"); !ok {
 		t.Fatal("expected replaced module to keep original module identity")
 	}
 }
@@ -320,7 +321,7 @@ func TestDepGraphFromGoList_AttachesPositionToDirectDeps(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromGoList: %v", err)
 	}
-	direct, ok := g.Node("github.com/direct/dep@v1.0.0")
+	direct, ok := testnodes.Find(g, "github.com/direct/dep@v1.0.0")
 	if !ok {
 		t.Fatal("direct dep missing from graph")
 	}
@@ -334,7 +335,7 @@ func TestDepGraphFromGoList_AttachesPositionToDirectDeps(t *testing.T) {
 	if loc.Position == nil || loc.Position.Line != 7 || loc.Position.File != "go.mod" {
 		t.Errorf("direct dep Position = %+v, want {File: go.mod, Line: 7}", loc.Position)
 	}
-	trans, ok := g.Node("example.com/trans/dep@v2.0.0")
+	trans, ok := testnodes.Find(g, "example.com/trans/dep@v2.0.0")
 	if !ok {
 		t.Fatal("transitive dep missing from graph")
 	}

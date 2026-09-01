@@ -33,7 +33,7 @@ func TestNormalizeGraphPackageIdentity_CollapsesEquivalentPythonPackages(t *test
 		t.Fatalf("expected duplicate python packages to collapse to 2 nodes, got %d", normalized.Size())
 	}
 	depID := "pkg:pypi/requests-toolbelt@1.0.0rc1"
-	dep, ok := normalized.DependencyNode(depID)
+	dep, ok := testnodes.FindDep(normalized, depID)
 	if !ok {
 		t.Fatalf("expected normalized python package %q", depID)
 	}
@@ -54,7 +54,7 @@ func TestNormalizeGraphPackageIdentity_NormalizesScopedNPMPackage(t *testing.T) 
 		[]nodeFixture{{id: "@Types/Node@20.11.30", name: "@Types/Node", version: "20.11.30"}},
 		nil,
 	)
-	pkg, _ := g.DependencyNode("@Types/Node@20.11.30")
+	pkg, _ := testnodes.FindDep(g, "@Types/Node@20.11.30")
 	pkg.Ecosystem = "npm"
 
 	normalized, err := normalizeGraphPackageIdentity(g)
@@ -96,14 +96,14 @@ func TestConsolidateGraphs_PreservesManifestRoots(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	if _, ok := mergedGraph.Node("subproject:npm:apps/web"); ok {
+	if _, ok := testnodes.Find(mergedGraph, "subproject:npm:apps/web"); ok {
 		t.Fatal("did not expect synthetic npm subproject root")
 	}
-	if _, ok := mergedGraph.Node("subproject:gomod:services/api"); ok {
+	if _, ok := testnodes.Find(mergedGraph, "subproject:gomod:services/api"); ok {
 		t.Fatal("did not expect synthetic go subproject root")
 	}
 
-	if _, ok := mergedGraph.Node("apps/web/package-lock.json"); ok {
+	if _, ok := testnodes.Find(mergedGraph, "apps/web/package-lock.json"); ok {
 		t.Fatal("did not expect manifest node in merged graph")
 	}
 	if _, ok := mergedGraph.Node("pkg:generic/web-app@1.0.0"); !ok {
@@ -237,7 +237,7 @@ func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *t
 	}
 
 	virtualRootID := ".github/actions/java-setup"
-	virtualRoot, ok := mergedGraph.DependencyNode(virtualRootID)
+	virtualRoot, ok := testnodes.FindDep(mergedGraph, virtualRootID)
 	if !ok {
 		t.Fatalf("expected synthesized virtual root package %q", virtualRootID)
 	}
@@ -297,7 +297,7 @@ func TestConsolidateGraphs_PrefersApplicationRootWhenEntryHasMultipleRoots(t *te
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	if _, ok := mergedGraph.Node("package-lock.json"); ok {
+	if _, ok := testnodes.Find(mergedGraph, "package-lock.json"); ok {
 		t.Fatal("did not expect synthesized manifest package for npm graph with application root")
 	}
 

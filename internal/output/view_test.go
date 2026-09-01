@@ -105,7 +105,7 @@ func TestBuildScanResponseIncludesResolutionMetadata(t *testing.T) {
 
 func TestBuildScanResponseGatesReachability(t *testing.T) {
 	g := newViewTestGraph(t)
-	pkg, ok := g.Node("react@18.2.0")
+	pkg, ok := testnodes.Find(g, "react@18.2.0")
 	if !ok {
 		t.Fatal("react package not found")
 	}

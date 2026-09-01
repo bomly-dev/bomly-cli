@@ -3,6 +3,7 @@ package python
 import (
 	"context"
 	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"path/filepath"
 	"testing"
 
@@ -53,7 +54,7 @@ func pyGraphIDs(g *sdk.Graph) []string {
 func requirePyPackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.DependencyNode {
 	t.Helper()
 	id := pyStableID(name, version)
-	pkg, ok := g.DependencyNode(id)
+	pkg, ok := testnodes.FindDep(g, id)
 	if !ok {
 		t.Fatalf("expected package %s in graph; present: %v", id, pyGraphIDs(g))
 	}

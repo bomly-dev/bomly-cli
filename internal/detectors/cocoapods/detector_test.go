@@ -3,6 +3,7 @@ package cocoapods
 import (
 	"context"
 	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -25,7 +26,7 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	pkg, ok := g.DependencyNode("AppCenter/Analytics@5.0.6")
+	pkg, ok := testnodes.FindDep(g, "AppCenter/Analytics@5.0.6")
 	if !ok {
 		t.Fatal("expected AppCenter/Analytics package")
 	}
@@ -51,7 +52,7 @@ SPEC CHECKSUMS:
 	if err != nil {
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
-	root, ok := g.Node("root")
+	root, ok := testnodes.Find(g, "root")
 	if !ok {
 		t.Fatal("expected root package")
 	}
@@ -62,7 +63,7 @@ SPEC CHECKSUMS:
 	if len(deps) != 2 {
 		t.Fatalf("expected two root dependencies, got %#v", deps)
 	}
-	analytics, ok := g.DependencyNode("AppCenter/Analytics@5.0.6")
+	analytics, ok := testnodes.FindDep(g, "AppCenter/Analytics@5.0.6")
 	if !ok {
 		t.Fatal("expected AppCenter/Analytics package")
 	}

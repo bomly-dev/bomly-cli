@@ -469,10 +469,10 @@ func TestPipeline_ThreadsScopeFilterIntoFallbackDetector(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	if _, ok := graph.Node("react@18.2.0"); !ok {
+	if _, ok := testnodes.Find(graph, "react@18.2.0"); !ok {
 		t.Fatalf("expected runtime dependency to remain: %s", graph.PrettyString())
 	}
-	if _, ok := graph.Node("vitest@2.0.0"); ok {
+	if _, ok := testnodes.Find(graph, "vitest@2.0.0"); ok {
 		t.Fatalf("expected development dependency to be filtered: %s", graph.PrettyString())
 	}
 }

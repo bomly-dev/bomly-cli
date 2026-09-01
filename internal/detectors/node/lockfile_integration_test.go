@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -29,7 +30,7 @@ func stableID(name, version string) string {
 func requirePackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.DependencyNode {
 	t.Helper()
 	id := stableID(name, version)
-	pkg, ok := g.DependencyNode(id)
+	pkg, ok := testnodes.FindDep(g, id)
 	if !ok {
 		t.Fatalf("expected package %s@%s in graph (id=%s); packages present: %v", name, version, id, graphPackageIDs(g))
 	}
@@ -121,16 +122,16 @@ func TestBunLockfileV1Workspaces(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	web, ok := g.Node("workspace:apps/web")
+	web, ok := testnodes.Find(g, "workspace:apps/web")
 	if !ok || mustDep(t, web).Name != "@fixture/web" || mustDep(t, web).Version != "1.0.0" {
 		t.Fatalf("expected web workspace identity, got %#v", web)
 	}
-	lib, ok := g.Node("workspace:packages/lib")
+	lib, ok := testnodes.Find(g, "workspace:packages/lib")
 	if !ok || mustDep(t, lib).Name != "@fixture/lib" || mustDep(t, lib).Version != "1.0.0" {
 		t.Fatalf("expected library workspace identity, got %#v", lib)
 	}
 	for _, duplicateID := range []string{"@fixture/web@apps/web", "@fixture/lib@packages/lib"} {
-		if duplicate, exists := g.Node(duplicateID); exists {
+		if duplicate, exists := testnodes.Find(g, duplicateID); exists {
 			t.Fatalf("workspace package tuple created duplicate registry node %#v", duplicate)
 		}
 	}

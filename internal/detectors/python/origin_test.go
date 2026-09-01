@@ -274,7 +274,7 @@ func originOf(node sdk.GraphNode) sdk.DependencyOrigin {
 // requireOrigin asserts the exact origin a named package asserts.
 func requireOrigin(t *testing.T, graph *sdk.Graph, id string, want sdk.DependencyOrigin) {
 	t.Helper()
-	node, ok := graph.Node(id)
+	node, ok := testnodes.Find(graph, id)
 	if !ok {
 		t.Fatalf("expected %s in graph", id)
 	}

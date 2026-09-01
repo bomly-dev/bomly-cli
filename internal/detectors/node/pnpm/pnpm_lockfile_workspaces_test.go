@@ -2,6 +2,7 @@ package pnpm
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -40,19 +41,19 @@ func TestPNPMLockfileImportersEmitPerModuleEntries(t *testing.T) {
 	}
 
 	for _, want := range []string{"web@0.2.0", "lib@1.0.0", "shared-transitive@2.0.0", "member-dev-tool@3.1.0"} {
-		if _, ok := web.Graph.Node(want); !ok {
+		if _, ok := testnodes.Find(web.Graph, want); !ok {
 			t.Fatalf("expected %q in web importer graph", want)
 		}
 	}
-	if _, ok := web.Graph.Node("lodash@4.17.21"); ok {
+	if _, ok := testnodes.Find(web.Graph, "lodash@4.17.21"); ok {
 		t.Fatal("web importer graph must not contain the root-only dependency lodash")
 	}
 
 	root := entries[0]
-	if _, ok := root.Graph.Node("lodash@4.17.21"); !ok {
+	if _, ok := testnodes.Find(root.Graph, "lodash@4.17.21"); !ok {
 		t.Fatal("expected lodash in root entry graph")
 	}
-	if _, ok := root.Graph.Node("web@0.2.0"); ok {
+	if _, ok := testnodes.Find(root.Graph, "web@0.2.0"); ok {
 		t.Fatal("root entry graph must not contain workspace members")
 	}
 }

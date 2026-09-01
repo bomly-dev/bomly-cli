@@ -107,13 +107,13 @@ func TestAnnotateScopesFromPackageJSON_DevelopmentFilterExcludesRuntime(t *testi
 	if err != nil {
 		t.Fatalf("FilterGraphByScope() error = %v", err)
 	}
-	if _, ok := filtered.Node(vitest.NodeID()); !ok {
+	if _, ok := testnodes.Find(filtered, vitest.NodeID()); !ok {
 		t.Fatalf("expected development dependency to remain: %s", filtered.PrettyString())
 	}
-	if _, ok := filtered.Node(react.NodeID()); ok {
+	if _, ok := testnodes.Find(filtered, react.NodeID()); ok {
 		t.Fatalf("expected runtime dependency to be filtered: %s", filtered.PrettyString())
 	}
-	if _, ok := filtered.Node(shared.NodeID()); ok {
+	if _, ok := testnodes.Find(filtered, shared.NodeID()); ok {
 		t.Fatalf("expected runtime-primary shared dependency to be filtered: %s", filtered.PrettyString())
 	}
 }

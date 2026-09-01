@@ -2,6 +2,7 @@ package python
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -105,11 +106,11 @@ func TestPipDetectorDoesNotReturnAmbientPipAuditEnvironment(t *testing.T) {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 	for _, want := range []string{"fastapi@0.139.0", "pyjwt@1.7.1", "ecdsa@0.19.2", "urllib3@1.26.5"} {
-		if _, ok := graph.Node(want); !ok {
+		if _, ok := testnodes.Find(graph, want); !ok {
 			t.Fatalf("expected project dependency %s in graph: %s", want, graph.PrettyString())
 		}
 	}
-	if _, ok := graph.Node("pip-audit@2.9.0"); ok {
+	if _, ok := testnodes.Find(graph, "pip-audit@2.9.0"); ok {
 		t.Fatalf("ambient pip-audit dependency leaked into project graph: %s", graph.PrettyString())
 	}
 	if raw, err := os.ReadFile(logs.install); err != nil || !strings.Contains(string(raw), "pip install -r requirements.txt") {

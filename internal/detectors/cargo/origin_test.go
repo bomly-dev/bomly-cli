@@ -259,7 +259,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
 
-	helper, ok := graph.Node("helper@1.0.0")
+	helper, ok := testnodes.Find(graph, "helper@1.0.0")
 	if !ok {
 		t.Fatal("expected helper in graph")
 	}
@@ -267,7 +267,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 	if got := originOf(helper); got != want {
 		t.Fatalf("helper origin = %+v, want %+v", got, want)
 	}
-	serde, ok := graph.Node("serde@1.0.0")
+	serde, ok := testnodes.Find(graph, "serde@1.0.0")
 	if !ok {
 		t.Fatal("expected serde in graph")
 	}

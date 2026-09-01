@@ -2,6 +2,7 @@ package bun
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -42,12 +43,12 @@ func TestDepGraphFromBunPMListPreservesUnprovenParents(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	direct, _ := graph.Node("direct@1.0.0")
+	direct, _ := testnodes.Find(graph, "direct@1.0.0")
 	if direct == nil || mustDep(t, direct).PrimaryScope() != sdk.ScopeRuntime || mustDep(t, direct).Relationship == sdk.DependencyRelationshipUnknown {
 		t.Fatalf("expected a known direct dependency, got %#v", direct)
 	}
 	for _, id := range []string{"transitive@2.0.0", "duplicate@1.0.0", "duplicate@2.0.0"} {
-		dependency, _ := graph.Node(id)
+		dependency, _ := testnodes.Find(graph, id)
 		if dependency == nil || mustDep(t, dependency).Relationship != sdk.DependencyRelationshipUnknown {
 			t.Fatalf("expected %s to retain unknown placement, got %#v", id, dependency)
 		}
@@ -92,15 +93,15 @@ func main() { fmt.Print("/project node_modules\n├── @fixture/api@workspace
 	if graph.Size() != 7 {
 		t.Fatalf("expected root, workspace, and five package occurrences, got %d", graph.Size())
 	}
-	leftPad, _ := graph.Node("left-pad@1.3.0")
+	leftPad, _ := testnodes.Find(graph, "left-pad@1.3.0")
 	if leftPad == nil || mustDep(t, leftPad).Relationship != sdk.DependencyRelationshipUnknown {
 		t.Fatalf("expected unproven package placement, got %#v", leftPad)
 	}
-	workspace, _ := graph.Node("workspace:apps/api")
+	workspace, _ := testnodes.Find(graph, "workspace:apps/api")
 	if workspace == nil || mustDep(t, workspace).Type != sdk.PackageTypeApplication || mustDep(t, workspace).Version != "1.0.0" {
 		t.Fatalf("expected canonical workspace application, got %#v", workspace)
 	}
-	alias, _ := graph.Node("bun-native-alias:number-check@7.0.0")
+	alias, _ := testnodes.Find(graph, "bun-native-alias:number-check@7.0.0")
 	if alias == nil || mustDep(t, alias).Name != "is-number" || mustDep(t, alias).Version != "7.0.0" || mustDep(t, alias).PrimaryScope() != sdk.ScopeRuntime {
 		t.Fatalf("expected normalized direct alias occurrence, got %#v", alias)
 	}

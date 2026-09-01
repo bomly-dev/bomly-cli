@@ -23,7 +23,7 @@ func TestRebaseGraphLocations_PrefixesSubprojectPath(t *testing.T) {
 
 	rebaseGraphLocations(g, "apps/web")
 
-	node, ok := g.DependencyNode("lodash@4.17.21")
+	node, ok := testnodes.FindDep(g, "lodash@4.17.21")
 	if !ok {
 		t.Fatal("expected lodash node")
 	}
@@ -49,7 +49,7 @@ func TestRebaseGraphLocations_RootIsNoOp(t *testing.T) {
 
 		rebaseGraphLocations(g, rel)
 
-		node, _ := g.DependencyNode("lodash@4.17.21")
+		node, _ := testnodes.FindDep(g, "lodash@4.17.21")
 		if node.Locations[0].RealPath != "package-lock.json" || node.Locations[0].Position.File != "package-lock.json" {
 			t.Fatalf("RelativePath %q must be a no-op, got %#v", rel, node.Locations[0])
 		}
@@ -71,7 +71,7 @@ func TestRebaseGraphLocations_SkipsAbsoluteAndAlreadyPrefixed(t *testing.T) {
 
 	rebaseGraphLocations(g, "apps/web")
 
-	node, _ := g.DependencyNode("pkg@1.0.0")
+	node, _ := testnodes.FindDep(g, "pkg@1.0.0")
 	if got := node.Locations[0].RealPath; got != "/abs/pom.xml" {
 		t.Fatalf("absolute path = %q, want untouched", got)
 	}

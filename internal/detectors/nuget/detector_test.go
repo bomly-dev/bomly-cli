@@ -3,6 +3,7 @@ package nuget
 import (
 	"context"
 	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -25,7 +26,7 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	pkg, ok := g.Node("Newtonsoft.Json@13.0.3")
+	pkg, ok := testnodes.Find(g, "Newtonsoft.Json@13.0.3")
 	if !ok {
 		t.Fatal("expected Newtonsoft.Json package")
 	}
@@ -66,7 +67,7 @@ func TestDepGraphFromLockMultiTarget(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
-	root, ok := g.Node("root")
+	root, ok := testnodes.Find(g, "root")
 	if !ok {
 		t.Fatal("expected root package")
 	}
@@ -78,7 +79,7 @@ func TestDepGraphFromLockMultiTarget(t *testing.T) {
 	if len(deps) != 1 || deps[0].Name != "Newtonsoft.Json" {
 		t.Fatalf("expected root to depend on Newtonsoft.Json, got %#v", deps)
 	}
-	systemText, ok := g.Node("System.Text.Json@8.0.0")
+	systemText, ok := testnodes.Find(g, "System.Text.Json@8.0.0")
 	if !ok {
 		t.Fatal("expected System.Text.Json package")
 	}
@@ -93,7 +94,7 @@ func TestDepGraphFromPackagesConfig(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromPackagesConfig() error = %v", err)
 	}
-	pkg, ok := g.Node("NUnit@4.2.2")
+	pkg, ok := testnodes.Find(g, "NUnit@4.2.2")
 	if !ok {
 		t.Fatal("expected NUnit package")
 	}
@@ -122,7 +123,7 @@ func TestDepGraphFromProjectFiles(t *testing.T) {
 		t.Fatalf("depGraphFromProjectFiles() error = %v", err)
 	}
 	for _, want := range []string{"System.Runtime.Extensions@4.3.0", "Newtonsoft.Json@13.0.3"} {
-		pkg, ok := g.Node(want)
+		pkg, ok := testnodes.Find(g, want)
 		if !ok {
 			t.Fatalf("expected package %q", want)
 		}
@@ -164,11 +165,11 @@ func TestDetectorResolveGraphAttachesProjectAndConfigLocations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	systemRuntime, ok := g.Node("System.Runtime.Extensions@4.3.0")
+	systemRuntime, ok := testnodes.Find(g, "System.Runtime.Extensions@4.3.0")
 	if !ok || len(mustDep(t, systemRuntime).Locations) == 0 || mustDep(t, systemRuntime).Locations[0].Position == nil || mustDep(t, systemRuntime).Locations[0].Position.Line != 3 {
 		t.Fatalf("System.Runtime.Extensions locations = %#v, want inline PackageReference line 3", mustDep(t, systemRuntime).Locations)
 	}
-	newtonsoft, ok := g.Node("Newtonsoft.Json@13.0.3")
+	newtonsoft, ok := testnodes.Find(g, "Newtonsoft.Json@13.0.3")
 	if !ok || len(mustDep(t, newtonsoft).Locations) == 0 || mustDep(t, newtonsoft).Locations[0].Position == nil || mustDep(t, newtonsoft).Locations[0].Position.Line != 5 {
 		t.Fatalf("Newtonsoft.Json locations = %#v, want Version element line 5", mustDep(t, newtonsoft).Locations)
 	}
@@ -199,7 +200,7 @@ func TestDetectorResolveGraphAttachesPackagesConfigLocations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	nunit, ok := g.Node("NUnit@4.2.2")
+	nunit, ok := testnodes.Find(g, "NUnit@4.2.2")
 	if !ok || len(mustDep(t, nunit).Locations) == 0 || mustDep(t, nunit).Locations[0].Position == nil || mustDep(t, nunit).Locations[0].Position.Line != 2 {
 		t.Fatalf("NUnit locations = %#v, want packages.config line 2", mustDep(t, nunit).Locations)
 	}
@@ -266,11 +267,11 @@ func TestDepGraphFromDepsFiles(t *testing.T) {
 		t.Fatalf("depGraphFromDepsFiles() error = %v", err)
 	}
 	for _, want := range []string{"System.Runtime.Extensions@4.3.0", "GSF.Core@2.1.326-beta", "Antlr@3.5.0.2", "FSharp.Core@6.0.7"} {
-		if _, ok := g.Node(want); !ok {
+		if _, ok := testnodes.Find(g, want); !ok {
 			t.Fatalf("expected package %q, got %s", want, g.PrettyString())
 		}
 	}
-	if _, ok := g.Node("demo@1.0.0"); ok {
+	if _, ok := testnodes.Find(g, "demo@1.0.0"); ok {
 		t.Fatalf("project package should not be included: %s", g.PrettyString())
 	}
 	deps, err := g.DirectDependencies("GSF.Core@2.1.326-beta")
@@ -286,7 +287,7 @@ func TestDepGraphFromDepsFiles(t *testing.T) {
 			t.Fatalf("expected GSF.Core -> %s, got %#v", want, deps)
 		}
 	}
-	runtime, ok := g.Node("System.Runtime.Extensions@4.3.0")
+	runtime, ok := testnodes.Find(g, "System.Runtime.Extensions@4.3.0")
 	if !ok {
 		t.Fatal("expected System.Runtime.Extensions")
 	}

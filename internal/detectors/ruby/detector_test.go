@@ -2,6 +2,7 @@ package ruby
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -24,14 +25,14 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	rack, ok := g.DependencyNode("rack@3.1.8")
+	rack, ok := testnodes.FindDep(g, "rack@3.1.8")
 	if !ok {
 		t.Fatal("expected rack package")
 	}
 	if string(rack.PrimaryScope()) != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", rack.PrimaryScope())
 	}
-	rake, ok := g.DependencyNode("rake@13.2.1")
+	rake, ok := testnodes.FindDep(g, "rake@13.2.1")
 	if !ok {
 		t.Fatal("expected rake package")
 	}
@@ -66,7 +67,7 @@ DEPENDENCIES
 		t.Fatalf("expected 4 packages, got %d", g.Size())
 	}
 
-	rake, ok := g.DependencyNode("rake@13.2.1")
+	rake, ok := testnodes.FindDep(g, "rake@13.2.1")
 	if !ok {
 		t.Fatal("expected rake package")
 	}
@@ -74,7 +75,7 @@ DEPENDENCIES
 		t.Fatalf("expected rake scope runtime, got %q", got)
 	}
 
-	activeSupport, ok := g.DependencyNode("activesupport@7.1.0")
+	activeSupport, ok := testnodes.FindDep(g, "activesupport@7.1.0")
 	if !ok {
 		t.Fatal("expected activesupport package")
 	}

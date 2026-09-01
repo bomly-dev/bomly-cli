@@ -56,7 +56,7 @@ func TestDepGraphFromPipInspect(t *testing.T) {
 	// The synthetic root node stands for the scanned project — and its
 	// fallback name "root" is a real PyPI package name — so it must never be
 	// enrichable.
-	rootNode, ok := g.Node("root")
+	rootNode, ok := testnodes.Find(g, "root")
 	if !ok {
 		t.Fatal("expected synthetic root node")
 	}
@@ -100,7 +100,7 @@ func TestDepGraphFromPipInspectScopesDirectDependencies(t *testing.T) {
 	}
 	assertDirectDependencies(t, g, root.NodeID(), []string{"flask@3.1.1", "requests@2.32.4"})
 	for _, transitive := range []string{"werkzeug@3.1.3", "jinja2@3.1.6", "markupsafe@3.0.2", "click@8.2.1", "urllib3@2.5.0", "certifi@2025.7.14"} {
-		if _, ok := g.Node(transitive); !ok {
+		if _, ok := testnodes.Find(g, transitive); !ok {
 			t.Fatalf("expected transitive %s in graph: %s", transitive, g.PrettyString())
 		}
 	}
@@ -400,10 +400,10 @@ func TestFilterPythonToolPackagesRemovesUndeclaredTools(t *testing.T) {
 	if err != nil {
 		t.Fatalf("filterPythonToolPackages() error = %v", err)
 	}
-	if _, ok := filtered.Node("pip@25.0"); ok {
+	if _, ok := testnodes.Find(filtered, "pip@25.0"); ok {
 		t.Fatalf("expected undeclared pip to be removed: %s", filtered.PrettyString())
 	}
-	if _, ok := filtered.Node("requests@2.32.0"); !ok {
+	if _, ok := testnodes.Find(filtered, "requests@2.32.0"); !ok {
 		t.Fatalf("expected application dependency to remain: %s", filtered.PrettyString())
 	}
 }
@@ -433,10 +433,10 @@ func TestFilterPythonToolPackagesKeepsDeclaredTools(t *testing.T) {
 	if err != nil {
 		t.Fatalf("filterPythonToolPackages() error = %v", err)
 	}
-	if _, ok := filtered.Node("pip@25.0"); !ok {
+	if _, ok := testnodes.Find(filtered, "pip@25.0"); !ok {
 		t.Fatalf("expected declared pip to remain: %s", filtered.PrettyString())
 	}
-	if _, ok := filtered.Node("wheel@0.45.0"); ok {
+	if _, ok := testnodes.Find(filtered, "wheel@0.45.0"); ok {
 		t.Fatalf("expected undeclared wheel to be removed: %s", filtered.PrettyString())
 	}
 }
@@ -530,13 +530,13 @@ func TestAnnotateGraphScopes_DevelopmentFilterExcludesRuntime(t *testing.T) {
 	if err != nil {
 		t.Fatalf("FilterGraphByScope() error = %v", err)
 	}
-	if _, ok := filtered.Node(pytest.NodeID()); !ok {
+	if _, ok := testnodes.Find(filtered, pytest.NodeID()); !ok {
 		t.Fatalf("expected development dependency to remain: %s", filtered.PrettyString())
 	}
-	if _, ok := filtered.Node(requests.NodeID()); ok {
+	if _, ok := testnodes.Find(filtered, requests.NodeID()); ok {
 		t.Fatalf("expected runtime dependency to be filtered: %s", filtered.PrettyString())
 	}
-	if _, ok := filtered.Node(shared.NodeID()); ok {
+	if _, ok := testnodes.Find(filtered, shared.NodeID()); ok {
 		t.Fatalf("expected runtime-primary shared dependency to be filtered: %s", filtered.PrettyString())
 	}
 }
@@ -589,7 +589,7 @@ func TestAttachDeclaredPositions(t *testing.T) {
 	}
 
 	// Transitive (not declared) gets no Locations.
-	pkg, _ := g.Node("urllib3@0.0.0")
+	pkg, _ := testnodes.Find(g, "urllib3@0.0.0")
 	if pkg != nil && len(mustDep(t, pkg).Locations) != 0 {
 		t.Errorf("urllib3 (undeclared) should have no Locations; got %+v", mustDep(t, pkg).Locations)
 	}

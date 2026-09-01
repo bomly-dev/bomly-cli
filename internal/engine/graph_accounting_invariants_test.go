@@ -200,7 +200,7 @@ func assertOccurrenceSpecificFacts(
 	unknownScopeOccurrences := 0
 	peerMetadataOccurrences := 0
 	for _, entry := range consolidated.Graphs.Entries {
-		dependency, ok := entry.Graph.DependencyNode(sharedPURL)
+		dependency, ok := testnodes.FindDep(entry.Graph, sharedPURL)
 		if !ok {
 			continue
 		}
@@ -229,7 +229,7 @@ func assertOccurrenceSpecificFacts(
 		t.Fatalf("shared PURL %q missing from registry", sharedPURL)
 	}
 	for _, purl := range []string{"pkg:npm/duplicate@1.0.0", "pkg:npm/duplicate@2.0.0"} {
-		if _, ok := graph.Node(purl); !ok {
+		if _, ok := testnodes.Find(graph, purl); !ok {
 			t.Errorf("duplicate-version occurrence %q missing from graph", purl)
 		}
 		if _, ok := registry.Get(purl); !ok {
@@ -244,7 +244,7 @@ func assertOccurrenceSpecificFacts(
 		"pkg:npm/url-lib@1.0.0":       sdk.DependencySourceURL,
 	}
 	for id, want := range wantSources {
-		dependency, ok := graph.Node(id)
+		dependency, ok := testnodes.Find(graph, id)
 		if !ok || mustDep(t, dependency).Source != want {
 			t.Errorf("dependency %q source = %q, found=%t, want %q", id, dependencySource(mustDep(t, dependency)), ok, want)
 		}

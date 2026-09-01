@@ -2,6 +2,7 @@ package swiftpm
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -24,7 +25,7 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if graph == nil {
 		t.Fatal("expected graph")
 	}
-	pkg, ok := graph.DependencyNode("github.com/apple:swift-argument-parser@1.3.0")
+	pkg, ok := testnodes.FindDep(graph, "github.com/apple:swift-argument-parser@1.3.0")
 	if !ok {
 		t.Fatalf("expected swift-argument-parser package, got %v", graph.DependencyNodes())
 	}
@@ -115,7 +116,7 @@ func TestDepGraphFromSwiftShowDepsBuildsTransitiveGraph(t *testing.T) {
 	}
 
 	parentID := "github.com/apple:swift-argument-parser@1.3.0"
-	parent, ok := graph.Node(parentID)
+	parent, ok := testnodes.Find(graph, parentID)
 	if !ok {
 		t.Fatalf("expected swift-argument-parser package, got %v", graph.DependencyNodes())
 	}

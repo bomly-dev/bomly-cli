@@ -1,6 +1,7 @@
 package maven
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -35,7 +36,7 @@ func TestMavenTGFMultiModule(t *testing.T) {
 		"junit:junit@4.13.2",
 		"org.hamcrest:hamcrest-core@1.3",
 	} {
-		if _, ok := g.Node(want); !ok {
+		if _, ok := testnodes.Find(g, want); !ok {
 			t.Errorf("missing node %s", want)
 		}
 	}
@@ -77,7 +78,7 @@ func TestMavenTGFInterModuleAndSharedScopes(t *testing.T) {
 
 	// Shared dependency seen compile in module-a and test in module-b: both
 	// scopes merge onto the single node (runtime wins as the primary scope).
-	shared, ok := g.Node("org.apache.commons:commons-lang3@3.12.0")
+	shared, ok := testnodes.Find(g, "org.apache.commons:commons-lang3@3.12.0")
 	if !ok {
 		t.Fatalf("missing shared node")
 	}
@@ -109,7 +110,7 @@ func TestMavenTGFFixture(t *testing.T) {
 		"junit:junit@4.13.2",
 		"org.hamcrest:hamcrest-core@1.3",
 	} {
-		if _, ok := g.Node(want); !ok {
+		if _, ok := testnodes.Find(g, want); !ok {
 			t.Errorf("missing node %s", want)
 		}
 	}
@@ -157,7 +158,7 @@ func requireMavenRoots(t *testing.T, g *sdk.Graph, want ...string) {
 
 func requireMavenScope(t *testing.T, g *sdk.Graph, id string, scope sdk.Scope) {
 	t.Helper()
-	n, ok := g.Node(id)
+	n, ok := testnodes.Find(g, id)
 	if !ok {
 		t.Fatalf("missing node %s", id)
 	}

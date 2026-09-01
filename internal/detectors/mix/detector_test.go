@@ -2,6 +2,7 @@ package mix
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"path/filepath"
 	"testing"
 
@@ -23,14 +24,14 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if graph == nil {
 		t.Fatal("expected graph")
 	}
-	plug, ok := graph.DependencyNode("plug@1.15.3")
+	plug, ok := testnodes.FindDep(graph, "plug@1.15.3")
 	if !ok {
 		t.Fatalf("expected plug package, got %v", graph.DependencyNodes())
 	}
 	if plug.NodeID() != "pkg:hex/plug@1.15.3" {
 		t.Fatalf("expected plug PURL, got %q", plug.NodeID())
 	}
-	credo, ok := graph.DependencyNode("credo@1.7.7")
+	credo, ok := testnodes.FindDep(graph, "credo@1.7.7")
 	if !ok {
 		t.Fatalf("expected credo package, got %v", graph.DependencyNodes())
 	}

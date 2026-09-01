@@ -2,6 +2,7 @@ package conan
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -24,14 +25,14 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if graph == nil {
 		t.Fatal("expected graph")
 	}
-	zlib, ok := graph.DependencyNode("zlib@1.2.13")
+	zlib, ok := testnodes.FindDep(graph, "zlib@1.2.13")
 	if !ok {
 		t.Fatalf("expected zlib package, got %v", graph.DependencyNodes())
 	}
 	if zlib.NodeID() != "pkg:conan/zlib@1.2.13" {
 		t.Fatalf("expected zlib PURL, got %q", zlib.NodeID())
 	}
-	cmake, ok := graph.DependencyNode("cmake@3.27.0")
+	cmake, ok := testnodes.FindDep(graph, "cmake@3.27.0")
 	if !ok {
 		t.Fatalf("expected cmake package, got %v", graph.DependencyNodes())
 	}
@@ -62,7 +63,7 @@ class Demo(ConanFile):
 		t.Fatalf("ResolveGraph returned error: %v", err)
 	}
 	graph := result.Graphs.Entries[0].Graph
-	fmtPkg, ok := graph.DependencyNode("fmt@10.2.1")
+	fmtPkg, ok := testnodes.FindDep(graph, "fmt@10.2.1")
 	if !ok {
 		t.Fatalf("expected fmt package, got %v", graph.DependencyNodes())
 	}

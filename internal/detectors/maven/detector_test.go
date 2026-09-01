@@ -3,6 +3,7 @@ package maven
 import (
 	"context"
 	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -43,7 +44,7 @@ func TestDepGraphFromMavenTGF(t *testing.T) {
 
 	// The TGF block root is the project's own artifact: first-party, so
 	// enrichment never queries it; its dependencies stay enrichable.
-	rootNode, _ := g.Node("com.example:demo-app@1.0.0")
+	rootNode, _ := testnodes.Find(g, "com.example:demo-app@1.0.0")
 	if !nodes.IsProjectOwned(rootNode) {
 		t.Fatalf("project artifact must be first-party and not enrichable, got %#v", mustDep(t, rootNode).Coordinates)
 	}

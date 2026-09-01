@@ -2,6 +2,7 @@ package yarn
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -40,10 +41,10 @@ tweetnacl@^0.14.0:
 	if graph.Size() != 4 {
 		t.Fatalf("expected root plus every lockfile package, got %d", graph.Size())
 	}
-	if dependency, ok := graph.DependencyNode("bcrypt-pbkdf@1.0.2"); !ok || dependency.Relationship != sdk.DependencyRelationshipUnknown {
+	if dependency, ok := testnodes.FindDep(graph, "bcrypt-pbkdf@1.0.2"); !ok || dependency.Relationship != sdk.DependencyRelationshipUnknown {
 		t.Fatalf("expected unreferenced bcrypt-pbkdf entry with unknown relationship, got %#v", dependency)
 	}
-	if dependency, ok := graph.DependencyNode("tweetnacl@0.14.5"); !ok || dependency.Relationship != sdk.DependencyRelationshipUnknown {
+	if dependency, ok := testnodes.FindDep(graph, "tweetnacl@0.14.5"); !ok || dependency.Relationship != sdk.DependencyRelationshipUnknown {
 		t.Fatalf("expected unreferenced tweetnacl entry with unknown relationship, got %#v", dependency)
 	}
 	roots := graph.Roots()
@@ -82,11 +83,11 @@ func TestYarnBerryParsesQuotedNamesAliasesAndDependencies(t *testing.T) {
 		t.Fatal(err)
 	}
 	graph := result.Graphs.Entries[0].Graph
-	realPackage, ok := graph.DependencyNode("real-package@1.2.3")
+	realPackage, ok := testnodes.FindDep(graph, "real-package@1.2.3")
 	if !ok || realPackage.Source != sdk.DependencySourceRegistry {
 		t.Fatalf("real package = %#v", realPackage)
 	}
-	esbuild, ok := graph.Node("@esbuild/aix-ppc64@0.25.0")
+	esbuild, ok := testnodes.Find(graph, "@esbuild/aix-ppc64@0.25.0")
 	if !ok {
 		t.Fatalf("expected canonical scoped package name; nodes=%#v", graph.DependencyNodes())
 	}
@@ -120,7 +121,7 @@ lodash@4.17.21:
 	}
 	graph := result.Graphs.Entries[0].Graph
 	for _, id := range []string{"lodash@3.10.1", "lodash@4.17.21"} {
-		if _, ok := graph.Node(id); !ok {
+		if _, ok := testnodes.Find(graph, id); !ok {
 			t.Fatalf("missing %s", id)
 		}
 	}
@@ -171,7 +172,7 @@ request@^2.70.0, request@^2.72.0:
 		t.Fatal(err)
 	}
 	graph := result.Graphs.Entries[0].Graph
-	parent, ok := graph.Node("parent@1.0.0")
+	parent, ok := testnodes.Find(graph, "parent@1.0.0")
 	if !ok {
 		t.Fatal("missing parent")
 	}

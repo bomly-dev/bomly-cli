@@ -1,6 +1,7 @@
 package gomod
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -48,12 +49,12 @@ func TestGoModFixture_ParseModAndGraph(t *testing.T) {
 		"github.com/stretchr/testify@v1.9.0",
 		"github.com/davecgh/go-spew@v1.1.1",
 	} {
-		if _, ok := g.Node(want); !ok {
+		if _, ok := testnodes.Find(g, want); !ok {
 			t.Errorf("missing node %s; present: %v", want, nodeIDs(g))
 		}
 	}
 	// stdlib must never appear as a dependency node.
-	if _, ok := g.Node("fmt"); ok {
+	if _, ok := testnodes.Find(g, "fmt"); ok {
 		t.Error("stdlib package fmt should not be a node")
 	}
 }
@@ -86,7 +87,7 @@ func nodeIDs(g *sdk.Graph) []string {
 
 func requireScope(t *testing.T, g *sdk.Graph, id string, scope sdk.Scope) {
 	t.Helper()
-	n, ok := g.Node(id)
+	n, ok := testnodes.Find(g, id)
 	if !ok {
 		t.Fatalf("missing node %s", id)
 	}

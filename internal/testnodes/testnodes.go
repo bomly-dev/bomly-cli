@@ -15,6 +15,7 @@ package testnodes
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/bomly-dev/bomly-sdk"
 )
@@ -88,4 +89,74 @@ func Manifest(path string, kind sdk.ManifestKind) *sdk.ManifestNode {
 		panic(fmt.Sprintf("testnodes: build manifest node %q: %v", path, err))
 	}
 	return node
+}
+
+// Find returns the node a "name@version" label names, and whether one matched.
+//
+// Node IDs are canonical package URLs now (ADR-0041), so a test can no longer
+// look a node up by the label it was built from. Rewriting every lookup to a
+// PURL string would spread the identity rules across hundreds of literals and
+// hide, rather than pin, what each case is about -- so the label stays and
+// this resolves it.
+//
+// A label matches a node's ID outright, or its name and version in any of the
+// spellings a node answers to: the bare name, the ecosystem-native name, and
+// the display name. A label with no version matches on name alone, which is
+// what a module or manifest label looks like.
+func Find(g *sdk.Graph, label string) (sdk.GraphNode, bool) {
+	if g == nil {
+		return nil, false
+	}
+	if node, ok := g.Node(label); ok {
+		return node, true
+	}
+	name, version := splitLabel(label)
+	for _, node := range g.Nodes() {
+		if labelMatches(node, name, version) {
+			return node, true
+		}
+	}
+	return nil, false
+}
+
+// FindDep is Find narrowed to a dependency node.
+func FindDep(g *sdk.Graph, label string) (*sdk.DependencyNode, bool) {
+	node, ok := Find(g, label)
+	if !ok {
+		return nil, false
+	}
+	dep, isDependency := node.(*sdk.DependencyNode)
+	return dep, isDependency
+}
+
+// splitLabel splits "name@version" at the last "@", so a scoped npm name
+// ("@scope/pkg@1.2.3") splits where it should.
+func splitLabel(label string) (name, version string) {
+	if at := strings.LastIndex(label, "@"); at > 0 {
+		return label[:at], label[at+1:]
+	}
+	return label, ""
+}
+
+func labelMatches(node sdk.GraphNode, name, version string) bool {
+	var coords sdk.Coordinates
+	switch typed := node.(type) {
+	case *sdk.DependencyNode:
+		coords = typed.Coordinates
+	case *sdk.ModuleNode:
+		coords = typed.Coordinates
+	case *sdk.ManifestNode:
+		return version == "" && typed.Path == name
+	default:
+		return false
+	}
+	if version != "" && coords.Version != version {
+		return false
+	}
+	for _, spelling := range []string{coords.Name, coords.EcosystemName(), coords.DisplayName()} {
+		if spelling == name {
+			return true
+		}
+	}
+	return false
 }

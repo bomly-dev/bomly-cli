@@ -3,6 +3,7 @@ package npm
 import (
 	"context"
 	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -48,11 +49,11 @@ func TestNPMLockfileWorkspacesEmitsPerModuleEntries(t *testing.T) {
 	// The web member reaches its own deps, the lib member (a workspace link
 	// dependency), and lib's transitive dep — but never the root's lodash.
 	for _, want := range []string{"web@0.2.0", "lib@1.0.0", "shared-transitive@2.0.0", "member-dev-tool@3.1.0"} {
-		if _, ok := web.Graph.Node(want); !ok {
+		if _, ok := testnodes.Find(web.Graph, want); !ok {
 			t.Fatalf("expected %q in web member graph, nodes missing", want)
 		}
 	}
-	if _, ok := web.Graph.Node("lodash@4.17.21"); ok {
+	if _, ok := testnodes.Find(web.Graph, "lodash@4.17.21"); ok {
 		t.Fatal("web member graph must not contain the root-only dependency lodash")
 	}
 
@@ -63,10 +64,10 @@ func TestNPMLockfileWorkspacesEmitsPerModuleEntries(t *testing.T) {
 
 	// The root entry carries the root node and its own deps only.
 	root := entries[0]
-	if _, ok := root.Graph.Node("lodash@4.17.21"); !ok {
+	if _, ok := testnodes.Find(root.Graph, "lodash@4.17.21"); !ok {
 		t.Fatal("expected lodash in root entry graph")
 	}
-	if _, ok := root.Graph.Node("web@0.2.0"); ok {
+	if _, ok := testnodes.Find(root.Graph, "web@0.2.0"); ok {
 		t.Fatal("root entry graph must not contain workspace members")
 	}
 }
@@ -78,10 +79,10 @@ func TestNPMLockfileWorkspaceLinkEntriesDoNotDuplicateNodes(t *testing.T) {
 	}
 	// The link alias node_modules/lib must resolve to the member node, not a
 	// synthetic versionless "lib" package.
-	if _, ok := graphs.graph.Node("lib"); ok {
+	if _, ok := testnodes.Find(graphs.graph, "lib"); ok {
 		t.Fatal("unexpected versionless link ghost node for lib")
 	}
-	member, ok := graphs.graph.DependencyNode("lib@1.0.0")
+	member, ok := testnodes.FindDep(graphs.graph, "lib@1.0.0")
 	if !ok {
 		t.Fatal("expected lib member node")
 	}
@@ -109,7 +110,7 @@ func TestNPMLockfileWorkspaceMemberDevDependenciesScoped(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromNPMLockfile() error = %v", err)
 	}
-	devDep, ok := graphs.graph.DependencyNode("member-dev-tool@3.1.0")
+	devDep, ok := testnodes.FindDep(graphs.graph, "member-dev-tool@3.1.0")
 	if !ok {
 		t.Fatal("expected member devDependency in graph")
 	}

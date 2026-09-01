@@ -2,6 +2,7 @@ package pub
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -24,7 +25,7 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	pkg, ok := g.DependencyNode("test@1.25.8")
+	pkg, ok := testnodes.FindDep(g, "test@1.25.8")
 	if !ok {
 		t.Fatal("expected test package")
 	}
@@ -68,7 +69,7 @@ func TestDepGraphFromLockScopesDirectDependencies(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
-	root, ok := g.Node("demo@1.0.0")
+	root, ok := testnodes.Find(g, "demo@1.0.0")
 	if !ok {
 		t.Fatal("expected root package")
 	}
@@ -79,7 +80,7 @@ func TestDepGraphFromLockScopesDirectDependencies(t *testing.T) {
 	if len(deps) != 3 {
 		t.Fatalf("expected three direct dependencies, got %d", len(deps))
 	}
-	dev, ok := g.DependencyNode("test@1.25.8")
+	dev, ok := testnodes.FindDep(g, "test@1.25.8")
 	if !ok {
 		t.Fatal("expected test package")
 	}
@@ -150,7 +151,7 @@ func TestDepGraphFromPubDepsJSONBuildsTransitiveScopes(t *testing.T) {
 		t.Fatalf("depGraphFromPubDepsJSON() error = %v", err)
 	}
 
-	collection, ok := graph.Node("collection@1.18.0")
+	collection, ok := testnodes.Find(graph, "collection@1.18.0")
 	if !ok {
 		t.Fatalf("expected collection package, got %v", graph.DependencyNodes())
 	}
@@ -158,7 +159,7 @@ func TestDepGraphFromPubDepsJSONBuildsTransitiveScopes(t *testing.T) {
 		t.Fatalf("expected shared transitive dependency to be runtime, got %q", string(mustDep(t, collection).PrimaryScope()))
 	}
 
-	testPkg, ok := graph.Node("test@1.25.8")
+	testPkg, ok := testnodes.Find(graph, "test@1.25.8")
 	if !ok {
 		t.Fatal("expected test package")
 	}

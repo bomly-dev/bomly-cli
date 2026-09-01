@@ -1,6 +1,7 @@
 package ruby
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"testing"
 )
@@ -73,7 +74,7 @@ DEPENDENCIES
 		{id: "local-gem@0.1.0"},
 	}
 	for _, tc := range cases {
-		node, ok := graph.Node(tc.id)
+		node, ok := testnodes.Find(graph, tc.id)
 		if !ok {
 			t.Fatalf("expected %s in graph", tc.id)
 		}

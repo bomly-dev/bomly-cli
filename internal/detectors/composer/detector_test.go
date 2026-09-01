@@ -2,6 +2,7 @@ package composer
 
 import (
 	"context"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 
 	"github.com/bomly-dev/bomly-sdk"
@@ -22,14 +23,14 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	runtimePkg, ok := g.DependencyNode("monolog:monolog@3.7.0")
+	runtimePkg, ok := testnodes.FindDep(g, "monolog:monolog@3.7.0")
 	if !ok {
 		t.Fatal("expected monolog package")
 	}
 	if string(runtimePkg.PrimaryScope()) != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", string(runtimePkg.PrimaryScope()))
 	}
-	devPkg, ok := g.DependencyNode("phpunit:phpunit@11.4.3")
+	devPkg, ok := testnodes.FindDep(g, "phpunit:phpunit@11.4.3")
 	if !ok {
 		t.Fatal("expected phpunit package")
 	}
@@ -89,7 +90,7 @@ func TestDepGraphFromLock(t *testing.T) {
 		t.Fatalf("expected 5 packages, got %d", g.Size())
 	}
 
-	shared, ok := g.DependencyNode("vendor:shared@3.4.5")
+	shared, ok := testnodes.FindDep(g, "vendor:shared@3.4.5")
 	if !ok {
 		t.Fatal("expected shared package to exist")
 	}
@@ -97,7 +98,7 @@ func TestDepGraphFromLock(t *testing.T) {
 		t.Fatalf("expected shared scope runtime, got %q", got)
 	}
 
-	devTool, ok := g.DependencyNode("vendor:dev-tool@4.0.0")
+	devTool, ok := testnodes.FindDep(g, "vendor:dev-tool@4.0.0")
 	if !ok {
 		t.Fatal("expected dev package to exist")
 	}

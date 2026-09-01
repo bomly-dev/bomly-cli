@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -53,7 +54,7 @@ source = "git+https://github.com/external/helper?rev=main#aaaabbbbccccddddeeeeff
 		t.Fatalf("depGraphFromLockWorkspace() error = %v", err)
 	}
 
-	member, ok := graph.DependencyNode("helper@0.1.0")
+	member, ok := testnodes.FindDep(graph, "helper@0.1.0")
 	if !ok {
 		t.Fatalf("expected workspace member helper@0.1.0 in graph: %s", graph.PrettyString())
 	}
@@ -70,7 +71,7 @@ source = "git+https://github.com/external/helper?rev=main#aaaabbbbccccddddeeeeff
 		t.Fatalf("modules = %+v, want the member module rooted at %q", modules, member.NodeID())
 	}
 
-	external, ok := graph.DependencyNode("helper@1.0.0")
+	external, ok := testnodes.FindDep(graph, "helper@1.0.0")
 	if !ok {
 		t.Fatalf("expected external helper@1.0.0 in graph: %s", graph.PrettyString())
 	}
@@ -117,14 +118,14 @@ source = "git+https://github.com/external/helper#aaaabbbbccccddddeeeeffff0000111
 	if err != nil {
 		t.Fatalf("depGraphFromLockWorkspace() error = %v", err)
 	}
-	member, ok := graph.DependencyNode("helper@0.1.0")
+	member, ok := testnodes.FindDep(graph, "helper@0.1.0")
 	if !ok {
 		t.Fatalf("expected member helper@0.1.0 (version from its lock record): %s", graph.PrettyString())
 	}
 	if member.Type != sdk.PackageTypeApplication || member.ResolvedURL != "" {
 		t.Fatalf("member = %+v, want an application node with no external source", member)
 	}
-	if _, ok := graph.Node("helper@1.0.0"); !ok {
+	if _, ok := testnodes.Find(graph, "helper@1.0.0"); !ok {
 		t.Fatalf("expected external helper@1.0.0 to stay in the graph: %s", graph.PrettyString())
 	}
 }
@@ -173,7 +174,7 @@ version = "1.0.0"
 		t.Fatalf("expected one member entry, got %d", len(entries))
 	}
 	graph := entries[0].Graph
-	member, ok := graph.DependencyNode("helper@1.0.0")
+	member, ok := testnodes.FindDep(graph, "helper@1.0.0")
 	if !ok || member.Type != sdk.PackageTypeApplication {
 		t.Fatalf("expected member helper@1.0.0 as an application node: %s", graph.PrettyString())
 	}
@@ -203,12 +204,12 @@ version = "0.2.0"
 	if len(modules) != 1 {
 		t.Fatalf("modules = %+v, want one member", modules)
 	}
-	member, ok := graph.DependencyNode(modules[0].rootID)
+	member, ok := testnodes.FindDep(graph, modules[0].rootID)
 	if !ok || member.Type != sdk.PackageTypeApplication || member.Version != "" {
 		t.Fatalf("member = %+v, want an application node under its manifest identity", member)
 	}
 	for _, id := range []string{"helper@0.1.0", "helper@0.2.0"} {
-		node, ok := graph.DependencyNode(id)
+		node, ok := testnodes.FindDep(graph, id)
 		if !ok {
 			t.Fatalf("expected ambiguous record %q to stay in the graph: %s", id, graph.PrettyString())
 		}
@@ -253,7 +254,7 @@ serde = "1"
 	if err != nil {
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
-	root, ok := graph.Node("app@1.2.3")
+	root, ok := testnodes.Find(graph, "app@1.2.3")
 	if !ok || !nodes.IsProjectOwned(root) {
 		t.Fatalf("expected first-party root app@1.2.3: %s", graph.PrettyString())
 	}
@@ -339,14 +340,14 @@ func TestCargoMetadataWorkspaceMemberNameCollisionKeepsBothIdentities(t *testing
 	if err != nil {
 		t.Fatalf("depGraphFromMetadata() error = %v", err)
 	}
-	member, ok := graph.Node("helper@0.1.0")
+	member, ok := testnodes.Find(graph, "helper@0.1.0")
 	if !ok {
 		t.Fatalf("expected member helper@0.1.0: %s", graph.PrettyString())
 	}
 	if mustDep(t, member).Type != sdk.PackageTypeApplication || mustDep(t, member).ResolvedURL != "" {
 		t.Fatalf("member = %+v, want an application node with no external source", member)
 	}
-	external, ok := graph.Node("helper@1.0.0")
+	external, ok := testnodes.Find(graph, "helper@1.0.0")
 	if !ok {
 		t.Fatalf("expected external helper@1.0.0: %s", graph.PrettyString())
 	}
@@ -378,7 +379,7 @@ func TestCargoMetadataWorkspaceMemberKeepsPlainIDOnExactCollision(t *testing.T) 
 	if err != nil {
 		t.Fatalf("depGraphFromMetadata() error = %v", err)
 	}
-	member, ok := graph.Node("helper@1.0.0")
+	member, ok := testnodes.Find(graph, "helper@1.0.0")
 	if !ok {
 		t.Fatalf("expected plain helper@1.0.0 node: %s", graph.PrettyString())
 	}
@@ -434,14 +435,14 @@ dependencies = [
 	if err != nil {
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
-	root, ok := graph.Node("app@0.1.0")
+	root, ok := testnodes.Find(graph, "app@0.1.0")
 	if !ok || !nodes.IsProjectOwned(root) {
 		t.Fatalf("expected first-party root app@0.1.0: %s", graph.PrettyString())
 	}
 	if origin := originOf(mustDep(t, root)); !origin.Empty() {
 		t.Fatalf("root claims external origin %+v", origin)
 	}
-	external, ok := graph.Node("app@2.0.0")
+	external, ok := testnodes.Find(graph, "app@2.0.0")
 	if !ok {
 		t.Fatalf("expected external app@2.0.0 to stay in the graph: %s", graph.PrettyString())
 	}
@@ -551,7 +552,7 @@ source = "git+https://github.com/b/helper#bbbbccccddddeeeeffff000011112222333344
 		t.Fatalf("consumer dependencies = %v, want exactly the b-remote helper occurrence", consumerDeps)
 	}
 	for id := range consumerDeps {
-		child, ok := graph.Node(id)
+		child, ok := testnodes.Find(graph, id)
 		if !ok {
 			t.Fatalf("consumer dependency %q missing from graph", id)
 		}

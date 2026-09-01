@@ -1,6 +1,7 @@
 package maven
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -139,7 +140,7 @@ func TestMavenPerModuleEntriesFromTGF(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected module-a entry, got %v", byPath)
 	}
-	if _, ok := a.Graph.Node("com.bomly:module-a@1.0.0"); !ok {
+	if _, ok := testnodes.Find(a.Graph, "com.bomly:module-a@1.0.0"); !ok {
 		names := []string{}
 		for _, pkg := range a.Graph.DependencyNodes() {
 			names = append(names, pkg.NodeID())
@@ -270,11 +271,11 @@ func TestMavenUnmatchedTGFRootsFallBackToRootEntry(t *testing.T) {
 		t.Fatalf("expected first entry to be the root manifest, got %q", rootEntry.Manifest.Path)
 	}
 	for _, want := range []string{"com.bomly:module-b@1.0.0", "com.bomly:module-c@1.0.0"} {
-		if _, ok := rootEntry.Graph.Node(want); !ok {
+		if _, ok := testnodes.Find(rootEntry.Graph, want); !ok {
 			t.Fatalf("expected unmatched module root %q in the root entry", want)
 		}
 	}
-	if _, ok := rootEntry.Graph.Node("com.bomly:module-a@1.0.0"); ok {
+	if _, ok := testnodes.Find(rootEntry.Graph, "com.bomly:module-a@1.0.0"); ok {
 		t.Fatal("matched module must not stay in the root entry")
 	}
 }

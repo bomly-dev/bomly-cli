@@ -1,6 +1,7 @@
 package bun
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -42,9 +43,9 @@ func TestDepGraphFromBunLockfile(t *testing.T) {
 	if len(realPackage.Digests) != 1 || realPackage.Digests[0].Value != "abc" {
 		t.Fatalf("expected tuple integrity metadata, got %#v", realPackage.Digests)
 	}
-	root, _ := graphs.graph.Node(graphs.rootID)
+	root, _ := testnodes.Find(graphs.graph, graphs.rootID)
 	assertEdge(t, graphs.graph, mustDep(t, root), realPackage)
-	workspace, _ := graphs.graph.Node(graphs.modules[0].rootID)
+	workspace, _ := testnodes.Find(graphs.graph, graphs.modules[0].rootID)
 	assertEdge(t, graphs.graph, mustDep(t, root), mustDep(t, workspace))
 	assertEdge(t, graphs.graph, mustDep(t, workspace), realPackage)
 	tool := dependencyByNameVersion(graphs.graph, "tool", "1.2.0")

@@ -303,7 +303,7 @@ func TestDeriveBuildsCanonicalOccurrenceSuggestions(t *testing.T) {
 		{"root", "workspace"},
 		{"root", "unavailable"},
 	} {
-		if err := graph.AddEdge(edge[0], edge[1]); err != nil {
+		if err := graph.AddEdge(testnodes.ID(graph, edge[0]), testnodes.ID(graph, edge[1])); err != nil {
 			t.Fatalf("AddEdge(%v) error = %v", edge, err)
 		}
 	}
@@ -345,14 +345,14 @@ func TestDeriveBuildsCanonicalOccurrenceSuggestions(t *testing.T) {
 		},
 		response: sdk.RemediationHintResponse{Hints: []sdk.RemediationHint{
 			{
-				DependencyRef: "direct",
+				DependencyRef: "pkg:npm/direct@1.0.0",
 				ManifestPath:  manifestPath,
 				Strategies: []sdk.RemediationStrategyHint{{
 					Action: sdk.RemediationActionDirectBump,
 				}},
 			},
 			{
-				DependencyRef: "transitive",
+				DependencyRef: "pkg:npm/transitive@1.0.0",
 				ManifestPath:  manifestPath,
 				Strategies: []sdk.RemediationStrategyHint{{
 					Action: sdk.RemediationActionTransitiveOverride,
@@ -360,21 +360,21 @@ func TestDeriveBuildsCanonicalOccurrenceSuggestions(t *testing.T) {
 				}},
 			},
 			{
-				DependencyRef: "refresh",
+				DependencyRef: "pkg:npm/refresh@1.0.0",
 				ManifestPath:  manifestPath,
 				Strategies: []sdk.RemediationStrategyHint{{
 					Action: sdk.RemediationActionLockfileRefresh,
 				}},
 			},
 			{
-				DependencyRef: "unknown",
+				DependencyRef: "pkg:npm/unknown@1.0.0",
 				ManifestPath:  manifestPath,
 				Strategies: []sdk.RemediationStrategyHint{{
 					Action: sdk.RemediationActionDirectBump,
 				}},
 			},
 			{
-				DependencyRef: "workspace",
+				DependencyRef: "pkg:npm/workspace@1.0.0",
 				ManifestPath:  manifestPath,
 				Strategies: []sdk.RemediationStrategyHint{{
 					Action: sdk.RemediationActionDirectBump,
@@ -406,15 +406,19 @@ func TestDeriveBuildsCanonicalOccurrenceSuggestions(t *testing.T) {
 		t.Fatalf("detector mutated subproject input: %#v", detection.SubprojectInfo)
 	}
 
-	assertSuggestion(t, registry, "pkg:npm/direct@1.0.0", sdk.RemediationActionDirectBump, "direct", "")
-	assertSuggestion(t, registry, "pkg:npm/transitive@1.0.0", sdk.RemediationActionTransitiveOverride, "parent", `add "overrides": {"transitive": "1.2.0"}`)
-	assertSuggestion(t, registry, "pkg:npm/refresh@1.0.0", sdk.RemediationActionLockfileRefresh, "parent", "")
-	assertSuggestion(t, registry, "pkg:npm/unknown@1.0.0", sdk.RemediationActionManualReview, "unknown", "")
-	assertSuggestion(t, registry, "pkg:npm/workspace@1.0.0", sdk.RemediationActionManualReview, "workspace", "")
-	assertSuggestion(t, registry, "pkg:npm/unavailable@1.0.0", sdk.RemediationActionNoFixUpstream, "unavailable", "")
+	// Targets are node IDs, and a node ID is a canonical package URL now.
+	assertSuggestion(t, registry, "pkg:npm/direct@1.0.0", sdk.RemediationActionDirectBump, "pkg:npm/direct@1.0.0", "")
+	assertSuggestion(t, registry, "pkg:npm/transitive@1.0.0", sdk.RemediationActionTransitiveOverride, "pkg:npm/parent@1.0.0", `add "overrides": {"transitive": "1.2.0"}`)
+	assertSuggestion(t, registry, "pkg:npm/refresh@1.0.0", sdk.RemediationActionLockfileRefresh, "pkg:npm/parent@1.0.0", "")
+	assertSuggestion(t, registry, "pkg:npm/unknown@1.0.0", sdk.RemediationActionManualReview, "pkg:npm/unknown@1.0.0", "")
+	assertSuggestion(t, registry, "pkg:npm/workspace@1.0.0", sdk.RemediationActionManualReview, "pkg:npm/workspace@1.0.0", "")
+	assertSuggestion(t, registry, "pkg:npm/unavailable@1.0.0", sdk.RemediationActionNoFixUpstream, "pkg:npm/unavailable@1.0.0", "")
 }
 
-func TestDeriveGroupsEquivalentOccurrencesWithoutCollapsingManifests(t *testing.T) {
+// One package reached from two places in a manifest is one node -- the alias
+// entry folds into it -- while the same package in another manifest keeps its
+// own entry, so a suggestion is still made per manifest.
+func TestDeriveFoldsWithinAManifestAndKeepsManifestsApart(t *testing.T) {
 	const purl = "pkg:npm/example@1.0.0"
 	firstGraph := sdk.New()
 	for _, dependency := range []*sdk.DependencyNode{
@@ -423,17 +427,17 @@ func TestDeriveGroupsEquivalentOccurrencesWithoutCollapsingManifests(t *testing.
 		testDependency("example", purl, sdk.DependencyRelationshipTransitive, sdk.DependencySourceRegistry),
 		testDependency("alias-example", purl, sdk.DependencyRelationshipTransitive, sdk.DependencySourceRegistry),
 	} {
-		if err := firstGraph.AddNode(dependency); err != nil {
-			t.Fatalf("AddNode(%s) error = %v", dependency.NodeID(), err)
+		// Inserted, not added: the alias shares the package URL, so it folds
+		// into the node already there rather than failing as a duplicate.
+		if _, err := firstGraph.InsertNode(dependency); err != nil {
+			t.Fatalf("InsertNode(%s) error = %v", dependency.NodeID(), err)
 		}
 	}
 	if err := firstGraph.AddEdge(testnodes.ID(firstGraph, "root"), testnodes.ID(firstGraph, "parent")); err != nil {
 		t.Fatalf("AddEdge(parent) error = %v", err)
 	}
-	for _, dependencyRef := range []string{"example", "alias-example"} {
-		if err := firstGraph.AddEdge("parent", dependencyRef); err != nil {
-			t.Fatalf("AddEdge(%q) error = %v", dependencyRef, err)
-		}
+	if err := firstGraph.AddEdge(testnodes.ID(firstGraph, "parent"), purl); err != nil {
+		t.Fatalf("AddEdge(example) error = %v", err)
 	}
 
 	secondGraph := sdk.New()
@@ -469,9 +473,11 @@ func TestDeriveGroupsEquivalentOccurrencesWithoutCollapsingManifests(t *testing.
 			}},
 		},
 		response: sdk.RemediationHintResponse{Hints: []sdk.RemediationHint{
-			overrideHint("example", entries[0].Manifest.Path),
-			overrideHint("alias-example", entries[0].Manifest.Path),
-			overrideHint("workspace-example", entries[1].Manifest.Path),
+			// Both first-manifest hints name the one folded node, so the
+			// second is a duplicate rather than a second occurrence.
+			overrideHint(purl, entries[0].Manifest.Path),
+			overrideHint(purl, entries[0].Manifest.Path),
+			overrideHint(purl, entries[1].Manifest.Path),
 		}},
 	}
 	registry := sdk.NewPackageRegistry()
@@ -503,11 +509,11 @@ func TestDeriveGroupsEquivalentOccurrencesWithoutCollapsingManifests(t *testing.
 		t.Fatalf("suggestions = %#v, want one group per manifest", pkg.Remediation.Suggestions)
 	}
 	if got := pkg.Remediation.Suggestions[0]; got.ManifestPath != "package-lock.json" ||
-		!reflect.DeepEqual(got.AffectedDependencyRefs, []string{"alias-example", "example"}) {
+		!reflect.DeepEqual(got.AffectedDependencyRefs, []string{purl}) {
 		t.Fatalf("root manifest suggestion = %#v", got)
 	}
 	if got := pkg.Remediation.Suggestions[1]; got.ManifestPath != "packages/web/package-lock.json" ||
-		!reflect.DeepEqual(got.AffectedDependencyRefs, []string{"workspace-example"}) {
+		!reflect.DeepEqual(got.AffectedDependencyRefs, []string{purl}) {
 		t.Fatalf("workspace manifest suggestion = %#v", got)
 	}
 }
@@ -568,18 +574,20 @@ func TestInferredPlacementCollapsesEqualLengthDiamondPaths(t *testing.T) {
 			fmt.Sprintf("a-%02d", layer),
 			fmt.Sprintf("b-%02d", layer),
 		}
+		nodeIDs := make([]string, 0, len(current))
 		for _, id := range current {
 			node := testDependency(id, "pkg:npm/"+id+"@1.0.0", "", sdk.DependencySourceRegistry)
 			if err := graph.AddNode(node); err != nil {
 				t.Fatal(err)
 			}
+			nodeIDs = append(nodeIDs, node.NodeID())
 			for _, parent := range previous {
-				if err := graph.AddEdge(parent, id); err != nil {
+				if err := graph.AddEdge(parent, node.NodeID()); err != nil {
 					t.Fatal(err)
 				}
 			}
 		}
-		previous = current
+		previous = nodeIDs
 	}
 	target := testDependency("target", "pkg:npm/target@1.0.0", "", sdk.DependencySourceRegistry)
 	if err := graph.AddNode(target); err != nil {
@@ -592,7 +600,7 @@ func TestInferredPlacementCollapsesEqualLengthDiamondPaths(t *testing.T) {
 	}
 
 	relationship, directTarget, ok := inferredPlacement(graph, target.NodeID())
-	if !ok || relationship != sdk.DependencyRelationshipTransitive || directTarget != "a-00" {
+	if !ok || relationship != sdk.DependencyRelationshipTransitive || directTarget != "pkg:npm/a-00@1.0.0" {
 		t.Fatalf("diamond placement = (%q, %q, %t)", relationship, directTarget, ok)
 	}
 }
@@ -736,7 +744,7 @@ func TestDeriveRejectsUnadvertisedAndUnknownHints(t *testing.T) {
 				}},
 			},
 			{
-				DependencyRef: "direct",
+				DependencyRef: "pkg:npm/direct@1.0.0",
 				ManifestPath:  "package-lock.json",
 				Strategies: []sdk.RemediationStrategyHint{{
 					Action: sdk.RemediationActionTransitiveOverride,

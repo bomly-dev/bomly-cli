@@ -58,7 +58,7 @@ func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T)
 	})
 	// A manifest is a manifest node now; there is no dependency node typed
 	// "manifest" for a matcher to consider (ADR-0041).
-	manifest := testnodes.Manifest("package.json", sdk.ManifestKindLockfile)
+	manifest := testnodes.Manifest("package.json", sdk.ManifestKindPackageJSON)
 	registryRelease := matchTestDependency("registry-package", "1.0.0", "", sdk.DependencySourceRegistry)
 	registryRelease.Relationship = sdk.DependencyRelationshipUnknown
 	legacy := matchTestDependency("legacy-package", "1.0.0", "", "")

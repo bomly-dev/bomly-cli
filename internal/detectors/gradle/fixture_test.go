@@ -67,8 +67,10 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 		t.Fatalf("depGraphFromGradleOutput: %v", err)
 	}
 
-	if parsed.rootID != "demo" {
-		t.Fatalf("root ID = %q, want demo", parsed.rootID)
+	// The root is the project's own module, so its ID carries the build
+	// script that declares it rather than the bare project name (ADR-0041).
+	if parsed.rootID != "module:build.gradle#demo" {
+		t.Fatalf("root ID = %q, want the declaring module ID", parsed.rootID)
 	}
 	if len(parsed.modules) != 2 {
 		t.Fatalf("expected both subprojects to be seen, got %#v", parsed.modules)
@@ -112,9 +114,10 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 	requireGradleEdge(t, appGraph, appEntry.rootID, "org.apache.commons:commons-lang3@3.14.0")
 	requireGradleEdge(t, appGraph, libEntry.rootID, "org.slf4j:slf4j-api@2.0.12")
 
-	// The :lib reference in app's graph is a project-local instance carrying
-	// the section scope — it shares the ID of lib's own root, but not the
-	// node instance, so app-side scopes cannot leak into lib's entry.
+	// The :lib reference in app's graph is a project-local instance of the
+	// same module: it shares lib's root ID -- which is what lets
+	// consolidation merge the two into one component -- but not the node,
+	// so nothing app-side can be written onto lib's own entry.
 	libRef, ok := testnodes.Find(appGraph, libEntry.rootID)
 	if !ok {
 		t.Fatalf("missing :lib reference node in app graph")
@@ -123,14 +126,12 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 	if libRef == libOwnRoot {
 		t.Fatal("project reference must not share the module root node instance")
 	}
-	if !nodes.IsProjectOwned(libRef) {
-		t.Fatalf("project reference node = %#v, want first-party application", mustDep(t, libRef).Coordinates)
-	}
-	if got := mustDep(t, libRef).PrimaryScope(); got != sdk.ScopeRuntime {
-		t.Fatalf(":lib reference scope in app graph = %q, want runtime", got)
-	}
-	if got := mustDep(t, libOwnRoot).PrimaryScope(); got != sdk.ScopeUnknown {
-		t.Fatalf("lib's own root scope = %q, want unknown (no app-side leak)", got)
+	// Both are the build's own code. Neither carries a scope: a module is not
+	// a consumed package, so the section's scope rides on the edge instead --
+	// which is also why the app-side scope can no longer leak into lib.
+	if !nodes.IsProjectOwned(libRef) || !nodes.IsProjectOwned(libOwnRoot) {
+		t.Fatalf("project reference = %s node, lib root = %s node; want the build's own modules",
+			libRef.Kind(), libOwnRoot.Kind())
 	}
 
 	// lib's graph: only its own dependency, with lib-local scope.
@@ -146,7 +147,7 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 	// No placeholder nodes — both the resolved `project :lib` token and the
 	// declared-only `project lib (n)` form resolve to the reference node.
 	for _, placeholder := range []string{":lib", "lib"} {
-		if _, ok := testnodes.Find(appGraph, placeholder); ok {
+		if _, ok := testnodes.FindDep(appGraph, placeholder); ok {
 			t.Fatalf("expected project token to resolve to the module identity, found placeholder node %q", placeholder)
 		}
 	}
@@ -185,7 +186,7 @@ func TestGradleMultiProjectRuntimeScopeFilterKeepsProjectEdges(t *testing.T) {
 	appGraph := filtered.Graphs.Entries[1].Graph
 	appEntry := parsed.modules[0]
 	libEntry := parsed.modules[1]
-	requireGradleEdge(t, appGraph, appEntry.rootID, libEntry.rootID)
+	requireGradleEdgeByID(t, appGraph, appEntry.rootID, libEntry.rootID)
 	requireGradleEdge(t, appGraph, libEntry.rootID, "org.slf4j:slf4j-api@2.0.12")
 	if _, ok := testnodes.Find(appGraph, "org.junit.jupiter:junit-jupiter@5.10.2"); ok {
 		t.Fatal("runtime filter must drop the test-only dependency")
@@ -209,6 +210,22 @@ func TestGradleMultiProjectUnknownProjectTokenFallsBack(t *testing.T) {
 	if len(parsed.modules) != 0 {
 		t.Fatalf("expected no module roots, got %#v", parsed.modules)
 	}
+}
+
+// requireGradleEdgeByID asserts an edge between two node IDs, for the module
+// roots whose IDs the parser reports rather than labels a case names.
+func requireGradleEdgeByID(t *testing.T, g *sdk.Graph, fromID, toID string) {
+	t.Helper()
+	deps, err := g.DirectDependencies(fromID)
+	if err != nil {
+		t.Fatalf("dependencies(%s): %v", fromID, err)
+	}
+	for _, dep := range deps {
+		if dep.NodeID() == toID {
+			return
+		}
+	}
+	t.Errorf("expected edge %s -> %s", fromID, toID)
 }
 
 func requireGradleEdge(t *testing.T, g *sdk.Graph, fromID, toID string) {

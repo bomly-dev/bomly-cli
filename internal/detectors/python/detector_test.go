@@ -578,7 +578,7 @@ func TestAttachDeclaredPositions(t *testing.T) {
 		"numpy":    6,
 	}
 	for name, wantLine := range cases {
-		pkg, _ := g.Node(name + "@0.0.0")
+		pkg, _ := testnodes.Find(g, name+"@0.0.0")
 		if pkg == nil {
 			t.Fatalf("%s missing from graph", name)
 		}

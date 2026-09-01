@@ -44,12 +44,12 @@ func TestPipInspectDuplicateRecordsAreDeterministic(t *testing.T) {
 			}
 
 			var checked int
-			graph.WalkNodes(func(dep sdk.GraphNode) bool {
-				if mustDep(t, dep).Name != "helper" {
+			graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+				if dep.Name != "helper" {
 					return true
 				}
 				checked++
-				if got := originOf(mustDep(t, dep)); got != tc.want {
+				if got := originOf(dep); got != tc.want {
 					t.Fatalf("origin = %+v, want %+v", got, tc.want)
 				}
 				return true
@@ -112,12 +112,12 @@ url = "` + tc.second + `"
 			}
 
 			var checked int
-			graph.WalkNodes(func(dep sdk.GraphNode) bool {
-				if mustDep(t, dep).Name != "helper" {
+			graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+				if dep.Name != "helper" {
 					return true
 				}
 				checked++
-				if got := originOf(mustDep(t, dep)); got != tc.want {
+				if got := originOf(dep); got != tc.want {
 					t.Fatalf("origin = %+v, want %+v", got, tc.want)
 				}
 				return true

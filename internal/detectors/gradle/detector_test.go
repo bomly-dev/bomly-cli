@@ -350,9 +350,12 @@ func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
 	if _, ok := testnodes.Find(libGraph, "com.google.guava:guava@33.0.0-jre"); ok {
 		t.Fatal("lib entry must not contain app dependencies")
 	}
-	libRoots := nodes.DependenciesOf(libGraph.Roots())
-	if len(libRoots) != 1 || libRoots[0].Type != sdk.PackageTypeApplication || libRoots[0].Name != "lib" {
+	libRoots := libGraph.Roots()
+	if len(libRoots) != 1 || !nodes.IsProjectOwned(libRoots[0]) {
 		t.Fatalf("unexpected lib entry root: %#v", libRoots)
+	}
+	if name, _, _, _ := nodes.Display(libRoots[0]); name != "com.acme:lib" {
+		t.Fatalf("lib entry root = %q, want com.acme:lib", name)
 	}
 
 	// Regression: subproject positions must keep the module directory prefix

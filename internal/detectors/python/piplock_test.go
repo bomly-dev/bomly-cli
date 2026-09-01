@@ -1,6 +1,7 @@
 package python
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
@@ -47,9 +48,16 @@ func directDepIDs(t *testing.T, g *sdk.Graph, id string) []string {
 	if err != nil {
 		t.Fatalf("direct deps of %s: %v", id, err)
 	}
+	// Labelled the way a case names a package, not by the canonical package
+	// URL an ID is now.
 	ids := make([]string, 0, len(deps))
 	for _, d := range deps {
-		ids = append(ids, d.NodeID())
+		name, version, _, _ := nodes.Display(d)
+		if version != "" {
+			ids = append(ids, name+"@"+version)
+			continue
+		}
+		ids = append(ids, name)
 	}
 	sort.Strings(ids)
 	return ids
@@ -156,15 +164,15 @@ func TestPipLockFilePath(t *testing.T) {
 	}
 }
 
+// findRootID returns the ID of the scanned project's own node: a module,
+// because ownership is the node kind now (ADR-0041).
 func findRootID(t *testing.T, g *sdk.Graph) string {
 	t.Helper()
-	for _, n := range g.DependencyNodes() {
-		if n.Type == sdk.PackageTypeApplication {
-			return n.NodeID()
-		}
+	modules := g.ModuleNodes()
+	if len(modules) == 0 {
+		t.Fatal("no module node for the scanned project")
 	}
-	t.Fatal("no application root node")
-	return ""
+	return modules[0].NodeID()
 }
 
 func contains(s []string, v string) bool {

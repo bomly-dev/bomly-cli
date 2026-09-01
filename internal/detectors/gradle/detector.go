@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -547,9 +548,9 @@ func (p *gradleProjectGraphs) ensure(projectPath string) (*gradleModuleEntry, er
 		return entry, nil
 	}
 	graph := sdk.New()
-	root, err := sdk.NewDependencyNode(gradleModuleCoordinates(module))
+	root, err := gradleModuleNode(module)
 	if err != nil {
-		return nil, fmt.Errorf("build dependency node: %w", err)
+		return nil, err
 	}
 	if err := graph.AddNode(root); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
 		return nil, fmt.Errorf("add subproject root %q: %w", module.ProjectPath, err)
@@ -567,16 +568,32 @@ func (p *gradleProjectGraphs) ensure(projectPath string) (*gradleModuleEntry, er
 // token, scoped to the section it appeared in. The node is a new instance for
 // the current project's graph — never the referenced module's own root — so
 // scopes recorded here cannot leak into the referenced module's entry.
-func (p *gradleProjectGraphs) localRefNode(projectPath string, scope sdk.Scope) (*sdk.DependencyNode, error) {
+func (p *gradleProjectGraphs) localRefNode(projectPath string, scope sdk.Scope) (sdk.GraphNode, error) {
 	entry, err := p.ensure(projectPath)
 	if err != nil || entry == nil {
 		return nil, err
 	}
-	node, err := sdk.NewDependencyNode(gradleModuleCoordinates(entry.module))
-	if err != nil {
-		return nil, fmt.Errorf("build gradle module node: %w", err)
+	// A `project :x` reference names the build's own subproject, so it
+	// resolves to that subproject's module node -- the same identity its own
+	// entry is rooted at, which is what keeps the two from splitting. The
+	// scope the reference was declared at rides on the edge, not on the node:
+	// a module is not a consumed package and has no scope.
+	return gradleModuleNode(entry.module)
+}
+
+// gradleModuleNode builds the node for one of the build's own subprojects.
+func gradleModuleNode(module gradleModule) (*sdk.ModuleNode, error) {
+	manifest := strings.TrimSpace(module.ManifestFile)
+	if manifest == "" {
+		manifest = "build.gradle"
 	}
-	node.Scopes = sdk.ScopesOf(scope)
+	if dir := strings.TrimSpace(module.Dir); dir != "" && dir != "." {
+		manifest = path.Join(filepath.ToSlash(dir), manifest)
+	}
+	node, err := sdk.NewModuleNode(manifest, gradleModuleCoordinates(module))
+	if err != nil {
+		return nil, fmt.Errorf("build gradle module node %q: %w", module.ProjectPath, err)
+	}
 	return node, nil
 }
 

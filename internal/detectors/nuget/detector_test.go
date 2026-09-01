@@ -278,12 +278,15 @@ func TestDepGraphFromDepsFiles(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GSF.Core dependencies: %v", err)
 	}
-	gotDeps := make(map[string]struct{}, len(deps))
-	for _, dep := range deps {
-		gotDeps[dep.NodeID()] = struct{}{}
-	}
 	for _, want := range []string{"Antlr@3.5.0.2", "FSharp.Core@6.0.7"} {
-		if _, ok := gotDeps[want]; !ok {
+		found := false
+		for _, dep := range deps {
+			if testnodes.Is(dep, want) {
+				found = true
+				break
+			}
+		}
+		if !found {
 			t.Fatalf("expected GSF.Core -> %s, got %#v", want, deps)
 		}
 	}

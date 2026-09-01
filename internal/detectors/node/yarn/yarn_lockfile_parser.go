@@ -89,7 +89,7 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		// One identity is one node: a collision folds rather than minting a
 		// second ID for the same package, which is the occurrence machinery
 		// ADR-0041 removed.
-		pkgNode, err := sdk.NewDependencyNode(pkg.Coordinates)
+		pkgNode, err := detectors.NewDependencyFrom(pkg)
 		if err != nil {
 			return "", err
 		}

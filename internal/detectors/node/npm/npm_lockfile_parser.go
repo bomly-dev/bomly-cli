@@ -259,7 +259,7 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		if meta := npmLockPackageMetadata(entry); meta != nil {
 			pkg.Metadata = map[string]any{sdk.MetadataKeyNPM: meta}
 		}
-		pkgNode, err := sdk.NewDependencyNode(pkg.Coordinates)
+		pkgNode, err := detectors.NewDependencyFrom(pkg)
 		if err != nil {
 			return npmLockfileGraphs{}, err
 		}

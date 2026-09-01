@@ -95,10 +95,14 @@ func TestCanonicalGraphFixturePreservesOccurrenceAndPackageAccounting(t *testing
 
 	assertOccurrenceSpecificFacts(t, consolidated, registry, merged)
 	assertUnknownSyntheticParentIsNotExecutableEvidence(t, merged)
-	// The structured surfaces list packages, so the project's own modules and
-	// the synthesized manifest are not among them.
+	// Two different tallies, deliberately. A manifest's dependency listing
+	// includes the project's own modules -- a module is where a depends_on
+	// chain starts -- but not the manifest node itself, which is what the
+	// listing is about. The flat package inventory holds consumed packages
+	// only: nobody can be asked about the project's own artifacts.
+	const wantManifestNodes = 1
 	assertStructuredAndCompactAccounting(t, consolidated, registry, merged,
-		wantOccurrences-wantStructural, wantPackages-wantStructural)
+		wantOccurrences-wantManifestNodes, wantPackages-wantStructural)
 	assertExplainAndDiffAccounting(t, consolidated, registry, merged, wantPackages-wantStructural)
 }
 

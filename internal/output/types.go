@@ -1,6 +1,7 @@
 package output
 
 import (
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"sort"
 	"strings"
 
@@ -187,6 +188,36 @@ type DependencyPath struct {
 // PackageFromDependencyAndRegistry when a registry is in scope.
 func PackageFromGraphPackage(dep *sdk.DependencyNode) PackageRef {
 	return PackageFromDependencyAndRegistry(dep, nil)
+}
+
+// PackageFromGraphNode renders any graph node as a package reference.
+//
+// A dependency path runs through the project's own artifacts before it reaches
+// a consumed package, and those are module and manifest nodes now (ADR-0041).
+// Rendering only the dependency nodes drops the head of every path -- "why is
+// loose-envify here" answers with "react needs it" and never says which
+// project pulled react in -- so a structural node renders too, with the fields
+// its kind actually has.
+func PackageFromGraphNode(node sdk.GraphNode) PackageRef {
+	if dep, ok := node.(*sdk.DependencyNode); ok {
+		return PackageFromDependencyAndRegistry(dep, nil)
+	}
+	name, version, scope, _ := nodes.Display(node)
+	ref := PackageRef{
+		Name:            name,
+		Version:         version,
+		Scope:           scope,
+		ID:              node.NodeID(),
+		Locations:       LocationRefsFromGraphLocations(node.NodeLocations()),
+		Licenses:        []LicenseRef{},
+		Vulnerabilities: []VulnerabilityRef{},
+	}
+	// A module carries the package URL its coordinates mint; a manifest has
+	// none, and publishing its module ID as a PURL would be a lie.
+	if module, ok := node.(*sdk.ModuleNode); ok {
+		ref.Purl = module.PURL()
+	}
+	return ref
 }
 
 // PackageFromDependencyAndRegistry builds a PackageRef from a graph Dependency
@@ -629,13 +660,25 @@ func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDe
 		return nil
 	}
 
-	nodes := g.DependencyNodes()
-	payload := make([]ScanDependency, 0, len(nodes))
-	for _, dep := range nodes {
-		if dep == nil {
+	// Modules as well as dependencies: a module is the project's own
+	// artifact, not a consumed package, but it is where the tree starts.
+	// Listing only dependency nodes would leave every depends_on chain
+	// headless -- a consumer could no longer say which module pulled a
+	// package in. Manifest nodes stay out; they are what the listing is
+	// about, not something in it.
+	listed := make([]sdk.GraphNode, 0, g.Size())
+	for _, module := range g.ModuleNodes() {
+		listed = append(listed, module)
+	}
+	for _, dep := range g.DependencyNodes() {
+		listed = append(listed, dep)
+	}
+	payload := make([]ScanDependency, 0, len(listed))
+	for _, node := range listed {
+		if node == nil {
 			continue
 		}
-		deps, err := g.DirectDependencies(dep.NodeID())
+		deps, err := g.DirectDependencies(node.NodeID())
 		dependencyIDs := make([]string, 0, len(deps))
 		if err == nil {
 			for _, child := range deps {
@@ -645,26 +688,37 @@ func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDe
 				dependencyIDs = append(dependencyIDs, child.NodeID())
 			}
 		}
-		scopes := make([]string, 0, len(dep.Scopes))
-		for _, scope := range dep.Scopes {
-			scopes = append(scopes, string(scope))
+		name, version, _, _ := nodes.Display(node)
+		entry := ScanDependency{
+			ID:        node.NodeID(),
+			Name:      name,
+			Version:   version,
+			Scopes:    []string{},
+			DependsOn: dependencyIDs,
+			Locations: LocationRefsFromGraphLocations(node.NodeLocations()),
+			Licenses:  []LicenseRef{},
 		}
-		matched := dep.Matched
-		if pkg := lookupRegistryPackage(registry, dep.NodeID()); pkg != nil {
-			matched = matched || pkg.Matched
+		if module, isModule := node.(*sdk.ModuleNode); isModule {
+			// A module publishes the package URL its coordinates mint, when
+			// they mint one; its node ID is not a package URL.
+			entry.Purl = module.PURL()
 		}
-		payload = append(payload, ScanDependency{
-			ID:         dep.NodeID(),
-			Name:       dep.DisplayName(),
-			Version:    dep.Version,
-			Purl:       dep.NodeID(),
-			Scopes:     scopes,
-			DependsOn:  dependencyIDs,
-			Matched:    matched,
-			PackageRef: dep.PackageRef,
-			Locations:  LocationRefsFromGraphLocations(dep.Locations),
-			Licenses:   LicenseRefsFromGraphLicenses(sdk.DetectionLicenses(dep)),
-		})
+		if dep, isDependency := node.(*sdk.DependencyNode); isDependency {
+			scopes := make([]string, 0, len(dep.Scopes))
+			for _, scope := range dep.Scopes {
+				scopes = append(scopes, string(scope))
+			}
+			matched := dep.Matched
+			if pkg := lookupRegistryPackage(registry, dep.NodeID()); pkg != nil {
+				matched = matched || pkg.Matched
+			}
+			entry.Purl = dep.NodeID()
+			entry.Scopes = scopes
+			entry.Matched = matched
+			entry.PackageRef = dep.PackageRef
+			entry.Licenses = LicenseRefsFromGraphLicenses(sdk.DetectionLicenses(dep))
+		}
+		payload = append(payload, entry)
 	}
 	sort.Slice(payload, func(i, j int) bool {
 		return payload[i].ID < payload[j].ID

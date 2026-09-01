@@ -10,9 +10,12 @@ import (
 	model "github.com/bomly-dev/bomly-sdk"
 )
 
+// libPURL is the identity the fixture package mints: a Go module path always
+// carries a namespace, which the golang purl type requires.
+const libPURL = "pkg:golang/example.com/lib@1.0.0"
+
 func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 	g := model.New()
-	const libPURL = "pkg:golang/example.com/lib@1.0.0"
 	pkg := testnodes.Dep(model.Coordinates{Name: "example.com/lib", Version: "1.0.0", Ecosystem: model.EcosystemGo, PURL: libPURL})
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
@@ -54,7 +57,6 @@ func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 }
 
 func TestScanMarkdownRendersReachabilityOnlyWhenEnabled(t *testing.T) {
-	const libPURL = "pkg:golang/example.com/lib@1.0.0"
 	payload := output.ScanResponse{
 		Metadata: output.Metadata{ReachabilityEnabled: true},
 		Packages: []output.ScanPackageEntry{{
@@ -213,7 +215,7 @@ func TestExplainTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 
 func TestScanOmitsReachabilityColumnWhenDisabled(t *testing.T) {
 	g := model.New()
-	pkg := testnodes.Dep(model.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: model.EcosystemGo})
+	pkg := testnodes.Dep(model.Coordinates{Name: "example.com/lib", Version: "1.0.0", Ecosystem: model.EcosystemGo})
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}

@@ -56,7 +56,11 @@ func resolveTarget(deps *sdk.Graph, query string) (*sdk.DependencyNode, error) {
 			exact = pkg
 			break
 		}
-		if pkg.Name == query || pkg.QualifiedName() == query {
+		// EcosystemName as well as Name: normalization splits a qualified
+		// name into Org and Name -- "golang.org/x/text" becomes org
+		// "golang.org/x" plus name "text", and "@scope/pkg" likewise -- and
+		// the ecosystem-native spelling is what a user types.
+		if pkg.Name == query || pkg.QualifiedName() == query || pkg.EcosystemName() == query {
 			matches = append(matches, pkg)
 		}
 	}
@@ -73,15 +77,12 @@ func resolveTarget(deps *sdk.Graph, query string) (*sdk.DependencyNode, error) {
 // Takes the union type: a path runs through manifests and modules as well
 // as dependencies, and RelationshipForPath counts only the dependency hops.
 func toPath(packages []sdk.GraphNode, cyclic bool, cycleTo string) Path {
+	// Every node on the path renders, structural ones included: a path that
+	// starts at a consumed package does not say which project pulled it in,
+	// which is the question explain answers.
 	refs := make([]output.PackageRef, 0, len(packages))
 	for _, node := range packages {
-		// Only dependency nodes become package references; the structural
-		// nodes on a path are the manifest and module it runs through.
-		pkg, ok := node.(*sdk.DependencyNode)
-		if !ok {
-			continue
-		}
-		refs = append(refs, output.PackageFromGraphPackage(pkg))
+		refs = append(refs, output.PackageFromGraphNode(node))
 	}
 	if len(refs) == 0 {
 		return Path{Cyclic: cyclic, CycleTo: cycleTo}

@@ -107,7 +107,7 @@ func newScanTestGraph(t *testing.T) (*sdk.Graph, *sdk.PackageRegistry) {
 		{"app@1.0.0", "zod@3.23.0"},
 		{"react@18.2.0", "loose-envify@1.4.0"},
 	} {
-		if err := g.AddEdge(edge[0], edge[1]); err != nil {
+		if err := g.AddEdge(testnodes.ID(g, edge[0]), testnodes.ID(g, edge[1])); err != nil {
 			t.Fatalf("add dependency %v: %v", edge, err)
 		}
 	}

@@ -100,7 +100,7 @@ func TestScanTextSummaryFollowsEnrichmentAndMarkdownShowsDetails(t *testing.T) {
 	if err := graph.AddNode(dependency); err != nil {
 		t.Fatalf("AddNode() error = %v", err)
 	}
-	if err := graph.AddEdge("project", dependency.NodeID()); err != nil {
+	if err := graph.AddEdge(testnodes.ID(graph, "project"), dependency.NodeID()); err != nil {
 		t.Fatalf("AddEdge() error = %v", err)
 	}
 

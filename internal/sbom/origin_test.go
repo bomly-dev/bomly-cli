@@ -487,3 +487,58 @@ func repositoryOriginsFor(repository, revision string) []sdk.DependencyOrigin {
 	}
 	return []sdk.DependencyOrigin{*origin}
 }
+
+// A component's purl field is a Package URL in both formats, and a module's
+// node ID is not one -- it is the module grammar, which carries the declaring
+// manifest path so two workspace members cannot collide.
+//
+// Publishing the ID there shipped "module:apps/web/package.json#pkg:npm/web@1.0.0"
+// as a purl, which no consumer can parse. The bom-ref is where the identity
+// belongs; this pins both halves.
+func TestModuleComponentsPublishAPackageURLNotTheirNodeID(t *testing.T) {
+	g := sdk.New()
+	module := testnodes.ModuleFrom("apps/web/package.json", sdk.Coordinates{
+		Ecosystem: sdk.EcosystemNPM, Name: "web", Version: "1.0.0", Type: sdk.PackageTypeApplication,
+	})
+	dependency := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
+		Ecosystem: sdk.EcosystemNPM, Name: "left-pad", Version: "1.3.0",
+	}})
+	for _, node := range []sdk.GraphNode{module, dependency} {
+		if err := g.AddNode(node); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := g.AddEdge(module.NodeID(), dependency.NodeID()); err != nil {
+		t.Fatal(err)
+	}
+
+	_, cdxRaw := marshalBoth(t, g)
+
+	var doc struct {
+		Components []struct {
+			BOMRef string `json:"bom-ref"`
+			Name   string `json:"name"`
+			PURL   string `json:"purl"`
+		} `json:"components"`
+	}
+	if err := json.Unmarshal(cdxRaw, &doc); err != nil {
+		t.Fatalf("decode CycloneDX: %v", err)
+	}
+
+	var checked int
+	for _, component := range doc.Components {
+		if component.Name != "web" {
+			continue
+		}
+		checked++
+		if component.PURL != "pkg:npm/web@1.0.0" {
+			t.Errorf("module purl = %q, want the package URL its coordinates mint", component.PURL)
+		}
+		if component.BOMRef != module.NodeID() {
+			t.Errorf("module bom-ref = %q, want the node identity %q", component.BOMRef, module.NodeID())
+		}
+	}
+	if checked != 1 {
+		t.Fatalf("found %d web components, want 1", checked)
+	}
+}

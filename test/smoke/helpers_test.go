@@ -849,8 +849,33 @@ func goldenPath(name string) string {
 }
 
 // assertGolden compares got (already normalized) against the golden file for
-// name. When -update is passed, the golden file is written instead of compared.
+// name. When -update is passed, the golden file is written instead of
+// compared.
+//
+// The golden is re-normalized on read, so a normalizer added after a golden
+// was written still applies to it. That is only correct for the CLI's own
+// response documents: assertGoldenDocument is the path for anything else.
 func assertGolden(t *testing.T, name string, got []byte) {
+	t.Helper()
+	assertGoldenWith(t, name, got, func(t *testing.T, raw []byte) []byte {
+		return normalizeJSON(t, raw)
+	})
+}
+
+// assertGoldenDocument compares a document the CLI emits that is not one of
+// its own response shapes -- an exported SBOM, say.
+//
+// normalizeJSON knows the scan/diff/explain response schema and edits it on
+// sight: it zeroes metadata.duration_ms, which a CycloneDX document also has
+// a metadata object for. Running it over an SBOM invents a field that was
+// never there, so the golden and the fresh output disagree about a value
+// neither side produced.
+func assertGoldenDocument(t *testing.T, name string, got []byte) {
+	t.Helper()
+	assertGoldenWith(t, name, got, func(_ *testing.T, raw []byte) []byte { return raw })
+}
+
+func assertGoldenWith(t *testing.T, name string, got []byte, normalizeWant func(*testing.T, []byte) []byte) {
 	t.Helper()
 
 	gp := goldenPath(name)
@@ -873,8 +898,7 @@ func assertGolden(t *testing.T, name string, got []byte) {
 	}
 
 	got = normalizeLineEndings(got)
-	want = normalizeLineEndings(want)
-	want = normalizeJSON(t, want)
+	want = normalizeWant(t, normalizeLineEndings(want))
 
 	if !bytes.Equal(got, want) {
 		t.Errorf("output does not match golden file %s\n\n--- want ---\n%s\n--- got ---\n%s\n\n--- diff (first divergence) ---\n%s",

@@ -53,11 +53,16 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 		}
 		pkg := node
 		component := Component{
-			ID:             pkg.NodeID(),
+			ID: pkg.NodeID(),
+			// The bom-ref is the node ID; the purl is not. A module's ID is
+			// its declaring path, and publishing that in a field both formats
+			// define as a Package URL hands every consumer a value it cannot
+			// parse -- so a module publishes the package URL its coordinates
+			// mint, and only that.
 			Name:           coords.EcosystemName(),
 			Org:            componentOrg(node),
 			Version:        version,
-			PURL:           pkg.NodeID(),
+			PURL:           componentPURL(node),
 			Ecosystem:      string(coords.Ecosystem),
 			PackageManager: coords.PackageManager.Name(),
 			Type:           string(coords.Type),
@@ -530,6 +535,24 @@ func normalizeSPDXLicenseExpression(expression string) string {
 	}
 	flush()
 	return b.String()
+}
+
+// componentPURL returns the package URL a component publishes.
+//
+// A dependency node's identity is one already. A module node's is not: it is
+// the module grammar, which carries the declaring manifest path so two
+// members of one workspace cannot collide. The package URL its coordinates
+// mint is what belongs in the document, and a module whose coordinates mint
+// none publishes no purl rather than an unparseable one.
+func componentPURL(node sdk.GraphNode) string {
+	switch typed := node.(type) {
+	case *sdk.DependencyNode:
+		return typed.NodeID()
+	case *sdk.ModuleNode:
+		return typed.PURL()
+	default:
+		return ""
+	}
 }
 
 // componentOrg returns the namespace to publish as the component's group.

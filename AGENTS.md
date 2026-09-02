@@ -17,6 +17,8 @@ make build-lite          # go build -tags "bomly_external_syft,bomly_external_gr
 make test                # go test ./...
 make smoke               # end-to-end tests driving the built binary (slow, requires network)
 make smoke ARGS="-update" # regenerate smoke golden files
+make verify              # everything that gates a push; writes .verify-stamp
+make verify SMOKE=1      # the same, including the network-driven smoke suite
 make fuzz FUZZTIME=5s    # run every registered fuzz target with a short per-target budget
 make benchmark           # run the hidden local dependency-graph benchmark
 make benchmark-report    # analyze local benchmark artifacts with Copilot CLI
@@ -25,7 +27,16 @@ make run ARGS="scan"    # go run ./cmd/bomly <ARGS>
 make generate            # regenerate config reference, JSON schemas, schema docs, support matrix, and component docs (binary-driven)
 ```
 
-Always run `make test` after changes. All tests must pass before marking work is done.
+Always run `make verify` before pushing or updating a pull request; it runs formatting, lint, vet and build on both build variants, the unit suite, and the generated-docs drift check. All of it must pass before marking work done.
+`.githooks/pre-push` refuses a push unless `make verify` has passed since the
+last source change (`git config core.hooksPath .githooks`, or `make
+install-hooks`, enables it). The check is a stamp read, not a test run: a
+six-minute hook gets bypassed, and a bypassed hook enforces nothing. Smoke is
+not required by default because it needs the network and several minutes --
+run `make verify SMOKE=1` when a change touches detector output, and set
+`BOMLY_REQUIRE_SMOKE=1` to make the hook insist on it. `git push --no-verify`
+skips the gate deliberately.
+
 If you change `internal/cli/config.go`, `internal/output/*`, or `internal/registry/support.go`, or bump the pinned `bomly-dev/bomly-sdk` version (its catalog or support-matrix data feeds the generated docs), also run `make generate` and commit the docs drift.
 
 `go.mod` pins released versions and must not contain `replace` directives on main (CI enforces this), so remote `go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest` stays supported. External component modules (`bomly-plugin-*`) are ordinary pinned dependencies bumped by Dependabot. Local cross-repo development: `go work init . ../bomly-sdk` (never commit `go.work`).

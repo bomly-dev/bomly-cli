@@ -5,24 +5,13 @@
       "dependencies": [
         {
           "depends_on": [
-            "pkg:cargo/core-lib@1.0.0",
+            "module:crates/core/Cargo.toml#pkg:cargo/core-lib@1.0.0",
             "pkg:cargo/lazy_static@1.4.0",
             "pkg:cargo/time@0.1.45"
           ],
-          "id": "pkg:cargo/api@1.0.0",
+          "id": "module:crates/api/Cargo.toml#pkg:cargo/api@1.0.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Cargo.lock",
-              "position": {
-                "file": "Cargo.lock",
-                "line": 0
-              },
-              "real_path": "Cargo.lock"
-            }
-          ],
           "name": "api",
-          "package_ref": "pkg:cargo/api@1.0.0",
           "purl": "pkg:cargo/api@1.0.0",
           "version": "1.0.0"
         },
@@ -30,24 +19,10 @@
           "depends_on": [
             "pkg:cargo/time@0.1.45"
           ],
-          "id": "pkg:cargo/core-lib@1.0.0",
+          "id": "module:crates/core/Cargo.toml#pkg:cargo/core-lib@1.0.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Cargo.lock",
-              "position": {
-                "file": "Cargo.lock",
-                "line": 0
-              },
-              "real_path": "Cargo.lock"
-            }
-          ],
           "name": "core-lib",
-          "package_ref": "pkg:cargo/core-lib@1.0.0",
           "purl": "pkg:cargo/core-lib@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.0"
         },
         {
@@ -64,7 +39,7 @@
               "real_path": "Cargo.lock"
             }
           ],
-          "name": "lazy-static",
+          "name": "lazy_static",
           "package_ref": "pkg:cargo/lazy_static@1.4.0",
           "purl": "pkg:cargo/lazy_static@1.4.0",
           "scopes": [
@@ -178,24 +153,10 @@
           "depends_on": [
             "pkg:cargo/time@0.1.45"
           ],
-          "id": "pkg:cargo/core-lib@1.0.0",
+          "id": "module:crates/core/Cargo.toml#pkg:cargo/core-lib@1.0.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Cargo.lock",
-              "position": {
-                "file": "Cargo.lock",
-                "line": 0
-              },
-              "real_path": "Cargo.lock"
-            }
-          ],
           "name": "core-lib",
-          "package_ref": "pkg:cargo/core-lib@1.0.0",
           "purl": "pkg:cargo/core-lib@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.0"
         },
         {
@@ -306,23 +267,7 @@
     {
       "ecosystem": "rust",
       "licenses": [],
-      "name": "api",
-      "purl": "pkg:cargo/api@1.0.0",
-      "version": "1.0.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "rust",
-      "licenses": [],
-      "name": "core-lib",
-      "purl": "pkg:cargo/core-lib@1.0.0",
-      "version": "1.0.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "rust",
-      "licenses": [],
-      "name": "lazy-static",
+      "name": "lazy_static",
       "purl": "pkg:cargo/lazy_static@1.4.0",
       "version": "1.4.0",
       "vulnerabilities": []

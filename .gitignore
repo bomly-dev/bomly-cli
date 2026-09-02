@@ -45,3 +45,6 @@ qodana.yaml
 # main must stay replace-free so remote go install keeps working
 go.work
 go.work.sum
+
+# Written by `make verify`, read by .githooks/pre-push.
+.verify-stamp

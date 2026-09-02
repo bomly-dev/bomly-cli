@@ -9,6 +9,18 @@
   },
   "packages": [
     {
+      "cpes": [
+        "cpe:2.3:a:alpine-baselayout-data:alpine-baselayout-data:3.4.3-r2:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine-baselayout-data:alpine_baselayout_data:3.4.3-r2:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine-baselayout:alpine-baselayout-data:3.4.3-r2:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine-baselayout:alpine_baselayout_data:3.4.3-r2:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine:alpine-baselayout-data:3.4.3-r2:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine:alpine_baselayout_data:3.4.3-r2:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_baselayout:alpine-baselayout-data:3.4.3-r2:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_baselayout:alpine_baselayout_data:3.4.3-r2:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_baselayout_data:alpine-baselayout-data:3.4.3-r2:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_baselayout_data:alpine_baselayout_data:3.4.3-r2:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -19,11 +31,23 @@
       ],
       "name": "alpine:alpine-baselayout-data",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/alpine-baselayout-data@3.4.3-r2?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=alpine-baselayout",
+      "purl": "pkg:apk/alpine/alpine-baselayout-data@3.4.3-r2?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=alpine-baselayout",
       "version": "3.4.3-r2",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:alpine-baselayout-data:alpine-baselayout-data:3.6.5-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine-baselayout-data:alpine_baselayout_data:3.6.5-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine-baselayout:alpine-baselayout-data:3.6.5-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine-baselayout:alpine_baselayout_data:3.6.5-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine:alpine-baselayout-data:3.6.5-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine:alpine_baselayout_data:3.6.5-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_baselayout:alpine-baselayout-data:3.6.5-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_baselayout:alpine_baselayout_data:3.6.5-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_baselayout_data:alpine-baselayout-data:3.6.5-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_baselayout_data:alpine_baselayout_data:3.6.5-r0:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -34,11 +58,19 @@
       ],
       "name": "alpine:alpine-baselayout-data",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/alpine-baselayout-data@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=alpine-baselayout",
+      "purl": "pkg:apk/alpine/alpine-baselayout-data@3.6.5-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=alpine-baselayout",
       "version": "3.6.5-r0",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:alpine-baselayout:alpine-baselayout:3.4.3-r2:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine-baselayout:alpine_baselayout:3.4.3-r2:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine:alpine-baselayout:3.4.3-r2:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine:alpine_baselayout:3.4.3-r2:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_baselayout:alpine-baselayout:3.4.3-r2:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_baselayout:alpine_baselayout:3.4.3-r2:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -49,11 +81,19 @@
       ],
       "name": "alpine:alpine-baselayout",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/alpine-baselayout@3.4.3-r2?arch=x86_64\u0026distro=alpine-3.19.9",
+      "purl": "pkg:apk/alpine/alpine-baselayout@3.4.3-r2?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
       "version": "3.4.3-r2",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:alpine-baselayout:alpine-baselayout:3.6.5-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine-baselayout:alpine_baselayout:3.6.5-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine:alpine-baselayout:3.6.5-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine:alpine_baselayout:3.6.5-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_baselayout:alpine-baselayout:3.6.5-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_baselayout:alpine_baselayout:3.6.5-r0:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -64,11 +104,19 @@
       ],
       "name": "alpine:alpine-baselayout",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10",
+      "purl": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
       "version": "3.6.5-r0",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:alpine-keys:alpine-keys:2.4-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine-keys:alpine_keys:2.4-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine:alpine-keys:2.4-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine:alpine_keys:2.4-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_keys:alpine-keys:2.4-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_keys:alpine_keys:2.4-r1:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -79,11 +127,19 @@
       ],
       "name": "alpine:alpine-keys",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=x86_64\u0026distro=alpine-3.19.9",
+      "purl": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
       "version": "2.4-r1",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:alpine-keys:alpine-keys:2.4-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine-keys:alpine_keys:2.4-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine:alpine-keys:2.4-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine:alpine_keys:2.4-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_keys:alpine-keys:2.4-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:alpine_keys:alpine_keys:2.4-r1:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -94,11 +150,19 @@
       ],
       "name": "alpine:alpine-keys",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+      "purl": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
       "version": "2.4-r1",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:apk-tools:apk-tools:2.14.4-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:apk-tools:apk_tools:2.14.4-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:apk:apk-tools:2.14.4-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:apk:apk_tools:2.14.4-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:apk_tools:apk-tools:2.14.4-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:apk_tools:apk_tools:2.14.4-r0:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -109,11 +173,19 @@
       ],
       "name": "alpine:apk-tools",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/apk-tools@2.14.4-r0?arch=x86_64\u0026distro=alpine-3.19.9",
+      "purl": "pkg:apk/alpine/apk-tools@2.14.4-r0?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
       "version": "2.14.4-r0",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:apk-tools:apk-tools:2.14.4-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:apk-tools:apk_tools:2.14.4-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:apk:apk-tools:2.14.4-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:apk:apk_tools:2.14.4-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:apk_tools:apk-tools:2.14.4-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:apk_tools:apk_tools:2.14.4-r1:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -124,11 +196,19 @@
       ],
       "name": "alpine:apk-tools",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+      "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
       "version": "2.14.4-r1",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:busybox-binsh:busybox-binsh:1.36.1-r20:*:*:*:*:*:*:*",
+        "cpe:2.3:a:busybox-binsh:busybox_binsh:1.36.1-r20:*:*:*:*:*:*:*",
+        "cpe:2.3:a:busybox:busybox-binsh:1.36.1-r20:*:*:*:*:*:*:*",
+        "cpe:2.3:a:busybox:busybox_binsh:1.36.1-r20:*:*:*:*:*:*:*",
+        "cpe:2.3:a:busybox_binsh:busybox-binsh:1.36.1-r20:*:*:*:*:*:*:*",
+        "cpe:2.3:a:busybox_binsh:busybox_binsh:1.36.1-r20:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -139,11 +219,19 @@
       ],
       "name": "alpine:busybox-binsh",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/busybox-binsh@1.36.1-r20?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=busybox",
+      "purl": "pkg:apk/alpine/busybox-binsh@1.36.1-r20?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=busybox",
       "version": "1.36.1-r20",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:busybox-binsh:busybox-binsh:1.36.1-r31:*:*:*:*:*:*:*",
+        "cpe:2.3:a:busybox-binsh:busybox_binsh:1.36.1-r31:*:*:*:*:*:*:*",
+        "cpe:2.3:a:busybox:busybox-binsh:1.36.1-r31:*:*:*:*:*:*:*",
+        "cpe:2.3:a:busybox:busybox_binsh:1.36.1-r31:*:*:*:*:*:*:*",
+        "cpe:2.3:a:busybox_binsh:busybox-binsh:1.36.1-r31:*:*:*:*:*:*:*",
+        "cpe:2.3:a:busybox_binsh:busybox_binsh:1.36.1-r31:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -154,11 +242,14 @@
       ],
       "name": "alpine:busybox-binsh",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/busybox-binsh@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+      "purl": "pkg:apk/alpine/busybox-binsh@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
       "version": "1.36.1-r31",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:busybox:busybox:1.36.1-r20:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -169,11 +260,14 @@
       ],
       "name": "alpine:busybox",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/busybox@1.36.1-r20?arch=x86_64\u0026distro=alpine-3.19.9",
+      "purl": "pkg:apk/alpine/busybox@1.36.1-r20?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
       "version": "1.36.1-r20",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:busybox:busybox:1.36.1-r31:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -184,11 +278,25 @@
       ],
       "name": "alpine:busybox",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/busybox@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10",
+      "purl": "pkg:apk/alpine/busybox@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
       "version": "1.36.1-r31",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:ca-certificates-bundle:ca-certificates-bundle:20250911-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca-certificates-bundle:ca_certificates_bundle:20250911-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca-certificates:ca-certificates-bundle:20250911-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca-certificates:ca_certificates_bundle:20250911-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca:ca-certificates-bundle:20250911-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca:ca_certificates_bundle:20250911-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca_certificates:ca-certificates-bundle:20250911-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca_certificates:ca_certificates_bundle:20250911-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca_certificates_bundle:ca-certificates-bundle:20250911-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca_certificates_bundle:ca_certificates_bundle:20250911-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:mozilla:ca-certificates-bundle:20250911-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:mozilla:ca_certificates_bundle:20250911-r0:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -199,11 +307,25 @@
       ],
       "name": "alpine:ca-certificates-bundle",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/ca-certificates-bundle@20250911-r0?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=ca-certificates",
+      "purl": "pkg:apk/alpine/ca-certificates-bundle@20250911-r0?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=ca-certificates",
       "version": "20250911-r0",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:ca-certificates-bundle:ca-certificates-bundle:20260413-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca-certificates-bundle:ca_certificates_bundle:20260413-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca-certificates:ca-certificates-bundle:20260413-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca-certificates:ca_certificates_bundle:20260413-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca:ca-certificates-bundle:20260413-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca:ca_certificates_bundle:20260413-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca_certificates:ca-certificates-bundle:20260413-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca_certificates:ca_certificates_bundle:20260413-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca_certificates_bundle:ca-certificates-bundle:20260413-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ca_certificates_bundle:ca_certificates_bundle:20260413-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:mozilla:ca-certificates-bundle:20260413-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:mozilla:ca_certificates_bundle:20260413-r0:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -214,11 +336,19 @@
       ],
       "name": "alpine:ca-certificates-bundle",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/ca-certificates-bundle@20260413-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=ca-certificates",
+      "purl": "pkg:apk/alpine/ca-certificates-bundle@20260413-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=ca-certificates",
       "version": "20260413-r0",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:libc-utils:libc-utils:0.7.2-r5:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libc-utils:libc_utils:0.7.2-r5:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libc:libc-utils:0.7.2-r5:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libc:libc_utils:0.7.2-r5:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libc_utils:libc-utils:0.7.2-r5:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libc_utils:libc_utils:0.7.2-r5:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -229,11 +359,17 @@
       ],
       "name": "alpine:libc-utils",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/libc-utils@0.7.2-r5?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=libc-dev",
+      "purl": "pkg:apk/alpine/libc-utils@0.7.2-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=libc-dev",
       "version": "0.7.2-r5",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:libcrypto3:libcrypto3:3.1.8-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libcrypto3:libcrypto:3.1.8-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libcrypto:libcrypto3:3.1.8-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libcrypto:libcrypto:3.1.8-r1:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -244,11 +380,17 @@
       ],
       "name": "alpine:libcrypto3",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/libcrypto3@3.1.8-r1?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=openssl",
+      "purl": "pkg:apk/alpine/libcrypto3@3.1.8-r1?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=openssl",
       "version": "3.1.8-r1",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:libcrypto3:libcrypto3:3.3.7-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libcrypto3:libcrypto:3.3.7-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libcrypto:libcrypto3:3.3.7-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libcrypto:libcrypto:3.3.7-r0:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -259,11 +401,17 @@
       ],
       "name": "alpine:libcrypto3",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+      "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
       "version": "3.3.7-r0",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:libssl3:libssl3:3.1.8-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libssl3:libssl:3.1.8-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libssl:libssl3:3.1.8-r1:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libssl:libssl:3.1.8-r1:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -274,11 +422,17 @@
       ],
       "name": "alpine:libssl3",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/libssl3@3.1.8-r1?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=openssl",
+      "purl": "pkg:apk/alpine/libssl3@3.1.8-r1?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=openssl",
       "version": "3.1.8-r1",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:libssl3:libssl3:3.3.7-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libssl3:libssl:3.3.7-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libssl:libssl3:3.3.7-r0:*:*:*:*:*:*:*",
+        "cpe:2.3:a:libssl:libssl:3.3.7-r0:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -289,11 +443,21 @@
       ],
       "name": "alpine:libssl3",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+      "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
       "version": "3.3.7-r0",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:musl-libc:musl-utils:1.2.4_git20230717-r5:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl-libc:musl_utils:1.2.4_git20230717-r5:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl-utils:musl-utils:1.2.4_git20230717-r5:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl-utils:musl_utils:1.2.4_git20230717-r5:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl:musl-utils:1.2.4_git20230717-r5:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl:musl_utils:1.2.4_git20230717-r5:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl_utils:musl-utils:1.2.4_git20230717-r5:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl_utils:musl_utils:1.2.4_git20230717-r5:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -304,11 +468,21 @@
       ],
       "name": "alpine:musl-utils",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/musl-utils@1.2.4_git20230717-r5?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=musl",
+      "purl": "pkg:apk/alpine/musl-utils@1.2.4_git20230717-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=musl",
       "version": "1.2.4_git20230717-r5",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:musl-libc:musl-utils:1.2.5-r3:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl-libc:musl_utils:1.2.5-r3:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl-utils:musl-utils:1.2.5-r3:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl-utils:musl_utils:1.2.5-r3:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl:musl-utils:1.2.5-r3:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl:musl_utils:1.2.5-r3:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl_utils:musl-utils:1.2.5-r3:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl_utils:musl_utils:1.2.5-r3:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -319,11 +493,16 @@
       ],
       "name": "alpine:musl-utils",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
+      "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=musl",
       "version": "1.2.5-r3",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:musl-libc:musl:1.2.4_git20230717-r5:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl:musl:1.2.4_git20230717-r5:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl_libc:musl:1.2.4_git20230717-r5:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -334,11 +513,16 @@
       ],
       "name": "alpine:musl",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/musl@1.2.4_git20230717-r5?arch=x86_64\u0026distro=alpine-3.19.9",
+      "purl": "pkg:apk/alpine/musl@1.2.4_git20230717-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
       "version": "1.2.4_git20230717-r5",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:musl-libc:musl:1.2.5-r3:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl:musl:1.2.5-r3:*:*:*:*:*:*:*",
+        "cpe:2.3:a:musl_libc:musl:1.2.5-r3:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -349,11 +533,14 @@
       ],
       "name": "alpine:musl",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+      "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
       "version": "1.2.5-r3",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:scanelf:scanelf:1.3.7-r2:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -364,11 +551,14 @@
       ],
       "name": "alpine:scanelf",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=pax-utils",
+      "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=pax-utils",
       "version": "1.3.7-r2",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:scanelf:scanelf:1.3.7-r2:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -379,11 +569,19 @@
       ],
       "name": "alpine:scanelf",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
+      "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
       "version": "1.3.7-r2",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:ssl-client:ssl-client:1.36.1-r20:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ssl-client:ssl_client:1.36.1-r20:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ssl:ssl-client:1.36.1-r20:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ssl:ssl_client:1.36.1-r20:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ssl_client:ssl-client:1.36.1-r20:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ssl_client:ssl_client:1.36.1-r20:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -394,11 +592,19 @@
       ],
       "name": "alpine:ssl_client",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/ssl_client@1.36.1-r20?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=busybox",
+      "purl": "pkg:apk/alpine/ssl_client@1.36.1-r20?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=busybox",
       "version": "1.36.1-r20",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:ssl-client:ssl-client:1.36.1-r31:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ssl-client:ssl_client:1.36.1-r31:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ssl:ssl-client:1.36.1-r31:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ssl:ssl_client:1.36.1-r31:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ssl_client:ssl-client:1.36.1-r31:*:*:*:*:*:*:*",
+        "cpe:2.3:a:ssl_client:ssl_client:1.36.1-r31:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -409,11 +615,14 @@
       ],
       "name": "alpine:ssl_client",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+      "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
       "version": "1.36.1-r31",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:zlib:zlib:1.3.1-r0:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -424,11 +633,14 @@
       ],
       "name": "alpine:zlib",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/zlib@1.3.1-r0?arch=x86_64\u0026distro=alpine-3.19.9",
+      "purl": "pkg:apk/alpine/zlib@1.3.1-r0?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
       "version": "1.3.1-r0",
       "vulnerabilities": []
     },
     {
+      "cpes": [
+        "cpe:2.3:a:zlib:zlib:1.3.2-r0:*:*:*:*:*:*:*"
+      ],
       "ecosystem": "apk",
       "licenses": [
         {
@@ -439,7 +651,7 @@
       ],
       "name": "alpine:zlib",
       "org": "alpine",
-      "purl": "pkg:apk/alpine/zlib@1.3.2-r0?arch=x86_64\u0026distro=alpine-3.20.10",
+      "purl": "pkg:apk/alpine/zlib@1.3.2-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
       "version": "1.3.2-r0",
       "vulnerabilities": []
     }
@@ -457,7 +669,7 @@
         {
           "after": {
             "direct": false,
-            "id": "pkg:apk/alpine/alpine-baselayout-data@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=alpine-baselayout",
+            "id": "pkg:apk/alpine/alpine-baselayout-data@3.6.5-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=alpine-baselayout",
             "licenses": [
               {
                 "spdxExpression": "GPL-2.0-only",
@@ -472,23 +684,19 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:alpine-baselayout-data",
-            "purl": "pkg:apk/alpine/alpine-baselayout-data@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=alpine-baselayout",
+            "purl": "pkg:apk/alpine/alpine-baselayout-data@3.6.5-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=alpine-baselayout",
             "relationship": "transitive",
             "version": "3.6.5-r0",
             "vulnerabilities": []
           },
           "before": {
             "direct": false,
-            "id": "pkg:apk/alpine/alpine-baselayout-data@3.4.3-r2?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=alpine-baselayout",
+            "id": "pkg:apk/alpine/alpine-baselayout-data@3.4.3-r2?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=alpine-baselayout",
             "licenses": [
               {
                 "spdxExpression": "GPL-2.0-only",
@@ -503,16 +711,12 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:alpine-baselayout-data",
-            "purl": "pkg:apk/alpine/alpine-baselayout-data@3.4.3-r2?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=alpine-baselayout",
+            "purl": "pkg:apk/alpine/alpine-baselayout-data@3.4.3-r2?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=alpine-baselayout",
             "relationship": "transitive",
             "version": "3.4.3-r2",
             "vulnerabilities": []
@@ -520,7 +724,7 @@
         },
         {
           "after": {
-            "id": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10",
+            "id": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
             "licenses": [
               {
                 "spdxExpression": "GPL-2.0-only",
@@ -535,22 +739,18 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:alpine-baselayout",
-            "purl": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10",
+            "purl": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
             "relationship": "unknown",
             "version": "3.6.5-r0",
             "vulnerabilities": []
           },
           "before": {
-            "id": "pkg:apk/alpine/alpine-baselayout@3.4.3-r2?arch=x86_64\u0026distro=alpine-3.19.9",
+            "id": "pkg:apk/alpine/alpine-baselayout@3.4.3-r2?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
             "licenses": [
               {
                 "spdxExpression": "GPL-2.0-only",
@@ -565,16 +765,12 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:alpine-baselayout",
-            "purl": "pkg:apk/alpine/alpine-baselayout@3.4.3-r2?arch=x86_64\u0026distro=alpine-3.19.9",
+            "purl": "pkg:apk/alpine/alpine-baselayout@3.4.3-r2?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
             "relationship": "unknown",
             "version": "3.4.3-r2",
             "vulnerabilities": []
@@ -582,7 +778,7 @@
         },
         {
           "after": {
-            "id": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+            "id": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
             "licenses": [
               {
                 "spdxExpression": "MIT",
@@ -597,22 +793,18 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "MIT",
-                  "type": "declared",
-                  "value": "MIT"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:alpine-keys",
-            "purl": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+            "purl": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
             "relationship": "unknown",
             "version": "2.4-r1",
             "vulnerabilities": []
           },
           "before": {
-            "id": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=x86_64\u0026distro=alpine-3.19.9",
+            "id": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
             "licenses": [
               {
                 "spdxExpression": "MIT",
@@ -627,16 +819,12 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "MIT",
-                  "type": "declared",
-                  "value": "MIT"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:alpine-keys",
-            "purl": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=x86_64\u0026distro=alpine-3.19.9",
+            "purl": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
             "relationship": "unknown",
             "version": "2.4-r1",
             "vulnerabilities": []
@@ -644,7 +832,7 @@
         },
         {
           "after": {
-            "id": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+            "id": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
             "licenses": [
               {
                 "spdxExpression": "GPL-2.0-only",
@@ -659,22 +847,18 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:apk-tools",
-            "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+            "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
             "relationship": "unknown",
             "version": "2.14.4-r1",
             "vulnerabilities": []
           },
           "before": {
-            "id": "pkg:apk/alpine/apk-tools@2.14.4-r0?arch=x86_64\u0026distro=alpine-3.19.9",
+            "id": "pkg:apk/alpine/apk-tools@2.14.4-r0?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
             "licenses": [
               {
                 "spdxExpression": "GPL-2.0-only",
@@ -689,16 +873,12 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:apk-tools",
-            "purl": "pkg:apk/alpine/apk-tools@2.14.4-r0?arch=x86_64\u0026distro=alpine-3.19.9",
+            "purl": "pkg:apk/alpine/apk-tools@2.14.4-r0?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
             "relationship": "unknown",
             "version": "2.14.4-r0",
             "vulnerabilities": []
@@ -707,7 +887,7 @@
         {
           "after": {
             "direct": false,
-            "id": "pkg:apk/alpine/busybox-binsh@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+            "id": "pkg:apk/alpine/busybox-binsh@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
             "licenses": [
               {
                 "spdxExpression": "GPL-2.0-only",
@@ -722,23 +902,19 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:busybox-binsh",
-            "purl": "pkg:apk/alpine/busybox-binsh@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+            "purl": "pkg:apk/alpine/busybox-binsh@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
             "relationship": "transitive",
             "version": "1.36.1-r31",
             "vulnerabilities": []
           },
           "before": {
             "direct": false,
-            "id": "pkg:apk/alpine/busybox-binsh@1.36.1-r20?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=busybox",
+            "id": "pkg:apk/alpine/busybox-binsh@1.36.1-r20?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=busybox",
             "licenses": [
               {
                 "spdxExpression": "GPL-2.0-only",
@@ -753,16 +929,12 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:busybox-binsh",
-            "purl": "pkg:apk/alpine/busybox-binsh@1.36.1-r20?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=busybox",
+            "purl": "pkg:apk/alpine/busybox-binsh@1.36.1-r20?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=busybox",
             "relationship": "transitive",
             "version": "1.36.1-r20",
             "vulnerabilities": []
@@ -771,7 +943,7 @@
         {
           "after": {
             "direct": false,
-            "id": "pkg:apk/alpine/busybox@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10",
+            "id": "pkg:apk/alpine/busybox@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
             "licenses": [
               {
                 "spdxExpression": "GPL-2.0-only",
@@ -786,23 +958,19 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:busybox",
-            "purl": "pkg:apk/alpine/busybox@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10",
+            "purl": "pkg:apk/alpine/busybox@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
             "relationship": "transitive",
             "version": "1.36.1-r31",
             "vulnerabilities": []
           },
           "before": {
             "direct": false,
-            "id": "pkg:apk/alpine/busybox@1.36.1-r20?arch=x86_64\u0026distro=alpine-3.19.9",
+            "id": "pkg:apk/alpine/busybox@1.36.1-r20?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
             "licenses": [
               {
                 "spdxExpression": "GPL-2.0-only",
@@ -817,16 +985,12 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:busybox",
-            "purl": "pkg:apk/alpine/busybox@1.36.1-r20?arch=x86_64\u0026distro=alpine-3.19.9",
+            "purl": "pkg:apk/alpine/busybox@1.36.1-r20?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
             "relationship": "transitive",
             "version": "1.36.1-r20",
             "vulnerabilities": []
@@ -835,7 +999,7 @@
         {
           "after": {
             "direct": false,
-            "id": "pkg:apk/alpine/ca-certificates-bundle@20260413-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=ca-certificates",
+            "id": "pkg:apk/alpine/ca-certificates-bundle@20260413-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=ca-certificates",
             "licenses": [
               {
                 "spdxExpression": "MPL-2.0 AND MIT",
@@ -850,23 +1014,19 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "MPL-2.0 AND MIT",
-                  "type": "declared",
-                  "value": "MPL-2.0 AND MIT"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:ca-certificates-bundle",
-            "purl": "pkg:apk/alpine/ca-certificates-bundle@20260413-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=ca-certificates",
+            "purl": "pkg:apk/alpine/ca-certificates-bundle@20260413-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=ca-certificates",
             "relationship": "transitive",
             "version": "20260413-r0",
             "vulnerabilities": []
           },
           "before": {
             "direct": false,
-            "id": "pkg:apk/alpine/ca-certificates-bundle@20250911-r0?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=ca-certificates",
+            "id": "pkg:apk/alpine/ca-certificates-bundle@20250911-r0?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=ca-certificates",
             "licenses": [
               {
                 "spdxExpression": "MPL-2.0 AND MIT",
@@ -881,16 +1041,12 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "MPL-2.0 AND MIT",
-                  "type": "declared",
-                  "value": "MPL-2.0 AND MIT"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:ca-certificates-bundle",
-            "purl": "pkg:apk/alpine/ca-certificates-bundle@20250911-r0?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=ca-certificates",
+            "purl": "pkg:apk/alpine/ca-certificates-bundle@20250911-r0?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=ca-certificates",
             "relationship": "transitive",
             "version": "20250911-r0",
             "vulnerabilities": []
@@ -899,7 +1055,7 @@
         {
           "after": {
             "direct": false,
-            "id": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+            "id": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
             "licenses": [
               {
                 "spdxExpression": "Apache-2.0",
@@ -914,23 +1070,19 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "Apache-2.0",
-                  "type": "declared",
-                  "value": "Apache-2.0"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:libcrypto3",
-            "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+            "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
             "relationship": "transitive",
             "version": "3.3.7-r0",
             "vulnerabilities": []
           },
           "before": {
             "direct": false,
-            "id": "pkg:apk/alpine/libcrypto3@3.1.8-r1?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=openssl",
+            "id": "pkg:apk/alpine/libcrypto3@3.1.8-r1?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=openssl",
             "licenses": [
               {
                 "spdxExpression": "Apache-2.0",
@@ -945,16 +1097,12 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "Apache-2.0",
-                  "type": "declared",
-                  "value": "Apache-2.0"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:libcrypto3",
-            "purl": "pkg:apk/alpine/libcrypto3@3.1.8-r1?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=openssl",
+            "purl": "pkg:apk/alpine/libcrypto3@3.1.8-r1?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=openssl",
             "relationship": "transitive",
             "version": "3.1.8-r1",
             "vulnerabilities": []
@@ -963,7 +1111,7 @@
         {
           "after": {
             "direct": false,
-            "id": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+            "id": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
             "licenses": [
               {
                 "spdxExpression": "Apache-2.0",
@@ -978,23 +1126,19 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "Apache-2.0",
-                  "type": "declared",
-                  "value": "Apache-2.0"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:libssl3",
-            "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+            "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
             "relationship": "transitive",
             "version": "3.3.7-r0",
             "vulnerabilities": []
           },
           "before": {
             "direct": false,
-            "id": "pkg:apk/alpine/libssl3@3.1.8-r1?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=openssl",
+            "id": "pkg:apk/alpine/libssl3@3.1.8-r1?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=openssl",
             "licenses": [
               {
                 "spdxExpression": "Apache-2.0",
@@ -1009,16 +1153,12 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "Apache-2.0",
-                  "type": "declared",
-                  "value": "Apache-2.0"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:libssl3",
-            "purl": "pkg:apk/alpine/libssl3@3.1.8-r1?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=openssl",
+            "purl": "pkg:apk/alpine/libssl3@3.1.8-r1?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=openssl",
             "relationship": "transitive",
             "version": "3.1.8-r1",
             "vulnerabilities": []
@@ -1026,7 +1166,7 @@
         },
         {
           "after": {
-            "id": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
+            "id": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=musl",
             "licenses": [
               {
                 "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
@@ -1041,23 +1181,19 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
-                  "type": "declared",
-                  "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:musl-utils",
-            "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
+            "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=musl",
             "relationship": "unknown",
             "version": "1.2.5-r3",
             "vulnerabilities": []
           },
           "before": {
             "direct": false,
-            "id": "pkg:apk/alpine/musl-utils@1.2.4_git20230717-r5?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=musl",
+            "id": "pkg:apk/alpine/musl-utils@1.2.4_git20230717-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=musl",
             "licenses": [
               {
                 "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
@@ -1072,16 +1208,12 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
-                  "type": "declared",
-                  "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:musl-utils",
-            "purl": "pkg:apk/alpine/musl-utils@1.2.4_git20230717-r5?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=musl",
+            "purl": "pkg:apk/alpine/musl-utils@1.2.4_git20230717-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=musl",
             "relationship": "transitive",
             "version": "1.2.4_git20230717-r5",
             "vulnerabilities": []
@@ -1090,7 +1222,7 @@
         {
           "after": {
             "direct": false,
-            "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+            "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
             "licenses": [
               {
                 "spdxExpression": "MIT",
@@ -1105,23 +1237,19 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "MIT",
-                  "type": "declared",
-                  "value": "MIT"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:musl",
-            "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+            "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
             "relationship": "transitive",
             "version": "1.2.5-r3",
             "vulnerabilities": []
           },
           "before": {
             "direct": false,
-            "id": "pkg:apk/alpine/musl@1.2.4_git20230717-r5?arch=x86_64\u0026distro=alpine-3.19.9",
+            "id": "pkg:apk/alpine/musl@1.2.4_git20230717-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
             "licenses": [
               {
                 "spdxExpression": "MIT",
@@ -1136,16 +1264,12 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "MIT",
-                  "type": "declared",
-                  "value": "MIT"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:musl",
-            "purl": "pkg:apk/alpine/musl@1.2.4_git20230717-r5?arch=x86_64\u0026distro=alpine-3.19.9",
+            "purl": "pkg:apk/alpine/musl@1.2.4_git20230717-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
             "relationship": "transitive",
             "version": "1.2.4_git20230717-r5",
             "vulnerabilities": []
@@ -1154,7 +1278,7 @@
         {
           "after": {
             "direct": false,
-            "id": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
+            "id": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
             "licenses": [
               {
                 "spdxExpression": "GPL-2.0-only",
@@ -1169,23 +1293,19 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:scanelf",
-            "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
+            "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
             "relationship": "transitive",
             "version": "1.3.7-r2",
             "vulnerabilities": []
           },
           "before": {
             "direct": false,
-            "id": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=pax-utils",
+            "id": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=pax-utils",
             "licenses": [
               {
                 "spdxExpression": "GPL-2.0-only",
@@ -1200,16 +1320,12 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:scanelf",
-            "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=pax-utils",
+            "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=pax-utils",
             "relationship": "transitive",
             "version": "1.3.7-r2",
             "vulnerabilities": []
@@ -1217,7 +1333,7 @@
         },
         {
           "after": {
-            "id": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+            "id": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
             "licenses": [
               {
                 "spdxExpression": "GPL-2.0-only",
@@ -1232,22 +1348,18 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:ssl_client",
-            "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+            "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
             "relationship": "unknown",
             "version": "1.36.1-r31",
             "vulnerabilities": []
           },
           "before": {
-            "id": "pkg:apk/alpine/ssl_client@1.36.1-r20?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=busybox",
+            "id": "pkg:apk/alpine/ssl_client@1.36.1-r20?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=busybox",
             "licenses": [
               {
                 "spdxExpression": "GPL-2.0-only",
@@ -1262,16 +1374,12 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:ssl_client",
-            "purl": "pkg:apk/alpine/ssl_client@1.36.1-r20?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=busybox",
+            "purl": "pkg:apk/alpine/ssl_client@1.36.1-r20?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=busybox",
             "relationship": "unknown",
             "version": "1.36.1-r20",
             "vulnerabilities": []
@@ -1280,7 +1388,7 @@
         {
           "after": {
             "direct": false,
-            "id": "pkg:apk/alpine/zlib@1.3.2-r0?arch=x86_64\u0026distro=alpine-3.20.10",
+            "id": "pkg:apk/alpine/zlib@1.3.2-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
             "licenses": [
               {
                 "spdxExpression": "Zlib",
@@ -1295,23 +1403,19 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "Zlib",
-                  "type": "declared",
-                  "value": "Zlib"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:zlib",
-            "purl": "pkg:apk/alpine/zlib@1.3.2-r0?arch=x86_64\u0026distro=alpine-3.20.10",
+            "purl": "pkg:apk/alpine/zlib@1.3.2-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
             "relationship": "transitive",
             "version": "1.3.2-r0",
             "vulnerabilities": []
           },
           "before": {
             "direct": false,
-            "id": "pkg:apk/alpine/zlib@1.3.1-r0?arch=x86_64\u0026distro=alpine-3.19.9",
+            "id": "pkg:apk/alpine/zlib@1.3.1-r0?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
             "licenses": [
               {
                 "spdxExpression": "Zlib",
@@ -1326,16 +1430,12 @@
               }
             ],
             "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "Zlib",
-                  "type": "declared",
-                  "value": "Zlib"
-                }
-              ]
+              "bomly.diff.fuzzy_reconciled": true,
+              "bomly.diff.fuzzy_score": 1,
+              "bomly.diff.fuzzy_tier": "name-similarity"
             },
             "name": "alpine:zlib",
-            "purl": "pkg:apk/alpine/zlib@1.3.1-r0?arch=x86_64\u0026distro=alpine-3.19.9",
+            "purl": "pkg:apk/alpine/zlib@1.3.1-r0?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
             "relationship": "transitive",
             "version": "1.3.1-r0",
             "vulnerabilities": []
@@ -1345,7 +1445,7 @@
       "removed": [
         {
           "package": {
-            "id": "pkg:apk/alpine/libc-utils@0.7.2-r5?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=libc-dev",
+            "id": "pkg:apk/alpine/libc-utils@0.7.2-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=libc-dev",
             "licenses": [
               {
                 "spdxExpression": "BSD-2-Clause AND BSD-3-Clause",
@@ -1359,17 +1459,8 @@
                 "real_path": "/lib/apk/db/installed"
               }
             ],
-            "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "BSD-2-Clause AND BSD-3-Clause",
-                  "type": "declared",
-                  "value": "BSD-2-Clause AND BSD-3-Clause"
-                }
-              ]
-            },
             "name": "alpine:libc-utils",
-            "purl": "pkg:apk/alpine/libc-utils@0.7.2-r5?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=libc-dev",
+            "purl": "pkg:apk/alpine/libc-utils@0.7.2-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=libc-dev",
             "relationship": "unknown",
             "version": "0.7.2-r5",
             "vulnerabilities": []
@@ -1388,7 +1479,7 @@
             }
           ],
           "package": {
-            "id": "pkg:apk/alpine/libc-utils@0.7.2-r5?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=libc-dev",
+            "id": "pkg:apk/alpine/libc-utils@0.7.2-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=libc-dev",
             "licenses": [
               {
                 "spdxExpression": "BSD-2-Clause AND BSD-3-Clause",
@@ -1402,17 +1493,8 @@
                 "real_path": "/lib/apk/db/installed"
               }
             ],
-            "metadata": {
-              "bomly.detection.licenses": [
-                {
-                  "spdx_expression": "BSD-2-Clause AND BSD-3-Clause",
-                  "type": "declared",
-                  "value": "BSD-2-Clause AND BSD-3-Clause"
-                }
-              ]
-            },
             "name": "alpine:libc-utils",
-            "purl": "pkg:apk/alpine/libc-utils@0.7.2-r5?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=libc-dev",
+            "purl": "pkg:apk/alpine/libc-utils@0.7.2-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=libc-dev",
             "relationship": "unknown",
             "version": "0.7.2-r5",
             "vulnerabilities": []
@@ -1426,7 +1508,7 @@
           {
             "after": {
               "direct": false,
-              "id": "pkg:apk/alpine/alpine-baselayout-data@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=alpine-baselayout",
+              "id": "pkg:apk/alpine/alpine-baselayout-data@3.6.5-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=alpine-baselayout",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -1441,23 +1523,19 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "GPL-2.0-only",
-                    "type": "declared",
-                    "value": "GPL-2.0-only"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:alpine-baselayout-data",
-              "purl": "pkg:apk/alpine/alpine-baselayout-data@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=alpine-baselayout",
+              "purl": "pkg:apk/alpine/alpine-baselayout-data@3.6.5-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=alpine-baselayout",
               "relationship": "transitive",
               "version": "3.6.5-r0",
               "vulnerabilities": []
             },
             "before": {
               "direct": false,
-              "id": "pkg:apk/alpine/alpine-baselayout-data@3.4.3-r2?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=alpine-baselayout",
+              "id": "pkg:apk/alpine/alpine-baselayout-data@3.4.3-r2?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=alpine-baselayout",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -1472,16 +1550,12 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "GPL-2.0-only",
-                    "type": "declared",
-                    "value": "GPL-2.0-only"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:alpine-baselayout-data",
-              "purl": "pkg:apk/alpine/alpine-baselayout-data@3.4.3-r2?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=alpine-baselayout",
+              "purl": "pkg:apk/alpine/alpine-baselayout-data@3.4.3-r2?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=alpine-baselayout",
               "relationship": "transitive",
               "version": "3.4.3-r2",
               "vulnerabilities": []
@@ -1489,7 +1563,7 @@
           },
           {
             "after": {
-              "id": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10",
+              "id": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -1504,22 +1578,18 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "GPL-2.0-only",
-                    "type": "declared",
-                    "value": "GPL-2.0-only"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:alpine-baselayout",
-              "purl": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10",
+              "purl": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "relationship": "unknown",
               "version": "3.6.5-r0",
               "vulnerabilities": []
             },
             "before": {
-              "id": "pkg:apk/alpine/alpine-baselayout@3.4.3-r2?arch=x86_64\u0026distro=alpine-3.19.9",
+              "id": "pkg:apk/alpine/alpine-baselayout@3.4.3-r2?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -1534,16 +1604,12 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "GPL-2.0-only",
-                    "type": "declared",
-                    "value": "GPL-2.0-only"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:alpine-baselayout",
-              "purl": "pkg:apk/alpine/alpine-baselayout@3.4.3-r2?arch=x86_64\u0026distro=alpine-3.19.9",
+              "purl": "pkg:apk/alpine/alpine-baselayout@3.4.3-r2?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
               "relationship": "unknown",
               "version": "3.4.3-r2",
               "vulnerabilities": []
@@ -1551,7 +1617,7 @@
           },
           {
             "after": {
-              "id": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+              "id": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
                   "spdxExpression": "MIT",
@@ -1566,22 +1632,18 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "MIT",
-                    "type": "declared",
-                    "value": "MIT"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:alpine-keys",
-              "purl": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+              "purl": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "relationship": "unknown",
               "version": "2.4-r1",
               "vulnerabilities": []
             },
             "before": {
-              "id": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=x86_64\u0026distro=alpine-3.19.9",
+              "id": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
               "licenses": [
                 {
                   "spdxExpression": "MIT",
@@ -1596,16 +1658,12 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "MIT",
-                    "type": "declared",
-                    "value": "MIT"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:alpine-keys",
-              "purl": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=x86_64\u0026distro=alpine-3.19.9",
+              "purl": "pkg:apk/alpine/alpine-keys@2.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
               "relationship": "unknown",
               "version": "2.4-r1",
               "vulnerabilities": []
@@ -1613,7 +1671,7 @@
           },
           {
             "after": {
-              "id": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+              "id": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -1628,22 +1686,18 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "GPL-2.0-only",
-                    "type": "declared",
-                    "value": "GPL-2.0-only"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:apk-tools",
-              "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+              "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "relationship": "unknown",
               "version": "2.14.4-r1",
               "vulnerabilities": []
             },
             "before": {
-              "id": "pkg:apk/alpine/apk-tools@2.14.4-r0?arch=x86_64\u0026distro=alpine-3.19.9",
+              "id": "pkg:apk/alpine/apk-tools@2.14.4-r0?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -1658,16 +1712,12 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "GPL-2.0-only",
-                    "type": "declared",
-                    "value": "GPL-2.0-only"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:apk-tools",
-              "purl": "pkg:apk/alpine/apk-tools@2.14.4-r0?arch=x86_64\u0026distro=alpine-3.19.9",
+              "purl": "pkg:apk/alpine/apk-tools@2.14.4-r0?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
               "relationship": "unknown",
               "version": "2.14.4-r0",
               "vulnerabilities": []
@@ -1676,7 +1726,7 @@
           {
             "after": {
               "direct": false,
-              "id": "pkg:apk/alpine/busybox-binsh@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+              "id": "pkg:apk/alpine/busybox-binsh@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -1691,23 +1741,19 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "GPL-2.0-only",
-                    "type": "declared",
-                    "value": "GPL-2.0-only"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:busybox-binsh",
-              "purl": "pkg:apk/alpine/busybox-binsh@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+              "purl": "pkg:apk/alpine/busybox-binsh@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
               "relationship": "transitive",
               "version": "1.36.1-r31",
               "vulnerabilities": []
             },
             "before": {
               "direct": false,
-              "id": "pkg:apk/alpine/busybox-binsh@1.36.1-r20?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=busybox",
+              "id": "pkg:apk/alpine/busybox-binsh@1.36.1-r20?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=busybox",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -1722,16 +1768,12 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "GPL-2.0-only",
-                    "type": "declared",
-                    "value": "GPL-2.0-only"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:busybox-binsh",
-              "purl": "pkg:apk/alpine/busybox-binsh@1.36.1-r20?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=busybox",
+              "purl": "pkg:apk/alpine/busybox-binsh@1.36.1-r20?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=busybox",
               "relationship": "transitive",
               "version": "1.36.1-r20",
               "vulnerabilities": []
@@ -1740,7 +1782,7 @@
           {
             "after": {
               "direct": false,
-              "id": "pkg:apk/alpine/busybox@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10",
+              "id": "pkg:apk/alpine/busybox@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -1755,23 +1797,19 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "GPL-2.0-only",
-                    "type": "declared",
-                    "value": "GPL-2.0-only"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:busybox",
-              "purl": "pkg:apk/alpine/busybox@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10",
+              "purl": "pkg:apk/alpine/busybox@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "relationship": "transitive",
               "version": "1.36.1-r31",
               "vulnerabilities": []
             },
             "before": {
               "direct": false,
-              "id": "pkg:apk/alpine/busybox@1.36.1-r20?arch=x86_64\u0026distro=alpine-3.19.9",
+              "id": "pkg:apk/alpine/busybox@1.36.1-r20?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -1786,16 +1824,12 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "GPL-2.0-only",
-                    "type": "declared",
-                    "value": "GPL-2.0-only"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:busybox",
-              "purl": "pkg:apk/alpine/busybox@1.36.1-r20?arch=x86_64\u0026distro=alpine-3.19.9",
+              "purl": "pkg:apk/alpine/busybox@1.36.1-r20?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
               "relationship": "transitive",
               "version": "1.36.1-r20",
               "vulnerabilities": []
@@ -1804,7 +1838,7 @@
           {
             "after": {
               "direct": false,
-              "id": "pkg:apk/alpine/ca-certificates-bundle@20260413-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=ca-certificates",
+              "id": "pkg:apk/alpine/ca-certificates-bundle@20260413-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=ca-certificates",
               "licenses": [
                 {
                   "spdxExpression": "MPL-2.0 AND MIT",
@@ -1819,23 +1853,19 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "MPL-2.0 AND MIT",
-                    "type": "declared",
-                    "value": "MPL-2.0 AND MIT"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:ca-certificates-bundle",
-              "purl": "pkg:apk/alpine/ca-certificates-bundle@20260413-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=ca-certificates",
+              "purl": "pkg:apk/alpine/ca-certificates-bundle@20260413-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=ca-certificates",
               "relationship": "transitive",
               "version": "20260413-r0",
               "vulnerabilities": []
             },
             "before": {
               "direct": false,
-              "id": "pkg:apk/alpine/ca-certificates-bundle@20250911-r0?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=ca-certificates",
+              "id": "pkg:apk/alpine/ca-certificates-bundle@20250911-r0?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=ca-certificates",
               "licenses": [
                 {
                   "spdxExpression": "MPL-2.0 AND MIT",
@@ -1850,16 +1880,12 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "MPL-2.0 AND MIT",
-                    "type": "declared",
-                    "value": "MPL-2.0 AND MIT"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:ca-certificates-bundle",
-              "purl": "pkg:apk/alpine/ca-certificates-bundle@20250911-r0?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=ca-certificates",
+              "purl": "pkg:apk/alpine/ca-certificates-bundle@20250911-r0?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=ca-certificates",
               "relationship": "transitive",
               "version": "20250911-r0",
               "vulnerabilities": []
@@ -1868,7 +1894,7 @@
           {
             "after": {
               "direct": false,
-              "id": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+              "id": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "licenses": [
                 {
                   "spdxExpression": "Apache-2.0",
@@ -1883,23 +1909,19 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "Apache-2.0",
-                    "type": "declared",
-                    "value": "Apache-2.0"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:libcrypto3",
-              "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+              "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "relationship": "transitive",
               "version": "3.3.7-r0",
               "vulnerabilities": []
             },
             "before": {
               "direct": false,
-              "id": "pkg:apk/alpine/libcrypto3@3.1.8-r1?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=openssl",
+              "id": "pkg:apk/alpine/libcrypto3@3.1.8-r1?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=openssl",
               "licenses": [
                 {
                   "spdxExpression": "Apache-2.0",
@@ -1914,16 +1936,12 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "Apache-2.0",
-                    "type": "declared",
-                    "value": "Apache-2.0"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:libcrypto3",
-              "purl": "pkg:apk/alpine/libcrypto3@3.1.8-r1?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=openssl",
+              "purl": "pkg:apk/alpine/libcrypto3@3.1.8-r1?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=openssl",
               "relationship": "transitive",
               "version": "3.1.8-r1",
               "vulnerabilities": []
@@ -1932,7 +1950,7 @@
           {
             "after": {
               "direct": false,
-              "id": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+              "id": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "licenses": [
                 {
                   "spdxExpression": "Apache-2.0",
@@ -1947,23 +1965,19 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "Apache-2.0",
-                    "type": "declared",
-                    "value": "Apache-2.0"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:libssl3",
-              "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+              "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "relationship": "transitive",
               "version": "3.3.7-r0",
               "vulnerabilities": []
             },
             "before": {
               "direct": false,
-              "id": "pkg:apk/alpine/libssl3@3.1.8-r1?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=openssl",
+              "id": "pkg:apk/alpine/libssl3@3.1.8-r1?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=openssl",
               "licenses": [
                 {
                   "spdxExpression": "Apache-2.0",
@@ -1978,16 +1992,12 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "Apache-2.0",
-                    "type": "declared",
-                    "value": "Apache-2.0"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:libssl3",
-              "purl": "pkg:apk/alpine/libssl3@3.1.8-r1?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=openssl",
+              "purl": "pkg:apk/alpine/libssl3@3.1.8-r1?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=openssl",
               "relationship": "transitive",
               "version": "3.1.8-r1",
               "vulnerabilities": []
@@ -1995,7 +2005,7 @@
           },
           {
             "after": {
-              "id": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
+              "id": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=musl",
               "licenses": [
                 {
                   "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
@@ -2010,23 +2020,19 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
-                    "type": "declared",
-                    "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:musl-utils",
-              "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
+              "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=musl",
               "relationship": "unknown",
               "version": "1.2.5-r3",
               "vulnerabilities": []
             },
             "before": {
               "direct": false,
-              "id": "pkg:apk/alpine/musl-utils@1.2.4_git20230717-r5?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=musl",
+              "id": "pkg:apk/alpine/musl-utils@1.2.4_git20230717-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=musl",
               "licenses": [
                 {
                   "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
@@ -2041,16 +2047,12 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
-                    "type": "declared",
-                    "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:musl-utils",
-              "purl": "pkg:apk/alpine/musl-utils@1.2.4_git20230717-r5?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=musl",
+              "purl": "pkg:apk/alpine/musl-utils@1.2.4_git20230717-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=musl",
               "relationship": "transitive",
               "version": "1.2.4_git20230717-r5",
               "vulnerabilities": []
@@ -2059,7 +2061,7 @@
           {
             "after": {
               "direct": false,
-              "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+              "id": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
                   "spdxExpression": "MIT",
@@ -2074,23 +2076,19 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "MIT",
-                    "type": "declared",
-                    "value": "MIT"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:musl",
-              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "relationship": "transitive",
               "version": "1.2.5-r3",
               "vulnerabilities": []
             },
             "before": {
               "direct": false,
-              "id": "pkg:apk/alpine/musl@1.2.4_git20230717-r5?arch=x86_64\u0026distro=alpine-3.19.9",
+              "id": "pkg:apk/alpine/musl@1.2.4_git20230717-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
               "licenses": [
                 {
                   "spdxExpression": "MIT",
@@ -2105,16 +2103,12 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "MIT",
-                    "type": "declared",
-                    "value": "MIT"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:musl",
-              "purl": "pkg:apk/alpine/musl@1.2.4_git20230717-r5?arch=x86_64\u0026distro=alpine-3.19.9",
+              "purl": "pkg:apk/alpine/musl@1.2.4_git20230717-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
               "relationship": "transitive",
               "version": "1.2.4_git20230717-r5",
               "vulnerabilities": []
@@ -2123,7 +2117,7 @@
           {
             "after": {
               "direct": false,
-              "id": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
+              "id": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -2138,23 +2132,19 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "GPL-2.0-only",
-                    "type": "declared",
-                    "value": "GPL-2.0-only"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:scanelf",
-              "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
+              "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
               "relationship": "transitive",
               "version": "1.3.7-r2",
               "vulnerabilities": []
             },
             "before": {
               "direct": false,
-              "id": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=pax-utils",
+              "id": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=pax-utils",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -2169,16 +2159,12 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "GPL-2.0-only",
-                    "type": "declared",
-                    "value": "GPL-2.0-only"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:scanelf",
-              "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=pax-utils",
+              "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=pax-utils",
               "relationship": "transitive",
               "version": "1.3.7-r2",
               "vulnerabilities": []
@@ -2186,7 +2172,7 @@
           },
           {
             "after": {
-              "id": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+              "id": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -2201,22 +2187,18 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "GPL-2.0-only",
-                    "type": "declared",
-                    "value": "GPL-2.0-only"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:ssl_client",
-              "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+              "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=\u003carch\u003e\u0026distro=alpine-3.20.10\u0026upstream=busybox",
               "relationship": "unknown",
               "version": "1.36.1-r31",
               "vulnerabilities": []
             },
             "before": {
-              "id": "pkg:apk/alpine/ssl_client@1.36.1-r20?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=busybox",
+              "id": "pkg:apk/alpine/ssl_client@1.36.1-r20?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=busybox",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -2231,16 +2213,12 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "GPL-2.0-only",
-                    "type": "declared",
-                    "value": "GPL-2.0-only"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:ssl_client",
-              "purl": "pkg:apk/alpine/ssl_client@1.36.1-r20?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=busybox",
+              "purl": "pkg:apk/alpine/ssl_client@1.36.1-r20?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=busybox",
               "relationship": "unknown",
               "version": "1.36.1-r20",
               "vulnerabilities": []
@@ -2249,7 +2227,7 @@
           {
             "after": {
               "direct": false,
-              "id": "pkg:apk/alpine/zlib@1.3.2-r0?arch=x86_64\u0026distro=alpine-3.20.10",
+              "id": "pkg:apk/alpine/zlib@1.3.2-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "licenses": [
                 {
                   "spdxExpression": "Zlib",
@@ -2264,23 +2242,19 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "Zlib",
-                    "type": "declared",
-                    "value": "Zlib"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:zlib",
-              "purl": "pkg:apk/alpine/zlib@1.3.2-r0?arch=x86_64\u0026distro=alpine-3.20.10",
+              "purl": "pkg:apk/alpine/zlib@1.3.2-r0?arch=\u003carch\u003e\u0026distro=alpine-3.20.10",
               "relationship": "transitive",
               "version": "1.3.2-r0",
               "vulnerabilities": []
             },
             "before": {
               "direct": false,
-              "id": "pkg:apk/alpine/zlib@1.3.1-r0?arch=x86_64\u0026distro=alpine-3.19.9",
+              "id": "pkg:apk/alpine/zlib@1.3.1-r0?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
               "licenses": [
                 {
                   "spdxExpression": "Zlib",
@@ -2295,16 +2269,12 @@
                 }
               ],
               "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "Zlib",
-                    "type": "declared",
-                    "value": "Zlib"
-                  }
-                ]
+                "bomly.diff.fuzzy_reconciled": true,
+                "bomly.diff.fuzzy_score": 1,
+                "bomly.diff.fuzzy_tier": "name-similarity"
               },
               "name": "alpine:zlib",
-              "purl": "pkg:apk/alpine/zlib@1.3.1-r0?arch=x86_64\u0026distro=alpine-3.19.9",
+              "purl": "pkg:apk/alpine/zlib@1.3.1-r0?arch=\u003carch\u003e\u0026distro=alpine-3.19.9",
               "relationship": "transitive",
               "version": "1.3.1-r0",
               "vulnerabilities": []
@@ -2316,7 +2286,7 @@
         "removed": [
           {
             "package": {
-              "id": "pkg:apk/alpine/libc-utils@0.7.2-r5?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=libc-dev",
+              "id": "pkg:apk/alpine/libc-utils@0.7.2-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=libc-dev",
               "licenses": [
                 {
                   "spdxExpression": "BSD-2-Clause AND BSD-3-Clause",
@@ -2330,17 +2300,8 @@
                   "real_path": "/lib/apk/db/installed"
                 }
               ],
-              "metadata": {
-                "bomly.detection.licenses": [
-                  {
-                    "spdx_expression": "BSD-2-Clause AND BSD-3-Clause",
-                    "type": "declared",
-                    "value": "BSD-2-Clause AND BSD-3-Clause"
-                  }
-                ]
-              },
               "name": "alpine:libc-utils",
-              "purl": "pkg:apk/alpine/libc-utils@0.7.2-r5?arch=x86_64\u0026distro=alpine-3.19.9\u0026upstream=libc-dev",
+              "purl": "pkg:apk/alpine/libc-utils@0.7.2-r5?arch=\u003carch\u003e\u0026distro=alpine-3.19.9\u0026upstream=libc-dev",
               "relationship": "unknown",
               "version": "0.7.2-r5",
               "vulnerabilities": []
@@ -2359,8 +2320,8 @@
     "added_package_count": 0,
     "changed_manifest_count": 1,
     "changed_package_count": 14,
-    "exact_match_count": 14,
-    "fuzzy_match_count": 0,
+    "exact_match_count": 0,
+    "fuzzy_match_count": 14,
     "removed_manifest_count": 0,
     "removed_package_count": 1,
     "transitioned_package_count": 0,

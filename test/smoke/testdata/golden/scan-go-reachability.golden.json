@@ -10,10 +10,9 @@
             "pkg:golang/github.com/google/uuid@v1.6.0",
             "pkg:golang/golang.org/x/text@v0.3.5"
           ],
-          "id": "pkg:golang/github.com/bomly/example-go-modules",
+          "id": "module:go.mod#pkg:golang/github.com/bomly/example-go-modules",
           "licenses": [],
           "name": "github.com/bomly/example-go-modules",
-          "package_ref": "pkg:golang/github.com/bomly/example-go-modules",
           "purl": "pkg:golang/github.com/bomly/example-go-modules"
         },
         {
@@ -164,83 +163,111 @@
   },
   "packages": [
     {
-      "ecosystem": "go",
-      "licenses": [],
-      "name": "github.com/bomly/example-go-modules",
-      "purl": "pkg:golang/github.com/bomly/example-go-modules",
-      "vulnerabilities": []
-    },
-    {
+      "digests": [
+        {
+          "algorithm": "sha256",
+          "value": "5f67afd1e4ad03701b71e639e28dfbff43d0fd45aa2848a23b674a2f938f6853"
+        }
+      ],
       "ecosystem": "go",
       "licenses": [
         {
           "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
       "name": "github.com/google/go-cmp",
+      "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/go-cmp@v0.5.2",
       "version": "v0.5.2",
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha256",
+          "value": "3742e02758fae40ee47d7ad99d40da602b3f49fe2b1233657f20c75bd7689526"
+        }
+      ],
       "ecosystem": "go",
       "licenses": [],
       "name": "github.com/google/go-github",
+      "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
       "version": "v17.0.0+incompatible",
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha256",
+          "value": "0270aba21ddfbf864181521fd48c2da2f8236b0fc688a268f0cf320ff7e1c89f"
+        }
+      ],
       "ecosystem": "go",
       "licenses": [
         {
           "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
       "name": "github.com/google/go-querystring",
+      "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/go-querystring@v1.1.0",
       "version": "v1.1.0",
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha256",
+          "value": "348bda24330eb231c0f27d630212d2833ac0cf2d4782bfa136b6f9edefbde05d"
+        }
+      ],
       "ecosystem": "go",
       "licenses": [
         {
           "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
       "name": "github.com/google/uuid",
+      "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/uuid@v1.6.0",
       "version": "v1.6.0",
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha256",
+          "value": "8ba79967ece4d1239fd31801a44a4f0f5f2a59c25d6baab5b31b774b4933c944"
+        }
+      ],
       "ecosystem": "go",
       "licenses": [
         {
           "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
       "name": "golang.org/x/text",
+      "org": "golang.org/x",
       "purl": "pkg:golang/golang.org/x/text@v0.3.5",
       "remediation": {
         "recommended_version": "\u003cnormalized\u003e",
         "status": "complete",
         "suggestions": [
           {
-            "action": "direct-bump",
+            "action": "manual-review",
             "affected_dependency_refs": [
               "pkg:golang/golang.org/x/text@v0.3.5"
             ],
@@ -298,6 +325,19 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "govulncheck",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "govulncheck",
+                "dependency_refs": [
+                  "pkg:golang/golang.org/x/text@v0.3.5"
+                ],
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -364,6 +404,19 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "govulncheck",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "govulncheck",
+                "dependency_refs": [
+                  "pkg:golang/golang.org/x/text@v0.3.5"
+                ],
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -430,6 +483,19 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "govulncheck",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "govulncheck",
+                "dependency_refs": [
+                  "pkg:golang/golang.org/x/text@v0.3.5"
+                ],
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -452,16 +518,23 @@
       ]
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha256",
+          "value": "13b83ef46213ab4ee1a5fad1bbae885437b131a91fbf9d9e2d9d825c15a22abe"
+        }
+      ],
       "ecosystem": "go",
       "licenses": [
         {
           "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
       "name": "golang.org/x/xerrors",
+      "org": "golang.org/x",
       "purl": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
       "version": "v0.0.0-20191204190536-9bdfabe68543",
       "vulnerabilities": []

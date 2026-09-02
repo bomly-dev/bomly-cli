@@ -4,6 +4,26 @@
     {
       "dependencies": [
         {
+          "depends_on": [
+            "module:lib/build.gradle#pkg:maven/dev.bomly.example/lib",
+            "pkg:maven/com.google.guava/guava@31.1-jre",
+            "pkg:maven/junit/junit@4.13.2"
+          ],
+          "id": "module:app/build.gradle#pkg:maven/dev.bomly.example/app",
+          "licenses": [],
+          "name": "dev.bomly.example:app",
+          "purl": "pkg:maven/dev.bomly.example/app"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/org.slf4j/slf4j-api@1.7.36"
+          ],
+          "id": "module:lib/build.gradle#pkg:maven/dev.bomly.example/lib",
+          "licenses": [],
+          "name": "dev.bomly.example:lib",
+          "purl": "pkg:maven/dev.bomly.example/lib"
+        },
+        {
           "depends_on": [],
           "id": "pkg:maven/com.google.code.findbugs/jsr305@3.0.2",
           "licenses": [],
@@ -100,32 +120,6 @@
         },
         {
           "depends_on": [
-            "pkg:maven/com.google.guava/guava@31.1-jre",
-            "pkg:maven/dev.bomly.example/lib",
-            "pkg:maven/junit/junit@4.13.2"
-          ],
-          "id": "pkg:maven/dev.bomly.example/app",
-          "licenses": [],
-          "name": "dev.bomly.example:app",
-          "package_ref": "pkg:maven/dev.bomly.example/app",
-          "purl": "pkg:maven/dev.bomly.example/app"
-        },
-        {
-          "depends_on": [
-            "pkg:maven/org.slf4j/slf4j-api@1.7.36"
-          ],
-          "id": "pkg:maven/dev.bomly.example/lib",
-          "licenses": [],
-          "name": "dev.bomly.example:lib",
-          "package_ref": "pkg:maven/dev.bomly.example/lib",
-          "purl": "pkg:maven/dev.bomly.example/lib",
-          "scopes": [
-            "development",
-            "runtime"
-          ]
-        },
-        {
-          "depends_on": [
             "pkg:maven/org.hamcrest/hamcrest-core@1.3"
           ],
           "id": "pkg:maven/junit/junit@4.13.2",
@@ -200,21 +194,9 @@
           "depends_on": [
             "pkg:maven/org.apache.commons/commons-lang3@3.12.0"
           ],
-          "id": "pkg:maven/example-java-gradle-multimodule",
+          "id": "module:build.gradle#example-java-gradle-multimodule",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "settings.gradle",
-              "position": {
-                "file": "settings.gradle",
-                "line": 0
-              },
-              "real_path": "settings.gradle"
-            }
-          ],
-          "name": "example-java-gradle-multimodule",
-          "package_ref": "pkg:maven/example-java-gradle-multimodule",
-          "purl": "pkg:maven/example-java-gradle-multimodule"
+          "name": "example-java-gradle-multimodule"
         },
         {
           "depends_on": [],
@@ -253,10 +235,9 @@
           "depends_on": [
             "pkg:maven/org.slf4j/slf4j-api@1.7.36"
           ],
-          "id": "pkg:maven/dev.bomly.example/lib",
+          "id": "module:lib/build.gradle#pkg:maven/dev.bomly.example/lib",
           "licenses": [],
           "name": "dev.bomly.example:lib",
-          "package_ref": "pkg:maven/dev.bomly.example/lib",
           "purl": "pkg:maven/dev.bomly.example/lib"
         },
         {
@@ -347,29 +328,6 @@
       "org": "com.google.j2objc",
       "purl": "pkg:maven/com.google.j2objc/j2objc-annotations@1.3",
       "version": "1.3",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "maven",
-      "licenses": [],
-      "name": "dev.bomly.example:app",
-      "org": "dev.bomly.example",
-      "purl": "pkg:maven/dev.bomly.example/app",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "maven",
-      "licenses": [],
-      "name": "dev.bomly.example:lib",
-      "org": "dev.bomly.example",
-      "purl": "pkg:maven/dev.bomly.example/lib",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "maven",
-      "licenses": [],
-      "name": "example-java-gradle-multimodule",
-      "purl": "pkg:maven/example-java-gradle-multimodule",
       "vulnerabilities": []
     },
     {

@@ -4,6 +4,29 @@
     {
       "dependencies": [
         {
+          "depends_on": [
+            "module:packages/lib/package.json#pkg:npm/lib@1.0.0",
+            "pkg:npm/left-pad@1.3.0",
+            "pkg:npm/minimist@1.2.5"
+          ],
+          "id": "module:apps/web/package.json#pkg:npm/web@1.0.0",
+          "licenses": [],
+          "name": "web",
+          "purl": "pkg:npm/web@1.0.0",
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/lodash@4.17.20",
+            "pkg:npm/minimist@1.2.5"
+          ],
+          "id": "module:packages/lib/package.json#pkg:npm/lib@1.0.0",
+          "licenses": [],
+          "name": "lib",
+          "purl": "pkg:npm/lib@1.0.0",
+          "version": "1.0.0"
+        },
+        {
           "depends_on": [],
           "id": "pkg:npm/left-pad@1.3.0",
           "licenses": [
@@ -29,26 +52,6 @@
             "development"
           ],
           "version": "1.3.0"
-        },
-        {
-          "depends_on": [
-            "pkg:npm/lodash@4.17.20",
-            "pkg:npm/minimist@1.2.5"
-          ],
-          "id": "pkg:npm/lib@1.0.0",
-          "licenses": [
-            {
-              "type": "declared",
-              "value": "MIT"
-            }
-          ],
-          "name": "lib",
-          "package_ref": "pkg:npm/lib@1.0.0",
-          "purl": "pkg:npm/lib@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.0.0"
         },
         {
           "depends_on": [],
@@ -103,34 +106,6 @@
             "runtime"
           ],
           "version": "1.2.5"
-        },
-        {
-          "depends_on": [
-            "pkg:npm/left-pad@1.3.0",
-            "pkg:npm/lib@1.0.0",
-            "pkg:npm/minimist@1.2.5"
-          ],
-          "id": "pkg:npm/web@1.0.0",
-          "licenses": [
-            {
-              "type": "declared",
-              "value": "MIT"
-            }
-          ],
-          "locations": [
-            {
-              "access_path": "package-lock.json",
-              "position": {
-                "file": "package-lock.json",
-                "line": 0
-              },
-              "real_path": "package-lock.json"
-            }
-          ],
-          "name": "web",
-          "package_ref": "pkg:npm/web@1.0.0",
-          "purl": "pkg:npm/web@1.0.0",
-          "version": "1.0.0"
         }
       ],
       "detector": "npm",
@@ -146,10 +121,9 @@
           "depends_on": [
             "pkg:npm/ms@2.1.3"
           ],
-          "id": "pkg:npm/example-javascript-npm-workspaces@1.0.0",
+          "id": "module:package.json#pkg:npm/example-javascript-npm-workspaces@1.0.0",
           "licenses": [],
           "name": "example-javascript-npm-workspaces",
-          "package_ref": "pkg:npm/example-javascript-npm-workspaces@1.0.0",
           "purl": "pkg:npm/example-javascript-npm-workspaces@1.0.0",
           "version": "1.0.0"
         },
@@ -195,19 +169,10 @@
             "pkg:npm/lodash@4.17.20",
             "pkg:npm/minimist@1.2.5"
           ],
-          "id": "pkg:npm/lib@1.0.0",
-          "licenses": [
-            {
-              "type": "declared",
-              "value": "MIT"
-            }
-          ],
+          "id": "module:packages/lib/package.json#pkg:npm/lib@1.0.0",
+          "licenses": [],
           "name": "lib",
-          "package_ref": "pkg:npm/lib@1.0.0",
           "purl": "pkg:npm/lib@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.0"
         },
         {
@@ -278,14 +243,12 @@
   },
   "packages": [
     {
-      "ecosystem": "npm",
-      "licenses": [],
-      "name": "example-javascript-npm-workspaces",
-      "purl": "pkg:npm/example-javascript-npm-workspaces@1.0.0",
-      "version": "1.0.0",
-      "vulnerabilities": []
-    },
-    {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "XI5MPzVNApjAyhQzphX8BkmKsKUxD4LdyK24iZeQGinBN9yTQT3bFlCBy/aVx2HrNcqQGsdot8ghrjyrvMCoEA=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [
         {
@@ -299,19 +262,12 @@
       "vulnerabilities": []
     },
     {
-      "ecosystem": "npm",
-      "licenses": [
+      "digests": [
         {
-          "type": "declared",
-          "value": "MIT"
+          "algorithm": "sha512",
+          "value": "PlhdFcillOINfeV7Ni6oF1TAEayyZBoZ8bcshTHqOYJYlrqzRK5hagpagky5o4HfCzzd1TRkXPMFq6cKk9rGmA=="
         }
       ],
-      "name": "lib",
-      "purl": "pkg:npm/lib@1.0.0",
-      "version": "1.0.0",
-      "vulnerabilities": []
-    },
-    {
       "ecosystem": "npm",
       "licenses": [
         {
@@ -325,6 +281,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [
         {
@@ -338,6 +300,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [
         {
@@ -348,19 +316,6 @@
       "name": "ms",
       "purl": "pkg:npm/ms@2.1.3",
       "version": "2.1.3",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "npm",
-      "licenses": [
-        {
-          "type": "declared",
-          "value": "MIT"
-        }
-      ],
-      "name": "web",
-      "purl": "pkg:npm/web@1.0.0",
-      "version": "1.0.0",
       "vulnerabilities": []
     }
   ],

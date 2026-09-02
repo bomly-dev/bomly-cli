@@ -9,7 +9,7 @@
   },
   "command": "explain",
   "dependency": {
-    "id": "golang.org/x/text@v0.3.5",
+    "id": "pkg:golang/golang.org/x/text@v0.3.5",
     "licenses": [],
     "locations": [
       {
@@ -32,10 +32,10 @@
   },
   "paths": [
     {
-      "introduced_via": "pkg:golang/github.com/bomly/example-go-modules",
+      "introduced_via": "module:go.mod#pkg:golang/github.com/bomly/example-go-modules",
       "packages": [
         {
-          "id": "pkg:golang/github.com/bomly/example-go-modules",
+          "id": "module:go.mod#pkg:golang/github.com/bomly/example-go-modules",
           "licenses": [],
           "name": "github.com/bomly/example-go-modules",
           "purl": "pkg:golang/github.com/bomly/example-go-modules",
@@ -87,7 +87,7 @@
         "unknown": 0
       },
       "dependency": {
-        "id": "golang.org/x/text@v0.3.5",
+        "id": "pkg:golang/golang.org/x/text@v0.3.5",
         "licenses": [],
         "locations": [
           {
@@ -109,10 +109,10 @@
       "package_manager": "gomod",
       "paths": [
         {
-          "introduced_via": "pkg:golang/github.com/bomly/example-go-modules",
+          "introduced_via": "module:go.mod#pkg:golang/github.com/bomly/example-go-modules",
           "packages": [
             {
-              "id": "pkg:golang/github.com/bomly/example-go-modules",
+              "id": "module:go.mod#pkg:golang/github.com/bomly/example-go-modules",
               "licenses": [],
               "name": "github.com/bomly/example-go-modules",
               "purl": "pkg:golang/github.com/bomly/example-go-modules",

@@ -112,6 +112,120 @@ func main() {
 }
 `
 
+// minSupportedSDKVersion is the oldest github.com/bomly-dev/bomly-sdk release
+// whose plugin binaries the current Bomly binary must keep loading and
+// running. Bump it only when a wire-protocol major version is retired.
+//
+// It lives in this file, which carries no build tag, because both the
+// smoke-tagged wire-compatibility test and the untagged fixture compile guard
+// need it -- and the guard is the one that runs in `make test`.
+const minSupportedSDKVersion = "v0.1.0"
+
+// legacyExamplePluginMainSource is the same fixture written against the
+// oldest SDK release whose plugin binaries must keep loading
+// (minSupportedSDKVersion). It exists because that guarantee is about the
+// wire, not the source API: ADR-0041 replaced sdk.NewDependency with the node
+// constructors, so one source cannot compile against both v0.1.0 and the
+// current pin, and pretending otherwise would have meant retiring the
+// compatibility test rather than the API.
+//
+// Do not modernize this. It is pinned to a released API on purpose, and the
+// day it stops compiling against minSupportedSDKVersion is the day that
+// version's plugin binaries genuinely stopped being buildable -- which is a
+// decision to take deliberately, by bumping minSupportedSDKVersion.
+const legacyExamplePluginMainSource = `package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	sdk "github.com/bomly-dev/bomly-sdk"
+)
+
+const pluginID = "bomly.example.gomod-detector"
+
+type detector struct{}
+
+func (d *detector) Descriptor(context.Context) (*sdk.DetectorDescriptor, error) {
+	return &sdk.DetectorDescriptor{
+		Name: pluginID,
+	}, nil
+}
+
+func (d *detector) PackageManagerSupport(context.Context) ([]sdk.PackageManagerSupport, error) {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGoMod, "go.mod")}, nil
+}
+
+func (d *detector) Ready(context.Context, *sdk.DetectRequest) (*sdk.ReadyResponse, error) {
+	return &sdk.ReadyResponse{Ready: true}, nil
+}
+
+func (d *detector) Applicable(context.Context, *sdk.DetectRequest) (*sdk.ApplicableResponse, error) {
+	return &sdk.ApplicableResponse{Applicable: true}, nil
+}
+
+func (d *detector) Detect(ctx context.Context, req *sdk.DetectRequest) (*sdk.DetectResponse, error) {
+	moduleName, err := readModuleName(filepath.Join(req.ProjectPath, "go.mod"))
+	if err != nil {
+		return nil, err
+	}
+	pkg := sdk.NewDependency(sdk.Dependency{
+		Coordinates: sdk.Coordinates{
+			Ecosystem: sdk.EcosystemGo,
+			Name:      moduleName,
+			Version:   "v0.0.0",
+			PURL:      "pkg:golang/" + moduleName + "@v0.0.0",
+		},
+		FoundBy: pluginID,
+	})
+	graph := sdk.New()
+	if err := graph.AddNode(pkg); err != nil {
+		return nil, err
+	}
+	return &sdk.DetectResponse{
+		SubprojectInfo:      req.Subproject,
+		RootExecutionTarget: req.ExecutionTarget,
+		DetectorName:        pluginID,
+		Origin:              sdk.ExternalOrigin,
+		Graphs: &sdk.GraphContainer{
+			Entries: []sdk.GraphEntry{{
+				Manifest: sdk.ManifestMetadata{
+					Path: filepath.Join(req.ProjectPath, "go.mod"),
+					Kind: sdk.ManifestKind("go.mod"),
+				},
+				Graph: graph,
+			}},
+		},
+	}, nil
+}
+
+func readModuleName(path string) (string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("read go.mod: %w", err)
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if !strings.HasPrefix(line, "module ") {
+			continue
+		}
+		name := strings.TrimSpace(strings.TrimPrefix(line, "module"))
+		if name == "" {
+			return "", fmt.Errorf("go.mod module directive is empty")
+		}
+		return name, nil
+	}
+	return "", fmt.Errorf("go.mod does not contain a module directive")
+}
+
+func main() {
+	sdk.ServeDetector(&detector{})
+}
+`
+
 // exampleAnalyzerPluginMainSource is the Go source for the example managed
 // analyzer plugin. It annotates one vulnerability with a package-tier
 // reachability result. When the host accepts package-update deltas
@@ -260,6 +374,10 @@ func TestExamplePluginFixtureCompiles(t *testing.T) {
 		t.Skipf("go toolchain not found on PATH: %v", err)
 	}
 	compileFixtureSource(t, "examplePluginMainSource", examplePluginMainSource, sdkModuleVersion(t))
+	// And the legacy source against the oldest release whose binaries must
+	// keep loading, so the wire-compatibility smoke cannot silently stop
+	// building what it claims to test.
+	compileFixtureSource(t, "legacyExamplePluginMainSource", legacyExamplePluginMainSource, minSupportedSDKVersion)
 }
 
 // TestExampleAnalyzerPluginFixtureCompiles is the analyzer sibling of

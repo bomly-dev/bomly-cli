@@ -5,6 +5,26 @@
       "dependencies": [
         {
           "depends_on": [
+            "pkg:npm/%40google-cloud/vision@0.8.0",
+            "pkg:npm/angular@1.3.19",
+            "pkg:npm/boom@4.2.0",
+            "pkg:npm/console-io@2.6.3",
+            "pkg:npm/cookie-signature@1.0.2",
+            "pkg:npm/express@4.1.1",
+            "pkg:npm/handlebars-ex@0.0.2",
+            "pkg:npm/jquery@3.0.0-alpha1",
+            "pkg:npm/mocha@3.5.3",
+            "pkg:npm/nodejs-repo-tools@1.0.0",
+            "pkg:npm/tinymce@4.2.3"
+          ],
+          "id": "module:package.json#pkg:npm/example-javascript-yarn@0.0.1",
+          "licenses": [],
+          "name": "example-javascript-yarn",
+          "purl": "pkg:npm/example-javascript-yarn@0.0.1",
+          "version": "0.0.1"
+        },
+        {
+          "depends_on": [
             "pkg:npm/%40google-cloud/common@0.12.0",
             "pkg:npm/dot-prop@2.4.0",
             "pkg:npm/duplexify@3.5.0",
@@ -17,22 +37,9 @@
           ],
           "id": "pkg:npm/%40google-cloud/common-grpc@0.1.4",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "yarn.lock",
-              "position": {
-                "file": "yarn.lock",
-                "line": 0
-              },
-              "real_path": "yarn.lock"
-            }
-          ],
           "name": "@google-cloud/common-grpc",
           "package_ref": "pkg:npm/%40google-cloud/common-grpc@0.1.4",
           "purl": "pkg:npm/%40google-cloud/common-grpc@0.1.4",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.1.4"
         },
         {
@@ -60,22 +67,9 @@
           ],
           "id": "pkg:npm/%40google-cloud/common@0.12.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "yarn.lock",
-              "position": {
-                "file": "yarn.lock",
-                "line": 0
-              },
-              "real_path": "yarn.lock"
-            }
-          ],
           "name": "@google-cloud/common",
           "package_ref": "pkg:npm/%40google-cloud/common@0.12.0",
           "purl": "pkg:npm/%40google-cloud/common@0.12.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.12.0"
         },
         {
@@ -95,22 +89,9 @@
           ],
           "id": "pkg:npm/%40google-cloud/vision@0.8.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "yarn.lock",
-              "position": {
-                "file": "yarn.lock",
-                "line": 0
-              },
-              "real_path": "yarn.lock"
-            }
-          ],
           "name": "@google-cloud/vision",
           "package_ref": "pkg:npm/%40google-cloud/vision@0.8.0",
           "purl": "pkg:npm/%40google-cloud/vision@0.8.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.8.0"
         },
         {
@@ -130,9 +111,6 @@
           "name": "abbrev",
           "package_ref": "pkg:npm/abbrev@1.1.0",
           "purl": "pkg:npm/abbrev@1.1.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.1.0"
         },
         {
@@ -363,9 +341,6 @@
           "name": "aproba",
           "package_ref": "pkg:npm/aproba@1.1.1",
           "purl": "pkg:npm/aproba@1.1.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.1.1"
         },
         {
@@ -388,9 +363,6 @@
           "name": "are-we-there-yet",
           "package_ref": "pkg:npm/are-we-there-yet@1.1.2",
           "purl": "pkg:npm/are-we-there-yet@1.1.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.1.2"
         },
         {
@@ -410,9 +382,6 @@
           "name": "arguejs",
           "package_ref": "pkg:npm/arguejs@0.2.3",
           "purl": "pkg:npm/arguejs@0.2.3",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.2.3"
         },
         {
@@ -454,9 +423,6 @@
           "name": "array-uniq",
           "package_ref": "pkg:npm/array-uniq@1.0.3",
           "purl": "pkg:npm/array-uniq@1.0.3",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.3"
         },
         {
@@ -498,9 +464,6 @@
           "name": "arrify",
           "package_ref": "pkg:npm/arrify@1.0.1",
           "purl": "pkg:npm/arrify@1.0.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.1"
         },
         {
@@ -523,9 +486,6 @@
           "name": "ascli",
           "package_ref": "pkg:npm/ascli@1.0.1",
           "purl": "pkg:npm/ascli@1.0.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.1"
         },
         {
@@ -679,9 +639,6 @@
           "name": "async",
           "package_ref": "pkg:npm/async@2.1.4",
           "purl": "pkg:npm/async@2.1.4",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.1.4"
         },
         {
@@ -855,9 +812,6 @@
           "name": "base64url",
           "package_ref": "pkg:npm/base64url@0.0.6",
           "purl": "pkg:npm/base64url@0.0.6",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.0.6"
         },
         {
@@ -880,9 +834,6 @@
           "name": "base64url",
           "package_ref": "pkg:npm/base64url@1.0.6",
           "purl": "pkg:npm/base64url@1.0.6",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.6"
         },
         {
@@ -902,9 +853,6 @@
           "name": "base64url",
           "package_ref": "pkg:npm/base64url@2.0.0",
           "purl": "pkg:npm/base64url@2.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.0.0"
         },
         {
@@ -996,9 +944,6 @@
           "name": "bl",
           "package_ref": "pkg:npm/bl@1.1.2",
           "purl": "pkg:npm/bl@1.1.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.1.2"
         },
         {
@@ -1042,9 +987,6 @@
           "name": "block-stream",
           "package_ref": "pkg:npm/block-stream@0.0.9",
           "purl": "pkg:npm/block-stream@0.0.9",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.0.9"
         },
         {
@@ -1159,9 +1101,6 @@
           "name": "buffer-equal-constant-time",
           "package_ref": "pkg:npm/buffer-equal-constant-time@1.0.1",
           "purl": "pkg:npm/buffer-equal-constant-time@1.0.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.1"
         },
         {
@@ -1181,9 +1120,6 @@
           "name": "buffer-shims",
           "package_ref": "pkg:npm/buffer-shims@1.0.0",
           "purl": "pkg:npm/buffer-shims@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.0"
         },
         {
@@ -1205,9 +1141,6 @@
           "name": "bytebuffer",
           "package_ref": "pkg:npm/bytebuffer@5.0.1",
           "purl": "pkg:npm/bytebuffer@5.0.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "5.0.1"
         },
         {
@@ -1277,9 +1210,6 @@
           "name": "camelcase-keys",
           "package_ref": "pkg:npm/camelcase-keys@1.0.0",
           "purl": "pkg:npm/camelcase-keys@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.0"
         },
         {
@@ -1321,9 +1251,6 @@
           "name": "capture-stack-trace",
           "package_ref": "pkg:npm/capture-stack-trace@1.0.0",
           "purl": "pkg:npm/capture-stack-trace@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.0"
         },
         {
@@ -1515,9 +1442,6 @@
           "name": "code-point-at",
           "package_ref": "pkg:npm/code-point-at@1.1.0",
           "purl": "pkg:npm/code-point-at@1.1.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.1.0"
         },
         {
@@ -1537,9 +1461,6 @@
           "name": "colour",
           "package_ref": "pkg:npm/colour@0.7.1",
           "purl": "pkg:npm/colour@0.7.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.7.1"
         },
         {
@@ -1746,9 +1667,6 @@
           "name": "concat-stream",
           "package_ref": "pkg:npm/concat-stream@1.4.10",
           "purl": "pkg:npm/concat-stream@1.4.10",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.4.10"
         },
         {
@@ -1772,9 +1690,6 @@
           "name": "concat-stream",
           "package_ref": "pkg:npm/concat-stream@1.6.0",
           "purl": "pkg:npm/concat-stream@1.6.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.6.0"
         },
         {
@@ -1794,9 +1709,6 @@
           "name": "console-control-strings",
           "package_ref": "pkg:npm/console-control-strings@1.1.0",
           "purl": "pkg:npm/console-control-strings@1.1.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.1.0"
         },
         {
@@ -2046,9 +1958,6 @@
           "name": "create-error-class",
           "package_ref": "pkg:npm/create-error-class@3.0.2",
           "purl": "pkg:npm/create-error-class@3.0.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "3.0.2"
         },
         {
@@ -2275,9 +2184,6 @@
           "name": "deep-extend",
           "package_ref": "pkg:npm/deep-extend@0.4.1",
           "purl": "pkg:npm/deep-extend@0.4.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.4.1"
         },
         {
@@ -2319,9 +2225,6 @@
           "name": "delegates",
           "package_ref": "pkg:npm/delegates@1.0.0",
           "purl": "pkg:npm/delegates@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.0"
         },
         {
@@ -2409,9 +2312,6 @@
           "name": "dot-prop",
           "package_ref": "pkg:npm/dot-prop@2.4.0",
           "purl": "pkg:npm/dot-prop@2.4.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.4.0"
         },
         {
@@ -2436,9 +2336,6 @@
           "name": "duplexify",
           "package_ref": "pkg:npm/duplexify@3.5.0",
           "purl": "pkg:npm/duplexify@3.5.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "3.5.0"
         },
         {
@@ -2485,9 +2382,6 @@
           "name": "ecdsa-sig-formatter",
           "package_ref": "pkg:npm/ecdsa-sig-formatter@1.0.9",
           "purl": "pkg:npm/ecdsa-sig-formatter@1.0.9",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.9"
         },
         {
@@ -2531,9 +2425,6 @@
           "name": "end-of-stream",
           "package_ref": "pkg:npm/end-of-stream@1.0.0",
           "purl": "pkg:npm/end-of-stream@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.0"
         },
         {
@@ -2645,9 +2536,6 @@
           "name": "ent",
           "package_ref": "pkg:npm/ent@2.2.0",
           "purl": "pkg:npm/ent@2.2.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.2.0"
         },
         {
@@ -2738,27 +2626,6 @@
             "runtime"
           ],
           "version": "1.7.0"
-        },
-        {
-          "depends_on": [
-            "pkg:npm/%40google-cloud/vision@0.8.0",
-            "pkg:npm/angular@1.3.19",
-            "pkg:npm/boom@4.2.0",
-            "pkg:npm/console-io@2.6.3",
-            "pkg:npm/cookie-signature@1.0.2",
-            "pkg:npm/express@4.1.1",
-            "pkg:npm/handlebars-ex@0.0.2",
-            "pkg:npm/jquery@3.0.0-alpha1",
-            "pkg:npm/mocha@3.5.3",
-            "pkg:npm/nodejs-repo-tools@1.0.0",
-            "pkg:npm/tinymce@4.2.3"
-          ],
-          "id": "pkg:npm/example-javascript-yarn@0.0.1",
-          "licenses": [],
-          "name": "example-javascript-yarn",
-          "package_ref": "pkg:npm/example-javascript-yarn@0.0.1",
-          "purl": "pkg:npm/example-javascript-yarn@0.0.1",
-          "version": "0.0.1"
         },
         {
           "depends_on": [],
@@ -3083,9 +2950,6 @@
           "name": "form-data",
           "package_ref": "pkg:npm/form-data@1.0.1",
           "purl": "pkg:npm/form-data@1.0.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.1"
         },
         {
@@ -3245,9 +3109,6 @@
           "name": "fstream-ignore",
           "package_ref": "pkg:npm/fstream-ignore@1.0.5",
           "purl": "pkg:npm/fstream-ignore@1.0.5",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.5"
         },
         {
@@ -3272,9 +3133,6 @@
           "name": "fstream",
           "package_ref": "pkg:npm/fstream@1.0.10",
           "purl": "pkg:npm/fstream@1.0.10",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.10"
         },
         {
@@ -3303,9 +3161,6 @@
           "name": "gauge",
           "package_ref": "pkg:npm/gauge@2.7.3",
           "purl": "pkg:npm/gauge@2.7.3",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.7.3"
         },
         {
@@ -3371,9 +3226,6 @@
           "name": "get-stdin",
           "package_ref": "pkg:npm/get-stdin@4.0.1",
           "purl": "pkg:npm/get-stdin@4.0.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "4.0.1"
         },
         {
@@ -3454,9 +3306,6 @@
           "name": "google-auth-library",
           "package_ref": "pkg:npm/google-auth-library@0.9.10",
           "purl": "pkg:npm/google-auth-library@0.9.10",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.9.10"
         },
         {
@@ -3481,9 +3330,6 @@
           "name": "google-auto-auth",
           "package_ref": "pkg:npm/google-auto-auth@0.5.2",
           "purl": "pkg:npm/google-auto-auth@0.5.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.5.2"
         },
         {
@@ -3511,9 +3357,6 @@
           "name": "google-gax",
           "package_ref": "pkg:npm/google-gax@0.10.8",
           "purl": "pkg:npm/google-gax@0.10.8",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.10.8"
         },
         {
@@ -3535,9 +3378,6 @@
           "name": "google-p12-pem",
           "package_ref": "pkg:npm/google-p12-pem@0.1.1",
           "purl": "pkg:npm/google-p12-pem@0.1.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.1.1"
         },
         {
@@ -3557,9 +3397,6 @@
           "name": "google-proto-files",
           "package_ref": "pkg:npm/google-proto-files@0.8.6",
           "purl": "pkg:npm/google-proto-files@0.8.6",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.8.6"
         },
         {
@@ -3579,9 +3416,6 @@
           "name": "google-proto-files",
           "package_ref": "pkg:npm/google-proto-files@0.9.1",
           "purl": "pkg:npm/google-proto-files@0.9.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.9.1"
         },
         {
@@ -3601,9 +3435,6 @@
           "name": "graceful-fs",
           "package_ref": "pkg:npm/graceful-fs@4.1.11",
           "purl": "pkg:npm/graceful-fs@4.1.11",
-          "scopes": [
-            "runtime"
-          ],
           "version": "4.1.11"
         },
         {
@@ -3674,9 +3505,6 @@
           "name": "grpc",
           "package_ref": "pkg:npm/grpc@1.1.2",
           "purl": "pkg:npm/grpc@1.1.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.1.2"
         },
         {
@@ -3701,9 +3529,6 @@
           "name": "gtoken",
           "package_ref": "pkg:npm/gtoken@1.2.1",
           "purl": "pkg:npm/gtoken@1.2.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.2.1"
         },
         {
@@ -3888,9 +3713,6 @@
           "name": "has-unicode",
           "package_ref": "pkg:npm/has-unicode@2.0.1",
           "purl": "pkg:npm/has-unicode@2.0.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.0.1"
         },
         {
@@ -4090,9 +3912,6 @@
           "name": "indent-string",
           "package_ref": "pkg:npm/indent-string@1.2.2",
           "purl": "pkg:npm/indent-string@1.2.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.2.2"
         },
         {
@@ -4181,9 +4000,6 @@
           "name": "ini",
           "package_ref": "pkg:npm/ini@1.3.4",
           "purl": "pkg:npm/ini@1.3.4",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.3.4"
         },
         {
@@ -4249,9 +4065,6 @@
           "name": "is-finite",
           "package_ref": "pkg:npm/is-finite@1.0.2",
           "purl": "pkg:npm/is-finite@1.0.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.2"
         },
         {
@@ -4273,9 +4086,6 @@
           "name": "is-fullwidth-code-point",
           "package_ref": "pkg:npm/is-fullwidth-code-point@1.0.0",
           "purl": "pkg:npm/is-fullwidth-code-point@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.0"
         },
         {
@@ -4322,9 +4132,6 @@
           "name": "is-obj",
           "package_ref": "pkg:npm/is-obj@1.0.1",
           "purl": "pkg:npm/is-obj@1.0.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.1"
         },
         {
@@ -4388,9 +4195,6 @@
           "name": "is-stream-ended",
           "package_ref": "pkg:npm/is-stream-ended@0.1.0",
           "purl": "pkg:npm/is-stream-ended@0.1.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.1.0"
         },
         {
@@ -4432,9 +4236,6 @@
           "name": "is",
           "package_ref": "pkg:npm/is@3.2.0",
           "purl": "pkg:npm/is@3.2.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "3.2.0"
         },
         {
@@ -4476,9 +4277,6 @@
           "name": "isarray",
           "package_ref": "pkg:npm/isarray@1.0.0",
           "purl": "pkg:npm/isarray@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.0"
         },
         {
@@ -4806,9 +4604,6 @@
           "name": "jwa",
           "package_ref": "pkg:npm/jwa@1.0.2",
           "purl": "pkg:npm/jwa@1.0.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.2"
         },
         {
@@ -4831,9 +4626,6 @@
           "name": "jws",
           "package_ref": "pkg:npm/jws@3.0.0",
           "purl": "pkg:npm/jws@3.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "3.0.0"
         },
         {
@@ -4899,9 +4691,6 @@
           "name": "lodash.noop",
           "package_ref": "pkg:npm/lodash.noop@3.0.1",
           "purl": "pkg:npm/lodash.noop@3.0.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "3.0.1"
         },
         {
@@ -4921,9 +4710,6 @@
           "name": "lodash",
           "package_ref": "pkg:npm/lodash@4.17.4",
           "purl": "pkg:npm/lodash@4.17.4",
-          "scopes": [
-            "runtime"
-          ],
           "version": "4.17.4"
         },
         {
@@ -4943,9 +4729,6 @@
           "name": "log-driver",
           "package_ref": "pkg:npm/log-driver@1.2.5",
           "purl": "pkg:npm/log-driver@1.2.5",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.2.5"
         },
         {
@@ -4965,9 +4748,6 @@
           "name": "long",
           "package_ref": "pkg:npm/long@3.2.0",
           "purl": "pkg:npm/long@3.2.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "3.2.0"
         },
         {
@@ -5031,9 +4811,6 @@
           "name": "map-obj",
           "package_ref": "pkg:npm/map-obj@1.0.1",
           "purl": "pkg:npm/map-obj@1.0.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.1"
         },
         {
@@ -5080,9 +4857,6 @@
           "name": "meow",
           "package_ref": "pkg:npm/meow@2.0.0",
           "purl": "pkg:npm/meow@2.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.0.0"
         },
         {
@@ -5146,9 +4920,6 @@
           "name": "methmeth",
           "package_ref": "pkg:npm/methmeth@1.1.0",
           "purl": "pkg:npm/methmeth@1.1.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.1.0"
         },
         {
@@ -5427,9 +5198,6 @@
           "name": "minimist",
           "package_ref": "pkg:npm/minimist@1.2.0",
           "purl": "pkg:npm/minimist@1.2.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.2.0"
         },
         {
@@ -5506,9 +5274,6 @@
           "name": "modelo",
           "package_ref": "pkg:npm/modelo@4.2.0",
           "purl": "pkg:npm/modelo@4.2.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "4.2.0"
         },
         {
@@ -5620,9 +5385,6 @@
           "name": "nan",
           "package_ref": "pkg:npm/nan@2.5.1",
           "purl": "pkg:npm/nan@2.5.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.5.1"
         },
         {
@@ -5734,9 +5496,6 @@
           "name": "node-forge",
           "package_ref": "pkg:npm/node-forge@0.6.49",
           "purl": "pkg:npm/node-forge@0.6.49",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.6.49"
         },
         {
@@ -5766,9 +5525,6 @@
           "name": "node-pre-gyp",
           "package_ref": "pkg:npm/node-pre-gyp@0.6.33",
           "purl": "pkg:npm/node-pre-gyp@0.6.33",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.6.33"
         },
         {
@@ -5788,9 +5544,6 @@
           "name": "node-uuid",
           "package_ref": "pkg:npm/node-uuid@1.4.7",
           "purl": "pkg:npm/node-uuid@1.4.7",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.4.7"
         },
         {
@@ -5829,9 +5582,6 @@
           "name": "nopt",
           "package_ref": "pkg:npm/nopt@3.0.6",
           "purl": "pkg:npm/nopt@3.0.6",
-          "scopes": [
-            "runtime"
-          ],
           "version": "3.0.6"
         },
         {
@@ -5856,9 +5606,6 @@
           "name": "npmlog",
           "package_ref": "pkg:npm/npmlog@4.0.2",
           "purl": "pkg:npm/npmlog@4.0.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "4.0.2"
         },
         {
@@ -5878,9 +5625,6 @@
           "name": "number-is-nan",
           "package_ref": "pkg:npm/number-is-nan@1.0.1",
           "purl": "pkg:npm/number-is-nan@1.0.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.1"
         },
         {
@@ -5922,9 +5666,6 @@
           "name": "object-assign",
           "package_ref": "pkg:npm/object-assign@1.0.0",
           "purl": "pkg:npm/object-assign@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.0"
         },
         {
@@ -5944,9 +5685,6 @@
           "name": "object-assign",
           "package_ref": "pkg:npm/object-assign@3.0.0",
           "purl": "pkg:npm/object-assign@3.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "3.0.0"
         },
         {
@@ -5966,9 +5704,6 @@
           "name": "object-assign",
           "package_ref": "pkg:npm/object-assign@4.1.1",
           "purl": "pkg:npm/object-assign@4.1.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "4.1.1"
         },
         {
@@ -6036,9 +5771,6 @@
           "name": "once",
           "package_ref": "pkg:npm/once@1.3.3",
           "purl": "pkg:npm/once@1.3.3",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.3.3"
         },
         {
@@ -6104,9 +5836,6 @@
           "name": "optjs",
           "package_ref": "pkg:npm/optjs@3.2.2",
           "purl": "pkg:npm/optjs@3.2.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "3.2.2"
         },
         {
@@ -6450,9 +6179,6 @@
           "name": "process-nextick-args",
           "package_ref": "pkg:npm/process-nextick-args@1.0.7",
           "purl": "pkg:npm/process-nextick-args@1.0.7",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.7"
         },
         {
@@ -6472,9 +6198,6 @@
           "name": "propprop",
           "package_ref": "pkg:npm/propprop@0.3.1",
           "purl": "pkg:npm/propprop@0.3.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.3.1"
         },
         {
@@ -6499,9 +6222,6 @@
           "name": "protobufjs",
           "package_ref": "pkg:npm/protobufjs@5.0.2",
           "purl": "pkg:npm/protobufjs@5.0.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "5.0.2"
         },
         {
@@ -6682,9 +6402,6 @@
           "name": "qs",
           "package_ref": "pkg:npm/qs@6.2.2",
           "purl": "pkg:npm/qs@6.2.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "6.2.2"
         },
         {
@@ -6775,9 +6492,6 @@
           "name": "rc",
           "package_ref": "pkg:npm/rc@1.1.6",
           "purl": "pkg:npm/rc@1.1.6",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.1.6"
         },
         {
@@ -6829,9 +6543,6 @@
           "name": "readable-stream",
           "package_ref": "pkg:npm/readable-stream@1.1.14",
           "purl": "pkg:npm/readable-stream@1.1.14",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.1.14"
         },
         {
@@ -6858,9 +6569,6 @@
           "name": "readable-stream",
           "package_ref": "pkg:npm/readable-stream@2.0.6",
           "purl": "pkg:npm/readable-stream@2.0.6",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.0.6"
         },
         {
@@ -6888,9 +6596,6 @@
           "name": "readable-stream",
           "package_ref": "pkg:npm/readable-stream@2.1.5",
           "purl": "pkg:npm/readable-stream@2.1.5",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.1.5"
         },
         {
@@ -6918,9 +6623,6 @@
           "name": "readable-stream",
           "package_ref": "pkg:npm/readable-stream@2.2.2",
           "purl": "pkg:npm/readable-stream@2.2.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.2.2"
         },
         {
@@ -7054,9 +6756,6 @@
           "name": "repeating",
           "package_ref": "pkg:npm/repeating@1.1.3",
           "purl": "pkg:npm/repeating@1.1.3",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.1.3"
         },
         {
@@ -7098,9 +6797,6 @@
           "name": "request",
           "package_ref": "pkg:npm/request@2.74.0",
           "purl": "pkg:npm/request@2.74.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.74.0"
         },
         {
@@ -7141,9 +6837,6 @@
           "name": "request",
           "package_ref": "pkg:npm/request@2.76.0",
           "purl": "pkg:npm/request@2.76.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.76.0"
         },
         {
@@ -7231,9 +6924,6 @@
           "name": "retry-request",
           "package_ref": "pkg:npm/retry-request@1.3.2",
           "purl": "pkg:npm/retry-request@1.3.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.3.2"
         },
         {
@@ -7253,9 +6943,6 @@
           "name": "rgb-hex",
           "package_ref": "pkg:npm/rgb-hex@1.0.0",
           "purl": "pkg:npm/rgb-hex@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.0"
         },
         {
@@ -7301,9 +6988,6 @@
           "name": "rimraf",
           "package_ref": "pkg:npm/rimraf@2.5.4",
           "purl": "pkg:npm/rimraf@2.5.4",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.5.4"
         },
         {
@@ -7323,9 +7007,6 @@
           "name": "safe-buffer",
           "package_ref": "pkg:npm/safe-buffer@5.0.1",
           "purl": "pkg:npm/safe-buffer@5.0.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "5.0.1"
         },
         {
@@ -7345,9 +7026,6 @@
           "name": "semver",
           "package_ref": "pkg:npm/semver@5.3.0",
           "purl": "pkg:npm/semver@5.3.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "5.3.0"
         },
         {
@@ -7516,9 +7194,6 @@
           "name": "set-blocking",
           "package_ref": "pkg:npm/set-blocking@2.0.0",
           "purl": "pkg:npm/set-blocking@2.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.0.0"
         },
         {
@@ -7538,9 +7213,6 @@
           "name": "signal-exit",
           "package_ref": "pkg:npm/signal-exit@3.0.2",
           "purl": "pkg:npm/signal-exit@3.0.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "3.0.2"
         },
         {
@@ -7804,9 +7476,6 @@
           "name": "split-array-stream",
           "package_ref": "pkg:npm/split-array-stream@1.0.0",
           "purl": "pkg:npm/split-array-stream@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.0"
         },
         {
@@ -7882,9 +7551,6 @@
           "name": "stream-events",
           "package_ref": "pkg:npm/stream-events@1.0.1",
           "purl": "pkg:npm/stream-events@1.0.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.1"
         },
         {
@@ -7904,9 +7570,6 @@
           "name": "stream-shift",
           "package_ref": "pkg:npm/stream-shift@1.0.0",
           "purl": "pkg:npm/stream-shift@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.0"
         },
         {
@@ -7926,9 +7589,6 @@
           "name": "string-format-obj",
           "package_ref": "pkg:npm/string-format-obj@1.1.0",
           "purl": "pkg:npm/string-format-obj@1.1.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.1.0"
         },
         {
@@ -7948,9 +7608,6 @@
           "name": "string-template",
           "package_ref": "pkg:npm/string-template@0.2.1",
           "purl": "pkg:npm/string-template@0.2.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.2.1"
         },
         {
@@ -7974,9 +7631,6 @@
           "name": "string-width",
           "package_ref": "pkg:npm/string-width@1.0.2",
           "purl": "pkg:npm/string-width@1.0.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.2"
         },
         {
@@ -8064,9 +7718,6 @@
           "name": "strip-json-comments",
           "package_ref": "pkg:npm/strip-json-comments@1.0.4",
           "purl": "pkg:npm/strip-json-comments@1.0.4",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.4"
         },
         {
@@ -8086,9 +7737,6 @@
           "name": "stubs",
           "package_ref": "pkg:npm/stubs@1.1.2",
           "purl": "pkg:npm/stubs@1.1.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.1.2"
         },
         {
@@ -8222,9 +7870,6 @@
           "name": "tar-pack",
           "package_ref": "pkg:npm/tar-pack@3.3.0",
           "purl": "pkg:npm/tar-pack@3.3.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "3.3.0"
         },
         {
@@ -8248,9 +7893,6 @@
           "name": "tar",
           "package_ref": "pkg:npm/tar@2.2.1",
           "purl": "pkg:npm/tar@2.2.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.2.1"
         },
         {
@@ -8273,9 +7915,6 @@
           "name": "through2",
           "package_ref": "pkg:npm/through2@2.0.3",
           "purl": "pkg:npm/through2@2.0.3",
-          "scopes": [
-            "runtime"
-          ],
           "version": "2.0.3"
         },
         {
@@ -8527,9 +8166,6 @@
           "name": "typedarray",
           "package_ref": "pkg:npm/typedarray@0.0.6",
           "purl": "pkg:npm/typedarray@0.0.6",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.0.6"
         },
         {
@@ -8598,9 +8234,6 @@
           "name": "uid-number",
           "package_ref": "pkg:npm/uid-number@0.0.6",
           "purl": "pkg:npm/uid-number@0.0.6",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.0.6"
         },
         {
@@ -8732,9 +8365,6 @@
           "name": "util-deprecate",
           "package_ref": "pkg:npm/util-deprecate@1.0.2",
           "purl": "pkg:npm/util-deprecate@1.0.2",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.2"
         },
         {
@@ -8846,9 +8476,6 @@
           "name": "wide-align",
           "package_ref": "pkg:npm/wide-align@1.1.0",
           "purl": "pkg:npm/wide-align@1.1.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.1.0"
         },
         {
@@ -10072,14 +9699,6 @@
       "name": "etag",
       "purl": "pkg:npm/etag@1.7.0",
       "version": "1.7.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "npm",
-      "licenses": [],
-      "name": "example-javascript-yarn",
-      "purl": "pkg:npm/example-javascript-yarn@0.0.1",
-      "version": "0.0.1",
       "vulnerabilities": []
     },
     {

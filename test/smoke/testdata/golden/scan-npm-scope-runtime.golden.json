@@ -4,6 +4,28 @@
     {
       "dependencies": [
         {
+          "depends_on": [
+            "pkg:npm/algo-httpserv@1.1.1",
+            "pkg:npm/js-yaml@3.13.0",
+            "pkg:npm/larvitbase@3.1.3",
+            "pkg:npm/larvitfs@2.3.1",
+            "pkg:npm/larvitreqparser@0.2.1",
+            "pkg:npm/larvitrouter@3.0.2",
+            "pkg:npm/larvitutils@2.3.0",
+            "pkg:npm/lodash@4.17.15",
+            "pkg:npm/marked@0.3.19",
+            "pkg:npm/node-yaml-config@0.0.5",
+            "pkg:npm/semver@5.7.1",
+            "pkg:npm/to@0.2.9",
+            "pkg:npm/url@0.11.0"
+          ],
+          "id": "module:package.json#pkg:npm/example-javascript-vulnerable-methods@0.0.1",
+          "licenses": [],
+          "name": "example-javascript-vulnerable-methods",
+          "purl": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
+          "version": "0.0.1"
+        },
+        {
           "depends_on": [],
           "id": "pkg:npm/algo-httpserv@1.1.1",
           "licenses": [],
@@ -166,29 +188,6 @@
             "runtime"
           ],
           "version": "4.0.1"
-        },
-        {
-          "depends_on": [
-            "pkg:npm/algo-httpserv@1.1.1",
-            "pkg:npm/js-yaml@3.13.0",
-            "pkg:npm/larvitbase@3.1.3",
-            "pkg:npm/larvitfs@2.3.1",
-            "pkg:npm/larvitreqparser@0.2.1",
-            "pkg:npm/larvitrouter@3.0.2",
-            "pkg:npm/larvitutils@2.3.0",
-            "pkg:npm/lodash@4.17.15",
-            "pkg:npm/marked@0.3.19",
-            "pkg:npm/node-yaml-config@0.0.5",
-            "pkg:npm/semver@5.7.1",
-            "pkg:npm/to@0.2.9",
-            "pkg:npm/url@0.11.0"
-          ],
-          "id": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
-          "licenses": [],
-          "name": "example-javascript-vulnerable-methods",
-          "package_ref": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
-          "purl": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
-          "version": "0.0.1"
         },
         {
           "depends_on": [
@@ -1047,6 +1046,12 @@
   },
   "packages": [
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "ck/LUNT/NITLNbuksLap3OTws+YvfjS3FhF0VBM/wPijlEoxQoiHB63ICtzJi4qhMCvbbpoWBncr/CPKCav1xA=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "algo-httpserv",
@@ -1055,6 +1060,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "argparse",
@@ -1063,6 +1074,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "zflvls11DCy+dQWzTW2dzuilv8Z5X/pjfmZOWba6TNIVDm+2UDaJmXSOXlasHKfNBs8oo3M0aT50fDEWfKZjXg=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "async",
@@ -1071,6 +1088,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "bCpiLvz0fFe7vh4qnDetNseSVFM="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "busboy",
@@ -1079,6 +1102,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "tf1UIgqivFq1eqtxQMlAdUUDwac="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "core-util-is",
@@ -1087,6 +1116,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "WZbAhrszIYyBLAkL3cCc0S+stw8="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "dicer",
@@ -1095,6 +1130,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "eGuFFw7Upda+g4p+QHvnW0RyTX/SVeJBDM/gCtMARO0cLuT2HcEKnTPvhjV6aGeqrCB/sbNop0Kszm0jsaWU4A=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "esprima",
@@ -1103,14 +1144,12 @@
       "vulnerabilities": []
     },
     {
-      "ecosystem": "npm",
-      "licenses": [],
-      "name": "example-javascript-vulnerable-methods",
-      "purl": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
-      "version": "0.0.1",
-      "vulnerabilities": []
-    },
-    {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "YJDaCJZEnBmcbw13fvdAM9AwNOJwOzrE4pqMqBq5nFiEqXUqHwlK4B+3pUw6JNvfSPtX05xFHtYy/1ni01eGCw=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "fs-extra",
@@ -1119,6 +1158,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "function-bind",
@@ -1127,6 +1172,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "a30VEBm4PEdx1dRB7MFK7BejejvCvBronbLjht+sHuGYj8PHs7M/5Z+rt5lw551vZ7yfTCj4Vuyy3mSJytDWRQ=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "graceful-fs",
@@ -1135,6 +1186,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "gls40+0ozJ+rsGlXWItKiUM8hGc="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "handy",
@@ -1143,6 +1200,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "f2dvO0VU6Oej7RkWJGrehjbzMAjFp5/VKPp5tTpWIV4JHHZK1/BxbFRtf/siA2SWTe09caDmVtYYzWEIbBS4zw=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "has",
@@ -1151,6 +1214,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "GeezmX/2+6yZrlp9J2ZInv5+LQ4="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "htmlparser",
@@ -1159,6 +1228,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "inherits",
@@ -1167,6 +1242,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "nW24QBoPcFGGHJGUwnfpI7Yc5CdqWNdsyHQszVE/z2pKHXzh7FZ5GWhJqSyaQ9wMkQnsTx+kAI8bHlCX4tKdbg=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "is",
@@ -1175,6 +1256,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "ihis/Kmo9Bd+Cav8YDiTmwXR7t8="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "isarray",
@@ -1183,6 +1270,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "pZZoSxcCYco+DIKBTimr67J6Hy+EYGZDY/HCWC+iAEA9h1ByhMXAIVUXMcMFpOCxQ/xjXmPI2MkDL5HRm5eFrQ=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "js-yaml",
@@ -1191,6 +1284,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "h3Gq4HmbZAdrdmQPygWPnBDjPss="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "jsonfile",
@@ -1199,6 +1298,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "BCfDfZLcN5yusmBLsbiDyuOeBoyZ5zy/tNjDZftZaH8tQaJGKQ13xjr1ykH8sTtrBm1woM11de20eLQePErBtQ=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "larvitbase",
@@ -1207,6 +1312,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "tV1dGvNdpMNCHwmGHPgUKtqf4sVmFSMk3u18gI6kdJKssNevo4Xn6+TB2EyYni/7/oeRWO7SAHYj8Snz0glO8Q=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "larvitfs",
@@ -1215,6 +1326,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "p9r0fgm6+SEi5U0kokIzbqmBn+I4UkwXyuCU4yOd+kJT07k/pH2K/dt0zQiwLebqbRpqTeS1KWuAqiC1v6jrEw=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "larvitreqparser",
@@ -1223,6 +1340,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "ukjENyx7uYWa4X9TxshC35m2XXxQJSbLbtrAQB3v9WorBbcvjvICwbpHu97P25xQ//Yj2ysHVPrK2Oy6XzfNiQ=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "larvitrouter",
@@ -1231,6 +1354,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "GZWjDTQ/1C2Ss1RKy/p8JS/bUK+FcoxgFU6QDCyi22QHX0mYF8LsTY7g5EhBgAQhpy6ToKjptIAAO6e8r0PiWA=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "larvitutils",
@@ -1239,6 +1368,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "lodash",
@@ -1247,6 +1382,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "ea2eGWOqNxPcXv8dyERdSr/6FmzvWwzjMxpfGB/sbMccXoct+xY+YukPD+QTUZwyvK7BZwcr4m21WBOW41pAkg=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "marked",
@@ -1255,6 +1396,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "3j+YVD2/lggr5IrRoMfNqDYwHc8="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "minimist",
@@ -1263,6 +1410,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "eyITlSCdXRYY3Mz3FcaiaPTaO5ezzS7J9T/3pG/239Cs2A6aWDjjfUl4OD+UrPVHPFfrVvcWJ0O39TQktq458Q=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "node-yaml-config",
@@ -1271,6 +1424,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "pDT4Dchl94/+kkgdwyS2PauDFjZG0Hk0IcHIB+LkW27HLDtdoeMxHTxZh39DYbPP8UflWXWj9JcdDozF+YDOpQ=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "node.extend",
@@ -1279,6 +1438,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "2j6nRob6IaGaERwybpDrFaAZZoY="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "optimist",
@@ -1287,6 +1452,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "llOgNvt8HuQjQvIyXM7v6jkmxI0="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "punycode",
@@ -1295,6 +1466,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "Cxm7/SS/y/Z3MHWSxXb8lIFqgqBowP5JMlTUFyJN88y0SGQhVmZnqFK/PeuMX9LzUyWsqqhNxIyg0jlzq946yA=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "qs",
@@ -1303,6 +1480,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "sgmEkgO7Jd+CDadW50cAWHhSFiA="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "querystring",
@@ -1311,6 +1494,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "fPTFTvZI44EwhMY23SB54WbAgdk="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "readable-stream",
@@ -1319,6 +1508,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "semver",
@@ -1327,6 +1522,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "BOaSb2YolTVPPdAVIDYzuFcpfiw="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "sprintf-js",
@@ -1335,6 +1536,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "gIudDlb8Jz2Am6VzOOkpkZoanxo="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "streamsearch",
@@ -1343,6 +1550,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "YuIDvEF2bGwoyfyEMB2rHFMQ+pQ="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "string_decoder",
@@ -1351,6 +1564,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "C6Wlb+U1ONuSBc621+0heq5GNcQ="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "to",
@@ -1359,6 +1578,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "D39qtimx0c1fI3ya1Lnhk3E9nONswSKhnffBI0gME9C99fYOkNi04xs8K6pePLhvl1frbDemkaBQ5ikWllR2HQ=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "underscore",
@@ -1367,6 +1592,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "universalify",
@@ -1375,6 +1606,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "ODjpfPxgUh63PFJajlW/3Z4uKPE="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "url",
@@ -1383,6 +1620,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha512",
+          "value": "HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A=="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "uuid",
@@ -1391,6 +1634,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha1",
+          "value": "o9XabNXAvAAI03I0u68b7WMFkQc="
+        }
+      ],
       "ecosystem": "npm",
       "licenses": [],
       "name": "wordwrap",

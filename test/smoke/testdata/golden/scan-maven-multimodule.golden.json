@@ -7,24 +7,10 @@
           "depends_on": [
             "pkg:maven/org.apache.commons/commons-lang3@3.12.0"
           ],
-          "id": "pkg:maven/dev.bomly.example/core@1.0.0",
+          "id": "module:core/pom.xml#pkg:maven/dev.bomly.example/core@1.0.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "web/pom.xml",
-              "position": {
-                "file": "web/pom.xml",
-                "line": 0
-              },
-              "real_path": "web/pom.xml"
-            }
-          ],
           "name": "dev.bomly.example:core",
-          "package_ref": "pkg:maven/dev.bomly.example/core@1.0.0",
           "purl": "pkg:maven/dev.bomly.example/core@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
           "version": "1.0.0"
         },
         {
@@ -61,10 +47,9 @@
       "dependencies": [
         {
           "depends_on": [],
-          "id": "pkg:maven/dev.bomly.example/multimodule-parent@1.0.0",
+          "id": "module:pom.xml#pkg:maven/dev.bomly.example/multimodule-parent@1.0.0",
           "licenses": [],
           "name": "dev.bomly.example:multimodule-parent",
-          "package_ref": "pkg:maven/dev.bomly.example/multimodule-parent@1.0.0",
           "purl": "pkg:maven/dev.bomly.example/multimodule-parent@1.0.0",
           "version": "1.0.0"
         }
@@ -78,6 +63,27 @@
     },
     {
       "dependencies": [
+        {
+          "depends_on": [
+            "pkg:maven/org.apache.commons/commons-lang3@3.12.0"
+          ],
+          "id": "module:core/pom.xml#pkg:maven/dev.bomly.example/core@1.0.0",
+          "licenses": [],
+          "name": "dev.bomly.example:core",
+          "purl": "pkg:maven/dev.bomly.example/core@1.0.0",
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [
+            "module:core/pom.xml#pkg:maven/dev.bomly.example/core@1.0.0",
+            "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0"
+          ],
+          "id": "module:web/pom.xml#pkg:maven/dev.bomly.example/web@1.0.0",
+          "licenses": [],
+          "name": "dev.bomly.example:web",
+          "purl": "pkg:maven/dev.bomly.example/web@1.0.0",
+          "version": "1.0.0"
+        },
         {
           "depends_on": [],
           "id": "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.0",
@@ -126,42 +132,6 @@
             "runtime"
           ],
           "version": "2.13.0"
-        },
-        {
-          "depends_on": [
-            "pkg:maven/org.apache.commons/commons-lang3@3.12.0"
-          ],
-          "id": "pkg:maven/dev.bomly.example/core@1.0.0",
-          "licenses": [],
-          "locations": [
-            {
-              "access_path": "web/pom.xml",
-              "position": {
-                "file": "web/pom.xml",
-                "line": 0
-              },
-              "real_path": "web/pom.xml"
-            }
-          ],
-          "name": "dev.bomly.example:core",
-          "package_ref": "pkg:maven/dev.bomly.example/core@1.0.0",
-          "purl": "pkg:maven/dev.bomly.example/core@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.0.0"
-        },
-        {
-          "depends_on": [
-            "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0",
-            "pkg:maven/dev.bomly.example/core@1.0.0"
-          ],
-          "id": "pkg:maven/dev.bomly.example/web@1.0.0",
-          "licenses": [],
-          "name": "dev.bomly.example:web",
-          "package_ref": "pkg:maven/dev.bomly.example/web@1.0.0",
-          "purl": "pkg:maven/dev.bomly.example/web@1.0.0",
-          "version": "1.0.0"
         },
         {
           "depends_on": [],
@@ -223,33 +193,6 @@
       "org": "com.fasterxml.jackson.core",
       "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0",
       "version": "2.13.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "maven",
-      "licenses": [],
-      "name": "dev.bomly.example:core",
-      "org": "dev.bomly.example",
-      "purl": "pkg:maven/dev.bomly.example/core@1.0.0",
-      "version": "1.0.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "maven",
-      "licenses": [],
-      "name": "dev.bomly.example:multimodule-parent",
-      "org": "dev.bomly.example",
-      "purl": "pkg:maven/dev.bomly.example/multimodule-parent@1.0.0",
-      "version": "1.0.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "maven",
-      "licenses": [],
-      "name": "dev.bomly.example:web",
-      "org": "dev.bomly.example",
-      "purl": "pkg:maven/dev.bomly.example/web@1.0.0",
-      "version": "1.0.0",
       "vulnerabilities": []
     },
     {

@@ -3,13 +3,13 @@ package bun
 import (
 	"errors"
 	"fmt"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )

@@ -1,7 +1,6 @@
 package engine_test
 
 import (
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 	"time"
 
@@ -9,6 +8,7 @@ import (
 	explainengine "github.com/bomly-dev/bomly-cli/internal/engine/explain"
 	"github.com/bomly-dev/bomly-cli/internal/mcp"
 	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 

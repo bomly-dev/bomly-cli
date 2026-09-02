@@ -2,10 +2,10 @@ package engine
 
 import (
 	"context"
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"slices"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )

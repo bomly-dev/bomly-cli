@@ -1,9 +1,10 @@
 package ruby
 
 import (
+	"testing"
+
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
-	"testing"
 )
 
 // originOf returns the origin a node publishes, or the zero value when it has

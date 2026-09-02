@@ -1,10 +1,10 @@
 package output
 
 import (
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 

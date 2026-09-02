@@ -3,10 +3,10 @@ package sbom
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 

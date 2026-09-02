@@ -2,12 +2,12 @@ package sbom
 
 import (
 	"encoding/json"
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"regexp"
 	"strings"
 	"testing"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/spdx/tools-golang/spdx/v2/common"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"

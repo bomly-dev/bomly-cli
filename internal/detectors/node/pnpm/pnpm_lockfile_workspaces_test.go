@@ -2,12 +2,12 @@ package pnpm
 
 import (
 	"context"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"path/filepath"
 	"runtime"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 

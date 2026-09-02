@@ -2,14 +2,14 @@ package bun
 
 import (
 	"context"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	testutil "github.com/bomly-dev/bomly-sdk/testkit"
 )

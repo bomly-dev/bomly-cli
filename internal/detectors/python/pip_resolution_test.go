@@ -2,13 +2,13 @@ package python
 
 import (
 	"context"
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	logging "github.com/bomly-dev/bomly-sdk/logkit"
 	testutil "github.com/bomly-dev/bomly-sdk/testkit"

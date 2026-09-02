@@ -2,11 +2,11 @@ package render
 
 import (
 	"bytes"
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	model "github.com/bomly-dev/bomly-sdk"
 )
 

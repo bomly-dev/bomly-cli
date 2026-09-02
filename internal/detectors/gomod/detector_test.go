@@ -2,13 +2,13 @@ package gomod
 
 import (
 	"context"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 

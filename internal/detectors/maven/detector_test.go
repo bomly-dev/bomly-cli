@@ -2,8 +2,6 @@ package maven
 
 import (
 	"context"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -11,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 

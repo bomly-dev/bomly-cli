@@ -2,13 +2,13 @@ package cli
 
 import (
 	"encoding/json"
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 

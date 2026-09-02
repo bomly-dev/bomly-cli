@@ -1,14 +1,15 @@
 package detectors_test
 
 import (
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // internalRoot is the tree these guards police.

@@ -1,10 +1,10 @@
 package output
 
 import (
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"reflect"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 

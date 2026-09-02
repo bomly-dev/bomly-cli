@@ -1,11 +1,12 @@
 package npm
 
 import (
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 // originOf returns the origin a node publishes, or the zero value when it has

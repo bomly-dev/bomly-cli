@@ -3,13 +3,13 @@ package cocoapods
 import (
 	"context"
 	"fmt"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"

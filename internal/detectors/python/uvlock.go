@@ -2,7 +2,6 @@ package python
 
 import (
 	"fmt"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
+	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
 )

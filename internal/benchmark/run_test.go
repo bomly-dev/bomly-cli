@@ -3,13 +3,13 @@ package benchmark
 import (
 	"context"
 	"errors"
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 

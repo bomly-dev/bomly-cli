@@ -3,9 +3,9 @@ package engine
 import (
 	"context"
 	"errors"
-	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

@@ -16,8 +16,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -171,7 +170,7 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 	promotions := make([]pendingPromotion, 0, len(modules))
 	seen := map[string]struct{}{}
 	for _, node := range depsGraph.Nodes() {
-		coords, ok := nodes.Coordinates(node)
+		coords, ok := sdk.NodeCoordinates(node)
 		if !ok {
 			continue
 		}
@@ -186,7 +185,7 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 		// Reactor modules are the project's own applications; typing them lets
 		// downstream views treat their direct dependencies as top-level even
 		// when a sibling module depends on them.
-		if dep, isDependency := nodes.AsDependency(node); isDependency && dep.Type == "" {
+		if dep, isDependency := sdk.AsDependencyNode(node); isDependency && dep.Type == "" {
 			dep.Type = sdk.PackageTypeApplication
 		}
 		promotions = append(promotions, pendingPromotion{
@@ -198,7 +197,7 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 	for _, promotion := range promotions {
 		// A module that cannot be promoted keeps the node it had: the entry is
 		// still correct, it merely misses the ownership mark.
-		moduleID, err := detectors.PromoteToModule(depsGraph, promotion.nodeID, promotion.pomPath)
+		moduleID, err := detectorkit.PromoteToModule(depsGraph, promotion.nodeID, promotion.pomPath)
 		if err != nil {
 			moduleID = promotion.nodeID
 		}
@@ -430,7 +429,7 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 				return nil, err
 			}
 			tgfPackages[id] = node
-			if _, err := detectors.EnsureNode(tgfGraph, node); err != nil {
+			if _, err := detectorkit.EnsureNode(tgfGraph, node); err != nil {
 				return nil, err
 			}
 		case looksLikeTGFEdgeLine(line):
@@ -476,7 +475,7 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 		}
 	}
 	for _, rootID := range rootIDs {
-		if _, err := detectors.PromoteToModule(tgfGraph, rootID, "pom.xml"); err != nil {
+		if _, err := detectorkit.PromoteToModule(tgfGraph, rootID, "pom.xml"); err != nil {
 			return nil, err
 		}
 	}

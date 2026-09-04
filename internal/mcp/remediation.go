@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-sdk"
 )
@@ -212,7 +211,7 @@ func compactFixesForSuggestion(
 	}
 	// Only a dependency node states a relationship; a module is the project
 	// itself and has nothing to remediate.
-	dependency, ok := nodes.AsDependency(graphNode)
+	dependency, ok := sdk.AsDependencyNode(graphNode)
 	if !ok {
 		return out
 	}
@@ -273,7 +272,7 @@ func buildCompactFinding(f sdk.Finding, vuln *sdk.Vulnerability, in remediationI
 	}
 
 	graphNode := resolveGraphNode(in.Graph, f)
-	node, isDependency := nodes.AsDependency(graphNode)
+	node, isDependency := sdk.AsDependencyNode(graphNode)
 	// Without graph placement we cannot name a different ancestor, so the
 	// package itself is the direct remediation target.
 	ancestor := ancestorTarget{identity: compact.Package, direct: true}
@@ -597,8 +596,16 @@ func pathLabels(path []sdk.GraphNode) []string {
 	return labels
 }
 
+// dependencyLabel renders a node the way a dependency path shows it: a
+// display name with its version appended when the name does not already
+// carry one.
 func dependencyLabel(node sdk.GraphNode) string {
-	return nodes.Label(node)
+	name := sdk.NodeDisplayName(node)
+	version := sdk.NodeVersion(node)
+	if version == "" || strings.HasSuffix(name, "@"+version) {
+		return name
+	}
+	return name + "@" + version
 }
 
 func manifestForDependency(manifests []output.ScanManifest, dependencyID string) *output.ScanManifest {
@@ -631,7 +638,7 @@ func packageIdentityFromRegistry(registry *sdk.PackageRegistry, purl string) Pac
 }
 
 func packageIdentityFromDependency(node sdk.GraphNode) PackageIdentity {
-	coords, ok := nodes.Coordinates(node)
+	coords, ok := sdk.NodeCoordinates(node)
 	if !ok {
 		return PackageIdentity{}
 	}

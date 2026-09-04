@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logging "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -254,7 +254,7 @@ func addPipfileLockPackages(depsGraph *sdk.Graph, root sdk.GraphNode, packages m
 
 		// One package can be listed in both groups; they are one node, and the
 		// shared helper settles what it claims.
-		if _, err := detectors.EnsureNode(depsGraph, node); err != nil {
+		if _, err := detectorkit.EnsureNode(depsGraph, node); err != nil {
 			return fmt.Errorf("add Pipfile.lock package %q: %w", normalizedName, err)
 		}
 		if err := depsGraph.AddEdge(root.NodeID(), node.NodeID()); err != nil {

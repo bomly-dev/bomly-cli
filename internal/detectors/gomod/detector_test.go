@@ -7,9 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 func TestDetectorApplicable_GoMod(t *testing.T) {
@@ -111,7 +110,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if !ok {
 		t.Fatal("expected main module root node")
 	}
-	if !nodes.IsProjectOwned(rootNode) {
+	if !sdk.IsProjectOwned(rootNode) {
 		t.Fatalf("main module must be first-party and not enrichable, got %#v", mustDep(t, rootNode).Coordinates)
 	}
 

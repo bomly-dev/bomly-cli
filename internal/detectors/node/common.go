@@ -12,10 +12,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
@@ -207,7 +206,7 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 			// tarballs. They fold into one node under ADR-0041 -- identity is
 			// the canonical package URL, which the tarball does not change --
 			// and both tarballs survive on the node's Origins list.
-			surviving, err := detectors.EnsureNode(depsGraph, node)
+			surviving, err := detectorkit.EnsureNode(depsGraph, node)
 			if err != nil {
 				return nil, err
 			}
@@ -441,7 +440,7 @@ func recordDirectScopes(target map[string]sdk.Scope, dependencies map[string]str
 
 func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, directScopes map[string]sdk.Scope) {
 	rootDepNodes, err := depsGraph.DirectDependencies(rootID)
-	rootDeps := nodes.DependenciesOf(rootDepNodes)
+	rootDeps := sdk.DependencyNodesOf(rootDepNodes)
 	if err != nil {
 		return
 	}
@@ -474,7 +473,7 @@ func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, di
 		}
 
 		childrenNodes, err := depsGraph.DirectDependencies(current.NodeID())
-		children := nodes.DependenciesOf(childrenNodes)
+		children := sdk.DependencyNodesOf(childrenNodes)
 		if err != nil {
 			continue
 		}

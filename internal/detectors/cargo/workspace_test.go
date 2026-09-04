@@ -7,9 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 func TestParseCargoWorkspaceMembers(t *testing.T) {
@@ -94,7 +93,7 @@ func TestDetectionResultFromMetadataWorkspacePerModuleEntries(t *testing.T) {
 	}
 	// A workspace member is a module node now: ownership is the kind, not a
 	// DependencySourceWorkspace value on a dependency node (ADR-0041).
-	if !nodes.IsProjectOwned(member) {
+	if !sdk.IsProjectOwned(member) {
 		t.Fatalf("workspace member is a %s node, want the project's own module", member.Kind())
 	}
 }
@@ -173,7 +172,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 		}
 	}
 	member, ok := testnodes.Find(a.Graph, "a@0.1.0")
-	if !ok || !nodes.IsProjectOwned(member) {
+	if !ok || !sdk.IsProjectOwned(member) {
 		t.Fatalf("member a = %#v, want the project's own module", member)
 	}
 	serde, ok := testnodes.Find(a.Graph, "serde@1.0.210")

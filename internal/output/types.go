@@ -4,7 +4,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -202,11 +201,12 @@ func PackageFromGraphNode(node sdk.GraphNode) PackageRef {
 	if dep, ok := node.(*sdk.DependencyNode); ok {
 		return PackageFromDependencyAndRegistry(dep, nil)
 	}
-	name, version, scope, _ := nodes.Display(node)
+	// Scope is left unset deliberately. A dependency node returned above,
+	// so what reaches here is a module or a manifest, and neither carries
+	// one: scope is a claim about how a consumed package is used.
 	ref := PackageRef{
-		Name:            name,
-		Version:         version,
-		Scope:           scope,
+		Name:            sdk.NodeDisplayName(node),
+		Version:         sdk.NodeVersion(node),
 		ID:              node.NodeID(),
 		Locations:       LocationRefsFromGraphLocations(node.NodeLocations()),
 		Licenses:        []LicenseRef{},
@@ -688,7 +688,7 @@ func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDe
 				dependencyIDs = append(dependencyIDs, child.NodeID())
 			}
 		}
-		name, version, _, _ := nodes.Display(node)
+		name, version := sdk.NodeDisplayName(node), sdk.NodeVersion(node)
 		entry := ScanDependency{
 			ID:        node.NodeID(),
 			Name:      name,

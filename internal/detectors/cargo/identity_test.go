@@ -7,9 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 // A workspace member and an unrelated crate can share a name. Membership used
@@ -232,10 +231,10 @@ serde = "1"
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
 	root, ok := testnodes.Find(graph, "app@1.2.3")
-	if !ok || !nodes.IsProjectOwned(root) {
+	if !ok || !sdk.IsProjectOwned(root) {
 		t.Fatalf("expected first-party root app@1.2.3: %s", graph.PrettyString())
 	}
-	if _, version, _, _ := nodes.Display(root); version != "1.2.3" {
+	if version := sdk.NodeVersion(root); version != "1.2.3" {
 		t.Fatalf("root version = %q, want the inherited 1.2.3", version)
 	}
 	rootDeps := directDependencyIDs(t, graph, root.NodeID())
@@ -323,7 +322,7 @@ func TestCargoMetadataWorkspaceMemberNameCollisionKeepsBothIdentities(t *testing
 	}
 	// A module node carries no source and no origin at all, which is the
 	// stronger form of what this used to spell out.
-	if !nodes.IsProjectOwned(member) {
+	if !sdk.IsProjectOwned(member) {
 		t.Fatalf("member is a %s node, want the project's own module", member.Kind())
 	}
 	external, ok := testnodes.Find(graph, "helper@1.0.0")
@@ -417,7 +416,7 @@ dependencies = [
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
 	root, ok := testnodes.Find(graph, "app@0.1.0")
-	if !ok || !nodes.IsProjectOwned(root) {
+	if !ok || !sdk.IsProjectOwned(root) {
 		t.Fatalf("expected first-party root app@0.1.0: %s", graph.PrettyString())
 	}
 	if origin := originOf(root); !origin.Empty() {
@@ -570,7 +569,7 @@ func directDependencyIDs(t *testing.T, g *sdk.Graph, nodeID string) map[string]b
 		if dep == nil {
 			continue
 		}
-		name, version, _, _ := nodes.Display(dep)
+		name, version := sdk.NodeDisplayName(dep), sdk.NodeVersion(dep)
 		if version != "" {
 			out[name+"@"+version] = true
 			continue

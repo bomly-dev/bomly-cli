@@ -11,9 +11,8 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 // ---- helpers ---------------------------------------------------------------
@@ -298,7 +297,7 @@ func TestPNPMLockfileV5_RootDependencyEdges(t *testing.T) {
 		t.Fatalf("dependencies(root): %v", err)
 	}
 	names := make(map[string]bool, len(rootDeps))
-	for _, d := range nodes.DependenciesOf(rootDeps) {
+	for _, d := range sdk.DependencyNodesOf(rootDeps) {
 		names[d.Name] = true
 	}
 	for _, want := range []string{"react", "axios", "typescript"} {

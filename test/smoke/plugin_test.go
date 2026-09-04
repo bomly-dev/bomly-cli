@@ -13,6 +13,8 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestPluginWorkflows(t *testing.T) {

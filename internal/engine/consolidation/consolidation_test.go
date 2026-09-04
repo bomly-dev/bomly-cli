@@ -7,9 +7,9 @@ import (
 	"github.com/bomly-dev/bomly-sdk"
 )
 
-// Two spellings of one Python package -- case, separators, a release-candidate
-// version -- mint the same identity, so the second insertion folds into the
-// first and the consumer's edges point at one node.
+// Two spellings of one Python package name -- case and separators -- mint the
+// same identity, so the second insertion folds into the first and the
+// consumer's edges point at one node.
 //
 // Normalization moved into the constructor with ADR-0041, which is why this
 // case no longer builds two nodes and then collapses them: the second node
@@ -17,7 +17,7 @@ import (
 func TestEquivalentPythonSpellingsFoldOnInsertion(t *testing.T) {
 	g := sdk.New()
 	root := testnodes.Ref("app", "1.0.0")
-	pyA := testnodes.Dep(sdk.Coordinates{Ecosystem: "python", Name: "Requests_Toolbelt", Version: "1.0.0RC1"})
+	pyA := testnodes.Dep(sdk.Coordinates{Ecosystem: "python", Name: "Requests_Toolbelt", Version: "1.0.0rc1"})
 	pyB := testnodes.Dep(sdk.Coordinates{Ecosystem: "python", Name: "requests-toolbelt", Version: "1.0.0rc1"})
 
 	const want = "pkg:pypi/requests-toolbelt@1.0.0rc1"
@@ -49,6 +49,38 @@ func TestEquivalentPythonSpellingsFoldOnInsertion(t *testing.T) {
 	}
 	if len(deps) != 1 || deps[0].NodeID() != want {
 		t.Fatalf("root dependencies = %#v, want the one folded package", deps)
+	}
+}
+
+// Version case is NOT folded, and this pins that rather than leaving it
+// unstated.
+//
+// Identity spelling is packageurl-go's to decide (it is the library that owns
+// canonical package URLs), and it case-folds a version for exactly one type,
+// huggingface. The SDK used to lowercase every version containing a letter,
+// which folded this pair by accident while corrupting Maven's "1.0-SNAPSHOT"
+// into "1.0-snapshot" -- a different version, since Maven versions are case
+// sensitive. Dropping the blanket rule fixed Maven and cost this fold.
+//
+// PyPI itself does treat the two as one release: PEP 440 normalizes version
+// case, so "1.0.0RC1" and "1.0.0rc1" name the same distribution and cannot
+// both exist. Folding them therefore wants a PEP 440 normalizer applied to
+// pypi coordinates before the identity is minted -- in the SDK, where every
+// producer reaches it, and with a real dependency rather than a hand-written
+// version grammar. That is bomly-dev/bomly-sdk#39. Until it lands, the two
+// spellings are two identities, and this test fails when that changes, which
+// is the point.
+func TestPythonVersionCaseIsNotFoldedYet(t *testing.T) {
+	upper := testnodes.Dep(sdk.Coordinates{Ecosystem: "python", Name: "requests-toolbelt", Version: "1.0.0RC1"})
+	lower := testnodes.Dep(sdk.Coordinates{Ecosystem: "python", Name: "requests-toolbelt", Version: "1.0.0rc1"})
+	if upper.NodeID() == lower.NodeID() {
+		t.Fatalf("identities folded to %q; if a PEP 440 normalizer landed, fold this case back into "+
+			"TestEquivalentPythonSpellingsFoldOnInsertion and delete this test", upper.NodeID())
+	}
+	// The version each carries is the one its coordinates stated: the
+	// identity is authoritative for the field, and it preserved the spelling.
+	if upper.Version != "1.0.0RC1" || lower.Version != "1.0.0rc1" {
+		t.Fatalf("versions = %q and %q; want each preserved as written", upper.Version, lower.Version)
 	}
 }
 

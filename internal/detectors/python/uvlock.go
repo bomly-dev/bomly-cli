@@ -8,9 +8,8 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 )
 
@@ -139,7 +138,7 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 		if child == nil {
 			continue
 		}
-		if dependency, ok := nodes.AsDependency(child); ok {
+		if dependency, ok := sdk.AsDependencyNode(child); ok {
 			dependency.AddScope(sdk.ScopeRuntime)
 		}
 		if err := depsGraph.AddEdge(rootNode.NodeID(), child.NodeID()); err != nil {
@@ -155,7 +154,7 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 				continue
 			}
 			// Runtime wins if this package is also a runtime dep.
-			if dependency, ok := nodes.AsDependency(child); ok {
+			if dependency, ok := sdk.AsDependencyNode(child); ok {
 				dependency.AddScope(sdk.ScopeDevelopment)
 			}
 			if err := depsGraph.AddEdge(rootNode.NodeID(), child.NodeID()); err != nil {
@@ -186,7 +185,7 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 	}
 
 	// Runtime always beats development on any path that reaches a package.
-	detectors.PropagateScopes(depsGraph, rootNode.NodeID(), nil)
+	detectorkit.PropagateScopes(depsGraph, rootNode.NodeID(), nil)
 
 	return depsGraph, nil
 }

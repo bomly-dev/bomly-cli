@@ -12,8 +12,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -133,7 +132,7 @@ func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 
 	pinned := 0
 	g.WalkNodes(func(graphNode sdk.GraphNode) bool {
-		dep, isDependency := nodes.AsDependency(graphNode)
+		dep, isDependency := sdk.AsDependencyNode(graphNode)
 		if !isDependency {
 			return true
 		}
@@ -162,7 +161,7 @@ func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 			return true
 		}
 		if origin := sdk.RepositoryOrigin(pin.Repository, pin.Revision); origin != nil {
-			dep.Origins = detectors.RefineOrigins(dep.Origins, []sdk.DependencyOrigin{*origin})
+			dep.Origins = sdk.MergeOrigins(dep.Origins, []sdk.DependencyOrigin{*origin})
 		}
 		pinned++
 		return true

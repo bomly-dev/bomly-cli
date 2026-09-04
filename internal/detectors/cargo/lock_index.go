@@ -3,8 +3,8 @@ package cargo
 import (
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 )
 
 // lockIndex assigns node IDs to Cargo.lock records and resolves the lockfile's
@@ -98,6 +98,32 @@ func lockDependencyRefs(pkg lockPackage) map[string]string {
 	return refs
 }
 
+// Cargo is the ecosystem where folding by identity had to be checked rather
+// than assumed, so the reasoning is recorded here, next to the fold.
+//
+// Cargo's own package IDs are source-qualified, so one crate name and version
+// can appear twice in a lockfile -- from two git remotes, or from a git remote
+// and the registry -- and cargo builds both: it has no nearest-wins rule, and
+// the crate that asked for each gets the one it asked for. Those really are
+// two pieces of code in the artifact.
+//
+// They still fold into one node, and folding is the right answer rather than
+// a concession. Identity is the canonical package URL (ADR-0041) and a cargo
+// PURL carries no source, so both records mint the same
+// "pkg:cargo/<name>@<version>" whatever they resolved from. Keeping them
+// apart would produce two components with byte-identical identity -- same
+// purl, same package reference, same matching result, same vulnerabilities --
+// which is the duplicate-identity problem ADR-0041 exists to remove. Nothing
+// is lost: Origins is union-merged, so the surviving node carries every
+// source it was resolved from, which is the dependency-confusion signal two
+// distinct nodes were standing in for.
+//
+// What would reopen this: cargo PURLs gaining a source qualifier (the three
+// URL-valued keys cannot serve -- purlkit.SplitIdentity relocates them into
+// origins), or matching keying on origin rather than on the package URL.
+// Either makes the two genuinely distinguishable, and then they deserve
+// distinct nodes.
+
 // buildLockIndex creates graph nodes for every lock record except the root
 // package's claimed record, and returns the index that resolves dependency
 // strings to them.
@@ -112,7 +138,7 @@ func buildLockIndex(g *sdk.Graph, packages []lockPackage, rootRecord lockPackage
 		if err != nil {
 			return nil, err
 		}
-		surviving, err := detectors.EnsureNode(g, node)
+		surviving, err := detectorkit.EnsureNode(g, node)
 		if err != nil {
 			return nil, err
 		}

@@ -7,9 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 )
@@ -328,7 +326,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 		if err != nil {
 			return nil, nil, "", err
 		}
-		surviving, err := detectors.EnsureNode(g, node)
+		surviving, err := detectorkit.EnsureNode(g, node)
 		if err != nil {
 			return nil, nil, "", err
 		}
@@ -382,7 +380,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 					continue
 				}
 				if existingNode, ok := g.Node(childID); ok {
-					existing, _ := nodes.AsDependency(existingNode)
+					existing, _ := sdk.AsDependencyNode(existingNode)
 					if existing != nil {
 						existing.AddScope(scope)
 					}

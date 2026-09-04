@@ -5,9 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 // TestGradleDependenciesFixture drives the `gradle dependencies` output parser
@@ -83,7 +82,7 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 	// Subproject roots are the build's own first-party applications, and the
 	// root project node is first-party too.
 	rootNode, ok := testnodes.Find(parsed.rootGraph, parsed.rootID)
-	if !ok || !nodes.IsProjectOwned(rootNode) {
+	if !ok || !sdk.IsProjectOwned(rootNode) {
 		t.Fatalf("root project node must be first-party, got %#v", rootNode)
 	}
 	for _, moduleEntry := range parsed.modules {
@@ -91,7 +90,7 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 		if !ok {
 			t.Fatalf("missing subproject root node %q", moduleEntry.rootID)
 		}
-		if !nodes.IsProjectOwned(node) {
+		if !sdk.IsProjectOwned(node) {
 			t.Fatalf("subproject root %q = %#v, want first-party application", moduleEntry.rootID, mustDep(t, node).Coordinates)
 		}
 	}
@@ -129,7 +128,7 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 	// Both are the build's own code. Neither carries a scope: a module is not
 	// a consumed package, so the section's scope rides on the edge instead --
 	// which is also why the app-side scope can no longer leak into lib.
-	if !nodes.IsProjectOwned(libRef) || !nodes.IsProjectOwned(libOwnRoot) {
+	if !sdk.IsProjectOwned(libRef) || !sdk.IsProjectOwned(libOwnRoot) {
 		t.Fatalf("project reference = %s node, lib root = %s node; want the build's own modules",
 			libRef.Kind(), libOwnRoot.Kind())
 	}

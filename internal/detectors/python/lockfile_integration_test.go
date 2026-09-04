@@ -5,9 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 // These tests drive each Python detector's lock fast-path end-to-end through
@@ -165,7 +164,7 @@ func TestUVLockFixture(t *testing.T) {
 	// The editable package is the scanned project itself, so it is a module
 	// node -- and a module is never enriched (ADR-0041).
 	roots := g.Roots()
-	if len(roots) != 1 || !nodes.IsProjectOwned(roots[0]) {
+	if len(roots) != 1 || !sdk.IsProjectOwned(roots[0]) {
 		t.Fatalf("uv editable root must be the project's own module, got %#v", roots)
 	}
 	for _, want := range [][2]string{

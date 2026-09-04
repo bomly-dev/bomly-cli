@@ -9,8 +9,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
@@ -165,7 +164,7 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 			scope = sdk.ScopeDevelopment
 		}
 		if existingNode, ok := g.Node(node.NodeID()); ok {
-			if existing, isDep := nodes.AsDependency(existingNode); isDep {
+			if existing, isDep := sdk.AsDependencyNode(existingNode); isDep {
 				existing.AddScope(scope)
 			}
 		}
@@ -175,7 +174,7 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 	}
 	// BFS scope propagation: runtime always beats development.
 	directDepNodes, _ := g.DirectDependencies(root.NodeID())
-	directDeps := nodes.DependenciesOf(directDepNodes)
+	directDeps := sdk.DependencyNodesOf(directDepNodes)
 	propagated := make(map[string]sdk.Scope, g.Size())
 	queue := make([]*sdk.DependencyNode, 0, len(directDeps))
 	for _, dep := range directDeps {
@@ -201,7 +200,7 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 		if err != nil {
 			continue
 		}
-		children := nodes.DependenciesOf(childNodes)
+		children := sdk.DependencyNodesOf(childNodes)
 		for _, child := range children {
 			if child == nil || child.NodeID() == root.NodeID() {
 				continue
@@ -395,6 +394,6 @@ func sortedPodNames(specs map[string]podSpec) []string {
 }
 
 func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
-	_, err := detectors.EnsureNode(g, node)
+	_, err := detectorkit.EnsureNode(g, node)
 	return err
 }

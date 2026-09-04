@@ -10,10 +10,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 )
 
@@ -267,7 +266,7 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 			memberPath := strings.TrimPrefix(filepath.ToSlash(packagePath), "./")
 			pkgNode, err = sdk.NewModuleNode(path.Join(memberPath, "package.json"), pkg.Coordinates)
 		} else {
-			pkgNode, err = detectors.NewDependencyFrom(pkg)
+			pkgNode, err = sdk.NewDependencyNodeFrom(pkg)
 		}
 		if err != nil {
 			return npmLockfileGraphs{}, err
@@ -275,7 +274,7 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		// npm records the registry tarball a package was installed from.
 		// Workspace members cleared ResolvedURL above (it names a local
 		// directory), and git or file specs are rejected by the invariant.
-		if dependency, isDependency := nodes.AsDependency(pkgNode); isDependency {
+		if dependency, isDependency := sdk.AsDependencyNode(pkgNode); isDependency {
 			if origin := sdk.ArtifactOrigin(pkg.ResolvedURL); origin != nil {
 				dependency.Origins = sdk.MergeOrigins(dependency.Origins, []sdk.DependencyOrigin{*origin})
 			}
@@ -286,7 +285,7 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		// Two package paths can install one name@version from different
 		// tarballs; the shared helper keeps both, and pathToID wires each
 		// position's edges to its own occurrence. The path is the key.
-		surviving, err := detectors.EnsureNode(depsGraph, pkgNode)
+		surviving, err := detectorkit.EnsureNode(depsGraph, pkgNode)
 		if err != nil {
 			return npmLockfileGraphs{}, err
 		}

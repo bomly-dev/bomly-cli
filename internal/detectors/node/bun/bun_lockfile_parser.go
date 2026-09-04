@@ -10,9 +10,8 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
 )
 
@@ -148,7 +147,7 @@ func depGraphFromBunLockfile(projectPath string) (bunLockfileGraphs, error) {
 		// One identity is one node: a collision folds through the shared
 		// helper rather than minting a second ID for the same package,
 		// which is the occurrence machinery ADR-0041 removed.
-		pkgNode, err := detectors.NewDependencyFrom(dep)
+		pkgNode, err := sdk.NewDependencyNodeFrom(dep)
 		if err != nil {
 			return bunLockfileGraphs{}, err
 		}
@@ -336,7 +335,7 @@ func bunAliasTarget(name, requested string) (string, string) {
 func addSyntheticBunDependency(graph *sdk.Graph, name, requested string) (string, error) {
 	actualName, version := bunAliasTarget(name, requested)
 	dep := sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerBun, Name: actualName, Version: node.NormalizeVersionToken(version)}, Source: node.DependencySourceFromSpecifier(requested)}
-	synthetic, err := detectors.NewDependencyFrom(dep)
+	synthetic, err := sdk.NewDependencyNodeFrom(dep)
 	if err != nil {
 		return "", fmt.Errorf("build dependency node: %w", err)
 	}

@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
@@ -355,6 +355,6 @@ func containsString(values []string, target string) bool {
 }
 
 func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
-	_, err := detectors.EnsureNode(g, node)
+	_, err := detectorkit.EnsureNode(g, node)
 	return err
 }

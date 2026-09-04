@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"gopkg.in/yaml.v3"
 )
@@ -216,7 +216,7 @@ func graphReachableFromRoot(source *sdk.Graph, rootID string) (*sdk.Graph, error
 		currentID := queue[0]
 		queue = queue[1:]
 		depsNodes, err := source.DirectDependencies(currentID)
-		deps := nodes.DependenciesOf(depsNodes)
+		deps := sdk.DependencyNodesOf(depsNodes)
 		if err != nil {
 			return nil, err
 		}
@@ -484,7 +484,7 @@ func manifestFileDigests(projectPath, relPath string) []sdk.Digest {
 }
 
 func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.DependencyNode) error {
-	_, err := detectors.EnsureNode(depsGraph, node)
+	_, err := detectorkit.EnsureNode(depsGraph, node)
 	return err
 }
 

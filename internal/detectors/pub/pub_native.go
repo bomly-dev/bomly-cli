@@ -10,8 +10,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -126,7 +125,7 @@ func applyLockOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 
 	recorded := 0
 	g.WalkNodes(func(graphNode sdk.GraphNode) bool {
-		dep, isDependency := nodes.AsDependency(graphNode)
+		dep, isDependency := sdk.AsDependencyNode(graphNode)
 		if !isDependency {
 			return true
 		}
@@ -141,7 +140,7 @@ func applyLockOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 			return true
 		}
 		if origin := sdk.RepositoryOrigin(descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref")); origin != nil {
-			dep.Origins = detectors.RefineOrigins(dep.Origins, []sdk.DependencyOrigin{*origin})
+			dep.Origins = sdk.MergeOrigins(dep.Origins, []sdk.DependencyOrigin{*origin})
 		}
 		recorded++
 		return true
@@ -299,7 +298,7 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 
 	// BFS scope propagation: runtime beats development.
 	directDepsNodes, _ := g.DirectDependencies(rootPkg.NodeID())
-	directDeps := nodes.DependenciesOf(directDepsNodes)
+	directDeps := sdk.DependencyNodesOf(directDepsNodes)
 	propagated := make(map[string]sdk.Scope, g.Size())
 	queue := make([]*sdk.DependencyNode, 0, len(directDeps))
 	for _, dep := range directDeps {
@@ -322,7 +321,7 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 			continue
 		}
 		childrenNodes, err := g.DirectDependencies(current.NodeID())
-		children := nodes.DependenciesOf(childrenNodes)
+		children := sdk.DependencyNodesOf(childrenNodes)
 		if err != nil {
 			continue
 		}

@@ -11,8 +11,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logging "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -171,7 +170,7 @@ func (d Detector) detectionResultFromMetadata(req sdk.DetectionRequest, raw []by
 		// that knows the member's directory -- cargo reports an absolute
 		// manifest path, and a module ID must be repo-relative -- so the node
 		// is promoted here rather than built as a module upstream.
-		rootID, err := detectors.PromoteToModule(g, member.nodeID, path.Join(dir, "Cargo.toml"))
+		rootID, err := detectorkit.PromoteToModule(g, member.nodeID, path.Join(dir, "Cargo.toml"))
 		if err != nil {
 			return sdk.DetectionResult{}, err
 		}
@@ -341,7 +340,7 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 		// one node under ADR-0041: identity is the canonical package URL, and
 		// cargo PURLs carry no source qualifier. Both sources survive on the
 		// node's Origins list rather than as two nodes.
-		surviving, err := detectors.EnsureNode(g, node)
+		surviving, err := detectorkit.EnsureNode(g, node)
 		if err != nil {
 			return err
 		}
@@ -418,7 +417,7 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 			// A workspace member's direct dependencies take its scope. The
 			if parentNode, ok := g.Node(parentID); ok && isCargoProjectRoot(parentNode) {
 				if existingNode, ok := g.Node(childID); ok {
-					if existing, isDep := nodes.AsDependency(existingNode); isDep {
+					if existing, isDep := sdk.AsDependencyNode(existingNode); isDep {
 						existing.AddScope(scopeForDepKinds(dep.DepKinds))
 					}
 				}
@@ -544,7 +543,7 @@ func addNodeIfMissing(g *sdk.Graph, node sdk.GraphNode) error {
 	// Cargo can resolve one crate name and version from two sources -- the same
 	// crate pulled from two git remotes, say. They share a PURL, so they are
 	// one node, and the shared helper settles what that node claims.
-	_, err := detectors.EnsureNode(g, node)
+	_, err := detectorkit.EnsureNode(g, node)
 	return err
 }
 
@@ -640,7 +639,7 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 			continue
 		}
 		if existingNode, ok := g.Node(nodeID); ok {
-			existing, _ := nodes.AsDependency(existingNode)
+			existing, _ := sdk.AsDependencyNode(existingNode)
 			if existing != nil {
 				existing.AddScope(sdk.ScopeRuntime)
 			}
@@ -655,7 +654,7 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 			continue
 		}
 		if existingNode, ok := g.Node(nodeID); ok {
-			existing, _ := nodes.AsDependency(existingNode)
+			existing, _ := sdk.AsDependencyNode(existingNode)
 			if existing != nil {
 				existing.AddScope(sdk.ScopeDevelopment)
 			}
@@ -668,7 +667,7 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 	// BFS: propagate runtime/development scope from direct deps into the transitive tree.
 	// Runtime always wins over development.
 	directDepsNodes, _ := g.DirectDependencies(root.NodeID())
-	directDeps := nodes.DependenciesOf(directDepsNodes)
+	directDeps := sdk.DependencyNodesOf(directDepsNodes)
 	propagateScopes(g, directDeps, root.NodeID())
 
 	return sdk.FilterGraphByScope(g, scopeFilter)
@@ -682,10 +681,10 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 // the same thing, so the predicate accepts either rather than each caller
 // picking one and quietly missing the other.
 func isCargoProjectRoot(node sdk.GraphNode) bool {
-	if nodes.IsProjectOwned(node) {
+	if sdk.IsProjectOwned(node) {
 		return true
 	}
-	dep, ok := nodes.AsDependency(node)
+	dep, ok := sdk.AsDependencyNode(node)
 	return ok && dep.Type == sdk.PackageTypeApplication
 }
 
@@ -705,7 +704,7 @@ func propagateScopesFromApplicationRoots(g *sdk.Graph) {
 	}
 	for _, root := range roots {
 		directDepNodes, err := g.DirectDependencies(root.NodeID())
-		directDeps := nodes.DependenciesOf(directDepNodes)
+		directDeps := sdk.DependencyNodesOf(directDepNodes)
 		if err != nil {
 			continue
 		}
@@ -736,7 +735,7 @@ func propagateScopes(g *sdk.Graph, directDeps []*sdk.DependencyNode, rootID stri
 			continue
 		}
 		childNodes, err := g.DirectDependencies(current.NodeID())
-		children := nodes.DependenciesOf(childNodes)
+		children := sdk.DependencyNodesOf(childNodes)
 		if err != nil {
 			continue
 		}

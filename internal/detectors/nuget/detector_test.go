@@ -6,9 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
@@ -72,7 +71,7 @@ func TestDepGraphFromLockMultiTarget(t *testing.T) {
 		t.Fatal("expected root package")
 	}
 	depsNodes, err := g.DirectDependencies(root.NodeID())
-	deps := nodes.DependenciesOf(depsNodes)
+	deps := sdk.DependencyNodesOf(depsNodes)
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}

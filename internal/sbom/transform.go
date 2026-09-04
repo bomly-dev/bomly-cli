@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/licenseexpr"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -46,7 +45,7 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			continue
 		}
 		version := coords.Version
-		if version == "" && nodes.IsProjectOwned(node) && opts.ProjectRoot != nil {
+		if version == "" && sdk.IsProjectOwned(node) && opts.ProjectRoot != nil {
 			// The project's own modules have no registry version; the
 			// project version is theirs.
 			version = strings.TrimSpace(opts.ProjectRoot.Version)
@@ -76,11 +75,11 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			// guard closes the one remaining path -- a plugin-supplied graph
 			// asserting an origin directly -- and module nodes cannot reach
 			// it at all now, since origins live on dependency nodes.
-			if !nodes.IsProjectOwned(pkg) && len(dep.Origins) > 0 {
+			if !sdk.IsProjectOwned(pkg) && len(dep.Origins) > 0 {
 				applyOrigin(&component, dep.Origins[0].Normalized())
 			}
 		}
-		enrichComponentFromRegistry(&component, opts.Registry, pkg.NodeID(), nodes.IsProjectOwned(pkg))
+		enrichComponentFromRegistry(&component, opts.Registry, pkg.NodeID(), sdk.IsProjectOwned(pkg))
 		components = append(components, component)
 		depsByRef[pkg.NodeID()] = nil
 	}
@@ -562,7 +561,7 @@ func componentPURL(node sdk.GraphNode) string {
 // for Go modules whose coordinates leave Org empty, and it spells npm scopes
 // with their leading "@". Reading it back keeps `group` and the PURL agreeing.
 func componentOrg(node sdk.GraphNode) string {
-	coords, ok := nodes.Coordinates(node)
+	coords, ok := sdk.NodeCoordinates(node)
 	if !ok {
 		return ""
 	}

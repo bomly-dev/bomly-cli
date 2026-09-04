@@ -4,9 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 // originOf returns the origin a node publishes, or the zero value when it has
@@ -220,7 +219,7 @@ source = "git+https://github.com/external/helper#aaaabbbbccccddddeeeeffff0000111
 		// The project's own artifacts are module nodes now (ADR-0041), and a
 		// module carries no origins at all -- which is the stronger form of
 		// what this case asserts.
-		if !nodes.IsProjectOwned(node) {
+		if !sdk.IsProjectOwned(node) {
 			return true
 		}
 		checked++
@@ -313,7 +312,7 @@ source = "git+https://token:s3cret@git.corp/a/helper#aaaabbbbccccddddeeeeffff000
 		if strings.Contains(node.NodeID(), "s3cret") || strings.Contains(node.NodeID(), "git.corp") {
 			t.Fatalf("node ID %q embeds the raw source", node.NodeID())
 		}
-		if dep, ok := nodes.AsDependency(node); ok && dep.Name == "helper" {
+		if dep, ok := sdk.AsDependencyNode(node); ok && dep.Name == "helper" {
 			helpers++
 		}
 		return true

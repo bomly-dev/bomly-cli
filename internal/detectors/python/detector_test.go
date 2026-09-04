@@ -7,9 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 func TestDepGraphFromPipInspect(t *testing.T) {
@@ -60,7 +59,7 @@ func TestDepGraphFromPipInspect(t *testing.T) {
 	if !ok {
 		t.Fatal("expected synthetic root node")
 	}
-	if !nodes.IsProjectOwned(rootNode) {
+	if !sdk.IsProjectOwned(rootNode) {
 		t.Fatalf("pip-inspect root must be the project's own module node, got a %s node", rootNode.Kind())
 	}
 	// Only the requested distribution is direct; the rest reach the graph
@@ -306,7 +305,7 @@ func assertDirectDependencies(t *testing.T, g *sdk.Graph, parentID string, want 
 	// package URL an ID is now.
 	got := make([]string, 0, len(deps))
 	for _, dep := range deps {
-		name, version, _, _ := nodes.Display(dep)
+		name, version := sdk.NodeDisplayName(dep), sdk.NodeVersion(dep)
 		if version != "" {
 			got = append(got, name+"@"+version)
 			continue

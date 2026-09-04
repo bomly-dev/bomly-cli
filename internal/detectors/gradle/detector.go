@@ -16,7 +16,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -480,7 +480,7 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 			if refNode != nil {
 				stack = stack[:depth+1]
 				parentID := stack[len(stack)-1]
-				if _, err := detectors.EnsureNode(currentGraph, refNode); err != nil {
+				if _, err := detectorkit.EnsureNode(currentGraph, refNode); err != nil {
 					return gradleParseResult{}, fmt.Errorf("add project reference node %q: %w", refNode.NodeID(), err)
 				}
 				if err := currentGraph.AddEdge(parentID, refNode.NodeID()); err != nil {
@@ -497,7 +497,7 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 		}
 		stack = stack[:depth+1]
 		parentID := stack[len(stack)-1]
-		if _, err := detectors.EnsureNode(currentGraph, node); err != nil {
+		if _, err := detectorkit.EnsureNode(currentGraph, node); err != nil {
 			return gradleParseResult{}, err
 		}
 		if err := currentGraph.AddEdge(parentID, node.NodeID()); err != nil {

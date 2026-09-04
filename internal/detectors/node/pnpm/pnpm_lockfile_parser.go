@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"gopkg.in/yaml.v3"
 )
@@ -147,7 +147,7 @@ func depGraphFromPNPMLockfile(projectPath string) (pnpmLockfileGraphs, error) {
 		// One identity is one node: a collision folds through the shared
 		// helper rather than minting a second ID for the same package,
 		// which is the occurrence machinery ADR-0041 removed.
-		pkgNode, err := detectors.NewDependencyFrom(pkg)
+		pkgNode, err := sdk.NewDependencyNodeFrom(pkg)
 		if err != nil {
 			return pnpmLockfileGraphs{}, err
 		}
@@ -164,7 +164,7 @@ func depGraphFromPNPMLockfile(projectPath string) (pnpmLockfileGraphs, error) {
 		// Both keys name the same package identity, so the fold collapses
 		// them to one node and byKey points both at the survivor; the
 		// differing tarballs survive as origins on it.
-		surviving, err := detectors.EnsureNode(depsGraph, pkgNode)
+		surviving, err := detectorkit.EnsureNode(depsGraph, pkgNode)
 		if err != nil {
 			return pnpmLockfileGraphs{}, err
 		}

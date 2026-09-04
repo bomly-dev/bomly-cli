@@ -10,9 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 func TestDetectorApplicable_BuildGradleKTS(t *testing.T) {
@@ -351,10 +350,10 @@ func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
 		t.Fatal("lib entry must not contain app dependencies")
 	}
 	libRoots := libGraph.Roots()
-	if len(libRoots) != 1 || !nodes.IsProjectOwned(libRoots[0]) {
+	if len(libRoots) != 1 || !sdk.IsProjectOwned(libRoots[0]) {
 		t.Fatalf("unexpected lib entry root: %#v", libRoots)
 	}
-	if name, _, _, _ := nodes.Display(libRoots[0]); name != "com.acme:lib" {
+	if name := sdk.NodeDisplayName(libRoots[0]); name != "com.acme:lib" {
 		t.Fatalf("lib entry root = %q, want com.acme:lib", name)
 	}
 

@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
@@ -283,7 +283,7 @@ func packageNode(pkg swiftPackage) (*sdk.DependencyNode, error) {
 		metadata["requirement"] = pkg.Requirement
 	}
 	namespace, name := packageIdentity(pkg.Repository, pkg.Name)
-	node, err := detectors.NewDependencyOrGeneric(sdk.Coordinates{Ecosystem: sdk.EcosystemSwift,
+	node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemSwift,
 		Org:            namespace,
 		Name:           name,
 		Version:        strings.TrimSpace(pkg.Version),
@@ -400,6 +400,6 @@ func sortedNames(packages map[string]swiftPackage) []string {
 }
 
 func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
-	_, err := detectors.EnsureNode(g, node)
+	_, err := detectorkit.EnsureNode(g, node)
 	return err
 }

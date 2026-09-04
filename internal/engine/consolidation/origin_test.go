@@ -3,7 +3,6 @@ package consolidation
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	sdk "github.com/bomly-dev/bomly-sdk"
 )
@@ -250,16 +249,16 @@ func TestProjectRecordsNeverFoldWithMatchingExternalResolutions(t *testing.T) {
 
 	var projectNodes, externalNodes int
 	merged.WalkNodes(func(node sdk.GraphNode) bool {
-		name, _, _, _ := nodes.Display(node)
+		name := sdk.NodeDisplayName(node)
 		if name != "helper" {
 			return true
 		}
-		if nodes.IsProjectOwned(node) {
+		if sdk.IsProjectOwned(node) {
 			projectNodes++
 			return true
 		}
 		externalNodes++
-		dep, _ := nodes.AsDependency(node)
+		dep, _ := sdk.AsDependencyNode(node)
 		if dep == nil || len(dep.Origins) == 0 {
 			t.Errorf("the external record lost the repository it resolved from")
 		}

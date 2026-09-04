@@ -18,7 +18,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -585,6 +585,6 @@ func appendUniqueModule(modules []moduleRef, seen map[string]struct{}, ref modul
 
 func addOrMergeModuleNode(depsGraph *sdk.Graph, node *sdk.DependencyNode) error {
 	// The node carries its scope; the shared helper unions scopes on fold.
-	_, err := detectors.EnsureNode(depsGraph, node)
+	_, err := detectorkit.EnsureNode(depsGraph, node)
 	return err
 }

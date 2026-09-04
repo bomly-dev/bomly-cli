@@ -6,9 +6,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 func pnpmWorkspacesFixtureDir(t *testing.T) string {
@@ -74,7 +73,7 @@ func TestPNPMLockfileWorkspaceLinkDependenciesResolveToMembers(t *testing.T) {
 			found = true
 			// A workspace member is the project's own code, so the link
 			// resolves to a module node (ADR-0041).
-			if !nodes.IsProjectOwned(dep) {
+			if !sdk.IsProjectOwned(dep) {
 				t.Fatalf("expected the member target to be a module, got a %s node", dep.Kind())
 			}
 		}

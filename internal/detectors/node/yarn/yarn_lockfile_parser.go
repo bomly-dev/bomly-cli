@@ -10,9 +10,9 @@ import (
 	"unicode"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"gopkg.in/yaml.v3"
 )
@@ -89,7 +89,7 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		// One identity is one node: a collision folds rather than minting a
 		// second ID for the same package, which is the occurrence machinery
 		// ADR-0041 removed.
-		pkgNode, err := detectors.NewDependencyFrom(pkg)
+		pkgNode, err := sdk.NewDependencyNodeFrom(pkg)
 		if err != nil {
 			return "", err
 		}
@@ -102,7 +102,7 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		// Two selector entries can pin one name@version to different
 		// tarballs; the shared helper keeps both as distinct occurrences,
 		// and each entry's edges attach to its own via entryNodeByIndex.
-		surviving, err := detectors.EnsureNode(depsGraph, pkgNode)
+		surviving, err := detectorkit.EnsureNode(depsGraph, pkgNode)
 		if err != nil {
 			return "", err
 		}

@@ -6,9 +6,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 func workspacesFixtureDir(t *testing.T) string {
@@ -80,7 +79,7 @@ func TestNPMLockfileWorkspaceLinkEntriesDoNotDuplicateNodes(t *testing.T) {
 	// The link alias node_modules/lib must resolve to the member node, not a
 	// synthetic versionless "lib" package.
 	for _, node := range graphs.graph.Nodes() {
-		name, version, _, _ := nodes.Display(node)
+		name, version := sdk.NodeDisplayName(node), sdk.NodeVersion(node)
 		if name == "lib" && version == "" {
 			t.Fatalf("unexpected versionless link ghost node for lib: %s", node.NodeID())
 		}
@@ -91,7 +90,7 @@ func TestNPMLockfileWorkspaceLinkEntriesDoNotDuplicateNodes(t *testing.T) {
 	}
 	// A workspace member is the project's own code, so it is a module node:
 	// ownership is the kind now, not the application package type (ADR-0041).
-	if !nodes.IsProjectOwned(member) {
+	if !sdk.IsProjectOwned(member) {
 		t.Fatalf("expected the member to be the project's own module, got a %s node", member.Kind())
 	}
 	// web depends on lib via the workspace link; the edge must target the member.
@@ -106,7 +105,7 @@ func TestNPMLockfileWorkspaceLinkEntriesDoNotDuplicateNodes(t *testing.T) {
 		}
 	}
 	if !found {
-		t.Fatalf("expected web -> lib@1.0.0 edge, got %v", depIDs(nodes.DependenciesOf(deps)))
+		t.Fatalf("expected web -> lib@1.0.0 edge, got %v", depIDs(sdk.DependencyNodesOf(deps)))
 	}
 }
 

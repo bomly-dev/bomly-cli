@@ -9,8 +9,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
@@ -155,7 +154,7 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 		}
 		if pkg.Scope != "" {
 			if existingNode, ok := g.Node(node.NodeID()); ok {
-				if existing, isDep := nodes.AsDependency(existingNode); isDep {
+				if existing, isDep := sdk.AsDependencyNode(existingNode); isDep {
 					existing.AddScope(pkg.Scope)
 				}
 			}
@@ -207,7 +206,7 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 
 	// BFS scope propagation: runtime always beats development.
 	directDepsNodes, _ := g.DirectDependencies(root.NodeID())
-	directDeps := nodes.DependenciesOf(directDepsNodes)
+	directDeps := sdk.DependencyNodesOf(directDepsNodes)
 	propagated := make(map[string]sdk.Scope, g.Size())
 	queue := make([]*sdk.DependencyNode, 0, len(directDeps))
 	for _, dep := range directDeps {
@@ -230,7 +229,7 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 			continue
 		}
 		childrenNodes, err := g.DirectDependencies(current.NodeID())
-		children := nodes.DependenciesOf(childrenNodes)
+		children := sdk.DependencyNodesOf(childrenNodes)
 		if err != nil {
 			continue
 		}
@@ -428,6 +427,6 @@ func sortedMixNames(packages map[string]mixPackage) []string {
 }
 
 func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
-	_, err := detectors.EnsureNode(g, node)
+	_, err := detectorkit.EnsureNode(g, node)
 	return err
 }

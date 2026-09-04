@@ -14,10 +14,9 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
@@ -870,7 +869,7 @@ func normalizePythonName(value string) string {
 }
 
 func addNodeIfMissing(depsGraph *sdk.Graph, node sdk.GraphNode) error {
-	_, err := detectors.EnsureNode(depsGraph, node)
+	_, err := detectorkit.EnsureNode(depsGraph, node)
 	return err
 }
 
@@ -900,7 +899,7 @@ func annotateGraphScopes(depsGraph *sdk.Graph, projectPath string) {
 	devDeps := collectPythonDevDependencies(projectPath)
 
 	directDepsNodes, err := depsGraph.DirectDependencies(rootID)
-	directDeps := nodes.DependenciesOf(directDepsNodes)
+	directDeps := sdk.DependencyNodesOf(directDepsNodes)
 	if err != nil || len(directDeps) == 0 {
 		// Fall back: graph has no edges from root — use devDeps by name for best-effort scoping.
 		for _, pkg := range depsGraph.DependencyNodes() {
@@ -954,7 +953,7 @@ func annotateGraphScopes(depsGraph *sdk.Graph, projectPath string) {
 			continue
 		}
 		childrenNodes, err := depsGraph.DirectDependencies(current.NodeID())
-		children := nodes.DependenciesOf(childrenNodes)
+		children := sdk.DependencyNodesOf(childrenNodes)
 		if err != nil {
 			continue
 		}

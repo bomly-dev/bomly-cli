@@ -6,9 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 func writePNPMProject(t *testing.T, lockfile, manifest string) string {
@@ -90,7 +89,7 @@ packages:
 		t.Fatal("root missing")
 	}
 	dependenciesNodes, err := graphs.graph.DirectDependencies(root.NodeID())
-	dependencies := nodes.DependenciesOf(dependenciesNodes)
+	dependencies := sdk.DependencyNodesOf(dependenciesNodes)
 	if err != nil || len(dependencies) != 1 || dependencies[0].Name != "real-package" {
 		t.Fatalf("dependencies = %#v, err=%v", dependencies, err)
 	}

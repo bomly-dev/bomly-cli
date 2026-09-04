@@ -8,9 +8,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	testutil "github.com/bomly-dev/bomly-sdk/testkit"
 )
 
@@ -103,7 +102,7 @@ func main() { fmt.Print("/project node_modules\n├── @fixture/api@workspace
 		t.Fatalf("expected unproven package placement, got %#v", leftPad)
 	}
 	workspace, _ := testnodes.Find(graph, "api@1.0.0")
-	if workspace == nil || !nodes.IsProjectOwned(workspace) {
+	if workspace == nil || !sdk.IsProjectOwned(workspace) {
 		t.Fatalf("expected the workspace member to be the project's own module, got %#v", workspace)
 	}
 	// The alias resolves to the package it names, at that package's identity.

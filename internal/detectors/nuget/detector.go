@@ -12,8 +12,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
@@ -273,7 +272,7 @@ func depGraphFromLock(raw []byte) (*sdk.Graph, error) {
 			return nil, err
 		}
 		if existingNode, ok := g.Node(node.NodeID()); ok {
-			if existing, isDep := nodes.AsDependency(existingNode); isDep {
+			if existing, isDep := sdk.AsDependencyNode(existingNode); isDep {
 				existing.AddScope(sdk.ScopeRuntime)
 			}
 		}
@@ -411,7 +410,7 @@ func depGraphFromDepsFiles(paths []string) (*sdk.Graph, error) {
 			return nil, err
 		}
 		if existingNode, ok := g.Node(node.NodeID()); ok {
-			if existing, isDep := nodes.AsDependency(existingNode); isDep {
+			if existing, isDep := sdk.AsDependencyNode(existingNode); isDep {
 				existing.AddScope(sdk.ScopeRuntime)
 			}
 		}
@@ -644,7 +643,7 @@ func propagateScope(g *sdk.Graph, packages map[string]lockPackage, roots []strin
 			return err
 		}
 		if existingNode, ok := g.Node(node.NodeID()); ok {
-			if existing, isDep := nodes.AsDependency(existingNode); isDep {
+			if existing, isDep := sdk.AsDependencyNode(existingNode); isDep {
 				existing.AddScope(scope)
 			}
 		}
@@ -664,6 +663,6 @@ func propagateScope(g *sdk.Graph, packages map[string]lockPackage, roots []strin
 }
 
 func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
-	_, err := detectors.EnsureNode(g, node)
+	_, err := detectorkit.EnsureNode(g, node)
 	return err
 }

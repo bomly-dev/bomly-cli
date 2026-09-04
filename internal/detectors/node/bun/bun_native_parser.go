@@ -9,8 +9,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
 
@@ -84,7 +83,7 @@ func depGraphFromBunPMList(raw []byte, manifest node.PackageJSONManifest, projec
 		for _, dependency := range matches {
 			match = dependency
 		}
-		if dependency, ok := nodes.AsDependency(match); ok {
+		if dependency, ok := sdk.AsDependencyNode(match); ok {
 			dependency.AddScope(scope)
 		}
 		if err := graph.AddEdge(root.NodeID(), match.NodeID()); err != nil {

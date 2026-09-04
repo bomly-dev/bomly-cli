@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 )
 
@@ -209,7 +209,7 @@ func parsePipLockViaLine(comment string, entry *pipLockEntry) {
 // that any package reachable on a runtime path is marked runtime even if it is
 // also a development dependency. Remaining unscoped packages default to runtime.
 func propagatePipScopes(g *sdk.Graph, root sdk.GraphNode, directScope map[string]sdk.Scope) {
-	detectors.PropagateScopes(g, root.NodeID(), func(dep *sdk.DependencyNode) sdk.Scope {
+	detectorkit.PropagateScopes(g, root.NodeID(), func(dep *sdk.DependencyNode) sdk.Scope {
 		return directScope[dep.NodeID()]
 	})
 }

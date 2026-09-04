@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 )
 
@@ -186,7 +186,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 	}
 
 	// Runtime always beats development on any path that reaches a package.
-	detectors.PropagateScopes(g, root.NodeID(), nil)
+	detectorkit.PropagateScopes(g, root.NodeID(), nil)
 
 	return g, nil
 }

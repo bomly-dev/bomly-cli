@@ -6,9 +6,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 const sampleRequirementsLock = `#
@@ -52,7 +51,7 @@ func directDepIDs(t *testing.T, g *sdk.Graph, id string) []string {
 	// URL an ID is now.
 	ids := make([]string, 0, len(deps))
 	for _, d := range deps {
-		name, version, _, _ := nodes.Display(d)
+		name, version := sdk.NodeDisplayName(d), sdk.NodeVersion(d)
 		if version != "" {
 			ids = append(ids, name+"@"+version)
 			continue

@@ -6,9 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
@@ -71,7 +70,7 @@ SPEC CHECKSUMS:
 		t.Fatalf("expected runtime scope, got %q", string(analytics.PrimaryScope()))
 	}
 	childrenNodes, err := g.DirectDependencies(analytics.NodeID())
-	children := nodes.DependenciesOf(childrenNodes)
+	children := sdk.DependencyNodesOf(childrenNodes)
 	if err != nil {
 		t.Fatalf("analytics dependencies: %v", err)
 	}

@@ -4,9 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/nodes"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 type eligibilityCapturingMatcher struct {
@@ -78,7 +77,7 @@ func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T)
 		if err := graph.AddNode(dependency); err != nil {
 			t.Fatal(err)
 		}
-		if dep, ok := nodes.AsDependency(dependency); ok {
+		if dep, ok := sdk.AsDependencyNode(dependency); ok {
 			registry.Add(sdk.PackageFromDependencyNode(dep))
 		}
 	}

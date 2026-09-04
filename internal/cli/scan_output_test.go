@@ -92,11 +92,25 @@ func TestExplainPackageRefPlacesRemediationOnlyOnFocusedDependency(t *testing.T)
 		focused.Remediation.Suggestions[0].Action != sdk.RemediationActionDirectBump {
 		t.Fatalf("focused remediation suggestions = %#v", focused.Remediation.Suggestions)
 	}
-	paths := explainPathsWithStableIDs([]output.DependencyPath{{
+	paths := explainPathsWithLinks([]output.DependencyPath{{
 		Packages: []output.PackageRef{
 			output.PackageFromGraphPackage(dependency),
 		},
 	}})
+	// A path entry names the node by the same identity the focused dependency
+	// does, so a consumer can join the two. This is the assertion that was
+	// missing while paths published "name@version" and the dependency
+	// published its canonical package URL.
+	if len(paths) != 1 || len(paths[0].Packages) != 1 {
+		t.Fatalf("paths = %#v; want one path of one package", paths)
+	}
+	if got := paths[0].Packages[0].ID; got != focused.ID {
+		t.Fatalf("path package ID = %q, focused dependency ID = %q; want the same node identity", got, focused.ID)
+	}
+	if paths[0].IntroducedVia != focused.ID {
+		t.Fatalf("introduced_via = %q, want the canonical node ID %q", paths[0].IntroducedVia, focused.ID)
+	}
+
 	pathData, err := json.Marshal(paths)
 	if err != nil {
 		t.Fatalf("Marshal(paths) error = %v", err)

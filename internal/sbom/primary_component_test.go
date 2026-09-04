@@ -435,3 +435,74 @@ func TestCycloneDXGroupSurvivesRoundTrip(t *testing.T) {
 		})
 	}
 }
+
+// A manifest node is a graph root but never a component, so it must not decide
+// the document's primary component.
+//
+// Consolidation produces exactly this shape: several disconnected package
+// roots attached beneath one synthesized manifest. Reading the manifest's ID
+// as the root list made it look like a single root, which suppressed the
+// synthesized project root -- and the encoder, unable to find a component with
+// that ID, silently promoted whichever package sorted first to be the subject
+// of the whole document. A scan of a project with two top-level packages
+// described itself as one of them.
+func TestManifestRootDoesNotDecideThePrimaryComponent(t *testing.T) {
+	g := sdk.New()
+	manifest := testnodes.Manifest("package.json", sdk.ManifestKindPackageJSON)
+	left := testnodes.Dep(sdk.Coordinates{Ecosystem: "npm", Name: "left", Version: "1.0.0"})
+	right := testnodes.Dep(sdk.Coordinates{Ecosystem: "npm", Name: "right", Version: "2.0.0"})
+	for _, node := range []sdk.GraphNode{manifest, left, right} {
+		if _, err := g.InsertNode(node); err != nil {
+			t.Fatalf("InsertNode(%q): %v", node.NodeID(), err)
+		}
+	}
+	for _, child := range []*sdk.DependencyNode{left, right} {
+		if err := g.AddEdge(manifest.NodeID(), child.NodeID()); err != nil {
+			t.Fatalf("AddEdge(%q): %v", child.NodeID(), err)
+		}
+	}
+
+	out, err := MarshalDepGraphJSON(g, TargetCycloneDX16JSON, BuildOptions{
+		ProjectRoot: &ProjectRoot{Name: "demo", Version: "0.1.0"},
+	}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal cyclonedx: %v", err)
+	}
+	bom := new(cdx.BOM)
+	if err := cdx.NewBOMDecoder(bytes.NewReader(out), cdx.BOMFileFormatJSON).Decode(bom); err != nil {
+		t.Fatalf("decode cyclonedx: %v", err)
+	}
+	if bom.Metadata == nil || bom.Metadata.Component == nil {
+		t.Fatal("expected metadata.component")
+	}
+	primary := bom.Metadata.Component
+
+	if primary.BOMRef == manifest.NodeID() {
+		t.Fatalf("primary component is the manifest %q, which is not in the inventory", primary.BOMRef)
+	}
+	if primary.BOMRef == left.NodeID() || primary.BOMRef == right.NodeID() {
+		t.Fatalf("primary component is the dependency %q; the document must not describe the project "+
+			"as one of its own packages", primary.BOMRef)
+	}
+	if primary.Name != "demo" {
+		t.Fatalf("primary component name = %q, want the synthesized project root %q", primary.Name, "demo")
+	}
+
+	// The synthesized root reaches both package roots, and never the manifest.
+	var reached []string
+	if bom.Dependencies != nil {
+		for _, d := range *bom.Dependencies {
+			if d.Ref == primary.BOMRef && d.Dependencies != nil {
+				reached = append(reached, *d.Dependencies...)
+			}
+		}
+	}
+	if len(reached) != 2 {
+		t.Fatalf("synthesized root depends on %v; want both package roots", reached)
+	}
+	for _, ref := range reached {
+		if ref == manifest.NodeID() {
+			t.Fatalf("synthesized root depends on the manifest %q", ref)
+		}
+	}
+}

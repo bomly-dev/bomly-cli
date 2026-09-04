@@ -11,10 +11,10 @@
             "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
             "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
             "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
-            "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
+            "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
             "pkg:maven/org.mindrot/jbcrypt@0.3m",
             "pkg:maven/org.neo4j/neo4j-jmx@1.3",
-            "pkg:maven/org.springframework/spring-web@3.1.1.release"
+            "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
           ],
           "id": "module:build.gradle#example-java-gradle",
           "licenses": [],
@@ -232,16 +232,16 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:maven/io.netty/netty@3.7.0.final",
+          "id": "pkg:maven/io.netty/netty@3.7.0.Final",
           "licenses": [],
           "name": "io.netty:netty",
-          "package_ref": "pkg:maven/io.netty/netty@3.7.0.final",
-          "purl": "pkg:maven/io.netty/netty@3.7.0.final",
+          "package_ref": "pkg:maven/io.netty/netty@3.7.0.Final",
+          "purl": "pkg:maven/io.netty/netty@3.7.0.Final",
           "scopes": [
             "development",
             "runtime"
           ],
-          "version": "3.7.0.final"
+          "version": "3.7.0.Final"
         },
         {
           "depends_on": [],
@@ -671,7 +671,7 @@
         },
         {
           "depends_on": [
-            "pkg:maven/io.netty/netty@3.7.0.final",
+            "pkg:maven/io.netty/netty@3.7.0.Final",
             "pkg:maven/jline/jline@0.9.94",
             "pkg:maven/log4j/log4j@1.2.17",
             "pkg:maven/org.slf4j/slf4j-api@1.7.6",
@@ -717,7 +717,7 @@
           "depends_on": [
             "pkg:maven/org.apache.santuario/xmlsec@1.5.1"
           ],
-          "id": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
+          "id": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
           "licenses": [],
           "locations": [
             {
@@ -730,13 +730,13 @@
             }
           ],
           "name": "org.keycloak:keycloak-saml-core",
-          "package_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
-          "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
+          "package_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
+          "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
           "scopes": [
             "development",
             "runtime"
           ],
-          "version": "1.8.1.final"
+          "version": "1.8.1.Final"
         },
         {
           "depends_on": [],
@@ -859,107 +859,107 @@
         {
           "depends_on": [
             "pkg:maven/aopalliance/aopalliance@1.0",
-            "pkg:maven/org.springframework/spring-asm@3.1.1.release",
-            "pkg:maven/org.springframework/spring-beans@3.1.1.release",
-            "pkg:maven/org.springframework/spring-core@3.1.1.release"
+            "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
           ],
-          "id": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
           "licenses": [],
           "name": "org.springframework:spring-aop",
-          "package_ref": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
           "scopes": [
             "development",
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [],
-          "id": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
           "licenses": [],
           "name": "org.springframework:spring-asm",
-          "package_ref": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
           "scopes": [
             "development",
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [
-            "pkg:maven/org.springframework/spring-core@3.1.1.release"
+            "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
           ],
-          "id": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
           "licenses": [],
           "name": "org.springframework:spring-beans",
-          "package_ref": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
           "scopes": [
             "development",
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [
-            "pkg:maven/org.springframework/spring-aop@3.1.1.release",
-            "pkg:maven/org.springframework/spring-asm@3.1.1.release",
-            "pkg:maven/org.springframework/spring-beans@3.1.1.release",
-            "pkg:maven/org.springframework/spring-core@3.1.1.release",
-            "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+            "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
           ],
-          "id": "pkg:maven/org.springframework/spring-context@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
           "licenses": [],
           "name": "org.springframework:spring-context",
-          "package_ref": "pkg:maven/org.springframework/spring-context@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-context@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
           "scopes": [
             "development",
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [
             "pkg:maven/commons-logging/commons-logging@1.1.1",
-            "pkg:maven/org.springframework/spring-asm@3.1.1.release"
+            "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE"
           ],
-          "id": "pkg:maven/org.springframework/spring-core@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
           "licenses": [],
           "name": "org.springframework:spring-core",
-          "package_ref": "pkg:maven/org.springframework/spring-core@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-core@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
           "scopes": [
             "development",
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [
-            "pkg:maven/org.springframework/spring-core@3.1.1.release"
+            "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
           ],
-          "id": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
           "licenses": [],
           "name": "org.springframework:spring-expression",
-          "package_ref": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
           "scopes": [
             "development",
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [
             "pkg:maven/aopalliance/aopalliance@1.0",
-            "pkg:maven/org.springframework/spring-beans@3.1.1.release",
-            "pkg:maven/org.springframework/spring-context@3.1.1.release",
-            "pkg:maven/org.springframework/spring-core@3.1.1.release"
+            "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
           ],
-          "id": "pkg:maven/org.springframework/spring-web@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
           "licenses": [],
           "locations": [
             {
@@ -972,13 +972,13 @@
             }
           ],
           "name": "org.springframework:spring-web",
-          "package_ref": "pkg:maven/org.springframework/spring-web@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-web@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
           "scopes": [
             "development",
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [],
@@ -1128,8 +1128,8 @@
       "licenses": [],
       "name": "io.netty:netty",
       "org": "io.netty",
-      "purl": "pkg:maven/io.netty/netty@3.7.0.final",
-      "version": "3.7.0.final",
+      "purl": "pkg:maven/io.netty/netty@3.7.0.Final",
+      "version": "3.7.0.Final",
       "vulnerabilities": []
     },
     {
@@ -1389,8 +1389,8 @@
       "licenses": [],
       "name": "org.keycloak:keycloak-saml-core",
       "org": "org.keycloak",
-      "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
-      "version": "1.8.1.final",
+      "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
+      "version": "1.8.1.Final",
       "vulnerabilities": []
     },
     {
@@ -1461,8 +1461,8 @@
       "licenses": [],
       "name": "org.springframework:spring-aop",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
-      "version": "3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": []
     },
     {
@@ -1470,8 +1470,8 @@
       "licenses": [],
       "name": "org.springframework:spring-asm",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
-      "version": "3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": []
     },
     {
@@ -1479,8 +1479,8 @@
       "licenses": [],
       "name": "org.springframework:spring-beans",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
-      "version": "3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": []
     },
     {
@@ -1488,8 +1488,8 @@
       "licenses": [],
       "name": "org.springframework:spring-context",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-context@3.1.1.release",
-      "version": "3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": []
     },
     {
@@ -1497,8 +1497,8 @@
       "licenses": [],
       "name": "org.springframework:spring-core",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-core@3.1.1.release",
-      "version": "3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": []
     },
     {
@@ -1506,8 +1506,8 @@
       "licenses": [],
       "name": "org.springframework:spring-expression",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
-      "version": "3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": []
     },
     {
@@ -1515,8 +1515,8 @@
       "licenses": [],
       "name": "org.springframework:spring-web",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-web@3.1.1.release",
-      "version": "3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": []
     },
     {

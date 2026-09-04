@@ -365,6 +365,13 @@ func (p *Pipeline) runMatch(ctx context.Context, result *PipelineResult, req Pip
 	}
 	started := time.Now()
 	eligible := 0
+	// Counted separately from the graph's size, which includes the module and
+	// manifest nodes a normal graph now has. Subtracting from the size
+	// reported one excluded package for every structural node -- so a graph
+	// whose ten dependencies were all eligible still claimed an exclusion,
+	// contradicting the comment below it and sending anyone reading -v after
+	// a missing enrichment.
+	candidates := 0
 	result.Graph.WalkNodes(func(graphNode sdk.GraphNode) bool {
 		// Only dependency nodes are ever enriched: a manifest or a module is
 		// the project's own artifact, and there is no registry to ask about
@@ -374,6 +381,7 @@ func (p *Pipeline) runMatch(ctx context.Context, result *PipelineResult, req Pip
 		if !ok {
 			return true
 		}
+		candidates++
 		if dependency.RegistryMatchEligible() {
 			eligible++
 		} else {
@@ -385,9 +393,10 @@ func (p *Pipeline) runMatch(ctx context.Context, result *PipelineResult, req Pip
 		return true
 	})
 	p.Logger.Info("pipeline: enrichment started",
-		zap.Int("packages", result.Graph.Size()),
+		zap.Int("packages", candidates),
 		zap.Int("eligible_packages", eligible),
-		zap.Int("excluded_packages", result.Graph.Size()-eligible))
+		zap.Int("excluded_packages", candidates-eligible),
+		zap.Int("graph_nodes", result.Graph.Size()))
 	p.match(ctx, result, req)
 	if req.EnrichEnabled {
 		detectors := remediationDetectorsByName(p.Registry.AllDetectors())

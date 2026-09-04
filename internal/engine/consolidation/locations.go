@@ -26,18 +26,49 @@ func rebaseGraphLocations(g *sdk.Graph, relativePath string) {
 	if g == nil || rel == "" || rel == "." {
 		return
 	}
-	for _, pkg := range g.DependencyNodes() {
-		if pkg == nil {
-			continue
-		}
-		for i := range pkg.Locations {
-			pkg.Locations[i].RealPath = rebaseLocationPath(pkg.Locations[i].RealPath, rel)
-			pkg.Locations[i].AccessPath = rebaseLocationPath(pkg.Locations[i].AccessPath, rel)
-			if pos := pkg.Locations[i].Position; pos != nil {
-				pos.File = rebaseLocationPath(pos.File, rel)
+	// Every node kind that carries locations, not just dependencies. A
+	// promoted module keeps the locations of the dependency node it replaced,
+	// so restricting the walk left a subproject's module reporting "pom.xml"
+	// where the repository holds "apps/service/pom.xml" -- and
+	// DependenciesFromGraph publishes module locations in scan JSON, so the
+	// stale path reached the output.
+	g.WalkNodes(func(node sdk.GraphNode) bool {
+		for _, location := range mutableLocations(node) {
+			location.RealPath = rebaseLocationPath(location.RealPath, rel)
+			location.AccessPath = rebaseLocationPath(location.AccessPath, rel)
+			if location.Position != nil {
+				location.Position.File = rebaseLocationPath(location.Position.File, rel)
 			}
 		}
+		return true
+	})
+}
+
+// mutableLocations returns pointers into the node's own location slice, so a
+// rewrite lands on the node rather than on a copy. A manifest node carries no
+// locations: its path is its identity, and normalizeNativeManifestPath rebases
+// that.
+func mutableLocations(node sdk.GraphNode) []*sdk.PackageLocation {
+	var locations []sdk.PackageLocation
+	switch typed := node.(type) {
+	case *sdk.DependencyNode:
+		if typed == nil {
+			return nil
+		}
+		locations = typed.Locations
+	case *sdk.ModuleNode:
+		if typed == nil {
+			return nil
+		}
+		locations = typed.Locations
+	default:
+		return nil
 	}
+	out := make([]*sdk.PackageLocation, 0, len(locations))
+	for i := range locations {
+		out = append(out, &locations[i])
+	}
+	return out
 }
 
 // rebaseLocationPath prefixes rel onto a subproject-relative path. Empty,

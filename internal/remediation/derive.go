@@ -834,8 +834,7 @@ func executableRoot(dependency *sdk.DependencyNode) bool {
 	if dependency == nil || dependency.Type == sdk.PackageTypeManifest {
 		return false
 	}
-	return dependency.Kind() == sdk.NodeKindModule ||
-		dependency.Source == sdk.DependencySourceProject ||
+	return dependency.Source == sdk.DependencySourceProject ||
 		dependency.Type == sdk.PackageTypeApplication
 }
 
@@ -887,32 +886,56 @@ func cloneDetectionResult(result sdk.DetectionResult) sdk.DetectionResult {
 	return clone
 }
 
+// cloneGraph copies a graph so a remediation provider cannot mutate the
+// detection it was handed.
+//
+// Every node kind is copied, not just dependencies. Providers may inspect
+// RemediationHintRequest.Detection, so the clone is part of the plugin
+// contract: a copy holding only dependency nodes drops the module roots a
+// normal graph now has, and with them every module-to-dependency edge, so a
+// provider sees a disconnected rubble of orphans rather than the project it
+// was asked about. Edge kinds are copied too -- a structural
+// manifest-to-module edge must not arrive as a depends-on claim.
 func cloneGraph(graph *sdk.Graph) *sdk.Graph {
 	if graph == nil {
 		return nil
 	}
 	clone := sdk.NewWithCapacity(graph.Size())
-	for _, dependency := range graph.DependencyNodes() {
-		_ = clone.AddNode(dependency.Clone())
-	}
-	for _, dependency := range graph.DependencyNodes() {
-		children, err := graph.DirectDependencies(dependency.NodeID())
-		if err != nil {
-			continue
-		}
-		for _, child := range children {
-			_ = clone.AddEdge(dependency.NodeID(), child.NodeID())
-		}
+	graph.WalkNodes(func(node sdk.GraphNode) bool {
+		_, _ = clone.InsertNode(node.CloneNode())
+		return true
+	})
+	// A copy failure here would mean the clone disagrees with the detection it
+	// stands for, which is worse for a provider than no isolation: return the
+	// original rather than a structurally different graph.
+	if err := sdk.CopyEdgesInto(clone, graph, nil); err != nil {
+		return graph
 	}
 	return clone
 }
 
-// executableRootOf narrows a graph root to a dependency before asking whether
-// it is an executable root; structural nodes never are.
+// executableRootOf reports whether a graph root is something a remediation can
+// be applied to: the scanned project's own artifact.
+//
+// A module node always is -- that is what the kind means under ADR-0041, and
+// after the migration it is what a normal root actually is. Reading only
+// dependency nodes here is what made every module-rooted graph look rootless:
+// inferredPlacement walked up, found no root, and every dependency whose
+// detector left Relationship unset degraded to manual review. Detectors do
+// generally leave it unset and rely on graph placement, so that was most of a
+// normal scan.
+//
+// A dependency node still qualifies when it stands for the project: an
+// application-typed root the detector has not promoted yet, or one a detector
+// marked as the project's own source. A manifest never does -- it is a file,
+// and nothing can be bumped in it that is not a module's dependency.
 func executableRootOf(node sdk.GraphNode) bool {
-	dep, ok := node.(*sdk.DependencyNode)
-	if !ok {
+	switch typed := node.(type) {
+	case *sdk.ModuleNode:
+		return typed != nil
+	case *sdk.DependencyNode:
+		return executableRoot(typed)
+	default:
 		return false
 	}
-	return executableRoot(dep)
 }

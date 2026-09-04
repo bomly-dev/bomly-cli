@@ -114,11 +114,16 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 		})
 	}
 
-	roots := g.Roots()
-	rootIDs := make([]string, 0, len(roots))
-	for _, r := range roots {
-		rootIDs = append(rootIDs, r.NodeID())
+	// Only roots that became components. A manifest node is a root of the
+	// graph but is deliberately not exported as a component, so copying its ID
+	// here left the document naming a primary component that does not exist in
+	// it -- and, being exactly one ID, it also suppressed the synthesized root
+	// below that would have repaired it.
+	componentIDs := make(map[string]struct{}, len(components))
+	for _, c := range components {
+		componentIDs[c.ID] = struct{}{}
 	}
+	rootIDs := exportedRootIDs(g, componentIDs)
 	if opts.RootComponentID != "" {
 		for _, c := range components {
 			if c.ID == opts.RootComponentID {
@@ -324,6 +329,55 @@ func scorecardRepositoryURL(scorecard *sdk.PackageScorecard) (string, bool) {
 // value arrives already validated -- Normalized applies the SDK's rule and
 // returns nothing when a location does not survive it -- so there is nothing to
 // decide here: export publishes what detection resolved, or nothing.
+// exportedRootIDs names the graph roots the document actually contains.
+//
+// A manifest node is a root of the graph but never a component: it is
+// structural, and a document naming it as its primary component points at
+// something that is not there. Consolidation does produce exactly that shape
+// -- several disconnected package roots attached beneath one synthesized
+// manifest -- and naming the manifest also read as a single root, which
+// suppressed the synthesized project root that would have repaired it.
+//
+// A structural root is replaced by the exported nodes beneath it rather than
+// dropped, so the roots the document reports are the ones a reader means: the
+// project's modules and top-level packages.
+func exportedRootIDs(g *sdk.Graph, exported map[string]struct{}) []string {
+	roots := g.Roots()
+	ids := make([]string, 0, len(roots))
+	seen := make(map[string]struct{}, len(roots))
+	visited := make(map[string]struct{}, len(roots))
+
+	var collect func(node sdk.GraphNode)
+	collect = func(node sdk.GraphNode) {
+		if sdk.IsNilNode(node) {
+			return
+		}
+		id := node.NodeID()
+		if _, done := visited[id]; done {
+			return
+		}
+		visited[id] = struct{}{}
+		if _, ok := exported[id]; ok {
+			if _, duplicate := seen[id]; !duplicate {
+				seen[id] = struct{}{}
+				ids = append(ids, id)
+			}
+			return
+		}
+		children, err := g.DirectDependencies(id)
+		if err != nil {
+			return
+		}
+		for _, child := range children {
+			collect(child)
+		}
+	}
+	for _, root := range roots {
+		collect(root)
+	}
+	return ids
+}
+
 func applyOrigin(component *Component, origin *sdk.DependencyOrigin) {
 	if origin == nil {
 		return
@@ -565,7 +619,12 @@ func componentOrg(node sdk.GraphNode) string {
 	if !ok {
 		return ""
 	}
-	if parsed := parsePURL(node.NodeID()); parsed != nil {
+	// componentPURL, not NodeID: a module's ID is the structural
+	// "module:<path>#<purl>" grammar and parses as no package URL at all, so
+	// reading it here dropped the group from every module component -- a Go
+	// module root carries its whole path in Name with an empty Org, and
+	// published "pkg:golang/github.com/bomly/example" with no group beside it.
+	if parsed := parsePURL(componentPURL(node)); parsed != nil {
 		if namespace := strings.TrimSpace(parsed.Namespace); namespace != "" {
 			return namespace
 		}

@@ -12,16 +12,16 @@
             "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
             "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
             "pkg:maven/org.apache.struts/struts2-core@2.5.13",
-            "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
+            "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
             "pkg:maven/org.mindrot/jbcrypt@0.4",
             "pkg:maven/org.neo4j/neo4j-jmx@1.3",
-            "pkg:maven/org.springframework/spring-web@3.1.1.release"
+            "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
           ],
-          "id": "module:pom.xml#pkg:maven/com.bomly/example-java-maven@1.0-snapshot",
+          "id": "module:pom.xml#pkg:maven/com.bomly/example-java-maven@1.0-SNAPSHOT",
           "licenses": [],
           "name": "com.bomly:example-java-maven",
-          "purl": "pkg:maven/com.bomly/example-java-maven@1.0-snapshot",
-          "version": "1.0-snapshot"
+          "purl": "pkg:maven/com.bomly/example-java-maven@1.0-SNAPSHOT",
+          "version": "1.0-SNAPSHOT"
         },
         {
           "depends_on": [],
@@ -228,16 +228,16 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:maven/io.netty/netty@3.7.0.final",
+          "id": "pkg:maven/io.netty/netty@3.7.0.Final",
           "licenses": [],
           "matched": true,
           "name": "io.netty:netty",
-          "package_ref": "pkg:maven/io.netty/netty@3.7.0.final",
-          "purl": "pkg:maven/io.netty/netty@3.7.0.final",
+          "package_ref": "pkg:maven/io.netty/netty@3.7.0.Final",
+          "purl": "pkg:maven/io.netty/netty@3.7.0.Final",
           "scopes": [
             "runtime"
           ],
-          "version": "3.7.0.final"
+          "version": "3.7.0.Final"
         },
         {
           "depends_on": [],
@@ -410,7 +410,7 @@
         },
         {
           "depends_on": [
-            "pkg:maven/org.javassist/javassist@3.20.0-ga"
+            "pkg:maven/org.javassist/javassist@3.20.0-GA"
           ],
           "id": "pkg:maven/ognl/ognl@3.1.15",
           "licenses": [],
@@ -699,7 +699,7 @@
         },
         {
           "depends_on": [
-            "pkg:maven/io.netty/netty@3.7.0.final",
+            "pkg:maven/io.netty/netty@3.7.0.Final",
             "pkg:maven/jline/jline@0.9.94"
           ],
           "id": "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6",
@@ -741,15 +741,16 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:maven/org.javassist/javassist@3.20.0-ga",
+          "id": "pkg:maven/org.javassist/javassist@3.20.0-GA",
           "licenses": [],
+          "matched": true,
           "name": "org.javassist:javassist",
-          "package_ref": "pkg:maven/org.javassist/javassist@3.20.0-ga",
-          "purl": "pkg:maven/org.javassist/javassist@3.20.0-ga",
+          "package_ref": "pkg:maven/org.javassist/javassist@3.20.0-GA",
+          "purl": "pkg:maven/org.javassist/javassist@3.20.0-GA",
           "scopes": [
             "runtime"
           ],
-          "version": "3.20.0-ga"
+          "version": "3.20.0-GA"
         },
         {
           "depends_on": [],
@@ -768,7 +769,7 @@
           "depends_on": [
             "pkg:maven/org.apache.santuario/xmlsec@1.5.1"
           ],
-          "id": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
+          "id": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
           "licenses": [],
           "locations": [
             {
@@ -782,12 +783,12 @@
           ],
           "matched": true,
           "name": "org.keycloak:keycloak-saml-core",
-          "package_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
-          "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
+          "package_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
+          "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
           "scopes": [
             "runtime"
           ],
-          "version": "1.8.1.final"
+          "version": "1.8.1.Final"
         },
         {
           "depends_on": [],
@@ -902,94 +903,96 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
           "licenses": [],
+          "matched": true,
           "name": "org.springframework:spring-aop",
-          "package_ref": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
           "scopes": [
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [],
-          "id": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
           "licenses": [],
+          "matched": true,
           "name": "org.springframework:spring-asm",
-          "package_ref": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
           "scopes": [
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [],
-          "id": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
           "licenses": [],
           "matched": true,
           "name": "org.springframework:spring-beans",
-          "package_ref": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
           "scopes": [
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [
-            "pkg:maven/org.springframework/spring-aop@3.1.1.release",
-            "pkg:maven/org.springframework/spring-asm@3.1.1.release",
-            "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+            "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
           ],
-          "id": "pkg:maven/org.springframework/spring-context@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
           "licenses": [],
           "matched": true,
           "name": "org.springframework:spring-context",
-          "package_ref": "pkg:maven/org.springframework/spring-context@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-context@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
           "scopes": [
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [
             "pkg:maven/commons-logging/commons-logging@1.1.1"
           ],
-          "id": "pkg:maven/org.springframework/spring-core@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
           "licenses": [],
           "matched": true,
           "name": "org.springframework:spring-core",
-          "package_ref": "pkg:maven/org.springframework/spring-core@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-core@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
           "scopes": [
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [],
-          "id": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
           "licenses": [],
           "matched": true,
           "name": "org.springframework:spring-expression",
-          "package_ref": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
           "scopes": [
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [
             "pkg:maven/aopalliance/aopalliance@1.0",
-            "pkg:maven/org.springframework/spring-beans@3.1.1.release",
-            "pkg:maven/org.springframework/spring-context@3.1.1.release",
-            "pkg:maven/org.springframework/spring-core@3.1.1.release"
+            "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
           ],
-          "id": "pkg:maven/org.springframework/spring-web@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
           "licenses": [],
           "locations": [
             {
@@ -1003,12 +1006,12 @@
           ],
           "matched": true,
           "name": "org.springframework:spring-web",
-          "package_ref": "pkg:maven/org.springframework/spring-web@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-web@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
           "scopes": [
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [],
@@ -2048,25 +2051,31 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
       "matched": true,
       "name": "io.netty:netty",
       "org": "io.netty",
-      "purl": "pkg:maven/io.netty/netty@3.7.0.final",
+      "purl": "pkg:maven/io.netty/netty@3.7.0.Final",
       "remediation": {
         "status": "partial",
         "suggestions": [
           {
             "action": "manual-review",
             "affected_dependency_refs": [
-              "pkg:maven/io.netty/netty@3.7.0.final"
+              "pkg:maven/io.netty/netty@3.7.0.Final"
             ],
             "manifest_path": "pom.xml",
-            "suggested_action_dependency_ref": "pkg:maven/io.netty/netty@3.7.0.final"
+            "suggested_action_dependency_ref": "pkg:maven/io.netty/netty@3.7.0.Final"
           }
         ]
       },
-      "version": "3.7.0.final",
+      "version": "3.7.0.Final",
       "vulnerabilities": [
         {
           "affected_version_range": "\u003cnormalized\u003e",
@@ -2109,7 +2118,7 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.final"
+                  "pkg:maven/io.netty/netty@3.7.0.Final"
                 ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -2182,7 +2191,7 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.final"
+                  "pkg:maven/io.netty/netty@3.7.0.Final"
                 ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -2251,7 +2260,7 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.final"
+                  "pkg:maven/io.netty/netty@3.7.0.Final"
                 ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -2320,7 +2329,7 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.final"
+                  "pkg:maven/io.netty/netty@3.7.0.Final"
                 ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -2389,7 +2398,7 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.final"
+                  "pkg:maven/io.netty/netty@3.7.0.Final"
                 ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -2458,7 +2467,7 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.final"
+                  "pkg:maven/io.netty/netty@3.7.0.Final"
                 ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -2520,7 +2529,7 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.final"
+                  "pkg:maven/io.netty/netty@3.7.0.Final"
                 ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -2589,7 +2598,7 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.final"
+                  "pkg:maven/io.netty/netty@3.7.0.Final"
                 ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -2658,7 +2667,7 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.final"
+                  "pkg:maven/io.netty/netty@3.7.0.Final"
                 ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -2727,7 +2736,7 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.final"
+                  "pkg:maven/io.netty/netty@3.7.0.Final"
                 ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -2807,7 +2816,7 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.final"
+                  "pkg:maven/io.netty/netty@3.7.0.Final"
                 ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -6729,11 +6738,27 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "non-standard"
+        },
+        {
+          "spdxExpression": "LGPL-2.1-only",
+          "type": "declared",
+          "value": "LGPL-2.1"
+        },
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
       "name": "org.javassist:javassist",
       "org": "org.javassist",
-      "purl": "pkg:maven/org.javassist/javassist@3.20.0-ga",
-      "version": "3.20.0-ga",
+      "purl": "pkg:maven/org.javassist/javassist@3.20.0-GA",
+      "version": "3.20.0-GA",
       "vulnerabilities": []
     },
     {
@@ -6753,25 +6778,31 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
       "matched": true,
       "name": "org.keycloak:keycloak-saml-core",
       "org": "org.keycloak",
-      "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
+      "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
       "remediation": {
         "status": "partial",
         "suggestions": [
           {
             "action": "manual-review",
             "affected_dependency_refs": [
-              "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final"
+              "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final"
             ],
             "manifest_path": "pom.xml",
-            "suggested_action_dependency_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final"
+            "suggested_action_dependency_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final"
           }
         ]
       },
-      "version": "1.8.1.final",
+      "version": "1.8.1.Final",
       "vulnerabilities": [
         {
           "affected_version_range": "\u003cnormalized\u003e",
@@ -6825,7 +6856,7 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "dependency_refs": [
-                  "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final"
+                  "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final"
                 ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -6905,7 +6936,7 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "dependency_refs": [
-                  "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final"
+                  "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final"
                 ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -6985,7 +7016,7 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "dependency_refs": [
-                  "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final"
+                  "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final"
                 ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7065,7 +7096,7 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "dependency_refs": [
-                  "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final"
+                  "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final"
                 ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7209,43 +7240,63 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
       "name": "org.springframework:spring-aop",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
-      "version": "3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
       "name": "org.springframework:spring-asm",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
-      "version": "3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
       "matched": true,
       "name": "org.springframework:spring-beans",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
       "remediation": {
         "status": "partial",
         "suggestions": [
           {
             "action": "manual-review",
             "affected_dependency_refs": [
-              "pkg:maven/org.springframework/spring-beans@3.1.1.release"
+              "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE"
             ],
             "manifest_path": "pom.xml",
-            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-beans@3.1.1.release"
+            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE"
           }
         ]
       },
-      "version": "3.1.1.release",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": [
         {
           "affected_version_range": "\u003cnormalized\u003e",
@@ -7320,7 +7371,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-beans@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
@@ -7403,7 +7454,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-beans@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
@@ -7435,25 +7486,31 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
       "matched": true,
       "name": "org.springframework:spring-context",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-context@3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
       "remediation": {
         "status": "partial",
         "suggestions": [
           {
             "action": "manual-review",
             "affected_dependency_refs": [
-              "pkg:maven/org.springframework/spring-context@3.1.1.release"
+              "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE"
             ],
             "manifest_path": "pom.xml",
-            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-context@3.1.1.release"
+            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE"
           }
         ]
       },
-      "version": "3.1.1.release",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": [
         {
           "affected_version_range": "\u003cnormalized\u003e",
@@ -7499,7 +7556,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-context@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
@@ -7571,7 +7628,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-context@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
@@ -7654,7 +7711,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-context@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
@@ -7686,25 +7743,31 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
       "matched": true,
       "name": "org.springframework:spring-core",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-core@3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
       "remediation": {
         "status": "partial",
         "suggestions": [
           {
             "action": "manual-review",
             "affected_dependency_refs": [
-              "pkg:maven/org.springframework/spring-core@3.1.1.release"
+              "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
             ],
             "manifest_path": "pom.xml",
-            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-core@3.1.1.release"
+            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
           }
         ]
       },
-      "version": "3.1.1.release",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": [
         {
           "affected_version_range": "\u003cnormalized\u003e",
@@ -7753,7 +7816,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-core@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
@@ -7825,7 +7888,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-core@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
@@ -7908,7 +7971,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-core@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
@@ -7991,7 +8054,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-core@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
@@ -8074,7 +8137,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-core@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
@@ -8149,7 +8212,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-core@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
@@ -8225,7 +8288,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-core@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
@@ -8257,25 +8320,31 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
       "matched": true,
       "name": "org.springframework:spring-expression",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
       "remediation": {
         "status": "partial",
         "suggestions": [
           {
             "action": "manual-review",
             "affected_dependency_refs": [
-              "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+              "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
             ],
             "manifest_path": "pom.xml",
-            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
           }
         ]
       },
-      "version": "3.1.1.release",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": [
         {
           "affected_version_range": "\u003cnormalized\u003e",
@@ -8332,7 +8401,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
@@ -8415,7 +8484,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
@@ -8487,7 +8556,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
@@ -8570,7 +8639,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
@@ -8642,7 +8711,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
@@ -8714,7 +8783,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
@@ -8786,7 +8855,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
@@ -8869,7 +8938,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
@@ -8901,25 +8970,31 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
       "matched": true,
       "name": "org.springframework:spring-web",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-web@3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
       "remediation": {
         "status": "partial",
         "suggestions": [
           {
             "action": "manual-review",
             "affected_dependency_refs": [
-              "pkg:maven/org.springframework/spring-web@3.1.1.release"
+              "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
             ],
             "manifest_path": "pom.xml",
-            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.release"
+            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
           }
         ]
       },
-      "version": "3.1.1.release",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": [
         {
           "affected_version_range": "\u003cnormalized\u003e",
@@ -8976,7 +9051,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
@@ -9059,7 +9134,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
@@ -9131,7 +9206,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
@@ -9214,7 +9289,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
@@ -9297,7 +9372,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
@@ -9369,7 +9444,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
@@ -9445,7 +9520,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
@@ -9528,7 +9603,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
@@ -9611,7 +9686,7 @@
                 "analyzer": "jvmreach",
                 "confidence": "low",
                 "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.release"
+                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
                 ],
                 "dynamic_imports_detected": true,
                 "hops": 0,

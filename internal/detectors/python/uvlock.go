@@ -108,11 +108,12 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 	if _, indexed := nodesByName[rootName]; !indexed {
 		return nil, fmt.Errorf("uv.lock editable package %q not found in package index", editablePkg.Name)
 	}
-	rootNode, err := sdk.NewModuleNode("pyproject.toml", sdk.Coordinates{
-		Ecosystem: sdk.EcosystemPython,
-		Name:      rootName,
-		Version:   editablePkg.Version,
-		Type:      sdk.PackageTypeApplication,
+	rootNode, err := pythonModuleRoot(sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemPython,
+		PackageManager: sdk.PackageManagerUV,
+		Name:           rootName,
+		Version:        editablePkg.Version,
+		Type:           sdk.PackageTypeApplication,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build root node: %w", err)

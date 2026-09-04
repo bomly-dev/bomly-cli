@@ -111,7 +111,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 	// Build the graph.
 	g := sdk.New()
 
-	root, err := sdk.NewModuleNode("requirements.txt", sdk.Coordinates{
+	root, err := pythonModuleRoot(sdk.Coordinates{
 		Ecosystem:      sdk.EcosystemPython,
 		Name:           rootName,
 		Version:        rootVersion,

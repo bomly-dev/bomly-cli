@@ -325,7 +325,7 @@ func (m *ScanModel) rootPackageSection(rootID string) []string {
 		"",
 		render.Style("Root package", render.Bold, render.Cyan),
 		render.Style("  Name: ", render.Dim) + packageDisplayName(pkg),
-		render.Style("  PURL: ", render.Dim) + valueOrDash(pkg.NodeID()),
+		render.Style("  PURL: ", render.Dim) + valueOrDash(output.PurlFromGraphNode(pkg)),
 		render.Style("  Licenses: ", render.Dim) + valueOrDash(strings.Join(licenseValues, ", ")),
 		render.Style("  Vulnerabilities: ", render.Dim) + vulnerabilitySummary,
 	}

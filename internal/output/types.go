@@ -212,12 +212,39 @@ func PackageFromGraphNode(node sdk.GraphNode) PackageRef {
 		Licenses:        []LicenseRef{},
 		Vulnerabilities: []VulnerabilityRef{},
 	}
-	// A module carries the package URL its coordinates mint; a manifest has
-	// none, and publishing its module ID as a PURL would be a lie.
-	if module, ok := node.(*sdk.ModuleNode); ok {
-		ref.Purl = module.PURL()
-	}
+	ref.Purl = PurlFromGraphNode(node)
 	return ref
+}
+
+// PurlFromGraphNode returns the package URL a node publishes, or "" when it
+// has none.
+//
+// The three kinds answer differently and the difference matters: a dependency
+// node's ID *is* its canonical package URL, a module's ID is the structural
+// "module:<path>#<purl>" grammar and its package URL is a separate field, and
+// a manifest has no package URL at all -- it is a file. Publishing NodeID in a
+// field consumers parse as a purl hands them a value that is not one.
+//
+// This belongs on the SDK's GraphNode, which owns what a node means
+// (ADR-0040), and is tracked as bomly-dev/bomly-sdk#43. Until that ships,
+// internal/sbom carries the codec's own copy rather than importing this
+// package -- an SBOM codec depending on the CLI's output layer would be
+// backwards -- and the two converge on the SDK accessor when it lands.
+func PurlFromGraphNode(node sdk.GraphNode) string {
+	switch typed := node.(type) {
+	case *sdk.DependencyNode:
+		if typed == nil {
+			return ""
+		}
+		return typed.NodeID()
+	case *sdk.ModuleNode:
+		if typed == nil {
+			return ""
+		}
+		return typed.PURL()
+	default:
+		return ""
+	}
 }
 
 // PackageFromDependencyAndRegistry builds a PackageRef from a graph Dependency

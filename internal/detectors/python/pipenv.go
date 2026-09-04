@@ -215,7 +215,7 @@ func depGraphFromPipfileLock(path, rootName string) (*sdk.Graph, error) {
 		return nil, fmt.Errorf("pipfile.lock does not contain dependencies")
 	}
 	depsGraph := sdk.New()
-	root, err := sdk.NewModuleNode("requirements.txt", sdk.Coordinates{
+	root, err := pythonModuleRoot(sdk.Coordinates{
 		Ecosystem:      sdk.EcosystemPython,
 		PackageManager: sdk.PackageManagerPipenv,
 		Name:           pythonRootNameOrDefault(rootName, filepath.Dir(path)),

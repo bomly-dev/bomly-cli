@@ -84,7 +84,7 @@ func depGraphFromRequirementsLock(lockPath, projectPath, rootName string) (*sdk.
 	}
 
 	g := sdk.New()
-	root, err := sdk.NewModuleNode("requirements.txt", sdk.Coordinates{
+	root, err := pythonModuleRoot(sdk.Coordinates{
 		Ecosystem:      sdk.EcosystemPython,
 		Name:           pythonRootNameOrDefault(rootName, projectPath),
 		PackageManager: sdk.PackageManagerPip,

@@ -626,6 +626,10 @@ func normalizeSPDXLicenseExpression(expression string) string {
 // members of one workspace cannot collide. The package URL its coordinates
 // mint is what belongs in the document, and a module whose coordinates mint
 // none publishes no purl rather than an unparseable one.
+// The codec's own copy of the node-to-purl projection. It does not import
+// internal/output, where the CLI's copy lives: an SBOM codec depending on the
+// output layer would be backwards. Both converge on the SDK accessor tracked
+// as bomly-dev/bomly-sdk#43, which is where this belongs (ADR-0040).
 func componentPURL(node sdk.GraphNode) string {
 	switch typed := node.(type) {
 	case *sdk.DependencyNode:

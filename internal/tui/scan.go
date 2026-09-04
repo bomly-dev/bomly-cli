@@ -2826,7 +2826,12 @@ func packageRowFromGraph(pkg sdk.GraphNode, relationship string) listPackageRow 
 		scope:        scope,
 		ecosystem:    ecosystem,
 		relationship: relationship,
-		purl:         pkg.NodeID(),
+		// Not NodeID: for a module that is the structural
+		// "module:<path>#<purl>" grammar, and the details pane renders this
+		// field under "PURL". An interactive scan was showing a value no
+		// consumer could parse while scan JSON and the SBOM exports had it
+		// right.
+		purl: output.PurlFromGraphNode(pkg),
 	}
 }
 

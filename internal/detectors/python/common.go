@@ -397,17 +397,55 @@ func attachOrphansToRoot(depsGraph *sdk.Graph, rootID string) error {
 	return nil
 }
 
+// pythonModuleRoot builds the module node standing for the scanned Python
+// project, declared by the manifest its package manager actually uses.
+//
+// Every Python parser goes through here rather than calling NewModuleNode
+// itself. A module's declaring path is part of its identity now, and it is
+// published in scan JSON, SBOM references, and explain paths -- so the four
+// parsers that each hard-coded "requirements.txt" were naming a file a Pipenv
+// or Poetry project does not have, and two projects declared by different
+// manifests could fold into one record on matching coordinates. One home for
+// the rule means a parser added later inherits it instead of copying the
+// nearest literal. TestPythonRootsGoThroughTheSharedConstructor fails if a
+// direct call reappears.
+func pythonModuleRoot(coords sdk.Coordinates) (*sdk.ModuleNode, error) {
+	if strings.TrimSpace(coords.Name) == "" {
+		coords.Name = "root"
+	}
+	return sdk.NewModuleNode(pythonDeclaringManifest(coords.PackageManager), coords)
+}
+
+// pythonDeclaringManifest names the file that declares a Python project, per
+// package manager.
+//
+// This is Bomly's own mapping, not a grammar any library owns: it records
+// which file each tool treats as the project declaration, as opposed to the
+// lock it generates. Pipenv locks Pipfile.lock but is declared by Pipfile;
+// Poetry, uv and PDM are declared by pyproject.toml. Plain pip has no
+// declaration file of its own, so the requirements file it reads is the
+// closest thing and stays the fallback -- which is also what every caller
+// produced before this existed, so pip-path identities are unchanged.
+func pythonDeclaringManifest(manager sdk.PackageManager) string {
+	switch manager {
+	case sdk.PackageManagerPipenv:
+		return "Pipfile"
+	case sdk.PackageManagerPoetry, sdk.PackageManagerUV, sdk.PackageManagerPDM:
+		return "pyproject.toml"
+	default:
+		return "requirements.txt"
+	}
+}
+
 // pythonSyntheticRoot builds the node that represents the scanned project
 // itself, named by pythonRootName. "root" survives only as the last resort:
 // it told the user nothing and collides with a real PyPI package name, which
-// is why the node stays FirstParty and is never enriched.
+// is why the node is a module and is never enriched.
 func pythonSyntheticRoot(rootName string) (*sdk.ModuleNode, error) {
-	if strings.TrimSpace(rootName) == "" {
-		rootName = "root"
-	}
-	return sdk.NewModuleNode("requirements.txt", sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
-		Name: rootName,
-		Type: sdk.PackageTypeApplication,
+	return pythonModuleRoot(sdk.Coordinates{
+		Ecosystem: sdk.EcosystemPython,
+		Name:      rootName,
+		Type:      sdk.PackageTypeApplication,
 	})
 }
 

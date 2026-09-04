@@ -18,7 +18,7 @@
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:generic/example-javascript-npm-workspaces@main",
+          "referenceLocator": "pkg:generic/example-javascript-npm-workspaces@v1.0.0",
           "referenceType": "purl"
         }
       ],
@@ -27,7 +27,7 @@
       "licenseDeclared": "NOASSERTION",
       "name": "example-javascript-npm-workspaces",
       "primaryPackagePurpose": "APPLICATION",
-      "versionInfo": "main"
+      "versionInfo": "v1.0.0"
     },
     {
       "SPDXID": "SPDXRef-module-apps-web-package.json-pkg-npm-web-1.0.0",

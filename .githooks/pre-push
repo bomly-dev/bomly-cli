@@ -37,14 +37,43 @@ fail() {
 
 # Newer than every tracked source file, so an edit after verifying invalidates
 # it. Tracked only: an untracked scratch file is not part of the push.
-newest=$(git ls-files -z -- '*.go' 'go.mod' 'go.sum' 'Makefile' 'testdata' 'test' |
-	xargs -0 stat -f '%m' 2>/dev/null |
-	sort -rn | head -1)
-if [ -z "$newest" ]; then
-	newest=$(git ls-files -z -- '*.go' 'go.mod' 'go.sum' |
+#
+# stat is the portability trap here. BSD stat spells the format flag -f and
+# GNU stat spells it -c, and on GNU `-f` means "filesystem", which succeeds
+# and prints an inode report rather than failing. Choosing by "did stdout come
+# back non-empty" therefore picks the BSD branch on Linux, fills newest with
+# "Inodes: ...", and the arithmetic comparison below errors inside a condition
+# whose failure the hook does not notice -- accepting a stale stamp, which is
+# the one thing this hook exists to refuse. Probe the flag on a known file
+# first and pick the spelling that actually works.
+mtime_flag=''
+if stat -f '%m' "$stamp" >/dev/null 2>&1 && [ -n "$(stat -f '%m' "$stamp" 2>/dev/null)" ]; then
+	case "$(stat -f '%m' "$stamp" 2>/dev/null)" in
+	*[!0-9]* | '') ;;
+	*) mtime_flag='-f' ;;
+	esac
+fi
+if [ -z "$mtime_flag" ]; then
+	case "$(stat -c '%Y' "$stamp" 2>/dev/null)" in
+	*[!0-9]* | '') ;;
+	*) mtime_flag='-c' ;;
+	esac
+fi
+newest=''
+if [ "$mtime_flag" = '-f' ]; then
+	newest=$(git ls-files -z -- '*.go' 'go.mod' 'go.sum' 'Makefile' 'testdata' 'test' |
+		xargs -0 stat -f '%m' 2>/dev/null |
+		sort -rn | head -1)
+elif [ "$mtime_flag" = '-c' ]; then
+	newest=$(git ls-files -z -- '*.go' 'go.mod' 'go.sum' 'Makefile' 'testdata' 'test' |
 		xargs -0 stat -c '%Y' 2>/dev/null |
 		sort -rn | head -1)
+else
+	fail 'cannot read file modification times; neither BSD nor GNU stat worked.'
 fi
+case "$newest" in
+*[!0-9]* | '') fail 'could not determine the newest source timestamp.' ;;
+esac
 if [ -n "$newest" ] && [ "${VERIFY_AT:-0}" -lt "$newest" ]; then
 	fail 'sources changed after the last verification.'
 fi

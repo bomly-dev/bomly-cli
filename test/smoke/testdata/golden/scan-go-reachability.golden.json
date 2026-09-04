@@ -267,7 +267,7 @@
         "status": "complete",
         "suggestions": [
           {
-            "action": "manual-review",
+            "action": "direct-bump",
             "affected_dependency_refs": [
               "pkg:golang/golang.org/x/text@v0.3.5"
             ],

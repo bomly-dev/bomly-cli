@@ -76,7 +76,7 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			// asserting an origin directly -- and module nodes cannot reach
 			// it at all now, since origins live on dependency nodes.
 			if !sdk.IsProjectOwned(pkg) && len(dep.Origins) > 0 {
-				applyOrigin(&component, dep.Origins[0].Normalized())
+				applyOrigins(&component, dep.Origins)
 			}
 		}
 		enrichComponentFromRegistry(&component, opts.Registry, pkg.NodeID(), sdk.IsProjectOwned(pkg))
@@ -378,13 +378,42 @@ func exportedRootIDs(g *sdk.Graph, exported map[string]struct{}) []string {
 	return ids
 }
 
-func applyOrigin(component *Component, origin *sdk.DependencyOrigin) {
-	if origin == nil {
+// applyOrigins records every place a package was resolved from.
+//
+// The first origin fills the single-valued fields the formats' own download
+// and VCS slots need. The rest used to be dropped here, which meant a folded
+// node carrying two registries -- the dependency-confusion signal ADR-0041
+// keeps deliberately -- exported as though it had come from one. Each is
+// re-normalized, so an origin that does not survive the publication gates is
+// discarded rather than published.
+func applyOrigins(component *Component, origins []sdk.DependencyOrigin) {
+	if component == nil {
 		return
 	}
-	component.ArtifactURL = origin.ArtifactURL
-	component.VCSURL = origin.Repository
-	component.VCSRevision = origin.Revision
+	seen := make(map[ComponentOrigin]struct{}, len(origins))
+	for _, origin := range origins {
+		normalized := origin.Normalized()
+		if normalized == nil {
+			continue
+		}
+		entry := ComponentOrigin{
+			ArtifactURL: normalized.ArtifactURL,
+			Repository:  normalized.Repository,
+			Revision:    normalized.Revision,
+		}
+		if _, duplicate := seen[entry]; duplicate {
+			continue
+		}
+		seen[entry] = struct{}{}
+		component.Origins = append(component.Origins, entry)
+	}
+	if len(component.Origins) == 0 {
+		return
+	}
+	primary := component.Origins[0]
+	component.ArtifactURL = primary.ArtifactURL
+	component.VCSURL = primary.Repository
+	component.VCSRevision = primary.Revision
 }
 
 func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegistry, purl string, projectOwned bool) {

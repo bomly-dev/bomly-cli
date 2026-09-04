@@ -198,6 +198,50 @@ func TestRenderScanReportTopLevelDepsCoverAllModules(t *testing.T) {
 	}
 }
 
+// The same case with real module nodes, which is what a workspace member or
+// reactor module actually is after ADR-0041.
+//
+// The test above builds its "modules" as application-typed dependency nodes,
+// so it kept passing while the module path was broken: a module that another
+// module depends on is not a graph root and is not a dependency node either,
+// so it fell out of the top-level parents entirely and its own direct
+// dependencies were reported as transitive.
+func TestRenderScanReportTopLevelDepsCoverNonRootModuleNodes(t *testing.T) {
+	g := sdk.New()
+	web := testnodes.Module("web/pom.xml", "web", "1.0.0")
+	core := testnodes.Module("core/pom.xml", "core", "1.0.0")
+	coreDep := testnodes.DepFrom(sdk.DependencyNode{
+		Coordinates: sdk.Coordinates{Name: "commons-lang3", Version: "3.12.0"},
+		Scopes:      sdk.ScopesOf(sdk.ScopeRuntime),
+	})
+	webDep := testnodes.DepFrom(sdk.DependencyNode{
+		Coordinates: sdk.Coordinates{Name: "jackson-databind", Version: "2.13.0"},
+		Scopes:      sdk.ScopesOf(sdk.ScopeRuntime),
+	})
+	for _, node := range []sdk.GraphNode{web, core, coreDep, webDep} {
+		if err := g.AddNode(node); err != nil {
+			t.Fatalf("add node: %v", err)
+		}
+	}
+	// web -> core makes core a non-root module; its direct dependency must
+	// still be listed as top-level.
+	for _, edge := range [][2]string{
+		{web.NodeID(), core.NodeID()},
+		{web.NodeID(), webDep.NodeID()},
+		{core.NodeID(), coreDep.NodeID()},
+	} {
+		if err := g.AddEdge(edge[0], edge[1]); err != nil {
+			t.Fatalf("add edge: %v", err)
+		}
+	}
+	report := render.StripANSI(render.Scan(g, sdk.NewPackageRegistry(), nil, nil, false, false, false, nil, nil, nil))
+	for _, want := range []string{"commons-lang3", "jackson-databind"} {
+		if !strings.Contains(report, want) {
+			t.Fatalf("expected %q in top-level dependencies, got:\n%s", want, report)
+		}
+	}
+}
+
 func TestSBOMLifecyclePhase(t *testing.T) {
 	cases := map[string]string{
 		"filesystem":      "pre-build",

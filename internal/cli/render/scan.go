@@ -356,15 +356,25 @@ func renderManifestHierarchy(g *sdk.Graph, hierarchy output.HierarchyNode, manif
 }
 
 // topLevelParentIDs returns the nodes whose direct children count as
-// "top-level" dependencies: graph roots plus every application-type node.
-// Workspace members and reactor modules are application nodes that may have
-// inbound edges (a sibling depends on them), so a roots-only view would hide
-// every non-root module's direct dependencies.
+// "top-level" dependencies: graph roots, every module node, and every
+// application-type dependency node.
+//
+// Workspace members and reactor modules may have inbound edges -- one module
+// depending on another -- so a roots-only view hides the depended-on module's
+// own direct dependencies, listing them as transitive. Under ADR-0041 such a
+// member is a module node, which is why reading application-typed dependency
+// nodes alone stopped finding them; that spelling is kept for a root a
+// detector has not promoted yet.
 func topLevelParentIDs(g *sdk.Graph) map[string]struct{} {
 	parents := make(map[string]struct{})
 	for _, root := range g.Roots() {
-		if root != nil {
+		if !sdk.IsNilNode(root) {
 			parents[root.NodeID()] = struct{}{}
+		}
+	}
+	for _, module := range g.ModuleNodes() {
+		if module != nil {
+			parents[module.NodeID()] = struct{}{}
 		}
 	}
 	for _, pkg := range g.DependencyNodes() {

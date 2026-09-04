@@ -542,3 +542,47 @@ func TestModuleComponentsPublishAPackageURLNotTheirNodeID(t *testing.T) {
 		t.Fatalf("found %d web components, want 1", checked)
 	}
 }
+
+// A package resolved from two registries keeps both in the exported document.
+//
+// ADR-0041 folds equal-identity records into one node and keeps the
+// disagreement as a list of origins; that list is the dependency-confusion
+// signal the fold exists to preserve. Publishing only the first discarded it
+// at the export boundary -- the document then described a package that
+// resolved from two places as though it had come from one, which is exactly
+// backwards for the case that matters most.
+func TestExportKeepsEveryFoldedOrigin(t *testing.T) {
+	const (
+		first  = "https://registry.npmjs.org/react/-/react-18.2.0.tgz"
+		second = "https://npm.internal.example.com/react/-/react-18.2.0.tgz"
+	)
+	g := originGraph(t, func(_, pkg *sdk.DependencyNode) {
+		for _, raw := range []string{first, second} {
+			if origin := sdk.ArtifactOrigin(raw); origin != nil {
+				pkg.Origins = sdk.MergeOrigins(pkg.Origins, []sdk.DependencyOrigin{*origin})
+			}
+		}
+	})
+	if got := len(g.DependencyNodes()); got != 2 {
+		t.Fatalf("graph holds %d dependency nodes; want the fixture's two", got)
+	}
+
+	for _, target := range []Target{TargetCycloneDX16JSON, TargetSPDX23JSON} {
+		out, err := MarshalDepGraphJSON(g, target, BuildOptions{}, EncodeOptions{})
+		if err != nil {
+			t.Fatalf("marshal %v: %v", target, err)
+		}
+		encoded := string(out)
+		for _, want := range []string{first, second} {
+			if !strings.Contains(encoded, want) {
+				t.Fatalf("%v document dropped origin %q; both resolutions must survive export:\n%s",
+					target, want, encoded)
+			}
+		}
+		// Well-formed output, not just a string match.
+		var doc map[string]any
+		if err := json.Unmarshal(out, &doc); err != nil {
+			t.Fatalf("%v document is not valid JSON: %v", target, err)
+		}
+	}
+}

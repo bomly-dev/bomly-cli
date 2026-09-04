@@ -90,6 +90,13 @@ func selectManifestEntries(results []sdk.DetectionResult) (sdk.ExecutionTarget, 
 				// root so diff-aware SARIF sees repository-relative paths. A
 				// no-op for today's root-level subprojects (RelativePath ".").
 				rebaseGraphLocations(normalizedGraph, result.SubprojectInfo.RelativePath)
+				// Module identities carry the declaring manifest path, so
+				// they need the same rebase or two same-named nested
+				// projects mint one ID and fold into each other.
+				if err := rebaseModuleDeclaringPaths(normalizedGraph, result.SubprojectInfo.RelativePath); err != nil {
+					return sdk.ExecutionTarget{}, nil, fmt.Errorf(
+						"rebase module paths for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
+				}
 			}
 			manifest := normalizeSubprojectManifest(result.SubprojectInfo, entry.Manifest, idx, result.Origin)
 			if err := ensureEntryRoot(normalizedGraph, manifest, idx); err != nil {

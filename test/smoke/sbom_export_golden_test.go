@@ -29,7 +29,12 @@ func TestScanSBOMExportGolden(t *testing.T) {
 	cdxPath := filepath.Join(outputDir, "out.cdx.json")
 
 	_, stderr, code := runBomly(t,
-		"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm-workspaces", "--ref", "main",
+		// Pinned to the tag, like the sibling workspace case. On "main" this
+		// golden tracks whatever the fixture repository last committed, so
+		// smoke CI fails for a change to that repository rather than to
+		// Bomly -- and the ref itself reaches the document, as the project
+		// root's generic package URL.
+		"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm-workspaces", "--ref", "v1.0.0",
 		"--detectors", "npm", "--format", "json",
 		"-o", "spdx="+spdxPath, "-o", "cyclonedx="+cdxPath,
 	)
@@ -90,12 +95,38 @@ func normalizeSBOMDocument(t *testing.T, raw []byte) []byte {
 
 	normalizeSyntheticIDs(doc)
 	normalizeSBOMStrings(doc)
+	normalizeToolVersions(doc)
 
 	out, err := json.MarshalIndent(doc, "", "  ")
 	if err != nil {
 		t.Fatalf("normalizeSBOMDocument: marshal: %v", err)
 	}
 	return append(out, '\n')
+}
+
+// normalizeToolVersions blanks the version of the bomly-cli tool component.
+//
+// SPDX writes the tool as one string ("bomly-cli-0.24.2"), which the string
+// normalizer above catches. CycloneDX writes name and version as separate
+// fields, so the version survived it and the golden carried a literal release
+// number -- which would fail this test on the next version bump, for exactly
+// the volatile value the comment says is ignored.
+func normalizeToolVersions(node any) {
+	switch v := node.(type) {
+	case map[string]any:
+		if name, ok := v["name"].(string); ok && name == "bomly-cli" {
+			if _, has := v["version"]; has {
+				v["version"] = "<version>"
+			}
+		}
+		for _, val := range v {
+			normalizeToolVersions(val)
+		}
+	case []any:
+		for _, child := range v {
+			normalizeToolVersions(child)
+		}
+	}
 }
 
 // normalizeSBOMStrings rewrites the per-document unique values wherever they

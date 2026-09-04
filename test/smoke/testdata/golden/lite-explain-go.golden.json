@@ -42,7 +42,7 @@
           "vulnerabilities": []
         },
         {
-          "id": "golang.org/x/text@v0.3.5",
+          "id": "pkg:golang/golang.org/x/text@v0.3.5",
           "licenses": [],
           "locations": [
             {
@@ -119,7 +119,7 @@
               "vulnerabilities": []
             },
             {
-              "id": "golang.org/x/text@v0.3.5",
+              "id": "pkg:golang/golang.org/x/text@v0.3.5",
               "licenses": [],
               "locations": [
                 {

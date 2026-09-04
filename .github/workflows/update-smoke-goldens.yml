@@ -74,7 +74,7 @@ jobs:
           - name: go-reachability
             run: 'TestScan$/scan-go-reachability'
           - name: node
-            run: 'TestScan$/(scan-npm$|scan-npm-scope-runtime|scan-npm-workspaces|scan-yarn|scan-pnpm|scan-bun$|scan-github-actions)|TestDiff/diff-npm|TestAuditScan/scan-npm-audit'
+            run: 'TestScan$/(scan-npm$|scan-npm-scope-runtime|scan-npm-workspaces|scan-yarn|scan-pnpm|scan-bun$|scan-github-actions)|TestDiff/diff-npm|TestAuditScan/scan-npm-audit|TestAuditScanSARIFGolden$'
             node: true
           - name: node-detail-policy
             run: 'TestDependencyDetailRiskPolicy$'

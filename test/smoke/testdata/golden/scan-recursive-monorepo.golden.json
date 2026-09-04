@@ -9,7 +9,7 @@
             "pkg:maven/org.apache.commons/commons-configuration2@2.7",
             "pkg:maven/org.junit.jupiter/junit-jupiter@5.10.2"
           ],
-          "id": "module:pom.xml#pkg:maven/dev.bomly.fixture/report-api@1.0.0",
+          "id": "module:fixtures/api-java/pom.xml#pkg:maven/dev.bomly.fixture/report-api@1.0.0",
           "licenses": [],
           "name": "dev.bomly.fixture:report-api",
           "purl": "pkg:maven/dev.bomly.fixture/report-api@1.0.0",
@@ -261,7 +261,7 @@
             "pkg:npm/request@2.88.2",
             "pkg:npm/xml2js@0.6.2"
           ],
-          "id": "module:package.json#pkg:npm/team-bookmarks@1.0.0",
+          "id": "module:fixtures/webapp/package.json#pkg:npm/team-bookmarks@1.0.0",
           "licenses": [],
           "name": "team-bookmarks",
           "purl": "pkg:npm/team-bookmarks@1.0.0",

@@ -1,0 +1,63 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "results": [
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "go.mod"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Package is denylisted in pkg:golang/golang.org/x/text@v0.3.5"
+          },
+          "partialFingerprints": {
+            "bomlyStableId/v1": "package:denied-package:pkg:golang/golang.org/x/text@v0.3.5|package|package|pkg:golang/golang.org/x/text@v0.3.5|go.mod|go.mod|9|0"
+          },
+          "properties": {
+            "dependency_refs": [
+              "pkg:golang/golang.org/x/text@v0.3.5"
+            ],
+            "location_uris": [
+              "go.mod"
+            ],
+            "package_ref": "pkg:golang/golang.org/x/text@v0.3.5",
+            "rule_id": "denied-package"
+          },
+          "ruleId": "package:denied-package:pkg:golang/golang.org/x/text@v0.3.5"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://bomly.dev",
+          "name": "bomly",
+          "rules": [
+            {
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "fullDescription": {
+                "text": ""
+              },
+              "id": "package:denied-package:pkg:golang/golang.org/x/text@v0.3.5",
+              "shortDescription": {
+                "text": "Package is denylisted"
+              }
+            }
+          ],
+          "version": "\u003cversion\u003e"
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}

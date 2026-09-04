@@ -190,16 +190,28 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 		}
 	}
 	if preferred := selectApplicationRoot(depRoots); preferred != nil {
-		for _, target := range depRoots {
-			if target == nil || target.NodeID() == preferred.NodeID() {
+		// Every other root is attached, not only the dependency ones. An
+		// entry can hold an application root alongside an independent module
+		// or manifest root; attaching the dependency roots and returning left
+		// the structural one loose, so the entry still had several roots and
+		// every root-based projection downstream got an ambiguous graph --
+		// which is the condition this function exists to remove.
+		//
+		// Relationship is still set on dependency nodes only: it is a claim
+		// about how a package is reached, and a module or manifest carries
+		// none.
+		for _, root := range roots {
+			if sdk.IsNilNode(root) || root.NodeID() == preferred.NodeID() {
 				continue
 			}
-			target.Relationship = sdk.DependencyRelationshipUnknown
-			if err := g.AddEdge(preferred.NodeID(), target.NodeID()); err != nil {
+			if dep, ok := sdk.AsDependencyNode(root); ok {
+				dep.Relationship = sdk.DependencyRelationshipUnknown
+			}
+			if err := g.AddEdge(preferred.NodeID(), root.NodeID()); err != nil {
 				if errors.Is(err, sdk.ErrSelfDependency) {
 					continue
 				}
-				return fmt.Errorf("attach application root %q -> %q: %w", preferred.NodeID(), target.NodeID(), err)
+				return fmt.Errorf("attach application root %q -> %q: %w", preferred.NodeID(), root.NodeID(), err)
 			}
 		}
 		return nil

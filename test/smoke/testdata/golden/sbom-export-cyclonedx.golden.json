@@ -183,9 +183,9 @@
     "component": {
       "bom-ref": "DocumentRoot-example-javascript-npm-workspaces",
       "name": "example-javascript-npm-workspaces",
-      "purl": "pkg:generic/example-javascript-npm-workspaces@main",
+      "purl": "pkg:generic/example-javascript-npm-workspaces@v1.0.0",
       "type": "application",
-      "version": "main"
+      "version": "v1.0.0"
     },
     "lifecycles": [
       {
@@ -198,7 +198,7 @@
         {
           "name": "bomly-cli",
           "type": "application",
-          "version": "0.24.2"
+          "version": "\u003cversion\u003e"
         },
         {
           "name": "bomly-detector:npm",

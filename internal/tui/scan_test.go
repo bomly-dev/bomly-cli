@@ -81,3 +81,63 @@ func TestExplainRelationshipsCountModuleRoots(t *testing.T) {
 		t.Fatalf("target labelled %q, want %q", got, "self")
 	}
 }
+
+// A non-root module is a directness parent, so its immediate packages are
+// direct rather than transitive.
+//
+// A workspace module that another module depends on has an incoming edge, so
+// a roots-only classifier never saw it and reported its direct dependencies
+// as transitive — corrupting the relationship summary and every filter built
+// on it. renderDirectDepsTable had already learned this; this classifier had
+// not, which is why the rule now has one home.
+func TestClassifyRelationshipsTreatsNonRootModulesAsParents(t *testing.T) {
+	g := sdk.New()
+	root := testnodes.Module("package.json", "workspace-root", "1.0.0")
+	child := testnodes.ModuleFrom("packages/web/package.json", sdk.Coordinates{
+		Ecosystem: "npm", Name: "web", Version: "1.0.0",
+	})
+	pkg := testnodes.Dep(sdk.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"})
+	for _, node := range []sdk.GraphNode{root, child, pkg} {
+		if _, err := g.InsertNode(node); err != nil {
+			t.Fatalf("InsertNode: %v", err)
+		}
+	}
+	for _, edge := range [][2]string{{root.NodeID(), child.NodeID()}, {child.NodeID(), pkg.NodeID()}} {
+		if err := g.AddEdge(edge[0], edge[1]); err != nil {
+			t.Fatalf("AddEdge: %v", err)
+		}
+	}
+
+	classes := classifyRelationships(g)
+	if got := classes[pkg.NodeID()]; got != "direct" {
+		t.Fatalf("package under a non-root module classified %q, want %q", got, "direct")
+	}
+}
+
+// The raw Relationships view must show module-to-package edges.
+//
+// A normal graph starts with a module node, so reading dependency nodes alone
+// as parents omitted every edge out of it — for a project with only direct
+// dependencies the view was empty while the count beside it was not.
+func TestRelationshipRawLinesIncludeModuleEdges(t *testing.T) {
+	g := sdk.New()
+	root := testnodes.Module("package.json", "app", "1.0.0")
+	pkg := testnodes.Dep(sdk.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"})
+	for _, node := range []sdk.GraphNode{root, pkg} {
+		if _, err := g.InsertNode(node); err != nil {
+			t.Fatalf("InsertNode: %v", err)
+		}
+	}
+	if err := g.AddEdge(root.NodeID(), pkg.NodeID()); err != nil {
+		t.Fatalf("AddEdge: %v", err)
+	}
+
+	lines := relationshipRawLines(g)
+	if len(lines) == 0 {
+		t.Fatalf("the raw relationship view is empty for a graph with one module-to-package edge")
+	}
+	joined := strings.Join(lines, "\n")
+	if !strings.Contains(joined, "lodash") {
+		t.Fatalf("the module's edge to its package is missing:\n%s", joined)
+	}
+}

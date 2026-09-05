@@ -4,6 +4,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/graphview"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -216,83 +217,11 @@ func PackageFromGraphNode(node sdk.GraphNode) PackageRef {
 	return ref
 }
 
-// resolveListedChildren names a node's children among the records this
-// document actually contains, stepping through the ones it does not.
-//
-// Manifest nodes are structural and are deliberately absent from the listing,
-// but they sit in the middle of a real path: a workspace is
-// module -> child manifest -> child module. Publishing the manifest's ID left
-// depends_on naming a record no consumer could resolve, and dropping it
-// outright severed the workspace, so neither end of the hop could be
-// reconstructed. Stepping through keeps the relationship the graph asserts --
-// the parent module depends on the child module -- expressed only in IDs the
-// document defines.
-//
-// The visited set bounds a graph whose structural nodes form a cycle; a
-// dependency child is never traversed, only recorded.
-func resolveListedChildren(g *sdk.Graph, nodeID string, listed map[string]struct{}) []string {
-	resolved := make([]string, 0)
-	seen := make(map[string]struct{})
-	visited := map[string]struct{}{nodeID: {}}
-
-	var walk func(id string)
-	walk = func(id string) {
-		children, err := g.DirectDependencies(id)
-		if err != nil {
-			return
-		}
-		for _, child := range children {
-			if sdk.IsNilNode(child) {
-				continue
-			}
-			childID := child.NodeID()
-			if _, ok := listed[childID]; ok {
-				if _, duplicate := seen[childID]; !duplicate {
-					seen[childID] = struct{}{}
-					resolved = append(resolved, childID)
-				}
-				continue
-			}
-			if _, been := visited[childID]; been {
-				continue
-			}
-			visited[childID] = struct{}{}
-			walk(childID)
-		}
-	}
-	walk(nodeID)
-	return resolved
-}
-
 // PurlFromGraphNode returns the package URL a node publishes, or "" when it
-// has none.
-//
-// The three kinds answer differently and the difference matters: a dependency
-// node's ID *is* its canonical package URL, a module's ID is the structural
-// "module:<path>#<purl>" grammar and its package URL is a separate field, and
-// a manifest has no package URL at all -- it is a file. Publishing NodeID in a
-// field consumers parse as a purl hands them a value that is not one.
-//
-// This belongs on the SDK's GraphNode, which owns what a node means
-// (ADR-0040), and is tracked as bomly-dev/bomly-sdk#43. Until that ships,
-// internal/sbom carries the codec's own copy rather than importing this
-// package -- an SBOM codec depending on the CLI's output layer would be
-// backwards -- and the two converge on the SDK accessor when it lands.
+// has none. It delegates to graphview, which is the one place that decides
+// this for every surface that publishes a purl.
 func PurlFromGraphNode(node sdk.GraphNode) string {
-	switch typed := node.(type) {
-	case *sdk.DependencyNode:
-		if typed == nil {
-			return ""
-		}
-		return typed.NodeID()
-	case *sdk.ModuleNode:
-		if typed == nil {
-			return ""
-		}
-		return typed.PURL()
-	default:
-		return ""
-	}
+	return graphview.PurlFor(node)
 }
 
 // PackageFromDependencyAndRegistry builds a PackageRef from a graph Dependency
@@ -759,7 +688,7 @@ func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDe
 		if node == nil {
 			continue
 		}
-		dependencyIDs := resolveListedChildren(g, node.NodeID(), listedIDs)
+		dependencyIDs := graphview.ChildrenAmong(g, node.NodeID(), listedIDs)
 		name, version := sdk.NodeDisplayName(node), sdk.NodeVersion(node)
 		entry := ScanDependency{
 			ID:        node.NodeID(),

@@ -2356,11 +2356,16 @@ func relationshipRawLines(graphValue *sdk.Graph) []string {
 	if graphValue == nil {
 		return nil
 	}
-	pkgs := graphValue.DependencyNodes()
+	// Every node kind as a parent. A normal graph starts with a module node,
+	// so reading dependency nodes alone omitted every module-to-package edge
+	// -- and for a project with only direct dependencies that left the raw
+	// Relationships view empty while relationshipCount happily counted the
+	// edges it was not showing.
+	pkgs := graphValue.Nodes()
 	sort.Slice(pkgs, func(i, j int) bool { return packageSortKey(pkgs[i]) < packageSortKey(pkgs[j]) })
 	lines := make([]string, 0)
 	for _, pkg := range pkgs {
-		if pkg == nil {
+		if sdk.IsNilNode(pkg) {
 			continue
 		}
 		deps, err := graphValue.DirectDependencies(pkg.NodeID())

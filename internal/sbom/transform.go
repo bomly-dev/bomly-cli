@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/graphview"
 	"github.com/bomly-dev/bomly-cli/internal/licenseexpr"
 	"github.com/bomly-dev/bomly-sdk"
 )
@@ -88,19 +89,31 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 		return components[i].ID < components[j].ID
 	})
 
-	// Only depends-on edges become a document's dependency list: a
-	// manifest-to-module edge is structural, and emitting it would assert a
-	// relationship no detector made.
-	g.WalkTypedEdges(func(from, to sdk.GraphNode, kind sdk.EdgeKind) bool {
-		if kind != sdk.EdgeKindDependsOn {
-			return true
-		}
-		if _, ok := depsByRef[from.NodeID()]; !ok {
-			return true
-		}
-		depsByRef[from.NodeID()] = append(depsByRef[from.NodeID()], to.NodeID())
-		return true
-	})
+	componentIDs := make(map[string]struct{}, len(components))
+	for _, c := range components {
+		componentIDs[c.ID] = struct{}{}
+	}
+
+	// A component's dependencies are the components beneath it, with any
+	// structural node in between stepped through rather than named.
+	//
+	// A workspace is module -> child manifest -> child module, and the two
+	// edges are typed differently: the first derives depends-on and the
+	// second describes. Publishing the first named the manifest, which is not
+	// a component, so CycloneDX carried a dependsOn pointing at no bom-ref;
+	// filtering the second dropped the hop entirely, so the child module's
+	// whole subtree came loose. Contracting the path keeps the relationship
+	// the graph asserts and names only components.
+	//
+	// Every entry is recomputed rather than merged onto what the edge walk
+	// left, so a component whose only child was a structural dead end ends up
+	// with no dependencies instead of keeping a dangling one. graphview owns
+	// the walk, so this agrees with scan JSON by construction instead of by
+	// memory -- the two disagreed for exactly one commit, which is how this
+	// was found.
+	for ref := range depsByRef {
+		depsByRef[ref] = graphview.ChildrenAmong(g, ref, componentIDs)
+	}
 
 	dependencies := make([]Dependency, 0, len(components))
 	for _, c := range components {
@@ -119,10 +132,6 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 	// here left the document naming a primary component that does not exist in
 	// it -- and, being exactly one ID, it also suppressed the synthesized root
 	// below that would have repaired it.
-	componentIDs := make(map[string]struct{}, len(components))
-	for _, c := range components {
-		componentIDs[c.ID] = struct{}{}
-	}
 	rootIDs := exportedRootIDs(g, componentIDs)
 	if opts.RootComponentID != "" {
 		for _, c := range components {

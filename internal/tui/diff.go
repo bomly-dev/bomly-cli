@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/graphview"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-sdk"
 )
@@ -913,13 +914,15 @@ func classifyRelationships(g *sdk.Graph) map[string]string {
 	if g == nil {
 		return out
 	}
-	rootIDs := make(map[string]struct{})
-	for _, r := range g.Roots() {
-		if r == nil {
-			continue
-		}
-		rootIDs[r.NodeID()] = struct{}{}
-		out[r.NodeID()] = "root"
+	// The shared top-level rule, not Roots() alone. A workspace or reactor
+	// module that another module depends on has an incoming edge, so it never
+	// appeared here -- and its immediate packages fell through as transitive,
+	// corrupting the relationship summary and every relationship filter built
+	// on it. renderDirectDepsTable had already learned this; this classifier
+	// had not, which is the argument for one rule rather than two.
+	rootIDs := graphview.TopLevelParentIDs(g)
+	for id := range rootIDs {
+		out[id] = "root"
 	}
 	for rid := range rootIDs {
 		deps, _ := g.DirectDependencies(rid)

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/bomly-dev/bomly-cli/internal/graphview"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-sdk"
 )
@@ -356,36 +357,10 @@ func renderManifestHierarchy(g *sdk.Graph, hierarchy output.HierarchyNode, manif
 }
 
 // topLevelParentIDs returns the nodes whose direct children count as
-// "top-level" dependencies: graph roots, every module node, and every
-// application-type dependency node.
-//
-// Workspace members and reactor modules may have inbound edges -- one module
-// depending on another -- so a roots-only view hides the depended-on module's
-// own direct dependencies, listing them as transitive. Under ADR-0041 such a
-// member is a module node, which is why reading application-typed dependency
-// nodes alone stopped finding them; that spelling is kept for a root a
-// detector has not promoted yet.
+// "top-level" dependencies. graphview owns the rule; two classifiers computed
+// it separately and only one of them learned about module nodes.
 func topLevelParentIDs(g *sdk.Graph) map[string]struct{} {
-	parents := make(map[string]struct{})
-	for _, root := range g.Roots() {
-		if !sdk.IsNilNode(root) {
-			parents[root.NodeID()] = struct{}{}
-		}
-	}
-	for _, module := range g.ModuleNodes() {
-		if module != nil {
-			parents[module.NodeID()] = struct{}{}
-		}
-	}
-	for _, pkg := range g.DependencyNodes() {
-		if pkg == nil {
-			continue
-		}
-		if pkg.Type == sdk.PackageTypeApplication {
-			parents[pkg.NodeID()] = struct{}{}
-		}
-	}
-	return parents
+	return graphview.TopLevelParentIDs(g)
 }
 
 // renderDirectDepsTable renders the "Top-level dependencies" section showing

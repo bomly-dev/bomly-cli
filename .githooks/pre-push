@@ -35,48 +35,23 @@ fail() {
 
 [ "${VERIFY_STATUS:-}" = "pass" ] || fail "the last verification did not pass (status: ${VERIFY_STATUS:-unknown})."
 
-# Newer than every tracked source file, so an edit after verifying invalidates
-# it. Tracked only: an untracked scratch file is not part of the push.
+# The stamp records a digest of the repository state that was verified;
+# scripts/verify-snapshot.sh defines it and `make verify` writes it, so there
+# is one definition rather than two that drift.
 #
-# stat is the portability trap here. BSD stat spells the format flag -f and
-# GNU stat spells it -c, and on GNU `-f` means "filesystem", which succeeds
-# and prints an inode report rather than failing. Choosing by "did stdout come
-# back non-empty" therefore picks the BSD branch on Linux, fills newest with
-# "Inodes: ...", and the arithmetic comparison below errors inside a condition
-# whose failure the hook does not notice -- accepting a stale stamp, which is
-# the one thing this hook exists to refuse. Probe the flag on a known file
-# first and pick the spelling that actually works.
-mtime_flag=''
-if stat -f '%m' "$stamp" >/dev/null 2>&1 && [ -n "$(stat -f '%m' "$stamp" 2>/dev/null)" ]; then
-	case "$(stat -f '%m' "$stamp" 2>/dev/null)" in
-	*[!0-9]* | '') ;;
-	*) mtime_flag='-f' ;;
-	esac
-fi
-if [ -z "$mtime_flag" ]; then
-	case "$(stat -c '%Y' "$stamp" 2>/dev/null)" in
-	*[!0-9]* | '') ;;
-	*) mtime_flag='-c' ;;
-	esac
-fi
-newest=''
-if [ "$mtime_flag" = '-f' ]; then
-	newest=$(git ls-files -z -- '*.go' 'go.mod' 'go.sum' 'Makefile' 'testdata' 'test' |
-		xargs -0 stat -f '%m' 2>/dev/null |
-		sort -rn | head -1)
-elif [ "$mtime_flag" = '-c' ]; then
-	newest=$(git ls-files -z -- '*.go' 'go.mod' 'go.sum' 'Makefile' 'testdata' 'test' |
-		xargs -0 stat -c '%Y' 2>/dev/null |
-		sort -rn | head -1)
-else
-	fail 'cannot read file modification times; neither BSD nor GNU stat worked.'
-fi
-case "$newest" in
-*[!0-9]* | '') fail 'could not determine the newest source timestamp.' ;;
-esac
-if [ -n "$newest" ] && [ "${VERIFY_AT:-0}" -lt "$newest" ]; then
-	fail 'sources changed after the last verification.'
-fi
+# This replaced comparing modification times of a hand-written file list. That
+# list named 541 of the repository's 816 tracked files, so editing a shell
+# script, a workflow, an npm wrapper source or a nested testdata fixture left
+# the stamp looking fresh; a deleted file vanished from the list rather than
+# invalidating anything; and a restored mtime read as unchanged. Each of those
+# reported a passing verification for work that was never tested, which is the
+# one thing this hook exists to prevent.
+snapshot_script="$repo_root/scripts/verify-snapshot.sh"
+[ -x "$snapshot_script" ] || fail 'scripts/verify-snapshot.sh is missing or not executable.'
+
+current_snapshot=$("$snapshot_script") || fail 'could not snapshot the repository state.'
+[ -n "${VERIFY_SNAPSHOT:-}" ] || fail 'the stamp predates snapshot verification; run `make verify` again.'
+[ "${VERIFY_SNAPSHOT}" = "${current_snapshot}" ] || fail 'the repository changed after the last verification.'
 
 if [ "${BOMLY_REQUIRE_SMOKE:-0}" = "1" ] && [ "${VERIFY_SMOKE:-no}" != "yes" ]; then
 	fail 'BOMLY_REQUIRE_SMOKE=1 but the stamp records no smoke run.'

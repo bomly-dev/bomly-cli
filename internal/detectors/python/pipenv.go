@@ -132,6 +132,7 @@ func (d PipenvDetector) base() baseDetector {
 	return baseDetector{
 		Logger:     d.Logger,
 		WorkingDir: d.WorkingDir,
+		Manager:    sdk.PackageManagerPipenv,
 	}
 }
 

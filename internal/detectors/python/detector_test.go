@@ -41,7 +41,7 @@ func TestDepGraphFromPipInspect(t *testing.T) {
   ]
 }`)
 
-	root, err := pythonSyntheticRoot("")
+	root, err := pythonSyntheticRoot("", "")
 	if err != nil {
 		t.Fatalf("pythonSyntheticRoot() error = %v", err)
 	}
@@ -89,7 +89,7 @@ func TestDepGraphFromPipInspectScopesDirectDependencies(t *testing.T) {
 }`)
 
 	declared := map[string]struct{}{"flask": {}, "requests": {}}
-	root, err := pythonSyntheticRoot("")
+	root, err := pythonSyntheticRoot("", "")
 	if err != nil {
 		t.Fatalf("pythonSyntheticRoot() error = %v", err)
 	}
@@ -115,7 +115,7 @@ func TestDepGraphFromPipInspectAttachesOrphans(t *testing.T) {
   ]
 }`)
 
-	root, err := pythonSyntheticRoot("")
+	root, err := pythonSyntheticRoot("", "")
 	if err != nil {
 		t.Fatalf("pythonSyntheticRoot() error = %v", err)
 	}
@@ -141,7 +141,7 @@ func TestDepGraphFromPipInspectAttachesCycles(t *testing.T) {
   ]
 }`)
 
-	root, err := pythonSyntheticRoot("")
+	root, err := pythonSyntheticRoot("", "")
 	if err != nil {
 		t.Fatalf("pythonSyntheticRoot() error = %v", err)
 	}
@@ -402,7 +402,7 @@ func TestFilterPythonToolPackagesRemovesUndeclaredTools(t *testing.T) {
 		t.Fatalf("add pip dependency: %v", err)
 	}
 
-	filtered, err := filterPythonToolPackages(g, t.TempDir(), "root")
+	filtered, err := filterPythonToolPackages(g, t.TempDir(), "", "root")
 	if err != nil {
 		t.Fatalf("filterPythonToolPackages() error = %v", err)
 	}
@@ -435,7 +435,7 @@ func TestFilterPythonToolPackagesKeepsDeclaredTools(t *testing.T) {
 		t.Fatalf("add wheel dependency: %v", err)
 	}
 
-	filtered, err := filterPythonToolPackages(g, dir, "root")
+	filtered, err := filterPythonToolPackages(g, dir, "", "root")
 	if err != nil {
 		t.Fatalf("filterPythonToolPackages() error = %v", err)
 	}

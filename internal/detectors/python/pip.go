@@ -89,7 +89,7 @@ func (d PipDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("pip detector: resolve isolated environment graph: %w", err)
 	}
-	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir, rootName)
+	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir, sdk.PackageManagerPip, rootName)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("pip detector: filter tool packages: %w", err)
 	}
@@ -112,6 +112,7 @@ func (d PipDetector) base() baseDetector {
 	return baseDetector{
 		Logger:     d.Logger,
 		WorkingDir: d.WorkingDir,
+		Manager:    sdk.PackageManagerPip,
 	}
 }
 

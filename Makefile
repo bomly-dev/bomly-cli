@@ -77,6 +77,7 @@ verify:
 		echo "VERIFY_STATUS=pass"; \
 		echo "VERIFY_AT=$$(date +%s)"; \
 		echo "VERIFY_AT_HUMAN=$$(date -u +%Y-%m-%dT%H:%M:%SZ)"; \
+		echo "VERIFY_SNAPSHOT=$$(./scripts/verify-snapshot.sh)"; \
 		if [ "$(SMOKE)" = "1" ]; then echo "VERIFY_SMOKE=yes"; else echo "VERIFY_SMOKE=no"; fi; \
 	} > .verify-stamp
 	@echo "verify: passed; stamp written to .verify-stamp"

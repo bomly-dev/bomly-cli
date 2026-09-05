@@ -36,6 +36,11 @@ var pythonToolPackageNames = map[string]struct{}{
 type baseDetector struct {
 	Logger     *zap.Logger
 	WorkingDir string
+	// Manager is the package manager this detector speaks for. It decides
+	// which file declares the project, so the pip-inspect path and the
+	// lockfile parsers mint the same root identity for one project rather
+	// than disagreeing by resolution strategy.
+	Manager sdk.PackageManager
 }
 
 type pipInspectReport struct {
@@ -117,7 +122,7 @@ func (d baseDetector) resolveGraph(req sdk.DetectionRequest, detectorName string
 	if err != nil {
 		return nil, fmt.Errorf("collect declared dependencies for %s: %w", detectorName, err)
 	}
-	pythonSyntheticRootResult, err := pythonSyntheticRoot(pythonRootName(req, cmd.Dir))
+	pythonSyntheticRootResult, err := pythonSyntheticRoot(d.Manager, pythonRootName(req, cmd.Dir))
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +212,11 @@ func depGraphFromPipInspect(raw []byte, rootNode sdk.GraphNode, declared map[str
 
 	depsGraph := sdk.New()
 	if rootNode == nil {
-		synthetic, err := pythonSyntheticRoot("")
+		// Only reached by direct callers that supply no root -- tests, and
+		// the defensive path below a detector. No manager is knowable here,
+		// so the declaring manifest falls back to requirements.txt; a
+		// detector always passes the root it built, which carries its own.
+		synthetic, err := pythonSyntheticRoot("", "")
 		if err != nil {
 			return nil, err
 		}
@@ -441,11 +450,12 @@ func pythonDeclaringManifest(manager sdk.PackageManager) string {
 // itself, named by pythonRootName. "root" survives only as the last resort:
 // it told the user nothing and collides with a real PyPI package name, which
 // is why the node is a module and is never enriched.
-func pythonSyntheticRoot(rootName string) (*sdk.ModuleNode, error) {
+func pythonSyntheticRoot(manager sdk.PackageManager, rootName string) (*sdk.ModuleNode, error) {
 	return pythonModuleRoot(sdk.Coordinates{
-		Ecosystem: sdk.EcosystemPython,
-		Name:      rootName,
-		Type:      sdk.PackageTypeApplication,
+		Ecosystem:      sdk.EcosystemPython,
+		PackageManager: manager,
+		Name:           rootName,
+		Type:           sdk.PackageTypeApplication,
 	})
 }
 
@@ -560,7 +570,7 @@ func projectDirectoryName(projectPath string) string {
 	return base
 }
 
-func filterPythonToolPackages(depsGraph *sdk.Graph, projectPath, rootName string) (*sdk.Graph, error) {
+func filterPythonToolPackages(depsGraph *sdk.Graph, projectPath string, manager sdk.PackageManager, rootName string) (*sdk.Graph, error) {
 	if depsGraph == nil {
 		return depsGraph, nil
 	}
@@ -586,7 +596,7 @@ func filterPythonToolPackages(depsGraph *sdk.Graph, projectPath, rootName string
 	// Dropping a tool package can strand the packages it pulled in; re-parent
 	// them so the graph keeps a single root.
 	if removed {
-		pythonSyntheticRootResult, err := pythonSyntheticRoot(rootName)
+		pythonSyntheticRootResult, err := pythonSyntheticRoot(manager, rootName)
 		if err != nil {
 			return nil, err
 		}

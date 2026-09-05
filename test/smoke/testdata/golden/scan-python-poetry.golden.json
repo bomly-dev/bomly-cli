@@ -4,6 +4,21 @@
     {
       "dependencies": [
         {
+          "depends_on": [
+            "pkg:pypi/django@1.11.29",
+            "pkg:pypi/feedparser@6.0.8",
+            "pkg:pypi/pyjwt@0.4.2",
+            "pkg:pypi/pytest@9.0.3",
+            "pkg:pypi/requests@2.21.0",
+            "pkg:pypi/rsa@3.4"
+          ],
+          "id": "module:pyproject.toml#pkg:pypi/example-python3-poetry@0.1.0",
+          "licenses": [],
+          "name": "example-python3-poetry",
+          "purl": "pkg:pypi/example-python3-poetry@0.1.0",
+          "version": "0.1.0"
+        },
+        {
           "depends_on": [],
           "id": "pkg:pypi/certifi@2024.8.30",
           "licenses": [],
@@ -92,22 +107,6 @@
             "runtime"
           ],
           "version": "1.11.29"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/django@1.11.29",
-            "pkg:pypi/feedparser@6.0.8",
-            "pkg:pypi/pyjwt@0.4.2",
-            "pkg:pypi/pytest@9.0.3",
-            "pkg:pypi/requests@2.21.0",
-            "pkg:pypi/rsa@3.4"
-          ],
-          "id": "pkg:pypi/example-python3-poetry@0.1.0",
-          "licenses": [],
-          "name": "example-python3-poetry",
-          "package_ref": "pkg:pypi/example-python3-poetry@0.1.0",
-          "purl": "pkg:pypi/example-python3-poetry@0.1.0",
-          "version": "0.1.0"
         },
         {
           "depends_on": [
@@ -479,14 +478,6 @@
       "name": "django",
       "purl": "pkg:pypi/django@1.11.29",
       "version": "1.11.29",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "example-python3-poetry",
-      "purl": "pkg:pypi/example-python3-poetry@0.1.0",
-      "version": "0.1.0",
       "vulnerabilities": []
     },
     {

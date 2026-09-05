@@ -152,3 +152,67 @@ func assertSingleModuleDeclaredBy(t *testing.T, g *sdk.Graph, want string) {
 		t.Fatalf("root ID = %q, want it to name %q", modules[0].NodeID(), want)
 	}
 }
+
+// The pip-inspect path and the lockfile parsers must mint the same root
+// identity for one project.
+//
+// baseDetector.resolveGraph is shared by pip, Pipenv, Poetry and uv, and it
+// built the root without saying which manager it was speaking for -- so every
+// successful pip-inspect graph declared itself from requirements.txt, and a
+// Pipenv project got the correct Pipfile identity only when it fell back to
+// the pure lock parser. One project would then have two identities depending
+// on which strategy happened to succeed.
+func TestPythonRootIdentityAgreesAcrossResolutionStrategies(t *testing.T) {
+	cases := []struct {
+		manager sdk.PackageManager
+		want    string
+	}{
+		{sdk.PackageManagerPipenv, "Pipfile"},
+		{sdk.PackageManagerPoetry, "pyproject.toml"},
+		{sdk.PackageManagerUV, "pyproject.toml"},
+		{sdk.PackageManagerPip, "requirements.txt"},
+	}
+	for _, tc := range cases {
+		// The pip-inspect strategy's root, as resolveGraph builds it.
+		inspectRoot, err := pythonSyntheticRoot(tc.manager, "demo")
+		if err != nil {
+			t.Fatalf("pythonSyntheticRoot(%q): %v", tc.manager, err)
+		}
+		// The lockfile strategy's root, as every parser builds it.
+		lockRoot, err := pythonModuleRoot(sdk.Coordinates{
+			Ecosystem:      sdk.EcosystemPython,
+			PackageManager: tc.manager,
+			Name:           "demo",
+			Type:           sdk.PackageTypeApplication,
+		})
+		if err != nil {
+			t.Fatalf("pythonModuleRoot(%q): %v", tc.manager, err)
+		}
+		if inspectRoot.NodeID() != lockRoot.NodeID() {
+			t.Fatalf("%q: pip-inspect root %q != lockfile root %q; one project must have one identity",
+				tc.manager, inspectRoot.NodeID(), lockRoot.NodeID())
+		}
+		if inspectRoot.DeclaringManifestPath != tc.want {
+			t.Fatalf("%q declared by %q, want %q", tc.manager, inspectRoot.DeclaringManifestPath, tc.want)
+		}
+	}
+}
+
+// Every detector states the manager it speaks for, so the shared pip-inspect
+// path can name the right declaring manifest.
+func TestPythonDetectorsCarryTheirManager(t *testing.T) {
+	cases := map[string]struct {
+		got  sdk.PackageManager
+		want sdk.PackageManager
+	}{
+		"pip":    {PipDetector{}.base().Manager, sdk.PackageManagerPip},
+		"poetry": {PoetryDetector{}.base().Manager, sdk.PackageManagerPoetry},
+		"uv":     {UVDetector{}.base().Manager, sdk.PackageManagerUV},
+		"pipenv": {PipenvDetector{}.base().Manager, sdk.PackageManagerPipenv},
+	}
+	for name, tc := range cases {
+		if tc.got != tc.want {
+			t.Errorf("%s detector base manager = %q, want %q", name, tc.got, tc.want)
+		}
+	}
+}

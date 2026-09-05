@@ -45,11 +45,11 @@ oversized structures within the bound, and arbitrary path/reference text.
   and validation code around them is the target.
 - The SPDX expression parser (`github.com/github/go-spdx`) panics on some
   malformed expressions rather than returning an error, and license strings
-  are untrusted repository and registry data. `internal/licenseexpr` contains
+  are untrusted repository and registry data. `bomly-sdk/spdxkit` contains
   those panics and reports the value as unparseable, so `FuzzSPDXLicenseValue`
-  asserts the wrapper's behavior rather than the dependency's. A call site
-  that reaches the dependency directly would reintroduce the crash, which
-  `TestNoDirectSPDXExpressionUse` prevents.
+  asserts the CLI's use of the kit rather than the dependency's behavior. A
+  call site that reaches the dependency directly would reintroduce the crash,
+  which `TestNoDirectSPDXExpressionUse` prevents across the whole tree.
 - Filesystem discovery and package-manager subprocess orchestration are not
   parsers and remain covered by unit, integration, and smoke tests.
 - Reachability analyzers (govulncheck, jsreach, pyreach, jvmreach) and the

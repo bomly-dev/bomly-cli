@@ -9,8 +9,8 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/bomly-dev/bomly-cli/internal/licenseexpr"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/spdxkit"
 	"github.com/spdx/tools-golang/spdx/v2/common"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 )
@@ -441,7 +441,7 @@ func spdxLicenseValue(licenses []License) string {
 	if len(values) == 1 || !allValidSPDXExpressions(values) {
 		return values[0]
 	}
-	return licenseexpr.Compose(values)
+	return spdxkit.Compose(values)
 }
 
 func spdxCopyrightValue(value string) string {

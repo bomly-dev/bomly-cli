@@ -8,7 +8,7 @@ import (
 	"time"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
-	"github.com/bomly-dev/bomly-cli/internal/licenseexpr"
+	"github.com/bomly-dev/bomly-sdk/spdxkit"
 )
 
 type cycloneDXCodec struct {
@@ -499,10 +499,10 @@ func cycloneDXLicenses(licenses []License) cdx.Licenses {
 
 	if len(values) == 1 {
 		value := values[0]
-		if id, ok := licenseexpr.Identifier(value); ok {
+		if id, ok := spdxkit.Identifier(value); ok {
 			return cdx.Licenses{{License: &cdx.License{ID: id}}}
 		}
-		if licenseexpr.Valid(value) {
+		if spdxkit.Valid(value) {
 			// A compound expression has no license-object form; it can only be
 			// carried as an expression.
 			return cdx.Licenses{{Expression: value}}
@@ -511,12 +511,12 @@ func cycloneDXLicenses(licenses []License) cdx.Licenses {
 	}
 
 	if hasCompoundExpression(values) && allValidSPDXExpressions(values) {
-		return cdx.Licenses{{Expression: licenseexpr.Compose(values)}}
+		return cdx.Licenses{{Expression: spdxkit.Compose(values)}}
 	}
 
 	out := make(cdx.Licenses, 0, len(values))
 	for _, value := range values {
-		if id, ok := licenseexpr.Identifier(value); ok {
+		if id, ok := spdxkit.Identifier(value); ok {
 			out = append(out, cdx.LicenseChoice{License: &cdx.License{ID: id}})
 			continue
 		}
@@ -529,7 +529,7 @@ func cycloneDXLicenses(licenses []License) cdx.Licenses {
 // a bare license identifier, and so cannot survive as a license object.
 func hasCompoundExpression(values []string) bool {
 	for _, value := range values {
-		if _, isID := licenseexpr.Identifier(value); !isID && licenseexpr.Valid(value) {
+		if _, isID := spdxkit.Identifier(value); !isID && spdxkit.Valid(value) {
 			return true
 		}
 	}

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/licenseexpr"
+	"github.com/bomly-dev/bomly-sdk/spdxkit"
 	testkit "github.com/bomly-dev/bomly-sdk/testkit"
 )
 
@@ -143,12 +143,12 @@ func FuzzSPDXLicenseValue(f *testing.F) {
 			return
 		}
 
-		id, ok := licenseexpr.Identifier(value)
-		if id2, ok2 := licenseexpr.Identifier(value); ok != ok2 || id != id2 {
+		id, ok := spdxkit.Identifier(value)
+		if id2, ok2 := spdxkit.Identifier(value); ok != ok2 || id != id2 {
 			t.Fatalf("nondeterministic identifier classification: (%q, %v) then (%q, %v)", id, ok, id2, ok2)
 		}
-		valid := licenseexpr.Valid(value)
-		if valid != licenseexpr.Valid(value) {
+		valid := spdxkit.Valid(value)
+		if valid != spdxkit.Valid(value) {
 			t.Fatalf("nondeterministic expression validation for %q", value)
 		}
 		if ok {
@@ -157,14 +157,14 @@ func FuzzSPDXLicenseValue(f *testing.F) {
 			if id == "" {
 				t.Fatalf("classified %q as an identifier but returned an empty id", value)
 			}
-			if !licenseexpr.Valid(id) {
+			if !spdxkit.Valid(id) {
 				t.Fatalf("identifier %q (from %q) is not a valid expression", id, value)
 			}
 		}
 
 		// Composition must not lose or reorder members, and must be stable.
-		composed := licenseexpr.Compose([]string{value, value})
-		if composed != licenseexpr.Compose([]string{value, value}) {
+		composed := spdxkit.Compose([]string{value, value})
+		if composed != spdxkit.Compose([]string{value, value}) {
 			t.Fatalf("nondeterministic composition for %q", value)
 		}
 		if strings.TrimSpace(value) != "" && !strings.Contains(composed, " AND ") {

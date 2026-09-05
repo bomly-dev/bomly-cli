@@ -8,6 +8,7 @@ import (
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/spdxkit"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 )
 
@@ -249,14 +250,25 @@ func TestSPDXLicenseComposition(t *testing.T) {
 			want: "MIT AND (MIT OR GPL-2.0-only)",
 		},
 		{
-			// Joining free text would produce an expression that does not
-			// parse, so a mixed set keeps the previous first-value behavior.
-			name: "unparseable member falls back to the first value",
+			// A mixed set composes fully now (#410). The unrecognized member
+			// becomes a reference, which is a valid expression element, so
+			// nothing is dropped -- this used to keep "MIT" alone and lose
+			// the fact that a second license was declared at all.
+			name: "an unrecognized member composes as a reference",
 			licenses: []sdk.PackageLicense{
 				{Value: "MIT"},
 				{Value: "non-standard"},
 			},
-			want: "MIT",
+			want: "MIT AND " + spdxkit.MintLicenseRef("non-standard").RefID,
+		},
+		{
+			// A lone unrecognized value is a reference rather than free text
+			// in a field SPDX says must hold an expression.
+			name: "a single unrecognized value becomes a reference",
+			licenses: []sdk.PackageLicense{
+				{Value: "see LICENSE file"},
+			},
+			want: spdxkit.MintLicenseRef("see LICENSE file").RefID,
 		},
 	}
 

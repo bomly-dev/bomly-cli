@@ -150,8 +150,28 @@ type Component struct {
 	// carried only inside the PURL external reference.
 	Org string
 
-	Version        string
-	Scope          string
+	Version string
+
+	// Scopes is the full scope set, not a scalar. A package reachable from
+	// both a runtime and a development root carries both, and exporting only
+	// the merged precedence value lost that at the SBOM boundary -- which is
+	// the whole of what PR #406's scope union bought.
+	//
+	// Both formats hold one scope per component, so each encoder projects
+	// this onto its own scalar and writes the set beside it in a carrier the
+	// decoder prefers: a `bomly:scopes` CycloneDX property, a `scope=` field
+	// in the SPDX package comment. The projection, the carrier format, and
+	// the reverse mapping are all the SDK's (ADR-0037): they are one rule,
+	// and a second copy here is how the forward and reverse directions came
+	// to disagree in the first place.
+	//
+	// One clause of ADR-0037 is not implemented here: a source document's own
+	// scalar -- CycloneDX's "optional", say -- is not preserved for verbatim
+	// re-emission, because DependencyNode has nowhere to carry a source-
+	// asserted scope alongside the derived set. "optional" therefore reads as
+	// runtime and re-exports as "required". Tracked as bomly-dev/bomly-sdk#57.
+	Scopes []sdk.Scope
+
 	PURL           string
 	Ecosystem      string
 	PackageManager string

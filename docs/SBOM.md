@@ -67,6 +67,26 @@ This is fast, offline, and useful for:
 
 Format is auto-detected by content. The supported ingest formats are SPDX 2.3 JSON and CycloneDX 1.4–1.7 JSON; anything else is rejected as an unsupported format. Most SBOM producers, including Syft, can emit one of the supported formats directly (for example `syft <target> -o spdx-json`).
 
+### What Bomly refuses to import
+
+An SBOM is refused when its JSON does not have a single unambiguous reading:
+
+- **A repeated object member name.** `{"purl": "pkg:npm/a@1", "purl": "pkg:npm/b@1"}`
+  parses under most JSON readers, and which value wins depends on how the
+  reader is written. Two tools can therefore read two different packages out
+  of one file. For a document whose whole purpose is to state what you depend
+  on, that is a smuggling vector.
+- **Bytes that are not valid UTF-8.** Readers usually substitute a replacement
+  character, so what a consumer sees is not what the document carried.
+
+Both are refused with an error naming the repeated member and its path, or the
+byte offset of the bad sequence, so you can find the spot. The fix is to
+regenerate the document with a producer that emits each member once — Bomly
+will not guess which reading you meant.
+
+Nothing else was tightened. A document with unknown members, unusual nesting,
+or fields Bomly does not model still imports exactly as before.
+
 ### What an ingested document keeps
 
 Ingest reads more than package coordinates. What a source document asserted
@@ -352,8 +372,21 @@ Some information necessarily becomes less specific during conversion:
   vulnerability as a package security advisory reference, so ratings, affected
   ranges, fix versions, and descriptions are not carried through an SPDX 2.3
   round trip.
-- Development scope maps to CycloneDX `excluded`; runtime scope maps to
-  `required`. SPDX stores Bomly's normalized scope in the package comment.
+- Scope is a set in Bomly and a single value in both formats. A package
+  reachable from both a runtime and a development root carries both scopes, so
+  each format gets Bomly's projection in its native field — runtime wins a
+  mixed set and maps to CycloneDX `required`, development-only maps to
+  `excluded` — with the full set written beside it in a carrier the importer
+  prefers: a `bomly:scopes` CycloneDX property, and the `scope=` field of the
+  SPDX package comment. A Bomly document therefore round-trips its scope set
+  exactly, and a document from any other producer still yields a usable scope.
+  Reading the other way, CycloneDX `required` and `optional` both become
+  runtime and `excluded` becomes development.
+- A source document's own scope word is not preserved verbatim. A component
+  a CycloneDX document marked `optional` imports as runtime and re-exports as
+  `required`, because Bomly's model has no slot for a source-asserted scope
+  beside the set it derives (tracked as bomly-dev/bomly-sdk#57). Bomly's own
+  documents are unaffected: their scope sets survive through the carrier.
 - Package origin is written on export but not read back on ingest: scanning an
   SBOM produces packages with no origin, so re-exporting that graph emits
   `NOASSERTION` and no distribution or vcs reference. Origin comes from a

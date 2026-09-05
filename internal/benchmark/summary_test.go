@@ -18,7 +18,7 @@ func TestBuildSourceSummaryScoresPackagesAndRelationships(t *testing.T) {
 	bomly := &sbom.Document{
 		Tools: []string{"bomly-cli", "bomly-detector:npm-detector"},
 		Components: []sbom.Component{
-			{ID: "app", PURL: "pkg:npm/app@1.0.0", Scope: "runtime"},
+			{ID: "app", PURL: "pkg:npm/app@1.0.0", Scopes: []sdk.Scope{sdk.ScopeRuntime}},
 			{ID: "exact", PURL: "pkg:npm/exact@1.0.0"},
 			{ID: "version", PURL: "pkg:npm/version@2.0.0"},
 			{ID: "extra", PURL: "pkg:npm/extra@1.0.0"},

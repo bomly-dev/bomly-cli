@@ -88,6 +88,14 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 			return sdk.DetectionResult{}, fmt.Errorf("parse sbom file %q: %w", sbomPath, err)
 		case errors.Is(err, sbom.ErrUnsupportedFormat):
 			return sdk.DetectionResult{}, fmt.Errorf("detect sbom format for %q: %w", sbomPath, err)
+		case errors.Is(err, sbom.ErrAmbiguousJSON):
+			// Named separately from a malformed document because the fix is
+			// different: this file is syntactically fine and reads two ways,
+			// so the answer is to regenerate it, not to repair a syntax
+			// error. The wrapped error names the member or byte offset.
+			return sdk.DetectionResult{}, fmt.Errorf(
+				"sbom file %q does not have a single unambiguous reading, so Bomly will not import it; "+
+					"regenerate it with a producer that emits each object member once: %w", sbomPath, err)
 		default:
 			return sdk.DetectionResult{}, fmt.Errorf("decode sbom file %q: %w", sbomPath, err)
 		}

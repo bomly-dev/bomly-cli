@@ -138,3 +138,37 @@ func TestNoDirectSPDXExpressionUse(t *testing.T) {
 			"so go through bomly-sdk/spdxkit instead: %v", spdxModule, offenders)
 	}
 }
+
+// Strict JSON parsing is an ingest defense, not a global policy. ADR-0039
+// scopes it to untrusted documents -- SBOM ingest today -- and explicitly
+// leaves the plugin wire alone: enabled plugins are trusted native processes,
+// so `bomly.plugin.v1`'s compatibility contract is frozen fixtures, not
+// strictness, and tightening it is a protocol decision that needs its own ADR.
+//
+// The hazard is drift, not intent. Nobody would set out to make the plugin
+// wire strict; someone reaches for the stricter reader because it is the one
+// they just used, and the wire tightens by accident. So the strict packages
+// are confined to the one package that owns ingest, and a new caller has to
+// change this rule on purpose.
+func TestStrictJSONStaysInSBOMIngest(t *testing.T) {
+	strictPackages := []string{`"encoding/json/v2"`, `"encoding/json/jsontext"`}
+
+	// internal/sbom owns document ingest and is where the gate lives.
+	const owner = "internal/sbom"
+
+	var offenders []string
+	walkInternalGo(t, func(path, body string) {
+		if strings.Contains(filepath.ToSlash(path), owner+"/") {
+			return
+		}
+		for _, pkg := range strictPackages {
+			if strings.Contains(body, pkg) {
+				offenders = append(offenders, path+" imports "+pkg)
+			}
+		}
+	})
+	if len(offenders) > 0 {
+		t.Fatalf("strict JSON parsing is scoped to SBOM ingest (ADR-0039); "+
+			"the plugin wire and the rest of internal/ keep v1 decoding: %v", offenders)
+	}
+}

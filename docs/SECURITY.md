@@ -60,6 +60,13 @@ responses as untrusted input.
   plugin metadata have fixed size limits.
 - Configuration, baselines, SBOM input, and deps.dev responses have fixed
   limits. Oversized input fails with an error instead of being partially used.
+- An imported SBOM must have a single unambiguous reading. A document that
+  repeats an object member name, or that carries bytes which are not valid
+  UTF-8, is refused rather than read one of the ways it could be read — two
+  tools decoding such a file can otherwise disagree about which package it
+  names. The error points at the member or the byte offset. This applies to
+  documents Bomly imports; the plugin protocol keeps its existing decoding,
+  because an enabled plugin is a native process you chose to run.
 - What an ingested SBOM asserted — component supplier, description, homepage,
   checksums, CPEs, references, and the document's own identity, creators and
   tools — is re-published under Bomly's name, so every one of those values is

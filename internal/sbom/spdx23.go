@@ -156,7 +156,7 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 			ID:             id,
 			Name:           p.PackageName,
 			Version:        p.PackageVersion,
-			Scope:          parseSPDXCommentField(p.PackageComment, "scope"),
+			Scopes:         spdxCommentScopes(p.PackageComment),
 			Type:           parseSPDXComponentType(p),
 			PURL:           parseSPDXPURL(p.PackageExternalReferences),
 			Ecosystem:      parseSPDXYcosystem(p.PackageExternalReferences),
@@ -329,7 +329,7 @@ func spdxCreatorComment(p Provenance) string {
 
 func spdxPackageComment(component Component) string {
 	fields := make([]string, 0, 4)
-	if scope := strings.TrimSpace(component.Scope); scope != "" {
+	if scope := sdk.EncodeScopeSet(component.Scopes); scope != "" {
 		fields = append(fields, "scope="+scope)
 	}
 	if typ := strings.TrimSpace(component.Type); typ != "" && !strings.EqualFold(typ, "package") {
@@ -400,6 +400,20 @@ func parseSPDXComponentType(p *v23.Package) string {
 		return value
 	}
 	return strings.ToLower(strings.TrimSpace(p.PrimaryPackagePurpose))
+}
+
+// spdxCommentScopes reads the scope set back out of the package comment.
+//
+// A carrier that will not parse is treated as absent rather than as an error:
+// this is a comment field on someone else's document, and refusing the whole
+// component because a Bomly-shaped comment was malformed would lose more than
+// it protects. The SDK owns what the carrier means in both directions.
+func spdxCommentScopes(comment string) []sdk.Scope {
+	scopes, err := sdk.DecodeScopeSet(parseSPDXCommentField(comment, "scope"))
+	if err != nil {
+		return nil
+	}
+	return scopes
 }
 
 func parseSPDXCommentField(comment, field string) string {

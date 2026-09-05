@@ -1,47 +1,39 @@
 #!/usr/bin/env sh
 #
-# Print a digest of the repository state that `make verify` verifies.
+# Print a digest of the repository content that `make verify` verifies.
 #
 # The stamp records this digest; .githooks/pre-push recomputes it and refuses
-# a push when the two differ. It replaces a list of file globs compared by
+# a push when the two differ. It replaced a list of file globs compared by
 # modification time, which was wrong in three ways: the list named 541 of the
 # repository's 816 tracked files, so editing a shell script, a workflow, an
 # npm wrapper source or a nested testdata fixture left the stamp looking
 # fresh; a deleted file simply vanished from the list, lowering nothing; and a
-# restored mtime is indistinguishable from an unchanged file.
+# restored mtime is indistinguishable from an unchanged file. Each reported a
+# passing verification for work that was never tested.
 #
-# Git decides what the repository contains, rather than a hand-written walk
-# that has to be kept in step with the tree.
+# The digest is the git tree of everything in the worktree that .gitignore
+# does not exclude, built in a throwaway index so neither the real index nor
+# HEAD is touched or consulted.
 #
-# The digest covers the index (blob hashes for every tracked path) plus the
-# worktree's diff against it, which together pin the exact content of every
-# tracked file, including deletions and newly staged files. Untracked files
-# are deliberately excluded: they are not part of a push, which is the same
-# rule the previous check documented.
+# Reading content rather than git's bookkeeping is the whole point. Two
+# earlier attempts folded in HEAD, and then the index, and both invalidated a
+# verification that was still perfectly valid: `git add` and `git commit` move
+# content across those boundaries without changing a byte of it. A gate that
+# fails on staging or committing is one that teaches people to pass
+# --no-verify, which is worse than no gate at all. What survives here changes
+# when a file's bytes change, when a file appears, and when one is deleted --
+# and at no other time.
 #
-# It deliberately does NOT include HEAD. Committing moves content across the
-# HEAD boundary without changing a byte of it, so folding HEAD in invalidated
-# a verification that was still perfectly valid -- and a gate that fails on
-# `git commit` is one that teaches people to pass --no-verify, which is worse
-# than no gate at all. Neither `git ls-files -s` nor `git diff` is affected by
-# a commit, so this holds across one and still changes on any real edit.
+# Untracked files count, unless ignored: a new source file is part of what a
+# push delivers, whether or not it has been added yet. Build outputs and the
+# stamp itself are ignored, so neither perturbs the digest.
 set -eu
 
 repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
 
-digest() {
-	if command -v sha256sum >/dev/null 2>&1; then
-		sha256sum
-	elif command -v shasum >/dev/null 2>&1; then
-		shasum -a 256
-	else
-		openssl dgst -sha256
-	fi
-}
+index=$(mktemp -u "${TMPDIR:-/tmp}/bomly-verify-index.XXXXXX")
+trap 'rm -f "$index"' EXIT INT TERM
 
-{
-	git ls-files -s
-	git diff --binary
-} | digest | tr -d ' -' | tr -d '\n'
-echo
+GIT_INDEX_FILE="$index" git add -A
+GIT_INDEX_FILE="$index" git write-tree

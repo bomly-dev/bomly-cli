@@ -216,6 +216,54 @@ func PackageFromGraphNode(node sdk.GraphNode) PackageRef {
 	return ref
 }
 
+// resolveListedChildren names a node's children among the records this
+// document actually contains, stepping through the ones it does not.
+//
+// Manifest nodes are structural and are deliberately absent from the listing,
+// but they sit in the middle of a real path: a workspace is
+// module -> child manifest -> child module. Publishing the manifest's ID left
+// depends_on naming a record no consumer could resolve, and dropping it
+// outright severed the workspace, so neither end of the hop could be
+// reconstructed. Stepping through keeps the relationship the graph asserts --
+// the parent module depends on the child module -- expressed only in IDs the
+// document defines.
+//
+// The visited set bounds a graph whose structural nodes form a cycle; a
+// dependency child is never traversed, only recorded.
+func resolveListedChildren(g *sdk.Graph, nodeID string, listed map[string]struct{}) []string {
+	resolved := make([]string, 0)
+	seen := make(map[string]struct{})
+	visited := map[string]struct{}{nodeID: {}}
+
+	var walk func(id string)
+	walk = func(id string) {
+		children, err := g.DirectDependencies(id)
+		if err != nil {
+			return
+		}
+		for _, child := range children {
+			if sdk.IsNilNode(child) {
+				continue
+			}
+			childID := child.NodeID()
+			if _, ok := listed[childID]; ok {
+				if _, duplicate := seen[childID]; !duplicate {
+					seen[childID] = struct{}{}
+					resolved = append(resolved, childID)
+				}
+				continue
+			}
+			if _, been := visited[childID]; been {
+				continue
+			}
+			visited[childID] = struct{}{}
+			walk(childID)
+		}
+	}
+	walk(nodeID)
+	return resolved
+}
+
 // PurlFromGraphNode returns the package URL a node publishes, or "" when it
 // has none.
 //
@@ -700,21 +748,18 @@ func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDe
 	for _, dep := range g.DependencyNodes() {
 		listed = append(listed, dep)
 	}
+	listedIDs := make(map[string]struct{}, len(listed))
+	for _, node := range listed {
+		if !sdk.IsNilNode(node) {
+			listedIDs[node.NodeID()] = struct{}{}
+		}
+	}
 	payload := make([]ScanDependency, 0, len(listed))
 	for _, node := range listed {
 		if node == nil {
 			continue
 		}
-		deps, err := g.DirectDependencies(node.NodeID())
-		dependencyIDs := make([]string, 0, len(deps))
-		if err == nil {
-			for _, child := range deps {
-				if child == nil {
-					continue
-				}
-				dependencyIDs = append(dependencyIDs, child.NodeID())
-			}
-		}
+		dependencyIDs := resolveListedChildren(g, node.NodeID(), listedIDs)
 		name, version := sdk.NodeDisplayName(node), sdk.NodeVersion(node)
 		entry := ScanDependency{
 			ID:        node.NodeID(),

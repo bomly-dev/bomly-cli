@@ -334,7 +334,9 @@ Any new user-visible feature needs a smoke case under `test/smoke/` — follow t
 
 ## Release
 
-Draft releases are created automatically after merges to `main` from commit prefixes: `feat:` → minor, other → patch, `type!:`/`BREAKING CHANGE:` → major, `[skip release]` → none. Squash titles count. Publishing runs GoReleaser with signed checksums and SLSA provenance; see `dev-docs/RELEASE_CHECKLIST.md`.
+Releases are cut deliberately, never by merging. Run the **Auto Version** workflow from `main` and choose the bump (`patch` / `minor` / `major`); it rewrites `var version` in `cmd/bomly/main.go`, commits, and pushes the `vX.Y.Z` tag. Pushing that tag is what triggers **Release**, which runs GoReleaser with signed checksums and SLSA provenance; see `dev-docs/RELEASE_CHECKLIST.md`.
+
+Nothing about a merge to `main` starts a release, and no commit prefix chooses the bump — a `feat!:` squash title does not make the next release major. The person dispatching the workflow picks that, so choosing it is a decision, not a consequence.
 
 ## Reference Docs
 

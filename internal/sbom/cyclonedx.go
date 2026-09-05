@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/spdxkit"
 )
 
@@ -105,7 +106,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 	componentByID := make(map[string]Component)
 	if bom.Components != nil {
 		for _, comp := range *bom.Components {
-			componentByID[comp.BOMRef] = Component{
+			component := Component{
 				ID:        comp.BOMRef,
 				Name:      comp.Name,
 				Org:       comp.Group,
@@ -116,6 +117,8 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 				Copyright: comp.Copyright,
 				Licenses:  parseCycloneDXLicenses(comp.Licenses),
 			}
+			applyCycloneDXAssertions(&component, comp)
+			componentByID[comp.BOMRef] = component
 		}
 	}
 
@@ -460,9 +463,20 @@ func cycloneDXComponent(comp Component) cdx.Component {
 	if props := cycloneDXEOLProperties(comp.EOL); len(props) > 0 {
 		component.Properties = &props
 	}
-	if refs := cycloneDXComponentReferences(comp); len(refs) > 0 {
+	// Origin-derived references first, then the ones the source document
+	// asserted. Both are references about the same component and the format
+	// carries one list, so they concatenate; the emitted set is deduplicated
+	// by the SDK's reference identity before it is written.
+	refs := cycloneDXComponentReferences(comp)
+	refs = append(refs, cycloneDXEmittedReferences(comp.ExternalReferences)...)
+	if len(refs) > 0 {
 		component.ExternalReferences = &refs
 	}
+	component.Supplier = cycloneDXEntityFor(comp.Supplier)
+	if originator := cycloneDXEntityFor(comp.Originator); originator != nil {
+		component.Publisher = originator.Name
+	}
+	component.Description = sdk.NormalizeDescription(comp.Description)
 	return component
 }
 

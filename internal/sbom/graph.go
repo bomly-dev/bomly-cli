@@ -5,7 +5,126 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-sdk"
+	spdxcommon "github.com/spdx/tools-golang/spdx/v2/common"
 )
+
+// applyIngestedAssertions carries a source document's own claims onto the
+// node, so a conversion keeps what the document said (issue #396).
+//
+// Only coordinates, scope, copyright and licenses used to survive this hop,
+// so `bomly scan --sbom --format spdx` silently returned a document asserting
+// far less than its input. These are the fields ADR-0037 typed for exactly
+// that reason.
+//
+// Every value clears its own gate here. An ingested document is untrusted
+// input that Bomly re-emits under its own name: a supplier name carrying
+// control characters would corrupt SPDX's line-oriented form, a reference
+// locator can be a local path or carry credentials, and #391 leaked
+// credentials twice through URL positions its author had not considered. The
+// gates are the SDK's, so ingest cannot hold a value to a weaker standard
+// than export does.
+//
+// What is deliberately not set here is Source. It feeds
+// RegistryMatchEligible, and an ingested component must stay eligible for
+// enrichment so `bomly scan --sbom --enrich` keeps working.
+func applyIngestedAssertions(pkg *sdk.DependencyNode, component Component) {
+	if pkg == nil {
+		return
+	}
+	if component.Supplier != nil {
+		if contact, ok := component.Supplier.Normalized(); ok {
+			pkg.Supplier = &contact
+		}
+	}
+	if component.Originator != nil {
+		if contact, ok := component.Originator.Normalized(); ok {
+			pkg.Originator = &contact
+		}
+	}
+	pkg.Description = sdk.NormalizeDescription(component.Description)
+	pkg.Homepage = sdk.NormalizeHomepage(component.Homepage)
+	pkg.ExternalReferences = sdk.MergeExternalReferences(nil, component.ExternalReferences)
+	pkg.Digests = ingestedDigests(component.Digests)
+	pkg.CPEs = ingestedCPEs(component.CPEs)
+}
+
+// ingestedDigests admits the checksums a document stated, each through the
+// digest gate.
+//
+// A digest names an algorithm from a vocabulary both formats keep extending,
+// and a value whose shape that algorithm fixes; a document may state neither
+// correctly. Digest.Normalized is the gate, so the algorithm set stays the
+// SDK's -- a length check written here would go stale in the direction of
+// silently dropping a real hash, which is precisely how a transcribed digest
+// table lost CycloneDX's Streebog entries once already.
+func ingestedDigests(digests []Digest) []sdk.Digest {
+	if len(digests) == 0 {
+		return nil
+	}
+	admitted := make([]sdk.Digest, 0, len(digests))
+	seen := make(map[sdk.Digest]struct{}, len(digests))
+	for _, digest := range digests {
+		normalized, ok := sdk.Digest{
+			Algorithm: sdk.DigestAlgorithm(digest.Algorithm),
+			Value:     digest.Value,
+		}.Normalized()
+		if !ok {
+			continue
+		}
+		if _, duplicate := seen[normalized]; duplicate {
+			continue
+		}
+		seen[normalized] = struct{}{}
+		admitted = append(admitted, normalized)
+	}
+	if len(admitted) == 0 {
+		return nil
+	}
+	return admitted
+}
+
+// ingestedCPEs admits the CPEs a document stated, dropping any that is not a
+// well-formed binding. A malformed identifier published back out would be a
+// claim about a platform no source made, and a CPE decides which advisories
+// match -- a wrong one is a wrong vulnerability answer.
+//
+// The grammar is the SDK's. It is reachable only through the external-
+// reference gate, so each value is offered as a reference under both CPE
+// reference types and admitted if either accepts it: 2.2 and 2.3 are
+// genuinely different bindings, and a value is whichever one it parses as.
+// Writing the grammar here instead is the mistake #396 records being
+// retrofitted once already -- the hand-rolled CPE validator its fuzz target
+// immediately broke.
+func ingestedCPEs(values []string) []string {
+	if len(values) == 0 {
+		return nil
+	}
+	cpeTypes := []string{spdxcommon.TypeSecurityCPE23Type, spdxcommon.TypeSecurityCPE22Type}
+	admitted := make([]string, 0, len(values))
+	seen := make(map[string]struct{}, len(values))
+	for _, value := range values {
+		for _, cpeType := range cpeTypes {
+			reference, ok := sdk.ExternalReference{
+				Category: sdk.ExternalReferenceCategorySecurity,
+				Type:     cpeType,
+				Locator:  value,
+			}.Normalized()
+			if !ok {
+				continue
+			}
+			if _, duplicate := seen[reference.Locator]; duplicate {
+				break
+			}
+			seen[reference.Locator] = struct{}{}
+			admitted = append(admitted, reference.Locator)
+			break
+		}
+	}
+	if len(admitted) == 0 {
+		return nil
+	}
+	return admitted
+}
 
 // componentIdentityHint describes a component in an error, preferring the
 // package URL it stated because that is the field an author has to correct.
@@ -81,6 +200,7 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 		}
 		pkg.Scopes = sdk.ScopesOf(sdk.Scope(component.Scope))
 		pkg.Copyright = component.Copyright
+		applyIngestedAssertions(pkg, component)
 		// The document's own component ID does not survive: the node answers
 		// to the identity its coordinates mint, and idMap below is what
 		// re-points the document's relationships onto it.

@@ -153,6 +153,32 @@ type Component struct {
 	VCSURL      string
 	VCSRevision string
 
+	// What the source document asserted about this component, beyond its
+	// identity (ADR-0037, issue #396).
+	//
+	// These carry a foreign document's own claims through the graph so a
+	// conversion does not silently drop them: `bomly scan --sbom --format
+	// spdx` used to lose the supplier, description, checksums, CPEs and
+	// references its input stated, because the only things surviving the
+	// graph hop were coordinates, scope, copyright and licenses.
+	//
+	// They are SDK types rather than local structs on purpose. Each carries
+	// its own publication gate -- Contact.Normalized, ExternalReference
+	// .Normalized -- and every value crossing this boundary re-clears it,
+	// because an ingested document is untrusted input that Bomly re-emits.
+	// A local mirror of these shapes would be a second place for those rules
+	// to be forgotten, which is the defect ADR-0037 replaced.
+	Supplier    *sdk.Contact
+	Originator  *sdk.Contact
+	Description string
+	Homepage    string
+
+	// ExternalReferences are the document's own references, kept with the
+	// category and type it stated so the SPDX triple round-trips without
+	// being re-derived. Merge class: set, unioned by the reference's own
+	// identity.
+	ExternalReferences []sdk.ExternalReference
+
 	// Every place this package was resolved from, primary first.
 	//
 	// ADR-0041 folds equal-identity records into one node and keeps their

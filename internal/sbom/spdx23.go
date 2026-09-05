@@ -80,7 +80,7 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 		packages = append(packages, pkg)
 	}
 
-	relationships := make([]*v23.Relationship, 0, len(doc.Dependencies)+len(doc.Roots))
+	relationships := make([]*v23.Relationship, 0, allocHint(len(doc.Dependencies), len(doc.Roots)))
 	documentRef := common.DocElementID{ElementRefID: common.ElementID("DOCUMENT")}
 	for _, root := range doc.Roots {
 		rootID, ok := idByComponent[root]
@@ -483,6 +483,29 @@ func spdxLicenseValue(licenses []License) (string, []spdxkit.ExtractedText) {
 	return spdxkit.Compose(elements), extracted
 }
 
+// maxAllocHint bounds a preallocation hint. It is a dumb count, not a limit
+// on the work: a hint is only a hint, and append grows past it, so a
+// genuinely larger document still encodes in full.
+const maxAllocHint = 1 << 20
+
+// allocHint sizes a preallocation from two lengths that came from a decoded
+// document. Each side is clamped before the addition rather than the sum
+// checked after it, so the sum cannot wrap -- an overflowed hint reaches make
+// as a negative size, which panics.
+//
+// These lengths are attacker-influenced now: ingest carries a foreign
+// document's own assertions, so a component's reference and vulnerability
+// counts come from that document rather than from Bomly's own detection.
+//
+// Not delegated. bomly-sdk hardened the same pattern in its merges
+// (bomly-dev/bomly-sdk#53) but keeps mergeCapacity unexported, and a resource
+// bound is the project's own call rather than a rule a library owns -- the
+// delegation convention says so explicitly. The bound is kept identical to
+// the SDK's so the two do not drift into different answers for one question.
+func allocHint(a, b int) int {
+	return min(a, maxAllocHint) + min(b, maxAllocHint)
+}
+
 // spdxOtherLicenses renders the document's extracted-text section: one entry
 // per distinct reference, sorted by identifier so the document is stable.
 //
@@ -573,7 +596,7 @@ func spdxSourceInfo(component Component) string {
 }
 
 func spdxExternalReferences(component Component) []*v23.PackageExternalReference {
-	refs := make([]*v23.PackageExternalReference, 0, 1+len(component.CPEs)+len(component.Vulnerabilities))
+	refs := make([]*v23.PackageExternalReference, 0, allocHint(len(component.CPEs), len(component.Vulnerabilities))+1)
 	if purl := strings.TrimSpace(component.PURL); purl != "" {
 		refs = append(refs, &v23.PackageExternalReference{
 			Category: common.CategoryPackageManager,

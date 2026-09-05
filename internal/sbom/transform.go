@@ -72,6 +72,7 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			component.Copyright = dep.Copyright
 			component.Licenses = componentLicenses(sdk.DetectionLicenses(dep))
 			component.Digests = componentDigests(dep.Digests)
+			applyNodeAssertions(&component, dep)
 			// The project's own records never take an external origin. This
 			// guard closes the one remaining path -- a plugin-supplied graph
 			// asserting an origin directly -- and module nodes cannot reach
@@ -423,6 +424,56 @@ func applyOrigins(component *Component, origins []sdk.DependencyOrigin) {
 	component.ArtifactURL = primary.ArtifactURL
 	component.VCSURL = primary.Repository
 	component.VCSRevision = primary.Revision
+}
+
+// applyNodeAssertions copies the claims a node carries about itself onto the
+// component the document will hold (ADR-0037, issue #396).
+//
+// Every value re-clears its own gate on the way out, even though it cleared
+// one on the way in. The node is not a trusted carrier: a detector or an
+// external plugin can write these fields directly, and a value that entered
+// through a plugin never passed an ingest gate at all. Gating only at the
+// boundary that happens to be upstream is how #391's last unfixed finding
+// worked -- references restored from metadata were published without
+// re-clearing anything.
+//
+// A rejected value is dropped rather than repaired: the gates decide what is
+// publishable, and a "fixed" contact or reference would be an assertion no
+// source made.
+func applyNodeAssertions(component *Component, dep *sdk.DependencyNode) {
+	if component == nil || dep == nil {
+		return
+	}
+	if dep.Supplier != nil {
+		if contact, ok := dep.Supplier.Normalized(); ok {
+			component.Supplier = &contact
+		}
+	}
+	if dep.Originator != nil {
+		if contact, ok := dep.Originator.Normalized(); ok {
+			component.Originator = &contact
+		}
+	}
+	component.Description = sdk.NormalizeDescription(dep.Description)
+	component.Homepage = sdk.NormalizeHomepage(dep.Homepage)
+	component.ExternalReferences = publishableReferences(dep.ExternalReferences)
+	if len(dep.CPEs) > 0 && len(component.CPEs) == 0 {
+		component.CPEs = append([]string(nil), dep.CPEs...)
+	}
+}
+
+// publishableReferences returns the references that survive the SDK gate,
+// deduplicated by the reference's own identity.
+//
+// MergeExternalReferences is the union rule, so calling it with no existing
+// set both normalizes and dedupes -- the set merge class stated in ADR-0037,
+// applied through the one implementation of it rather than a second sort-and-
+// compare written here.
+func publishableReferences(refs []sdk.ExternalReference) []sdk.ExternalReference {
+	if len(refs) == 0 {
+		return nil
+	}
+	return sdk.MergeExternalReferences(nil, refs)
 }
 
 func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegistry, purl string, projectOwned bool) {

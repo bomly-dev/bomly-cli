@@ -12,6 +12,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	testutil "github.com/bomly-dev/bomly-sdk/testkit"
 	"go.uber.org/zap"
@@ -271,7 +272,7 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 	if graph == nil || graph.Size() != 1 {
 		t.Fatalf("expected one package in plugin graph, got %#v", graph)
 	}
-	if _, ok := graph.Node("example.com/runtime@v1.0.0"); !ok {
+	if _, ok := testnodes.Find(graph, "example.com/runtime@v1.0.0"); !ok {
 		t.Fatalf("expected plugin detector to receive runtime scope, got %s", graph.PrettyString())
 	}
 	if len(detectors[0].Descriptor().RemediationCapabilities) != 0 {
@@ -424,14 +425,15 @@ func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*sc
 	if req.ScopeFilter != schemav1.ScopeUnknown {
 		name = "example.com/" + string(req.ScopeFilter)
 	}
-	packageNode := schemav1.NewDependencyWithID(name + "@v1.0.0", schemav1.Dependency{
-		Coordinates: schemav1.Coordinates{
-			Ecosystem: schemav1.EcosystemGo,
-			Name:      name,
-			Version:   "v1.0.0",
-			PURL:      "pkg:golang/" + name + "@v1.0.0",
-		},
+	packageNode, err := schemav1.NewDependencyNode(schemav1.Coordinates{
+		Ecosystem: schemav1.EcosystemGo,
+		Name:      name,
+		Version:   "v1.0.0",
+		PURL:      "pkg:golang/" + name + "@v1.0.0",
 	})
+	if err != nil {
+		return nil, err
+	}
 	graph := schemav1.New()
 	if err := graph.AddNode(packageNode); err != nil {
 		return nil, err

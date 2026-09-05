@@ -6,6 +6,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
@@ -84,7 +85,7 @@ func newScanTestGraph(t *testing.T) (*sdk.Graph, *sdk.PackageRegistry) {
 		{id: "zod@3.23.0", name: "zod", version: "3.23.0", purl: "pkg:npm/zod@3.23.0", scope: sdk.ScopeDevelopment, license: "Apache-2.0"},
 		{id: "loose-envify@1.4.0", name: "loose-envify", version: "1.4.0", purl: "pkg:npm/loose-envify@1.4.0", scope: sdk.ScopeRuntime},
 	} {
-		dep := sdk.NewDependencyWithID(f.id, sdk.Dependency{Coordinates: sdk.Coordinates{Name: f.name,
+		dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: f.name,
 			Version: f.version,
 			PURL:    f.purl}, Scopes: sdk.ScopesOf(f.scope),
 		})
@@ -106,7 +107,7 @@ func newScanTestGraph(t *testing.T) (*sdk.Graph, *sdk.PackageRegistry) {
 		{"app@1.0.0", "zod@3.23.0"},
 		{"react@18.2.0", "loose-envify@1.4.0"},
 	} {
-		if err := g.AddEdge(edge[0], edge[1]); err != nil {
+		if err := g.AddEdge(testnodes.ID(g, edge[0]), testnodes.ID(g, edge[1])); err != nil {
 			t.Fatalf("add dependency %v: %v", edge, err)
 		}
 	}
@@ -172,19 +173,63 @@ func TestRenderScanReportMergedNodeUsesPackageName(t *testing.T) {
 
 func TestRenderScanReportTopLevelDepsCoverAllModules(t *testing.T) {
 	g := sdk.New()
-	parent := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "parent", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	web := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "web", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	core := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "core", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	coreDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "commons-lang3", Version: "3.12.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
-	webDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "jackson-databind", Version: "2.13.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
-	for _, pkg := range []*sdk.Dependency{parent, web, core, coreDep, webDep} {
+	parent := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "parent", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	web := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "web", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	core := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "core", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	coreDep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "commons-lang3", Version: "3.12.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	webDep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "jackson-databind", Version: "2.13.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	for _, pkg := range []*sdk.DependencyNode{parent, web, core, coreDep, webDep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add node: %v", err)
 		}
 	}
 	// web -> core makes core a non-root module; its direct dep must still be
 	// listed as top-level.
-	for _, edge := range [][2]string{{web.ID, core.ID}, {web.ID, webDep.ID}, {core.ID, coreDep.ID}} {
+	for _, edge := range [][2]string{{web.NodeID(), core.NodeID()}, {web.NodeID(), webDep.NodeID()}, {core.NodeID(), coreDep.NodeID()}} {
+		if err := g.AddEdge(edge[0], edge[1]); err != nil {
+			t.Fatalf("add edge: %v", err)
+		}
+	}
+	report := render.StripANSI(render.Scan(g, sdk.NewPackageRegistry(), nil, nil, false, false, false, nil, nil, nil))
+	for _, want := range []string{"commons-lang3", "jackson-databind"} {
+		if !strings.Contains(report, want) {
+			t.Fatalf("expected %q in top-level dependencies, got:\n%s", want, report)
+		}
+	}
+}
+
+// The same case with real module nodes, which is what a workspace member or
+// reactor module actually is after ADR-0041.
+//
+// The test above builds its "modules" as application-typed dependency nodes,
+// so it kept passing while the module path was broken: a module that another
+// module depends on is not a graph root and is not a dependency node either,
+// so it fell out of the top-level parents entirely and its own direct
+// dependencies were reported as transitive.
+func TestRenderScanReportTopLevelDepsCoverNonRootModuleNodes(t *testing.T) {
+	g := sdk.New()
+	web := testnodes.Module("web/pom.xml", "web", "1.0.0")
+	core := testnodes.Module("core/pom.xml", "core", "1.0.0")
+	coreDep := testnodes.DepFrom(sdk.DependencyNode{
+		Coordinates: sdk.Coordinates{Name: "commons-lang3", Version: "3.12.0"},
+		Scopes:      sdk.ScopesOf(sdk.ScopeRuntime),
+	})
+	webDep := testnodes.DepFrom(sdk.DependencyNode{
+		Coordinates: sdk.Coordinates{Name: "jackson-databind", Version: "2.13.0"},
+		Scopes:      sdk.ScopesOf(sdk.ScopeRuntime),
+	})
+	for _, node := range []sdk.GraphNode{web, core, coreDep, webDep} {
+		if err := g.AddNode(node); err != nil {
+			t.Fatalf("add node: %v", err)
+		}
+	}
+	// web -> core makes core a non-root module; its direct dependency must
+	// still be listed as top-level.
+	for _, edge := range [][2]string{
+		{web.NodeID(), core.NodeID()},
+		{web.NodeID(), webDep.NodeID()},
+		{core.NodeID(), coreDep.NodeID()},
+	} {
 		if err := g.AddEdge(edge[0], edge[1]); err != nil {
 			t.Fatalf("add edge: %v", err)
 		}

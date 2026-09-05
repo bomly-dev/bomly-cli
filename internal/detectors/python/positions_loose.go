@@ -295,7 +295,7 @@ func attachLoosePythonPositions(g *sdk.Graph, projectPath string) {
 	if len(merged) == 0 {
 		return
 	}
-	for _, pkg := range g.Nodes() {
+	for _, pkg := range g.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}

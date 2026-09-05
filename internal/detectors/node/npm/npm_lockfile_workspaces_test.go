@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 func workspacesFixtureDir(t *testing.T) string {
@@ -47,11 +48,11 @@ func TestNPMLockfileWorkspacesEmitsPerModuleEntries(t *testing.T) {
 	// The web member reaches its own deps, the lib member (a workspace link
 	// dependency), and lib's transitive dep — but never the root's lodash.
 	for _, want := range []string{"web@0.2.0", "lib@1.0.0", "shared-transitive@2.0.0", "member-dev-tool@3.1.0"} {
-		if _, ok := web.Graph.Node(want); !ok {
+		if _, ok := testnodes.Find(web.Graph, want); !ok {
 			t.Fatalf("expected %q in web member graph, nodes missing", want)
 		}
 	}
-	if _, ok := web.Graph.Node("lodash@4.17.21"); ok {
+	if _, ok := testnodes.Find(web.Graph, "lodash@4.17.21"); ok {
 		t.Fatal("web member graph must not contain the root-only dependency lodash")
 	}
 
@@ -62,10 +63,10 @@ func TestNPMLockfileWorkspacesEmitsPerModuleEntries(t *testing.T) {
 
 	// The root entry carries the root node and its own deps only.
 	root := entries[0]
-	if _, ok := root.Graph.Node("lodash@4.17.21"); !ok {
+	if _, ok := testnodes.Find(root.Graph, "lodash@4.17.21"); !ok {
 		t.Fatal("expected lodash in root entry graph")
 	}
-	if _, ok := root.Graph.Node("web@0.2.0"); ok {
+	if _, ok := testnodes.Find(root.Graph, "web@0.2.0"); ok {
 		t.Fatal("root entry graph must not contain workspace members")
 	}
 }
@@ -77,29 +78,34 @@ func TestNPMLockfileWorkspaceLinkEntriesDoNotDuplicateNodes(t *testing.T) {
 	}
 	// The link alias node_modules/lib must resolve to the member node, not a
 	// synthetic versionless "lib" package.
-	if _, ok := graphs.graph.Node("lib"); ok {
-		t.Fatal("unexpected versionless link ghost node for lib")
+	for _, node := range graphs.graph.Nodes() {
+		name, version := sdk.NodeDisplayName(node), sdk.NodeVersion(node)
+		if name == "lib" && version == "" {
+			t.Fatalf("unexpected versionless link ghost node for lib: %s", node.NodeID())
+		}
 	}
-	member, ok := graphs.graph.Node("lib@1.0.0")
+	member, ok := testnodes.Find(graphs.graph, "lib@1.0.0")
 	if !ok {
 		t.Fatal("expected lib member node")
 	}
-	if member.Type != sdk.PackageTypeApplication {
-		t.Fatalf("expected member node to be an application, got %q", member.Type)
+	// A workspace member is the project's own code, so it is a module node:
+	// ownership is the kind now, not the application package type (ADR-0041).
+	if !sdk.IsProjectOwned(member) {
+		t.Fatalf("expected the member to be the project's own module, got a %s node", member.Kind())
 	}
 	// web depends on lib via the workspace link; the edge must target the member.
-	deps, err := graphs.graph.DirectDependencies("web@0.2.0")
+	deps, err := graphs.graph.DirectDependencies(testnodes.ID(graphs.graph, "web@0.2.0"))
 	if err != nil {
 		t.Fatalf("DirectDependencies(web) error = %v", err)
 	}
 	found := false
 	for _, dep := range deps {
-		if dep.ID == "lib@1.0.0" {
+		if testnodes.Is(dep, "lib@1.0.0") {
 			found = true
 		}
 	}
 	if !found {
-		t.Fatalf("expected web -> lib@1.0.0 edge, got %v", depIDs(deps))
+		t.Fatalf("expected web -> lib@1.0.0 edge, got %v", depIDs(sdk.DependencyNodesOf(deps)))
 	}
 }
 
@@ -108,7 +114,7 @@ func TestNPMLockfileWorkspaceMemberDevDependenciesScoped(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromNPMLockfile() error = %v", err)
 	}
-	devDep, ok := graphs.graph.Node("member-dev-tool@3.1.0")
+	devDep, ok := testnodes.FindDep(graphs.graph, "member-dev-tool@3.1.0")
 	if !ok {
 		t.Fatal("expected member devDependency in graph")
 	}
@@ -146,10 +152,10 @@ func keysOf(m map[string]sdk.GraphEntry) []string {
 	return keys
 }
 
-func depIDs(deps []*sdk.Dependency) []string {
+func depIDs(deps []*sdk.DependencyNode) []string {
 	ids := make([]string, 0, len(deps))
 	for _, dep := range deps {
-		ids = append(ids, dep.ID)
+		ids = append(ids, dep.NodeID())
 	}
 	return ids
 }

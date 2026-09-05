@@ -89,7 +89,7 @@ func (d PoetryDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("poetry detector: resolve project environment graph: %w", err)
 	}
-	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir, pythonRootName(req, workingDir))
+	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir, sdk.PackageManagerPoetry, pythonRootName(req, workingDir))
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("poetry detector: filter tool packages: %w", err)
 	}
@@ -112,6 +112,7 @@ func (d PoetryDetector) base() baseDetector {
 	return baseDetector{
 		Logger:     d.Logger,
 		WorkingDir: d.WorkingDir,
+		Manager:    sdk.PackageManagerPoetry,
 	}
 }
 

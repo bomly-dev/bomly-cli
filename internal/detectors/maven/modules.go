@@ -117,12 +117,14 @@ func (m mavenModule) moduleKey() string {
 	return m.GroupID + ":" + m.ArtifactID
 }
 
-// graphNodeModuleKey derives the groupId:artifactId key for a graph node,
-// stripping the ":classifier" suffix depGraphFromMavenTGF appends to names.
-func graphNodeModuleKey(pkg *sdk.Dependency) string {
-	name := pkg.Name
+// mavenCoordinatesModuleKey derives the groupId:artifactId key for a node's
+// coordinates, stripping the ":classifier" suffix depGraphFromMavenTGF appends
+// to names. It takes coordinates rather than a dependency node because a
+// reactor module may already be a module node by the time it is matched.
+func mavenCoordinatesModuleKey(coords sdk.Coordinates) string {
+	name := coords.Name
 	if idx := strings.Index(name, ":"); idx >= 0 {
 		name = name[:idx]
 	}
-	return pkg.Org + ":" + name
+	return coords.Org + ":" + name
 }

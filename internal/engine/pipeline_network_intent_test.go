@@ -5,6 +5,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
@@ -99,7 +100,7 @@ func TestPipelineRequiresExplicitMatcherIntent(t *testing.T) {
 func networkIntentDetector(t *testing.T) fakeDetector {
 	t.Helper()
 	graph := sdk.New()
-	dependency := sdk.NewDependencyWithID("lodash@4.17.21", sdk.Dependency{
+	dependency := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			Ecosystem:      sdk.EcosystemNPM,
 			PackageManager: sdk.PackageManagerNPM,

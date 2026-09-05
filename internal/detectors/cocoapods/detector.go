@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
@@ -112,29 +112,41 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 		return nil, fmt.Errorf("podfile.lock does not contain any pods")
 	}
 	g := sdk.New()
-	root := rootNode()
+	root, err := rootNode()
+	if err != nil {
+		return nil, err
+	}
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 	for _, name := range sortedPodNames(specs) {
 		spec := specs[name]
-		node := packageNode(spec.Name, spec.Version, lock.Checksums[rootPodName(spec.Name)])
+		node, err := packageNode(spec.Name, spec.Version, lock.Checksums[rootPodName(spec.Name)])
+		if err != nil {
+			return nil, err
+		}
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
 		}
 	}
 	for _, name := range sortedPodNames(specs) {
 		spec := specs[name]
-		parent := packageNode(spec.Name, spec.Version, lock.Checksums[rootPodName(spec.Name)])
+		parent, err := packageNode(spec.Name, spec.Version, lock.Checksums[rootPodName(spec.Name)])
+		if err != nil {
+			return nil, err
+		}
 		for _, depRef := range spec.Dependencies {
 			depName, _ := parsePodRef(depRef)
 			childSpec, ok := findPodSpec(specs, depName)
 			if !ok {
 				continue
 			}
-			child := packageNode(childSpec.Name, childSpec.Version, lock.Checksums[rootPodName(childSpec.Name)])
-			if err := g.AddEdge(parent.ID, child.ID); err != nil {
-				return nil, fmt.Errorf("add CocoaPods dependency %q -> %q: %w", parent.ID, child.ID, err)
+			child, err := packageNode(childSpec.Name, childSpec.Version, lock.Checksums[rootPodName(childSpec.Name)])
+			if err != nil {
+				return nil, err
+			}
+			if err := g.AddEdge(parent.NodeID(), child.NodeID()); err != nil {
+				return nil, fmt.Errorf("add CocoaPods dependency %q -> %q: %w", parent.NodeID(), child.NodeID(), err)
 			}
 		}
 	}
@@ -143,22 +155,28 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 		if !ok {
 			continue
 		}
-		node := packageNode(spec.Name, spec.Version, lock.Checksums[rootPodName(spec.Name)])
+		node, err := packageNode(spec.Name, spec.Version, lock.Checksums[rootPodName(spec.Name)])
+		if err != nil {
+			return nil, err
+		}
 		scope := sdk.ScopeRuntime
 		if testPods[rootPodName(dep)] {
 			scope = sdk.ScopeDevelopment
 		}
-		if existing, ok := g.Node(node.ID); ok {
-			existing.AddScope(scope)
+		if existingNode, ok := g.Node(node.NodeID()); ok {
+			if existing, isDep := sdk.AsDependencyNode(existingNode); isDep {
+				existing.AddScope(scope)
+			}
 		}
-		if err := g.AddEdge(root.ID, node.ID); err != nil {
-			return nil, fmt.Errorf("add CocoaPods root dependency %q: %w", node.ID, err)
+		if err := g.AddEdge(root.NodeID(), node.NodeID()); err != nil {
+			return nil, fmt.Errorf("add CocoaPods root dependency %q: %w", node.NodeID(), err)
 		}
 	}
 	// BFS scope propagation: runtime always beats development.
-	directDeps, _ := g.DirectDependencies(root.ID)
+	directDepNodes, _ := g.DirectDependencies(root.NodeID())
+	directDeps := sdk.DependencyNodesOf(directDepNodes)
 	propagated := make(map[string]sdk.Scope, g.Size())
-	queue := make([]*sdk.Dependency, 0, len(directDeps))
+	queue := make([]*sdk.DependencyNode, 0, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
@@ -167,37 +185,38 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 		if scope == sdk.ScopeUnknown {
 			scope = sdk.ScopeRuntime
 		}
-		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
-		dep.AddScope(propagated[dep.ID])
+		propagated[dep.NodeID()] = sdk.MergeScope(propagated[dep.NodeID()], scope)
+		dep.AddScope(propagated[dep.NodeID()])
 		queue = append(queue, dep)
 	}
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
-		scope := propagated[current.ID]
+		scope := propagated[current.NodeID()]
 		if scope == sdk.ScopeUnknown {
 			continue
 		}
-		children, err := g.DirectDependencies(current.ID)
+		childNodes, err := g.DirectDependencies(current.NodeID())
 		if err != nil {
 			continue
 		}
+		children := sdk.DependencyNodesOf(childNodes)
 		for _, child := range children {
-			if child == nil || child.ID == root.ID {
+			if child == nil || child.NodeID() == root.NodeID() {
 				continue
 			}
-			next := sdk.MergeScope(propagated[child.ID], scope)
-			if next == propagated[child.ID] && child.PrimaryScope() == next {
+			next := sdk.MergeScope(propagated[child.NodeID()], scope)
+			if next == propagated[child.NodeID()] && child.PrimaryScope() == next {
 				continue
 			}
-			propagated[child.ID] = next
+			propagated[child.NodeID()] = next
 			child.AddScope(next)
 			queue = append(queue, child)
 		}
 	}
 	// Any pods still without scope default to runtime.
-	for _, pkg := range g.Nodes() {
-		if pkg != nil && pkg.ID != root.ID && pkg.PrimaryScope() == sdk.ScopeUnknown {
+	for _, pkg := range g.DependencyNodes() {
+		if pkg != nil && pkg.NodeID() != root.NodeID() && pkg.PrimaryScope() == sdk.ScopeUnknown {
 			pkg.AddScope(sdk.ScopeRuntime)
 		}
 	}
@@ -313,31 +332,35 @@ func rootDependencies(values []string) []string {
 	return roots
 }
 
-func rootNode() *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemSwift,
+// rootNode is the scanned project's own artifact, so it is a module node:
+// ADR-0041 made ownership the node kind rather than a FirstParty flag.
+func rootNode() (*sdk.ModuleNode, error) {
+	return sdk.NewModuleNode("Podfile", sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemSwift,
 		Name:           "root",
 		PackageManager: sdk.PackageManagerCocoaPods,
 		Type:           sdk.PackageTypeApplication,
-		FirstParty:     true,
-		Language:       "swift"},
+		Language:       "swift",
 	})
-
 }
 
-func packageNode(name, version, checksum string) *sdk.Dependency { //nolint:unparam
-	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemSwift,
+func packageNode(name, version, checksum string) (*sdk.DependencyNode, error) {
+	node, err := sdk.NewDependencyNode(sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemSwift,
 		Name:           name,
 		Version:        strings.TrimSpace(version),
 		PackageManager: sdk.PackageManagerCocoaPods,
 		Type:           "pod",
 		Language:       "swift",
-		PURL:           sdk.BuildPackageURL("cocoapods", "", name, version)},
+		PURL:           sdk.BuildPackageURL("cocoapods", "", name, version),
 	})
-
+	if err != nil {
+		return nil, fmt.Errorf("build pod node %q: %w", name, err)
+	}
 	if strings.TrimSpace(checksum) != "" {
 		node.Digests = append(node.Digests, sdk.Digest{Algorithm: "podspec-checksum", Value: strings.TrimSpace(checksum)})
 	}
-	return node
+	return node, nil
 }
 
 func findPodSpec(specs map[string]podSpec, name string) (podSpec, bool) {
@@ -370,7 +393,7 @@ func sortedPodNames(specs map[string]podSpec) []string {
 	return values
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
-	_, err := detectors.EnsureNode(g, node)
+func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
+	_, err := detectorkit.EnsureNode(g, node)
 	return err
 }

@@ -92,26 +92,27 @@ func matcherRan(name string, statSets ...[]sdk.MatcherStats) bool {
 	return false
 }
 
-func explainPackageRef(pkg *sdk.Dependency, registry *sdk.PackageRegistry) output.ExplainDependency {
+func explainPackageRef(pkg *sdk.DependencyNode, registry *sdk.PackageRegistry) output.ExplainDependency {
 	ref := output.PackageFromDependencyAndRegistry(pkg, registry)
 	if pkg == nil {
 		return output.ExplainDependency{PackageRef: ref}
 	}
 	result := output.ExplainDependency{PackageRef: ref}
-	if registry != nil && pkg.PURL != "" {
-		if matched, ok := registry.Get(pkg.PURL); ok && matched != nil {
+	if registry != nil && pkg.NodeID() != "" {
+		if matched, ok := registry.Get(pkg.NodeID()); ok && matched != nil {
 			result.Remediation = matched.Remediation.Clone()
 			if result.Remediation != nil {
 				result.Remediation.Suggestions = remediationSuggestionsForDependency(
 					result.Remediation.Suggestions,
-					pkg.ID,
+					pkg.NodeID(),
 				)
 			}
 		}
 	}
-	if legacyID := pkg.StableID(); legacyID != "" {
-		result.ID = legacyID
-	}
+	// The published ID is the node's identity: a canonical package URL. The
+	// separate "stable ID" this used to emit was the pre-ADR-0041 identity
+	// machinery, minted alongside the node ID and free to disagree with it.
+	result.ID = pkg.NodeID()
 	return result
 }
 
@@ -134,14 +135,22 @@ func remediationSuggestionsForDependency(
 	return filtered
 }
 
-func explainPathsWithStableIDs(paths []output.DependencyPath) []output.DependencyPath {
+// explainPathsWithLinks fills in the cross-references a path carries -- which
+// package introduced it, and which member a cycle returns to -- naming them by
+// the IDs the packages already have.
+//
+// It used to rewrite every path package's ID to "name@version" as well. That
+// was the pre-ADR-0041 identity, and keeping it here while the focused
+// dependency published its node ID left the document unable to join to itself:
+// "dependency.id" read "pkg:npm/lodash@4.17.21" and the same node under
+// "paths[].packages[]" read "lodash@4.17.21", so no consumer could match a
+// path entry to a dependency, package, or finding record. The short form also
+// collides across ecosystems, where the canonical package URL does not.
+func explainPathsWithLinks(paths []output.DependencyPath) []output.DependencyPath {
 	out := make([]output.DependencyPath, len(paths))
 	for i, path := range paths {
 		out[i] = path
-		out[i].Packages = make([]output.PackageRef, len(path.Packages))
-		for j, ref := range path.Packages {
-			out[i].Packages[j] = explainPackageRefFromOutput(ref)
-		}
+		out[i].Packages = append([]output.PackageRef(nil), path.Packages...)
 		if len(out[i].Packages) > 0 {
 			out[i].IntroducedVia = out[i].Packages[0].ID
 		}
@@ -155,11 +164,4 @@ func explainPathsWithStableIDs(paths []output.DependencyPath) []output.Dependenc
 		}
 	}
 	return out
-}
-
-func explainPackageRefFromOutput(ref output.PackageRef) output.PackageRef {
-	if ref.Name != "" && ref.Version != "" {
-		ref.ID = ref.Name + "@" + ref.Version
-	}
-	return ref
 }

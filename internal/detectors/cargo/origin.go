@@ -11,13 +11,17 @@ import (
 // Cargo writes one source string per package: "registry+"/"sparse+" name an
 // index root rather than this crate's location, path and workspace members
 // carry no source at all, and only "git+" identifies where the code came from.
-func setCargoOrigin(node *sdk.Dependency, source string) {
+func setCargoOrigin(node *sdk.DependencyNode, source string) {
 	trimmed := strings.TrimSpace(source)
 	if !strings.HasPrefix(trimmed, "git+") {
 		return
 	}
 	repository := strings.TrimPrefix(trimmed, "git+")
-	node.Origin = sdk.RepositoryOrigin(repository, cargoSourceRevision(repository))
+	// Origins is a list now (ADR-0041): a node folds every source it was
+	// resolved from rather than holding one, and MergeOrigins is the door in.
+	if origin := sdk.RepositoryOrigin(repository, cargoSourceRevision(repository)); origin != nil {
+		node.Origins = sdk.MergeOrigins(node.Origins, []sdk.DependencyOrigin{*origin})
+	}
 }
 
 // cargoSourceRevision returns the revision cargo locked. The URL fragment holds

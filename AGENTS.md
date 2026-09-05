@@ -17,6 +17,8 @@ make build-lite          # go build -tags "bomly_external_syft,bomly_external_gr
 make test                # go test ./...
 make smoke               # end-to-end tests driving the built binary (slow, requires network)
 make smoke ARGS="-update" # regenerate smoke golden files
+make verify              # everything that gates a push; writes .verify-stamp
+make verify SMOKE=1      # the same, including the network-driven smoke suite
 make fuzz FUZZTIME=5s    # run every registered fuzz target with a short per-target budget
 make benchmark           # run the hidden local dependency-graph benchmark
 make benchmark-report    # analyze local benchmark artifacts with Copilot CLI
@@ -25,7 +27,16 @@ make run ARGS="scan"    # go run ./cmd/bomly <ARGS>
 make generate            # regenerate config reference, JSON schemas, schema docs, support matrix, and component docs (binary-driven)
 ```
 
-Always run `make test` after changes. All tests must pass before marking work is done.
+Always run `make verify` before pushing or updating a pull request; it runs formatting, lint, vet and build on both build variants, the unit suite, and the generated-docs drift check. All of it must pass before marking work done.
+`.githooks/pre-push` refuses a push unless `make verify` has passed since the
+last source change (`git config core.hooksPath .githooks`, or `make
+install-hooks`, enables it). The check is a stamp read, not a test run: a
+six-minute hook gets bypassed, and a bypassed hook enforces nothing. Smoke is
+not required by default because it needs the network and several minutes --
+run `make verify SMOKE=1` when a change touches detector output, and set
+`BOMLY_REQUIRE_SMOKE=1` to make the hook insist on it. `git push --no-verify`
+skips the gate deliberately.
+
 If you change `internal/cli/config.go`, `internal/output/*`, or `internal/registry/support.go`, or bump the pinned `bomly-dev/bomly-sdk` version (its catalog or support-matrix data feeds the generated docs), also run `make generate` and commit the docs drift.
 
 `go.mod` pins released versions and must not contain `replace` directives on main (CI enforces this), so remote `go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest` stays supported. External component modules (`bomly-plugin-*`) are ordinary pinned dependencies bumped by Dependabot. Local cross-repo development: `go work init . ../bomly-sdk` (never commit `go.work`).
@@ -51,6 +62,8 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 | `internal/detectors/*` | Concrete native dependency resolution per ecosystem (gomod, gradle, maven, node, python, sbom); the Syft catch-all detector lives in `bomly-plugin-syft-detector` |
 | `bomly-plugin-*` (external modules) | External-integration components consumed as pinned Go modules: enrichment matchers (osv, grype, deps.dev license, scorecard), reachability analyzers (govulncheck, jsreach, pyreach, jvmreach), and the Syft detector; ClearlyDefined and eol run as external matcher plugins; the shared cache lives in `bomly-sdk/filecache` |
 | `internal/auditors/*`  | Policy evaluators and audit-only logic (policy, noop)                                             |
+| `internal/graphview`   | Reads a graph for presentation and publication: a node's published package URL, the children a document can name, top-level parents |
+| `internal/testnodes`   | Test-only fixture builders for graph nodes (panic on an unbuildable fixture); label lookups delegate to `bomly-sdk/testkit` |
 | `internal/baseline`    | Portable package-finding baseline codec and audit-integrated policy-status resolver               |
 | `internal/remediation` | Canonical vulnerability fix status, version, detector-hint validation, and occurrence suggestions |
 | `internal/sbom`        | SBOM codec (SPDX 2.3, CycloneDX)                                                                  |
@@ -93,6 +106,9 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - Built-in reachability analyzers live in their own `bomly-plugin-*-analyzer` repositories, consumed as pinned Go modules. They depend only on the SDK and its helper subpackages (`system`, `filecache`, `logkit`) and must not import any `internal/*` package.
 - `internal/detectors` owns detector-facing contracts such as `Detector`, `DetectorDescriptor`, `ResolveGraphRequest`, and detector helper functions.
 - The SDK owns neutral shared identifiers and support metadata that would otherwise create package cycles, including ecosystems, package managers, detector types, and support-matrix data.
+- Reading a node of any kind -- coordinates, display name, version, narrowing over the sealed union -- is the SDK's: `sdk.NodeCoordinates`, `sdk.NodeDisplayName`, `sdk.NodeVersion`, `sdk.AsDependencyNode`, `sdk.DependencyNodesOf`, `sdk.IsProjectOwned`. Building or mutating a detector graph is `bomly-sdk/detectorkit`: `EnsureNode`, `PromoteToModule`, `PropagateScopes`. Do not reintroduce a CLI-local copy of either — both were CLI stopgaps until bomly-sdk v0.9.0 and were deleted when it shipped.
+- `internal/graphview` owns the three questions every renderer and exporter asks of a node: what package URL it publishes, which of its children a document can actually name (structural nodes are stepped through, never named), and which nodes count as top-level parents. It is a leaf -- SDK only -- so the SBOM codec, the renderers, and the TUI all reach it without depending on each other. A copy per surface is what this replaces, and every one of those copies had shipped a defect the others had already fixed.
+- `internal/testnodes` is test-only: it routes fixture shapes through the real node constructors, panicking rather than taking a `testing.TB` so a table entry stays one expression. Label lookups ("name@version" to the canonical package URLs node IDs now are) delegate to `bomly-sdk/testkit` — the matching rules have one home, not two. Non-test code must not import it.
 - `internal/baseline` owns the baseline document and matching implementation. It depends on the SDK policy contracts and must not be imported by `internal/engine`.
 - `internal/remediation` owns canonical vulnerability remediation decisions. Detectors may supply validated read-only strategy hints, but they do not choose final actions or versions.
 - `internal/licenseexpr` owns all SPDX license expression parsing. The underlying parser panics on some malformed input, and license strings come from untrusted lockfiles and registry APIs, so no other package under `internal/` may import `github.com/github/go-spdx` directly; `TestNoDirectSPDXExpressionUse` enforces this.
@@ -124,7 +140,7 @@ In practice:
   second says the rule has no home. Give it one — a named helper, a shared
   entry point, or an invariant enforced where the data is created — and route
   every site through it.
-- **Name the concept, not the mechanics.** `detectors.EnsureNode(g, node)`
+- **Name the concept, not the mechanics.** `detectorkit.EnsureNode(g, node)`
   says what the caller is doing — insert or return the existing node; a
   hand-written lookup-then-insert at each site says only what to type, and
   each copy decides duplicate handling differently.

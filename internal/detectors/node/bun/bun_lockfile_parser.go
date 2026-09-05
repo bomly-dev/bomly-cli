@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
 )
 
@@ -88,13 +89,16 @@ func depGraphFromBunLockfile(projectPath string) (bunLockfileGraphs, error) {
 		}
 	}
 	graph := sdk.New()
-	root := bunApplicationNode(rootWorkspace.Name, rootWorkspace.Version, sdk.DependencySourceProject, "")
+	root, err := bunApplicationNode("package.json", rootWorkspace.Name, rootWorkspace.Version)
+	if err != nil {
+		return bunLockfileGraphs{}, err
+	}
 	if err := graph.AddNode(root); err != nil {
 		return bunLockfileGraphs{}, fmt.Errorf("add Bun root node: %w", err)
 	}
 
-	workspaceByDir := map[string]string{"": root.ID, ".": root.ID}
-	workspaceByName := map[string]string{rootWorkspace.Name: root.ID}
+	workspaceByDir := map[string]string{"": root.NodeID(), ".": root.NodeID()}
+	workspaceByName := map[string]string{rootWorkspace.Name: root.NodeID()}
 	modules := make([]bunModuleGraph, 0, len(lockfile.Workspaces))
 	workspaceDirs := sortedWorkspaceKeys(lockfile.Workspaces)
 	for _, dir := range workspaceDirs {
@@ -107,12 +111,15 @@ func depGraphFromBunLockfile(projectPath string) (bunLockfileGraphs, error) {
 		if name == "" {
 			name = filepath.Base(cleanDir)
 		}
-		member := bunApplicationNode(name, workspace.Version, sdk.DependencySourceWorkspace, "workspace:"+cleanDir)
+		member, err := bunApplicationNode(path.Join(cleanDir, "package.json"), name, workspace.Version)
+		if err != nil {
+			return bunLockfileGraphs{}, err
+		}
 		if err := node.AddNodeIfMissing(graph, member); err != nil {
 			return bunLockfileGraphs{}, err
 		}
-		workspaceByDir[cleanDir], workspaceByName[name] = member.ID, member.ID
-		modules = append(modules, bunModuleGraph{dir: cleanDir, rootID: member.ID})
+		workspaceByDir[cleanDir], workspaceByName[name] = member.NodeID(), member.NodeID()
+		modules = append(modules, bunModuleGraph{dir: cleanDir, rootID: member.NodeID()})
 	}
 
 	entries := make([]bunPackageEntry, 0, len(lockfile.Packages))
@@ -136,18 +143,23 @@ func depGraphFromBunLockfile(projectPath string) (bunLockfileGraphs, error) {
 				continue
 			}
 		}
-		dep := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerBun, Name: entry.name, Version: entry.version}, Source: entry.source, ResolvedURL: entry.resolved, Digests: node.ParseIntegrityDigests(entry.integrity)}
-		pkgNode := sdk.NewDependency(dep)
-		if _, exists := graph.Node(pkgNode.ID); exists {
-			pkgNode = sdk.NewDependencyWithID("bun-package:"+key, dep)
+		dep := sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerBun, Name: entry.name, Version: entry.version}, Source: entry.source, ResolvedURL: entry.resolved, Digests: node.ParseIntegrityDigests(entry.integrity)}
+		// One identity is one node: a collision folds through the shared
+		// helper rather than minting a second ID for the same package,
+		// which is the occurrence machinery ADR-0041 removed.
+		pkgNode, err := sdk.NewDependencyNodeFrom(dep)
+		if err != nil {
+			return bunLockfileGraphs{}, err
 		}
 		// Bun's tuple carries the registry tarball it fetched. Workspace
 		// members and git specs resolve to values the invariant rejects.
-		pkgNode.Origin = sdk.ArtifactOrigin(entry.resolved)
+		if origin := sdk.ArtifactOrigin(entry.resolved); origin != nil {
+			pkgNode.Origins = sdk.MergeOrigins(pkgNode.Origins, []sdk.DependencyOrigin{*origin})
+		}
 		if err := node.AddNodeIfMissing(graph, pkgNode); err != nil {
 			return bunLockfileGraphs{}, err
 		}
-		entry.nodeID = pkgNode.ID
+		entry.nodeID = pkgNode.NodeID()
 		idx := len(entries)
 		entries = append(entries, entry)
 		byKey[key] = idx
@@ -199,7 +211,7 @@ func depGraphFromBunLockfile(projectPath string) (bunLockfileGraphs, error) {
 		node.ApplyDirectDependencyScopes(graph, parentID, bunWorkspaceScopes(workspace))
 	}
 
-	return bunLockfileGraphs{graph: graph, rootID: root.ID, modules: modules}, nil
+	return bunLockfileGraphs{graph: graph, rootID: root.NodeID(), modules: modules}, nil
 }
 
 func parseBunPackageEntry(key string, raw json.RawMessage) (bunPackageEntry, error) {
@@ -244,12 +256,23 @@ func splitBunIdentity(value string) (string, string) {
 	return value[:idx], node.NormalizeVersionToken(value[idx+1:])
 }
 
-func bunApplicationNode(name, version string, source sdk.DependencySource, forcedID string) *sdk.Dependency {
-	dep := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerBun, Name: name, Version: version, Type: sdk.PackageTypeApplication}, Source: source}
-	if forcedID != "" {
-		return sdk.NewDependencyWithID(forcedID, dep)
+// bunApplicationNode builds the node for the project's own code -- the root
+// workspace or one of its members. Both are modules: ownership is the node
+// kind now, and a forced "workspace:<dir>" ID is no longer needed to keep a
+// member distinct, because the module ID carries the declaring path
+// (ADR-0041).
+func bunApplicationNode(manifestPath, name, version string) (*sdk.ModuleNode, error) {
+	moduleNode, err := sdk.NewModuleNode(manifestPath, sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemNPM,
+		PackageManager: sdk.PackageManagerBun,
+		Name:           name,
+		Version:        version,
+		Type:           sdk.PackageTypeApplication,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("build Bun module node %q: %w", name, err)
 	}
-	return sdk.NewDependency(dep)
+	return moduleNode, nil
 }
 
 func resolveBunDependency(entries []bunPackageEntry, byKey map[string]int, byName map[string][]int, workspaces map[string]string, name, requested string) (string, bool) {
@@ -311,12 +334,15 @@ func bunAliasTarget(name, requested string) (string, string) {
 
 func addSyntheticBunDependency(graph *sdk.Graph, name, requested string) (string, error) {
 	actualName, version := bunAliasTarget(name, requested)
-	dep := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerBun, Name: actualName, Version: node.NormalizeVersionToken(version)}, Source: node.DependencySourceFromSpecifier(requested)}
-	synthetic := sdk.NewDependency(dep)
+	dep := sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerBun, Name: actualName, Version: node.NormalizeVersionToken(version)}, Source: node.DependencySourceFromSpecifier(requested)}
+	synthetic, err := sdk.NewDependencyNodeFrom(dep)
+	if err != nil {
+		return "", fmt.Errorf("build dependency node: %w", err)
+	}
 	if err := node.AddNodeIfMissing(graph, synthetic); err != nil {
 		return "", err
 	}
-	return synthetic.ID, nil
+	return synthetic.NodeID(), nil
 }
 
 func mergeBunDependencyMaps(maps ...map[string]string) map[string]string {

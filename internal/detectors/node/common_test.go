@@ -11,6 +11,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -30,21 +31,21 @@ func TestAnnotateScopesFromPackageJSON(t *testing.T) {
 	}
 
 	depsGraph := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"}})
-	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
-	scheduler := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "scheduler", Version: "0.23.0"}})
-	vitest := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"}})
-	chai := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "chai", Version: "5.1.0"}})
-	for _, pkg := range []*sdk.Dependency{root, react, scheduler, vitest, chai} {
+	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"}})
+	react := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
+	scheduler := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "scheduler", Version: "0.23.0"}})
+	vitest := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"}})
+	chai := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "chai", Version: "5.1.0"}})
+	for _, pkg := range []*sdk.DependencyNode{root, react, scheduler, vitest, chai} {
 		if err := depsGraph.AddNode(pkg); err != nil {
-			t.Fatalf("add package %q: %v", pkg.ID, err)
+			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
 	}
 	for _, edge := range [][2]string{
-		{root.ID, react.ID},
-		{root.ID, vitest.ID},
-		{react.ID, scheduler.ID},
-		{vitest.ID, chai.ID},
+		{root.NodeID(), react.NodeID()},
+		{root.NodeID(), vitest.NodeID()},
+		{react.NodeID(), scheduler.NodeID()},
+		{vitest.NodeID(), chai.NodeID()},
 	} {
 		if err := depsGraph.AddEdge(edge[0], edge[1]); err != nil {
 			t.Fatalf("add dependency %q -> %q: %v", edge[0], edge[1], err)
@@ -79,20 +80,20 @@ func TestAnnotateScopesFromPackageJSON_DevelopmentFilterExcludesRuntime(t *testi
 	}
 
 	depsGraph := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"}})
-	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
-	vitest := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"}})
-	shared := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "shared", Version: "1.0.0"}})
-	for _, pkg := range []*sdk.Dependency{root, react, vitest, shared} {
+	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"}})
+	react := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
+	vitest := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"}})
+	shared := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "shared", Version: "1.0.0"}})
+	for _, pkg := range []*sdk.DependencyNode{root, react, vitest, shared} {
 		if err := depsGraph.AddNode(pkg); err != nil {
-			t.Fatalf("add package %q: %v", pkg.ID, err)
+			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
 	}
 	for _, edge := range [][2]string{
-		{root.ID, react.ID},
-		{root.ID, vitest.ID},
-		{react.ID, shared.ID},
-		{vitest.ID, shared.ID},
+		{root.NodeID(), react.NodeID()},
+		{root.NodeID(), vitest.NodeID()},
+		{react.NodeID(), shared.NodeID()},
+		{vitest.NodeID(), shared.NodeID()},
 	} {
 		if err := depsGraph.AddEdge(edge[0], edge[1]); err != nil {
 			t.Fatalf("add dependency %q -> %q: %v", edge[0], edge[1], err)
@@ -106,13 +107,13 @@ func TestAnnotateScopesFromPackageJSON_DevelopmentFilterExcludesRuntime(t *testi
 	if err != nil {
 		t.Fatalf("FilterGraphByScope() error = %v", err)
 	}
-	if _, ok := filtered.Node(vitest.ID); !ok {
+	if _, ok := testnodes.Find(filtered, vitest.NodeID()); !ok {
 		t.Fatalf("expected development dependency to remain: %s", filtered.PrettyString())
 	}
-	if _, ok := filtered.Node(react.ID); ok {
+	if _, ok := testnodes.Find(filtered, react.NodeID()); ok {
 		t.Fatalf("expected runtime dependency to be filtered: %s", filtered.PrettyString())
 	}
-	if _, ok := filtered.Node(shared.ID); ok {
+	if _, ok := testnodes.Find(filtered, shared.NodeID()); ok {
 		t.Fatalf("expected runtime-primary shared dependency to be filtered: %s", filtered.PrettyString())
 	}
 }

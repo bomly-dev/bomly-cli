@@ -530,27 +530,72 @@ var reBomlyGitID = regexp.MustCompile(`(pkg:[^/]+/bomly-git)-\d+`)
 // in the "name" field of a package when no PURL prefix is present).
 var reBomlyGitName = regexp.MustCompile(`(bomly-git)-\d+`)
 
-// normalizeSyntheticIDs replaces non-deterministic bomly-git-NNNNNN IDs with a
-// stable placeholder throughout the JSON tree.
+// reHostArch matches the architecture qualifier a container scan reports.
+//
+// A multi-arch image resolves to the runner's own architecture, so this is the
+// runner speaking, not Bomly: goldens regenerated on an arm64 laptop and
+// compared on an amd64 CI runner differ on every package in the image. The
+// suite is here to catch regressions in what Bomly does with an image, and an
+// arch that tracks the host is noise in that signal.
+// The alternation covers both spellings a package manager uses for the same
+// machine: Debian says amd64/arm64, Alpine and RPM say x86_64/aarch64. Listing
+// them rather than matching any value keeps a genuinely wrong arch -- one
+// Bomly mislabelled -- visible in the diff.
+var reHostArch = regexp.MustCompile(`([?&]arch=)(?:amd64|arm64|386|armv7|armhf|ppc64le|s390x|x86_64|aarch64|i386|i686)(?:&|$)`)
+
+// reTempRoot matches the temporary directory a run cloned or built into.
+//
+// The suffix was already normalized; the prefix was not, and it differs by
+// operating system -- macOS hands out /var/folders/<random>/T, Linux /tmp --
+// so an absolute path in the output pins the machine that produced it. The
+// reachability evidence added in bomly-sdk v0.8.0 carries one in module_root,
+// which is how this gap surfaced.
+var reTempRoot = regexp.MustCompile(`(?:/private)?/var/folders/[^/]+/[^/]+/T/|/tmp/`)
+
+// normalizeSyntheticIDs replaces non-deterministic bomly-git-NNNNNN IDs and
+// other machine-dependent values with stable placeholders throughout the JSON
+// tree.
 func normalizeSyntheticIDs(node any) {
 	switch v := node.(type) {
 	case map[string]any:
 		for k, val := range v {
 			if s, ok := val.(string); ok {
-				if reBomlyGitID.MatchString(s) {
-					v[k] = reBomlyGitID.ReplaceAllString(s, "${1}-<normalized>")
-				} else if reBomlyGitName.MatchString(s) {
-					v[k] = reBomlyGitName.ReplaceAllString(s, "${1}-<normalized>")
-				}
-			} else {
-				normalizeSyntheticIDs(val)
+				v[k] = normalizeMachineDependentString(s)
+				continue
 			}
+			normalizeSyntheticIDs(val)
 		}
 	case []any:
-		for _, child := range v {
+		// Strings inside an array are rewritten in place. Recursing without
+		// this left every package URL in a depends_on list carrying the
+		// runner's architecture, while the same URL as a map value was
+		// normalized -- a gap that only showed up as a diff between two
+		// machines.
+		for idx, child := range v {
+			if s, ok := child.(string); ok {
+				v[idx] = normalizeMachineDependentString(s)
+				continue
+			}
 			normalizeSyntheticIDs(child)
 		}
 	}
+}
+
+// normalizeMachineDependentString replaces the values that track the machine
+// a run happened on rather than anything Bomly decided.
+func normalizeMachineDependentString(s string) string {
+	if reBomlyGitID.MatchString(s) {
+		s = reBomlyGitID.ReplaceAllString(s, "${1}-<normalized>")
+	} else if reBomlyGitName.MatchString(s) {
+		s = reBomlyGitName.ReplaceAllString(s, "${1}-<normalized>")
+	}
+	s = reHostArch.ReplaceAllStringFunc(s, func(match string) string {
+		if strings.HasSuffix(match, "&") {
+			return reHostArch.ReplaceAllString(match, "${1}<arch>&")
+		}
+		return reHostArch.ReplaceAllString(match, "${1}<arch>")
+	})
+	return reTempRoot.ReplaceAllString(s, "<tmp>/")
 }
 
 // sortPackagesByID sorts the "packages" array within each manifest by the
@@ -648,9 +693,28 @@ func sortStringSlices(node any) {
 	}
 }
 
-// removeNonPURLPackages filters out packages whose "id" field is not a PURL
-// (i.e. does not start with "pkg:"). Such packages are synthetic root packages
-// that the API sometimes includes and sometimes omits, making goldens flaky.
+// removeNonPURLPackages drops entries whose "id" is not one of the identity
+// grammars a graph node can carry.
+//
+// It exists because synthetic root packages once had ad-hoc IDs that the API
+// sometimes included and sometimes omitted, making goldens flaky. Every node
+// ID is now minted by a grammar (ADR-0041) -- a package URL, a module's
+// declaring path, or a manifest's path -- so all three are deterministic and
+// belong in a golden. Keeping the filter at "pkg:" only would silently drop
+// every module and manifest node from the smoke coverage, which is the
+// project's own code: exactly what a workspace or reactor-build case exists
+// to check.
+// isDeterministicNodeID reports whether an ID was minted by one of the node
+// identity grammars, and so is stable enough to record in a golden.
+func isDeterministicNodeID(id string) bool {
+	for _, prefix := range []string{"pkg:", "module:", "manifest:"} {
+		if strings.HasPrefix(id, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
 func removeNonPURLPackages(obj map[string]any) {
 	filterPkgs := func(packages []any) []any {
 		out := packages[:0:len(packages)]
@@ -660,8 +724,7 @@ func removeNonPURLPackages(obj map[string]any) {
 				out = append(out, p)
 				continue
 			}
-			id, _ := pm["id"].(string)
-			if strings.HasPrefix(id, "pkg:") {
+			if id, _ := pm["id"].(string); isDeterministicNodeID(id) {
 				out = append(out, p)
 			}
 		}
@@ -786,8 +849,33 @@ func goldenPath(name string) string {
 }
 
 // assertGolden compares got (already normalized) against the golden file for
-// name. When -update is passed, the golden file is written instead of compared.
+// name. When -update is passed, the golden file is written instead of
+// compared.
+//
+// The golden is re-normalized on read, so a normalizer added after a golden
+// was written still applies to it. That is only correct for the CLI's own
+// response documents: assertGoldenDocument is the path for anything else.
 func assertGolden(t *testing.T, name string, got []byte) {
+	t.Helper()
+	assertGoldenWith(t, name, got, func(t *testing.T, raw []byte) []byte {
+		return normalizeJSON(t, raw)
+	})
+}
+
+// assertGoldenDocument compares a document the CLI emits that is not one of
+// its own response shapes -- an exported SBOM, say.
+//
+// normalizeJSON knows the scan/diff/explain response schema and edits it on
+// sight: it zeroes metadata.duration_ms, which a CycloneDX document also has
+// a metadata object for. Running it over an SBOM invents a field that was
+// never there, so the golden and the fresh output disagree about a value
+// neither side produced.
+func assertGoldenDocument(t *testing.T, name string, got []byte) {
+	t.Helper()
+	assertGoldenWith(t, name, got, func(_ *testing.T, raw []byte) []byte { return raw })
+}
+
+func assertGoldenWith(t *testing.T, name string, got []byte, normalizeWant func(*testing.T, []byte) []byte) {
 	t.Helper()
 
 	gp := goldenPath(name)
@@ -810,8 +898,7 @@ func assertGolden(t *testing.T, name string, got []byte) {
 	}
 
 	got = normalizeLineEndings(got)
-	want = normalizeLineEndings(want)
-	want = normalizeJSON(t, want)
+	want = normalizeWant(t, normalizeLineEndings(want))
 
 	if !bytes.Equal(got, want) {
 		t.Errorf("output does not match golden file %s\n\n--- want ---\n%s\n--- got ---\n%s\n\n--- diff (first divergence) ---\n%s",

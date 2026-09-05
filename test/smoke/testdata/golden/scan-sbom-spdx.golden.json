@@ -50,6 +50,7 @@
       "ecosystem": "go",
       "licenses": [],
       "name": "example.com/app",
+      "org": "example.com",
       "purl": "pkg:golang/example.com/app@1.0.0",
       "version": "1.0.0",
       "vulnerabilities": []
@@ -58,6 +59,7 @@
       "ecosystem": "go",
       "licenses": [],
       "name": "github.com/google/uuid",
+      "org": "github.com/google",
       "purl": "pkg:golang/github.com/google/uuid@1.6.0",
       "version": "1.6.0",
       "vulnerabilities": []
@@ -66,6 +68,7 @@
       "ecosystem": "go",
       "licenses": [],
       "name": "github.com/pkg/errors",
+      "org": "github.com/pkg",
       "purl": "pkg:golang/github.com/pkg/errors@0.9.1",
       "version": "0.9.1",
       "vulnerabilities": []

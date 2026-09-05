@@ -11,7 +11,8 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 // ---- helpers ---------------------------------------------------------------
@@ -25,10 +26,10 @@ func stableID(name, version string) string {
 }
 
 // requirePackage asserts a package with the given name@version exists in the graph.
-func requirePackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.Dependency {
+func requirePackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.DependencyNode {
 	t.Helper()
 	id := stableID(name, version)
-	pkg, ok := g.Node(id)
+	pkg, ok := testnodes.FindDep(g, id)
 	if !ok {
 		t.Fatalf("expected package %s@%s in graph (id=%s); packages present: %v", name, version, id, graphPackageIDs(g))
 	}
@@ -40,12 +41,12 @@ func requireEdge(t *testing.T, g *sdk.Graph, fromName, fromVersion, toName, toVe
 	t.Helper()
 	fromID := stableID(fromName, fromVersion)
 	toID := stableID(toName, toVersion)
-	deps, err := g.DirectDependencies(fromID)
+	deps, err := g.DirectDependencies(testnodes.ID(g, fromID))
 	if err != nil {
 		t.Fatalf("dependencies(%s@%s): %v", fromName, fromVersion, err)
 	}
 	for _, dep := range deps {
-		if dep.ID == toID {
+		if testnodes.Is(dep, toID) {
 			return
 		}
 	}
@@ -82,10 +83,10 @@ func requireScope(t *testing.T, g *sdk.Graph, name, version string, scope sdk.Sc
 }
 
 func graphPackageIDs(g *sdk.Graph) []string {
-	pkgs := g.Nodes()
+	pkgs := g.DependencyNodes()
 	ids := make([]string, len(pkgs))
 	for i, p := range pkgs {
-		ids[i] = p.ID
+		ids[i] = p.NodeID()
 	}
 	return ids
 }
@@ -120,33 +121,30 @@ func TestBunLockfileV1Workspaces(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	web, ok := g.Node("workspace:apps/web")
-	if !ok || web.Name != "@fixture/web" || web.Version != "1.0.0" {
-		t.Fatalf("expected web workspace identity, got %#v", web)
-	}
-	lib, ok := g.Node("workspace:packages/lib")
-	if !ok || lib.Name != "@fixture/lib" || lib.Version != "1.0.0" {
-		t.Fatalf("expected library workspace identity, got %#v", lib)
-	}
+	// Workspace members are module nodes now, keyed by the manifest that
+	// declares them rather than by a "workspace:<dir>" ID (ADR-0041).
+
 	for _, duplicateID := range []string{"@fixture/web@apps/web", "@fixture/lib@packages/lib"} {
-		if duplicate, exists := g.Node(duplicateID); exists {
+		if duplicate, exists := testnodes.Find(g, duplicateID); exists {
 			t.Fatalf("workspace package tuple created duplicate registry node %#v", duplicate)
 		}
 	}
 	requirePackage(t, g, "is-number", "7.0.0")
 	requirePackage(t, g, "left-pad", "1.3.0")
-	requireEdgeByID(t, g, web.ID, lib.ID)
-	requireEdgeByID(t, g, lib.ID, stableID("is-number", "7.0.0"))
+	web := requireModule(t, g, "@fixture/web", "1.0.0")
+	lib := requireModule(t, g, "@fixture/lib", "1.0.0")
+	requireEdgeByID(t, g, web.NodeID(), lib.NodeID())
+	requireEdgeByID(t, g, lib.NodeID(), stableID("is-number", "7.0.0"))
 }
 
 func requireEdgeByID(t *testing.T, g *sdk.Graph, fromID, toID string) {
 	t.Helper()
-	dependencies, err := g.DirectDependencies(fromID)
+	dependencies, err := g.DirectDependencies(testnodes.ID(g, fromID))
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, dependency := range dependencies {
-		if dependency.ID == toID {
+		if testnodes.Is(dependency, toID) {
 			return
 		}
 	}
@@ -264,8 +262,8 @@ func TestNPMLockfileV3_SingleApplicationRoot(t *testing.T) {
 	if len(roots) != 1 {
 		t.Fatalf("expected exactly one root package, got %d: %v", len(roots), graphPackageIDs(g))
 	}
-	if roots[0].ID != stableID("demo-app", "3.0.0") {
-		t.Fatalf("expected npm root %q, got %q", stableID("demo-app", "3.0.0"), roots[0].ID)
+	if !testnodes.Is(roots[0], stableID("demo-app", "3.0.0")) {
+		t.Fatalf("expected npm root %q, got %q", stableID("demo-app", "3.0.0"), roots[0].NodeID())
 	}
 }
 
@@ -294,12 +292,12 @@ func TestPNPMLockfileV5_RootDependencyEdges(t *testing.T) {
 	// Root must depend on the three top-level packages.
 	// Root package has name "demo-app" and version "1.0.0" from package.json.
 	rootID := stableID("demo-app", "1.0.0")
-	rootDeps, err := g.DirectDependencies(rootID)
+	rootDeps, err := g.DirectDependencies(testnodes.ID(g, rootID))
 	if err != nil {
 		t.Fatalf("dependencies(root): %v", err)
 	}
 	names := make(map[string]bool, len(rootDeps))
-	for _, d := range rootDeps {
+	for _, d := range sdk.DependencyNodesOf(rootDeps) {
 		names[d.Name] = true
 	}
 	for _, want := range []string{"react", "axios", "typescript"} {
@@ -396,8 +394,8 @@ func TestYarnLockfileV1_SingleApplicationRoot(t *testing.T) {
 	if len(roots) != 1 {
 		t.Fatalf("expected exactly one root package, got %d: %v", len(roots), graphPackageIDs(g))
 	}
-	if roots[0].ID != stableID("demo-app", "1.0.0") {
-		t.Fatalf("expected yarn root %q, got %q", stableID("demo-app", "1.0.0"), roots[0].ID)
+	if !testnodes.Is(roots[0], stableID("demo-app", "1.0.0")) {
+		t.Fatalf("expected yarn root %q, got %q", stableID("demo-app", "1.0.0"), roots[0].NodeID())
 	}
 }
 
@@ -425,7 +423,7 @@ func TestYarnBerry_MetadataStanzaNotIngested(t *testing.T) {
 		t.Fatalf("depGraphFromYarnLockfile(yarn-berry): %v", err)
 	}
 	// __metadata must never appear as a package
-	for _, pkg := range g.Nodes() {
+	for _, pkg := range g.DependencyNodes() {
 		if pkg.Name == "__metadata" {
 			t.Errorf("__metadata was incorrectly ingested as a package node")
 		}
@@ -485,4 +483,40 @@ func resolveLockfileGraph(t *testing.T, detector sdk.Detector, projectDir string
 		return nil, err
 	}
 	return result.Graphs.ConsolidatedGraph()
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
+}
+
+// requireModule asserts the graph holds the project's own module for a name
+// and version.
+func requireModule(t *testing.T, g *sdk.Graph, name, version string) *sdk.ModuleNode {
+	t.Helper()
+	for _, module := range g.ModuleNodes() {
+		// EcosystemName, not Name: normalization splits a scoped npm name
+		// into Org and Name, and the ecosystem-native spelling is what joins
+		// them back into "@fixture/web".
+		if module.EcosystemName() == name && module.Version == version {
+			return module
+		}
+	}
+	t.Fatalf("no module node %s@%s; modules: %v", name, version, moduleLabels(g))
+	return nil
+}
+
+// moduleLabels lists the modules a graph holds, for failure messages.
+func moduleLabels(g *sdk.Graph) []string {
+	labels := make([]string, 0, len(g.ModuleNodes()))
+	for _, module := range g.ModuleNodes() {
+		labels = append(labels, module.EcosystemName()+"@"+module.Version)
+	}
+	return labels
 }

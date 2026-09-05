@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/purlkit"
 )
 
 // ScanResponse is the structured payload for the scan command. It surfaces the
@@ -613,7 +614,7 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 				Subproject:     headManifest.Manifest.Subproject,
 				Ecosystem:      headManifest.Manifest.Ecosystem,
 				PackageManager: headManifest.Manifest.PackageManager,
-				Added:          diffPackageChangesFromPackages(headManifest.Graph.Nodes(), headRegistry, graphDirectMembership(headManifest.Graph)),
+				Added:          diffPackageChangesFromPackages(headManifest.Graph.DependencyNodes(), headRegistry, graphDirectMembership(headManifest.Graph)),
 			}
 			results.Manifests = append(results.Manifests, result)
 			summary.AddedManifestCount++
@@ -627,7 +628,7 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 				Subproject:     baseManifest.Manifest.Subproject,
 				Ecosystem:      baseManifest.Manifest.Ecosystem,
 				PackageManager: baseManifest.Manifest.PackageManager,
-				Removed:        diffPackageChangesFromPackages(baseManifest.Graph.Nodes(), baseRegistry, graphDirectMembership(baseManifest.Graph)),
+				Removed:        diffPackageChangesFromPackages(baseManifest.Graph.DependencyNodes(), baseRegistry, graphDirectMembership(baseManifest.Graph)),
 			}
 			results.Manifests = append(results.Manifests, result)
 			summary.RemovedManifestCount++
@@ -1040,12 +1041,12 @@ func filterSBOMPseudoPackageDiff(diff *sdk.Diff, baseGraph, headGraph *sdk.Graph
 	}
 }
 
-func filterSBOMPseudoPackages(packages []*sdk.Dependency, graph *sdk.Graph) []*sdk.Dependency {
+func filterSBOMPseudoPackages(packages []*sdk.DependencyNode, graph *sdk.Graph) []*sdk.DependencyNode {
 	if len(packages) == 0 {
 		return packages
 	}
 	rootIDs := graphRootIDs(graph)
-	filtered := make([]*sdk.Dependency, 0, len(packages))
+	filtered := make([]*sdk.DependencyNode, 0, len(packages))
 	for _, pkg := range packages {
 		if isSBOMPseudoPackage(pkg, rootIDs) {
 			continue
@@ -1064,28 +1065,30 @@ func graphRootIDs(graph *sdk.Graph) map[string]struct{} {
 		if root == nil {
 			continue
 		}
-		roots[root.ID] = struct{}{}
+		roots[root.NodeID()] = struct{}{}
 	}
 	return roots
 }
 
-func isSBOMPseudoPackage(pkg *sdk.Dependency, rootIDs map[string]struct{}) bool {
+func isSBOMPseudoPackage(pkg *sdk.DependencyNode, rootIDs map[string]struct{}) bool {
 	if pkg == nil {
 		return false
 	}
-	if !sdk.NodeIsDiffable(pkg) {
-		return true
-	}
-	if _, ok := rootIDs[pkg.ID]; !ok {
+	// A dependency node by type here, so the old diffable check is redundant:
+	// under ADR-0041 "diffable" means "is a dependency node", which the
+	// signature already guarantees.
+	if _, ok := rootIDs[pkg.NodeID()]; !ok {
 		return false
 	}
-	if purl := sdk.ParsePackageURL(pkg.PURL); purl != nil && strings.EqualFold(purl.Type, "github") {
+	// purlkit is the kit over the official packageurl-go; sdk.ParsePackageURL
+	// was the deprecated anchore-fork entry point and is gone.
+	if parsed, err := purlkit.Parse(pkg.NodeID()); err == nil && strings.EqualFold(parsed.Type, "github") {
 		return true
 	}
 	return false
 }
 
-func diffPackageChangesFromPackages(packages []*sdk.Dependency, registry *sdk.PackageRegistry, direct directMembership) []DiffPackageChange {
+func diffPackageChangesFromPackages(packages []*sdk.DependencyNode, registry *sdk.PackageRegistry, direct directMembership) []DiffPackageChange {
 	changes := make([]DiffPackageChange, 0, len(packages))
 	for _, pkg := range packages {
 		ref := PackageFromDependencyAndRegistry(pkg, registry)
@@ -1128,8 +1131,8 @@ func diffDependencyTransitionsFromDiff(transitions []sdk.DependencyDetailTransit
 // transition without adding a derived field to the JSON contract.
 func DependencyDetailReviewReasons(transition DiffDependencyTransition) []sdk.DependencyDetailReviewReason {
 	projected := sdk.DependencyDetailTransition{
-		Before:                 &sdk.Dependency{Source: transition.Before.Source},
-		After:                  &sdk.Dependency{Source: transition.After.Source},
+		Before:                 &sdk.DependencyNode{Source: transition.Before.Source},
+		After:                  &sdk.DependencyNode{Source: transition.After.Source},
 		ChangedFields:          append([]sdk.DependencyDetailField(nil), transition.ChangedFields...),
 		BeforeRelationship:     transition.Before.Relationship,
 		AfterRelationship:      transition.After.Relationship,
@@ -1145,15 +1148,15 @@ func DependencyDetailNeedsReview(transition DiffDependencyTransition) bool {
 	return len(DependencyDetailReviewReasons(transition)) > 0
 }
 
-func diffDependencyTransitionState(dependency *sdk.Dependency, relationship sdk.DependencyRelationship, eligible bool) DiffDependencyTransitionState {
+func diffDependencyTransitionState(dependency *sdk.DependencyNode, relationship sdk.DependencyRelationship, eligible bool) DiffDependencyTransitionState {
 	if dependency == nil {
 		return DiffDependencyTransitionState{Relationship: relationship, RegistryEligible: eligible}
 	}
 	return DiffDependencyTransitionState{
-		ID:               dependency.ID,
+		ID:               dependency.NodeID(),
 		Name:             dependency.Name,
 		Version:          dependency.Version,
-		Purl:             dependency.PURL,
+		Purl:             dependency.NodeID(),
 		Scope:            string(dependency.PrimaryScope()),
 		Relationship:     relationship,
 		Source:           dependency.Source,
@@ -1186,20 +1189,20 @@ func graphDirectMembership(graph *sdk.Graph) directMembership {
 		if root == nil {
 			continue
 		}
-		deps, err := graph.DirectDependencies(root.ID)
+		deps, err := graph.DirectDependencies(root.NodeID())
 		if err != nil {
 			continue
 		}
 		for _, dep := range deps {
 			if dep != nil {
-				m.ids[dep.ID] = struct{}{}
+				m.ids[dep.NodeID()] = struct{}{}
 			}
 		}
 	}
 	return m
 }
 
-func (m directMembership) apply(ref *PackageRef, dep *sdk.Dependency) {
+func (m directMembership) apply(ref *PackageRef, dep *sdk.DependencyNode) {
 	if !m.known || dep == nil {
 		return
 	}
@@ -1208,7 +1211,7 @@ func (m directMembership) apply(ref *PackageRef, dep *sdk.Dependency) {
 		ref.Direct = nil
 		return
 	}
-	_, isDirect := m.ids[dep.ID]
+	_, isDirect := m.ids[dep.NodeID()]
 	ref.Direct = &isDirect
 	if isDirect {
 		ref.Relationship = string(sdk.DependencyRelationshipDirect)
@@ -1285,14 +1288,14 @@ func reconcileDiffWithFuzzyMatches(diff *sdk.Diff, baseGraph, headGraph *sdk.Gra
 		return
 	}
 
-	remainingAdded := make([]*sdk.Dependency, 0, len(diff.Added)-len(matchedAdded))
+	remainingAdded := make([]*sdk.DependencyNode, 0, len(diff.Added)-len(matchedAdded))
 	for idx, pkg := range diff.Added {
 		if _, ok := matchedAdded[idx]; ok {
 			continue
 		}
 		remainingAdded = append(remainingAdded, pkg)
 	}
-	remainingRemoved := make([]*sdk.Dependency, 0, len(diff.Removed)-len(matchedRemoved))
+	remainingRemoved := make([]*sdk.DependencyNode, 0, len(diff.Removed)-len(matchedRemoved))
 	for idx, pkg := range diff.Removed {
 		if _, ok := matchedRemoved[idx]; ok {
 			continue
@@ -1305,8 +1308,8 @@ func reconcileDiffWithFuzzyMatches(diff *sdk.Diff, baseGraph, headGraph *sdk.Gra
 	sort.Slice(diff.Updated, func(i, j int) bool {
 		left := diff.Updated[i]
 		right := diff.Updated[j]
-		if left.Before.IdentityKey() != right.Before.IdentityKey() {
-			return left.Before.IdentityKey() < right.Before.IdentityKey()
+		if left.Before.NodeID() != right.Before.NodeID() {
+			return left.Before.NodeID() < right.Before.NodeID()
 		}
 		if left.Before.Version != right.Before.Version {
 			return left.Before.Version < right.Before.Version
@@ -1314,12 +1317,12 @@ func reconcileDiffWithFuzzyMatches(diff *sdk.Diff, baseGraph, headGraph *sdk.Gra
 		if left.After.Version != right.After.Version {
 			return left.After.Version < right.After.Version
 		}
-		return left.Before.ID < right.Before.ID
+		return left.Before.NodeID() < right.Before.NodeID()
 	})
 	sdk.SortDependencyDetailTransitions(diff.Transitions)
 }
 
-func fuzzyReconcileScore(before, after *sdk.Dependency) (float64, string) {
+func fuzzyReconcileScore(before, after *sdk.DependencyNode) (float64, string) {
 	if before == nil || after == nil {
 		return 0, ""
 	}
@@ -1327,16 +1330,22 @@ func fuzzyReconcileScore(before, after *sdk.Dependency) (float64, string) {
 		return 0, ""
 	}
 
-	beforeNorm := before.Clone()
-	afterNorm := after.Clone()
-	sdk.NormalizeDependencyIdentity(beforeNorm)
-	sdk.NormalizeDependencyIdentity(afterNorm)
+	// No normalization pass: a node's identity is canonical by construction
+	// under ADR-0041, so the clone-and-normalize step this used to run had
+	// nothing left to do.
+	beforeNorm := before
+	afterNorm := after
 
-	if sdk.PackageURLBase(beforeNorm.PURL) != "" && sdk.PackageURLBase(beforeNorm.PURL) == sdk.PackageURLBase(afterNorm.PURL) {
+	// purlkit.WithoutVersion rather than a base-string trim: it strips the
+	// version while keeping qualifiers and subpath, so two builds of one
+	// package that differ by architecture stay distinct instead of reading as
+	// a version change.
+	beforeBase := purlkit.WithoutVersion(beforeNorm.NodeID())
+	if beforeBase != "" && beforeBase == purlkit.WithoutVersion(afterNorm.NodeID()) {
 		return 1.0, "purl-base"
 	}
 
-	if beforeNorm.IdentityKey() == afterNorm.IdentityKey() {
+	if beforeNorm.NodeID() == afterNorm.NodeID() {
 		return 0.97, "normalized-identity"
 	}
 
@@ -1354,7 +1363,7 @@ func fuzzyReconcileScore(before, after *sdk.Dependency) (float64, string) {
 	return final, "name-similarity"
 }
 
-func sameEcosystemForFuzzy(before, after *sdk.Dependency) bool {
+func sameEcosystemForFuzzy(before, after *sdk.DependencyNode) bool {
 	b := strings.ToLower(strings.TrimSpace(string(before.Ecosystem)))
 	a := strings.ToLower(strings.TrimSpace(string(after.Ecosystem)))
 	if b == "" || a == "" {
@@ -1454,9 +1463,9 @@ func maxInt(values ...int) int {
 	return best
 }
 
-func applyFuzzyMetadata(before, after *sdk.Dependency, score float64, tier string) {
+func applyFuzzyMetadata(before, after *sdk.DependencyNode, score float64, tier string) {
 	roundedScore := math.Round(score*1000) / 1000
-	for _, pkg := range []*sdk.Dependency{before, after} {
+	for _, pkg := range []*sdk.DependencyNode{before, after} {
 		if pkg == nil {
 			continue
 		}

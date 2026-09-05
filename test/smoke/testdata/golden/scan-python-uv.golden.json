@@ -4,6 +4,21 @@
     {
       "dependencies": [
         {
+          "depends_on": [
+            "pkg:pypi/django@1.11.29",
+            "pkg:pypi/feedparser@6.0.8",
+            "pkg:pypi/pyjwt@0.4.2",
+            "pkg:pypi/pytest@9.0.3",
+            "pkg:pypi/requests@2.21.0",
+            "pkg:pypi/rsa@3.4"
+          ],
+          "id": "module:pyproject.toml#pkg:pypi/example-python-uv@1.0.0",
+          "licenses": [],
+          "name": "example-python-uv",
+          "purl": "pkg:pypi/example-python-uv@1.0.0",
+          "version": "1.0.0"
+        },
+        {
           "depends_on": [],
           "id": "pkg:pypi/certifi@2026.4.22",
           "licenses": [],
@@ -92,32 +107,6 @@
             "runtime"
           ],
           "version": "1.11.29"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/django@1.11.29",
-            "pkg:pypi/feedparser@6.0.8",
-            "pkg:pypi/pyjwt@0.4.2",
-            "pkg:pypi/pytest@9.0.3",
-            "pkg:pypi/requests@2.21.0",
-            "pkg:pypi/rsa@3.4"
-          ],
-          "id": "pkg:pypi/example-python-uv@1.0.0",
-          "licenses": [],
-          "locations": [
-            {
-              "access_path": "uv.lock",
-              "position": {
-                "file": "uv.lock",
-                "line": 0
-              },
-              "real_path": "uv.lock"
-            }
-          ],
-          "name": "example-python-uv",
-          "package_ref": "pkg:pypi/example-python-uv@1.0.0",
-          "purl": "pkg:pypi/example-python-uv@1.0.0",
-          "version": "1.0.0"
         },
         {
           "depends_on": [
@@ -489,14 +478,6 @@
       "name": "django",
       "purl": "pkg:pypi/django@1.11.29",
       "version": "1.11.29",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "example-python-uv",
-      "purl": "pkg:pypi/example-python-uv@1.0.0",
-      "version": "1.0.0",
       "vulnerabilities": []
     },
     {

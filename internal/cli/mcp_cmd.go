@@ -435,7 +435,7 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 			Detector:       target.Manifest.DetectorName,
 			PackageManager: target.Manifest.Subproject.PrimaryPackageManager(),
 			Dependency:     explainPackageRef(target.Dependency, explainResult.Registry),
-			Paths:          explainPathsWithStableIDs(target.Paths),
+			Paths:          explainPathsWithLinks(target.Paths),
 			Findings:       output.FindingsFromScan(target.Findings, explainResult.Registry),
 			AuditSummary:   output.SummaryFromFindings(target.Findings),
 		})

@@ -7,6 +7,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/auditors/license"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
@@ -14,10 +15,10 @@ import (
 func TestRun_SkipsAuditFindingsWhenNoDependencyChanges(t *testing.T) {
 	react := npmPackage("react", "18.2.0")
 	base := diffTestPipeline(t, graphFixture(t, react), map[string][]sdk.Finding{
-		react.ID: {{ID: "CVE-UNCHANGED", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
+		react.NodeID(): {{ID: "CVE-UNCHANGED", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
 	})
 	head := diffTestPipeline(t, graphFixture(t, react.Clone()), map[string][]sdk.Finding{
-		react.ID: {{ID: "CVE-UNCHANGED", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
+		react.NodeID(): {{ID: "CVE-UNCHANGED", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
 	})
 
 	result, err := Run(context.Background(), Request{
@@ -36,7 +37,7 @@ func TestRun_ReportsAddedPackageFindingAsIntroduced(t *testing.T) {
 	react := npmPackage("react", "18.2.0")
 	base := diffTestPipeline(t, graphFixture(t), nil)
 	head := diffTestPipeline(t, graphFixture(t, react), map[string][]sdk.Finding{
-		react.ID: {{ID: "CVE-ADDED", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
+		react.NodeID(): {{ID: "CVE-ADDED", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
 	})
 
 	result, err := Run(context.Background(), Request{
@@ -88,7 +89,7 @@ func TestRun_AppliesEachSidesAuditPolicyStatusResolvers(t *testing.T) {
 	react := npmPackage("react", "18.2.0")
 	base := diffTestPipeline(t, graphFixture(t), nil)
 	head := diffTestPipeline(t, graphFixture(t, react), map[string][]sdk.Finding{
-		react.ID: {{ID: "CVE-ADDED", Kind: sdk.FindingKindVulnerability, Source: "osv", PolicyStatus: sdk.FindingPolicyStatusFail}},
+		react.NodeID(): {{ID: "CVE-ADDED", Kind: sdk.FindingKindVulnerability, Source: "osv", PolicyStatus: sdk.FindingPolicyStatusFail}},
 	})
 	headRequest := diffTestRequest()
 	headRequest.FindingPolicyResolvers = []sdk.FindingPolicyResolver{diffPolicyResolver{}}
@@ -113,7 +114,7 @@ func (diffPolicyResolver) ResolveFindingPolicy(context.Context, sdk.Finding, *sd
 func TestRun_ReportsRemovedPackageFindingAsResolved(t *testing.T) {
 	react := npmPackage("react", "18.2.0")
 	base := diffTestPipeline(t, graphFixture(t, react), map[string][]sdk.Finding{
-		react.ID: {{ID: "CVE-REMOVED", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
+		react.NodeID(): {{ID: "CVE-REMOVED", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
 	})
 	head := diffTestPipeline(t, graphFixture(t), nil)
 
@@ -135,12 +136,12 @@ func TestRun_AuditsOnlyVersionChangedPackages(t *testing.T) {
 	oldLodash := npmPackage("lodash", "4.17.20")
 	newLodash := npmPackage("lodash", "4.17.20")
 	base := diffTestPipeline(t, graphFixture(t, oldReact, oldLodash), map[string][]sdk.Finding{
-		oldReact.ID:  {{ID: "CVE-REACT-OLD", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
-		oldLodash.ID: {{ID: "CVE-LODASH", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
+		oldReact.NodeID():  {{ID: "CVE-REACT-OLD", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
+		oldLodash.NodeID(): {{ID: "CVE-LODASH", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
 	})
 	head := diffTestPipeline(t, graphFixture(t, newReact, newLodash), map[string][]sdk.Finding{
-		newReact.ID:  {{ID: "CVE-REACT-NEW", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
-		newLodash.ID: {{ID: "CVE-LODASH", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
+		newReact.NodeID():  {{ID: "CVE-REACT-NEW", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
+		newLodash.NodeID(): {{ID: "CVE-LODASH", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
 	})
 
 	result, err := Run(context.Background(), Request{
@@ -162,10 +163,10 @@ func TestRun_SameVulnerabilityAcrossVersionBumpPersists(t *testing.T) {
 	oldLodash := npmPackage("lodash", "4.17.20")
 	newLodash := npmPackage("lodash", "4.17.21")
 	base := diffTestPipeline(t, graphFixture(t, oldLodash), map[string][]sdk.Finding{
-		oldLodash.ID: {{ID: "CVE-LODASH", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
+		oldLodash.NodeID(): {{ID: "CVE-LODASH", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
 	})
 	head := diffTestPipeline(t, graphFixture(t, newLodash), map[string][]sdk.Finding{
-		newLodash.ID: {{ID: "CVE-LODASH", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
+		newLodash.NodeID(): {{ID: "CVE-LODASH", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
 	})
 
 	result, err := Run(context.Background(), Request{
@@ -194,10 +195,10 @@ func TestRun_SameLicenseIssueAcrossVersionBumpPersists(t *testing.T) {
 		}
 	}
 	base := diffTestPipeline(t, graphFixture(t, oldLib), map[string][]sdk.Finding{
-		oldLib.ID: {licenseFinding(oldLib.PURL)},
+		oldLib.NodeID(): {licenseFinding(oldLib.NodeID())},
 	})
 	head := diffTestPipeline(t, graphFixture(t, newLib), map[string][]sdk.Finding{
-		newLib.ID: {licenseFinding(newLib.PURL)},
+		newLib.NodeID(): {licenseFinding(newLib.NodeID())},
 	})
 
 	result, err := Run(context.Background(), Request{
@@ -242,8 +243,8 @@ func TestRun_UnknownLicenseFindingIsEmittedForFocusedPackage(t *testing.T) {
 	if !strings.HasPrefix(finding.ID, "UNKNOWN-") || len(strings.Split(finding.ID, "-")) != 4 {
 		t.Fatalf("expected compact unknown-license finding ID, got %#v", finding)
 	}
-	if finding.PackageRef != react.PURL {
-		t.Fatalf("expected finding package ref %q, got %q", react.PURL, finding.PackageRef)
+	if finding.PackageRef != react.NodeID() {
+		t.Fatalf("expected finding package ref %q, got %q", react.NodeID(), finding.PackageRef)
 	}
 }
 
@@ -284,21 +285,21 @@ func diffTestRequest() engine.PipelineRequest {
 	}
 }
 
-func npmPackage(name, version string) *sdk.Dependency {
+func npmPackage(name, version string) *sdk.DependencyNode {
 	purl := "pkg:npm/" + name + "@" + version
-	return sdk.NewDependencyWithID(purl, sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+	return testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
 		Name:    name,
 		Version: version,
 		PURL:    purl},
 	})
 }
 
-func graphFixture(t *testing.T, packages ...*sdk.Dependency) *sdk.Graph {
+func graphFixture(t *testing.T, packages ...*sdk.DependencyNode) *sdk.Graph {
 	t.Helper()
 	g := sdk.New()
 	for _, pkg := range packages {
 		if err := g.AddNode(pkg.Clone()); err != nil {
-			t.Fatalf("add package %q: %v", pkg.ID, err)
+			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
 	}
 	return g
@@ -370,20 +371,20 @@ func (f fakeAuditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditRe
 			Kind:           sdk.FindingKindPackage,
 			PolicyStatus:   sdk.FindingPolicyStatusWarn,
 			RuleID:         "detail-policy",
-			PackageRef:     req.DependencyDetailChanges[0].After.PURL,
-			DependencyRefs: []string{req.DependencyDetailChanges[0].After.ID},
+			PackageRef:     req.DependencyDetailChanges[0].After.NodeID(),
+			DependencyRefs: []string{req.DependencyDetailChanges[0].After.NodeID()},
 		}}}, nil
 	}
 	if req.Graph == nil {
 		return sdk.AuditResult{}, nil
 	}
 	var findings []sdk.Finding
-	for _, pkg := range req.Graph.Nodes() {
+	for _, pkg := range req.Graph.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
-		for _, finding := range f.findingsByPackage[pkg.ID] {
-			finding.PackageRef = pkg.PURL
+		for _, finding := range f.findingsByPackage[pkg.NodeID()] {
+			finding.PackageRef = pkg.NodeID()
 			findings = append(findings, finding)
 		}
 	}

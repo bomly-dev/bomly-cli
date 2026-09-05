@@ -93,7 +93,7 @@ func (d UVDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) 
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("uv detector: resolve project environment graph: %w", err)
 	}
-	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir, pythonRootName(req, workingDir))
+	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir, sdk.PackageManagerUV, pythonRootName(req, workingDir))
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("uv detector: filter tool packages: %w", err)
 	}
@@ -116,6 +116,7 @@ func (d UVDetector) base() baseDetector {
 	return baseDetector{
 		Logger:     d.Logger,
 		WorkingDir: d.WorkingDir,
+		Manager:    sdk.PackageManagerUV,
 	}
 }
 

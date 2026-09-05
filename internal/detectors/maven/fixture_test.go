@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -35,7 +36,7 @@ func TestMavenTGFMultiModule(t *testing.T) {
 		"junit:junit@4.13.2",
 		"org.hamcrest:hamcrest-core@1.3",
 	} {
-		if _, ok := g.Node(want); !ok {
+		if _, ok := testnodes.Find(g, want); !ok {
 			t.Errorf("missing node %s", want)
 		}
 	}
@@ -77,12 +78,12 @@ func TestMavenTGFInterModuleAndSharedScopes(t *testing.T) {
 
 	// Shared dependency seen compile in module-a and test in module-b: both
 	// scopes merge onto the single node (runtime wins as the primary scope).
-	shared, ok := g.Node("org.apache.commons:commons-lang3@3.12.0")
+	shared, ok := testnodes.Find(g, "org.apache.commons:commons-lang3@3.12.0")
 	if !ok {
 		t.Fatalf("missing shared node")
 	}
-	if !shared.HasScope(sdk.ScopeRuntime) || !shared.HasScope(sdk.ScopeDevelopment) {
-		t.Errorf("commons-lang3 scopes = %v, want both runtime and development", shared.Scopes)
+	if !mustDep(t, shared).HasScope(sdk.ScopeRuntime) || !mustDep(t, shared).HasScope(sdk.ScopeDevelopment) {
+		t.Errorf("commons-lang3 scopes = %v, want both runtime and development", mustDep(t, shared).Scopes)
 	}
 }
 
@@ -109,7 +110,7 @@ func TestMavenTGFFixture(t *testing.T) {
 		"junit:junit@4.13.2",
 		"org.hamcrest:hamcrest-core@1.3",
 	} {
-		if _, ok := g.Node(want); !ok {
+		if _, ok := testnodes.Find(g, want); !ok {
 			t.Errorf("missing node %s", want)
 		}
 	}
@@ -128,12 +129,12 @@ func TestMavenTGFFixture(t *testing.T) {
 
 func requireMavenEdge(t *testing.T, g *sdk.Graph, fromID, toID string) {
 	t.Helper()
-	deps, err := g.DirectDependencies(fromID)
+	deps, err := g.DirectDependencies(testnodes.ID(g, fromID))
 	if err != nil {
 		t.Fatalf("dependencies(%s): %v", fromID, err)
 	}
 	for _, d := range deps {
-		if d.ID == toID {
+		if testnodes.Is(d, toID) {
 			return
 		}
 	}
@@ -142,26 +143,34 @@ func requireMavenEdge(t *testing.T, g *sdk.Graph, fromID, toID string) {
 
 func requireMavenRoots(t *testing.T, g *sdk.Graph, want ...string) {
 	t.Helper()
-	got := make(map[string]struct{})
-	for _, r := range g.Roots() {
+	roots := g.Roots()
+	got := make([]string, 0, len(roots))
+	for _, r := range roots {
 		if r != nil {
-			got[r.ID] = struct{}{}
+			got = append(got, r.NodeID())
 		}
 	}
-	for _, id := range want {
-		if _, ok := got[id]; !ok {
-			t.Errorf("expected %s to be a graph root; roots = %v", id, got)
+	for _, label := range want {
+		found := false
+		for _, r := range roots {
+			if testnodes.Is(r, label) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("expected %s to be a graph root; roots = %v", label, got)
 		}
 	}
 }
 
 func requireMavenScope(t *testing.T, g *sdk.Graph, id string, scope sdk.Scope) {
 	t.Helper()
-	n, ok := g.Node(id)
+	n, ok := testnodes.Find(g, id)
 	if !ok {
 		t.Fatalf("missing node %s", id)
 	}
-	if got := n.PrimaryScope(); got != scope {
+	if got := mustDep(t, n).PrimaryScope(); got != scope {
 		t.Errorf("%s scope = %q, want %q", id, got, scope)
 	}
 }

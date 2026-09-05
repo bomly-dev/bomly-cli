@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -40,17 +41,17 @@ tweetnacl@^0.14.0:
 	if graph.Size() != 4 {
 		t.Fatalf("expected root plus every lockfile package, got %d", graph.Size())
 	}
-	if dependency, ok := graph.Node("bcrypt-pbkdf@1.0.2"); !ok || dependency.Relationship != sdk.DependencyRelationshipUnknown {
+	if dependency, ok := testnodes.FindDep(graph, "bcrypt-pbkdf@1.0.2"); !ok || dependency.Relationship != sdk.DependencyRelationshipUnknown {
 		t.Fatalf("expected unreferenced bcrypt-pbkdf entry with unknown relationship, got %#v", dependency)
 	}
-	if dependency, ok := graph.Node("tweetnacl@0.14.5"); !ok || dependency.Relationship != sdk.DependencyRelationshipUnknown {
+	if dependency, ok := testnodes.FindDep(graph, "tweetnacl@0.14.5"); !ok || dependency.Relationship != sdk.DependencyRelationshipUnknown {
 		t.Fatalf("expected unreferenced tweetnacl entry with unknown relationship, got %#v", dependency)
 	}
 	roots := graph.Roots()
 	if len(roots) != 1 {
 		t.Fatalf("expected single root package, got %d", len(roots))
 	}
-	if roots[0] == nil || roots[0].ID != "demo-app@1.0.0" {
+	if roots[0] == nil || !testnodes.Is(roots[0], "demo-app@1.0.0") {
 		t.Fatalf("expected app root demo-app@1.0.0, got %#v", roots[0])
 	}
 }
@@ -82,16 +83,16 @@ func TestYarnBerryParsesQuotedNamesAliasesAndDependencies(t *testing.T) {
 		t.Fatal(err)
 	}
 	graph := result.Graphs.Entries[0].Graph
-	realPackage, ok := graph.Node("real-package@1.2.3")
+	realPackage, ok := testnodes.FindDep(graph, "real-package@1.2.3")
 	if !ok || realPackage.Source != sdk.DependencySourceRegistry {
 		t.Fatalf("real package = %#v", realPackage)
 	}
-	esbuild, ok := graph.Node("@esbuild/aix-ppc64@0.25.0")
+	esbuild, ok := testnodes.Find(graph, "@esbuild/aix-ppc64@0.25.0")
 	if !ok {
-		t.Fatalf("expected canonical scoped package name; nodes=%#v", graph.Nodes())
+		t.Fatalf("expected canonical scoped package name; nodes=%#v", graph.DependencyNodes())
 	}
-	children, err := graph.DirectDependencies(realPackage.ID)
-	if err != nil || len(children) != 1 || children[0].ID != esbuild.ID {
+	children, err := graph.DirectDependencies(realPackage.NodeID())
+	if err != nil || len(children) != 1 || !testnodes.Is(children[0], esbuild.NodeID()) {
 		t.Fatalf("dependencies = %#v, err=%v", children, err)
 	}
 }
@@ -120,7 +121,7 @@ lodash@4.17.21:
 	}
 	graph := result.Graphs.Entries[0].Graph
 	for _, id := range []string{"lodash@3.10.1", "lodash@4.17.21"} {
-		if _, ok := graph.Node(id); !ok {
+		if _, ok := testnodes.Find(graph, id); !ok {
 			t.Fatalf("missing %s", id)
 		}
 	}
@@ -171,25 +172,33 @@ request@^2.70.0, request@^2.72.0:
 		t.Fatal(err)
 	}
 	graph := result.Graphs.Entries[0].Graph
-	parent, ok := graph.Node("parent@1.0.0")
+	parent, ok := testnodes.Find(graph, "parent@1.0.0")
 	if !ok {
 		t.Fatal("missing parent")
 	}
-	children, err := graph.DirectDependencies(parent.ID)
+	children, err := graph.DirectDependencies(parent.NodeID())
 	if err != nil {
 		t.Fatal(err)
 	}
-	got := make(map[string]bool, len(children))
+	got := make([]string, 0, len(children))
 	for _, child := range children {
-		got[child.ID] = true
+		got = append(got, child.NodeID())
+	}
+	has := func(label string) bool {
+		for _, child := range children {
+			if testnodes.Is(child, label) {
+				return true
+			}
+		}
+		return false
 	}
 	for _, want := range []string{"debug@0.8.1", "mime@1.3.4", "request@2.79.0"} {
-		if !got[want] {
+		if !has(want) {
 			t.Fatalf("dependencies = %v, missing %s", got, want)
 		}
 	}
 	for _, reject := range []string{"debug@=", "mime@1.2.11", "request@2.76.0"} {
-		if got[reject] {
+		if has(reject) {
 			t.Fatalf("dependencies = %v, unexpectedly selected %s", got, reject)
 		}
 	}

@@ -2479,7 +2479,7 @@ func TestRoot_WhyCommand_GradleWrapper_JSONOutput(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected dependency object, got %#v", payload["dependency"])
 	}
-	if dependency["id"] != "org.springframework:spring-jcl@6.1.1" {
+	if dependency["id"] != "pkg:maven/org.springframework/spring-jcl@6.1.1" {
 		t.Fatalf("expected gradle dependency id, got %#v", dependency["id"])
 	}
 }
@@ -2573,7 +2573,7 @@ func TestRoot_WhyCommand_MavenWrapper_JSONOutput(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected dependency object, got %#v", payload["dependency"])
 	}
-	if dependency["id"] != "org.slf4j:slf4j-api@2.0.13" {
+	if dependency["id"] != "pkg:maven/org.slf4j/slf4j-api@2.0.13" {
 		t.Fatalf("expected Maven dependency id, got %#v", dependency["id"])
 	}
 }
@@ -2728,7 +2728,7 @@ require rsc.io/quote v1.5.2
 	if !ok {
 		t.Fatalf("expected dependency object, got %#v", payload["dependency"])
 	}
-	if dependency["id"] != "golang.org/x/text@v0.14.0" {
+	if dependency["id"] != "pkg:golang/golang.org/x/text@v0.14.0" {
 		t.Fatalf("expected Go dependency id, got %#v", dependency["id"])
 	}
 	paths, ok := payload["paths"].([]any)

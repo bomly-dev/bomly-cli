@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/graphview"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-sdk"
 )
@@ -913,13 +914,15 @@ func classifyRelationships(g *sdk.Graph) map[string]string {
 	if g == nil {
 		return out
 	}
-	rootIDs := make(map[string]struct{})
-	for _, r := range g.Roots() {
-		if r == nil {
-			continue
-		}
-		rootIDs[r.ID] = struct{}{}
-		out[r.ID] = "root"
+	// The shared top-level rule, not Roots() alone. A workspace or reactor
+	// module that another module depends on has an incoming edge, so it never
+	// appeared here -- and its immediate packages fell through as transitive,
+	// corrupting the relationship summary and every relationship filter built
+	// on it. renderDirectDepsTable had already learned this; this classifier
+	// had not, which is the argument for one rule rather than two.
+	rootIDs := graphview.TopLevelParentIDs(g)
+	for id := range rootIDs {
+		out[id] = "root"
 	}
 	for rid := range rootIDs {
 		deps, _ := g.DirectDependencies(rid)
@@ -927,21 +930,21 @@ func classifyRelationships(g *sdk.Graph) map[string]string {
 			if d == nil {
 				continue
 			}
-			if _, isRoot := rootIDs[d.ID]; isRoot {
+			if _, isRoot := rootIDs[d.NodeID()]; isRoot {
 				continue
 			}
-			if _, alreadyLabeled := out[d.ID]; alreadyLabeled {
+			if _, alreadyLabeled := out[d.NodeID()]; alreadyLabeled {
 				continue
 			}
-			out[d.ID] = "direct"
+			out[d.NodeID()] = "direct"
 		}
 	}
-	for _, pkg := range g.Nodes() {
+	for _, pkg := range g.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
-		if _, ok := out[pkg.ID]; !ok {
-			out[pkg.ID] = "transitive"
+		if _, ok := out[pkg.NodeID()]; !ok {
+			out[pkg.NodeID()] = "transitive"
 		}
 	}
 	return out
@@ -3260,7 +3263,7 @@ func diffSourceItems(consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRe
 				items = append(items, sourceNode("(no consolidated graph)", "", prefix+"└─ ", 2, false, false))
 				break
 			}
-			pkgs := graph.Nodes()
+			pkgs := graph.DependencyNodes()
 			sort.Slice(pkgs, func(i, j int) bool { return packageSortKey(pkgs[i]) < packageSortKey(pkgs[j]) })
 			limit := len(pkgs)
 			truncated := false
@@ -3272,9 +3275,9 @@ func diffSourceItems(consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRe
 				pkg := pkgs[i]
 				last := i == limit-1 && !truncated
 				tree := prefix + branch(last)
-				key := "package:" + pkg.ID
+				key := "package:" + pkg.NodeID()
 				isExp := expandedValue(expanded, key, false)
-				items = append(items, sourceNode(fmt.Sprintf("%q: {}", pkg.ID), key, tree, 2, true, isExp))
+				items = append(items, sourceNode(fmt.Sprintf("%q: {}", pkg.NodeID()), key, tree, 2, true, isExp))
 				if !isExp {
 					continue
 				}

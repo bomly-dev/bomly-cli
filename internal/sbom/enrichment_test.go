@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 )
@@ -19,7 +20,7 @@ func enrichedGraphAndRegistry(t *testing.T) (*sdk.Graph, *sdk.PackageRegistry) {
 	const purl = "pkg:npm/react@18.2.0"
 
 	g := sdk.New()
-	react := sdk.NewDependencyWithID("react@18.2.0", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react",
+	react := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react",
 		Version:   "18.2.0",
 		PURL:      purl,
 		Ecosystem: "npm"},
@@ -105,8 +106,8 @@ func TestFromDepGraphEnrichesCycloneDXFromRegistry(t *testing.T) {
 	if vuln.CWEs == nil || len(*vuln.CWEs) != 1 || (*vuln.CWEs)[0] != 1321 {
 		t.Fatalf("expected CWE 1321, got %#v", vuln.CWEs)
 	}
-	if vuln.Affects == nil || len(*vuln.Affects) != 1 || (*vuln.Affects)[0].Ref != "react@18.2.0" {
-		t.Fatalf("expected affects ref react@18.2.0, got %#v", vuln.Affects)
+	if vuln.Affects == nil || len(*vuln.Affects) != 1 || (*vuln.Affects)[0].Ref != "pkg:npm/react@18.2.0" {
+		t.Fatalf("expected affects ref pkg:npm/react@18.2.0, got %#v", vuln.Affects)
 	}
 }
 

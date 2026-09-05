@@ -4,6 +4,28 @@
     {
       "dependencies": [
         {
+          "depends_on": [
+            "pkg:nuget/BCrypt.Net-Core@1.2.0-CI00005",
+            "pkg:nuget/DotNetZip@1.10.0",
+            "pkg:nuget/FSharp.Core@6.0.7",
+            "pkg:nuget/GSF.Security@2.1.326-beta",
+            "pkg:nuget/MySql.Data@8.0.11",
+            "pkg:nuget/NUnit@3.10.1",
+            "pkg:nuget/Newtonsoft.Json@11.0.2",
+            "pkg:nuget/SharpCompress@0.17.1",
+            "pkg:nuget/SharpZipLib@1.0.0-alpha1",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Text.Encoding.CodePages@4.5.1",
+            "pkg:nuget/YamlDotNet@3.7.0",
+            "pkg:nuget/log4net@2.0.8",
+            "pkg:nuget/recurly-api-client@1.8.0"
+          ],
+          "id": "module:packages.config#pkg:nuget/root",
+          "licenses": [],
+          "name": "root",
+          "purl": "pkg:nuget/root"
+        },
+        {
           "depends_on": [],
           "id": "pkg:nuget/Antlr@3.5.0.2",
           "licenses": [],
@@ -38,7 +60,7 @@
           "scopes": [
             "runtime"
           ],
-          "version": "1.2.0-ci00005"
+          "version": "1.2.0-CI00005"
         },
         {
           "depends_on": [],
@@ -1668,29 +1690,6 @@
           "version": "1.8.0"
         },
         {
-          "depends_on": [
-            "pkg:nuget/BCrypt.Net-Core@1.2.0-CI00005",
-            "pkg:nuget/DotNetZip@1.10.0",
-            "pkg:nuget/FSharp.Core@6.0.7",
-            "pkg:nuget/GSF.Security@2.1.326-beta",
-            "pkg:nuget/MySql.Data@8.0.11",
-            "pkg:nuget/NUnit@3.10.1",
-            "pkg:nuget/Newtonsoft.Json@11.0.2",
-            "pkg:nuget/SharpCompress@0.17.1",
-            "pkg:nuget/SharpZipLib@1.0.0-alpha1",
-            "pkg:nuget/System.Runtime.Extensions@4.3.0",
-            "pkg:nuget/System.Text.Encoding.CodePages@4.5.1",
-            "pkg:nuget/YamlDotNet@3.7.0",
-            "pkg:nuget/log4net@2.0.8",
-            "pkg:nuget/recurly-api-client@1.8.0"
-          ],
-          "id": "pkg:nuget/root",
-          "licenses": [],
-          "name": "root",
-          "package_ref": "pkg:nuget/root",
-          "purl": "pkg:nuget/root"
-        },
-        {
           "depends_on": [],
           "id": "pkg:nuget/runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
           "licenses": [],
@@ -1927,7 +1926,7 @@
       "licenses": [],
       "name": "BCrypt.Net-Core",
       "purl": "pkg:nuget/BCrypt.Net-Core@1.2.0-CI00005",
-      "version": "1.2.0-ci00005",
+      "version": "1.2.0-CI00005",
       "vulnerabilities": []
     },
     {
@@ -2592,13 +2591,6 @@
       "name": "recurly-api-client",
       "purl": "pkg:nuget/recurly-api-client@1.8.0",
       "version": "1.8.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "dotnet",
-      "licenses": [],
-      "name": "root",
-      "purl": "pkg:nuget/root",
       "vulnerabilities": []
     },
     {

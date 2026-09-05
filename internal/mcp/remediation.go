@@ -58,7 +58,7 @@ func buildRemediations(in remediationInput) remediationOutput {
 
 	var groups []RemediationGroup
 	for _, pkg := range packagesWithRemediation(in.Registry) {
-		fixes := findingsByPackage[pkg.PURL]
+		fixes := findingsByPackage[pkg.ID]
 		if len(fixes) == 0 {
 			continue
 		}
@@ -71,7 +71,7 @@ func buildRemediations(in remediationInput) remediationOutput {
 			for _, fix := range fixes {
 				appendInformational(&informational, fix, visibleFindings, omittedFindings)
 			}
-			delete(findingsByPackage, pkg.PURL)
+			delete(findingsByPackage, pkg.ID)
 			continue
 		}
 		for _, suggestion := range packageRemediation.Suggestions {
@@ -89,7 +89,7 @@ func buildRemediations(in remediationInput) remediationOutput {
 			finalizeCanonicalGroup(&group)
 			groups = append(groups, group)
 		}
-		delete(findingsByPackage, pkg.PURL)
+		delete(findingsByPackage, pkg.ID)
 	}
 	leftoverPackageRefs := make([]string, 0, len(findingsByPackage))
 	for packageRef := range findingsByPackage {
@@ -167,7 +167,7 @@ func canonicalRemediationGroup(
 	fixes []CompactFinding,
 	in remediationInput,
 ) RemediationGroup {
-	target := packageIdentityFromRegistry(in.Registry, pkg.PURL)
+	target := packageIdentityFromRegistry(in.Registry, pkg.ID)
 	targetRef := suggestion.SuggestedActionDependencyRef
 	if targetRef == "" && len(suggestion.AffectedDependencyRefs) > 0 {
 		targetRef = suggestion.AffectedDependencyRefs[0]
@@ -205,8 +205,14 @@ func compactFixesForSuggestion(
 	if graph == nil || len(suggestion.AffectedDependencyRefs) == 0 {
 		return out
 	}
-	dependency, ok := graph.Node(suggestion.AffectedDependencyRefs[0])
-	if !ok || dependency == nil {
+	graphNode, ok := graph.Node(suggestion.AffectedDependencyRefs[0])
+	if !ok {
+		return out
+	}
+	// Only a dependency node states a relationship; a module is the project
+	// itself and has nothing to remediate.
+	dependency, ok := sdk.AsDependencyNode(graphNode)
+	if !ok {
 		return out
 	}
 	for idx := range out {
@@ -215,7 +221,7 @@ func compactFixesForSuggestion(
 		if dependency.Relationship == sdk.DependencyRelationshipUnknown {
 			continue
 		}
-		path := shortestPathToRoot(graph, dependency.ID)
+		path := shortestPathToRoot(graph, dependency.NodeID())
 		if len(path) == 0 {
 			continue
 		}
@@ -265,19 +271,20 @@ func buildCompactFinding(f sdk.Finding, vuln *sdk.Vulnerability, in remediationI
 		}
 	}
 
-	node := resolveGraphNode(in.Graph, f)
+	graphNode := resolveGraphNode(in.Graph, f)
+	node, isDependency := sdk.AsDependencyNode(graphNode)
 	// Without graph placement we cannot name a different ancestor, so the
 	// package itself is the direct remediation target.
 	ancestor := ancestorTarget{identity: compact.Package, direct: true}
-	if node != nil {
+	if isDependency {
 		if node.Relationship == sdk.DependencyRelationshipUnknown {
 			compact.Direct = nil
 			ancestor.direct = false
 			ancestor.identity = packageIdentityFromDependency(node)
-			ancestor.dependencyID = node.ID
+			ancestor.dependencyID = node.NodeID()
 			ancestor.unresolvedParent = true
 		} else {
-			path := shortestPathToRoot(in.Graph, node.ID)
+			path := shortestPathToRoot(in.Graph, node.NodeID())
 			if len(path) > 0 {
 				direct := len(path) <= 2
 				compact.Direct = &direct
@@ -288,12 +295,12 @@ func buildCompactFinding(f sdk.Finding, vuln *sdk.Vulnerability, in remediationI
 					ancestorNode = path[1]
 				}
 				ancestor.identity = packageIdentityFromDependency(ancestorNode)
-				ancestor.dependencyID = ancestorNode.ID
+				ancestor.dependencyID = ancestorNode.NodeID()
 			}
 		}
 	}
 	if ancestor.dependencyID == "" && node != nil {
-		ancestor.dependencyID = node.ID
+		ancestor.dependencyID = node.NodeID()
 	}
 	if manifest := manifestForDependency(in.Manifests, ancestor.dependencyID); manifest != nil {
 		ancestor.manifestPath = manifest.Path
@@ -362,7 +369,7 @@ func remediationFindings(
 					Severity:        vulnerability.ParsedSeverity,
 					Source:          vulnerability.Source,
 					Auditor:         "enrichment",
-					PackageRef:      pkg.PURL,
+					PackageRef:      pkg.ID,
 					VulnerabilityID: vulnerability.ID,
 				}
 				if auditRan {
@@ -370,7 +377,7 @@ func remediationFindings(
 				}
 				for idx, candidate := range auditFindings {
 					if used[idx] || candidate.Kind != sdk.FindingKindVulnerability ||
-						candidate.PackageRef != pkg.PURL ||
+						candidate.PackageRef != pkg.ID ||
 						!findingIdentifiesVulnerability(candidate, vulnerability) {
 						continue
 					}
@@ -489,7 +496,7 @@ func sortCompactFindings(findings []CompactFinding) {
 
 // resolveGraphNode finds the graph node a finding refers to: first via
 // DependencyRefs (node IDs recorded by the auditor), then by PURL match.
-func resolveGraphNode(g *sdk.Graph, f sdk.Finding) *sdk.Dependency {
+func resolveGraphNode(g *sdk.Graph, f sdk.Finding) sdk.GraphNode {
 	if g == nil {
 		return nil
 	}
@@ -501,9 +508,9 @@ func resolveGraphNode(g *sdk.Graph, f sdk.Finding) *sdk.Dependency {
 	if f.PackageRef == "" {
 		return nil
 	}
-	var match *sdk.Dependency
-	g.WalkNodes(func(node *sdk.Dependency) bool {
-		if node != nil && node.PURL == f.PackageRef {
+	var match sdk.GraphNode
+	g.WalkNodes(func(node sdk.GraphNode) bool {
+		if node != nil && node.NodeID() == f.PackageRef {
 			match = node
 			return false
 		}
@@ -516,7 +523,7 @@ func resolveGraphNode(g *sdk.Graph, f sdk.Finding) *sdk.Dependency {
 // a bounded upward BFS over reverse edges. It never enumerates all paths
 // (that is exponential on dense graphs). Returns nil when the node is
 // unknown; returns [target] when the target itself is a root.
-func shortestPathToRoot(g *sdk.Graph, targetID string) []*sdk.Dependency {
+func shortestPathToRoot(g *sdk.Graph, targetID string) []sdk.GraphNode {
 	if g == nil {
 		return nil
 	}
@@ -527,11 +534,11 @@ func shortestPathToRoot(g *sdk.Graph, targetID string) []*sdk.Dependency {
 	rootIDs := map[string]struct{}{}
 	for _, root := range g.Roots() {
 		if root != nil {
-			rootIDs[root.ID] = struct{}{}
+			rootIDs[root.NodeID()] = struct{}{}
 		}
 	}
 	if _, isRoot := rootIDs[targetID]; isRoot || len(rootIDs) == 0 {
-		return []*sdk.Dependency{target}
+		return []sdk.GraphNode{target}
 	}
 
 	// BFS upward from the target through Dependents until a root is reached.
@@ -548,24 +555,24 @@ func shortestPathToRoot(g *sdk.Graph, targetID string) []*sdk.Dependency {
 			if dependent == nil {
 				continue
 			}
-			if _, visited := parentOf[dependent.ID]; visited {
+			if _, visited := parentOf[dependent.NodeID()]; visited {
 				continue
 			}
-			parentOf[dependent.ID] = current
-			if _, isRoot := rootIDs[dependent.ID]; isRoot {
-				return chainFrom(g, dependent.ID, parentOf)
+			parentOf[dependent.NodeID()] = current
+			if _, isRoot := rootIDs[dependent.NodeID()]; isRoot {
+				return chainFrom(g, dependent.NodeID(), parentOf)
 			}
-			queue = append(queue, dependent.ID)
+			queue = append(queue, dependent.NodeID())
 		}
 	}
 	// No root reachable (disconnected component): report the node alone.
-	return []*sdk.Dependency{target}
+	return []sdk.GraphNode{target}
 }
 
 // chainFrom walks parentOf pointers from a root back down to the target,
 // producing the root→target node chain.
-func chainFrom(g *sdk.Graph, rootID string, parentOf map[string]string) []*sdk.Dependency {
-	var chain []*sdk.Dependency
+func chainFrom(g *sdk.Graph, rootID string, parentOf map[string]string) []sdk.GraphNode {
+	var chain []sdk.GraphNode
 	for id := rootID; id != ""; id = parentOf[id] {
 		node, ok := g.Node(id)
 		if !ok {
@@ -576,7 +583,7 @@ func chainFrom(g *sdk.Graph, rootID string, parentOf map[string]string) []*sdk.D
 	return chain
 }
 
-func pathLabels(path []*sdk.Dependency) []string {
+func pathLabels(path []sdk.GraphNode) []string {
 	labels := make([]string, 0, len(path))
 	for idx, node := range path {
 		if idx == maxPathNodes-1 && len(path) > maxPathNodes {
@@ -589,15 +596,16 @@ func pathLabels(path []*sdk.Dependency) []string {
 	return labels
 }
 
-func dependencyLabel(dep *sdk.Dependency) string {
-	if dep == nil {
-		return ""
+// dependencyLabel renders a node the way a dependency path shows it: a
+// display name with its version appended when the name does not already
+// carry one.
+func dependencyLabel(node sdk.GraphNode) string {
+	name := sdk.NodeDisplayName(node)
+	version := sdk.NodeVersion(node)
+	if version == "" || strings.HasSuffix(name, "@"+version) {
+		return name
 	}
-	name := dep.DisplayName()
-	if dep.Version != "" && !strings.HasSuffix(name, "@"+dep.Version) {
-		return name + "@" + dep.Version
-	}
-	return name
+	return name + "@" + version
 }
 
 func manifestForDependency(manifests []output.ScanManifest, dependencyID string) *output.ScanManifest {
@@ -621,7 +629,7 @@ func packageIdentityFromRegistry(registry *sdk.PackageRegistry, purl string) Pac
 				Name:      pkg.DisplayName(),
 				Org:       pkg.Org,
 				Version:   pkg.Version,
-				Purl:      pkg.PURL,
+				Purl:      pkg.ID,
 				Ecosystem: string(pkg.Ecosystem),
 			}
 		}
@@ -629,16 +637,17 @@ func packageIdentityFromRegistry(registry *sdk.PackageRegistry, purl string) Pac
 	return PackageIdentity{Name: purl, Purl: purl}
 }
 
-func packageIdentityFromDependency(dep *sdk.Dependency) PackageIdentity {
-	if dep == nil {
+func packageIdentityFromDependency(node sdk.GraphNode) PackageIdentity {
+	coords, ok := sdk.NodeCoordinates(node)
+	if !ok {
 		return PackageIdentity{}
 	}
 	return PackageIdentity{
-		Name:      dep.DisplayName(),
-		Org:       dep.Org,
-		Version:   dep.Version,
-		Purl:      dep.PURL,
-		Ecosystem: string(dep.Ecosystem),
+		Name:      coords.DisplayName(),
+		Org:       coords.Org,
+		Version:   coords.Version,
+		Purl:      node.NodeID(),
+		Ecosystem: string(coords.Ecosystem),
 	}
 }
 

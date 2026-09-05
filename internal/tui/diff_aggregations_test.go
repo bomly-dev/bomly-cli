@@ -6,6 +6,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -291,25 +292,25 @@ func TestComputeOverviewStats_ScopesAreStatusComposite(t *testing.T) {
 func TestComputeOverviewStats_RelationshipsScopedToChanges(t *testing.T) {
 	// Build a head graph where react is root, lodash is direct, otherwise transitive.
 	g := sdk.New()
-	react := sdk.NewDependencyRef("react", "19.0.0")
-	lodash := sdk.NewDependencyRef("lodash", "4.17.20")
+	react := testnodes.Ref("react", "19.0.0")
+	lodash := testnodes.Ref("lodash", "4.17.20")
 	if err := g.AddNode(react); err != nil {
 		t.Fatalf("add react: %v", err)
 	}
 	if err := g.AddNode(lodash); err != nil {
 		t.Fatalf("add lodash: %v", err)
 	}
-	if err := g.AddEdge(react.ID, lodash.ID); err != nil {
+	if err := g.AddEdge(react.NodeID(), lodash.NodeID()); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
 
 	payload := output.DiffResponse{Results: output.DiffResults{Manifests: []output.DiffManifestResult{{
 		Status: "changed", Path: "package.json", Ecosystem: "npm",
 		Changed: []output.DiffChangedPackage{
-			{Before: output.PackageRef{Name: "react", Version: "18.2.0"}, After: output.PackageRef{ID: react.ID, Name: "react", Version: "19.0.0"}},
+			{Before: output.PackageRef{Name: "react", Version: "18.2.0"}, After: output.PackageRef{ID: react.NodeID(), Name: "react", Version: "19.0.0"}},
 		},
 		Added: []output.DiffPackageChange{
-			{Package: output.PackageRef{ID: lodash.ID, Name: "lodash", Version: "4.17.20"}},
+			{Package: output.PackageRef{ID: lodash.NodeID(), Name: "lodash", Version: "4.17.20"}},
 		},
 		Removed: []output.DiffPackageChange{
 			{Package: output.PackageRef{Name: "old-pkg", Version: "1.0.0"}}, // not in head graph
@@ -347,21 +348,21 @@ func TestComputeOverviewStats_RemovedPkgUsesBaseGraphForRelationship(t *testing.
 	// head graph that does NOT contain it. The Overview must classify it
 	// as "removed direct", not "removed unknown".
 	baseG := sdk.New()
-	root := sdk.NewDependencyRef("root", "1")
-	old := sdk.NewDependencyRef("old-pkg", "1.0.0")
-	for _, p := range []*sdk.Dependency{root, old} {
+	root := testnodes.Ref("root", "1")
+	old := testnodes.Ref("old-pkg", "1.0.0")
+	for _, p := range []*sdk.DependencyNode{root, old} {
 		if err := baseG.AddNode(p); err != nil {
 			t.Fatalf("add: %v", err)
 		}
 	}
-	if err := baseG.AddEdge(root.ID, old.ID); err != nil {
+	if err := baseG.AddEdge(root.NodeID(), old.NodeID()); err != nil {
 		t.Fatalf("dep: %v", err)
 	}
 
 	payload := output.DiffResponse{Results: output.DiffResults{Manifests: []output.DiffManifestResult{{
 		Status: "changed", Path: "go.mod", Ecosystem: "go",
 		Removed: []output.DiffPackageChange{
-			{Package: output.PackageRef{ID: old.ID, Name: "old-pkg", Version: "1.0.0"}},
+			{Package: output.PackageRef{ID: old.NodeID(), Name: "old-pkg", Version: "1.0.0"}},
 		},
 	}}}}
 	base := sdk.ConsolidatedGraph{Graphs: sdk.SingleGraphContainer(baseG, sdk.ManifestMetadata{Path: "go.mod"})}
@@ -822,33 +823,33 @@ func TestIsVulnerabilityFinding_KindFirstThenFallback(t *testing.T) {
 func TestClassifyRelationships(t *testing.T) {
 	// Build: root1 -> child1 -> grandchild1; root2 (no children).
 	g := sdk.New()
-	root1 := sdk.NewDependencyRef("root1", "1")
-	root2 := sdk.NewDependencyRef("root2", "1")
-	child := sdk.NewDependencyRef("child", "1")
-	grandchild := sdk.NewDependencyRef("grandchild", "1")
-	for _, p := range []*sdk.Dependency{root1, root2, child, grandchild} {
+	root1 := testnodes.Ref("root1", "1")
+	root2 := testnodes.Ref("root2", "1")
+	child := testnodes.Ref("child", "1")
+	grandchild := testnodes.Ref("grandchild", "1")
+	for _, p := range []*sdk.DependencyNode{root1, root2, child, grandchild} {
 		if err := g.AddNode(p); err != nil {
-			t.Fatalf("add %s: %v", p.ID, err)
+			t.Fatalf("add %s: %v", p.NodeID(), err)
 		}
 	}
-	if err := g.AddEdge(root1.ID, child.ID); err != nil {
+	if err := g.AddEdge(root1.NodeID(), child.NodeID()); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
-	if err := g.AddEdge(child.ID, grandchild.ID); err != nil {
+	if err := g.AddEdge(child.NodeID(), grandchild.NodeID()); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
 
 	rels := classifyRelationships(g)
-	if got := rels[root1.ID]; got != "root" {
+	if got := rels[root1.NodeID()]; got != "root" {
 		t.Errorf("root1 -> %q, want root", got)
 	}
-	if got := rels[root2.ID]; got != "root" {
+	if got := rels[root2.NodeID()]; got != "root" {
 		t.Errorf("root2 -> %q, want root", got)
 	}
-	if got := rels[child.ID]; got != "direct" {
+	if got := rels[child.NodeID()]; got != "direct" {
 		t.Errorf("child -> %q, want direct", got)
 	}
-	if got := rels[grandchild.ID]; got != "transitive" {
+	if got := rels[grandchild.NodeID()]; got != "transitive" {
 		t.Errorf("grandchild -> %q, want transitive", got)
 	}
 }

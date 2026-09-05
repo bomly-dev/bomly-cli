@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 )
@@ -15,7 +16,7 @@ import (
 func licensedGraph(t *testing.T, licenses ...sdk.PackageLicense) *sdk.Graph {
 	t.Helper()
 	g := sdk.New()
-	dep := sdk.NewDependencyWithID("left-pad@1.3.0", sdk.Dependency{Coordinates: sdk.Coordinates{
+	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 		Name:      "left-pad",
 		Version:   "1.3.0",
 		PURL:      "pkg:npm/left-pad@1.3.0",

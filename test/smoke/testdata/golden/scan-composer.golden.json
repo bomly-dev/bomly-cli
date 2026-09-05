@@ -5,6 +5,16 @@
       "dependencies": [
         {
           "depends_on": [
+            "pkg:composer/guzzlehttp/guzzle@6.2.3",
+            "pkg:composer/phpunit/phpunit@4.8.36",
+            "pkg:composer/twig/twig@1.44.7"
+          ],
+          "id": "module:composer.json#root",
+          "licenses": [],
+          "name": "root"
+        },
+        {
+          "depends_on": [
             "pkg:composer/guzzlehttp/promises@1.5.3",
             "pkg:composer/guzzlehttp/psr7@1.9.1"
           ],
@@ -213,18 +223,6 @@
           "version": "3.0.3"
         },
         {
-          "depends_on": [
-            "pkg:composer/guzzlehttp/guzzle@6.2.3",
-            "pkg:composer/phpunit/phpunit@4.8.36",
-            "pkg:composer/twig/twig@1.44.7"
-          ],
-          "id": "pkg:composer/root",
-          "licenses": [],
-          "name": "root",
-          "package_ref": "pkg:composer/root",
-          "purl": "pkg:composer/root"
-        },
-        {
           "depends_on": [],
           "id": "pkg:composer/symfony/polyfill-mbstring@v1.28.0",
           "licenses": [],
@@ -244,7 +242,7 @@
           "scopes": [
             "runtime"
           ],
-          "version": "1.28.0"
+          "version": "v1.28.0"
         },
         {
           "depends_on": [],
@@ -266,7 +264,7 @@
           "scopes": [
             "development"
           ],
-          "version": "2.8.52"
+          "version": "v2.8.52"
         },
         {
           "depends_on": [
@@ -389,17 +387,10 @@
     {
       "ecosystem": "php",
       "licenses": [],
-      "name": "root",
-      "purl": "pkg:composer/root",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "php",
-      "licenses": [],
       "name": "symfony/polyfill-mbstring",
       "org": "symfony",
       "purl": "pkg:composer/symfony/polyfill-mbstring@v1.28.0",
-      "version": "1.28.0",
+      "version": "v1.28.0",
       "vulnerabilities": []
     },
     {
@@ -408,7 +399,7 @@
       "name": "symfony/yaml",
       "org": "symfony",
       "purl": "pkg:composer/symfony/yaml@v2.8.52",
-      "version": "2.8.52",
+      "version": "v2.8.52",
       "vulnerabilities": []
     },
     {

@@ -6,17 +6,16 @@ require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/CycloneDX/cyclonedx-go v0.11.0
 	github.com/Masterminds/semver/v3 v3.5.0
-	github.com/anchore/packageurl-go v0.2.0
-	github.com/bomly-dev/bomly-plugin-depsdev-license-matcher v0.1.0
-	github.com/bomly-dev/bomly-plugin-govulncheck-analyzer v0.1.0
-	github.com/bomly-dev/bomly-plugin-grype-matcher v0.1.0
-	github.com/bomly-dev/bomly-plugin-jsreach-analyzer v0.1.0
-	github.com/bomly-dev/bomly-plugin-jvmreach-analyzer v0.1.0
-	github.com/bomly-dev/bomly-plugin-osv-matcher v0.1.0
-	github.com/bomly-dev/bomly-plugin-pyreach-analyzer v0.1.0
-	github.com/bomly-dev/bomly-plugin-scorecard-matcher v0.1.0
-	github.com/bomly-dev/bomly-plugin-syft-detector v0.1.0
-	github.com/bomly-dev/bomly-sdk v0.4.2
+	github.com/bomly-dev/bomly-plugin-depsdev-license-matcher v0.2.0
+	github.com/bomly-dev/bomly-plugin-govulncheck-analyzer v0.2.0
+	github.com/bomly-dev/bomly-plugin-grype-matcher v0.2.0
+	github.com/bomly-dev/bomly-plugin-jsreach-analyzer v0.2.0
+	github.com/bomly-dev/bomly-plugin-jvmreach-analyzer v0.2.0
+	github.com/bomly-dev/bomly-plugin-osv-matcher v0.2.0
+	github.com/bomly-dev/bomly-plugin-pyreach-analyzer v0.2.0
+	github.com/bomly-dev/bomly-plugin-scorecard-matcher v0.2.0
+	github.com/bomly-dev/bomly-plugin-syft-detector v0.2.0
+	github.com/bomly-dev/bomly-sdk v0.9.0
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
@@ -71,6 +70,7 @@ require (
 	github.com/anchore/go-sync v0.1.1 // indirect
 	github.com/anchore/go-version v1.2.2-0.20210903204242-51efa5b487c4 // indirect
 	github.com/anchore/grype v0.117.0 // indirect
+	github.com/anchore/packageurl-go v0.2.0 // indirect
 	github.com/anchore/stereoscope v0.3.0 // indirect
 	github.com/anchore/syft v1.51.0 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
@@ -244,7 +244,7 @@ require (
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/opencontainers/runtime-spec v1.3.0 // indirect
 	github.com/openvex/go-vex v0.2.8 // indirect
-	github.com/package-url/packageurl-go v0.1.5 // indirect
+	github.com/package-url/packageurl-go v0.1.7 // indirect
 	github.com/pandatix/go-cvss v0.6.2 // indirect
 	github.com/pborman/indent v1.2.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect

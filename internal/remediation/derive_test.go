@@ -10,6 +10,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -26,7 +27,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 		{
 			name: "one fixed in version",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:       "VULN-1",
 				FixState: sdk.FixStateFixed,
 				FixedIn:  "1.2.0",
 			}},
@@ -39,13 +39,11 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name: "uses preferred source and highest required version",
 			vulnerabilities: []sdk.Vulnerability{
 				{
-					ID:            "VULN-1",
 					FixedIn:       "1.4.0",
 					FixAvailable:  []sdk.FixAvailable{{Version: "9.0.0"}},
 					FixedVersions: []string{"8.0.0"},
 				},
 				{
-					ID: "VULN-2",
 					FixAvailable: []sdk.FixAvailable{
 						{Version: "2.1.0"},
 						{Version: "2.0.0"},
@@ -53,7 +51,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 					FixedVersions: []string{"7.0.0"},
 				},
 				{
-					ID:            "VULN-3",
 					FixedVersions: []string{"1.5.0", "1.6.0"},
 				},
 			},
@@ -66,7 +63,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "selects fix from current release line",
 			currentVersion: "1.2.5",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:            "VULN-1",
 				FixedVersions: []string{"0.2.4", "1.2.6"},
 			}},
 			want: &sdk.PackageRemediation{
@@ -78,7 +74,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "does not recommend a downgrade",
 			currentVersion: "1.2.5",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:            "VULN-1",
 				FixedVersions: []string{"0.2.4", "1.2.4"},
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -87,7 +82,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "does not recommend installed version",
 			currentVersion: "1.2.5",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:      "VULN-1",
 				FixedIn: "1.2.5",
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -96,7 +90,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "current version requires comparable fixes",
 			currentVersion: "1.2.5",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:            "VULN-1",
 				FixedVersions: []string{"release-a", "1.2.6"},
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -105,7 +98,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "unparseable installed version cannot prove an upgrade",
 			currentVersion: "1:2.0",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:      "VULN-1",
 				FixedIn: "1.5.0",
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -114,7 +106,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "distribution installed version cannot prove an upgrade",
 			currentVersion: "2:1.2.3-1ubuntu1",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:      "VULN-1",
 				FixedIn: "2.0.0",
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -122,7 +113,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 		{
 			name: "unparseable fix evidence is not a version",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:      "VULN-1",
 				FixedIn: "see advisory",
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -131,7 +121,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "prerelease-only fix is not recommended",
 			currentVersion: "1.0.0",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:      "VULN-1",
 				FixedIn: "2.0.0-rc.1",
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -140,7 +129,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 			name:           "stable fix is preferred over prerelease",
 			currentVersion: "1.0.0",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:            "VULN-1",
 				FixedVersions: []string{"2.0.0-rc.1", "2.0.0"},
 			}},
 			want: &sdk.PackageRemediation{
@@ -183,7 +171,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 		{
 			name: "contradictory evidence",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:       "VULN-1",
 				FixState: sdk.FixStateWontFix,
 				FixedIn:  "1.2.0",
 			}},
@@ -200,7 +187,6 @@ func TestDerivePackageRemediation(t *testing.T) {
 		{
 			name: "incomparable versions within one source",
 			vulnerabilities: []sdk.Vulnerability{{
-				ID:            "VULN-1",
 				FixedVersions: []string{"release-a", "release-b"},
 			}},
 			want: &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial},
@@ -222,7 +208,6 @@ func TestDerivePackageRemediationsOverwritesAndIsIdempotent(t *testing.T) {
 	pkg := registry.Add(&sdk.Package{
 		Coordinates: sdk.Coordinates{PURL: "pkg:npm/example@1.0.0"},
 		Vulnerabilities: []sdk.Vulnerability{{
-			ID:      "VULN-1",
 			FixedIn: "1.2.0",
 		}},
 		Remediation: &sdk.PackageRemediation{
@@ -294,7 +279,7 @@ func (d remediationTestDetector) RemediationHints(
 func TestDeriveBuildsCanonicalOccurrenceSuggestions(t *testing.T) {
 	const manifestPath = "package-lock.json"
 	graph := sdk.New()
-	nodes := []*sdk.Dependency{
+	nodes := []*sdk.DependencyNode{
 		testDependency("root", "", sdk.DependencyRelationshipDirect, sdk.DependencySourceProject),
 		testDependency("direct", "pkg:npm/direct@1.0.0", sdk.DependencyRelationshipDirect, sdk.DependencySourceRegistry),
 		testDependency("parent", "pkg:npm/parent@1.0.0", sdk.DependencyRelationshipDirect, sdk.DependencySourceRegistry),
@@ -306,7 +291,7 @@ func TestDeriveBuildsCanonicalOccurrenceSuggestions(t *testing.T) {
 	}
 	for _, node := range nodes {
 		if err := graph.AddNode(node); err != nil {
-			t.Fatalf("AddNode(%s) error = %v", node.ID, err)
+			t.Fatalf("AddNode(%s) error = %v", node.NodeID(), err)
 		}
 	}
 	for _, edge := range [][2]string{
@@ -318,15 +303,15 @@ func TestDeriveBuildsCanonicalOccurrenceSuggestions(t *testing.T) {
 		{"root", "workspace"},
 		{"root", "unavailable"},
 	} {
-		if err := graph.AddEdge(edge[0], edge[1]); err != nil {
+		if err := graph.AddEdge(testnodes.ID(graph, edge[0]), testnodes.ID(graph, edge[1])); err != nil {
 			t.Fatalf("AddEdge(%v) error = %v", edge, err)
 		}
 	}
 
 	registry := sdk.NewPackageRegistry()
 	for _, node := range nodes[1:] {
-		vulnerability := sdk.Vulnerability{ID: "VULN-" + node.ID, FixedIn: "1.2.0"}
-		if node.ID == "unavailable" {
+		vulnerability := sdk.Vulnerability{ID: "VULN-" + node.NodeID(), FixedIn: "1.2.0"}
+		if testnodes.Is(node, "unavailable") {
 			vulnerability = sdk.Vulnerability{ID: "VULN-unavailable", FixState: sdk.FixStateNotFixed}
 		}
 		registry.Add(&sdk.Package{
@@ -360,14 +345,14 @@ func TestDeriveBuildsCanonicalOccurrenceSuggestions(t *testing.T) {
 		},
 		response: sdk.RemediationHintResponse{Hints: []sdk.RemediationHint{
 			{
-				DependencyRef: "direct",
+				DependencyRef: "pkg:npm/direct@1.0.0",
 				ManifestPath:  manifestPath,
 				Strategies: []sdk.RemediationStrategyHint{{
 					Action: sdk.RemediationActionDirectBump,
 				}},
 			},
 			{
-				DependencyRef: "transitive",
+				DependencyRef: "pkg:npm/transitive@1.0.0",
 				ManifestPath:  manifestPath,
 				Strategies: []sdk.RemediationStrategyHint{{
 					Action: sdk.RemediationActionTransitiveOverride,
@@ -375,21 +360,21 @@ func TestDeriveBuildsCanonicalOccurrenceSuggestions(t *testing.T) {
 				}},
 			},
 			{
-				DependencyRef: "refresh",
+				DependencyRef: "pkg:npm/refresh@1.0.0",
 				ManifestPath:  manifestPath,
 				Strategies: []sdk.RemediationStrategyHint{{
 					Action: sdk.RemediationActionLockfileRefresh,
 				}},
 			},
 			{
-				DependencyRef: "unknown",
+				DependencyRef: "pkg:npm/unknown@1.0.0",
 				ManifestPath:  manifestPath,
 				Strategies: []sdk.RemediationStrategyHint{{
 					Action: sdk.RemediationActionDirectBump,
 				}},
 			},
 			{
-				DependencyRef: "workspace",
+				DependencyRef: "pkg:npm/workspace@1.0.0",
 				ManifestPath:  manifestPath,
 				Strategies: []sdk.RemediationStrategyHint{{
 					Action: sdk.RemediationActionDirectBump,
@@ -421,49 +406,53 @@ func TestDeriveBuildsCanonicalOccurrenceSuggestions(t *testing.T) {
 		t.Fatalf("detector mutated subproject input: %#v", detection.SubprojectInfo)
 	}
 
-	assertSuggestion(t, registry, "pkg:npm/direct@1.0.0", sdk.RemediationActionDirectBump, "direct", "")
-	assertSuggestion(t, registry, "pkg:npm/transitive@1.0.0", sdk.RemediationActionTransitiveOverride, "parent", `add "overrides": {"transitive": "1.2.0"}`)
-	assertSuggestion(t, registry, "pkg:npm/refresh@1.0.0", sdk.RemediationActionLockfileRefresh, "parent", "")
-	assertSuggestion(t, registry, "pkg:npm/unknown@1.0.0", sdk.RemediationActionManualReview, "unknown", "")
-	assertSuggestion(t, registry, "pkg:npm/workspace@1.0.0", sdk.RemediationActionManualReview, "workspace", "")
-	assertSuggestion(t, registry, "pkg:npm/unavailable@1.0.0", sdk.RemediationActionNoFixUpstream, "unavailable", "")
+	// Targets are node IDs, and a node ID is a canonical package URL now.
+	assertSuggestion(t, registry, "pkg:npm/direct@1.0.0", sdk.RemediationActionDirectBump, "pkg:npm/direct@1.0.0", "")
+	assertSuggestion(t, registry, "pkg:npm/transitive@1.0.0", sdk.RemediationActionTransitiveOverride, "pkg:npm/parent@1.0.0", `add "overrides": {"transitive": "1.2.0"}`)
+	assertSuggestion(t, registry, "pkg:npm/refresh@1.0.0", sdk.RemediationActionLockfileRefresh, "pkg:npm/parent@1.0.0", "")
+	assertSuggestion(t, registry, "pkg:npm/unknown@1.0.0", sdk.RemediationActionManualReview, "pkg:npm/unknown@1.0.0", "")
+	assertSuggestion(t, registry, "pkg:npm/workspace@1.0.0", sdk.RemediationActionManualReview, "pkg:npm/workspace@1.0.0", "")
+	assertSuggestion(t, registry, "pkg:npm/unavailable@1.0.0", sdk.RemediationActionNoFixUpstream, "pkg:npm/unavailable@1.0.0", "")
 }
 
-func TestDeriveGroupsEquivalentOccurrencesWithoutCollapsingManifests(t *testing.T) {
+// One package reached from two places in a manifest is one node -- the alias
+// entry folds into it -- while the same package in another manifest keeps its
+// own entry, so a suggestion is still made per manifest.
+func TestDeriveFoldsWithinAManifestAndKeepsManifestsApart(t *testing.T) {
 	const purl = "pkg:npm/example@1.0.0"
 	firstGraph := sdk.New()
-	for _, dependency := range []*sdk.Dependency{
+	for _, dependency := range []*sdk.DependencyNode{
 		testDependency("root", "", sdk.DependencyRelationshipDirect, sdk.DependencySourceProject),
 		testDependency("parent", "pkg:npm/parent@1.0.0", sdk.DependencyRelationshipDirect, sdk.DependencySourceRegistry),
 		testDependency("example", purl, sdk.DependencyRelationshipTransitive, sdk.DependencySourceRegistry),
 		testDependency("alias-example", purl, sdk.DependencyRelationshipTransitive, sdk.DependencySourceRegistry),
 	} {
-		if err := firstGraph.AddNode(dependency); err != nil {
-			t.Fatalf("AddNode(%s) error = %v", dependency.ID, err)
+		// Inserted, not added: the alias shares the package URL, so it folds
+		// into the node already there rather than failing as a duplicate.
+		if _, err := firstGraph.InsertNode(dependency); err != nil {
+			t.Fatalf("InsertNode(%s) error = %v", dependency.NodeID(), err)
 		}
 	}
-	if err := firstGraph.AddEdge("root", "parent"); err != nil {
+	if err := firstGraph.AddEdge(testnodes.ID(firstGraph, "root"), testnodes.ID(firstGraph, "parent")); err != nil {
 		t.Fatalf("AddEdge(parent) error = %v", err)
 	}
-	for _, dependencyRef := range []string{"example", "alias-example"} {
-		if err := firstGraph.AddEdge("parent", dependencyRef); err != nil {
-			t.Fatalf("AddEdge(%q) error = %v", dependencyRef, err)
-		}
+	if err := firstGraph.AddEdge(testnodes.ID(firstGraph, "parent"), purl); err != nil {
+		t.Fatalf("AddEdge(example) error = %v", err)
 	}
 
 	secondGraph := sdk.New()
 	secondRoot := testDependency("workspace-root", "", sdk.DependencyRelationshipDirect, sdk.DependencySourceProject)
 	secondParent := testDependency("workspace-parent", "pkg:npm/workspace-parent@1.0.0", sdk.DependencyRelationshipDirect, sdk.DependencySourceRegistry)
 	secondOccurrence := testDependency("workspace-example", purl, sdk.DependencyRelationshipTransitive, sdk.DependencySourceRegistry)
-	for _, dependency := range []*sdk.Dependency{secondRoot, secondParent, secondOccurrence} {
+	for _, dependency := range []*sdk.DependencyNode{secondRoot, secondParent, secondOccurrence} {
 		if err := secondGraph.AddNode(dependency); err != nil {
-			t.Fatalf("AddNode(%s) error = %v", dependency.ID, err)
+			t.Fatalf("AddNode(%s) error = %v", dependency.NodeID(), err)
 		}
 	}
-	if err := secondGraph.AddEdge(secondRoot.ID, secondParent.ID); err != nil {
+	if err := secondGraph.AddEdge(secondRoot.NodeID(), secondParent.NodeID()); err != nil {
 		t.Fatalf("AddEdge() error = %v", err)
 	}
-	if err := secondGraph.AddEdge(secondParent.ID, secondOccurrence.ID); err != nil {
+	if err := secondGraph.AddEdge(secondParent.NodeID(), secondOccurrence.NodeID()); err != nil {
 		t.Fatalf("AddEdge() error = %v", err)
 	}
 
@@ -484,16 +473,17 @@ func TestDeriveGroupsEquivalentOccurrencesWithoutCollapsingManifests(t *testing.
 			}},
 		},
 		response: sdk.RemediationHintResponse{Hints: []sdk.RemediationHint{
-			overrideHint("example", entries[0].Manifest.Path),
-			overrideHint("alias-example", entries[0].Manifest.Path),
-			overrideHint("workspace-example", entries[1].Manifest.Path),
+			// Both first-manifest hints name the one folded node, so the
+			// second is a duplicate rather than a second occurrence.
+			overrideHint(purl, entries[0].Manifest.Path),
+			overrideHint(purl, entries[0].Manifest.Path),
+			overrideHint(purl, entries[1].Manifest.Path),
 		}},
 	}
 	registry := sdk.NewPackageRegistry()
 	registry.Add(&sdk.Package{
 		Coordinates: sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
 		Vulnerabilities: []sdk.Vulnerability{{
-			ID:      "VULN-1",
 			FixedIn: "1.2.0",
 		}},
 	})
@@ -519,11 +509,11 @@ func TestDeriveGroupsEquivalentOccurrencesWithoutCollapsingManifests(t *testing.
 		t.Fatalf("suggestions = %#v, want one group per manifest", pkg.Remediation.Suggestions)
 	}
 	if got := pkg.Remediation.Suggestions[0]; got.ManifestPath != "package-lock.json" ||
-		!reflect.DeepEqual(got.AffectedDependencyRefs, []string{"alias-example", "example"}) {
+		!reflect.DeepEqual(got.AffectedDependencyRefs, []string{purl}) {
 		t.Fatalf("root manifest suggestion = %#v", got)
 	}
 	if got := pkg.Remediation.Suggestions[1]; got.ManifestPath != "packages/web/package-lock.json" ||
-		!reflect.DeepEqual(got.AffectedDependencyRefs, []string{"workspace-example"}) {
+		!reflect.DeepEqual(got.AffectedDependencyRefs, []string{purl}) {
 		t.Fatalf("workspace manifest suggestion = %#v", got)
 	}
 }
@@ -533,24 +523,24 @@ func TestInferredPlacementUsesRealProjectRootsOnly(t *testing.T) {
 	root := testDependency("root", "", "", sdk.DependencySourceProject)
 	direct := testDependency("direct", "pkg:npm/direct@1.0.0", "", sdk.DependencySourceRegistry)
 	transitive := testDependency("transitive", "pkg:npm/transitive@1.0.0", "", sdk.DependencySourceRegistry)
-	for _, dependency := range []*sdk.Dependency{root, direct, transitive} {
+	for _, dependency := range []*sdk.DependencyNode{root, direct, transitive} {
 		if err := graph.AddNode(dependency); err != nil {
-			t.Fatalf("AddNode(%s) error = %v", dependency.ID, err)
+			t.Fatalf("AddNode(%s) error = %v", dependency.NodeID(), err)
 		}
 	}
-	if err := graph.AddEdge(root.ID, direct.ID); err != nil {
+	if err := graph.AddEdge(root.NodeID(), direct.NodeID()); err != nil {
 		t.Fatalf("AddEdge(root, direct) error = %v", err)
 	}
-	if err := graph.AddEdge(direct.ID, transitive.ID); err != nil {
+	if err := graph.AddEdge(direct.NodeID(), transitive.NodeID()); err != nil {
 		t.Fatalf("AddEdge(direct, transitive) error = %v", err)
 	}
 
-	if relationship, target, ok := inferredPlacement(graph, direct.ID); !ok ||
-		relationship != sdk.DependencyRelationshipDirect || target != direct.ID {
+	if relationship, target, ok := inferredPlacement(graph, direct.NodeID()); !ok ||
+		relationship != sdk.DependencyRelationshipDirect || target != direct.NodeID() {
 		t.Fatalf("direct placement = (%q, %q, %t)", relationship, target, ok)
 	}
-	if relationship, target, ok := inferredPlacement(graph, transitive.ID); !ok ||
-		relationship != sdk.DependencyRelationshipTransitive || target != direct.ID {
+	if relationship, target, ok := inferredPlacement(graph, transitive.NodeID()); !ok ||
+		relationship != sdk.DependencyRelationshipTransitive || target != direct.NodeID() {
 		t.Fatalf("transitive placement = (%q, %q, %t)", relationship, target, ok)
 	}
 
@@ -558,16 +548,16 @@ func TestInferredPlacementUsesRealProjectRootsOnly(t *testing.T) {
 	virtualRoot := testDependency("manifest", "", "", "")
 	virtualRoot.Type = sdk.PackageTypeManifest
 	orphan := testDependency("orphan", "pkg:npm/orphan@1.0.0", "", sdk.DependencySourceRegistry)
-	for _, dependency := range []*sdk.Dependency{virtualRoot, orphan} {
+	for _, dependency := range []*sdk.DependencyNode{virtualRoot, orphan} {
 		if err := virtualGraph.AddNode(dependency); err != nil {
-			t.Fatalf("AddNode(%s) error = %v", dependency.ID, err)
+			t.Fatalf("AddNode(%s) error = %v", dependency.NodeID(), err)
 		}
 	}
-	if err := virtualGraph.AddEdge(virtualRoot.ID, orphan.ID); err != nil {
+	if err := virtualGraph.AddEdge(virtualRoot.NodeID(), orphan.NodeID()); err != nil {
 		t.Fatalf("AddEdge(manifest, orphan) error = %v", err)
 	}
-	if relationship, target, ok := inferredPlacement(virtualGraph, orphan.ID); ok ||
-		relationship != sdk.DependencyRelationshipUnknown || target != orphan.ID {
+	if relationship, target, ok := inferredPlacement(virtualGraph, orphan.NodeID()); ok ||
+		relationship != sdk.DependencyRelationshipUnknown || target != orphan.NodeID() {
 		t.Fatalf("virtual-root placement = (%q, %q, %t)", relationship, target, ok)
 	}
 }
@@ -578,37 +568,39 @@ func TestInferredPlacementCollapsesEqualLengthDiamondPaths(t *testing.T) {
 	if err := graph.AddNode(root); err != nil {
 		t.Fatal(err)
 	}
-	previous := []string{root.ID}
+	previous := []string{root.NodeID()}
 	for layer := 0; layer < 20; layer++ {
 		current := []string{
 			fmt.Sprintf("a-%02d", layer),
 			fmt.Sprintf("b-%02d", layer),
 		}
+		nodeIDs := make([]string, 0, len(current))
 		for _, id := range current {
 			node := testDependency(id, "pkg:npm/"+id+"@1.0.0", "", sdk.DependencySourceRegistry)
 			if err := graph.AddNode(node); err != nil {
 				t.Fatal(err)
 			}
+			nodeIDs = append(nodeIDs, node.NodeID())
 			for _, parent := range previous {
-				if err := graph.AddEdge(parent, id); err != nil {
+				if err := graph.AddEdge(parent, node.NodeID()); err != nil {
 					t.Fatal(err)
 				}
 			}
 		}
-		previous = current
+		previous = nodeIDs
 	}
 	target := testDependency("target", "pkg:npm/target@1.0.0", "", sdk.DependencySourceRegistry)
 	if err := graph.AddNode(target); err != nil {
 		t.Fatal(err)
 	}
 	for _, parent := range previous {
-		if err := graph.AddEdge(parent, target.ID); err != nil {
+		if err := graph.AddEdge(parent, target.NodeID()); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	relationship, directTarget, ok := inferredPlacement(graph, target.ID)
-	if !ok || relationship != sdk.DependencyRelationshipTransitive || directTarget != "a-00" {
+	relationship, directTarget, ok := inferredPlacement(graph, target.NodeID())
+	if !ok || relationship != sdk.DependencyRelationshipTransitive || directTarget != "pkg:npm/a-00@1.0.0" {
 		t.Fatalf("diamond placement = (%q, %q, %t)", relationship, directTarget, ok)
 	}
 }
@@ -641,7 +633,7 @@ func TestValidateHintsSanitizesAndBoundsAdvice(t *testing.T) {
 	}
 	rawAdvice := "\x1b[31m" + strings.Repeat("x", maxDetectorAdviceRunes+100) + "\nspoofed"
 	validated, rejected := validateHints(detection, descriptor, []sdk.RemediationHint{{
-		DependencyRef: dependency.ID,
+		DependencyRef: dependency.NodeID(),
 		ManifestPath:  "package-lock.json",
 		Strategies: []sdk.RemediationStrategyHint{{
 			Action: sdk.RemediationActionTransitiveOverride,
@@ -725,7 +717,6 @@ func TestDeriveRejectsUnadvertisedAndUnknownHints(t *testing.T) {
 	registry.Add(&sdk.Package{
 		Coordinates: dependency.Coordinates,
 		Vulnerabilities: []sdk.Vulnerability{{
-			ID:      "VULN-1",
 			FixedIn: "1.2.0",
 		}},
 	})
@@ -753,7 +744,7 @@ func TestDeriveRejectsUnadvertisedAndUnknownHints(t *testing.T) {
 				}},
 			},
 			{
-				DependencyRef: "direct",
+				DependencyRef: "pkg:npm/direct@1.0.0",
 				ManifestPath:  "package-lock.json",
 				Strategies: []sdk.RemediationStrategyHint{{
 					Action: sdk.RemediationActionTransitiveOverride,
@@ -773,7 +764,7 @@ func TestDeriveRejectsUnadvertisedAndUnknownHints(t *testing.T) {
 	if len(warnings) != 2 {
 		t.Fatalf("Derive() warnings = %#v, want 2", warnings)
 	}
-	assertSuggestion(t, registry, dependency.PackageRef, sdk.RemediationActionManualReview, dependency.ID, "")
+	assertSuggestion(t, registry, dependency.PackageRef, sdk.RemediationActionManualReview, dependency.NodeID(), "")
 }
 
 func TestDeriveResolvesRebasedHintAndWarnsWhenManifestResolutionFails(t *testing.T) {
@@ -782,12 +773,11 @@ func TestDeriveResolvesRebasedHintAndWarnsWhenManifestResolutionFails(t *testing
 		manifestPath = "package-lock.json"
 	)
 	detectionGraph := sdk.New()
-	rawDependency := sdk.NewDependencyWithID("raw-lockfile-id", sdk.Dependency{
+	rawDependency := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			PURL: purl, Name: "example", Version: "1.0.0",
 			PackageManager: sdk.PackageManagerNPM,
 		},
-		ID:           "raw-lockfile-id",
 		Relationship: sdk.DependencyRelationshipDirect,
 		Source:       sdk.DependencySourceRegistry,
 	})
@@ -811,7 +801,7 @@ func TestDeriveResolvesRebasedHintAndWarnsWhenManifestResolutionFails(t *testing
 			}},
 		},
 		response: sdk.RemediationHintResponse{Hints: []sdk.RemediationHint{{
-			DependencyRef: rawDependency.ID,
+			DependencyRef: rawDependency.NodeID(),
 			ManifestPath:  manifestPath,
 			Strategies: []sdk.RemediationStrategyHint{{
 				Action: sdk.RemediationActionDirectBump,
@@ -893,7 +883,6 @@ func TestDeriveFallsBackToManualReviewWhenProviderFails(t *testing.T) {
 	registry.Add(&sdk.Package{
 		Coordinates: dependency.Coordinates,
 		Vulnerabilities: []sdk.Vulnerability{{
-			ID:      "VULN-1",
 			FixedIn: "1.2.0",
 		}},
 	})
@@ -926,11 +915,11 @@ func TestDeriveFallsBackToManualReviewWhenProviderFails(t *testing.T) {
 	if len(warnings) != 1 || warnings[0].Message != "provider failed" {
 		t.Fatalf("Derive() warnings = %#v", warnings)
 	}
-	assertSuggestion(t, registry, dependency.PackageRef, sdk.RemediationActionManualReview, dependency.ID, "")
+	assertSuggestion(t, registry, dependency.PackageRef, sdk.RemediationActionManualReview, dependency.NodeID(), "")
 }
 
-func testDependency(id, purl string, relationship sdk.DependencyRelationship, source sdk.DependencySource) *sdk.Dependency {
-	return sdk.NewDependencyWithID(id, sdk.Dependency{
+func testDependency(id, purl string, relationship sdk.DependencyRelationship, source sdk.DependencySource) *sdk.DependencyNode {
+	return testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			PURL:           purl,
 			Name:           id,
@@ -938,7 +927,6 @@ func testDependency(id, purl string, relationship sdk.DependencyRelationship, so
 			PackageManager: sdk.PackageManagerNPM,
 			Type:           sdk.PackageTypePackage,
 		},
-		ID:           id,
 		Relationship: relationship,
 		Source:       source,
 		PackageRef:   purl,

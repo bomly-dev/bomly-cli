@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -89,18 +90,17 @@ func TestScanTextSummaryFollowsEnrichmentAndMarkdownShowsDetails(t *testing.T) {
 	registry := sdk.NewPackageRegistry()
 	registry.Add(remediationTestPackage(purl))
 	graph := sdk.New()
-	if err := graph.AddNode(sdk.NewDependencyRefWithID("project", "project", "")); err != nil {
+	if err := graph.AddNode(testnodes.Ref("project", "")); err != nil {
 		t.Fatalf("AddNode(project) error = %v", err)
 	}
-	dependency := sdk.NewDependency(sdk.Dependency{
-		ID:           "example@1.0.0",
+	dependency := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates:  sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
 		Relationship: sdk.DependencyRelationshipDirect,
 	})
 	if err := graph.AddNode(dependency); err != nil {
 		t.Fatalf("AddNode() error = %v", err)
 	}
-	if err := graph.AddEdge("project", dependency.ID); err != nil {
+	if err := graph.AddEdge(testnodes.ID(graph, "project"), dependency.NodeID()); err != nil {
 		t.Fatalf("AddEdge() error = %v", err)
 	}
 

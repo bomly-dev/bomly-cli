@@ -5,11 +5,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestPackageRefMarshalJSONAlwaysIncludesLicenses(t *testing.T) {
-	payload, err := json.Marshal(PackageFromGraphPackage(&sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}}))
+	payload, err := json.Marshal(PackageFromGraphPackage(&sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}}))
 	if err != nil {
 		t.Fatalf("Marshal() error = %v", err)
 	}
@@ -19,11 +20,13 @@ func TestPackageRefMarshalJSONAlwaysIncludesLicenses(t *testing.T) {
 }
 
 func TestPackageFromGraphPackageIncludesStructuredLicenses(t *testing.T) {
-	dep := &sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}}
+	dep := testnodes.Dep(sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: "react", Version: "18.2.0"})
 	sdk.SetDetectionLicenses(dep, []sdk.PackageLicense{{
 		Value:          "MIT License",
 		SPDXExpression: "MIT",
-		Type:           sdk.LicenseType("external-depsdev"),
+		// LicenseType is a closed vocabulary now -- declared or concluded --
+		// so a matcher-specific label would be dropped by the gate.
+		Type: sdk.LicenseTypeConcluded,
 	}})
 	ref := PackageFromGraphPackage(dep)
 
@@ -33,7 +36,7 @@ func TestPackageFromGraphPackageIncludesStructuredLicenses(t *testing.T) {
 	if got := ref.Licenses[0].Identifier(); got != "MIT" {
 		t.Fatalf("Identifier() = %q, want %q", got, "MIT")
 	}
-	if ref.Licenses[0].Type != "external-depsdev" {
+	if ref.Licenses[0].Type != sdk.LicenseTypeConcluded {
 		t.Fatalf("unexpected license metadata: %#v", ref.Licenses[0])
 	}
 }

@@ -4,14 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 type eligibilityCapturingMatcher struct {
 	calls    int
 	graph    *sdk.Graph
 	registry *sdk.PackageRegistry
-	target   *sdk.Dependency
+	target   *sdk.DependencyNode
 }
 
 func (m *eligibilityCapturingMatcher) Descriptor() sdk.MatcherDescriptor {
@@ -51,9 +52,12 @@ func (a *graphSizeAuditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.A
 
 func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T) {
 	graph := sdk.New()
-	app := matchTestDependency("app", "1.0.0", sdk.PackageTypeApplication, sdk.DependencySourceRegistry)
-	app.FirstParty = true
-	manifest := matchTestDependency("manifest", "1.0.0", sdk.PackageTypeManifest, "")
+	app := testnodes.ModuleFrom("package.json", sdk.Coordinates{
+		Ecosystem: sdk.EcosystemNPM, Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication,
+	})
+	// A manifest is a manifest node now; there is no dependency node typed
+	// "manifest" for a matcher to consider (ADR-0041).
+	manifest := testnodes.Manifest("package.json", sdk.ManifestKindPackageJSON)
 	registryRelease := matchTestDependency("registry-package", "1.0.0", "", sdk.DependencySourceRegistry)
 	registryRelease.Relationship = sdk.DependencyRelationshipUnknown
 	legacy := matchTestDependency("legacy-package", "1.0.0", "", "")
@@ -67,20 +71,22 @@ func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T)
 	git := matchTestDependency("git-package", "1.0.0", "", sdk.DependencySourceGit)
 	url := matchTestDependency("url-package", "1.0.0", "", sdk.DependencySourceURL)
 
-	all := []*sdk.Dependency{app, manifest, registryRelease, legacy, mirror, workspace, externalShared, project, file, git, url}
+	all := []sdk.GraphNode{app, manifest, registryRelease, legacy, mirror, workspace, externalShared, project, file, git, url}
 	registry := sdk.NewPackageRegistry()
 	for _, dependency := range all {
 		if err := graph.AddNode(dependency); err != nil {
 			t.Fatal(err)
 		}
-		registry.Add(sdk.PackageFromDependency(dependency))
+		if dep, ok := sdk.AsDependencyNode(dependency); ok {
+			registry.Add(sdk.PackageFromDependencyNode(dep))
+		}
 	}
 	for _, dependency := range all[2:] {
-		if err := graph.AddEdge(app.ID, dependency.ID); err != nil {
+		if err := graph.AddEdge(app.NodeID(), dependency.NodeID()); err != nil {
 			t.Fatal(err)
 		}
 	}
-	if err := graph.AddEdge(registryRelease.ID, legacy.ID); err != nil {
+	if err := graph.AddEdge(registryRelease.NodeID(), legacy.NodeID()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -98,17 +104,17 @@ func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T)
 	if matcher.calls != 1 || matcher.graph == nil {
 		t.Fatalf("expected matcher to receive one filtered request, calls=%d graph=%v", matcher.calls, matcher.graph)
 	}
-	wantEligible := map[string]bool{registryRelease.ID: true, legacy.ID: true, mirror.ID: true, externalShared.ID: true}
+	wantEligible := map[string]bool{registryRelease.NodeID(): true, legacy.NodeID(): true, mirror.NodeID(): true, externalShared.NodeID(): true}
 	if matcher.graph.Size() != len(wantEligible) {
-		t.Fatalf("matcher graph size = %d, want %d: %#v", matcher.graph.Size(), len(wantEligible), matcher.graph.Nodes())
+		t.Fatalf("matcher graph size = %d, want %d: %#v", matcher.graph.Size(), len(wantEligible), matcher.graph.DependencyNodes())
 	}
-	for _, dependency := range matcher.graph.Nodes() {
-		if !wantEligible[dependency.ID] {
+	for _, dependency := range matcher.graph.DependencyNodes() {
+		if !wantEligible[dependency.NodeID()] {
 			t.Fatalf("unexpected matcher dependency %#v", dependency)
 		}
 	}
-	children, err := matcher.graph.DirectDependencies(registryRelease.ID)
-	if err != nil || len(children) != 1 || children[0].ID != legacy.ID {
+	children, err := matcher.graph.DirectDependencies(registryRelease.NodeID())
+	if err != nil || len(children) != 1 || !testnodes.Is(children[0], legacy.NodeID()) {
 		t.Fatalf("expected eligible internal edge to survive, children=%#v err=%v", children, err)
 	}
 	if matcher.registry != registry || result.Registry != registry || matcher.registry.Len() != registry.Len() {
@@ -150,11 +156,11 @@ func TestEngineMatchDoesNotWidenIneligibleTarget(t *testing.T) {
 	if _, err := engine.Match(context.Background(), sdk.MatchRequest{Graph: graph, Registry: sdk.NewPackageRegistry(), Target: external}); err != nil {
 		t.Fatalf("Match() eligible target error = %v", err)
 	}
-	if matcher.calls != 1 || matcher.target == nil || matcher.target.ID != external.ID {
+	if matcher.calls != 1 || matcher.target == nil || !testnodes.Is(matcher.target, external.NodeID()) {
 		t.Fatalf("expected eligible target to be preserved, calls=%d target=%#v", matcher.calls, matcher.target)
 	}
 }
 
-func matchTestDependency(name, version string, typ sdk.PackageType, source sdk.DependencySource) *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: name, Version: version, Type: typ}, Source: source})
+func matchTestDependency(name, version string, typ sdk.PackageType, source sdk.DependencySource) *sdk.DependencyNode {
+	return testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: name, Version: version, Type: typ}, Source: source})
 }

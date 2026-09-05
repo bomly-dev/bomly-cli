@@ -461,8 +461,8 @@ func detectionOccurrences(
 			continue
 		}
 		path := strings.TrimSpace(entry.Manifest.Path)
-		for _, dependency := range entry.Graph.Nodes() {
-			if dependency == nil || dependency.ID == "" {
+		for _, dependency := range entry.Graph.DependencyNodes() {
+			if dependency == nil || dependency.NodeID() == "" {
 				continue
 			}
 			manager := dependency.PackageManager
@@ -474,7 +474,7 @@ func detectionOccurrences(
 				manager:      manager,
 				canonicalRef: canonicalDependencyRef(dependency),
 			}
-			result[dependency.ID] = append(result[dependency.ID], occurrence)
+			result[dependency.NodeID()] = append(result[dependency.NodeID()], occurrence)
 		}
 	}
 	return result
@@ -495,14 +495,14 @@ func detectedManager(
 	return sdk.PackageManagerUnknown
 }
 
-func canonicalDependencyRef(dependency *sdk.Dependency) string {
+func canonicalDependencyRef(dependency *sdk.DependencyNode) string {
 	if dependency == nil {
 		return ""
 	}
-	if purl := sdk.CanonicalPackageURLFromDependency(dependency); purl != "" {
+	if purl := dependency.NodeID(); purl != "" {
 		return purl
 	}
-	return dependency.ID
+	return dependency.NodeID()
 }
 
 func selectedOccurrence(
@@ -635,7 +635,7 @@ func deriveSuggestions(
 			continue
 		}
 		manifestPath := strings.TrimSpace(manifest.Entry.Manifest.Path)
-		for _, dependency := range graph.Nodes() {
+		for _, dependency := range graph.DependencyNodes() {
 			if dependency == nil || dependency.PackageRef == "" {
 				continue
 			}
@@ -643,7 +643,7 @@ func deriveSuggestions(
 			if !ok || pkg == nil || pkg.Remediation == nil {
 				continue
 			}
-			hintKey := manifest.DetectorName + "\x00" + manifestPath + "\x00" + dependency.ID
+			hintKey := manifest.DetectorName + "\x00" + manifestPath + "\x00" + dependency.NodeID()
 			hint := hintsByOccurrence[hintKey]
 			action, targetRef, advice := selectAction(graph, dependency, pkg.Remediation, hint)
 			key := suggestionKey{
@@ -656,7 +656,7 @@ func deriveSuggestions(
 			if grouped[key] == nil {
 				grouped[key] = map[string]struct{}{}
 			}
-			grouped[key][dependency.ID] = struct{}{}
+			grouped[key][dependency.NodeID()] = struct{}{}
 		}
 	}
 
@@ -706,18 +706,18 @@ func deriveSuggestions(
 
 func selectAction(
 	graph *sdk.Graph,
-	dependency *sdk.Dependency,
+	dependency *sdk.DependencyNode,
 	remediation *sdk.PackageRemediation,
 	hint validatedHint,
 ) (sdk.RemediationAction, string, string) {
-	targetRef := dependency.ID
+	targetRef := dependency.NodeID()
 	relationship := dependency.Relationship
 	if relationship == "" {
 		var ok bool
-		relationship, targetRef, ok = inferredPlacement(graph, dependency.ID)
+		relationship, targetRef, ok = inferredPlacement(graph, dependency.NodeID())
 		if !ok {
 			relationship = sdk.DependencyRelationshipUnknown
-			targetRef = dependency.ID
+			targetRef = dependency.NodeID()
 		}
 	}
 	if remediation.Status == sdk.PackageRemediationUnavailable {
@@ -737,13 +737,13 @@ func selectAction(
 	case sdk.DependencyRelationshipTransitive:
 		if dependency.Relationship == sdk.DependencyRelationshipTransitive {
 			var ok bool
-			_, targetRef, ok = inferredPlacement(graph, dependency.ID)
+			_, targetRef, ok = inferredPlacement(graph, dependency.NodeID())
 			if !ok {
-				return sdk.RemediationActionManualReview, dependency.ID, ""
+				return sdk.RemediationActionManualReview, dependency.NodeID(), ""
 			}
 		}
-		if targetRef == dependency.ID {
-			return sdk.RemediationActionManualReview, dependency.ID, ""
+		if targetRef == dependency.NodeID() {
+			return sdk.RemediationActionManualReview, dependency.NodeID(), ""
 		}
 		if advice, ok := hint.strategies[sdk.RemediationActionTransitiveOverride]; ok {
 			return sdk.RemediationActionTransitiveOverride, targetRef, advice
@@ -786,7 +786,7 @@ func inferredPlacement(
 			}
 			root, _ := graph.Node(nodeID)
 			path := currentLayer[nodeID]
-			if executableRoot(root) && len(path) >= 2 {
+			if executableRootOf(root) && len(path) >= 2 {
 				if len(path) == 2 {
 					return sdk.DependencyRelationshipDirect, dependencyID, true
 				}
@@ -805,15 +805,15 @@ func inferredPlacement(
 					continue
 				}
 				nextDistance := distance + 1
-				if previous, seen := bestDistance[parent.ID]; seen && previous < nextDistance {
+				if previous, seen := bestDistance[parent.NodeID()]; seen && previous < nextDistance {
 					continue
 				}
-				candidatePath := append(append([]string(nil), currentLayer[nodeID]...), parent.ID)
-				if existing, ok := nextLayer[parent.ID]; ok && !pathLess(candidatePath, existing) {
+				candidatePath := append(append([]string(nil), currentLayer[nodeID]...), parent.NodeID())
+				if existing, ok := nextLayer[parent.NodeID()]; ok && !pathLess(candidatePath, existing) {
 					continue
 				}
-				bestDistance[parent.ID] = nextDistance
-				nextLayer[parent.ID] = candidatePath
+				bestDistance[parent.NodeID()] = nextDistance
+				nextLayer[parent.NodeID()] = candidatePath
 			}
 		}
 		currentLayer = nextLayer
@@ -830,12 +830,11 @@ func pathLess(left, right []string) bool {
 	return len(left) < len(right)
 }
 
-func executableRoot(dependency *sdk.Dependency) bool {
+func executableRoot(dependency *sdk.DependencyNode) bool {
 	if dependency == nil || dependency.Type == sdk.PackageTypeManifest {
 		return false
 	}
-	return dependency.FirstParty ||
-		dependency.Source == sdk.DependencySourceProject ||
+	return dependency.Source == sdk.DependencySourceProject ||
 		dependency.Type == sdk.PackageTypeApplication
 }
 
@@ -887,22 +886,56 @@ func cloneDetectionResult(result sdk.DetectionResult) sdk.DetectionResult {
 	return clone
 }
 
+// cloneGraph copies a graph so a remediation provider cannot mutate the
+// detection it was handed.
+//
+// Every node kind is copied, not just dependencies. Providers may inspect
+// RemediationHintRequest.Detection, so the clone is part of the plugin
+// contract: a copy holding only dependency nodes drops the module roots a
+// normal graph now has, and with them every module-to-dependency edge, so a
+// provider sees a disconnected rubble of orphans rather than the project it
+// was asked about. Edge kinds are copied too -- a structural
+// manifest-to-module edge must not arrive as a depends-on claim.
 func cloneGraph(graph *sdk.Graph) *sdk.Graph {
 	if graph == nil {
 		return nil
 	}
 	clone := sdk.NewWithCapacity(graph.Size())
-	for _, dependency := range graph.Nodes() {
-		_ = clone.AddNode(dependency.Clone())
-	}
-	for _, dependency := range graph.Nodes() {
-		children, err := graph.DirectDependencies(dependency.ID)
-		if err != nil {
-			continue
-		}
-		for _, child := range children {
-			_ = clone.AddEdge(dependency.ID, child.ID)
-		}
+	graph.WalkNodes(func(node sdk.GraphNode) bool {
+		_, _ = clone.InsertNode(node.CloneNode())
+		return true
+	})
+	// A copy failure here would mean the clone disagrees with the detection it
+	// stands for, which is worse for a provider than no isolation: return the
+	// original rather than a structurally different graph.
+	if err := sdk.CopyEdgesInto(clone, graph, nil); err != nil {
+		return graph
 	}
 	return clone
+}
+
+// executableRootOf reports whether a graph root is something a remediation can
+// be applied to: the scanned project's own artifact.
+//
+// A module node always is -- that is what the kind means under ADR-0041, and
+// after the migration it is what a normal root actually is. Reading only
+// dependency nodes here is what made every module-rooted graph look rootless:
+// inferredPlacement walked up, found no root, and every dependency whose
+// detector left Relationship unset degraded to manual review. Detectors do
+// generally leave it unset and rely on graph placement, so that was most of a
+// normal scan.
+//
+// A dependency node still qualifies when it stands for the project: an
+// application-typed root the detector has not promoted yet, or one a detector
+// marked as the project's own source. A manifest never does -- it is a file,
+// and nothing can be bumped in it that is not a module's dependency.
+func executableRootOf(node sdk.GraphNode) bool {
+	switch typed := node.(type) {
+	case *sdk.ModuleNode:
+		return typed != nil
+	case *sdk.DependencyNode:
+		return executableRoot(typed)
+	default:
+		return false
+	}
 }

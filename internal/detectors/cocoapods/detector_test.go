@@ -6,7 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
@@ -24,7 +25,7 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	pkg, ok := g.Node("AppCenter/Analytics@5.0.6")
+	pkg, ok := testnodes.FindDep(g, "AppCenter/Analytics@5.0.6")
 	if !ok {
 		t.Fatal("expected AppCenter/Analytics package")
 	}
@@ -50,33 +51,34 @@ SPEC CHECKSUMS:
 	if err != nil {
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
-	root, ok := g.Node("root")
+	root, ok := testnodes.Find(g, "root")
 	if !ok {
 		t.Fatal("expected root package")
 	}
-	deps, err := g.DirectDependencies(root.ID)
+	deps, err := g.DirectDependencies(root.NodeID())
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}
 	if len(deps) != 2 {
 		t.Fatalf("expected two root dependencies, got %#v", deps)
 	}
-	analytics, ok := g.Node("AppCenter/Analytics@5.0.6")
+	analytics, ok := testnodes.FindDep(g, "AppCenter/Analytics@5.0.6")
 	if !ok {
 		t.Fatal("expected AppCenter/Analytics package")
 	}
 	if string(analytics.PrimaryScope()) != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", string(analytics.PrimaryScope()))
 	}
-	children, err := g.DirectDependencies(analytics.ID)
+	childrenNodes, err := g.DirectDependencies(analytics.NodeID())
+	children := sdk.DependencyNodesOf(childrenNodes)
 	if err != nil {
 		t.Fatalf("analytics dependencies: %v", err)
 	}
 	if len(children) != 1 || children[0].Name != "AppCenter/Core" {
 		t.Fatalf("expected AppCenter/Core dependency, got %#v", children)
 	}
-	if analytics.PURL != "pkg:cocoapods/AppCenter%2FAnalytics@5.0.6" {
-		t.Fatalf("unexpected purl %q", analytics.PURL)
+	if !testnodes.Is(analytics, "pkg:cocoapods/AppCenter%2FAnalytics@5.0.6") {
+		t.Fatalf("unexpected purl %q", analytics.NodeID())
 	}
 }
 

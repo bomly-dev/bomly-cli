@@ -40,6 +40,7 @@ first.
 ```sh
 make build       # bin/bomly and bin/bomly-lite
 make test        # unit tests (includes the plugin fixture compile check)
+make verify      # everything that gates a push (add SMOKE=1 for the smoke suite)
 make smoke       # end-to-end tests (slow, requires network)
 make fuzz FUZZTIME=5s  # run the registered fuzz targets briefly
 make fmt         # format
@@ -47,7 +48,7 @@ make lint        # golangci-lint
 make generate    # regenerate config reference, schemas, support matrix, component docs
 ```
 
-Run `make test` before submitting. If your change touches configuration,
+Run `make verify` before submitting -- `.githooks/pre-push` refuses a push without it, and `make install-hooks` turns that on. If your change touches configuration,
 output schemas, or the pinned SDK version, run `make generate` and commit the
 regenerated docs.
 

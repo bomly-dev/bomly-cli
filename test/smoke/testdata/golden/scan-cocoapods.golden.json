@@ -5,6 +5,23 @@
       "dependencies": [
         {
           "depends_on": [
+            "pkg:cocoapods/AFNetworking@3.2.1",
+            "pkg:cocoapods/Alamofire@4.3.0",
+            "pkg:cocoapods/Expecta@1.0.6",
+            "pkg:cocoapods/HockeyKit@2.0.7",
+            "pkg:cocoapods/KIF@3.7.7",
+            "pkg:cocoapods/OCMock@3.4.3",
+            "pkg:cocoapods/OpenSSL-Static@1.0.2.c1",
+            "pkg:cocoapods/ReactiveCocoa@5.0.0-rc.1",
+            "pkg:cocoapods/Specta@1.0.7"
+          ],
+          "id": "module:Podfile#pkg:cocoapods/root",
+          "licenses": [],
+          "name": "root",
+          "purl": "pkg:cocoapods/root"
+        },
+        {
+          "depends_on": [
             "pkg:cocoapods/AFNetworking%2FReachability@3.2.1",
             "pkg:cocoapods/AFNetworking%2FSecurity@3.2.1",
             "pkg:cocoapods/AFNetworking%2FSerialization@3.2.1"
@@ -370,24 +387,6 @@
             "development"
           ],
           "version": "1.0.7"
-        },
-        {
-          "depends_on": [
-            "pkg:cocoapods/AFNetworking@3.2.1",
-            "pkg:cocoapods/Alamofire@4.3.0",
-            "pkg:cocoapods/Expecta@1.0.6",
-            "pkg:cocoapods/HockeyKit@2.0.7",
-            "pkg:cocoapods/KIF@3.7.7",
-            "pkg:cocoapods/OCMock@3.4.3",
-            "pkg:cocoapods/OpenSSL-Static@1.0.2.c1",
-            "pkg:cocoapods/ReactiveCocoa@5.0.0-rc.1",
-            "pkg:cocoapods/Specta@1.0.7"
-          ],
-          "id": "pkg:cocoapods/root",
-          "licenses": [],
-          "name": "root",
-          "package_ref": "pkg:cocoapods/root",
-          "purl": "pkg:cocoapods/root"
         }
       ],
       "detector": "cocoapods-detector",
@@ -528,13 +527,6 @@
       "name": "Specta",
       "purl": "pkg:cocoapods/Specta@1.0.7",
       "version": "1.0.7",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "swift",
-      "licenses": [],
-      "name": "root",
-      "purl": "pkg:cocoapods/root",
       "vulnerabilities": []
     }
   ],

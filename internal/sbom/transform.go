@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
+	"github.com/bomly-dev/bomly-cli/internal/graphview"
 	"github.com/bomly-dev/bomly-cli/internal/licenseexpr"
 	"github.com/bomly-dev/bomly-sdk"
 )
@@ -29,49 +29,91 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 	components := make([]Component, 0, componentCount)
 	depsByRef := make(map[string][]string, componentCount)
 
-	g.WalkNodes(func(pkg *sdk.Dependency) bool {
-		version := pkg.Version
-		if version == "" && pkg.FirstParty && opts.ProjectRoot != nil {
-			// First-party nodes (the scanned project's own modules) have no
-			// registry version; the project version is theirs.
+	// Modules are emitted alongside dependencies: they are the scanned
+	// project's own artifacts, and an SBOM that omitted them would describe
+	// the dependencies of a project it never named. Manifests are structural
+	// and stay out.
+	graphNodes := make([]sdk.GraphNode, 0, componentCount)
+	for _, module := range g.ModuleNodes() {
+		graphNodes = append(graphNodes, module)
+	}
+	for _, dep := range g.DependencyNodes() {
+		graphNodes = append(graphNodes, dep)
+	}
+	for _, node := range graphNodes {
+		coords, ok := componentCoordinates(node)
+		if !ok {
+			continue
+		}
+		version := coords.Version
+		if version == "" && sdk.IsProjectOwned(node) && opts.ProjectRoot != nil {
+			// The project's own modules have no registry version; the
+			// project version is theirs.
 			version = strings.TrimSpace(opts.ProjectRoot.Version)
 		}
+		pkg := node
 		component := Component{
-			ID:             pkg.ID,
-			Name:           pkg.EcosystemName(),
-			Org:            componentOrg(pkg),
+			ID: pkg.NodeID(),
+			// The bom-ref is the node ID; the purl is not. A module's ID is
+			// its declaring path, and publishing that in a field both formats
+			// define as a Package URL hands every consumer a value it cannot
+			// parse -- so a module publishes the package URL its coordinates
+			// mint, and only that.
+			Name:           coords.EcosystemName(),
+			Org:            componentOrg(node),
 			Version:        version,
-			Scope:          string(pkg.PrimaryScope()),
-			PURL:           pkg.PURL,
-			Ecosystem:      string(pkg.Ecosystem),
-			PackageManager: pkg.PackageManager.Name(),
-			Type:           string(pkg.Type),
-			Copyright:      pkg.Copyright,
-			Licenses:       componentLicenses(sdk.DetectionLicenses(pkg)),
-			Digests:        componentDigests(pkg.Digests),
+			PURL:           componentPURL(node),
+			Ecosystem:      string(coords.Ecosystem),
+			PackageManager: coords.PackageManager.Name(),
+			Type:           string(coords.Type),
 		}
-		if !detectors.IsProjectOwned(pkg) {
-			// The project's own records never take an external origin.
-			// Built-in detectors do not assert one, folding cannot add one,
-			// and the scorecard fallback skips them -- this guard closes the
-			// remaining path, a plugin-supplied graph asserting an origin on
-			// a first-party node directly.
-			applyOrigin(&component, pkg.Origin.Normalized())
+		if dep, isDep := pkg.(*sdk.DependencyNode); isDep {
+			component.Scope = string(dep.PrimaryScope())
+			component.Copyright = dep.Copyright
+			component.Licenses = componentLicenses(sdk.DetectionLicenses(dep))
+			component.Digests = componentDigests(dep.Digests)
+			// The project's own records never take an external origin. This
+			// guard closes the one remaining path -- a plugin-supplied graph
+			// asserting an origin directly -- and module nodes cannot reach
+			// it at all now, since origins live on dependency nodes.
+			if !sdk.IsProjectOwned(pkg) && len(dep.Origins) > 0 {
+				applyOrigins(&component, dep.Origins)
+			}
 		}
-		enrichComponentFromRegistry(&component, opts.Registry, pkg.PURL, detectors.IsProjectOwned(pkg))
+		enrichComponentFromRegistry(&component, opts.Registry, pkg.NodeID(), sdk.IsProjectOwned(pkg))
 		components = append(components, component)
-		depsByRef[pkg.ID] = nil
-		return true
-	})
+		depsByRef[pkg.NodeID()] = nil
+	}
 
 	sort.Slice(components, func(i, j int) bool {
 		return components[i].ID < components[j].ID
 	})
 
-	g.WalkEdges(func(from, to *sdk.Dependency) bool {
-		depsByRef[from.ID] = append(depsByRef[from.ID], to.ID)
-		return true
-	})
+	componentIDs := make(map[string]struct{}, len(components))
+	for _, c := range components {
+		componentIDs[c.ID] = struct{}{}
+	}
+
+	// A component's dependencies are the components beneath it, with any
+	// structural node in between stepped through rather than named.
+	//
+	// A workspace is module -> child manifest -> child module, and the two
+	// edges are typed differently: the first derives depends-on and the
+	// second describes. Publishing the first named the manifest, which is not
+	// a component, so CycloneDX carried a dependsOn pointing at no bom-ref;
+	// filtering the second dropped the hop entirely, so the child module's
+	// whole subtree came loose. Contracting the path keeps the relationship
+	// the graph asserts and names only components.
+	//
+	// Every entry is recomputed rather than merged onto what the edge walk
+	// left, so a component whose only child was a structural dead end ends up
+	// with no dependencies instead of keeping a dangling one. graphview owns
+	// the walk, so this agrees with scan JSON by construction instead of by
+	// memory -- the two disagreed for exactly one commit, which is how this
+	// was found.
+	for ref := range depsByRef {
+		depsByRef[ref] = graphview.ChildrenAmong(g, ref, componentIDs)
+	}
 
 	dependencies := make([]Dependency, 0, len(components))
 	for _, c := range components {
@@ -85,11 +127,12 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 		})
 	}
 
-	roots := g.Roots()
-	rootIDs := make([]string, 0, len(roots))
-	for _, r := range roots {
-		rootIDs = append(rootIDs, r.ID)
-	}
+	// Only roots that became components. A manifest node is a root of the
+	// graph but is deliberately not exported as a component, so copying its ID
+	// here left the document naming a primary component that does not exist in
+	// it -- and, being exactly one ID, it also suppressed the synthesized root
+	// below that would have repaired it.
+	rootIDs := exportedRootIDs(g, componentIDs)
 	if opts.RootComponentID != "" {
 		for _, c := range components {
 			if c.ID == opts.RootComponentID {
@@ -295,13 +338,91 @@ func scorecardRepositoryURL(scorecard *sdk.PackageScorecard) (string, bool) {
 // value arrives already validated -- Normalized applies the SDK's rule and
 // returns nothing when a location does not survive it -- so there is nothing to
 // decide here: export publishes what detection resolved, or nothing.
-func applyOrigin(component *Component, origin *sdk.DependencyOrigin) {
-	if origin == nil {
+// exportedRootIDs names the graph roots the document actually contains.
+//
+// A manifest node is a root of the graph but never a component: it is
+// structural, and a document naming it as its primary component points at
+// something that is not there. Consolidation does produce exactly that shape
+// -- several disconnected package roots attached beneath one synthesized
+// manifest -- and naming the manifest also read as a single root, which
+// suppressed the synthesized project root that would have repaired it.
+//
+// A structural root is replaced by the exported nodes beneath it rather than
+// dropped, so the roots the document reports are the ones a reader means: the
+// project's modules and top-level packages.
+func exportedRootIDs(g *sdk.Graph, exported map[string]struct{}) []string {
+	roots := g.Roots()
+	ids := make([]string, 0, len(roots))
+	seen := make(map[string]struct{}, len(roots))
+	visited := make(map[string]struct{}, len(roots))
+
+	var collect func(node sdk.GraphNode)
+	collect = func(node sdk.GraphNode) {
+		if sdk.IsNilNode(node) {
+			return
+		}
+		id := node.NodeID()
+		if _, done := visited[id]; done {
+			return
+		}
+		visited[id] = struct{}{}
+		if _, ok := exported[id]; ok {
+			if _, duplicate := seen[id]; !duplicate {
+				seen[id] = struct{}{}
+				ids = append(ids, id)
+			}
+			return
+		}
+		children, err := g.DirectDependencies(id)
+		if err != nil {
+			return
+		}
+		for _, child := range children {
+			collect(child)
+		}
+	}
+	for _, root := range roots {
+		collect(root)
+	}
+	return ids
+}
+
+// applyOrigins records every place a package was resolved from.
+//
+// The first origin fills the single-valued fields the formats' own download
+// and VCS slots need. The rest used to be dropped here, which meant a folded
+// node carrying two registries -- the dependency-confusion signal ADR-0041
+// keeps deliberately -- exported as though it had come from one. Each is
+// re-normalized, so an origin that does not survive the publication gates is
+// discarded rather than published.
+func applyOrigins(component *Component, origins []sdk.DependencyOrigin) {
+	if component == nil {
 		return
 	}
-	component.ArtifactURL = origin.ArtifactURL
-	component.VCSURL = origin.Repository
-	component.VCSRevision = origin.Revision
+	seen := make(map[ComponentOrigin]struct{}, len(origins))
+	for _, origin := range origins {
+		normalized := origin.Normalized()
+		if normalized == nil {
+			continue
+		}
+		entry := ComponentOrigin{
+			ArtifactURL: normalized.ArtifactURL,
+			Repository:  normalized.Repository,
+			Revision:    normalized.Revision,
+		}
+		if _, duplicate := seen[entry]; duplicate {
+			continue
+		}
+		seen[entry] = struct{}{}
+		component.Origins = append(component.Origins, entry)
+	}
+	if len(component.Origins) == 0 {
+		return
+	}
+	primary := component.Origins[0]
+	component.ArtifactURL = primary.ArtifactURL
+	component.VCSURL = primary.Repository
+	component.VCSRevision = primary.Revision
 }
 
 func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegistry, purl string, projectOwned bool) {
@@ -507,22 +628,50 @@ func normalizeSPDXLicenseExpression(expression string) string {
 	return b.String()
 }
 
+// componentPURL returns the package URL a component publishes.
+//
+// A dependency node's identity is one already. A module node's is not: it is
+// the module grammar, which carries the declaring manifest path so two
+// members of one workspace cannot collide. The package URL its coordinates
+// mint is what belongs in the document, and a module whose coordinates mint
+// none publishes no purl rather than an unparseable one.
+// The codec's own copy of the node-to-purl projection. It does not import
+// internal/output, where the CLI's copy lives: an SBOM codec depending on the
+// output layer would be backwards. Both converge on the SDK accessor tracked
+// as bomly-dev/bomly-sdk#43, which is where this belongs (ADR-0040).
+func componentPURL(node sdk.GraphNode) string {
+	switch typed := node.(type) {
+	case *sdk.DependencyNode:
+		return typed.NodeID()
+	case *sdk.ModuleNode:
+		return typed.PURL()
+	default:
+		return ""
+	}
+}
+
 // componentOrg returns the namespace to publish as the component's group.
 //
 // The PURL's namespace is preferred over the raw coordinate because it is the
 // value the document already carries: PURL construction derives a namespace
 // for Go modules whose coordinates leave Org empty, and it spells npm scopes
 // with their leading "@". Reading it back keeps `group` and the PURL agreeing.
-func componentOrg(pkg *sdk.Dependency) string {
-	if pkg == nil {
+func componentOrg(node sdk.GraphNode) string {
+	coords, ok := sdk.NodeCoordinates(node)
+	if !ok {
 		return ""
 	}
-	if parsed := sdk.ParsePackageURL(pkg.PURL); parsed != nil {
+	// componentPURL, not NodeID: a module's ID is the structural
+	// "module:<path>#<purl>" grammar and parses as no package URL at all, so
+	// reading it here dropped the group from every module component -- a Go
+	// module root carries its whole path in Name with an empty Org, and
+	// published "pkg:golang/github.com/bomly/example" with no group beside it.
+	if parsed := parsePURL(componentPURL(node)); parsed != nil {
 		if namespace := strings.TrimSpace(parsed.Namespace); namespace != "" {
 			return namespace
 		}
 	}
-	return strings.TrimSpace(pkg.Org)
+	return strings.TrimSpace(coords.Org)
 }
 
 // licenseExpressionValue returns the license string a component carries: the
@@ -559,4 +708,18 @@ func allValidSPDXExpressions(values []string) bool {
 		}
 	}
 	return true
+}
+
+// componentCoordinates returns the coordinates a node contributes to an SBOM
+// component, and whether it contributes one at all. Manifests do not: they are
+// structure, not artifacts.
+func componentCoordinates(node sdk.GraphNode) (sdk.Coordinates, bool) {
+	switch typed := node.(type) {
+	case *sdk.DependencyNode:
+		return typed.Coordinates, true
+	case *sdk.ModuleNode:
+		return typed.Coordinates, true
+	default:
+		return sdk.Coordinates{}, false
+	}
 }

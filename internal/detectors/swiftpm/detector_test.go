@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -24,15 +25,15 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if graph == nil {
 		t.Fatal("expected graph")
 	}
-	pkg, ok := graph.Node("github.com/apple:swift-argument-parser@1.3.0")
+	pkg, ok := testnodes.FindDep(graph, "github.com/apple:swift-argument-parser@1.3.0")
 	if !ok {
-		t.Fatalf("expected swift-argument-parser package, got %v", graph.Nodes())
+		t.Fatalf("expected swift-argument-parser package, got %v", graph.DependencyNodes())
 	}
 	if pkg.Org != "github.com/apple" {
 		t.Fatalf("expected SwiftPM namespace, got %q", pkg.Org)
 	}
-	if pkg.PURL != "pkg:swift/github.com/apple/swift-argument-parser@1.3.0" {
-		t.Fatalf("expected SwiftPM PURL, got %q", pkg.PURL)
+	if !testnodes.Is(pkg, "pkg:swift/github.com/apple/swift-argument-parser@1.3.0") {
+		t.Fatalf("expected SwiftPM PURL, got %q", pkg.NodeID())
 	}
 	if pkg.Source != sdk.DependencySourceGit {
 		t.Fatalf("expected Git source, got %q", pkg.Source)
@@ -40,7 +41,7 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if !pkg.RegistryMatchEligible() {
 		t.Fatal("Swift remote source-control package must remain eligible for vulnerability matching")
 	}
-	deps, err := graph.DirectDependencies("root")
+	deps, err := graph.DirectDependencies(testnodes.ID(graph, "root"))
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}
@@ -115,15 +116,15 @@ func TestDepGraphFromSwiftShowDepsBuildsTransitiveGraph(t *testing.T) {
 	}
 
 	parentID := "github.com/apple:swift-argument-parser@1.3.0"
-	parent, ok := graph.Node(parentID)
+	parent, ok := testnodes.Find(graph, parentID)
 	if !ok {
-		t.Fatalf("expected swift-argument-parser package, got %v", graph.Nodes())
+		t.Fatalf("expected swift-argument-parser package, got %v", graph.DependencyNodes())
 	}
-	children, err := graph.DirectDependencies(parent.ID)
+	children, err := graph.DirectDependencies(parent.NodeID())
 	if err != nil {
 		t.Fatalf("swift-argument-parser dependencies: %v", err)
 	}
-	if len(children) != 1 || children[0].ID != "github.com/apple:swift-system@1.2.0" {
+	if len(children) != 1 || !testnodes.Is(children[0], "github.com/apple:swift-system@1.2.0") {
 		t.Fatalf("expected swift-system transitive dependency, got %#v", children)
 	}
 }

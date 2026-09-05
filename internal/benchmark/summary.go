@@ -11,6 +11,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/purlkit"
 )
 
 const summarySchemaVersion = "bomly.benchmark.v2"
@@ -350,7 +351,7 @@ func componentEcosystem(component sbom.Component) sdk.Ecosystem {
 	if value, err := sdk.ParseEcosystem(component.Ecosystem); err == nil {
 		return value
 	}
-	if purl := sdk.ParsePackageURL(component.PURL); purl != nil {
+	if purl := benchmarkParsePURL(component.PURL); purl != nil {
 		switch strings.ToLower(strings.TrimSpace(purl.Type)) {
 		case "golang":
 			return sdk.EcosystemGo
@@ -484,4 +485,15 @@ func writeJSON(path string, value any) error {
 		return fmt.Errorf("write %s: %w", path, err)
 	}
 	return nil
+}
+
+// benchmarkParsePURL delegates to purlkit, the SDK's kit over the official
+// packageurl-go. sdk.ParsePackageURL was the deprecated anchore-fork entry
+// point and is gone.
+func benchmarkParsePURL(value string) *purlkit.PURL {
+	parsed, err := purlkit.Parse(value)
+	if err != nil {
+		return nil
+	}
+	return &parsed
 }

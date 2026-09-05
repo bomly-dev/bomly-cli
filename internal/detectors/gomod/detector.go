@@ -18,7 +18,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -230,12 +230,17 @@ func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires [
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGo,
-		Name: rootModule,
-		// The main module is the scanned project itself: enrichment must not
-		// query advisory/registry/scorecard sources for it.
-		FirstParty: true},
+	// The main module is the scanned project itself, so it is a module node.
+	// ADR-0041 made ownership the node kind: the FirstParty flag is gone, and
+	// enrichment skips the project's own artifacts because DependencyNodes()
+	// never yields them rather than because a flag says so.
+	rootNode, err := sdk.NewModuleNode("go.mod", sdk.Coordinates{
+		Ecosystem: sdk.EcosystemGo,
+		Name:      rootModule,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("build root module node: %w", err)
+	}
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
@@ -285,22 +290,25 @@ func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires [
 			continue
 		}
 		if !currentModule.Main {
-			currentNode := packageFromModuleNode(currentModule, mergedScope, directLines, sumDigests)
+			currentNode, err := packageFromModuleNode(currentModule, mergedScope, directLines, sumDigests)
+			if err != nil {
+				return nil, err
+			}
 			if err := addOrMergeModuleNode(depsGraph, currentNode); err != nil {
 				return nil, err
 			}
 		}
 
 		if scopeFilter != sdk.ScopeDevelopment || mergedScope == sdk.ScopeDevelopment {
-			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, mergedScope, current.pkg.Imports, packageRecords, packageModules, directLines, sumDigests, &queue); err != nil {
+			if err := enqueueImportedPackages(depsGraph, rootNode.NodeID(), currentModule, mergedScope, current.pkg.Imports, packageRecords, packageModules, directLines, sumDigests, &queue); err != nil {
 				return nil, err
 			}
 		}
 		if scopeFilter != sdk.ScopeRuntime {
-			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.TestImports, packageRecords, packageModules, directLines, sumDigests, &queue); err != nil {
+			if err := enqueueImportedPackages(depsGraph, rootNode.NodeID(), currentModule, sdk.ScopeDevelopment, current.pkg.TestImports, packageRecords, packageModules, directLines, sumDigests, &queue); err != nil {
 				return nil, err
 			}
-			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.XTestImports, packageRecords, packageModules, directLines, sumDigests, &queue); err != nil {
+			if err := enqueueImportedPackages(depsGraph, rootNode.NodeID(), currentModule, sdk.ScopeDevelopment, current.pkg.XTestImports, packageRecords, packageModules, directLines, sumDigests, &queue); err != nil {
 				return nil, err
 			}
 		}
@@ -356,13 +364,16 @@ func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNod
 			continue
 		}
 		if !to.Main {
-			pkg := packageFromModuleNode(to, scope, directLines, sumDigests)
+			pkg, err := packageFromModuleNode(to, scope, directLines, sumDigests)
+			if err != nil {
+				return err
+			}
 			if err := addOrMergeModuleNode(depsGraph, pkg); err != nil {
 				return err
 			}
 			if from.Path != to.Path || from.Version != to.Version {
-				if err := depsGraph.AddEdge(fromID, pkg.ID); err != nil {
-					return fmt.Errorf("add go dependency %q -> %q: %w", fromID, pkg.ID, err)
+				if err := depsGraph.AddEdge(fromID, pkg.NodeID()); err != nil {
+					return fmt.Errorf("add go dependency %q -> %q: %w", fromID, pkg.NodeID(), err)
 				}
 			}
 		}
@@ -371,10 +382,14 @@ func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNod
 	return nil
 }
 
-func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[string]int, sumDigests map[string]sdk.Digest) *sdk.Dependency {
-	dep := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGo,
-		Name:    node.Path,
-		Version: node.Version},
+func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[string]int, sumDigests map[string]sdk.Digest) (*sdk.DependencyNode, error) {
+	dep, err := sdk.NewDependencyNode(sdk.Coordinates{
+		Ecosystem: sdk.EcosystemGo,
+		Name:      node.Path,
+		Version:   node.Version,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("build node for %s@%s: %w", node.Path, node.Version, err)
 	}
 	if scope != sdk.ScopeUnknown {
 		dep.Scopes = []sdk.Scope{scope}
@@ -391,14 +406,15 @@ func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[str
 			},
 		}
 	}
-	return sdk.NewDependency(dep)
+	return dep, nil
 }
 
+// moduleNodeID is the canonical package URL for a module, which is what a
+// node's ID is under ADR-0041. It asks the SDK for the identity rather than
+// building a throwaway node to read one off, and never assembles the string
+// itself.
 func moduleNodeID(node moduleNode) string {
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGo,
-		Name:    node.Path,
-		Version: node.Version},
-	}).ID
+	return sdk.CanonicalPackageURLFromParts("", sdk.EcosystemGo, "", "", "", node.Path, node.Version)
 }
 
 // parseGoSumDigests reads go.sum and returns a "path@version" → digest map for
@@ -567,8 +583,8 @@ func appendUniqueModule(modules []moduleRef, seen map[string]struct{}, ref modul
 	return append(modules, ref)
 }
 
-func addOrMergeModuleNode(depsGraph *sdk.Graph, node *sdk.Dependency) error {
+func addOrMergeModuleNode(depsGraph *sdk.Graph, node *sdk.DependencyNode) error {
 	// The node carries its scope; the shared helper unions scopes on fold.
-	_, err := detectors.EnsureNode(depsGraph, node)
+	_, err := detectorkit.EnsureNode(depsGraph, node)
 	return err
 }

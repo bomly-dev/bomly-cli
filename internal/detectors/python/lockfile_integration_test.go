@@ -5,7 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 // These tests drive each Python detector's lock fast-path end-to-end through
@@ -41,18 +42,18 @@ func resolvePyLockGraph(t *testing.T, detector sdk.Detector, projectDir string) 
 }
 
 func pyGraphIDs(g *sdk.Graph) []string {
-	nodes := g.Nodes()
+	nodes := g.DependencyNodes()
 	ids := make([]string, len(nodes))
 	for i, n := range nodes {
-		ids[i] = n.ID
+		ids[i] = n.NodeID()
 	}
 	return ids
 }
 
-func requirePyPackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.Dependency {
+func requirePyPackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.DependencyNode {
 	t.Helper()
 	id := pyStableID(name, version)
-	pkg, ok := g.Node(id)
+	pkg, ok := testnodes.FindDep(g, id)
 	if !ok {
 		t.Fatalf("expected package %s in graph; present: %v", id, pyGraphIDs(g))
 	}
@@ -63,12 +64,12 @@ func requirePyEdge(t *testing.T, g *sdk.Graph, fromName, fromVersion, toName, to
 	t.Helper()
 	fromID := pyStableID(fromName, fromVersion)
 	toID := pyStableID(toName, toVersion)
-	deps, err := g.DirectDependencies(fromID)
+	deps, err := g.DirectDependencies(testnodes.ID(g, fromID))
 	if err != nil {
 		t.Fatalf("dependencies(%s): %v", fromID, err)
 	}
 	for _, dep := range deps {
-		if dep.ID == toID {
+		if testnodes.Is(dep, toID) {
 			return
 		}
 	}
@@ -98,8 +99,8 @@ func requirePySingleRoot(t *testing.T, g *sdk.Graph, rootID string) {
 	if len(roots) != 1 {
 		t.Fatalf("expected exactly one root, got %d: %v", len(roots), pyGraphIDs(g))
 	}
-	if roots[0].ID != rootID {
-		t.Errorf("expected root %q, got %q", rootID, roots[0].ID)
+	if !testnodes.Is(roots[0], rootID) {
+		t.Errorf("expected root %q, got %q", rootID, roots[0].NodeID())
 	}
 }
 
@@ -160,11 +161,11 @@ func TestPoetryLockFixture(t *testing.T) {
 func TestUVLockFixture(t *testing.T) {
 	g := resolvePyLockGraph(t, UVDetector{}, pyFixture("uv"))
 
-	requirePySingleRoot(t, g, pyStableID("demo-app", "1.0.0"))
-	// The editable package is the scanned project itself — first-party, so
-	// enrichment never queries it.
-	if root, ok := g.Node(pyStableID("demo-app", "1.0.0")); !ok || !root.FirstParty || sdk.NodeIsEnrichable(root) {
-		t.Fatalf("uv editable root must be first-party and not enrichable, got %#v", root)
+	// The editable package is the scanned project itself, so it is a module
+	// node -- and a module is never enriched (ADR-0041).
+	roots := g.Roots()
+	if len(roots) != 1 || !sdk.IsProjectOwned(roots[0]) {
+		t.Fatalf("uv editable root must be the project's own module, got %#v", roots)
 	}
 	for _, want := range [][2]string{
 		{"requests", "2.32.3"}, {"certifi", "2024.8.30"},

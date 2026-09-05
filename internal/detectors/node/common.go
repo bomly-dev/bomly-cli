@@ -12,9 +12,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
@@ -150,11 +150,14 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+	rootNode, err := sdk.NewModuleNode("package.json", sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
 		Name:    rootName,
 		Version: root.Version,
-		Type:    sdk.PackageTypeApplication, FirstParty: true},
+		Type:    sdk.PackageTypeApplication,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
@@ -164,7 +167,7 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 		parentID string
 		deps     map[string]*NPMListNode
 	}
-	stack := []frame{{parentID: rootNode.ID, deps: root.Dependencies}}
+	stack := []frame{{parentID: rootNode.NodeID(), deps: root.Dependencies}}
 	for len(stack) > 0 {
 		current := stack[len(stack)-1]
 		stack = stack[:len(stack)-1]
@@ -186,28 +189,35 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 			if name == "" {
 				name = depName
 			}
-			node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+			node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
 				Name:    name,
-				Version: depNode.Version}, ResolvedURL: depNode.Resolved,
-			})
-			node.Origin = sdk.ArtifactOrigin(depNode.Resolved)
+				Version: depNode.Version})
+			if err != nil {
+				return nil, fmt.Errorf("build dependency node: %w", err)
+			}
+			node.ResolvedURL = depNode.Resolved
+			// Origins is a list now: a node folds every tarball it was
+			// resolved from rather than holding one.
+			if origin := sdk.ArtifactOrigin(depNode.Resolved); origin != nil {
+				node.Origins = sdk.MergeOrigins(node.Origins, []sdk.DependencyOrigin{*origin})
+			}
 
 			// Two tree positions can pin one name@version to different
-			// tarballs; the resolved string is the discriminator, so each
-			// distinct resolution keeps its own occurrence and each
-			// position's edge attaches to the occurrence it references.
-			surviving, err := detectors.EnsureOccurrence(depsGraph, node, depNode.Resolved)
+			// tarballs. They fold into one node under ADR-0041 -- identity is
+			// the canonical package URL, which the tarball does not change --
+			// and both tarballs survive on the node's Origins list.
+			surviving, err := detectorkit.EnsureNode(depsGraph, node)
 			if err != nil {
 				return nil, err
 			}
 			if surviving == nil {
 				continue
 			}
-			if err := depsGraph.AddEdge(current.parentID, surviving.ID); err != nil {
-				return nil, fmt.Errorf("add dependency %q -> %q: %w", current.parentID, surviving.ID, err)
+			if err := depsGraph.AddEdge(current.parentID, surviving.NodeID()); err != nil {
+				return nil, fmt.Errorf("add dependency %q -> %q: %w", current.parentID, surviving.NodeID(), err)
 			}
 			if len(depNode.Dependencies) > 0 {
-				stack = append(stack, frame{parentID: surviving.ID, deps: depNode.Dependencies})
+				stack = append(stack, frame{parentID: surviving.NodeID(), deps: depNode.Dependencies})
 			}
 		}
 	}
@@ -227,16 +237,19 @@ func DepGraphFromPNPMJSON(raw []byte) (*sdk.Graph, error) {
 
 	depsGraph := sdk.New()
 	for _, root := range roots {
-		rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+		rootNode, err := sdk.NewModuleNode("package.json", sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
 			Name:    root.Name,
 			Version: root.Version,
-			Type:    sdk.PackageTypeApplication, FirstParty: true},
+			Type:    sdk.PackageTypeApplication,
 		})
+		if err != nil {
+			return nil, err
+		}
 
 		if err := AddNodeIfMissing(depsGraph, rootNode); err != nil {
 			return nil, err
 		}
-		if err := addPNPMDependencies(depsGraph, rootNode.ID, root.Dependencies); err != nil {
+		if err := addPNPMDependencies(depsGraph, rootNode.NodeID(), root.Dependencies); err != nil {
 			return nil, err
 		}
 	}
@@ -252,18 +265,20 @@ func addPNPMDependencies(depsGraph *sdk.Graph, parentID string, deps map[string]
 		if name == "" {
 			name = depName
 		}
-		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+		node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
 			Name:    name,
-			Version: depNode.Version},
-		})
+			Version: depNode.Version})
+		if err != nil {
+			return fmt.Errorf("build dependency node: %w", err)
+		}
 
 		if err := AddNodeIfMissing(depsGraph, node); err != nil {
 			return err
 		}
-		if err := depsGraph.AddEdge(parentID, node.ID); err != nil {
-			return fmt.Errorf("add dependency %q -> %q: %w", parentID, node.ID, err)
+		if err := depsGraph.AddEdge(parentID, node.NodeID()); err != nil {
+			return fmt.Errorf("add dependency %q -> %q: %w", parentID, node.NodeID(), err)
 		}
-		if err := addPNPMDependencies(depsGraph, node.ID, depNode.Dependencies); err != nil {
+		if err := addPNPMDependencies(depsGraph, node.NodeID(), depNode.Dependencies); err != nil {
 			return err
 		}
 	}
@@ -296,16 +311,19 @@ func DepGraphFromYarnJSON(raw []byte) (*sdk.Graph, error) {
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+	rootNode, err := sdk.NewModuleNode("package.json", sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
 		Name: "root",
-		Type: sdk.PackageTypeApplication, FirstParty: true},
+		Type: sdk.PackageTypeApplication,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 	for _, tree := range treeData.Trees {
-		if err := addYarnTree(depsGraph, rootNode.ID, tree); err != nil {
+		if err := addYarnTree(depsGraph, rootNode.NodeID(), tree); err != nil {
 			return nil, err
 		}
 	}
@@ -317,19 +335,21 @@ func addYarnTree(depsGraph *sdk.Graph, parentID string, tree yarnTreeNode) error
 	if err != nil {
 		return err
 	}
-	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+	node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
 		Name:    name,
-		Version: version},
-	})
+		Version: version})
+	if err != nil {
+		return fmt.Errorf("build dependency node: %w", err)
+	}
 
 	if err := AddNodeIfMissing(depsGraph, node); err != nil {
 		return err
 	}
-	if err := depsGraph.AddEdge(parentID, node.ID); err != nil {
-		return fmt.Errorf("add dependency %q -> %q: %w", parentID, node.ID, err)
+	if err := depsGraph.AddEdge(parentID, node.NodeID()); err != nil {
+		return fmt.Errorf("add dependency %q -> %q: %w", parentID, node.NodeID(), err)
 	}
 	for _, child := range tree.Children {
-		if err := addYarnTree(depsGraph, node.ID, child); err != nil {
+		if err := addYarnTree(depsGraph, node.NodeID(), child); err != nil {
 			return err
 		}
 	}
@@ -345,10 +365,15 @@ func splitYarnTreeName(value string) (string, string, error) {
 }
 
 // AddNodeIfMissing adds a package to a graph or merges scope into the existing package.
-func AddNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
-	// A package reached twice carries both scopes; the shared helper unions
-	// them on fold.
-	_, err := detectors.EnsureNode(depsGraph, node)
+// AddNodeIfMissing inserts any node kind, folding a repeat into the node that
+// already carries its identity. Node detectors add module roots through it as
+// well as dependencies, so it takes the union.
+func AddNodeIfMissing(depsGraph *sdk.Graph, node sdk.GraphNode) error {
+	if depsGraph == nil || node == nil {
+		return nil
+	}
+	// The fold is the SDK's: it unions scopes, locations and origins.
+	_, err := depsGraph.InsertNode(node)
 	return err
 }
 
@@ -390,7 +415,7 @@ func AnnotateScopesFromPackageJSON(projectPath string, depsGraph *sdk.Graph) err
 	rootID := ""
 	for _, root := range depsGraph.Roots() {
 		if root != nil {
-			rootID = root.ID
+			rootID = root.NodeID()
 			break
 		}
 	}
@@ -414,12 +439,13 @@ func recordDirectScopes(target map[string]sdk.Scope, dependencies map[string]str
 }
 
 func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, directScopes map[string]sdk.Scope) {
-	rootDeps, err := depsGraph.DirectDependencies(rootID)
+	rootDepNodes, err := depsGraph.DirectDependencies(rootID)
+	rootDeps := sdk.DependencyNodesOf(rootDepNodes)
 	if err != nil {
 		return
 	}
 
-	queue := make([]*sdk.Dependency, 0, len(rootDeps))
+	queue := make([]*sdk.DependencyNode, 0, len(rootDeps))
 	propagated := make(map[string]sdk.Scope, depsGraph.Size())
 	for _, dep := range rootDeps {
 		if dep == nil {
@@ -433,7 +459,7 @@ func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, di
 			continue
 		}
 		dep.AddScope(scope)
-		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
+		propagated[dep.NodeID()] = sdk.MergeScope(propagated[dep.NodeID()], scope)
 		queue = append(queue, dep)
 	}
 
@@ -441,12 +467,13 @@ func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, di
 		current := queue[0]
 		queue = queue[1:]
 
-		scope := propagated[current.ID]
+		scope := propagated[current.NodeID()]
 		if scope == sdk.ScopeUnknown {
 			continue
 		}
 
-		children, err := depsGraph.DirectDependencies(current.ID)
+		childrenNodes, err := depsGraph.DirectDependencies(current.NodeID())
+		children := sdk.DependencyNodesOf(childrenNodes)
 		if err != nil {
 			continue
 		}
@@ -454,11 +481,11 @@ func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, di
 			if child == nil {
 				continue
 			}
-			nextScope := sdk.MergeScope(propagated[child.ID], scope)
-			if nextScope == propagated[child.ID] && child.PrimaryScope() == nextScope {
+			nextScope := sdk.MergeScope(propagated[child.NodeID()], scope)
+			if nextScope == propagated[child.NodeID()] && child.PrimaryScope() == nextScope {
 				continue
 			}
-			propagated[child.ID] = nextScope
+			propagated[child.NodeID()] = nextScope
 			child.AddScope(nextScope)
 			queue = append(queue, child)
 		}

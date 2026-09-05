@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/spdx/tools-golang/spdx/v2/common"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
@@ -18,20 +19,20 @@ func mustMultiRootGraph(t *testing.T) *sdk.Graph {
 	t.Helper()
 
 	g := sdk.New()
-	workflow := sdk.NewDependencyRef("ci.yml", "local")
-	action := sdk.NewDependencyRef("actions/checkout", "4.0.0")
-	app := sdk.NewDependencyRef("app", "1.0.0")
-	react := sdk.NewDependencyRef("react", "18.2.0")
+	workflow := testnodes.Ref("ci.yml", "local")
+	action := testnodes.Ref("actions/checkout", "4.0.0")
+	app := testnodes.Ref("app", "1.0.0")
+	react := testnodes.Ref("react", "18.2.0")
 
-	for _, n := range []*sdk.Dependency{workflow, action, app, react} {
+	for _, n := range []*sdk.DependencyNode{workflow, action, app, react} {
 		if err := g.AddNode(n); err != nil {
-			t.Fatalf("add package %s: %v", n.ID, err)
+			t.Fatalf("add package %s: %v", n.NodeID(), err)
 		}
 	}
-	if err := g.AddEdge(workflow.ID, action.ID); err != nil {
+	if err := g.AddEdge(workflow.NodeID(), action.NodeID()); err != nil {
 		t.Fatalf("add edge workflow->action: %v", err)
 	}
-	if err := g.AddEdge(app.ID, react.ID); err != nil {
+	if err := g.AddEdge(app.NodeID(), react.NodeID()); err != nil {
 		t.Fatalf("add edge app->react: %v", err)
 	}
 	return g
@@ -128,7 +129,7 @@ func TestFromDepGraph_GeneratesSerialNumberAndAlignedNamespace(t *testing.T) {
 
 func TestFromDepGraph_ProjectsDetectionTimeDigests(t *testing.T) {
 	g := sdk.New()
-	dep := sdk.NewDependency(sdk.Dependency{
+	dep := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{Name: "left-pad", Version: "1.3.0", Ecosystem: sdk.EcosystemNPM},
 		// npm SRI integrity values are base64; expect hex in the SBOM model.
 		Digests: []sdk.Digest{
@@ -377,18 +378,18 @@ func TestMarshalDepGraphJSON_SPDX23ProvenanceAndToolVersion(t *testing.T) {
 
 func TestFromDepGraph_StampsFirstPartyVersionFromProjectRoot(t *testing.T) {
 	g := sdk.New()
-	main := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
-		Name: "example.com/app", Ecosystem: sdk.EcosystemGo, FirstParty: true,
-	}})
-	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+	main := testnodes.ModuleFrom("go.mod", sdk.Coordinates{
+		Name: "example.com/app", Ecosystem: sdk.EcosystemGo,
+	})
+	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 		Name: "example.com/lib", Version: "v1.0.0", Ecosystem: sdk.EcosystemGo,
 	}})
-	for _, n := range []*sdk.Dependency{main, dep} {
+	for _, n := range []sdk.GraphNode{main, dep} {
 		if err := g.AddNode(n); err != nil {
 			t.Fatalf("add node: %v", err)
 		}
 	}
-	if err := g.AddEdge(main.ID, dep.ID); err != nil {
+	if err := g.AddEdge(main.NodeID(), dep.NodeID()); err != nil {
 		t.Fatalf("add edge: %v", err)
 	}
 
@@ -477,13 +478,13 @@ func TestMarshalDepGraphJSON_CycloneDXOmitsInvalidLifecycleAndAggregate(t *testi
 
 func TestMarshalDepGraphJSON_SPDX23PackagePurposes(t *testing.T) {
 	g := sdk.New()
-	workflow := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+	workflow := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 		Name: "ci.yml", Version: "local", Ecosystem: sdk.EcosystemGitHub, Type: sdk.ParsePackageType("workflow"),
 	}})
-	lib := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+	lib := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 		Name: "react", Version: "18.2.0", Ecosystem: sdk.EcosystemNPM,
 	}})
-	for _, n := range []*sdk.Dependency{workflow, lib} {
+	for _, n := range []*sdk.DependencyNode{workflow, lib} {
 		if err := g.AddNode(n); err != nil {
 			t.Fatalf("add node: %v", err)
 		}

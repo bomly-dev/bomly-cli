@@ -152,6 +152,25 @@ type Component struct {
 	ArtifactURL string
 	VCSURL      string
 	VCSRevision string
+
+	// Every place this package was resolved from, primary first.
+	//
+	// ADR-0041 folds equal-identity records into one node and keeps their
+	// disagreement as a list of origins -- a package resolved from two
+	// different registries or mirrors is exactly the dependency-confusion
+	// signal that fold exists to preserve. The single-valued fields above
+	// carry the first, because a format has one download location; this
+	// carries all of them, so the evidence survives the export boundary
+	// rather than stopping at it.
+	Origins []ComponentOrigin
+}
+
+// ComponentOrigin is one place a package was resolved from, already through
+// the ADR-0033 publication gates.
+type ComponentOrigin struct {
+	ArtifactURL string
+	Repository  string
+	Revision    string
 }
 
 // Dependency describes one package relationship list in the intermediate SBOM model.

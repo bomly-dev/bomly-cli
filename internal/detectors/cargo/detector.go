@@ -5,12 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logging "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -33,6 +34,10 @@ type metadataOutput struct {
 	Packages         []metadataPackage `json:"packages"`
 	Resolve          metadataResolve   `json:"resolve"`
 	WorkspaceMembers []string          `json:"workspace_members"`
+	// WorkspaceRoot is the absolute directory cargo resolved the workspace
+	// from. It is what makes a member's manifest_path expressible as the
+	// repo-relative path a module ID needs.
+	WorkspaceRoot string `json:"workspace_root"`
 }
 
 type metadataPackage struct {
@@ -160,7 +165,16 @@ func (d Detector) detectionResultFromMetadata(req sdk.DetectionRequest, raw []by
 				dir = filepath.ToSlash(rel)
 			}
 		}
-		modules = append(modules, cargoModuleGraph{dir: dir, rootID: member.nodeID})
+		// A workspace member is the project's own code, so it becomes a
+		// module node declared by its own Cargo.toml. This is the first point
+		// that knows the member's directory -- cargo reports an absolute
+		// manifest path, and a module ID must be repo-relative -- so the node
+		// is promoted here rather than built as a module upstream.
+		rootID, err := detectorkit.PromoteToModule(g, member.nodeID, path.Join(dir, "Cargo.toml"))
+		if err != nil {
+			return sdk.DetectionResult{}, err
+		}
+		modules = append(modules, cargoModuleGraph{dir: dir, rootID: rootID})
 	}
 	result, err := cargoDetectionResultFromGraph(g, modules, rootManifest)
 	if err != nil {
@@ -298,29 +312,39 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 	}
 
 	g := sdk.New()
-	var root *sdk.Dependency
+	var root *sdk.ModuleNode
 	if len(workspace) != 1 {
-		root = rootNode()
+		var err error
+		root, err = rootNode()
+		if err != nil {
+			return nil, nil, fmt.Errorf("build cargo root module node: %w", err)
+		}
 		if err := g.AddNode(root); err != nil {
 			return nil, nil, fmt.Errorf("add root node: %w", err)
 		}
 	}
-	// Cargo's package IDs are source-qualified, so two records sharing a
-	// name and version are still distinguishable occurrences. When their
-	// origins contradict, both stay as distinct nodes -- the second under a
-	// source-qualified ID -- and the resolve section's edges attach each
-	// parent to the exact occurrence it depends on via this map.
+	// Cargo's package IDs are source-qualified, so two records can share a
+	// name and version. They fold into one node under ADR-0041 -- identity is
+	// the canonical package URL and cargo PURLs carry no source -- and both
+	// sources survive on the node's Origins list. This map still exists
+	// because the resolve section's edges are keyed by cargo's IDs, which are
+	// not node IDs.
 	nodeIDByCargoID := make(map[string]string, len(packagesByID))
 	insert := func(id string) error {
 		pkg := packagesByID[id]
-		node := packageNode(pkg, id, workspace)
-		// Distinct cargo package IDs with different sources are two
-		// resolutions of one name@version; the shared helper keeps both.
-		surviving, err := detectors.EnsureOccurrence(g, node, strings.TrimSpace(pkg.Source))
+		node, err := packageNode(pkg, id, workspace, out.WorkspaceRoot)
 		if err != nil {
 			return err
 		}
-		nodeIDByCargoID[id] = surviving.ID
+		// Distinct cargo package IDs with different sources now fold into
+		// one node under ADR-0041: identity is the canonical package URL, and
+		// cargo PURLs carry no source qualifier. Both sources survive on the
+		// node's Origins list rather than as two nodes.
+		surviving, err := detectorkit.EnsureNode(g, node)
+		if err != nil {
+			return err
+		}
+		nodeIDByCargoID[id] = surviving.NodeID()
 		return nil
 	}
 	// Workspace members insert first: when an external record collides with a
@@ -347,7 +371,13 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 		if nodeID, ok := nodeIDByCargoID[cargoID]; ok {
 			return nodeID
 		}
-		return packageNode(pkg, cargoID, workspace).ID
+		// A node that cannot mint an identity has no ID to resolve an edge
+		// to; the caller skips the edge rather than inventing one.
+		node, err := packageNode(pkg, cargoID, workspace, out.WorkspaceRoot)
+		if err != nil {
+			return ""
+		}
+		return node.NodeID()
 	}
 	members := make([]metadataMember, 0, len(workspace))
 	for _, id := range sortedWorkspaceMembers(workspace) {
@@ -364,7 +394,7 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 				continue
 			}
 			nodeID := idFor(id, pkg)
-			if err := g.AddEdge(root.ID, nodeID); err != nil {
+			if err := g.AddEdge(root.NodeID(), nodeID); err != nil {
 				return nil, nil, fmt.Errorf("add Cargo workspace root %q: %w", nodeID, err)
 			}
 		}
@@ -384,9 +414,12 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 			if err := g.AddEdge(parentID, childID); err != nil {
 				return nil, nil, fmt.Errorf("add Cargo dependency %q -> %q: %w", parentID, childID, err)
 			}
-			if parentNode, ok := g.Node(parentID); ok && parentNode.Type == "application" {
-				if existing, ok := g.Node(childID); ok {
-					existing.AddScope(scopeForDepKinds(dep.DepKinds))
+			// A workspace member's direct dependencies take its scope. The
+			if parentNode, ok := g.Node(parentID); ok && isCargoProjectRoot(parentNode) {
+				if existingNode, ok := g.Node(childID); ok {
+					if existing, isDep := sdk.AsDependencyNode(existingNode); isDep {
+						existing.AddScope(scopeForDepKinds(dep.DepKinds))
+					}
 				}
 			}
 		}
@@ -399,43 +432,66 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 	return filtered, members, nil
 }
 
-func rootNode() *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
+func rootNode() (*sdk.ModuleNode, error) {
+	return sdk.NewModuleNode("Cargo.toml", sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
 		Name:           "root",
 		PackageManager: sdk.PackageManagerCargo,
 		Type:           sdk.PackageTypeApplication,
-		FirstParty:     true,
-		Language:       "rust"},
-	})
+		Language:       "rust"})
 
 }
 
-func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}) *sdk.Dependency {
-	pkgType := "crate"
-	_, workspaceMember := workspace[id]
-	source := cargoDependencySource(pkg.Source)
-	if workspaceMember {
-		pkgType = "application"
-		source = sdk.DependencySourceProject
-		if len(workspace) > 1 {
-			source = sdk.DependencySourceWorkspace
-		}
+// cargoModuleManifest returns the repo-relative manifest path that declares a
+// workspace member, given the workspace root cargo reported. It falls back to
+// the top-level Cargo.toml when the paths do not relate -- a module still
+// needs a declaring manifest, and the root one is the honest answer when the
+// member's own cannot be expressed relative to the scan.
+func cargoModuleManifest(manifestPath, workspaceRoot string) string {
+	if manifestPath == "" || workspaceRoot == "" {
+		return "Cargo.toml"
 	}
-	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
+	rel, err := filepath.Rel(workspaceRoot, manifestPath)
+	if err != nil {
+		return "Cargo.toml"
+	}
+	slashed := filepath.ToSlash(rel)
+	if slashed == "" || strings.HasPrefix(slashed, "../") {
+		return "Cargo.toml"
+	}
+	return slashed
+}
+
+func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}, workspaceRoot string) (sdk.GraphNode, error) {
+	coords := sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemRust,
 		Name:           pkg.Name,
 		Version:        pkg.Version,
 		PackageManager: sdk.PackageManagerCargo,
-		Type:           sdk.ParsePackageType(pkgType),
+		Type:           sdk.ParsePackageType("crate"),
 		Language:       "rust",
-		PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)}, Source: source, ResolvedURL: pkg.Source,
-	})
-	if !workspaceMember {
-		// A workspace member is the project's own code: it has no external
-		// origin, whatever a same-named lock entry says.
-		setCargoOrigin(node, pkg.Source)
+		PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version),
 	}
-	return node
-
+	if _, workspaceMember := workspace[id]; workspaceMember {
+		// A workspace member is the project's own code, so it is a module
+		// node declared by its own Cargo.toml (ADR-0041). It asserts no
+		// origin at all, which is the stronger form of the rule the old
+		// dependency node needed a guard for: a same-named lock entry cannot
+		// credit the project's code to someone else's remote.
+		coords.Type = sdk.PackageTypeApplication
+		node, err := sdk.NewModuleNode(cargoModuleManifest(pkg.ManifestPath, workspaceRoot), coords)
+		if err != nil {
+			return nil, fmt.Errorf("build cargo module node %q: %w", pkg.Name, err)
+		}
+		return node, nil
+	}
+	node, err := sdk.NewDependencyNode(coords)
+	if err != nil {
+		return nil, fmt.Errorf("build dependency node: %w", err)
+	}
+	node.Source = cargoDependencySource(pkg.Source)
+	node.ResolvedURL = pkg.Source
+	setCargoOrigin(node, pkg.Source)
+	return node, nil
 }
 
 func cargoDependencySource(source string) sdk.DependencySource {
@@ -483,11 +539,11 @@ func sortedPackageIDs(packages map[string]metadataPackage) []string {
 	return ids
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
+func addNodeIfMissing(g *sdk.Graph, node sdk.GraphNode) error {
 	// Cargo can resolve one crate name and version from two sources -- the same
 	// crate pulled from two git remotes, say. They share a PURL, so they are
 	// one node, and the shared helper settles what that node claims.
-	_, err := detectors.EnsureNode(g, node)
+	_, err := detectorkit.EnsureNode(g, node)
 	return err
 }
 
@@ -525,16 +581,16 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 		return nil, fmt.Errorf("cargo.toml does not contain a package name")
 	}
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
+	root, err := sdk.NewModuleNode("Cargo.toml", sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
 		Name:           manifest.Name,
 		Version:        manifest.Version,
 		PackageManager: sdk.PackageManagerCargo,
 		Type:           sdk.PackageTypeApplication,
-		FirstParty:     true,
 		Language:       "rust",
-		PURL:           sdk.BuildPackageURL("cargo", "", manifest.Name, manifest.Version)},
-	})
-
+		PURL:           sdk.BuildPackageURL("cargo", "", manifest.Name, manifest.Version)})
+	if err != nil {
+		return nil, fmt.Errorf("build root node: %w", err)
+	}
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
@@ -544,7 +600,7 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 	if err != nil {
 		return nil, err
 	}
-	rootID := root.ID
+	rootID := root.NodeID()
 	for _, pkg := range packages {
 		if qualifiedLockKey(pkg) == rootKey {
 			continue
@@ -582,11 +638,14 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 		if !ok || nodeID == rootID {
 			continue
 		}
-		if existing, ok := g.Node(nodeID); ok {
-			existing.AddScope(sdk.ScopeRuntime)
-		}
-		if err := g.AddEdge(root.ID, nodeID); err != nil {
-			return nil, fmt.Errorf("add Cargo root dependency %q: %w", nodeID, err)
+		if existingNode, ok := g.Node(nodeID); ok {
+			existing, _ := sdk.AsDependencyNode(existingNode)
+			if existing != nil {
+				existing.AddScope(sdk.ScopeRuntime)
+			}
+			if err := g.AddEdge(root.NodeID(), nodeID); err != nil {
+				return nil, fmt.Errorf("add Cargo root dependency %q: %w", nodeID, err)
+			}
 		}
 	}
 	for _, depName := range manifest.DevDependencies {
@@ -594,41 +653,68 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 		if !ok || nodeID == rootID {
 			continue
 		}
-		if existing, ok := g.Node(nodeID); ok {
-			existing.AddScope(sdk.ScopeDevelopment)
-		}
-		if err := g.AddEdge(root.ID, nodeID); err != nil {
-			return nil, fmt.Errorf("add Cargo dev dependency %q: %w", nodeID, err)
+		if existingNode, ok := g.Node(nodeID); ok {
+			existing, _ := sdk.AsDependencyNode(existingNode)
+			if existing != nil {
+				existing.AddScope(sdk.ScopeDevelopment)
+			}
+			if err := g.AddEdge(root.NodeID(), nodeID); err != nil {
+				return nil, fmt.Errorf("add Cargo dev dependency %q: %w", nodeID, err)
+			}
 		}
 	}
 
 	// BFS: propagate runtime/development scope from direct deps into the transitive tree.
 	// Runtime always wins over development.
-	directDeps, _ := g.DirectDependencies(root.ID)
-	propagateScopes(g, directDeps, root.ID)
+	directDepsNodes, _ := g.DirectDependencies(root.NodeID())
+	directDeps := sdk.DependencyNodesOf(directDepsNodes)
+	propagateScopes(g, directDeps, root.NodeID())
 
 	return sdk.FilterGraphByScope(g, scopeFilter)
+}
+
+// isCargoProjectRoot reports whether a node stands for the project's own code.
+//
+// A workspace member is a module node once the detection-result path has
+// promoted it, and an application-typed dependency node before that -- the
+// metadata graph is built before the member's directory is known. Both spell
+// the same thing, so the predicate accepts either rather than each caller
+// picking one and quietly missing the other.
+func isCargoProjectRoot(node sdk.GraphNode) bool {
+	if sdk.IsProjectOwned(node) {
+		return true
+	}
+	dep, ok := sdk.AsDependencyNode(node)
+	return ok && dep.Type == sdk.PackageTypeApplication
 }
 
 func propagateScopesFromApplicationRoots(g *sdk.Graph) {
 	if g == nil {
 		return
 	}
-	for _, root := range g.Nodes() {
-		if root == nil || root.Type != "application" {
-			continue
+	// Roots are the project's own artifacts: the module nodes, plus any
+	// application-typed dependency node the metadata path has not promoted
+	// yet. Reading only dependency nodes lost every propagation once the
+	// workspace root became a module.
+	roots := make([]sdk.GraphNode, 0, g.Size())
+	for _, node := range g.Nodes() {
+		if isCargoProjectRoot(node) {
+			roots = append(roots, node)
 		}
-		directDeps, err := g.DirectDependencies(root.ID)
+	}
+	for _, root := range roots {
+		directDepNodes, err := g.DirectDependencies(root.NodeID())
+		directDeps := sdk.DependencyNodesOf(directDepNodes)
 		if err != nil {
 			continue
 		}
-		propagateScopes(g, directDeps, root.ID)
+		propagateScopes(g, directDeps, root.NodeID())
 	}
 }
 
-func propagateScopes(g *sdk.Graph, directDeps []*sdk.Dependency, rootID string) {
+func propagateScopes(g *sdk.Graph, directDeps []*sdk.DependencyNode, rootID string) {
 	propagated := make(map[string]sdk.Scope, g.Size())
-	queue := make([]*sdk.Dependency, 0, len(directDeps))
+	queue := make([]*sdk.DependencyNode, 0, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
@@ -638,29 +724,30 @@ func propagateScopes(g *sdk.Graph, directDeps []*sdk.Dependency, rootID string) 
 			scope = sdk.ScopeRuntime
 			dep.AddScope(scope)
 		}
-		propagated[dep.ID] = scope
+		propagated[dep.NodeID()] = scope
 		queue = append(queue, dep)
 	}
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
-		scope := propagated[current.ID]
+		scope := propagated[current.NodeID()]
 		if scope == sdk.ScopeUnknown {
 			continue
 		}
-		children, err := g.DirectDependencies(current.ID)
+		childNodes, err := g.DirectDependencies(current.NodeID())
+		children := sdk.DependencyNodesOf(childNodes)
 		if err != nil {
 			continue
 		}
 		for _, child := range children {
-			if child == nil || child.ID == rootID {
+			if child == nil || child.NodeID() == rootID {
 				continue
 			}
-			nextScope := sdk.MergeScope(propagated[child.ID], scope)
-			if nextScope == propagated[child.ID] && child.PrimaryScope() == nextScope {
+			nextScope := sdk.MergeScope(propagated[child.NodeID()], scope)
+			if nextScope == propagated[child.NodeID()] && child.PrimaryScope() == nextScope {
 				continue
 			}
-			propagated[child.ID] = nextScope
+			propagated[child.NodeID()] = nextScope
 			child.AddScope(nextScope)
 			queue = append(queue, child)
 		}

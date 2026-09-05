@@ -4,24 +4,23 @@ import (
 	"context"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
-// pkg is a convenience constructor for tests.
-func pkg(id, name, version, scope string) *sdk.Dependency {
-	return &sdk.Dependency{Coordinates: sdk.Coordinates{Name: name,
-		Version: version,
-
-		PURL: id}, ID: id,
-
-		Scopes: sdk.ScopesOf(sdk.Scope(scope)),
-
-		PackageRef: id,
-	}
+// pkg is a convenience constructor for tests. The id argument is the PURL the
+// node's identity is minted from, so it is both the coordinates' PURL and the
+// resulting node ID -- there is no separate ID to set (ADR-0041).
+func pkg(id, name, version, scope string) *sdk.DependencyNode {
+	return testnodes.DepFrom(sdk.DependencyNode{
+		Coordinates: sdk.Coordinates{Name: name, Version: version, PURL: id},
+		Scopes:      sdk.ScopesOf(sdk.Scope(scope)),
+		PackageRef:  id,
+	})
 }
 
 // graphOf builds a Graph from the provided packages, panicking on error.
-func graphOf(pkgs ...*sdk.Dependency) *sdk.Graph {
+func graphOf(pkgs ...*sdk.DependencyNode) *sdk.Graph {
 	g := sdk.New()
 	for _, p := range pkgs {
 		if err := g.AddNode(p); err != nil {
@@ -273,10 +272,13 @@ func TestAudit(t *testing.T) {
 }
 
 func TestAuditDependencySourceChanges(t *testing.T) {
-	const purl = "pkg:npm/example@1.0.0"
-	transition := func(id string, source sdk.DependencySource) sdk.DependencyDetailTransition {
-		before := sdk.NewDependencyWithID(id, sdk.Dependency{
-			Coordinates: sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
+	// One node per name: identity is minted from the coordinates now, so two
+	// transitions that share a name are one dependency, and this case is
+	// about two distinct ones both moving to Git.
+	transition := func(name string, source sdk.DependencySource) sdk.DependencyDetailTransition {
+		purl := "pkg:npm/" + name + "@1.0.0"
+		before := testnodes.DepFrom(sdk.DependencyNode{
+			Coordinates: sdk.Coordinates{PURL: purl, Ecosystem: sdk.EcosystemNPM, Name: name, Version: "1.0.0"},
 			Source:      sdk.DependencySourceRegistry,
 			PackageRef:  purl,
 		})
@@ -292,26 +294,31 @@ func TestAuditDependencySourceChanges(t *testing.T) {
 
 	result, err := (Auditor{}).Audit(context.Background(), sdk.AuditRequest{
 		DependencyDetailChanges: []sdk.DependencyDetailTransition{
-			transition("npm:one", sdk.DependencySourceGit),
-			transition("npm:two", sdk.DependencySourceGit),
-			transition("npm:url", sdk.DependencySourceURL),
+			transition("one", sdk.DependencySourceGit),
+			transition("two", sdk.DependencySourceGit),
+			transition("url-package", sdk.DependencySourceURL),
 		},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(result.Findings) != 2 {
-		t.Fatalf("findings = %#v, want one Git and one URL finding", result.Findings)
+	// One finding per package: findings group by package reference, and two
+	// packages that both moved to Git are two references. There is no longer
+	// a case where one package contributes two transitions -- occurrences
+	// were what produced that, and identity is unique by construction now.
+	if len(result.Findings) != 3 {
+		t.Fatalf("findings = %#v, want one per changed package", result.Findings)
 	}
-	git := result.Findings[0]
-	if git.RuleID != "dependency-source-change-to-git" ||
-		git.PolicyStatus != sdk.FindingPolicyStatusWarn ||
-		git.Severity != sdk.SeverityWarning ||
-		len(git.DependencyRefs) != 2 {
-		t.Fatalf("Git source finding = %#v", git)
+	for _, git := range result.Findings[:2] {
+		if git.RuleID != "dependency-source-change-to-git" ||
+			git.PolicyStatus != sdk.FindingPolicyStatusWarn ||
+			git.Severity != sdk.SeverityWarning ||
+			len(git.DependencyRefs) != 1 {
+			t.Fatalf("Git source finding = %#v", git)
+		}
 	}
-	if result.Findings[1].RuleID != "dependency-source-change-to-url" {
-		t.Fatalf("URL source finding = %#v", result.Findings[1])
+	if result.Findings[2].RuleID != "dependency-source-change-to-url" {
+		t.Fatalf("URL source finding = %#v", result.Findings[2])
 	}
 
 	enforced, err := (Auditor{
@@ -338,7 +345,7 @@ func TestAuditDependencySourceChanges(t *testing.T) {
 }
 
 func TestAuditDependencySourceChangesIgnoresInformationalTransitions(t *testing.T) {
-	dependency := sdk.NewDependencyWithID("example", sdk.Dependency{
+	dependency := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{Name: "example", Version: "1.0.0"},
 		Source:      sdk.DependencySourceRegistry,
 	})

@@ -74,7 +74,7 @@ jobs:
           - name: go-reachability
             run: 'TestScan$/scan-go-reachability'
           - name: node
-            run: 'TestScan$/(scan-npm$|scan-npm-scope-runtime|scan-npm-workspaces|scan-yarn|scan-pnpm|scan-bun$|scan-github-actions)|TestDiff/diff-npm|TestAuditScan/scan-npm-audit'
+            run: 'TestScan$/(scan-npm$|scan-npm-scope-runtime|scan-npm-workspaces|scan-yarn|scan-pnpm|scan-bun$|scan-github-actions)|TestDiff/diff-npm|TestAuditScan/scan-npm-audit|TestAuditScanSARIFGolden$'
             node: true
           - name: node-detail-policy
             run: 'TestDependencyDetailRiskPolicy$'
@@ -122,7 +122,7 @@ jobs:
           - name: cpp
             run: 'TestScan$/scan-cpp-conan'
           - name: sbom
-            run: 'TestScan$/scan-sbom|TestDiff/(diff-sbom$|diff-sbom-detail-change$)|TestLiteScan/lite-scan-sbom|TestScanSBOMSyftJSONRejected$|TestScanSBOMExportOrigin$'
+            run: 'TestScan$/scan-sbom|TestDiff/(diff-sbom$|diff-sbom-detail-change$)|TestLiteScan/lite-scan-sbom|TestScanSBOMSyftJSONRejected$|TestScanSBOMExportOrigin$|TestScanSBOMExportGolden$'
             node: true
           - name: plugin
             run: 'TestPluginWorkflows'

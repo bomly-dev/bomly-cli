@@ -1,0 +1,213 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.7.schema.json",
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "bom-ref": "module:apps/web/package.json#pkg:npm/web@1.0.0",
+      "name": "web",
+      "purl": "pkg:npm/web@1.0.0",
+      "type": "application",
+      "version": "1.0.0"
+    },
+    {
+      "bom-ref": "module:package.json#pkg:npm/example-javascript-npm-workspaces@1.0.0",
+      "name": "example-javascript-npm-workspaces",
+      "purl": "pkg:npm/example-javascript-npm-workspaces@1.0.0",
+      "type": "application",
+      "version": "1.0.0"
+    },
+    {
+      "bom-ref": "module:packages/lib/package.json#pkg:npm/lib@1.0.0",
+      "name": "lib",
+      "purl": "pkg:npm/lib@1.0.0",
+      "type": "application",
+      "version": "1.0.0"
+    },
+    {
+      "bom-ref": "pkg:npm/left-pad@1.3.0",
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5c8e4c3f354d0298c0ca1433a615fc06498ab0a5310f82ddc8adb88997901a29c137dc93413ddb165081cbf695c761eb35ca901ac768b7c821ae3cabbcc0a810"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "WTFPL"
+          }
+        }
+      ],
+      "name": "left-pad",
+      "purl": "pkg:npm/left-pad@1.3.0",
+      "scope": "excluded",
+      "type": "library",
+      "version": "1.3.0"
+    },
+    {
+      "bom-ref": "pkg:npm/lodash@4.17.20",
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/lodash/-/lodash-4.17.20.tgz"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "3e585d15c8a594e20d7de57b362ea81754c011acb2641a19f1b72c8531ea39825896bab344ae616a0a5a824cb9a381df0b3cddd534645cf305aba70a93dac698"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "lodash",
+      "purl": "pkg:npm/lodash@4.17.20",
+      "scope": "required",
+      "type": "library",
+      "version": "4.17.20"
+    },
+    {
+      "bom-ref": "pkg:npm/minimist@1.2.5",
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/minimist/-/minimist-1.2.5.tgz"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "14cf6735462b4410042d9413df179943b7e630e060ea758d989293720b0979a2ecb4ffd43835691acaf93a15e185783a7feaad27cba267e3d4c640d67202172f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "minimist",
+      "purl": "pkg:npm/minimist@1.2.5",
+      "scope": "required",
+      "type": "library",
+      "version": "1.2.5"
+    },
+    {
+      "bom-ref": "pkg:npm/ms@2.1.3",
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "e85973b9b4cb646dc9d9afcd542025784863ceae68c601f268253dc985ef70bb2fa1568726afece715c8ebf5d73fab73ed1f7100eb479d23bfb57b45dd645394"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "ms",
+      "purl": "pkg:npm/ms@2.1.3",
+      "scope": "required",
+      "type": "library",
+      "version": "2.1.3"
+    }
+  ],
+  "compositions": [
+    {
+      "aggregate": "complete"
+    }
+  ],
+  "dependencies": [
+    {
+      "dependsOn": [
+        "module:apps/web/package.json#pkg:npm/web@1.0.0",
+        "module:package.json#pkg:npm/example-javascript-npm-workspaces@1.0.0"
+      ],
+      "ref": "DocumentRoot-example-javascript-npm-workspaces"
+    },
+    {
+      "dependsOn": [
+        "module:packages/lib/package.json#pkg:npm/lib@1.0.0",
+        "pkg:npm/left-pad@1.3.0",
+        "pkg:npm/minimist@1.2.5"
+      ],
+      "ref": "module:apps/web/package.json#pkg:npm/web@1.0.0"
+    },
+    {
+      "dependsOn": [
+        "pkg:npm/ms@2.1.3"
+      ],
+      "ref": "module:package.json#pkg:npm/example-javascript-npm-workspaces@1.0.0"
+    },
+    {
+      "dependsOn": [
+        "pkg:npm/lodash@4.17.20",
+        "pkg:npm/minimist@1.2.5"
+      ],
+      "ref": "module:packages/lib/package.json#pkg:npm/lib@1.0.0"
+    },
+    {
+      "ref": "pkg:npm/left-pad@1.3.0"
+    },
+    {
+      "ref": "pkg:npm/lodash@4.17.20"
+    },
+    {
+      "ref": "pkg:npm/minimist@1.2.5"
+    },
+    {
+      "ref": "pkg:npm/ms@2.1.3"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "bom-ref": "DocumentRoot-example-javascript-npm-workspaces",
+      "name": "example-javascript-npm-workspaces",
+      "purl": "pkg:generic/example-javascript-npm-workspaces@v1.0.0",
+      "type": "application",
+      "version": "v1.0.0"
+    },
+    "lifecycles": [
+      {
+        "phase": "pre-build"
+      }
+    ],
+    "timestamp": "\u003ctimestamp\u003e",
+    "tools": {
+      "components": [
+        {
+          "name": "bomly-cli",
+          "type": "application",
+          "version": "\u003cversion\u003e"
+        },
+        {
+          "name": "bomly-detector:npm",
+          "type": "application"
+        }
+      ]
+    }
+  },
+  "serialNumber": "urn:uuid:\u003cuuid\u003e",
+  "specVersion": "1.7",
+  "version": 1
+}

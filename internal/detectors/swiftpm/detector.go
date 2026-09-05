@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
@@ -172,18 +172,24 @@ func depGraphFromSwiftPM(resolvedRaw, manifestRaw []byte) (*sdk.Graph, error) {
 		return nil, fmt.Errorf("SwiftPM files do not contain any dependencies")
 	}
 	g := sdk.New()
-	root := rootNode()
+	root, err := rootNode()
+	if err != nil {
+		return nil, err
+	}
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 	for _, name := range sortedNames(packages) {
 		pkg := packages[name]
-		node := packageNode(pkg)
+		node, err := packageNode(pkg)
+		if err != nil {
+			return nil, err
+		}
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
 		}
-		if err := g.AddEdge(root.ID, node.ID); err != nil {
-			return nil, fmt.Errorf("add SwiftPM root dependency %q: %w", node.ID, err)
+		if err := g.AddEdge(root.NodeID(), node.NodeID()); err != nil {
+			return nil, fmt.Errorf("add SwiftPM root dependency %q: %w", node.NodeID(), err)
 		}
 	}
 	return g, nil
@@ -256,18 +262,16 @@ func readOptional(path string) ([]byte, error) {
 	return system.ReadRepositoryFile(path)
 }
 
-func rootNode() *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemSwift,
+func rootNode() (*sdk.ModuleNode, error) {
+	return sdk.NewModuleNode("Package.swift", sdk.Coordinates{Ecosystem: sdk.EcosystemSwift,
 		Name:           "root",
 		PackageManager: sdk.PackageManagerSwiftPM,
 		Type:           sdk.PackageTypeApplication,
-		FirstParty:     true,
-		Language:       "swift"},
-	})
+		Language:       "swift"})
 
 }
 
-func packageNode(pkg swiftPackage) *sdk.Dependency {
+func packageNode(pkg swiftPackage) (*sdk.DependencyNode, error) {
 	metadata := map[string]any{}
 	if pkg.Repository != "" {
 		metadata["repository"] = pkg.Repository
@@ -279,27 +283,33 @@ func packageNode(pkg swiftPackage) *sdk.Dependency {
 		metadata["requirement"] = pkg.Requirement
 	}
 	namespace, name := packageIdentity(pkg.Repository, pkg.Name)
-	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemSwift,
+	node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemSwift,
 		Org:            namespace,
 		Name:           name,
 		Version:        strings.TrimSpace(pkg.Version),
 		PackageManager: sdk.PackageManagerSwiftPM,
 		Type:           sdk.PackageTypePackage,
 		Language:       "swift",
-		PURL:           sdk.BuildPackageURL("swift", namespace, name, pkg.Version)}, Source: swiftDependencySource(pkg.SourceKind, pkg.Repository), ResolvedURL: strings.TrimSpace(pkg.Repository),
-		Metadata: metadata,
-	})
+		PURL:           sdk.BuildPackageURL("swift", namespace, name, pkg.Version)})
+	if err != nil {
+		return nil, fmt.Errorf("build dependency node: %w", err)
+	}
+	node.Source = swiftDependencySource(pkg.SourceKind, pkg.Repository)
+	node.ResolvedURL = strings.TrimSpace(pkg.Repository)
+	node.Metadata = metadata
 
 	if swiftDependencySource(pkg.SourceKind, pkg.Repository) == sdk.DependencySourceGit {
 		// Source-control pins name the repository and the commit SwiftPM
 		// resolved. Registry pins are identity-only, and local packages
 		// point at a checkout on this machine.
-		node.Origin = sdk.RepositoryOrigin(pkg.Repository, pkg.Revision)
+		if origin := sdk.RepositoryOrigin(pkg.Repository, pkg.Revision); origin != nil {
+			node.Origins = sdk.MergeOrigins(node.Origins, []sdk.DependencyOrigin{*origin})
+		}
 	}
 
 	// SwiftPM does not distinguish dev scope; all packages are runtime.
 	node.AddScope(sdk.ScopeRuntime)
-	return node
+	return node, nil
 }
 
 func swiftDependencySource(kind, location string) sdk.DependencySource {
@@ -389,7 +399,7 @@ func sortedNames(packages map[string]swiftPackage) []string {
 	return values
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
-	_, err := detectors.EnsureNode(g, node)
+func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
+	_, err := detectorkit.EnsureNode(g, node)
 	return err
 }

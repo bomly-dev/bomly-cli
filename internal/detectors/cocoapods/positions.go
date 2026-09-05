@@ -62,7 +62,7 @@ func AttachPodfileLockPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.Dependency) string {
+	detectors.AttachPositions(g, positions, func(pkg *sdk.DependencyNode) string {
 		if pkg == nil {
 			return ""
 		}

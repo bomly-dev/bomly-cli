@@ -7,7 +7,7 @@ EXE_SUFFIX=$(if $(filter Windows_NT,$(OS)),.exe,)
 GOLANGCI_LINT=$(GOPATH_BIN)/golangci-lint$(EXE_SUFFIX)
 FUZZTIME?=60s
 
-.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test smoke fuzz run generate evidence benchmark benchmark-report licenses
+.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test smoke fuzz verify run generate evidence benchmark benchmark-report licenses
 
 build: build-full build-lite
 
@@ -40,6 +40,47 @@ smoke:
 
 fuzz:
 	FUZZTIME="$(FUZZTIME)" scripts/run-fuzz.sh
+
+# verify runs everything that gates a push and records that it passed.
+#
+# The stamp is what .githooks/pre-push reads: a push is refused unless a
+# passing stamp exists and is newer than every tracked source file. Keeping
+# the run here rather than in the hook means it happens once, deliberately,
+# instead of on every push attempt -- a six-minute hook gets bypassed, and a
+# bypassed hook enforces nothing.
+#
+# SMOKE=1 adds the network-driven smoke suite and records that it ran.
+# Generated-docs drift is checked too: it is a CI job, and it fails for edits
+# that look unrelated to it.
+verify:
+	@rm -f .verify-stamp
+	$(MAKE) fmt-check
+	$(MAKE) lint
+	go vet ./...
+	go vet -tags "$(LITE_BUILD_TAGS)" ./...
+	# The smoke suite is behind a build tag, so `go vet ./...` never compiles
+	# it. Running it needs the network and several minutes; compiling it costs
+	# a second and catches the failure that actually happens -- a smoke file
+	# left un-updated by a change everything else absorbed.
+	go vet -tags smoke ./test/smoke/...
+	go build ./...
+	go build -tags "$(LITE_BUILD_TAGS)" ./...
+	go test ./...
+	$(MAKE) generate
+	@git diff --quiet -- docs/ || { \
+		echo "verify: generated docs drifted; commit the result of 'make generate'" >&2; \
+		git --no-pager diff --stat -- docs/ >&2; \
+		exit 1; \
+	}
+	@if [ "$(SMOKE)" = "1" ]; then $(MAKE) smoke; fi
+	@{ \
+		echo "VERIFY_STATUS=pass"; \
+		echo "VERIFY_AT=$$(date +%s)"; \
+		echo "VERIFY_AT_HUMAN=$$(date -u +%Y-%m-%dT%H:%M:%SZ)"; \
+		echo "VERIFY_SNAPSHOT=$$(./scripts/verify-snapshot.sh)"; \
+		if [ "$(SMOKE)" = "1" ]; then echo "VERIFY_SMOKE=yes"; else echo "VERIFY_SMOKE=no"; fi; \
+	} > .verify-stamp
+	@echo "verify: passed; stamp written to .verify-stamp"
 
 evidence:
 	go run ./internal/tools/publicevidence $(if $(CASE),-case $(CASE),)

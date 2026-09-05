@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -17,7 +18,7 @@ import (
 func TestResolveDetector_InjectsRequestScopedLogger(t *testing.T) {
 	registry := newTestRegistry()
 	graph := sdk.New()
-	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 
@@ -58,7 +59,7 @@ func TestResolveDetector_InjectsRequestScopedLogger(t *testing.T) {
 func TestResolveDetector_FallbackLoggerRelabelled(t *testing.T) {
 	registry := newTestRegistry()
 	graph := sdk.New()
-	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 

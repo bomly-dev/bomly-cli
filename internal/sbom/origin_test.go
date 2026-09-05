@@ -5,24 +5,25 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
 // originGraph builds a two-package graph whose nodes carry whatever origin
 // metadata a case wants to exercise.
-func originGraph(t *testing.T, mutate func(app, pkg *sdk.Dependency)) *sdk.Graph {
+func originGraph(t *testing.T, mutate func(app, pkg *sdk.DependencyNode)) *sdk.Graph {
 	t.Helper()
 
 	g := sdk.New()
-	app := sdk.NewDependencyRef("app", "1.0.0")
-	pkg := sdk.NewDependencyRef("react", "18.2.0")
+	app := testnodes.Ref("app", "1.0.0")
+	pkg := testnodes.Ref("react", "18.2.0")
 	mutate(app, pkg)
-	for _, n := range []*sdk.Dependency{app, pkg} {
+	for _, n := range []*sdk.DependencyNode{app, pkg} {
 		if err := g.AddNode(n); err != nil {
-			t.Fatalf("add package %s: %v", n.ID, err)
+			t.Fatalf("add package %s: %v", n.NodeID(), err)
 		}
 	}
-	if err := g.AddEdge(app.ID, pkg.ID); err != nil {
+	if err := g.AddEdge(app.NodeID(), pkg.NodeID()); err != nil {
 		t.Fatalf("add edge: %v", err)
 	}
 	return g
@@ -92,8 +93,8 @@ func marshalBoth(t *testing.T, g *sdk.Graph) (spdxRaw, cdxRaw []byte) {
 
 func TestArtifactOriginIsPublishedInBothFormats(t *testing.T) {
 	const artifact = "https://registry.npmjs.org/react/-/react-18.2.0.tgz"
-	g := originGraph(t, func(_, pkg *sdk.Dependency) {
-		pkg.Origin = sdk.ArtifactOrigin(artifact)
+	g := originGraph(t, func(_, pkg *sdk.DependencyNode) {
+		pkg.Origins = sdk.MergeOrigins(nil, originsFor(artifact))
 	})
 
 	spdxRaw, cdxRaw := marshalBoth(t, g)
@@ -111,8 +112,8 @@ func TestRepositoryOriginIsPublishedInBothFormats(t *testing.T) {
 		repository = "https://github.com/facebook/react"
 		revision   = "b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7"
 	)
-	g := originGraph(t, func(_, pkg *sdk.Dependency) {
-		pkg.Origin = sdk.RepositoryOrigin(repository, revision)
+	g := originGraph(t, func(_, pkg *sdk.DependencyNode) {
+		pkg.Origins = sdk.MergeOrigins(nil, repositoryOriginsFor(repository, revision))
 	})
 
 	spdxRaw, cdxRaw := marshalBoth(t, g)
@@ -134,8 +135,8 @@ func TestRepositoryOriginIsPublishedInBothFormats(t *testing.T) {
 
 func TestUnpinnedRepositoryOriginOmitsTheRevisionSuffix(t *testing.T) {
 	const repository = "https://github.com/facebook/react"
-	g := originGraph(t, func(_, pkg *sdk.Dependency) {
-		pkg.Origin = sdk.RepositoryOrigin(repository, "")
+	g := originGraph(t, func(_, pkg *sdk.DependencyNode) {
+		pkg.Origins = sdk.MergeOrigins(nil, repositoryOriginsFor(repository, ""))
 	})
 
 	spdxRaw, _ := marshalBoth(t, g)
@@ -147,7 +148,7 @@ func TestUnpinnedRepositoryOriginOmitsTheRevisionSuffix(t *testing.T) {
 
 // A package whose detector asserted nothing must say so, not guess.
 func TestPackageWithoutOriginKeepsNOASSERTION(t *testing.T) {
-	g := originGraph(t, func(_, _ *sdk.Dependency) {})
+	g := originGraph(t, func(_, _ *sdk.DependencyNode) {})
 
 	spdxRaw, cdxRaw := marshalBoth(t, g)
 
@@ -178,8 +179,8 @@ func TestExportRevalidatesOrigin(t *testing.T) {
 
 	for _, tc := range hostile {
 		t.Run(tc.name, func(t *testing.T) {
-			g := originGraph(t, func(_, pkg *sdk.Dependency) {
-				pkg.Origin = tc.origin
+			g := originGraph(t, func(_, pkg *sdk.DependencyNode) {
+				pkg.Origins = []sdk.DependencyOrigin{*tc.origin}
 			})
 
 			spdxRaw, cdxRaw := marshalBoth(t, g)
@@ -217,10 +218,10 @@ func TestScorecardRepositoryFillsTheOriginGap(t *testing.T) {
 	build := func(t *testing.T, detectorRepository string) []byte {
 		t.Helper()
 		g := sdk.New()
-		react := sdk.NewDependencyWithID("react@18.2.0", sdk.Dependency{Coordinates: sdk.Coordinates{
+		react := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 			Name: "react", Version: "18.2.0", PURL: purl, Ecosystem: "npm"}})
 		if detectorRepository != "" {
-			react.Origin = sdk.RepositoryOrigin(detectorRepository, "")
+			react.Origins = sdk.MergeOrigins(nil, repositoryOriginsFor(detectorRepository, ""))
 		}
 		if err := g.AddNode(react); err != nil {
 			t.Fatalf("add node: %v", err)
@@ -256,9 +257,9 @@ func TestScorecardRepositoryFillsTheOriginGap(t *testing.T) {
 	// info in SPDX, whose single download location the artifact holds.
 	t.Run("a repository accompanies an artifact", func(t *testing.T) {
 		g := sdk.New()
-		react := sdk.NewDependencyWithID("react@18.2.0", sdk.Dependency{Coordinates: sdk.Coordinates{
+		react := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 			Name: "react", Version: "18.2.0", PURL: purl, Ecosystem: "npm"}})
-		react.Origin = sdk.ArtifactOrigin("https://registry.npmjs.org/react/-/react-18.2.0.tgz")
+		react.Origins = sdk.MergeOrigins(nil, originsFor("https://registry.npmjs.org/react/-/react-18.2.0.tgz"))
 		if err := g.AddNode(react); err != nil {
 			t.Fatal(err)
 		}
@@ -297,8 +298,8 @@ func TestScorecardRepositoryFillsTheOriginGap(t *testing.T) {
 	// With no artifact, the repository is the download location, so repeating
 	// it as source info would say the same thing twice.
 	t.Run("a repository alone is not repeated as source info", func(t *testing.T) {
-		g := originGraph(t, func(_, pkg *sdk.Dependency) {
-			pkg.Origin = sdk.RepositoryOrigin("https://github.com/facebook/react", "")
+		g := originGraph(t, func(_, pkg *sdk.DependencyNode) {
+			pkg.Origins = sdk.MergeOrigins(nil, repositoryOriginsFor("https://github.com/facebook/react", ""))
 		})
 		spdxRaw, _ := marshalBoth(t, g)
 		spdxPkg := spdxPackageByName(t, spdxRaw, "react")
@@ -308,7 +309,7 @@ func TestScorecardRepositoryFillsTheOriginGap(t *testing.T) {
 	})
 
 	t.Run("absent without enrichment", func(t *testing.T) {
-		g := originGraph(t, func(_, _ *sdk.Dependency) {})
+		g := originGraph(t, func(_, _ *sdk.DependencyNode) {})
 		_, cdxRaw := marshalBoth(t, g)
 		if refs := cycloneDXReferences(t, cdxRaw, "react"); len(refs) != 0 {
 			t.Errorf("unenriched export emitted references: %v", refs)
@@ -324,8 +325,8 @@ func TestScorecardRepositoryFillsTheOriginGap(t *testing.T) {
 // This pins the documented limitation; preserving third-party origin across
 // ingest is tracked separately.
 func TestOriginIsNotReadBackFromAnIngestedDocument(t *testing.T) {
-	g := originGraph(t, func(_, pkg *sdk.Dependency) {
-		pkg.Origin = sdk.RepositoryOrigin("https://github.com/facebook/react", "d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809")
+	g := originGraph(t, func(_, pkg *sdk.DependencyNode) {
+		pkg.Origins = sdk.MergeOrigins(nil, repositoryOriginsFor("https://github.com/facebook/react", "d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809"))
 	})
 
 	exported, _ := marshalBoth(t, g)
@@ -369,15 +370,25 @@ func TestOriginIsNotReadBackFromAnIngestedDocument(t *testing.T) {
 	}
 }
 
-// The project's own records never take an external origin, and export is the
-// last line of that invariant: a plugin-supplied graph can assert an origin
-// directly on a first-party node, bypassing every detector- and fold-level
-// guard, so the projection itself must decline.
+// The project's own records never publish an external origin. Under ADR-0041
+// that holds by construction -- a module node has no Origins field for a
+// plugin-supplied graph to write into -- and export is where the guarantee is
+// visible: the component for a module asserts nothing about where it came
+// from, in either format.
 func TestProjectOwnedComponentsPublishNoOrigin(t *testing.T) {
-	g := originGraph(t, func(_, pkg *sdk.Dependency) {
-		pkg.FirstParty = true
-		pkg.Origin = sdk.RepositoryOrigin("https://github.com/upstream/react", "b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7")
+	g := sdk.New()
+	app := testnodes.Module("package.json", "app", "1.0.0")
+	member := testnodes.ModuleFrom("packages/react/package.json", sdk.Coordinates{
+		Ecosystem: "npm", Name: "react", Version: "18.2.0",
 	})
+	for _, node := range []sdk.GraphNode{app, member} {
+		if err := g.AddNode(node); err != nil {
+			t.Fatalf("add node %s: %v", node.NodeID(), err)
+		}
+	}
+	if err := g.AddEdge(app.NodeID(), member.NodeID()); err != nil {
+		t.Fatalf("add edge: %v", err)
+	}
 
 	spdxRaw, cdxRaw := marshalBoth(t, g)
 
@@ -396,12 +407,15 @@ func TestScorecardRepositoryIsNotAttributedToProjectOwnedComponents(t *testing.T
 	const purl = "pkg:npm/helper@1.0.0"
 
 	g := sdk.New()
-	member := sdk.NewDependencyWithID("member", sdk.Dependency{Coordinates: sdk.Coordinates{
-		Name: "helper", Version: "1.0.0", PURL: purl, Ecosystem: "npm", FirstParty: true}})
-	consumed := sdk.NewDependencyWithID("consumed", sdk.Dependency{Coordinates: sdk.Coordinates{
+	// The workspace member and the consumed package share a package URL, so
+	// they are separated by kind: the member is a module declared by its own
+	// manifest, and its ID cannot collide with the consumed package's.
+	member := testnodes.ModuleFrom("packages/helper/package.json", sdk.Coordinates{
+		Name: "helper", Version: "1.0.0", PURL: purl, Ecosystem: "npm"})
+	consumed := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 		Name: "helper", Version: "1.0.0", PURL: purl, Ecosystem: "npm"}})
-	for _, dep := range []*sdk.Dependency{member, consumed} {
-		if err := g.AddNode(dep); err != nil {
+	for _, node := range []sdk.GraphNode{member, consumed} {
+		if err := g.AddNode(node); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -437,12 +451,12 @@ func TestScorecardRepositoryIsNotAttributedToProjectOwnedComponents(t *testing.T
 			}
 		}
 		switch component.BOMRef {
-		case "member":
+		case member.NodeID():
 			memberChecked = true
 			if hasVCS {
 				t.Fatal("the project's own component was attributed to the upstream repository")
 			}
-		case "consumed":
+		case consumed.NodeID():
 			consumedChecked = true
 			if !hasVCS {
 				t.Fatal("the consumed component should carry the scorecard repository")
@@ -451,5 +465,124 @@ func TestScorecardRepositoryIsNotAttributedToProjectOwnedComponents(t *testing.T
 	}
 	if !memberChecked || !consumedChecked {
 		t.Fatalf("expected both components in the document (member %v, consumed %v)", memberChecked, consumedChecked)
+	}
+}
+
+// originsFor builds the origin list an artifact URL asserts, or nothing when
+// the URL is not one the publication gates accept.
+func originsFor(artifactURL string) []sdk.DependencyOrigin {
+	origin := sdk.ArtifactOrigin(artifactURL)
+	if origin == nil {
+		return nil
+	}
+	return []sdk.DependencyOrigin{*origin}
+}
+
+// repositoryOriginsFor builds the origin list a repository and revision
+// assert, or nothing when they are not a pair the publication gates accept.
+func repositoryOriginsFor(repository, revision string) []sdk.DependencyOrigin {
+	origin := sdk.RepositoryOrigin(repository, revision)
+	if origin == nil {
+		return nil
+	}
+	return []sdk.DependencyOrigin{*origin}
+}
+
+// A component's purl field is a Package URL in both formats, and a module's
+// node ID is not one -- it is the module grammar, which carries the declaring
+// manifest path so two workspace members cannot collide.
+//
+// Publishing the ID there shipped "module:apps/web/package.json#pkg:npm/web@1.0.0"
+// as a purl, which no consumer can parse. The bom-ref is where the identity
+// belongs; this pins both halves.
+func TestModuleComponentsPublishAPackageURLNotTheirNodeID(t *testing.T) {
+	g := sdk.New()
+	module := testnodes.ModuleFrom("apps/web/package.json", sdk.Coordinates{
+		Ecosystem: sdk.EcosystemNPM, Name: "web", Version: "1.0.0", Type: sdk.PackageTypeApplication,
+	})
+	dependency := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
+		Ecosystem: sdk.EcosystemNPM, Name: "left-pad", Version: "1.3.0",
+	}})
+	for _, node := range []sdk.GraphNode{module, dependency} {
+		if err := g.AddNode(node); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := g.AddEdge(module.NodeID(), dependency.NodeID()); err != nil {
+		t.Fatal(err)
+	}
+
+	_, cdxRaw := marshalBoth(t, g)
+
+	var doc struct {
+		Components []struct {
+			BOMRef string `json:"bom-ref"`
+			Name   string `json:"name"`
+			PURL   string `json:"purl"`
+		} `json:"components"`
+	}
+	if err := json.Unmarshal(cdxRaw, &doc); err != nil {
+		t.Fatalf("decode CycloneDX: %v", err)
+	}
+
+	var checked int
+	for _, component := range doc.Components {
+		if component.Name != "web" {
+			continue
+		}
+		checked++
+		if component.PURL != "pkg:npm/web@1.0.0" {
+			t.Errorf("module purl = %q, want the package URL its coordinates mint", component.PURL)
+		}
+		if component.BOMRef != module.NodeID() {
+			t.Errorf("module bom-ref = %q, want the node identity %q", component.BOMRef, module.NodeID())
+		}
+	}
+	if checked != 1 {
+		t.Fatalf("found %d web components, want 1", checked)
+	}
+}
+
+// A package resolved from two registries keeps both in the exported document.
+//
+// ADR-0041 folds equal-identity records into one node and keeps the
+// disagreement as a list of origins; that list is the dependency-confusion
+// signal the fold exists to preserve. Publishing only the first discarded it
+// at the export boundary -- the document then described a package that
+// resolved from two places as though it had come from one, which is exactly
+// backwards for the case that matters most.
+func TestExportKeepsEveryFoldedOrigin(t *testing.T) {
+	const (
+		first  = "https://registry.npmjs.org/react/-/react-18.2.0.tgz"
+		second = "https://npm.internal.example.com/react/-/react-18.2.0.tgz"
+	)
+	g := originGraph(t, func(_, pkg *sdk.DependencyNode) {
+		for _, raw := range []string{first, second} {
+			if origin := sdk.ArtifactOrigin(raw); origin != nil {
+				pkg.Origins = sdk.MergeOrigins(pkg.Origins, []sdk.DependencyOrigin{*origin})
+			}
+		}
+	})
+	if got := len(g.DependencyNodes()); got != 2 {
+		t.Fatalf("graph holds %d dependency nodes; want the fixture's two", got)
+	}
+
+	for _, target := range []Target{TargetCycloneDX16JSON, TargetSPDX23JSON} {
+		out, err := MarshalDepGraphJSON(g, target, BuildOptions{}, EncodeOptions{})
+		if err != nil {
+			t.Fatalf("marshal %v: %v", target, err)
+		}
+		encoded := string(out)
+		for _, want := range []string{first, second} {
+			if !strings.Contains(encoded, want) {
+				t.Fatalf("%v document dropped origin %q; both resolutions must survive export:\n%s",
+					target, want, encoded)
+			}
+		}
+		// Well-formed output, not just a string match.
+		var doc map[string]any
+		if err := json.Unmarshal(out, &doc); err != nil {
+			t.Fatalf("%v document is not valid JSON: %v", target, err)
+		}
 	}
 }

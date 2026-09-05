@@ -333,8 +333,12 @@ func (p *Pipeline) logUnexpectedMultiRootGraph(stage, detector, subproject strin
 		if root == nil {
 			continue
 		}
-		rootIDs = append(rootIDs, root.ID)
-		if root.Type == sdk.PackageTypeApplication {
+		rootIDs = append(rootIDs, root.NodeID())
+		// A module root is the project's own artifact, which is what this
+		// warning is about: dependencies hanging off the scanned project with
+		// no stated relationship. An application-typed dependency node is a
+		// consumed package and does not make the graph a project graph.
+		if root.Kind() == sdk.NodeKindModule {
 			hasApplicationRoot = true
 		}
 	}
@@ -361,21 +365,38 @@ func (p *Pipeline) runMatch(ctx context.Context, result *PipelineResult, req Pip
 	}
 	started := time.Now()
 	eligible := 0
-	result.Graph.WalkNodes(func(dependency *sdk.Dependency) bool {
+	// Counted separately from the graph's size, which includes the module and
+	// manifest nodes a normal graph now has. Subtracting from the size
+	// reported one excluded package for every structural node -- so a graph
+	// whose ten dependencies were all eligible still claimed an exclusion,
+	// contradicting the comment below it and sending anyone reading -v after
+	// a missing enrichment.
+	candidates := 0
+	result.Graph.WalkNodes(func(graphNode sdk.GraphNode) bool {
+		// Only dependency nodes are ever enriched: a manifest or a module is
+		// the project's own artifact, and there is no registry to ask about
+		// it. They are not counted as excluded either -- they were never
+		// candidates.
+		dependency, ok := graphNode.(*sdk.DependencyNode)
+		if !ok {
+			return true
+		}
+		candidates++
 		if dependency.RegistryMatchEligible() {
 			eligible++
 		} else {
 			p.Logger.Debug("pipeline: dependency excluded from registry enrichment",
-				zap.String("dependency_id", dependency.ID),
+				zap.String("dependency_id", dependency.NodeID()),
 				zap.String("source", string(dependency.Source)),
 				zap.String("type", string(dependency.Type)))
 		}
 		return true
 	})
 	p.Logger.Info("pipeline: enrichment started",
-		zap.Int("packages", result.Graph.Size()),
+		zap.Int("packages", candidates),
 		zap.Int("eligible_packages", eligible),
-		zap.Int("excluded_packages", result.Graph.Size()-eligible))
+		zap.Int("excluded_packages", candidates-eligible),
+		zap.Int("graph_nodes", result.Graph.Size()))
 	p.match(ctx, result, req)
 	if req.EnrichEnabled {
 		detectors := remediationDetectorsByName(p.Registry.AllDetectors())
@@ -553,7 +574,7 @@ func (p *Pipeline) audit(ctx context.Context, g *sdk.Graph, registry *sdk.Packag
 	return result, warnings
 }
 
-func (p *Pipeline) auditComponent(ctx context.Context, g *sdk.Graph, registry *sdk.PackageRegistry, target *sdk.Dependency, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
+func (p *Pipeline) auditComponent(ctx context.Context, g *sdk.Graph, registry *sdk.PackageRegistry, target *sdk.DependencyNode, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
 	if g == nil || target == nil {
 		return sdk.AuditResult{}, nil
 	}

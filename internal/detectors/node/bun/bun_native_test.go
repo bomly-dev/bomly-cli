@@ -8,7 +8,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	testutil "github.com/bomly-dev/bomly-sdk/testkit"
 )
 
@@ -42,21 +43,21 @@ func TestDepGraphFromBunPMListPreservesUnprovenParents(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	direct, _ := graph.Node("direct@1.0.0")
-	if direct == nil || direct.PrimaryScope() != sdk.ScopeRuntime || direct.Relationship == sdk.DependencyRelationshipUnknown {
+	direct, _ := testnodes.Find(graph, "direct@1.0.0")
+	if direct == nil || mustDep(t, direct).PrimaryScope() != sdk.ScopeRuntime || mustDep(t, direct).Relationship == sdk.DependencyRelationshipUnknown {
 		t.Fatalf("expected a known direct dependency, got %#v", direct)
 	}
 	for _, id := range []string{"transitive@2.0.0", "duplicate@1.0.0", "duplicate@2.0.0"} {
-		dependency, _ := graph.Node(id)
-		if dependency == nil || dependency.Relationship != sdk.DependencyRelationshipUnknown {
+		dependency, _ := testnodes.Find(graph, id)
+		if dependency == nil || mustDep(t, dependency).Relationship != sdk.DependencyRelationshipUnknown {
 			t.Fatalf("expected %s to retain unknown placement, got %#v", id, dependency)
 		}
 	}
-	children, err := graph.DirectDependencies("transitive@2.0.0")
-	if err != nil || len(children) != 1 || children[0].ID != "nested@3.0.0" {
+	children, err := graph.DirectDependencies(testnodes.ID(graph, "transitive@2.0.0"))
+	if err != nil || len(children) != 1 || !testnodes.Is(children[0], "nested@3.0.0") {
 		t.Fatalf("expected proven nested edge, got children=%#v err=%v", children, err)
 	}
-	if children[0].Relationship == sdk.DependencyRelationshipUnknown {
+	if mustDep(t, children[0]).Relationship == sdk.DependencyRelationshipUnknown {
 		t.Fatalf("proven nested dependency must not be unknown: %#v", children[0])
 	}
 }
@@ -89,23 +90,28 @@ func main() { fmt.Print("/project node_modules\n├── @fixture/api@workspace
 	if err != nil {
 		t.Fatal(err)
 	}
-	if graph.Size() != 7 {
-		t.Fatalf("expected root, workspace, and five package occurrences, got %d", graph.Size())
+	// Six, not seven: the alias entry ("number-check": "npm:is-number@7.0.0")
+	// no longer mints a node of its own. The installed package is is-number,
+	// its identity is is-number's package URL, and the alias is a declaration
+	// detail (ADR-0041).
+	if graph.Size() != 6 {
+		t.Fatalf("expected the root, the workspace, and four packages, got %d", graph.Size())
 	}
-	leftPad, _ := graph.Node("left-pad@1.3.0")
-	if leftPad == nil || leftPad.Relationship != sdk.DependencyRelationshipUnknown {
+	leftPad, _ := testnodes.Find(graph, "left-pad@1.3.0")
+	if leftPad == nil || mustDep(t, leftPad).Relationship != sdk.DependencyRelationshipUnknown {
 		t.Fatalf("expected unproven package placement, got %#v", leftPad)
 	}
-	workspace, _ := graph.Node("workspace:apps/api")
-	if workspace == nil || workspace.Type != sdk.PackageTypeApplication || workspace.Version != "1.0.0" {
-		t.Fatalf("expected canonical workspace application, got %#v", workspace)
+	workspace, _ := testnodes.Find(graph, "api@1.0.0")
+	if workspace == nil || !sdk.IsProjectOwned(workspace) {
+		t.Fatalf("expected the workspace member to be the project's own module, got %#v", workspace)
 	}
-	alias, _ := graph.Node("bun-native-alias:number-check@7.0.0")
-	if alias == nil || alias.Name != "is-number" || alias.Version != "7.0.0" || alias.PrimaryScope() != sdk.ScopeRuntime {
-		t.Fatalf("expected normalized direct alias occurrence, got %#v", alias)
+	// The alias resolves to the package it names, at that package's identity.
+	alias, _ := testnodes.FindDep(graph, "is-number@7.0.0")
+	if alias == nil || alias.PrimaryScope() != sdk.ScopeRuntime {
+		t.Fatalf("expected the alias target as a runtime dependency, got %#v", alias)
 	}
-	children, err := graph.DirectDependencies("is-odd@0.1.2")
-	if err != nil || len(children) != 1 || children[0].ID != "is-number@3.0.0" {
+	children, err := graph.DirectDependencies(testnodes.ID(graph, "is-odd@0.1.2"))
+	if err != nil || len(children) != 1 || !testnodes.Is(children[0], "is-number@3.0.0") {
 		t.Fatalf("expected Bun tree edge, got children=%#v err=%v", children, err)
 	}
 }

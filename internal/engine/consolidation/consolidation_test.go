@@ -3,65 +3,94 @@ package consolidation
 import (
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
-func TestNormalizeGraphPackageIdentity_CollapsesEquivalentPythonPackages(t *testing.T) {
+// Two spellings of one Python package name -- case and separators -- mint the
+// same identity, so the second insertion folds into the first and the
+// consumer's edges point at one node.
+//
+// Normalization moved into the constructor with ADR-0041, which is why this
+// case no longer builds two nodes and then collapses them: the second node
+// never exists.
+func TestEquivalentPythonSpellingsFoldOnInsertion(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependencyWithID("app@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "app", Version: "1.0.0"}})
-	pyA := sdk.NewDependencyWithID("Requests_Toolbelt@1.0.0RC1", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "python", Name: "Requests_Toolbelt", Version: "1.0.0RC1"}})
-	pyB := sdk.NewDependencyWithID("requests-toolbelt@1.0.0rc1", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "python", Name: "requests-toolbelt", Version: "1.0.0rc1"}})
-	for _, pkg := range []*sdk.Dependency{root, pyA, pyB} {
-		if err := g.AddNode(pkg); err != nil {
-			t.Fatalf("AddPackage(%q) error = %v", pkg.ID, err)
+	root := testnodes.Ref("app", "1.0.0")
+	pyA := testnodes.Dep(sdk.Coordinates{Ecosystem: "python", Name: "Requests_Toolbelt", Version: "1.0.0rc1"})
+	pyB := testnodes.Dep(sdk.Coordinates{Ecosystem: "python", Name: "requests-toolbelt", Version: "1.0.0rc1"})
+
+	const want = "pkg:pypi/requests-toolbelt@1.0.0rc1"
+	if pyA.NodeID() != want || pyB.NodeID() != want {
+		t.Fatalf("identities = %q and %q, want both to mint %q", pyA.NodeID(), pyB.NodeID(), want)
+	}
+	for _, pkg := range []*sdk.DependencyNode{root, pyA, pyB} {
+		if _, err := g.InsertNode(pkg); err != nil {
+			t.Fatalf("InsertNode(%q) error = %v", pkg.NodeID(), err)
 		}
 	}
-	if err := g.AddEdge(root.ID, pyA.ID); err != nil {
-		t.Fatalf("AddDependency(pyA) error = %v", err)
+	if err := g.AddEdge(root.NodeID(), pyA.NodeID()); err != nil {
+		t.Fatalf("AddEdge(pyA) error = %v", err)
 	}
-	if err := g.AddEdge(root.ID, pyB.ID); err != nil {
-		t.Fatalf("AddDependency(pyB) error = %v", err)
+	if err := g.AddEdge(root.NodeID(), pyB.NodeID()); err != nil {
+		t.Fatalf("AddEdge(pyB) error = %v", err)
 	}
 
 	normalized, err := normalizeGraphPackageIdentity(g)
 	if err != nil {
 		t.Fatalf("normalizeGraphPackageIdentity() error = %v", err)
 	}
-
 	if normalized.Size() != 2 {
-		t.Fatalf("expected duplicate python packages to collapse to 2 nodes, got %d", normalized.Size())
+		t.Fatalf("graph size = %d, want the root plus one folded package", normalized.Size())
 	}
-	depID := "pkg:pypi/requests-toolbelt@1.0.0rc1"
-	dep, ok := normalized.Node(depID)
-	if !ok {
-		t.Fatalf("expected normalized python package %q", depID)
-	}
-	deps, err := normalized.DirectDependencies("pkg:generic/app@1.0.0")
+	deps, err := normalized.DirectDependencies(root.NodeID())
 	if err != nil {
-		t.Fatalf("Dependencies() error = %v", err)
+		t.Fatalf("DirectDependencies() error = %v", err)
 	}
-	if len(deps) != 1 || deps[0].ID != dep.ID {
-		t.Fatalf("expected single collapsed dependency %q, got %#v", dep.ID, deps)
-	}
-	if dep.Metadata == nil {
-		t.Fatal("expected normalization metadata on collapsed dependency")
+	if len(deps) != 1 || deps[0].NodeID() != want {
+		t.Fatalf("root dependencies = %#v, want the one folded package", deps)
 	}
 }
 
-func TestNormalizeGraphPackageIdentity_NormalizesScopedNPMPackage(t *testing.T) {
-	g := graphFixture(
-		[]nodeFixture{{id: "@Types/Node@20.11.30", name: "@Types/Node", version: "20.11.30"}},
-		nil,
-	)
-	pkg, _ := g.Node("@Types/Node@20.11.30")
-	pkg.Ecosystem = "npm"
-
-	normalized, err := normalizeGraphPackageIdentity(g)
-	if err != nil {
-		t.Fatalf("normalizeGraphPackageIdentity() error = %v", err)
+// Version case is NOT folded, and this pins that rather than leaving it
+// unstated.
+//
+// Identity spelling is packageurl-go's to decide (it is the library that owns
+// canonical package URLs), and it case-folds a version for exactly one type,
+// huggingface. The SDK used to lowercase every version containing a letter,
+// which folded this pair by accident while corrupting Maven's "1.0-SNAPSHOT"
+// into "1.0-snapshot" -- a different version, since Maven versions are case
+// sensitive. Dropping the blanket rule fixed Maven and cost this fold.
+//
+// PyPI itself does treat the two as one release: PEP 440 normalizes version
+// case, so "1.0.0RC1" and "1.0.0rc1" name the same distribution and cannot
+// both exist. Folding them therefore wants a PEP 440 normalizer applied to
+// pypi coordinates before the identity is minted -- in the SDK, where every
+// producer reaches it, and with a real dependency rather than a hand-written
+// version grammar. That is bomly-dev/bomly-sdk#39. Until it lands, the two
+// spellings are two identities, and this test fails when that changes, which
+// is the point.
+func TestPythonVersionCaseIsNotFoldedYet(t *testing.T) {
+	upper := testnodes.Dep(sdk.Coordinates{Ecosystem: "python", Name: "requests-toolbelt", Version: "1.0.0RC1"})
+	lower := testnodes.Dep(sdk.Coordinates{Ecosystem: "python", Name: "requests-toolbelt", Version: "1.0.0rc1"})
+	if upper.NodeID() == lower.NodeID() {
+		t.Fatalf("identities folded to %q; if a PEP 440 normalizer landed, fold this case back into "+
+			"TestEquivalentPythonSpellingsFoldOnInsertion and delete this test", upper.NodeID())
 	}
-	if _, ok := normalized.Node("pkg:npm/%40types/node@20.11.30"); !ok {
-		t.Fatal("expected scoped npm package to normalize to canonical namespace and name")
+	// The version each carries is the one its coordinates stated: the
+	// identity is authoritative for the field, and it preserved the spelling.
+	if upper.Version != "1.0.0RC1" || lower.Version != "1.0.0rc1" {
+		t.Fatalf("versions = %q and %q; want each preserved as written", upper.Version, lower.Version)
+	}
+}
+
+// A scoped npm name is canonicalized into namespace and name by the same
+// constructor gate, so the identity is percent-encoded exactly as the purl
+// spec requires.
+func TestScopedNPMNameMintsTheCanonicalIdentity(t *testing.T) {
+	pkg := testnodes.Dep(sdk.Coordinates{Ecosystem: "npm", Name: "@Types/Node", Version: "20.11.30"})
+	if pkg.NodeID() != "pkg:npm/%40types/node@20.11.30" {
+		t.Fatalf("identity = %q, want the canonical scoped npm package URL", pkg.NodeID())
 	}
 }
 
@@ -95,14 +124,14 @@ func TestConsolidateGraphs_PreservesManifestRoots(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	if _, ok := mergedGraph.Node("subproject:npm:apps/web"); ok {
+	if _, ok := testnodes.Find(mergedGraph, "subproject:npm:apps/web"); ok {
 		t.Fatal("did not expect synthetic npm subproject root")
 	}
-	if _, ok := mergedGraph.Node("subproject:gomod:services/api"); ok {
+	if _, ok := testnodes.Find(mergedGraph, "subproject:gomod:services/api"); ok {
 		t.Fatal("did not expect synthetic go subproject root")
 	}
 
-	if _, ok := mergedGraph.Node("apps/web/package-lock.json"); ok {
+	if _, ok := testnodes.Find(mergedGraph, "apps/web/package-lock.json"); ok {
 		t.Fatal("did not expect manifest node in merged graph")
 	}
 	if _, ok := mergedGraph.Node("pkg:generic/web-app@1.0.0"); !ok {
@@ -126,20 +155,20 @@ func TestConsolidateGraphs_RejectsMultipleExecutionTargets(t *testing.T) {
 
 func TestConsolidateGraphs_DeduplicatesManifestAndPrefersNative(t *testing.T) {
 	nativeGraph := sdk.New()
-	nativeRoot := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0"}})
-	nativeDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.slf4j", Name: "slf4j-api", Version: "2.0.9"}})
+	nativeRoot := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0"}})
+	nativeDep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.slf4j", Name: "slf4j-api", Version: "2.0.9"}})
 	if err := nativeGraph.AddNode(nativeRoot); err != nil {
 		t.Fatalf("add native root: %v", err)
 	}
 	if err := nativeGraph.AddNode(nativeDep); err != nil {
 		t.Fatalf("add native dep: %v", err)
 	}
-	if err := nativeGraph.AddEdge(nativeRoot.ID, nativeDep.ID); err != nil {
+	if err := nativeGraph.AddEdge(nativeRoot.NodeID(), nativeDep.NodeID()); err != nil {
 		t.Fatalf("add native dependency: %v", err)
 	}
 
 	syftGraph := sdk.New()
-	syftRoot := sdk.NewDependencyWithID("1234567890123456", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0", PURL: "pkg:maven/org.owasp.webgoat/webgoat@1.0.0"}})
+	syftRoot := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0", PURL: "pkg:maven/org.owasp.webgoat/webgoat@1.0.0"}})
 	if err := syftGraph.AddNode(syftRoot); err != nil {
 		t.Fatalf("add syft root: %v", err)
 	}
@@ -203,8 +232,8 @@ func TestManifestDedupPriorityPrefersNativeOverSyft(t *testing.T) {
 
 func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *testing.T) {
 	actionsGraph := sdk.New()
-	checkout := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "github-actions", Name: "actions/checkout", Version: "v4.1.6"}})
-	setupJava := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "github-actions", Name: "actions/setup-java", Version: "v5"}})
+	checkout := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "github-actions", Name: "actions/checkout", Version: "v4.1.6"}})
+	setupJava := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "github-actions", Name: "actions/setup-java", Version: "v5"}})
 	if err := actionsGraph.AddNode(checkout); err != nil {
 		t.Fatalf("add checkout: %v", err)
 	}
@@ -235,16 +264,18 @@ func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *t
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 
+	// A synthesized root standing in for a manifest is a manifest node now,
+	// not a dependency node typed "manifest" (ADR-0041).
 	virtualRootID := ".github/actions/java-setup"
-	virtualRoot, ok := mergedGraph.Node(virtualRootID)
+	virtualRoot, ok := testnodes.Find(mergedGraph, virtualRootID)
 	if !ok {
-		t.Fatalf("expected synthesized virtual root package %q", virtualRootID)
+		t.Fatalf("expected a synthesized root for %q", virtualRootID)
 	}
-	if virtualRoot.Type != "manifest" {
-		t.Fatalf("expected virtual root type manifest, got %q", virtualRoot.Type)
+	if virtualRoot.Kind() != sdk.NodeKindManifest {
+		t.Fatalf("synthesized root is a %s node, want a manifest node", virtualRoot.Kind())
 	}
 
-	deps, err := mergedGraph.DirectDependencies(virtualRootID)
+	deps, err := mergedGraph.DirectDependencies(testnodes.ID(mergedGraph, virtualRootID))
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
@@ -255,15 +286,15 @@ func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *t
 
 func TestConsolidateGraphs_PrefersApplicationRootWhenEntryHasMultipleRoots(t *testing.T) {
 	npmGraph := sdk.New()
-	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
-	orphan := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "string-width", Version: "2.1.1"}})
-	for _, pkg := range []*sdk.Dependency{app, react, orphan} {
+	app := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	react := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
+	orphan := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "string-width", Version: "2.1.1"}})
+	for _, pkg := range []*sdk.DependencyNode{app, react, orphan} {
 		if err := npmGraph.AddNode(pkg); err != nil {
-			t.Fatalf("add %s: %v", pkg.ID, err)
+			t.Fatalf("add %s: %v", pkg.NodeID(), err)
 		}
 	}
-	if err := npmGraph.AddEdge(app.ID, react.ID); err != nil {
+	if err := npmGraph.AddEdge(app.NodeID(), react.NodeID()); err != nil {
 		t.Fatalf("link app->react: %v", err)
 	}
 
@@ -296,7 +327,7 @@ func TestConsolidateGraphs_PrefersApplicationRootWhenEntryHasMultipleRoots(t *te
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	if _, ok := mergedGraph.Node("package-lock.json"); ok {
+	if _, ok := testnodes.Find(mergedGraph, "package-lock.json"); ok {
 		t.Fatal("did not expect synthesized manifest package for npm graph with application root")
 	}
 
@@ -307,7 +338,7 @@ func TestConsolidateGraphs_PrefersApplicationRootWhenEntryHasMultipleRoots(t *te
 	if len(deps) != 2 {
 		t.Fatalf("expected application root to depend on both original roots, got %d", len(deps))
 	}
-	orphanNode, ok := mergedGraph.Node("pkg:npm/string-width@2.1.1")
+	orphanNode, ok := mergedGraph.DependencyNode("pkg:npm/string-width@2.1.1")
 	if !ok {
 		t.Fatal("expected orphan dependency to remain in the graph")
 	}
@@ -325,12 +356,16 @@ type nodeFixture struct {
 func graphFixture(packages []nodeFixture, relationships [][2]string) *sdk.Graph {
 	g := sdk.New()
 	for _, pkg := range packages {
-		if err := g.AddNode(sdk.NewDependencyRefWithID(pkg.id, pkg.name, pkg.version)); err != nil {
+		if err := g.AddNode(testnodes.Ref(pkg.name, pkg.version)); err != nil {
 			panic(err)
 		}
 	}
 	for _, relationship := range relationships {
-		if err := g.AddEdge(relationship[0], relationship[1]); err != nil {
+		// Resolved from the label the fixture names, because a node ID is a
+		// canonical package URL now (ADR-0041).
+		from := testnodes.ID(g, relationship[0])
+		to := testnodes.ID(g, relationship[1])
+		if err := g.AddEdge(from, to); err != nil {
 			panic(err)
 		}
 	}
@@ -407,26 +442,26 @@ func TestConsolidateGraphs_AcceptsNestedSubprojectExecutionTargets(t *testing.T)
 func TestConsolidateGraphs_SharedDependencyAcrossModuleEntriesCountsOnce(t *testing.T) {
 	// Two module entries from one workspace resolution share a transitive
 	// dependency. The consolidated graph must contain it once.
-	shared := sdk.NewDependencyWithID("shared@2.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "shared", Version: "2.0.0"}})
-	webRoot := sdk.NewDependencyWithID("web@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "web", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	libRoot := sdk.NewDependencyWithID("lib@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	shared := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "shared", Version: "2.0.0"}})
+	webRoot := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "web", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	libRoot := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
 
 	webGraph := sdk.New()
-	for _, pkg := range []*sdk.Dependency{webRoot, shared} {
+	for _, pkg := range []*sdk.DependencyNode{webRoot, shared} {
 		if err := webGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add web node: %v", err)
 		}
 	}
-	if err := webGraph.AddEdge(webRoot.ID, shared.ID); err != nil {
+	if err := webGraph.AddEdge(webRoot.NodeID(), shared.NodeID()); err != nil {
 		t.Fatalf("add web edge: %v", err)
 	}
 	libGraph := sdk.New()
-	for _, pkg := range []*sdk.Dependency{libRoot, shared} {
+	for _, pkg := range []*sdk.DependencyNode{libRoot, shared} {
 		if err := libGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add lib node: %v", err)
 		}
 	}
-	if err := libGraph.AddEdge(libRoot.ID, shared.ID); err != nil {
+	if err := libGraph.AddEdge(libRoot.NodeID(), shared.NodeID()); err != nil {
 		t.Fatalf("add lib edge: %v", err)
 	}
 
@@ -450,7 +485,7 @@ func TestConsolidateGraphs_SharedDependencyAcrossModuleEntriesCountsOnce(t *test
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 	sharedCount := 0
-	for _, pkg := range merged.Nodes() {
+	for _, pkg := range merged.DependencyNodes() {
 		if pkg != nil && pkg.Name == "shared" {
 			sharedCount++
 		}

@@ -3,12 +3,13 @@ package bun
 import (
 	"errors"
 	"fmt"
+	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
 
@@ -18,42 +19,50 @@ func depGraphFromBunPMList(raw []byte, manifest node.PackageJSONManifest, projec
 		rootName = "root"
 	}
 	graph := sdk.New()
-	root := bunApplicationNode(rootName, manifest.Version, sdk.DependencySourceProject, "")
+	root, err := bunRootModuleNode("package.json", rootName, manifest.Version)
+	if err != nil {
+		return nil, err
+	}
 	if err := graph.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add Bun project root: %w", err)
 	}
 
-	byName := make(map[string]map[string]*sdk.Dependency)
+	byName := make(map[string]map[string]sdk.GraphNode)
 	parents := make([]string, 0)
 	for _, line := range strings.Split(string(raw), "\n") {
 		name, version, depth, ok := parseBunPMListLine(line)
 		if !ok {
 			continue
 		}
-		dependency := bunPMListDependency(projectDir, manifest, name, version)
+		dependency, err := bunPMListDependency(projectDir, manifest, name, version)
+		if err != nil {
+			return nil, err
+		}
 		if err := node.AddNodeIfMissing(graph, dependency); err != nil {
 			return nil, err
 		}
-		stored, _ := graph.Node(dependency.ID)
+		stored, _ := graph.Node(dependency.NodeID())
 		if byName[name] == nil {
-			byName[name] = make(map[string]*sdk.Dependency)
+			byName[name] = make(map[string]sdk.GraphNode)
 		}
-		byName[name][stored.ID] = stored
+		byName[name][stored.NodeID()] = stored
 
-		if depth > 0 && depth <= len(parents) && parents[depth-1] != stored.ID {
-			if err := graph.AddEdge(parents[depth-1], stored.ID); err != nil {
-				return nil, fmt.Errorf("attach nested Bun dependency %q -> %q: %w", parents[depth-1], stored.ID, err)
+		if depth > 0 && depth <= len(parents) && parents[depth-1] != stored.NodeID() {
+			if err := graph.AddEdge(parents[depth-1], stored.NodeID()); err != nil {
+				return nil, fmt.Errorf("attach nested Bun dependency %q -> %q: %w", parents[depth-1], stored.NodeID(), err)
 			}
 		}
 		if len(parents) <= depth {
 			parents = append(parents, make([]string, depth-len(parents)+1)...)
 		}
-		parents[depth] = stored.ID
+		parents[depth] = stored.NodeID()
 		parents = parents[:depth+1]
 
-		if stored.Source == sdk.DependencySourceWorkspace {
-			if err := graph.AddEdge(root.ID, stored.ID); err != nil {
-				return nil, fmt.Errorf("attach Bun workspace %q: %w", stored.ID, err)
+		// Ownership is the node kind now, not a Source value on a
+		// dependency node (ADR-0041): a workspace member is a module.
+		if stored.Kind() == sdk.NodeKindModule {
+			if err := graph.AddEdge(root.NodeID(), stored.NodeID()); err != nil {
+				return nil, fmt.Errorf("attach Bun workspace %q: %w", stored.NodeID(), err)
 			}
 		}
 	}
@@ -64,30 +73,48 @@ func depGraphFromBunPMList(raw []byte, manifest node.PackageJSONManifest, projec
 	directScopes := node.DirectDependencyScopes(manifest)
 	for name, scope := range directScopes {
 		matches := byName[name]
-		// A flat inventory cannot identify which duplicate occurrence is the
-		// root declaration. Keep every occurrence unknown instead of guessing.
+		// A flat inventory cannot say which of several same-named nodes
+		// carries the root declaration. Leave them all unscoped rather than
+		// guessing.
 		if len(matches) != 1 {
 			continue
 		}
-		var match *sdk.Dependency
+		var match sdk.GraphNode
 		for _, dependency := range matches {
 			match = dependency
 		}
-		match.AddScope(scope)
-		if err := graph.AddEdge(root.ID, match.ID); err != nil {
-			return nil, fmt.Errorf("attach direct Bun dependency %q: %w", match.ID, err)
+		if dependency, ok := sdk.AsDependencyNode(match); ok {
+			dependency.AddScope(scope)
+		}
+		if err := graph.AddEdge(root.NodeID(), match.NodeID()); err != nil {
+			return nil, fmt.Errorf("attach direct Bun dependency %q: %w", match.NodeID(), err)
 		}
 	}
-	if _, err := node.AttachUnknownComponents(graph, root.ID, logger, detectors.NameBunNative, "package.json"); err != nil {
+	if _, err := node.AttachUnknownComponents(graph, root.NodeID(), logger, detectors.NameBunNative, "package.json"); err != nil {
 		return nil, err
 	}
 	return graph, nil
 }
 
-func bunPMListDependency(projectDir string, manifest node.PackageJSONManifest, listedName, listedVersion string) *sdk.Dependency {
+// bunRootModuleNode builds the project's own node for a `bun pm ls` graph.
+func bunRootModuleNode(manifestPath, name, version string) (*sdk.ModuleNode, error) {
+	moduleNode, err := sdk.NewModuleNode(manifestPath, sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemNPM,
+		PackageManager: sdk.PackageManagerBun,
+		Name:           name,
+		Version:        version,
+		Type:           sdk.PackageTypeApplication,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("build Bun module node %q: %w", name, err)
+	}
+	return moduleNode, nil
+}
+
+func bunPMListDependency(projectDir string, manifest node.PackageJSONManifest, listedName, listedVersion string) (sdk.GraphNode, error) {
 	source := node.DependencySourceFromSpecifier(listedVersion)
 	name, version := listedName, listedVersion
-	forcedID := ""
+	workspaceDir := ""
 	if source == sdk.DependencySourceWorkspace {
 		workspacePath := strings.TrimPrefix(listedVersion, "workspace:")
 		workspace, err := node.ReadPackageJSONManifest(filepath.Join(projectDir, filepath.FromSlash(workspacePath)))
@@ -99,29 +126,34 @@ func bunPMListDependency(projectDir string, manifest node.PackageJSONManifest, l
 		} else {
 			version = ""
 		}
-		forcedID = "workspace:" + filepath.ToSlash(filepath.Clean(workspacePath))
+		workspaceDir = filepath.ToSlash(filepath.Clean(workspacePath))
 	} else if requested, declared := declaredBunSpecifier(manifest, listedName); declared {
+		// An npm alias ("foo": "npm:bar@1.2.3") is a declaration detail, not
+		// a second package: the installed package is bar, and its identity is
+		// bar's PURL. The alias no longer mints a separate ID -- two aliases
+		// of one target fold to the one node they always described.
 		actualName, _ := bunAliasTarget(listedName, requested)
 		if actualName != listedName {
 			name = actualName
-			forcedID = "bun-native-alias:" + listedName + "@" + listedVersion
 		}
 	}
+	if source == sdk.DependencySourceWorkspace {
+		return bunRootModuleNode(path.Join(workspaceDir, "package.json"), name, version)
+	}
 
-	dependency := sdk.Dependency{Coordinates: sdk.Coordinates{
+	dependency, err := sdk.NewDependencyNode(sdk.Coordinates{
 		Ecosystem:      sdk.EcosystemNPM,
 		PackageManager: sdk.PackageManagerBun,
 		Name:           name,
 		Version:        version,
 		Type:           sdk.PackageTypePackage,
-	}, Source: source, FoundBy: detectors.NameBunNative}
-	if source == sdk.DependencySourceWorkspace {
-		dependency.Type = sdk.PackageTypeApplication
+	})
+	if err != nil {
+		return nil, fmt.Errorf("build Bun dependency node %q: %w", name, err)
 	}
-	if forcedID != "" {
-		return sdk.NewDependencyWithID(forcedID, dependency)
-	}
-	return sdk.NewDependency(dependency)
+	dependency.Source = source
+	dependency.FoundBy = detectors.NameBunNative
+	return dependency, nil
 }
 
 func declaredBunSpecifier(manifest node.PackageJSONManifest, name string) (string, bool) {

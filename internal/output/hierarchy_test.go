@@ -1,9 +1,10 @@
 package output
 
 import (
-	"github.com/bomly-dev/bomly-sdk"
 	"reflect"
 	"testing"
+
+	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestClassifyManifest(t *testing.T) {

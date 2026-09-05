@@ -7,6 +7,22 @@ import (
 	"github.com/bomly-dev/bomly-sdk"
 )
 
+// componentIdentityHint describes a component in an error, preferring the
+// package URL it stated because that is the field an author has to correct.
+func componentIdentityHint(component Component) string {
+	if purl := strings.TrimSpace(component.PURL); purl != "" {
+		return "purl " + purl
+	}
+	name := strings.TrimSpace(component.Name)
+	if name == "" {
+		return "unnamed component"
+	}
+	if version := strings.TrimSpace(component.Version); version != "" {
+		return "name " + name + "@" + version
+	}
+	return "name " + name
+}
+
 // ToGraph converts a neutral SBOM document back into a dependency graph.
 func ToGraph(doc *Document) (*sdk.Graph, error) {
 	if doc == nil {
@@ -34,21 +50,41 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 		if packageManager == sdk.PackageManagerUnknown {
 			packageManager = packageManagerForPURL(component.PURL, string(ecosystem), component.PackageManager)
 		}
-		packageID := strings.TrimSpace(component.ID)
-		if purl := strings.TrimSpace(component.PURL); purl != "" {
-			packageID = purl
-		}
-		pkg := sdk.NewDependencyWithID(packageID, sdk.Dependency{Coordinates: sdk.Coordinates{Name: component.Name,
-			Version: component.Version,
-			Org:     ingestedCoordinateOrg(component),
-
+		// Identity is minted by the constructor (ADR-0041): a node's ID is
+		// its canonical package URL, so the ingested component ID is not
+		// carried in.
+		pkg, err := sdk.NewDependencyNode(sdk.Coordinates{
+			Name:           component.Name,
+			Version:        component.Version,
+			Org:            ingestedCoordinateOrg(component),
 			Ecosystem:      ecosystem,
 			PackageManager: packageManager,
 			Type:           sdk.ParsePackageType(component.Type),
-			PURL:           strings.TrimSpace(component.PURL)}, Scopes: sdk.ScopesOf(sdk.Scope(component.Scope)),
-
-			Copyright: component.Copyright,
+			PURL:           strings.TrimSpace(component.PURL),
 		})
+		if err != nil {
+			// Loudly, not silently. This used to `continue`, which dropped
+			// the component and every relationship naming it -- so an SBOM
+			// carrying one malformed package URL produced a smaller graph,
+			// and a scan of it reported clean while a genuinely vulnerable
+			// dependency was simply absent from the answer. Under-reporting
+			// a vulnerability is the worst way for a security tool to fail,
+			// and it is exactly what a corrupt document should not be able
+			// to buy.
+			//
+			// Refusing the document is the same rule ADR-0041 applies at the
+			// plugin wire: an identity that cannot mint a well-formed package
+			// URL is an error, with no lenient path and no pkg:generic
+			// coercion. The message names the component so the author can
+			// find it, since the fix is in their document rather than here.
+			return nil, fmt.Errorf("sbom component %q (%s): %w", component.ID, componentIdentityHint(component), err)
+		}
+		pkg.Scopes = sdk.ScopesOf(sdk.Scope(component.Scope))
+		pkg.Copyright = component.Copyright
+		// The document's own component ID does not survive: the node answers
+		// to the identity its coordinates mint, and idMap below is what
+		// re-points the document's relationships onto it.
+		packageID := pkg.NodeID()
 		sdk.SetDetectionLicenses(pkg, graphLicenses(component.Licenses))
 
 		if _, exists := depsGraph.Node(packageID); !exists {

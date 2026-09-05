@@ -301,11 +301,11 @@ func nextSeverityFilter(current string) string {
 // vulnsForDependency returns the matching-stage vulnerabilities for a
 // dependency by resolving its PURL against the registry. Returns nil when
 // either input is nil or the registry has no entry for the PURL.
-func vulnsForDependency(registry *sdk.PackageRegistry, dep *sdk.Dependency) []sdk.Vulnerability {
-	if registry == nil || dep == nil || dep.PURL == "" {
+func vulnsForDependency(registry *sdk.PackageRegistry, dep sdk.GraphNode) []sdk.Vulnerability {
+	if registry == nil || dep == nil || dep.NodeID() == "" {
 		return nil
 	}
-	pkg, ok := registry.Get(dep.PURL)
+	pkg, ok := registry.Get(dep.NodeID())
 	if !ok || pkg == nil {
 		return nil
 	}
@@ -395,13 +395,13 @@ func remediationActionLabel(action sdk.RemediationAction) string {
 // licensesForDependency returns the matching-stage licenses for a dependency
 // when the registry has them; otherwise it falls back to the detection-time
 // licenses stashed on the dependency.
-func licensesForDependency(registry *sdk.PackageRegistry, dep *sdk.Dependency) []sdk.PackageLicense {
-	if registry != nil && dep != nil && dep.PURL != "" {
-		if pkg, ok := registry.Get(dep.PURL); ok && pkg != nil && len(pkg.Licenses) > 0 {
+func licensesForDependency(registry *sdk.PackageRegistry, dep sdk.GraphNode) []sdk.PackageLicense {
+	if registry != nil && dep != nil && dep.NodeID() != "" {
+		if pkg, ok := registry.Get(dep.NodeID()); ok && pkg != nil && len(pkg.Licenses) > 0 {
 			return pkg.Licenses
 		}
 	}
-	return sdk.DetectionLicenses(dep)
+	return detectionLicensesOf(dep)
 }
 
 // maxVulnerabilitySeverityByPkgID returns a map from package ID to the
@@ -411,14 +411,14 @@ func maxVulnerabilitySeverityByPkgID(graphValue *sdk.Graph, registry *sdk.Packag
 	if graphValue == nil {
 		return result
 	}
-	for _, pkg := range graphValue.Nodes() {
+	for _, pkg := range graphValue.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
 		for _, vulnerability := range vulnsForDependency(registry, pkg) {
-			current := result[pkg.ID]
+			current := result[pkg.NodeID()]
 			if severityRank(string(vulnerability.ParsedSeverity)) < severityRank(current) {
-				result[pkg.ID] = string(vulnerability.ParsedSeverity)
+				result[pkg.NodeID()] = string(vulnerability.ParsedSeverity)
 			}
 		}
 	}
@@ -476,37 +476,43 @@ func explainRelationships(graphValue *sdk.Graph, targetID string) (map[string]st
 	rootIDs := make(map[string]struct{})
 	for _, pkg := range graphValue.Roots() {
 		if pkg != nil {
-			rootIDs[pkg.ID] = struct{}{}
+			rootIDs[pkg.NodeID()] = struct{}{}
 		}
 	}
 	parents, _ := graphValue.Dependents(targetID)
 	parentIDs := make(map[string]struct{}, len(parents))
 	for _, pkg := range parents {
-		if pkg == nil || pkg.ID == targetID {
+		if pkg == nil || pkg.NodeID() == targetID {
 			continue
 		}
-		parentIDs[pkg.ID] = struct{}{}
-		if _, isRoot := rootIDs[pkg.ID]; isRoot {
-			labels[pkg.ID] = "root"
+		parentIDs[pkg.NodeID()] = struct{}{}
+		if _, isRoot := rootIDs[pkg.NodeID()]; isRoot {
+			labels[pkg.NodeID()] = "root"
 			counts["root"]++
 			continue
 		}
-		labels[pkg.ID] = "parent"
+		labels[pkg.NodeID()] = "parent"
 		counts["parent"]++
 	}
+	// The whole node union, not just dependencies. A normal graph's root is a
+	// module node now, and for a transitive target it is not a direct parent
+	// -- so it fell through to this loop and was skipped, leaving the
+	// explanation with no project context and a header reporting "Roots: 0"
+	// for a scan that plainly has one. Nested workspace modules were hidden
+	// the same way.
 	for _, pkg := range graphValue.Nodes() {
-		if pkg == nil || pkg.ID == targetID {
+		if sdk.IsNilNode(pkg) || pkg.NodeID() == targetID {
 			continue
 		}
-		if _, ok := labels[pkg.ID]; ok {
+		if _, ok := labels[pkg.NodeID()]; ok {
 			continue
 		}
-		if _, isRoot := rootIDs[pkg.ID]; isRoot {
-			labels[pkg.ID] = "root"
+		if _, isRoot := rootIDs[pkg.NodeID()]; isRoot {
+			labels[pkg.NodeID()] = "root"
 			counts["root"]++
 			continue
 		}
-		labels[pkg.ID] = "ancestor"
+		labels[pkg.NodeID()] = "ancestor"
 		counts["ancestor"]++
 	}
 	return labels, counts
@@ -524,4 +530,14 @@ func packageBadges(row listPackageRow) []badge {
 		badges = append(badges, badge{label: "repeated", kind: "repeated"})
 	}
 	return badges
+}
+
+// detectionLicensesOf reads detection-time licenses from a node when it is a
+// dependency. Structural nodes carry none.
+func detectionLicensesOf(node sdk.GraphNode) []sdk.PackageLicense {
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		return nil
+	}
+	return sdk.DetectionLicenses(dep)
 }

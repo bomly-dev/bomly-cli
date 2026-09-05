@@ -7,7 +7,8 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 )
 
@@ -72,21 +73,26 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 	// Collect direct deps and root identity from pyproject.toml.
 	mainDeps, devDeps, rootName, rootVersion := collectPoetryDepsAndRoot(projectPath)
 
-	// Build a name-indexed map of sdk.Dependency nodes; assign initial scope from groups.
-	nodesByName := make(map[string]*sdk.Dependency, len(lock.Package))
+	// Build a name-indexed map of sdk.DependencyNode nodes; assign initial scope from groups.
+	nodesByName := make(map[string]*sdk.DependencyNode, len(lock.Package))
 	for i := range lock.Package {
 		pkg := &lock.Package[i]
 		if pkg.Name == "" {
 			continue
 		}
-		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+		node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
 			Name:           normalizePythonName(pkg.Name),
 			Version:        pkg.Version,
 			PackageManager: sdk.PackageManagerPoetry,
 			Language:       "python",
 			Type:           sdk.PackageTypePackage,
-			PURL:           sdk.BuildPackageURL("pypi", "", pkg.Name, pkg.Version)}, Source: poetryDependencySource(pkg.Source.Type), ResolvedURL: strings.TrimSpace(pkg.Source.URL), Metadata: sourceRevisionMetadata(firstNonEmpty(pkg.Source.ResolvedReference, pkg.Source.Reference)),
-		})
+			PURL:           sdk.BuildPackageURL("pypi", "", pkg.Name, pkg.Version)})
+		if err != nil {
+			return nil, fmt.Errorf("build dependency node: %w", err)
+		}
+		node.Source = poetryDependencySource(pkg.Source.Type)
+		node.ResolvedURL = strings.TrimSpace(pkg.Source.URL)
+		node.Metadata = sourceRevisionMetadata(firstNonEmpty(pkg.Source.ResolvedReference, pkg.Source.Reference))
 		setPoetryOrigin(node, pkg)
 
 		for _, group := range pkg.Groups {
@@ -105,13 +111,17 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 	// Build the graph.
 	g := sdk.New()
 
-	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+	root, err := pythonModuleRoot(sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemPython,
 		Name:           rootName,
 		Version:        rootVersion,
 		PackageManager: sdk.PackageManagerPoetry,
 		Language:       "python",
-		Type:           sdk.PackageTypeApplication, FirstParty: true},
+		Type:           sdk.PackageTypeApplication,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("build root node: %w", err)
+	}
 
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
@@ -130,7 +140,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 		if node == nil {
 			continue
 		}
-		if err := g.AddEdge(root.ID, node.ID); err != nil {
+		if err := g.AddEdge(root.NodeID(), node.NodeID()); err != nil {
 			return nil, fmt.Errorf("wire root→%s: %w", name, err)
 		}
 	}
@@ -141,7 +151,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 		if node == nil {
 			continue
 		}
-		if err := g.AddEdge(root.ID, node.ID); err != nil {
+		if err := g.AddEdge(root.NodeID(), node.NodeID()); err != nil {
 			return nil, fmt.Errorf("wire root→%s (dev): %w", name, err)
 		}
 	}
@@ -155,73 +165,28 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 		}
 		for depName := range pkg.Dependencies {
 			child := nodesByName[normalizePythonName(depName)]
-			if child == nil || child.ID == root.ID || child.ID == parent.ID {
+			if child == nil || child.NodeID() == root.NodeID() || child.NodeID() == parent.NodeID() {
 				continue
 			}
 			// Ignore duplicate-edge errors — AddDependency is idempotent for them.
-			_ = g.AddEdge(parent.ID, child.ID)
+			_ = g.AddEdge(parent.NodeID(), child.NodeID())
 		}
 	}
 
 	// Connect orphan packages (no incoming edges other than from themselves)
 	// directly to root to preserve the single-root graph invariant.
 	for _, node := range nodesByName {
-		if node == nil || node.ID == root.ID {
+		if node == nil || node.NodeID() == root.NodeID() {
 			continue
 		}
-		dependents, _ := g.Dependents(node.ID)
+		dependents, _ := g.Dependents(node.NodeID())
 		if len(dependents) == 0 {
-			_ = g.AddEdge(root.ID, node.ID)
+			_ = g.AddEdge(root.NodeID(), node.NodeID())
 		}
 	}
 
-	// BFS scope propagation: runtime always beats development.
-	directDeps, _ := g.DirectDependencies(root.ID)
-	propagated := make(map[string]sdk.Scope, g.Size())
-	queue := make([]*sdk.Dependency, 0, len(directDeps))
-	for _, dep := range directDeps {
-		if dep == nil {
-			continue
-		}
-		scope := dep.PrimaryScope()
-		if scope == sdk.ScopeUnknown {
-			scope = sdk.ScopeRuntime
-		}
-		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
-		dep.AddScope(propagated[dep.ID])
-		queue = append(queue, dep)
-	}
-	for len(queue) > 0 {
-		current := queue[0]
-		queue = queue[1:]
-		scope := propagated[current.ID]
-		if scope == sdk.ScopeUnknown {
-			continue
-		}
-		children, err := g.DirectDependencies(current.ID)
-		if err != nil {
-			continue
-		}
-		for _, child := range children {
-			if child == nil || child.ID == root.ID {
-				continue
-			}
-			next := sdk.MergeScope(propagated[child.ID], scope)
-			if next == propagated[child.ID] && child.PrimaryScope() == next {
-				continue
-			}
-			propagated[child.ID] = next
-			child.AddScope(next)
-			queue = append(queue, child)
-		}
-	}
-
-	// Any remaining unscoped non-root packages default to runtime.
-	for _, pkg := range g.Nodes() {
-		if pkg != nil && pkg.ID != root.ID && pkg.PrimaryScope() == sdk.ScopeUnknown {
-			pkg.AddScope(sdk.ScopeRuntime)
-		}
-	}
+	// Runtime always beats development on any path that reaches a package.
+	detectorkit.PropagateScopes(g, root.NodeID(), nil)
 
 	return g, nil
 }

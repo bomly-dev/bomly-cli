@@ -4,7 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
@@ -22,7 +23,7 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	pkg, ok := g.Node("bomly-cargo-smoke-helper@0.1.0")
+	pkg, ok := testnodes.FindDep(g, "bomly-cargo-smoke-helper@0.1.0")
 	if !ok {
 		t.Fatal("expected helper package")
 	}
@@ -54,29 +55,29 @@ func TestDepGraphFromMetadataWorkspace(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromMetadata() error = %v", err)
 	}
-	app, ok := g.Node("app@0.1.0")
-	if !ok {
-		t.Fatal("expected workspace package")
+	app, ok := testnodes.Find(g, "app@0.1.0")
+	if !ok || !sdk.IsProjectOwned(app) {
+		t.Fatal("expected the workspace package as the project's own module")
 	}
-	deps, err := g.DirectDependencies(app.ID)
+	deps, err := g.DirectDependencies(app.NodeID())
 	if err != nil {
 		t.Fatalf("app dependencies: %v", err)
 	}
 	if len(deps) != 2 {
 		t.Fatalf("expected two app dependencies, got %d", len(deps))
 	}
-	dev, ok := g.Node("pretty_assertions@1.4.1")
+	dev, ok := testnodes.FindDep(g, "pretty_assertions@1.4.1")
 	if !ok {
 		t.Fatal("expected dev package")
 	}
 	if string(dev.PrimaryScope()) != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected dev scope, got %q", string(dev.PrimaryScope()))
 	}
-	if dev.PURL != "pkg:cargo/pretty_assertions@1.4.1" {
-		t.Fatalf("unexpected purl %q", dev.PURL)
+	if !testnodes.Is(dev, "pkg:cargo/pretty_assertions@1.4.1") {
+		t.Fatalf("unexpected purl %q", dev.NodeID())
 	}
-	if app.Source != sdk.DependencySourceProject {
-		t.Fatalf("single project source = %q, want %q", app.Source, sdk.DependencySourceProject)
+	if !sdk.IsProjectOwned(app) {
+		t.Fatalf("single project node is a %s node, want the project's own module", app.Kind())
 	}
 	if dev.Source != sdk.DependencySourceRegistry {
 		t.Fatalf("registry package source = %q, want %q", dev.Source, sdk.DependencySourceRegistry)
@@ -131,16 +132,16 @@ func TestDepGraphFromMetadataWithScopeFilter(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromMetadataWithScope() error = %v", err)
 	}
-	if _, ok := g.Node("app@0.1.0"); !ok {
+	if _, ok := testnodes.Find(g, "app@0.1.0"); !ok {
 		t.Fatal("expected root package")
 	}
-	if _, ok := g.Node("pretty_assertions@1.4.1"); !ok {
+	if _, ok := testnodes.Find(g, "pretty_assertions@1.4.1"); !ok {
 		t.Fatalf("expected direct development package: %s", g.PrettyString())
 	}
-	if _, ok := g.Node("diff@0.1.13"); !ok {
+	if _, ok := testnodes.Find(g, "diff@0.1.13"); !ok {
 		t.Fatalf("expected transitive development package: %s", g.PrettyString())
 	}
-	if _, ok := g.Node("serde@1.0.210"); ok {
+	if _, ok := testnodes.Find(g, "serde@1.0.210"); ok {
 		t.Fatalf("expected runtime package to be filtered: %s", g.PrettyString())
 	}
 }
@@ -181,18 +182,18 @@ dev-helper = { path = "dev-helper" }
 	if err != nil {
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
-	root, ok := g.Node("app@0.1.0")
+	root, ok := testnodes.Find(g, "app@0.1.0")
 	if !ok {
 		t.Fatal("expected root package")
 	}
-	deps, err := g.DirectDependencies(root.ID)
+	deps, err := g.DirectDependencies(root.NodeID())
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}
 	if len(deps) != 2 {
 		t.Fatalf("expected two root dependencies, got %d", len(deps))
 	}
-	dev, ok := g.Node("dev-helper@0.1.0")
+	dev, ok := testnodes.FindDep(g, "dev-helper@0.1.0")
 	if !ok {
 		t.Fatal("expected dev-helper package")
 	}
@@ -202,7 +203,7 @@ dev-helper = { path = "dev-helper" }
 	if dev.Source != sdk.DependencySourceGit {
 		t.Fatalf("dev-helper source = %q, want %q", dev.Source, sdk.DependencySourceGit)
 	}
-	helper, ok := g.Node("helper@0.1.0")
+	helper, ok := testnodes.FindDep(g, "helper@0.1.0")
 	if !ok {
 		t.Fatal("expected helper package")
 	}
@@ -252,16 +253,16 @@ dev-helper = { path = "dev-helper" }
 	if err != nil {
 		t.Fatalf("depGraphFromLockWithScope() error = %v", err)
 	}
-	if _, ok := g.Node("app@0.1.0"); !ok {
+	if _, ok := testnodes.Find(g, "app@0.1.0"); !ok {
 		t.Fatal("expected root package")
 	}
-	if _, ok := g.Node("dev-helper@0.1.0"); !ok {
+	if _, ok := testnodes.Find(g, "dev-helper@0.1.0"); !ok {
 		t.Fatalf("expected direct development package: %s", g.PrettyString())
 	}
-	if _, ok := g.Node("diff@0.1.13"); !ok {
+	if _, ok := testnodes.Find(g, "diff@0.1.13"); !ok {
 		t.Fatalf("expected transitive development package: %s", g.PrettyString())
 	}
-	if _, ok := g.Node("helper@0.1.0"); ok {
+	if _, ok := testnodes.Find(g, "helper@0.1.0"); ok {
 		t.Fatalf("expected runtime package to be filtered: %s", g.PrettyString())
 	}
 }

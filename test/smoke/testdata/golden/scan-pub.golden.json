@@ -5,6 +5,25 @@
       "dependencies": [
         {
           "depends_on": [
+            "pkg:pub/archive@3.3.0",
+            "pkg:pub/crypto@3.0.7",
+            "pkg:pub/http@1.6.0",
+            "pkg:pub/intl@0.18.1",
+            "pkg:pub/lints@3.0.0",
+            "pkg:pub/logging@1.3.0",
+            "pkg:pub/mockito@5.4.4",
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/test@1.25.8",
+            "pkg:pub/yaml@3.1.3"
+          ],
+          "id": "module:pubspec.yaml#pkg:pub/example_dart_pub@1.0.0",
+          "licenses": [],
+          "name": "example_dart_pub",
+          "purl": "pkg:pub/example_dart_pub@1.0.0",
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [
             "pkg:pub/meta@1.18.2"
           ],
           "id": "pkg:pub/_fe_analyzer_shared@67.0.0",
@@ -278,26 +297,6 @@
             "development"
           ],
           "version": "2.3.6"
-        },
-        {
-          "depends_on": [
-            "pkg:pub/archive@3.3.0",
-            "pkg:pub/crypto@3.0.7",
-            "pkg:pub/http@1.6.0",
-            "pkg:pub/intl@0.18.1",
-            "pkg:pub/lints@3.0.0",
-            "pkg:pub/logging@1.3.0",
-            "pkg:pub/mockito@5.4.4",
-            "pkg:pub/path@1.9.0",
-            "pkg:pub/test@1.25.8",
-            "pkg:pub/yaml@3.1.3"
-          ],
-          "id": "pkg:pub/example_dart_pub@1.0.0",
-          "licenses": [],
-          "name": "example_dart_pub",
-          "package_ref": "pkg:pub/example_dart_pub@1.0.0",
-          "purl": "pkg:pub/example_dart_pub@1.0.0",
-          "version": "1.0.0"
         },
         {
           "depends_on": [
@@ -1156,14 +1155,6 @@
       "name": "dart_style",
       "purl": "pkg:pub/dart_style@2.3.6",
       "version": "2.3.6",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "dart",
-      "licenses": [],
-      "name": "example_dart_pub",
-      "purl": "pkg:pub/example_dart_pub@1.0.0",
-      "version": "1.0.0",
       "vulnerabilities": []
     },
     {

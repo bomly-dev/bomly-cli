@@ -5,20 +5,24 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 )
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
-	if dep == nil {
+func originOf(node sdk.GraphNode) sdk.DependencyOrigin {
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok || dep == nil {
 		return sdk.DependencyOrigin{}
 	}
-	if origin := dep.Origin.Normalized(); origin != nil {
-		return *origin
+	// Origins are gated on the way in, so the first entry is already
+	// publishable; these cases assert on a single asserted origin.
+	if len(dep.Origins) == 0 {
+		return sdk.DependencyOrigin{}
 	}
-	return sdk.DependencyOrigin{}
+	return dep.Origins[0]
 }
 
 // A pubspec.lock hosted package's description URL is the pub server, shared by
@@ -86,7 +90,7 @@ func TestPubOriginBySourceType(t *testing.T) {
 		{id: "local_tools@0.1.0"},
 	}
 	for _, tc := range cases {
-		node, ok := graph.Node(tc.id)
+		node, ok := testnodes.Find(graph, tc.id)
 		if !ok {
 			t.Fatalf("expected %s in graph", tc.id)
 		}
@@ -153,7 +157,7 @@ func TestPubNativeOriginIsReadFromPubspecLock(t *testing.T) {
 		Revision:   "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d",
 	}
 	var checked int
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
 		origin := originOf(dep)
 		switch dep.Name {
 		case "helper":
@@ -164,7 +168,7 @@ func TestPubNativeOriginIsReadFromPubspecLock(t *testing.T) {
 		case "collection", "local_tools":
 			checked++
 			if !origin.Empty() {
-				t.Errorf("%s asserted an origin: %+v", dep.Name, origin)
+				t.Errorf("%s asserted an origin: %+v", mustDep(t, dep).Name, origin)
 			}
 		}
 		return true
@@ -207,7 +211,7 @@ func TestPubOverriddenPackageIsNotCreditedToTheLockedRepository(t *testing.T) {
 	}
 
 	var checked int
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
 		if dep.Name != "helper" {
 			return true
 		}
@@ -238,7 +242,7 @@ func TestPubNativeOriginSurvivesMissingLock(t *testing.T) {
 	}
 
 	var checked int
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
 		if dep.Name == "helper" {
 			checked++
 		}

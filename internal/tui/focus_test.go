@@ -7,6 +7,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -14,9 +15,9 @@ import (
 func newScanModelWithPosture(t *testing.T, repo string, score float64) *ScanModel {
 	t.Helper()
 	g := sdk.New()
-	root := sdk.NewDependencyRef("demo-app", "1.0.0")
+	root := testnodes.Ref("demo-app", "1.0.0")
 	const libPURL = "pkg:npm/lib@1.0.0"
-	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", PURL: libPURL}})
+	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", PURL: libPURL}})
 	registry := sdk.NewPackageRegistry()
 	regLib := registry.Ensure(libPURL)
 	regLib.Name = "lib"
@@ -25,12 +26,12 @@ func newScanModelWithPosture(t *testing.T, repo string, score float64) *ScanMode
 		sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 2, Reason: "off"},
 		sdk.PackageScorecardCheck{Name: "Code-Review", Score: 8, Reason: "ok"},
 	)
-	for _, pkg := range []*sdk.Dependency{root, dep} {
+	for _, pkg := range []*sdk.DependencyNode{root, dep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add: %v", err)
 		}
 	}
-	if err := g.AddEdge(root.ID, dep.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), dep.NodeID()); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
 	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
@@ -150,11 +151,11 @@ func TestTabCycle_ResetsDetailsFocus(t *testing.T) {
 func TestPostureGrouping_ByCheckRendersFailingFirst(t *testing.T) {
 	t.Parallel()
 	g := sdk.New()
-	rootA := sdk.NewDependencyRef("app", "1.0.0")
+	rootA := testnodes.Ref("app", "1.0.0")
 	const aPURL = "pkg:npm/a@1"
 	const bPURL = "pkg:npm/b@1"
-	a := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "a", Version: "1", PURL: aPURL}})
-	b := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "b", Version: "1", PURL: bPURL}})
+	a := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "a", Version: "1", PURL: aPURL}})
+	b := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "b", Version: "1", PURL: bPURL}})
 	registry := sdk.NewPackageRegistry()
 	regA := registry.Ensure(aPURL)
 	regA.Name = "a"
@@ -170,15 +171,15 @@ func TestPostureGrouping_ByCheckRendersFailingFirst(t *testing.T) {
 		sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 0},
 		sdk.PackageScorecardCheck{Name: "Code-Review", Score: 7},
 	)
-	for _, pkg := range []*sdk.Dependency{rootA, a, b} {
+	for _, pkg := range []*sdk.DependencyNode{rootA, a, b} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add: %v", err)
 		}
 	}
-	if err := g.AddEdge(rootA.ID, a.ID); err != nil {
+	if err := g.AddEdge(rootA.NodeID(), a.NodeID()); err != nil {
 		t.Fatalf("dep a: %v", err)
 	}
-	if err := g.AddEdge(rootA.ID, b.ID); err != nil {
+	if err := g.AddEdge(rootA.NodeID(), b.NodeID()); err != nil {
 		t.Fatalf("dep b: %v", err)
 	}
 	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{

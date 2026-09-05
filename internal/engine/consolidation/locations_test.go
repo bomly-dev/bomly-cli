@@ -3,12 +3,13 @@ package consolidation
 import (
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestRebaseGraphLocations_PrefixesSubprojectPath(t *testing.T) {
 	g := sdk.New()
-	dep := sdk.NewDependencyWithID("lodash@4.17.21", sdk.Dependency{
+	dep := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{Name: "lodash", Version: "4.17.21"},
 		Locations: []sdk.PackageLocation{{
 			RealPath:   "package-lock.json",
@@ -22,7 +23,7 @@ func TestRebaseGraphLocations_PrefixesSubprojectPath(t *testing.T) {
 
 	rebaseGraphLocations(g, "apps/web")
 
-	node, ok := g.Node("lodash@4.17.21")
+	node, ok := testnodes.FindDep(g, "lodash@4.17.21")
 	if !ok {
 		t.Fatal("expected lodash node")
 	}
@@ -38,7 +39,7 @@ func TestRebaseGraphLocations_PrefixesSubprojectPath(t *testing.T) {
 func TestRebaseGraphLocations_RootIsNoOp(t *testing.T) {
 	for _, rel := range []string{".", "", "  "} {
 		g := sdk.New()
-		dep := sdk.NewDependencyWithID("lodash@4.17.21", sdk.Dependency{
+		dep := testnodes.DepFrom(sdk.DependencyNode{
 			Coordinates: sdk.Coordinates{Name: "lodash", Version: "4.17.21"},
 			Locations:   []sdk.PackageLocation{{RealPath: "package-lock.json", Position: &sdk.SourcePosition{File: "package-lock.json", Line: 8}}},
 		})
@@ -48,7 +49,7 @@ func TestRebaseGraphLocations_RootIsNoOp(t *testing.T) {
 
 		rebaseGraphLocations(g, rel)
 
-		node, _ := g.Node("lodash@4.17.21")
+		node, _ := testnodes.FindDep(g, "lodash@4.17.21")
 		if node.Locations[0].RealPath != "package-lock.json" || node.Locations[0].Position.File != "package-lock.json" {
 			t.Fatalf("RelativePath %q must be a no-op, got %#v", rel, node.Locations[0])
 		}
@@ -57,7 +58,7 @@ func TestRebaseGraphLocations_RootIsNoOp(t *testing.T) {
 
 func TestRebaseGraphLocations_SkipsAbsoluteAndAlreadyPrefixed(t *testing.T) {
 	g := sdk.New()
-	dep := sdk.NewDependencyWithID("pkg@1.0.0", sdk.Dependency{
+	dep := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{Name: "pkg", Version: "1.0.0"},
 		Locations: []sdk.PackageLocation{
 			{RealPath: "/abs/pom.xml", Position: &sdk.SourcePosition{File: "/abs/pom.xml", Line: 1}},
@@ -70,7 +71,7 @@ func TestRebaseGraphLocations_SkipsAbsoluteAndAlreadyPrefixed(t *testing.T) {
 
 	rebaseGraphLocations(g, "apps/web")
 
-	node, _ := g.Node("pkg@1.0.0")
+	node, _ := testnodes.FindDep(g, "pkg@1.0.0")
 	if got := node.Locations[0].RealPath; got != "/abs/pom.xml" {
 		t.Fatalf("absolute path = %q, want untouched", got)
 	}
@@ -83,7 +84,7 @@ func TestRebaseGraphLocations_SkipsAbsoluteAndAlreadyPrefixed(t *testing.T) {
 // rebasing fires through the real consolidation entry point.
 func TestConsolidateGraphs_RebasesCoreDetectorLocations(t *testing.T) {
 	g := sdk.New()
-	dep := sdk.NewDependency(sdk.Dependency{
+	dep := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"},
 		Locations:   []sdk.PackageLocation{{RealPath: "package-lock.json", Position: &sdk.SourcePosition{File: "package-lock.json", Line: 8}}},
 	})
@@ -112,15 +113,15 @@ func TestConsolidateGraphs_RebasesCoreDetectorLocations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	var node *sdk.Dependency
-	for _, n := range graph.Nodes() {
+	var node *sdk.DependencyNode
+	for _, n := range graph.DependencyNodes() {
 		if n != nil && n.Name == "lodash" {
 			node = n
 			break
 		}
 	}
 	if node == nil {
-		t.Fatalf("expected lodash node, got %v", graph.Nodes())
+		t.Fatalf("expected lodash node, got %v", graph.DependencyNodes())
 	}
 	if len(node.Locations) == 0 || node.Locations[0].Position == nil || node.Locations[0].Position.File != "apps/web/package-lock.json" {
 		t.Fatalf("consolidated location = %#v, want apps/web/package-lock.json", node.Locations)

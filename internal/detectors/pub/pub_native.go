@@ -10,7 +10,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -124,7 +124,11 @@ func applyLockOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 	}
 
 	recorded := 0
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkNodes(func(graphNode sdk.GraphNode) bool {
+		dep, isDependency := sdk.AsDependencyNode(graphNode)
+		if !isDependency {
+			return true
+		}
 		if dep.Source != sdk.DependencySourceGit {
 			// An override can point a package at a local path while the lock
 			// still describes the git dependency it replaced. What pub
@@ -135,7 +139,9 @@ func applyLockOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 		if !ok || pubDependencySource(pkg.Source) != sdk.DependencySourceGit {
 			return true
 		}
-		dep.Origin = sdk.RepositoryOrigin(descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref"))
+		if origin := sdk.RepositoryOrigin(descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref")); origin != nil {
+			dep.Origins = sdk.MergeOrigins(dep.Origins, []sdk.DependencyOrigin{*origin})
+		}
 		recorded++
 		return true
 	})
@@ -210,26 +216,31 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 
 	g := sdk.New()
 
-	var rootPkg *sdk.Dependency
+	var (
+		rootPkg *sdk.ModuleNode
+		err     error
+	)
 	if rootEntry != nil {
-		rootPkg = sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemDart,
+		rootPkg, err = sdk.NewModuleNode("pubspec.yaml", sdk.Coordinates{
+			Ecosystem:      sdk.EcosystemDart,
 			Name:           rootEntry.Name,
 			Version:        rootEntry.Version,
 			PackageManager: sdk.PackageManagerPub,
 			Type:           sdk.PackageTypeApplication,
-			FirstParty:     true,
-			Language:       "dart"},
+			Language:       "dart",
 		})
-
 	} else {
-		rootPkg = rootNode(pubspec{})
+		rootPkg, err = rootNode(pubspec{})
+	}
+	if err != nil {
+		return nil, fmt.Errorf("build root node: %w", err)
 	}
 	if err := g.AddNode(rootPkg); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
 	// Add all non-root package nodes with initial scope from kind.
-	nodeByName := make(map[string]*sdk.Dependency, len(output.Packages))
+	nodeByName := make(map[string]sdk.GraphNode, len(output.Packages))
 	for i := range output.Packages {
 		p := &output.Packages[i]
 		if p.Kind == "root" {
@@ -240,7 +251,10 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 			Version: p.Version,
 			Source:  p.Source,
 		}
-		node := packageNode(p.Name, lockPkg)
+		node, err := packageNode(p.Name, lockPkg)
+		if err != nil {
+			return nil, err
+		}
 		switch p.Kind {
 		case "direct":
 			node.AddScope(sdk.ScopeRuntime)
@@ -262,30 +276,31 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 		}
 		for _, depName := range p.Dependencies {
 			child := nodeByName[depName]
-			if child == nil || child.ID == parent.ID {
+			if child == nil || child.NodeID() == parent.NodeID() {
 				continue
 			}
-			if err := g.AddEdge(parent.ID, child.ID); err != nil {
-				return nil, fmt.Errorf("add pub dep %q -> %q: %w", parent.ID, child.ID, err)
+			if err := g.AddEdge(parent.NodeID(), child.NodeID()); err != nil {
+				return nil, fmt.Errorf("add pub dep %q -> %q: %w", parent.NodeID(), child.NodeID(), err)
 			}
 		}
 	}
 
 	// Connect any orphan non-root packages to root.
 	for _, node := range nodeByName {
-		if node == nil || node.ID == rootPkg.ID {
+		if node == nil || node.NodeID() == rootPkg.NodeID() {
 			continue
 		}
-		dependents, _ := g.Dependents(node.ID)
+		dependents, _ := g.Dependents(node.NodeID())
 		if len(dependents) == 0 {
-			_ = g.AddEdge(rootPkg.ID, node.ID)
+			_ = g.AddEdge(rootPkg.NodeID(), node.NodeID())
 		}
 	}
 
 	// BFS scope propagation: runtime beats development.
-	directDeps, _ := g.DirectDependencies(rootPkg.ID)
+	directDepsNodes, _ := g.DirectDependencies(rootPkg.NodeID())
+	directDeps := sdk.DependencyNodesOf(directDepsNodes)
 	propagated := make(map[string]sdk.Scope, g.Size())
-	queue := make([]*sdk.Dependency, 0, len(directDeps))
+	queue := make([]*sdk.DependencyNode, 0, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
@@ -294,37 +309,38 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 		if scope == sdk.ScopeUnknown {
 			scope = sdk.ScopeRuntime
 		}
-		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
-		dep.AddScope(propagated[dep.ID])
+		propagated[dep.NodeID()] = sdk.MergeScope(propagated[dep.NodeID()], scope)
+		dep.AddScope(propagated[dep.NodeID()])
 		queue = append(queue, dep)
 	}
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
-		scope := propagated[current.ID]
+		scope := propagated[current.NodeID()]
 		if scope == sdk.ScopeUnknown {
 			continue
 		}
-		children, err := g.DirectDependencies(current.ID)
+		childrenNodes, err := g.DirectDependencies(current.NodeID())
+		children := sdk.DependencyNodesOf(childrenNodes)
 		if err != nil {
 			continue
 		}
 		for _, child := range children {
-			if child == nil || child.ID == rootPkg.ID {
+			if child == nil || child.NodeID() == rootPkg.NodeID() {
 				continue
 			}
-			next := sdk.MergeScope(propagated[child.ID], scope)
-			if next == propagated[child.ID] && child.PrimaryScope() == next {
+			next := sdk.MergeScope(propagated[child.NodeID()], scope)
+			if next == propagated[child.NodeID()] && child.PrimaryScope() == next {
 				continue
 			}
-			propagated[child.ID] = next
+			propagated[child.NodeID()] = next
 			child.AddScope(next)
 			queue = append(queue, child)
 		}
 	}
 	// Default unscoped non-root packages to runtime.
-	for _, pkg := range g.Nodes() {
-		if pkg != nil && pkg.ID != rootPkg.ID && pkg.PrimaryScope() == sdk.ScopeUnknown {
+	for _, pkg := range g.DependencyNodes() {
+		if pkg != nil && pkg.NodeID() != rootPkg.NodeID() && pkg.PrimaryScope() == sdk.ScopeUnknown {
 			pkg.AddScope(sdk.ScopeRuntime)
 		}
 	}

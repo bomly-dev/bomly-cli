@@ -6,7 +6,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+	sdk "github.com/bomly-dev/bomly-sdk"
 )
 
 func pnpmWorkspacesFixtureDir(t *testing.T) string {
@@ -40,19 +41,19 @@ func TestPNPMLockfileImportersEmitPerModuleEntries(t *testing.T) {
 	}
 
 	for _, want := range []string{"web@0.2.0", "lib@1.0.0", "shared-transitive@2.0.0", "member-dev-tool@3.1.0"} {
-		if _, ok := web.Graph.Node(want); !ok {
+		if _, ok := testnodes.Find(web.Graph, want); !ok {
 			t.Fatalf("expected %q in web importer graph", want)
 		}
 	}
-	if _, ok := web.Graph.Node("lodash@4.17.21"); ok {
+	if _, ok := testnodes.Find(web.Graph, "lodash@4.17.21"); ok {
 		t.Fatal("web importer graph must not contain the root-only dependency lodash")
 	}
 
 	root := entries[0]
-	if _, ok := root.Graph.Node("lodash@4.17.21"); !ok {
+	if _, ok := testnodes.Find(root.Graph, "lodash@4.17.21"); !ok {
 		t.Fatal("expected lodash in root entry graph")
 	}
-	if _, ok := root.Graph.Node("web@0.2.0"); ok {
+	if _, ok := testnodes.Find(root.Graph, "web@0.2.0"); ok {
 		t.Fatal("root entry graph must not contain workspace members")
 	}
 }
@@ -62,23 +63,25 @@ func TestPNPMLockfileWorkspaceLinkDependenciesResolveToMembers(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromPNPMLockfile() error = %v", err)
 	}
-	deps, err := graphs.graph.DirectDependencies("web@0.2.0")
+	deps, err := graphs.graph.DirectDependencies(testnodes.ID(graphs.graph, "web@0.2.0"))
 	if err != nil {
 		t.Fatalf("DirectDependencies(web) error = %v", err)
 	}
 	found := false
 	for _, dep := range deps {
-		if dep.ID == "lib@1.0.0" {
+		if testnodes.Is(dep, "lib@1.0.0") {
 			found = true
-			if dep.Type != sdk.PackageTypeApplication {
-				t.Fatalf("expected member target to be an application, got %q", dep.Type)
+			// A workspace member is the project's own code, so the link
+			// resolves to a module node (ADR-0041).
+			if !sdk.IsProjectOwned(dep) {
+				t.Fatalf("expected the member target to be a module, got a %s node", dep.Kind())
 			}
 		}
 	}
 	if !found {
 		ids := make([]string, 0, len(deps))
 		for _, dep := range deps {
-			ids = append(ids, dep.ID)
+			ids = append(ids, dep.NodeID())
 		}
 		t.Fatalf("expected web -> lib@1.0.0 workspace link edge, got %v", ids)
 	}

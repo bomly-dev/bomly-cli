@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
 )
@@ -50,37 +51,37 @@ func TestDetectorResolveGraph_NormalizesImportedComponentIDs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	deps, err := g.DirectDependencies("demo-app@1.0.0")
+	deps, err := g.DirectDependencies(testnodes.ID(g, "demo-app@1.0.0"))
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
-	if len(deps) != 1 || deps[0].ID != "react@18.2.0" {
+	if len(deps) != 1 || !testnodes.Is(deps[0], "react@18.2.0") {
 		t.Fatalf("expected normalized dependency edge, got %#v", deps)
 	}
 }
 
 func TestDetectorResolveGraph_PrefersImportedPURLIdentity(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	app := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "demo-app",
 		Version:        "1.0.0",
 		PURL:           "pkg:npm/demo-app@1.0.0"},
 	})
 
-	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	react := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "react",
 		Version:        "18.2.0",
 		PURL:           "pkg:npm/react@18.2.0"},
 	})
 
-	for _, pkg := range []*sdk.Dependency{app, react} {
+	for _, pkg := range []*sdk.DependencyNode{app, react} {
 		if err := g.AddNode(pkg); err != nil {
-			t.Fatalf("add package %s: %v", pkg.ID, err)
+			t.Fatalf("add package %s: %v", pkg.NodeID(), err)
 		}
 	}
-	if err := g.AddEdge(app.ID, react.ID); err != nil {
+	if err := g.AddEdge(app.NodeID(), react.NodeID()); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -101,12 +102,12 @@ func TestDetectorResolveGraph_PrefersImportedPURLIdentity(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	reactPkg, ok := resolvedGraph.Node("pkg:npm/react@18.2.0")
+	reactPkg, ok := resolvedGraph.DependencyNode("pkg:npm/react@18.2.0")
 	if !ok || reactPkg == nil {
 		t.Fatalf("expected PURL-normalized react package, got %s", resolvedGraph.PrettyString())
 	}
-	if reactPkg.PURL != "pkg:npm/react@18.2.0" {
-		t.Fatalf("expected react purl to be preserved, got %q", reactPkg.PURL)
+	if !testnodes.Is(reactPkg, "pkg:npm/react@18.2.0") {
+		t.Fatalf("expected react purl to be preserved, got %q", reactPkg.NodeID())
 	}
 	if reactPkg.Ecosystem != "npm" || reactPkg.PackageManager != "npm" {
 		t.Fatalf("expected react identity to be restored from SBOM, got ecosystem=%q packageManager=%q", reactPkg.Ecosystem, reactPkg.PackageManager)
@@ -207,14 +208,14 @@ func requestForSBOMPath(path string) sdk.DetectionRequest {
 func writeSBOMFixture(t *testing.T, target sbom.Target) string {
 	t.Helper()
 	g := sdk.New()
-	app := sdk.NewDependencyRef("demo-app", "1.0.0")
-	react := sdk.NewDependencyRef("react", "18.2.0")
-	for _, pkg := range []*sdk.Dependency{app, react} {
+	app := testnodes.Ref("demo-app", "1.0.0")
+	react := testnodes.Ref("react", "18.2.0")
+	for _, pkg := range []*sdk.DependencyNode{app, react} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	if err := g.AddEdge(app.ID, react.ID); err != nil {
+	if err := g.AddEdge(app.NodeID(), react.NodeID()); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -241,8 +242,8 @@ func verifyResolvedGraph(t *testing.T, result sdk.DetectionResult, wantDependenc
 	if g == nil || g.Size() == 0 {
 		t.Fatal("expected resolved graph")
 	}
-	for _, pkg := range g.Nodes() {
-		if pkg != nil && pkg.StableID() == wantDependencyID {
+	for _, pkg := range g.DependencyNodes() {
+		if pkg != nil && testnodes.Is(pkg, wantDependencyID) {
 			return
 		}
 	}

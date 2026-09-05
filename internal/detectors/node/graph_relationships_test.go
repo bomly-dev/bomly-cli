@@ -3,32 +3,33 @@ package node
 import (
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestAttachUnknownComponentsMarksOnlyComponentRoots(t *testing.T) {
 	graph := sdk.New()
-	root := sdk.NewDependencyWithID("app", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "app", Type: sdk.PackageTypeApplication}})
-	direct := sdk.NewDependencyWithID("direct", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "direct"}})
-	orphan := sdk.NewDependencyWithID("orphan", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "orphan"}})
-	child := sdk.NewDependencyWithID("child", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "child"}})
-	for _, dep := range []*sdk.Dependency{root, direct, orphan, child} {
+	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "app", Type: sdk.PackageTypeApplication}})
+	direct := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "direct"}})
+	orphan := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "orphan"}})
+	child := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "child"}})
+	for _, dep := range []*sdk.DependencyNode{root, direct, orphan, child} {
 		if err := graph.AddNode(dep); err != nil {
 			t.Fatal(err)
 		}
 	}
-	if err := graph.AddEdge(root.ID, direct.ID); err != nil {
+	if err := graph.AddEdge(root.NodeID(), direct.NodeID()); err != nil {
 		t.Fatal(err)
 	}
-	if err := graph.AddEdge(orphan.ID, child.ID); err != nil {
+	if err := graph.AddEdge(orphan.NodeID(), child.NodeID()); err != nil {
 		t.Fatal(err)
 	}
 
-	components, err := AttachUnknownComponents(graph, root.ID, nil, "test", "package-lock.json")
+	components, err := AttachUnknownComponents(graph, root.NodeID(), nil, "test", "package-lock.json")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(components) != 1 || components[0].RootID != orphan.ID || components[0].Size != 2 {
+	if len(components) != 1 || components[0].RootID != orphan.NodeID() || components[0].Size != 2 {
 		t.Fatalf("components = %#v", components)
 	}
 	if orphan.Relationship != sdk.DependencyRelationshipUnknown {
@@ -37,7 +38,7 @@ func TestAttachUnknownComponentsMarksOnlyComponentRoots(t *testing.T) {
 	if child.Relationship != "" {
 		t.Fatalf("child relationship = %q, want derived transitive", child.Relationship)
 	}
-	paths, err := graph.CollectPathsTo(child.ID)
+	paths, err := graph.CollectPathsTo(child.NodeID())
 	if err != nil || len(paths) != 1 {
 		t.Fatalf("CollectPathsTo() paths=%d err=%v", len(paths), err)
 	}
@@ -48,28 +49,28 @@ func TestAttachUnknownComponentsMarksOnlyComponentRoots(t *testing.T) {
 
 func TestAttachUnknownComponentsRetainsDisconnectedCycle(t *testing.T) {
 	graph := sdk.New()
-	root := sdk.NewDependencyWithID("app", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "app", Type: sdk.PackageTypeApplication}})
-	a := sdk.NewDependencyRefWithID("a", "a", "1")
-	b := sdk.NewDependencyRefWithID("b", "b", "1")
-	for _, dependency := range []*sdk.Dependency{root, a, b} {
+	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "app", Type: sdk.PackageTypeApplication}})
+	a := testnodes.Ref("a", "1")
+	b := testnodes.Ref("b", "1")
+	for _, dependency := range []*sdk.DependencyNode{root, a, b} {
 		if err := graph.AddNode(dependency); err != nil {
 			t.Fatal(err)
 		}
 	}
-	if err := graph.AddEdge(a.ID, b.ID); err != nil {
+	if err := graph.AddEdge(a.NodeID(), b.NodeID()); err != nil {
 		t.Fatal(err)
 	}
-	if err := graph.AddEdge(b.ID, a.ID); err != nil {
+	if err := graph.AddEdge(b.NodeID(), a.NodeID()); err != nil {
 		t.Fatal(err)
 	}
-	components, err := AttachUnknownComponents(graph, root.ID, nil, "test", "yarn.lock")
+	components, err := AttachUnknownComponents(graph, root.NodeID(), nil, "test", "yarn.lock")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(components) != 1 || components[0].Size != 2 {
 		t.Fatalf("components = %#v", components)
 	}
-	if components[0].RootID != "a" || a.Relationship != sdk.DependencyRelationshipUnknown {
+	if components[0].RootID != a.NodeID() || a.Relationship != sdk.DependencyRelationshipUnknown {
 		t.Fatalf("cycle root = %#v, relationship=%q", components[0], a.Relationship)
 	}
 }

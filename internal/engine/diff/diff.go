@@ -37,7 +37,12 @@ type Result struct {
 	Findings []sdk.Finding
 }
 
-const diffAuditRootID = "bomly:diff-audit-root"
+// diffAuditRootManifest is the synthetic manifest path the diff audit's root
+// node declares. The root is a module node -- it stands for the scanned
+// project, not a consumed package -- and its ID is minted from this path by
+// the module grammar rather than being a hand-written constant, which the
+// typed union no longer allows (ADR-0041).
+const diffAuditRootManifest = "bomly-diff-audit-root"
 
 // Run executes the full pipeline for base and head targets and computes audit deltas.
 func Run(ctx context.Context, req Request) (Result, error) {
@@ -91,8 +96,8 @@ func Run(ctx context.Context, req Request) (Result, error) {
 }
 
 func focusedAuditGraphs(graphDiff sdk.Diff) (*sdk.Graph, *sdk.Graph, error) {
-	basePackages := make([]*sdk.Dependency, 0, len(graphDiff.Removed)+len(graphDiff.Updated))
-	headPackages := make([]*sdk.Dependency, 0, len(graphDiff.Added)+len(graphDiff.Updated))
+	basePackages := make([]*sdk.DependencyNode, 0, len(graphDiff.Removed)+len(graphDiff.Updated))
+	headPackages := make([]*sdk.DependencyNode, 0, len(graphDiff.Added)+len(graphDiff.Updated))
 	basePackages = append(basePackages, graphDiff.Removed...)
 	headPackages = append(headPackages, graphDiff.Added...)
 	for _, change := range graphDiff.Updated {
@@ -111,39 +116,43 @@ func focusedAuditGraphs(graphDiff sdk.Diff) (*sdk.Graph, *sdk.Graph, error) {
 	return baseGraph, headGraph, nil
 }
 
-func focusedAuditGraph(packages []*sdk.Dependency) (*sdk.Graph, error) {
+func focusedAuditGraph(packages []*sdk.DependencyNode) (*sdk.Graph, error) {
 	focused := sdk.NewWithCapacity(len(packages) + 1)
 	seen := make(map[string]struct{}, len(packages))
 	for _, pkg := range packages {
-		if pkg == nil || pkg.ID == "" {
+		if pkg == nil || pkg.NodeID() == "" {
 			continue
 		}
-		seen[pkg.ID] = struct{}{}
+		seen[pkg.NodeID()] = struct{}{}
 	}
 	if len(seen) == 0 {
 		return focused, nil
 	}
 
-	root := sdk.NewDependencyWithID(diffAuditRootID, sdk.Dependency{Coordinates: sdk.Coordinates{Name: "bomly-diff-audit-root",
-		Type: sdk.PackageTypeApplication, FirstParty: true},
+	root, err := sdk.NewModuleNode(diffAuditRootManifest, sdk.Coordinates{
+		Name: "bomly-diff-audit-root",
+		Type: sdk.PackageTypeApplication,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("build diff audit root: %w", err)
+	}
 	if err := focused.AddNode(root); err != nil {
 		return nil, err
 	}
 
 	for _, pkg := range packages {
-		if pkg == nil || pkg.ID == "" {
+		if pkg == nil || pkg.NodeID() == "" {
 			continue
 		}
-		if _, exists := focused.Node(pkg.ID); !exists {
+		if _, exists := focused.Node(pkg.NodeID()); !exists {
 			if err := focused.AddNode(pkg.Clone()); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
 				return nil, err
 			}
 		}
-		if _, exists := focused.Node(pkg.ID); !exists {
+		if _, exists := focused.Node(pkg.NodeID()); !exists {
 			continue
 		}
-		if err := focused.AddEdge(diffAuditRootID, pkg.ID); err != nil && !errors.Is(err, sdk.ErrSelfDependency) {
+		if err := focused.AddEdge(root.NodeID(), pkg.NodeID()); err != nil && !errors.Is(err, sdk.ErrSelfDependency) {
 			return nil, err
 		}
 	}

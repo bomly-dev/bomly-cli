@@ -4,12 +4,13 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
 func TestProjectedDependencyDetailReviewReasonsMatchCanonicalTransition(t *testing.T) {
 	const purl = "pkg:npm/example@1.0.0"
-	before := sdk.NewDependencyWithID("npm:example", sdk.Dependency{
+	before := testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			PURL:    purl,
 			Name:    "example",

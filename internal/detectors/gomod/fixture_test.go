@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -48,12 +49,12 @@ func TestGoModFixture_ParseModAndGraph(t *testing.T) {
 		"github.com/stretchr/testify@v1.9.0",
 		"github.com/davecgh/go-spew@v1.1.1",
 	} {
-		if _, ok := g.Node(want); !ok {
+		if _, ok := testnodes.Find(g, want); !ok {
 			t.Errorf("missing node %s; present: %v", want, nodeIDs(g))
 		}
 	}
 	// stdlib must never appear as a dependency node.
-	if _, ok := g.Node("fmt"); ok {
+	if _, ok := testnodes.Find(g, "fmt"); ok {
 		t.Error("stdlib package fmt should not be a node")
 	}
 }
@@ -76,21 +77,21 @@ func TestGoModFixture_Scopes(t *testing.T) {
 }
 
 func nodeIDs(g *sdk.Graph) []string {
-	nodes := g.Nodes()
+	nodes := g.DependencyNodes()
 	ids := make([]string, len(nodes))
 	for i, n := range nodes {
-		ids[i] = n.ID
+		ids[i] = n.NodeID()
 	}
 	return ids
 }
 
 func requireScope(t *testing.T, g *sdk.Graph, id string, scope sdk.Scope) {
 	t.Helper()
-	n, ok := g.Node(id)
+	n, ok := testnodes.Find(g, id)
 	if !ok {
 		t.Fatalf("missing node %s", id)
 	}
-	if got := n.PrimaryScope(); got != scope {
+	if got := mustDep(t, n).PrimaryScope(); got != scope {
 		t.Errorf("%s scope = %q, want %q", id, got, scope)
 	}
 }

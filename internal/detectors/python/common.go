@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
@@ -36,6 +36,11 @@ var pythonToolPackageNames = map[string]struct{}{
 type baseDetector struct {
 	Logger     *zap.Logger
 	WorkingDir string
+	// Manager is the package manager this detector speaks for. It decides
+	// which file declares the project, so the pip-inspect path and the
+	// lockfile parsers mint the same root identity for one project rather
+	// than disagreeing by resolution strategy.
+	Manager sdk.PackageManager
 }
 
 type pipInspectReport struct {
@@ -117,7 +122,11 @@ func (d baseDetector) resolveGraph(req sdk.DetectionRequest, detectorName string
 	if err != nil {
 		return nil, fmt.Errorf("collect declared dependencies for %s: %w", detectorName, err)
 	}
-	depsGraph, err := depGraphFromPipInspect(out.Bytes(), pythonSyntheticRoot(pythonRootName(req, cmd.Dir)), declared)
+	pythonSyntheticRootResult, err := pythonSyntheticRoot(d.Manager, pythonRootName(req, cmd.Dir))
+	if err != nil {
+		return nil, err
+	}
+	depsGraph, err := depGraphFromPipInspect(out.Bytes(), pythonSyntheticRootResult, declared)
 	if err != nil {
 		logger.Warn(fmt.Sprintf("Failed to map %s output to a dependency graph: %v", detectorName, err))
 		logger.Debug("dependency detector output mapping failed", zap.String("detector", detectorName), zap.Error(err))
@@ -192,7 +201,7 @@ func pipInspectCommand(prefix ...string) ([]string, error) {
 // declared holds the normalized names the project asks for by name (its
 // requirements files / manifests) and decides, together with each package's
 // REQUESTED marker, which packages hang off the root as direct dependencies.
-func depGraphFromPipInspect(raw []byte, rootNode *sdk.Dependency, declared map[string]struct{}) (*sdk.Graph, error) {
+func depGraphFromPipInspect(raw []byte, rootNode sdk.GraphNode, declared map[string]struct{}) (*sdk.Graph, error) {
 	var report pipInspectReport
 	if err := json.Unmarshal(raw, &report); err != nil {
 		return nil, fmt.Errorf("parse pip inspect json: %w", err)
@@ -203,21 +212,34 @@ func depGraphFromPipInspect(raw []byte, rootNode *sdk.Dependency, declared map[s
 
 	depsGraph := sdk.New()
 	if rootNode == nil {
-		rootNode = pythonSyntheticRoot("")
+		// Only reached by direct callers that supply no root -- tests, and
+		// the defensive path below a detector. No manager is knowable here,
+		// so the declaring manifest falls back to requirements.txt; a
+		// detector always passes the root it built, which carries its own.
+		synthetic, err := pythonSyntheticRoot("", "")
+		if err != nil {
+			return nil, err
+		}
+		rootNode = synthetic
 	}
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
-	nodesByName := make(map[string]*sdk.Dependency, len(report.Installed))
+	nodesByName := make(map[string]*sdk.DependencyNode, len(report.Installed))
 	for _, pkg := range report.Installed {
 		if pkg.Metadata.Name == "" {
 			continue
 		}
-		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+		node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
 			Name:    normalizePythonName(pkg.Metadata.Name),
-			Version: pkg.Metadata.Version}, Source: pipInspectDependencySource(pkg.DirectURL), ResolvedURL: pipInspectResolvedURL(pkg.DirectURL), Metadata: sourceRevisionMetadata(pipInspectRevision(pkg.DirectURL)),
-		})
+			Version: pkg.Metadata.Version})
+		if err != nil {
+			return nil, fmt.Errorf("build dependency node: %w", err)
+		}
+		node.Source = pipInspectDependencySource(pkg.DirectURL)
+		node.ResolvedURL = pipInspectResolvedURL(pkg.DirectURL)
+		node.Metadata = sourceRevisionMetadata(pipInspectRevision(pkg.DirectURL))
 		setPipInspectOrigin(node, pkg.DirectURL)
 
 		if _, exists := nodesByName[node.Name]; !exists {
@@ -247,11 +269,11 @@ func depGraphFromPipInspect(raw []byte, rootNode *sdk.Dependency, declared map[s
 				continue
 			}
 			child := nodesByName[dependencyName]
-			if child == nil || child.ID == parent.ID {
+			if child == nil || child.NodeID() == parent.NodeID() {
 				continue
 			}
-			if err := depsGraph.AddEdge(parent.ID, child.ID); err != nil {
-				return nil, fmt.Errorf("add dependency %q -> %q: %w", parent.ID, child.ID, err)
+			if err := depsGraph.AddEdge(parent.NodeID(), child.NodeID()); err != nil {
+				return nil, fmt.Errorf("add dependency %q -> %q: %w", parent.NodeID(), child.NodeID(), err)
 			}
 		}
 	}
@@ -261,12 +283,12 @@ func depGraphFromPipInspect(raw []byte, rootNode *sdk.Dependency, declared map[s
 		if node == nil || !pipDirectDependency(pkg, declared) {
 			continue
 		}
-		if err := depsGraph.AddEdge(rootNode.ID, node.ID); err != nil {
-			return nil, fmt.Errorf("add direct dependency %q: %w", node.ID, err)
+		if err := depsGraph.AddEdge(rootNode.NodeID(), node.NodeID()); err != nil {
+			return nil, fmt.Errorf("add direct dependency %q: %w", node.NodeID(), err)
 		}
 	}
 
-	if err := attachOrphansToRoot(depsGraph, rootNode.ID); err != nil {
+	if err := attachOrphansToRoot(depsGraph, rootNode.NodeID()); err != nil {
 		return nil, err
 	}
 
@@ -358,46 +380,83 @@ func attachOrphansToRoot(depsGraph *sdk.Graph, rootID string) error {
 				if child == nil {
 					continue
 				}
-				if _, seen := reachable[child.ID]; seen {
+				if _, seen := reachable[child.NodeID()]; seen {
 					continue
 				}
-				reachable[child.ID] = struct{}{}
-				queue = append(queue, child.ID)
+				reachable[child.NodeID()] = struct{}{}
+				queue = append(queue, child.NodeID())
 			}
 		}
 	}
 
 	markReachable(rootID)
-	for _, node := range depsGraph.Nodes() {
+	for _, node := range depsGraph.DependencyNodes() {
 		if node == nil {
 			continue
 		}
-		if _, ok := reachable[node.ID]; ok {
+		if _, ok := reachable[node.NodeID()]; ok {
 			continue
 		}
-		if err := depsGraph.AddEdge(rootID, node.ID); err != nil {
-			return fmt.Errorf("add direct dependency %q: %w", node.ID, err)
+		if err := depsGraph.AddEdge(rootID, node.NodeID()); err != nil {
+			return fmt.Errorf("add direct dependency %q: %w", node.NodeID(), err)
 		}
 		// The newly attached package brings its own subtree back with it.
-		markReachable(node.ID)
+		markReachable(node.NodeID())
 	}
 	return nil
+}
+
+// pythonModuleRoot builds the module node standing for the scanned Python
+// project, declared by the manifest its package manager actually uses.
+//
+// Every Python parser goes through here rather than calling NewModuleNode
+// itself. A module's declaring path is part of its identity now, and it is
+// published in scan JSON, SBOM references, and explain paths -- so the four
+// parsers that each hard-coded "requirements.txt" were naming a file a Pipenv
+// or Poetry project does not have, and two projects declared by different
+// manifests could fold into one record on matching coordinates. One home for
+// the rule means a parser added later inherits it instead of copying the
+// nearest literal. TestPythonRootsGoThroughTheSharedConstructor fails if a
+// direct call reappears.
+func pythonModuleRoot(coords sdk.Coordinates) (*sdk.ModuleNode, error) {
+	if strings.TrimSpace(coords.Name) == "" {
+		coords.Name = "root"
+	}
+	return sdk.NewModuleNode(pythonDeclaringManifest(coords.PackageManager), coords)
+}
+
+// pythonDeclaringManifest names the file that declares a Python project, per
+// package manager.
+//
+// This is Bomly's own mapping, not a grammar any library owns: it records
+// which file each tool treats as the project declaration, as opposed to the
+// lock it generates. Pipenv locks Pipfile.lock but is declared by Pipfile;
+// Poetry, uv and PDM are declared by pyproject.toml. Plain pip has no
+// declaration file of its own, so the requirements file it reads is the
+// closest thing and stays the fallback -- which is also what every caller
+// produced before this existed, so pip-path identities are unchanged.
+func pythonDeclaringManifest(manager sdk.PackageManager) string {
+	switch manager {
+	case sdk.PackageManagerPipenv:
+		return "Pipfile"
+	case sdk.PackageManagerPoetry, sdk.PackageManagerUV, sdk.PackageManagerPDM:
+		return "pyproject.toml"
+	default:
+		return "requirements.txt"
+	}
 }
 
 // pythonSyntheticRoot builds the node that represents the scanned project
 // itself, named by pythonRootName. "root" survives only as the last resort:
 // it told the user nothing and collides with a real PyPI package name, which
-// is why the node stays FirstParty and is never enriched.
-func pythonSyntheticRoot(rootName string) *sdk.Dependency {
-	if strings.TrimSpace(rootName) == "" {
-		rootName = "root"
-	}
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
-		Ecosystem:  sdk.EcosystemPython,
-		Name:       rootName,
-		Type:       sdk.PackageTypeApplication,
-		FirstParty: true,
-	}})
+// is why the node is a module and is never enriched.
+func pythonSyntheticRoot(manager sdk.PackageManager, rootName string) (*sdk.ModuleNode, error) {
+	return pythonModuleRoot(sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemPython,
+		PackageManager: manager,
+		Name:           rootName,
+		Type:           sdk.PackageTypeApplication,
+	})
 }
 
 // pythonRootName names a Python project root. requirements.txt and
@@ -511,7 +570,7 @@ func projectDirectoryName(projectPath string) string {
 	return base
 }
 
-func filterPythonToolPackages(depsGraph *sdk.Graph, projectPath, rootName string) (*sdk.Graph, error) {
+func filterPythonToolPackages(depsGraph *sdk.Graph, projectPath string, manager sdk.PackageManager, rootName string) (*sdk.Graph, error) {
 	if depsGraph == nil {
 		return depsGraph, nil
 	}
@@ -520,7 +579,7 @@ func filterPythonToolPackages(depsGraph *sdk.Graph, projectPath, rootName string
 		return nil, err
 	}
 	removed := false
-	for _, pkg := range depsGraph.Nodes() {
+	for _, pkg := range depsGraph.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
@@ -531,14 +590,18 @@ func filterPythonToolPackages(depsGraph *sdk.Graph, projectPath, rootName string
 		if _, keep := declared[name]; keep {
 			continue
 		}
-		depsGraph.RemoveNode(pkg.ID)
+		depsGraph.RemoveNode(pkg.NodeID())
 		removed = true
 	}
 	// Dropping a tool package can strand the packages it pulled in; re-parent
 	// them so the graph keeps a single root.
 	if removed {
-		if root, ok := depsGraph.Node(pythonSyntheticRoot(rootName).ID); ok {
-			if err := attachOrphansToRoot(depsGraph, root.ID); err != nil {
+		pythonSyntheticRootResult, err := pythonSyntheticRoot(manager, rootName)
+		if err != nil {
+			return nil, err
+		}
+		if root, ok := depsGraph.Node(pythonSyntheticRootResult.NodeID()); ok {
+			if err := attachOrphansToRoot(depsGraph, root.NodeID()); err != nil {
 				return nil, err
 			}
 		}
@@ -756,7 +819,7 @@ func attachDeclaredPositions(depsGraph *sdk.Graph, projectPath string) {
 	if len(positions) == 0 {
 		return
 	}
-	for _, pkg := range depsGraph.Nodes() {
+	for _, pkg := range depsGraph.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
@@ -853,8 +916,8 @@ func normalizePythonName(value string) string {
 	return strings.ToLower(strings.ReplaceAll(value, "_", "-"))
 }
 
-func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
-	_, err := detectors.EnsureNode(depsGraph, node)
+func addNodeIfMissing(depsGraph *sdk.Graph, node sdk.GraphNode) error {
+	_, err := detectorkit.EnsureNode(depsGraph, node)
 	return err
 }
 
@@ -873,7 +936,7 @@ func annotateGraphScopes(depsGraph *sdk.Graph, projectPath string) {
 	rootID := ""
 	for _, root := range roots {
 		if root != nil {
-			rootID = root.ID
+			rootID = root.NodeID()
 			break
 		}
 	}
@@ -883,11 +946,12 @@ func annotateGraphScopes(depsGraph *sdk.Graph, projectPath string) {
 
 	devDeps := collectPythonDevDependencies(projectPath)
 
-	directDeps, err := depsGraph.DirectDependencies(rootID)
+	directDepsNodes, err := depsGraph.DirectDependencies(rootID)
+	directDeps := sdk.DependencyNodesOf(directDepsNodes)
 	if err != nil || len(directDeps) == 0 {
 		// Fall back: graph has no edges from root — use devDeps by name for best-effort scoping.
-		for _, pkg := range depsGraph.Nodes() {
-			if pkg == nil || pkg.ID == rootID {
+		for _, pkg := range depsGraph.DependencyNodes() {
+			if pkg == nil || pkg.NodeID() == rootID {
 				continue
 			}
 			name := normalizePythonName(pkg.Name)
@@ -916,7 +980,7 @@ func annotateGraphScopes(depsGraph *sdk.Graph, projectPath string) {
 
 	// BFS from root, propagating scopes. Runtime always wins over development.
 	propagated := make(map[string]sdk.Scope, depsGraph.Size())
-	queue := make([]*sdk.Dependency, 0, len(directDeps))
+	queue := make([]*sdk.DependencyNode, 0, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
@@ -926,36 +990,37 @@ func annotateGraphScopes(depsGraph *sdk.Graph, projectPath string) {
 			scope = sdk.ScopeRuntime
 		}
 		dep.AddScope(scope)
-		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
+		propagated[dep.NodeID()] = sdk.MergeScope(propagated[dep.NodeID()], scope)
 		queue = append(queue, dep)
 	}
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
-		scope := propagated[current.ID]
+		scope := propagated[current.NodeID()]
 		if scope == sdk.ScopeUnknown {
 			continue
 		}
-		children, err := depsGraph.DirectDependencies(current.ID)
+		childrenNodes, err := depsGraph.DirectDependencies(current.NodeID())
+		children := sdk.DependencyNodesOf(childrenNodes)
 		if err != nil {
 			continue
 		}
 		for _, child := range children {
-			if child == nil || child.ID == rootID {
+			if child == nil || child.NodeID() == rootID {
 				continue
 			}
-			nextScope := sdk.MergeScope(propagated[child.ID], scope)
-			if nextScope == propagated[child.ID] && child.PrimaryScope() == nextScope {
+			nextScope := sdk.MergeScope(propagated[child.NodeID()], scope)
+			if nextScope == propagated[child.NodeID()] && child.PrimaryScope() == nextScope {
 				continue
 			}
-			propagated[child.ID] = nextScope
+			propagated[child.NodeID()] = nextScope
 			child.AddScope(nextScope)
 			queue = append(queue, child)
 		}
 	}
 	// Any remaining unscoped non-root packages get runtime.
-	for _, pkg := range depsGraph.Nodes() {
-		if pkg != nil && pkg.ID != rootID && pkg.PrimaryScope() == sdk.ScopeUnknown {
+	for _, pkg := range depsGraph.DependencyNodes() {
+		if pkg != nil && pkg.NodeID() != rootID && pkg.PrimaryScope() == sdk.ScopeUnknown {
 			pkg.AddScope(sdk.ScopeRuntime)
 		}
 	}

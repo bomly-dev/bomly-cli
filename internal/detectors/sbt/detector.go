@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
@@ -106,7 +106,10 @@ func depGraphFromSBTFiles(workingDir string) (*sdk.Graph, error) {
 		return nil, fmt.Errorf("sbt files do not contain any dependencies")
 	}
 	g := sdk.New()
-	root := rootNode()
+	root, err := rootNode()
+	if err != nil {
+		return nil, err
+	}
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
@@ -115,16 +118,19 @@ func depGraphFromSBTFiles(workingDir string) (*sdk.Graph, error) {
 		return packages[i].Org+packages[i].Name+packages[i].Version < packages[j].Org+packages[j].Name+packages[j].Version
 	})
 	for _, pkg := range packages {
-		node := packageNode(pkg)
-		if _, ok := seen[node.ID]; ok {
+		node, err := packageNode(pkg)
+		if err != nil {
+			return nil, err
+		}
+		if _, ok := seen[node.NodeID()]; ok {
 			continue
 		}
-		seen[node.ID] = struct{}{}
+		seen[node.NodeID()] = struct{}{}
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
 		}
-		if err := g.AddEdge(root.ID, node.ID); err != nil {
-			return nil, fmt.Errorf("add sbt root dependency %q: %w", node.ID, err)
+		if err := g.AddEdge(root.NodeID(), node.NodeID()); err != nil {
+			return nil, fmt.Errorf("add sbt root dependency %q: %w", node.NodeID(), err)
 		}
 	}
 	return g, nil
@@ -157,35 +163,35 @@ func readOptional(path string) ([]byte, error) {
 	return system.ReadRepositoryFile(path)
 }
 
-func rootNode() *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemScala,
+func rootNode() (*sdk.ModuleNode, error) {
+	return sdk.NewModuleNode("build.sbt", sdk.Coordinates{Ecosystem: sdk.EcosystemScala,
 		Name:           "root",
 		PackageManager: sdk.PackageManagerSBT,
 		Type:           sdk.PackageTypeApplication,
-		FirstParty:     true,
-		Language:       "scala"},
-	})
+		Language:       "scala"})
 
 }
 
-func packageNode(pkg sbtPackage) *sdk.Dependency {
-	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemScala,
+func packageNode(pkg sbtPackage) (*sdk.DependencyNode, error) {
+	node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemScala,
 		Org:            strings.TrimSpace(pkg.Org),
 		Name:           strings.TrimSpace(pkg.Name),
 		Version:        strings.TrimSpace(pkg.Version),
 		PackageManager: sdk.PackageManagerSBT,
 		Type:           sdk.PackageTypePackage,
 		Language:       "scala",
-		PURL:           sdk.BuildPackageURL("maven", pkg.Org, pkg.Name, pkg.Version)},
-	})
+		PURL:           sdk.BuildPackageURL("maven", pkg.Org, pkg.Name, pkg.Version)})
+	if err != nil {
+		return nil, fmt.Errorf("build dependency node: %w", err)
+	}
 
 	if pkg.Scope != "" {
 		node.AddScope(pkg.Scope)
 	}
-	return node
+	return node, nil
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
-	_, err := detectors.EnsureNode(g, node)
+func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
+	_, err := detectorkit.EnsureNode(g, node)
 	return err
 }

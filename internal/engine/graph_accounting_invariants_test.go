@@ -8,6 +8,7 @@ import (
 	explainengine "github.com/bomly-dev/bomly-cli/internal/engine/explain"
 	"github.com/bomly-dev/bomly-cli/internal/mcp"
 	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -19,13 +20,17 @@ func TestCanonicalGraphFixturePreservesOccurrenceAndPackageAccounting(t *testing
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 
+	// One more node than before ADR-0041, in both counts and in the
+	// structural tally: the synthesized root that stands in for a manifest
+	// with several roots is a manifest node now, alongside the two modules,
+	// where it used to be a dependency node typed "manifest".
 	const (
-		wantOccurrences = 12
-		wantPackages    = 11
+		wantOccurrences = 13
+		wantPackages    = 12
 		wantDirect      = 7
 		wantTransitive  = 1
 		wantUnknown     = 1
-		wantStructural  = 2
+		wantStructural  = 3
 		wantEligible    = 5
 	)
 
@@ -36,13 +41,24 @@ func TestCanonicalGraphFixturePreservesOccurrenceAndPackageAccounting(t *testing
 	if occurrences != wantOccurrences {
 		t.Fatalf("manifest occurrences = %d, want %d", occurrences, wantOccurrences)
 	}
-	if merged.Size() != wantPackages || registry.Len() != wantPackages {
-		t.Fatalf("deduplicated graph/registry = %d/%d, want %d", merged.Size(), registry.Len(), wantPackages)
+	if merged.Size() != wantPackages {
+		t.Fatalf("deduplicated graph = %d, want %d", merged.Size(), wantPackages)
+	}
+	// The registry holds consumed packages only: the project's own modules
+	// and the synthesized manifest are not packages anyone can be asked
+	// about, so they no longer take a registry entry (ADR-0041).
+	if registry.Len() != wantPackages-wantStructural {
+		t.Fatalf("registry = %d, want %d consumed packages", registry.Len(), wantPackages-wantStructural)
 	}
 
 	var direct, transitive, unknown, structural, eligible int
-	for _, dependency := range merged.Nodes() {
-		if dependency.FirstParty || dependency.Type == sdk.PackageTypeManifest {
+	// Structural nodes -- the project's own modules and its manifests -- are
+	// no longer dependency nodes at all under the typed union, so they never
+	// reach this loop; the manifest-typed dependency clause is what is left
+	// of the old flag-based test.
+	structural += len(merged.ModuleNodes()) + len(merged.ManifestNodes())
+	for _, dependency := range merged.DependencyNodes() {
+		if dependency.Type == sdk.PackageTypeManifest {
 			structural++
 		} else {
 			switch dependency.Relationship {
@@ -53,16 +69,16 @@ func TestCanonicalGraphFixturePreservesOccurrenceAndPackageAccounting(t *testing
 			case sdk.DependencyRelationshipUnknown:
 				unknown++
 			default:
-				t.Errorf("non-structural dependency %q has no relationship", dependency.ID)
+				t.Errorf("non-structural dependency %q has no relationship", dependency.NodeID())
 			}
 		}
 		if dependency.RegistryMatchEligible() {
 			eligible++
 		}
-		if dependency.PackageRef == "" || dependency.PackageRef != sdk.CanonicalPackageURLFromDependency(dependency) {
-			t.Errorf("dependency %q package_ref = %q", dependency.ID, dependency.PackageRef)
+		if dependency.PackageRef == "" || dependency.PackageRef != dependency.NodeID() {
+			t.Errorf("dependency %q package_ref = %q", dependency.NodeID(), dependency.PackageRef)
 		} else if _, ok := registry.Get(dependency.PackageRef); !ok {
-			t.Errorf("dependency %q does not join to registry package %q", dependency.ID, dependency.PackageRef)
+			t.Errorf("dependency %q does not join to registry package %q", dependency.NodeID(), dependency.PackageRef)
 		}
 	}
 	if direct != wantDirect || transitive != wantTransitive || unknown != wantUnknown || structural != wantStructural {
@@ -79,15 +95,21 @@ func TestCanonicalGraphFixturePreservesOccurrenceAndPackageAccounting(t *testing
 
 	assertOccurrenceSpecificFacts(t, consolidated, registry, merged)
 	assertUnknownSyntheticParentIsNotExecutableEvidence(t, merged)
-	assertStructuredAndCompactAccounting(t, consolidated, registry, merged, wantOccurrences, wantPackages)
-	assertExplainAndDiffAccounting(t, consolidated, registry, merged, wantPackages)
+	// Two different tallies, deliberately. A manifest's dependency listing
+	// includes the project's own modules -- a module is where a depends_on
+	// chain starts -- but not the manifest node itself, which is what the
+	// listing is about. The flat package inventory holds consumed packages
+	// only: nobody can be asked about the project's own artifacts.
+	const wantManifestNodes = 1
+	assertStructuredAndCompactAccounting(t, consolidated, registry, merged,
+		wantOccurrences-wantManifestNodes, wantPackages-wantStructural)
+	assertExplainAndDiffAccounting(t, consolidated, registry, merged, wantPackages-wantStructural)
 }
 
 func canonicalAccountingFixture(t *testing.T) sdk.ConsolidatedGraph {
 	t.Helper()
 	first := sdk.New()
-	app := accountingDependency("app", "1.0.0", sdk.PackageTypeApplication, sdk.DependencySourceProject, "")
-	app.FirstParty = true
+	app := accountingModule("package.json", "app", "1.0.0")
 	actual := accountingDependency("actual", "1.0.0", "", sdk.DependencySourceRegistry, sdk.DependencyRelationshipDirect)
 	actual.Scopes = sdk.ScopesOf(sdk.ScopeRuntime)
 	actual.Metadata = map[string]any{sdk.MetadataKeyNPM: &sdk.NPMPackageMetadata{
@@ -101,18 +123,18 @@ func canonicalAccountingFixture(t *testing.T) sdk.ConsolidatedGraph {
 	gitDependency := accountingDependency("git-lib", "4.0.0", "", sdk.DependencySourceGit, sdk.DependencyRelationshipDirect)
 	workspace := accountingDependency("workspace-lib", "1.0.0", sdk.PackageTypeApplication, sdk.DependencySourceWorkspace, sdk.DependencyRelationshipDirect)
 	duplicateV2 := accountingDependency("duplicate", "2.0.0", "", sdk.DependencySourceRegistry, sdk.DependencyRelationshipDirect)
-	for _, dependency := range []*sdk.Dependency{app, actual, parent, duplicateV1, orphan, gitDependency, workspace, duplicateV2} {
+	for _, dependency := range []sdk.GraphNode{app, actual, parent, duplicateV1, orphan, gitDependency, workspace, duplicateV2} {
 		if err := first.AddNode(dependency); err != nil {
 			t.Fatalf("add first graph node: %v", err)
 		}
 	}
 	for _, edge := range [][2]string{
-		{app.ID, actual.ID},
-		{app.ID, parent.ID},
-		{parent.ID, duplicateV1.ID},
-		{app.ID, gitDependency.ID},
-		{app.ID, workspace.ID},
-		{app.ID, duplicateV2.ID},
+		{app.NodeID(), actual.NodeID()},
+		{app.NodeID(), parent.NodeID()},
+		{parent.NodeID(), duplicateV1.NodeID()},
+		{app.NodeID(), gitDependency.NodeID()},
+		{app.NodeID(), workspace.NodeID()},
+		{app.NodeID(), duplicateV2.NodeID()},
 	} {
 		if err := first.AddEdge(edge[0], edge[1]); err != nil {
 			t.Fatalf("add first graph edge: %v", err)
@@ -120,18 +142,17 @@ func canonicalAccountingFixture(t *testing.T) sdk.ConsolidatedGraph {
 	}
 
 	second := sdk.New()
-	tool := accountingDependency("tool", "1.0.0", sdk.PackageTypeApplication, sdk.DependencySourceProject, "")
-	tool.FirstParty = true
+	tool := accountingModule("tool/package.json", "tool", "1.0.0")
 	actualAgain := accountingDependency("actual", "1.0.0", "", sdk.DependencySourceRegistry, sdk.DependencyRelationshipDirect)
 	fileDependency := accountingDependency("file-lib", "1.0.0", "", sdk.DependencySourceFile, sdk.DependencyRelationshipDirect)
 	urlDependency := accountingDependency("url-lib", "1.0.0", "", sdk.DependencySourceURL, sdk.DependencyRelationshipDirect)
-	for _, dependency := range []*sdk.Dependency{tool, actualAgain, fileDependency, urlDependency} {
+	for _, dependency := range []sdk.GraphNode{tool, actualAgain, fileDependency, urlDependency} {
 		if err := second.AddNode(dependency); err != nil {
 			t.Fatalf("add second graph node: %v", err)
 		}
 	}
-	for _, dependency := range []*sdk.Dependency{actualAgain, fileDependency, urlDependency} {
-		if err := second.AddEdge(tool.ID, dependency.ID); err != nil {
+	for _, dependency := range []*sdk.DependencyNode{actualAgain, fileDependency, urlDependency} {
+		if err := second.AddEdge(tool.NodeID(), dependency.NodeID()); err != nil {
 			t.Fatalf("add second graph edge: %v", err)
 		}
 	}
@@ -157,8 +178,20 @@ func canonicalAccountingFixture(t *testing.T) sdk.ConsolidatedGraph {
 	return result
 }
 
-func accountingDependency(name, version string, packageType sdk.PackageType, source sdk.DependencySource, relationship sdk.DependencyRelationship) *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{
+// accountingModule builds the scanned project's own node: a module, because
+// ownership is the node kind now (ADR-0041).
+func accountingModule(manifestPath, name, version string) *sdk.ModuleNode {
+	return testnodes.ModuleFrom(manifestPath, sdk.Coordinates{
+		Ecosystem:      sdk.EcosystemNPM,
+		PackageManager: sdk.PackageManagerNPM,
+		Name:           name,
+		Version:        version,
+		Type:           sdk.PackageTypeApplication,
+	})
+}
+
+func accountingDependency(name, version string, packageType sdk.PackageType, source sdk.DependencySource, relationship sdk.DependencyRelationship) *sdk.DependencyNode {
+	return testnodes.DepFrom(sdk.DependencyNode{
 		Coordinates: sdk.Coordinates{
 			Ecosystem:      sdk.EcosystemNPM,
 			PackageManager: sdk.PackageManagerNPM,
@@ -184,7 +217,7 @@ func assertOccurrenceSpecificFacts(
 	unknownScopeOccurrences := 0
 	peerMetadataOccurrences := 0
 	for _, entry := range consolidated.Graphs.Entries {
-		dependency, ok := entry.Graph.Node(sharedPURL)
+		dependency, ok := testnodes.FindDep(entry.Graph, sharedPURL)
 		if !ok {
 			continue
 		}
@@ -213,7 +246,7 @@ func assertOccurrenceSpecificFacts(
 		t.Fatalf("shared PURL %q missing from registry", sharedPURL)
 	}
 	for _, purl := range []string{"pkg:npm/duplicate@1.0.0", "pkg:npm/duplicate@2.0.0"} {
-		if _, ok := graph.Node(purl); !ok {
+		if _, ok := testnodes.Find(graph, purl); !ok {
 			t.Errorf("duplicate-version occurrence %q missing from graph", purl)
 		}
 		if _, ok := registry.Get(purl); !ok {
@@ -228,25 +261,25 @@ func assertOccurrenceSpecificFacts(
 		"pkg:npm/url-lib@1.0.0":       sdk.DependencySourceURL,
 	}
 	for id, want := range wantSources {
-		dependency, ok := graph.Node(id)
-		if !ok || dependency.Source != want {
-			t.Errorf("dependency %q source = %q, found=%t, want %q", id, dependencySource(dependency), ok, want)
+		dependency, ok := testnodes.Find(graph, id)
+		if !ok || mustDep(t, dependency).Source != want {
+			t.Errorf("dependency %q source = %q, found=%t, want %q", id, dependencySource(mustDep(t, dependency)), ok, want)
 		}
 	}
 	development, ok := graph.Node("pkg:npm/duplicate@1.0.0")
-	if !ok || development.PrimaryScope() != sdk.ScopeDevelopment {
-		t.Fatalf("development occurrence missing or scope = %q", developmentScope(development))
+	if !ok || mustDep(t, development).PrimaryScope() != sdk.ScopeDevelopment {
+		t.Fatalf("development occurrence missing or scope = %q", developmentScope(mustDep(t, development)))
 	}
 }
 
-func developmentScope(dependency *sdk.Dependency) sdk.Scope {
+func developmentScope(dependency *sdk.DependencyNode) sdk.Scope {
 	if dependency == nil {
 		return sdk.ScopeUnknown
 	}
 	return dependency.PrimaryScope()
 }
 
-func dependencySource(dependency *sdk.Dependency) sdk.DependencySource {
+func dependencySource(dependency *sdk.DependencyNode) sdk.DependencySource {
 	if dependency == nil {
 		return ""
 	}
@@ -256,7 +289,7 @@ func dependencySource(dependency *sdk.Dependency) sdk.DependencySource {
 func assertUnknownSyntheticParentIsNotExecutableEvidence(t *testing.T, graph *sdk.Graph) {
 	t.Helper()
 	orphanID := "pkg:npm/orphan@3.0.0"
-	paths, err := graph.CollectPathsTo(orphanID)
+	paths, err := graph.CollectPathsTo(testnodes.ID(graph, orphanID))
 	if err != nil {
 		t.Fatalf("CollectPathsTo(orphan) error = %v", err)
 	}
@@ -405,4 +438,15 @@ func assertExplainAndDiffAccounting(
 		compactDiff.Summary.PackagesRemoved != 0 {
 		t.Fatalf("compact identical diff summary = %#v", compactDiff.Summary)
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*sdk.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

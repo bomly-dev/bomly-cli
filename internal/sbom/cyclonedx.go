@@ -239,13 +239,37 @@ func cycloneDXTools(names []string, primaryTool, toolVersion string) *cdx.ToolsC
 // URL -- CycloneDX external references carry no revision, so the commit a
 // detector resolved is only expressible in the SPDX locator form.
 func cycloneDXComponentReferences(component Component) []cdx.ExternalReference {
-	refs := make([]cdx.ExternalReference, 0, 2)
-	if artifact := strings.TrimSpace(component.ArtifactURL); artifact != "" {
-		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeDistribution, URL: artifact})
+	origins := component.Origins
+	if len(origins) == 0 {
+		// A component whose URLs came from registry enrichment rather than a
+		// detector-asserted origin still has the single-valued fields.
+		origins = []ComponentOrigin{{
+			ArtifactURL: component.ArtifactURL,
+			Repository:  component.VCSURL,
+			Revision:    component.VCSRevision,
+		}}
 	}
-	if repository := strings.TrimSpace(component.VCSURL); repository != "" {
-		refs = append(refs, cdx.ExternalReference{Type: cdx.ERTypeVCS, URL: repository})
+	refs := make([]cdx.ExternalReference, 0, 2*len(origins))
+	seen := make(map[cdx.ExternalReference]struct{}, 2*len(origins))
+	add := func(ref cdx.ExternalReference) {
+		if strings.TrimSpace(ref.URL) == "" {
+			return
+		}
+		if _, duplicate := seen[ref]; duplicate {
+			return
+		}
+		seen[ref] = struct{}{}
+		refs = append(refs, ref)
 	}
+	// Every origin, not just the first: CycloneDX allows an external
+	// reference list, so two registries a package resolved from are both
+	// expressible and both stay.
+	for _, origin := range origins {
+		add(cdx.ExternalReference{Type: cdx.ERTypeDistribution, URL: strings.TrimSpace(origin.ArtifactURL)})
+		add(cdx.ExternalReference{Type: cdx.ERTypeVCS, URL: strings.TrimSpace(origin.Repository)})
+	}
+	// Enrichment may have filled the repository when no origin asserted one.
+	add(cdx.ExternalReference{Type: cdx.ERTypeVCS, URL: strings.TrimSpace(component.VCSURL)})
 	return refs
 }
 

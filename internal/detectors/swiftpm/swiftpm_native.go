@@ -12,7 +12,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-sdk"
+	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -131,7 +131,11 @@ func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 	}
 
 	pinned := 0
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkNodes(func(graphNode sdk.GraphNode) bool {
+		dep, isDependency := sdk.AsDependencyNode(graphNode)
+		if !isDependency {
+			return true
+		}
 		if dep.Source != sdk.DependencySourceGit {
 			// `swift package edit` replaces a dependency with a local
 			// checkout while Package.resolved keeps the pin it replaced.
@@ -156,7 +160,9 @@ func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 		if pin.Revision == "" || swiftDependencySource(pin.SourceKind, pin.Repository) != sdk.DependencySourceGit {
 			return true
 		}
-		dep.Origin = sdk.RepositoryOrigin(pin.Repository, pin.Revision)
+		if origin := sdk.RepositoryOrigin(pin.Repository, pin.Revision); origin != nil {
+			dep.Origins = sdk.MergeOrigins(dep.Origins, []sdk.DependencyOrigin{*origin})
+		}
 		pinned++
 		return true
 	})
@@ -235,14 +241,17 @@ func depGraphFromSwiftShowDeps(raw []byte) (*sdk.Graph, error) {
 	}
 
 	g := sdk.New()
-	root := rootNode()
+	root, err := rootNode()
+	if err != nil {
+		return nil, err
+	}
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
-	// seen maps node.ID → true to avoid duplicate AddPackage calls in diamond deps.
+	// seen maps node.NodeID() → true to avoid duplicate AddPackage calls in diamond deps.
 	seen := make(map[string]bool)
-	if err := buildSwiftDepTree(g, root.ID, tree.Dependencies, seen); err != nil {
+	if err := buildSwiftDepTree(g, root.NodeID(), tree.Dependencies, seen); err != nil {
 		return nil, err
 	}
 	return g, nil
@@ -263,24 +272,27 @@ func buildSwiftDepTree(g *sdk.Graph, parentID string, deps []swiftShowDepsNode, 
 			SourceKind: swiftSourceKindForLocation(dep.URL),
 			Repository: dep.URL,
 		}
-		node := packageNode(pkg)
+		node, err := packageNode(pkg)
+		if err != nil {
+			return err
+		}
 
-		if !seen[node.ID] {
-			seen[node.ID] = true
+		if !seen[node.NodeID()] {
+			seen[node.NodeID()] = true
 			if err := addNodeIfMissing(g, node); err != nil {
 				return err
 			}
 		}
-		existing, ok := g.Node(node.ID)
+		existing, ok := g.Node(node.NodeID())
 		if !ok {
 			continue
 		}
-		if err := g.AddEdge(parentID, existing.ID); err != nil {
-			return fmt.Errorf("add SwiftPM dependency %q -> %q: %w", parentID, existing.ID, err)
+		if err := g.AddEdge(parentID, existing.NodeID()); err != nil {
+			return fmt.Errorf("add SwiftPM dependency %q -> %q: %w", parentID, existing.NodeID(), err)
 		}
 		// Recurse into transitive deps — only if not already visited.
 		if len(dep.Dependencies) > 0 && !seenAllChildren(seen, dep.Dependencies) {
-			if err := buildSwiftDepTree(g, existing.ID, dep.Dependencies, seen); err != nil {
+			if err := buildSwiftDepTree(g, existing.NodeID(), dep.Dependencies, seen); err != nil {
 				return err
 			}
 		}

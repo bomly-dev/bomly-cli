@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -15,7 +16,7 @@ import (
 func fallbackTestGraph(t *testing.T) *sdk.Graph {
 	t.Helper()
 	graph := sdk.New()
-	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 	return graph

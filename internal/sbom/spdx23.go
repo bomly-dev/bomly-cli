@@ -502,8 +502,8 @@ func spdxExternalReferences(component Component) []*v23.PackageExternalReference
 	refs := make([]*v23.PackageExternalReference, 0, 1+len(component.CPEs)+len(component.Vulnerabilities))
 	if purl := strings.TrimSpace(component.PURL); purl != "" {
 		refs = append(refs, &v23.PackageExternalReference{
-			Category: "PACKAGE-MANAGER",
-			RefType:  "purl",
+			Category: common.CategoryPackageManager,
+			RefType:  common.TypePackageManagerPURL,
 			Locator:  purl,
 		})
 	}
@@ -513,8 +513,8 @@ func spdxExternalReferences(component Component) []*v23.PackageExternalReference
 			continue
 		}
 		refs = append(refs, &v23.PackageExternalReference{
-			Category: "SECURITY",
-			RefType:  "cpe23Type",
+			Category: common.CategorySecurity,
+			RefType:  common.TypeSecurityCPE23Type,
 			Locator:  cpe,
 		})
 	}
@@ -524,10 +524,59 @@ func spdxExternalReferences(component Component) []*v23.PackageExternalReference
 			continue
 		}
 		refs = append(refs, &v23.PackageExternalReference{
-			Category: "SECURITY",
-			RefType:  "advisory",
+			Category: common.CategorySecurity,
+			RefType:  common.TypeSecurityAdvisory,
 			Locator:  locator,
 		})
+	}
+	refs = append(refs, spdxAdditionalOriginReferences(component)...)
+	if len(refs) == 0 {
+		return nil
+	}
+	return refs
+}
+
+// spdxOriginRefType labels an origin beyond the primary one.
+//
+// SPDX 2.3 defines one download location per package and one source-info
+// field, so a package resolved from more than one place has nowhere in the
+// defined vocabulary to say so. Category OTHER exists for exactly this: the
+// specification leaves its reference type to the document, which is why this
+// is a Bomly-defined type rather than a misuse of a defined category. The
+// alternative was to keep dropping the evidence, and a package resolved from
+// two registries is the one case where dropping it matters most.
+const spdxOriginRefType = "bomly-package-origin"
+
+// spdxAdditionalOriginReferences renders every origin after the first, which
+// the download location and source info already carry between them.
+func spdxAdditionalOriginReferences(component Component) []*v23.PackageExternalReference {
+	if len(component.Origins) < 2 {
+		return nil
+	}
+	refs := make([]*v23.PackageExternalReference, 0, 2*(len(component.Origins)-1))
+	seen := make(map[string]struct{}, 2*len(component.Origins))
+	// The primary is already published as downloadLocation and sourceInfo, so
+	// it is seeded here rather than repeated.
+	seen[strings.TrimSpace(component.ArtifactURL)] = struct{}{}
+	seen[spdxVCSLocator(component)] = struct{}{}
+	add := func(locator string) {
+		locator = strings.TrimSpace(locator)
+		if locator == "" {
+			return
+		}
+		if _, duplicate := seen[locator]; duplicate {
+			return
+		}
+		seen[locator] = struct{}{}
+		refs = append(refs, &v23.PackageExternalReference{
+			Category: common.CategoryOther,
+			RefType:  spdxOriginRefType,
+			Locator:  locator,
+		})
+	}
+	for _, origin := range component.Origins[1:] {
+		add(origin.ArtifactURL)
+		add(spdxVCSLocator(Component{VCSURL: origin.Repository, VCSRevision: origin.Revision}))
 	}
 	if len(refs) == 0 {
 		return nil

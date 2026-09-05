@@ -289,11 +289,18 @@ func buildExamplePluginWithSDK(t *testing.T, sdkVersion string) examplePluginPac
 
 func writeExamplePluginSource(t *testing.T, dir, sdkVersion string) {
 	t.Helper()
+	// The fixture source has to match the API of the SDK release it is built
+	// against: the node constructors replaced sdk.NewDependency in v0.8.0, so
+	// the min-version wire-compatibility build uses the legacy source.
+	source := examplePluginMainSource
+	if sdkVersion == minSupportedSDKVersion {
+		source = legacyExamplePluginMainSource
+	}
 	goMod := "module bomly-smoke-plugin\n\ngo 1.25\n\nrequire github.com/bomly-dev/bomly-sdk " + sdkVersion + "\n"
 	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(goMod), 0o644); err != nil {
 		t.Fatalf("write plugin go.mod: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, "main.go"), []byte(examplePluginMainSource), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "main.go"), []byte(source), 0o644); err != nil {
 		t.Fatalf("write plugin main.go: %v", err)
 	}
 	if err := os.WriteFile(filepath.Join(dir, "bomly-plugin.json"), []byte(examplePluginManifest), 0o644); err != nil {

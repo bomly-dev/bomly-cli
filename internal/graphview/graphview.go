@@ -18,35 +18,25 @@
 // This is a leaf: it imports the SDK and nothing else from this repository, so
 // the codec, the renderers, and the TUI can all reach it without any of them
 // depending on each other.
+//
+// PurlFor is now a one-line delegation to sdk.NodePURL: the SDK took the
+// projection in v0.9.2 (bomly-dev/bomly-sdk#43), which is where it belongs.
+// ChildrenAmong and TopLevelParentIDs stay here -- what a document may name
+// and what counts as a top-level parent are the CLI's decisions, not the
+// model's.
 package graphview
 
 import sdk "github.com/bomly-dev/bomly-sdk"
 
 // PurlFor returns the package URL a node publishes, or "" when it has none.
 //
-// The kinds answer differently and the difference matters: a dependency
-// node's ID *is* its canonical package URL, a module's ID is the structural
-// "module:<path>#<purl>" grammar with its package URL in a separate field,
-// and a manifest has no package URL at all -- it is a file. Publishing NodeID
-// in a field consumers parse as a purl hands them a value that is not one.
-//
-// The deepest home for this is the SDK's GraphNode, which owns what a node
-// means (ADR-0040); it is here until bomly-dev/bomly-sdk#43 ships.
+// It delegates to sdk.NodePURL, which is where this belongs (ADR-0040): the
+// SDK owns what a node means, and the three kinds answer this differently.
+// The CLI carried the projection while bomly-dev/bomly-sdk#43 was open, and
+// v0.9.2 closed it -- the wrapper stays only so callers here read one name
+// alongside ChildrenAmong and TopLevelParentIDs, which remain CLI policy.
 func PurlFor(node sdk.GraphNode) string {
-	switch typed := node.(type) {
-	case *sdk.DependencyNode:
-		if typed == nil {
-			return ""
-		}
-		return typed.NodeID()
-	case *sdk.ModuleNode:
-		if typed == nil {
-			return ""
-		}
-		return typed.PURL()
-	default:
-		return ""
-	}
+	return sdk.NodePURL(node)
 }
 
 // ChildrenAmong names a node's children among the IDs a document actually

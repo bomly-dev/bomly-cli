@@ -67,7 +67,6 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 | `internal/baseline`    | Portable package-finding baseline codec and audit-integrated policy-status resolver               |
 | `internal/remediation` | Canonical vulnerability fix status, version, detector-hint validation, and occurrence suggestions |
 | `internal/sbom`        | SBOM codec (SPDX 2.3, CycloneDX)                                                                  |
-| `internal/licenseexpr` | SPDX license expression parsing and identifier classification (guards the parser's panics)        |
 | `internal/benchmark`   | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets       |
 | `internal/output`      | Output rendering plus structured command payloads and schema generation for `scan`, `diff`, `explain`, JSON, and SARIF 2.1.0 |
 | `internal/plugin`      | Plugin discovery, protocol, handshake, and pooled subprocess execution                            |
@@ -111,7 +110,7 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - `internal/testnodes` is test-only: it routes fixture shapes through the real node constructors, panicking rather than taking a `testing.TB` so a table entry stays one expression. Label lookups ("name@version" to the canonical package URLs node IDs now are) delegate to `bomly-sdk/testkit` — the matching rules have one home, not two. Non-test code must not import it.
 - `internal/baseline` owns the baseline document and matching implementation. It depends on the SDK policy contracts and must not be imported by `internal/engine`.
 - `internal/remediation` owns canonical vulnerability remediation decisions. Detectors may supply validated read-only strategy hints, but they do not choose final actions or versions.
-- `internal/licenseexpr` owns all SPDX license expression parsing. The underlying parser panics on some malformed input, and license strings come from untrusted lockfiles and registry APIs, so no other package under `internal/` may import `github.com/github/go-spdx` directly; `TestNoDirectSPDXExpressionUse` enforces this.
+- SPDX license expression handling is `bomly-sdk/spdxkit`'s: validation, identifier classification, composition, deprecated-ID canonicalization, and `LicenseRef-*` minting. The underlying parser panics on some malformed input, and license strings come from untrusted lockfiles and registry APIs, so no package under `internal/` may import `github.com/github/go-spdx` directly — the kit carries the panic guard. `TestNoDirectSPDXExpressionUse` (in `internal/detectors/guards_test.go`) enforces this across the whole tree, test files included. The CLI's own `internal/licenseexpr` wrapper is deleted; it duplicated the kit function for function.
 - `internal/registry` owns package-manager discovery, support lookups, and built-in registry wiring in `internal/registry/builder.go`. Do not create or reintroduce a separate `registrybuilder` package.
 - `internal/engine` may import `internal/detectors` and `internal/registry`, but detector packages must not point back into `internal/engine`. Runtime planning, prepared subprojects, and detector-chain reuse belong in `internal/engine`.
 

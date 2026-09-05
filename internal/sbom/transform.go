@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/graphview"
-	"github.com/bomly-dev/bomly-cli/internal/licenseexpr"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/spdxkit"
 )
 
 var ErrNilGraph = errors.New("dependency graph is nil")
@@ -703,7 +703,7 @@ func componentLicenseValues(licenses []License) []string {
 // expressions requires checking them rather than trusting where they came from.
 func allValidSPDXExpressions(values []string) bool {
 	for _, value := range values {
-		if !licenseexpr.Valid(value) {
+		if !spdxkit.Valid(value) {
 			return false
 		}
 	}

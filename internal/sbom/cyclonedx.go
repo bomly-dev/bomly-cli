@@ -118,7 +118,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 				Name:      comp.Name,
 				Org:       comp.Group,
 				Type:      string(comp.Type),
-				Scope:     string(comp.Scope),
+				Scopes:    sdk.ScopesFromCycloneDXComponent(string(comp.Scope), cycloneDXCarriedScopes(comp.Properties)),
 				Version:   comp.Version,
 				PURL:      comp.PackageURL,
 				Copyright: comp.Copyright,
@@ -168,7 +168,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 			Name:      root.Name,
 			Org:       root.Group,
 			Type:      string(root.Type),
-			Scope:     string(root.Scope),
+			Scopes:    sdk.ScopesFromCycloneDXComponent(string(root.Scope), cycloneDXCarriedScopes(root.Properties)),
 			Version:   root.Version,
 			PURL:      root.PackageURL,
 			Copyright: root.Copyright,
@@ -406,15 +406,27 @@ func firstNonEmpty(values ...string) string {
 	return ""
 }
 
-func cycloneDXScope(value string) cdx.Scope {
-	switch value {
-	case "runtime":
-		return cdx.ScopeRequired
-	case "development":
-		return cdx.ScopeExcluded
-	default:
+// cycloneDXScopeProperty carries the full scope set beside CycloneDX's scalar
+// scope, so the projection is not a one-way door.
+func cycloneDXScopeProperty(scopes []sdk.Scope) (cdx.Property, bool) {
+	value := sdk.EncodeScopeSet(scopes)
+	if value == "" {
+		return cdx.Property{}, false
+	}
+	return cdx.Property{Name: sdk.CycloneDXScopeProperty, Value: value}, true
+}
+
+// cycloneDXCarriedScopes reads the carrier property back off a component.
+func cycloneDXCarriedScopes(properties *[]cdx.Property) string {
+	if properties == nil {
 		return ""
 	}
+	for _, property := range *properties {
+		if property.Name == sdk.CycloneDXScopeProperty {
+			return property.Value
+		}
+	}
+	return ""
 }
 
 func chooseRoot(doc *Document) *Component {
@@ -454,7 +466,7 @@ func cycloneDXComponent(comp Component) cdx.Component {
 		Type:       cycloneDXComponentType(comp.Type),
 		Name:       comp.NameOrID(),
 		Group:      comp.Org,
-		Scope:      cycloneDXScope(comp.Scope),
+		Scope:      cdx.Scope(sdk.CycloneDXScope(comp.Scopes)),
 		Version:    comp.Version,
 		PackageURL: comp.PURL,
 		Copyright:  comp.Copyright,
@@ -468,7 +480,12 @@ func cycloneDXComponent(comp Component) cdx.Component {
 	if hashes := cycloneDXHashes(comp.Digests); len(hashes) > 0 {
 		component.Hashes = &hashes
 	}
-	if props := cycloneDXEOLProperties(comp.EOL); len(props) > 0 {
+	props := cycloneDXEOLProperties(comp.EOL)
+	if scopeProperty, ok := cycloneDXScopeProperty(comp.Scopes); ok {
+		props = append(props, scopeProperty)
+	}
+	if len(props) > 0 {
+		sort.Slice(props, func(i, j int) bool { return props[i].Name < props[j].Name })
 		component.Properties = &props
 	}
 	// Origin-derived references first, then the ones the source document

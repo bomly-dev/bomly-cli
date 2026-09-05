@@ -225,7 +225,7 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 			// find it, since the fix is in their document rather than here.
 			return nil, fmt.Errorf("sbom component %q (%s): %w", component.ID, componentIdentityHint(component), err)
 		}
-		pkg.Scopes = sdk.ScopesOf(sdk.Scope(component.Scope))
+		pkg.Scopes = append([]sdk.Scope(nil), component.Scopes...)
 		pkg.Copyright = component.Copyright
 		applyIngestedAssertions(pkg, component)
 		// The document's own component ID does not survive: the node answers

@@ -20,9 +20,34 @@ import (
 var ErrNilGraph = errors.New("dependency graph is nil")
 
 // FromDepGraph builds a neutral SBOM document from a dependency DAG.
+//
+// For a graph that came from ingested SBOMs, prefer FromGraphEntries: this
+// entry point has no way to see what those documents said about themselves,
+// and so exports a document that credits only Bomly.
 func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
+	return FromGraphEntries(g, nil, opts)
+}
+
+// FromGraphEntries builds a neutral SBOM document from the prepared graph
+// entries and the consolidated graph they produced.
+//
+// Both are passed, and neither is derived from the other. The graph is the
+// one already selected for output -- consolidation renamed its identities and
+// the scope filter decided what stays -- so re-merging the entries here would
+// export a different graph than the rest of the command reports. The entries
+// are here for the one thing only they carry: what each source document
+// asserted about itself, which the merge into a single graph necessarily
+// discards (ADR-0037).
+func FromGraphEntries(g *sdk.Graph, entries []sdk.GraphEntry, opts BuildOptions) (*Document, error) {
 	if g == nil {
 		return nil, ErrNilGraph
+	}
+	sources := make([]sdk.DocumentAssertions, 0, len(entries))
+	for _, entry := range entries {
+		if entry.Document == nil {
+			continue
+		}
+		sources = append(sources, *entry.Document)
 	}
 
 	componentCount := g.Size()
@@ -148,11 +173,6 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 		created = time.Now().UTC()
 	}
 
-	documentName := opts.DocumentName
-	if documentName == "" {
-		documentName = defaultDocumentName
-	}
-
 	// When the graph has no single root (multiple manifests, multiple
 	// ecosystems) the primary component would otherwise be an arbitrary
 	// manifest node. Synthesize a pseudo root that represents the scanned
@@ -172,40 +192,56 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 		rootIDs = []string{root.ID}
 	}
 
-	serialNumber := strings.TrimSpace(opts.SerialNumber)
-	nonce := ""
-	if serialNumber == "" {
-		nonce = newUUIDv4()
-		serialNumber = "urn:uuid:" + nonce
-	}
-	documentNS := opts.DocumentNS
-	if documentNS == "" {
-		if nonce == "" {
-			nonce = newUUIDv4()
-		}
-		documentNS = "https://bomly.dev/spdx/" + nonce
-	}
 	toolName := opts.ToolName
 	if toolName == "" {
 		toolName = defaultToolName
 	}
 	toolNames := uniqueToolNames(append([]string{toolName}, opts.ToolNames...))
 
-	return &Document{
-		Name:         documentName,
-		Namespace:    documentNS,
+	doc := &Document{
+		Name:         opts.DocumentName,
+		Namespace:    opts.DocumentNS,
 		Tool:         toolName,
 		Tools:        toolNames,
 		ToolVersion:  strings.TrimSpace(opts.ToolVersion),
 		Created:      created,
-		SerialNumber: serialNumber,
+		SerialNumber: strings.TrimSpace(opts.SerialNumber),
 		Provenance:   opts.Provenance,
 		Lifecycle:    strings.TrimSpace(opts.Lifecycle),
 		Aggregate:    strings.TrimSpace(opts.Aggregate),
 		Components:   components,
 		Dependencies: dependencies,
 		Roots:        rootIDs,
-	}, nil
+	}
+
+	// Before the identity is minted, not after: a conversion adopts its
+	// single source's identity, and it can only do that while the slot is
+	// still empty. An identity the caller pinned always wins over both.
+	applySourceAssertions(doc, sources)
+	mintDocumentIdentity(doc)
+	if doc.Name == "" {
+		doc.Name = defaultDocumentName
+	}
+	return doc, nil
+}
+
+// mintDocumentIdentity fills whichever identity slots are still empty with a
+// freshly generated one, so a document always identifies itself.
+//
+// Both slots share a nonce when both are minted, which keeps an export's
+// SPDX namespace and CycloneDX serial recognizably the same document.
+func mintDocumentIdentity(doc *Document) {
+	nonce := ""
+	if doc.SerialNumber == "" {
+		nonce = newUUIDv4()
+		doc.SerialNumber = "urn:uuid:" + nonce
+	}
+	if doc.Namespace == "" {
+		if nonce == "" {
+			nonce = newUUIDv4()
+		}
+		doc.Namespace = "https://bomly.dev/spdx/" + nonce
+	}
 }
 
 // projectRootComponent synthesizes the pseudo component representing the

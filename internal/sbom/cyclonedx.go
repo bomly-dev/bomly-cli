@@ -70,12 +70,11 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 	}
 	if doc.Provenance.Manufacturer != "" {
 		metadata.Manufacturer = &cdx.OrganizationalEntity{Name: doc.Provenance.Manufacturer}
-		author := cdx.OrganizationalContact{Name: doc.Provenance.Manufacturer}
-		if email := bareEmail(doc.Provenance.SecurityContact); email != "" {
-			author.Email = email
-		}
-		metadata.Authors = &[]cdx.OrganizationalContact{author}
 	}
+	if authors := cycloneDXDocumentAuthors(doc); len(authors) > 0 {
+		metadata.Authors = &authors
+	}
+	metadata.Tools = cycloneDXSourceTools(doc, metadata.Tools)
 	if props := cycloneDXMetadataProperties(doc.Provenance); len(props) > 0 {
 		metadata.Properties = &props
 	}
@@ -86,6 +85,14 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 
 	if aggregate := cycloneDXAggregate(doc.Aggregate); aggregate != "" {
 		bom.Compositions = &[]cdx.Composition{{Aggregate: aggregate}}
+	}
+
+	// The documents this one was built from, named rather than inherited.
+	// Empty for a native scan and for a conversion that adopted its single
+	// source's identity; populated for a merge, and for a conversion whose
+	// source identity this format cannot hold.
+	if links := cycloneDXSourceLinks(doc); len(links) > 0 {
+		bom.ExternalReferences = &links
 	}
 
 	var out bytes.Buffer
@@ -200,6 +207,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 
 	return &Document{
 		Name:         defaultDocumentName,
+		Assertions:   cycloneDXDocumentAssertions(bom),
 		Tool:         cycloneDXPrimaryToolName(bom.Metadata),
 		Tools:        cycloneDXToolNames(bom.Metadata),
 		Created:      created,

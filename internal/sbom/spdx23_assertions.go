@@ -17,6 +17,15 @@ import (
 // grammar has an optional "(<email>)" suffix that must not be retained, which
 // is the kind of rule that gets forgotten when it is rewritten per call site.
 
+// SPDX names a creator by its type. tools-golang splits the line into type
+// and value but declares no constants for the three spellings the
+// specification allows, so they are named here once rather than repeated as
+// literals at every site that reads or writes one.
+const (
+	spdxToolCreatorType         = "Tool"
+	spdxOrganizationCreatorType = "Organization"
+)
+
 // spdxIngestedSupplier reads a package's supplier.
 func spdxIngestedSupplier(supplier *common.Supplier) *sdk.Contact {
 	if supplier == nil {
@@ -254,7 +263,13 @@ func spdxEmittedReferences(refs []sdk.ExternalReference) []*v23.PackageExternalR
 		if !ok {
 			continue
 		}
-		category := string(normalized.Category)
+		// SPDXName, not the category's own string: the SDK holds the
+		// category in its comparison form ("package-manager") and renders
+		// SPDX's spelling ("PACKAGE-MANAGER") separately. Emitting the
+		// comparison form wrote a category the specification does not define,
+		// and only showed up as an ingested document changing case on its
+		// second export -- which the fixed-point test is there to catch.
+		category := normalized.Category.SPDXName()
 		if category == "" {
 			// A CycloneDX-sourced reference has no category axis. SPDX
 			// requires one, and OTHER is the category the specification
@@ -272,4 +287,88 @@ func spdxEmittedReferences(refs []sdk.ExternalReference) []*v23.PackageExternalR
 		return nil
 	}
 	return emitted
+}
+
+// spdxDocumentAssertions reads what an SPDX document says about itself.
+//
+// tools-golang has already split each creator line into its type and value,
+// so the "Person: name (email)" grammar is never re-parsed here -- the type
+// selects the slot, and the value goes through the SDK's own contact gate.
+func spdxDocumentAssertions(doc *v23.Document) sdk.DocumentAssertions {
+	if doc == nil {
+		return sdk.DocumentAssertions{}
+	}
+	assertions := sdk.DocumentAssertions{
+		Identity:    doc.DocumentNamespace,
+		Name:        doc.DocumentName,
+		DataLicense: doc.DataLicense,
+		Comment:     doc.DocumentComment,
+	}
+	if doc.CreationInfo != nil {
+		assertions.Created = doc.CreationInfo.Created
+		for _, creator := range doc.CreationInfo.Creators {
+			if strings.EqualFold(strings.TrimSpace(creator.CreatorType), spdxToolCreatorType) {
+				// Kept whole: see documentSourceTools for why the
+				// "name-version" convention is not split apart.
+				assertions.Tools = append(assertions.Tools, sdk.DocumentTool{Name: creator.Creator})
+				continue
+			}
+			if contact := spdxContactFrom(creator.CreatorType, creator.Creator); contact != nil {
+				assertions.Creators = append(assertions.Creators, *contact)
+			}
+		}
+	}
+	normalized, ok := assertions.Normalized()
+	if !ok {
+		return sdk.DocumentAssertions{}
+	}
+	return normalized
+}
+
+// spdxDocumentCreators renders the creator lines for a document, folding the
+// parties and tools the source documents credited in with Bomly's own.
+//
+// Deduplicated on the rendered line, because that is what the format carries:
+// a tool the source credited as "bomly-cli-0.19.0" and Bomly crediting itself
+// under the same version are one creator, not two.
+func spdxDocumentCreators(doc *Document) []common.Creator {
+	creators := make([]common.Creator, 0, len(doc.ToolNamesOrDefault())+1)
+	seen := make(map[string]struct{})
+	add := func(creatorType, value string) {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			return
+		}
+		line := creatorType + ": " + value
+		if _, dup := seen[line]; dup {
+			return
+		}
+		seen[line] = struct{}{}
+		creators = append(creators, common.Creator{CreatorType: creatorType, Creator: value})
+	}
+
+	for _, tool := range doc.ToolNamesOrDefault() {
+		// SPDX creator convention appends the tool version as "name-version".
+		if tool == doc.ToolOrDefault() && doc.ToolVersion != "" {
+			tool += "-" + doc.ToolVersion
+		}
+		add(spdxToolCreatorType, tool)
+	}
+	for _, tool := range doc.Assertions.Tools {
+		add(spdxToolCreatorType, tool.Name)
+	}
+	if doc.Provenance.Manufacturer != "" {
+		add(spdxOrganizationCreatorType, doc.Provenance.Manufacturer)
+	}
+	for _, creator := range doc.Assertions.Creators {
+		// Rendered by the SDK so the line matches the one it would parse
+		// back, rather than being assembled from the parts a second time.
+		line := creator.SPDXString()
+		creatorType, value, found := strings.Cut(line, ": ")
+		if !found {
+			continue
+		}
+		add(creatorType, value)
+	}
+	return creators
 }

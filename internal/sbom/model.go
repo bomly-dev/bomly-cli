@@ -104,6 +104,28 @@ type Document struct {
 	Components   []Component
 	Dependencies []Dependency
 	Roots        []string
+
+	// Assertions are the claims this document makes about itself: its
+	// identity, name, data license, creators, tools, and comment. A decoder
+	// fills them; ingest carries them onto the graph entry the document
+	// became, so a later export can say what the source said (ADR-0037).
+	//
+	// This is what a document says about *itself*, which is why it is not the
+	// same field as Sources below.
+	Assertions sdk.DocumentAssertions
+
+	// Sources are the documents this one was built from, one per ingested
+	// SBOM, in entry order.
+	//
+	// Empty for a native scan: nothing was ingested, so Bomly's own document
+	// asserts everything itself. One source is the conversion case, where the
+	// document restates that source's assertions -- the fixed point issue
+	// #396 requires. Two or more is the merge case, where the document
+	// asserts its own aggregate identity and *links* each source rather than
+	// inheriting one, because both formats give a document exactly one
+	// identity and picking a source's would name a document that is not this
+	// one.
+	Sources []sdk.DocumentAssertions
 }
 
 // IsProjectRootComponent reports whether a component is a synthesized pseudo

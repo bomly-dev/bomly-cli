@@ -78,7 +78,7 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 		}
 		if _, isRoot := rootComponents[c.ID]; isRoot || IsProjectRootComponent(c) {
 			if doc.Provenance.Manufacturer != "" {
-				pkg.PackageSupplier = &common.Supplier{SupplierType: "Organization", Supplier: doc.Provenance.Manufacturer}
+				pkg.PackageSupplier = &common.Supplier{SupplierType: spdxOrganizationCreatorType, Supplier: doc.Provenance.Manufacturer}
 			}
 		}
 		packages = append(packages, pkg)
@@ -116,25 +116,8 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 		}
 	}
 
-	creators := make([]common.Creator, 0, len(doc.ToolNamesOrDefault())+1)
-	for _, tool := range doc.ToolNamesOrDefault() {
-		// SPDX creator convention appends the tool version as "name-version".
-		if tool == doc.ToolOrDefault() && doc.ToolVersion != "" {
-			tool += "-" + doc.ToolVersion
-		}
-		creators = append(creators, common.Creator{
-			CreatorType: "Tool",
-			Creator:     tool,
-		})
-	}
-	if doc.Provenance.Manufacturer != "" {
-		creators = append(creators, common.Creator{
-			CreatorType: "Organization",
-			Creator:     doc.Provenance.Manufacturer,
-		})
-	}
 	creation := &v23.CreationInfo{
-		Creators:       creators,
+		Creators:       spdxDocumentCreators(doc),
 		Created:        doc.CreatedOrNow().Format("2006-01-02T15:04:05Z"),
 		CreatorComment: spdxCreatorComment(doc.Provenance),
 	}
@@ -146,6 +129,7 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 		DocumentName:      doc.NameOrDefault(),
 		DocumentNamespace: doc.NamespaceOrDefault(),
 		CreationInfo:      creation,
+		DocumentComment:   doc.Assertions.Comment,
 		Packages:          packages,
 		Relationships:     relationships,
 		OtherLicenses:     spdxOtherLicenses(extractedLicenses),
@@ -233,6 +217,7 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 	return &Document{
 		Name:         spdxDoc.DocumentName,
 		Namespace:    spdxDoc.DocumentNamespace,
+		Assertions:   spdxDocumentAssertions(&spdxDoc),
 		Tool:         extractSPDXToolName(spdxDoc.CreationInfo),
 		Tools:        extractSPDXToolNames(spdxDoc.CreationInfo),
 		Created:      parseSPDXCreated(spdxDoc.CreationInfo),
@@ -282,7 +267,7 @@ func extractSPDXToolNames(ci *v23.CreationInfo) []string {
 	}
 	tools := make([]string, 0, len(ci.Creators))
 	for _, c := range ci.Creators {
-		if c.CreatorType == "Tool" {
+		if c.CreatorType == spdxToolCreatorType {
 			tools = append(tools, c.Creator)
 		}
 	}

@@ -243,3 +243,157 @@ func cycloneDXEmittedHashes(digests []sdk.Digest) *[]cdx.Hash {
 	}
 	return &hashes
 }
+
+// cycloneDXDocumentAssertions reads what a CycloneDX document says about
+// itself.
+//
+// The identity is a BOM-Link, built by cyclonedx-go from the serial and
+// version rather than formatted here: the URN's shape is the library's to
+// own, down to stripping the "urn:uuid:" prefix. A document without a serial
+// has no identity to state, which is legal -- serialNumber is optional.
+func cycloneDXDocumentAssertions(bom *cdx.BOM) sdk.DocumentAssertions {
+	if bom == nil {
+		return sdk.DocumentAssertions{}
+	}
+	var assertions sdk.DocumentAssertions
+	version := bom.Version
+	if version < 1 {
+		// ADR-0037's default: a document that did not number itself is
+		// version 1, which is also the only value NewBOMLink accepts below.
+		version = 1
+	}
+	if link, err := cdx.NewBOMLink(bom.SerialNumber, version, nil); err == nil {
+		assertions.Identity = link.String()
+	}
+	if bom.Metadata != nil {
+		assertions.Created = bom.Metadata.Timestamp
+		if bom.Metadata.Manufacturer != nil {
+			assertions.Creators = appendEntityContact(assertions.Creators, *bom.Metadata.Manufacturer)
+		}
+		if bom.Metadata.Authors != nil {
+			for _, author := range *bom.Metadata.Authors {
+				assertions.Creators = appendContact(assertions.Creators, sdk.Contact{
+					Kind: sdk.ContactKindPerson,
+					Name: author.Name,
+				})
+			}
+		}
+		assertions.Tools = cycloneDXIngestedTools(bom.Metadata.Tools)
+	}
+	normalized, ok := assertions.Normalized()
+	if !ok {
+		return sdk.DocumentAssertions{}
+	}
+	return normalized
+}
+
+// cycloneDXIngestedTools reads both shapes of the tools field: the component
+// list CycloneDX 1.5 introduced and the deprecated flat list before it.
+func cycloneDXIngestedTools(tools *cdx.ToolsChoice) []sdk.DocumentTool {
+	if tools == nil {
+		return nil
+	}
+	var ingested []sdk.DocumentTool
+	if tools.Components != nil {
+		for _, tool := range *tools.Components {
+			vendor := ""
+			if tool.Manufacturer != nil {
+				vendor = tool.Manufacturer.Name
+			}
+			ingested = append(ingested, sdk.DocumentTool{Vendor: vendor, Name: tool.Name, Version: tool.Version})
+		}
+	}
+	if tools.Tools != nil {
+		for _, tool := range *tools.Tools {
+			ingested = append(ingested, sdk.DocumentTool{Vendor: tool.Vendor, Name: tool.Name, Version: tool.Version})
+		}
+	}
+	return ingested
+}
+
+func appendEntityContact(contacts []sdk.Contact, entity cdx.OrganizationalEntity) []sdk.Contact {
+	contact := sdk.Contact{Kind: sdk.ContactKindOrganization, Name: entity.Name}
+	if entity.URL != nil && len(*entity.URL) > 0 {
+		contact.URL = (*entity.URL)[0]
+	}
+	return appendContact(contacts, contact)
+}
+
+// appendContact keeps only what the SDK's contact gate passes. A name that
+// arrived with an email address loses the address there, not here.
+func appendContact(contacts []sdk.Contact, contact sdk.Contact) []sdk.Contact {
+	normalized, ok := contact.Normalized()
+	if !ok {
+		return contacts
+	}
+	return append(contacts, normalized)
+}
+
+// cycloneDXDocumentCreators renders the document's credited parties: the
+// organizations become the manufacturer, the people become authors.
+func cycloneDXDocumentAuthors(doc *Document) []cdx.OrganizationalContact {
+	var authors []cdx.OrganizationalContact
+	if doc.Provenance.Manufacturer != "" {
+		author := cdx.OrganizationalContact{Name: doc.Provenance.Manufacturer}
+		if email := bareEmail(doc.Provenance.SecurityContact); email != "" {
+			author.Email = email
+		}
+		authors = append(authors, author)
+	}
+	for _, creator := range doc.Assertions.Creators {
+		if creator.Kind != sdk.ContactKindPerson {
+			continue
+		}
+		authors = append(authors, cdx.OrganizationalContact{Name: creator.Name})
+	}
+	return authors
+}
+
+// cycloneDXSourceTools folds the tools the source documents credited in with
+// Bomly's own, deduplicated on the triple the SDK keys them by.
+func cycloneDXSourceTools(doc *Document, tools *cdx.ToolsChoice) *cdx.ToolsChoice {
+	if len(doc.Assertions.Tools) == 0 {
+		return tools
+	}
+	components := make([]cdx.Component, 0, len(doc.Assertions.Tools))
+	if tools != nil && tools.Components != nil {
+		components = append(components, *tools.Components...)
+	}
+	seen := make(map[string]struct{}, len(components))
+	for _, component := range components {
+		seen[component.Name+"\x00"+component.Version] = struct{}{}
+	}
+	for _, tool := range doc.Assertions.Tools {
+		key := tool.Name + "\x00" + tool.Version
+		if _, dup := seen[key]; dup {
+			continue
+		}
+		seen[key] = struct{}{}
+		component := cdx.Component{Type: cdx.ComponentTypeApplication, Name: tool.Name, Version: tool.Version}
+		if tool.Vendor != "" {
+			component.Manufacturer = &cdx.OrganizationalEntity{Name: tool.Vendor}
+		}
+		components = append(components, component)
+	}
+	if len(components) == 0 {
+		return tools
+	}
+	return &cdx.ToolsChoice{Components: &components}
+}
+
+// cycloneDXSourceLinks renders the links naming the documents this one was
+// built from, as external references of type "bom" on the document itself.
+func cycloneDXSourceLinks(doc *Document) []cdx.ExternalReference {
+	links := documentSourceLinks(doc)
+	if len(links) == 0 {
+		return nil
+	}
+	refs := make([]cdx.ExternalReference, 0, len(links))
+	for _, link := range links {
+		refs = append(refs, cdx.ExternalReference{
+			Type: cdx.ExternalReferenceType(link.Type),
+			URL:  link.Locator,
+		})
+	}
+	return refs
+}

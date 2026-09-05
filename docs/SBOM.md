@@ -67,6 +67,23 @@ This is fast, offline, and useful for:
 
 Format is auto-detected by content. The supported ingest formats are SPDX 2.3 JSON and CycloneDX 1.4–1.7 JSON; anything else is rejected as an unsupported format. Most SBOM producers, including Syft, can emit one of the supported formats directly (for example `syft <target> -o spdx-json`).
 
+### What an ingested document keeps
+
+Ingest reads more than package coordinates. What a source document asserted
+about each component is carried through the scan and written back out:
+supplier, originator or publisher, description, homepage, checksums, CPEs,
+and the document's own external references with the category and type it
+stated.
+
+The document's claims about *itself* are kept too — its identity, name, data
+license, timestamp, credited people, organizations and tools, and its comment.
+
+Every one of those values is untrusted input that Bomly re-publishes under its
+own name, so each is re-checked on the way in *and* on the way out. A value
+that cannot be published — a credential in a URL, a local path, a control
+character, a malformed CPE or digest — is dropped rather than passed along.
+Email addresses are never retained on a contact.
+
 ## Diffing SBOMs
 
 Compare two SBOM files without re-running detectors on either side:
@@ -241,7 +258,22 @@ Every generated document carries a stable identity:
 
 - A generated `urn:uuid` serial number (CycloneDX `serialNumber`; the same
   nonce forms the SPDX document namespace, so the two exports of one scan are
-  correlatable).
+  correlatable). Two cases differ, and both apply only when the scan read
+  SBOMs rather than lockfiles:
+  - **One source document** (a conversion). The output keeps that document's
+    identity instead of minting a new one, because it restates one document
+    rather than describing a new subject. This is what makes
+    export → ingest → export reproduce the same bytes. A CycloneDX serial can
+    only hold a UUID URN, so an SPDX namespace that is not one is linked
+    instead of adopted (see below). The document *name* is unaffected: it
+    stays the scanned project's name.
+  - **Several source documents** (a merge). The output mints its own identity
+    — both formats give a document exactly one, and adopting a source's would
+    name a document that is not this one — and *links* each source: a
+    CycloneDX external reference of type `bom`, carrying a BOM-Link
+    (`urn:cdx:<serial>/<version>`) for a CycloneDX source or the namespace URI
+    for an SPDX one. People and tools credited by any source are credited by
+    the merged document too.
 - The producing tool with its version (CycloneDX `metadata.tools[]`; SPDX
   `Creator: Tool: bomly-cli-<version>`), plus one tool entry per detector that
   contributed to the graph.
@@ -325,7 +357,13 @@ Some information necessarily becomes less specific during conversion:
 - Package origin is written on export but not read back on ingest: scanning an
   SBOM produces packages with no origin, so re-exporting that graph emits
   `NOASSERTION` and no distribution or vcs reference. Origin comes from a
-  lockfile, and an ingested document is not one.
+  lockfile, and an ingested document is not one. This is why references of
+  type `distribution` and `vcs` are the two Bomly does not preserve from a
+  source document: they are the shape Bomly's own origin export takes, and
+  nothing in a document distinguishes Bomly's emission from a third party's —
+  so reading them back would let a detector's guess about where a package came
+  from re-enter as though the document had asserted it. Every other reference
+  type is preserved with the category and type the source stated.
 - Bomly relationship confidence (`direct`, `transitive`, or `unknown`), source
   provenance, reachability analysis, policy findings, and run diagnostics are
   report data rather than portable SBOM fields. Use JSON when those distinctions
@@ -338,6 +376,12 @@ Some information necessarily becomes less specific during conversion:
   written with the same detail as an inventory entry, so a package that is
   both the document's subject and a component describes itself the same way
   in both places.
+- A merged SPDX document does not link its sources. SPDX names another
+  document through `externalDocumentRefs`, and every entry there requires a
+  checksum over that document's bytes, which Bomly's document carrier cannot
+  yet hold (tracked as bomly-dev/bomly-sdk#55). Merged CycloneDX documents do
+  link their sources, and merged SPDX documents still preserve every
+  component assertion.
 - The CycloneDX `group` namespace survives a CycloneDX round trip. SPDX 2.3
   has no group field, so an SPDX round trip recovers the namespace only from
   the PURL.

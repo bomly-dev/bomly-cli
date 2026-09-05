@@ -4,7 +4,7 @@ go 1.27.0
 
 require (
 	github.com/BurntSushi/toml v1.6.0
-	github.com/CycloneDX/cyclonedx-go v0.11.0
+	github.com/CycloneDX/cyclonedx-go v0.12.0
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/bomly-dev/bomly-plugin-depsdev-license-matcher v0.2.0
 	github.com/bomly-dev/bomly-plugin-govulncheck-analyzer v0.2.0

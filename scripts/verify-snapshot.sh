@@ -11,10 +11,20 @@
 # restored mtime is indistinguishable from an unchanged file.
 #
 # Git decides what the repository contains, rather than a hand-written walk
-# that has to be kept in step with the tree. HEAD plus the full diff against
-# it covers every tracked file, staged and unstaged alike, including deletions
-# and newly added files. Untracked files are deliberately excluded: they are
-# not part of a push, which is the same rule the previous check documented.
+# that has to be kept in step with the tree.
+#
+# The digest covers the index (blob hashes for every tracked path) plus the
+# worktree's diff against it, which together pin the exact content of every
+# tracked file, including deletions and newly staged files. Untracked files
+# are deliberately excluded: they are not part of a push, which is the same
+# rule the previous check documented.
+#
+# It deliberately does NOT include HEAD. Committing moves content across the
+# HEAD boundary without changing a byte of it, so folding HEAD in invalidated
+# a verification that was still perfectly valid -- and a gate that fails on
+# `git commit` is one that teaches people to pass --no-verify, which is worse
+# than no gate at all. Neither `git ls-files -s` nor `git diff` is affected by
+# a commit, so this holds across one and still changes on any real edit.
 set -eu
 
 repo_root=$(git rev-parse --show-toplevel)
@@ -31,7 +41,7 @@ digest() {
 }
 
 {
-	git rev-parse HEAD 2>/dev/null || echo "no-head"
-	git diff HEAD --binary 2>/dev/null || git diff --binary
+	git ls-files -s
+	git diff --binary
 } | digest | tr -d ' -' | tr -d '\n'
 echo

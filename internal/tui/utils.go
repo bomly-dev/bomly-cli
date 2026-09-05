@@ -494,8 +494,14 @@ func explainRelationships(graphValue *sdk.Graph, targetID string) (map[string]st
 		labels[pkg.NodeID()] = "parent"
 		counts["parent"]++
 	}
-	for _, pkg := range graphValue.DependencyNodes() {
-		if pkg == nil || pkg.NodeID() == targetID {
+	// The whole node union, not just dependencies. A normal graph's root is a
+	// module node now, and for a transitive target it is not a direct parent
+	// -- so it fell through to this loop and was skipped, leaving the
+	// explanation with no project context and a header reporting "Roots: 0"
+	// for a scan that plainly has one. Nested workspace modules were hidden
+	// the same way.
+	for _, pkg := range graphValue.Nodes() {
+		if sdk.IsNilNode(pkg) || pkg.NodeID() == targetID {
 			continue
 		}
 		if _, ok := labels[pkg.NodeID()]; ok {

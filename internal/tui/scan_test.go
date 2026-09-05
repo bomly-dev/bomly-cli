@@ -38,3 +38,46 @@ func TestPackageRowPurlIsNeverAStructuralID(t *testing.T) {
 		t.Fatalf("dependency row purl = %q, want its identity %q", dependencyRow.purl, dependency.NodeID())
 	}
 }
+
+// Explain must keep the project's own module in view.
+//
+// A normal graph's root is a module node, and for a transitive target it is
+// not a direct parent of that target — so the dependency-only walk skipped it
+// entirely: the component list lost the project row, and the header counted
+// "Roots: 0" for a scan that plainly has one. Nested workspace modules were
+// hidden the same way.
+func TestExplainRelationshipsCountModuleRoots(t *testing.T) {
+	g := sdk.New()
+	root := testnodes.Module("package.json", "app", "1.0.0")
+	direct := testnodes.Dep(sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
+	transitive := testnodes.Dep(sdk.Coordinates{Ecosystem: "npm", Name: "loose-envify", Version: "1.4.0"})
+	for _, node := range []sdk.GraphNode{root, direct, transitive} {
+		if _, err := g.InsertNode(node); err != nil {
+			t.Fatalf("InsertNode(%q): %v", node.NodeID(), err)
+		}
+	}
+	for _, edge := range [][2]string{
+		{root.NodeID(), direct.NodeID()},
+		{direct.NodeID(), transitive.NodeID()},
+	} {
+		if err := g.AddEdge(edge[0], edge[1]); err != nil {
+			t.Fatalf("AddEdge: %v", err)
+		}
+	}
+
+	// The target is transitive, so the module root is an ancestor rather than
+	// a direct parent — the case the narrowing lost.
+	labels, counts := explainRelationships(g, transitive.NodeID())
+	if counts["root"] != 1 {
+		t.Fatalf("root count = %d, want the project's module root counted; labels=%v", counts["root"], labels)
+	}
+	if got := labels[root.NodeID()]; got != "root" {
+		t.Fatalf("module root labelled %q, want %q", got, "root")
+	}
+	if got := labels[direct.NodeID()]; got != "parent" {
+		t.Fatalf("direct dependency labelled %q, want %q", got, "parent")
+	}
+	if got := labels[transitive.NodeID()]; got != "self" {
+		t.Fatalf("target labelled %q, want %q", got, "self")
+	}
+}

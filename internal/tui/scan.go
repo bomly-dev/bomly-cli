@@ -2623,8 +2623,12 @@ func (m *ScanModel) buildExplainComponentListModel(manifest listPackageRow) *lis
 	labels, counts := explainRelationships(m.graphValue, manifest.targetID)
 	rows := make([]listPackageRow, 0, len(labels))
 	if m.graphValue != nil {
-		for _, pkg := range m.graphValue.DependencyNodes() {
-			if pkg == nil {
+		// Every node kind, matching the ordinary component tree, which walks
+		// the union. Listing dependencies alone dropped the project's own
+		// module from the explanation -- the node that answers "which of my
+		// modules pulled this in", which is what explain is for.
+		for _, pkg := range m.graphValue.Nodes() {
+			if sdk.IsNilNode(pkg) {
 				continue
 			}
 			row := packageRowFromGraph(pkg, labels[pkg.NodeID()])

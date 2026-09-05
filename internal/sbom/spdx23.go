@@ -69,18 +69,22 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageCopyrightText:      spdxCopyrightValue(c.Copyright),
 			PackageChecksums:          spdxChecksums(c.Digests),
 			PackageSourceInfo:         spdxSourceInfo(c),
-			PackageExternalReferences: spdxExternalReferences(c),
+			PackageExternalReferences: append(spdxExternalReferences(c), spdxEmittedReferences(c.ExternalReferences)...),
+			PackageSupplier:           spdxSupplierFor(c.Supplier),
+			PackageOriginator:         spdxOriginatorFor(c.Originator),
+			PackageDescription:        sdk.NormalizeDescription(c.Description),
+			PackageHomePage:           sdk.NormalizeHomepage(c.Homepage),
 			PrimaryPackagePurpose:     spdxPrimaryPackagePurpose(c.Type),
 		}
 		if _, isRoot := rootComponents[c.ID]; isRoot || IsProjectRootComponent(c) {
 			if doc.Provenance.Manufacturer != "" {
-				pkg.PackageSupplier = &common.Supplier{SupplierType: "Organization", Supplier: doc.Provenance.Manufacturer}
+				pkg.PackageSupplier = &common.Supplier{SupplierType: spdxOrganizationCreatorType, Supplier: doc.Provenance.Manufacturer}
 			}
 		}
 		packages = append(packages, pkg)
 	}
 
-	relationships := make([]*v23.Relationship, 0, len(doc.Dependencies)+len(doc.Roots))
+	relationships := make([]*v23.Relationship, 0, allocHint(len(doc.Dependencies), len(doc.Roots)))
 	documentRef := common.DocElementID{ElementRefID: common.ElementID("DOCUMENT")}
 	for _, root := range doc.Roots {
 		rootID, ok := idByComponent[root]
@@ -112,25 +116,8 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 		}
 	}
 
-	creators := make([]common.Creator, 0, len(doc.ToolNamesOrDefault())+1)
-	for _, tool := range doc.ToolNamesOrDefault() {
-		// SPDX creator convention appends the tool version as "name-version".
-		if tool == doc.ToolOrDefault() && doc.ToolVersion != "" {
-			tool += "-" + doc.ToolVersion
-		}
-		creators = append(creators, common.Creator{
-			CreatorType: "Tool",
-			Creator:     tool,
-		})
-	}
-	if doc.Provenance.Manufacturer != "" {
-		creators = append(creators, common.Creator{
-			CreatorType: "Organization",
-			Creator:     doc.Provenance.Manufacturer,
-		})
-	}
 	creation := &v23.CreationInfo{
-		Creators:       creators,
+		Creators:       spdxDocumentCreators(doc),
 		Created:        doc.CreatedOrNow().Format("2006-01-02T15:04:05Z"),
 		CreatorComment: spdxCreatorComment(doc.Provenance),
 	}
@@ -142,6 +129,7 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 		DocumentName:      doc.NameOrDefault(),
 		DocumentNamespace: doc.NamespaceOrDefault(),
 		CreationInfo:      creation,
+		DocumentComment:   doc.Assertions.Comment,
 		Packages:          packages,
 		Relationships:     relationships,
 		OtherLicenses:     spdxOtherLicenses(extractedLicenses),
@@ -164,7 +152,7 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 			continue
 		}
 		id := common.RenderElementID(p.PackageSPDXIdentifier)
-		components = append(components, Component{
+		component := Component{
 			ID:             id,
 			Name:           p.PackageName,
 			Version:        p.PackageVersion,
@@ -175,7 +163,9 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 			PackageManager: parseSPDXPackageManager(p.PackageExternalReferences),
 			Copyright:      parseSPDXCopyright(p.PackageCopyrightText),
 			Licenses:       parseSPDXLicenses(extractedByRef, p.PackageLicenseConcluded, p.PackageLicenseDeclared),
-		})
+		}
+		applySPDXAssertions(&component, p)
+		components = append(components, component)
 	}
 
 	depsByRef := make(map[string][]string, len(components))
@@ -227,6 +217,7 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 	return &Document{
 		Name:         spdxDoc.DocumentName,
 		Namespace:    spdxDoc.DocumentNamespace,
+		Assertions:   spdxDocumentAssertions(&spdxDoc),
 		Tool:         extractSPDXToolName(spdxDoc.CreationInfo),
 		Tools:        extractSPDXToolNames(spdxDoc.CreationInfo),
 		Created:      parseSPDXCreated(spdxDoc.CreationInfo),
@@ -276,7 +267,7 @@ func extractSPDXToolNames(ci *v23.CreationInfo) []string {
 	}
 	tools := make([]string, 0, len(ci.Creators))
 	for _, c := range ci.Creators {
-		if c.CreatorType == "Tool" {
+		if c.CreatorType == spdxToolCreatorType {
 			tools = append(tools, c.Creator)
 		}
 	}
@@ -483,6 +474,29 @@ func spdxLicenseValue(licenses []License) (string, []spdxkit.ExtractedText) {
 	return spdxkit.Compose(elements), extracted
 }
 
+// maxAllocHint bounds a preallocation hint. It is a dumb count, not a limit
+// on the work: a hint is only a hint, and append grows past it, so a
+// genuinely larger document still encodes in full.
+const maxAllocHint = 1 << 20
+
+// allocHint sizes a preallocation from two lengths that came from a decoded
+// document. Each side is clamped before the addition rather than the sum
+// checked after it, so the sum cannot wrap -- an overflowed hint reaches make
+// as a negative size, which panics.
+//
+// These lengths are attacker-influenced now: ingest carries a foreign
+// document's own assertions, so a component's reference and vulnerability
+// counts come from that document rather than from Bomly's own detection.
+//
+// Not delegated. bomly-sdk hardened the same pattern in its merges
+// (bomly-dev/bomly-sdk#53) but keeps mergeCapacity unexported, and a resource
+// bound is the project's own call rather than a rule a library owns -- the
+// delegation convention says so explicitly. The bound is kept identical to
+// the SDK's so the two do not drift into different answers for one question.
+func allocHint(a, b int) int {
+	return min(a, maxAllocHint) + min(b, maxAllocHint)
+}
+
 // spdxOtherLicenses renders the document's extracted-text section: one entry
 // per distinct reference, sorted by identifier so the document is stable.
 //
@@ -573,7 +587,7 @@ func spdxSourceInfo(component Component) string {
 }
 
 func spdxExternalReferences(component Component) []*v23.PackageExternalReference {
-	refs := make([]*v23.PackageExternalReference, 0, 1+len(component.CPEs)+len(component.Vulnerabilities))
+	refs := make([]*v23.PackageExternalReference, 0, allocHint(len(component.CPEs), len(component.Vulnerabilities))+1)
 	if purl := strings.TrimSpace(component.PURL); purl != "" {
 		refs = append(refs, &v23.PackageExternalReference{
 			Category: common.CategoryPackageManager,

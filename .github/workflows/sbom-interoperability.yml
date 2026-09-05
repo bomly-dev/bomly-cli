@@ -17,6 +17,8 @@ env:
   CDX_CLI_URL: https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.32.0/cyclonedx-linux-x64
   CDX_CLI_SHA256: 454879e6a4a405c8a13bff49b8982adcb0596f3019b26b0811c66e4d7f0783e1
   FIXTURE_SBOM: test/smoke/testdata/sboms/go.spdx.json
+  MERGE_FIXTURE_A: test/smoke/testdata/sboms/go.spdx.json
+  MERGE_FIXTURE_B: test/smoke/testdata/sboms/js.spdx.json
   OUTPUT_DIR: sbom-assurance-artifacts
 
 jobs:
@@ -64,11 +66,56 @@ jobs:
           sha256sum "${OUTPUT_DIR}/bomly.spdx.json" "${OUTPUT_DIR}/bomly.cdx.json" \
             | tee "${OUTPUT_DIR}/checksums.txt"
 
+      - name: Generate a merged SBOM from two source documents
+        run: |
+          set -euo pipefail
+          # Two subprojects, one source document each, so the export has to
+          # reconcile two documents that each assert their own identity --
+          # the case ADR-0037 defines and the single-fixture run above never
+          # reaches.
+          mkdir -p "${OUTPUT_DIR}/merge-tree/a" "${OUTPUT_DIR}/merge-tree/b"
+          cp "${MERGE_FIXTURE_A}" "${OUTPUT_DIR}/merge-tree/a/"
+          cp "${MERGE_FIXTURE_B}" "${OUTPUT_DIR}/merge-tree/b/"
+          ./bin/bomly scan --path "${OUTPUT_DIR}/merge-tree" --recursive --detectors sbom \
+            --format spdx > "${OUTPUT_DIR}/bomly-merged.spdx.json"
+          ./bin/bomly scan --path "${OUTPUT_DIR}/merge-tree" --recursive --detectors sbom \
+            --format cyclonedx > "${OUTPUT_DIR}/bomly-merged.cdx.json"
+          sha256sum "${OUTPUT_DIR}/bomly-merged.spdx.json" "${OUTPUT_DIR}/bomly-merged.cdx.json" \
+            | tee -a "${OUTPUT_DIR}/checksums.txt"
+
+      - name: Check the merged document links its sources
+        run: |
+          set -euo pipefail
+          # A merged document states its own identity and names the documents
+          # it was built from, rather than adopting one source's identity
+          # (ADR-0037). Asserted here because only a real two-source run can
+          # produce it.
+          python3 - "${OUTPUT_DIR}/bomly-merged.cdx.json" "${MERGE_FIXTURE_A}" "${MERGE_FIXTURE_B}" <<'PYEOF'
+          import json, sys
+
+          merged = json.load(open(sys.argv[1]))
+          wanted = {json.load(open(path))["documentNamespace"] for path in sys.argv[2:]}
+          linked = {
+              ref["url"]
+              for ref in merged.get("externalReferences", [])
+              if ref.get("type") == "bom"
+          }
+          missing = wanted - linked
+          if missing:
+              raise SystemExit(f"merged document does not link its sources: {sorted(missing)}")
+          if merged.get("serialNumber") in wanted:
+              raise SystemExit("merged document adopted a source's identity")
+          print(f"merged document links {len(linked)} source(s): {sorted(linked)}")
+          PYEOF
+
       - name: Validate SPDX 2.3 output (spdx/tools-java)
         run: |
           set -euo pipefail
           java -jar "${OUTPUT_DIR}/validators/${SPDX_TOOLS_JAR}" Verify \
             "${OUTPUT_DIR}/bomly.spdx.json" 2>&1 | tee "${OUTPUT_DIR}/spdx-validation.log"
+          java -jar "${OUTPUT_DIR}/validators/${SPDX_TOOLS_JAR}" Verify \
+            "${OUTPUT_DIR}/bomly-merged.spdx.json" 2>&1 \
+            | tee "${OUTPUT_DIR}/spdx-merged-validation.log"
 
       - name: Validate CycloneDX 1.7 output (cyclonedx-cli)
         run: |
@@ -77,6 +124,10 @@ jobs:
             --input-file "${OUTPUT_DIR}/bomly.cdx.json" \
             --input-format json --input-version v1_7 --fail-on-errors \
             2>&1 | tee "${OUTPUT_DIR}/cyclonedx-validation.log"
+          "${OUTPUT_DIR}/validators/cyclonedx-cli" validate \
+            --input-file "${OUTPUT_DIR}/bomly-merged.cdx.json" \
+            --input-format json --input-version v1_7 --fail-on-errors \
+            2>&1 | tee "${OUTPUT_DIR}/cyclonedx-merged-validation.log"
 
       - name: Summarize the result
         if: always()
@@ -84,7 +135,7 @@ jobs:
           set -euo pipefail
           {
             printf '# SBOM interoperability assurance\n\n'
-            printf 'The built binary generated SPDX 2.3 and CycloneDX 1.7 SBOMs from a pinned fixture, and the official validators checked them.\n\n'
+            printf 'The built binary generated SPDX 2.3 and CycloneDX 1.7 SBOMs from a pinned fixture, and a merged pair from two source documents, and the official validators checked all four.\n\n'
             printf -- '- **Revision:** `%s`\n' "${GITHUB_SHA}"
             printf -- '- **Validators:** spdx/tools-java `%s`, cyclonedx-cli `%s` (both checksum-pinned)\n\n' "${SPDX_TOOLS_VERSION}" "${CDX_CLI_VERSION}"
             if [[ -f "${OUTPUT_DIR}/checksums.txt" ]]; then
@@ -102,8 +153,12 @@ jobs:
           path: |
             sbom-assurance-artifacts/bomly.spdx.json
             sbom-assurance-artifacts/bomly.cdx.json
+            sbom-assurance-artifacts/bomly-merged.spdx.json
+            sbom-assurance-artifacts/bomly-merged.cdx.json
             sbom-assurance-artifacts/checksums.txt
             sbom-assurance-artifacts/spdx-validation.log
             sbom-assurance-artifacts/cyclonedx-validation.log
+            sbom-assurance-artifacts/spdx-merged-validation.log
+            sbom-assurance-artifacts/cyclonedx-merged-validation.log
           if-no-files-found: warn
           retention-days: 14

@@ -20,9 +20,34 @@ import (
 var ErrNilGraph = errors.New("dependency graph is nil")
 
 // FromDepGraph builds a neutral SBOM document from a dependency DAG.
+//
+// For a graph that came from ingested SBOMs, prefer FromGraphEntries: this
+// entry point has no way to see what those documents said about themselves,
+// and so exports a document that credits only Bomly.
 func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
+	return FromGraphEntries(g, nil, opts)
+}
+
+// FromGraphEntries builds a neutral SBOM document from the prepared graph
+// entries and the consolidated graph they produced.
+//
+// Both are passed, and neither is derived from the other. The graph is the
+// one already selected for output -- consolidation renamed its identities and
+// the scope filter decided what stays -- so re-merging the entries here would
+// export a different graph than the rest of the command reports. The entries
+// are here for the one thing only they carry: what each source document
+// asserted about itself, which the merge into a single graph necessarily
+// discards (ADR-0037).
+func FromGraphEntries(g *sdk.Graph, entries []sdk.GraphEntry, opts BuildOptions) (*Document, error) {
 	if g == nil {
 		return nil, ErrNilGraph
+	}
+	sources := make([]sdk.DocumentAssertions, 0, len(entries))
+	for _, entry := range entries {
+		if entry.Document == nil {
+			continue
+		}
+		sources = append(sources, *entry.Document)
 	}
 
 	componentCount := g.Size()
@@ -72,6 +97,7 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			component.Copyright = dep.Copyright
 			component.Licenses = componentLicenses(sdk.DetectionLicenses(dep))
 			component.Digests = componentDigests(dep.Digests)
+			applyNodeAssertions(&component, dep)
 			// The project's own records never take an external origin. This
 			// guard closes the one remaining path -- a plugin-supplied graph
 			// asserting an origin directly -- and module nodes cannot reach
@@ -147,11 +173,6 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 		created = time.Now().UTC()
 	}
 
-	documentName := opts.DocumentName
-	if documentName == "" {
-		documentName = defaultDocumentName
-	}
-
 	// When the graph has no single root (multiple manifests, multiple
 	// ecosystems) the primary component would otherwise be an arbitrary
 	// manifest node. Synthesize a pseudo root that represents the scanned
@@ -171,40 +192,56 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 		rootIDs = []string{root.ID}
 	}
 
-	serialNumber := strings.TrimSpace(opts.SerialNumber)
-	nonce := ""
-	if serialNumber == "" {
-		nonce = newUUIDv4()
-		serialNumber = "urn:uuid:" + nonce
-	}
-	documentNS := opts.DocumentNS
-	if documentNS == "" {
-		if nonce == "" {
-			nonce = newUUIDv4()
-		}
-		documentNS = "https://bomly.dev/spdx/" + nonce
-	}
 	toolName := opts.ToolName
 	if toolName == "" {
 		toolName = defaultToolName
 	}
 	toolNames := uniqueToolNames(append([]string{toolName}, opts.ToolNames...))
 
-	return &Document{
-		Name:         documentName,
-		Namespace:    documentNS,
+	doc := &Document{
+		Name:         opts.DocumentName,
+		Namespace:    opts.DocumentNS,
 		Tool:         toolName,
 		Tools:        toolNames,
 		ToolVersion:  strings.TrimSpace(opts.ToolVersion),
 		Created:      created,
-		SerialNumber: serialNumber,
+		SerialNumber: strings.TrimSpace(opts.SerialNumber),
 		Provenance:   opts.Provenance,
 		Lifecycle:    strings.TrimSpace(opts.Lifecycle),
 		Aggregate:    strings.TrimSpace(opts.Aggregate),
 		Components:   components,
 		Dependencies: dependencies,
 		Roots:        rootIDs,
-	}, nil
+	}
+
+	// Before the identity is minted, not after: a conversion adopts its
+	// single source's identity, and it can only do that while the slot is
+	// still empty. An identity the caller pinned always wins over both.
+	applySourceAssertions(doc, sources)
+	mintDocumentIdentity(doc)
+	if doc.Name == "" {
+		doc.Name = defaultDocumentName
+	}
+	return doc, nil
+}
+
+// mintDocumentIdentity fills whichever identity slots are still empty with a
+// freshly generated one, so a document always identifies itself.
+//
+// Both slots share a nonce when both are minted, which keeps an export's
+// SPDX namespace and CycloneDX serial recognizably the same document.
+func mintDocumentIdentity(doc *Document) {
+	nonce := ""
+	if doc.SerialNumber == "" {
+		nonce = newUUIDv4()
+		doc.SerialNumber = "urn:uuid:" + nonce
+	}
+	if doc.Namespace == "" {
+		if nonce == "" {
+			nonce = newUUIDv4()
+		}
+		doc.Namespace = "https://bomly.dev/spdx/" + nonce
+	}
 }
 
 // projectRootComponent synthesizes the pseudo component representing the
@@ -423,6 +460,56 @@ func applyOrigins(component *Component, origins []sdk.DependencyOrigin) {
 	component.ArtifactURL = primary.ArtifactURL
 	component.VCSURL = primary.Repository
 	component.VCSRevision = primary.Revision
+}
+
+// applyNodeAssertions copies the claims a node carries about itself onto the
+// component the document will hold (ADR-0037, issue #396).
+//
+// Every value re-clears its own gate on the way out, even though it cleared
+// one on the way in. The node is not a trusted carrier: a detector or an
+// external plugin can write these fields directly, and a value that entered
+// through a plugin never passed an ingest gate at all. Gating only at the
+// boundary that happens to be upstream is how #391's last unfixed finding
+// worked -- references restored from metadata were published without
+// re-clearing anything.
+//
+// A rejected value is dropped rather than repaired: the gates decide what is
+// publishable, and a "fixed" contact or reference would be an assertion no
+// source made.
+func applyNodeAssertions(component *Component, dep *sdk.DependencyNode) {
+	if component == nil || dep == nil {
+		return
+	}
+	if dep.Supplier != nil {
+		if contact, ok := dep.Supplier.Normalized(); ok {
+			component.Supplier = &contact
+		}
+	}
+	if dep.Originator != nil {
+		if contact, ok := dep.Originator.Normalized(); ok {
+			component.Originator = &contact
+		}
+	}
+	component.Description = sdk.NormalizeDescription(dep.Description)
+	component.Homepage = sdk.NormalizeHomepage(dep.Homepage)
+	component.ExternalReferences = publishableReferences(dep.ExternalReferences)
+	if len(dep.CPEs) > 0 && len(component.CPEs) == 0 {
+		component.CPEs = append([]string(nil), dep.CPEs...)
+	}
+}
+
+// publishableReferences returns the references that survive the SDK gate,
+// deduplicated by the reference's own identity.
+//
+// MergeExternalReferences is the union rule, so calling it with no existing
+// set both normalizes and dedupes -- the set merge class stated in ADR-0037,
+// applied through the one implementation of it rather than a second sort-and-
+// compare written here.
+func publishableReferences(refs []sdk.ExternalReference) []sdk.ExternalReference {
+	if len(refs) == 0 {
+		return nil
+	}
+	return sdk.MergeExternalReferences(nil, refs)
 }
 
 func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegistry, purl string, projectOwned bool) {

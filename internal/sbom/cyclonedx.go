@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/spdxkit"
 )
 
@@ -69,12 +70,11 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 	}
 	if doc.Provenance.Manufacturer != "" {
 		metadata.Manufacturer = &cdx.OrganizationalEntity{Name: doc.Provenance.Manufacturer}
-		author := cdx.OrganizationalContact{Name: doc.Provenance.Manufacturer}
-		if email := bareEmail(doc.Provenance.SecurityContact); email != "" {
-			author.Email = email
-		}
-		metadata.Authors = &[]cdx.OrganizationalContact{author}
 	}
+	if authors := cycloneDXDocumentAuthors(doc); len(authors) > 0 {
+		metadata.Authors = &authors
+	}
+	metadata.Tools = cycloneDXSourceTools(doc, metadata.Tools)
 	if props := cycloneDXMetadataProperties(doc.Provenance); len(props) > 0 {
 		metadata.Properties = &props
 	}
@@ -85,6 +85,14 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 
 	if aggregate := cycloneDXAggregate(doc.Aggregate); aggregate != "" {
 		bom.Compositions = &[]cdx.Composition{{Aggregate: aggregate}}
+	}
+
+	// The documents this one was built from, named rather than inherited.
+	// Empty for a native scan and for a conversion that adopted its single
+	// source's identity; populated for a merge, and for a conversion whose
+	// source identity this format cannot hold.
+	if links := cycloneDXSourceLinks(doc); len(links) > 0 {
+		bom.ExternalReferences = &links
 	}
 
 	var out bytes.Buffer
@@ -105,7 +113,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 	componentByID := make(map[string]Component)
 	if bom.Components != nil {
 		for _, comp := range *bom.Components {
-			componentByID[comp.BOMRef] = Component{
+			component := Component{
 				ID:        comp.BOMRef,
 				Name:      comp.Name,
 				Org:       comp.Group,
@@ -116,6 +124,8 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 				Copyright: comp.Copyright,
 				Licenses:  parseCycloneDXLicenses(comp.Licenses),
 			}
+			applyCycloneDXAssertions(&component, comp)
+			componentByID[comp.BOMRef] = component
 		}
 	}
 
@@ -197,6 +207,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 
 	return &Document{
 		Name:         defaultDocumentName,
+		Assertions:   cycloneDXDocumentAssertions(bom),
 		Tool:         cycloneDXPrimaryToolName(bom.Metadata),
 		Tools:        cycloneDXToolNames(bom.Metadata),
 		Created:      created,
@@ -460,9 +471,20 @@ func cycloneDXComponent(comp Component) cdx.Component {
 	if props := cycloneDXEOLProperties(comp.EOL); len(props) > 0 {
 		component.Properties = &props
 	}
-	if refs := cycloneDXComponentReferences(comp); len(refs) > 0 {
+	// Origin-derived references first, then the ones the source document
+	// asserted. Both are references about the same component and the format
+	// carries one list, so they concatenate; the emitted set is deduplicated
+	// by the SDK's reference identity before it is written.
+	refs := cycloneDXComponentReferences(comp)
+	refs = append(refs, cycloneDXEmittedReferences(comp.ExternalReferences)...)
+	if len(refs) > 0 {
 		component.ExternalReferences = &refs
 	}
+	component.Supplier = cycloneDXEntityFor(comp.Supplier)
+	if originator := cycloneDXEntityFor(comp.Originator); originator != nil {
+		component.Publisher = originator.Name
+	}
+	component.Description = sdk.NormalizeDescription(comp.Description)
 	return component
 }
 

@@ -100,8 +100,17 @@ func UnmarshalAutoJSON(data []byte) (*Document, Target, error) {
 }
 
 // MarshalDepGraphJSON converts a dependency graph directly into a target JSON SBOM.
+//
+// For a graph built from ingested SBOMs, prefer MarshalGraphEntriesJSON: see
+// FromDepGraph for what this entry point cannot see.
 func MarshalDepGraphJSON(g *sdk.Graph, target Target, buildOpts BuildOptions, encodeOpts EncodeOptions) ([]byte, error) {
-	doc, err := FromDepGraph(g, buildOpts)
+	return MarshalGraphEntriesJSON(g, nil, target, buildOpts, encodeOpts)
+}
+
+// MarshalGraphEntriesJSON converts the prepared graph entries and the graph
+// they consolidated into directly into a target JSON SBOM.
+func MarshalGraphEntriesJSON(g *sdk.Graph, entries []sdk.GraphEntry, target Target, buildOpts BuildOptions, encodeOpts EncodeOptions) ([]byte, error) {
+	doc, err := FromGraphEntries(g, entries, buildOpts)
 	if err != nil {
 		return nil, err
 	}

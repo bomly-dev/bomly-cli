@@ -53,9 +53,11 @@ than the source said. This is the one deliberate cross-format difference, and
 it is recorded in `docs/SBOM.md`. CycloneDX composes only when a member is
 itself compound, where listing would degrade a real expression to free text.
 
-A set that mixes valid expressions with free text cannot compose without
-producing something that does not parse, so CycloneDX falls back to one entry
-per license and SPDX to the first value.
+A set that mixes valid expressions with free text cannot compose while the
+free text stays free text, so CycloneDX falls back to one entry per license.
+SPDX no longer falls back at all: the unrecognized member becomes a
+`LicenseRef-*`, which is a valid expression element, so the set composes
+whole. See the note below.
 
 SPDX `licenseConcluded` is always `NOASSERTION`. Concluded is the document
 creator's own determination, and Bomly has none to offer: every license it
@@ -92,9 +94,39 @@ what found the parser panic. The auditor is covered by the wrapper's own tests
 rather than by that target, which does not call it: routing the auditor through
 `licenseexpr` is what fixes its crash.
 
-One limitation is knowingly left in place. SPDX has no free-text license field,
-so a single unrecognized value is still written verbatim into
-`licenseDeclared`, which is not a valid SPDX expression. Representing it as a
-`LicenseRef` with a matching `hasExtractedLicensingInfos` entry is the correct
-fix and is tracked separately; it is a different decision from this one, and
-folding it in would change what an unknown license means in the document.
+One limitation was knowingly left in place, and has since been resolved --
+see the note below.
+
+
+## Note (2026-09-05): the SPDX free-text limitation is resolved
+
+This ADR recorded that SPDX has no free-text license field, so an unrecognized
+value was written verbatim into `licenseDeclared` where it is not a valid
+expression, and that representing it as a `LicenseRef` was the correct fix but
+a separate decision. That decision is taken: bomly-cli#410.
+
+An unrecognized value now mints a `LicenseRef-*` and the original text travels
+with the document in `hasExtractedLicensingInfos`. Unlike `NOASSERTION` this
+loses nothing -- ingest reads the text back -- and unlike the old behavior the
+field holds something SPDX defines.
+
+It also retires the mixed-validity fallback this ADR described. A `LicenseRef`
+is a valid expression element, so a set mixing recognized and unrecognized
+values composes whole instead of keeping the first value and dropping the
+rest. That fallback was the quieter half of the defect: it dropped licenses a
+source had actually declared, and said so only in a comment.
+
+Minting is `bomly-sdk/spdxkit`'s, not this repository's. The identifier has to
+be deterministic, collision-free across components assembled without
+coordination, and confined to the characters the SPDX idstring grammar allows;
+`MintLicenseRef` answers all three by hashing the whitespace-normalized text.
+What stays here is the policy this ADR is about -- which values are classified
+how, and that classification is by validation rather than by the field a value
+arrived in.
+
+The body above refers to `internal/licenseexpr`, the CLI-local wrapper that
+contained the parser's panics when this was decided. That package is gone
+(bomly-cli#428): `bomly-sdk/spdxkit` carries the same six functions and the
+same panic guard, and no package under `internal/` may import the parser
+directly. Read those references as naming the kit. The decision this ADR
+records is unchanged -- only where the code that implements it lives.

@@ -175,8 +175,24 @@ func FuzzSPDXLicenseValue(f *testing.F) {
 		// may panic on any value a source can produce.
 		licenses := []License{{Value: value}, {SPDXExpression: value}}
 		_ = cycloneDXLicenses(licenses)
-		if got := spdxLicenseValue(licenses); got == "" {
+		got, extracted := spdxLicenseValue(licenses)
+		if got == "" {
 			t.Fatalf("spdx license value must never be empty, got %q for %q", got, value)
+		}
+		// Whatever the value was, the field SPDX will hold has to be
+		// something SPDX can hold: an expression, NOASSERTION, or references
+		// the document also carries the text for. A free-text value that
+		// reached the field verbatim is the defect #410 fixed.
+		if got != "NOASSERTION" && !spdxkit.Valid(got) {
+			t.Fatalf("license field %q does not parse as an SPDX expression, from %q", got, value)
+		}
+		for _, entry := range extracted {
+			if !entry.Valid() {
+				t.Fatalf("minted reference %q does not match its text %q", entry.RefID, entry.Text)
+			}
+			if !strings.Contains(got, entry.RefID) {
+				t.Fatalf("extracted %q is not named by the field %q", entry.RefID, got)
+			}
 		}
 	})
 }

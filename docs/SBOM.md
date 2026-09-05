@@ -117,7 +117,7 @@ where it came:
 |---|---|---|
 | One SPDX identifier (`MIT`) | `license.id`, spelled canonically | the identifier |
 | A compound expression (`MIT OR Apache-2.0`) | `expression` | the expression |
-| Anything else (`see LICENSE file`) | `license.name`, as free text | the text as-is |
+| Anything else (`see LICENSE file`) | `license.name`, as free text | a `LicenseRef-*` identifier, with the original text in `hasExtractedLicensingInfos` |
 | Nothing | no `licenses` key | `NOASSERTION` |
 
 When a source records several licenses for one package, it is saying which
@@ -343,14 +343,9 @@ Some information necessarily becomes less specific during conversion:
   the PURL.
 - SPDX 2.3 holds one license expression per package, so several licenses are
   composed with `AND` there while CycloneDX lists them (see "How licenses are
-  written" above). A set that mixes real expressions with free text cannot be
-  composed without producing an expression that does not parse; SPDX then
-  keeps the first value, while CycloneDX keeps every license as its own entry.
-- SPDX has no free-text license field. CycloneDX carries an unrecognized
-  license as `license.name`, but SPDX writes it into `licenseDeclared`, where
-  it is not a valid SPDX expression. A strict SPDX consumer may reject such a
-  package. This only affects packages whose declared license is not an SPDX
-  identifier or expression.
+  written" above). Every license is kept either way: a value SPDX cannot hold
+  verbatim becomes a `LicenseRef-*`, which is a valid expression element, so a
+  mixed set composes rather than losing its members.
 
 Before treating a generated file as a release artifact, validate it with the
 standard validator required by the receiving system. Bomly's tests parse every

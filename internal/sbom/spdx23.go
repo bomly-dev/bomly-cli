@@ -69,7 +69,11 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageCopyrightText:      spdxCopyrightValue(c.Copyright),
 			PackageChecksums:          spdxChecksums(c.Digests),
 			PackageSourceInfo:         spdxSourceInfo(c),
-			PackageExternalReferences: spdxExternalReferences(c),
+			PackageExternalReferences: append(spdxExternalReferences(c), spdxEmittedReferences(c.ExternalReferences)...),
+			PackageSupplier:           spdxSupplierFor(c.Supplier),
+			PackageOriginator:         spdxOriginatorFor(c.Originator),
+			PackageDescription:        sdk.NormalizeDescription(c.Description),
+			PackageHomePage:           sdk.NormalizeHomepage(c.Homepage),
 			PrimaryPackagePurpose:     spdxPrimaryPackagePurpose(c.Type),
 		}
 		if _, isRoot := rootComponents[c.ID]; isRoot || IsProjectRootComponent(c) {
@@ -164,7 +168,7 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 			continue
 		}
 		id := common.RenderElementID(p.PackageSPDXIdentifier)
-		components = append(components, Component{
+		component := Component{
 			ID:             id,
 			Name:           p.PackageName,
 			Version:        p.PackageVersion,
@@ -175,7 +179,9 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 			PackageManager: parseSPDXPackageManager(p.PackageExternalReferences),
 			Copyright:      parseSPDXCopyright(p.PackageCopyrightText),
 			Licenses:       parseSPDXLicenses(extractedByRef, p.PackageLicenseConcluded, p.PackageLicenseDeclared),
-		})
+		}
+		applySPDXAssertions(&component, p)
+		components = append(components, component)
 	}
 
 	depsByRef := make(map[string][]string, len(components))

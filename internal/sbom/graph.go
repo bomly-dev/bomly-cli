@@ -41,11 +41,38 @@ func applyIngestedAssertions(pkg *sdk.DependencyNode, component Component) {
 			pkg.Originator = &contact
 		}
 	}
-	pkg.Description = sdk.NormalizeDescription(component.Description)
-	pkg.Homepage = sdk.NormalizeHomepage(component.Homepage)
+	pkg.Description = stableValue(sdk.NormalizeDescription, component.Description)
+	pkg.Homepage = stableValue(sdk.NormalizeHomepage, component.Homepage)
 	pkg.ExternalReferences = sdk.MergeExternalReferences(nil, component.ExternalReferences)
 	pkg.Digests = ingestedDigests(component.Digests)
 	pkg.CPEs = ingestedCPEs(component.CPEs)
+}
+
+// stableValue normalizes until the result stops changing, and drops a value
+// that will not settle.
+//
+// A gate that is not idempotent breaks the round trip this whole change
+// exists to provide: a description carrying invalid UTF-8 normalizes to three
+// bytes per bad byte, which can push it past the length bound that was
+// applied before the repair -- so the next pass sees an over-long value and
+// returns empty. The field then survives one hop and vanishes on the next.
+// Found by FuzzIngestedAssertions within a minute of first running, and filed
+// as bomly-dev/bomly-sdk#54.
+//
+// This does not re-implement any rule: it applies the SDK's own function
+// until it reaches its fixed point, which is a policy decision about how much
+// to trust a gate rather than a second opinion about what the gate should
+// say. Publishing a value that changes on the next hop is worse than
+// publishing nothing, so a value that has not settled after one further pass
+// is dropped. Remove this once #54 ships; the fuzz target asserts the
+// property either way.
+func stableValue(normalize func(string) string, value string) string {
+	first := normalize(value)
+	second := normalize(first)
+	if first != second {
+		return ""
+	}
+	return first
 }
 
 // ingestedDigests admits the checksums a document stated, each through the

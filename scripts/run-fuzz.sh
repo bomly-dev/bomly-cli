@@ -33,6 +33,7 @@ targets=(
   "github.com/bomly-dev/bomly-cli/internal/sbom FuzzUnmarshalAutoJSON"
   "github.com/bomly-dev/bomly-cli/internal/sbom FuzzNormalizeSPDXLicenseExpression"
   "github.com/bomly-dev/bomly-cli/internal/sbom FuzzSPDXLicenseValue"
+  "github.com/bomly-dev/bomly-cli/internal/sbom FuzzIngestedAssertions"
   "github.com/bomly-dev/bomly-cli/internal/baseline FuzzLoad"
   "github.com/bomly-dev/bomly-cli/internal/engine FuzzConsolidateVulnerabilities"
   "github.com/bomly-dev/bomly-cli/internal/plugin FuzzPluginPathSanitizers"

@@ -385,3 +385,35 @@ func TestPrettyPrintingDoesNotCountAgainstTheByteBound(t *testing.T) {
 		t.Fatalf("a pretty-printed document was refused: %v", err)
 	}
 }
+
+// A single oversized member name is refused before it is read.
+//
+// Reading a name costs a copy of it, so checking the size afterwards means the
+// copy already happened -- measured at a full extra copy of the name, escaped
+// or not, on top of what the decoder itself retains. The gate is asserted
+// through its own error text, because the outcome alone cannot distinguish it:
+// the post-read bound refuses the same document, just after paying for it.
+func TestAnOversizedNameIsRefusedBeforeItIsRead(t *testing.T) {
+	for _, testCase := range []struct {
+		name string
+		body string
+	}{
+		{"plain", strings.Repeat("n", (maxOpenNameBytes)+64)},
+		// Escaped: the unescaped name is half the source span, and both are
+		// over the bound. This is the shape whose copy is most expensive,
+		// since the decoder cannot alias the input for it.
+		{"escaped", strings.Repeat(`\n`, (maxOpenNameBytes)+64)},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			raw := `{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"x":{"` +
+				testCase.body + `":1}}`
+			_, _, err := UnmarshalAutoJSON([]byte(raw))
+			if !errors.Is(err, ErrUnverifiableJSON) {
+				t.Fatalf("err = %v, want %v", err, ErrUnverifiableJSON)
+			}
+			if !strings.Contains(err.Error(), "spans more than") {
+				t.Errorf("the name was read before being refused; error = %v", err)
+			}
+		})
+	}
+}

@@ -70,18 +70,20 @@ const maxOpenObjectMembers = 100_000
 // pinned toolchain -- every earlier comment on this function stated a memory
 // property that later measurement contradicted.
 //
-// One residual is left open deliberately. The bound is checked after a name is
-// read, so a single name larger than it is retained once before being refused
-// -- measured at 1.00x input, 200 MiB for a 200 MiB name. Closing it would
-// mean sizing the name before the decoder reads it, and jsontext exposes no
-// option for that (its Options are duplicate-name, invalid-UTF-8, and
-// formatting), so the only route is scanning the raw bytes for the string's
-// closing quote with escape handling -- mirroring the library's tokenizer,
-// which this project's delegation rule refuses. The residual is the floor
-// anyway: the name is bounded by an input already capped at 256 MiB and
-// already held in memory, unlike the multipliers the bounds above remove.
-// Revisiting it means revisiting whether this preflight should exist in this
-// form; tracked as bomly-dev/bomly-cli#435.
+// One residual is left open deliberately, and it is smaller than it looks. The
+// decoder retains a name internally before this code ever sees the token, so a
+// single name larger than the bound is held once -- bounded by an input
+// already capped at 256 MiB and already resident, so 1x and not a multiplier.
+// Closing that would mean sizing the name before the decoder reads it, and
+// jsontext exposes no option for it (its Options are duplicate-name,
+// invalid-UTF-8, and formatting); the only route left is scanning raw bytes
+// for the string's closing quote with escape handling, which mirrors the
+// library's tokenizer and is what this project's delegation rule refuses.
+//
+// What is *not* left open is this code adding a second copy on top of that.
+// The span gate below refuses an oversized name before it is read, which is
+// where the extra copy came from. Tracked as bomly-dev/bomly-cli#435, which
+// asks the larger question about this preflight's shape.
 const maxOpenNameBytes = 16 << 20
 
 // openObjectCost is what one open object is costing the duplicate check: the
@@ -143,6 +145,9 @@ func requireUnambiguousJSON(data []byte) error {
 	var totalMembers int
 	var totalNameBytes int64
 	for {
+		// Where this token starts, used only as a cheap gate below -- never as
+		// the measurement, which is what the previous attempt got wrong.
+		start := decoder.InputOffset()
 		token, err := decoder.ReadToken()
 		if err != nil {
 			if errors.Is(err, io.EOF) {
@@ -201,9 +206,24 @@ func requireUnambiguousJSON(data []byte) error {
 		// input offsets counted the separator and any indentation before it
 		// too, which inflated a pretty-printed document by more than six times
 		// and would have refused a legal one for whitespace the decoder never
-		// holds. The allocation this costs is bounded by the member count
-		// above, and being right is worth more here than saving it.
+		// holds.
+		//
+		// But reading the name costs a copy -- measured at a full extra copy
+		// of the name, escaped or not -- so a name too large to accept must be
+		// refused before it is read, not after. The source span is the gate:
+		// it is free, it is never smaller than the name inside it, and a name
+		// whose span alone exceeds the whole budget cannot fit however it
+		// unescapes. Anything past the gate is small enough that measuring it
+		// exactly is cheap.
+		//
+		// Gate on the span, account with the name. Using the span for both
+		// refused legal documents; using the name for both copied hostile
+		// ones.
 		if length%2 == 1 {
+			if span := decoder.InputOffset() - start; span > maxOpenNameBytes {
+				return fmt.Errorf("%w: a single object member name spans more than %d bytes, which is more than Bomly will read to check for repeated names",
+					ErrUnverifiableJSON, int64(maxOpenNameBytes))
+			}
 			size := int64(len(token.String()))
 			open[depth-1].nameBytes += size
 			totalNameBytes += size

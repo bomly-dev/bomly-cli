@@ -563,3 +563,78 @@ func TestCreditedToolsKeepWhatEachFormatCanHold(t *testing.T) {
 		}
 	})
 }
+
+// A serial names a BOM; the revision names which issue of it. Adopting one
+// without the other produced a document claiming to be revision 1 of a BOM
+// whose revision 2 it had actually converted -- and, because the self-link
+// check compared serials alone, it linked nothing either.
+func TestConversionKeepsTheSourceBOMRevision(t *testing.T) {
+	source := strings.Replace(serialCycloneDX, `"version": 1,`, `"version": 4,`, 1)
+	_, entry := ingestDocument(t, source)
+	if entry.Document.Identity != "urn:cdx:3e671687-395b-41f5-a30f-a58921a69b79/4" {
+		t.Fatalf("identity = %q, want the revision kept", entry.Document.Identity)
+	}
+	raw, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{Pretty: true})
+	if err != nil {
+		t.Fatalf("export: %v", err)
+	}
+	var bom cdx.BOM
+	if err := json.Unmarshal(raw, &bom); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if bom.Version != 4 {
+		t.Errorf("version = %d, want the source's revision", bom.Version)
+	}
+	if bom.SerialNumber != "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79" {
+		t.Errorf("serial = %q", bom.SerialNumber)
+	}
+	// Adopted, so not also linked.
+	if bom.ExternalReferences != nil {
+		for _, ref := range *bom.ExternalReferences {
+			if ref.Type == cdx.ERTypeBOM {
+				t.Errorf("the document links itself: %+v", ref)
+			}
+		}
+	}
+}
+
+// A different revision of the same serial is a different document, so it is
+// linked rather than treated as this document itself.
+func TestADifferentRevisionOfTheSameSerialIsStillASource(t *testing.T) {
+	doc := &Document{
+		SerialNumber:  "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
+		SerialVersion: 1,
+		Sources: []sdk.DocumentAssertions{
+			{Identity: "urn:cdx:3e671687-395b-41f5-a30f-a58921a69b79/7"},
+		},
+	}
+	links := documentSourceLinks(doc, documentIdentity{Serial: doc.SerialNumber, SerialVersion: doc.SerialVersionOrDefault()})
+	if len(links) != 1 {
+		t.Fatalf("links = %+v, want revision 7 named as a source of revision 1", links)
+	}
+}
+
+// Bomly's own output re-ingests without growing its author list. Configured
+// provenance is written as an author as well as the manufacturer, so the name
+// comes back as a person creator and used to be appended a second time -- one
+// extra author per hop, in a flow advertised as a fixed point.
+func TestConfiguredProvenanceDoesNotDuplicateAuthorsAcrossHops(t *testing.T) {
+	opts := BuildOptions{
+		Provenance:   Provenance{Manufacturer: "Operator Ltd"},
+		Created:      fixedExportTime(),
+		SerialNumber: "urn:uuid:11111111-2222-4333-8444-555555555555",
+	}
+	_, entry := ingestDocument(t, supplierRichCycloneDX)
+	first, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetCycloneDX16JSON, opts, EncodeOptions{Pretty: true})
+	if err != nil {
+		t.Fatalf("first export: %v", err)
+	}
+	_, again := ingestDocument(t, string(first))
+	second, err := MarshalGraphEntriesJSON(again.Graph, []sdk.GraphEntry{again}, TargetCycloneDX16JSON, opts, EncodeOptions{Pretty: true})
+	if err != nil {
+		t.Fatalf("second export: %v", err)
+	}
+	if !bytes.Equal(first, second) {
+		t.Errorf("a provenance-configured export is not a fixed point.\nfirst:\n%s\nsecond:\n%s", first, second)
+	}
+}

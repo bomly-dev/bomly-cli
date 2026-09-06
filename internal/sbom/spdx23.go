@@ -605,9 +605,13 @@ func spdxExternalReferences(component Component) []*v23.PackageExternalReference
 		if cpe == "" {
 			continue
 		}
+		refType := spdxCPEReferenceType(cpe)
+		if refType == "" {
+			continue
+		}
 		refs = append(refs, &v23.PackageExternalReference{
 			Category: common.CategorySecurity,
-			RefType:  common.TypeSecurityCPE23Type,
+			RefType:  refType,
 			Locator:  cpe,
 		})
 	}

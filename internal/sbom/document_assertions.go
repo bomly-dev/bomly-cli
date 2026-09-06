@@ -136,7 +136,10 @@ func inheritDocumentIdentity(doc *Document, identity string) {
 	if err != nil {
 		return
 	}
+	// The revision travels with the serial. Keeping only the serial made the
+	// export claim to be revision 1 of a document whose revision 2 it read.
 	doc.SerialNumber = link.SerialNumber()
+	doc.SerialVersion = link.Version()
 }
 
 // documentIdentity is the identity a format actually writes into the document
@@ -149,6 +152,10 @@ func inheritDocumentIdentity(doc *Document, identity string) {
 type documentIdentity struct {
 	Namespace string
 	Serial    string
+	// SerialVersion is the revision written beside Serial. A link naming a
+	// different revision of the same serial names a different document, so it
+	// is still a link and not a self-reference.
+	SerialVersion int
 }
 
 // names reports whether an identity refers to this same document.
@@ -166,7 +173,8 @@ func (d documentIdentity) names(identity string) bool {
 		return true
 	}
 	if d.Serial != "" {
-		if link, err := cdx.ParseBOMLink(identity); err == nil && link.SerialNumber() == d.Serial {
+		if link, err := cdx.ParseBOMLink(identity); err == nil &&
+			link.SerialNumber() == d.Serial && link.Version() == d.SerialVersion {
 			return true
 		}
 	}

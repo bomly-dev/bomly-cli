@@ -97,9 +97,15 @@ type Document struct {
 	ToolVersion  string
 	Created      time.Time
 	SerialNumber string
-	Provenance   Provenance
-	Lifecycle    string
-	Aggregate    string
+	// SerialVersion is the CycloneDX document revision that goes with
+	// SerialNumber. A serial names a BOM; the revision names which issue of
+	// it, so adopting a source's serial without its revision produced a
+	// document claiming to be revision 1 of a BOM whose revision 2 it had
+	// actually converted. Zero means unset and encodes as 1.
+	SerialVersion int
+	Provenance    Provenance
+	Lifecycle     string
+	Aggregate     string
 
 	Components   []Component
 	Dependencies []Dependency
@@ -306,6 +312,16 @@ func (d *Document) ToolNamesOrDefault() []string {
 		return append([]string(nil), d.Tools...)
 	}
 	return []string{d.ToolOrDefault()}
+}
+
+// SerialVersionOrDefault returns the CycloneDX document revision, defaulting to
+// the first revision. CycloneDX numbers a document from 1, and a BOM-Link has
+// to name a revision, so there is no "unset" to write.
+func (d *Document) SerialVersionOrDefault() int {
+	if d.SerialVersion > 0 {
+		return d.SerialVersion
+	}
+	return 1
 }
 
 // CreatedOrNow returns the document timestamp in UTC, defaulting to the current time.

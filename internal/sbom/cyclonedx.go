@@ -19,6 +19,7 @@ type cycloneDXCodec struct {
 func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error) {
 	bom := cdx.NewBOM()
 	bom.SerialNumber = doc.SerialNumber
+	bom.Version = doc.SerialVersionOrDefault()
 
 	components := make([]cdx.Component, 0, len(doc.Components))
 	for _, comp := range doc.Components {

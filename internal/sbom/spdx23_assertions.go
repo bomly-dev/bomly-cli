@@ -120,6 +120,30 @@ func spdxIngestedReferences(refs []*v23.PackageExternalReference) []sdk.External
 	return sdk.MergeExternalReferences(nil, converted)
 }
 
+// spdxCPEReferenceType names the reference type a CPE actually belongs to.
+//
+// 2.2 and 2.3 are different bindings, and the type declares which one the
+// locator is written in. Labelling every CPE as cpe23Type published a 2.2
+// binding under the 2.3 type -- a claim the source never made, and one that
+// survived a same-format round trip looking authoritative. Corrupting a claim
+// is worse than dropping it.
+//
+// The classifier is the SDK's gate, not a prefix test here: it owns both
+// grammars, and the same mechanism admits these values on the way in. 2.3 is
+// tried first so an identifier valid in both is written in the current form.
+func spdxCPEReferenceType(value string) string {
+	for _, cpeType := range []string{common.TypeSecurityCPE23Type, common.TypeSecurityCPE22Type} {
+		if _, ok := (sdk.ExternalReference{
+			Category: sdk.ExternalReferenceCategorySecurity,
+			Type:     cpeType,
+			Locator:  value,
+		}).Normalized(); ok {
+			return cpeType
+		}
+	}
+	return ""
+}
+
 // spdxIngestedCPEs reads the CPEs a document stated.
 //
 // SPDX 2.3 has no CPE field: a CPE is carried as a SECURITY external

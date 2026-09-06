@@ -420,20 +420,37 @@ func cycloneDXDocumentManufacturer(doc *Document) *cdx.OrganizationalEntity {
 }
 
 // cycloneDXDocumentAuthors renders the people credited with the document.
+//
+// One entry per party. Configured provenance is written as an author as well
+// as the manufacturer, so re-ingesting Bomly's own output reads that name back
+// as a person creator -- and appending it beside the configured value again
+// grew the author list by one on every hop, which is a fixed point that is not
+// fixed. The configured value is kept first so its contact details survive.
 func cycloneDXDocumentAuthors(doc *Document) []cdx.OrganizationalContact {
 	var authors []cdx.OrganizationalContact
+	seen := make(map[string]struct{}, len(doc.Assertions.Creators)+1)
+	add := func(author cdx.OrganizationalContact) {
+		if author.Name == "" {
+			return
+		}
+		if _, dup := seen[author.Name]; dup {
+			return
+		}
+		seen[author.Name] = struct{}{}
+		authors = append(authors, author)
+	}
 	if doc.Provenance.Manufacturer != "" {
 		author := cdx.OrganizationalContact{Name: doc.Provenance.Manufacturer}
 		if email := bareEmail(doc.Provenance.SecurityContact); email != "" {
 			author.Email = email
 		}
-		authors = append(authors, author)
+		add(author)
 	}
 	for _, creator := range doc.Assertions.Creators {
 		if creator.Kind != sdk.ContactKindPerson {
 			continue
 		}
-		authors = append(authors, cdx.OrganizationalContact{Name: creator.Name})
+		add(cdx.OrganizationalContact{Name: creator.Name})
 	}
 	return authors
 }
@@ -479,7 +496,10 @@ func cycloneDXSourceLinks(doc *Document) []cdx.ExternalReference {
 	// CycloneDX writes a serial and no namespace, so that is the only identity
 	// a reader of this document can see, and the only one a source link could
 	// be redundant with.
-	links := documentSourceLinks(doc, documentIdentity{Serial: doc.SerialNumber})
+	links := documentSourceLinks(doc, documentIdentity{
+		Serial:        doc.SerialNumber,
+		SerialVersion: doc.SerialVersionOrDefault(),
+	})
 	if len(links) == 0 {
 		return nil
 	}

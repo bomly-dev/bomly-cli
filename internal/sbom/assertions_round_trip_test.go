@@ -380,3 +380,61 @@ func TestOrganizationOriginatorStillUsesPublisher(t *testing.T) {
 		t.Errorf("originator = %+v, want an organization", got)
 	}
 }
+
+// A CPE keeps the binding it was written in. 2.2 and 2.3 are different
+// bindings and the reference type declares which; labelling every CPE
+// cpe23Type published a 2.2 binding under the 2.3 type, which is a claim the
+// source never made and one that looks authoritative on the far side.
+func TestCPEKeepsItsBindingThroughSPDX(t *testing.T) {
+	const cpe22Document = `{
+  "spdxVersion": "SPDX-2.3", "dataLicense": "CC0-1.0", "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "c", "documentNamespace": "https://c.example/spdx/1",
+  "creationInfo": {"created": "2026-01-01T00:00:00Z", "creators": ["Tool: t"]},
+  "packages": [{
+    "SPDXID": "SPDXRef-w", "name": "widget", "versionInfo": "1.0.0",
+    "externalRefs": [
+      {"referenceCategory": "PACKAGE-MANAGER", "referenceType": "purl",
+       "referenceLocator": "pkg:npm/widget@1.0.0"},
+      {"referenceCategory": "SECURITY", "referenceType": "cpe22Type",
+       "referenceLocator": "cpe:/a:widget:widget:1.0.0"}
+    ]
+  }]
+}`
+	doc, _, err := UnmarshalAutoJSON([]byte(cpe22Document))
+	if err != nil {
+		t.Fatalf("ingest: %v", err)
+	}
+	graph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	raw, err := MarshalDepGraphJSON(graph, TargetSPDX23JSON, BuildOptions{}, EncodeOptions{Pretty: true})
+	if err != nil {
+		t.Fatalf("export: %v", err)
+	}
+	if !strings.Contains(string(raw), "cpe22Type") {
+		t.Errorf("a 2.2 binding was not written as cpe22Type:\n%s", raw)
+	}
+	if strings.Contains(string(raw), `"cpe23Type"`) {
+		t.Errorf("a 2.2 binding was published under the 2.3 type:\n%s", raw)
+	}
+}
+
+// A 2.3 binding still goes out as cpe23Type.
+func TestModernCPEStillUsesTheCurrentType(t *testing.T) {
+	doc, _, err := UnmarshalAutoJSON([]byte(supplierRichCycloneDX))
+	if err != nil {
+		t.Fatalf("ingest: %v", err)
+	}
+	graph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	raw, err := MarshalDepGraphJSON(graph, TargetSPDX23JSON, BuildOptions{}, EncodeOptions{Pretty: true})
+	if err != nil {
+		t.Fatalf("export: %v", err)
+	}
+	if !strings.Contains(string(raw), "cpe23Type") {
+		t.Errorf("a 2.3 binding was not written as cpe23Type:\n%s", raw)
+	}
+}

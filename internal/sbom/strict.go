@@ -219,6 +219,15 @@ func requireUnambiguousJSON(data []byte) error {
 		// Gate on the span, account with the name. Using the span for both
 		// refused legal documents; using the name for both copied hostile
 		// ones.
+		//
+		// The gate's span still includes the delimiter and any whitespace
+		// before the name, so a document with more than the whole budget in
+		// one contiguous run of whitespace is refused for its formatting.
+		// Left as is: no formatter produces sixteen megabytes of consecutive
+		// spaces, the outcome is a refusal rather than a wrong answer, and
+		// trimming it means skipping insignificant whitespace by hand -- a
+		// small piece of the lexer this file deliberately does not own.
+		// Recorded in bomly-dev/bomly-cli#435 with the reproduction.
 		if length%2 == 1 {
 			if span := decoder.InputOffset() - start; span > maxOpenNameBytes {
 				return fmt.Errorf("%w: a single object member name spans more than %d bytes, which is more than Bomly will read to check for repeated names",

@@ -100,6 +100,13 @@ func TestCycloneDXStillWritesItsScalarScope(t *testing.T) {
 // vocabulary, not the raw CycloneDX token. Ingest used to copy "required"
 // straight through, minting nodes scoped to a value no SDK filter matches
 // (survey defect 1).
+//
+// The "optional" row pins the SDK's shipped mapping, which is optional →
+// runtime. ADR-0037 states optional → development, so the two disagree; the
+// conflict is recorded in that ADR's 2026-09-06 clarification and tracked as
+// bomly-dev/bomly-sdk#63. This asserts what the code does today rather than
+// settling which rule is right -- the safer default, since the SDK's reading
+// keeps an optional component inside --scope runtime instead of hiding it.
 func TestForeignCycloneDXScopesMapIntoTheSDKVocabulary(t *testing.T) {
 	for _, testCase := range []struct {
 		native string

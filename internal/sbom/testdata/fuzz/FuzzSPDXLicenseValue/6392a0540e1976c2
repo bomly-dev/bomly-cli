@@ -1,0 +1,2 @@
+go test fuzz v1
+string("LGPL-2.0 WiTH ClAsspAth-eXCeptIon-2.0")

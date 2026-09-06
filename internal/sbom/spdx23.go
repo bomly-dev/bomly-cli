@@ -485,7 +485,15 @@ func spdxLicenseValue(licenses []License) (string, []spdxkit.ExtractedText) {
 			extracted = append(extracted, ref)
 			continue
 		}
-		elements = append(elements, value)
+		// Canonical, not verbatim. The SDK accepts an expression whose
+		// operators and identifiers are cased freely -- "LGPL-2.0 WiTH
+		// ClAsspAth-eXCeptIon-2.0" classifies as an expression -- but the
+		// field this lands in is read by consumers as a strict SPDX
+		// expression, and passing the source's spelling through wrote one
+		// they cannot parse. Composing two such values made it worse, which
+		// is how the fuzzer found it. The SDK owns the canonical spelling;
+		// deprecated identifiers are rewritten by the same call.
+		elements = append(elements, spdxkit.CanonicalExpression(value))
 	}
 	if len(elements) == 1 {
 		return elements[0], extracted

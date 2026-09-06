@@ -93,7 +93,7 @@ func FromGraphEntries(g *sdk.Graph, entries []sdk.GraphEntry, opts BuildOptions)
 			Type:           string(coords.Type),
 		}
 		if dep, isDep := pkg.(*sdk.DependencyNode); isDep {
-			component.Scope = string(dep.PrimaryScope())
+			component.Scopes = append([]sdk.Scope(nil), dep.Scopes...)
 			component.Copyright = dep.Copyright
 			component.Licenses = componentLicenses(sdk.DetectionLicenses(dep))
 			component.Digests = componentDigests(dep.Digests)

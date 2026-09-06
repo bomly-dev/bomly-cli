@@ -161,7 +161,7 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 			ID:             id,
 			Name:           p.PackageName,
 			Version:        p.PackageVersion,
-			Scope:          parseSPDXCommentField(p.PackageComment, "scope"),
+			Scopes:         spdxCommentScopes(p.PackageComment),
 			Type:           parseSPDXComponentType(p),
 			PURL:           parseSPDXPURL(p.PackageExternalReferences),
 			Ecosystem:      parseSPDXYcosystem(p.PackageExternalReferences),
@@ -334,7 +334,7 @@ func spdxCreatorComment(p Provenance) string {
 
 func spdxPackageComment(component Component) string {
 	fields := make([]string, 0, 4)
-	if scope := strings.TrimSpace(component.Scope); scope != "" {
+	if scope := sdk.EncodeScopeSet(component.Scopes); scope != "" {
 		fields = append(fields, "scope="+scope)
 	}
 	if typ := strings.TrimSpace(component.Type); typ != "" && !strings.EqualFold(typ, "package") {
@@ -407,6 +407,26 @@ func parseSPDXComponentType(p *v23.Package) string {
 	return strings.ToLower(strings.TrimSpace(p.PrimaryPackagePurpose))
 }
 
+// spdxCommentScopes reads the scope set back out of the package comment.
+//
+// A carrier that will not parse is treated as absent rather than as an error:
+// this is a comment field on someone else's document, and refusing the whole
+// component because a Bomly-shaped comment was malformed would lose more than
+// it protects. The SDK owns what the carrier means in both directions.
+// One consequence is not what ADR-0037 asks for. The SDK's decode is
+// all-or-nothing, so a carrier naming one known scope beside one unknown token
+// yields nothing rather than the known scope plus a warning, and unlike
+// CycloneDX there is no native scalar here to fall back to -- the component
+// ends up unscoped. Tracked as bomly-dev/bomly-sdk#64; partial decode belongs
+// beside the grammar in the SDK rather than being re-derived here.
+func spdxCommentScopes(comment string) []sdk.Scope {
+	scopes, err := sdk.DecodeScopeSet(parseSPDXCommentField(comment, "scope"))
+	if err != nil {
+		return nil
+	}
+	return scopes
+}
+
 func parseSPDXCommentField(comment, field string) string {
 	comment = strings.TrimSpace(comment)
 	if !strings.HasPrefix(comment, "bomly:") {
@@ -471,7 +491,15 @@ func spdxLicenseValue(licenses []License) (string, []spdxkit.ExtractedText) {
 			extracted = append(extracted, ref)
 			continue
 		}
-		elements = append(elements, value)
+		// Canonical, not verbatim. The SDK accepts an expression whose
+		// operators and identifiers are cased freely -- "LGPL-2.0 WiTH
+		// ClAsspAth-eXCeptIon-2.0" classifies as an expression -- but the
+		// field this lands in is read by consumers as a strict SPDX
+		// expression, and passing the source's spelling through wrote one
+		// they cannot parse. Composing two such values made it worse, which
+		// is how the fuzzer found it. The SDK owns the canonical spelling;
+		// deprecated identifiers are rewritten by the same call.
+		elements = append(elements, spdxkit.CanonicalExpression(value))
 	}
 	if len(elements) == 1 {
 		return elements[0], extracted

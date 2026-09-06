@@ -454,13 +454,18 @@ func summarizeScopes(doc *sbom.Document) *ScopeSummary {
 		return summary
 	}
 	for _, component := range doc.Components {
-		scope := strings.TrimSpace(component.Scope)
-		if scope == "" {
+		// A component now carries a scope set. It counts once as known, and
+		// each scope it holds counts in the per-scope tally -- a package that
+		// is both runtime and development is one known component with two
+		// scopes, which is what the union means.
+		if len(component.Scopes) == 0 {
 			summary.UnknownScopeCount++
 			continue
 		}
 		summary.KnownScopeCount++
-		summary.Scopes[scope]++
+		for _, scope := range component.Scopes {
+			summary.Scopes[string(scope)]++
+		}
 	}
 	if len(summary.Scopes) == 0 {
 		summary.Scopes = nil

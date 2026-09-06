@@ -195,6 +195,29 @@ genuinely component-private data, with the `bomly.` prefix documented as
 reserved. No new user-visible feature may ship its data as a metadata key;
 the migration path for a metadata key is a typed field.
 
+## Clarification (2026-09-06): the `optional` scalar mapping is contested
+
+The rule above says a bare CycloneDX scalar maps `optional` → development.
+The SDK maps `optional` → runtime, and argues the case in
+`scope_cyclonedx.go`: an optional component provides additional
+functionality at runtime rather than being development-only, so `required`
+and `optional` both land on runtime.
+
+The two fail in opposite directions. Under the SDK's rule an optional
+component is included by `--scope runtime`, which is conservative for a
+tool whose job is to report vulnerabilities in what ships. Under this ADR's
+rule it is dropped, which hides a shipped dependency from triage. On the
+merits the SDK's reading looks like the safer one and this clause may
+simply be wrong — but that is a contract change, so it is recorded here as
+open rather than settled in passing.
+
+Tracked as bomly-dev/bomly-sdk#63. Until it is resolved the shipped
+behavior is the SDK's, and the CLI test that covers it says so explicitly
+rather than presenting it as this ADR's rule. The scope carrier
+(`bomly:scopes`) means the question only affects documents Bomly did not
+write; its own documents round-trip the full scope set without consulting
+the scalar.
+
 ## Consequences
 
 - Issue #396 becomes implementable: preservation is adding codec projections

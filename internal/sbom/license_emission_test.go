@@ -356,3 +356,43 @@ func TestMultipleLicensesDivergeByFormat(t *testing.T) {
 		t.Fatalf("expected SPDX to compose, got %q", got)
 	}
 }
+
+// A license expression is emitted in its canonical spelling, not the source's.
+//
+// The SDK accepts an expression whose operators and identifiers are cased
+// freely, so "LGPL-2.0 WiTH ClAsspAth-eXCeptIon-2.0" classifies as a valid
+// expression. The SPDX field it lands in is read as a strict expression
+// though, so passing the source's spelling through wrote a document consumers
+// cannot parse -- and composing two such values produced a field that failed
+// even the SDK's own check. Found by FuzzSPDXLicenseValue.
+func TestLicenseExpressionsAreEmittedCanonically(t *testing.T) {
+	for _, testCase := range []struct {
+		name  string
+		given []License
+		want  string
+	}{
+		{
+			name:  "operator and identifier casing",
+			given: []License{{SPDXExpression: "LGPL-2.0 WiTH ClAsspAth-eXCeptIon-2.0"}},
+			want:  "LGPL-2.0-only WITH Classpath-exception-2.0",
+		},
+		{
+			name: "composed values are each canonical",
+			given: []License{
+				{SPDXExpression: "mIt"},
+				{SPDXExpression: "LGPL-2.0 WiTH ClAsspAth-eXCeptIon-2.0"},
+			},
+			want: "MIT AND LGPL-2.0-only WITH Classpath-exception-2.0",
+		},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			got, _ := spdxLicenseValue(testCase.given)
+			if !spdxkit.Valid(got) {
+				t.Fatalf("emitted %q, which does not parse as an SPDX expression", got)
+			}
+			if got != testCase.want {
+				t.Errorf("emitted %q, want %q", got, testCase.want)
+			}
+		})
+	}
+}

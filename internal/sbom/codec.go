@@ -57,6 +57,16 @@ func UnmarshalJSON(data []byte, target Target) (*Document, error) {
 	return c.decodeJSON(data)
 }
 
+// unmarshalValidated decodes a document whose bytes the caller has already
+// checked, so the auto-detecting path does not pay for a second scan.
+func unmarshalValidated(data []byte, target Target) (*Document, error) {
+	c, ok := codecs[target]
+	if !ok {
+		return nil, fmt.Errorf("%w: %s", ErrUnsupportedTarget, target)
+	}
+	return c.decodeJSON(data)
+}
+
 // DetectJSONTarget identifies the supported SBOM JSON format represented by data.
 func DetectJSONTarget(data []byte) (Target, error) {
 	trimmed := bytes.TrimSpace(data)
@@ -95,11 +105,19 @@ func DetectJSONTarget(data []byte) (Target, error) {
 
 // UnmarshalAutoJSON parses a supported SBOM JSON payload without requiring the caller to preselect a target.
 func UnmarshalAutoJSON(data []byte) (*Document, Target, error) {
+	// Before sniffing, not after. The format is read out of the document, so
+	// a document that repeats its own discriminator decides which format it
+	// claims to be by the same ambiguity this check exists to refuse -- and
+	// sniffing first reported an unsupported format for exactly the input the
+	// ambiguity error was written to explain.
+	if err := requireUnambiguousJSON(data); err != nil {
+		return nil, "", err
+	}
 	target, err := DetectJSONTarget(data)
 	if err != nil {
 		return nil, "", err
 	}
-	doc, err := UnmarshalJSON(data, target)
+	doc, err := unmarshalValidated(data, target)
 	if err != nil {
 		return nil, "", err
 	}

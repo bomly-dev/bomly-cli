@@ -2,6 +2,7 @@ package sbom
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -96,5 +97,85 @@ func TestBomlyOutputPassesTheStrictGate(t *testing.T) {
 				t.Fatalf("Bomly's own output fails the gate: %v", err)
 			}
 		})
+	}
+}
+
+// The format is read out of the document, so a document that repeats its own
+// discriminator is ambiguous about which format it even claims to be. Sniffing
+// before checking reported an unsupported format instead -- the one input where
+// the ambiguity error is most worth having.
+func TestAmbiguityIsReportedBeforeFormatDetection(t *testing.T) {
+	raw := `{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"components":[],"bomFormat":"other"}`
+	_, _, err := UnmarshalAutoJSON([]byte(raw))
+	if !errors.Is(err, ErrAmbiguousJSON) {
+		t.Fatalf("err = %v, want %v", err, ErrAmbiguousJSON)
+	}
+	if errors.Is(err, ErrUnsupportedFormat) {
+		t.Error("the repeated discriminator was reported as an unsupported format")
+	}
+	if !strings.Contains(err.Error(), "bomFormat") {
+		t.Errorf("error does not name the repeated discriminator: %v", err)
+	}
+}
+
+// A malformed document is still reported as malformed. The strict pass runs
+// first now, and wrapping every reader error as "ambiguous" would send someone
+// hunting for a repeated member in a file that is merely truncated.
+func TestMalformedDocumentsAreNotReportedAsAmbiguous(t *testing.T) {
+	for _, raw := range []string{`{"hello"`, `not json at all`, `{"a":`} {
+		_, _, err := UnmarshalAutoJSON([]byte(raw))
+		if !errors.Is(err, ErrMalformedJSON) {
+			t.Errorf("%q: err = %v, want %v", raw, err, ErrMalformedJSON)
+		}
+		if errors.Is(err, ErrAmbiguousJSON) {
+			t.Errorf("%q: a malformed document was reported as ambiguous", raw)
+		}
+	}
+}
+
+// An object too wide to check is refused rather than waved through. Detecting a
+// repeated name costs memory in proportion to the widest object, so a document
+// can otherwise make the check itself the denial of service -- and skipping the
+// check on the largest inputs would put the hole where a payload would go.
+func TestAnObjectTooWideToCheckIsRefused(t *testing.T) {
+	var b strings.Builder
+	b.WriteString(`{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"wide":{`)
+	for i := range maxObjectMembers + 2 {
+		if i > 0 {
+			b.WriteByte(',')
+		}
+		fmt.Fprintf(&b, `"k%d":1`, i)
+	}
+	b.WriteString("}}")
+
+	_, _, err := UnmarshalAutoJSON([]byte(b.String()))
+	if !errors.Is(err, ErrUnverifiableJSON) {
+		t.Fatalf("err = %v, want %v", err, ErrUnverifiableJSON)
+	}
+	if !strings.Contains(err.Error(), "too wide") {
+		t.Errorf("error does not say what the problem is: %v", err)
+	}
+}
+
+// The bound has room for documents that are merely large. A real SBOM's widest
+// object is a component; the limit is orders of magnitude above that, and a
+// document with many components must not trip it.
+func TestManyComponentsDoNotTripTheWidthBound(t *testing.T) {
+	var b strings.Builder
+	b.WriteString(`{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"components":[`)
+	for i := range 20_000 {
+		if i > 0 {
+			b.WriteByte(',')
+		}
+		fmt.Fprintf(&b, `{"bom-ref":"pkg:npm/p%d@1.0.0","type":"library","name":"p%d","version":"1.0.0","purl":"pkg:npm/p%d@1.0.0"}`, i, i, i)
+	}
+	b.WriteString("]}")
+
+	doc, _, err := UnmarshalAutoJSON([]byte(b.String()))
+	if err != nil {
+		t.Fatalf("a large but ordinary document was refused: %v", err)
+	}
+	if len(doc.Components) != 20_000 {
+		t.Errorf("components = %d", len(doc.Components))
 	}
 }

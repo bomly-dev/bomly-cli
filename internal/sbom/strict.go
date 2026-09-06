@@ -69,6 +69,19 @@ const maxOpenObjectMembers = 100_000
 // suggested about seventy, so the figure here is the one observed on the
 // pinned toolchain -- every earlier comment on this function stated a memory
 // property that later measurement contradicted.
+//
+// One residual is left open deliberately. The bound is checked after a name is
+// read, so a single name larger than it is retained once before being refused
+// -- measured at 1.00x input, 200 MiB for a 200 MiB name. Closing it would
+// mean sizing the name before the decoder reads it, and jsontext exposes no
+// option for that (its Options are duplicate-name, invalid-UTF-8, and
+// formatting), so the only route is scanning the raw bytes for the string's
+// closing quote with escape handling -- mirroring the library's tokenizer,
+// which this project's delegation rule refuses. The residual is the floor
+// anyway: the name is bounded by an input already capped at 256 MiB and
+// already held in memory, unlike the multipliers the bounds above remove.
+// Revisiting it means revisiting whether this preflight should exist in this
+// form; tracked as bomly-dev/bomly-cli#435.
 const maxOpenNameBytes = 16 << 20
 
 // openObjectCost is what one open object is costing the duplicate check: the

@@ -300,3 +300,83 @@ func TestConfiguredProvenanceDoesNotOverwriteARootSupplier(t *testing.T) {
 		t.Errorf("configured provenance overwrote the component's own supplier:\n%s", withProvenance)
 	}
 }
+
+// A person stays a person through a CycloneDX hop.
+//
+// CycloneDX reads `publisher` as an organization and `author` as a person, so
+// routing every originator through `publisher` did not lose the distinction --
+// it asserted the wrong one, turning "Person: Alice" into "Organization:
+// Alice". Corrupting a claim is worse than dropping it, because nothing
+// downstream can tell it happened.
+func TestOriginatorKeepsItsContactKindThroughCycloneDX(t *testing.T) {
+	const personOriginator = `{
+  "spdxVersion": "SPDX-2.3", "dataLicense": "CC0-1.0", "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "p", "documentNamespace": "https://p.example/spdx/1",
+  "creationInfo": {"created": "2026-01-01T00:00:00Z", "creators": ["Tool: t"]},
+  "packages": [{
+    "SPDXID": "SPDXRef-w", "name": "widget", "versionInfo": "1.0.0",
+    "originator": "Person: Alice Example",
+    "externalRefs": [{"referenceCategory": "PACKAGE-MANAGER", "referenceType": "purl",
+      "referenceLocator": "pkg:npm/widget@1.0.0"}]
+  }]
+}`
+	doc, _, err := UnmarshalAutoJSON([]byte(personOriginator))
+	if err != nil {
+		t.Fatalf("ingest: %v", err)
+	}
+	graph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	// Every supported spec version: `authors` is the 1.6 form and `author` the
+	// older one, so a 1.4 document has to carry the claim too.
+	for _, target := range []Target{TargetCycloneDX14JSON, TargetCycloneDX15JSON, TargetCycloneDX16JSON, TargetCycloneDX17JSON} {
+		t.Run(string(target), func(t *testing.T) {
+			raw, err := MarshalDepGraphJSON(graph, target, BuildOptions{}, EncodeOptions{Pretty: true})
+			if err != nil {
+				t.Fatalf("export: %v", err)
+			}
+			back, _, err := UnmarshalAutoJSON(raw)
+			if err != nil {
+				t.Fatalf("re-ingest: %v", err)
+			}
+			got := componentNamed(t, back, "widget").Originator
+			if got == nil {
+				t.Fatalf("the originator was lost:\n%s", raw)
+			}
+			if got.Kind != sdk.ContactKindPerson {
+				t.Errorf("originator kind = %q, want person -- the claim was changed, not just dropped", got.Kind)
+			}
+			if got.Name != "Alice Example" {
+				t.Errorf("originator name = %q", got.Name)
+			}
+		})
+	}
+}
+
+// An organization originator still goes to `publisher`, which is the field
+// CycloneDX reads back as an organization.
+func TestOrganizationOriginatorStillUsesPublisher(t *testing.T) {
+	doc, _, err := UnmarshalAutoJSON([]byte(supplierRichCycloneDX))
+	if err != nil {
+		t.Fatalf("ingest: %v", err)
+	}
+	graph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	raw, err := MarshalDepGraphJSON(graph, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{Pretty: true})
+	if err != nil {
+		t.Fatalf("export: %v", err)
+	}
+	if !strings.Contains(string(raw), `"publisher": "Widget Publishing Inc"`) {
+		t.Errorf("an organization originator did not go to publisher:\n%s", raw)
+	}
+	back, _, err := UnmarshalAutoJSON(raw)
+	if err != nil {
+		t.Fatalf("re-ingest: %v", err)
+	}
+	if got := componentNamed(t, back, "widget").Originator; got == nil || got.Kind != sdk.ContactKindOrganization {
+		t.Errorf("originator = %+v, want an organization", got)
+	}
+}

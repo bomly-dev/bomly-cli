@@ -382,6 +382,11 @@ Some information necessarily becomes less specific during conversion:
   yet hold (tracked as bomly-dev/bomly-sdk#55). Merged CycloneDX documents do
   link their sources, and merged SPDX documents still preserve every
   component assertion.
+- Bomly does not read those source links back. A merged CycloneDX document
+  names the documents it was built from, but converting that document again
+  produces one that names no sources: Bomly records what a document says about
+  itself and has no place for the documents behind it (tracked as
+  bomly-dev/bomly-sdk#61). Keep the merged output if you need its provenance.
 - The CycloneDX `group` namespace survives a CycloneDX round trip. SPDX 2.3
   has no group field, so an SPDX round trip recovers the namespace only from
   the PURL.

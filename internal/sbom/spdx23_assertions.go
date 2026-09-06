@@ -325,6 +325,25 @@ func spdxDocumentAssertions(doc *v23.Document) sdk.DocumentAssertions {
 	return normalized
 }
 
+// spdxToolCreator renders a tool as SPDX's creator value.
+//
+// SPDX writes a tool as "name-version", which is the same convention Bomly
+// already uses for its own creator line a few lines below, so a source tool
+// carrying a version keeps it rather than being reduced to a bare name.
+//
+// The vendor is dropped, because SPDX models no vendor for a creator and the
+// alternatives are worse: folding it into the name produces a string that
+// reads back as a tool called "Acme/cdx-gen", which corrupts the name instead
+// of preserving the vendor. A claim the format cannot hold is better lost
+// than misfiled -- the CycloneDX projection keeps all three fields.
+func spdxToolCreator(tool sdk.DocumentTool) string {
+	name := strings.TrimSpace(tool.Name)
+	if version := strings.TrimSpace(tool.Version); name != "" && version != "" {
+		return name + "-" + version
+	}
+	return name
+}
+
 // spdxDocumentCreators renders the creator lines for a document, folding the
 // parties and tools the source documents credited in with Bomly's own.
 //
@@ -355,7 +374,7 @@ func spdxDocumentCreators(doc *Document) []common.Creator {
 		add(spdxToolCreatorType, tool)
 	}
 	for _, tool := range doc.Assertions.Tools {
-		add(spdxToolCreatorType, tool.Name)
+		add(spdxToolCreatorType, spdxToolCreator(tool))
 	}
 	if doc.Provenance.Manufacturer != "" {
 		add(spdxOrganizationCreatorType, doc.Provenance.Manufacturer)

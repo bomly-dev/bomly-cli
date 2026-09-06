@@ -213,6 +213,32 @@ func cycloneDXHomepageReference(comp Component) (sdk.ExternalReference, bool) {
 	return sdk.ExternalReference{Type: string(cdx.ERTypeWebsite), Locator: homepage}.Normalized()
 }
 
+// cycloneDXApplyOriginator writes the party that authored a component into the
+// field CycloneDX reserves for that kind of party.
+//
+// The kind is not decoration. `publisher` is read back as an organization and
+// `author` as a person -- by this package's own decoder and by other tools --
+// so routing a person through `publisher` did not merely lose the
+// distinction, it asserted the wrong one: an SPDX "Person: Alice" came back
+// from a CycloneDX hop as "Organization: Alice". Corrupting a claim is worse
+// than dropping it, because nothing downstream can tell it happened.
+//
+// Both author fields are set for a person. `authors` is the 1.6 form and
+// `author` the older one; cyclonedx-go emits whichever the target spec version
+// defines, so a 1.4 document still carries the claim.
+func cycloneDXApplyOriginator(component *cdx.Component, originator *sdk.Contact) {
+	entity := cycloneDXEntityFor(originator)
+	if entity == nil {
+		return
+	}
+	if originator.Kind == sdk.ContactKindPerson {
+		component.Author = entity.Name
+		component.Authors = &[]cdx.OrganizationalContact{{Name: entity.Name}}
+		return
+	}
+	component.Publisher = entity.Name
+}
+
 // cycloneDXEntityFor renders a contact as a CycloneDX organizational entity.
 func cycloneDXEntityFor(contact *sdk.Contact) *cdx.OrganizationalEntity {
 	if contact == nil {
@@ -412,34 +438,37 @@ func cycloneDXDocumentAuthors(doc *Document) []cdx.OrganizationalContact {
 	return authors
 }
 
-// cycloneDXSourceTools folds the tools the source documents credited in with
-// Bomly's own, deduplicated on the triple the SDK keys them by.
-func cycloneDXSourceTools(doc *Document, tools *cdx.ToolsChoice) *cdx.ToolsChoice {
-	if len(doc.Assertions.Tools) == 0 {
-		return tools
-	}
-	components := make([]cdx.Component, 0, len(doc.Assertions.Tools))
-	if tools != nil && tools.Components != nil {
-		components = append(components, *tools.Components...)
-	}
-	seen := make(map[string]struct{}, len(components))
-	for _, component := range components {
-		seen[component.Name+"\x00"+component.Version] = struct{}{}
-	}
-	for _, tool := range doc.Assertions.Tools {
-		key := tool.Name + "\x00" + tool.Version
-		if _, dup := seen[key]; dup {
-			continue
+// cycloneDXMetadataTools renders the tools credited with the document: the
+// ones this run used, plus the ones its source documents credited.
+//
+// The union is the SDK's, not a local one. Its merge class for tools keys on
+// the whole (vendor, name, version) triple, and a key written here by hand
+// omitted the vendor -- so a source crediting "Acme / cdx-gen / 9.1.0" was
+// silently suppressed by a vendorless entry of the same name and version,
+// discarding the one field the source added.
+func cycloneDXMetadataTools(doc *Document) *cdx.ToolsChoice {
+	own := make([]sdk.DocumentTool, 0, len(doc.ToolNamesOrDefault()))
+	for _, name := range doc.ToolNamesOrDefault() {
+		tool := sdk.DocumentTool{Name: name}
+		if name == doc.ToolOrDefault() {
+			tool.Version = doc.ToolVersion
 		}
-		seen[key] = struct{}{}
+		own = append(own, tool)
+	}
+	merged := sdk.MergeDocumentAssertions(
+		sdk.DocumentAssertions{Tools: own},
+		sdk.DocumentAssertions{Tools: doc.Assertions.Tools},
+	)
+	if len(merged.Tools) == 0 {
+		return nil
+	}
+	components := make([]cdx.Component, 0, len(merged.Tools))
+	for _, tool := range merged.Tools {
 		component := cdx.Component{Type: cdx.ComponentTypeApplication, Name: tool.Name, Version: tool.Version}
 		if tool.Vendor != "" {
 			component.Manufacturer = &cdx.OrganizationalEntity{Name: tool.Vendor}
 		}
 		components = append(components, component)
-	}
-	if len(components) == 0 {
-		return tools
 	}
 	return &cdx.ToolsChoice{Components: &components}
 }

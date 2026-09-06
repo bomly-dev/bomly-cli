@@ -513,3 +513,53 @@ func TestDocumentAssertionsForAlwaysRecordsThatADocumentWasRead(t *testing.T) {
 		t.Error("no document must mean no record")
 	}
 }
+
+// A credited tool keeps everything the format can hold. A CycloneDX source
+// naming "Acme / cdx-gen / 9.1.0" was reduced to "Tool: cdx-gen" on SPDX
+// export, and suppressed entirely on CycloneDX export by a deduplication key
+// that ignored the vendor.
+func TestCreditedToolsKeepWhatEachFormatCanHold(t *testing.T) {
+	doc := &Document{
+		Tool:        defaultToolName,
+		Tools:       []string{defaultToolName},
+		ToolVersion: "1.2.3",
+		Assertions: sdk.DocumentAssertions{Tools: []sdk.DocumentTool{
+			{Vendor: "Acme", Name: "cdx-gen", Version: "9.1.0"},
+			// Same name and version as Bomly's own entry, but with a vendor
+			// the source added: the SDK's merge class keys on the whole
+			// triple, so this is a distinct tool and must not be swallowed.
+			{Vendor: "Acme", Name: defaultToolName, Version: "1.2.3"},
+		}},
+	}
+
+	t.Run("spdx renders name and version", func(t *testing.T) {
+		var found bool
+		for _, creator := range spdxDocumentCreators(doc) {
+			found = found || creator.Creator == "cdx-gen-9.1.0"
+		}
+		if !found {
+			t.Errorf("creators = %+v, want the tool's version kept", spdxDocumentCreators(doc))
+		}
+	})
+
+	t.Run("cyclonedx keeps the vendor", func(t *testing.T) {
+		tools := cycloneDXMetadataTools(doc)
+		if tools == nil || tools.Components == nil {
+			t.Fatal("no tools rendered")
+		}
+		var vendored, ownVendored bool
+		for _, component := range *tools.Components {
+			if component.Manufacturer == nil {
+				continue
+			}
+			vendored = vendored || (component.Name == "cdx-gen" && component.Manufacturer.Name == "Acme")
+			ownVendored = ownVendored || (component.Name == defaultToolName && component.Manufacturer.Name == "Acme")
+		}
+		if !vendored {
+			t.Errorf("tools = %+v, want the source's vendor kept", *tools.Components)
+		}
+		if !ownVendored {
+			t.Errorf("a source tool differing only by vendor was suppressed: %+v", *tools.Components)
+		}
+	})
+}

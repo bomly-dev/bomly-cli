@@ -109,18 +109,25 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 	}
 
 	componentByID := make(map[string]Component)
+	var unknownScopes []string
 	if bom.Components != nil {
 		for _, comp := range *bom.Components {
+			unknownScopes = mergeUnknownScopeTokens(unknownScopes, unknownScopeTokens(cycloneDXCarriedScopes(comp.Properties)))
 			component := Component{
-				ID:        comp.BOMRef,
-				Name:      comp.Name,
-				Org:       comp.Group,
-				Type:      string(comp.Type),
-				Scopes:    sdk.ScopesFromCycloneDXComponent(string(comp.Scope), cycloneDXCarriedScopes(comp.Properties)),
-				Version:   comp.Version,
-				PURL:      comp.PackageURL,
-				Copyright: comp.Copyright,
-				Licenses:  parseCycloneDXLicenses(comp.Licenses),
+				ID:     comp.BOMRef,
+				Name:   comp.Name,
+				Org:    comp.Group,
+				Type:   string(comp.Type),
+				Scopes: sdk.ScopesFromCycloneDXComponent(string(comp.Scope), cycloneDXCarriedScopes(comp.Properties)),
+				// The word beside the set it derives, so an export can say
+				// what this document said rather than Bomly's projection of
+				// it. Gated by the SDK, which is also what refuses a value
+				// that is not a scope word at all.
+				SourceScope: sdk.NormalizeSourceScope(string(comp.Scope)),
+				Version:     comp.Version,
+				PURL:        comp.PackageURL,
+				Copyright:   comp.Copyright,
+				Licenses:    parseCycloneDXLicenses(comp.Licenses),
 			}
 			applyCycloneDXAssertions(&component, comp)
 			componentByID[comp.BOMRef] = component
@@ -161,16 +168,18 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 
 	if len(componentByID) == 0 && bom.Metadata != nil && bom.Metadata.Component != nil {
 		root := bom.Metadata.Component
+		unknownScopes = mergeUnknownScopeTokens(unknownScopes, unknownScopeTokens(cycloneDXCarriedScopes(root.Properties)))
 		component := Component{
-			ID:        root.BOMRef,
-			Name:      root.Name,
-			Org:       root.Group,
-			Type:      string(root.Type),
-			Scopes:    sdk.ScopesFromCycloneDXComponent(string(root.Scope), cycloneDXCarriedScopes(root.Properties)),
-			Version:   root.Version,
-			PURL:      root.PackageURL,
-			Copyright: root.Copyright,
-			Licenses:  parseCycloneDXLicenses(root.Licenses),
+			ID:          root.BOMRef,
+			Name:        root.Name,
+			Org:         root.Group,
+			Type:        string(root.Type),
+			Scopes:      sdk.ScopesFromCycloneDXComponent(string(root.Scope), cycloneDXCarriedScopes(root.Properties)),
+			SourceScope: sdk.NormalizeSourceScope(string(root.Scope)),
+			Version:     root.Version,
+			PURL:        root.PackageURL,
+			Copyright:   root.Copyright,
+			Licenses:    parseCycloneDXLicenses(root.Licenses),
 		}
 		// The same assertions the inventory loop applies. A document whose
 		// only component is its primary one is legal, and reading it with
@@ -210,15 +219,16 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 	}
 
 	return &Document{
-		Name:         defaultDocumentName,
-		Assertions:   cycloneDXDocumentAssertions(bom),
-		Tool:         cycloneDXPrimaryToolName(bom.Metadata),
-		Tools:        cycloneDXToolNames(bom.Metadata),
-		Created:      created,
-		SerialNumber: bom.SerialNumber,
-		Components:   components,
-		Dependencies: dependencies,
-		Roots:        roots,
+		Name:               defaultDocumentName,
+		Assertions:         cycloneDXDocumentAssertions(bom),
+		Tool:               cycloneDXPrimaryToolName(bom.Metadata),
+		Tools:              cycloneDXToolNames(bom.Metadata),
+		Created:            created,
+		SerialNumber:       bom.SerialNumber,
+		Components:         components,
+		Dependencies:       dependencies,
+		Roots:              roots,
+		UnknownScopeTokens: unknownScopes,
 	}, nil
 }
 
@@ -442,11 +452,16 @@ func toCycloneDXVersion(target Target) cdx.SpecVersion {
 // the document describes a package the same way wherever it appears.
 func cycloneDXComponent(comp Component) cdx.Component {
 	component := cdx.Component{
-		BOMRef:     comp.ID,
-		Type:       cycloneDXComponentType(comp.Type),
-		Name:       comp.NameOrID(),
-		Group:      comp.Org,
-		Scope:      cdx.Scope(sdk.CycloneDXScope(comp.Scopes)),
+		BOMRef: comp.ID,
+		Type:   cycloneDXComponentType(comp.Type),
+		Name:   comp.NameOrID(),
+		Group:  comp.Org,
+		// The source document's own word when Bomly's scope set still means
+		// what that word meant, and the projection of the set otherwise. The
+		// SDK owns that decision: it is the same mapping that read the word
+		// in, and only it can say whether the word still describes the set
+		// (ADR-0037).
+		Scope:      cdx.Scope(sdk.CycloneDXScopeForExport(comp.Scopes, comp.SourceScope)),
 		Version:    comp.Version,
 		PackageURL: comp.PURL,
 		Copyright:  comp.Copyright,

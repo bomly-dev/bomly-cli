@@ -80,3 +80,27 @@ written straight onto one never passed a decoder. Everything runs through
   and asserts idempotence, the property whose failure in the component half
   surfaced bomly-dev/bomly-sdk#54. The merged case is validated end to end by
   the SBOM interoperability workflow, through both official validators.
+
+## Update (2026-09-06): both gaps this ADR left open are closed
+
+Two consequences above were open questions with SDK issues attached. SDK
+v0.9.5 closed both, and this repository consumes them.
+
+**A merged SPDX document now links its sources.** The blocker was that
+`DocumentAssertions` had nowhere to keep a checksum over a source document's
+bytes, which SPDX requires on every `externalDocumentRefs` entry
+(bomly-dev/bomly-sdk#55). The carrier grew a document version and a source
+checksum, and ingest computes that checksum where the original bytes are --
+in the codec entry point, once, for every format including one added later.
+The SPDX projection now sits beside the CycloneDX one. A source that reached
+a graph entry without passing through ingest has no checksum and is left
+unnamed rather than written as an invalid reference.
+
+**Those links are read back.** `DocumentAssertions.Sources`
+(bomly-dev/bomly-sdk#61) gives the documents behind a document a home, so
+both codecs read the links on ingest and re-emit them on export. A merged
+export converted again still names its inputs. Each source contributes its
+own link tuple and the tuples it recorded, which is the SDK's declared merge
+class for the set -- inheritance, not a rule re-decided here. The CycloneDX
+`bom` reference carries the checksum too, so converting a merged CycloneDX
+document to SPDX can still name every source.

@@ -181,9 +181,9 @@ func (d documentIdentity) names(identity string) bool {
 	return false
 }
 
-// documentSourceLinks returns the references that name each source document
-// this one was built from, for the sources whose identity this document did
-// not adopt as the identity it is about to write.
+// documentSourceLinks returns the link tuples naming each source document this
+// one was built from, for the sources whose identity this document did not
+// adopt as the identity it is about to write.
 //
 // The comparison is against what the format emits, not against the model's
 // namespace field. Converting an SPDX source to CycloneDX adopts the source
@@ -192,41 +192,48 @@ func (d documentIdentity) names(identity string) bool {
 // suppressed the link for a document that had not in fact adopted anything,
 // and the export named its source neither way.
 //
-// Only CycloneDX renders these today. SPDX links documents through
-// externalDocumentRefs, whose every entry requires a checksum over the source
-// document's bytes -- and DocumentAssertions has nowhere to carry one, so a
-// merged SPDX export names no sources. Tracked as bomly-dev/bomly-sdk#55;
-// when that field ships, an SPDX projection belongs here beside this one.
+// Each source contributes two things: its own link tuple, and the tuples it
+// recorded for the documents *it* was built from. That second half is what
+// makes provenance survive more than one hop, and it is the SDK's declared
+// merge class for the set rather than a rule invented here -- a document
+// built from a merged document inherits that document's sources beside its
+// own identity. Without it a merged export converted again named nothing: the
+// links were write-only, which is what bomly-dev/bomly-sdk#61 recorded.
 //
-// These links are also write-only for now: DocumentAssertions records what a
-// document says about itself, with no field for the documents behind it, so
-// ingesting a merged export cannot restore them and a second export names no
-// sources. Tracked as bomly-dev/bomly-sdk#61. Carrying them through Metadata
-// instead is exactly what ADR-0037 closed off, so the gap is documented rather
-// than worked around.
-func documentSourceLinks(doc *Document, emitted documentIdentity) []sdk.ExternalReference {
+// The result is folded, gated, sorted and bounded by the SDK, by handing the
+// candidates back to DocumentAssertions.Normalized. Doing it here would be a
+// second copy of the set's key, its self-reference rule and its bound -- the
+// three things that decide whether the merge stays associative.
+//
+// Both formats render these now. CycloneDX writes an external reference of
+// type "bom"; SPDX writes an externalDocumentRef, which requires a checksum
+// over the source document's bytes -- captured at ingest by decodeDocument, so
+// a source that arrived without one is skipped there rather than written as an
+// invalid reference.
+func documentSourceLinks(doc *Document, emitted documentIdentity) []sdk.DocumentSource {
 	if doc == nil || len(doc.Sources) == 0 {
 		return nil
 	}
-	links := make([]sdk.ExternalReference, 0, len(doc.Sources))
+	candidates := make([]sdk.DocumentSource, 0, len(doc.Sources)*2)
 	for _, source := range doc.Sources {
-		if emitted.names(source.Identity) || source.Identity == "" {
+		candidates = append(candidates, sdk.DocumentSource{
+			Identity: source.Identity,
+			Version:  source.Version,
+			Checksum: source.Checksum,
+		})
+		candidates = append(candidates, source.Sources...)
+	}
+	folded, _ := sdk.DocumentAssertions{Sources: candidates}.Normalized()
+
+	links := make([]sdk.DocumentSource, 0, len(folded.Sources))
+	for _, source := range folded.Sources {
+		if emitted.names(source.Identity) {
 			continue
 		}
-		// Category stays unknown: this is CycloneDX's axis, and SPDX's
-		// referenceCategory has no member that means "another document" --
-		// SPDX links documents through externalDocumentRefs instead.
-		ref, ok := sdk.ExternalReference{
-			Type:    string(cdx.ERTypeBOM),
-			Locator: source.Identity,
-		}.Normalized()
-		if !ok {
-			continue
-		}
-		links = append(links, ref)
+		links = append(links, source)
 	}
 	if len(links) == 0 {
 		return nil
 	}
-	return sdk.MergeExternalReferences(nil, links)
+	return links
 }

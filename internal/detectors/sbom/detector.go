@@ -105,6 +105,19 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 		}
 	}
 
+	// A token in Bomly's own scope carrier that this build cannot read is
+	// almost always one a newer Bomly wrote. The scopes beside it are kept --
+	// the SDK reads the carrier leniently -- so the graph is sound and the
+	// scan continues; what a user needs to know is that this binary is
+	// reading a document written by a later one, because that is the thing
+	// they can act on. This logger is the channel the ingest path has: the
+	// codec has none, and the SDK deliberately does not log.
+	if len(doc.UnknownScopeTokens) > 0 {
+		logger.Warn(fmt.Sprintf("sbom: ignored %d unrecognized scope token(s) in %q; a newer Bomly may have written them",
+			len(doc.UnknownScopeTokens), sbomPath),
+			zap.Strings("tokens", doc.UnknownScopeTokens))
+	}
+
 	depsGraph, err := sbom.ToGraph(doc)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("convert sbom %q to graph: %w", sbomPath, err)

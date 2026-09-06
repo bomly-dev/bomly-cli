@@ -120,6 +120,19 @@ type Document struct {
 	// same field as Sources below.
 	Assertions sdk.DocumentAssertions
 
+	// UnknownScopeTokens are the scope-carrier tokens an ingested document
+	// named that this build does not recognize, deduplicated and sorted.
+	//
+	// The carrier is Bomly's own, so an unreadable token is most likely one a
+	// newer Bomly wrote. The scopes beside it are still kept -- that is the
+	// point of the SDK's lenient read -- but the fact that something was not
+	// read is worth telling a user, and this package has no logger of its
+	// own. The SBOM detector is where it becomes a warning.
+	//
+	// Empty for a document Bomly wrote and for a document with no carrier at
+	// all.
+	UnknownScopeTokens []string
+
 	// Sources are the documents this one was built from, one per ingested
 	// SBOM, in entry order.
 	//
@@ -171,12 +184,28 @@ type Component struct {
 	// and a second copy here is how the forward and reverse directions came
 	// to disagree in the first place.
 	//
-	// One clause of ADR-0037 is not implemented here: a source document's own
-	// scalar -- CycloneDX's "optional", say -- is not preserved for verbatim
-	// re-emission, because DependencyNode has nowhere to carry a source-
-	// asserted scope alongside the derived set. "optional" therefore reads as
-	// runtime and re-exports as "required". Tracked as bomly-dev/bomly-sdk#57.
+	// A source document's own scalar rides beside the set in SourceScope, so
+	// the derived set is never the only record of what the document said.
 	Scopes []sdk.Scope
+
+	// SourceScope is the scope word the source document used, in that
+	// document's own vocabulary -- CycloneDX's "optional", say. It is a
+	// preserved claim and never an input to filtering: Scopes is what the
+	// pipeline reads, and the SDK derives it from this.
+	//
+	// ADR-0037 asks that the word be re-emitted verbatim unless Bomly's own
+	// scope set changed, so "optional" and "excluded" do not collapse into
+	// "required" across a round trip that asserted neither. Whether the word
+	// still means what the set means is sdk.CycloneDXScopeForExport's
+	// decision, not this package's -- the mapping that read the word in is
+	// the only thing that can say whether it still describes the set, and a
+	// second copy of it here is how the two directions came to disagree
+	// before.
+	//
+	// Only CycloneDX has a scalar to hold it. SPDX 2.3 has no scope field at
+	// all, so an SPDX export carries the set in its comment carrier and the
+	// source word stops there.
+	SourceScope string
 
 	PURL           string
 	Ecosystem      string

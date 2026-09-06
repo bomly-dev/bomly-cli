@@ -328,6 +328,14 @@ func cycloneDXDocumentAssertions(bom *cdx.BOM) sdk.DocumentAssertions {
 	if link, err := cdx.NewBOMLink(bom.SerialNumber, version, nil); err == nil {
 		assertions.Identity = link.String()
 	}
+	// The version the document stated, not the default applied above: zero
+	// means the source numbered nothing, and a BOM-Link identity's tail says
+	// so anyway. Writing the default here would put a version onto every
+	// document that never claimed one.
+	assertions.Version = bom.Version
+	// What this document says it was built from, so a second conversion can
+	// still name them.
+	assertions.Sources = cycloneDXIngestedSources(bom.ExternalReferences)
 	if bom.Metadata != nil {
 		assertions.Created = bom.Metadata.Timestamp
 		if bom.Metadata.Manufacturer != nil {
@@ -492,6 +500,13 @@ func cycloneDXMetadataTools(doc *Document) *cdx.ToolsChoice {
 
 // cycloneDXSourceLinks renders the links naming the documents this one was
 // built from, as external references of type "bom" on the document itself.
+//
+// The checksum rides along in the reference's hashes. CycloneDX does not
+// require one, but SPDX's externalDocumentRef does, and a merged CycloneDX
+// document converted to SPDX has nowhere else to recover it from -- so
+// dropping it here would make the provenance survive one format and die on the
+// next hop. The category-free reference gate is the SDK's; the digest gate
+// runs again on the way out for the reason every export re-gates.
 func cycloneDXSourceLinks(doc *Document) []cdx.ExternalReference {
 	// CycloneDX writes a serial and no namespace, so that is the only identity
 	// a reader of this document can see, and the only one a source link could
@@ -505,10 +520,69 @@ func cycloneDXSourceLinks(doc *Document) []cdx.ExternalReference {
 	}
 	refs := make([]cdx.ExternalReference, 0, len(links))
 	for _, link := range links {
-		refs = append(refs, cdx.ExternalReference{
-			Type: cdx.ExternalReferenceType(link.Type),
-			URL:  link.Locator,
-		})
+		// Category stays unset: this is CycloneDX's axis, and the reference
+		// is written from the link tuple rather than from a stored reference.
+		ref, ok := sdk.ExternalReference{
+			Type:    string(cdx.ERTypeBOM),
+			Locator: link.Identity,
+		}.Normalized()
+		if !ok {
+			continue
+		}
+		emitted := cdx.ExternalReference{
+			Type: cdx.ExternalReferenceType(ref.Type),
+			URL:  ref.Locator,
+		}
+		if link.Checksum != nil {
+			emitted.Hashes = cycloneDXEmittedHashes([]sdk.Digest{*link.Checksum})
+		}
+		refs = append(refs, emitted)
+	}
+	if len(refs) == 0 {
+		return nil
 	}
 	return refs
+}
+
+// cycloneDXIngestedSources reads the documents a CycloneDX document says it
+// was built from: its own external references of type "bom".
+//
+// These were write-only until now -- the export wrote them and nothing read
+// them back, so converting a merged document again produced one that named no
+// sources at all (bomly-dev/bomly-sdk#61). The reference type is the
+// library's constant, and every field is gated by DocumentSource.Normalized
+// when the parent record is normalized, so a reference naming nothing
+// publishable drops rather than becoming an empty link.
+func cycloneDXIngestedSources(refs *[]cdx.ExternalReference) []sdk.DocumentSource {
+	if refs == nil {
+		return nil
+	}
+	sources := make([]sdk.DocumentSource, 0, len(*refs))
+	for _, ref := range *refs {
+		if !strings.EqualFold(strings.TrimSpace(string(ref.Type)), string(cdx.ERTypeBOM)) {
+			continue
+		}
+		source := sdk.DocumentSource{Identity: ref.URL}
+		// The first hash that clears the digest gate. A reference may carry
+		// several; the record holds one, and the SPDX projection it feeds has
+		// one slot too.
+		if ref.Hashes != nil {
+			for _, hash := range *ref.Hashes {
+				checksum, ok := (sdk.Digest{
+					Algorithm: sdk.DigestAlgorithm(hash.Algorithm),
+					Value:     hash.Value,
+				}).Normalized()
+				if !ok {
+					continue
+				}
+				source.Checksum = &checksum
+				break
+			}
+		}
+		sources = append(sources, source)
+	}
+	if len(sources) == 0 {
+		return nil
+	}
+	return sources
 }

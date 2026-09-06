@@ -2,6 +2,8 @@ package sbom
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -54,7 +56,7 @@ func UnmarshalJSON(data []byte, target Target) (*Document, error) {
 	if err := requireUnambiguousJSON(data); err != nil {
 		return nil, err
 	}
-	return c.decodeJSON(data)
+	return decodeDocument(c, data)
 }
 
 // unmarshalValidated decodes a document whose bytes the caller has already
@@ -64,7 +66,39 @@ func unmarshalValidated(data []byte, target Target) (*Document, error) {
 	if !ok {
 		return nil, fmt.Errorf("%w: %s", ErrUnsupportedTarget, target)
 	}
-	return c.decodeJSON(data)
+	return decodeDocument(c, data)
+}
+
+// decodeDocument runs a codec and stamps the document with a checksum over the
+// bytes it was decoded from.
+//
+// Every ingest path goes through here, which is the point: the checksum can
+// only be computed while the original bytes are in hand, and it cannot be
+// recovered from the parsed model afterwards. An SPDX externalDocumentRef is
+// invalid without one, so a merged SPDX export that has to name its sources
+// has exactly one chance to capture it -- here, for every format, including
+// one added later (ADR-0037).
+//
+// SHA-256 because both formats define it and both validators accept it; the
+// spelling each writes is the SDK's to render, not this package's.
+func decodeDocument(c codec, data []byte) (*Document, error) {
+	doc, err := c.decodeJSON(data)
+	if err != nil {
+		return nil, err
+	}
+	if doc == nil {
+		return nil, ErrNilDocument
+	}
+	sum := sha256.Sum256(data)
+	// The gate runs here rather than at the export site, so a checksum that
+	// could not be published never reaches the model at all.
+	if checksum, ok := (sdk.Digest{
+		Algorithm: sdk.DigestAlgorithmSHA256,
+		Value:     hex.EncodeToString(sum[:]),
+	}).Normalized(); ok {
+		doc.Assertions.Checksum = &checksum
+	}
+	return doc, nil
 }
 
 // DetectJSONTarget identifies the supported SBOM JSON format represented by data.

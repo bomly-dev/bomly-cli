@@ -188,3 +188,168 @@ func TestSPDXPackageCommentCarriesTheScopeSet(t *testing.T) {
 		t.Fatalf("the package comment does not carry the sorted set:\n%s", raw)
 	}
 }
+
+// foreignCycloneDX is a document Bomly did not write: a native scalar scope
+// and no carrier property beside it.
+func foreignCycloneDX(scope string) string {
+	return `{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "components": [
+    {"bom-ref": "pkg:npm/widget@1.0.0", "type": "library", "name": "widget",
+     "version": "1.0.0", "purl": "pkg:npm/widget@1.0.0", "scope": "` + scope + `"}
+  ]
+}`
+}
+
+// cycloneDXComponentScope reads the scalar scope a rendered document wrote.
+func cycloneDXComponentScope(t *testing.T, raw []byte) cdx.Scope {
+	t.Helper()
+	var bom cdx.BOM
+	if err := json.Unmarshal(raw, &bom); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if bom.Components == nil || len(*bom.Components) == 0 {
+		t.Fatalf("no components:\n%s", raw)
+	}
+	return (*bom.Components)[0].Scope
+}
+
+// A source document's own scope word comes back out unchanged.
+//
+// It could not before: the model had nowhere to keep a source-asserted scope
+// beside the set it derives, so a component a document marked "optional" was
+// re-exported as "required" -- a claim about shipping code that the source had
+// deliberately not made (bomly-dev/bomly-sdk#57). Every word in CycloneDX's
+// vocabulary is covered, including "excluded", which read as development and
+// projected back to "excluded" by luck rather than by preservation.
+func TestSourceScopeWordSurvivesACycloneDXRoundTrip(t *testing.T) {
+	for _, word := range []string{"required", "optional", "excluded"} {
+		t.Run(word, func(t *testing.T) {
+			doc, _, err := UnmarshalAutoJSON([]byte(foreignCycloneDX(word)))
+			if err != nil {
+				t.Fatalf("ingest: %v", err)
+			}
+			if got := componentNamed(t, doc, "widget").SourceScope; got != word {
+				t.Fatalf("ingested source scope = %q, want %q", got, word)
+			}
+
+			g, err := ToGraph(doc)
+			if err != nil {
+				t.Fatalf("to graph: %v", err)
+			}
+			raw, err := MarshalDepGraphJSON(g, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{Pretty: true})
+			if err != nil {
+				t.Fatalf("export: %v", err)
+			}
+			if got := cycloneDXComponentScope(t, raw); string(got) != word {
+				t.Errorf("re-exported scope = %q, want the source's own word %q\n%s", got, word, raw)
+			}
+		})
+	}
+}
+
+// When Bomly's own scope set no longer means what the source's word meant,
+// the projection is written instead. The word is preserved, not obeyed: it
+// describes a set, and a set that changed is no longer the one it describes.
+func TestSourceScopeYieldsToTheProjectionWhenTheSetChanges(t *testing.T) {
+	doc, _, err := UnmarshalAutoJSON([]byte(foreignCycloneDX("optional")))
+	if err != nil {
+		t.Fatalf("ingest: %v", err)
+	}
+	g, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	nodes := g.DependencyNodes()
+	if len(nodes) != 1 {
+		t.Fatalf("nodes = %d", len(nodes))
+	}
+	// What propagation does when the package turns out to be reachable from a
+	// development root as well: the set now says something "optional" does not.
+	nodes[0].Scopes = append(nodes[0].Scopes, sdk.ScopeDevelopment)
+
+	raw, err := MarshalDepGraphJSON(g, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{Pretty: true})
+	if err != nil {
+		t.Fatalf("export: %v", err)
+	}
+	if got := cycloneDXComponentScope(t, raw); got != cdx.ScopeRequired {
+		t.Errorf("scope = %q, want the projection %q once the set changed\n%s", got, cdx.ScopeRequired, raw)
+	}
+}
+
+// A carrier naming one token this build does not know keeps the scopes it
+// does know, and reports the token.
+//
+// The strict read was a forward-compatibility trap: one unknown token from a
+// newer Bomly dropped the whole assertion. CycloneDX could fall back to its
+// scalar; SPDX has no scalar, so the component ended up unscoped altogether --
+// the loss bomly-dev/bomly-sdk#64 recorded.
+func TestUnknownScopeTokenKeepsTheKnownScopes(t *testing.T) {
+	spdxWithCarrier := `{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "n",
+  "documentNamespace": "https://acme.example/spdx/n",
+  "creationInfo": {"created": "2026-01-02T03:04:05Z", "creators": ["Tool: t"]},
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-widget",
+      "name": "widget",
+      "versionInfo": "1.0.0",
+      "comment": "bomly:scope=runtime,future-scope",
+      "externalRefs": [
+        {"referenceCategory": "PACKAGE-MANAGER", "referenceType": "purl", "referenceLocator": "pkg:npm/widget@1.0.0"}
+      ]
+    }
+  ]
+}`
+	cycloneDXWithCarrier := `{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "components": [
+    {"bom-ref": "pkg:npm/widget@1.0.0", "type": "library", "name": "widget",
+     "version": "1.0.0", "purl": "pkg:npm/widget@1.0.0", "scope": "excluded",
+     "properties": [{"name": "bomly:scopes", "value": "runtime,future-scope"}]}
+  ]
+}`
+	for name, raw := range map[string]string{"spdx": spdxWithCarrier, "cyclonedx": cycloneDXWithCarrier} {
+		t.Run(name, func(t *testing.T) {
+			doc, _, err := UnmarshalAutoJSON([]byte(raw))
+			if err != nil {
+				t.Fatalf("ingest: %v", err)
+			}
+			got := componentScopes(t, doc, "widget")
+			if len(got) != 1 || got[0] != sdk.ScopeRuntime {
+				t.Fatalf("scopes = %v, want the token this build can read", got)
+			}
+			if len(doc.UnknownScopeTokens) != 1 || doc.UnknownScopeTokens[0] != "future-scope" {
+				t.Errorf("unknown tokens = %v, want the one that was dropped", doc.UnknownScopeTokens)
+			}
+		})
+	}
+}
+
+// A document Bomly wrote names no unknown tokens, so the warning stays quiet
+// on the ordinary path.
+func TestAKnownCarrierReportsNoUnknownTokens(t *testing.T) {
+	for _, target := range []Target{TargetSPDX23JSON, TargetCycloneDX16JSON} {
+		t.Run(string(target), func(t *testing.T) {
+			g := scopedGraph(t, sdk.ScopeRuntime, sdk.ScopeDevelopment)
+			raw, err := MarshalDepGraphJSON(g, target, BuildOptions{}, EncodeOptions{Pretty: true})
+			if err != nil {
+				t.Fatalf("export: %v", err)
+			}
+			doc, _, err := UnmarshalAutoJSON(raw)
+			if err != nil {
+				t.Fatalf("ingest: %v", err)
+			}
+			if len(doc.UnknownScopeTokens) != 0 {
+				t.Errorf("unknown tokens = %v, want none", doc.UnknownScopeTokens)
+			}
+		})
+	}
+}

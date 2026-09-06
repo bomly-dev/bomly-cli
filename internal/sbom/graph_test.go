@@ -149,3 +149,57 @@ func TestExportedDependenciesNameOnlyComponents(t *testing.T) {
 		t.Fatalf("child module dependsOn = %v, want %q", got, leaf.NodeID())
 	}
 }
+
+// The ingest gates are fixed points, so the values they admit survive every
+// further hop.
+//
+// This is the property bomly-dev/bomly-sdk#54 broke and the SDK's v0.9.5
+// NormalizeDescription restored, and it is the reason applyIngestedAssertions
+// no longer wraps the gates in a local normalize-until-it-settles loop. The
+// input is the shape that found the defect: bytes that are not valid UTF-8,
+// short enough to pass the gate's input bound and long enough that repairing
+// each of them into U+FFFD -- three bytes apiece -- carries the result past
+// that same bound. Under the old gate the first pass returned the repaired,
+// over-long value and the second returned "", so a description survived one
+// conversion and vanished on the next.
+//
+// Asserted on the gate itself rather than only through the node, because it
+// is the gate's promise; the node assertion below is what the ingest path
+// actually depends on.
+func TestIngestGatesAreFixedPoints(t *testing.T) {
+	for _, testCase := range []struct {
+		name  string
+		value string
+	}{
+		{"invalid utf-8 that triples on repair", strings.Repeat("\xff", 5000)},
+		{"invalid utf-8 within the bound", strings.Repeat("\xff", 16)},
+		{"control characters", "a\x00b\x07c"},
+		{"plain text", "a widget for widgets"},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			once := sdk.NormalizeDescription(testCase.value)
+			if twice := sdk.NormalizeDescription(once); twice != once {
+				t.Fatalf("NormalizeDescription is not idempotent: %d bytes then %d bytes", len(once), len(twice))
+			}
+
+			node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: "npm", Name: "widget", Version: "1.0.0"})
+			if err != nil {
+				t.Fatalf("construct node: %v", err)
+			}
+			applyIngestedAssertions(node, Component{Name: "widget", Description: testCase.value})
+			if node.Description != once {
+				t.Fatalf("ingested description = %q, want the gate's own answer %q", node.Description, once)
+			}
+			// And a second hop -- export back into a component, ingest again --
+			// keeps it, which is what the deleted workaround was protecting.
+			second, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: "npm", Name: "widget", Version: "1.0.0"})
+			if err != nil {
+				t.Fatalf("construct node: %v", err)
+			}
+			applyIngestedAssertions(second, Component{Name: "widget", Description: node.Description})
+			if second.Description != node.Description {
+				t.Fatalf("description changed on the second hop: %q then %q", node.Description, second.Description)
+			}
+		})
+	}
+}

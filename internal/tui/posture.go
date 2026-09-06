@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -44,8 +45,8 @@ func postureRowsFromGraph(graphValue *sdk.Graph, registry *sdk.PackageRegistry) 
 		if dep == nil || dep.NodeID() == "" {
 			continue
 		}
-		pkg, ok := registry.Get(dep.NodeID())
-		if !ok || pkg == nil || pkg.Scorecard == nil {
+		pkg := output.RegistryPackageForNode(registry, dep)
+		if pkg == nil || pkg.Scorecard == nil {
 			continue
 		}
 		repo := pkg.Scorecard.Repository

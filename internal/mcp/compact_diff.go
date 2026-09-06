@@ -139,13 +139,14 @@ func compactFindingList(findings []sdk.Finding, in remediationInput, trunc *Trun
 	if len(findings) == 0 {
 		return nil
 	}
+	in.indexNodes()
 	out := make([]CompactFinding, 0, len(findings))
 	for _, f := range findings {
 		if len(out) >= maxInformational {
 			trunc.OmittedFindings++
 			continue
 		}
-		vuln := lookupFindingVulnerability(in.Registry, f)
+		_, vuln := output.FindingAdvisory(in.Registry, f)
 		compact, _ := buildCompactFinding(f, vuln, in)
 		out = append(out, compact)
 	}

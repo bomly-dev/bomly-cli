@@ -295,14 +295,14 @@ func (m *ScanModel) rootPackageSection(rootID string) []string {
 		return nil
 	}
 	licenseValues := make([]string, 0)
-	for _, license := range licensesForDependency(m.registry, pkg) {
+	for _, license := range output.ResolvedLicenses(m.registry, pkg) {
 		if id := strings.TrimSpace(license.SPDXExpression); id != "" {
 			licenseValues = append(licenseValues, id)
 		} else if value := strings.TrimSpace(license.Value); value != "" {
 			licenseValues = append(licenseValues, value)
 		}
 	}
-	vulnerabilities := vulnsForDependency(m.registry, pkg)
+	vulnerabilities := output.NodeVulnerabilities(m.registry, pkg)
 	vulnerabilitySummary := "none"
 	if len(vulnerabilities) > 0 {
 		bySeverity := map[string]int{}

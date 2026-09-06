@@ -410,7 +410,7 @@ func renderDirectDepsTable(g *sdk.Graph, registry *sdk.PackageRegistry) string {
 		}
 
 		licenseIdents := make([]string, 0, 2)
-		for _, lic := range licensesForDependency(pkg, registry) {
+		for _, lic := range output.ResolvedLicenses(registry, pkg) {
 			if id := graphLicenseIdentifier(lic); id != "" {
 				licenseIdents = append(licenseIdents, id)
 				break // show only the primary license
@@ -497,15 +497,11 @@ func renderCompactFindings(findings []sdk.Finding, registry *sdk.PackageRegistry
 		if !showNASeverity && (sev == "n/a" || sev == "") {
 			continue
 		}
-		regPkg, _ := lookupFindingPkgAndVuln(registry, f)
-		pkgName := f.PackageRef
-		if regPkg != nil && regPkg.Name != "" {
-			if regPkg.Version != "" {
-				pkgName = regPkg.Name + "@" + regPkg.Version
-			} else {
-				pkgName = regPkg.Name
-			}
-		}
+		// The same label the JSON document, the TUI and the MCP payload put
+		// on this package. It used to be built from the bare registry Name
+		// here, which drops an npm scope: the row read "deep@2.0.0" while
+		// every other surface said "@scope/deep@2.0.0".
+		pkgName := output.IdentifyPackageRef(registry, f.PackageRef).DisplayLabel()
 		if pkgName == "" {
 			pkgName = "-"
 		}
@@ -551,50 +547,6 @@ func severityRankTable(s string) int {
 	default:
 		return 4
 	}
-}
-
-// lookupFindingPkgAndVuln resolves a Finding against the registry, returning
-// the matched Package and the specific Vulnerability it references (if any).
-// Either return value may be nil.
-func lookupFindingPkgAndVuln(registry *sdk.PackageRegistry, f sdk.Finding) (*sdk.Package, *sdk.Vulnerability) {
-	if registry == nil || f.PackageRef == "" {
-		return nil, nil
-	}
-	pkg, ok := registry.Get(f.PackageRef)
-	if !ok || pkg == nil {
-		return nil, nil
-	}
-	vulnID := f.VulnerabilityID
-	if vulnID == "" {
-		vulnID = f.ID
-	}
-	if vulnID == "" {
-		return pkg, nil
-	}
-	for i := range pkg.Vulnerabilities {
-		v := &pkg.Vulnerabilities[i]
-		if v.ID == vulnID {
-			return pkg, v
-		}
-		for _, alias := range v.Aliases {
-			if alias == vulnID {
-				return pkg, v
-			}
-		}
-	}
-	return pkg, nil
-}
-
-// licensesForDependency returns the licenses to render for a dependency:
-// matching-stage licenses on the registry package when present, otherwise
-// the detection-time licenses stashed on the dependency.
-func licensesForDependency(dep *sdk.DependencyNode, registry *sdk.PackageRegistry) []sdk.PackageLicense {
-	if registry != nil && dep != nil && dep.NodeID() != "" {
-		if pkg, ok := registry.Get(dep.NodeID()); ok && pkg != nil && len(pkg.Licenses) > 0 {
-			return pkg.Licenses
-		}
-	}
-	return sdk.DetectionLicenses(dep)
 }
 
 func formatAuditSummary(summary *output.AuditSummary, auditEnabled bool) string {
@@ -708,7 +660,7 @@ func scanUniqueLicenseCount(g *sdk.Graph, registry *sdk.PackageRegistry) int {
 	}
 	licenseSet := make(map[string]struct{})
 	for _, pkg := range g.DependencyNodes() {
-		for _, license := range licensesForDependency(pkg, registry) {
+		for _, license := range output.ResolvedLicenses(registry, pkg) {
 			switch {
 			case strings.TrimSpace(license.SPDXExpression) != "":
 				licenseSet[license.SPDXExpression] = struct{}{}
@@ -726,8 +678,8 @@ func formatDepVulnCounts(dep *sdk.DependencyNode, registry *sdk.PackageRegistry)
 	if registry == nil || dep == nil || dep.NodeID() == "" {
 		return "-"
 	}
-	regPkg, ok := registry.Get(dep.NodeID())
-	if !ok || regPkg == nil || len(regPkg.Vulnerabilities) == 0 {
+	regPkg := output.RegistryPackageForNode(registry, dep)
+	if regPkg == nil || len(regPkg.Vulnerabilities) == 0 {
 		return "-"
 	}
 	var critical, high, medium, low int

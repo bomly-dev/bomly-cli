@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/graphview"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/purlkit"
 	"github.com/bomly-dev/bomly-sdk/spdxkit"
 )
 
@@ -248,12 +248,32 @@ func mintDocumentIdentity(doc *Document) {
 // projectRootComponent synthesizes the pseudo component representing the
 // scanned project. It carries a pkg:generic PURL so downstream consumers have
 // a stable identifier for the primary component across updates.
+//
+// purlkit renders that PURL, because package-URL escaping is the
+// specification's rule and not ours. The hand-built form this replaced pasted
+// url.PathEscape output around the "pkg:generic/" and "@" separators, and
+// PathEscape leaves '@' alone: a project directory named "app@2" exported as
+// "pkg:generic/app@2", which every consumer reads back as name "app" at
+// version "2". A version containing '@' produced the same ambiguity from the
+// other side. purlkit escapes the separators because it builds the parts and
+// then renders, rather than rendering and hoping the parts were safe.
+//
+// A name that cannot make a well-formed PURL yields an empty one rather than a
+// malformed one. The only caller already refuses a blank name, so this is a
+// second gate, not the first.
 func projectRootComponent(spec ProjectRoot) Component {
 	name := strings.TrimSpace(spec.Name)
 	version := strings.TrimSpace(spec.Version)
-	purl := "pkg:generic/" + url.PathEscape(strings.ToLower(name))
-	if version != "" {
-		purl += "@" + url.PathEscape(version)
+	// The lowercase name predates this change and stays: pkg:generic names are
+	// case-sensitive, so changing the case now would change every exported
+	// primary component's identity for no defect.
+	purl, err := purlkit.Build(purlkit.PURL{
+		Type:    "generic",
+		Name:    strings.ToLower(name),
+		Version: version,
+	})
+	if err != nil {
+		purl = ""
 	}
 	return Component{
 		ID:      projectRootIDPrefix + sanitizeSPDXID(name),

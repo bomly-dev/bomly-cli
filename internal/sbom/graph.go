@@ -183,12 +183,7 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 			skipped[component.ID] = struct{}{}
 			continue
 		}
-		ecosystem := sdk.Ecosystem(strings.TrimSpace(component.Ecosystem))
-		if ecosystem == sdk.EcosystemUnknown {
-			if purl := parsePURL(component.PURL); purl != nil {
-				ecosystem = ecosystemFromPURLType(purl.Type)
-			}
-		}
+		ecosystem := ComponentEcosystem(component)
 		packageManager := sdk.PackageManagerUnknown
 		if manager, err := sdk.ParsePackageManager(component.PackageManager); err == nil {
 			packageManager = manager

@@ -11,7 +11,6 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-sdk"
-	"github.com/bomly-dev/bomly-sdk/purlkit"
 )
 
 const summarySchemaVersion = "bomly.benchmark.v2"
@@ -321,7 +320,7 @@ func FilterDocument(doc *sbom.Document, ecosystem sdk.Ecosystem) *sbom.Document 
 	out.Roots = nil
 	kept := make(map[string]struct{})
 	for _, component := range doc.Components {
-		if componentEcosystem(component) != ecosystem {
+		if sbom.ComponentEcosystem(component) != ecosystem {
 			continue
 		}
 		out.Components = append(out.Components, component)
@@ -345,42 +344,6 @@ func FilterDocument(doc *sbom.Document, ecosystem sdk.Ecosystem) *sbom.Document 
 		}
 	}
 	return &out
-}
-
-func componentEcosystem(component sbom.Component) sdk.Ecosystem {
-	if value, err := sdk.ParseEcosystem(component.Ecosystem); err == nil {
-		return value
-	}
-	if purl := benchmarkParsePURL(component.PURL); purl != nil {
-		switch strings.ToLower(strings.TrimSpace(purl.Type)) {
-		case "golang":
-			return sdk.EcosystemGo
-		case "pypi":
-			return sdk.EcosystemPython
-		case "nuget":
-			return sdk.EcosystemDotNet
-		case "cargo":
-			return sdk.EcosystemRust
-		case "composer":
-			return sdk.EcosystemPHP
-		case "gem":
-			return sdk.EcosystemRuby
-		case "cocoapods", "swift":
-			return sdk.EcosystemSwift
-		case "pub":
-			return sdk.EcosystemDart
-		case "hex":
-			return sdk.EcosystemElixir
-		case "conan":
-			return sdk.EcosystemCPP
-		case "githubactions":
-			return sdk.EcosystemGitHub
-		default:
-			value, _ := sdk.ParseEcosystem(purl.Type)
-			return value
-		}
-	}
-	return sdk.EcosystemUnknown
 }
 
 func packagePURLs(doc *sbom.Document) (map[string]struct{}, int) {
@@ -490,15 +453,4 @@ func writeJSON(path string, value any) error {
 		return fmt.Errorf("write %s: %w", path, err)
 	}
 	return nil
-}
-
-// benchmarkParsePURL delegates to purlkit, the SDK's kit over the official
-// packageurl-go. sdk.ParsePackageURL was the deprecated anchore-fork entry
-// point and is gone.
-func benchmarkParsePURL(value string) *purlkit.PURL {
-	parsed, err := purlkit.Parse(value)
-	if err != nil {
-		return nil
-	}
-	return &parsed
 }

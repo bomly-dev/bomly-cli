@@ -380,29 +380,24 @@ func spdxChecksums(digests []Digest) []common.Checksum {
 	return out
 }
 
+// spdxChecksumAlgorithm renders a digest algorithm in SPDX's spelling.
+//
+// The registry is the SDK's, not a list here. A hand-written switch stood in
+// this spot and knew nine algorithms against the registry's nineteen, so a
+// document carrying BLAKE2b, BLAKE3, MD2, MD4, MD6, ADLER32 or Streebog had
+// that checksum silently dropped on export -- correct the day it was written
+// and quietly lossy once the vocabulary grew. That is the failure this
+// project's delegation rule exists to prevent, and Streebog is the example it
+// cites.
+//
+// An algorithm SPDX does not define returns "", which the caller drops. That
+// is a real limit of the format rather than a gap in this mapping.
 func spdxChecksumAlgorithm(algorithm string) common.ChecksumAlgorithm {
-	switch strings.ToLower(strings.TrimSpace(algorithm)) {
-	case "md5":
-		return common.MD5
-	case "sha1", "sha-1":
-		return common.SHA1
-	case "sha224", "sha-224":
-		return common.SHA224
-	case "sha256", "sha-256":
-		return common.SHA256
-	case "sha384", "sha-384":
-		return common.SHA384
-	case "sha512", "sha-512":
-		return common.SHA512
-	case "sha3-256":
-		return common.SHA3_256
-	case "sha3-384":
-		return common.SHA3_384
-	case "sha3-512":
-		return common.SHA3_512
-	default:
+	parsed, err := sdk.ParseDigestAlgorithm(algorithm)
+	if err != nil {
 		return ""
 	}
+	return common.ChecksumAlgorithm(parsed.SPDXName())
 }
 
 func parseSPDXComponentType(p *v23.Package) string {

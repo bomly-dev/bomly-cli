@@ -396,3 +396,29 @@ func TestLicenseExpressionsAreEmittedCanonically(t *testing.T) {
 		})
 	}
 }
+
+// Every algorithm the SDK knows an SPDX spelling for must survive export.
+//
+// This is a differential test on purpose. Referencing constants makes a rename
+// a compile error and does nothing about an addition, which is exactly how a
+// hand-written switch here came to know nine algorithms against the registry's
+// nineteen -- dropping BLAKE2b, BLAKE3, MD2, MD4, MD6, ADLER32 and Streebog
+// checksums on export without a word. Reading the registry means the next
+// algorithm added upstream fails this test rather than disappearing.
+func TestEverySPDXKnownDigestAlgorithmIsEmitted(t *testing.T) {
+	var checked int
+	for _, algorithm := range sdk.DigestAlgorithms() {
+		spdxName := algorithm.SPDXName()
+		if spdxName == "" {
+			continue // SPDX does not define this one; the format's limit, not ours.
+		}
+		checked++
+		got := spdxChecksumAlgorithm(string(algorithm))
+		if string(got) != spdxName {
+			t.Errorf("%s renders as %q, want SPDX's %q", algorithm, got, spdxName)
+		}
+	}
+	if checked < 10 {
+		t.Fatalf("only %d algorithms were checked; the registry looks unread", checked)
+	}
+}

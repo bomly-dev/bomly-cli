@@ -104,7 +104,9 @@ func TestCycloneDXStillWritesItsScalarScope(t *testing.T) {
 // The "optional" row pins the SDK's shipped mapping, which in the pinned
 // v0.9.3 is optional -> runtime. That disagreement with ADR-0037 has since
 // been resolved against the CycloneDX specification, which defines an
-// optional component as one not installed and so not callable: the ADR's
+// optional component as one not installed or otherwise inaccessible by any
+// means, with an installed-but-unreachable component required to be spelled
+// "required" instead: the ADR's
 // rule stands and the SDK moved to optional -> development
 // (bomly-dev/bomly-sdk#63, and the ADR's 2026-09-06 resolution). The row
 // therefore still asserts what the pinned SDK does, and flips to

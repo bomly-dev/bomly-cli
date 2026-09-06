@@ -39,13 +39,22 @@ retained by kind and never scope-filtered at all.
 A scope filter selects on assertions, and absence is not an assertion.
 
 - A **runtime** view keeps every dependency that is not affirmatively
-  development. A set naming nothing readable — no scope at all, or only
-  scopes this build cannot read, which is what a newer Bomly's token looks
-  like to an older one — states nothing that places the dependency outside
-  what ships.
+  development-only — precisely, one whose scope set either names runtime or
+  names nothing this build can read. A set naming *both* runtime and
+  development is kept, since it names runtime. A set naming nothing readable
+  — no scope at all, or only scopes this build cannot know, which is what a
+  newer Bomly's token looks like to an older one — states nothing that places
+  the dependency outside what ships, so it is kept too.
 - **Every other** view requires an affirmative match, so a package that might
   ship never appears in the list a user reads as the one they can
   deprioritize.
+
+Deliberately, the runtime arm is *not* "the effective scope is not
+development". Those read alike and are not the same rule: `MergeScope` folds
+any two non-runtime scopes to development, so a set of two tokens this build
+cannot read — neither of them development — has `PrimaryScope() ==
+ScopeDevelopment` and an effective-scope test would drop it. That is the
+false negative this ADR exists to close, arriving by a different door.
 
 This is one rule applied twice, not two rules: an unasserted scope resolves
 toward "may be in production", the only direction that cannot hide a finding.
@@ -80,10 +89,16 @@ document as an assertion Bomly invented.
 - `--scope development` is unchanged, including for a dependency whose union
   holds both scopes: `PrimaryScope` says such a package ships, and it stays
   out of the development view.
-- `MatchesScopeFilter` matches on the node's effective scope for every view
-  but runtime, deliberately. Matching on membership instead would put a
-  package that also ships into the development view, since `Scopes` is a union
-  across declaration sites.
+- `MatchesScopeFilter` requires, for every view but runtime, that the set name
+  the requested scope *and* not name runtime. `Scopes` is a union across
+  declaration sites, so plain membership would put a package that also ships
+  into the development view. The condition is spelled out rather than
+  delegated to `PrimaryScope`, for the same reason the runtime arm is:
+  `MergeScope` returns development for any two non-runtime scopes, so an
+  effective-scope comparison would admit a dependency nobody scoped
+  development into the one view that must be affirmative. A single
+  declaration site is matched by membership alone — there, naming a scope is
+  the whole question.
 - Guards: `TestAnUnassertedScopeStaysInARuntimeView`,
   `TestScopeSetMatchesIsTheOneRule`, and
   `TestSelectUsagesAppliesTheAbsenceRule` in the SDK. The rule is also stated

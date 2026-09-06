@@ -189,6 +189,13 @@ func (d documentIdentity) names(identity string) bool {
 // document's bytes -- and DocumentAssertions has nowhere to carry one, so a
 // merged SPDX export names no sources. Tracked as bomly-dev/bomly-sdk#55;
 // when that field ships, an SPDX projection belongs here beside this one.
+//
+// These links are also write-only for now: DocumentAssertions records what a
+// document says about itself, with no field for the documents behind it, so
+// ingesting a merged export cannot restore them and a second export names no
+// sources. Tracked as bomly-dev/bomly-sdk#61. Carrying them through Metadata
+// instead is exactly what ADR-0037 closed off, so the gap is documented rather
+// than worked around.
 func documentSourceLinks(doc *Document, emitted documentIdentity) []sdk.ExternalReference {
 	if doc == nil || len(doc.Sources) == 0 {
 		return nil

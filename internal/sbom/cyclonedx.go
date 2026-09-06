@@ -50,7 +50,7 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 
 	metadata := &cdx.Metadata{
 		Timestamp: doc.CreatedOrNow().Format(time.RFC3339),
-		Tools:     cycloneDXTools(doc.ToolNamesOrDefault(), doc.ToolOrDefault(), doc.ToolVersion),
+		Tools:     cycloneDXMetadataTools(doc),
 	}
 	if root := chooseRoot(doc); root != nil {
 		// The primary component is built the same way as an inventory entry.
@@ -72,7 +72,6 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 	if authors := cycloneDXDocumentAuthors(doc); len(authors) > 0 {
 		metadata.Authors = &authors
 	}
-	metadata.Tools = cycloneDXSourceTools(doc, metadata.Tools)
 	if props := cycloneDXMetadataProperties(doc.Provenance); len(props) > 0 {
 		metadata.Properties = &props
 	}
@@ -220,30 +219,6 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 		Dependencies: dependencies,
 		Roots:        roots,
 	}, nil
-}
-
-func cycloneDXTools(names []string, primaryTool, toolVersion string) *cdx.ToolsChoice {
-	if len(names) == 0 {
-		return nil
-	}
-	components := make([]cdx.Component, 0, len(names))
-	for _, name := range names {
-		if strings.TrimSpace(name) == "" {
-			continue
-		}
-		component := cdx.Component{
-			Type: cdx.ComponentTypeApplication,
-			Name: name,
-		}
-		if name == primaryTool {
-			component.Version = toolVersion
-		}
-		components = append(components, component)
-	}
-	if len(components) == 0 {
-		return nil
-	}
-	return &cdx.ToolsChoice{Components: &components}
 }
 
 // cycloneDXSecurityReferences maps provenance contact fields onto external
@@ -502,9 +477,7 @@ func cycloneDXComponent(comp Component) cdx.Component {
 		component.ExternalReferences = &refs
 	}
 	component.Supplier = cycloneDXEntityFor(comp.Supplier)
-	if originator := cycloneDXEntityFor(comp.Originator); originator != nil {
-		component.Publisher = originator.Name
-	}
+	cycloneDXApplyOriginator(&component, comp.Originator)
 	component.Description = sdk.NormalizeDescription(comp.Description)
 	return component
 }

@@ -3,6 +3,7 @@ package sbom
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 )
@@ -321,5 +322,30 @@ func TestOrdinaryNamesDoNotApproachTheByteBound(t *testing.T) {
 
 	if _, _, err := UnmarshalAutoJSON([]byte(b.String())); err != nil {
 		t.Fatalf("an ordinary document was refused: %v", err)
+	}
+}
+
+// The preflight reads the document in place.
+//
+// This is invisible in behavior and load-bearing for memory: behind a generic
+// reader the library grows a buffer of its own and materializes each token
+// into it, so one very large value duplicates most of the document -- measured
+// at 447 MiB for a 150 MiB single-string document, against nothing at all for
+// a buffer. No bound catches it, because the bounds cover member names and
+// this is a value.
+//
+// Asserted on the source because there is nothing else to assert on: a
+// correctness test cannot see the difference, and a memory-usage test would be
+// flaky in CI.
+func TestStrictPreflightReadsInPlace(t *testing.T) {
+	body, err := os.ReadFile("strict.go")
+	if err != nil {
+		t.Fatalf("read strict.go: %v", err)
+	}
+	if !strings.Contains(string(body), "bytes.NewBuffer(data)") {
+		t.Error("the preflight no longer reads the document in place; see the note on the decoder")
+	}
+	if strings.Contains(string(body), "bytes.NewReader(") {
+		t.Error("the preflight reads through a generic reader, which copies large values")
 	}
 }

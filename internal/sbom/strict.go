@@ -106,7 +106,22 @@ func requireUnambiguousJSON(data []byte) error {
 	// and invalid UTF-8 are both refused unless a caller opts out. The
 	// standard library owns what "the same name twice" means -- including
 	// escaped spellings of one name, which a byte comparison here would miss.
-	decoder := jsontext.NewDecoder(bytes.NewReader(data))
+	// A *bytes.Buffer, not a bytes.Reader. The library reads a buffer in
+	// place; behind a generic reader it grows a buffer of its own and
+	// materializes each token into it, so one very large value -- a long
+	// string in an extension member, say -- duplicated most of the document.
+	// Measured: a 150 MiB single-string document retained 447 MiB through a
+	// reader and nothing at all through a buffer.
+	//
+	// The count and byte bounds below still matter; they cover member names,
+	// which the decoder retains whatever the input is. This covers values,
+	// which no bound reaches, by not copying them in the first place.
+	//
+	// NewBuffer takes ownership of the slice, and the caller reuses it for the
+	// real decode straight afterwards -- checked: the scan reads without
+	// modifying, the bytes hash the same before and after, and the document
+	// still decodes.
+	decoder := jsontext.NewDecoder(bytes.NewBuffer(data))
 	// What each open object is costing, and the running sums. Kept per depth
 	// rather than re-summed from the decoder's stack on every token, which
 	// would make the scan cost depth times its length -- and kept in one

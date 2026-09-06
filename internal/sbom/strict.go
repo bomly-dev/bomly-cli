@@ -130,12 +130,8 @@ func requireUnambiguousJSON(data []byte) error {
 	var totalMembers int
 	var totalNameBytes int64
 	for {
-		// The span this token occupies, used below to size member names
-		// without materializing them. It counts the separator and any
-		// whitespace before the name as well, so it over-estimates -- which is
-		// the safe direction for a bound.
-		start := decoder.InputOffset()
-		if _, err := decoder.ReadToken(); err != nil {
+		token, err := decoder.ReadToken()
+		if err != nil {
 			if errors.Is(err, io.EOF) {
 				return nil
 			}
@@ -187,8 +183,15 @@ func requireUnambiguousJSON(data []byte) error {
 		open[depth-1].members = members
 		// An odd length means the token just read was a member name rather
 		// than its value, which is the only token the decoder retains.
+		//
+		// The name itself is measured, not the span it sat in. Sizing it from
+		// input offsets counted the separator and any indentation before it
+		// too, which inflated a pretty-printed document by more than six times
+		// and would have refused a legal one for whitespace the decoder never
+		// holds. The allocation this costs is bounded by the member count
+		// above, and being right is worth more here than saving it.
 		if length%2 == 1 {
-			size := decoder.InputOffset() - start
+			size := int64(len(token.String()))
 			open[depth-1].nameBytes += size
 			totalNameBytes += size
 		}

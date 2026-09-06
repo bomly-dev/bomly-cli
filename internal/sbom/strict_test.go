@@ -349,3 +349,39 @@ func TestStrictPreflightReadsInPlace(t *testing.T) {
 		t.Error("the preflight reads through a generic reader, which copies large values")
 	}
 }
+
+// Indentation is not a member name. The byte bound counts what the decoder
+// retains, and sizing names from input offsets counted the separator and any
+// whitespace before them too -- inflating a pretty-printed document by more
+// than six times and refusing legal ones for bytes nothing holds.
+func TestPrettyPrintingDoesNotCountAgainstTheByteBound(t *testing.T) {
+	// Deliberately inside the count bound, so only the byte bound can reject
+	// this: the names are ~1.4 MiB, the indentation around them ~20 MiB.
+	const levels = 100
+	const perLevel = 900
+
+	var b strings.Builder
+	b.WriteString("{\n  \"bomFormat\": \"CycloneDX\",\n  \"specVersion\": \"1.5\",\n  \"version\": 1,\n  \"x\": ")
+	indent := 4
+	for level := range levels {
+		b.WriteString("{\n")
+		pad := strings.Repeat(" ", indent)
+		for i := range perLevel {
+			fmt.Fprintf(&b, "%s\"key_%d_%d\": 1,\n", pad, level, i)
+		}
+		fmt.Fprintf(&b, "%s\"next\": ", pad)
+		indent += 4
+	}
+	b.WriteString("null")
+	for range levels {
+		b.WriteString("}")
+	}
+	b.WriteString("}")
+
+	if names := levels * perLevel; names > maxOpenObjectMembers {
+		t.Fatalf("the fixture trips the count bound (%d names), so it would fail for the wrong reason", names)
+	}
+	if _, _, err := UnmarshalAutoJSON([]byte(b.String())); err != nil {
+		t.Fatalf("a pretty-printed document was refused: %v", err)
+	}
+}

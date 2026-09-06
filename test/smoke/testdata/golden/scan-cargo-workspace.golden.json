@@ -32,11 +32,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": "crates/api",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "lazy_static",
@@ -54,11 +59,23 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": "crates/api",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive"
+            },
+            {
+              "access_path": "Cargo.lock",
+              "module_root": "crates/core",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "libc",
@@ -80,11 +97,23 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": "crates/api",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "direct"
+            },
+            {
+              "access_path": "Cargo.lock",
+              "module_root": "crates/core",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock",
+              "relationship": "direct"
             }
           ],
           "name": "time",
@@ -102,11 +131,23 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": "crates/api",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive"
+            },
+            {
+              "access_path": "Cargo.lock",
+              "module_root": "crates/core",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "wasi",
@@ -124,11 +165,23 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": "crates/api",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive"
+            },
+            {
+              "access_path": "Cargo.lock",
+              "module_root": "crates/core",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "winapi",
@@ -166,11 +219,23 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": "crates/api",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive"
+            },
+            {
+              "access_path": "Cargo.lock",
+              "module_root": "crates/core",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "libc",
@@ -192,11 +257,23 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": "crates/api",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "direct"
+            },
+            {
+              "access_path": "Cargo.lock",
+              "module_root": "crates/core",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock",
+              "relationship": "direct"
             }
           ],
           "name": "time",
@@ -214,11 +291,23 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": "crates/api",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive"
+            },
+            {
+              "access_path": "Cargo.lock",
+              "module_root": "crates/core",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "wasi",
@@ -236,11 +325,23 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": "crates/api",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive"
+            },
+            {
+              "access_path": "Cargo.lock",
+              "module_root": "crates/core",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "winapi",

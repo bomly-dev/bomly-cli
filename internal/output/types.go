@@ -133,6 +133,28 @@ type LocationRef struct {
 	RealPath   string       `json:"real_path,omitempty"`
 	AccessPath string       `json:"access_path,omitempty"`
 	Position   *PositionRef `json:"position,omitempty"`
+
+	// ModuleRoot, Scopes and Relationship say which usage this site is,
+	// rather than only where it is (ADR-0037).
+	//
+	// A workspace reaches one lockfile line from several members, so the same
+	// path appears once per member. Without these, those records are
+	// byte-identical and the reader sees the same file listed twice with no
+	// way to tell why -- which is what the projection produced before they
+	// were carried. They are also what makes a conjunctive question
+	// answerable: "reachable, runtime and direct" has to hold of one usage,
+	// not of three different ones summarized onto the same package.
+	//
+	// Empty means the producer did not attribute the site, which several
+	// detectors legitimately cannot.
+	//
+	// Carrying a slice costs this type its comparability, the same break the
+	// SDK took on PackageLocation for the same reason. Nothing compares a
+	// LocationRef or keys a map by one; compare the paths, or the whole value
+	// with reflect.DeepEqual.
+	ModuleRoot   string   `json:"module_root,omitempty"`
+	Scopes       []string `json:"scopes,omitempty"`
+	Relationship string   `json:"relationship,omitempty"`
 }
 
 // PositionRef is the JSON shape of sdk.SourcePosition.
@@ -151,7 +173,15 @@ func LocationRefsFromGraphLocations(locations []sdk.PackageLocation) []LocationR
 	}
 	out := make([]LocationRef, 0, len(locations))
 	for _, loc := range locations {
-		ref := LocationRef{RealPath: loc.RealPath, AccessPath: loc.AccessPath}
+		ref := LocationRef{
+			RealPath:     loc.RealPath,
+			AccessPath:   loc.AccessPath,
+			ModuleRoot:   loc.ModuleRoot,
+			Relationship: string(loc.Relationship),
+		}
+		for _, scope := range loc.Scopes {
+			ref.Scopes = append(ref.Scopes, string(scope))
+		}
 		if loc.Position != nil {
 			ref.Position = &PositionRef{
 				File:    loc.Position.File,
@@ -160,7 +190,10 @@ func LocationRefsFromGraphLocations(locations []sdk.PackageLocation) []LocationR
 				EndLine: loc.Position.EndLine,
 			}
 		}
-		if ref.RealPath == "" && ref.AccessPath == "" && ref.Position == nil {
+		// An attributed site is worth reporting even with no path: it still
+		// says which module reached the package and how.
+		if ref.RealPath == "" && ref.AccessPath == "" && ref.Position == nil &&
+			ref.ModuleRoot == "" && len(ref.Scopes) == 0 && ref.Relationship == "" {
 			continue
 		}
 		out = append(out, ref)

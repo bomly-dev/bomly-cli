@@ -6,7 +6,7 @@ Bomly's domain model standardizes around three pipeline stages — detection, ma
 
 | Stage      | Type                | Lives in                 | Identity     | Purpose                                                  |
 |------------|---------------------|--------------------------|--------------|----------------------------------------------------------|
-| Detection  | `sdk.Dependency`    | per-manifest `sdk.Graph` | `Dependency.ID` (stable within manifest) | One node per dependency instance; carries scope, locations, edges |
+| Detection  | `sdk.GraphNode` (manifest / module / dependency) | per-manifest `sdk.Graph` | the node's own identity — for a dependency node, its canonical PURL | One node per identity; carries scope, locations, edges, origins |
 | Matching   | `sdk.Package`       | `sdk.PackageRegistry`    | `Package.PURL` (canonical) | One artifact per unique PURL; carries licenses, vulnerabilities, remediation, scorecard, EOL |
 | Audit      | `sdk.Finding`       | `engine.PipelineResult.Findings` | `Finding.ID` + `Finding.PackageRef` + `Finding.VulnerabilityID` | Reference-style policy outcome with no inlined vuln fields |
 
@@ -15,7 +15,7 @@ Vulnerabilities themselves are OSV-aligned `sdk.Vulnerability` records owned by 
 ```mermaid
 flowchart TD
     M[manifests]
-    D[sdk.Dependency instances]
+    D[sdk.DependencyNode records]
     P[sdk.Package registry entries]
     V[sdk.Vulnerability records]
     F[sdk.Finding records]
@@ -43,8 +43,8 @@ flowchart TD
     SP["Subproject<br/><i>independently discovered nested dir</i><br/>sdk.Subproject, RelativePath != &quot;.&quot;"]
     MOD["Module<br/><i>workspace/reactor member</i><br/>manifest dir below its subproject dir"]
     MAN["Manifest entry<br/>sdk.GraphEntry{Graph, ManifestMetadata}<br/>path, kind, resolution"]
-    ROOT["Module root node<br/>sdk.Dependency, Type=application<br/><i>the project/module's own package</i>"]
-    DEP["Dependency instances<br/>sdk.Dependency (direct + transitive + unknown)"]
+    ROOT["Module node<br/>sdk.ModuleNode<br/><i>the project/module's own artifact</i>"]
+    DEP["Dependency nodes<br/>sdk.DependencyNode (direct + transitive + unknown)"]
     PKG["sdk.Package registry<br/>deduplicated by PURL"]
 
     PR -->|"discovers (recursive walk)"| SP
@@ -68,7 +68,7 @@ package once.
 
 ## `sdk.Coordinates` — shared identity, and its three names
 
-`Coordinates` (embedded by both `Dependency` and `Package`) splits a package's
+`Coordinates` (embedded by every node kind and by `Package`) splits a package's
 identity into `Org` + `Name`, mirroring the PURL namespace/name split: npm's
 `@tailwindcss/postcss` is stored as `Org: "tailwindcss"`, `Name: "postcss"`.
 The bare `Name` is therefore **never** a package identity on its own, and three
@@ -76,7 +76,7 @@ accessors exist for the three things callers actually want:
 
 | Accessor | Form | Use it for |
 | --- | --- | --- |
-| `QualifiedName()` | `org:name` for everything | Internal keying and IDs (`StableID`) where only uniqueness matters. |
+| `QualifiedName()` | `org:name` for everything | Internal keying where only uniqueness matters. It is not a node ID — node identity is the PURL (see below). |
 | `DisplayName()` | `@org/name`, `org/name`, `org:name` | Presentation only — text reports, JSON `name` fields. Never an identity key. |
 | `EcosystemName()` | `@org/name` (npm), `org:name` (Maven family), `org/name` (Go, Composer, Swift, GitHub Actions), bare `name` everywhere else | Anything that leaves the process: advisory-database lookups, cache keys derived from a name, SBOM component names, names handed to Grype/Syft. |
 
@@ -93,59 +93,191 @@ and Grype's distro-namespace matchers query `libcrypto3`, so joining would miss
 every OS advisory. Adding an ecosystem to the join list means asserting that its
 advisory databases key on the namespaced form.
 
-## `sdk.Dependency` — detection node
+## The graph node union — detection nodes
+
+A graph node is one of three kinds and the set is sealed: nothing outside the
+SDK can add a fourth (ADR-0041).
+
+| Kind | Type | What it stands for | Identity |
+| --- | --- | --- | --- |
+| `sdk.NodeKindManifest` | `*sdk.ManifestNode` | A file record — a `package.json`, a lockfile, a build script. Structural: never matched, never enriched. | `manifest:` + the canonical repository-relative path |
+| `sdk.NodeKindModule` | `*sdk.ModuleNode` | One of the scanned project's own artifacts: the root project, a workspace member, a reactor module. | `module:` + the declaring manifest's path + `#` + the canonical PURL, or the module name when no PURL is derivable |
+| `sdk.NodeKindDependency` | `*sdk.DependencyNode` | One resolved third-party package — the unit of matching and enrichment. | its canonical package URL |
+
+Every kind satisfies `sdk.GraphNode`:
 
 ```go
-type Dependency struct {
+type GraphNode interface {
+    NodeID() string                    // the node's identity, which is its published graph ID
+    Kind() NodeKind
+    NodeLocations() []PackageLocation
+    NodeWarnings() []NodeWarning
+    CloneNode() GraphNode
+    // sealed: the SDK owns the member set
+}
+```
+
+Constructors are the only way to make a node, because identity is minted there
+and nowhere else: `sdk.NewManifestNode(path, kind)`,
+`sdk.NewModuleNode(declaringManifestPath, coords)`,
+`sdk.NewDependencyNode(coords)`, `sdk.NewDependencyNodeFromPURL(raw)`, and
+`sdk.NewDependencyNodeFrom(proto)`. Each returns an error rather than a
+fabricated identity: coordinates that cannot mint a spec-valid package URL are
+refused, and so is a module whose asserted PURL does not parse.
+`sdk.ParseNodeKind` rejects an unrecognized kind instead of guessing.
+
+### Identity is the canonical PURL
+
+A dependency node's ID **is** its canonical package URL. There is no ID
+override, no occurrence suffix, and no content address. Two nodes are the same
+node exactly when their IDs match, which is why `left-pad@1.0.0` from npm and
+`left-pad@1.0.0` from PyPI are two nodes in one merged graph: their PURL types
+differ.
+
+`g.InsertNode(node)` is the fold-by-identity entry point. When a node with the
+same identity is already present, the two records fold into one: scopes,
+locations, origins, CPEs, digests, licenses, and external references union,
+scalar fields fill gaps, and `Matched` ORs. IDs are disjoint across kinds, so a
+fold always joins records of one kind.
+
+Origins are metadata, never identity. `DependencyNode.Origins` is a
+union-merged list of where the dependency was resolved from, and the ADR-0033
+publication gates are the only door in. More than one origin on a node is an
+observable fact — the shape of a dependency-confusion signal — not a reason to
+split the node. The three URL-valued PURL qualifiers (`repository_url`,
+`download_url`, `vcs_url`) are relocated into `Origins` at construction rather
+than published as part of an identity.
+
+Constructors record recoverable conditions as `NodeWarning` values instead of
+failing: `NodeWarningMissingVersion`, `NodeWarningDroppedEvidenceQualifier`,
+`NodeWarningGenericIdentity`. Warnings are in-process state, re-derived
+wherever a node is reconstructed, so they never travel on the wire.
+
+### Ownership is the kind, not a flag
+
+`sdk.IsProjectOwned(node)` reports whether a node stands for the project's own
+code, and it reads `node.Kind() == sdk.NodeKindModule`. ADR-0041 removed the
+`FirstParty` flag, so a fold cannot drop ownership and an ingested document
+cannot assert it. The `application` package type is not an ownership signal on
+its own — an application-typed *import* is a package the project consumes.
+
+Module nodes are never matched or enriched. They keep their PURLs and stay
+visible in `packages` output and generated SBOMs, unenriched by design: they
+are absent from public sources, and a coincidental name match would attach
+someone else's advisories to the project's own code.
+
+### `sdk.DependencyNode`
+
+```go
+type DependencyNode struct {
     Coordinates
-    ID string
     Relationship DependencyRelationship // direct / transitive / unknown
     Source       DependencySource       // registry / project / workspace / file / git / URL
 
-    // Detection metadata
-    Scopes      []Scope             // runtime / development / unknown; supports multiple
-    Locations   []PackageLocation   // manifest paths + line/column
+    // Detection facts
+    Scopes      []Scope             // runtime / development / unknown; a set
+    Locations   []PackageLocation   // path, position, and per-site attribution
     CPEs        []string
     Digests     []Digest
     Copyright   string
     FoundBy     string              // detector name
-    ResolvedURL string
-    Metadata    map[string]any      // including detection-time licenses under MetadataKeyDetectionLicenses
+    ResolvedURL string              // raw manifest evidence, never published
+    Origins     []DependencyOrigin  // validated, union-merged, never identity
+
+    // Component assertions the detecting or ingesting source made (ADR-0037)
+    Licenses           []PackageLicense
+    Description        string
+    Homepage           string
+    Supplier           *Contact
+    Originator         *Contact
+    ExternalReferences []ExternalReference
+
+    Metadata map[string]any // escape hatch; the "bomly." key prefix is reserved
 
     // Match link
     Matched    bool
-    PackageRef string                // PURL into the package registry
+    PackageRef string // the PURL into the package registry — the node's own ID
 }
 ```
 
+Every assertion field carries a gate and a declared merge class, and the gate
+runs on both wire directions and again when a node seeds a registry package.
+`Description` passes `NormalizeDescription`, `Homepage` passes
+`NormalizeHomepage`, both contacts pass `Contact.Normalized` (which never
+retains an email address), `ExternalReferences` passes
+`ExternalReference.Normalized`, and `Licenses` passes
+`PackageLicense.Normalized`. The four scalars fill gaps; the two sets union.
+
+`Licenses` is the typed replacement for the `MetadataKeyDetectionLicenses`
+stash. `sdk.SetDetectionLicenses` writes the typed field and
+`sdk.DetectionLicenses` reads it, falling back to the metadata key only for
+producers that predate the field. Nothing should write the metadata key.
+
 Key helpers:
 
-- `dep.PrimaryScope()`, `dep.HasScope(s)`, `dep.AddScope(s)` — scope helpers.
-- `sdk.DetectionLicenses(dep)` / `sdk.SetDetectionLicenses(dep, licenses)` — read/write detection-time license facts stashed in `dep.Metadata`.
-- `sdk.NormalizeDependencyIdentity(dep)` — canonical identity for diff matching.
-- `sdk.CompareDependencyDetails(baseGraph, headGraph, before, after)` — classify occurrence-level relationship, source, and registry-matching eligibility transitions.
-- `sdk.CanonicalPackageURLFromDependency(dep)` — derive the canonical PURL when the detector didn't supply one.
-- `sdk.RelationshipForPath(path)` — preserve an explicit relationship or derive direct/transitive from a root-to-target path.
-- `dep.RegistryMatchEligible()` — classify whether this occurrence may be sent to external registry enrichment.
+- `node.PrimaryScope()`, `node.HasScope(s)`, `node.AddScope(s)` — scope helpers.
+- `sdk.CompareDependencyDetails(baseGraph, headGraph, before, after)` — classify relationship, source, and registry-matching eligibility transitions.
+- `sdk.RelationshipForPath(path []GraphNode)` — preserve an explicit relationship or derive direct/transitive from a root-to-target path.
+- `node.RegistryMatchEligible()` — whether this node may be sent to external registry enrichment.
+- Reader helpers over the union, for code that holds a `GraphNode`: `sdk.NodeCoordinates`, `sdk.NodeDisplayName`, `sdk.NodeVersion`, `sdk.NodePURL`, `sdk.AsDependencyNode`, `sdk.AsModuleNode`, `sdk.DependencyNodesOf`, `sdk.IsProjectOwned`, `sdk.IsNilNode` (a typed nil is not an untyped one).
 
-`Dependency.Source` is occurrence evidence, not a guess based on package name
-or ecosystem. A detector sets it only when the manifest, lockfile, or build
-tool output proves the origin. Cargo, Bundler, the JavaScript package managers,
-pub, SwiftPM, and the pip, Pipenv, Poetry, and uv Python paths currently expose
-that evidence. Formats that do not retain the selected feed or source leave the
-field empty. An empty source remains eligible for matching for protocol-v1
-compatibility, but it cannot create a source-change finding in a diff.
+### Per-site attribution on locations
 
-An `unknown` relationship means that the package was present in the owning
-manifest but its parent could not be recovered. The component root is attached
-beneath the manifest/application root so it continues through matching,
-analysis, auditing, diff, and output. Only that component root is unknown;
-known edges below it remain transitive. An omitted relationship remains valid
-for protocol-v1 plugins and is derived from graph structure by consumers.
+`PackageLocation` carries more than a path. `ModuleRoot`, `Scopes`, and
+`Relationship` record what was true *at that site*, because the node-level
+values are unions and a workspace can make one package direct-in-development in
+one module and transitive-at-runtime in another — a question with two answers
+can only be asked per module root.
 
-Dependencies **do not** carry `Licenses`, `Vulnerabilities`, or `Scorecard` fields. Detection-time licenses ride along in metadata; matching-stage data lives on the registry package.
+`sdk.ReachabilityEvidence` is the matching per-module-root record analyzers
+emit, with optional `DependencyRefs` naming the exact nodes an analyzer can
+attribute. `sdk.DeriveReachability` folds the evidence into the summary that
+rides on a vulnerability, and `sdk.SelectUsages(node, evidence, filter)` joins
+evidence to locations within one module root, so a conjunctive filter such as
+reachable ∧ runtime ∧ direct selects one usage rather than a union.
 
-Registry matching eligibility is occurrence-based. Ordinary registry releases are eligible even when their `ResolvedURL` points at a custom registry or mirror. First-party/manifest nodes and occurrences sourced from project, workspace, link/file, Git, or arbitrary URL references are normally ineligible but remain in the complete graph and package registry for analysis, auditing, diff, SBOM, and output. Swift source-control packages are the exception: their repository URL is the canonical SwiftURL package identity, so Git-sourced Swift packages remain eligible for vulnerability matching. Application type alone is not an ownership signal: an application artifact imported from an SBOM remains eligible unless it is marked first-party or has a non-registry source. An omitted source remains eligible for protocol-v1 and legacy detector compatibility. Before any built-in or external matcher runs, the engine passes it a cloned graph containing only eligible occurrences and eligible-to-eligible edges; the original graph and full registry continue to later stages unchanged.
+Adding these fields cost `PackageLocation` its comparability: it holds a slice,
+so it can no longer be compared with `==` or used as a map key. Compare
+`RealPath` and `AccessPath`, or key by them.
+
+`DependencyNode.Source` is detection evidence, not a guess based on package
+name or ecosystem. A detector sets it only when the manifest, lockfile, or
+build tool output proves the origin. Cargo, Bundler, the JavaScript package
+managers, pub, SwiftPM, and the pip, Pipenv, Poetry, and uv Python paths
+currently expose that evidence. Formats that do not retain the selected feed or
+source leave the field empty. An empty source remains eligible for matching for
+protocol-v1 compatibility, but it cannot create a source-change finding in a
+diff.
+
+An `unknown` relationship means the package was present in the owning manifest
+but its parent could not be recovered. The component root is attached beneath
+the manifest or module node so it continues through matching, analysis,
+auditing, diff, and output. Only that component root is unknown; known edges
+below it remain transitive. An omitted relationship remains valid for
+protocol-v1 plugins and is derived from graph structure by consumers.
+
+Dependency nodes carry no `Vulnerabilities` or `Scorecard` fields: matching-stage
+data lives on the registry package.
+
+Registry matching eligibility is **node-level, folded toward eligible**: a
+folded node is matchable when any witness was. Withholding enrichment from a
+PURL that a registry release genuinely uses would hide vulnerabilities, while
+the reverse merely enriches a PURL the registry also serves; the per-source
+observations stay readable in the origins list. This narrows ADR-0015's
+occurrence-level rule to the node level (ADR-0041). Ordinary registry releases
+are eligible even when their `ResolvedURL` points at a custom registry or
+mirror. Module nodes, and nodes sourced from project, workspace, link/file,
+Git, or arbitrary URL references, are normally ineligible but remain in the
+complete graph and package registry for analysis, auditing, diff, SBOM, and
+output. Swift source-control packages are the exception: their repository URL
+is the canonical SwiftURL package identity, so Git-sourced Swift packages
+remain eligible for vulnerability matching. Application type alone is not an
+ownership signal — an application artifact imported from an SBOM is a
+dependency node and stays eligible unless it has a non-registry source. An
+omitted source remains eligible for protocol-v1 and legacy detector
+compatibility. Before any built-in or external matcher runs, the engine passes
+it a cloned graph containing only eligible nodes and eligible-to-eligible
+edges; the original graph and full registry continue to later stages unchanged.
 
 ## `sdk.Package` — registry artifact (matching)
 
@@ -154,20 +286,41 @@ type Package struct {
     Coordinates
     ID string                       // registry/database identifier; defaults to PURL in PackageRegistry
 
+    // Component assertions (ADR-0037): what a source document or registry
+    // said about the package itself. Same gates and merge classes as the
+    // matching fields on DependencyNode.
+    Description        string
+    Homepage           string
+    Supplier           *Contact
+    Originator         *Contact
+    ExternalReferences []ExternalReference
+
     // Enrichment
     CPEs            []string
     Digests         []Digest
     Licenses        []PackageLicense
     Vulnerabilities []Vulnerability       // OSV-aligned
+    Attestations    []PackageAttestation
     Remediation     *PackageRemediation   // derived from vulnerability fix evidence
     Scorecard       *PackageScorecard
     EOL             *PackageEOL
     Copyright       string
-    ResolvedURL     string
+    ResolvedURL     string                // raw detection evidence, never published
+    DetectedOrigins []DependencyOrigin    // the node's vetted origins, for matchers
     Metadata        map[string]any
     Matched         bool                  // set by any matcher that touched this package
 }
 ```
+
+`PackageLicense` is a claim, not a string: `Value` is what the source said,
+`SPDXExpression` is the validated form (a minted `LicenseRef-*` when the value
+is not on the SPDX list), `Type` says whether the claim was declared or
+concluded, `Source` says who made it, and `ExtractedText` carries the text a
+`LicenseRef-*` names. The reference and its text travel on one record because
+both formats require them together.
+
+Digest algorithms are a registry, not two constants: `sdk.DigestAlgorithms()`
+enumerates the vocabulary and `algorithm.CycloneDXName()` renders it.
 
 Registry API (`sdk/registry.go`):
 
@@ -281,7 +434,12 @@ every non-canonical primary ID becomes an alias. `Related` IDs are not identity
 evidence because OSV uses them for associated but distinct vulnerabilities.
 Reachability is the only field analyzers touch; they annotate it in place.
 
-First-party packages — `application`-typed nodes such as workspace members, reactor modules, and the project's own package — appear in the packages collection **unenriched by design**: `sdk.NodeIsEnrichable` excludes them from every matcher's work list because they are absent from public sources and a coincidental name match would attach someone else's advisories. They keep their PURLs and stay visible in `packages` output and generated SBOMs.
+The project's own artifacts — the root project, workspace members, reactor
+modules — are module nodes, and they appear in the packages collection
+**unenriched by design**: they never enter a matcher's work list, because they
+are absent from public sources and a coincidental name match would attach
+someone else's advisories. They keep their PURLs and stay visible in `packages`
+output and generated SBOMs. See "Ownership is the kind, not a flag" above.
 
 ## `sdk.Finding` — reference-style audit result
 
@@ -290,7 +448,7 @@ type Finding struct {
     // Identity + policy
     ID          string             // CVE / GHSA / policy ID
     Kind        FindingKind        // vulnerability | license | package | ...
-    Severity    string             // CVSS band (critical|high|medium|low) for
+    Severity    SeverityLevel      // CVSS band (critical|high|medium|low) for
                                    // vulnerabilities; GitHub-aligned level
                                    // (error|warning|note) for findings without
                                    // a CVSS score (license, package)
@@ -319,28 +477,55 @@ Findings carry **no** CVSS/EPSS/KEV/CWE/fix-state/reachability fields. Consumers
 
 `engine.DeduplicateFindings(findings)` keys on `(PackageRef, VulnerabilityID, Kind)` with `(grype > osv > other)` source-rank tiebreaks.
 
-## `sdk.Graph` — id-based topology
+## `sdk.Graph` — identity-based topology
 
-The graph is node-centric over `*sdk.Dependency`. The canonical API is in `sdk/graph.go`:
+The graph is node-centric over the `GraphNode` union. A node's ID is its
+identity, so the ID index is also the identity index. The canonical API is in
+`sdk/graph.go`:
 
 ```go
 g := sdk.New()
-_ = g.AddNode(dep)             // returns ErrNodeAlreadyExist on collision
-n, ok := g.Node(id)            // lookup by stable ID
-_ = g.AddEdge(fromID, toID)    // returns ErrSelfDependency on self-loop
+_ = g.AddNode(node)                 // ErrNodeAlreadyExist on a duplicate identity
+kept, _ := g.InsertNode(node)       // fold-by-identity: returns the surviving node
+n, ok := g.Node(id)                 // GraphNode
+dep, ok := g.DependencyNode(id)     // *DependencyNode, or false for another kind
+_ = g.AddEdge(fromID, toID)         // ErrSelfDependency on a self-loop
+_ = g.AddTypedEdge(fromID, toID, sdk.EdgeKindDependsOn)
 
-nodes := g.Nodes()                       // []*Dependency
+nodes := g.Nodes()                       // []GraphNode
+deps := g.DependencyNodes()              // []*DependencyNode
+mods := g.ModuleNodes()                  // []*ModuleNode
+mans := g.ManifestNodes()                // []*ManifestNode
 direct, _ := g.DirectDependencies(id)    // outgoing edges
 back, _ := g.Dependents(id)              // incoming edges
 roots := g.Roots()                       // no incoming edges
 leaves := g.Leaves()                     // no outgoing edges
 sorted, _ := g.TopologicalSort()
 paths, _ := g.CollectPathsTo(id)
-g.WalkNodes(func(d *sdk.Dependency) bool { ... })
-g.WalkEdges(func(from, to *sdk.Dependency) bool { ... })
+g.WalkNodes(func(n sdk.GraphNode) bool { ... })
+g.WalkDependencyNodes(func(d *sdk.DependencyNode) bool { ... })
+g.WalkEdges(func(from, to sdk.GraphNode) bool { ... })
+g.WalkTypedEdges(func(from, to sdk.GraphNode, kind sdk.EdgeKind) bool { ... })
 ```
 
-The graph deals in dependency instances. The registry deals in deduplicated package facts. The split lets a 50-manifest monorepo's many `react@18.2.0` dependency instances share one `Package` entry — and one set of CVEs.
+Prefer `InsertNode` over `AddNode` when a duplicate identity is possible: it
+folds the records instead of failing, which is what keeps a second witness's
+scopes and origins from being dropped.
+
+Edges are typed. `sdk.EdgeKindDependsOn` is the dependency claim,
+`sdk.EdgeKindDescribes` joins a manifest to a module it declares, and
+`sdk.EdgeKindUnknown` is what an older producer's untyped edge decodes to.
+`sdk.DeriveEdgeKind`, `sdk.MergeEdgeKind`, and `sdk.CopyEdgesInto(dst, src,
+rename)` exist so a graph can be rebuilt or its IDs rewritten without silently
+flattening the kinds.
+
+`sdk.IndexNodesByPackage(g)` derives a package → nodes reverse index. It is
+derived, not stored: the truth remains `DependencyNode.PackageRef`, and the
+registry stays position-free.
+
+The graph deals in identities. The registry deals in deduplicated package
+facts. The split lets a 50-manifest monorepo's many `react@18.2.0` sites share
+one `Package` entry — and one set of CVEs.
 
 ## `engine.PipelineResult`
 
@@ -367,10 +552,17 @@ dependencies are **lean** — they carry detection-time facts and a `package_ref
 into `packages`, but no inlined vulnerabilities/scorecard. Enrichment lives once,
 in `packages`, and is resolved by PURL.
 
+A dependency's `id` is its canonical PURL, and so are the entries in
+`depends_on` and in a finding's `dependency_refs` (ADR-0041). Before that
+change the ID was an `org:name@version` string, which collided across
+ecosystems; anything that stored those IDs across versions needs re-derivation.
+Baselines are unaffected — they key on package and finding references, not node
+IDs.
+
 For workspace/reactor package managers (npm, pnpm, cargo, maven) the manifests
 collection carries **one entry per module** — e.g. `apps/web/package.json`
 alongside the root `package-lock.json` — each listing the module's reachable
-dependency instances (shared transitives appear under every module that
+dependency nodes (shared transitives appear under every module that
 reaches them; `packages` still deduplicates by PURL). Consumers derive the
 project hierarchy from the existing fields without schema additions: each
 manifest's `subproject` names its discovery directory ("." for the scan
@@ -388,10 +580,10 @@ directory is a **module** manifest (`output.ClassifyManifest` /
       "ecosystem": "npm", "package_manager": "npm", "detector": "npm-detector",
       "dependencies": [
         {
-          "id": "react@18.2.0", "name": "react", "version": "18.2.0",
+          "id": "pkg:npm/react@18.2.0", "name": "react", "version": "18.2.0",
           "purl": "pkg:npm/react@18.2.0",
           "scopes": ["runtime"],
-          "depends_on": ["loose-envify@1.4.0"],
+          "depends_on": ["pkg:npm/loose-envify@1.4.0"],
           "matched": true,
           "package_ref": "pkg:npm/react@18.2.0",
           "licenses": [ /* detection-time license facts only */ ]
@@ -464,8 +656,8 @@ func (m Matcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResu
 ### Auditors: emit reference findings
 
 ```go
-for _, dep := range req.Graph.Nodes() {
-    pkg, ok := req.Registry.Get(dep.PURL)
+for _, dep := range req.Graph.DependencyNodes() {
+    pkg, ok := req.Registry.Get(dep.NodeID())
     if !ok { continue }
     for _, vuln := range pkg.Vulnerabilities {
         findings = append(findings, sdk.Finding{
@@ -474,8 +666,8 @@ for _, dep := range req.Graph.Nodes() {
             Severity:        vuln.ParsedSeverity,
             Source:          vuln.Source,
             Auditor:         auditorName,
-            PackageRef:      dep.PURL,
-            DependencyRefs:  []string{dep.ID},
+            PackageRef:      dep.NodeID(),
+            DependencyRefs:  []string{dep.NodeID()},
             VulnerabilityID: vuln.ID,
         })
     }
@@ -496,7 +688,7 @@ if pkg, ok := registry.Get(f.PackageRef); ok && pkg != nil {
 }
 ```
 
-The reference style means the registry is authoritative. A single CVE update flows to every dependency instance that references the affected package, with no per-manifest copy step.
+The reference style means the registry is authoritative. A single CVE update flows to every dependency node that references the affected package, with no per-manifest copy step.
 
 ## Migration notes
 
@@ -504,8 +696,17 @@ If you're reading code or tests that still reference the old shape, here is the 
 
 | Old API                                       | New API                                                       |
 |-----------------------------------------------|---------------------------------------------------------------|
-| `*sdk.Package` graph nodes                    | `*sdk.Dependency` graph nodes; registry holds `*sdk.Package`  |
-| `g.AddPackage(pkg)`, `g.Package(id)`          | `g.AddNode(dep)`, `g.Node(id)`                                |
+| `*sdk.Dependency` graph nodes                 | the `sdk.GraphNode` union: `*sdk.ManifestNode`, `*sdk.ModuleNode`, `*sdk.DependencyNode` |
+| `dep.ID` / `dep.StableID()`                   | `node.NodeID()` — the canonical PURL for a dependency node    |
+| `dep.FirstParty`                              | `sdk.IsProjectOwned(node)`, which reads the node kind         |
+| `sdk.NormalizeDependencyIdentity(dep)`        | gone: the constructors mint the identity                      |
+| `sdk.CanonicalPackageURLFromDependency(dep)`  | gone: `sdk.NewDependencyNode(coords)` mints or refuses        |
+| `g.AddNode(dep)` for a possibly-duplicate node | `g.InsertNode(node)`, which folds by identity                 |
+| `sdk.SetDetectionLicenses` writing `Metadata` | it writes the typed `DependencyNode.Licenses` field           |
+| `sdk.Digest` algorithm string constants       | the `sdk.DigestAlgorithms()` registry                          |
+| Untyped edges only                            | `g.AddTypedEdge`, `sdk.EdgeKind`, `sdk.CopyEdgesInto`         |
+| `*sdk.Package` graph nodes                    | `*sdk.DependencyNode` graph nodes; registry holds `*sdk.Package` |
+| `g.AddPackage(pkg)`, `g.Package(id)`          | `g.AddNode(node)`, `g.Node(id)`                               |
 | `g.AddDependency(from, to)`                   | `g.AddEdge(from, to)`                                         |
 | `g.Packages()`                                | `g.Nodes()`                                                   |
 | `g.Dependencies(id)`                          | `g.DirectDependencies(id)`                                    |
@@ -513,8 +714,6 @@ If you're reading code or tests that still reference the old shape, here is the 
 | `sdk.PackageVulnerability`                    | `sdk.Vulnerability` (OSV-aligned)                             |
 | `vuln.Severity` (string)                      | `vuln.ParsedSeverity` (string); `vuln.Severity []Severity` for CVSS vectors |
 | `vuln.Description`                            | `vuln.Details`                                                |
-| `sdk.PackageIsDiffable`                       | `sdk.NodeIsDiffable`                                          |
-| `sdk.NormalizePackageIdentity`                | `sdk.NormalizeDependencyIdentity`                             |
 | `Finding{Package: pkg, ...vuln fields...}`    | `Finding{PackageRef: pkg.PURL, VulnerabilityID: vuln.ID, ...}` |
 | Single `Scope` string                         | `Scopes []Scope` via `sdk.ScopesOf(scope)`                    |
-| Detection-time licenses on `Dependency.Licenses` | `sdk.SetDetectionLicenses(dep, licenses)` / `sdk.DetectionLicenses(dep)` |
+| Detection-time licenses in `Dependency.Metadata` | the typed `DependencyNode.Licenses` field, via `sdk.SetDetectionLicenses` / `sdk.DetectionLicenses` |

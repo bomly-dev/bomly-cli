@@ -55,13 +55,17 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 |------------------------|---------------------------------------------------------------------------------------------------|
 | `cmd/bomly`            | Entry point — calls `internal/cli.Execute()`                                                      |
 | `internal/cli`         | Cobra root + all commands (`scan`, `explain`, `diff`, `plugin`, `version`)                        |
-| `sdk` (external module) | Unified domain types: `Dependency` (detection graph nodes), `Package` (PURL-keyed matching artifacts in `PackageRegistry`), `Vulnerability` (OSV-aligned), reference-style `Finding`, plus neutral package/ecosystem/support identifiers. See `dev-docs/MODELS.md`. |
+| `internal/cli/opts`    | Flag declarations, flag/config override resolution, and the `PipelineRequest` builder             |
+| `internal/cli/render`  | Terminal rendering for every command, plus the ANSI helpers                                        |
+| `internal/config`      | Config file, env, and flag resolution (`Resolved`, the nested `File` leaves, and `Validate`)      |
+| `sdk` (external module) | Unified domain types: the sealed `GraphNode` union (`ManifestNode` / `ModuleNode` / `DependencyNode`, identity minted by the constructors), `Package` (PURL-keyed matching artifacts in `PackageRegistry`), `Vulnerability` (OSV-aligned), reference-style `Finding`, plus neutral package/ecosystem/support identifiers and the `purlkit` / `spdxkit` behavior kits. See `dev-docs/MODELS.md`. |
 | `internal/detectors`   | Detector contracts, descriptors, requests/results, and detector-only helpers                      |
 | `internal/engine`      | Pipeline, engine, consolidation, auditors, matchers, and orchestration                            |
+| `internal/engine/consolidation` | Detector-result consolidation into one graph, and the PURL-keyed package registry build   |
 | `internal/registry`    | Canonical support/discovery registry and built-in engine registry wiring                          |
-| `internal/detectors/*` | Concrete native dependency resolution per ecosystem (gomod, gradle, maven, node, python, sbom); the Syft catch-all detector lives in `bomly-plugin-syft-detector` |
+| `internal/detectors/*` | Concrete native dependency resolution per ecosystem (cargo, cocoapods, composer, conan, githubactions, gomod, gradle, maven, mix, node, nuget, pub, python, ruby, sbom, sbt, swiftpm); the Syft catch-all detector lives in `bomly-plugin-syft-detector` |
 | `bomly-plugin-*` (external modules) | External-integration components consumed as pinned Go modules: enrichment matchers (osv, grype, deps.dev license, scorecard), reachability analyzers (govulncheck, jsreach, pyreach, jvmreach), and the Syft detector; ClearlyDefined and eol run as external matcher plugins; the shared cache lives in `bomly-sdk/filecache` |
-| `internal/auditors/*`  | Policy evaluators and audit-only logic (policy, noop)                                             |
+| `internal/auditors/*`  | Policy evaluators and audit-only logic (license, package, vulnerability)                          |
 | `internal/graphview`   | Reads a graph for presentation and publication: a node's published package URL, the children a document can name, top-level parents |
 | `internal/testnodes`   | Test-only fixture builders for graph nodes (panic on an unbuildable fixture); label lookups delegate to `bomly-sdk/testkit` |
 | `internal/baseline`    | Portable package-finding baseline codec and audit-integrated policy-status resolver               |
@@ -75,6 +79,11 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 | `internal/engine/explain` | Dependency path traversal (`explain` command)                                                  |
 | `internal/engine/scan` | Scan command pipeline API                                                                         |
 | `internal/logging`     | Zap console wrapper (subprocess logging helpers live in `bomly-sdk/logkit`)                       |
+| `internal/progress`    | Default-verbosity progress reporting, including the pipeline-warning channel                      |
+| `internal/git`         | Git target resolution and revision description                                                    |
+| `internal/mcp`         | MCP server, tools, and the compact `mcp/1` response projections                                   |
+| `internal/tui`         | Bubbletea interactive views for `scan` and `diff`                                                 |
+| `internal/tools/*`     | Repository tooling run through `go run`: benchmark reporting, gofmt check, evidence catalog, SBOM assurance |
 | `internal/support`     | Docs generation (config reference, schemas, support matrix, component docs) behind the hidden `bomly internal docs-gen` command |
 
 Scan pipeline: `runtimePreparation → subprojectDiscovery (root-only by default; --recursive walks nested dirs) → detect (per-package-manager chains; resolve + consolidate into one graph; detectors may record CI-readiness resolution warnings on manifests) → scopeFilter → match (package enrichment, vulnerability consolidation, and remediation derivation) → analyze (reachability, when --analyze is set) → audit (including finding policy-status resolution) → format`. Consolidation is the tail of the detect stage, and remediation derivation is the tail of enrichment; neither is a separate stage.
@@ -110,6 +119,7 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - `internal/testnodes` is test-only: it routes fixture shapes through the real node constructors, panicking rather than taking a `testing.TB` so a table entry stays one expression. Label lookups ("name@version" to the canonical package URLs node IDs now are) delegate to `bomly-sdk/testkit` — the matching rules have one home, not two. Non-test code must not import it.
 - `internal/baseline` owns the baseline document and matching implementation. It depends on the SDK policy contracts and must not be imported by `internal/engine`.
 - `internal/remediation` owns canonical vulnerability remediation decisions. Detectors may supply validated read-only strategy hints, but they do not choose final actions or versions.
+- Package-URL handling is `bomly-sdk/purlkit`'s: parsing, escaping, canonical rendering, the one purl-type ↔ ecosystem table, and the identity/evidence qualifier split. No package under `internal/` may import `github.com/package-url/packageurl-go` (or the deprecated `github.com/anchore/packageurl-go`), and no shipped file may build a package URL by string concatenation — escaping the `pkg:` and `@` separators is the specification's rule, and a hand-built string gets it wrong for any name or version carrying one. `TestNoDirectPackageURLUse` and `TestPURLStringsAreBuiltByTheKit` (in `internal/detectors/guards_test.go`) enforce both. `internal/sbom.ComponentEcosystem` is the CLI's single purl-type → ecosystem answer; do not add a second table.
 - SPDX license expression handling is `bomly-sdk/spdxkit`'s: validation, identifier classification, composition, deprecated-ID canonicalization, and `LicenseRef-*` minting. The underlying parser panics on some malformed input, and license strings come from untrusted lockfiles and registry APIs, so no package under `internal/` may import `github.com/github/go-spdx` directly — the kit carries the panic guard. `TestNoDirectSPDXExpressionUse` (in `internal/detectors/guards_test.go`) enforces this across the whole tree, test files included. The CLI's own `internal/licenseexpr` wrapper is deleted; it duplicated the kit function for function.
 - `internal/registry` owns package-manager discovery, support lookups, and built-in registry wiring in `internal/registry/builder.go`. Do not create or reintroduce a separate `registrybuilder` package.
 - `internal/engine` may import `internal/detectors` and `internal/registry`, but detector packages must not point back into `internal/engine`. Runtime planning, prepared subprojects, and detector-chain reuse belong in `internal/engine`.

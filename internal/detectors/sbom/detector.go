@@ -90,7 +90,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 			return sdk.DetectionResult{}, fmt.Errorf("detect sbom format for %q: %w", sbomPath, err)
 		case errors.Is(err, sbom.ErrUnverifiableJSON):
 			return sdk.DetectionResult{}, fmt.Errorf(
-				"sbom file %q holds a JSON object too wide for Bomly to check for repeated names, "+
+				"sbom file %q holds more object member names at once than Bomly will check for repeats, "+
 					"so it will not import it: %w", sbomPath, err)
 		case errors.Is(err, sbom.ErrAmbiguousJSON):
 			// Named separately from a malformed document because the fix is

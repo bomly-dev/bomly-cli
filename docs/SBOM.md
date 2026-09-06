@@ -84,12 +84,15 @@ byte offset of the bad sequence, so you can find the spot. The fix is to
 regenerate the document with a producer that emits each member once — Bomly
 will not guess which reading you meant.
 
-Checking for a repeated name means remembering the names already seen in the
-object being read, so the check itself costs memory in proportion to the widest
-object in the file. Bomly refuses a document holding a single object with more
-than 100,000 members rather than spend that memory — a document that wide is
-not something either format produces, and passing it through unchecked would
-put the gap exactly where a crafted file would aim.
+Checking for a repeated name means remembering the names already seen in an
+object, and holding them until that object closes. The check therefore costs
+memory in proportion to the names open at once — across every object currently
+being read, not just the widest one. Bomly refuses a document that would hold
+more than 100,000 of them rather than spend that memory. Neither format
+produces anything close: components live in an array, so a document being read
+has a handful of small objects open at a time, however many components it
+lists. Passing the largest files through unchecked would put the gap exactly
+where a crafted one would aim.
 
 Nothing else was tightened. A document with unknown members, unusual nesting,
 many thousands of components, or fields Bomly does not model still imports

@@ -133,14 +133,17 @@ func TestMalformedDocumentsAreNotReportedAsAmbiguous(t *testing.T) {
 	}
 }
 
-// An object too wide to check is refused rather than waved through. Detecting a
-// repeated name costs memory in proportion to the widest object, so a document
-// can otherwise make the check itself the denial of service -- and skipping the
-// check on the largest inputs would put the hole where a payload would go.
-func TestAnObjectTooWideToCheckIsRefused(t *testing.T) {
+// A document too large to check is refused rather than waved through, whether
+// its names sit in one object or are spread across nested ones.
+//
+// Detecting a repeated name costs memory in proportion to the names held at
+// once, so a document can otherwise make the check itself the denial of
+// service -- and skipping the check on the largest inputs would put the hole
+// where a payload would go.
+func TestADocumentTooLargeToCheckIsRefused(t *testing.T) {
 	var b strings.Builder
 	b.WriteString(`{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"wide":{`)
-	for i := range maxObjectMembers + 2 {
+	for i := range maxOpenObjectMembers + 2 {
 		if i > 0 {
 			b.WriteByte(',')
 		}
@@ -152,8 +155,66 @@ func TestAnObjectTooWideToCheckIsRefused(t *testing.T) {
 	if !errors.Is(err, ErrUnverifiableJSON) {
 		t.Fatalf("err = %v, want %v", err, ErrUnverifiableJSON)
 	}
-	if !strings.Contains(err.Error(), "too wide") {
+	if !strings.Contains(err.Error(), "open at once") {
 		t.Errorf("error does not say what the problem is: %v", err)
+	}
+}
+
+// Names spread across nested objects count too. Each level here is well under
+// the bound on its own, but every level stays open until the last one closes,
+// so their names are all held at once -- and bounding only the widest single
+// object accepted this shape while it drove the checker into gigabytes.
+func TestNestedObjectsCannotAccumulatePastTheBound(t *testing.T) {
+	const levels = 40
+	perLevel := maxOpenObjectMembers/levels + 100
+
+	var b strings.Builder
+	b.WriteString(`{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"x":`)
+	for level := range levels {
+		b.WriteByte('{')
+		for i := range perLevel {
+			fmt.Fprintf(&b, `"k%d_%d":1,`, level, i)
+		}
+		b.WriteString(`"next":`)
+	}
+	b.WriteString("null")
+	for range levels {
+		b.WriteByte('}')
+	}
+	b.WriteByte('}')
+
+	_, _, err := UnmarshalAutoJSON([]byte(b.String()))
+	if !errors.Is(err, ErrUnverifiableJSON) {
+		t.Fatalf("err = %v, want %v -- no single object exceeds the bound, but together they do", err, ErrUnverifiableJSON)
+	}
+}
+
+// Closing an object releases its names, so a document that is merely long --
+// many sibling objects, one after another -- is not refused. Without that, the
+// bound would count every object a file ever contained instead of the ones
+// open at once.
+func TestSiblingObjectsDoNotAccumulate(t *testing.T) {
+	var b strings.Builder
+	b.WriteString(`{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"components":[`)
+	for i := range 200 {
+		if i > 0 {
+			b.WriteByte(',')
+		}
+		b.WriteString(`{"bom-ref":"r`)
+		fmt.Fprintf(&b, `%d","type":"library","name":"p%d","version":"1.0.0","purl":"pkg:npm/p%d@1.0.0","properties":[`, i, i, i)
+		// Each component carries a wide-ish property object that closes again.
+		for j := range 2_000 {
+			if j > 0 {
+				b.WriteByte(',')
+			}
+			fmt.Fprintf(&b, `{"name":"n%d","value":"v"}`, j)
+		}
+		b.WriteString(`]}`)
+	}
+	b.WriteString("]}")
+
+	if _, _, err := UnmarshalAutoJSON([]byte(b.String())); err != nil {
+		t.Fatalf("a long document whose objects close was refused: %v", err)
 	}
 }
 

@@ -18,26 +18,36 @@ var ErrAmbiguousJSON = errors.New("ambiguous sbom json")
 // checking it would cost more memory than the check is worth.
 var ErrUnverifiableJSON = errors.New("unverifiable sbom json")
 
-// maxObjectMembers bounds the widest single JSON object Bomly will validate.
+// maxOpenObjectMembers bounds how many object member names Bomly will hold at
+// once while checking a document.
 //
-// Detecting a repeated name means remembering the names already seen in the
-// object still being read, so the check costs memory in proportion to the
-// widest object, not to the file. Measured on the pinned toolchain, a 23 MiB
-// document holding one two-million-member object retained about 154 MiB --
-// roughly seven times its own size, which at the 256 MiB input limit is more
-// than a gigabyte and enough to end a CI run.
+// Detecting a repeated name means remembering the names already seen in an
+// object, and those names are held until that object closes -- so the cost is
+// set by every object open at the same time, not by the file and not by any
+// one object. Measured on the pinned toolchain: a 23 MiB document holding one
+// two-million-member object retained about 154 MiB, and a 411 MiB document
+// nesting three hundred objects of ninety-nine thousand members each retained
+// 2.5 GiB, because each level stays open until the last one closes.
 //
-// The bound is on the shape that costs, and nothing real approaches it: the
-// widest object either format defines is a component or the document header,
-// on the order of twenty members. Components live in an array, and array
-// elements need no name tracking. A hundred thousand members in one object is
-// therefore four orders of magnitude of headroom and a few megabytes of
-// tracking.
+// Bounding the widest single object caught the first shape and not the second.
+// The sum across open objects catches both, because it is the quantity that
+// actually costs.
 //
-// Exceeding it fails closed. A document too wide to check is refused rather
-// than passed through unchecked, because skipping the check on the largest
+// Nothing real approaches it. Both formats keep their components in an array,
+// whose elements need no name tracking, so a document being read has a handful
+// of objects open at once holding tens of members between them -- the widest
+// object either format defines is a component or the document header. A
+// hundred thousand names is three orders of magnitude of headroom and a few
+// megabytes of tracking.
+//
+// Exceeding it fails closed. A document too large to check is refused rather
+// than passed through unchecked, because skipping the check on the biggest
 // inputs would put the hole exactly where an attacker would put the payload.
-const maxObjectMembers = 100_000
+//
+// The bound is a count rather than anything cleverer on purpose: the library
+// owns what a duplicate name means, and this owns only how much work Bomly
+// will do to find one.
+const maxOpenObjectMembers = 100_000
 
 // requireUnambiguousJSON rejects a document that could be read two ways
 // (ADR-0039).
@@ -67,6 +77,11 @@ func requireUnambiguousJSON(data []byte) error {
 	// standard library owns what "the same name twice" means -- including
 	// escaped spellings of one name, which a byte comparison here would miss.
 	decoder := jsontext.NewDecoder(bytes.NewReader(data))
+	// Members counted per open object, and their running sum. Maintained here
+	// rather than re-summed from the decoder's stack on every token, which
+	// would make the scan cost depth times its length.
+	var openMembers []int
+	var total int
 	for {
 		if _, err := decoder.ReadToken(); err != nil {
 			if errors.Is(err, io.EOF) {
@@ -89,18 +104,36 @@ func requireUnambiguousJSON(data []byte) error {
 			// what makes this actionable: a user can find and fix the spot.
 			return fmt.Errorf("%w: %w", ErrAmbiguousJSON, err)
 		}
-		// Checked as the object grows rather than at its end, so a document
-		// designed to exhaust memory is stopped while it is doing it.
+		// Checked as the document is read rather than at the end, so one
+		// built to exhaust memory is stopped while it is doing it.
 		depth := decoder.StackDepth()
+
+		// Objects that closed since the previous token release their names,
+		// so their members stop counting against the total.
+		for len(openMembers) > depth {
+			total -= openMembers[len(openMembers)-1]
+			openMembers = openMembers[:len(openMembers)-1]
+		}
+		for len(openMembers) < depth {
+			openMembers = append(openMembers, 0)
+		}
 		if depth == 0 {
 			continue
 		}
+
 		// The length counts names and values alike, so an object's member
-		// count is half of it. Arrays are not counted: duplicate detection
+		// count is half of it. Arrays contribute nothing: duplicate detection
 		// applies to member names, and array elements have none.
-		if kind, length := decoder.StackIndex(depth); kind == '{' && length/2 > maxObjectMembers {
-			return fmt.Errorf("%w: an object holds more than %d members, which is too wide to check for repeated names",
-				ErrUnverifiableJSON, maxObjectMembers)
+		kind, length := decoder.StackIndex(depth)
+		if kind != '{' {
+			continue
+		}
+		members := int(length / 2)
+		total += members - openMembers[depth-1]
+		openMembers[depth-1] = members
+		if total > maxOpenObjectMembers {
+			return fmt.Errorf("%w: more than %d object member names are open at once, which is more than Bomly will hold to check for repeated names",
+				ErrUnverifiableJSON, maxOpenObjectMembers)
 		}
 	}
 }

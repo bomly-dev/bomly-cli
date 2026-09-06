@@ -240,3 +240,86 @@ func TestManyComponentsDoNotTripTheWidthBound(t *testing.T) {
 		t.Errorf("components = %d", len(doc.Components))
 	}
 }
+
+// Long member names are refused on their bytes even when their count is
+// inside the other bound.
+//
+// A count is not a size: 99,000 two-kilobyte names sit under the count limit
+// and still weigh ~194 MiB, which is legal input under the 256 MiB file limit
+// and drove retention to 900 MiB before this bound existed.
+func TestLongMemberNamesAreBoundedByTheirBytes(t *testing.T) {
+	// Well inside the count bound, deliberately: the count must not be what
+	// rejects this, or the test would pass without the byte bound.
+	const names = 2_000
+	const nameLength = 16 << 10
+
+	pad := strings.Repeat("p", nameLength)
+	var b strings.Builder
+	b.WriteString(`{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"wide":{`)
+	for i := range names {
+		if i > 0 {
+			b.WriteByte(',')
+		}
+		fmt.Fprintf(&b, `"%s%d":1`, pad, i)
+	}
+	b.WriteString("}}")
+
+	if names > maxOpenObjectMembers {
+		t.Fatalf("the fixture trips the count bound (%d names), so it would pass without the byte bound", names)
+	}
+	_, _, err := UnmarshalAutoJSON([]byte(b.String()))
+	if !errors.Is(err, ErrUnverifiableJSON) {
+		t.Fatalf("err = %v, want %v", err, ErrUnverifiableJSON)
+	}
+	if !strings.Contains(err.Error(), "bytes") {
+		t.Errorf("the error does not say the byte bound fired: %v", err)
+	}
+}
+
+// Closing an object releases its name bytes as well as its count.
+//
+// This document's names total far more than the byte bound, but only one
+// object's worth is ever open at a time, so it must be accepted. Without the
+// release it is refused -- which would reject long, ordinary documents rather
+// than pathological ones.
+func TestClosedObjectsReleaseTheirNameBytes(t *testing.T) {
+	const objects = 20_000
+	const nameLength = 2048
+	pad := strings.Repeat("p", nameLength)
+
+	var b strings.Builder
+	b.WriteString(`{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"x":[`)
+	for i := range objects {
+		if i > 0 {
+			b.WriteByte(',')
+		}
+		fmt.Fprintf(&b, `{"%s%d":1}`, pad, i)
+	}
+	b.WriteString("]}")
+
+	if cumulative := int64(objects) * nameLength; cumulative <= maxOpenNameBytes {
+		t.Fatalf("the fixture's %d cumulative name bytes are inside the bound, so it would pass without the release", cumulative)
+	}
+	if _, _, err := UnmarshalAutoJSON([]byte(b.String())); err != nil {
+		t.Fatalf("a document whose objects close was refused: %v", err)
+	}
+}
+
+// Ordinary member names are nowhere near the byte bound. Both formats use
+// spec-defined field names of tens of bytes, so a document with many
+// components must not trip it.
+func TestOrdinaryNamesDoNotApproachTheByteBound(t *testing.T) {
+	var b strings.Builder
+	b.WriteString(`{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"components":[`)
+	for i := range 5_000 {
+		if i > 0 {
+			b.WriteByte(',')
+		}
+		fmt.Fprintf(&b, `{"bom-ref":"pkg:npm/p%d@1.0.0","type":"library","name":"p%d","version":"1.0.0","purl":"pkg:npm/p%d@1.0.0"}`, i, i, i)
+	}
+	b.WriteString("]}")
+
+	if _, _, err := UnmarshalAutoJSON([]byte(b.String())); err != nil {
+		t.Fatalf("an ordinary document was refused: %v", err)
+	}
+}

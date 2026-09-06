@@ -49,6 +49,36 @@ var ErrUnverifiableJSON = errors.New("unverifiable sbom json")
 // will do to find one.
 const maxOpenObjectMembers = 100_000
 
+// maxOpenNameBytes bounds the same thing in bytes.
+//
+// A count is not a size. A hundred thousand two-kilobyte names sit inside the
+// count bound and still weigh two hundred megabytes, so a 194 MiB document --
+// legal under the 256 MiB input limit -- passed the count check while driving
+// retention to 900 MiB. Names are what the checker holds; bytes are what they
+// cost.
+//
+// Both bounds are kept rather than replacing one with the other: a document
+// can be pathological in either direction, and each is cheap.
+//
+// Sixteen mebibytes is far above anything real. Member names in both formats
+// are spec-defined field names of tens of bytes, so a hundred thousand of them
+// occupy single-digit megabytes.
+//
+// Measured, not predicted: the 194 MiB document that used to retain 900 MiB is
+// now refused having retained 116 MiB. Estimating from the name bytes alone
+// suggested about seventy, so the figure here is the one observed on the
+// pinned toolchain -- every earlier comment on this function stated a memory
+// property that later measurement contradicted.
+const maxOpenNameBytes = 16 << 20
+
+// openObjectCost is what one open object is costing the duplicate check: the
+// member names seen in it so far, and the bytes they occupy. Both are released
+// when that object closes.
+type openObjectCost struct {
+	members   int
+	nameBytes int64
+}
+
 // requireUnambiguousJSON rejects a document that could be read two ways
 // (ADR-0039).
 //
@@ -77,12 +107,19 @@ func requireUnambiguousJSON(data []byte) error {
 	// standard library owns what "the same name twice" means -- including
 	// escaped spellings of one name, which a byte comparison here would miss.
 	decoder := jsontext.NewDecoder(bytes.NewReader(data))
-	// Members counted per open object, and their running sum. Maintained here
+	// What each open object is costing, and the running sums. Kept per depth
 	// rather than re-summed from the decoder's stack on every token, which
-	// would make the scan cost depth times its length.
-	var openMembers []int
-	var total int
+	// would make the scan cost depth times its length -- and kept in one
+	// struct so the two measures are released together when an object closes.
+	var open []openObjectCost
+	var totalMembers int
+	var totalNameBytes int64
 	for {
+		// The span this token occupies, used below to size member names
+		// without materializing them. It counts the separator and any
+		// whitespace before the name as well, so it over-estimates -- which is
+		// the safe direction for a bound.
+		start := decoder.InputOffset()
 		if _, err := decoder.ReadToken(); err != nil {
 			if errors.Is(err, io.EOF) {
 				return nil
@@ -109,13 +146,15 @@ func requireUnambiguousJSON(data []byte) error {
 		depth := decoder.StackDepth()
 
 		// Objects that closed since the previous token release their names,
-		// so their members stop counting against the total.
-		for len(openMembers) > depth {
-			total -= openMembers[len(openMembers)-1]
-			openMembers = openMembers[:len(openMembers)-1]
+		// so they stop counting against either total.
+		for len(open) > depth {
+			closed := open[len(open)-1]
+			totalMembers -= closed.members
+			totalNameBytes -= closed.nameBytes
+			open = open[:len(open)-1]
 		}
-		for len(openMembers) < depth {
-			openMembers = append(openMembers, 0)
+		for len(open) < depth {
+			open = append(open, openObjectCost{})
 		}
 		if depth == 0 {
 			continue
@@ -129,11 +168,22 @@ func requireUnambiguousJSON(data []byte) error {
 			continue
 		}
 		members := int(length / 2)
-		total += members - openMembers[depth-1]
-		openMembers[depth-1] = members
-		if total > maxOpenObjectMembers {
+		totalMembers += members - open[depth-1].members
+		open[depth-1].members = members
+		// An odd length means the token just read was a member name rather
+		// than its value, which is the only token the decoder retains.
+		if length%2 == 1 {
+			size := decoder.InputOffset() - start
+			open[depth-1].nameBytes += size
+			totalNameBytes += size
+		}
+		if totalMembers > maxOpenObjectMembers {
 			return fmt.Errorf("%w: more than %d object member names are open at once, which is more than Bomly will hold to check for repeated names",
 				ErrUnverifiableJSON, maxOpenObjectMembers)
+		}
+		if totalNameBytes > maxOpenNameBytes {
+			return fmt.Errorf("%w: the object member names open at once exceed %d bytes, which is more than Bomly will hold to check for repeated names",
+				ErrUnverifiableJSON, int64(maxOpenNameBytes))
 		}
 	}
 }

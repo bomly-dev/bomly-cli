@@ -90,11 +90,10 @@ memory in proportion to the names open at once — across every object currently
 being read, not just the widest one. Bomly refuses a document that would hold
 more than 100,000 of them, or more than 16 MB of them, rather than spend that
 memory — a count alone is not a size, since a few long names can outweigh very
-many short ones. Neither format
-produces anything close: components live in an array, so a document being read
-has a handful of small objects open at a time, however many components it
-lists. Passing the largest files through unchecked would put the gap exactly
-where a crafted one would aim.
+many short ones. Neither format produces anything close: components live in an
+array, so a document being read has a handful of small objects open at a time,
+however many components it lists. Passing the largest files through unchecked
+would put the gap exactly where a crafted one would aim.
 
 Nothing else was tightened. A document with unknown members, unusual nesting,
 many thousands of components, or fields Bomly does not model still imports

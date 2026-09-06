@@ -1,6 +1,7 @@
 package sbom
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/bomly-dev/bomly-sdk"
@@ -212,6 +213,7 @@ func applySPDXAssertions(component *Component, pkg *v23.Package) {
 	if component == nil || pkg == nil {
 		return
 	}
+	component.EOL = spdxCommentEOL(pkg.PackageComment)
 	component.Supplier = spdxIngestedSupplier(pkg.PackageSupplier)
 	component.Originator = spdxIngestedOriginator(pkg.PackageOriginator)
 	// SPDX has both; description is the fuller field, so summary fills in
@@ -311,6 +313,24 @@ func spdxEmittedReferences(refs []sdk.ExternalReference) []*v23.PackageExternalR
 		return nil
 	}
 	return emitted
+}
+
+// spdxCommentEOL reads the end-of-life claim back out of the package comment.
+//
+// SPDX writes only the flag and the date -- it has no cycle field in this
+// comment -- so only those are read. The flag is what makes the record exist:
+// a date alone says nothing about whether the version is end-of-life, and an
+// unparseable flag drops the record rather than guessing at one.
+func spdxCommentEOL(comment string) *EOL {
+	value := strings.TrimSpace(parseSPDXCommentField(comment, "eol"))
+	if value == "" {
+		return nil
+	}
+	flag, err := strconv.ParseBool(value)
+	if err != nil {
+		return nil
+	}
+	return &EOL{EOL: flag, EOLDate: strings.TrimSpace(parseSPDXCommentField(comment, "eol_date"))}
 }
 
 // spdxDocumentAssertions reads what an SPDX document says about itself.

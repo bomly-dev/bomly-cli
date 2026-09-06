@@ -101,11 +101,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "abbrev",
@@ -123,11 +125,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "accepts",
@@ -148,11 +155,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "accepts",
@@ -173,11 +185,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "accepts",
@@ -195,11 +212,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "after",
@@ -221,11 +243,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "align-text",
@@ -243,11 +270,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "amdefine",
@@ -265,11 +297,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "angular",
@@ -287,11 +324,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ansi-regex",
@@ -309,11 +351,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ansi-styles",
@@ -331,11 +378,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "aproba",
@@ -353,11 +402,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "are-we-there-yet",
@@ -372,11 +423,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "arguejs",
@@ -391,11 +444,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "array-flatten",
@@ -413,11 +471,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "array-uniq",
@@ -432,11 +492,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "arraybuffer.slice",
@@ -454,11 +519,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "arrify",
@@ -476,11 +543,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "ascli",
@@ -495,11 +564,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "asn1",
@@ -517,11 +591,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "assert-plus",
@@ -539,11 +618,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "assert-plus",
@@ -561,11 +645,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "async",
@@ -583,11 +672,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "async",
@@ -605,11 +699,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "async",
@@ -629,11 +728,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "async",
@@ -648,11 +749,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "asynckit",
@@ -670,11 +776,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "aws-sign2",
@@ -692,11 +803,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "aws4",
@@ -714,11 +830,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "backo2",
@@ -736,11 +857,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "balanced-match",
@@ -758,11 +884,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "base64-arraybuffer",
@@ -780,11 +911,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "base64id",
@@ -802,11 +938,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "base64url",
@@ -824,11 +962,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "base64url",
@@ -843,11 +983,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "base64url",
@@ -864,11 +1006,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "bcrypt-pbkdf",
@@ -886,11 +1033,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "benchmark",
@@ -910,11 +1062,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "better-assert",
@@ -934,11 +1091,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "bl",
@@ -953,11 +1112,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "blob",
@@ -977,11 +1141,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "block-stream",
@@ -998,11 +1164,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "boom",
@@ -1022,11 +1193,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "boom",
@@ -1047,11 +1223,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "brace-expansion",
@@ -1069,11 +1250,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "buffer-crc32",
@@ -1091,11 +1277,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "buffer-equal-constant-time",
@@ -1110,11 +1298,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "buffer-shims",
@@ -1131,11 +1321,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "bytebuffer",
@@ -1150,11 +1342,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "callsite",
@@ -1175,11 +1372,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "camel-case",
@@ -1200,11 +1402,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "camelcase-keys",
@@ -1219,11 +1423,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "camelcase",
@@ -1241,11 +1450,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "capture-stack-trace",
@@ -1260,11 +1471,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "caseless",
@@ -1285,11 +1501,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "center-align",
@@ -1313,11 +1534,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "chalk",
@@ -1335,11 +1561,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "checkup",
@@ -1360,11 +1591,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "clean-css",
@@ -1384,11 +1620,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "clean-css",
@@ -1410,11 +1651,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cliui",
@@ -1432,11 +1678,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "code-point-at",
@@ -1451,11 +1699,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "colour",
@@ -1472,11 +1722,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "combined-stream",
@@ -1496,11 +1751,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "commander",
@@ -1520,11 +1780,17 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "commander",
@@ -1543,11 +1809,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "component-bind",
@@ -1565,11 +1836,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "component-emitter",
@@ -1587,11 +1863,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "component-emitter",
@@ -1609,11 +1890,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "component-inherit",
@@ -1631,11 +1917,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "concat-map",
@@ -1657,11 +1948,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "concat-stream",
@@ -1680,11 +1973,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "concat-stream",
@@ -1699,11 +1994,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "console-control-strings",
@@ -1726,11 +2023,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "console-io",
@@ -1748,11 +2050,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "content-disposition",
@@ -1770,11 +2077,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "content-type",
@@ -1792,11 +2104,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cookie-signature",
@@ -1814,11 +2131,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cookie-signature",
@@ -1836,11 +2158,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cookie-signature",
@@ -1858,11 +2185,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cookie",
@@ -1880,11 +2212,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cookie",
@@ -1902,11 +2239,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cookiejar",
@@ -1924,11 +2266,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "core-util-is",
@@ -1948,11 +2295,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "create-error-class",
@@ -1969,11 +2318,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cryptiles",
@@ -1991,11 +2345,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "css-b64-images",
@@ -2015,11 +2374,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "dashdash",
@@ -2037,11 +2401,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "debug",
@@ -2059,11 +2428,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "debug",
@@ -2081,11 +2455,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "debug",
@@ -2105,11 +2484,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "debug",
@@ -2129,11 +2513,17 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "debug",
@@ -2152,11 +2542,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "decamelize",
@@ -2174,11 +2569,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "deep-extend",
@@ -2193,11 +2590,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "delayed-stream",
@@ -2215,11 +2617,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "delegates",
@@ -2234,11 +2638,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "depd",
@@ -2256,11 +2665,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "destroy",
@@ -2278,11 +2692,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "diff",
@@ -2302,11 +2721,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "dot-prop",
@@ -2326,11 +2747,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "duplexify",
@@ -2347,11 +2770,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ecc-jsbn",
@@ -2372,11 +2800,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "ecdsa-sig-formatter",
@@ -2391,11 +2821,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ee-first",
@@ -2415,11 +2850,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "end-of-stream",
@@ -2447,11 +2884,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "engine.io-client",
@@ -2476,11 +2918,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "engine.io-parser",
@@ -2504,11 +2951,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "engine.io",
@@ -2526,11 +2978,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "ent",
@@ -2545,11 +2999,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "escape-html",
@@ -2567,11 +3026,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "escape-html",
@@ -2589,11 +3053,17 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "escape-string-regexp",
@@ -2612,11 +3082,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "etag",
@@ -2634,11 +3109,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "execon",
@@ -2674,11 +3154,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "express",
@@ -2722,11 +3207,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "express",
@@ -2744,11 +3234,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "extend",
@@ -2766,11 +3261,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "extendy",
@@ -2788,11 +3288,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "extsprintf",
@@ -2814,11 +3319,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "files-io",
@@ -2839,11 +3349,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "fill-keys",
@@ -2866,11 +3381,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "finalhandler",
@@ -2888,11 +3408,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "forever-agent",
@@ -2914,11 +3439,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "form-data",
@@ -2940,11 +3470,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "form-data",
@@ -2963,11 +3495,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "form-data",
@@ -2985,11 +3522,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "formidable",
@@ -3007,11 +3549,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "forwarded",
@@ -3029,11 +3576,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "fresh",
@@ -3051,11 +3603,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "fresh",
@@ -3073,11 +3630,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "fs.realpath",
@@ -3099,11 +3661,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "fstream-ignore",
@@ -3123,11 +3687,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "fstream",
@@ -3151,11 +3717,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "gauge",
@@ -3170,11 +3738,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "generate-function",
@@ -3194,11 +3767,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "generate-object-property",
@@ -3216,11 +3794,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "get-stdin",
@@ -3237,11 +3817,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "getpass",
@@ -3266,11 +3851,17 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "glob",
@@ -3296,11 +3887,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "google-auth-library",
@@ -3320,11 +3913,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "google-auto-auth",
@@ -3347,11 +3942,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "google-gax",
@@ -3368,11 +3965,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "google-p12-pem",
@@ -3387,11 +3986,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "google-proto-files",
@@ -3406,11 +4007,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "google-proto-files",
@@ -3425,11 +4028,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "graceful-fs",
@@ -3444,11 +4049,17 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "graceful-readlink",
@@ -3467,11 +4078,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "growl",
@@ -3495,11 +4111,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "grpc",
@@ -3519,11 +4137,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "gtoken",
@@ -3538,11 +4158,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "handlebars-ex",
@@ -3565,11 +4190,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "har-validator",
@@ -3589,11 +4219,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "has-ansi",
@@ -3613,11 +4248,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "has-binary",
@@ -3637,11 +4277,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "has-binary",
@@ -3659,11 +4304,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "has-cors",
@@ -3681,11 +4331,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "has-flag",
@@ -3703,11 +4358,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "has-unicode",
@@ -3727,11 +4384,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "hawk",
@@ -3749,11 +4411,17 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "he",
@@ -3772,11 +4440,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "hoek",
@@ -3794,11 +4467,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "hoek",
@@ -3825,11 +4503,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "html-minifier",
@@ -3850,11 +4533,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "http-errors",
@@ -3876,11 +4564,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "http-signature",
@@ -3902,11 +4595,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "indent-string",
@@ -3921,11 +4616,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "indexof",
@@ -3946,11 +4646,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "inflight",
@@ -3968,11 +4673,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "inherits",
@@ -3990,11 +4700,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "ini",
@@ -4009,11 +4721,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ipaddr.js",
@@ -4031,11 +4748,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "is-buffer",
@@ -4055,11 +4777,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "is-finite",
@@ -4076,11 +4800,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "is-fullwidth-code-point",
@@ -4100,11 +4826,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "is-my-json-valid",
@@ -4122,11 +4853,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "is-obj",
@@ -4141,11 +4874,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "is-object",
@@ -4163,11 +4901,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "is-property",
@@ -4185,11 +4928,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "is-stream-ended",
@@ -4204,11 +4949,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "is-typedarray",
@@ -4226,11 +4976,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "is",
@@ -4245,11 +4997,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "isarray",
@@ -4267,11 +5024,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "isarray",
@@ -4293,11 +5052,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ischanged",
@@ -4315,11 +5079,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "isstream",
@@ -4337,11 +5106,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "itype",
@@ -4361,11 +5135,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jodid25519",
@@ -4388,11 +5167,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "join-io",
@@ -4410,11 +5194,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jquery",
@@ -4432,11 +5221,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jsbn",
@@ -4454,11 +5248,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "json-schema",
@@ -4476,11 +5275,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "json-stringify-safe",
@@ -4498,11 +5302,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "json3",
@@ -4520,11 +5329,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "json3",
@@ -4542,11 +5356,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jsonpointer",
@@ -4568,11 +5387,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jsprim",
@@ -4594,11 +5418,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "jwa",
@@ -4616,11 +5442,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "jws",
@@ -4637,11 +5465,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "kind-of",
@@ -4659,11 +5492,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "lazy-cache",
@@ -4681,11 +5519,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "lodash.noop",
@@ -4700,11 +5540,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "lodash",
@@ -4719,11 +5561,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "log-driver",
@@ -4738,11 +5582,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "long",
@@ -4757,11 +5603,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "longest",
@@ -4779,11 +5630,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "lower-case",
@@ -4801,11 +5657,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "map-obj",
@@ -4820,11 +5678,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "media-typer",
@@ -4847,11 +5710,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "meow",
@@ -4866,11 +5731,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "merge-descriptors",
@@ -4888,11 +5758,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "merge-descriptors",
@@ -4910,11 +5785,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "methmeth",
@@ -4929,11 +5806,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "methods",
@@ -4951,11 +5833,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "methods",
@@ -4973,11 +5860,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mime-db",
@@ -4995,11 +5887,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mime-db",
@@ -5019,11 +5916,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mime-types",
@@ -5043,11 +5945,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mime-types",
@@ -5065,11 +5972,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mime",
@@ -5087,11 +5999,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mime",
@@ -5119,11 +6036,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "minify",
@@ -5143,11 +6065,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "minimatch",
@@ -5165,11 +6092,17 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "minimist",
@@ -5188,11 +6121,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "minimist",
@@ -5209,11 +6144,17 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "mkdirp",
@@ -5242,11 +6183,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "mocha",
@@ -5264,11 +6210,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "modelo",
@@ -5283,11 +6231,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "module-not-found-error",
@@ -5308,11 +6261,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mollify",
@@ -5330,11 +6288,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ms",
@@ -5352,11 +6315,17 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "ms",
@@ -5375,11 +6344,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "nan",
@@ -5396,11 +6367,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ncname",
@@ -5418,11 +6394,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "negotiator",
@@ -5440,11 +6421,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "negotiator",
@@ -5464,11 +6450,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "no-case",
@@ -5486,11 +6477,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "node-forge",
@@ -5515,11 +6508,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "node-pre-gyp",
@@ -5534,11 +6529,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "node-uuid",
@@ -5572,11 +6569,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "nopt",
@@ -5596,11 +6595,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "npmlog",
@@ -5615,11 +6616,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "number-is-nan",
@@ -5634,11 +6637,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "oauth-sign",
@@ -5656,11 +6664,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "object-assign",
@@ -5675,11 +6685,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "object-assign",
@@ -5694,11 +6706,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "object-assign",
@@ -5713,11 +6727,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "object-component",
@@ -5737,11 +6756,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "on-finished",
@@ -5761,11 +6785,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "once",
@@ -5782,11 +6808,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "once",
@@ -5804,11 +6835,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "options",
@@ -5826,11 +6862,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "optjs",
@@ -5845,11 +6883,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "os-homedir",
@@ -5869,11 +6912,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "param-case",
@@ -5893,11 +6941,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "parsejson",
@@ -5917,11 +6970,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "parseqs",
@@ -5941,11 +6999,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "parseuri",
@@ -5963,11 +7026,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "parseurl",
@@ -5985,11 +7053,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "parseurl",
@@ -6007,11 +7080,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "path-is-absolute",
@@ -6029,11 +7107,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "path-to-regexp",
@@ -6051,11 +7134,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "path-to-regexp",
@@ -6075,11 +7163,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pinkie-promise",
@@ -6097,11 +7190,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pinkie",
@@ -6119,11 +7217,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pipe-io",
@@ -6147,11 +7250,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ponse",
@@ -6169,11 +7277,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "process-nextick-args",
@@ -6188,11 +7298,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "propprop",
@@ -6212,11 +7324,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "protobufjs",
@@ -6234,11 +7348,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "proxy-addr",
@@ -6260,11 +7379,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "proxyquire",
@@ -6282,11 +7406,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pullout",
@@ -6304,11 +7433,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "punycode",
@@ -6326,11 +7460,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "qs",
@@ -6348,11 +7487,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "qs",
@@ -6370,11 +7514,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "qs",
@@ -6392,11 +7541,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "qs",
@@ -6411,11 +7562,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "qs",
@@ -6433,11 +7589,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "range-parser",
@@ -6455,11 +7616,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "range-parser",
@@ -6482,11 +7648,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "rc",
@@ -6506,11 +7674,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "readable-stream",
@@ -6533,11 +7706,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "readable-stream",
@@ -6559,11 +7734,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "readable-stream",
@@ -6586,11 +7763,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "readable-stream",
@@ -6613,11 +7792,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "readable-stream",
@@ -6634,11 +7815,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "readjson",
@@ -6656,11 +7842,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "reduce-component",
@@ -6678,11 +7869,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "relateurl",
@@ -6700,11 +7896,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "rendy",
@@ -6722,11 +7923,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "repeat-string",
@@ -6746,11 +7952,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "repeating",
@@ -6787,11 +7995,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "request",
@@ -6827,11 +8037,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "request",
@@ -6867,11 +8079,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "request",
@@ -6889,11 +8106,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "resolve",
@@ -6914,11 +8136,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "retry-request",
@@ -6933,11 +8157,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "rgb-hex",
@@ -6954,11 +8180,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "right-align",
@@ -6978,11 +8209,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "rimraf",
@@ -6997,11 +8230,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "safe-buffer",
@@ -7016,11 +8251,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "semver",
@@ -7048,11 +8285,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "send",
@@ -7083,11 +8325,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "send",
@@ -7111,11 +8358,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "send",
@@ -7136,11 +8388,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "serve-static",
@@ -7162,11 +8419,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "serve-static",
@@ -7184,11 +8446,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "set-blocking",
@@ -7203,11 +8467,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "signal-exit",
@@ -7224,11 +8490,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sntp",
@@ -7249,11 +8520,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "socket.io-adapter",
@@ -7283,11 +8559,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "socket.io-client",
@@ -7311,11 +8592,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "socket.io-parser",
@@ -7339,11 +8625,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "socket.io-parser",
@@ -7368,11 +8659,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "socket.io",
@@ -7392,11 +8688,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "source-map",
@@ -7414,11 +8715,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "source-map",
@@ -7441,11 +8747,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "spawnify",
@@ -7466,11 +8777,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "split-array-stream",
@@ -7495,11 +8808,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sshpk",
@@ -7517,11 +8835,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "statuses",
@@ -7541,11 +8864,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "stream-events",
@@ -7560,11 +8885,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "stream-shift",
@@ -7579,11 +8906,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "string-format-obj",
@@ -7598,11 +8927,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "string-template",
@@ -7621,11 +8952,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "string-width",
@@ -7640,11 +8973,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "string_decoder",
@@ -7662,11 +9000,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "stringstream",
@@ -7686,11 +9029,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "strip-ansi",
@@ -7708,11 +9056,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "strip-json-comments",
@@ -7727,11 +9077,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "stubs",
@@ -7758,11 +9110,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "superagent",
@@ -7783,11 +9140,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "supertest",
@@ -7805,11 +9167,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "supports-color",
@@ -7829,11 +9196,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "supports-color",
@@ -7860,11 +9232,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "tar-pack",
@@ -7883,11 +9257,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "tar",
@@ -7905,11 +9281,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "through2",
@@ -7924,11 +9302,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "timem",
@@ -7946,11 +9329,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "tinymce",
@@ -7968,11 +9356,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "to-array",
@@ -7995,11 +9388,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "tomas",
@@ -8019,11 +9417,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "tough-cookie",
@@ -8041,11 +9444,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "try-catch",
@@ -8063,11 +9471,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "tunnel-agent",
@@ -8085,11 +9498,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "tweetnacl",
@@ -8109,11 +9527,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "type-is",
@@ -8134,11 +9557,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "type-is",
@@ -8156,11 +9584,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "typedarray",
@@ -8180,11 +9610,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "uglify-js",
@@ -8202,11 +9637,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "uglify-to-browserify",
@@ -8224,11 +9664,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "uid-number",
@@ -8243,11 +9685,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ultron",
@@ -8265,11 +9712,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "unpipe",
@@ -8289,11 +9741,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "untildify",
@@ -8311,11 +9768,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "upper-case",
@@ -8333,11 +9795,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "utf8",
@@ -8355,11 +9822,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "util-deprecate",
@@ -8374,11 +9843,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "utils-merge",
@@ -8396,11 +9870,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "uuid",
@@ -8418,11 +9897,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "vary",
@@ -8442,11 +9926,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "verror",
@@ -8466,11 +9955,13 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive"
             }
           ],
           "name": "wide-align",
@@ -8487,11 +9978,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "win32",
@@ -8509,11 +10005,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "window-size",
@@ -8531,11 +10032,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "wordwrap",
@@ -8553,11 +10059,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "wrappy",
@@ -8577,11 +10088,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "writejson",
@@ -8602,11 +10118,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ws",
@@ -8627,11 +10148,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ws",
@@ -8649,11 +10175,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "xml-char-classes",
@@ -8671,11 +10202,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "xmlhttprequest-ssl",
@@ -8693,11 +10229,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "xtend",
@@ -8720,11 +10261,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "yargs",
@@ -8742,11 +10288,16 @@
           "locations": [
             {
               "access_path": "yarn.lock",
+              "module_root": ".",
               "position": {
                 "file": "yarn.lock",
                 "line": 0
               },
-              "real_path": "yarn.lock"
+              "real_path": "yarn.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "yeast",

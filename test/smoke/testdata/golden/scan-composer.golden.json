@@ -23,11 +23,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "guzzlehttp/guzzle",
@@ -45,11 +50,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "guzzlehttp/promises",
@@ -70,11 +80,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "guzzlehttp/psr7",
@@ -92,11 +107,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "phpunit/php-file-iterator",
@@ -114,11 +134,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "phpunit/php-text-template",
@@ -136,11 +161,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "phpunit/php-timer",
@@ -163,11 +193,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "phpunit/phpunit",
@@ -185,11 +220,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "psr/http-message",
@@ -207,11 +247,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ralouphie/getallheaders",
@@ -229,11 +274,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "symfony/polyfill-mbstring",
@@ -251,11 +301,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "symfony/yaml",
@@ -275,11 +330,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "twig/twig",

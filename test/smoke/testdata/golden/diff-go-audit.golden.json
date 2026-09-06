@@ -425,11 +425,16 @@
             "locations": [
               {
                 "access_path": "go.mod",
+                "module_root": ".",
                 "position": {
                   "file": "go.mod",
                   "line": 0
                 },
-                "real_path": "go.mod"
+                "real_path": "go.mod",
+                "relationship": "direct",
+                "scopes": [
+                  "runtime"
+                ]
               }
             ],
             "name": "github.com/google/uuid",
@@ -463,11 +468,16 @@
             "locations": [
               {
                 "access_path": "go.mod",
+                "module_root": ".",
                 "position": {
                   "file": "go.mod",
                   "line": 0
                 },
-                "real_path": "go.mod"
+                "real_path": "go.mod",
+                "relationship": "direct",
+                "scopes": [
+                  "runtime"
+                ]
               }
             ],
             "name": "github.com/google/go-querystring",
@@ -484,11 +494,16 @@
             "locations": [
               {
                 "access_path": "go.mod",
+                "module_root": ".",
                 "position": {
                   "file": "go.mod",
                   "line": 0
                 },
-                "real_path": "go.mod"
+                "real_path": "go.mod",
+                "relationship": "direct",
+                "scopes": [
+                  "runtime"
+                ]
               }
             ],
             "name": "github.com/google/go-querystring",
@@ -522,11 +537,16 @@
             "locations": [
               {
                 "access_path": "go.mod",
+                "module_root": ".",
                 "position": {
                   "file": "go.mod",
                   "line": 0
                 },
-                "real_path": "go.mod"
+                "real_path": "go.mod",
+                "relationship": "transitive",
+                "scopes": [
+                  "development"
+                ]
               }
             ],
             "name": "github.com/bmizerany/assert",
@@ -571,11 +591,16 @@
             "locations": [
               {
                 "access_path": "go.mod",
+                "module_root": ".",
                 "position": {
                   "file": "go.mod",
                   "line": 0
                 },
-                "real_path": "go.mod"
+                "real_path": "go.mod",
+                "relationship": "transitive",
+                "scopes": [
+                  "development"
+                ]
               }
             ],
             "name": "github.com/kr/pretty",
@@ -711,11 +736,16 @@
             "locations": [
               {
                 "access_path": "go.mod",
+                "module_root": ".",
                 "position": {
                   "file": "go.mod",
                   "line": 0
                 },
-                "real_path": "go.mod"
+                "real_path": "go.mod",
+                "relationship": "direct",
+                "scopes": [
+                  "runtime"
+                ]
               }
             ],
             "name": "github.com/simeji/jid",
@@ -734,11 +764,16 @@
             "locations": [
               {
                 "access_path": "go.mod",
+                "module_root": ".",
                 "position": {
                   "file": "go.mod",
                   "line": 0
                 },
-                "real_path": "go.mod"
+                "real_path": "go.mod",
+                "relationship": "transitive",
+                "scopes": [
+                  "development"
+                ]
               }
             ],
             "name": "github.com/stretchr/testify",
@@ -802,11 +837,16 @@
               "locations": [
                 {
                   "access_path": "go.mod",
+                  "module_root": ".",
                   "position": {
                     "file": "go.mod",
                     "line": 0
                   },
-                  "real_path": "go.mod"
+                  "real_path": "go.mod",
+                  "relationship": "direct",
+                  "scopes": [
+                    "runtime"
+                  ]
                 }
               ],
               "name": "github.com/google/uuid",
@@ -840,11 +880,16 @@
               "locations": [
                 {
                   "access_path": "go.mod",
+                  "module_root": ".",
                   "position": {
                     "file": "go.mod",
                     "line": 0
                   },
-                  "real_path": "go.mod"
+                  "real_path": "go.mod",
+                  "relationship": "direct",
+                  "scopes": [
+                    "runtime"
+                  ]
                 }
               ],
               "name": "github.com/google/go-querystring",
@@ -861,11 +906,16 @@
               "locations": [
                 {
                   "access_path": "go.mod",
+                  "module_root": ".",
                   "position": {
                     "file": "go.mod",
                     "line": 0
                   },
-                  "real_path": "go.mod"
+                  "real_path": "go.mod",
+                  "relationship": "direct",
+                  "scopes": [
+                    "runtime"
+                  ]
                 }
               ],
               "name": "github.com/google/go-querystring",
@@ -903,11 +953,16 @@
               "locations": [
                 {
                   "access_path": "go.mod",
+                  "module_root": ".",
                   "position": {
                     "file": "go.mod",
                     "line": 0
                   },
-                  "real_path": "go.mod"
+                  "real_path": "go.mod",
+                  "relationship": "transitive",
+                  "scopes": [
+                    "development"
+                  ]
                 }
               ],
               "name": "github.com/bmizerany/assert",
@@ -952,11 +1007,16 @@
               "locations": [
                 {
                   "access_path": "go.mod",
+                  "module_root": ".",
                   "position": {
                     "file": "go.mod",
                     "line": 0
                   },
-                  "real_path": "go.mod"
+                  "real_path": "go.mod",
+                  "relationship": "transitive",
+                  "scopes": [
+                    "development"
+                  ]
                 }
               ],
               "name": "github.com/kr/pretty",
@@ -1092,11 +1152,16 @@
               "locations": [
                 {
                   "access_path": "go.mod",
+                  "module_root": ".",
                   "position": {
                     "file": "go.mod",
                     "line": 0
                   },
-                  "real_path": "go.mod"
+                  "real_path": "go.mod",
+                  "relationship": "direct",
+                  "scopes": [
+                    "runtime"
+                  ]
                 }
               ],
               "name": "github.com/simeji/jid",
@@ -1115,11 +1180,16 @@
               "locations": [
                 {
                   "access_path": "go.mod",
+                  "module_root": ".",
                   "position": {
                     "file": "go.mod",
                     "line": 0
                   },
-                  "real_path": "go.mod"
+                  "real_path": "go.mod",
+                  "relationship": "transitive",
+                  "scopes": [
+                    "development"
+                  ]
                 }
               ],
               "name": "github.com/stretchr/testify",

@@ -25,11 +25,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "autocfg",
@@ -47,11 +52,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "bitflags",
@@ -69,11 +79,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "bytes",
@@ -91,11 +106,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cfg-if",
@@ -115,11 +135,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "chrono",
@@ -137,11 +162,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "fnv",
@@ -159,11 +189,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "foreign-types-shared",
@@ -183,11 +218,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "foreign-types",
@@ -210,11 +250,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "h2",
@@ -236,11 +281,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "http",
@@ -263,11 +313,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "hyper",
@@ -287,11 +342,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "indexmap",
@@ -309,11 +369,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "itoa",
@@ -331,11 +396,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "libc",
@@ -356,11 +426,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "lock_api",
@@ -380,11 +455,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mio",
@@ -404,11 +484,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "openssl-sys",
@@ -432,11 +517,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "openssl",
@@ -458,11 +548,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "parking_lot_core",
@@ -480,11 +575,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pin-project-lite",
@@ -502,11 +602,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "scopeguard",
@@ -524,11 +629,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "serde",
@@ -549,11 +659,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "serde_json",
@@ -571,11 +686,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "tempfile",
@@ -593,11 +713,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "time",
@@ -620,11 +745,17 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "tokio",

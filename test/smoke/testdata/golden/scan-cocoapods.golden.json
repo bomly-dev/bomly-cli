@@ -31,11 +31,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "AFNetworking/NSURLSession",
@@ -53,11 +58,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "AFNetworking/Reachability",
@@ -75,11 +85,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "AFNetworking/Security",
@@ -97,11 +112,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "AFNetworking/Serialization",
@@ -121,11 +141,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "AFNetworking/UIKit",
@@ -149,11 +174,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "AFNetworking",
@@ -171,11 +201,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "Alamofire",
@@ -193,11 +228,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "Expecta",
@@ -215,11 +255,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "HockeyKit",
@@ -237,11 +282,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "KIF",
@@ -259,11 +309,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "OCMock",
@@ -281,11 +336,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "OpenSSL-Static",
@@ -305,11 +365,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ReactiveCocoa",
@@ -329,11 +394,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ReactiveSwift",
@@ -351,11 +421,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "Result",
@@ -373,11 +448,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "Specta",

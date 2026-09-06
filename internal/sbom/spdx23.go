@@ -413,6 +413,12 @@ func parseSPDXComponentType(p *v23.Package) string {
 // this is a comment field on someone else's document, and refusing the whole
 // component because a Bomly-shaped comment was malformed would lose more than
 // it protects. The SDK owns what the carrier means in both directions.
+// One consequence is not what ADR-0037 asks for. The SDK's decode is
+// all-or-nothing, so a carrier naming one known scope beside one unknown token
+// yields nothing rather than the known scope plus a warning, and unlike
+// CycloneDX there is no native scalar here to fall back to -- the component
+// ends up unscoped. Tracked as bomly-dev/bomly-sdk#64; partial decode belongs
+// beside the grammar in the SDK rather than being re-derived here.
 func spdxCommentScopes(comment string) []sdk.Scope {
 	scopes, err := sdk.DecodeScopeSet(parseSPDXCommentField(comment, "scope"))
 	if err != nil {

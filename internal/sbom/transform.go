@@ -168,11 +168,6 @@ func FromGraphEntries(g *sdk.Graph, entries []sdk.GraphEntry, opts BuildOptions)
 		}
 	}
 
-	created := opts.Created.UTC()
-	if created.IsZero() {
-		created = time.Now().UTC()
-	}
-
 	// When the graph has no single root (multiple manifests, multiple
 	// ecosystems) the primary component would otherwise be an arbitrary
 	// manifest node. Synthesize a pseudo root that represents the scanned
@@ -204,7 +199,7 @@ func FromGraphEntries(g *sdk.Graph, entries []sdk.GraphEntry, opts BuildOptions)
 		Tool:         toolName,
 		Tools:        toolNames,
 		ToolVersion:  strings.TrimSpace(opts.ToolVersion),
-		Created:      created,
+		Created:      opts.Created.UTC(),
 		SerialNumber: strings.TrimSpace(opts.SerialNumber),
 		Provenance:   opts.Provenance,
 		Lifecycle:    strings.TrimSpace(opts.Lifecycle),
@@ -219,6 +214,12 @@ func FromGraphEntries(g *sdk.Graph, entries []sdk.GraphEntry, opts BuildOptions)
 	// still empty. An identity the caller pinned always wins over both.
 	applySourceAssertions(doc, sources)
 	mintDocumentIdentity(doc)
+	if doc.Created.IsZero() {
+		// Only once nothing else supplied one: a caller's pinned timestamp
+		// first, then the source document's on a conversion, and this run's
+		// clock last.
+		doc.Created = time.Now().UTC()
+	}
 	if doc.Name == "" {
 		doc.Name = defaultDocumentName
 	}

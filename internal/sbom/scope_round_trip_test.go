@@ -101,12 +101,15 @@ func TestCycloneDXStillWritesItsScalarScope(t *testing.T) {
 // straight through, minting nodes scoped to a value no SDK filter matches
 // (survey defect 1).
 //
-// The "optional" row pins the SDK's shipped mapping, which is optional →
-// runtime. ADR-0037 states optional → development, so the two disagree; the
-// conflict is recorded in that ADR's 2026-09-06 clarification and tracked as
-// bomly-dev/bomly-sdk#63. This asserts what the code does today rather than
-// settling which rule is right -- the safer default, since the SDK's reading
-// keeps an optional component inside --scope runtime instead of hiding it.
+// The "optional" row pins the SDK's shipped mapping, which in the pinned
+// v0.9.3 is optional -> runtime. That disagreement with ADR-0037 has since
+// been resolved against the CycloneDX specification, which defines an
+// optional component as one not installed and so not callable: the ADR's
+// rule stands and the SDK moved to optional -> development
+// (bomly-dev/bomly-sdk#63, and the ADR's 2026-09-06 resolution). The row
+// therefore still asserts what the pinned SDK does, and flips to
+// sdk.ScopeDevelopment in the same change that bumps the pin -- it is not a
+// statement that runtime is the right reading.
 func TestForeignCycloneDXScopesMapIntoTheSDKVocabulary(t *testing.T) {
 	for _, testCase := range []struct {
 		native string

@@ -81,9 +81,9 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 				annotateGraphScopes(depsGraph, workingDir)
 				attachDeclaredPositions(depsGraph, workingDir)
 				attachLoosePythonPositions(depsGraph, workingDir)
-				return sdk.DetectionResult{
+				return detectors.Attributed(sdk.DetectionResult{
 					Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
-				}, nil
+				}), nil
 			}
 		}
 	}
@@ -98,9 +98,9 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 					attachLoosePythonPositions(depsGraph, workingDir)
 					resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, true, append(installCommand, req.InstallArgs...), workingDir)
 					logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
-					return sdk.DetectionResult{
+					return detectors.Attributed(sdk.DetectionResult{
 						Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
-					}, nil
+					}), nil
 				}
 			}
 		} else if err != nil {
@@ -115,9 +115,9 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 		attachLoosePythonPositions(depsGraph, workingDir)
 		resolution := resolutionMetadata(sdk.ResolutionMethodManifestOnly, false, nil, workingDir)
 		logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
-		return sdk.DetectionResult{
+		return detectors.Attributed(sdk.DetectionResult{
 			Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
-		}, nil
+		}), nil
 	}
 
 	return sdk.DetectionResult{}, fmt.Errorf("pipenv detector: unable to resolve dependency graph")

@@ -88,10 +88,10 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 	warnings := node.PackageManagerWarnings(workingDir, sdk.PackageManagerNPM,
 		node.LockfileFormat{File: graphs.lockfileName, Version: strconv.Itoa(graphs.lockfileVersion)})
 	if len(graphs.modules) == 0 {
-		return sdk.DetectionResult{
+		return detectors.Attributed(sdk.DetectionResult{
 			Graphs:   sdk.SingleGraphContainer(graphs.graph, rootManifest),
 			Warnings: warnings,
-		}, nil
+		}, npmDeclarations(graphs)...), nil
 	}
 
 	entries, err := workspaceGraphEntries(graphs, rootManifest)
@@ -100,9 +100,23 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 	}
 	req.DetectorLogger(d.Logger).Info("npm lockfile detector resolved workspace members",
 		zap.Int("members", len(graphs.modules)))
-	return sdk.DetectionResult{
+	return detectors.Attributed(sdk.DetectionResult{
 		Graphs: &sdk.GraphContainer{Entries: entries},
-	}, nil
+	}, npmDeclarations(graphs)...), nil
+}
+
+// npmDeclarations reports what each module root's own package.json declared,
+// so a site can carry the scope its module gave it rather than the union
+// across every member. A workspace member declaring a package under
+// devDependencies and a sibling reaching the same package at runtime is the
+// case the union cannot express.
+func npmDeclarations(graphs npmLockfileGraphs) []detectors.ModuleDeclarations {
+	declarations := make([]detectors.ModuleDeclarations, 0, len(graphs.modules)+1)
+	declarations = append(declarations, detectors.ModuleDeclarations{ModuleRoot: ".", Scopes: graphs.rootDeclared})
+	for _, module := range graphs.modules {
+		declarations = append(declarations, detectors.ModuleDeclarations{ModuleRoot: module.dir, Scopes: module.declared})
+	}
+	return declarations
 }
 
 // workspaceGraphEntries partitions a workspace lockfile graph into the root

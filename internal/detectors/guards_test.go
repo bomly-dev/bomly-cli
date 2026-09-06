@@ -178,3 +178,39 @@ func TestStrictJSONStaysInSBOMIngest(t *testing.T) {
 			"the plugin wire and the rest of internal/ keep v1 decoding: %v", offenders)
 	}
 }
+
+// A detection result that carries graphs but skips Attributed ships locations
+// with nothing to join reachability evidence to: the module root is the join
+// key ADR-0037 defines, and a detector that forgets it leaves every site
+// unattributed for the whole pipeline. Wrapping the returned literal is one
+// line, which is exactly the kind of rule that gets forgotten, so it is
+// enforced here rather than remembered.
+//
+// The two exemptions are recorded, not implied: neither source has a module
+// root to name. See the comments those files carry.
+func TestDetectionResultsCarryingGraphsAreAttributed(t *testing.T) {
+	exempt := map[string]string{
+		"../../internal/detectors/sbom/detector.go":          "an ingested document's packages were resolved elsewhere",
+		"../../internal/detectors/githubactions/detector.go": "a workflow file is not a module",
+	}
+	// A returned result literal that names Graphs. The wrapped form reads
+	// "return detectors.Attributed(sdk.DetectionResult{", so it never matches.
+	returnsGraphs := regexp.MustCompile(`return sdk\.DetectionResult\{[^}]*Graphs`)
+
+	var offenders []string
+	walkInternalGo(t, func(path, body string) {
+		if !strings.Contains(filepath.ToSlash(path), "internal/detectors/") {
+			return
+		}
+		if _, ok := exempt[filepath.ToSlash(path)]; ok {
+			return
+		}
+		if returnsGraphs.MatchString(body) {
+			offenders = append(offenders, path)
+		}
+	})
+	if len(offenders) > 0 {
+		t.Fatalf("these detectors return graphs without recording which module root produced each site; "+
+			"wrap the result in detectors.Attributed: %v", offenders)
+	}
+}

@@ -70,9 +70,9 @@ func (d PipDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest)
 			attachLoosePythonPositions(depsGraph, workingDir)
 			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, false, nil, workingDir)
 			logResolution(base.Logger, "pip detector", workingDir, resolution)
-			return sdk.DetectionResult{
+			return detectors.Attributed(sdk.DetectionResult{
 				Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipEvidencePatterns, resolution)),
-			}, nil
+			}), nil
 		}
 	}
 
@@ -98,9 +98,9 @@ func (d PipDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest)
 	attachLoosePythonPositions(depsGraph, workingDir)
 	resolution := resolutionMetadata(sdk.ResolutionMethodIsolatedInstall, true, installCommand, workingDir)
 	logResolution(base.Logger, "pip detector", workingDir, resolution)
-	return sdk.DetectionResult{
+	return detectors.Attributed(sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipEvidencePatterns, resolution)),
-	}, nil
+	}), nil
 }
 
 // FallbackDetector returns the configured fallback detector.

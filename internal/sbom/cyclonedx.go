@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/spdxkit"
 )
 
@@ -18,6 +19,7 @@ type cycloneDXCodec struct {
 func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error) {
 	bom := cdx.NewBOM()
 	bom.SerialNumber = doc.SerialNumber
+	bom.Version = doc.SerialVersionOrDefault()
 
 	components := make([]cdx.Component, 0, len(doc.Components))
 	for _, comp := range doc.Components {
@@ -49,7 +51,7 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 
 	metadata := &cdx.Metadata{
 		Timestamp: doc.CreatedOrNow().Format(time.RFC3339),
-		Tools:     cycloneDXTools(doc.ToolNamesOrDefault(), doc.ToolOrDefault(), doc.ToolVersion),
+		Tools:     cycloneDXMetadataTools(doc),
 	}
 	if root := chooseRoot(doc); root != nil {
 		// The primary component is built the same way as an inventory entry.
@@ -67,13 +69,9 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 		}
 		metadata.Component = &primary
 	}
-	if doc.Provenance.Manufacturer != "" {
-		metadata.Manufacturer = &cdx.OrganizationalEntity{Name: doc.Provenance.Manufacturer}
-		author := cdx.OrganizationalContact{Name: doc.Provenance.Manufacturer}
-		if email := bareEmail(doc.Provenance.SecurityContact); email != "" {
-			author.Email = email
-		}
-		metadata.Authors = &[]cdx.OrganizationalContact{author}
+	metadata.Manufacturer = cycloneDXDocumentManufacturer(doc)
+	if authors := cycloneDXDocumentAuthors(doc); len(authors) > 0 {
+		metadata.Authors = &authors
 	}
 	if props := cycloneDXMetadataProperties(doc.Provenance); len(props) > 0 {
 		metadata.Properties = &props
@@ -85,6 +83,14 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 
 	if aggregate := cycloneDXAggregate(doc.Aggregate); aggregate != "" {
 		bom.Compositions = &[]cdx.Composition{{Aggregate: aggregate}}
+	}
+
+	// The documents this one was built from, named rather than inherited.
+	// Empty for a native scan and for a conversion that adopted its single
+	// source's identity; populated for a merge, and for a conversion whose
+	// source identity this format cannot hold.
+	if links := cycloneDXSourceLinks(doc); len(links) > 0 {
+		bom.ExternalReferences = &links
 	}
 
 	var out bytes.Buffer
@@ -105,7 +111,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 	componentByID := make(map[string]Component)
 	if bom.Components != nil {
 		for _, comp := range *bom.Components {
-			componentByID[comp.BOMRef] = Component{
+			component := Component{
 				ID:        comp.BOMRef,
 				Name:      comp.Name,
 				Org:       comp.Group,
@@ -116,6 +122,8 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 				Copyright: comp.Copyright,
 				Licenses:  parseCycloneDXLicenses(comp.Licenses),
 			}
+			applyCycloneDXAssertions(&component, comp)
+			componentByID[comp.BOMRef] = component
 		}
 	}
 
@@ -153,7 +161,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 
 	if len(componentByID) == 0 && bom.Metadata != nil && bom.Metadata.Component != nil {
 		root := bom.Metadata.Component
-		componentByID[root.BOMRef] = Component{
+		component := Component{
 			ID:        root.BOMRef,
 			Name:      root.Name,
 			Org:       root.Group,
@@ -164,6 +172,12 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 			Copyright: root.Copyright,
 			Licenses:  parseCycloneDXLicenses(root.Licenses),
 		}
+		// The same assertions the inventory loop applies. A document whose
+		// only component is its primary one is legal, and reading it with
+		// half the fields was a silent hole: supplier, description, hashes,
+		// CPE and references all stopped here.
+		applyCycloneDXAssertions(&component, *root)
+		componentByID[root.BOMRef] = component
 	}
 
 	components := make([]Component, 0, len(componentByID))
@@ -197,6 +211,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 
 	return &Document{
 		Name:         defaultDocumentName,
+		Assertions:   cycloneDXDocumentAssertions(bom),
 		Tool:         cycloneDXPrimaryToolName(bom.Metadata),
 		Tools:        cycloneDXToolNames(bom.Metadata),
 		Created:      created,
@@ -205,30 +220,6 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 		Dependencies: dependencies,
 		Roots:        roots,
 	}, nil
-}
-
-func cycloneDXTools(names []string, primaryTool, toolVersion string) *cdx.ToolsChoice {
-	if len(names) == 0 {
-		return nil
-	}
-	components := make([]cdx.Component, 0, len(names))
-	for _, name := range names {
-		if strings.TrimSpace(name) == "" {
-			continue
-		}
-		component := cdx.Component{
-			Type: cdx.ComponentTypeApplication,
-			Name: name,
-		}
-		if name == primaryTool {
-			component.Version = toolVersion
-		}
-		components = append(components, component)
-	}
-	if len(components) == 0 {
-		return nil
-	}
-	return &cdx.ToolsChoice{Components: &components}
 }
 
 // cycloneDXSecurityReferences maps provenance contact fields onto external
@@ -460,10 +451,30 @@ func cycloneDXComponent(comp Component) cdx.Component {
 	if props := cycloneDXEOLProperties(comp.EOL); len(props) > 0 {
 		component.Properties = &props
 	}
-	if refs := cycloneDXComponentReferences(comp); len(refs) > 0 {
+	// Origin-derived references first, then the ones the source document
+	// asserted. Both are references about the same component and the format
+	// carries one list, so they concatenate; the emitted set is deduplicated
+	// by the SDK's reference identity before it is written.
+	refs := cycloneDXComponentReferences(comp)
+	refs = append(refs, cycloneDXEmittedReferences(cycloneDXComponentAssertedReferences(comp))...)
+	if len(refs) > 0 {
 		component.ExternalReferences = &refs
 	}
+	component.Supplier = cycloneDXEntityFor(comp.Supplier)
+	cycloneDXApplyOriginator(&component, comp.Originator)
+	component.Description = sdk.NormalizeDescription(comp.Description)
 	return component
+}
+
+// cycloneDXComponentAssertedReferences returns the references a source
+// document asserted about a component, plus the website reference its homepage
+// is carried in.
+func cycloneDXComponentAssertedReferences(comp Component) []sdk.ExternalReference {
+	refs := comp.ExternalReferences
+	if homepage, ok := cycloneDXHomepageReference(comp); ok {
+		refs = sdk.MergeExternalReferences(refs, []sdk.ExternalReference{homepage})
+	}
+	return refs
 }
 
 // cycloneDXLicenses renders a component's licenses into CycloneDX.

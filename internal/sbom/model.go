@@ -97,13 +97,41 @@ type Document struct {
 	ToolVersion  string
 	Created      time.Time
 	SerialNumber string
-	Provenance   Provenance
-	Lifecycle    string
-	Aggregate    string
+	// SerialVersion is the CycloneDX document revision that goes with
+	// SerialNumber. A serial names a BOM; the revision names which issue of
+	// it, so adopting a source's serial without its revision produced a
+	// document claiming to be revision 1 of a BOM whose revision 2 it had
+	// actually converted. Zero means unset and encodes as 1.
+	SerialVersion int
+	Provenance    Provenance
+	Lifecycle     string
+	Aggregate     string
 
 	Components   []Component
 	Dependencies []Dependency
 	Roots        []string
+
+	// Assertions are the claims this document makes about itself: its
+	// identity, name, data license, creators, tools, and comment. A decoder
+	// fills them; ingest carries them onto the graph entry the document
+	// became, so a later export can say what the source said (ADR-0037).
+	//
+	// This is what a document says about *itself*, which is why it is not the
+	// same field as Sources below.
+	Assertions sdk.DocumentAssertions
+
+	// Sources are the documents this one was built from, one per ingested
+	// SBOM, in entry order.
+	//
+	// Empty for a native scan: nothing was ingested, so Bomly's own document
+	// asserts everything itself. One source is the conversion case, where the
+	// document restates that source's assertions -- the fixed point issue
+	// #396 requires. Two or more is the merge case, where the document
+	// asserts its own aggregate identity and *links* each source rather than
+	// inheriting one, because both formats give a document exactly one
+	// identity and picking a source's would name a document that is not this
+	// one.
+	Sources []sdk.DocumentAssertions
 }
 
 // IsProjectRootComponent reports whether a component is a synthesized pseudo
@@ -152,6 +180,32 @@ type Component struct {
 	ArtifactURL string
 	VCSURL      string
 	VCSRevision string
+
+	// What the source document asserted about this component, beyond its
+	// identity (ADR-0037, issue #396).
+	//
+	// These carry a foreign document's own claims through the graph so a
+	// conversion does not silently drop them: `bomly scan --sbom --format
+	// spdx` used to lose the supplier, description, checksums, CPEs and
+	// references its input stated, because the only things surviving the
+	// graph hop were coordinates, scope, copyright and licenses.
+	//
+	// They are SDK types rather than local structs on purpose. Each carries
+	// its own publication gate -- Contact.Normalized, ExternalReference
+	// .Normalized -- and every value crossing this boundary re-clears it,
+	// because an ingested document is untrusted input that Bomly re-emits.
+	// A local mirror of these shapes would be a second place for those rules
+	// to be forgotten, which is the defect ADR-0037 replaced.
+	Supplier    *sdk.Contact
+	Originator  *sdk.Contact
+	Description string
+	Homepage    string
+
+	// ExternalReferences are the document's own references, kept with the
+	// category and type it stated so the SPDX triple round-trips without
+	// being re-derived. Merge class: set, unioned by the reference's own
+	// identity.
+	ExternalReferences []sdk.ExternalReference
 
 	// Every place this package was resolved from, primary first.
 	//
@@ -258,6 +312,16 @@ func (d *Document) ToolNamesOrDefault() []string {
 		return append([]string(nil), d.Tools...)
 	}
 	return []string{d.ToolOrDefault()}
+}
+
+// SerialVersionOrDefault returns the CycloneDX document revision, defaulting to
+// the first revision. CycloneDX numbers a document from 1, and a BOM-Link has
+// to name a revision, so there is no "unset" to write.
+func (d *Document) SerialVersionOrDefault() int {
+	if d.SerialVersion > 0 {
+		return d.SerialVersion
+	}
+	return 1
 }
 
 // CreatedOrNow returns the document timestamp in UTC, defaulting to the current time.

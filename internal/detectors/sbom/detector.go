@@ -98,6 +98,13 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 		return sdk.DetectionResult{}, fmt.Errorf("convert sbom %q to graph: %w", sbomPath, err)
 	}
 	graphs := sdk.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns))
+	// What the document said about itself rides the entry it became, so a
+	// later export can restate it instead of crediting only Bomly for a
+	// document Bomly only converted (ADR-0037). The codec decides what that
+	// record contains, including for a document that asserted nothing.
+	if len(graphs.Entries) == 1 {
+		graphs.Entries[0].Document = sbom.DocumentAssertionsFor(doc)
+	}
 
 	logger.Debug("resolved explicit sbom file", zap.String("path", sbomPath), zap.String("format", string(target)))
 	return sdk.DetectionResult{
@@ -125,6 +132,7 @@ func normalizeSBOMManifestMetadata(container *sdk.GraphContainer, req sdk.Detect
 		normalized.Entries = append(normalized.Entries, sdk.GraphEntry{
 			Graph:    entry.Graph,
 			Manifest: manifest,
+			Document: entry.Document,
 		})
 	}
 	return normalized
@@ -143,6 +151,7 @@ func normalizeSBOMGraphContainer(container *sdk.GraphContainer) *sdk.GraphContai
 		normalized.Entries = append(normalized.Entries, sdk.GraphEntry{
 			Graph:    normalizedGraph,
 			Manifest: entry.Manifest,
+			Document: entry.Document,
 		})
 	}
 	return normalized

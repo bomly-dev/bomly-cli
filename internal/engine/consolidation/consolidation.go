@@ -106,6 +106,10 @@ func selectManifestEntries(results []sdk.DetectionResult) (sdk.ExecutionTarget, 
 				entry: sdk.GraphEntry{
 					Graph:    normalizedGraph,
 					Manifest: manifest,
+					// Carried, not dropped: this is the only record of what
+					// the source document said about itself, and export is
+					// downstream of here (ADR-0037).
+					Document: entry.Document,
 				},
 				subproject:     result.SubprojectInfo,
 				detectorName:   result.DetectorName,

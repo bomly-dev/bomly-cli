@@ -44,7 +44,13 @@ func walkInternalGo(t *testing.T, visit func(path, body string)) {
 func TestNodeInsertionGoesThroughTheSharedHelper(t *testing.T) {
 	// A lookup on the graph followed by an insert, which is the shape that
 	// silently discards the duplicate.
-	lookupThenAdd := regexp.MustCompile(`(?s)\.Node\(node\.ID\).{0,200}?\.AddNode\(`)
+	// Any receiver and any identifier, not the one variable name this rule was
+	// first written against. The regex used to spell the lookup as
+	// `.Node(node.ID)`, so internal/sbom's `.Node(packageID)` walked straight
+	// past it and silently discarded a duplicate component's assertions for as
+	// long as the guard has existed. A guard that only catches the shape you
+	// already fixed is not a guard.
+	lookupThenAdd := regexp.MustCompile(`(?s)\.Node\([A-Za-z_][\w.]*\).{0,200}?\.AddNode\(`)
 
 	var offenders []string
 	walkInternalGo(t, func(path, body string) {

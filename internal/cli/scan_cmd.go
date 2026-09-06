@@ -130,6 +130,14 @@ func newScanCmd() *cobra.Command {
 				return output.WriteSARIF(w, findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Analyze, LocationGraphs: []*sdk.Graph{pipeResult.Graph}})
 			}
 
+			// The entries, not just the merged graph: a graph consolidated
+			// from ingested SBOMs no longer records what each source document
+			// said about itself, and the export needs that to restate it
+			// rather than credit only Bomly (ADR-0037).
+			var sbomEntries []sdk.GraphEntry
+			if pipeResult.Consolidated.Graphs != nil {
+				sbomEntries = pipeResult.Consolidated.Graphs.Entries
+			}
 			sbomBuildOpts := scanSBOMBuildOptions(logger, payload.Project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry, selectedScope, len(pipeResult.DetectorWarnings) > 0)
 
 			if len(outputSpecs) > 0 {
@@ -138,7 +146,7 @@ func newScanCmd() *cobra.Command {
 				for _, spec := range outputSpecs {
 					switch {
 					case spec.IsSBOM():
-						rawDocument, err := sbom.MarshalDepGraphJSON(selectedGraph, spec.Target, sbomBuildOpts, sbom.EncodeOptions{Pretty: true})
+						rawDocument, err := sbom.MarshalGraphEntriesJSON(selectedGraph, sbomEntries, spec.Target, sbomBuildOpts, sbom.EncodeOptions{Pretty: true})
 						if err != nil {
 							return fmt.Errorf("marshal %s sbom: %w", spec.Label, err)
 						}
@@ -162,7 +170,7 @@ func newScanCmd() *cobra.Command {
 				if !ok {
 					return exit.InvalidInputError("output format %q is not supported by scan", graphOutputFormat)
 				}
-				rawDocument, err := sbom.MarshalDepGraphJSON(selectedGraph, target, sbomBuildOpts, sbom.EncodeOptions{Pretty: true})
+				rawDocument, err := sbom.MarshalGraphEntriesJSON(selectedGraph, sbomEntries, target, sbomBuildOpts, sbom.EncodeOptions{Pretty: true})
 				if err != nil {
 					return fmt.Errorf("marshal %s sbom: %w", graphOutputFormat, err)
 				}

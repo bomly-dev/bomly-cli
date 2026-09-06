@@ -62,3 +62,4 @@ status to `Superseded by [ADR-NNNN](NNNN-slug.md)`; do not rewrite history
 | ADR-0039 | 2026-08-26 | [Both modules build on Go 1.27; untrusted JSON parses strictly](0039-both-modules-build-on-go-1-27.md) | Accepted |
 | ADR-0040 | 2026-08-26 | [The SDK is the default home for behavior](0040-the-sdk-is-the-default-home-for-behavior.md) | Accepted |
 | ADR-0041 | 2026-08-29 | [Identity is the canonical PURL on typed graph nodes](0041-identity-is-the-canonical-purl-on-typed-nodes.md) | Accepted |
+| ADR-0042 | 2026-09-05 | [A conversion restates its source; a merge links its sources](0042-a-conversion-restates-its-source-a-merge-links-its-sources.md) | Accepted |

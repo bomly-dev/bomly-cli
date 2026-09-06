@@ -60,6 +60,13 @@ responses as untrusted input.
   plugin metadata have fixed size limits.
 - Configuration, baselines, SBOM input, and deps.dev responses have fixed
   limits. Oversized input fails with an error instead of being partially used.
+- What an ingested SBOM asserted — component supplier, description, homepage,
+  checksums, CPEs, references, and the document's own identity, creators and
+  tools — is re-published under Bomly's name, so every one of those values is
+  re-checked on the way out as well as on the way in. A value carrying a
+  credential, a local path, a control character, or a malformed identifier is
+  dropped rather than written into the output document, and an email address
+  is never retained on a contact.
 - Manifests, lockfiles, workspace files, and source files parsed in process
   have a 64 MiB per-file limit. Local JSON cache entries have the same limit;
   an oversized or corrupt cache entry becomes a cache miss.

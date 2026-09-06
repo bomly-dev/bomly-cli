@@ -265,6 +265,16 @@ means, so writing it states the reading Bomly applied rather than leaving the
 next consumer to re-derive it. Golden SBOM fixtures gain that line when the
 SDK pin moves.
 
+### What absence means after ingest
+
+Resolving the ingest side raised the matching question on the filter side:
+what a *filter* should do with a dependency that asserted no scope at all,
+which is what SPDX ingest always produces because SPDX has no scope concept.
+That is Bomly policy rather than any specification's, so it is recorded
+separately as [ADR-0043](0043-a-scope-filter-selects-on-assertions.md): a
+filter selects on assertions, absence is not one, and a runtime view keeps
+everything not affirmatively development.
+
 ### The general rule
 
 Recorded in `AGENTS.md` under Non-Negotiable: a format's specification

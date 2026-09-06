@@ -100,9 +100,10 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	graphs := sdk.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns))
 	// What the document said about itself rides the entry it became, so a
 	// later export can restate it instead of crediting only Bomly for a
-	// document Bomly only converted (ADR-0037).
-	if assertions := doc.Assertions; !assertions.IsEmpty() && len(graphs.Entries) == 1 {
-		graphs.Entries[0].Document = &assertions
+	// document Bomly only converted (ADR-0037). The codec decides what that
+	// record contains, including for a document that asserted nothing.
+	if len(graphs.Entries) == 1 {
+		graphs.Entries[0].Document = sbom.DocumentAssertionsFor(doc)
 	}
 
 	logger.Debug("resolved explicit sbom file", zap.String("path", sbomPath), zap.String("format", string(target)))

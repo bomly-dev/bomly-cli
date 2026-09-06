@@ -113,16 +113,19 @@ func GraphFromPaths(source *sdk.Graph, paths []Path) (*sdk.Graph, error) {
 	if source == nil {
 		return focused, nil
 	}
+	// Nodes repeat across paths -- a shared dependency is on every path that
+	// reaches it -- so insertion folds rather than skipping. Every witness here
+	// is a clone of one source node, so the fold is a no-op in practice; it is
+	// the shared entry point regardless, because "skipping is fine here" is a
+	// judgement each site otherwise re-makes on its own.
 	for _, path := range paths {
 		for i, ref := range path.Packages {
 			pkg, ok := source.Node(ref.ID)
 			if !ok || pkg == nil {
 				continue
 			}
-			if _, exists := focused.Node(pkg.NodeID()); !exists {
-				if err := focused.AddNode(pkg.CloneNode()); err != nil {
-					return nil, err
-				}
+			if _, err := focused.InsertNode(pkg.CloneNode()); err != nil {
+				return nil, err
 			}
 			if i == 0 {
 				continue
@@ -132,10 +135,8 @@ func GraphFromPaths(source *sdk.Graph, paths []Path) (*sdk.Graph, error) {
 			if !ok || parent == nil {
 				continue
 			}
-			if _, exists := focused.Node(parent.NodeID()); !exists {
-				if err := focused.AddNode(parent.CloneNode()); err != nil {
-					return nil, err
-				}
+			if _, err := focused.InsertNode(parent.CloneNode()); err != nil {
+				return nil, err
 			}
 			if err := focused.AddEdge(parent.NodeID(), pkg.NodeID()); err != nil && !errors.Is(err, sdk.ErrCycleDetected) {
 				return nil, err

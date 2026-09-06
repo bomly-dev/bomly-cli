@@ -76,11 +76,7 @@ func ingestDocument(t *testing.T, raw string) (*sdk.Graph, sdk.GraphEntry) {
 	if err != nil {
 		t.Fatalf("to graph: %v", err)
 	}
-	entry := sdk.GraphEntry{Graph: g}
-	if assertions := doc.Assertions; !assertions.IsEmpty() {
-		entry.Document = &assertions
-	}
-	return g, entry
+	return g, sdk.GraphEntry{Graph: g, Document: DocumentAssertionsFor(doc)}
 }
 
 // An ingested document's own claims survive the graph hop, which is where
@@ -134,15 +130,15 @@ func TestDocumentClaimsSurviveTheGraphHop(t *testing.T) {
 // The fixed point issue #396 asks for: a single-source export, re-ingested
 // and re-exported, is byte-identical.
 //
-// The freshly minted values a second run would differ on -- the timestamp and
-// the serial -- are pinned through BuildOptions, so what this actually
-// compares is the preserved claims. Identity is deliberately not pinned: a
-// conversion adopts its source's, so a drifting identity would show up here.
+// Nothing is pinned. Neither the identity nor the timestamp is supplied by the
+// caller, because a conversion takes both from its source -- so a value that
+// drifted, or was silently replaced by this run's clock, shows up here as a
+// byte difference. Pinning them would have made this test pass over exactly
+// the defects it exists to catch.
 func TestSingleSourceExportIsAFixedPoint(t *testing.T) {
 	for _, target := range []Target{TargetSPDX23JSON, TargetCycloneDX16JSON} {
 		t.Run(string(target), func(t *testing.T) {
 			opts := BuildOptions{ToolVersion: "0.0.0-test"}
-			opts.Created = fixedExportTime()
 
 			_, entry := ingestDocument(t, supplierRichCycloneDX)
 			first, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, target, opts, EncodeOptions{Pretty: true})
@@ -180,8 +176,9 @@ func TestSingleSourceExportAdoptsTheSourceIdentity(t *testing.T) {
 	if len(doc.Sources) != 1 {
 		t.Fatalf("sources = %+v, want the one ingested document", doc.Sources)
 	}
-	// Not linked: the link would point at this document itself.
-	if links := documentSourceLinks(doc); len(links) != 0 {
+	// Not linked in the format that adopted it: the link would point at this
+	// document itself.
+	if links := documentSourceLinks(doc, documentIdentity{Namespace: doc.Namespace}); len(links) != 0 {
 		t.Errorf("a source whose identity was adopted was also linked: %+v", links)
 	}
 }
@@ -249,7 +246,7 @@ func TestMergedExportLinksItsSourcesInsteadOfAdoptingOne(t *testing.T) {
 		t.Errorf("merged credit lost: creators=%+v tools=%+v", doc.Assertions.Creators, doc.Assertions.Tools)
 	}
 
-	links := documentSourceLinks(doc)
+	links := documentSourceLinks(doc, documentIdentity{Serial: doc.SerialNumber})
 	if len(links) != 2 {
 		t.Fatalf("links = %+v, want one per source", links)
 	}
@@ -357,5 +354,162 @@ func TestBomlyCreditIsNotDuplicatedAcrossHops(t *testing.T) {
 		if count > 1 {
 			t.Errorf("creator %q appears %d times: %+v", line, count, creators)
 		}
+	}
+}
+
+// Converting SPDX to CycloneDX names the source. The namespace is adopted into
+// the model, but CycloneDX has no namespace slot and writes a freshly minted
+// serial instead -- so the source has to be linked, or the exported document
+// says nothing at all about where it came from.
+func TestCycloneDXConversionLinksAnSPDXSourceItCannotAdopt(t *testing.T) {
+	_, entry := ingestDocument(t, documentRichSPDX)
+	raw, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{Pretty: true})
+	if err != nil {
+		t.Fatalf("export: %v", err)
+	}
+	var bom cdx.BOM
+	if err := json.Unmarshal(raw, &bom); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if bom.ExternalReferences == nil {
+		t.Fatalf("the conversion names its source neither by identity nor by link:\n%s", raw)
+	}
+	var linked bool
+	for _, ref := range *bom.ExternalReferences {
+		linked = linked || (ref.Type == cdx.ERTypeBOM && ref.URL == "https://acme.example/spdx/acme-platform-7f3c")
+	}
+	if !linked {
+		t.Errorf("the SPDX source is not linked: %+v", *bom.ExternalReferences)
+	}
+}
+
+// A CycloneDX source Bomly *can* adopt is not also linked -- the link would
+// point at this document itself.
+func TestCycloneDXConversionDoesNotLinkTheIdentityItAdopted(t *testing.T) {
+	_, entry := ingestDocument(t, serialCycloneDX)
+	raw, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{Pretty: true})
+	if err != nil {
+		t.Fatalf("export: %v", err)
+	}
+	var bom cdx.BOM
+	if err := json.Unmarshal(raw, &bom); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if bom.SerialNumber != "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79" {
+		t.Fatalf("serial = %q, want the source's", bom.SerialNumber)
+	}
+	if bom.ExternalReferences != nil {
+		for _, ref := range *bom.ExternalReferences {
+			if ref.Type == cdx.ERTypeBOM {
+				t.Errorf("the document links itself: %+v", ref)
+			}
+		}
+	}
+}
+
+// A document that asserted nothing about itself still counts as a source, so
+// merging it with an identified document is a merge and not a conversion.
+//
+// CycloneDX permits a document with neither a serial number nor metadata, and
+// treating it as absent made the export adopt the other source's identity --
+// publishing a merged inventory under the name of one of its inputs.
+func TestAnAnonymousSourceStillCountsAsASource(t *testing.T) {
+	const anonymous = `{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "components": [
+    {"bom-ref": "pkg:npm/quiet@1.0.0", "type": "library", "name": "quiet",
+     "version": "1.0.0", "purl": "pkg:npm/quiet@1.0.0"}
+  ]
+}`
+	_, anonEntry := ingestDocument(t, anonymous)
+	if anonEntry.Document == nil {
+		t.Fatal("an ingested document with no claims left no record that it was read")
+	}
+	_, spdxEntry := ingestDocument(t, documentRichSPDX)
+	entries := []sdk.GraphEntry{anonEntry, spdxEntry}
+
+	merged := sdk.New()
+	for _, entry := range entries {
+		if err := sdk.MergeGraph(merged, entry.Graph); err != nil {
+			t.Fatalf("merge: %v", err)
+		}
+	}
+	doc, err := FromGraphEntries(merged, entries, BuildOptions{})
+	if err != nil {
+		t.Fatalf("export: %v", err)
+	}
+	if doc.Namespace == "https://acme.example/spdx/acme-platform-7f3c" {
+		t.Error("a merge of two documents adopted one source's identity")
+	}
+	if len(doc.Sources) != 2 {
+		t.Errorf("sources = %d, want both documents counted", len(doc.Sources))
+	}
+}
+
+// A conversion states the source's creation time, not this run's clock. The
+// document claims the source's identity; claiming its identity and a different
+// creation time is two statements that disagree.
+func TestConversionKeepsTheSourceCreationTime(t *testing.T) {
+	_, entry := ingestDocument(t, documentRichSPDX)
+	doc, err := FromGraphEntries(entry.Graph, []sdk.GraphEntry{entry}, BuildOptions{})
+	if err != nil {
+		t.Fatalf("export: %v", err)
+	}
+	if got := doc.Created.UTC().Format(time.RFC3339); got != "2026-01-02T03:04:05Z" {
+		t.Errorf("created = %q, want the source's", got)
+	}
+}
+
+// An organization a source credited survives a CycloneDX round trip. The
+// format has one slot for it, and the export used to fill that slot only from
+// configured provenance.
+func TestCycloneDXCreditsAnIngestedOrganization(t *testing.T) {
+	_, entry := ingestDocument(t, documentRichSPDX)
+	raw, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{Pretty: true})
+	if err != nil {
+		t.Fatalf("export: %v", err)
+	}
+	var bom cdx.BOM
+	if err := json.Unmarshal(raw, &bom); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if bom.Metadata == nil || bom.Metadata.Manufacturer == nil || bom.Metadata.Manufacturer.Name != "Acme Corp" {
+		t.Errorf("manufacturer = %+v, want the source's organization", bom.Metadata.Manufacturer)
+	}
+}
+
+// Configured provenance still wins over an ingested organization: that is the
+// operator saying who produced this run.
+func TestConfiguredProvenanceOutranksAnIngestedOrganization(t *testing.T) {
+	_, entry := ingestDocument(t, documentRichSPDX)
+	doc, err := FromGraphEntries(entry.Graph, []sdk.GraphEntry{entry}, BuildOptions{
+		Provenance: Provenance{Manufacturer: "Operator Ltd"},
+	})
+	if err != nil {
+		t.Fatalf("export: %v", err)
+	}
+	if got := cycloneDXDocumentManufacturer(doc); got == nil || got.Name != "Operator Ltd" {
+		t.Errorf("manufacturer = %+v, want the configured one", got)
+	}
+}
+
+// The record exists for a document that asserted nothing, which is what makes
+// a merge involving such a document read as a merge.
+func TestDocumentAssertionsForAlwaysRecordsThatADocumentWasRead(t *testing.T) {
+	doc, _, err := UnmarshalAutoJSON([]byte(`{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"components":[]}`))
+	if err != nil {
+		t.Fatalf("ingest: %v", err)
+	}
+	got := DocumentAssertionsFor(doc)
+	if got == nil {
+		t.Fatal("a document that asserted nothing left no record that it was read")
+	}
+	if !got.IsEmpty() {
+		t.Errorf("assertions = %+v, want the empty record", *got)
+	}
+	if DocumentAssertionsFor(nil) != nil {
+		t.Error("no document must mean no record")
 	}
 }

@@ -234,10 +234,14 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 		packageID := pkg.NodeID()
 		sdk.SetDetectionLicenses(pkg, graphLicenses(component.Licenses))
 
-		if _, exists := depsGraph.Node(packageID); !exists {
-			if err := depsGraph.AddNode(pkg); err != nil {
-				return nil, fmt.Errorf("add package %q: %w", component.ID, err)
-			}
+		// Through the SDK's fold, not a lookup followed by an insert. Two
+		// components can mint one canonical package URL -- the same package
+		// listed twice, or listed once per manifest -- and skipping the second
+		// discarded everything it asserted: its supplier, its references, its
+		// digests. InsertNode applies the declared merge classes instead,
+		// scalars filling gaps and sets unioning (ADR-0041).
+		if _, err := depsGraph.InsertNode(pkg); err != nil {
+			return nil, fmt.Errorf("add package %q: %w", component.ID, err)
 		}
 		idMap[component.ID] = packageID
 	}

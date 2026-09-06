@@ -168,12 +168,49 @@ func applyCycloneDXAssertions(component *Component, comp cdx.Component) {
 	component.Originator = cycloneDXOriginator(comp)
 	component.Description = sdk.NormalizeDescription(comp.Description)
 	component.ExternalReferences = cycloneDXIngestedReferences(comp.ExternalReferences)
+	component.Homepage = cycloneDXIngestedHomepage(component.ExternalReferences)
 	if digests := cycloneDXComponentDigests(comp.Hashes); len(digests) > 0 {
 		component.Digests = digests
 	}
 	if cpe := strings.TrimSpace(comp.CPE); cpe != "" {
 		component.CPEs = append(component.CPEs, cpe)
 	}
+}
+
+// cycloneDXIngestedHomepage recovers a component's homepage from its website
+// reference.
+//
+// CycloneDX has no homepage field; SPDX does. A reference of type "website" is
+// what CycloneDX offers for the same claim, so that is where a homepage goes
+// on the way out and where it is read on the way in -- otherwise converting
+// SPDX to CycloneDX and back dropped PackageHomePage, since the value survived
+// as a reference nobody read as a homepage.
+func cycloneDXIngestedHomepage(refs []sdk.ExternalReference) string {
+	for _, ref := range refs {
+		if !strings.EqualFold(ref.Type, string(cdx.ERTypeWebsite)) {
+			continue
+		}
+		if homepage := sdk.NormalizeHomepage(ref.Locator); homepage != "" {
+			return homepage
+		}
+	}
+	return ""
+}
+
+// cycloneDXHomepageReference renders a component's homepage as the website
+// reference CycloneDX carries it in, or nothing when the component already
+// states the same website itself.
+func cycloneDXHomepageReference(comp Component) (sdk.ExternalReference, bool) {
+	homepage := sdk.NormalizeHomepage(comp.Homepage)
+	if homepage == "" {
+		return sdk.ExternalReference{}, false
+	}
+	for _, ref := range comp.ExternalReferences {
+		if strings.EqualFold(ref.Type, string(cdx.ERTypeWebsite)) && ref.Locator == homepage {
+			return sdk.ExternalReference{}, false
+		}
+	}
+	return sdk.ExternalReference{Type: string(cdx.ERTypeWebsite), Locator: homepage}.Normalized()
 }
 
 // cycloneDXEntityFor renders a contact as a CycloneDX organizational entity.
@@ -329,8 +366,34 @@ func appendContact(contacts []sdk.Contact, contact sdk.Contact) []sdk.Contact {
 	return append(contacts, normalized)
 }
 
-// cycloneDXDocumentCreators renders the document's credited parties: the
-// organizations become the manufacturer, the people become authors.
+// cycloneDXDocumentManufacturer names the organization credited with the
+// document.
+//
+// Configured provenance wins, because that is the operator stating who
+// produced this run. Failing that, the first organization a source document
+// credited: CycloneDX has one slot for an organization and no other place to
+// put one, so an ingested manufacturer used to vanish even on a CycloneDX to
+// CycloneDX round trip -- the export read only provenance, and every non-person
+// creator was skipped.
+func cycloneDXDocumentManufacturer(doc *Document) *cdx.OrganizationalEntity {
+	if doc.Provenance.Manufacturer != "" {
+		return &cdx.OrganizationalEntity{Name: doc.Provenance.Manufacturer}
+	}
+	for _, creator := range doc.Assertions.Creators {
+		if creator.Kind != sdk.ContactKindOrganization {
+			continue
+		}
+		entity := &cdx.OrganizationalEntity{Name: creator.Name}
+		if creator.URL != "" {
+			urls := []string{creator.URL}
+			entity.URL = &urls
+		}
+		return entity
+	}
+	return nil
+}
+
+// cycloneDXDocumentAuthors renders the people credited with the document.
 func cycloneDXDocumentAuthors(doc *Document) []cdx.OrganizationalContact {
 	var authors []cdx.OrganizationalContact
 	if doc.Provenance.Manufacturer != "" {
@@ -384,7 +447,10 @@ func cycloneDXSourceTools(doc *Document, tools *cdx.ToolsChoice) *cdx.ToolsChoic
 // cycloneDXSourceLinks renders the links naming the documents this one was
 // built from, as external references of type "bom" on the document itself.
 func cycloneDXSourceLinks(doc *Document) []cdx.ExternalReference {
-	links := documentSourceLinks(doc)
+	// CycloneDX writes a serial and no namespace, so that is the only identity
+	// a reader of this document can see, and the only one a source link could
+	// be redundant with.
+	links := documentSourceLinks(doc, documentIdentity{Serial: doc.SerialNumber})
 	if len(links) == 0 {
 		return nil
 	}

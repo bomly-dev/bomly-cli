@@ -68,9 +68,7 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 		}
 		metadata.Component = &primary
 	}
-	if doc.Provenance.Manufacturer != "" {
-		metadata.Manufacturer = &cdx.OrganizationalEntity{Name: doc.Provenance.Manufacturer}
-	}
+	metadata.Manufacturer = cycloneDXDocumentManufacturer(doc)
 	if authors := cycloneDXDocumentAuthors(doc); len(authors) > 0 {
 		metadata.Authors = &authors
 	}
@@ -163,7 +161,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 
 	if len(componentByID) == 0 && bom.Metadata != nil && bom.Metadata.Component != nil {
 		root := bom.Metadata.Component
-		componentByID[root.BOMRef] = Component{
+		component := Component{
 			ID:        root.BOMRef,
 			Name:      root.Name,
 			Org:       root.Group,
@@ -174,6 +172,12 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 			Copyright: root.Copyright,
 			Licenses:  parseCycloneDXLicenses(root.Licenses),
 		}
+		// The same assertions the inventory loop applies. A document whose
+		// only component is its primary one is legal, and reading it with
+		// half the fields was a silent hole: supplier, description, hashes,
+		// CPE and references all stopped here.
+		applyCycloneDXAssertions(&component, *root)
+		componentByID[root.BOMRef] = component
 	}
 
 	components := make([]Component, 0, len(componentByID))
@@ -476,7 +480,7 @@ func cycloneDXComponent(comp Component) cdx.Component {
 	// carries one list, so they concatenate; the emitted set is deduplicated
 	// by the SDK's reference identity before it is written.
 	refs := cycloneDXComponentReferences(comp)
-	refs = append(refs, cycloneDXEmittedReferences(comp.ExternalReferences)...)
+	refs = append(refs, cycloneDXEmittedReferences(cycloneDXComponentAssertedReferences(comp))...)
 	if len(refs) > 0 {
 		component.ExternalReferences = &refs
 	}
@@ -486,6 +490,17 @@ func cycloneDXComponent(comp Component) cdx.Component {
 	}
 	component.Description = sdk.NormalizeDescription(comp.Description)
 	return component
+}
+
+// cycloneDXComponentAssertedReferences returns the references a source
+// document asserted about a component, plus the website reference its homepage
+// is carried in.
+func cycloneDXComponentAssertedReferences(comp Component) []sdk.ExternalReference {
+	refs := comp.ExternalReferences
+	if homepage, ok := cycloneDXHomepageReference(comp); ok {
+		refs = sdk.MergeExternalReferences(refs, []sdk.ExternalReference{homepage})
+	}
+	return refs
 }
 
 // cycloneDXLicenses renders a component's licenses into CycloneDX.

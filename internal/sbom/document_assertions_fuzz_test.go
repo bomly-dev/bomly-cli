@@ -80,7 +80,7 @@ func FuzzDocumentAssertions(f *testing.F) {
 				t.Fatalf("stored tool %+v does not clear its own gate", stored)
 			}
 		}
-		for _, link := range documentSourceLinks(doc) {
+		for _, link := range documentSourceLinks(doc, documentIdentity{Serial: doc.SerialNumber}) {
 			if _, ok := link.Normalized(); !ok {
 				t.Fatalf("source link %+v does not clear its own gate", link)
 			}

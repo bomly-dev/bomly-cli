@@ -77,7 +77,12 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PrimaryPackagePurpose:     spdxPrimaryPackagePurpose(c.Type),
 		}
 		if _, isRoot := rootComponents[c.ID]; isRoot || IsProjectRootComponent(c) {
-			if doc.Provenance.Manufacturer != "" {
+			// Only when the component has no supplier of its own. Configured
+			// provenance names who produced the project; a supplier the
+			// source document asserted names who supplied that component, and
+			// overwriting the second with the first loses a claim someone
+			// actually made in favor of a default.
+			if doc.Provenance.Manufacturer != "" && pkg.PackageSupplier == nil {
 				pkg.PackageSupplier = &common.Supplier{SupplierType: spdxOrganizationCreatorType, Supplier: doc.Provenance.Manufacturer}
 			}
 		}

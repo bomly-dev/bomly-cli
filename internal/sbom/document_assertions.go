@@ -1,6 +1,8 @@
 package sbom
 
 import (
+	"time"
+
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/bomly-dev/bomly-sdk"
 )
@@ -23,10 +25,33 @@ import (
 // class for them: two documents having produced this one is the normal case
 // and both deserve credit.
 
+// DocumentAssertionsFor returns the record of what a source document asserted
+// about itself, for attaching to the graph entry that document became.
+//
+// It is never nil for a document that was read, even one that asserted
+// nothing. The presence of the record is itself a fact -- that this entry came
+// from an SBOM -- and a merged export needs it: CycloneDX permits a document
+// with neither a serial number nor metadata, and treating that as "no source"
+// made a merge of two documents look like a conversion of one, publishing the
+// merged inventory under the other document's identity.
+//
+// Exported so the detector and this package agree by construction rather than
+// by both remembering the same rule.
+func DocumentAssertionsFor(doc *Document) *sdk.DocumentAssertions {
+	if doc == nil {
+		return nil
+	}
+	assertions := doc.Assertions
+	return &assertions
+}
+
 // applySourceAssertions folds the source documents' own claims into the
 // document being built, and records the sources for link emission.
 func applySourceAssertions(doc *Document, sources []sdk.DocumentAssertions) {
 	if doc == nil {
+		return
+	}
+	if len(sources) == 0 {
 		return
 	}
 	cleaned := make([]sdk.DocumentAssertions, 0, len(sources))
@@ -35,14 +60,16 @@ func applySourceAssertions(doc *Document, sources []sdk.DocumentAssertions) {
 		// from an untrusted document, crossed the plugin boundary as part of
 		// a detection result, and are about to be written into an SBOM. That
 		// is exactly the re-clearing rule ADR-0037 states.
-		normalized, ok := source.Normalized()
-		if !ok {
-			continue
-		}
+		//
+		// A source that normalizes to nothing is kept as a placeholder rather
+		// than dropped. Whether this export is a conversion or a merge is a
+		// question about how many documents were read, not about how many of
+		// them had something publishable to say: CycloneDX permits a document
+		// with neither a serial number nor metadata, and dropping it here made
+		// a two-document merge look like a one-document conversion and adopt
+		// the other source's identity.
+		normalized, _ := source.Normalized()
 		cleaned = append(cleaned, normalized)
-	}
-	if len(cleaned) == 0 {
-		return
 	}
 	doc.Sources = cleaned
 
@@ -63,6 +90,20 @@ func applySourceAssertions(doc *Document, sources []sdk.DocumentAssertions) {
 	doc.Assertions.Comment = only.Comment
 	if doc.Name == "" {
 		doc.Name = only.Name
+	}
+	// The source's own timestamp, not this run's clock. A conversion adopts
+	// the source's identity, and a document claiming to be that document while
+	// stating a different creation time is two claims that disagree. It is
+	// also what makes the fixed point hold without a caller pinning the
+	// timestamp: re-exporting twice used to differ by wall clock alone.
+	//
+	// Parsed rather than copied because the model holds a time; the SDK keeps
+	// the source spelling verbatim, and the first hop settles on the encoders'
+	// rendering of it.
+	if doc.Created.IsZero() {
+		if created, err := time.Parse(time.RFC3339, only.Created); err == nil {
+			doc.Created = created.UTC()
+		}
 	}
 	// The data license is deliberately not inherited: SPDX 2.3 fixes it at
 	// CC0-1.0 for the document itself, so re-asserting a source's value would
@@ -98,25 +139,63 @@ func inheritDocumentIdentity(doc *Document, identity string) {
 	doc.SerialNumber = link.SerialNumber()
 }
 
+// documentIdentity is the identity a format actually writes into the document
+// it is producing.
+//
+// Which slot is filled depends on the format: SPDX writes a namespace URI,
+// CycloneDX a serial number, and neither writes the other. That distinction is
+// the whole reason this type exists -- a source is only redundant with an
+// identity the reader will actually see.
+type documentIdentity struct {
+	Namespace string
+	Serial    string
+}
+
+// names reports whether an identity refers to this same document.
+//
+// One document has two spellings across the formats: an SPDX namespace, and a
+// BOM-Link over a CycloneDX serial. Parsed by the library that owns the link
+// grammar, and compared on the serial rather than the rendered link, because a
+// source that numbered itself version 2 spells the same document differently
+// than the version this export would write.
+func (d documentIdentity) names(identity string) bool {
+	if identity == "" {
+		return false
+	}
+	if d.Namespace != "" && identity == d.Namespace {
+		return true
+	}
+	if d.Serial != "" {
+		if link, err := cdx.ParseBOMLink(identity); err == nil && link.SerialNumber() == d.Serial {
+			return true
+		}
+	}
+	return false
+}
+
 // documentSourceLinks returns the references that name each source document
 // this one was built from, for the sources whose identity this document did
-// not adopt as its own.
+// not adopt as the identity it is about to write.
 //
-// A source whose identity became this document's identity is not linked: the
-// document would be pointing at itself.
+// The comparison is against what the format emits, not against the model's
+// namespace field. Converting an SPDX source to CycloneDX adopts the source
+// namespace into the model and then writes a freshly minted serial, because
+// CycloneDX has no namespace slot -- so comparing against the namespace
+// suppressed the link for a document that had not in fact adopted anything,
+// and the export named its source neither way.
 //
 // Only CycloneDX renders these today. SPDX links documents through
 // externalDocumentRefs, whose every entry requires a checksum over the source
 // document's bytes -- and DocumentAssertions has nowhere to carry one, so a
 // merged SPDX export names no sources. Tracked as bomly-dev/bomly-sdk#55;
 // when that field ships, an SPDX projection belongs here beside this one.
-func documentSourceLinks(doc *Document) []sdk.ExternalReference {
+func documentSourceLinks(doc *Document, emitted documentIdentity) []sdk.ExternalReference {
 	if doc == nil || len(doc.Sources) == 0 {
 		return nil
 	}
 	links := make([]sdk.ExternalReference, 0, len(doc.Sources))
 	for _, source := range doc.Sources {
-		if source.Identity == "" || source.Identity == doc.Namespace {
+		if emitted.names(source.Identity) || source.Identity == "" {
 			continue
 		}
 		// Category stays unknown: this is CycloneDX's axis, and SPDX's

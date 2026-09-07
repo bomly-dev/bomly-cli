@@ -195,30 +195,94 @@ genuinely component-private data, with the `bomly.` prefix documented as
 reserved. No new user-visible feature may ship its data as a metadata key;
 the migration path for a metadata key is a typed field.
 
-## Clarification (2026-09-06): the `optional` scalar mapping, resolved
+## Resolution (2026-09-06): the `optional` scalar maps to development
 
-This ADR says a bare CycloneDX scalar maps `optional` → development. The
-SDK shipped `optional` → runtime, arguing that an optional component
-provides additional functionality at runtime rather than being
-development-only. The two were recorded here as an open conflict, because
-they fail in opposite directions and the choice is security-relevant: under
-the ADR's rule an optional component is dropped by `--scope runtime`, which
-hides a shipped dependency from triage.
+The rule above says a bare CycloneDX scalar maps `optional` → development.
+The SDK shipped the opposite — `optional` → runtime — arguing in
+`scope_cyclonedx.go` that an optional component provides additional
+functionality at runtime and so is not a development-only dependency.
+Neither document referenced the other, and a test added in PR #431 pinned
+the shipped behavior, which would have ratified the deviation in passing.
 
-Resolved in this ADR's favour by bomly-dev/bomly-sdk#63, released in SDK
-v0.9.6. `optional` and `excluded` both read as development, as stated
-above.
+**The CycloneDX specification settles it, and outranks both documents.**
+Bomly does not get to decide what a word means in a format it does not own.
+The 1.6 and 1.7 schemas define the vocabulary normatively in their
+`meta:enum` descriptions (`schema/bom-1.6.schema.json`, vendored inside the
+pinned `cyclonedx-go`): `required` is the component required for runtime;
+`excluded` documents test and other non-runtime usage; and an `optional`
+component is one "not capable of being called due to them not being
+installed or otherwise accessible by any means", with the spec adding that a
+component which *is* installed but is merely prohibited from being called
+"must be scoped as 'required'".
 
-The objection that made it a real question was answered rather than
-overruled. What actually risked hiding a shipped dependency was not
-`optional` but the *unasserted* case — a component whose scope nobody
-stated. That now reads as runtime explicitly, so the component nobody
-classified is no longer the one that disappears from the shipped set. The
-same change stopped scope filters dropping unasserted dependencies.
+So `optional` asserts that a component is absent from what runs — the
+opposite of the SDK's reading, which was the pre-1.6 gloss of the word
+rather than anything the format says. Only `required` describes a component
+present at runtime; `optional` and `excluded` both describe one that is not,
+which is Bomly's development scope for filtering purposes. **This ADR's
+clause stands as written, and the SDK changed to match**
+(bomly-dev/bomly-sdk#63).
 
-The scope carrier (`bomly:scopes`) means the scalar only decides for
-documents Bomly did not write; its own documents round-trip the full scope
-set without consulting it.
+The earlier note recorded a false-negative worry, and it is answered rather
+than dismissed: a producer that spells an installed conditional dependency
+`optional` — npm `optionalDependencies` are the common case — now has that
+component dropped by `--scope runtime`. That producer is contradicting the
+specification, which tells it to spell such a component `required`. Reading
+the vocabulary loosely to accommodate it would mean misreading every
+conforming document instead, so the remedy is a producer-side bug report,
+not a Bomly-side redefinition. If the risk later warrants action here, it
+takes the shape of a warning or a documented Bomly-owned policy knob that
+says plainly that it departs from the specification — not a quiet remapping.
+
+The scope carrier (`bomly:scopes`) bounds the blast radius: the scalar
+mapping is consulted only for documents Bomly did not write, since its own
+documents round-trip the full scope set. Source scalars are still preserved
+and re-emitted verbatim per the rule above — a component ingested as
+`optional` now carries {development} and still exports as `optional`.
+
+### A second deviation, found by the same reading
+
+Reading the specification properly also settled something this ADR never
+addressed and nobody had argued about: `scope` is an optional attribute, and
+CycloneDX says what an absent one means — scope "SHOULD be assumed" to be
+`required` when it is not specified, restated in the schema as a `required`
+default. The SDK read an absent scalar as no scope at all, so an unscoped
+component reached the graph unscoped and was dropped by `--scope runtime`.
+Most documents Bomly did not write omit the attribute entirely, which made
+that a false negative on the common case rather than on an edge one — wider
+than the `optional` question it was found beside.
+
+So the ingest rule above gains a clause: an absent scalar reads as runtime.
+A scalar that is *present* but unreadable — spelled in another format's
+vocabulary, say — is still not defaulted and still yields no scope, because
+"not specified" is the only case the specification assigns a default to and
+an unreadable value has an unknown meaning rather than a defaulted one.
+
+One consequence is visible in written documents: a component that stated no
+scope now exports as an explicit `required`. There is no source word to
+re-emit, and `required` is what the specification says an unspecified scope
+means, so writing it states the reading Bomly applied rather than leaving the
+next consumer to re-derive it. Golden SBOM fixtures gain that line when the
+SDK pin moves.
+
+### What absence means after ingest
+
+Resolving the ingest side raised the matching question on the filter side:
+what a *filter* should do with a dependency that asserted no scope at all,
+which is what SPDX ingest always produces because SPDX has no scope concept.
+That is Bomly policy rather than any specification's, so it is recorded
+separately as [ADR-0043](0043-a-scope-filter-selects-on-assertions.md): a
+filter selects on assertions, absence is not one, and a runtime view keeps
+everything not affirmatively development.
+
+### The general rule
+
+Recorded in `AGENTS.md` under Non-Negotiable: a format's specification
+outranks any Bomly document about that format's meaning, accepted ADRs
+included, and such a question is resolved by citing the specification rather
+than by arguing the merits. Both defects above were found by reading the spec
+text once; neither was going to be found by another round of arguing the
+merits on a pull request.
 
 ## Consequences
 

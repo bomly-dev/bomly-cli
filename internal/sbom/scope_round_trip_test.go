@@ -101,20 +101,24 @@ func TestCycloneDXStillWritesItsScalarScope(t *testing.T) {
 // straight through, minting nodes scoped to a value no SDK filter matches
 // (survey defect 1).
 //
-// The "optional" row pins the SDK's shipped mapping, which is optional →
-// runtime. ADR-0037 states optional → development, so the two disagree; the
-// conflict is recorded in that ADR's 2026-09-06 clarification and tracked as
-// bomly-dev/bomly-sdk#63. This asserts what the code does today rather than
-// settling which rule is right -- the safer default, since the SDK's reading
-// keeps an optional component inside --scope runtime instead of hiding it.
+// The "optional" row was the one place ADR-0037 and the shipped SDK disagreed:
+// the ADR said development, the SDK read it as runtime. Resolved in the ADR's
+// favour by bomly-dev/bomly-sdk#63, and the objection that made it a real
+// question -- that development would hide a shipped component from
+// --scope runtime -- was answered separately rather than waved away: an
+// unasserted scope now reads as runtime, so a component nobody classified is
+// no longer the one that disappears.
 func TestForeignCycloneDXScopesMapIntoTheSDKVocabulary(t *testing.T) {
 	for _, testCase := range []struct {
 		native string
 		want   sdk.Scope
 	}{
 		{"required", sdk.ScopeRuntime},
-		{"optional", sdk.ScopeRuntime},
+		{"optional", sdk.ScopeDevelopment},
 		{"excluded", sdk.ScopeDevelopment},
+		// Unasserted is runtime, which is what keeps a component nobody
+		// classified from being filtered out of the shipped set.
+		{"", sdk.ScopeRuntime},
 	} {
 		t.Run(testCase.native, func(t *testing.T) {
 			raw := `{
@@ -267,8 +271,13 @@ func TestSourceScopeYieldsToTheProjectionWhenTheSetChanges(t *testing.T) {
 		t.Fatalf("nodes = %d", len(nodes))
 	}
 	// What propagation does when the package turns out to be reachable from a
-	// development root as well: the set now says something "optional" does not.
-	nodes[0].Scopes = append(nodes[0].Scopes, sdk.ScopeDevelopment)
+	// runtime root as well: the set now says something "optional" does not.
+	//
+	// It has to be runtime specifically. "optional" already means development
+	// on its own, so adding development leaves the set exactly what the word
+	// described and the word is rightly re-emitted -- which is the case the
+	// test above covers, not this one.
+	nodes[0].Scopes = append(nodes[0].Scopes, sdk.ScopeRuntime)
 
 	raw, err := MarshalDepGraphJSON(g, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{Pretty: true})
 	if err != nil {

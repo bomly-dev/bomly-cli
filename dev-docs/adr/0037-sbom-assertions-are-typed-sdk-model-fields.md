@@ -195,28 +195,30 @@ genuinely component-private data, with the `bomly.` prefix documented as
 reserved. No new user-visible feature may ship its data as a metadata key;
 the migration path for a metadata key is a typed field.
 
-## Clarification (2026-09-06): the `optional` scalar mapping is contested
+## Clarification (2026-09-06): the `optional` scalar mapping, resolved
 
-The rule above says a bare CycloneDX scalar maps `optional` → development.
-The SDK maps `optional` → runtime, and argues the case in
-`scope_cyclonedx.go`: an optional component provides additional
-functionality at runtime rather than being development-only, so `required`
-and `optional` both land on runtime.
+This ADR says a bare CycloneDX scalar maps `optional` → development. The
+SDK shipped `optional` → runtime, arguing that an optional component
+provides additional functionality at runtime rather than being
+development-only. The two were recorded here as an open conflict, because
+they fail in opposite directions and the choice is security-relevant: under
+the ADR's rule an optional component is dropped by `--scope runtime`, which
+hides a shipped dependency from triage.
 
-The two fail in opposite directions. Under the SDK's rule an optional
-component is included by `--scope runtime`, which is conservative for a
-tool whose job is to report vulnerabilities in what ships. Under this ADR's
-rule it is dropped, which hides a shipped dependency from triage. On the
-merits the SDK's reading looks like the safer one and this clause may
-simply be wrong — but that is a contract change, so it is recorded here as
-open rather than settled in passing.
+Resolved in this ADR's favour by bomly-dev/bomly-sdk#63, released in SDK
+v0.9.6. `optional` and `excluded` both read as development, as stated
+above.
 
-Tracked as bomly-dev/bomly-sdk#63. Until it is resolved the shipped
-behavior is the SDK's, and the CLI test that covers it says so explicitly
-rather than presenting it as this ADR's rule. The scope carrier
-(`bomly:scopes`) means the question only affects documents Bomly did not
-write; its own documents round-trip the full scope set without consulting
-the scalar.
+The objection that made it a real question was answered rather than
+overruled. What actually risked hiding a shipped dependency was not
+`optional` but the *unasserted* case — a component whose scope nobody
+stated. That now reads as runtime explicitly, so the component nobody
+classified is no longer the one that disappears from the shipped set. The
+same change stopped scope filters dropping unasserted dependencies.
+
+The scope carrier (`bomly:scopes`) means the scalar only decides for
+documents Bomly did not write; its own documents round-trip the full scope
+set without consulting it.
 
 ## Consequences
 

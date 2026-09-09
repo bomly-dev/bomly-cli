@@ -13,11 +13,16 @@ import (
 // projections. They are the four that had each grown their own copy of the
 // registry lookup.
 var presentationPackages = []string{
-	"../output",
+	outputPackage,
 	"../cli/render",
 	"../tui",
 	"../mcp",
 }
+
+// outputPackage is where the shared helper lives. Named because the guard has
+// to exempt that one file and nothing else, and a second spelling of the path
+// is the drift this guard exists to prevent.
+const outputPackage = "../output"
 
 // registryGet spots a direct PackageRegistry.Get on any receiver spelling --
 // `registry.Get(`, `m.registry.Get(`, `in.Registry.Get(` -- because the rule
@@ -34,11 +39,15 @@ var registryGet = regexp.MustCompile(`[Rr]egistry\.Get\(`)
 // output.RegistryPackage and its siblings are the door. The one file allowed
 // to open it is the one that defines them.
 func TestPresentationLookupsGoThroughTheSharedHelper(t *testing.T) {
-	const helperFile = "registry_lookup.go"
+	// The exemption is one file, not one file name. Matching the basename
+	// would exempt a tui/registry_lookup.go or mcp/registry_lookup.go too --
+	// a second copy under the name of the thing that exists to prevent second
+	// copies, which is exactly the bypass worth catching.
+	helperPath := filepath.Clean(filepath.Join(outputPackage, "registry_lookup.go"))
 
 	var offenders []string
 	forEachPresentationFile(t, func(path, body string) {
-		if filepath.Base(path) == helperFile {
+		if filepath.Clean(path) == helperPath {
 			return
 		}
 		if registryGet.MatchString(body) {

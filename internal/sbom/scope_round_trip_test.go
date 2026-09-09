@@ -101,19 +101,24 @@ func TestCycloneDXStillWritesItsScalarScope(t *testing.T) {
 // straight through, minting nodes scoped to a value no SDK filter matches
 // (survey defect 1).
 //
-// The "optional" row pins the SDK's shipped mapping, which is optional →
-// runtime. ADR-0037 states optional → development, so the two disagree; the
-// conflict is recorded in that ADR's 2026-09-06 clarification and tracked as
-// bomly-dev/bomly-sdk#63. This asserts what the code does today rather than
-// settling which rule is right -- the safer default, since the SDK's reading
-// keeps an optional component inside --scope runtime instead of hiding it.
+// The rows are the CycloneDX specification's own reading of its vocabulary,
+// which ADR-0037's 2026-09-06 resolution settled and SDK v0.9.6 implements
+// (bomly-dev/bomly-sdk#63). An "optional" component is one not installed or
+// otherwise inaccessible by any means -- a component that is installed but
+// merely unreachable must be spelled "required" -- so it is absent from what
+// runs, which is development for Bomly's filtering. Only "required" reads as
+// runtime.
+//
+// The "optional" row previously asserted runtime, pinning a deviation this
+// repo had recorded as open. It is now the ADR's rule rather than a
+// disagreement with it.
 func TestForeignCycloneDXScopesMapIntoTheSDKVocabulary(t *testing.T) {
 	for _, testCase := range []struct {
 		native string
 		want   sdk.Scope
 	}{
 		{"required", sdk.ScopeRuntime},
-		{"optional", sdk.ScopeRuntime},
+		{"optional", sdk.ScopeDevelopment},
 		{"excluded", sdk.ScopeDevelopment},
 	} {
 		t.Run(testCase.native, func(t *testing.T) {
@@ -186,5 +191,99 @@ func TestSPDXPackageCommentCarriesTheScopeSet(t *testing.T) {
 	}
 	if !strings.Contains(string(raw), "scope=development,runtime") {
 		t.Fatalf("the package comment does not carry the sorted set:\n%s", raw)
+	}
+}
+
+// TestAnUnscopedForeignComponentSurvivesARuntimeFilter covers the case the
+// fixtures did not: a document that omits `scope` entirely. Both halves of the
+// answer matter and they come from different rules.
+//
+// Ingest applies CycloneDX's own instruction to a consumer -- scope "SHOULD be
+// assumed" to be `required` when it is not specified -- so the component
+// arrives scoped runtime rather than unscoped (bomly-dev/bomly-sdk#63).
+// Filtering then keeps it, because a runtime view keeps everything not
+// affirmatively development (ADR-0043). Before both, an unscoped component
+// reached the graph with no scope and `--scope runtime` dropped it, so a scan
+// of such a document could report clean because the filter had emptied it.
+func TestAnUnscopedForeignComponentSurvivesARuntimeFilter(t *testing.T) {
+	raw := `{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "components": [
+    {"bom-ref": "pkg:npm/widget@1.0.0", "type": "library", "name": "widget",
+     "version": "1.0.0", "purl": "pkg:npm/widget@1.0.0"}
+  ]
+}`
+	doc, _, err := UnmarshalAutoJSON([]byte(raw))
+	if err != nil {
+		t.Fatalf("ingest: %v", err)
+	}
+	if got := componentScopes(t, doc, "widget"); len(got) != 1 || got[0] != sdk.ScopeRuntime {
+		t.Fatalf("scopes = %v, want [runtime]: an unspecified scope takes the specification's default", got)
+	}
+
+	graph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	filtered, report, err := sdk.FilterGraphByScopeWithReport(graph, sdk.ScopeRuntime)
+	if err != nil {
+		t.Fatalf("scope filter: %v", err)
+	}
+	if len(filtered.DependencyNodes()) != 1 {
+		t.Fatalf("a runtime filter kept %d dependencies, want the unscoped component retained",
+			len(filtered.DependencyNodes()))
+	}
+	// Ingest answered the scope, so the filter had something to narrow on and
+	// nothing was kept merely because it asserted nothing.
+	if len(report.Unasserted) != 0 {
+		t.Errorf("report = %v, want empty: the CycloneDX default already scoped the component", report.Unasserted)
+	}
+}
+
+// The SPDX half of the same question. SPDX has no scope concept, so a document
+// Bomly did not write carries no scope for any package and none of them can be
+// defaulted at ingest the way a CycloneDX component is -- SPDX issues no such
+// instruction, and inventing one would put a claim in the model that no
+// document made. The filter is what keeps these packages visible, and it
+// reports that it narrowed nothing (ADR-0043).
+func TestUnscopedSPDXPackagesSurviveARuntimeFilterAndAreReported(t *testing.T) {
+	raw := `{
+  "spdxVersion": "SPDX-2.3",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "foreign",
+  "dataLicense": "CC0-1.0",
+  "documentNamespace": "https://example.com/foreign",
+  "creationInfo": {"created": "2026-01-01T00:00:00Z", "creators": ["Tool: other-tool"]},
+  "packages": [
+    {"SPDXID": "SPDXRef-Package-widget", "name": "widget", "versionInfo": "1.0.0",
+     "downloadLocation": "NOASSERTION", "filesAnalyzed": false,
+     "externalRefs": [{"referenceCategory": "PACKAGE-MANAGER", "referenceType": "purl",
+                       "referenceLocator": "pkg:npm/widget@1.0.0"}]}
+  ]
+}`
+	doc, _, err := UnmarshalAutoJSON([]byte(raw))
+	if err != nil {
+		t.Fatalf("ingest: %v", err)
+	}
+	if got := componentScopes(t, doc, "widget"); len(got) != 0 {
+		t.Fatalf("scopes = %v, want none: SPDX asserts no scope and Bomly must not invent one", got)
+	}
+
+	graph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	filtered, report, err := sdk.FilterGraphByScopeWithReport(graph, sdk.ScopeRuntime)
+	if err != nil {
+		t.Fatalf("scope filter: %v", err)
+	}
+	if len(filtered.DependencyNodes()) != 1 {
+		t.Fatalf("a runtime filter kept %d dependencies of an SPDX document, want the package retained",
+			len(filtered.DependencyNodes()))
+	}
+	if len(report.Unasserted) != 1 {
+		t.Errorf("report = %v, want the one package named: the filter narrowed nothing and must say so", report.Unasserted)
 	}
 }

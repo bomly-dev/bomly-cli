@@ -355,9 +355,35 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 	if result.Graphs == nil || result.Graphs.Len() == 0 {
 		return nil, fmt.Errorf("detector %s: no graph data", descriptor.Name)
 	}
-	result, err = sdk.FilterDetectionResultByScope(result, req.ScopeFilter)
+	result, scopeReport, err := sdk.FilterDetectionResultByScopeWithReport(result, req.ScopeFilter)
 	if err != nil {
 		return nil, fmt.Errorf("detector %s: scope filter: %w", descriptor.Name, err)
+	}
+	// A runtime view keeps a dependency that asserted no scope (ADR-0043), so
+	// the filter can narrow far less than the flag implies -- over a
+	// third-party SPDX document, which has no scope concept at all, it narrows
+	// nothing. Saying so is the point of the report: a result that was barely
+	// filtered must not read as a filtered one. Warn rather than Debug because
+	// Warn is the default level, so this reaches the user without being asked
+	// for.
+	//
+	// Deliberately not an sdk.DetectorWarning. Every DetectorWarningType means
+	// something about the run that this does not, and two of the three make
+	// DegradesCoverage report true, which gates finding baselines. Nothing
+	// here is missing from the graph; it is the narrowing that did not happen.
+	if len(scopeReport.Unasserted) > 0 {
+		sample := scopeReport.Unasserted
+		if len(sample) > 5 {
+			sample = sample[:5]
+		}
+		p.Logger.Warn("pipeline: scope filter kept dependencies that asserted no scope",
+			zap.String("detector", descriptor.Name),
+			zap.String("subproject", req.Subproject.RelativePath),
+			zap.String("scope", string(req.ScopeFilter)),
+			zap.Int("unasserted", len(scopeReport.Unasserted)),
+			zap.Int("shown", len(sample)),
+			zap.Strings("dependencies", sample),
+		)
 	}
 
 	result.SubprojectInfo = req.Subproject

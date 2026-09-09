@@ -20,11 +20,13 @@
           "locations": [
             {
               "access_path": "core/pom.xml",
+              "module_root": "core",
               "position": {
                 "file": "core/pom.xml",
                 "line": 0
               },
-              "real_path": "core/pom.xml"
+              "real_path": "core/pom.xml",
+              "relationship": "direct"
             }
           ],
           "name": "org.apache.commons:commons-lang3",
@@ -118,11 +120,16 @@
           "locations": [
             {
               "access_path": "web/pom.xml",
+              "module_root": "web",
               "position": {
                 "file": "web/pom.xml",
                 "line": 0
               },
-              "real_path": "web/pom.xml"
+              "real_path": "web/pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "com.fasterxml.jackson.core:jackson-databind",
@@ -140,11 +147,13 @@
           "locations": [
             {
               "access_path": "core/pom.xml",
+              "module_root": "core",
               "position": {
                 "file": "core/pom.xml",
                 "line": 0
               },
-              "real_path": "core/pom.xml"
+              "real_path": "core/pom.xml",
+              "relationship": "direct"
             }
           ],
           "name": "org.apache.commons:commons-lang3",

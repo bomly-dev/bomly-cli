@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -298,31 +299,13 @@ func nextSeverityFilter(current string) string {
 	return nextFilterValue(current, values)
 }
 
-// vulnsForDependency returns the matching-stage vulnerabilities for a
-// dependency by resolving its PURL against the registry. Returns nil when
-// either input is nil or the registry has no entry for the PURL.
-func vulnsForDependency(registry *sdk.PackageRegistry, dep sdk.GraphNode) []sdk.Vulnerability {
-	if registry == nil || dep == nil || dep.NodeID() == "" {
-		return nil
-	}
-	pkg, ok := registry.Get(dep.NodeID())
-	if !ok || pkg == nil {
-		return nil
-	}
-	return pkg.Vulnerabilities
-}
-
 func remediationForPURL(
 	registry *sdk.PackageRegistry,
 	purl string,
 	dependencyRefs ...string,
 ) *sdk.PackageRemediation {
-	purl = strings.TrimSpace(purl)
-	if registry == nil || purl == "" {
-		return nil
-	}
-	pkg, ok := registry.Get(purl)
-	if !ok || pkg == nil {
+	pkg := output.RegistryPackage(registry, purl)
+	if pkg == nil {
 		return nil
 	}
 	remediation := pkg.Remediation.Clone()
@@ -392,18 +375,6 @@ func remediationActionLabel(action sdk.RemediationAction) string {
 	return strings.ToUpper(value[:1]) + value[1:]
 }
 
-// licensesForDependency returns the matching-stage licenses for a dependency
-// when the registry has them; otherwise it falls back to the detection-time
-// licenses stashed on the dependency.
-func licensesForDependency(registry *sdk.PackageRegistry, dep sdk.GraphNode) []sdk.PackageLicense {
-	if registry != nil && dep != nil && dep.NodeID() != "" {
-		if pkg, ok := registry.Get(dep.NodeID()); ok && pkg != nil && len(pkg.Licenses) > 0 {
-			return pkg.Licenses
-		}
-	}
-	return detectionLicensesOf(dep)
-}
-
 // maxVulnerabilitySeverityByPkgID returns a map from package ID to the
 // highest severity found across that package's enriched vulnerabilities.
 func maxVulnerabilitySeverityByPkgID(graphValue *sdk.Graph, registry *sdk.PackageRegistry) map[string]string {
@@ -415,7 +386,7 @@ func maxVulnerabilitySeverityByPkgID(graphValue *sdk.Graph, registry *sdk.Packag
 		if pkg == nil {
 			continue
 		}
-		for _, vulnerability := range vulnsForDependency(registry, pkg) {
+		for _, vulnerability := range output.NodeVulnerabilities(registry, pkg) {
 			current := result[pkg.NodeID()]
 			if severityRank(string(vulnerability.ParsedSeverity)) < severityRank(current) {
 				result[pkg.NodeID()] = string(vulnerability.ParsedSeverity)
@@ -530,14 +501,4 @@ func packageBadges(row listPackageRow) []badge {
 		badges = append(badges, badge{label: "repeated", kind: "repeated"})
 	}
 	return badges
-}
-
-// detectionLicensesOf reads detection-time licenses from a node when it is a
-// dependency. Structural nodes carry none.
-func detectionLicensesOf(node sdk.GraphNode) []sdk.PackageLicense {
-	dep, ok := node.(*sdk.DependencyNode)
-	if !ok {
-		return nil
-	}
-	return sdk.DetectionLicenses(dep)
 }

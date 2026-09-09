@@ -88,6 +88,12 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 			AttachWorkflowPositions(graphs.Entries[i].Graph, req.ProjectPath)
 		}
 	}
+	// Not wrapped in detectors.Attributed, and the guard test names this file
+	// as the exemption: a workflow is not a module. Its root is the workflow
+	// file itself, so the only "module root" available would be
+	// ".github/workflows", a directory that declares no module and would be
+	// an invented join key. An empty module root says what is true here --
+	// nobody attributed these sites.
 	return sdk.DetectionResult{
 		Graphs: graphs,
 	}, nil

@@ -68,9 +68,9 @@ func (d UVDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) 
 			attachLoosePythonPositions(depsGraph, workingDir)
 			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, false, nil, workingDir)
 			logResolution(base.Logger, "uv detector", workingDir, resolution)
-			return sdk.DetectionResult{
+			return detectors.Attributed(sdk.DetectionResult{
 				Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, uvEvidencePatterns, resolution)),
-			}, nil
+			}), nil
 		}
 		// Fall through to pip-inspect on parse failure.
 	} else {
@@ -102,9 +102,9 @@ func (d UVDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) 
 	attachLoosePythonPositions(depsGraph, workingDir)
 	resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, true, append(installCommand, req.InstallArgs...), workingDir)
 	logResolution(base.Logger, "uv detector", workingDir, resolution)
-	return sdk.DetectionResult{
+	return detectors.Attributed(sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, uvEvidencePatterns, resolution)),
-	}, nil
+	}), nil
 }
 
 // FallbackDetector returns the configured fallback detector.

@@ -49,11 +49,16 @@
           "locations": [
             {
               "access_path": "fixtures/api-java/pom.xml",
+              "module_root": "fixtures/api-java",
               "position": {
                 "file": "fixtures/api-java/pom.xml",
                 "line": 0
               },
-              "real_path": "fixtures/api-java/pom.xml"
+              "real_path": "fixtures/api-java/pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "com.fasterxml.jackson.core:jackson-databind",
@@ -87,11 +92,16 @@
           "locations": [
             {
               "access_path": "fixtures/api-java/pom.xml",
+              "module_root": "fixtures/api-java",
               "position": {
                 "file": "fixtures/api-java/pom.xml",
                 "line": 0
               },
-              "real_path": "fixtures/api-java/pom.xml"
+              "real_path": "fixtures/api-java/pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "org.apache.commons:commons-configuration2",
@@ -191,11 +201,16 @@
           "locations": [
             {
               "access_path": "fixtures/api-java/pom.xml",
+              "module_root": "fixtures/api-java",
               "position": {
                 "file": "fixtures/api-java/pom.xml",
                 "line": 0
               },
-              "real_path": "fixtures/api-java/pom.xml"
+              "real_path": "fixtures/api-java/pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "org.junit.jupiter:junit-jupiter",
@@ -282,11 +297,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "accepts",
@@ -314,11 +334,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ajv",
@@ -341,11 +366,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "array-flatten",
@@ -370,11 +400,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "asn1",
@@ -397,11 +432,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "assert-plus",
@@ -424,11 +464,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "asynckit",
@@ -451,11 +496,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "aws-sign2",
@@ -478,11 +528,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "aws4",
@@ -509,11 +564,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "axios",
@@ -538,11 +598,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "bcrypt-pbkdf",
@@ -578,11 +643,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "body-parser",
@@ -605,11 +675,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "buffer-equal-constant-time",
@@ -632,11 +707,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "bytes",
@@ -662,11 +742,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "call-bind-apply-helpers",
@@ -692,11 +777,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "call-bound",
@@ -719,11 +809,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "caseless",
@@ -748,11 +843,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "combined-stream",
@@ -777,11 +877,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "content-disposition",
@@ -804,11 +909,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "content-type",
@@ -831,11 +941,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cookie-signature",
@@ -858,11 +973,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cookie",
@@ -885,11 +1005,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "core-util-is",
@@ -914,11 +1039,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "dashdash",
@@ -943,11 +1073,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "debug",
@@ -970,11 +1105,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "delayed-stream",
@@ -997,11 +1137,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "depd",
@@ -1024,11 +1169,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "destroy",
@@ -1055,11 +1205,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "dunder-proto",
@@ -1085,11 +1240,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ecc-jsbn",
@@ -1114,11 +1274,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ecdsa-sig-formatter",
@@ -1141,11 +1306,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ee-first",
@@ -1168,11 +1338,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "encodeurl",
@@ -1195,11 +1370,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "es-define-property",
@@ -1222,11 +1402,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "es-errors",
@@ -1251,11 +1436,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "es-object-atoms",
@@ -1283,11 +1473,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "es-set-tostringtag",
@@ -1310,11 +1505,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "escape-html",
@@ -1337,11 +1537,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "etag",
@@ -1396,11 +1601,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "express",
@@ -1423,11 +1633,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "extend",
@@ -1450,11 +1665,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "extsprintf",
@@ -1477,11 +1697,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "fast-deep-equal",
@@ -1504,11 +1729,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "fast-json-stable-stringify",
@@ -1539,11 +1769,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "finalhandler",
@@ -1566,11 +1801,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "follow-redirects",
@@ -1593,11 +1833,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "forever-agent",
@@ -1624,11 +1869,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "form-data",
@@ -1657,11 +1907,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "form-data",
@@ -1684,11 +1939,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "forwarded",
@@ -1711,11 +1971,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "fresh",
@@ -1738,11 +2003,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "function-bind",
@@ -1776,11 +2046,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "get-intrinsic",
@@ -1806,11 +2081,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "get-proto",
@@ -1835,11 +2115,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "getpass",
@@ -1862,11 +2147,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "gopd",
@@ -1889,11 +2179,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "har-schema",
@@ -1919,11 +2214,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "har-validator",
@@ -1946,11 +2246,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "has-symbols",
@@ -1975,11 +2280,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "has-tostringtag",
@@ -2004,11 +2314,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "hasown",
@@ -2037,11 +2352,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "http-errors",
@@ -2068,11 +2388,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "http-signature",
@@ -2097,11 +2422,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "iconv-lite",
@@ -2124,11 +2454,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "inherits",
@@ -2151,11 +2486,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ipaddr.js",
@@ -2178,11 +2518,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "is-typedarray",
@@ -2205,11 +2550,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "isstream",
@@ -2232,11 +2582,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jsbn",
@@ -2259,11 +2614,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "json-schema-traverse",
@@ -2286,11 +2646,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "json-schema",
@@ -2313,11 +2678,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "json-stringify-safe",
@@ -2351,11 +2721,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jsonwebtoken",
@@ -2383,11 +2758,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jsprim",
@@ -2414,11 +2794,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jwa",
@@ -2444,11 +2829,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jws",
@@ -2471,11 +2861,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "lodash.includes",
@@ -2498,11 +2893,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "lodash.isboolean",
@@ -2525,11 +2925,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "lodash.isinteger",
@@ -2552,11 +2957,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "lodash.isnumber",
@@ -2579,11 +2989,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "lodash.isplainobject",
@@ -2606,11 +3021,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "lodash.isstring",
@@ -2633,11 +3053,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "lodash.once",
@@ -2660,11 +3085,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "lodash",
@@ -2687,11 +3117,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "math-intrinsics",
@@ -2714,11 +3149,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "media-typer",
@@ -2741,11 +3181,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "merge-descriptors",
@@ -2768,11 +3213,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "methods",
@@ -2795,11 +3245,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mime-db",
@@ -2824,11 +3279,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mime-types",
@@ -2851,11 +3311,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mime",
@@ -2878,11 +3343,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ms",
@@ -2905,19 +3375,29 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             },
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ms",
@@ -2940,11 +3420,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "negotiator",
@@ -2967,11 +3452,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "oauth-sign",
@@ -2994,11 +3484,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "object-inspect",
@@ -3023,11 +3518,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "on-finished",
@@ -3050,11 +3550,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "parseurl",
@@ -3077,11 +3582,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "path-to-regexp",
@@ -3104,11 +3614,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "performance-now",
@@ -3134,11 +3649,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "proxy-addr",
@@ -3161,11 +3681,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "proxy-from-env",
@@ -3190,11 +3715,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "psl",
@@ -3217,11 +3747,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "punycode",
@@ -3246,11 +3781,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "qs",
@@ -3273,11 +3813,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "qs",
@@ -3300,11 +3845,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "range-parser",
@@ -3332,11 +3882,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "raw-body",
@@ -3380,11 +3935,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "request",
@@ -3407,11 +3967,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "safe-buffer",
@@ -3434,11 +3999,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "safer-buffer",
@@ -3461,11 +4031,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sax",
@@ -3488,11 +4063,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "semver",
@@ -3529,11 +4109,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "send",
@@ -3561,11 +4146,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "serve-static",
@@ -3588,11 +4178,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "setprototypeof",
@@ -3618,11 +4213,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "side-channel-list",
@@ -3650,11 +4250,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "side-channel-map",
@@ -3683,11 +4288,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "side-channel-weakmap",
@@ -3716,11 +4326,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "side-channel",
@@ -3753,11 +4368,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sshpk",
@@ -3780,11 +4400,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "statuses",
@@ -3807,11 +4432,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "toidentifier",
@@ -3837,11 +4467,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "tough-cookie",
@@ -3866,11 +4501,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "tunnel-agent",
@@ -3893,11 +4533,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "tweetnacl",
@@ -3923,11 +4568,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "type-is",
@@ -3950,11 +4600,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "unpipe",
@@ -3979,11 +4634,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "uri-js",
@@ -4006,11 +4666,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "utils-merge",
@@ -4033,11 +4698,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "uuid",
@@ -4060,11 +4730,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "vary",
@@ -4091,11 +4766,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "verror",
@@ -4121,11 +4801,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "xml2js",
@@ -4148,11 +4833,16 @@
           "locations": [
             {
               "access_path": "fixtures/webapp/package-lock.json",
+              "module_root": "fixtures/webapp",
               "position": {
                 "file": "fixtures/webapp/package-lock.json",
                 "line": 0
               },
-              "real_path": "fixtures/webapp/package-lock.json"
+              "real_path": "fixtures/webapp/package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "xmlbuilder",

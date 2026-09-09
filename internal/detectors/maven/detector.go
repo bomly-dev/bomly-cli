@@ -118,23 +118,23 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 		if err != nil {
 			logger.Warn("maven module walk failed; emitting a single reactor manifest", zap.Error(err))
 		}
-		return sdk.DetectionResult{
+		return detectors.Attributed(sdk.DetectionResult{
 			Graphs: sdk.SingleGraphContainer(depsGraph, rootManifest),
-		}, nil
+		}), nil
 	}
 
 	entries, matched := d.reactorGraphEntries(depsGraph, modules, rootManifest, workingDir)
 	if matched == 0 {
 		// No TGF root matched a pom-declared module (e.g. the reactor was
 		// resolved for a subset); keep the merged single entry.
-		return sdk.DetectionResult{
+		return detectors.Attributed(sdk.DetectionResult{
 			Graphs: sdk.SingleGraphContainer(depsGraph, rootManifest),
-		}, nil
+		}), nil
 	}
 	logger.Info("maven detector resolved reactor modules", zap.Int("modules", matched))
-	return sdk.DetectionResult{
+	return detectors.Attributed(sdk.DetectionResult{
 		Graphs: &sdk.GraphContainer{Entries: entries},
-	}, nil
+	}), nil
 }
 
 // reactorGraphEntries partitions a merged reactor graph into per-module

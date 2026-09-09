@@ -51,6 +51,35 @@ func ecosystemFromPURLType(purlType string) sdk.Ecosystem {
 	return ecosystem
 }
 
+// ComponentEcosystem resolves the ecosystem a document component belongs to:
+// the component's own ecosystem field when the SDK recognizes it, and
+// otherwise the ecosystem named by its package URL's type.
+//
+// It lives here, beside the other ingest identity rules, because the question
+// is about Component -- this package's own type -- and because it used to be
+// answered in more than one place. ToGraph resolved it inline, and
+// internal/benchmark kept a twelve-row purl-type switch of its own that had
+// already drifted away from the SDK's table: it answered Elixir for pkg:hex,
+// which purlkit refuses precisely because Hex serves Elixir and Erlang alike
+// and nothing in the PURL says which; and it had never learned hackage, cran,
+// opam, deb, or otp, so Haskell, R, OCaml, Debian, and OTP components came
+// back unknown. That is what a second table does -- it is correct the day it
+// is written and quietly wrong afterwards.
+//
+// The durable home is the SDK, which answers the same question for typed
+// nodes in ecosystemForPURLType; that function is unexported, so no consumer
+// can reach it. Until the SDK exports it this is the CLI's one copy rather
+// than its third.
+func ComponentEcosystem(component Component) sdk.Ecosystem {
+	if ecosystem, ok := parseEcosystemHint(component.Ecosystem); ok {
+		return ecosystem
+	}
+	if purl := parsePURL(component.PURL); purl != nil {
+		return ecosystemFromPURLType(purl.Type)
+	}
+	return sdk.EcosystemUnknown
+}
+
 func packageManagerForPURL(value string, ecosystemHint, packageManagerHint string) sdk.PackageManager {
 	if manager, ok := parsePackageManagerHint(packageManagerHint); ok {
 		return manager

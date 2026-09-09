@@ -33,11 +33,16 @@
           "locations": [
             {
               "access_path": "pnpm-lock.yaml",
+              "module_root": "apps/web",
               "position": {
                 "file": "pnpm-lock.yaml",
                 "line": 0
               },
-              "real_path": "pnpm-lock.yaml"
+              "real_path": "pnpm-lock.yaml",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "left-pad",
@@ -55,11 +60,23 @@
           "locations": [
             {
               "access_path": "pnpm-lock.yaml",
+              "module_root": "apps/web",
               "position": {
                 "file": "pnpm-lock.yaml",
                 "line": 0
               },
-              "real_path": "pnpm-lock.yaml"
+              "real_path": "pnpm-lock.yaml",
+              "relationship": "transitive"
+            },
+            {
+              "access_path": "pnpm-lock.yaml",
+              "module_root": "packages/lib",
+              "position": {
+                "file": "pnpm-lock.yaml",
+                "line": 0
+              },
+              "real_path": "pnpm-lock.yaml",
+              "relationship": "direct"
             }
           ],
           "name": "lodash",
@@ -77,11 +94,23 @@
           "locations": [
             {
               "access_path": "pnpm-lock.yaml",
+              "module_root": "apps/web",
               "position": {
                 "file": "pnpm-lock.yaml",
                 "line": 0
               },
-              "real_path": "pnpm-lock.yaml"
+              "real_path": "pnpm-lock.yaml",
+              "relationship": "direct"
+            },
+            {
+              "access_path": "pnpm-lock.yaml",
+              "module_root": "packages/lib",
+              "position": {
+                "file": "pnpm-lock.yaml",
+                "line": 0
+              },
+              "real_path": "pnpm-lock.yaml",
+              "relationship": "direct"
             }
           ],
           "name": "minimist",
@@ -120,11 +149,23 @@
           "locations": [
             {
               "access_path": "pnpm-lock.yaml",
+              "module_root": "apps/web",
               "position": {
                 "file": "pnpm-lock.yaml",
                 "line": 0
               },
-              "real_path": "pnpm-lock.yaml"
+              "real_path": "pnpm-lock.yaml",
+              "relationship": "transitive"
+            },
+            {
+              "access_path": "pnpm-lock.yaml",
+              "module_root": "packages/lib",
+              "position": {
+                "file": "pnpm-lock.yaml",
+                "line": 0
+              },
+              "real_path": "pnpm-lock.yaml",
+              "relationship": "direct"
             }
           ],
           "name": "lodash",
@@ -142,11 +183,23 @@
           "locations": [
             {
               "access_path": "pnpm-lock.yaml",
+              "module_root": "apps/web",
               "position": {
                 "file": "pnpm-lock.yaml",
                 "line": 0
               },
-              "real_path": "pnpm-lock.yaml"
+              "real_path": "pnpm-lock.yaml",
+              "relationship": "direct"
+            },
+            {
+              "access_path": "pnpm-lock.yaml",
+              "module_root": "packages/lib",
+              "position": {
+                "file": "pnpm-lock.yaml",
+                "line": 0
+              },
+              "real_path": "pnpm-lock.yaml",
+              "relationship": "direct"
             }
           ],
           "name": "minimist",
@@ -184,11 +237,16 @@
           "locations": [
             {
               "access_path": "pnpm-lock.yaml",
+              "module_root": ".",
               "position": {
                 "file": "pnpm-lock.yaml",
                 "line": 0
               },
-              "real_path": "pnpm-lock.yaml"
+              "real_path": "pnpm-lock.yaml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ms",

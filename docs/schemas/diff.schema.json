@@ -1152,6 +1152,9 @@
                             "access_path": {
                               "type": "string"
                             },
+                            "module_root": {
+                              "type": "string"
+                            },
                             "position": {
                               "properties": {
                                 "column": {
@@ -1171,6 +1174,15 @@
                             },
                             "real_path": {
                               "type": "string"
+                            },
+                            "relationship": {
+                              "type": "string"
+                            },
+                            "scopes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             }
                           },
                           "type": "object"
@@ -1855,6 +1867,9 @@
                             "access_path": {
                               "type": "string"
                             },
+                            "module_root": {
+                              "type": "string"
+                            },
                             "position": {
                               "properties": {
                                 "column": {
@@ -1874,6 +1889,15 @@
                             },
                             "real_path": {
                               "type": "string"
+                            },
+                            "relationship": {
+                              "type": "string"
+                            },
+                            "scopes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             }
                           },
                           "type": "object"
@@ -2547,6 +2571,9 @@
                             "access_path": {
                               "type": "string"
                             },
+                            "module_root": {
+                              "type": "string"
+                            },
                             "position": {
                               "properties": {
                                 "column": {
@@ -2566,6 +2593,15 @@
                             },
                             "real_path": {
                               "type": "string"
+                            },
+                            "relationship": {
+                              "type": "string"
+                            },
+                            "scopes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             }
                           },
                           "type": "object"
@@ -3251,6 +3287,9 @@
                             "access_path": {
                               "type": "string"
                             },
+                            "module_root": {
+                              "type": "string"
+                            },
                             "position": {
                               "properties": {
                                 "column": {
@@ -3270,6 +3309,15 @@
                             },
                             "real_path": {
                               "type": "string"
+                            },
+                            "relationship": {
+                              "type": "string"
+                            },
+                            "scopes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             }
                           },
                           "type": "object"
@@ -4065,6 +4113,9 @@
                             "access_path": {
                               "type": "string"
                             },
+                            "module_root": {
+                              "type": "string"
+                            },
                             "position": {
                               "properties": {
                                 "column": {
@@ -4084,6 +4135,15 @@
                             },
                             "real_path": {
                               "type": "string"
+                            },
+                            "relationship": {
+                              "type": "string"
+                            },
+                            "scopes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             }
                           },
                           "type": "object"
@@ -4803,6 +4863,9 @@
                             "access_path": {
                               "type": "string"
                             },
+                            "module_root": {
+                              "type": "string"
+                            },
                             "position": {
                               "properties": {
                                 "column": {
@@ -4822,6 +4885,15 @@
                             },
                             "real_path": {
                               "type": "string"
+                            },
+                            "relationship": {
+                              "type": "string"
+                            },
+                            "scopes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             }
                           },
                           "type": "object"
@@ -5525,6 +5597,9 @@
                             "access_path": {
                               "type": "string"
                             },
+                            "module_root": {
+                              "type": "string"
+                            },
                             "position": {
                               "properties": {
                                 "column": {
@@ -5544,6 +5619,15 @@
                             },
                             "real_path": {
                               "type": "string"
+                            },
+                            "relationship": {
+                              "type": "string"
+                            },
+                            "scopes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             }
                           },
                           "type": "object"
@@ -6235,6 +6319,9 @@
                               "access_path": {
                                 "type": "string"
                               },
+                              "module_root": {
+                                "type": "string"
+                              },
                               "position": {
                                 "properties": {
                                   "column": {
@@ -6254,6 +6341,15 @@
                               },
                               "real_path": {
                                 "type": "string"
+                              },
+                              "relationship": {
+                                "type": "string"
+                              },
+                              "scopes": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
                               }
                             },
                             "type": "object"
@@ -6938,6 +7034,9 @@
                               "access_path": {
                                 "type": "string"
                               },
+                              "module_root": {
+                                "type": "string"
+                              },
                               "position": {
                                 "properties": {
                                   "column": {
@@ -6957,6 +7056,15 @@
                               },
                               "real_path": {
                                 "type": "string"
+                              },
+                              "relationship": {
+                                "type": "string"
+                              },
+                              "scopes": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
                               }
                             },
                             "type": "object"
@@ -7630,6 +7738,9 @@
                               "access_path": {
                                 "type": "string"
                               },
+                              "module_root": {
+                                "type": "string"
+                              },
                               "position": {
                                 "properties": {
                                   "column": {
@@ -7649,6 +7760,15 @@
                               },
                               "real_path": {
                                 "type": "string"
+                              },
+                              "relationship": {
+                                "type": "string"
+                              },
+                              "scopes": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
                               }
                             },
                             "type": "object"
@@ -8346,6 +8466,9 @@
                               "access_path": {
                                 "type": "string"
                               },
+                              "module_root": {
+                                "type": "string"
+                              },
                               "position": {
                                 "properties": {
                                   "column": {
@@ -8365,6 +8488,15 @@
                               },
                               "real_path": {
                                 "type": "string"
+                              },
+                              "relationship": {
+                                "type": "string"
+                              },
+                              "scopes": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
                               }
                             },
                             "type": "object"
@@ -9154,6 +9286,9 @@
                             "access_path": {
                               "type": "string"
                             },
+                            "module_root": {
+                              "type": "string"
+                            },
                             "position": {
                               "properties": {
                                 "column": {
@@ -9173,6 +9308,15 @@
                             },
                             "real_path": {
                               "type": "string"
+                            },
+                            "relationship": {
+                              "type": "string"
+                            },
+                            "scopes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             }
                           },
                           "type": "object"
@@ -10413,6 +10557,9 @@
                             "access_path": {
                               "type": "string"
                             },
+                            "module_root": {
+                              "type": "string"
+                            },
                             "position": {
                               "properties": {
                                 "column": {
@@ -10432,6 +10579,15 @@
                             },
                             "real_path": {
                               "type": "string"
+                            },
+                            "relationship": {
+                              "type": "string"
+                            },
+                            "scopes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             }
                           },
                           "type": "object"
@@ -11672,6 +11828,9 @@
                             "access_path": {
                               "type": "string"
                             },
+                            "module_root": {
+                              "type": "string"
+                            },
                             "position": {
                               "properties": {
                                 "column": {
@@ -11691,6 +11850,15 @@
                             },
                             "real_path": {
                               "type": "string"
+                            },
+                            "relationship": {
+                              "type": "string"
+                            },
+                            "scopes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             }
                           },
                           "type": "object"

@@ -71,11 +71,17 @@
           "locations": [
             {
               "access_path": "build.gradle",
+              "module_root": ".",
               "position": {
                 "file": "build.gradle",
                 "line": 0
               },
-              "real_path": "build.gradle"
+              "real_path": "build.gradle",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "com.h2database:h2",
@@ -145,11 +151,17 @@
           "locations": [
             {
               "access_path": "build.gradle",
+              "module_root": ".",
               "position": {
                 "file": "build.gradle",
                 "line": 0
               },
-              "real_path": "build.gradle"
+              "real_path": "build.gradle",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "com.orientechnologies:orientdb-server",
@@ -307,11 +319,16 @@
           "locations": [
             {
               "access_path": "build.gradle",
+              "module_root": ".",
               "position": {
                 "file": "build.gradle",
                 "line": 0
               },
-              "real_path": "build.gradle"
+              "real_path": "build.gradle",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "junit:junit",
@@ -331,11 +348,16 @@
           "locations": [
             {
               "access_path": "build.gradle",
+              "module_root": ".",
               "position": {
                 "file": "build.gradle",
                 "line": 0
               },
-              "real_path": "build.gradle"
+              "real_path": "build.gradle",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "junit:junit",
@@ -368,11 +390,17 @@
           "locations": [
             {
               "access_path": "build.gradle",
+              "module_root": ".",
               "position": {
                 "file": "build.gradle",
                 "line": 0
               },
-              "real_path": "build.gradle"
+              "real_path": "build.gradle",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "net.bull.javamelody:javamelody-core",
@@ -518,11 +546,17 @@
           "locations": [
             {
               "access_path": "build.gradle",
+              "module_root": ".",
               "position": {
                 "file": "build.gradle",
                 "line": 0
               },
-              "real_path": "build.gradle"
+              "real_path": "build.gradle",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "org.apache.kafka:kafka_2.11",
@@ -620,11 +654,17 @@
           "locations": [
             {
               "access_path": "build.gradle",
+              "module_root": ".",
               "position": {
                 "file": "build.gradle",
                 "line": 0
               },
-              "real_path": "build.gradle"
+              "real_path": "build.gradle",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "org.apache.sling:org.apache.sling.engine",
@@ -722,11 +762,17 @@
           "locations": [
             {
               "access_path": "build.gradle",
+              "module_root": ".",
               "position": {
                 "file": "build.gradle",
                 "line": 0
               },
-              "real_path": "build.gradle"
+              "real_path": "build.gradle",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "org.keycloak:keycloak-saml-core",
@@ -745,11 +791,17 @@
           "locations": [
             {
               "access_path": "build.gradle",
+              "module_root": ".",
               "position": {
                 "file": "build.gradle",
                 "line": 0
               },
-              "real_path": "build.gradle"
+              "real_path": "build.gradle",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "org.mindrot:jbcrypt",
@@ -768,11 +820,17 @@
           "locations": [
             {
               "access_path": "build.gradle",
+              "module_root": ".",
               "position": {
                 "file": "build.gradle",
                 "line": 0
               },
-              "real_path": "build.gradle"
+              "real_path": "build.gradle",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "org.neo4j:neo4j-jmx",
@@ -964,11 +1022,17 @@
           "locations": [
             {
               "access_path": "build.gradle",
+              "module_root": ".",
               "position": {
                 "file": "build.gradle",
                 "line": 0
               },
-              "real_path": "build.gradle"
+              "real_path": "build.gradle",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "org.springframework:spring-web",

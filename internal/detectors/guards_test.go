@@ -107,41 +107,106 @@ func TestExportNeverReadsResolvedURL(t *testing.T) {
 func TestNoDirectSPDXExpressionUse(t *testing.T) {
 	const spdxModule = "github.com/github/go-spdx"
 
-	// This file names the module in the rule it enforces, so it is the one
-	// exemption -- the same shape the guard had when it lived beside the
-	// wrapper it policed.
-	self := "guards_test.go"
+	if offenders := filesNamingModule(t, spdxModule); len(offenders) > 0 {
+		t.Fatalf("these files reference %s directly; the parser panics on malformed input, "+
+			"so go through bomly-sdk/spdxkit instead: %v", spdxModule, offenders)
+	}
+}
 
+// filesNamingModule returns every Go file under internal/ -- test files
+// included -- whose text names the module path. Tests count because a test
+// reaching a library directly proves the hazard is still reachable, and a test
+// is where the temptation lives. This file is the one exemption: it has to
+// spell out the module paths it forbids.
+//
+// One file, not one file name. Matching the basename exempted every
+// guards_test.go under internal/, so a second guard file in any other package
+// could name a forbidden module and neither rule would report it -- and both
+// rules run through here, so the hole opened both at once. If this file ever
+// moves, the exemption stops matching and the guard reports itself, which is
+// the right direction to fail.
+func filesNamingModule(t *testing.T, module string) []string {
+	t.Helper()
+	self := filepath.Clean(filepath.Join(internalRoot, "detectors", "guards_test.go"))
 	var offenders []string
-	walkInternalGo(t, func(path, body string) {
-		if strings.Contains(body, spdxModule) {
-			offenders = append(offenders, path)
-		}
-	})
-	// Test files too: a test reaching the parser directly proves the same
-	// crash is reachable, and it is where the temptation lives.
 	err := filepath.Walk(internalRoot, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() || !strings.HasSuffix(path, "_test.go") || filepath.Base(path) == self {
+		if info.IsDir() || !strings.HasSuffix(path, ".go") || filepath.Clean(path) == self {
 			return nil
 		}
 		body, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
-		if strings.Contains(string(body), spdxModule) {
+		if strings.Contains(string(body), module) {
 			offenders = append(offenders, path)
 		}
 		return nil
 	})
 	if err != nil {
-		t.Fatalf("walk tests: %v", err)
+		t.Fatalf("walk %s: %v", internalRoot, err)
+	}
+	return offenders
+}
+
+// Package URLs are a grammar with escaping rules, per-type case rules, a
+// qualifier vocabulary, and a canonical rendering -- all of which belong to
+// the specification, not to this repository. bomly-sdk/purlkit is the one
+// place that speaks to the library that implements them (ADR-0038), so
+// everything here asks purlkit and nothing here parses on its own.
+//
+// The rule is written as "do not name the library" rather than "route through
+// the wrapper" because there are two libraries to name: the official
+// package-url/packageurl-go, and the anchore fork the SDK used to expose and
+// no longer does. Both still arrive as indirect dependencies through other
+// tools, so both stay importable and neither may be imported.
+func TestNoDirectPackageURLUse(t *testing.T) {
+	modules := []string{
+		"github.com/package-url/packageurl-go",
+		// The deprecated fork. sdk.ParsePackageURL used to return its type;
+		// a file reaching for it now is reaching around purlkit for an
+		// answer purlkit already has.
+		"github.com/anchore/packageurl-go",
+	}
+	var offenders []string
+	for _, module := range modules {
+		for _, path := range filesNamingModule(t, module) {
+			offenders = append(offenders, path+" names "+module)
+		}
 	}
 	if len(offenders) > 0 {
-		t.Fatalf("these files reference %s directly; the parser panics on malformed input, "+
-			"so go through bomly-sdk/spdxkit instead: %v", spdxModule, offenders)
+		t.Fatalf("these files reference a package-url library directly; PURL syntax, escaping, and "+
+			"canonical form are bomly-sdk/purlkit's to decide: %v", offenders)
+	}
+}
+
+// A package URL pasted together from a "pkg:" literal and some escaping is the
+// shape that produced a real defect: the SBOM export built its synthesized
+// project root with url.PathEscape, which leaves '@' alone, so a project named
+// "app@2" exported an identity that read back as "app" at version "2". The
+// separators are the specification's to escape, so the parts go into
+// purlkit.Build and the string comes out.
+//
+// Only shipped code is policed. A test fixture spelling out a package URL is
+// data, and a test that builds a hundred of them in a loop is doing the same
+// thing a table would.
+func TestPURLStringsAreBuiltByTheKit(t *testing.T) {
+	// A "pkg:..." literal on either side of a concatenation, or as a format
+	// string. A prefix or suffix check against the literal is decomposition,
+	// not construction, and is not what this rule is about.
+	construction := regexp.MustCompile(`"pkg:[^"]*"\s*\+|\+\s*"pkg:|printf\("pkg:|Printf\("pkg:|Sprintf\("pkg:`)
+
+	var offenders []string
+	walkInternalGo(t, func(path, body string) {
+		if construction.MatchString(body) {
+			offenders = append(offenders, path)
+		}
+	})
+	if len(offenders) > 0 {
+		t.Fatalf("these files build a package URL by string concatenation; call purlkit.Build so the "+
+			"specification's escaping applies to the separators too: %v", offenders)
 	}
 }
 
@@ -176,5 +241,41 @@ func TestStrictJSONStaysInSBOMIngest(t *testing.T) {
 	if len(offenders) > 0 {
 		t.Fatalf("strict JSON parsing is scoped to SBOM ingest (ADR-0039); "+
 			"the plugin wire and the rest of internal/ keep v1 decoding: %v", offenders)
+	}
+}
+
+// A detection result that carries graphs but skips Attributed ships locations
+// with nothing to join reachability evidence to: the module root is the join
+// key ADR-0037 defines, and a detector that forgets it leaves every site
+// unattributed for the whole pipeline. Wrapping the returned literal is one
+// line, which is exactly the kind of rule that gets forgotten, so it is
+// enforced here rather than remembered.
+//
+// The two exemptions are recorded, not implied: neither source has a module
+// root to name. See the comments those files carry.
+func TestDetectionResultsCarryingGraphsAreAttributed(t *testing.T) {
+	exempt := map[string]string{
+		"../../internal/detectors/sbom/detector.go":          "an ingested document's packages were resolved elsewhere",
+		"../../internal/detectors/githubactions/detector.go": "a workflow file is not a module",
+	}
+	// A returned result literal that names Graphs. The wrapped form reads
+	// "return detectors.Attributed(sdk.DetectionResult{", so it never matches.
+	returnsGraphs := regexp.MustCompile(`return sdk\.DetectionResult\{[^}]*Graphs`)
+
+	var offenders []string
+	walkInternalGo(t, func(path, body string) {
+		if !strings.Contains(filepath.ToSlash(path), "internal/detectors/") {
+			return
+		}
+		if _, ok := exempt[filepath.ToSlash(path)]; ok {
+			return
+		}
+		if returnsGraphs.MatchString(body) {
+			offenders = append(offenders, path)
+		}
+	})
+	if len(offenders) > 0 {
+		t.Fatalf("these detectors return graphs without recording which module root produced each site; "+
+			"wrap the result in detectors.Attributed: %v", offenders)
 	}
 }

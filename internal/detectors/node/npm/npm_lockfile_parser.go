@@ -113,6 +113,12 @@ func npmLockPackageMetadata(entry npmLockPackage) *sdk.NPMPackageMetadata {
 type npmModuleGraph struct {
 	dir    string
 	rootID string
+	// declared is the scope this member's own package.json gave each of its
+	// direct dependencies, keyed by dependency name. It is what lets a site
+	// in one member be recorded as development while the same package is
+	// runtime in another -- the node-level union cannot say which member
+	// contributed which scope.
+	declared map[string]sdk.Scope
 }
 
 // npmLockfileGraphs carries the merged lockfile graph plus the workspace
@@ -125,6 +131,9 @@ type npmLockfileGraphs struct {
 	// lockfileVersion is the format version the lockfile declares, kept so the
 	// detector can compare it with the npm version the project pins.
 	lockfileVersion int
+	// rootDeclared is the lockfile root's own declared direct scopes, the
+	// root module's half of what npmModuleGraph.declared carries per member.
+	rootDeclared map[string]sdk.Scope
 }
 
 func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
@@ -294,7 +303,7 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 			// The descriptor must track whatever node now represents this
 			// path -- the same node pathToID records -- not the candidate
 			// that may have folded or been re-identified.
-			modules = append(modules, npmModuleGraph{dir: strings.TrimPrefix(filepath.ToSlash(packagePath), "./"), rootID: surviving.NodeID()})
+			modules = append(modules, npmModuleGraph{dir: strings.TrimPrefix(filepath.ToSlash(packagePath), "./"), rootID: surviving.NodeID(), declared: npmRootDirectScopes(entry)})
 		}
 	}
 
@@ -345,15 +354,15 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		}
 	}
 
+	rootDeclared := map[string]sdk.Scope{}
 	if rootEntry, ok := lockfile.Packages[""]; ok {
-		node.ApplyDirectDependencyScopes(depsGraph, rootNode.NodeID(), npmRootDirectScopes(rootEntry))
+		rootDeclared = npmRootDirectScopes(rootEntry)
+		node.ApplyDirectDependencyScopes(depsGraph, rootNode.NodeID(), rootDeclared)
 	}
 	for _, module := range modules {
-		if entry, ok := lockfile.Packages[module.dir]; ok {
-			node.ApplyDirectDependencyScopes(depsGraph, module.rootID, npmRootDirectScopes(entry))
-		}
+		node.ApplyDirectDependencyScopes(depsGraph, module.rootID, module.declared)
 	}
-	return npmLockfileGraphs{graph: depsGraph, rootID: rootNode.NodeID(), modules: modules, lockfileName: lockfileName, lockfileVersion: lockfile.LockfileVersion}, nil
+	return npmLockfileGraphs{graph: depsGraph, rootID: rootNode.NodeID(), modules: modules, lockfileName: lockfileName, lockfileVersion: lockfile.LockfileVersion, rootDeclared: rootDeclared}, nil
 }
 
 func npmLockfileName(projectPath string) (string, error) {

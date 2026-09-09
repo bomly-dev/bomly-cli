@@ -82,10 +82,10 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 	warnings := node.PackageManagerWarnings(workingDir, sdk.PackageManagerPNPM,
 		node.LockfileFormat{File: "pnpm-lock.yaml", Version: graphs.lockfileVersion})
 	if len(graphs.modules) == 0 {
-		return sdk.DetectionResult{
+		return detectors.Attributed(sdk.DetectionResult{
 			Graphs:   sdk.SingleGraphContainer(graphs.graph, rootManifest),
 			Warnings: warnings,
-		}, nil
+		}), nil
 	}
 
 	entries := make([]sdk.GraphEntry, 0, len(graphs.modules)+1)
@@ -109,10 +109,10 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 	}
 	req.DetectorLogger(d.Logger).Info("pnpm lockfile detector resolved workspace members",
 		zap.Int("members", len(graphs.modules)))
-	return sdk.DetectionResult{
+	return detectors.Attributed(sdk.DetectionResult{
 		Graphs:   &sdk.GraphContainer{Entries: entries},
 		Warnings: warnings,
-	}, nil
+	}), nil
 }
 
 func (d LockfileDetector) base() node.BaseDetector {

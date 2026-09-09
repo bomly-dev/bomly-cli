@@ -105,9 +105,9 @@ func (d NativeDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 	}
 	logger.Info(fmt.Sprintf("sbt native detector found %d dependencies in %s", g.Size(), logging.FormatDuration(time.Since(started))))
 	AttachSBTPositions(g, workingDir)
-	return sdk.DetectionResult{
+	return detectors.Attributed(sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns)),
-	}, nil
+	}), nil
 }
 
 // FallbackDetector returns the configured fallback detector.

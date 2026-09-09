@@ -36,6 +36,7 @@ func rebaseGraphLocations(g *sdk.Graph, relativePath string) {
 		for _, location := range mutableLocations(node) {
 			location.RealPath = rebaseLocationPath(location.RealPath, rel)
 			location.AccessPath = rebaseLocationPath(location.AccessPath, rel)
+			location.ModuleRoot = rebaseModuleRoot(location.ModuleRoot, rel)
 			if location.Position != nil {
 				location.Position.File = rebaseLocationPath(location.Position.File, rel)
 			}
@@ -86,6 +87,26 @@ func rebaseLocationPath(p, rel string) string {
 		return trimmed
 	}
 	return rel + "/" + trimmed
+}
+
+// rebaseModuleRoot moves a location's module root into repository-root
+// coordinates alongside its paths.
+//
+// A detector names the module it resolved in its own working directory, so
+// every subproject calls its own root "." -- and left alone, two subprojects
+// scanned recursively would both claim ".", making the module root useless as
+// the join key ADR-0037 defines it to be. An unattributed root stays empty:
+// the prefix would turn "the producer did not attribute this site" into a
+// claim about a directory.
+func rebaseModuleRoot(moduleRoot, rel string) string {
+	trimmed := strings.TrimSpace(toSlashPath(moduleRoot))
+	if trimmed == "" {
+		return moduleRoot
+	}
+	if trimmed == "." {
+		return rel
+	}
+	return rebaseLocationPath(trimmed, rel)
 }
 
 func toSlashPath(p string) string {

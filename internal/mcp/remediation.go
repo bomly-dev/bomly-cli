@@ -23,6 +23,10 @@ type remediationInput struct {
 	// IncludeReachability gates the reachability field on compact findings
 	// (only meaningful when the analyze stage ran).
 	IncludeReachability bool
+	// Nodes is the graph's package-to-nodes reverse index, built once per
+	// batch by the entry points below. It is a derived view of Graph and is
+	// never carried across a mutation of it.
+	Nodes sdk.PackageNodeIndex
 }
 
 // remediationOutput is the classified, grouped, capped projection of the
@@ -38,6 +42,7 @@ type remediationOutput struct {
 // choose actions or package-manager advice; enrichment already made those
 // decisions in internal/remediation.
 func buildRemediations(in remediationInput) remediationOutput {
+	in.indexNodes()
 	trunc := &TruncationInfo{}
 	visibleFindings := map[string]struct{}{}
 	omittedFindings := map[string]struct{}{}
@@ -45,7 +50,7 @@ func buildRemediations(in remediationInput) remediationOutput {
 	findingsByPackage := make(map[string][]CompactFinding)
 
 	for _, f := range in.Findings {
-		vuln := lookupFindingVulnerability(in.Registry, f)
+		_, vuln := output.FindingAdvisory(in.Registry, f)
 		compact, _ := buildCompactFinding(f, vuln, in)
 		if f.Kind != sdk.FindingKindVulnerability || f.PackageRef == "" ||
 			f.PolicyStatus == sdk.FindingPolicyStatusWarn ||
@@ -249,7 +254,7 @@ type ancestorTarget struct {
 // ancestor.
 func buildCompactFinding(f sdk.Finding, vuln *sdk.Vulnerability, in remediationInput) (CompactFinding, ancestorTarget) {
 	compact := CompactFinding{
-		VulnID:         findingVulnID(f),
+		VulnID:         output.FindingVulnerabilityID(f),
 		Kind:           string(f.Kind),
 		Severity:       string(f.Severity),
 		RuleID:         f.RuleID,
@@ -271,7 +276,7 @@ func buildCompactFinding(f sdk.Finding, vuln *sdk.Vulnerability, in remediationI
 		}
 	}
 
-	graphNode := resolveGraphNode(in.Graph, f)
+	graphNode := resolveGraphNode(in.Graph, in.Nodes, f)
 	node, isDependency := sdk.AsDependencyNode(graphNode)
 	// Without graph placement we cannot name a different ancestor, so the
 	// package itself is the direct remediation target.
@@ -413,7 +418,7 @@ func remediationFindings(
 }
 
 func findingIdentifiesVulnerability(finding sdk.Finding, vulnerability sdk.Vulnerability) bool {
-	identity := strings.ToLower(strings.TrimSpace(findingVulnID(finding)))
+	identity := strings.ToLower(strings.TrimSpace(output.FindingVulnerabilityID(finding)))
 	if identity == "" {
 		return false
 	}
@@ -494,9 +499,27 @@ func sortCompactFindings(findings []CompactFinding) {
 
 // --- graph and registry resolution -----------------------------------------
 
+// indexNodes builds the package-to-nodes reverse index this batch will join
+// against, unless the caller already supplied one. Building it per finding
+// would cost more than the walk it replaces; building it per batch is what
+// makes the join constant-time.
+func (in *remediationInput) indexNodes() {
+	if in.Nodes == nil {
+		in.Nodes = sdk.IndexNodesByPackage(in.Graph)
+	}
+}
+
 // resolveGraphNode finds the graph node a finding refers to: first via
-// DependencyRefs (node IDs recorded by the auditor), then by PURL match.
-func resolveGraphNode(g *sdk.Graph, f sdk.Finding) sdk.GraphNode {
+// DependencyRefs (node IDs recorded by the auditor), then by the package it
+// names.
+//
+// The second step used to walk every node in the graph looking for one whose
+// id matched, once per finding. The reverse index is the SDK's answer to
+// exactly that question, and it asks it the right way round: a finding names a
+// package, and the nodes that resolved to that package are what the index
+// holds. Auditors that record no DependencyRefs -- and a scan with thousands
+// of findings -- no longer pay a full graph traversal each.
+func resolveGraphNode(g *sdk.Graph, nodes sdk.PackageNodeIndex, f sdk.Finding) sdk.GraphNode {
 	if g == nil {
 		return nil
 	}
@@ -505,18 +528,12 @@ func resolveGraphNode(g *sdk.Graph, f sdk.Finding) sdk.GraphNode {
 			return node
 		}
 	}
-	if f.PackageRef == "" {
-		return nil
+	// Nodes() orders by node id, so the pick is stable when a package
+	// resolved from more than one place.
+	if matches := nodes.Nodes(f.PackageRef); len(matches) > 0 {
+		return matches[0]
 	}
-	var match sdk.GraphNode
-	g.WalkNodes(func(node sdk.GraphNode) bool {
-		if node != nil && node.NodeID() == f.PackageRef {
-			match = node
-			return false
-		}
-		return true
-	})
-	return match
+	return nil
 }
 
 // shortestPathToRoot returns the shortest root→target chain for a node using
@@ -622,19 +639,19 @@ func manifestForDependency(manifests []output.ScanManifest, dependencyID string)
 	return nil
 }
 
+// packageIdentityFromRegistry projects the shared presentation identity of a
+// package reference into the compact wire shape. The resolution -- registry
+// first, package URL second -- belongs to output.IdentifyPackageRef, which the
+// CLI documents and the TUI answer from too; only the field names differ here.
 func packageIdentityFromRegistry(registry *sdk.PackageRegistry, purl string) PackageIdentity {
-	if registry != nil {
-		if pkg, ok := registry.Get(purl); ok && pkg != nil {
-			return PackageIdentity{
-				Name:      pkg.DisplayName(),
-				Org:       pkg.Org,
-				Version:   pkg.Version,
-				Purl:      pkg.ID,
-				Ecosystem: string(pkg.Ecosystem),
-			}
-		}
+	identity := output.IdentifyPackageRef(registry, purl)
+	return PackageIdentity{
+		Name:      identity.Name,
+		Org:       identity.Org,
+		Version:   identity.Version,
+		Purl:      identity.Purl,
+		Ecosystem: identity.Ecosystem,
 	}
-	return PackageIdentity{Name: purl, Purl: purl}
 }
 
 func packageIdentityFromDependency(node sdk.GraphNode) PackageIdentity {
@@ -649,41 +666,6 @@ func packageIdentityFromDependency(node sdk.GraphNode) PackageIdentity {
 		Purl:      node.NodeID(),
 		Ecosystem: string(coords.Ecosystem),
 	}
-}
-
-// lookupFindingVulnerability resolves the advisory a finding references
-// (PackageRef + VulnerabilityID, matching aliases too) against the registry.
-func lookupFindingVulnerability(registry *sdk.PackageRegistry, f sdk.Finding) *sdk.Vulnerability {
-	if registry == nil || f.PackageRef == "" {
-		return nil
-	}
-	pkg, ok := registry.Get(f.PackageRef)
-	if !ok || pkg == nil {
-		return nil
-	}
-	vulnID := findingVulnID(f)
-	if vulnID == "" {
-		return nil
-	}
-	for idx := range pkg.Vulnerabilities {
-		v := &pkg.Vulnerabilities[idx]
-		if v.ID == vulnID {
-			return v
-		}
-		for _, alias := range v.Aliases {
-			if alias == vulnID {
-				return v
-			}
-		}
-	}
-	return nil
-}
-
-func findingVulnID(f sdk.Finding) string {
-	if f.VulnerabilityID != "" {
-		return f.VulnerabilityID
-	}
-	return f.ID
 }
 
 // --- small helpers ----------------------------------------------------------

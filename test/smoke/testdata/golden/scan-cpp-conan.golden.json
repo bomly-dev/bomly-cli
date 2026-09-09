@@ -21,19 +21,29 @@
           "locations": [
             {
               "access_path": "conanfile.txt",
+              "module_root": ".",
               "position": {
                 "file": "conanfile.txt",
                 "line": 0
               },
-              "real_path": "conanfile.txt"
+              "real_path": "conanfile.txt",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             },
             {
               "access_path": "conan.lock",
+              "module_root": ".",
               "position": {
                 "file": "conan.lock",
                 "line": 0
               },
-              "real_path": "conan.lock"
+              "real_path": "conan.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "cmake",
@@ -53,19 +63,29 @@
           "locations": [
             {
               "access_path": "conanfile.txt",
+              "module_root": ".",
               "position": {
                 "file": "conanfile.txt",
                 "line": 0
               },
-              "real_path": "conanfile.txt"
+              "real_path": "conanfile.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             },
             {
               "access_path": "conan.lock",
+              "module_root": ".",
               "position": {
                 "file": "conan.lock",
                 "line": 0
               },
-              "real_path": "conan.lock"
+              "real_path": "conan.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "openssl",
@@ -83,19 +103,29 @@
           "locations": [
             {
               "access_path": "conanfile.txt",
+              "module_root": ".",
               "position": {
                 "file": "conanfile.txt",
                 "line": 0
               },
-              "real_path": "conanfile.txt"
+              "real_path": "conanfile.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             },
             {
               "access_path": "conan.lock",
+              "module_root": ".",
               "position": {
                 "file": "conan.lock",
                 "line": 0
               },
-              "real_path": "conan.lock"
+              "real_path": "conan.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "zlib",

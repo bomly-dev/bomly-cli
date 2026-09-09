@@ -33,11 +33,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "algo-httpserv",
@@ -55,11 +60,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "ansi-colors",
@@ -77,11 +87,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "ansi-regex",
@@ -99,27 +114,42 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             },
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             },
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "ansi-regex",
@@ -139,11 +169,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "ansi-styles",
@@ -164,11 +199,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "anymatch",
@@ -188,11 +228,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "argparse",
@@ -212,11 +257,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "async",
@@ -234,11 +284,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "balanced-match",
@@ -256,11 +311,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "binary-extensions",
@@ -281,11 +341,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "brace-expansion",
@@ -305,11 +370,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "braces",
@@ -327,11 +397,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "browser-stdout",
@@ -352,11 +427,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "busboy",
@@ -374,11 +454,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "camelcase",
@@ -400,11 +485,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "chalk",
@@ -431,11 +521,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "chokidar",
@@ -457,11 +552,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "cliui",
@@ -481,11 +581,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "color-convert",
@@ -503,11 +608,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "color-name",
@@ -525,11 +635,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "concat-map",
@@ -547,11 +662,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "core-util-is",
@@ -571,11 +691,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "debug",
@@ -593,11 +718,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "decamelize",
@@ -617,11 +747,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "define-properties",
@@ -642,11 +777,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "dicer",
@@ -664,11 +804,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "diff",
@@ -686,11 +831,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "emoji-regex",
@@ -720,11 +870,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "es-abstract",
@@ -746,11 +901,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "es-to-primitive",
@@ -768,11 +928,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "escape-string-regexp",
@@ -790,11 +955,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "esprima",
@@ -814,11 +984,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "fill-range",
@@ -838,11 +1013,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "find-up",
@@ -862,11 +1042,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "flat",
@@ -888,11 +1073,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "fs-extra",
@@ -910,11 +1100,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "fs.realpath",
@@ -932,11 +1127,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "fsevents",
@@ -954,11 +1154,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "function-bind",
@@ -977,11 +1182,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "get-caller-file",
@@ -1001,11 +1211,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "glob-parent",
@@ -1030,11 +1245,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "glob",
@@ -1052,11 +1272,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "graceful-fs",
@@ -1074,11 +1299,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "growl",
@@ -1096,11 +1326,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "handy",
@@ -1118,11 +1353,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "has-flag",
@@ -1140,11 +1380,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "has-symbols",
@@ -1164,11 +1409,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "has",
@@ -1186,11 +1436,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "he",
@@ -1208,11 +1463,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "htmlparser",
@@ -1233,11 +1493,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "inflight",
@@ -1255,11 +1520,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "inherits",
@@ -1280,11 +1550,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "is-binary-path",
@@ -1302,11 +1577,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "is-buffer",
@@ -1324,11 +1604,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "is-callable",
@@ -1346,11 +1631,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "is-date-object",
@@ -1368,11 +1658,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "is-extglob",
@@ -1390,11 +1685,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "is-fullwidth-code-point",
@@ -1414,11 +1714,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "is-glob",
@@ -1436,11 +1741,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "is-number",
@@ -1460,11 +1770,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "is-regex",
@@ -1484,11 +1799,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "is-symbol",
@@ -1506,11 +1826,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "is",
@@ -1528,11 +1853,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "isarray",
@@ -1550,11 +1880,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "isexe",
@@ -1575,11 +1910,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "js-yaml",
@@ -1600,11 +1940,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "js-yaml",
@@ -1624,11 +1969,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jsonfile",
@@ -1649,11 +1999,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "larvitbase",
@@ -1673,11 +2028,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "larvitfs",
@@ -1702,11 +2062,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "larvitreqparser",
@@ -1727,11 +2092,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "larvitrouter",
@@ -1749,11 +2119,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "larvitutils",
@@ -1774,11 +2149,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "locate-path",
@@ -1796,11 +2176,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "lodash",
@@ -1820,11 +2205,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "log-symbols",
@@ -1842,11 +2232,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "marked",
@@ -1866,11 +2261,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "minimatch",
@@ -1888,11 +2288,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "minimist",
@@ -1910,11 +2315,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "minimist",
@@ -1934,11 +2344,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "mkdirp",
@@ -1981,11 +2396,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "mocha",
@@ -2003,11 +2423,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "ms",
@@ -2028,11 +2453,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "node-environment-flags",
@@ -2053,11 +2483,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "node-yaml-config",
@@ -2078,11 +2513,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "node.extend",
@@ -2100,11 +2540,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "normalize-path",
@@ -2122,11 +2567,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "object-inspect",
@@ -2144,11 +2594,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "object-keys",
@@ -2171,11 +2626,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "object.assign",
@@ -2196,11 +2656,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "object.getownpropertydescriptors",
@@ -2220,11 +2685,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "once",
@@ -2245,11 +2715,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "optimist",
@@ -2269,11 +2744,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "p-limit",
@@ -2293,11 +2773,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "p-locate",
@@ -2315,11 +2800,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "p-try",
@@ -2337,11 +2827,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "path-exists",
@@ -2359,11 +2854,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "path-is-absolute",
@@ -2381,11 +2881,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "picomatch",
@@ -2403,11 +2908,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "punycode",
@@ -2425,11 +2935,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "qs",
@@ -2447,11 +2962,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "querystring",
@@ -2474,11 +2994,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "readable-stream",
@@ -2498,11 +3023,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "readdirp",
@@ -2520,11 +3050,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "require-directory",
@@ -2542,11 +3077,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "require-main-filename",
@@ -2564,11 +3104,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "semver",
@@ -2586,11 +3131,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "set-blocking",
@@ -2608,11 +3158,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sprintf-js",
@@ -2630,11 +3185,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "streamsearch",
@@ -2655,11 +3215,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "string-width",
@@ -2681,27 +3246,42 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             },
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             },
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "string-width",
@@ -2722,11 +3302,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "string.prototype.trimend",
@@ -2747,11 +3332,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "string.prototype.trimstart",
@@ -2769,11 +3359,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "string_decoder",
@@ -2793,11 +3388,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "strip-ansi",
@@ -2817,27 +3417,42 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             },
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             },
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "strip-ansi",
@@ -2855,11 +3470,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "strip-json-comments",
@@ -2879,11 +3499,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "supports-color",
@@ -2903,11 +3528,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "supports-color",
@@ -2927,11 +3557,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "to-regex-range",
@@ -2955,11 +3590,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "to",
@@ -2977,11 +3617,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "underscore",
@@ -2999,11 +3644,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "universalify",
@@ -3024,11 +3674,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "url",
@@ -3046,11 +3701,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "uuid",
@@ -3068,11 +3728,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "which-module",
@@ -3092,11 +3757,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "which",
@@ -3116,11 +3786,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "wide-align",
@@ -3138,11 +3813,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "wordwrap",
@@ -3164,11 +3844,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "wrap-ansi",
@@ -3186,11 +3871,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "wrappy",
@@ -3208,11 +3898,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "y18n",
@@ -3233,11 +3928,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "yargs-parser",
@@ -3259,11 +3959,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "yargs-unparser",
@@ -3292,11 +3997,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "yargs",

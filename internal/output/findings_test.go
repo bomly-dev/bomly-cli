@@ -68,14 +68,41 @@ func TestFindingsFromScanPreservesScopedIdentity(t *testing.T) {
 	}
 }
 
-func TestFindingsFromScanWithoutRegistryFallsBackToPurl(t *testing.T) {
+// Without a registry the package reference is still a package URL, and a
+// package URL already says what the package is called. The fallback reads it
+// rather than printing it: a findings table whose Package column says
+// "pkg:npm/%40scope/deep@2.0.0" where the enriched rows say "@scope/deep" is
+// showing the reader a lookup key.
+func TestFindingsFromScanWithoutRegistryIdentifiesFromThePurl(t *testing.T) {
 	findings := FindingsFromScan([]sdk.Finding{{
 		ID:         "GHSA-x",
 		Kind:       sdk.FindingKindVulnerability,
-		PackageRef: "pkg:npm/lib@1.0.0",
+		PackageRef: "pkg:npm/%40scope/deep@2.0.0",
 	}}, nil)
-	if findings[0].Package.Purl != "pkg:npm/lib@1.0.0" || findings[0].Package.Name != "pkg:npm/lib@1.0.0" {
-		t.Fatalf("expected purl fallback identity, got %#v", findings[0].Package)
+	got := findings[0].Package
+	want := FindingPackageRef{
+		Name:      "@scope/deep",
+		Org:       "scope",
+		Version:   "2.0.0",
+		Purl:      "pkg:npm/%40scope/deep@2.0.0",
+		Ecosystem: "npm",
+	}
+	if got != want {
+		t.Fatalf("purl fallback identity: got %#v, want %#v", got, want)
+	}
+}
+
+// A reference that is not a package URL has nothing better behind it, so the
+// raw string stays the name. This is the case the fallback must not lose.
+func TestFindingsFromScanKeepsANonPurlReferenceVerbatim(t *testing.T) {
+	findings := FindingsFromScan([]sdk.Finding{{
+		ID:         "POLICY-1",
+		Kind:       sdk.FindingKindPackage,
+		PackageRef: "not-a-purl",
+	}}, nil)
+	got := findings[0].Package
+	if got.Name != "not-a-purl" || got.Purl != "not-a-purl" || got.Version != "" || got.Ecosystem != "" {
+		t.Fatalf("non-purl reference should survive verbatim, got %#v", got)
 	}
 }
 

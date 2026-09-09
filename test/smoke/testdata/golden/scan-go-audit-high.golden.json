@@ -38,11 +38,17 @@
           "locations": [
             {
               "access_path": "go.mod",
+              "module_root": ".",
               "position": {
                 "file": "go.mod",
                 "line": 0
               },
-              "real_path": "go.mod"
+              "real_path": "go.mod",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/google/go-github",
@@ -63,11 +69,16 @@
           "locations": [
             {
               "access_path": "go.mod",
+              "module_root": ".",
               "position": {
                 "file": "go.mod",
                 "line": 0
               },
-              "real_path": "go.mod"
+              "real_path": "go.mod",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/google/go-querystring",
@@ -85,11 +96,16 @@
           "locations": [
             {
               "access_path": "go.mod",
+              "module_root": ".",
               "position": {
                 "file": "go.mod",
                 "line": 0
               },
-              "real_path": "go.mod"
+              "real_path": "go.mod",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/google/uuid",
@@ -107,11 +123,17 @@
           "locations": [
             {
               "access_path": "go.mod",
+              "module_root": ".",
               "position": {
                 "file": "go.mod",
                 "line": 0
               },
-              "real_path": "go.mod"
+              "real_path": "go.mod",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "golang.org/x/text",

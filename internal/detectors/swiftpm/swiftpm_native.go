@@ -82,9 +82,9 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 		return sdk.DetectionResult{}, fmt.Errorf("parse swift show-dependencies output: %w", err)
 	}
 	logger.Info(fmt.Sprintf("SwiftPM native detector found %d dependencies in %s", g.Size(), logging.FormatDuration(time.Since(started))))
-	return sdk.DetectionResult{
+	return detectors.Attributed(sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns)),
-	}, nil
+	}), nil
 }
 
 // nativeGraph builds the dependency graph for a native SwiftPM run: the tool's

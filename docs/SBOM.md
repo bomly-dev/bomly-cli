@@ -403,8 +403,10 @@ Some information necessarily becomes less specific during conversion:
   prefers: a `bomly:scopes` CycloneDX property, and the `scope=` field of the
   SPDX package comment. A Bomly document therefore round-trips its scope set
   exactly, and a document from any other producer still yields a usable scope.
-  Reading the other way, CycloneDX `required` and `optional` both become
-  runtime and `excluded` becomes development.
+  Reading the other way, CycloneDX `required` becomes runtime, while
+  `optional` and `excluded` become development — the specification defines an
+  optional component as one that is not installed or otherwise reachable, so
+  it is absent from what runs.
 - A scope carrier naming a token this build does not recognize keeps the
   scopes it does recognize. The carrier is Bomly's own, so an unreadable token
   is almost always one a newer Bomly wrote; refusing the whole value would have

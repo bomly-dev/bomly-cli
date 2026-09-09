@@ -296,8 +296,16 @@ func cycloneDXEmittedHashes(digests []sdk.Digest) *[]cdx.Hash {
 		if !ok {
 			continue
 		}
+		// Through the same rendering the component hashes use. Casting the
+		// SDK token straight into CycloneDX's enum wrote "sha256" where the
+		// schema says "SHA-256" -- invalid for every algorithm, not only the
+		// ones CycloneDX has no name for.
+		algorithm := cycloneDXHashAlgorithm(string(normalized.Algorithm))
+		if algorithm == "" {
+			continue
+		}
 		hashes = append(hashes, cdx.Hash{
-			Algorithm: cdx.HashAlgorithm(normalized.Algorithm),
+			Algorithm: algorithm,
 			Value:     normalized.Value,
 		})
 	}

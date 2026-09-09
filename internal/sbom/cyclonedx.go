@@ -597,27 +597,23 @@ func cycloneDXHashes(digests []Digest) []cdx.Hash {
 // cycloneDXHashAlgorithm maps a digest algorithm string onto a CycloneDX hash
 // algorithm constant. Returns "" when the algorithm is unsupported so the
 // digest is dropped rather than emitting an invalid BOM.
+// cycloneDXHashAlgorithm renders a digest algorithm in CycloneDX's spelling.
+//
+// The registry is the SDK's, not a list here. A hand-written switch stood in
+// this spot and knew eight algorithms against the registry's nineteen, so a
+// component carrying BLAKE2b, BLAKE3 or Streebog had that checksum silently
+// dropped -- the same defect this PR already fixed on the SPDX side, in the
+// same shape, one file away.
+//
+// An algorithm CycloneDX does not define returns "", which the caller drops.
+// That is a real limit of the format: MD2, MD4, MD6 and ADLER32 are SPDX
+// spellings with no CycloneDX equivalent.
 func cycloneDXHashAlgorithm(algorithm string) cdx.HashAlgorithm {
-	switch strings.ToLower(strings.TrimSpace(algorithm)) {
-	case "md5":
-		return cdx.HashAlgoMD5
-	case "sha1", "sha-1":
-		return cdx.HashAlgoSHA1
-	case "sha256", "sha-256":
-		return cdx.HashAlgoSHA256
-	case "sha384", "sha-384":
-		return cdx.HashAlgoSHA384
-	case "sha512", "sha-512":
-		return cdx.HashAlgoSHA512
-	case "sha3-256":
-		return cdx.HashAlgoSHA3_256
-	case "sha3-384":
-		return cdx.HashAlgoSHA3_384
-	case "sha3-512":
-		return cdx.HashAlgoSHA3_512
-	default:
+	parsed, err := sdk.ParseDigestAlgorithm(algorithm)
+	if err != nil {
 		return ""
 	}
+	return cdx.HashAlgorithm(parsed.CycloneDXName())
 }
 
 func cycloneDXEOLProperties(eol *EOL) []cdx.Property {

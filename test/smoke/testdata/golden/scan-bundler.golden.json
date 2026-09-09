@@ -43,11 +43,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "actionmailer",
@@ -72,11 +77,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "actionpack",
@@ -101,11 +112,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "actionview",
@@ -127,11 +144,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "activejob",
@@ -154,11 +176,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "activemerchant",
@@ -179,11 +206,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "activemodel",
@@ -206,11 +239,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "activerecord",
@@ -234,11 +272,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "activesupport",
@@ -259,11 +303,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "acts_as_list",
@@ -281,11 +330,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "addressable",
@@ -314,11 +368,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "administrate",
@@ -336,11 +395,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "allison",
@@ -358,11 +422,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "arel",
@@ -383,11 +452,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "authlogic",
@@ -407,11 +481,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "autoprefixer-rails",
@@ -431,11 +510,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "awesome_nested_set",
@@ -453,11 +537,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "bcrypt",
@@ -478,11 +567,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "bootstrap-sass",
@@ -503,11 +597,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "bourbon",
@@ -525,11 +624,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "builder",
@@ -548,11 +653,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "byebug",
@@ -570,11 +680,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "camertron-eprun",
@@ -592,11 +707,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cancancan",
@@ -616,11 +736,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "canonical-rails",
@@ -640,11 +765,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "carmen",
@@ -662,11 +792,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cldr-plurals-runtime-rb",
@@ -686,11 +821,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "climate_control",
@@ -710,11 +850,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cocaine",
@@ -735,11 +880,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "coffee-rails",
@@ -757,11 +907,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "coffee-script-source",
@@ -782,11 +937,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "coffee-script",
@@ -804,11 +964,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "colorize",
@@ -826,11 +991,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "concurrent-ruby",
@@ -850,11 +1020,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "css_parser",
@@ -874,11 +1049,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "datetime_picker_rails",
@@ -896,11 +1076,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "debug_inspector",
@@ -923,11 +1108,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "deface",
@@ -951,11 +1141,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "devise",
@@ -976,11 +1171,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "devise_invitable",
@@ -1003,11 +1203,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "echoe",
@@ -1025,11 +1230,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "erubis",
@@ -1048,11 +1259,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "execjs",
@@ -1072,11 +1288,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "festivaltts4r",
@@ -1094,11 +1315,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ffaker",
@@ -1118,11 +1344,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "font-awesome-rails",
@@ -1142,11 +1373,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "friendly_id",
@@ -1166,11 +1402,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "globalid",
@@ -1188,11 +1429,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "highline",
@@ -1212,11 +1458,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "hoe",
@@ -1234,11 +1485,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "htmlentities",
@@ -1259,11 +1515,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "httparty",
@@ -1281,11 +1542,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "i18n",
@@ -1307,11 +1574,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jbuilder",
@@ -1333,11 +1605,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jquery-rails",
@@ -1357,11 +1634,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jquery-ui-rails",
@@ -1379,11 +1661,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "json",
@@ -1402,11 +1690,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "json_pure",
@@ -1427,11 +1720,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "kaminari",
@@ -1451,11 +1749,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "lingq",
@@ -1475,11 +1778,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "loofah",
@@ -1500,11 +1809,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mail",
@@ -1522,11 +1836,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mime-types-data",
@@ -1546,11 +1865,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mime-types",
@@ -1568,11 +1892,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "mini_portile2",
@@ -1591,11 +1921,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "minitest",
@@ -1616,11 +1952,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "momentjs-rails",
@@ -1640,11 +1981,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "monetize",
@@ -1665,11 +2011,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "money",
@@ -1687,11 +2038,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "multi_json",
@@ -1709,11 +2065,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "multi_xml",
@@ -1734,11 +2095,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "neat",
@@ -1758,11 +2124,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "nokogiri",
@@ -1781,11 +2153,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "normalize-rails",
@@ -1803,11 +2180,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "orm_adapter",
@@ -1830,11 +2212,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "paperclip",
@@ -1854,11 +2241,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "paranoia",
@@ -1878,11 +2270,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "polyamorous",
@@ -1900,11 +2297,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "polyglot",
@@ -1925,11 +2327,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "premailer-rails",
@@ -1950,11 +2357,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "premailer",
@@ -1972,11 +2384,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "puma",
@@ -1996,11 +2413,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "rabl",
@@ -2020,11 +2442,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "rack-ssl",
@@ -2044,11 +2471,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "rack-test",
@@ -2067,11 +2500,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "rack",
@@ -2092,11 +2531,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "rails-deprecated_sanitizer",
@@ -2119,11 +2564,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "rails-dom-testing",
@@ -2144,11 +2595,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "rails-html-sanitizer",
@@ -2177,11 +2634,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "rails",
@@ -2204,11 +2666,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "railties",
@@ -2227,11 +2695,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "rake",
@@ -2256,11 +2730,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ransack",
@@ -2280,11 +2759,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "rdoc",
@@ -2304,11 +2788,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "responders",
@@ -2328,11 +2817,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "rubyforge",
@@ -2356,11 +2850,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sass-rails",
@@ -2378,11 +2877,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sass",
@@ -2402,11 +2906,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "select2-rails",
@@ -2424,11 +2933,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "selectize-rails",
@@ -2449,11 +2963,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sinatra",
@@ -2471,11 +2990,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sixarm_ruby_unaccent",
@@ -2500,11 +3024,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "spree",
@@ -2526,11 +3055,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "spree_api",
@@ -2555,11 +3089,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "spree_backend",
@@ -2579,11 +3118,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "spree_cmd",
@@ -2626,11 +3170,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "spree_core",
@@ -2654,11 +3203,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "spree_frontend",
@@ -2678,11 +3232,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "spree_sample",
@@ -2700,11 +3259,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "spring",
@@ -2726,11 +3290,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sprockets-rails",
@@ -2751,11 +3320,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sprockets",
@@ -2773,11 +3347,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sqlite3",
@@ -2798,11 +3377,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "state_machines-activemodel",
@@ -2823,11 +3407,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "state_machines-activerecord",
@@ -2845,11 +3434,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "state_machines",
@@ -2867,11 +3461,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "stringex",
@@ -2889,11 +3488,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "thor",
@@ -2912,11 +3517,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "thread_safe",
@@ -2935,11 +3546,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "tilt",
@@ -2957,11 +3573,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "truncate_html",
@@ -2981,11 +3602,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "turbolinks",
@@ -3008,11 +3634,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "twitter_cldr",
@@ -3043,11 +3674,17 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "tzinfo",
@@ -3068,11 +3705,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "uglifier",
@@ -3095,11 +3737,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "versioncake",
@@ -3119,11 +3766,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "warden",
@@ -3145,11 +3797,16 @@
           "locations": [
             {
               "access_path": "Gemfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Gemfile.lock",
                 "line": 0
               },
-              "real_path": "Gemfile.lock"
+              "real_path": "Gemfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "web-console",

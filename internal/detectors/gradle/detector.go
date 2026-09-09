@@ -117,15 +117,15 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 	rootManifest := detectorkit.InferManifestMetadata(req, evidencePatterns)
 	if len(parsed.modules) == 0 {
 		AttachGradlePositions(parsed.rootGraph, workingDir, "")
-		return sdk.DetectionResult{
+		return detectors.Attributed(sdk.DetectionResult{
 			Graphs: sdk.SingleGraphContainer(parsed.rootGraph, rootManifest),
-		}, nil
+		}), nil
 	}
 
 	logger.Info("gradle detector resolved subprojects", zap.Int("subprojects", len(parsed.modules)))
-	return sdk.DetectionResult{
+	return detectors.Attributed(sdk.DetectionResult{
 		Graphs: &sdk.GraphContainer{Entries: subprojectGraphEntries(parsed, rootManifest, workingDir)},
-	}, nil
+	}), nil
 }
 
 // subprojectGraphEntries builds one manifest entry per parsed project graph: a

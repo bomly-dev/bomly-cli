@@ -106,9 +106,9 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 
 	AttachGemfileLockPositions(depsGraph, lockPath, workingDir)
 
-	return sdk.DetectionResult{
+	return detectors.Attributed(sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns)),
-	}, nil
+	}), nil
 }
 
 // FallbackDetector returns the configured fallback detector.

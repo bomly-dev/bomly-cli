@@ -206,6 +206,9 @@ Complete reference for the `bomly explain` JSON output.
 | `real_path` | `string` | |
 | `access_path` | `string` | |
 | `position` | [`PositionRef`](#positionref) | |
+| `module_root` | `string` | |
+| `scopes` | Array<`string`> | |
+| `relationship` | `string` | |
 
 ### `Metadata`
 

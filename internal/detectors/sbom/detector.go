@@ -109,6 +109,12 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("convert sbom %q to graph: %w", sbomPath, err)
 	}
+	// Not wrapped in detectors.Attributed, and the guard test names this file
+	// as the exemption: this detector converts a document, it does not resolve
+	// a project. Whatever module produced those packages was resolved
+	// somewhere else, by something else, and the paths in the document are the
+	// producer's, not this scan's -- so an empty module root is the honest
+	// record of an unattributed site.
 	graphs := sdk.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns))
 	// What the document said about itself rides the entry it became, so a
 	// later export can restate it instead of crediting only Bomly for a

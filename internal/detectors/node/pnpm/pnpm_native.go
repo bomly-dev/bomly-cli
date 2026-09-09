@@ -72,10 +72,10 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 		return sdk.DetectionResult{}, err
 	}
 	AttachPnpmLockPositions(depsGraph, d.base().ProjectDir(req.ProjectPath))
-	return sdk.DetectionResult{
+	return detectors.Attributed(sdk.DetectionResult{
 		Graphs:   sdk.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, pnpmManifestMetadataPatterns)),
 		Warnings: node.PackageManagerWarnings(d.base().ProjectDir(req.ProjectPath), sdk.PackageManagerPNPM, node.LockfileFormat{}),
-	}, nil
+	}), nil
 }
 
 func (d NativeDetector) base() node.BaseDetector {

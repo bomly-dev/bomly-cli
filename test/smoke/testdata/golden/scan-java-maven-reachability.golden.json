@@ -72,11 +72,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -145,11 +150,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -302,11 +312,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "matched": true,
@@ -340,11 +355,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -511,11 +531,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -620,11 +645,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -681,11 +711,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -774,11 +809,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -797,11 +837,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -820,11 +865,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -997,11 +1047,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,

@@ -127,3 +127,37 @@ func TestConsolidateGraphs_RebasesCoreDetectorLocations(t *testing.T) {
 		t.Fatalf("consolidated location = %#v, want apps/web/package-lock.json", node.Locations)
 	}
 }
+
+// TestRebaseGraphLocations_MovesModuleRootIntoRepositoryCoordinates covers the
+// join key ADR-0037 defines: a detector names its own working directory ".",
+// and two subprojects both claiming "." cannot be told apart.
+func TestRebaseGraphLocations_MovesModuleRootIntoRepositoryCoordinates(t *testing.T) {
+	g := sdk.New()
+	dep := testnodes.DepFrom(sdk.DependencyNode{
+		Coordinates: sdk.Coordinates{Name: "lodash", Version: "4.17.21"},
+		Locations: []sdk.PackageLocation{
+			{RealPath: "package-lock.json", ModuleRoot: "."},
+			{RealPath: "packages/lib/package.json", ModuleRoot: "packages/lib"},
+			{RealPath: "vendored/pom.xml"},
+		},
+	})
+	if err := g.AddNode(dep); err != nil {
+		t.Fatalf("AddNode: %v", err)
+	}
+
+	rebaseGraphLocations(g, "apps/web")
+
+	node, ok := testnodes.FindDep(g, "lodash@4.17.21")
+	if !ok {
+		t.Fatal("expected lodash node")
+	}
+	if got := node.Locations[0].ModuleRoot; got != "apps/web" {
+		t.Fatalf("subproject root module root = %q, want apps/web", got)
+	}
+	if got := node.Locations[1].ModuleRoot; got != "apps/web/packages/lib" {
+		t.Fatalf("nested module root = %q, want apps/web/packages/lib", got)
+	}
+	if got := node.Locations[2].ModuleRoot; got != "" {
+		t.Fatalf("unattributed module root = %q, want it left empty", got)
+	}
+}

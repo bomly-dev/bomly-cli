@@ -38,11 +38,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": "apps/web",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "left-pad",
@@ -65,11 +70,26 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": "apps/web",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive"
+            },
+            {
+              "access_path": "package-lock.json",
+              "module_root": "packages/lib",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "lodash",
@@ -92,11 +112,29 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": "apps/web",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
+            },
+            {
+              "access_path": "package-lock.json",
+              "module_root": "packages/lib",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "minimist",
@@ -139,11 +177,16 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": ".",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ms",
@@ -187,11 +230,26 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": "apps/web",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "transitive"
+            },
+            {
+              "access_path": "package-lock.json",
+              "module_root": "packages/lib",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "lodash",
@@ -214,11 +272,29 @@
           "locations": [
             {
               "access_path": "package-lock.json",
+              "module_root": "apps/web",
               "position": {
                 "file": "package-lock.json",
                 "line": 0
               },
-              "real_path": "package-lock.json"
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
+            },
+            {
+              "access_path": "package-lock.json",
+              "module_root": "packages/lib",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "minimist",

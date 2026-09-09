@@ -95,9 +95,15 @@ array, so a document being read has a handful of small objects open at a time,
 however many components it lists. Passing the largest files through unchecked
 would put the gap exactly where a crafted one would aim.
 
-Nothing else was tightened. A document with unknown members, unusual nesting,
-many thousands of components, or fields Bomly does not model still imports
-exactly as before.
+A document is also refused when one of its components carries a package URL
+that cannot be made well-formed. Skipping that component would drop it and
+every relationship naming it, and a scan of what remained would report clean
+while a genuinely vulnerable dependency was simply absent from the answer. The
+error names the component so the fix can be made in the document.
+
+Beyond those, nothing was tightened. A document with unknown members, unusual
+nesting, many thousands of components, or fields Bomly does not model still
+imports exactly as before.
 
 ### What an ingested document keeps
 
@@ -385,16 +391,24 @@ Reachability annotations and other Bomly-specific metadata are emitted in the JS
 
 Bomly preserves component identity (including PURL), dependency edges, roots,
 scope, package type, licenses, digests, CPEs, and the enrichment fields
-described above when the destination format has an equivalent representation. Encoding is
-deterministic when the scan timestamp and document identifiers are fixed.
+described above when the destination format has an equivalent representation.
+An ingested document keeps more than that list — supplier, originator,
+description, homepage, copyright, its own external references, and the
+document's own assertions all survive the round trip; see
+[What an ingested document keeps](#what-an-ingested-document-keeps) for the
+full set. Encoding is deterministic when the scan timestamp and document
+identifiers are fixed.
 
 Some information necessarily becomes less specific during conversion:
 
-- CycloneDX vulnerability records preserve ratings, CWEs, affected component
-  references, descriptions, and advisory URLs. SPDX 2.3 represents each
-  vulnerability as a package security advisory reference, so ratings, affected
-  ranges, fix versions, and descriptions are not carried through an SPDX 2.3
-  round trip.
+- Vulnerabilities are written but never read back. A CycloneDX export carries
+  ratings, CWEs, affected component references, descriptions, and advisory
+  URLs; an SPDX 2.3 export carries each vulnerability as a package security
+  advisory reference. Neither format's importer builds vulnerability records,
+  so converting a document does not carry its vulnerabilities across — Bomly
+  re-derives them by scanning with `--enrich`. What does survive an SPDX round
+  trip is the advisory reference itself, because it is preserved as an
+  ordinary external reference like any other the source stated.
 - Scope is a set in Bomly and a single value in both formats. A package
   reachable from both a runtime and a development root carries both scopes, so
   each format gets Bomly's projection in its native field — runtime wins a
@@ -430,18 +444,23 @@ Some information necessarily becomes less specific during conversion:
   source document: they are the shape Bomly's own origin export takes, and
   nothing in a document distinguishes Bomly's emission from a third party's —
   so reading them back would let a detector's guess about where a package came
-  from re-enter as though the document had asserted it. Every other reference
-  type is preserved with the category and type the source stated.
+  from re-enter as though the document had asserted it. SPDX drops a third
+  type for the same reason — Bomly's own `bomly-package-origin` reference —
+  and re-derives the `purl` and CPE references from the component's identity
+  and CPE list, so ingesting them would grow the document on every round trip.
+  Every other reference type is preserved with the category and type the
+  source stated.
 - Bomly relationship confidence (`direct`, `transitive`, or `unknown`), source
   provenance, reachability analysis, policy findings, and run diagnostics are
   report data rather than portable SBOM fields. Use JSON when those distinctions
   must survive export and import.
 - A CycloneDX document has one metadata component. When an input graph has
   multiple roots, every root remains in the dependency graph and the
-  synthesized primary component (see "Document identity" above) links them;
-  ingest paths that predate the synthesized root treat the first
-  deterministic root as the primary component. The primary component is
-  written with the same detail as an inventory entry, so a package that is
+  synthesized primary component (see "Document identity" above) links them.
+  An export that names no project falls back to the first deterministic root
+  instead; the internal benchmark is the only caller that does. The primary
+  component is written with the same detail as an inventory entry, so a
+  package that is
   both the document's subject and a component describes itself the same way
   in both places.
 - A conversion is a fixed point within a format, not across one. A CycloneDX
@@ -455,7 +474,31 @@ Some information necessarily becomes less specific during conversion:
   composed with `AND` there while CycloneDX lists them (see "How licenses are
   written" above). Every license is kept either way: a value SPDX cannot hold
   verbatim becomes a `LicenseRef-*`, which is a valid expression element, so a
-  mixed set composes rather than losing its members.
+  mixed set composes rather than losing its members. Reading an SPDX document
+  back gives one license per package — the composed expression, taken from the
+  concluded field when the document states both a concluded and a declared
+  license. A CycloneDX list that went out as `A AND B` therefore returns as
+  the single expression `A AND B` rather than as two entries.
+- End-of-life data is written but never read back. Both formats carry it —
+  `bomly:eol` properties in CycloneDX, `eol=` and `eol_date=` in the SPDX
+  package comment — and neither importer looks for it, so a Bomly document
+  converted through Bomly loses its EOL fields. Re-run with `--enrich` to
+  restore them.
+- A component's own identifier does not survive. Ingest re-mints each node's
+  identity from its package URL, so the source document's `bom-ref` or
+  `SPDXID` is not carried into the graph and not re-emitted. Anything that
+  compares identifiers across a conversion should compare package URLs
+  instead.
+- SPDX relationships are flattened on export. Ingest accepts the whole
+  `*_DEPENDENCY_OF` family, but export writes only `DEPENDS_ON` and
+  `DESCRIBES`, so a source document's `DEV_DEPENDENCY_OF` comes back as
+  `DEPENDS_ON`. The development scope itself is preserved separately, through
+  the scope carrier described above.
+- An SPDX scope carrier that Bomly cannot fully read leaves the component
+  unscoped. The `scope=` comment field decodes all-or-nothing, so one unknown
+  token beside a known one yields no scope at all, and SPDX — unlike
+  CycloneDX — has no native scope field to fall back on (tracked as
+  bomly-dev/bomly-sdk#64).
 
 Before treating a generated file as a release artifact, validate it with the
 standard validator required by the receiving system. Bomly's tests parse every

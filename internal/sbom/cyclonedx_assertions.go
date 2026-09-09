@@ -164,6 +164,7 @@ func applyCycloneDXAssertions(component *Component, comp cdx.Component) {
 	if component == nil {
 		return
 	}
+	component.EOL = cycloneDXIngestedEOL(comp.Properties)
 	component.Supplier = cycloneDXSupplier(comp.Supplier)
 	component.Originator = cycloneDXOriginator(comp)
 	component.Description = sdk.NormalizeDescription(comp.Description)

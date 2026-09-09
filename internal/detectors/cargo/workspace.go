@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
@@ -211,7 +212,7 @@ func cargoDetectionResultFromGraph(g *sdk.Graph, modules []cargoModuleGraph, roo
 	if len(entries) == 0 {
 		return sdk.DetectionResult{}, fmt.Errorf("cargo workspace produced no member entries")
 	}
-	return sdk.DetectionResult{Graphs: &sdk.GraphContainer{Entries: entries}}, nil
+	return detectors.Attributed(sdk.DetectionResult{Graphs: &sdk.GraphContainer{Entries: entries}}), nil
 }
 
 // depGraphFromLockWorkspace builds a workspace graph from Cargo.lock plus the

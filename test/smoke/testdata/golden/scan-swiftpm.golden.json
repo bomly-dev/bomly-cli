@@ -39,11 +39,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/apple:swift-algorithms",
@@ -61,11 +66,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/apple:swift-argument-parser",
@@ -83,11 +93,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/apple:swift-atomics",
@@ -105,11 +120,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/apple:swift-collections",
@@ -127,11 +147,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/apple:swift-crypto",
@@ -149,11 +174,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/apple:swift-http-types",
@@ -171,11 +201,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/apple:swift-log",
@@ -193,11 +228,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/apple:swift-metrics",
@@ -215,11 +255,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/apple:swift-nio-extras",
@@ -237,11 +282,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/apple:swift-nio-http2",
@@ -259,11 +309,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/apple:swift-nio-ssl",
@@ -281,11 +336,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/apple:swift-nio-transport-services",
@@ -303,11 +363,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/apple:swift-nio",
@@ -325,11 +390,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/apple:swift-numerics",
@@ -347,11 +417,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/apple:swift-system",
@@ -369,11 +444,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/swift-server:async-http-client",
@@ -391,11 +471,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/vapor:async-kit",
@@ -413,11 +498,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/vapor:console-kit",
@@ -435,11 +525,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/vapor:multipart-kit",
@@ -457,11 +552,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/vapor:routing-kit",
@@ -479,11 +579,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/vapor:vapor",
@@ -501,11 +606,16 @@
           "locations": [
             {
               "access_path": "Package.resolved",
+              "module_root": ".",
               "position": {
                 "file": "Package.resolved",
                 "line": 0
               },
-              "real_path": "Package.resolved"
+              "real_path": "Package.resolved",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "github.com/vapor:websocket-kit",

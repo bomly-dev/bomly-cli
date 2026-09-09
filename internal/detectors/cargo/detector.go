@@ -155,7 +155,7 @@ func (d Detector) detectionResultFromMetadata(req sdk.DetectionRequest, raw []by
 	AttachCargoLockPositions(g, workingDir)
 	rootManifest := detectorkit.InferManifestMetadata(req, evidencePatterns)
 	if len(members) <= 1 {
-		return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, rootManifest)}, nil
+		return detectors.Attributed(sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, rootManifest)}), nil
 	}
 	modules := make([]cargoModuleGraph, 0, len(members))
 	for _, member := range members {
@@ -217,7 +217,7 @@ func (d Detector) resolveFromLock(req sdk.DetectionRequest) (sdk.DetectionResult
 		return sdk.DetectionResult{}, err
 	}
 	AttachCargoLockPositions(g, workingDir)
-	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns))}, nil
+	return detectors.Attributed(sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns))}), nil
 }
 
 // resolveLockWorkspace resolves a workspace whose root carries a Cargo.lock.

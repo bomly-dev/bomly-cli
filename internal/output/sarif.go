@@ -215,8 +215,7 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 
 	results := make([]sarifResult, 0, len(findings))
 	for _, f := range findings {
-		pkg := lookupRegistryPackage(registry, f.PackageRef)
-		vuln := lookupVulnerability(pkg, f.VulnerabilityID, f.ID)
+		_, vuln := FindingAdvisory(registry, f)
 		msgText := f.Title
 		if f.PackageRef != "" {
 			msgText = fmt.Sprintf("%s in %s", f.Title, f.PackageRef)
@@ -843,8 +842,7 @@ func sarifRulePropertiesForFinding(f sdk.Finding, registry *sdk.PackageRegistry)
 // vulnerability finding: the real CVSS base score when available, otherwise a
 // representative midpoint for the severity band.
 func securitySeverityScore(f sdk.Finding, registry *sdk.PackageRegistry) string {
-	pkg := lookupRegistryPackage(registry, f.PackageRef)
-	if vuln := lookupVulnerability(pkg, f.VulnerabilityID, f.ID); vuln != nil {
+	if _, vuln := FindingAdvisory(registry, f); vuln != nil {
 		if score := maxCVSSScore(vuln.CVSS); score > 0 {
 			return strconv.FormatFloat(score, 'f', 1, 64)
 		}

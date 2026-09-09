@@ -47,11 +47,16 @@
           "locations": [
             {
               "access_path": "example-dotnet/example-dotnet.csproj",
+              "module_root": ".",
               "position": {
                 "file": "example-dotnet/example-dotnet.csproj",
                 "line": 0
               },
-              "real_path": "example-dotnet/example-dotnet.csproj"
+              "real_path": "example-dotnet/example-dotnet.csproj",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "BCrypt.Net-Core",
@@ -69,11 +74,16 @@
           "locations": [
             {
               "access_path": "example-dotnet/example-dotnet.csproj",
+              "module_root": ".",
               "position": {
                 "file": "example-dotnet/example-dotnet.csproj",
                 "line": 0
               },
-              "real_path": "example-dotnet/example-dotnet.csproj"
+              "real_path": "example-dotnet/example-dotnet.csproj",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "DotNetZip",
@@ -133,11 +143,16 @@
           "locations": [
             {
               "access_path": "example-dotnet/example-dotnet.csproj",
+              "module_root": ".",
               "position": {
                 "file": "example-dotnet/example-dotnet.csproj",
                 "line": 0
               },
-              "real_path": "example-dotnet/example-dotnet.csproj"
+              "real_path": "example-dotnet/example-dotnet.csproj",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "GSF.Security",
@@ -220,11 +235,16 @@
           "locations": [
             {
               "access_path": "example-dotnet/example-dotnet.csproj",
+              "module_root": ".",
               "position": {
                 "file": "example-dotnet/example-dotnet.csproj",
                 "line": 0
               },
-              "real_path": "example-dotnet/example-dotnet.csproj"
+              "real_path": "example-dotnet/example-dotnet.csproj",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "MySql.Data",
@@ -242,11 +262,16 @@
           "locations": [
             {
               "access_path": "example-dotnet-utils/example-dotnet-utils.fsproj",
+              "module_root": ".",
               "position": {
                 "file": "example-dotnet-utils/example-dotnet-utils.fsproj",
                 "line": 0
               },
-              "real_path": "example-dotnet-utils/example-dotnet-utils.fsproj"
+              "real_path": "example-dotnet-utils/example-dotnet-utils.fsproj",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "NUnit",
@@ -264,11 +289,16 @@
           "locations": [
             {
               "access_path": "example-dotnet/example-dotnet.csproj",
+              "module_root": ".",
               "position": {
                 "file": "example-dotnet/example-dotnet.csproj",
                 "line": 0
               },
-              "real_path": "example-dotnet/example-dotnet.csproj"
+              "real_path": "example-dotnet/example-dotnet.csproj",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "Newtonsoft.Json",
@@ -286,11 +316,16 @@
           "locations": [
             {
               "access_path": "example-dotnet/example-dotnet.csproj",
+              "module_root": ".",
               "position": {
                 "file": "example-dotnet/example-dotnet.csproj",
                 "line": 0
               },
-              "real_path": "example-dotnet/example-dotnet.csproj"
+              "real_path": "example-dotnet/example-dotnet.csproj",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "SharpCompress",
@@ -308,11 +343,16 @@
           "locations": [
             {
               "access_path": "example-dotnet/example-dotnet.csproj",
+              "module_root": ".",
               "position": {
                 "file": "example-dotnet/example-dotnet.csproj",
                 "line": 0
               },
-              "real_path": "example-dotnet/example-dotnet.csproj"
+              "real_path": "example-dotnet/example-dotnet.csproj",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "SharpZipLib",
@@ -990,11 +1030,16 @@
           "locations": [
             {
               "access_path": "example-dotnet/example-dotnet.csproj",
+              "module_root": ".",
               "position": {
                 "file": "example-dotnet/example-dotnet.csproj",
                 "line": 0
               },
-              "real_path": "example-dotnet/example-dotnet.csproj"
+              "real_path": "example-dotnet/example-dotnet.csproj",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "System.Runtime.Extensions",
@@ -1373,11 +1418,16 @@
           "locations": [
             {
               "access_path": "example-dotnet/example-dotnet.csproj",
+              "module_root": ".",
               "position": {
                 "file": "example-dotnet/example-dotnet.csproj",
                 "line": 0
               },
-              "real_path": "example-dotnet/example-dotnet.csproj"
+              "real_path": "example-dotnet/example-dotnet.csproj",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "System.Text.Encoding.CodePages",
@@ -1603,11 +1653,16 @@
           "locations": [
             {
               "access_path": "example-dotnet/example-dotnet.csproj",
+              "module_root": ".",
               "position": {
                 "file": "example-dotnet/example-dotnet.csproj",
                 "line": 0
               },
-              "real_path": "example-dotnet/example-dotnet.csproj"
+              "real_path": "example-dotnet/example-dotnet.csproj",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "YamlDotNet",
@@ -1652,11 +1707,16 @@
           "locations": [
             {
               "access_path": "example-dotnet-utils/example-dotnet-utils.fsproj",
+              "module_root": ".",
               "position": {
                 "file": "example-dotnet-utils/example-dotnet-utils.fsproj",
                 "line": 0
               },
-              "real_path": "example-dotnet-utils/example-dotnet-utils.fsproj"
+              "real_path": "example-dotnet-utils/example-dotnet-utils.fsproj",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "log4net",
@@ -1674,11 +1734,16 @@
           "locations": [
             {
               "access_path": "example-dotnet/example-dotnet.csproj",
+              "module_root": ".",
               "position": {
                 "file": "example-dotnet/example-dotnet.csproj",
                 "line": 0
               },
-              "real_path": "example-dotnet/example-dotnet.csproj"
+              "real_path": "example-dotnet/example-dotnet.csproj",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "recurly-api-client",

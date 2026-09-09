@@ -27,11 +27,16 @@
           "locations": [
             {
               "access_path": "build.sbt",
+              "module_root": ".",
               "position": {
                 "file": "build.sbt",
                 "line": 0
               },
-              "real_path": "build.sbt"
+              "real_path": "build.sbt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "com.fasterxml.jackson.core:jackson-databind",
@@ -61,11 +66,16 @@
           "locations": [
             {
               "access_path": "build.sbt",
+              "module_root": ".",
               "position": {
                 "file": "build.sbt",
                 "line": 0
               },
-              "real_path": "build.sbt"
+              "real_path": "build.sbt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "commons-codec:commons-codec",
@@ -83,11 +93,16 @@
           "locations": [
             {
               "access_path": "build.sbt",
+              "module_root": ".",
               "position": {
                 "file": "build.sbt",
                 "line": 0
               },
-              "real_path": "build.sbt"
+              "real_path": "build.sbt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "commons-collections:commons-collections",
@@ -105,11 +120,16 @@
           "locations": [
             {
               "access_path": "build.sbt",
+              "module_root": ".",
               "position": {
                 "file": "build.sbt",
                 "line": 0
               },
-              "real_path": "build.sbt"
+              "real_path": "build.sbt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "log4j:log4j",
@@ -139,11 +159,16 @@
           "locations": [
             {
               "access_path": "build.sbt",
+              "module_root": ".",
               "position": {
                 "file": "build.sbt",
                 "line": 0
               },
-              "real_path": "build.sbt"
+              "real_path": "build.sbt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "org.mindrot:jbcrypt",
@@ -161,11 +186,16 @@
           "locations": [
             {
               "access_path": "build.sbt",
+              "module_root": ".",
               "position": {
                 "file": "build.sbt",
                 "line": 0
               },
-              "real_path": "build.sbt"
+              "real_path": "build.sbt",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "org.mockito:mockito-core",
@@ -195,11 +225,16 @@
           "locations": [
             {
               "access_path": "build.sbt",
+              "module_root": ".",
               "position": {
                 "file": "build.sbt",
                 "line": 0
               },
-              "real_path": "build.sbt"
+              "real_path": "build.sbt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "org.springframework:spring-core",

@@ -92,12 +92,12 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 		return sdk.DetectionResult{}, fmt.Errorf("bun lockfile parser detector: %w", err)
 	}
 	d.Logger.Info("bun lockfile detector resolved graph", zap.Int("packages", graphs.graph.Size()), zap.Int("workspace_members", len(graphs.modules)))
-	return sdk.DetectionResult{
+	return detectors.Attributed(sdk.DetectionResult{
 		Graphs: &sdk.GraphContainer{Entries: entries},
 		// bun.lock records no format version, so only the declaration-level
 		// checks (pinned manager, engines, install gates) apply.
 		Warnings: node.PackageManagerWarnings(workingDir, sdk.PackageManagerBun, node.LockfileFormat{File: "bun.lock"}),
-	}, nil
+	}), nil
 }
 
 // FallbackDetector returns the configured fallback detector.

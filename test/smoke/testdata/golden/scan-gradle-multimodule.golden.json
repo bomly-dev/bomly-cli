@@ -76,11 +76,17 @@
           "locations": [
             {
               "access_path": "app/build.gradle",
+              "module_root": "app",
               "position": {
                 "file": "app/build.gradle",
                 "line": 0
               },
-              "real_path": "app/build.gradle"
+              "real_path": "app/build.gradle",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "com.google.guava:guava",
@@ -127,11 +133,16 @@
           "locations": [
             {
               "access_path": "app/build.gradle",
+              "module_root": "app",
               "position": {
                 "file": "app/build.gradle",
                 "line": 0
               },
-              "real_path": "app/build.gradle"
+              "real_path": "app/build.gradle",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "junit:junit",
@@ -205,11 +216,17 @@
           "locations": [
             {
               "access_path": "build.gradle",
+              "module_root": ".",
               "position": {
                 "file": "build.gradle",
                 "line": 0
               },
-              "real_path": "build.gradle"
+              "real_path": "build.gradle",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "org.apache.commons:commons-lang3",
@@ -247,11 +264,13 @@
           "locations": [
             {
               "access_path": "lib/build.gradle",
+              "module_root": "lib",
               "position": {
                 "file": "lib/build.gradle",
                 "line": 0
               },
-              "real_path": "lib/build.gradle"
+              "real_path": "lib/build.gradle",
+              "relationship": "direct"
             }
           ],
           "name": "org.slf4j:slf4j-api",

@@ -133,6 +133,28 @@ type LocationRef struct {
 	RealPath   string       `json:"real_path,omitempty"`
 	AccessPath string       `json:"access_path,omitempty"`
 	Position   *PositionRef `json:"position,omitempty"`
+
+	// ModuleRoot, Scopes and Relationship say which usage this site is,
+	// rather than only where it is (ADR-0037).
+	//
+	// A workspace reaches one lockfile line from several members, so the same
+	// path appears once per member. Without these, those records are
+	// byte-identical and the reader sees the same file listed twice with no
+	// way to tell why -- which is what the projection produced before they
+	// were carried. They are also what makes a conjunctive question
+	// answerable: "reachable, runtime and direct" has to hold of one usage,
+	// not of three different ones summarized onto the same package.
+	//
+	// Empty means the producer did not attribute the site, which several
+	// detectors legitimately cannot.
+	//
+	// Carrying a slice costs this type its comparability, the same break the
+	// SDK took on PackageLocation for the same reason. Nothing compares a
+	// LocationRef or keys a map by one; compare the paths, or the whole value
+	// with reflect.DeepEqual.
+	ModuleRoot   string   `json:"module_root,omitempty"`
+	Scopes       []string `json:"scopes,omitempty"`
+	Relationship string   `json:"relationship,omitempty"`
 }
 
 // PositionRef is the JSON shape of sdk.SourcePosition.
@@ -151,7 +173,15 @@ func LocationRefsFromGraphLocations(locations []sdk.PackageLocation) []LocationR
 	}
 	out := make([]LocationRef, 0, len(locations))
 	for _, loc := range locations {
-		ref := LocationRef{RealPath: loc.RealPath, AccessPath: loc.AccessPath}
+		ref := LocationRef{
+			RealPath:     loc.RealPath,
+			AccessPath:   loc.AccessPath,
+			ModuleRoot:   loc.ModuleRoot,
+			Relationship: string(loc.Relationship),
+		}
+		for _, scope := range loc.Scopes {
+			ref.Scopes = append(ref.Scopes, string(scope))
+		}
 		if loc.Position != nil {
 			ref.Position = &PositionRef{
 				File:    loc.Position.File,
@@ -160,7 +190,10 @@ func LocationRefsFromGraphLocations(locations []sdk.PackageLocation) []LocationR
 				EndLine: loc.Position.EndLine,
 			}
 		}
-		if ref.RealPath == "" && ref.AccessPath == "" && ref.Position == nil {
+		// An attributed site is worth reporting even with no path: it still
+		// says which module reached the package and how.
+		if ref.RealPath == "" && ref.AccessPath == "" && ref.Position == nil &&
+			ref.ModuleRoot == "" && len(ref.Scopes) == 0 && ref.Relationship == "" {
 			continue
 		}
 		out = append(out, ref)
@@ -245,7 +278,7 @@ func PackageFromDependencyAndRegistry(dep *sdk.DependencyNode, registry *sdk.Pac
 		Licenses:        LicenseRefsFromGraphLicenses(sdk.DetectionLicenses(dep)),
 		Vulnerabilities: []VulnerabilityRef{},
 	}
-	pkg := lookupRegistryPackage(registry, dep.NodeID())
+	pkg := RegistryPackageForNode(registry, dep)
 	if pkg != nil {
 		// Prefer registry-learned licenses when detection produced none.
 		if len(ref.Licenses) == 0 && len(pkg.Licenses) > 0 {
@@ -264,16 +297,6 @@ func PackageFromDependencyAndRegistry(dep *sdk.DependencyNode, registry *sdk.Pac
 		_ = pkg.Matched
 	}
 	return ref
-}
-
-// lookupRegistryPackage resolves a PURL against the registry, returning nil
-// if the registry or the PURL is empty.
-func lookupRegistryPackage(registry *sdk.PackageRegistry, purl string) *sdk.Package {
-	if registry == nil || strings.TrimSpace(purl) == "" {
-		return nil
-	}
-	pkg, _ := registry.Get(purl)
-	return pkg
 }
 
 func (p PackageRef) withoutReachability() PackageRef {
@@ -440,12 +463,12 @@ type AuditSummary struct {
 func FindingsFromScan(findings []sdk.Finding, registry *sdk.PackageRegistry) []AuditFinding {
 	result := make([]AuditFinding, 0, len(findings))
 	for _, f := range findings {
-		pkg := lookupRegistryPackage(registry, f.PackageRef)
+		_, advisory := FindingAdvisory(registry, f)
 		af := AuditFinding{
 			ID:              f.ID,
 			Kind:            f.Kind,
 			Severity:        f.Severity,
-			Package:         findingPackageRefFromRegistryPackage(f.PackageRef, pkg),
+			Package:         IdentifyPackageRef(registry, f.PackageRef),
 			Title:           f.Title,
 			Reasons:         f.Reasons,
 			Source:          f.Source,
@@ -455,40 +478,19 @@ func FindingsFromScan(findings []sdk.Finding, registry *sdk.PackageRegistry) []A
 			VulnerabilityID: f.VulnerabilityID,
 			DependencyRefs:  append([]string(nil), f.DependencyRefs...),
 		}
-		if af.Severity == "" {
-			if vuln := lookupVulnerability(pkg, f.VulnerabilityID, f.ID); vuln != nil {
-				af.Severity = vuln.ParsedSeverity
-			}
+		if af.Severity == "" && advisory != nil {
+			af.Severity = advisory.ParsedSeverity
 		}
 		result = append(result, af)
 	}
 	return result
 }
 
-// findingPackageRefFromRegistryPackage builds a FindingPackageRef from a
-// registry package (PURL-keyed). When the registry has no entry for purl,
-// returns a thin ref carrying just the PURL identifier.
-func findingPackageRefFromRegistryPackage(purl string, pkg *sdk.Package) FindingPackageRef {
-	if pkg == nil {
-		return FindingPackageRef{Name: purl, Purl: purl}
-	}
-	return FindingPackageRef{
-		Name:      pkg.DisplayName(),
-		Org:       pkg.Org,
-		Version:   pkg.Version,
-		Purl:      pkg.PURL,
-		Ecosystem: string(pkg.Ecosystem),
-	}
-}
-
 // ResolvedVulnerabilityID returns the advisory id a finding references,
 // falling back to the finding id when VulnerabilityID is unset. All joins
 // against packages[].vulnerabilities use this precedence rule.
 func (f AuditFinding) ResolvedVulnerabilityID() string {
-	if f.VulnerabilityID != "" {
-		return f.VulnerabilityID
-	}
-	return f.ID
+	return resolvedVulnerabilityID(f.VulnerabilityID, f.ID)
 }
 
 // FindingVulnerabilityInPackages resolves the advisory a finding references
@@ -522,33 +524,6 @@ func MatchVulnerabilityRef(refs []VulnerabilityRef, id string) *VulnerabilityRef
 		for _, alias := range refs[idx].Aliases {
 			if alias == id {
 				return &refs[idx]
-			}
-		}
-	}
-	return nil
-}
-
-// lookupVulnerability resolves a vulnerability ID (or alias) against a
-// registry package's Vulnerabilities slice. Returns nil if pkg is nil or no
-// match is found.
-func lookupVulnerability(pkg *sdk.Package, vulnID, fallbackID string) *sdk.Vulnerability {
-	if pkg == nil {
-		return nil
-	}
-	if vulnID == "" {
-		vulnID = fallbackID
-	}
-	if vulnID == "" {
-		return nil
-	}
-	for i := range pkg.Vulnerabilities {
-		v := &pkg.Vulnerabilities[i]
-		if v.ID == vulnID {
-			return v
-		}
-		for _, alias := range v.Aliases {
-			if alias == vulnID {
-				return v
 			}
 		}
 	}
@@ -710,7 +685,7 @@ func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDe
 				scopes = append(scopes, string(scope))
 			}
 			matched := dep.Matched
-			if pkg := lookupRegistryPackage(registry, dep.NodeID()); pkg != nil {
+			if pkg := RegistryPackageForNode(registry, dep); pkg != nil {
 				matched = matched || pkg.Matched
 			}
 			entry.Purl = dep.NodeID()

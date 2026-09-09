@@ -68,9 +68,9 @@ func (d PoetryDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 			attachLoosePythonPositions(depsGraph, workingDir)
 			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, false, nil, workingDir)
 			logResolution(base.Logger, "Poetry detector", workingDir, resolution)
-			return sdk.DetectionResult{
+			return detectors.Attributed(sdk.DetectionResult{
 				Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, poetryEvidencePatterns, resolution)),
-			}, nil
+			}), nil
 		}
 	} else {
 		return sdk.DetectionResult{}, fmt.Errorf("poetry detector: poetry.lock not found; refusing to inspect an unprepared or ambient environment")
@@ -98,9 +98,9 @@ func (d PoetryDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 	attachLoosePythonPositions(depsGraph, workingDir)
 	resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, true, append(installCommand, req.InstallArgs...), workingDir)
 	logResolution(base.Logger, "Poetry detector", workingDir, resolution)
-	return sdk.DetectionResult{
+	return detectors.Attributed(sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, poetryEvidencePatterns, resolution)),
-	}, nil
+	}), nil
 }
 
 // FallbackDetector returns the configured fallback detector.

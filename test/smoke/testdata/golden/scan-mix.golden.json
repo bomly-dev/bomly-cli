@@ -22,11 +22,16 @@
           "locations": [
             {
               "access_path": "mix.lock",
+              "module_root": ".",
               "position": {
                 "file": "mix.lock",
                 "line": 0
               },
-              "real_path": "mix.lock"
+              "real_path": "mix.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "bunt",
@@ -47,11 +52,16 @@
           "locations": [
             {
               "access_path": "mix.lock",
+              "module_root": ".",
               "position": {
                 "file": "mix.lock",
                 "line": 0
               },
-              "real_path": "mix.lock"
+              "real_path": "mix.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cowboy",
@@ -69,11 +79,16 @@
           "locations": [
             {
               "access_path": "mix.lock",
+              "module_root": ".",
               "position": {
                 "file": "mix.lock",
                 "line": 0
               },
-              "real_path": "mix.lock"
+              "real_path": "mix.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cowlib",
@@ -95,11 +110,16 @@
           "locations": [
             {
               "access_path": "mix.lock",
+              "module_root": ".",
               "position": {
                 "file": "mix.lock",
                 "line": 0
               },
-              "real_path": "mix.lock"
+              "real_path": "mix.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "credo",
@@ -117,11 +137,16 @@
           "locations": [
             {
               "access_path": "mix.lock",
+              "module_root": ".",
               "position": {
                 "file": "mix.lock",
                 "line": 0
               },
-              "real_path": "mix.lock"
+              "real_path": "mix.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "decimal",
@@ -139,11 +164,16 @@
           "locations": [
             {
               "access_path": "mix.lock",
+              "module_root": ".",
               "position": {
                 "file": "mix.lock",
                 "line": 0
               },
-              "real_path": "mix.lock"
+              "real_path": "mix.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "file_system",
@@ -163,11 +193,16 @@
           "locations": [
             {
               "access_path": "mix.lock",
+              "module_root": ".",
               "position": {
                 "file": "mix.lock",
                 "line": 0
               },
-              "real_path": "mix.lock"
+              "real_path": "mix.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jason",
@@ -185,11 +220,16 @@
           "locations": [
             {
               "access_path": "mix.lock",
+              "module_root": ".",
               "position": {
                 "file": "mix.lock",
                 "line": 0
               },
-              "real_path": "mix.lock"
+              "real_path": "mix.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mime",
@@ -210,11 +250,16 @@
           "locations": [
             {
               "access_path": "mix.lock",
+              "module_root": ".",
               "position": {
                 "file": "mix.lock",
                 "line": 0
               },
-              "real_path": "mix.lock"
+              "real_path": "mix.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "plug",
@@ -232,11 +277,16 @@
           "locations": [
             {
               "access_path": "mix.lock",
+              "module_root": ".",
               "position": {
                 "file": "mix.lock",
                 "line": 0
               },
-              "real_path": "mix.lock"
+              "real_path": "mix.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "plug_crypto",
@@ -254,11 +304,16 @@
           "locations": [
             {
               "access_path": "mix.lock",
+              "module_root": ".",
               "position": {
                 "file": "mix.lock",
                 "line": 0
               },
-              "real_path": "mix.lock"
+              "real_path": "mix.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ranch",

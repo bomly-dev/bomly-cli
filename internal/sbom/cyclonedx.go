@@ -616,19 +616,64 @@ func cycloneDXHashAlgorithm(algorithm string) cdx.HashAlgorithm {
 	return cdx.HashAlgorithm(parsed.CycloneDXName())
 }
 
+// The property names carrying end-of-life through a CycloneDX document. They
+// are named once because they are read as well as written, and a document
+// whose reader and writer disagree about a name carries a field nobody can
+// retrieve -- which is precisely what these did until now.
+const (
+	cycloneDXEOLProperty      = "bomly:eol"
+	cycloneDXEOLDateProperty  = "bomly:eol_date"
+	cycloneDXEOLCycleProperty = "bomly:eol_cycle"
+)
+
 func cycloneDXEOLProperties(eol *EOL) []cdx.Property {
 	if eol == nil {
 		return nil
 	}
 	props := make([]cdx.Property, 0, 3)
-	props = append(props, cdx.Property{Name: "bomly:eol", Value: strconv.FormatBool(eol.EOL)})
+	props = append(props, cdx.Property{Name: cycloneDXEOLProperty, Value: strconv.FormatBool(eol.EOL)})
 	if eol.EOLDate != "" {
-		props = append(props, cdx.Property{Name: "bomly:eol_date", Value: eol.EOLDate})
+		props = append(props, cdx.Property{Name: cycloneDXEOLDateProperty, Value: eol.EOLDate})
 	}
 	if eol.Cycle != "" {
-		props = append(props, cdx.Property{Name: "bomly:eol_cycle", Value: eol.Cycle})
+		props = append(props, cdx.Property{Name: cycloneDXEOLCycleProperty, Value: eol.Cycle})
 	}
 	return props
+}
+
+// cycloneDXIngestedEOL reads the end-of-life claim back off a component.
+//
+// The flag is what makes the record exist: a date or a cycle without it says
+// nothing about whether the version is end-of-life, and inventing false would
+// assert something the document did not. An unparseable flag drops the record
+// rather than guessing, on the same principle.
+func cycloneDXIngestedEOL(properties *[]cdx.Property) *EOL {
+	if properties == nil {
+		return nil
+	}
+	var (
+		eol    EOL
+		stated bool
+	)
+	for _, property := range *properties {
+		switch property.Name {
+		case cycloneDXEOLProperty:
+			flag, err := strconv.ParseBool(strings.TrimSpace(property.Value))
+			if err != nil {
+				return nil
+			}
+			eol.EOL = flag
+			stated = true
+		case cycloneDXEOLDateProperty:
+			eol.EOLDate = strings.TrimSpace(property.Value)
+		case cycloneDXEOLCycleProperty:
+			eol.Cycle = strings.TrimSpace(property.Value)
+		}
+	}
+	if !stated {
+		return nil
+	}
+	return &eol
 }
 
 // cycloneDXVulnerabilities flattens per-component vulnerabilities into the

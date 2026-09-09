@@ -403,7 +403,7 @@ type Vulnerability struct {
     DatabaseSpecific                    map[string]any
 
     // Bomly extensions (typed, not buried in DatabaseSpecific)
-    ParsedSeverity       string
+    ParsedSeverity       SeverityLevel
     SeveritySource       string
     CVSS                 []CVSSScore
     AffectedVersionRange string
@@ -712,7 +712,7 @@ If you're reading code or tests that still reference the old shape, here is the 
 | `g.Dependencies(id)`                          | `g.DirectDependencies(id)`                                    |
 | `WalkRelationships`                           | `WalkEdges`                                                   |
 | `sdk.PackageVulnerability`                    | `sdk.Vulnerability` (OSV-aligned)                             |
-| `vuln.Severity` (string)                      | `vuln.ParsedSeverity` (string); `vuln.Severity []Severity` for CVSS vectors |
+| `vuln.Severity` (string)                      | `vuln.ParsedSeverity` (`SeverityLevel`); `vuln.Severity []Severity` for CVSS vectors |
 | `vuln.Description`                            | `vuln.Details`                                                |
 | `Finding{Package: pkg, ...vuln fields...}`    | `Finding{PackageRef: pkg.PURL, VulnerabilityID: vuln.ID, ...}` |
 | Single `Scope` string                         | `Scopes []Scope` via `sdk.ScopesOf(scope)`                    |

@@ -118,15 +118,22 @@ func TestNoDirectSPDXExpressionUse(t *testing.T) {
 // reaching a library directly proves the hazard is still reachable, and a test
 // is where the temptation lives. This file is the one exemption: it has to
 // spell out the module paths it forbids.
+//
+// One file, not one file name. Matching the basename exempted every
+// guards_test.go under internal/, so a second guard file in any other package
+// could name a forbidden module and neither rule would report it -- and both
+// rules run through here, so the hole opened both at once. If this file ever
+// moves, the exemption stops matching and the guard reports itself, which is
+// the right direction to fail.
 func filesNamingModule(t *testing.T, module string) []string {
 	t.Helper()
-	const self = "guards_test.go"
+	self := filepath.Clean(filepath.Join(internalRoot, "detectors", "guards_test.go"))
 	var offenders []string
 	err := filepath.Walk(internalRoot, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() || !strings.HasSuffix(path, ".go") || filepath.Base(path) == self {
+		if info.IsDir() || !strings.HasSuffix(path, ".go") || filepath.Clean(path) == self {
 			return nil
 		}
 		body, err := os.ReadFile(path)

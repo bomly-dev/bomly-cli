@@ -171,11 +171,15 @@ type Component struct {
 	// and a second copy here is how the forward and reverse directions came
 	// to disagree in the first place.
 	//
-	// One clause of ADR-0037 is not implemented here: a source document's own
-	// scalar -- CycloneDX's "optional", say -- is not preserved for verbatim
-	// re-emission, because DependencyNode has nowhere to carry a source-
-	// asserted scope alongside the derived set. "optional" therefore reads as
-	// runtime and re-exports as "required". Tracked as bomly-dev/bomly-sdk#57.
+	// One clause of ADR-0037 is still not implemented here: a source
+	// document's own scalar -- CycloneDX's "optional", say -- is not
+	// preserved for verbatim re-emission. The SDK side of that is done --
+	// DependencyNode.SourceScope carries the word and CycloneDXScopeForExport
+	// decides when to re-emit it -- but ingest here does not populate the
+	// field, so the word is still lost. "optional" reads as development
+	// (bomly-dev/bomly-sdk#63) and re-exports as "excluded", collapsing two
+	// source words the document kept apart. Tracked as
+	// bomly-dev/bomly-sdk#57.
 	Scopes []sdk.Scope
 
 	PURL           string

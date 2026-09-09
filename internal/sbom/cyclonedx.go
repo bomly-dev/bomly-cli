@@ -564,45 +564,24 @@ func hasCompoundExpression(values []string) bool {
 	return false
 }
 
+// cycloneDXHashes maps component digests onto CycloneDX hashes, dropping
+// entries whose algorithm CycloneDX has no member for -- SHA224, MD2, MD4,
+// MD6, and ADLER32 are SPDX-only, and an SBOM ingested from SPDX can carry
+// them. The vocabulary is the SDK registry's, not a local switch -- see
+// publishableDigest.
 func cycloneDXHashes(digests []Digest) []cdx.Hash {
 	if len(digests) == 0 {
 		return nil
 	}
 	out := make([]cdx.Hash, 0, len(digests))
 	for _, d := range digests {
-		alg := cycloneDXHashAlgorithm(d.Algorithm)
-		if alg == "" || strings.TrimSpace(d.Value) == "" {
+		spelling, value, ok := publishableDigest(d, sdk.DigestAlgorithm.CycloneDXName)
+		if !ok {
 			continue
 		}
-		out = append(out, cdx.Hash{Algorithm: alg, Value: d.Value})
+		out = append(out, cdx.Hash{Algorithm: cdx.HashAlgorithm(spelling), Value: value})
 	}
 	return out
-}
-
-// cycloneDXHashAlgorithm maps a digest algorithm string onto a CycloneDX hash
-// algorithm constant. Returns "" when the algorithm is unsupported so the
-// digest is dropped rather than emitting an invalid BOM.
-func cycloneDXHashAlgorithm(algorithm string) cdx.HashAlgorithm {
-	switch strings.ToLower(strings.TrimSpace(algorithm)) {
-	case "md5":
-		return cdx.HashAlgoMD5
-	case "sha1", "sha-1":
-		return cdx.HashAlgoSHA1
-	case "sha256", "sha-256":
-		return cdx.HashAlgoSHA256
-	case "sha384", "sha-384":
-		return cdx.HashAlgoSHA384
-	case "sha512", "sha-512":
-		return cdx.HashAlgoSHA512
-	case "sha3-256":
-		return cdx.HashAlgoSHA3_256
-	case "sha3-384":
-		return cdx.HashAlgoSHA3_384
-	case "sha3-512":
-		return cdx.HashAlgoSHA3_512
-	default:
-		return ""
-	}
 }
 
 func cycloneDXEOLProperties(eol *EOL) []cdx.Property {

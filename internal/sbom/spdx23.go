@@ -353,48 +353,24 @@ func spdxPackageComment(component Component) string {
 }
 
 // spdxChecksums maps component digests onto SPDX package checksums, dropping
-// entries whose algorithm is not part of the SPDX checksum vocabulary.
+// entries whose algorithm SPDX has no member for. The vocabulary is the SDK
+// registry's, not a local switch -- see publishableDigest.
 func spdxChecksums(digests []Digest) []common.Checksum {
 	if len(digests) == 0 {
 		return nil
 	}
 	out := make([]common.Checksum, 0, len(digests))
 	for _, d := range digests {
-		alg := spdxChecksumAlgorithm(d.Algorithm)
-		if alg == "" || strings.TrimSpace(d.Value) == "" {
+		spelling, value, ok := publishableDigest(d, sdk.DigestAlgorithm.SPDXName)
+		if !ok {
 			continue
 		}
-		out = append(out, common.Checksum{Algorithm: alg, Value: d.Value})
+		out = append(out, common.Checksum{Algorithm: common.ChecksumAlgorithm(spelling), Value: value})
 	}
 	if len(out) == 0 {
 		return nil
 	}
 	return out
-}
-
-func spdxChecksumAlgorithm(algorithm string) common.ChecksumAlgorithm {
-	switch strings.ToLower(strings.TrimSpace(algorithm)) {
-	case "md5":
-		return common.MD5
-	case "sha1", "sha-1":
-		return common.SHA1
-	case "sha224", "sha-224":
-		return common.SHA224
-	case "sha256", "sha-256":
-		return common.SHA256
-	case "sha384", "sha-384":
-		return common.SHA384
-	case "sha512", "sha-512":
-		return common.SHA512
-	case "sha3-256":
-		return common.SHA3_256
-	case "sha3-384":
-		return common.SHA3_384
-	case "sha3-512":
-		return common.SHA3_512
-	default:
-		return ""
-	}
 }
 
 func parseSPDXComponentType(p *v23.Package) string {

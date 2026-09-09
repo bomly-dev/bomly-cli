@@ -296,8 +296,20 @@ func cycloneDXEmittedHashes(digests []sdk.Digest) *[]cdx.Hash {
 		if !ok {
 			continue
 		}
+		// CycloneDXName, not the algorithm's own string: the SDK holds the
+		// algorithm in its canonical form ("sha256", "blake2b-256") and
+		// renders CycloneDX's spelling ("SHA-256", "BLAKE2b-256")
+		// separately. Emitting the canonical form wrote an algorithm the
+		// specification does not define, and an ingested "SHA-256" changed
+		// case on its second export. An empty spelling means CycloneDX has
+		// no member for the algorithm -- SHA224, MD2, MD4, MD6, and ADLER32
+		// are SPDX-only -- so the claim has nowhere to go here.
+		spelling := normalized.Algorithm.CycloneDXName()
+		if spelling == "" {
+			continue
+		}
 		hashes = append(hashes, cdx.Hash{
-			Algorithm: cdx.HashAlgorithm(normalized.Algorithm),
+			Algorithm: cdx.HashAlgorithm(spelling),
 			Value:     normalized.Value,
 		})
 	}

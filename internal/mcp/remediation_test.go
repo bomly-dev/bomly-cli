@@ -682,3 +682,59 @@ func TestBuildCompactScanTreatsAuditOmissionsAsSuppressed(t *testing.T) {
 	}
 	t.Fatalf("audit-suppressed lib-a missing from informational findings: %#v", compact.Informational)
 }
+
+// An auditor that records no DependencyRefs leaves the finding's package
+// reference as the only way back into the graph. That path used to walk every
+// node once per finding; it now joins through the SDK's package-to-nodes
+// reverse index, and this pins that the join still lands on the same node --
+// the placement facts (transitive, and the path through lib-b) are only
+// derivable once the node is found.
+func TestBuildRemediationsPlacesFindingsWithoutDependencyRefs(t *testing.T) {
+	in := remediationFixture(t)
+	for idx := range in.Findings {
+		in.Findings[idx].DependencyRefs = nil
+	}
+
+	// The informational bucket is where the join is observable: a grouped fix
+	// takes its placement from the suggestion's own dependency refs, but an
+	// informational finding keeps whatever buildCompactFinding derived from
+	// the node it resolved.
+	out := buildRemediations(in)
+	if len(out.Informational) != 1 {
+		t.Fatalf("informational bucket = %#v", out.Informational)
+	}
+	got := out.Informational[0]
+	if got.Direct == nil || !*got.Direct {
+		t.Fatalf("lib-a is direct; its node was not found from the package reference alone: %#v", got.Direct)
+	}
+	wantPath := []string{"app@1.0.0", "lib-a@1.0.0"}
+	if len(got.ShortestPath) != len(wantPath) {
+		t.Fatalf("shortest path = %#v, want %#v", got.ShortestPath, wantPath)
+	}
+	for idx := range wantPath {
+		if got.ShortestPath[idx] != wantPath[idx] {
+			t.Fatalf("shortest path = %#v, want %#v", got.ShortestPath, wantPath)
+		}
+	}
+}
+
+// The index is a view over a graph, never a record of one: a stale index is
+// how the reverse direction of a stored fact goes wrong. Nothing may hand
+// buildRemediations an index built from a different graph than the one it is
+// about to walk.
+func TestRemediationInputIndexesTheGraphItWasGiven(t *testing.T) {
+	in := remediationFixture(t)
+	in.indexNodes()
+	for _, f := range in.Findings {
+		nodes := in.Nodes.Nodes(f.PackageRef)
+		if len(nodes) == 0 {
+			continue
+		}
+		if _, ok := in.Graph.Node(nodes[0].NodeID()); !ok {
+			t.Fatalf("index holds node %q that is not in the graph", nodes[0].NodeID())
+		}
+	}
+	if len(in.Nodes) != len(in.Graph.DependencyNodes()) {
+		t.Fatalf("index covers %d packages, graph holds %d dependency nodes", len(in.Nodes), len(in.Graph.DependencyNodes()))
+	}
+}

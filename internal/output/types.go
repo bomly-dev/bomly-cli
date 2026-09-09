@@ -245,7 +245,7 @@ func PackageFromDependencyAndRegistry(dep *sdk.DependencyNode, registry *sdk.Pac
 		Licenses:        LicenseRefsFromGraphLicenses(sdk.DetectionLicenses(dep)),
 		Vulnerabilities: []VulnerabilityRef{},
 	}
-	pkg := lookupRegistryPackage(registry, dep.NodeID())
+	pkg := RegistryPackageForNode(registry, dep)
 	if pkg != nil {
 		// Prefer registry-learned licenses when detection produced none.
 		if len(ref.Licenses) == 0 && len(pkg.Licenses) > 0 {
@@ -264,16 +264,6 @@ func PackageFromDependencyAndRegistry(dep *sdk.DependencyNode, registry *sdk.Pac
 		_ = pkg.Matched
 	}
 	return ref
-}
-
-// lookupRegistryPackage resolves a PURL against the registry, returning nil
-// if the registry or the PURL is empty.
-func lookupRegistryPackage(registry *sdk.PackageRegistry, purl string) *sdk.Package {
-	if registry == nil || strings.TrimSpace(purl) == "" {
-		return nil
-	}
-	pkg, _ := registry.Get(purl)
-	return pkg
 }
 
 func (p PackageRef) withoutReachability() PackageRef {
@@ -440,12 +430,12 @@ type AuditSummary struct {
 func FindingsFromScan(findings []sdk.Finding, registry *sdk.PackageRegistry) []AuditFinding {
 	result := make([]AuditFinding, 0, len(findings))
 	for _, f := range findings {
-		pkg := lookupRegistryPackage(registry, f.PackageRef)
+		_, advisory := FindingAdvisory(registry, f)
 		af := AuditFinding{
 			ID:              f.ID,
 			Kind:            f.Kind,
 			Severity:        f.Severity,
-			Package:         findingPackageRefFromRegistryPackage(f.PackageRef, pkg),
+			Package:         IdentifyPackageRef(registry, f.PackageRef),
 			Title:           f.Title,
 			Reasons:         f.Reasons,
 			Source:          f.Source,
@@ -455,40 +445,19 @@ func FindingsFromScan(findings []sdk.Finding, registry *sdk.PackageRegistry) []A
 			VulnerabilityID: f.VulnerabilityID,
 			DependencyRefs:  append([]string(nil), f.DependencyRefs...),
 		}
-		if af.Severity == "" {
-			if vuln := lookupVulnerability(pkg, f.VulnerabilityID, f.ID); vuln != nil {
-				af.Severity = vuln.ParsedSeverity
-			}
+		if af.Severity == "" && advisory != nil {
+			af.Severity = advisory.ParsedSeverity
 		}
 		result = append(result, af)
 	}
 	return result
 }
 
-// findingPackageRefFromRegistryPackage builds a FindingPackageRef from a
-// registry package (PURL-keyed). When the registry has no entry for purl,
-// returns a thin ref carrying just the PURL identifier.
-func findingPackageRefFromRegistryPackage(purl string, pkg *sdk.Package) FindingPackageRef {
-	if pkg == nil {
-		return FindingPackageRef{Name: purl, Purl: purl}
-	}
-	return FindingPackageRef{
-		Name:      pkg.DisplayName(),
-		Org:       pkg.Org,
-		Version:   pkg.Version,
-		Purl:      pkg.PURL,
-		Ecosystem: string(pkg.Ecosystem),
-	}
-}
-
 // ResolvedVulnerabilityID returns the advisory id a finding references,
 // falling back to the finding id when VulnerabilityID is unset. All joins
 // against packages[].vulnerabilities use this precedence rule.
 func (f AuditFinding) ResolvedVulnerabilityID() string {
-	if f.VulnerabilityID != "" {
-		return f.VulnerabilityID
-	}
-	return f.ID
+	return resolvedVulnerabilityID(f.VulnerabilityID, f.ID)
 }
 
 // FindingVulnerabilityInPackages resolves the advisory a finding references
@@ -522,33 +491,6 @@ func MatchVulnerabilityRef(refs []VulnerabilityRef, id string) *VulnerabilityRef
 		for _, alias := range refs[idx].Aliases {
 			if alias == id {
 				return &refs[idx]
-			}
-		}
-	}
-	return nil
-}
-
-// lookupVulnerability resolves a vulnerability ID (or alias) against a
-// registry package's Vulnerabilities slice. Returns nil if pkg is nil or no
-// match is found.
-func lookupVulnerability(pkg *sdk.Package, vulnID, fallbackID string) *sdk.Vulnerability {
-	if pkg == nil {
-		return nil
-	}
-	if vulnID == "" {
-		vulnID = fallbackID
-	}
-	if vulnID == "" {
-		return nil
-	}
-	for i := range pkg.Vulnerabilities {
-		v := &pkg.Vulnerabilities[i]
-		if v.ID == vulnID {
-			return v
-		}
-		for _, alias := range v.Aliases {
-			if alias == vulnID {
-				return v
 			}
 		}
 	}
@@ -710,7 +652,7 @@ func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDe
 				scopes = append(scopes, string(scope))
 			}
 			matched := dep.Matched
-			if pkg := lookupRegistryPackage(registry, dep.NodeID()); pkg != nil {
+			if pkg := RegistryPackageForNode(registry, dep); pkg != nil {
 				matched = matched || pkg.Matched
 			}
 			entry.Purl = dep.NodeID()

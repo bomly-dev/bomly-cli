@@ -182,3 +182,101 @@ func TestExportProjectsEveryRegisteredDigestAlgorithm(t *testing.T) {
 		}
 	}
 }
+
+// TestCycloneDXHashesAreScopedToTheTargetSpecVersion settles where version
+// scoping lives. CycloneDX added Streebog in 1.7, so a 1.6 document naming it
+// carries a value outside a closed enumeration -- but cyclonedx-go already
+// owns that conversion: EncodeVersion strips a hash the requested version
+// cannot name, through SpecVersion.supportsHashAlgorithm.
+//
+// The test exists so the question is answered by the encoder's actual output
+// rather than re-argued from the mapping's shape. A version table written into
+// publishableDigest would be a second copy of the library's, wrong the day
+// CycloneDX adds an algorithm -- which is the defect this whole change removes.
+func TestCycloneDXHashesAreScopedToTheTargetSpecVersion(t *testing.T) {
+	g := digestFixtureGraph(t, []sdk.Digest{
+		{Algorithm: sdk.DigestAlgorithmStreebog256, Value: "3f539a213e97c802cc229d474c6aa32a825a360b2a933a949fd925208d9ce1bb"},
+		{Algorithm: sdk.DigestAlgorithmSHA256, Value: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+	})
+
+	for _, tc := range []struct {
+		target Target
+		want   []cdx.HashAlgorithm
+	}{
+		// Streebog is absent below 1.7, and SHA-256 rides along to show the
+		// component still carries the hashes the version does define.
+		{TargetCycloneDX14JSON, []cdx.HashAlgorithm{cdx.HashAlgoSHA256}},
+		{TargetCycloneDX15JSON, []cdx.HashAlgorithm{cdx.HashAlgoSHA256}},
+		{TargetCycloneDX16JSON, []cdx.HashAlgorithm{cdx.HashAlgoSHA256}},
+		{TargetCycloneDX17JSON, []cdx.HashAlgorithm{cdx.HashAlgoStreebog256, cdx.HashAlgoSHA256}},
+	} {
+		out, err := MarshalDepGraphJSON(g, tc.target, BuildOptions{ProjectRoot: &ProjectRoot{Name: "demo"}}, EncodeOptions{})
+		if err != nil {
+			t.Fatalf("%s: marshal: %v", tc.target, err)
+		}
+		var bom cdx.BOM
+		if err := json.Unmarshal(out, &bom); err != nil {
+			t.Fatalf("%s: unmarshal: %v", tc.target, err)
+		}
+		var got []cdx.HashAlgorithm
+		if bom.Components != nil {
+			for _, comp := range *bom.Components {
+				if comp.Name != "left-pad" || comp.Hashes == nil {
+					continue
+				}
+				for _, hash := range *comp.Hashes {
+					got = append(got, hash.Algorithm)
+				}
+			}
+		}
+		if len(got) != len(tc.want) {
+			t.Fatalf("%s: got %v, want %v", tc.target, got, tc.want)
+		}
+		for i, want := range tc.want {
+			if got[i] != want {
+				t.Fatalf("%s: got %v, want %v", tc.target, got, tc.want)
+			}
+		}
+	}
+}
+
+// TestExportRefusesADigestTheSDKWillNotPublish covers values that reach the
+// encoders without having passed the SDK's JSON hooks: a detector or a plugin
+// can build DependencyNode.Digests in memory, and a value carrying whitespace,
+// a control character, or invalid UTF-8 would otherwise be written straight
+// into the document. encoding/json rewrites invalid UTF-8 as U+FFFD, so such a
+// digest changes as it is serialized -- worse than no digest at all.
+//
+// A short value for a long algorithm is deliberately NOT in this list. The SDK
+// checks a digest's shape, not its length per algorithm, because ecosystems
+// publish digests in hex, in base64, and over subjects that are not files.
+func TestExportRefusesADigestTheSDKWillNotPublish(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		digest Digest
+	}{
+		{"embedded space", Digest{Algorithm: "sha256", Value: "e3b0c442 98fc1c14"}},
+		{"control character", Digest{Algorithm: "blake3", Value: "af1349b9\x00f5f9a1a6"}},
+		{"invalid utf-8", Digest{Algorithm: "sha512", Value: "e3b0c442\xff\xfe"}},
+		// An em space, not an ASCII one: the SDK's check is Unicode-aware,
+		// and a trailing ASCII space is trimmed rather than refused.
+		{"interior unicode whitespace", Digest{Algorithm: "sha256", Value: "e3b0c442\u200398fc1c14"}},
+		{"empty after trimming", Digest{Algorithm: "sha256", Value: "   "}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if checksums := spdxChecksums([]Digest{tc.digest}); len(checksums) != 0 {
+				t.Errorf("SPDX exported %+v", checksums)
+			}
+			if hashes := cycloneDXHashes([]Digest{tc.digest}); len(hashes) != 0 {
+				t.Errorf("CycloneDX exported %+v", hashes)
+			}
+		})
+	}
+
+	// The counterpart: a base64 SRI value is shorter than the algorithm's hex
+	// form and must still publish.
+	sri := Digest{Algorithm: "sha512", Value: "pkJf8Ni4YWlKDgODlNGxi/z1Wd0/hkJH8N4Rq+Cd1lTv7ZZKPXm8mTzcp2xEVSlHoQlUwjzUKh2nGSHTMEUUpg=="}
+	if checksums := spdxChecksums([]Digest{sri}); len(checksums) != 1 {
+		t.Fatalf("expected the base64 SRI digest to publish, got %+v", checksums)
+	}
+}

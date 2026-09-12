@@ -96,10 +96,13 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 			// Named separately from a malformed document because the fix is
 			// different: this file is syntactically fine and reads two ways,
 			// so the answer is to regenerate it, not to repair a syntax
-			// error. The wrapped error names the member or byte offset.
+			// error. The wrapped error names the class -- a repeated member,
+			// bytes that are not UTF-8, or an escape that names no character
+			// -- and the member path or byte offset.
 			return sdk.DetectionResult{}, fmt.Errorf(
 				"sbom file %q does not have a single unambiguous reading, so Bomly will not import it; "+
-					"regenerate it with a producer that emits each object member once: %w", sbomPath, err)
+					"regenerate it with a producer that emits each object member once and writes every string "+
+					"as Unicode text, without unpaired surrogate escapes: %w", sbomPath, err)
 		default:
 			return sdk.DetectionResult{}, fmt.Errorf("decode sbom file %q: %w", sbomPath, err)
 		}

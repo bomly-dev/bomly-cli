@@ -54,7 +54,7 @@ func FuzzUnmarshalAutoJSON(f *testing.F) {
 			t.Fatalf("non-deterministic parse: (%q, %v) then (%q, %v)", target, err, target2, err2)
 		}
 		if err != nil {
-			for _, sentinel := range []error{ErrMalformedJSON, ErrUnsupportedFormat} {
+			for _, sentinel := range []error{ErrMalformedJSON, ErrUnsupportedFormat, ErrAmbiguousJSON, ErrUnverifiableJSON} {
 				if errors.Is(err, sentinel) != errors.Is(err2, sentinel) {
 					t.Fatalf("non-deterministic error classification: %v then %v", err, err2)
 				}

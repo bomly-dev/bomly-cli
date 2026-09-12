@@ -213,7 +213,10 @@ func FromGraphEntries(g *sdk.Graph, entries []sdk.GraphEntry, opts BuildOptions)
 	// Before the identity is minted, not after: a conversion adopts its
 	// single source's identity, and it can only do that while the slot is
 	// still empty. An identity the caller pinned always wins over both.
-	applySourceAssertions(doc, sources)
+	// Adoption also needs the caller's word that the graph still restates
+	// the source; a transformed export leaves the slot empty here, mints its
+	// own identity below, and links the source instead.
+	applySourceAssertions(doc, sources, opts.RestatesSource)
 	mintDocumentIdentity(doc)
 	if doc.Created.IsZero() {
 		// Only once nothing else supplied one: a caller's pinned timestamp

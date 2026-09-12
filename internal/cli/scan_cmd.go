@@ -234,6 +234,9 @@ func scanSBOMBuildOptions(logger *zap.Logger, project output.ProjectDescriptor, 
 		Registry:    registry,
 		Lifecycle:   sbomLifecyclePhase(project.TargetType),
 		Aggregate:   sbomCompositionAggregate(selectedScope, degraded),
+		// The same predicate decides both: a graph that cannot claim to be
+		// complete cannot claim to be its source document either.
+		RestatesSource: sbomRestatesSource(current, selectedScope, degraded),
 		Provenance: sbom.Provenance{
 			Manufacturer:               strings.TrimSpace(current.SBOMManufacturer),
 			SecurityContact:            strings.TrimSpace(current.SBOMSecurityContact),
@@ -279,6 +282,18 @@ func sbomCompositionAggregate(selectedScope sdk.Scope, degraded bool) string {
 		return "incomplete"
 	}
 	return "complete"
+}
+
+// sbomRestatesSource reports whether an export of a single ingested SBOM may
+// adopt that document's identity (ADR-0042, issue #433): only when the graph
+// handed to the exporter is the ingested one, untransformed. A scope filter
+// dropped part of the graph, enrichment added registry data to it, and
+// degraded resolution means it is not known to be whole -- each makes the
+// export a different document from its source, which then mints its own
+// identity and links the source. --analyze needs --enrich and writes nothing
+// into the SBOM, so enrichment covers it.
+func sbomRestatesSource(current config.Resolved, selectedScope sdk.Scope, degraded bool) bool {
+	return sbomCompositionAggregate(selectedScope, degraded) == "complete" && !current.Enrich
 }
 
 // gitDescribeVersion derives a project version from Git history when the scan

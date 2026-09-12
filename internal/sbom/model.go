@@ -77,6 +77,14 @@ type BuildOptions struct {
 	// must only claim "complete" when nothing filtered or degraded the graph.
 	Aggregate string
 
+	// RestatesSource is true only when the export is a faithful restatement
+	// of its single source document: nothing filtered, enriched, or degraded
+	// the graph between ingest and export. Only then does a conversion adopt
+	// the source's identity, creation time, name and comment (ADR-0042). The
+	// default, false, is the safe side: the document mints its own identity
+	// and links the source. Ignored with zero or several sources.
+	RestatesSource bool
+
 	// Registry, when non-nil, supplies matching-stage enrichment (licenses,
 	// vulnerabilities, CPEs, digests, EOL) resolved by PURL and folded onto
 	// each component during projection.

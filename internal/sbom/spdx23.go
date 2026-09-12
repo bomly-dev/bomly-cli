@@ -134,8 +134,9 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 		DocumentName:      doc.NameOrDefault(),
 		DocumentNamespace: doc.NamespaceOrDefault(),
 		// The documents this one was built from, named rather than inherited.
-		// Empty for a native scan and for a conversion that adopted its single
-		// source's identity; populated for a merge.
+		// Empty for a native scan and for a restating conversion that adopted
+		// its single source's identity; populated for a merge and for a
+		// transformed conversion.
 		ExternalDocumentReferences: spdxSourceLinks(doc),
 		CreationInfo:               creation,
 		DocumentComment:            doc.Assertions.Comment,

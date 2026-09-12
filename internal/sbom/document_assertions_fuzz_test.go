@@ -58,7 +58,7 @@ func FuzzDocumentAssertions(f *testing.F) {
 
 		g := mustFuzzGraph(t)
 		entry := sdk.GraphEntry{Graph: g, Document: &hostile}
-		doc, err := FromGraphEntries(g, []sdk.GraphEntry{entry}, BuildOptions{})
+		doc, err := FromGraphEntries(g, []sdk.GraphEntry{entry}, BuildOptions{RestatesSource: true})
 		if err != nil {
 			t.Fatalf("export: %v", err)
 		}
@@ -96,6 +96,29 @@ func FuzzDocumentAssertions(f *testing.F) {
 			}
 		}
 
+		// Without the caller's word that the graph still restates the
+		// source, the same entry is exported as a merge of one: the source's
+		// identity is never adopted, and it is linked whenever it clears the
+		// gate (issue #433).
+		transformed, err := FromGraphEntries(g, []sdk.GraphEntry{entry}, BuildOptions{})
+		if err != nil {
+			t.Fatalf("transformed export: %v", err)
+		}
+		if publishable, ok := hostile.Normalized(); ok && publishable.Identity != "" {
+			if transformed.Namespace == publishable.Identity {
+				t.Fatalf("a transformed export adopted the source identity %q", publishable.Identity)
+			}
+			linked := false
+			for _, link := range documentSourceLinks(transformed, documentIdentity{Namespace: transformed.Namespace}) {
+				if link.Identity == publishable.Identity {
+					linked = true
+				}
+			}
+			if !linked {
+				t.Fatalf("a transformed export neither adopted nor linked the source identity %q", publishable.Identity)
+			}
+		}
+
 		// Feeding the projection back its own output changes nothing.
 		second := sdk.GraphEntry{Graph: g, Document: &sdk.DocumentAssertions{
 			Identity:    doc.Namespace,
@@ -106,7 +129,7 @@ func FuzzDocumentAssertions(f *testing.F) {
 			Tools:       doc.Assertions.Tools,
 			Comment:     doc.Assertions.Comment,
 		}}
-		again, err := FromGraphEntries(g, []sdk.GraphEntry{second}, BuildOptions{})
+		again, err := FromGraphEntries(g, []sdk.GraphEntry{second}, BuildOptions{RestatesSource: true})
 		if err != nil {
 			t.Fatalf("second export: %v", err)
 		}

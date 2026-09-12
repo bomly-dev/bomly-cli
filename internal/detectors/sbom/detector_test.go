@@ -3,6 +3,7 @@ package sbom
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +14,8 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 func TestDetectorResolveGraph_SPDXJSON(t *testing.T) {
@@ -248,4 +251,89 @@ func verifyResolvedGraph(t *testing.T, result sdk.DetectionResult, wantDependenc
 		}
 	}
 	t.Fatalf("expected graph to contain stable package id %q, got %s", wantDependencyID, g.PrettyString())
+}
+
+// A carrier token this build cannot read reaches the user as a warning, and
+// the scopes beside it still reach the graph.
+//
+// The SDK reads the carrier leniently so an older Bomly does not lose every
+// scope to one token a newer one wrote (bomly-dev/bomly-sdk#64). Dropping the
+// token silently would leave a user with no way to learn that the document was
+// written by a later build; this detector's logger is the channel the ingest
+// path has, since the codec has none and the SDK deliberately does not log.
+func TestDetectorWarnsAboutUnreadableScopeTokens(t *testing.T) {
+	raw := `{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "n",
+  "documentNamespace": "https://acme.example/spdx/n",
+  "creationInfo": {"created": "2026-01-02T03:04:05Z", "creators": ["Tool: t"]},
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-widget",
+      "name": "widget",
+      "versionInfo": "1.0.0",
+      "comment": "bomly:scope=runtime,future-scope",
+      "externalRefs": [
+        {"referenceCategory": "PACKAGE-MANAGER", "referenceType": "purl", "referenceLocator": "pkg:npm/widget@1.0.0"}
+      ]
+    }
+  ]
+}`
+	path := filepath.Join(t.TempDir(), "carrier.spdx.json")
+	if err := os.WriteFile(path, []byte(raw), 0o644); err != nil {
+		t.Fatalf("write fixture: %v", err)
+	}
+
+	core, logs := observer.New(zap.WarnLevel)
+	detector := Detector{Logger: zap.New(core)}
+	result, err := detector.ResolveGraph(context.Background(), requestForSBOMPath(path))
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+
+	entries := logs.All()
+	if len(entries) != 1 {
+		t.Fatalf("warnings = %+v, want exactly one", entries)
+	}
+	if !strings.Contains(entries[0].Message, "scope token") {
+		t.Errorf("warning = %q, want it to name the unreadable tokens", entries[0].Message)
+	}
+	var named bool
+	for _, field := range entries[0].Context {
+		if field.Key == "tokens" && strings.Contains(fmt.Sprint(field.Interface), "future-scope") {
+			named = true
+		}
+	}
+	if !named {
+		t.Errorf("warning fields = %+v, want the token itself", entries[0].Context)
+	}
+
+	// The scope this build can read still reached the graph: the warning is
+	// about what was dropped, not about what was kept.
+	g, err := result.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	nodes := g.DependencyNodes()
+	if len(nodes) != 1 {
+		t.Fatalf("nodes = %d, want the component", len(nodes))
+	}
+	if len(nodes[0].Scopes) != 1 || nodes[0].Scopes[0] != sdk.ScopeRuntime {
+		t.Errorf("scopes = %v, want runtime", nodes[0].Scopes)
+	}
+}
+
+// A document with a carrier this build reads completely warns about nothing.
+func TestDetectorStaysQuietForAReadableCarrier(t *testing.T) {
+	path := writeSBOMFixture(t, sbom.TargetSPDX23JSON)
+	core, logs := observer.New(zap.WarnLevel)
+	detector := Detector{Logger: zap.New(core)}
+	if _, err := detector.ResolveGraph(context.Background(), requestForSBOMPath(path)); err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	if entries := logs.All(); len(entries) != 0 {
+		t.Errorf("warnings = %+v, want none", entries)
+	}
 }

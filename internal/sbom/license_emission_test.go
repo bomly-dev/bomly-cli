@@ -396,3 +396,75 @@ func TestLicenseExpressionsAreEmittedCanonically(t *testing.T) {
 		})
 	}
 }
+
+// Every algorithm the SDK knows an SPDX spelling for must survive export.
+//
+// This is a differential test on purpose. Referencing constants makes a rename
+// a compile error and does nothing about an addition, which is exactly how a
+// hand-written switch here came to know nine algorithms against the registry's
+// nineteen -- dropping BLAKE2b, BLAKE3, MD2, MD4, MD6, ADLER32 and Streebog
+// checksums on export without a word. Reading the registry means the next
+// algorithm added upstream fails this test rather than disappearing.
+func TestEverySPDXKnownDigestAlgorithmIsEmitted(t *testing.T) {
+	var checked int
+	for _, algorithm := range sdk.DigestAlgorithms() {
+		spdxName := algorithm.SPDXName()
+		if spdxName == "" {
+			continue // SPDX does not define this one; the format's limit, not ours.
+		}
+		checked++
+		got := spdxChecksumAlgorithm(string(algorithm))
+		if string(got) != spdxName {
+			t.Errorf("%s renders as %q, want SPDX's %q", algorithm, got, spdxName)
+		}
+	}
+	if checked < 10 {
+		t.Fatalf("only %d algorithms were checked; the registry looks unread", checked)
+	}
+}
+
+// Every algorithm the SDK knows a CycloneDX spelling for must survive export,
+// and must go out in that spelling.
+//
+// The mirror of TestEverySPDXKnownDigestAlgorithmIsEmitted, and it exists for
+// the same reason twice over: a hand-written switch here knew eight algorithms
+// against the registry's nineteen, and the external-reference path cast the
+// SDK token straight into the enum, writing "sha256" where the schema says
+// "SHA-256". Differential on purpose -- a constant reference makes a rename a
+// compile error and says nothing about an addition.
+func TestEveryCycloneDXKnownDigestAlgorithmIsEmitted(t *testing.T) {
+	var checked int
+	for _, algorithm := range sdk.DigestAlgorithms() {
+		name := algorithm.CycloneDXName()
+		if name == "" {
+			continue // CycloneDX does not define this one; the format's limit.
+		}
+		checked++
+		if got := cycloneDXHashAlgorithm(string(algorithm)); string(got) != name {
+			t.Errorf("%s renders as %q, want CycloneDX's %q", algorithm, got, name)
+		}
+	}
+	if checked < 10 {
+		t.Fatalf("only %d algorithms were checked; the registry looks unread", checked)
+	}
+}
+
+// An algorithm CycloneDX has no name for is omitted rather than written in a
+// spelling the schema rejects.
+func TestUnmappableDigestIsOmittedFromCycloneDXReferences(t *testing.T) {
+	hashes := cycloneDXEmittedHashes([]sdk.Digest{
+		{Algorithm: sdk.DigestAlgorithmADLER32, Value: "0badf00d"},
+		{Algorithm: sdk.DigestAlgorithmSHA256, Value: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"},
+	})
+	if hashes == nil {
+		t.Fatal("the sha-256 hash was dropped along with the unmappable one")
+	}
+	for _, h := range *hashes {
+		if h.Algorithm == "adler32" || h.Algorithm == "ADLER32" {
+			t.Errorf("an algorithm CycloneDX does not define was emitted: %+v", h)
+		}
+		if h.Algorithm == "sha256" {
+			t.Errorf("the SDK token was emitted instead of CycloneDX's spelling: %+v", h)
+		}
+	}
+}

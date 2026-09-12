@@ -113,6 +113,35 @@ func TestNoDirectSPDXExpressionUse(t *testing.T) {
 	}
 }
 
+// guardFiles are the files whose job is to forbid a module, so they are the
+// files that have to spell it. Exempting them is not a loophole -- naming a
+// module in a rule that bans it is the opposite of reaching for it.
+//
+// An explicit set of canonical paths, for two reasons learned the hard way.
+// Matching a name instead exempted every guards_test.go under internal/, so a
+// second guard file anywhere could name a forbidden module unnoticed. And
+// exempting only this one file made the guards flag each other the moment a
+// second one existed: internal/output grew its own presentation-layer guard,
+// which must name packageurl-go to forbid it, and this rule reported it.
+//
+// Adding a guard therefore costs one line here, on purpose. That is the point:
+// a new exemption should be a deliberate edit somebody reviews, not a pattern
+// that silently widens.
+var guardFiles = map[string]struct{}{
+	filepath.Clean(filepath.Join(internalRoot, "detectors", "guards_test.go")):             {},
+	filepath.Clean(filepath.Join(internalRoot, "output", "registry_lookup_guard_test.go")): {},
+}
+
+// isGuardFile reports whether a path is one of the guard files above.
+//
+// By path. Exempting anything named guards_test.go was the earlier bug: it
+// meant a second guard file in any package could name a forbidden module and
+// no rule would report it.
+func isGuardFile(path string) bool {
+	_, ok := guardFiles[filepath.Clean(path)]
+	return ok
+}
+
 // filesNamingModule returns every Go file under internal/ -- test files
 // included -- whose text names the module path. Tests count because a test
 // reaching a library directly proves the hazard is still reachable, and a test
@@ -127,13 +156,15 @@ func TestNoDirectSPDXExpressionUse(t *testing.T) {
 // the right direction to fail.
 func filesNamingModule(t *testing.T, module string) []string {
 	t.Helper()
-	self := filepath.Clean(filepath.Join(internalRoot, "detectors", "guards_test.go"))
 	var offenders []string
 	err := filepath.Walk(internalRoot, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() || !strings.HasSuffix(path, ".go") || filepath.Clean(path) == self {
+		if info.IsDir() || !strings.HasSuffix(path, ".go") {
+			return nil
+		}
+		if isGuardFile(path) {
 			return nil
 		}
 		body, err := os.ReadFile(path)
@@ -277,5 +308,25 @@ func TestDetectionResultsCarryingGraphsAreAttributed(t *testing.T) {
 	if len(offenders) > 0 {
 		t.Fatalf("these detectors return graphs without recording which module root produced each site; "+
 			"wrap the result in detectors.Attributed: %v", offenders)
+	}
+}
+
+// The exemption is a set of paths, and a file is not exempt for being named
+// like a guard. Both halves have been wrong here before: matching the basename
+// hid a forbidden import in a second guards_test.go, and exempting only one
+// file made two guards report each other.
+func TestGuardExemptionIsByPathNotByName(t *testing.T) {
+	for path := range guardFiles {
+		if _, err := os.Stat(path); err != nil {
+			t.Errorf("guard file %q does not exist; a dead exemption is a rule nobody is applying", path)
+		}
+		if !isGuardFile(path) {
+			t.Errorf("guard file %q is not recognized by its own predicate", path)
+		}
+	}
+	// A file named like a guard, in a package that has none, must not be
+	// exempt -- whether or not it exists today.
+	if impostor := filepath.Join(internalRoot, "sbom", "guards_test.go"); isGuardFile(impostor) {
+		t.Errorf("%q is exempt for being named guards_test.go rather than for being a guard", impostor)
 	}
 }

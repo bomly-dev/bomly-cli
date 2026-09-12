@@ -16,6 +16,13 @@ func FuzzUnmarshalAutoJSON(f *testing.F) {
 		`{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"components":[]}`,
 		`{"bomFormat":"CycloneDX","specVersion":"1.6","version":1,"components":[]}`,
 		`{"artifacts":[],"artifactRelationships":[],"source":{"type":"directory","target":"."},"descriptor":{"name":"syft","version":"seed"},"schema":{"version":"16.0.34","url":"https://raw.githubusercontent.com/anchore/syft/main/schema/json/schema-16.0.34.json"}}`,
+		// Documents that name their own sources, so the fuzzer reaches the
+		// link read-back: an SPDX externalDocumentRef and a CycloneDX
+		// reference of type "bom", each with and without a usable checksum.
+		`{"spdxVersion":"SPDX-2.3","SPDXID":"SPDXRef-DOCUMENT","name":"demo","documentNamespace":"https://example.com/spdx/demo","externalDocumentRefs":[{"externalDocumentId":"DocumentRef-a","spdxDocument":"https://example.com/spdx/a","checksum":{"algorithm":"SHA256","checksumValue":"0000000000000000000000000000000000000000000000000000000000000000"}}],"creationInfo":{"created":"2026-01-01T00:00:00Z","creators":["Tool: bomly-fuzz"]},"packages":[]}`,
+		`{"spdxVersion":"SPDX-2.3","SPDXID":"SPDXRef-DOCUMENT","name":"demo","documentNamespace":"https://example.com/spdx/demo","externalDocumentRefs":[{"externalDocumentId":"DocumentRef-a","spdxDocument":"../../etc/passwd","checksum":{"algorithm":"NOPE","checksumValue":""}}],"packages":[]}`,
+		`{"bomFormat":"CycloneDX","specVersion":"1.6","version":1,"serialNumber":"urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79","externalReferences":[{"type":"bom","url":"urn:cdx:3e671687-395b-41f5-a30f-a58921a69b79/2","hashes":[{"alg":"SHA-256","content":"0000000000000000000000000000000000000000000000000000000000000000"}]}],"components":[]}`,
+		`{"bomFormat":"CycloneDX","specVersion":"1.6","version":1,"externalReferences":[{"type":"bom","url":"file:///etc/passwd"}],"components":[{"bom-ref":"a","name":"a","version":"1","purl":"pkg:npm/a@1","scope":"optional","properties":[{"name":"bomly:scopes","value":"runtime,future"}]}]}`,
 		// Malformed inputs: rejection paths must be deterministic, never panic.
 		``,
 		`{}`,

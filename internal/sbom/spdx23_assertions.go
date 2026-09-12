@@ -1,6 +1,7 @@
 package sbom
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -347,6 +348,7 @@ func spdxDocumentAssertions(doc *v23.Document) sdk.DocumentAssertions {
 		Name:        doc.DocumentName,
 		DataLicense: doc.DataLicense,
 		Comment:     doc.DocumentComment,
+		Sources:     spdxIngestedSources(doc.ExternalDocumentReferences),
 	}
 	if doc.CreationInfo != nil {
 		assertions.Created = doc.CreationInfo.Created
@@ -434,4 +436,103 @@ func spdxDocumentCreators(doc *Document) []common.Creator {
 		add(creatorType, value)
 	}
 	return creators
+}
+
+// spdxSourceLinks renders the documents this one was built from as SPDX
+// externalDocumentRefs.
+//
+// This is the half ADR-0042 had to leave out. SPDX names another document
+// through externalDocumentRefs, and section 6.6 makes the checksum mandatory
+// on every entry -- so until DocumentAssertions could carry one
+// (bomly-dev/bomly-sdk#55), a merged SPDX document could name nothing at all
+// while the CycloneDX half already linked its sources. The checksum is
+// captured at ingest by decodeDocument, over the source document's original
+// bytes, because it cannot be recovered from the parsed model afterwards.
+//
+// A source with no checksum is skipped rather than written with an empty one:
+// an entry missing the field is an invalid document, and a validator rejecting
+// the whole export is a worse outcome than one unnamed source. That happens
+// only for a source that reached the entry without passing through ingest --
+// a detector or plugin writing DocumentAssertions directly.
+//
+// The reference id is minted by sanitizeSPDXID, the same rule this package
+// already uses for package element ids, with the same collision suffix. It is
+// declined delegation deliberately: tools-golang owns the "DocumentRef-"
+// prefix and the wire shape (common.DocumentID applies both), and the SDK's
+// spdxkit mints only LicenseRef ids from license text; neither offers an
+// idstring minter for a document identity. Reusing this package's existing
+// rule keeps one answer rather than a second one.
+func spdxSourceLinks(doc *Document) []v23.ExternalDocumentRef {
+	// SPDX writes a namespace and no serial, so the namespace is the only
+	// identity a reader of this document can see, and the only one a source
+	// link could be redundant with.
+	links := documentSourceLinks(doc, documentIdentity{Namespace: doc.NamespaceOrDefault()})
+	if len(links) == 0 {
+		return nil
+	}
+	refs := make([]v23.ExternalDocumentRef, 0, len(links))
+	usedIDs := make(map[string]int, len(links))
+	for _, link := range links {
+		if link.Checksum == nil {
+			continue
+		}
+		// Re-gated on the way out: a link tuple reaching here from a graph
+		// entry never passed a decoder.
+		checksum, ok := link.Checksum.Normalized()
+		if !ok {
+			continue
+		}
+		algorithm := checksum.Algorithm.SPDXName()
+		if algorithm == "" {
+			// The SDK's registry says SPDX does not define this algorithm.
+			// Writing the canonical token instead would publish a value the
+			// specification does not list.
+			continue
+		}
+		base := sanitizeSPDXID(link.Identity)
+		seq := usedIDs[base]
+		usedIDs[base] = seq + 1
+		if seq > 0 {
+			base = fmt.Sprintf("%s-%d", base, seq)
+		}
+		refs = append(refs, v23.ExternalDocumentRef{
+			// Without the "DocumentRef-" prefix: common.DocumentID adds it on
+			// the way out and strips it on the way in.
+			DocumentRefID: common.DocumentID(base),
+			URI:           link.Identity,
+			Checksum: common.Checksum{
+				Algorithm: common.ChecksumAlgorithm(algorithm),
+				Value:     checksum.Value,
+			},
+		})
+	}
+	if len(refs) == 0 {
+		return nil
+	}
+	return refs
+}
+
+// spdxIngestedSources reads the documents an SPDX document says it was built
+// from, so a second conversion can name them too (bomly-dev/bomly-sdk#61).
+//
+// The checksum comes back with the reference, which is what makes an SPDX
+// source usable as a link on the next export in either format. The algorithm
+// spelling is SPDX's; the SDK's digest registry resolves it, so no mapping is
+// written here.
+func spdxIngestedSources(refs []v23.ExternalDocumentRef) []sdk.DocumentSource {
+	if len(refs) == 0 {
+		return nil
+	}
+	sources := make([]sdk.DocumentSource, 0, len(refs))
+	for _, ref := range refs {
+		source := sdk.DocumentSource{Identity: ref.URI}
+		if checksum, ok := (sdk.Digest{
+			Algorithm: sdk.DigestAlgorithm(ref.Checksum.Algorithm),
+			Value:     ref.Checksum.Value,
+		}).Normalized(); ok {
+			source.Checksum = &checksum
+		}
+		sources = append(sources, source)
+	}
+	return sources
 }

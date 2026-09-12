@@ -616,7 +616,6 @@ func purlTypeOffenders(t *testing.T, path string, src any) []string {
 	t.Helper()
 	const (
 		mint      = "BuildPackageURL"
-		build     = "Build"
 		authority = "PackageURLTypeForValues"
 	)
 	fset := token.NewFileSet()
@@ -630,6 +629,37 @@ func purlTypeOffenders(t *testing.T, path string, src any) []string {
 
 	var offenders []string
 	ast.Inspect(file, func(n ast.Node) bool {
+		// A purlkit.PURL literal decides the type wherever it is written --
+		// inline at the call, assigned to a variable first, or returned by
+		// a helper. Keying on the literal rather than on Build covers all
+		// three; keying on the call covered only the first.
+		if lit, ok := n.(*ast.CompositeLit); ok && compositeTypeName(lit) == "PURL" {
+			if value, ok := fieldValue(lit, "Type"); ok {
+				if inner, ok := value.(*ast.CallExpr); !ok || calleeName(inner) != "PackageURLTypeForValues" {
+					offenders = append(offenders,
+						where(value.Pos())+" builds a purlkit.PURL whose Type sdk.PackageURLTypeForValues did not decide")
+				}
+			}
+			return true
+		}
+		// Setting the field after the fact is the same choice, later.
+		if assign, ok := n.(*ast.AssignStmt); ok {
+			for i, lhs := range assign.Lhs {
+				sel, ok := lhs.(*ast.SelectorExpr)
+				if !ok || sel.Sel.Name != "Type" || i >= len(assign.Rhs) {
+					continue
+				}
+				if inner, ok := assign.Rhs[i].(*ast.CallExpr); ok && calleeName(inner) == "PackageURLTypeForValues" {
+					continue
+				}
+				if _, ok := assign.Rhs[i].(*ast.BasicLit); !ok {
+					continue // only a literal is a hand-picked type here
+				}
+				offenders = append(offenders,
+					where(assign.Rhs[i].Pos())+" sets a Type sdk.PackageURLTypeForValues did not decide")
+			}
+			return true
+		}
 		call, ok := n.(*ast.CallExpr)
 		if !ok {
 			return true
@@ -644,29 +674,6 @@ func purlTypeOffenders(t *testing.T, path string, src any) []string {
 			}
 			offenders = append(offenders,
 				where(call.Args[0].Pos())+" mints a package URL with a type sdk."+authority+" did not decide")
-		case build:
-			// purlkit.Build is the other way to mint one, and the
-			// concatenation guard below recommends it by name -- so it is
-			// a signposted route around this rule, not an obscure one. A
-			// detector reaching it with a literal Type has picked the type
-			// by hand exactly as the old string literals did.
-			for _, arg := range call.Args {
-				lit, ok := arg.(*ast.CompositeLit)
-				if !ok || compositeTypeName(lit) != "PURL" {
-					continue
-				}
-				value, ok := fieldValue(lit, "Type")
-				if !ok {
-					// No Type at all: purlkit rejects that itself, and a
-					// missing field is not a hand-written mapping.
-					continue
-				}
-				if inner, ok := value.(*ast.CallExpr); ok && calleeName(inner) == authority {
-					continue
-				}
-				offenders = append(offenders,
-					where(value.Pos())+" builds a purlkit.PURL whose Type sdk."+authority+" did not decide")
-			}
 		case authority:
 			// Handing the authority the answer is the same hand-written
 			// mapping wearing its name: a literal here has already picked
@@ -809,5 +816,39 @@ func TestPURLTypeGuardSeesTheShapesItForbids(t *testing.T) {
 		`var _ = thing.Build(thing.Options{Type: "generic", Name: n})`,
 	); len(got) != 0 {
 		t.Errorf("an unrelated Build is reported: %v", got)
+	}
+
+	// The literal decides the type wherever it is written, so putting it in
+	// a variable first must not hide it. The rule keys on the literal rather
+	// than on the call for exactly this reason -- watching Build's arguments
+	// instead would report a delegating hop and miss a literal built in a
+	// helper, which is the wrong answer in both directions.
+	if got := offendersFor("viavar.go",
+		"func f() string {\n\tspec := purlkit.PURL{Type: \"generic\", Name: n}\n\tout, _ := purlkit.Build(spec)\n\treturn out\n}",
+	); len(got) != 1 {
+		t.Errorf("a purlkit.PURL routed through a variable is not reported: %v", got)
+	}
+
+	// Same hop, delegating: allowed.
+	if got := offendersFor("viavar-ok.go",
+		"func f() string {\n\tspec := purlkit.PURL{Type: sdk.PackageURLTypeForValues(sdk.EcosystemDart, "+
+			"sdk.PackageManagerPub), Name: n}\n\tout, _ := purlkit.Build(spec)\n\treturn out\n}",
+	); len(got) != 0 {
+		t.Errorf("a delegating purlkit.PURL through a variable is reported: %v", got)
+	}
+
+	// Setting the field afterwards is the same choice, later.
+	if got := offendersFor("fieldset.go",
+		"func f() {\n\tvar spec purlkit.PURL\n\tspec.Type = \"generic\"\n\t_ = spec\n}",
+	); len(got) != 1 {
+		t.Errorf("a Type assigned after construction is not reported: %v", got)
+	}
+
+	// A delegating literal stays allowed however many hops it takes.
+	if got := offendersFor("viahelper.go",
+		"func f() string {\n\tspec := purlkit.PURL{Type: sdk.PackageURLTypeForValues(sdk.EcosystemDart)}\n\t"+
+			"out, _ := purlkit.Build(spec)\n\treturn out\n}",
+	); len(got) != 0 {
+		t.Errorf("a fully delegating variable hop is reported: %v", got)
 	}
 }

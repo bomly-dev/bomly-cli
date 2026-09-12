@@ -550,7 +550,7 @@ func packageNode(name, version string, pkg lockPackage) (*sdk.DependencyNode, er
 		PackageManager: sdk.PackageManagerNuGet,
 		Type:           sdk.PackageTypePackage,
 		Language:       "dotnet",
-		PURL:           sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemDotNet, sdk.PackageManagerNuGet), "", name, version)})
+		PURL:           sdk.BuildPackageURLFor(sdk.EcosystemDotNet, sdk.PackageManagerNuGet, "", name, version)})
 	if err != nil {
 		return nil, fmt.Errorf("build dependency node: %w", err)
 	}

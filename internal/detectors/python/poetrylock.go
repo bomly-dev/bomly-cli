@@ -86,7 +86,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 			PackageManager: sdk.PackageManagerPoetry,
 			Language:       "python",
 			Type:           sdk.PackageTypePackage,
-			PURL:           sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemPython, sdk.PackageManagerPoetry), "", pkg.Name, pkg.Version)})
+			PURL:           sdk.BuildPackageURLFor(sdk.EcosystemPython, sdk.PackageManagerPoetry, "", pkg.Name, pkg.Version)})
 		if err != nil {
 			return nil, fmt.Errorf("build dependency node: %w", err)
 		}

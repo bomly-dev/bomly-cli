@@ -307,11 +307,22 @@ Every generated document carries a stable identity:
     stays the scanned project's name.
   - **Several source documents** (a merge). The output mints its own identity
     — both formats give a document exactly one, and adopting a source's would
-    name a document that is not this one — and *links* each source: a
-    CycloneDX external reference of type `bom`, carrying a BOM-Link
-    (`urn:cdx:<serial>/<version>`) for a CycloneDX source or the namespace URI
-    for an SPDX one. People and tools credited by any source are credited by
+    name a document that is not this one — and *links* each source. CycloneDX
+    writes a document-level external reference of type `bom`, carrying a
+    BOM-Link (`urn:cdx:<serial>/<version>`) for a CycloneDX source or the
+    namespace URI for an SPDX one. SPDX writes an `externalDocumentRefs`
+    entry naming the same identity, with a SHA-256 checksum over the source
+    document's bytes, which the specification requires on every entry; the
+    CycloneDX reference carries that checksum too, so the link stays usable
+    if the merged document is later converted to SPDX. The checksum is
+    computed while the source document is being read, because it cannot be
+    recovered from the parsed model afterwards — a source that reached Bomly
+    without those bytes is left unnamed in SPDX rather than written as an
+    invalid reference. People and tools credited by any source are credited by
     the merged document too.
+  - Source links are read back on import, so provenance survives more than one
+    conversion: converting a merged document again produces a document that
+    still names the documents behind it, in either format.
 - The producing tool with its version (CycloneDX `metadata.tools[]`; SPDX
   `Creator: Tool: bomly-cli-<version>`), plus one tool entry per detector that
   contributed to the graph.
@@ -406,13 +417,25 @@ Some information necessarily becomes less specific during conversion:
   prefers: a `bomly:scopes` CycloneDX property, and the `scope=` field of the
   SPDX package comment. A Bomly document therefore round-trips its scope set
   exactly, and a document from any other producer still yields a usable scope.
-  Reading the other way, CycloneDX `required` and `optional` both become
-  runtime and `excluded` becomes development.
-- A source document's own scope word is not preserved verbatim. A component
-  a CycloneDX document marked `optional` imports as runtime and re-exports as
-  `required`, because Bomly's model has no slot for a source-asserted scope
-  beside the set it derives (tracked as bomly-dev/bomly-sdk#57). Bomly's own
-  documents are unaffected: their scope sets survive through the carrier.
+  Reading the other way, CycloneDX `required` becomes runtime, while
+  `optional` and `excluded` become development — the specification defines an
+  optional component as one that is not installed or otherwise reachable, so
+  it is absent from what runs.
+- A scope carrier naming a token this build does not recognize keeps the
+  scopes it does recognize. The carrier is Bomly's own, so an unreadable token
+  is almost always one a newer Bomly wrote; refusing the whole value would have
+  left the component unscoped, which in SPDX — where there is no native scope
+  field to fall back on — meant losing the scope entirely. The tokens that were
+  not read are reported as a warning naming the file.
+- A source document's own scope word is preserved and written back. A
+  component a CycloneDX document marked `optional` re-exports as `optional`,
+  not as Bomly's projection of the set it derives — so `optional` and
+  `excluded` do not collapse into `required` across a round trip that asserted
+  neither. The word yields to the projection when Bomly's own scope set stops
+  meaning what the word meant, for example once the package turns out to be
+  reachable from a development root as well. SPDX 2.3 has no scope field, so
+  the word is carried only through a CycloneDX export; an SPDX document still
+  carries the full set in its package comment.
 - Package origin is written on export but not read back on ingest: scanning an
   SBOM produces packages with no origin, so re-exporting that graph emits
   `NOASSERTION` and no distribution or vcs reference. Origin comes from a
@@ -440,17 +463,10 @@ Some information necessarily becomes less specific during conversion:
   package that is
   both the document's subject and a component describes itself the same way
   in both places.
-- A merged SPDX document does not link its sources. SPDX names another
-  document through `externalDocumentRefs`, and every entry there requires a
-  checksum over that document's bytes, which Bomly's document carrier cannot
-  yet hold (tracked as bomly-dev/bomly-sdk#55). Merged CycloneDX documents do
-  link their sources, and merged SPDX documents still preserve every
-  component assertion.
-- Bomly does not read those source links back. A merged CycloneDX document
-  names the documents it was built from, but converting that document again
-  produces one that names no sources: Bomly records what a document says about
-  itself and has no place for the documents behind it (tracked as
-  bomly-dev/bomly-sdk#61). Keep the merged output if you need its provenance.
+- A conversion is a fixed point within a format, not across one. A CycloneDX
+  serial can hold only a UUID URN, so an SPDX source converted to CycloneDX is
+  linked rather than adopted, and converting back produces a different
+  document. See "Document identity" above for how sources are named.
 - The CycloneDX `group` namespace survives a CycloneDX round trip. SPDX 2.3
   has no group field, so an SPDX round trip recovers the namespace only from
   the PURL.

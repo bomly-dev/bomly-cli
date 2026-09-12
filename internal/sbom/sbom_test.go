@@ -866,3 +866,29 @@ func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
 	}
 	return dep
 }
+
+// The purl-type to ecosystem join is the SDK's, not a local reassembly of
+// purlkit calls. A CLI copy had already fallen behind: the SDK consults a
+// second lookup for manager-name aliases, so "swiftpm" resolved to the swift
+// ecosystem there and to unknown here.
+func TestEcosystemFromPURLTypeDelegatesToTheSDK(t *testing.T) {
+	for _, testCase := range []struct {
+		purlType string
+		want     sdk.Ecosystem
+	}{
+		{"golang", sdk.EcosystemGo},
+		{"npm", sdk.EcosystemNPM},
+		{"swiftpm", sdk.EcosystemSwift},
+		{"", sdk.EcosystemUnknown},
+		{"nothing-like-this", sdk.EcosystemUnknown},
+	} {
+		t.Run(testCase.purlType, func(t *testing.T) {
+			if got := ecosystemFromPURLType(testCase.purlType); got != testCase.want {
+				t.Errorf("ecosystem = %q, want %q", got, testCase.want)
+			}
+			if got, want := ecosystemFromPURLType(testCase.purlType), sdk.EcosystemForPURLType(testCase.purlType); got != want {
+				t.Errorf("diverged from the SDK: %q vs %q", got, want)
+			}
+		})
+	}
+}

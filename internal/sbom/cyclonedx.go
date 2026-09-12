@@ -109,18 +109,25 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 	}
 
 	componentByID := make(map[string]Component)
+	var unknownScopes []string
 	if bom.Components != nil {
 		for _, comp := range *bom.Components {
+			unknownScopes = mergeUnknownScopeTokens(unknownScopes, unknownScopeTokens(cycloneDXCarriedScopes(comp.Properties)))
 			component := Component{
-				ID:        comp.BOMRef,
-				Name:      comp.Name,
-				Org:       comp.Group,
-				Type:      string(comp.Type),
-				Scopes:    sdk.ScopesFromCycloneDXComponent(string(comp.Scope), cycloneDXCarriedScopes(comp.Properties)),
-				Version:   comp.Version,
-				PURL:      comp.PackageURL,
-				Copyright: comp.Copyright,
-				Licenses:  parseCycloneDXLicenses(comp.Licenses),
+				ID:     comp.BOMRef,
+				Name:   comp.Name,
+				Org:    comp.Group,
+				Type:   string(comp.Type),
+				Scopes: sdk.ScopesFromCycloneDXComponent(string(comp.Scope), cycloneDXCarriedScopes(comp.Properties)),
+				// The word beside the set it derives, so an export can say
+				// what this document said rather than Bomly's projection of
+				// it. Gated by the SDK, which is also what refuses a value
+				// that is not a scope word at all.
+				SourceScope: sdk.NormalizeSourceScope(string(comp.Scope)),
+				Version:     comp.Version,
+				PURL:        comp.PackageURL,
+				Copyright:   comp.Copyright,
+				Licenses:    parseCycloneDXLicenses(comp.Licenses),
 			}
 			applyCycloneDXAssertions(&component, comp)
 			componentByID[comp.BOMRef] = component
@@ -161,16 +168,18 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 
 	if len(componentByID) == 0 && bom.Metadata != nil && bom.Metadata.Component != nil {
 		root := bom.Metadata.Component
+		unknownScopes = mergeUnknownScopeTokens(unknownScopes, unknownScopeTokens(cycloneDXCarriedScopes(root.Properties)))
 		component := Component{
-			ID:        root.BOMRef,
-			Name:      root.Name,
-			Org:       root.Group,
-			Type:      string(root.Type),
-			Scopes:    sdk.ScopesFromCycloneDXComponent(string(root.Scope), cycloneDXCarriedScopes(root.Properties)),
-			Version:   root.Version,
-			PURL:      root.PackageURL,
-			Copyright: root.Copyright,
-			Licenses:  parseCycloneDXLicenses(root.Licenses),
+			ID:          root.BOMRef,
+			Name:        root.Name,
+			Org:         root.Group,
+			Type:        string(root.Type),
+			Scopes:      sdk.ScopesFromCycloneDXComponent(string(root.Scope), cycloneDXCarriedScopes(root.Properties)),
+			SourceScope: sdk.NormalizeSourceScope(string(root.Scope)),
+			Version:     root.Version,
+			PURL:        root.PackageURL,
+			Copyright:   root.Copyright,
+			Licenses:    parseCycloneDXLicenses(root.Licenses),
 		}
 		// The same assertions the inventory loop applies. A document whose
 		// only component is its primary one is legal, and reading it with
@@ -210,15 +219,16 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 	}
 
 	return &Document{
-		Name:         defaultDocumentName,
-		Assertions:   cycloneDXDocumentAssertions(bom),
-		Tool:         cycloneDXPrimaryToolName(bom.Metadata),
-		Tools:        cycloneDXToolNames(bom.Metadata),
-		Created:      created,
-		SerialNumber: bom.SerialNumber,
-		Components:   components,
-		Dependencies: dependencies,
-		Roots:        roots,
+		Name:               defaultDocumentName,
+		Assertions:         cycloneDXDocumentAssertions(bom),
+		Tool:               cycloneDXPrimaryToolName(bom.Metadata),
+		Tools:              cycloneDXToolNames(bom.Metadata),
+		Created:            created,
+		SerialNumber:       bom.SerialNumber,
+		Components:         components,
+		Dependencies:       dependencies,
+		Roots:              roots,
+		UnknownScopeTokens: unknownScopes,
 	}, nil
 }
 
@@ -442,11 +452,16 @@ func toCycloneDXVersion(target Target) cdx.SpecVersion {
 // the document describes a package the same way wherever it appears.
 func cycloneDXComponent(comp Component) cdx.Component {
 	component := cdx.Component{
-		BOMRef:     comp.ID,
-		Type:       cycloneDXComponentType(comp.Type),
-		Name:       comp.NameOrID(),
-		Group:      comp.Org,
-		Scope:      cdx.Scope(sdk.CycloneDXScope(comp.Scopes)),
+		BOMRef: comp.ID,
+		Type:   cycloneDXComponentType(comp.Type),
+		Name:   comp.NameOrID(),
+		Group:  comp.Org,
+		// The source document's own word when Bomly's scope set still means
+		// what that word meant, and the projection of the set otherwise. The
+		// SDK owns that decision: it is the same mapping that read the word
+		// in, and only it can say whether the word still describes the set
+		// (ADR-0037).
+		Scope:      cdx.Scope(sdk.CycloneDXScopeForExport(comp.Scopes, comp.SourceScope)),
 		Version:    comp.Version,
 		PackageURL: comp.PURL,
 		Copyright:  comp.Copyright,
@@ -582,27 +597,23 @@ func cycloneDXHashes(digests []Digest) []cdx.Hash {
 // cycloneDXHashAlgorithm maps a digest algorithm string onto a CycloneDX hash
 // algorithm constant. Returns "" when the algorithm is unsupported so the
 // digest is dropped rather than emitting an invalid BOM.
+// cycloneDXHashAlgorithm renders a digest algorithm in CycloneDX's spelling.
+//
+// The registry is the SDK's, not a list here. A hand-written switch stood in
+// this spot and knew eight algorithms against the registry's nineteen, so a
+// component carrying BLAKE2b, BLAKE3 or Streebog had that checksum silently
+// dropped -- the same defect this PR already fixed on the SPDX side, in the
+// same shape, one file away.
+//
+// An algorithm CycloneDX does not define returns "", which the caller drops.
+// That is a real limit of the format: MD2, MD4, MD6 and ADLER32 are SPDX
+// spellings with no CycloneDX equivalent.
 func cycloneDXHashAlgorithm(algorithm string) cdx.HashAlgorithm {
-	switch strings.ToLower(strings.TrimSpace(algorithm)) {
-	case "md5":
-		return cdx.HashAlgoMD5
-	case "sha1", "sha-1":
-		return cdx.HashAlgoSHA1
-	case "sha256", "sha-256":
-		return cdx.HashAlgoSHA256
-	case "sha384", "sha-384":
-		return cdx.HashAlgoSHA384
-	case "sha512", "sha-512":
-		return cdx.HashAlgoSHA512
-	case "sha3-256":
-		return cdx.HashAlgoSHA3_256
-	case "sha3-384":
-		return cdx.HashAlgoSHA3_384
-	case "sha3-512":
-		return cdx.HashAlgoSHA3_512
-	default:
+	parsed, err := sdk.ParseDigestAlgorithm(algorithm)
+	if err != nil {
 		return ""
 	}
+	return cdx.HashAlgorithm(parsed.CycloneDXName())
 }
 
 // The property names carrying end-of-life through a CycloneDX document. They

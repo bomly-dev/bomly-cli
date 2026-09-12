@@ -47,6 +47,27 @@ Development may happen inside Git worktrees. Always run commands in the active w
 Do not assume the primary checkout path; use paths relative to the current worktree.
 Avoid destructive Git operations that can affect sibling worktrees or shared refs.
 
+### The modernizer, and the one analyzer we decline
+
+`go fix ./...` is the Go 1.27 modernizer and is worth running. One of its
+analyzers is declined here and in bomly-sdk, and the two must keep agreeing:
+
+```sh
+go fix -embedlit=false ./...
+```
+
+`embedlit` flattens `Coordinates: sdk.Coordinates{...}` into the bare promoted
+fields at construction sites — 119 of them here. It is behaviour-identical and
+nothing mechanical will object, which is exactly why the decision is written
+down. `Coordinates` is a named identity concept (ADR-0041, `dev-docs/MODELS.md`),
+and the wrapper at a construction site is what keeps the identity visible where
+a package is built.
+
+The two repositories disagreed on this once already: this repo's modernizer pass
+rejected the analyzer and the SDK's applied it, so the same question went on
+record with two different answers and cost 43 hunks to undo. Running
+`go fix ./...` without the flag will silently propose all of them again.
+
 ## Architecture
 
 See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the public overview is [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)). Component map:

@@ -267,6 +267,7 @@ Smoke tests (`test/smoke/`, `make smoke`) drive the built binary end-to-end agai
 
 - Scan cases come from `test/smoke/testdata/scan_targets.json`; keep it in sync with `internal/benchmark/testdata/scan_targets.json` (the benchmark target list) when cases change.
 - Pin every scan case's detectors with `--detectors`; normalize volatile fields in `helpers_test.go::normalizeJSON` before goldens.
+- A golden must never carry a host architecture. `make smoke ARGS="-update"` on an arm64 laptop writes a golden CI cannot match, so `normalizeJSON` erases the architecture and `TestGoldensCarryNoHostArchitecture` (untagged, runs in `make test`) fails if one reaches a committed golden. A new architecture-bearing shape means teaching the normalizer, not excepting the guard.
 - Register new tests in both slice matrices (`smoke.yml` and exactly one slice in `update-smoke-goldens.yml`); `go test -run` elements are unanchored regexes — use `$` anchors to keep slice ownership exact.
 - `TestExamplePluginFixtureCompiles` runs in `make test` and must keep compiling against the pinned `bomly-dev/bomly-sdk` release; update the fixture source when the SDK contract changes.
 

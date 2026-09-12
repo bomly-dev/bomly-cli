@@ -530,19 +530,6 @@ var reBomlyGitID = regexp.MustCompile(`(pkg:[^/]+/bomly-git)-\d+`)
 // in the "name" field of a package when no PURL prefix is present).
 var reBomlyGitName = regexp.MustCompile(`(bomly-git)-\d+`)
 
-// reHostArch matches the architecture qualifier a container scan reports.
-//
-// A multi-arch image resolves to the runner's own architecture, so this is the
-// runner speaking, not Bomly: goldens regenerated on an arm64 laptop and
-// compared on an amd64 CI runner differ on every package in the image. The
-// suite is here to catch regressions in what Bomly does with an image, and an
-// arch that tracks the host is noise in that signal.
-// The alternation covers both spellings a package manager uses for the same
-// machine: Debian says amd64/arm64, Alpine and RPM say x86_64/aarch64. Listing
-// them rather than matching any value keeps a genuinely wrong arch -- one
-// Bomly mislabelled -- visible in the diff.
-var reHostArch = regexp.MustCompile(`([?&]arch=)(?:amd64|arm64|386|armv7|armhf|ppc64le|s390x|x86_64|aarch64|i386|i686)(?:&|$)`)
-
 // reTempRoot matches the temporary directory a run cloned or built into.
 //
 // The suffix was already normalized; the prefix was not, and it differs by
@@ -589,12 +576,22 @@ func normalizeMachineDependentString(s string) string {
 	} else if reBomlyGitName.MatchString(s) {
 		s = reBomlyGitName.ReplaceAllString(s, "${1}-<normalized>")
 	}
-	s = reHostArch.ReplaceAllStringFunc(s, func(match string) string {
+	// The architecture vocabulary and both architecture patterns live in
+	// golden_arch_test.go, which carries no build tag: the guard test there
+	// forbids exactly what this function erases, and one shared list is what
+	// stops the two from drifting apart.
+	s = reHostArchQualifier.ReplaceAllStringFunc(s, func(match string) string {
 		if strings.HasSuffix(match, "&") {
-			return reHostArch.ReplaceAllString(match, "${1}<arch>&")
+			return reHostArchQualifier.ReplaceAllString(match, "${1}<arch>&")
 		}
-		return reHostArch.ReplaceAllString(match, "${1}<arch>")
+		return reHostArchQualifier.ReplaceAllString(match, "${1}<arch>")
 	})
+	// dpkg names a co-installable package's control files
+	// "<package>:<arch>.<ext>", so a container scan's evidence paths carry the
+	// runner's architecture even though the PURL qualifier above is already
+	// normalized. Identity was portable and evidence was not, which is how a
+	// golden written on arm64 passed locally and failed on CI (#445).
+	s = reHostArchDpkgPath.ReplaceAllString(s, "${1}:<arch>${2}")
 	return reTempRoot.ReplaceAllString(s, "<tmp>/")
 }
 

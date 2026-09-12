@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -530,8 +531,7 @@ func (p *Progress) findStepLocked(doneLabel string) *Step {
 			}
 		}
 	}
-	for i := len(p.active) - 1; i >= 0; i-- {
-		s := p.active[i]
+	for _, s := range slices.Backward(p.active) {
 		if s.state == stepActive || s.state == stepFinishing {
 			return s
 		}
@@ -549,9 +549,9 @@ func (p *Progress) findStepByActiveLabelLocked(label string) *Step {
 			}
 		}
 	}
-	for i := len(p.active) - 1; i >= 0; i-- {
-		if p.active[i].active == label {
-			return p.active[i]
+	for _, v := range slices.Backward(p.active) {
+		if v.active == label {
+			return v
 		}
 	}
 	return nil
@@ -565,9 +565,9 @@ func (p *Progress) Stage(text string) {
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	for i := len(p.active) - 1; i >= 0; i-- {
-		if p.active[i].state == stepActive || p.active[i].state == stepFinishing {
-			p.active[i].detail = strings.TrimSpace(text)
+	for _, v := range slices.Backward(p.active) {
+		if v.state == stepActive || v.state == stepFinishing {
+			v.detail = strings.TrimSpace(text)
 			return
 		}
 	}
@@ -883,7 +883,7 @@ func (p *Progress) drawLocked() {
 		_, _ = fmt.Fprintf(&buf, "\x1b[%dA", prev)
 	}
 	buf.WriteString("\r")
-	for i := 0; i < prev; i++ {
+	for i := range prev {
 		buf.WriteString(eraseLineSeq)
 		if i < prev-1 {
 			buf.WriteString("\n")
@@ -1016,7 +1016,7 @@ func renderFrozenBlock(s *Step) string {
 
 	var buf bytes.Buffer
 	buf.WriteString(head)
-	for _, line := range strings.Split(body, "\n") {
+	for line := range strings.SplitSeq(body, "\n") {
 		buf.WriteString("   ")
 		buf.WriteString(line)
 		buf.WriteString("\n")

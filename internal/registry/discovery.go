@@ -3,6 +3,7 @@ package registry
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/bomly-dev/bomly-sdk"
@@ -203,7 +204,7 @@ func pyprojectHasTable(path string, table string) (bool, bool) {
 	if err != nil {
 		return false, false
 	}
-	for _, line := range strings.Split(string(raw), "\n") {
+	for line := range strings.SplitSeq(string(raw), "\n") {
 		trimmed := strings.TrimSpace(line)
 		if !strings.HasPrefix(trimmed, "[") || !strings.Contains(trimmed, "]") {
 			continue
@@ -260,10 +261,5 @@ func sameStringSet(left []string, right []string) bool {
 }
 
 func containsString(values []string, target string) bool {
-	for _, value := range values {
-		if value == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(values, target)
 }

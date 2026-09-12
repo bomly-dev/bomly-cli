@@ -208,7 +208,6 @@ func TestFormatPostureDelta(t *testing.T) {
 		{"unchanged", 7.5, 7.5, "0"},
 	}
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			got := formatPostureDelta(tc.before, tc.after)

@@ -6,6 +6,7 @@ package opts
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -163,22 +164,15 @@ func appendUnique(values []string, value string) []string {
 	if value == "" {
 		return values
 	}
-	for _, existing := range values {
-		if existing == value {
-			return values
-		}
+	if slices.Contains(values, value) {
+		return values
 	}
 	return append(values, value)
 }
 
 // contains reports whether value is in values.
 func contains(values []string, value string) bool {
-	for _, existing := range values {
-		if existing == value {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(values, value)
 }
 
 func differenceSorted(all []string, keep []string) []string {

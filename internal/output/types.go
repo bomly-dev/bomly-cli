@@ -1,6 +1,8 @@
 package output
 
 import (
+	"maps"
+	"slices"
 	"sort"
 	"strings"
 
@@ -326,9 +328,7 @@ func cloneRefMetadata(src map[string]any) map[string]any {
 		return nil
 	}
 	clone := make(map[string]any, len(src))
-	for key, value := range src {
-		clone[key] = value
-	}
+	maps.Copy(clone, src)
 	return clone
 }
 
@@ -521,10 +521,8 @@ func MatchVulnerabilityRef(refs []VulnerabilityRef, id string) *VulnerabilityRef
 		if refs[idx].ID == id {
 			return &refs[idx]
 		}
-		for _, alias := range refs[idx].Aliases {
-			if alias == id {
-				return &refs[idx]
-			}
+		if slices.Contains(refs[idx].Aliases, id) {
+			return &refs[idx]
 		}
 	}
 	return nil

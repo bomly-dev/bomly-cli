@@ -752,7 +752,7 @@ func collectRequirementFileDependencies(path string, declared map[string]struct{
 	if err != nil {
 		return fmt.Errorf("read Python requirements %q: %w", path, err)
 	}
-	for _, line := range strings.Split(string(raw), "\n") {
+	for line := range strings.SplitSeq(string(raw), "\n") {
 		line = strings.TrimSpace(strings.SplitN(line, "#", 2)[0])
 		if line == "" || strings.HasPrefix(line, "-") {
 			continue
@@ -855,13 +855,13 @@ func collectLoosePythonManifestDependencies(path string, declared map[string]str
 	if err != nil {
 		return fmt.Errorf("read Python manifest %q: %w", path, err)
 	}
-	for _, line := range strings.Split(string(raw), "\n") {
+	for line := range strings.SplitSeq(string(raw), "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
-		if strings.HasPrefix(line, "name = ") {
-			value := strings.Trim(strings.TrimSpace(strings.TrimPrefix(line, "name = ")), `"'`)
+		if after, ok := strings.CutPrefix(line, "name = "); ok {
+			value := strings.Trim(strings.TrimSpace(after), `"'`)
 			addDeclaredPythonName(value, declared)
 			continue
 		}
@@ -891,8 +891,8 @@ func requirementName(value string) string {
 // behind an extras marker (e.g. `pytest; extra == "test"`). Such requirements
 // are optional and should not create transitive graph edges.
 func isExtrasRequirement(requirement string) bool {
-	if idx := strings.Index(requirement, ";"); idx >= 0 {
-		marker := strings.ToLower(requirement[idx+1:])
+	if _, after, ok := strings.Cut(requirement, ";"); ok {
+		marker := strings.ToLower(after)
 		return strings.Contains(marker, "extra")
 	}
 	return false
@@ -1038,7 +1038,7 @@ func collectPythonDevDependencies(projectPath string) map[string]struct{} {
 	if raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "pyproject.toml")); err == nil {
 		section := ""
 		inDevArray := false
-		for _, line := range strings.Split(string(raw), "\n") {
+		for line := range strings.SplitSeq(string(raw), "\n") {
 			trimmed := strings.TrimSpace(line)
 			if strings.HasPrefix(trimmed, "[") {
 				section = strings.ToLower(strings.Trim(trimmed, "[]"))
@@ -1088,7 +1088,7 @@ func collectPythonDevDependencies(projectPath string) map[string]struct{} {
 	// Pipfile [dev-packages]
 	if raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "Pipfile")); err == nil {
 		inDev := false
-		for _, line := range strings.Split(string(raw), "\n") {
+		for line := range strings.SplitSeq(string(raw), "\n") {
 			trimmed := strings.TrimSpace(line)
 			if strings.HasPrefix(trimmed, "[") {
 				inDev = strings.ToLower(strings.Trim(trimmed, "[]")) == "dev-packages"
@@ -1105,7 +1105,7 @@ func collectPythonDevDependencies(projectPath string) map[string]struct{} {
 
 	// pip: requirements-dev.txt (plain list of dev packages)
 	if raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "requirements-dev.txt")); err == nil {
-		for _, line := range strings.Split(string(raw), "\n") {
+		for line := range strings.SplitSeq(string(raw), "\n") {
 			trimmed := strings.TrimSpace(line)
 			if trimmed == "" || strings.HasPrefix(trimmed, "#") || strings.HasPrefix(trimmed, "-") {
 				continue

@@ -1,6 +1,7 @@
 package output
 
 import (
+	"maps"
 	"math"
 	"path/filepath"
 	"sort"
@@ -470,9 +471,7 @@ func metadataWithReportOptions(metadata Metadata, options ReportOptions) Metadat
 	}
 	if len(options.AnalyzerStats) > 0 {
 		metadata.AnalyzerStats = make(map[string]sdk.ReachabilityStats, len(options.AnalyzerStats))
-		for k, v := range options.AnalyzerStats {
-			metadata.AnalyzerStats[k] = v
-		}
+		maps.Copy(metadata.AnalyzerStats, options.AnalyzerStats)
 	}
 	return metadata
 }

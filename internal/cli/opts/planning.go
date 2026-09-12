@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
@@ -420,19 +421,12 @@ func detectorNamesForPackageManager(
 }
 
 func containsPackageManager(managers []sdk.PackageManager, target sdk.PackageManager) bool {
-	for _, manager := range managers {
-		if manager == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(managers, target)
 }
 
 func appendUniqueDetectorName(names []string, name string) []string {
-	for _, existing := range names {
-		if existing == name {
-			return names
-		}
+	if slices.Contains(names, name) {
+		return names
 	}
 	return append(names, name)
 }
@@ -450,13 +444,7 @@ func appendUniquePatterns(existing []string, patterns ...string) []string {
 		if pattern == "" {
 			continue
 		}
-		seen := false
-		for _, current := range existing {
-			if current == pattern {
-				seen = true
-				break
-			}
-		}
+		seen := slices.Contains(existing, pattern)
 		if !seen {
 			existing = append(existing, pattern)
 		}
@@ -520,10 +508,8 @@ func supportsTargetKind(targetKinds []sdk.ExecutionTargetKind, candidates ...sdk
 		return false
 	}
 	for _, targetKind := range targetKinds {
-		for _, candidate := range candidates {
-			if targetKind == candidate {
-				return true
-			}
+		if slices.Contains(candidates, targetKind) {
+			return true
 		}
 	}
 	return false
@@ -547,10 +533,8 @@ func singlePackageManager(managers []sdk.PackageManager) sdk.PackageManager {
 }
 
 func appendUniquePackageManager(values []sdk.PackageManager, value sdk.PackageManager) []sdk.PackageManager {
-	for _, existing := range values {
-		if existing == value {
-			return values
-		}
+	if slices.Contains(values, value) {
+		return values
 	}
 	return append(values, value)
 }

@@ -61,10 +61,7 @@ func boxView(title string, content []string, width, height int, color string) []
 			topLabel = truncateToWidth(topLabel, inner)
 		}
 	}
-	topFill := inner - len(render.StripANSI(topLabel))
-	if topFill < 0 {
-		topFill = 0
-	}
+	topFill := max(inner-len(render.StripANSI(topLabel)), 0)
 	border := func(value string) string {
 		if color == "" {
 			return render.Style(value, render.Dim, render.Gray)
@@ -81,7 +78,7 @@ func boxView(title string, content []string, width, height int, color string) []
 	}
 	leftPad := strings.Repeat(" ", horizontalPadding)
 	rightPad := strings.Repeat(" ", horizontalPadding)
-	for idx := 0; idx < contentHeight; idx++ {
+	for idx := range contentHeight {
 		line := ""
 		if idx < len(content) {
 			line = content[idx]
@@ -117,12 +114,9 @@ func centerLine(value string, width int) string {
 }
 
 func joinColumns(left, right []string, leftWidth, rightWidth int) []string {
-	height := len(left)
-	if len(right) > height {
-		height = len(right)
-	}
+	height := max(len(right), len(left))
 	out := make([]string, 0, height)
-	for idx := 0; idx < height; idx++ {
+	for idx := range height {
 		l := ""
 		if idx < len(left) {
 			l = left[idx]

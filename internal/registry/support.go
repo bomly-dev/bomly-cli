@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"slices"
 	"strings"
 
 	rootdetectors "github.com/bomly-dev/bomly-cli/internal/detectors"
@@ -168,11 +169,8 @@ func DetectorNamesForPackageManager(manager sdk.PackageManager) []string {
 func PackageManagersByDetector(detectorName string) ([]sdk.PackageManager, bool) {
 	values := make([]sdk.PackageManager, 0)
 	for _, manager := range SupportedPackageManagers() {
-		for _, detector := range DetectorNamesForPackageManager(manager) {
-			if detector == detectorName {
-				values = append(values, manager)
-				break
-			}
+		if slices.Contains(DetectorNamesForPackageManager(manager), detectorName) {
+			values = append(values, manager)
 		}
 	}
 	if len(values) == 0 {
@@ -346,13 +344,7 @@ func appendUniqueStrings(values []string, additions ...string) []string {
 		if value == "" {
 			continue
 		}
-		seen := false
-		for _, existing := range values {
-			if existing == value {
-				seen = true
-				break
-			}
-		}
+		seen := slices.Contains(values, value)
 		if !seen {
 			values = append(values, value)
 		}

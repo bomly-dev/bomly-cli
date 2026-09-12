@@ -254,17 +254,8 @@ func postureDiffMoversLines(rows []postureDiffRow, width int) []string {
 	if len(movers) > 6 {
 		movers = movers[:6]
 	}
-	labelWidth := width / 2
-	if labelWidth < 18 {
-		labelWidth = 18
-	}
-	if labelWidth > 38 {
-		labelWidth = 38
-	}
-	barWidth := width - labelWidth - 12
-	if barWidth < 8 {
-		barWidth = 8
-	}
+	labelWidth := min(max(width/2, 18), 38)
+	barWidth := max(width-labelWidth-12, 8)
 	maxMag := 0.0
 	for _, m := range movers {
 		mag := m.delta

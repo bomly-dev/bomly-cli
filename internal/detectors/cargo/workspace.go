@@ -42,17 +42,17 @@ func parseCargoWorkspaceMembers(text string) []string {
 				return
 			}
 			rest := fragment[start+1:]
-			end := strings.IndexByte(rest, '"')
-			if end < 0 {
+			before, after, ok := strings.Cut(rest, "\"")
+			if !ok {
 				return
 			}
-			if value := strings.TrimSpace(rest[:end]); value != "" {
+			if value := strings.TrimSpace(before); value != "" {
 				members = append(members, value)
 			}
-			fragment = rest[end+1:]
+			fragment = after
 		}
 	}
-	for _, rawLine := range strings.Split(text, "\n") {
+	for rawLine := range strings.SplitSeq(text, "\n") {
 		line := strings.TrimSpace(rawLine)
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
@@ -92,7 +92,7 @@ func parseCargoWorkspaceMembers(text string) []string {
 // root manifest declares none.
 func parseCargoWorkspaceInheritedVersion(text string) string {
 	section := ""
-	for _, rawLine := range strings.Split(text, "\n") {
+	for rawLine := range strings.SplitSeq(text, "\n") {
 		line := strings.TrimSpace(rawLine)
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
@@ -128,7 +128,7 @@ func inlineTableValue(table, key string) string {
 	if end := strings.LastIndexByte(table, '}'); end >= 0 {
 		table = table[:end]
 	}
-	for _, fragment := range strings.Split(table, ",") {
+	for fragment := range strings.SplitSeq(table, ",") {
 		k, v, ok := strings.Cut(fragment, "=")
 		if ok && strings.TrimSpace(k) == key {
 			return trimTomlString(strings.TrimSpace(v))

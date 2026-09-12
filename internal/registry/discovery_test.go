@@ -3,6 +3,7 @@ package registry
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/bomly-dev/bomly-sdk"
@@ -34,10 +35,5 @@ func TestDetectPackageManagersDoesNotGuessPDMFromUnreadablePyproject(t *testing.
 }
 
 func containsPackageManager(managers []sdk.PackageManager, target sdk.PackageManager) bool {
-	for _, manager := range managers {
-		if manager == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(managers, target)
 }

@@ -44,7 +44,7 @@ func TestGenerateJSONSchemaUsesSharedCommandModels(t *testing.T) {
 	if _, ok := properties["metadata"]; !ok {
 		t.Fatalf("expected scan schema to expose metadata property: %#v", properties)
 	}
-	if commandOutputSpecs()[0].typ != reflect.TypeOf(output.ScanResponse{}) {
+	if commandOutputSpecs()[0].typ != reflect.TypeFor[output.ScanResponse]() {
 		t.Fatal("expected command schema list to use canonical output types")
 	}
 }

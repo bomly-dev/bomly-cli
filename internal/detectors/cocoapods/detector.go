@@ -246,7 +246,7 @@ func parsePodfileTestTargets(path string) map[string]bool {
 		return strings.Contains(lower, "test") || strings.Contains(lower, "spec")
 	}
 
-	for _, line := range strings.Split(string(raw), "\n") {
+	for line := range strings.SplitSeq(string(raw), "\n") {
 		trimmed := strings.TrimSpace(line)
 		if m := podfileTargetHeadPattern.FindStringSubmatch(line); m != nil {
 			parentIsTest := len(stack) > 0 && stack[len(stack)-1].isTest

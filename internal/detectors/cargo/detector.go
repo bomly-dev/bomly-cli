@@ -796,7 +796,7 @@ func parseCargoLockPackages(text string) []lockPackage {
 func parseCargoManifest(text string) cargoManifest {
 	var manifest cargoManifest
 	section := ""
-	for _, rawLine := range strings.Split(text, "\n") {
+	for rawLine := range strings.SplitSeq(text, "\n") {
 		line := strings.TrimSpace(rawLine)
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue

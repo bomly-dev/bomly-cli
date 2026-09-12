@@ -347,6 +347,9 @@ func addSyntheticBunDependency(graph *sdk.Graph, name, requested string) (string
 
 func mergeBunDependencyMaps(maps ...map[string]string) map[string]string {
 	out := make(map[string]string)
+	// The parameter is named maps, so maps.Copy here would need an import
+	// alias. The explicit loop is kept on purpose; go fix will offer the
+	// rewrite again and it should be declined again.
 	for _, values := range maps {
 		for name, version := range values {
 			out[name] = version

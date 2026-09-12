@@ -3,6 +3,7 @@ package render
 import (
 	"fmt"
 	"io"
+	"slices"
 	"sort"
 	"strings"
 
@@ -128,12 +129,7 @@ func dependencyTransitionDescription(transition output.DiffDependencyTransition)
 }
 
 func dependencyDetailFieldChanged(transition output.DiffDependencyTransition, wanted sdk.DependencyDetailField) bool {
-	for _, field := range transition.ChangedFields {
-		if field == wanted {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(transition.ChangedFields, wanted)
 }
 
 func dependencyTransitionDisplayName(state output.DiffDependencyTransitionState) string {

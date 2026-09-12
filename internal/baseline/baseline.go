@@ -325,7 +325,7 @@ func validateAutomaticPath(target sdk.ExecutionTarget, path string) error {
 	}
 
 	current := absoluteRoot
-	for _, component := range strings.Split(relative, string(os.PathSeparator)) {
+	for component := range strings.SplitSeq(relative, string(os.PathSeparator)) {
 		if component == "" || component == "." {
 			continue
 		}

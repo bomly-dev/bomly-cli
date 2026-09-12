@@ -192,7 +192,7 @@ func TestConcurrentSteps_NoRace(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		s := p.Start("g1", "Goroutine 1")
-		for i := 0; i < 50; i++ {
+		for i := range 50 {
 			s.SetProgress(i, 50)
 		}
 		s.Complete("Goroutine 1 done", nil)
@@ -200,7 +200,7 @@ func TestConcurrentSteps_NoRace(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		s := p.Start("g2", "Goroutine 2")
-		for i := 0; i < 50; i++ {
+		for range 50 {
 			s.Advance()
 		}
 		s.Complete("Goroutine 2 done", nil)

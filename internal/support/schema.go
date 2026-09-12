@@ -3,6 +3,7 @@ package support
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -77,8 +78,7 @@ func structSchema(t reflect.Type, visited map[reflect.Type]bool) map[string]any 
 	properties := map[string]any{}
 	var required []string
 
-	for idx := 0; idx < t.NumField(); idx++ {
-		field := t.Field(idx)
+	for field := range t.Fields() {
 		if !field.IsExported() {
 			continue
 		}
@@ -93,9 +93,7 @@ func structSchema(t reflect.Type, visited map[reflect.Type]bool) map[string]any 
 			if field.Anonymous {
 				child := typeSchema(field.Type, visited)
 				if childProperties, ok := child["properties"].(map[string]any); ok {
-					for key, value := range childProperties {
-						properties[key] = value
-					}
+					maps.Copy(properties, childProperties)
 				}
 				if childRequired, ok := child["required"].([]string); ok {
 					required = append(required, childRequired...)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 
 	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
@@ -143,9 +144,7 @@ func (e *Engine) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.Analy
 			aggregated.Registry = updated
 			req.Registry = updated
 		}
-		for analyzerName, stats := range result.AnalyzerStats {
-			aggregated.AnalyzerStats[analyzerName] = stats
-		}
+		maps.Copy(aggregated.AnalyzerStats, result.AnalyzerStats)
 	}
 	if len(errs) > 0 {
 		return aggregated, errors.Join(errs...)

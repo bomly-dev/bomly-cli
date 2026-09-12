@@ -564,8 +564,8 @@ func parseRequireDirective(value string) (moduleRef, bool, error) {
 }
 
 func stripLineComment(line string) string {
-	if idx := strings.Index(line, "//"); idx >= 0 {
-		return line[:idx]
+	if before, _, ok := strings.Cut(line, "//"); ok {
+		return before
 	}
 	return line
 }

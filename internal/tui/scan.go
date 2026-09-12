@@ -1355,7 +1355,7 @@ func (m *ScanModel) overviewDashboardView(width, height int) string {
 			render.Style("Manifests: ", render.Dim) + fmt.Sprintf("%d", len(m.manifests)),
 		}, targetWidth, cardHeight, render.Green),
 	}
-	for idx := 0; idx < cardHeight; idx++ {
+	for idx := range cardHeight {
 		lines = append(lines, cards[0][idx]+" "+cards[1][idx]+" "+cards[2][idx]+" "+cards[3][idx])
 	}
 	lines = append(lines, "")
@@ -1369,10 +1369,7 @@ func (m *ScanModel) overviewDashboardView(width, height int) string {
 		leftA = 7
 	}
 	leftB := (remaining - leftA - 2) / 2
-	leftC := remaining - leftA - leftB - 2
-	if leftC < 4 {
-		leftC = 4
-	}
+	leftC := max(remaining-leftA-leftB-2, 4)
 	leftContent := stackBoxes(
 		boxView("Ecosystem Distribution", coloredDistributionLines(stats.ecosystems, stats.components, 8, leftWidth-2), leftWidth, leftA, render.Cyan),
 		boxView("Relationship Distribution", componentsByRelationshipLines(m.manifests, m.graphValue, leftWidth-2), leftWidth, leftB, render.Cyan),
@@ -1383,10 +1380,7 @@ func (m *ScanModel) overviewDashboardView(width, height int) string {
 		rightA = 6
 	}
 	rightB := (remaining - rightA - 2) / 2
-	rightC := remaining - rightA - rightB - 2
-	if rightC < 4 {
-		rightC = 4
-	}
+	rightC := max(remaining-rightA-rightB-2, 4)
 	rightContent := stackBoxes(
 		boxView("License Distribution", coloredDistributionLines(groupedLicenseCounts(m.graphValue, m.registry, 10), stats.components, 10, rightWidth-2), rightWidth, rightA, render.Yellow),
 		boxView("Vulnerability Severity", severityDistributionLines(vulnerabilities, rightWidth-2, m.reachabilityEnabled), rightWidth, rightB, render.Red),
@@ -1613,13 +1607,7 @@ func topAffectedLines(vulnerabilities []packageVulnerabilityRow, limit, width in
 		if width < 32 {
 			width = 32
 		}
-		labelWidth := width / 3
-		if labelWidth < 18 {
-			labelWidth = 18
-		}
-		if labelWidth > 34 {
-			labelWidth = 34
-		}
+		labelWidth := min(max(width/3, 18), 34)
 		suffix := fmt.Sprintf(" %d", counts[key])
 		barWidth := width - labelWidth - 1 - len(suffix) - 2
 		if barWidth < 10 {
@@ -1627,10 +1615,7 @@ func topAffectedLines(vulnerabilities []packageVulnerabilityRow, limit, width in
 			labelWidth = width - barWidth - 1 - len(suffix) - 2
 			if labelWidth < 8 {
 				labelWidth = 8
-				barWidth = width - labelWidth - 1 - len(suffix) - 2
-				if barWidth < 1 {
-					barWidth = 1
-				}
+				barWidth = max(width-labelWidth-1-len(suffix)-2, 1)
 			}
 		}
 		lines = append(lines, padRight(truncateToWidth(key, labelWidth), labelWidth)+render.Style(" ", render.Dim)+coloredBarLine(counts[key], maxVal, barWidth, paletteColor(idx))+suffix)
@@ -1894,10 +1879,7 @@ func licenseTableRow(row licenseRow, totalComponents int, width int) string {
 	if totalComponents > 0 {
 		percent = len(row.packages) * 100 / totalComponents
 	}
-	nameWidth := width - 28
-	if nameWidth < 18 {
-		nameWidth = 18
-	}
+	nameWidth := max(width-28, 18)
 	return padRight(truncateToWidth(row.license, nameWidth), nameWidth) +
 		padRight(fmt.Sprintf("%d", len(row.packages)), 7) +
 		coloredBarLine(len(row.packages), totalComponents, 12, render.Yellow) +
@@ -1938,13 +1920,7 @@ func (m *ScanModel) buildPostureListModel() *listModel {
 				maxRepo = len(row.repository)
 			}
 		}
-		repoWidth = maxRepo
-		if repoWidth > 32 {
-			repoWidth = 32
-		}
-		if repoWidth < 24 {
-			repoWidth = 24
-		}
+		repoWidth = max(min(maxRepo, 32), 24)
 	}
 
 	group := valueOrDefault(m.postureGroup, "check")
@@ -1952,10 +1928,7 @@ func (m *ScanModel) buildPostureListModel() *listModel {
 	var listTitle, listHeader string
 	switch group {
 	case "check":
-		checkRepoWidth := repoWidth
-		if checkRepoWidth > 24 {
-			checkRepoWidth = 24
-		}
+		checkRepoWidth := min(repoWidth, 24)
 		items, listTitle, listHeader = m.postureItemsByCheck(rows, checkRepoWidth)
 	default:
 		items = m.postureItemsByRepository(rows, repoWidth)
@@ -3243,13 +3216,7 @@ func distributionLine(label string, value, total, maxVal int, color string, widt
 	//   padRight(text, textWidth+2) + bar(barWidth)   ==>   total = width - 2
 	//
 	// Anything longer gets clipped by boxView and we lose the bar tail.
-	textWidth := width / 2
-	if textWidth < 22 {
-		textWidth = 22
-	}
-	if textWidth > 40 {
-		textWidth = 40
-	}
+	textWidth := min(max(width/2, 22), 40)
 	// Bar takes whatever's left after the label column. We prefer at
 	// least 8 cols of bar, but never at the cost of overflowing the
 	// `width-2` box budget — when the pane is genuinely narrow, the
@@ -3260,10 +3227,7 @@ func distributionLine(label string, value, total, maxVal int, color string, widt
 		textWidth = width - barWidth - 4
 		if textWidth < 8 {
 			textWidth = 8
-			barWidth = width - textWidth - 4
-			if barWidth < 1 {
-				barWidth = 1
-			}
+			barWidth = max(width-textWidth-4, 1)
 		}
 	}
 	return padRight(truncateToWidth(text, textWidth), textWidth+2) + coloredBarLine(value, maxVal, barWidth, color)
@@ -3361,10 +3325,7 @@ func groupedLicenseCounts(graphValue *sdk.Graph, registry *sdk.PackageRegistry, 
 		return counts
 	}
 	grouped := make(map[string]int, limit)
-	keep := limit - 1
-	if keep < 1 {
-		keep = 1
-	}
+	keep := max(limit-1, 1)
 	for idx, key := range keys {
 		if idx < keep {
 			grouped[key] = counts[key]
@@ -3472,10 +3433,7 @@ func componentsByRelationshipLines(manifests []listPackageRow, graphValue *sdk.G
 	if len(manifests) == 0 {
 		return []string{render.Style("(none)", render.Dim)}
 	}
-	nameWidth := width - 36
-	if nameWidth < 16 {
-		nameWidth = 16
-	}
+	nameWidth := max(width-36, 16)
 	lines := []string{render.Style(padRight("Manifest", nameWidth)+padRight("Direct", 8)+padRight("Transitive", 12)+"Root", render.Dim)}
 	displayed, remaining := displayManifestsWithRemainder(manifests, 10)
 	for _, manifest := range displayed {
@@ -3502,10 +3460,7 @@ func componentsByScopeLines(manifests []listPackageRow, graphValue *sdk.Graph, w
 	if len(manifests) == 0 {
 		return []string{render.Style("(none)", render.Dim)}
 	}
-	nameWidth := width - 42
-	if nameWidth < 16 {
-		nameWidth = 16
-	}
+	nameWidth := max(width-42, 16)
 	lines := []string{render.Style(padRight("Manifest", nameWidth)+padRight("Runtime", 9)+padRight("Development", 13)+"Unset", render.Dim)}
 	displayed, remaining := displayManifestsWithRemainder(manifests, 10)
 	for _, manifest := range displayed {

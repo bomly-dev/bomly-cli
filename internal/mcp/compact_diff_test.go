@@ -124,7 +124,7 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 
 func TestBuildCompactDiffCapsDependencyTransitions(t *testing.T) {
 	transitions := make([]output.DiffDependencyTransition, 0, maxDependencyTransitions+2)
-	for index := 0; index < maxDependencyTransitions+2; index++ {
+	for index := range maxDependencyTransitions + 2 {
 		name := fmt.Sprintf("package-%03d", index)
 		transitions = append(transitions, output.DiffDependencyTransition{
 			Before: output.DiffDependencyTransitionState{

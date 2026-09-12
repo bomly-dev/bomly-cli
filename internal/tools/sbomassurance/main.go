@@ -268,8 +268,7 @@ func execute(ctx context.Context, executable string, args ...string) (commandRes
 	exitCode := 0
 	if err != nil {
 		exitCode = -1
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
+		if exitErr, ok := errors.AsType[*exec.ExitError](err); ok {
 			exitCode = exitErr.ExitCode()
 		}
 	}

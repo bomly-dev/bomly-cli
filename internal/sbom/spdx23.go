@@ -443,7 +443,7 @@ func parseSPDXCommentField(comment, field string) string {
 	if !strings.HasPrefix(comment, "bomly:") {
 		return ""
 	}
-	for _, part := range strings.Split(strings.TrimPrefix(comment, "bomly:"), ";") {
+	for part := range strings.SplitSeq(strings.TrimPrefix(comment, "bomly:"), ";") {
 		key, value, ok := strings.Cut(part, "=")
 		if !ok {
 			continue

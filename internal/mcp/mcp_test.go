@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"maps"
 	"reflect"
 	"strings"
 	"testing"
@@ -639,9 +640,7 @@ func TestTools_PropagateRecursiveDiscoveryArgs(t *testing.T) {
 	adapter = &mockAdapter{explainResult: mcp.ExplainRunResult{Response: output.ExplainResponse{Command: "explain"}}}
 	c = newTestClient(t, adapter)
 	explainArgs := map[string]any{"package": "lodash"}
-	for k, v := range args {
-		explainArgs[k] = v
-	}
+	maps.Copy(explainArgs, args)
 	if result := callTool(t, c, "bomly_explain", explainArgs); result.IsError {
 		t.Fatalf("unexpected explain tool error: %v", result.Content)
 	}
@@ -652,9 +651,7 @@ func TestTools_PropagateRecursiveDiscoveryArgs(t *testing.T) {
 	adapter = &mockAdapter{diffResult: mcp.DiffRunResult{Response: output.DiffResponse{Command: "diff"}}}
 	c = newTestClient(t, adapter)
 	diffArgs := map[string]any{"base": "main", "head": "HEAD"}
-	for k, v := range args {
-		diffArgs[k] = v
-	}
+	maps.Copy(diffArgs, args)
 	if result := callTool(t, c, "bomly_diff", diffArgs); result.IsError {
 		t.Fatalf("unexpected diff tool error: %v", result.Content)
 	}

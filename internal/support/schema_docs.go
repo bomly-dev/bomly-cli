@@ -87,8 +87,7 @@ func writeTypeTable(builder *strings.Builder, t reflect.Type) {
 func flatFields(t reflect.Type) []reflect.StructField {
 	t = derefType(t)
 	fields := make([]reflect.StructField, 0, t.NumField())
-	for idx := 0; idx < t.NumField(); idx++ {
-		field := t.Field(idx)
+	for field := range t.Fields() {
 		if !field.IsExported() {
 			continue
 		}
@@ -140,8 +139,7 @@ func collectStructTypes(t reflect.Type, visited map[reflect.Type]bool) {
 		return
 	}
 	visited[t] = true
-	for idx := 0; idx < t.NumField(); idx++ {
-		field := t.Field(idx)
+	for field := range t.Fields() {
 		if !field.IsExported() {
 			continue
 		}

@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -1054,7 +1055,7 @@ func (m *DiffModel) overviewDashboardView(width, height int) string {
 			render.Style(fmt.Sprintf("%d package", stats.findingsByKind["package"]), render.Cyan),
 		), cardWidth, cardHeight, render.Magenta),
 	}
-	for idx := 0; idx < cardHeight; idx++ {
+	for idx := range cardHeight {
 		row := cards[0][idx]
 		for c := 1; c < len(cards); c++ {
 			row += " " + cards[c][idx]
@@ -1071,10 +1072,7 @@ func (m *DiffModel) overviewDashboardView(width, height int) string {
 		leftA = 6
 	}
 	leftB := (remaining - leftA - 2) / 2
-	leftC := remaining - leftA - leftB - 2
-	if leftC < 4 {
-		leftC = 4
-	}
+	leftC := max(remaining-leftA-leftB-2, 4)
 	leftContent := stackBoxes(
 		boxView("Changes per Ecosystem", coloredDistributionLines(stats.ecosystems, stats.changedTotal, 8, leftWidth-2), leftWidth, leftA, render.Cyan),
 		boxView("Changes per Relationship", coloredDistributionLines(stats.relationships, sumCounts(stats.relationships), 6, leftWidth-2), leftWidth, leftB, render.Cyan),
@@ -1085,10 +1083,7 @@ func (m *DiffModel) overviewDashboardView(width, height int) string {
 		rightA = 6
 	}
 	rightB := (remaining - rightA - 2) / 2
-	rightC := remaining - rightA - rightB - 2
-	if rightC < 4 {
-		rightC = 4
-	}
+	rightC := max(remaining-rightA-rightB-2, 4)
 	rightContent := stackBoxes(
 		boxView("Vulnerability Findings", findingsTableLines("Severity", severityRowKeys(), stats.vulnByStatus, severityRowColor, rightWidth-2), rightWidth, rightA, render.Red),
 		boxView("License Findings", findingsTableLines("Rule", licenseRuleRowKeys(), stats.licenseByStatus, ruleRowColor, rightWidth-2), rightWidth, rightB, render.Yellow),
@@ -1332,11 +1327,8 @@ func (m *DiffModel) overviewTopChangedManifests() []string {
 	}
 	sort.Slice(rows, func(i, j int) bool { return rows[i].count > rows[j].count })
 	lines := []string{render.Style("Top Changed Manifests", render.Bold, render.Cyan), ""}
-	limit := 10
-	if len(rows) < limit {
-		limit = len(rows)
-	}
-	for i := 0; i < limit; i++ {
+	limit := min(len(rows), 10)
+	for i := range limit {
 		if rows[i].count == 0 {
 			continue
 		}
@@ -1907,12 +1899,7 @@ func renderDependencyDetailTransition(transition output.DiffDependencyTransition
 }
 
 func dependencyDetailFieldChangedForTUI(transition output.DiffDependencyTransition, wanted sdk.DependencyDetailField) bool {
-	for _, field := range transition.ChangedFields {
-		if field == wanted {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(transition.ChangedFields, wanted)
 }
 
 func tuiRegistryEligibilityLabel(eligible bool) string {
@@ -2789,8 +2776,8 @@ func auditGroupDetails(key, group string, deltas []auditDelta, noun string) []st
 // pluralize is a *very* dumb pluralizer that's fine for our nouns
 // ("vulnerability" → "vulnerabilities", "finding" → "findings").
 func pluralize(noun string) string {
-	if strings.HasSuffix(noun, "y") {
-		return strings.TrimSuffix(noun, "y") + "ies"
+	if before, ok := strings.CutSuffix(noun, "y"); ok {
+		return before + "ies"
 	}
 	if strings.HasSuffix(noun, "s") {
 		return noun
@@ -3153,7 +3140,7 @@ func (m *DiffModel) renderSourceBody(width, height int, focused diffSourceSide, 
 	rightBox := boxView(rightTitle, rightLines, rightWidth, height, rightColor)
 
 	out := make([]string, 0, height)
-	for i := 0; i < height; i++ {
+	for i := range height {
 		l := ""
 		r := ""
 		if i < len(leftBox) {

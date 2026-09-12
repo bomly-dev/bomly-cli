@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -735,12 +737,8 @@ func (r *Registry) DiscoveryPlans() map[string]DetectorDiscoveryPlan {
 func (r *Registry) Filter(filter Filter) *Registry {
 	filtered := NewRegistry(r.configs, *r.logger)
 	filtered.httpProvider = r.httpProvider
-	for key, enabled := range r.defaultEnabled {
-		filtered.defaultEnabled[key] = enabled
-	}
-	for key, origin := range r.componentOrigins {
-		filtered.componentOrigins[key] = origin
-	}
+	maps.Copy(filtered.defaultEnabled, r.defaultEnabled)
+	maps.Copy(filtered.componentOrigins, r.componentOrigins)
 
 	allowedDetectors := make(map[string]struct{}, len(r.detectors))
 	for _, detector := range r.detectors {
@@ -809,36 +807,21 @@ func supportsEcosystem(supported []sdk.Ecosystem, ecosystem sdk.Ecosystem) bool 
 	if len(supported) == 0 {
 		return true
 	}
-	for _, candidate := range supported {
-		if candidate == ecosystem {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(supported, ecosystem)
 }
 
 func supportsLanguage(supported []sdk.Language, language sdk.Language) bool {
 	if len(supported) == 0 {
 		return true
 	}
-	for _, candidate := range supported {
-		if candidate == language {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(supported, language)
 }
 
 func supportsPackageManager(supported []sdk.PackageManager, manager sdk.PackageManager) bool {
 	if len(supported) == 0 {
 		return true
 	}
-	for _, candidate := range supported {
-		if candidate == manager {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(supported, manager)
 }
 
 func (r *Registry) detectorSelected(filter sdk.DetectorFilter, descriptor sdk.DetectorDescriptor) bool {

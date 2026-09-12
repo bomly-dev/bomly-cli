@@ -1,6 +1,7 @@
 package output
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/bomly-dev/bomly-sdk"
@@ -110,10 +111,8 @@ func PackageAdvisory(pkg *sdk.Package, vulnerabilityID string) *sdk.Vulnerabilit
 		if vuln.ID == vulnerabilityID {
 			return vuln
 		}
-		for _, alias := range vuln.Aliases {
-			if alias == vulnerabilityID {
-				return vuln
-			}
+		if slices.Contains(vuln.Aliases, vulnerabilityID) {
+			return vuln
 		}
 	}
 	return nil

@@ -281,13 +281,7 @@ func postureTopFailingLines(rows []postureRow, width int) []string {
 	if width < 32 {
 		width = 32
 	}
-	baseLabelWidth := width / 2
-	if baseLabelWidth < 18 {
-		baseLabelWidth = 18
-	}
-	if baseLabelWidth > 32 {
-		baseLabelWidth = 32
-	}
+	baseLabelWidth := min(max(width/2, 18), 32)
 	out := make([]string, 0, len(checks))
 	maxFail := 0
 	for _, c := range checks {
@@ -304,10 +298,7 @@ func postureTopFailingLines(rows []postureRow, width int) []string {
 			labelWidth = width - barWidth - 1 - len(suffix) - 2
 			if labelWidth < 8 {
 				labelWidth = 8
-				barWidth = width - labelWidth - 1 - len(suffix) - 2
-				if barWidth < 1 {
-					barWidth = 1
-				}
+				barWidth = max(width-labelWidth-1-len(suffix)-2, 1)
 			}
 		}
 		label := padRight(truncateToWidth(c.Name, labelWidth), labelWidth)

@@ -158,7 +158,7 @@ func TestTopAffectedLines_FitBoxBudget(t *testing.T) {
 		Version: "6.0.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime),
 	})
 	rows := make([]packageVulnerabilityRow, 0, 12)
-	for i := 0; i < 12; i++ {
+	for i := range 12 {
 		rows = append(rows, packageVulnerabilityRow{
 			pkg:           pkg,
 			vulnerability: sdk.Vulnerability{ID: "CVE-2026-" + string(rune('A'+i))},
@@ -229,7 +229,7 @@ func TestPostureRowsFromGraph_DedupesAndSortsWorstFirst(t *testing.T) {
 
 func TestPostureTopFailingLines_FitBoxBudget(t *testing.T) {
 	rows := make([]postureRow, 0, 196)
-	for i := 0; i < 196; i++ {
+	for range 196 {
 		rows = append(rows, postureRow{
 			repository: "github.com/example/repo",
 			card: newTestScorecardTUI("github.com/example/repo", 4.8,

@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -69,10 +70,5 @@ func TestBenchmarkNativeScannerUsesBomlyNativeDetector(t *testing.T) {
 }
 
 func benchmarkContainsString(values []string, target string) bool {
-	for _, value := range values {
-		if value == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(values, target)
 }

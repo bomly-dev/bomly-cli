@@ -60,7 +60,7 @@ func TestCompactRemediationCapsAliasesAndFindingsWithCounters(t *testing.T) {
 		t.Fatal("fixture package missing")
 	}
 	pkg.Vulnerabilities[0].Aliases = []string{"CVE-1", "CVE-2", "CVE-3", "CVE-4", "CVE-5"}
-	for i := 0; i < maxFindingsPerGroup+6; i++ {
+	for i := range maxFindingsPerGroup + 6 {
 		id := fmt.Sprintf("GHSA-extra-%02d", i)
 		pkg.Vulnerabilities = append(pkg.Vulnerabilities, sdk.Vulnerability{
 			ID:             id,

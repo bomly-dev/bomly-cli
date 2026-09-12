@@ -235,8 +235,7 @@ func jsonResult(v any) (*mcplib.CallToolResult, error) {
 
 func toolErrorResult(mcpCtx Context, tool string, err error) *mcplib.CallToolResult {
 	kind := ToolErrorKind("")
-	var categorized *toolError
-	if errors.As(err, &categorized) {
+	if categorized, ok := errors.AsType[*toolError](err); ok {
 		kind = categorized.kind
 	}
 	cause := errors.Unwrap(err)

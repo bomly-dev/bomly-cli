@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -154,17 +155,10 @@ func lockfileWarnings(projectDir string, pinnedManager sdk.PackageManager, pinne
 // lockfile. Unknown combinations return false, so an undocumented migration path
 // is never reported as a mismatch.
 func lockfileUnread(manager sdk.PackageManager, file string) bool {
-	for _, name := range consumedLockfiles[manager] {
-		if name == file {
-			return false
-		}
+	if slices.Contains(consumedLockfiles[manager], file) {
+		return false
 	}
-	for _, name := range unreadLockfiles[manager] {
-		if name == file {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(unreadLockfiles[manager], file)
 }
 
 // lockfileFormatWarning compares the committed lockfile's format version with
@@ -417,7 +411,7 @@ func readNpmrc(dir string) map[string]string {
 		return nil
 	}
 	settings := make(map[string]string)
-	for _, line := range strings.Split(string(data), "\n") {
+	for line := range strings.SplitSeq(string(data), "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, ";") {
 			continue

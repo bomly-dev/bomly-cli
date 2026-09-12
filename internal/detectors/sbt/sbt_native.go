@@ -146,7 +146,7 @@ func sbtVersion(workingDir string) string {
 	if err != nil {
 		return ""
 	}
-	for _, line := range strings.Split(string(raw), "\n") {
+	for line := range strings.SplitSeq(string(raw), "\n") {
 		key, value, ok := strings.Cut(line, "=")
 		if !ok {
 			continue
@@ -241,10 +241,7 @@ func depGraphFromSBTDependencyTree(raw []byte) (*sdk.Graph, error) {
 		// Each "  " (2 chars) or "| " represents one level of nesting.
 		indent := m[1]
 		// Count groups of 2 chars; each group is one level.
-		depth := len([]rune(indent)) / 2
-		if depth < 0 {
-			depth = 0
-		}
+		depth := max(len([]rune(indent))/2, 0)
 
 		coord := strings.TrimSpace(m[2])
 		cm := sbtPackageCoordPattern.FindStringSubmatch(coord)

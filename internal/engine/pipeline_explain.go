@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
 	"github.com/bomly-dev/bomly-cli/internal/engine/explain"
@@ -120,13 +121,7 @@ func appendUnique(values []string, candidates ...string) []string {
 		if candidate == "" {
 			continue
 		}
-		found := false
-		for _, value := range values {
-			if value == candidate {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(values, candidate)
 		if !found {
 			values = append(values, candidate)
 		}

@@ -629,37 +629,6 @@ func purlTypeOffenders(t *testing.T, path string, src any) []string {
 
 	var offenders []string
 	ast.Inspect(file, func(n ast.Node) bool {
-		// A purlkit.PURL literal decides the type wherever it is written --
-		// inline at the call, assigned to a variable first, or returned by
-		// a helper. Keying on the literal rather than on Build covers all
-		// three; keying on the call covered only the first.
-		if lit, ok := n.(*ast.CompositeLit); ok && compositeTypeName(lit) == "PURL" {
-			if value, ok := fieldValue(lit, "Type"); ok {
-				if inner, ok := value.(*ast.CallExpr); !ok || calleeName(inner) != "PackageURLTypeForValues" {
-					offenders = append(offenders,
-						where(value.Pos())+" builds a purlkit.PURL whose Type sdk.PackageURLTypeForValues did not decide")
-				}
-			}
-			return true
-		}
-		// Setting the field after the fact is the same choice, later.
-		if assign, ok := n.(*ast.AssignStmt); ok {
-			for i, lhs := range assign.Lhs {
-				sel, ok := lhs.(*ast.SelectorExpr)
-				if !ok || sel.Sel.Name != "Type" || i >= len(assign.Rhs) {
-					continue
-				}
-				if inner, ok := assign.Rhs[i].(*ast.CallExpr); ok && calleeName(inner) == "PackageURLTypeForValues" {
-					continue
-				}
-				if _, ok := assign.Rhs[i].(*ast.BasicLit); !ok {
-					continue // only a literal is a hand-picked type here
-				}
-				offenders = append(offenders,
-					where(assign.Rhs[i].Pos())+" sets a Type sdk.PackageURLTypeForValues did not decide")
-			}
-			return true
-		}
 		call, ok := n.(*ast.CallExpr)
 		if !ok {
 			return true
@@ -694,36 +663,6 @@ func purlTypeOffenders(t *testing.T, path string, src any) []string {
 	return offenders
 }
 
-// compositeTypeName returns the type name a composite literal names, with its
-// package qualifier dropped, so purlkit.PURL{...} answers "PURL".
-//
-// The literal's type is checked rather than only the callee, because "Build"
-// is a common enough name that matching it alone would report unrelated
-// builders that happen to take a struct.
-func compositeTypeName(lit *ast.CompositeLit) string {
-	switch typ := lit.Type.(type) {
-	case *ast.Ident:
-		return typ.Name
-	case *ast.SelectorExpr:
-		return typ.Sel.Name
-	}
-	return ""
-}
-
-// fieldValue returns the value a keyed composite literal gives one field.
-func fieldValue(lit *ast.CompositeLit, field string) (ast.Expr, bool) {
-	for _, element := range lit.Elts {
-		kv, ok := element.(*ast.KeyValueExpr)
-		if !ok {
-			continue
-		}
-		if key, ok := kv.Key.(*ast.Ident); ok && key.Name == field {
-			return kv.Value, true
-		}
-	}
-	return nil, false
-}
-
 // calleeName returns the function name a call names, with its package
 // qualifier or receiver dropped: sdk.BuildPackageURL(...) and a dot-imported
 // BuildPackageURL(...) both answer "BuildPackageURL".
@@ -740,6 +679,51 @@ func calleeName(call *ast.CallExpr) string {
 		return fn.Sel.Name
 	}
 	return ""
+}
+
+// Detectors reach package URLs through the SDK, never through purlkit.
+//
+// This is the durable half of the rule above, and it is why that rule got to
+// shrink. purlkit is where a package URL is built, so a detector holding it
+// can pick a type by hand in more shapes than a pattern can enumerate: a
+// literal at the call, a literal assigned first, a literal in a helper, a
+// field set afterwards. Three review rounds found three of those. Removing the
+// import removes all of them and the ones nobody has thought of.
+//
+// Scoped to detectors on purpose. internal/sbom, internal/output and
+// internal/auditors use purlkit legitimately -- they read and render package
+// URLs that were minted elsewhere, and a minting rule has nothing to say about
+// reading.
+func TestDetectorsDoNotReachPURLKitDirectly(t *testing.T) {
+	const purlkitModule = "github.com/bomly-dev/bomly-sdk/purlkit"
+
+	root := filepath.Join(internalRoot, "detectors")
+	var offenders []string
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() || !strings.HasSuffix(path, ".go") {
+			return nil
+		}
+		// This file is the exception: it has to spell the module it forbids.
+		// No exemption for this file: it names purlkit in a string, and
+		// naming is not importing -- the distinction the entitlement rules
+		// above exist to make.
+		if !importsModule(t, path, purlkitModule) {
+			return nil
+		}
+		offenders = append(offenders, path)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("walk %s: %v", root, err)
+	}
+	if len(offenders) > 0 {
+		t.Fatalf("these detectors import purlkit directly; a detector asks the SDK for a package URL "+
+			"(sdk.BuildPackageURL with sdk.PackageURLTypeForValues) and never builds one itself, so "+
+			"holding purlkit is holding the ability to choose a type by hand: %v", offenders)
+	}
 }
 
 // The predicate behind that guard, pinned on fixtures in both directions so
@@ -785,70 +769,4 @@ func TestPURLTypeGuardSeesTheShapesItForbids(t *testing.T) {
 		t.Errorf("an aliased import of the SDK evades the rule: %v", got)
 	}
 
-	// purlkit.Build is the other mint, and the concatenation guard below
-	// recommends it by name -- so this route around the rule is signposted
-	// rather than obscure.
-	if got := offendersFor("kitbuild.go",
-		`var _, _ = purlkit.Build(purlkit.PURL{Type: "generic", Name: n, Version: v})`,
-	); len(got) != 1 {
-		t.Errorf("a hand-picked Type on purlkit.Build is not reported: %v", got)
-	}
-
-	// Same call, delegating: allowed, or the guard would forbid the very
-	// construction the rest of the codebase is being moved onto.
-	if got := offendersFor("kitbuild-ok.go",
-		"var _, _ = purlkit.Build(purlkit.PURL{Type: sdk.PackageURLTypeForValues(sdk.EcosystemDart, "+
-			"sdk.PackageManagerPub), Name: n, Version: v})",
-	); len(got) != 0 {
-		t.Errorf("a delegating purlkit.Build is reported as an offender: %v", got)
-	}
-
-	// A Type set from a const is the same hoisting escape, one call over.
-	if got := offendersFor("kitbuild-const.go",
-		"const t = \"generic\"\n\nvar _, _ = purlkit.Build(purlkit.PURL{Type: t, Name: n, Version: v})",
-	); len(got) != 1 {
-		t.Errorf("a purlkit.PURL Type hoisted into a const is not reported: %v", got)
-	}
-
-	// An unrelated Build taking a struct must not be swept in: the rule is
-	// about purlkit.PURL, not about every function called Build.
-	if got := offendersFor("otherbuild.go",
-		`var _ = thing.Build(thing.Options{Type: "generic", Name: n})`,
-	); len(got) != 0 {
-		t.Errorf("an unrelated Build is reported: %v", got)
-	}
-
-	// The literal decides the type wherever it is written, so putting it in
-	// a variable first must not hide it. The rule keys on the literal rather
-	// than on the call for exactly this reason -- watching Build's arguments
-	// instead would report a delegating hop and miss a literal built in a
-	// helper, which is the wrong answer in both directions.
-	if got := offendersFor("viavar.go",
-		"func f() string {\n\tspec := purlkit.PURL{Type: \"generic\", Name: n}\n\tout, _ := purlkit.Build(spec)\n\treturn out\n}",
-	); len(got) != 1 {
-		t.Errorf("a purlkit.PURL routed through a variable is not reported: %v", got)
-	}
-
-	// Same hop, delegating: allowed.
-	if got := offendersFor("viavar-ok.go",
-		"func f() string {\n\tspec := purlkit.PURL{Type: sdk.PackageURLTypeForValues(sdk.EcosystemDart, "+
-			"sdk.PackageManagerPub), Name: n}\n\tout, _ := purlkit.Build(spec)\n\treturn out\n}",
-	); len(got) != 0 {
-		t.Errorf("a delegating purlkit.PURL through a variable is reported: %v", got)
-	}
-
-	// Setting the field afterwards is the same choice, later.
-	if got := offendersFor("fieldset.go",
-		"func f() {\n\tvar spec purlkit.PURL\n\tspec.Type = \"generic\"\n\t_ = spec\n}",
-	); len(got) != 1 {
-		t.Errorf("a Type assigned after construction is not reported: %v", got)
-	}
-
-	// A delegating literal stays allowed however many hops it takes.
-	if got := offendersFor("viahelper.go",
-		"func f() string {\n\tspec := purlkit.PURL{Type: sdk.PackageURLTypeForValues(sdk.EcosystemDart)}\n\t"+
-			"out, _ := purlkit.Build(spec)\n\treturn out\n}",
-	); len(got) != 0 {
-		t.Errorf("a fully delegating variable hop is reported: %v", got)
-	}
 }

@@ -616,6 +616,7 @@ func purlTypeOffenders(t *testing.T, path string, src any) []string {
 	t.Helper()
 	const (
 		mint      = "BuildPackageURL"
+		build     = "Build"
 		authority = "PackageURLTypeForValues"
 	)
 	fset := token.NewFileSet()
@@ -643,6 +644,29 @@ func purlTypeOffenders(t *testing.T, path string, src any) []string {
 			}
 			offenders = append(offenders,
 				where(call.Args[0].Pos())+" mints a package URL with a type sdk."+authority+" did not decide")
+		case build:
+			// purlkit.Build is the other way to mint one, and the
+			// concatenation guard below recommends it by name -- so it is
+			// a signposted route around this rule, not an obscure one. A
+			// detector reaching it with a literal Type has picked the type
+			// by hand exactly as the old string literals did.
+			for _, arg := range call.Args {
+				lit, ok := arg.(*ast.CompositeLit)
+				if !ok || compositeTypeName(lit) != "PURL" {
+					continue
+				}
+				value, ok := fieldValue(lit, "Type")
+				if !ok {
+					// No Type at all: purlkit rejects that itself, and a
+					// missing field is not a hand-written mapping.
+					continue
+				}
+				if inner, ok := value.(*ast.CallExpr); ok && calleeName(inner) == authority {
+					continue
+				}
+				offenders = append(offenders,
+					where(value.Pos())+" builds a purlkit.PURL whose Type sdk."+authority+" did not decide")
+			}
 		case authority:
 			// Handing the authority the answer is the same hand-written
 			// mapping wearing its name: a literal here has already picked
@@ -661,6 +685,36 @@ func purlTypeOffenders(t *testing.T, path string, src any) []string {
 		return true
 	})
 	return offenders
+}
+
+// compositeTypeName returns the type name a composite literal names, with its
+// package qualifier dropped, so purlkit.PURL{...} answers "PURL".
+//
+// The literal's type is checked rather than only the callee, because "Build"
+// is a common enough name that matching it alone would report unrelated
+// builders that happen to take a struct.
+func compositeTypeName(lit *ast.CompositeLit) string {
+	switch typ := lit.Type.(type) {
+	case *ast.Ident:
+		return typ.Name
+	case *ast.SelectorExpr:
+		return typ.Sel.Name
+	}
+	return ""
+}
+
+// fieldValue returns the value a keyed composite literal gives one field.
+func fieldValue(lit *ast.CompositeLit, field string) (ast.Expr, bool) {
+	for _, element := range lit.Elts {
+		kv, ok := element.(*ast.KeyValueExpr)
+		if !ok {
+			continue
+		}
+		if key, ok := kv.Key.(*ast.Ident); ok && key.Name == field {
+			return kv.Value, true
+		}
+	}
+	return nil, false
 }
 
 // calleeName returns the function name a call names, with its package
@@ -722,5 +776,38 @@ func TestPURLTypeGuardSeesTheShapesItForbids(t *testing.T) {
 	// The qualifier is not part of the rule, so an alias must not evade it.
 	if got := offendersFor("aliased.go", `var _ = bomly.BuildPackageURL("cocoapods", "", n, v)`); len(got) != 1 {
 		t.Errorf("an aliased import of the SDK evades the rule: %v", got)
+	}
+
+	// purlkit.Build is the other mint, and the concatenation guard below
+	// recommends it by name -- so this route around the rule is signposted
+	// rather than obscure.
+	if got := offendersFor("kitbuild.go",
+		`var _, _ = purlkit.Build(purlkit.PURL{Type: "generic", Name: n, Version: v})`,
+	); len(got) != 1 {
+		t.Errorf("a hand-picked Type on purlkit.Build is not reported: %v", got)
+	}
+
+	// Same call, delegating: allowed, or the guard would forbid the very
+	// construction the rest of the codebase is being moved onto.
+	if got := offendersFor("kitbuild-ok.go",
+		"var _, _ = purlkit.Build(purlkit.PURL{Type: sdk.PackageURLTypeForValues(sdk.EcosystemDart, "+
+			"sdk.PackageManagerPub), Name: n, Version: v})",
+	); len(got) != 0 {
+		t.Errorf("a delegating purlkit.Build is reported as an offender: %v", got)
+	}
+
+	// A Type set from a const is the same hoisting escape, one call over.
+	if got := offendersFor("kitbuild-const.go",
+		"const t = \"generic\"\n\nvar _, _ = purlkit.Build(purlkit.PURL{Type: t, Name: n, Version: v})",
+	); len(got) != 1 {
+		t.Errorf("a purlkit.PURL Type hoisted into a const is not reported: %v", got)
+	}
+
+	// An unrelated Build taking a struct must not be swept in: the rule is
+	// about purlkit.PURL, not about every function called Build.
+	if got := offendersFor("otherbuild.go",
+		`var _ = thing.Build(thing.Options{Type: "generic", Name: n})`,
+	); len(got) != 0 {
+		t.Errorf("an unrelated Build is reported: %v", got)
 	}
 }

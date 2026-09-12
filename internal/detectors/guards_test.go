@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -28,44 +27,87 @@ const (
 	anchorePackageURLModule = "github.com/anchore/packageurl-go"
 )
 
-// The rules below, named so a module can say which one forbids it.
+// The rules below, named so the registry can say which one forbids what.
 const (
 	ruleSPDX       = "TestNoDirectSPDXExpressionUse"
 	rulePackageURL = "TestNoDirectPackageURLUse"
 )
 
-// forbiddenModules maps each module no package under internal/ may reach for
-// directly to the rule that forbids it.
+// knownRules is every rule in this file that scans for forbidden modules.
+var knownRules = []string{ruleSPDX, rulePackageURL}
+
+// forbiddenModules maps each rule to the modules it forbids. No package under
+// internal/ may reach for any of them directly.
 //
-// One declaration, read from three directions: each rule takes its module list
-// from here, guardFiles grants exemptions against these keys, and the
-// entitlement test validates against them. The three used to be spelled
-// separately, and they drifted immediately -- the constants landed, and the
-// package-URL rule kept scanning its own duplicated literals, so a typo in
-// either would have left a rule scanning one module while an entitlement
-// excused another.
+// One declaration, read from three directions: each rule takes its list from
+// here, guardFiles grants exemptions against these modules, and the
+// entitlement test validates against them. Spelled separately, they drifted
+// immediately -- the constants landed and the package-URL rule kept scanning
+// its own duplicated literals, so a rule could scan one module while an
+// entitlement excused another.
 //
-// What this does not prove is that each named rule still exists and runs. Go
-// offers no way to ask that at runtime without depending on test ordering,
-// which breaks under -run. Deleting a rule while leaving its modules here is
-// the remaining gap, and it is a visible edit to this file rather than a
-// silent widening.
-var forbiddenModules = map[string]string{
-	spdxModule:              ruleSPDX,
-	packageURLModule:        rulePackageURL,
-	anchorePackageURLModule: rulePackageURL,
+// Keyed by rule rather than carrying an owner string per module, because an
+// owner is a field somebody can mistype. A module filed under
+// "TestNoDirectPurlUse" would belong to no rule, be scanned by nothing, and
+// still satisfy an entitlement -- a hole in exactly the direction that passes.
+// TestRuleRegistryCoversEveryRule pins both halves: every key is a rule that
+// runs, and every rule that runs is a key.
+//
+// What this still does not prove is that each named rule exists and executes.
+// Go cannot ask that without depending on test ordering, which breaks under
+// -run. Deleting a rule while leaving its key here is the remaining gap, and
+// it is a visible edit to this file rather than a silent widening.
+var forbiddenModules = map[string][]string{
+	ruleSPDX:       {spdxModule},
+	rulePackageURL: {packageURLModule, anchorePackageURLModule},
 }
 
-// modulesForRule returns the modules one rule forbids, in a stable order.
-func modulesForRule(rule string) []string {
-	var modules []string
-	for module, owner := range forbiddenModules {
-		if owner == rule {
-			modules = append(modules, module)
+// modulesForRule returns the modules one rule forbids.
+//
+// It fails rather than returning nothing. A rule scanning an empty list
+// reports no offenders however many there are, which reads exactly like a rule
+// that passed.
+func modulesForRule(t *testing.T, rule string) []string {
+	t.Helper()
+	modules, ok := forbiddenModules[rule]
+	if !ok || len(modules) == 0 {
+		t.Fatalf("rule %q forbids nothing; it would scan for no modules and report success", rule)
+	}
+	return modules
+}
+
+// isForbidden reports whether any rule forbids the module.
+func isForbidden(module string) bool {
+	for _, modules := range forbiddenModules {
+		for _, forbidden := range modules {
+			if forbidden == module {
+				return true
+			}
 		}
 	}
-	sort.Strings(modules)
-	return modules
+	return false
+}
+
+// The registry is keyed by rule name, so a typo in a key files modules under a
+// rule nothing runs, and they go unscanned while every other check still
+// passes. Both directions are pinned: a key that is not a rule, and a rule
+// that is not a key.
+func TestRuleRegistryCoversEveryRule(t *testing.T) {
+	known := make(map[string]struct{}, len(knownRules))
+	for _, rule := range knownRules {
+		known[rule] = struct{}{}
+	}
+	for rule := range forbiddenModules {
+		if _, ok := known[rule]; !ok {
+			t.Errorf("forbiddenModules files modules under %q, which is not a rule in this file; "+
+				"they are scanned by nothing", rule)
+		}
+	}
+	for _, rule := range knownRules {
+		if len(forbiddenModules[rule]) == 0 {
+			t.Errorf("rule %q forbids no modules; it scans for nothing and reports success", rule)
+		}
+	}
 }
 
 // walkInternalGo visits every non-test Go file under internal/.
@@ -162,7 +204,7 @@ func TestExportNeverReadsResolvedURL(t *testing.T) {
 // module-path check rather than an import-list scan of one package, because
 // the point is that nothing under internal/ reaches the parser by any route.
 func TestNoDirectSPDXExpressionUse(t *testing.T) {
-	for _, module := range modulesForRule(ruleSPDX) {
+	for _, module := range modulesForRule(t, ruleSPDX) {
 		if offenders := filesNamingModule(t, module); len(offenders) > 0 {
 			t.Fatalf("these files reference %s directly; the parser panics on malformed input, "+
 				"so go through bomly-sdk/spdxkit instead: %v", module, offenders)
@@ -303,7 +345,7 @@ func filesNamingModule(t *testing.T, module string) []string {
 // tools, so both stay importable and neither may be imported.
 func TestNoDirectPackageURLUse(t *testing.T) {
 	var offenders []string
-	for _, module := range modulesForRule(rulePackageURL) {
+	for _, module := range modulesForRule(t, rulePackageURL) {
 		for _, path := range filesNamingModule(t, module) {
 			offenders = append(offenders, path+" names "+module)
 		}
@@ -433,7 +475,7 @@ func TestGuardExemptionIsByPathAndPerModule(t *testing.T) {
 			// whether the file's text contained the module, which this
 			// file satisfies by declaring the constant -- the check
 			// passed no matter which modules were actually enforced.
-			if _, forbidden := forbiddenModules[module]; !forbidden {
+			if !isForbidden(module) {
 				t.Errorf("guard file %q is entitled to name %s, which no rule here forbids; "+
 					"drop the entitlement or add the rule", path, module)
 			}

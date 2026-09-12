@@ -25,11 +25,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "certifi",
@@ -47,11 +52,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "chardet",
@@ -69,11 +79,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "colorama",
@@ -93,11 +108,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "django",
@@ -117,11 +137,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "feedparser",
@@ -139,11 +164,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "idna",
@@ -161,11 +191,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "iniconfig",
@@ -183,11 +218,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "packaging",
@@ -205,11 +245,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "pluggy",
@@ -227,11 +272,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pyasn1",
@@ -249,11 +299,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "pygments",
@@ -271,11 +326,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pyjwt",
@@ -299,11 +359,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "pytest",
@@ -321,11 +386,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pytz",
@@ -348,11 +418,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "requests",
@@ -372,11 +447,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "rsa",
@@ -394,11 +474,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sgmllib3k",
@@ -416,11 +501,16 @@
           "locations": [
             {
               "access_path": "poetry.lock",
+              "module_root": ".",
               "position": {
                 "file": "poetry.lock",
                 "line": 0
               },
-              "real_path": "poetry.lock"
+              "real_path": "poetry.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "urllib3",

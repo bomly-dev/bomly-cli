@@ -32,11 +32,17 @@
           "locations": [
             {
               "access_path": "Pipfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Pipfile.lock",
                 "line": 0
               },
-              "real_path": "Pipfile.lock"
+              "real_path": "Pipfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "colorama",
@@ -55,11 +61,16 @@
           "locations": [
             {
               "access_path": "Pipfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Pipfile.lock",
                 "line": 0
               },
-              "real_path": "Pipfile.lock"
+              "real_path": "Pipfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "django",
@@ -77,11 +88,16 @@
           "locations": [
             {
               "access_path": "Pipfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Pipfile.lock",
                 "line": 0
               },
-              "real_path": "Pipfile.lock"
+              "real_path": "Pipfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "feedparser",
@@ -99,11 +115,17 @@
           "locations": [
             {
               "access_path": "Pipfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Pipfile.lock",
                 "line": 0
               },
-              "real_path": "Pipfile.lock"
+              "real_path": "Pipfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "iniconfig",
@@ -122,11 +144,17 @@
           "locations": [
             {
               "access_path": "Pipfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Pipfile.lock",
                 "line": 0
               },
-              "real_path": "Pipfile.lock"
+              "real_path": "Pipfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "packaging",
@@ -145,11 +173,17 @@
           "locations": [
             {
               "access_path": "Pipfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Pipfile.lock",
                 "line": 0
               },
-              "real_path": "Pipfile.lock"
+              "real_path": "Pipfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "pluggy",
@@ -168,11 +202,16 @@
           "locations": [
             {
               "access_path": "Pipfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Pipfile.lock",
                 "line": 0
               },
-              "real_path": "Pipfile.lock"
+              "real_path": "Pipfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pyasn1",
@@ -190,11 +229,17 @@
           "locations": [
             {
               "access_path": "Pipfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Pipfile.lock",
                 "line": 0
               },
-              "real_path": "Pipfile.lock"
+              "real_path": "Pipfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "pygments",
@@ -213,11 +258,16 @@
           "locations": [
             {
               "access_path": "Pipfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Pipfile.lock",
                 "line": 0
               },
-              "real_path": "Pipfile.lock"
+              "real_path": "Pipfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pyjwt",
@@ -235,11 +285,16 @@
           "locations": [
             {
               "access_path": "Pipfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Pipfile.lock",
                 "line": 0
               },
-              "real_path": "Pipfile.lock"
+              "real_path": "Pipfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "pytest",
@@ -257,11 +312,16 @@
           "locations": [
             {
               "access_path": "Pipfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Pipfile.lock",
                 "line": 0
               },
-              "real_path": "Pipfile.lock"
+              "real_path": "Pipfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pyyaml",
@@ -279,11 +339,16 @@
           "locations": [
             {
               "access_path": "Pipfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Pipfile.lock",
                 "line": 0
               },
-              "real_path": "Pipfile.lock"
+              "real_path": "Pipfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "requests",
@@ -301,11 +366,16 @@
           "locations": [
             {
               "access_path": "Pipfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Pipfile.lock",
                 "line": 0
               },
-              "real_path": "Pipfile.lock"
+              "real_path": "Pipfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "rsa",
@@ -323,11 +393,16 @@
           "locations": [
             {
               "access_path": "Pipfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Pipfile.lock",
                 "line": 0
               },
-              "real_path": "Pipfile.lock"
+              "real_path": "Pipfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sgmllib3k",

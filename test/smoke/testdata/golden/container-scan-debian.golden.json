@@ -257,8 +257,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -403,8 +403,8 @@
               "real_path": "/usr/share/doc/libapt-pkg6.0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libapt-pkg6.0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libapt-pkg6.0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libapt-pkg6.0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libapt-pkg6.0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -493,8 +493,8 @@
               "real_path": "/usr/share/doc/libaudit1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libaudit1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libaudit1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libaudit1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libaudit1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -528,8 +528,8 @@
               "real_path": "/usr/share/doc/libbz2-1.0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libbz2-1.0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libbz2-1.0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libbz2-1.0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libbz2-1.0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -558,12 +558,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -613,8 +613,8 @@
               "real_path": "/usr/share/doc/libcap-ng0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libcap-ng0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libcap-ng0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libcap-ng0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libcap-ng0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -654,8 +654,8 @@
               "real_path": "/usr/share/doc/libcap2/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libcap2:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libcap2:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libcap2:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libcap2:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -684,8 +684,8 @@
               "real_path": "/usr/share/doc/libcrypt1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libcrypt1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libcrypt1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libcrypt1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libcrypt1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -760,8 +760,8 @@
               "real_path": "/usr/share/doc/libdb5.3/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libdb5.3:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libdb5.3:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libdb5.3:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libdb5.3:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -818,8 +818,8 @@
               "real_path": "/usr/share/doc/libffi8/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libffi8:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libffi8:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libffi8:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libffi8:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -849,8 +849,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -880,8 +880,8 @@
               "real_path": "/usr/share/doc/libgcrypt20/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcrypt20:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcrypt20:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcrypt20:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcrypt20:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -936,8 +936,8 @@
               "real_path": "/usr/share/doc/libgmp10/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgmp10:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgmp10:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgmp10:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgmp10:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -973,8 +973,8 @@
               "real_path": "/usr/share/doc/libgnutls30/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgnutls30:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgnutls30:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgnutls30:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgnutls30:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -1028,8 +1028,8 @@
               "real_path": "/usr/share/doc/libgpg-error0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgpg-error0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgpg-error0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgpg-error0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgpg-error0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -1106,8 +1106,8 @@
               "real_path": "/usr/share/doc/libhogweed6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libhogweed6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libhogweed6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libhogweed6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libhogweed6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -1167,8 +1167,8 @@
               "real_path": "/usr/share/doc/libidn2-0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libidn2-0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libidn2-0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libidn2-0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libidn2-0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -1208,8 +1208,8 @@
               "real_path": "/usr/share/doc/liblz4-1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/liblz4-1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/liblz4-1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/liblz4-1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/liblz4-1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -1296,8 +1296,8 @@
               "real_path": "/usr/share/doc/liblzma5/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/liblzma5:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/liblzma5:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/liblzma5:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/liblzma5:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -1372,8 +1372,8 @@
               "real_path": "/usr/share/doc/libnettle8/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libnettle8:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libnettle8:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libnettle8:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libnettle8:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -1436,8 +1436,8 @@
               "real_path": "/usr/share/doc/libp11-kit0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libp11-kit0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libp11-kit0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libp11-kit0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libp11-kit0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -1607,12 +1607,12 @@
               "real_path": "/usr/share/doc/libpam-modules/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpam-modules:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libpam-modules:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libpam-modules:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libpam-modules:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpam-modules:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpam-modules:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpam-modules:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpam-modules:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -1691,8 +1691,8 @@
               "real_path": "/usr/share/doc/libpam0g/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpam0g:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpam0g:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpam0g:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpam0g:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -1740,8 +1740,8 @@
               "real_path": "/usr/share/doc/libpcre2-8-0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -1771,8 +1771,8 @@
               "real_path": "/usr/share/doc/libseccomp2/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libseccomp2:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libseccomp2:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libseccomp2:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libseccomp2:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -1802,8 +1802,8 @@
               "real_path": "/usr/share/doc/libselinux1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -1873,8 +1873,8 @@
               "real_path": "/usr/share/doc/libsemanage2/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libsemanage2:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libsemanage2:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libsemanage2:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libsemanage2:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -1924,8 +1924,8 @@
               "real_path": "/usr/share/doc/libsepol2/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libsepol2:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libsepol2:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libsepol2:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libsepol2:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -1956,8 +1956,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libstdc++6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libstdc++6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libstdc++6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libstdc++6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2020,8 +2020,8 @@
               "real_path": "/usr/share/doc/libsystemd0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libsystemd0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libsystemd0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libsystemd0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libsystemd0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2050,8 +2050,8 @@
               "real_path": "/usr/share/doc/libtasn1-6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libtasn1-6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libtasn1-6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libtasn1-6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libtasn1-6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2109,8 +2109,8 @@
               "real_path": "/usr/share/doc/libudev1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libudev1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libudev1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libudev1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libudev1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2184,8 +2184,8 @@
               "real_path": "/usr/share/doc/libunistring2/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libunistring2:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libunistring2:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libunistring2:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libunistring2:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2220,8 +2220,8 @@
               "real_path": "/usr/share/doc/libxxhash0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libxxhash0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libxxhash0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libxxhash0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libxxhash0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2265,8 +2265,8 @@
               "real_path": "/usr/share/doc/libzstd1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libzstd1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libzstd1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libzstd1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libzstd1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2376,8 +2376,8 @@
               "real_path": "/usr/share/doc/zlib1g/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/zlib1g:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/zlib1g:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/zlib1g:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/zlib1g:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2469,8 +2469,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2499,12 +2499,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2549,8 +2549,8 @@
               "real_path": "/usr/share/doc/libdebconfclient0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libdebconfclient0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libdebconfclient0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libdebconfclient0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libdebconfclient0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2580,8 +2580,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2629,8 +2629,8 @@
               "real_path": "/usr/share/doc/libpcre2-8-0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2660,8 +2660,8 @@
               "real_path": "/usr/share/doc/libselinux1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2899,8 +2899,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2929,12 +2929,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -2964,8 +2964,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3004,8 +3004,8 @@
               "real_path": "/usr/share/doc/libtinfo6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libtinfo6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libtinfo6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libtinfo6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libtinfo6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3201,8 +3201,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3231,12 +3231,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3276,8 +3276,8 @@
               "real_path": "/usr/share/doc/libcap2/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libcap2:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libcap2:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libcap2:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libcap2:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3307,8 +3307,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3338,8 +3338,8 @@
               "real_path": "/usr/share/doc/libgcrypt20/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcrypt20:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcrypt20:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcrypt20:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcrypt20:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3393,8 +3393,8 @@
               "real_path": "/usr/share/doc/libgpg-error0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgpg-error0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgpg-error0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgpg-error0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgpg-error0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3434,8 +3434,8 @@
               "real_path": "/usr/share/doc/liblz4-1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/liblz4-1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/liblz4-1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/liblz4-1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/liblz4-1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3522,8 +3522,8 @@
               "real_path": "/usr/share/doc/liblzma5/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/liblzma5:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/liblzma5:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/liblzma5:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/liblzma5:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3586,8 +3586,8 @@
               "real_path": "/usr/share/doc/libsystemd0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libsystemd0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libsystemd0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libsystemd0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libsystemd0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3631,8 +3631,8 @@
               "real_path": "/usr/share/doc/libzstd1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libzstd1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libzstd1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libzstd1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libzstd1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3743,8 +3743,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3789,8 +3789,8 @@
               "real_path": "/usr/share/doc/libacl1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libacl1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libacl1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libacl1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libacl1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3835,12 +3835,12 @@
               "real_path": "/usr/share/doc/libattr1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libattr1:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libattr1:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libattr1:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libattr1:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libattr1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libattr1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libattr1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libattr1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3869,12 +3869,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3904,8 +3904,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -3960,8 +3960,8 @@
               "real_path": "/usr/share/doc/libgmp10/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgmp10:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgmp10:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgmp10:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgmp10:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -4009,8 +4009,8 @@
               "real_path": "/usr/share/doc/libpcre2-8-0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -4040,8 +4040,8 @@
               "real_path": "/usr/share/doc/libselinux1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -4281,8 +4281,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -4327,8 +4327,8 @@
               "real_path": "/usr/share/doc/libacl1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libacl1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libacl1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libacl1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libacl1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -4362,8 +4362,8 @@
               "real_path": "/usr/share/doc/libbz2-1.0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libbz2-1.0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libbz2-1.0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libbz2-1.0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libbz2-1.0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -4392,12 +4392,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -4427,8 +4427,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -4515,8 +4515,8 @@
               "real_path": "/usr/share/doc/liblzma5/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/liblzma5:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/liblzma5:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/liblzma5:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/liblzma5:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -4582,8 +4582,8 @@
               "real_path": "/usr/share/doc/libmd0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libmd0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libmd0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libmd0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libmd0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -4631,8 +4631,8 @@
               "real_path": "/usr/share/doc/libpcre2-8-0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -4662,8 +4662,8 @@
               "real_path": "/usr/share/doc/libselinux1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -4707,8 +4707,8 @@
               "real_path": "/usr/share/doc/libzstd1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libzstd1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libzstd1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libzstd1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libzstd1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -4808,8 +4808,8 @@
               "real_path": "/usr/share/doc/zlib1g/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/zlib1g:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/zlib1g:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/zlib1g:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/zlib1g:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -4952,8 +4952,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -4982,12 +4982,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -5017,8 +5017,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -5158,8 +5158,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -5261,8 +5261,8 @@
               "real_path": "/usr/share/doc/libblkid1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libblkid1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libblkid1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libblkid1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libblkid1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -5291,12 +5291,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -5370,8 +5370,8 @@
               "real_path": "/usr/share/doc/libcom-err2/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libcom-err2:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libcom-err2:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libcom-err2:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libcom-err2:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -5445,8 +5445,8 @@
               "real_path": "/usr/share/doc/libext2fs2/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libext2fs2:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libext2fs2:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libext2fs2:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libext2fs2:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -5476,8 +5476,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -5552,8 +5552,8 @@
               "real_path": "/usr/share/doc/libss2/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libss2:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libss2:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libss2:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libss2:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -5655,8 +5655,8 @@
               "real_path": "/usr/share/doc/libuuid1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libuuid1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libuuid1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libuuid1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libuuid1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -5893,8 +5893,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -5923,12 +5923,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -5958,8 +5958,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6007,8 +6007,8 @@
               "real_path": "/usr/share/doc/libpcre2-8-0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6038,8 +6038,8 @@
               "real_path": "/usr/share/doc/libselinux1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6146,8 +6146,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6234,8 +6234,8 @@
               "real_path": "/usr/share/doc/libacl1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libacl1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libacl1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libacl1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libacl1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6269,8 +6269,8 @@
               "real_path": "/usr/share/doc/libbz2-1.0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libbz2-1.0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libbz2-1.0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libbz2-1.0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libbz2-1.0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6299,12 +6299,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6334,8 +6334,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6422,8 +6422,8 @@
               "real_path": "/usr/share/doc/liblzma5/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/liblzma5:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/liblzma5:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/liblzma5:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/liblzma5:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6489,8 +6489,8 @@
               "real_path": "/usr/share/doc/libmd0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libmd0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libmd0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libmd0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libmd0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6538,8 +6538,8 @@
               "real_path": "/usr/share/doc/libpcre2-8-0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6569,8 +6569,8 @@
               "real_path": "/usr/share/doc/libselinux1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6614,8 +6614,8 @@
               "real_path": "/usr/share/doc/libzstd1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libzstd1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libzstd1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libzstd1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libzstd1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6715,8 +6715,8 @@
               "real_path": "/usr/share/doc/zlib1g/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/zlib1g:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/zlib1g:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/zlib1g:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/zlib1g:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6823,8 +6823,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6922,8 +6922,8 @@
               "real_path": "/usr/share/doc/libacl1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libacl1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libacl1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libacl1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libacl1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6957,8 +6957,8 @@
               "real_path": "/usr/share/doc/libbz2-1.0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libbz2-1.0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libbz2-1.0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libbz2-1.0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libbz2-1.0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -6987,12 +6987,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7022,8 +7022,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7110,8 +7110,8 @@
               "real_path": "/usr/share/doc/liblzma5/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/liblzma5:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/liblzma5:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/liblzma5:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/liblzma5:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7177,8 +7177,8 @@
               "real_path": "/usr/share/doc/libmd0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libmd0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libmd0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libmd0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libmd0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7226,8 +7226,8 @@
               "real_path": "/usr/share/doc/libpcre2-8-0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7257,8 +7257,8 @@
               "real_path": "/usr/share/doc/libselinux1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7302,8 +7302,8 @@
               "real_path": "/usr/share/doc/libzstd1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libzstd1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libzstd1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libzstd1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libzstd1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7403,8 +7403,8 @@
               "real_path": "/usr/share/doc/zlib1g/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/zlib1g:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/zlib1g:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/zlib1g:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/zlib1g:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7439,8 +7439,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7504,12 +7504,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7539,8 +7539,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7678,8 +7678,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7754,12 +7754,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7789,8 +7789,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7874,8 +7874,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7964,8 +7964,8 @@
               "real_path": "/usr/share/doc/libaudit1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libaudit1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libaudit1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libaudit1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libaudit1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -7994,12 +7994,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -8049,8 +8049,8 @@
               "real_path": "/usr/share/doc/libcap-ng0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libcap-ng0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libcap-ng0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libcap-ng0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libcap-ng0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -8079,8 +8079,8 @@
               "real_path": "/usr/share/doc/libcrypt1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libcrypt1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libcrypt1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libcrypt1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libcrypt1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -8155,8 +8155,8 @@
               "real_path": "/usr/share/doc/libdb5.3/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libdb5.3:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libdb5.3:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libdb5.3:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libdb5.3:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -8186,8 +8186,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -8357,12 +8357,12 @@
               "real_path": "/usr/share/doc/libpam-modules/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpam-modules:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libpam-modules:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libpam-modules:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libpam-modules:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpam-modules:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpam-modules:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpam-modules:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpam-modules:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -8544,8 +8544,8 @@
               "real_path": "/usr/share/doc/libpam0g/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpam0g:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpam0g:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpam0g:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpam0g:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -8593,8 +8593,8 @@
               "real_path": "/usr/share/doc/libpcre2-8-0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -8624,8 +8624,8 @@
               "real_path": "/usr/share/doc/libselinux1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -8739,8 +8739,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -8842,8 +8842,8 @@
               "real_path": "/usr/share/doc/libblkid1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libblkid1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libblkid1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libblkid1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libblkid1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -8872,12 +8872,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -8907,8 +8907,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9012,8 +9012,8 @@
               "real_path": "/usr/share/doc/libmount1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libmount1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libmount1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libmount1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libmount1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9061,8 +9061,8 @@
               "real_path": "/usr/share/doc/libpcre2-8-0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9092,8 +9092,8 @@
               "real_path": "/usr/share/doc/libselinux1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9195,8 +9195,8 @@
               "real_path": "/usr/share/doc/libsmartcols1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libsmartcols1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libsmartcols1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libsmartcols1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libsmartcols1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9396,8 +9396,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9426,12 +9426,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9461,8 +9461,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9501,8 +9501,8 @@
               "real_path": "/usr/share/doc/libtinfo6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libtinfo6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libtinfo6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libtinfo6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libtinfo6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9654,8 +9654,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9700,8 +9700,8 @@
               "real_path": "/usr/share/doc/libacl1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libacl1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libacl1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libacl1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libacl1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9735,8 +9735,8 @@
               "real_path": "/usr/share/doc/libbz2-1.0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libbz2-1.0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libbz2-1.0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libbz2-1.0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libbz2-1.0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9765,12 +9765,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9799,8 +9799,8 @@
               "real_path": "/usr/share/doc/libcrypt1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libcrypt1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libcrypt1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libcrypt1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libcrypt1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9830,8 +9830,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9918,8 +9918,8 @@
               "real_path": "/usr/share/doc/liblzma5/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/liblzma5:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/liblzma5:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/liblzma5:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/liblzma5:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -9985,8 +9985,8 @@
               "real_path": "/usr/share/doc/libmd0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libmd0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libmd0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libmd0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libmd0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -10034,8 +10034,8 @@
               "real_path": "/usr/share/doc/libpcre2-8-0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -10065,8 +10065,8 @@
               "real_path": "/usr/share/doc/libselinux1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -10110,8 +10110,8 @@
               "real_path": "/usr/share/doc/libzstd1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libzstd1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libzstd1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libzstd1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libzstd1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -10368,8 +10368,8 @@
               "real_path": "/usr/share/doc/zlib1g/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/zlib1g:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/zlib1g:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/zlib1g:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/zlib1g:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -10404,8 +10404,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -10450,8 +10450,8 @@
               "real_path": "/usr/share/doc/libacl1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libacl1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libacl1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libacl1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libacl1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -10480,12 +10480,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -10515,8 +10515,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -10564,8 +10564,8 @@
               "real_path": "/usr/share/doc/libpcre2-8-0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -10595,8 +10595,8 @@
               "real_path": "/usr/share/doc/libselinux1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -10706,8 +10706,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -10736,12 +10736,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -10771,8 +10771,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11026,8 +11026,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/gcc-12-base:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/gcc-12-base:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11116,8 +11116,8 @@
               "real_path": "/usr/share/doc/libaudit1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libaudit1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libaudit1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libaudit1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libaudit1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11219,8 +11219,8 @@
               "real_path": "/usr/share/doc/libblkid1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libblkid1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libblkid1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libblkid1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libblkid1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11249,12 +11249,12 @@
               "real_path": "/usr/share/doc/libc6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.conffiles",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.conffiles"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.conffiles",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.conffiles"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libc6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libc6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libc6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11304,8 +11304,8 @@
               "real_path": "/usr/share/doc/libcap-ng0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libcap-ng0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libcap-ng0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libcap-ng0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libcap-ng0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11345,8 +11345,8 @@
               "real_path": "/usr/share/doc/libcap2/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libcap2:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libcap2:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libcap2:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libcap2:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11375,8 +11375,8 @@
               "real_path": "/usr/share/doc/libcrypt1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libcrypt1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libcrypt1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libcrypt1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libcrypt1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11406,8 +11406,8 @@
               "real_path": "/usr/share/doc/gcc-12-base/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcc-s1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11437,8 +11437,8 @@
               "real_path": "/usr/share/doc/libgcrypt20/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgcrypt20:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgcrypt20:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgcrypt20:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgcrypt20:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11492,8 +11492,8 @@
               "real_path": "/usr/share/doc/libgpg-error0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libgpg-error0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libgpg-error0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libgpg-error0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libgpg-error0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11533,8 +11533,8 @@
               "real_path": "/usr/share/doc/liblz4-1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/liblz4-1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/liblz4-1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/liblz4-1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/liblz4-1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11621,8 +11621,8 @@
               "real_path": "/usr/share/doc/liblzma5/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/liblzma5:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/liblzma5:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/liblzma5:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/liblzma5:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11726,8 +11726,8 @@
               "real_path": "/usr/share/doc/libmount1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libmount1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libmount1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libmount1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libmount1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11806,8 +11806,8 @@
               "real_path": "/usr/share/doc/libpam0g/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpam0g:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpam0g:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpam0g:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpam0g:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11855,8 +11855,8 @@
               "real_path": "/usr/share/doc/libpcre2-8-0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libpcre2-8-0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11886,8 +11886,8 @@
               "real_path": "/usr/share/doc/libselinux1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libselinux1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libselinux1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -11989,8 +11989,8 @@
               "real_path": "/usr/share/doc/libsmartcols1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libsmartcols1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libsmartcols1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libsmartcols1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libsmartcols1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -12053,8 +12053,8 @@
               "real_path": "/usr/share/doc/libsystemd0/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libsystemd0:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libsystemd0:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libsystemd0:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libsystemd0:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -12093,8 +12093,8 @@
               "real_path": "/usr/share/doc/libtinfo6/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libtinfo6:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libtinfo6:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libtinfo6:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libtinfo6:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -12152,8 +12152,8 @@
               "real_path": "/usr/share/doc/libudev1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libudev1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libudev1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libudev1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libudev1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -12255,8 +12255,8 @@
               "real_path": "/usr/share/doc/libuuid1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libuuid1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libuuid1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libuuid1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libuuid1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -12300,8 +12300,8 @@
               "real_path": "/usr/share/doc/libzstd1/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/libzstd1:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/libzstd1:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/libzstd1:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/libzstd1:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",
@@ -12592,8 +12592,8 @@
               "real_path": "/usr/share/doc/zlib1g/copyright"
             },
             {
-              "access_path": "/var/lib/dpkg/info/zlib1g:arm64.md5sums",
-              "real_path": "/var/lib/dpkg/info/zlib1g:arm64.md5sums"
+              "access_path": "/var/lib/dpkg/info/zlib1g:amd64.md5sums",
+              "real_path": "/var/lib/dpkg/info/zlib1g:amd64.md5sums"
             },
             {
               "access_path": "/var/lib/dpkg/status",

@@ -232,8 +232,8 @@ func parseYarnLockEntries(content string) ([]yarnLockEntry, error) {
 		// version field: classic `version "X.Y.Z"`, Berry `version: X.Y.Z`.
 		if strings.HasPrefix(trimmed, "version ") || strings.HasPrefix(trimmed, "version: ") {
 			raw := trimmed
-			if strings.HasPrefix(raw, "version:") {
-				raw = strings.TrimPrefix(raw, "version:")
+			if after, ok := strings.CutPrefix(raw, "version:"); ok {
+				raw = after
 			} else {
 				raw = strings.TrimPrefix(raw, "version")
 			}
@@ -244,8 +244,8 @@ func parseYarnLockEntries(content string) ([]yarnLockEntry, error) {
 		// resolved field: classic `resolved "url"`, Berry `resolved: "url"`.
 		if strings.HasPrefix(trimmed, "resolved ") || strings.HasPrefix(trimmed, "resolved: ") {
 			raw := trimmed
-			if strings.HasPrefix(raw, "resolved:") {
-				raw = strings.TrimPrefix(raw, "resolved:")
+			if after, ok := strings.CutPrefix(raw, "resolved:"); ok {
+				raw = after
 			} else {
 				raw = strings.TrimPrefix(raw, "resolved")
 			}
@@ -264,8 +264,8 @@ func parseYarnLockEntries(content string) ([]yarnLockEntry, error) {
 		// integrity field: classic `integrity sha512-...`, Berry `integrity: sha512-...`.
 		if strings.HasPrefix(trimmed, "integrity ") || strings.HasPrefix(trimmed, "integrity: ") {
 			raw := trimmed
-			if strings.HasPrefix(raw, "integrity:") {
-				raw = strings.TrimPrefix(raw, "integrity:")
+			if after, ok := strings.CutPrefix(raw, "integrity:"); ok {
+				raw = after
 			} else {
 				raw = strings.TrimPrefix(raw, "integrity")
 			}

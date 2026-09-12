@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"path/filepath"
 	"strings"
 
@@ -86,11 +87,7 @@ func NormalizeVersionToken(value string) string {
 // MergeStringMaps returns a shallow merge of two string maps.
 func MergeStringMaps(left map[string]string, right map[string]string) map[string]string {
 	out := make(map[string]string, len(left)+len(right))
-	for key, value := range left {
-		out[key] = value
-	}
-	for key, value := range right {
-		out[key] = value
-	}
+	maps.Copy(out, left)
+	maps.Copy(out, right)
 	return out
 }

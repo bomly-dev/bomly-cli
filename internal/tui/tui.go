@@ -731,10 +731,7 @@ func (m *listModel) View(width, height int) string {
 	}
 
 	selectedIndex := visible[m.selectedVisibleIndex(visible)]
-	contentHeight := bodyHeight - 2
-	if contentHeight < 1 {
-		contentHeight = 1
-	}
+	contentHeight := max(bodyHeight-2, 1)
 	listContentHeight := contentHeight
 	if strings.TrimSpace(m.listHeader) != "" {
 		listContentHeight--
@@ -824,7 +821,7 @@ func renderListPanels(panels []listPanel, width int) []string {
 		rendered = append(rendered, boxView(panel.title, lines, panelWidth, panelHeight, color))
 	}
 	out := make([]string, 0, panelHeight)
-	for row := 0; row < panelHeight; row++ {
+	for row := range panelHeight {
 		parts := make([]string, 0, len(rendered))
 		for idx := range rendered {
 			parts = append(parts, rendered[idx][row])
@@ -911,10 +908,7 @@ func (m *listModel) visibleListLines(width, height int, visible []int) []string 
 	}
 
 	out := make([]string, 0, height)
-	end := m.scrollOffset + height
-	if end > len(visible) {
-		end = len(visible)
-	}
+	end := min(m.scrollOffset+height, len(visible))
 	for visibleIdx := m.scrollOffset; visibleIdx < end; visibleIdx++ {
 		idx := visible[visibleIdx]
 		item := m.items[idx]
@@ -957,10 +951,7 @@ func (m *listModel) visibleDetailLines(lines []string, width, height int) []stri
 		return nil
 	}
 	wrapped := wrapLines(lines, width)
-	maxOffset := len(wrapped) - height
-	if maxOffset < 0 {
-		maxOffset = 0
-	}
+	maxOffset := max(len(wrapped)-height, 0)
 	if m.detailOffset > maxOffset {
 		m.detailOffset = maxOffset
 	}
@@ -968,10 +959,7 @@ func (m *listModel) visibleDetailLines(lines []string, width, height int) []stri
 		m.detailOffset = 0
 	}
 	start := m.detailOffset
-	end := start + height
-	if end > len(wrapped) {
-		end = len(wrapped)
-	}
+	end := min(start+height, len(wrapped))
 	out := make([]string, 0, height)
 	if start < end {
 		out = append(out, wrapped[start:end]...)

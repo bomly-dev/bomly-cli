@@ -1535,12 +1535,7 @@ func pluginDetectorEcosystems(info managedplugin.Info) string {
 }
 
 func containsPluginValue(values []string, target string) bool {
-	for _, value := range values {
-		if value == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(values, target)
 }
 
 func nonEmptyString(value, fallback string) string {

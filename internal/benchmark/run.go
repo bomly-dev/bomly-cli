@@ -631,7 +631,7 @@ func ParseNames(values ...string) []string {
 	seen := make(map[string]struct{})
 	out := make([]string, 0)
 	for _, value := range values {
-		for _, part := range strings.Split(value, ",") {
+		for part := range strings.SplitSeq(value, ",") {
 			name := strings.TrimSpace(part)
 			if name == "" {
 				continue

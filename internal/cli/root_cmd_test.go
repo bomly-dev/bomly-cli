@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 
@@ -2368,9 +2369,9 @@ func TestRoot_ScanCommand_TextReportOutput(t *testing.T) {
 		}
 	}
 	// Direct deps appear before transitive in the Top-level section.
-	reactIdx := strings.Index(plain, "react")
+	found := strings.Contains(plain, "react")
 	envifyIdx := strings.Index(plain, "loose-envify")
-	if reactIdx == -1 {
+	if !found {
 		t.Fatalf("expected react in output, got: %s", out)
 	}
 	// loose-envify is transitive and should NOT appear in Top-level dependencies.
@@ -3012,12 +3013,7 @@ func runGit(t *testing.T, dir string, args ...string) string {
 }
 
 func containsString(values []string, target string) bool {
-	for _, value := range values {
-		if value == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(values, target)
 }
 
 func scanPayloadPackages(payload map[string]any) ([]any, bool) {

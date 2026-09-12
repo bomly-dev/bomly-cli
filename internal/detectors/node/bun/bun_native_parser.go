@@ -29,7 +29,7 @@ func depGraphFromBunPMList(raw []byte, manifest node.PackageJSONManifest, projec
 
 	byName := make(map[string]map[string]sdk.GraphNode)
 	parents := make([]string, 0)
-	for _, line := range strings.Split(string(raw), "\n") {
+	for line := range strings.SplitSeq(string(raw), "\n") {
 		name, version, depth, ok := parseBunPMListLine(line)
 		if !ok {
 			continue

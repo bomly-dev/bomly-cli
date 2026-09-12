@@ -5,6 +5,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -962,21 +963,11 @@ func newTestRootCommand(t *testing.T) *cobra.Command {
 }
 
 func containsOption(values []string, target string) bool {
-	for _, value := range values {
-		if value == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(values, target)
 }
 
 func containsManager(values []sdk.PackageManager, target sdk.PackageManager) bool {
-	for _, value := range values {
-		if value == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(values, target)
 }
 
 func TestResolveConfigRejectsMaxDepthWithoutRecursive(t *testing.T) {

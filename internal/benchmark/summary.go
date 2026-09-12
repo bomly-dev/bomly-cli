@@ -191,12 +191,9 @@ func comparePackages(bomlyDoc, sourceDoc *sbom.Document, policy ComparisonPolicy
 		sourcePURLs := sourceByBase[base]
 		sort.Strings(bomlyPURLs)
 		sort.Strings(sourcePURLs)
-		matched := len(bomlyPURLs)
-		if len(sourcePURLs) < matched {
-			matched = len(sourcePURLs)
-		}
+		matched := min(len(sourcePURLs), len(bomlyPURLs))
 		metrics.VersionMismatch += matched
-		for idx := 0; idx < matched; idx++ {
+		for idx := range matched {
 			differences = append(differences, ComparisonDifference{Kind: "package", Classification: "version_mismatch", BomlyPURL: bomlyPURLs[idx], SourcePURL: sourcePURLs[idx]})
 		}
 		metrics.BomlyOnly += len(bomlyPURLs) - matched
@@ -403,7 +400,7 @@ func detectorCreators(doc *sbom.Document) []string {
 	}
 	out := make([]string, 0)
 	for _, tool := range doc.Tools {
-		if name := strings.TrimPrefix(tool, "bomly-detector:"); name != tool {
+		if name, ok := strings.CutPrefix(tool, "bomly-detector:"); ok {
 			out = append(out, name)
 		}
 	}

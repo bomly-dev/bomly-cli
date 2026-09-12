@@ -569,7 +569,7 @@ func TestInferredPlacementCollapsesEqualLengthDiamondPaths(t *testing.T) {
 		t.Fatal(err)
 	}
 	previous := []string{root.NodeID()}
-	for layer := 0; layer < 20; layer++ {
+	for layer := range 20 {
 		current := []string{
 			fmt.Sprintf("a-%02d", layer),
 			fmt.Sprintf("b-%02d", layer),

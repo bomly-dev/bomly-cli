@@ -3,6 +3,7 @@ package remediation
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"unicode"
@@ -602,12 +603,7 @@ func advertisedActions(
 }
 
 func containsManager(managers []sdk.PackageManager, target sdk.PackageManager) bool {
-	for _, manager := range managers {
-		if manager == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(managers, target)
 }
 
 func deriveSuggestions(

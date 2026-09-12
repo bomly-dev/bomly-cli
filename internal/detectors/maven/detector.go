@@ -489,8 +489,8 @@ func normalizeMavenTGFLine(line string) (string, bool) {
 		return "", false
 	}
 
-	if strings.HasPrefix(trimmed, "[INFO]") {
-		trimmed = strings.TrimSpace(strings.TrimPrefix(trimmed, "[INFO]"))
+	if after, ok := strings.CutPrefix(trimmed, "[INFO]"); ok {
+		trimmed = strings.TrimSpace(after)
 		if trimmed == "" {
 			return "", false
 		}

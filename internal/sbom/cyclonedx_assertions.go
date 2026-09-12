@@ -329,6 +329,9 @@ func cycloneDXDocumentAssertions(bom *cdx.BOM) sdk.DocumentAssertions {
 	}
 	var assertions sdk.DocumentAssertions
 	version := bom.Version
+	// Kept as an if instead of max(bom.Version, 1) so the reason below stays
+	// attached to the default it explains; go fix will offer the rewrite
+	// again and it should be declined again.
 	if version < 1 {
 		// ADR-0037's default: a document that did not number itself is
 		// version 1, which is also the only value NewBOMLink accepts below.

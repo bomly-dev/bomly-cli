@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
@@ -819,12 +820,7 @@ func remediationActionsForDetectorChain(detectorNames []string, manager sdk.Pack
 }
 
 func containsPackageManager(managers []sdk.PackageManager, target sdk.PackageManager) bool {
-	for _, manager := range managers {
-		if manager == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(managers, target)
 }
 
 func writeMatcherDocs(outputDir string) error {
@@ -1070,12 +1066,7 @@ func matcherBehavior(name string) matcherDocBehavior {
 }
 
 func chainSupportsInstallFirst(detectors []string) bool {
-	for _, detectorName := range detectors {
-		if detectorSupportsInstallFirst(detectorName) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(detectors, detectorSupportsInstallFirst)
 }
 
 func detectorSupportsInstallFirst(detectorName string) bool {

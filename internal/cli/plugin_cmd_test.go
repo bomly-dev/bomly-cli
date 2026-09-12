@@ -321,7 +321,7 @@ func TestPluginList_TableWrapsLongDetectorColumns(t *testing.T) {
 	}
 
 	text := render.StripANSI(output.String())
-	for _, line := range strings.Split(text, "\n") {
+	for line := range strings.SplitSeq(text, "\n") {
 		if width := len([]rune(line)); width > 140 {
 			t.Fatalf("expected wrapped detector table line <= 140 columns, got %d:\n%s", width, line)
 		}
@@ -330,7 +330,7 @@ func TestPluginList_TableWrapsLongDetectorColumns(t *testing.T) {
 
 func tableHeaderLine(t *testing.T, text string, contains string) string {
 	t.Helper()
-	for _, line := range strings.Split(text, "\n") {
+	for line := range strings.SplitSeq(text, "\n") {
 		if strings.Contains(line, contains) {
 			return line
 		}

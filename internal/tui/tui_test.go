@@ -1201,7 +1201,7 @@ func assertInteractiveListTitles(t *testing.T, model *ScanModel, contains, exclu
 }
 
 func expandTreeLayers(model treeControlModel, layers int) {
-	for i := 0; i < layers; i++ {
+	for range layers {
 		model.ExpandAll()
 	}
 }

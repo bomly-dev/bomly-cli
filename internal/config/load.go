@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/url"
 	"os"
 	"path"
@@ -163,7 +164,7 @@ func rejectLegacyFlatKeys(data []byte) error {
 // LegacyMigrationPaths returns former flat YAML keys and their replacements.
 func LegacyMigrationPaths() map[string]string {
 	paths := make(map[string]string)
-	collectLegacyConfigPaths(reflect.TypeOf(File{}), "", paths)
+	collectLegacyConfigPaths(reflect.TypeFor[File](), "", paths)
 	paths["config"] = "--config"
 	paths["verbose"] = "logging.verbosity"
 	return paths
@@ -172,13 +173,12 @@ func LegacyMigrationPaths() map[string]string {
 // YAMLPathsByResolvedField returns nested YAML paths keyed by flat runtime field.
 func YAMLPathsByResolvedField() map[string]string {
 	paths := make(map[string]string)
-	collectResolvedConfigPaths(reflect.TypeOf(File{}), "", paths)
+	collectResolvedConfigPaths(reflect.TypeFor[File](), "", paths)
 	return paths
 }
 
 func collectLegacyConfigPaths(t reflect.Type, prefix string, paths map[string]string) {
-	for idx := 0; idx < t.NumField(); idx++ {
-		field := t.Field(idx)
+	for field := range t.Fields() {
 		key := yamlTagName(field.Tag.Get("yaml"))
 		if key == "" || key == "-" {
 			continue
@@ -197,8 +197,7 @@ func collectLegacyConfigPaths(t reflect.Type, prefix string, paths map[string]st
 }
 
 func collectResolvedConfigPaths(t reflect.Type, prefix string, paths map[string]string) {
-	for idx := 0; idx < t.NumField(); idx++ {
-		field := t.Field(idx)
+	for field := range t.Fields() {
 		key := yamlTagName(field.Tag.Get("yaml"))
 		if key == "" || key == "-" {
 			continue
@@ -218,9 +217,9 @@ func collectResolvedConfigPaths(t reflect.Type, prefix string, paths map[string]
 
 func canonicalRootKeys() map[string]struct{} {
 	keys := make(map[string]struct{})
-	fileType := reflect.TypeOf(File{})
-	for idx := 0; idx < fileType.NumField(); idx++ {
-		key := yamlTagName(fileType.Field(idx).Tag.Get("yaml"))
+	fileType := reflect.TypeFor[File]()
+	for field := range fileType.Fields() {
+		key := yamlTagName(field.Tag.Get("yaml"))
 		if key != "" && key != "-" {
 			keys[key] = struct{}{}
 		}
@@ -442,17 +441,13 @@ func clonePluginConfig(value map[string]any) map[string]any {
 	data, err := json.Marshal(value)
 	if err != nil {
 		out := make(map[string]any, len(value))
-		for key, item := range value {
-			out[key] = item
-		}
+		maps.Copy(out, value)
 		return out
 	}
 	var out map[string]any
 	if err := json.Unmarshal(data, &out); err != nil {
 		copyValue := make(map[string]any, len(value))
-		for key, item := range value {
-			copyValue[key] = item
-		}
+		maps.Copy(copyValue, value)
 		return copyValue
 	}
 	return out

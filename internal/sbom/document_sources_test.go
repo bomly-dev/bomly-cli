@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"slices"
 	"strings"
 	"testing"
 
@@ -274,12 +275,7 @@ func TestConversionDoesNotLinkTheDocumentItRestates(t *testing.T) {
 }
 
 func containsStringValue(values []string, want string) bool {
-	for _, value := range values {
-		if value == want {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(values, want)
 }
 
 // sha256Hex is the digest form the ingest checksum is written in.

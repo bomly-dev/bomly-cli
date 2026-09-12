@@ -3,6 +3,7 @@ package opts
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"sort"
 	"strings"
 
@@ -112,9 +113,7 @@ func buildEcosystemSelectorCatalog() catalog {
 	}
 	sort.Strings(available)
 	aliasToName := make(map[string]string, len(aliasMap))
-	for k, v := range aliasMap {
-		aliasToName[k] = v
-	}
+	maps.Copy(aliasToName, aliasMap)
 	simplified := append([]string(nil), available...)
 	return catalog{
 		Kind:        "ecosystem",

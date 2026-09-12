@@ -62,7 +62,7 @@ func TestWarningNotices_GroupsRepeatedWarnings(t *testing.T) {
 
 func TestWarningNotices_CapsFanOut(t *testing.T) {
 	warnings := make([]model.DetectorWarning, 0, 9)
-	for idx := 0; idx < 9; idx++ {
+	for idx := range 9 {
 		warnings = append(warnings, model.DetectorWarning{
 			Type:     model.DetectorWarningFallback,
 			Source:   "maven-detector",

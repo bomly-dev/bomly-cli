@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -79,10 +80,8 @@ func modulesForRule(t *testing.T, rule string) []string {
 // isForbidden reports whether any rule forbids the module.
 func isForbidden(module string) bool {
 	for _, modules := range forbiddenModules {
-		for _, forbidden := range modules {
-			if forbidden == module {
-				return true
-			}
+		if slices.Contains(modules, module) {
+			return true
 		}
 	}
 	return false
@@ -251,12 +250,7 @@ var guardFiles = map[string][]string{
 // second: a guard that must spell one module was excused from the rules about
 // the others.
 func guardMayName(path, module string) bool {
-	for _, allowed := range guardFiles[filepath.Clean(path)] {
-		if allowed == module {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(guardFiles[filepath.Clean(path)], module)
 }
 
 // importsModule reports whether the Go file at path imports module, or a

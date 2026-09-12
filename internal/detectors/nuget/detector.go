@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"sort"
@@ -349,9 +350,7 @@ func depGraphFromDepsFiles(paths []string) (*sdk.Graph, error) {
 				}
 				library := deps.Libraries[key]
 				if !strings.EqualFold(strings.TrimSpace(library.Type), "package") {
-					for depName, depVersion := range target.Dependencies {
-						rootDeps[depName] = depVersion
-					}
+					maps.Copy(rootDeps, target.Dependencies)
 					continue
 				}
 				pkg := lockPackage{

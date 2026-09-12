@@ -1258,7 +1258,7 @@ func TestFindingsOutcomePanels_BucketsCoverAllKinds(t *testing.T) {
 // shows vulnerability + license + package counts.
 func TestFindingsOutcomePanels_SpansAllKinds(t *testing.T) {
 	var intro []output.AuditFinding
-	for i := 0; i < 6; i++ {
+	for i := range 6 {
 		intro = append(intro, output.AuditFinding{
 			ID:       "CVE-X-" + string(rune('A'+i)),
 			Kind:     sdk.FindingKindVulnerability,
@@ -1268,7 +1268,7 @@ func TestFindingsOutcomePanels_SpansAllKinds(t *testing.T) {
 		})
 	}
 	var persisted []output.AuditFinding
-	for i := 0; i < 6; i++ {
+	for i := range 6 {
 		persisted = append(persisted, output.AuditFinding{
 			ID:       "license:unknown-license:pkg-" + string(rune('A'+i)),
 			Kind:     sdk.FindingKindLicense,

@@ -21,8 +21,7 @@ func TestCloneIntoRedactsUserinfoAndPreservesExitError(t *testing.T) {
 	if err == nil {
 		t.Fatal("cloneInto() error = nil, want unsupported transport error")
 	}
-	var exitErr *exec.ExitError
-	if !errors.As(err, &exitErr) {
+	if _, ok := errors.AsType[*exec.ExitError](err); !ok {
 		t.Fatalf("cloneInto() did not preserve exec.ExitError: %v", err)
 	}
 	if strings.Contains(err.Error(), "user") || strings.Contains(err.Error(), "clone-secret") {

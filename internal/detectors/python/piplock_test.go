@@ -3,6 +3,7 @@ package python
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"testing"
 
@@ -175,10 +176,5 @@ func findRootID(t *testing.T, g *sdk.Graph) string {
 }
 
 func contains(s []string, v string) bool {
-	for _, x := range s {
-		if x == v {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(s, v)
 }

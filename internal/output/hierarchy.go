@@ -101,7 +101,7 @@ func ClassifyManifest(subprojectRel, manifestPath string) (subprojectDir, module
 // hasHiddenPathSegment reports whether any segment of a slash path starts
 // with a dot.
 func hasHiddenPathSegment(dir string) bool {
-	for _, segment := range strings.Split(dir, "/") {
+	for segment := range strings.SplitSeq(dir, "/") {
 		if strings.HasPrefix(segment, ".") && segment != "." && segment != ".." {
 			return true
 		}

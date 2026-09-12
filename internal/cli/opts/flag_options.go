@@ -438,7 +438,7 @@ func csvCompletionFunc(options []string) func(*cobra.Command, []string, string) 
 		}
 
 		used := map[string]struct{}{}
-		for _, part := range strings.Split(toComplete, ",") {
+		for part := range strings.SplitSeq(toComplete, ",") {
 			value := strings.TrimSpace(part)
 			if value == "" {
 				continue

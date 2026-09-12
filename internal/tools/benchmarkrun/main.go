@@ -224,8 +224,7 @@ func executeSample(outputDir, mode string, index int, cacheDir, executable strin
 	exitCode := 0
 	if err != nil {
 		exitCode = -1
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
+		if exitErr, ok := errors.AsType[*exec.ExitError](err); ok {
 			exitCode = exitErr.ExitCode()
 		}
 	}

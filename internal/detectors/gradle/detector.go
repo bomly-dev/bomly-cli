@@ -421,7 +421,7 @@ func depGraphFromGradleOutput(raw []byte, rootName string, modules []gradleModul
 	currentGraph := rootGraph
 	stack := []string{rootNode.NodeID()}
 	currentScope := sdk.ScopeUnknown
-	for _, line := range strings.Split(strings.ReplaceAll(string(raw), "\r\n", "\n"), "\n") {
+	for line := range strings.SplitSeq(strings.ReplaceAll(string(raw), "\r\n", "\n"), "\n") {
 		trimmed := strings.TrimSpace(line)
 		if trimmed == "" {
 			continue
@@ -699,8 +699,8 @@ func gradleDependencyToken(value string) string {
 }
 
 func gradleNodeFromToken(token string, scope sdk.Scope) (sdk.GraphNode, bool) {
-	if strings.HasPrefix(token, "project ") {
-		name := strings.TrimSpace(strings.TrimPrefix(token, "project "))
+	if after, ok := strings.CutPrefix(token, "project "); ok {
+		name := strings.TrimSpace(after)
 		if name == "" {
 			return nil, false
 		}

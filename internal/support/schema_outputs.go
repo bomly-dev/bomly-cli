@@ -13,8 +13,8 @@ type commandOutputSpec struct {
 
 func commandOutputSpecs() []commandOutputSpec {
 	return []commandOutputSpec{
-		{name: "scan", typ: reflect.TypeOf(output.ScanResponse{})},
-		{name: "diff", typ: reflect.TypeOf(output.DiffResponse{})},
-		{name: "explain", typ: reflect.TypeOf(output.ExplainResponse{})},
+		{name: "scan", typ: reflect.TypeFor[output.ScanResponse]()},
+		{name: "diff", typ: reflect.TypeFor[output.DiffResponse]()},
+		{name: "explain", typ: reflect.TypeFor[output.ExplainResponse]()},
 	}
 }

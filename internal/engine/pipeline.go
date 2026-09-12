@@ -97,10 +97,7 @@ func (p *Pipeline) applyFindingPolicy(ctx context.Context, findings []sdk.Findin
 	started := time.Now()
 	resolved := applyFindingPolicy(ctx, findings, registry, req)
 	if req.BaselineEvaluation != nil {
-		accepted := acceptedFindingCount(resolved) - beforeAccepted
-		if accepted < 0 {
-			accepted = 0
-		}
+		accepted := max(acceptedFindingCount(resolved)-beforeAccepted, 0)
 		p.Logger.Info("baseline: policy evaluation completed",
 			zap.String("path", req.BaselineEvaluation.Path),
 			zap.Int("entries", req.BaselineEvaluation.Entries),

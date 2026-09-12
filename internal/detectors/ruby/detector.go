@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -479,8 +480,8 @@ func parseGemfileScopes(path string) (map[string]sdk.Scope, error) {
 }
 
 func stripGemfileComment(line string) string {
-	if idx := strings.Index(line, "#"); idx >= 0 {
-		return line[:idx]
+	if before, _, ok := strings.Cut(line, "#"); ok {
+		return before
 	}
 	return line
 }
@@ -542,10 +543,8 @@ func addGemNodeIfMissing(depsGraph *sdk.Graph, node *sdk.DependencyNode) error {
 }
 
 func appendUnique(values []string, value string) []string {
-	for _, existing := range values {
-		if existing == value {
-			return values
-		}
+	if slices.Contains(values, value) {
+		return values
 	}
 	return append(values, value)
 }

@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -204,10 +205,8 @@ func validateCase(root string, current evidenceCase) error {
 		if len(command) == 0 {
 			return fmt.Errorf("reproduction command %d is empty", index+1)
 		}
-		for _, argument := range command {
-			if argument == "" {
-				return fmt.Errorf("reproduction command %d contains an empty argument", index+1)
-			}
+		if slices.Contains(command, "") {
+			return fmt.Errorf("reproduction command %d contains an empty argument", index+1)
 		}
 	}
 	if len(current.Evidence) == 0 {

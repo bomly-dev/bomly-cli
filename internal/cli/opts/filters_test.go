@@ -2,6 +2,7 @@ package opts
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"testing"
 
@@ -195,12 +196,7 @@ func TestResolveEcosystemFilter_UnknownReturnsError(t *testing.T) {
 }
 
 func containsEcosystem(values []sdk.Ecosystem, target sdk.Ecosystem) bool {
-	for _, value := range values {
-		if value == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(values, target)
 }
 
 type fakeMatcher struct {

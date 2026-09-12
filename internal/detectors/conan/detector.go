@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
@@ -346,12 +347,7 @@ func sortedNodeIDs(nodes map[string]*sdk.DependencyNode) []string {
 }
 
 func containsString(values []string, target string) bool {
-	for _, value := range values {
-		if value == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(values, target)
 }
 
 func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {

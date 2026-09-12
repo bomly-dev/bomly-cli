@@ -47,10 +47,8 @@ func (p *Pipeline) resolveAll(ctx context.Context, req PipelineRequest) ([]sdk.D
 	var wg sync.WaitGroup
 	var progressMu sync.Mutex
 	completed := 0
-	for i := 0; i < workerCount; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range workerCount {
+		wg.Go(func() {
 			for idx := range jobs {
 				sub := req.Subprojects[idx]
 				reportProgressDetail(req.Progress, "Detecting dependencies", subprojectProgressDetail(sub))
@@ -63,7 +61,7 @@ func (p *Pipeline) resolveAll(ctx context.Context, req PipelineRequest) ([]sdk.D
 					progressMu.Unlock()
 				}
 			}
-		}()
+		})
 	}
 	for idx := range req.Subprojects {
 		select {
@@ -116,13 +114,7 @@ func resolveWorkerCount(subprojectCount int) int {
 	if subprojectCount <= 1 {
 		return 1
 	}
-	workers := runtime.NumCPU()
-	if workers < 1 {
-		workers = 1
-	}
-	if workers > 4 {
-		workers = 4
-	}
+	workers := min(max(runtime.NumCPU(), 1), 4)
 	if workers > subprojectCount {
 		return subprojectCount
 	}

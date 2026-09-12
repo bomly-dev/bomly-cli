@@ -463,11 +463,11 @@ func mergeAnyMaps(left map[string]any, right map[string]any) map[string]string {
 // pnpmStripPeerSuffix strips the peer dependency suffix from a pnpm v9 snapshot key.
 // For example: "express@4.18.2(peer-dep@1.0.0)" -> "express@4.18.2".
 func pnpmStripPeerSuffix(key string) string {
-	idx := strings.Index(key, "(")
-	if idx < 0 {
+	before, _, ok := strings.Cut(key, "(")
+	if !ok {
 		return key
 	}
-	return key[:idx]
+	return before
 }
 
 func parsePNPMLockfile(raw []byte) (pnpmLockfile, error) {

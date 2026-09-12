@@ -69,7 +69,6 @@ func TestRemediationPackageDependencyBoundaries(t *testing.T) {
 	}
 	t.Run("detector hint packages", func(t *testing.T) {
 		for _, target := range detectorHintPackages {
-			target := target
 			t.Run(target.name, func(t *testing.T) {
 				packages := goListDependencies(t, root, target.path)
 				importPath := module + strings.TrimPrefix(target.path, "./")

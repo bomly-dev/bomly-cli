@@ -265,7 +265,7 @@ func TestBuildRemediationsSameFixClosesMultipleFindings(t *testing.T) {
 func TestBuildRemediationsTruncatesWithCounters(t *testing.T) {
 	in := remediationFixture(t)
 	// Add one no-fix finding per synthetic package to exceed the group cap.
-	for i := 0; i < maxRemediationGroups+10; i++ {
+	for i := range maxRemediationGroups + 10 {
 		purl := fmt.Sprintf("pkg:npm/synth-%03d@1.0.0", i)
 		in.Registry.Add(&sdk.Package{
 			Coordinates: sdk.Coordinates{PURL: purl, Name: fmt.Sprintf("synth-%03d", i), Version: "1.0.0", Ecosystem: sdk.EcosystemNPM},
@@ -314,7 +314,7 @@ func TestBuildRemediationsCountsDistinctOmissionsAcrossSuggestions(t *testing.T)
 		},
 	}
 	var findings []sdk.Finding
-	for idx := 0; idx < maxFindingsPerGroup+5; idx++ {
+	for idx := range maxFindingsPerGroup + 5 {
 		id := fmt.Sprintf("GHSA-shared-%02d", idx)
 		pkg.Vulnerabilities = append(pkg.Vulnerabilities, sdk.Vulnerability{
 			ID: id, ParsedSeverity: sdk.SeverityHigh, FixedIn: "1.1.0",
@@ -395,7 +395,7 @@ func TestBuildRemediationsCapsLeftoverPackagesDeterministically(t *testing.T) {
 			PackageRef: fmt.Sprintf("pkg:npm/leftover-%03d@1.0.0", idx),
 		}
 	}
-	for run := 0; run < 10; run++ {
+	for run := range 10 {
 		out := buildRemediations(remediationInput{
 			Findings: findings,
 			Registry: sdk.NewPackageRegistry(),
@@ -416,7 +416,7 @@ func TestBuildRemediationsCapsLeftoverPackagesDeterministically(t *testing.T) {
 func TestShortestPathBoundsLongChains(t *testing.T) {
 	g := sdk.New()
 	var previous string
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		node := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
 			Name: fmt.Sprintf("chain-%d", i), Version: "1.0.0", Ecosystem: sdk.EcosystemNPM,
 			PURL: fmt.Sprintf("pkg:npm/chain-%d@1.0.0", i),
@@ -451,7 +451,7 @@ func TestCompactScanSizeStaysUnderBudget(t *testing.T) {
 	in := remediationFixture(t)
 	// Grow the fixture to ~15 vulnerable packages — the scale from issue
 	// #245 — and assert the serialized compact response stays a few KB.
-	for i := 0; i < 12; i++ {
+	for i := range 12 {
 		purl := fmt.Sprintf("pkg:npm/extra-%02d@1.0.0", i)
 		in.Registry.Add(&sdk.Package{
 			Coordinates: sdk.Coordinates{PURL: purl, Name: fmt.Sprintf("extra-%02d", i), Version: "1.0.0", Ecosystem: sdk.EcosystemNPM},

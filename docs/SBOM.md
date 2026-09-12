@@ -78,11 +78,17 @@ An SBOM is refused when its JSON does not have a single unambiguous reading:
   on, that is a smuggling vector.
 - **Bytes that are not valid UTF-8.** Readers usually substitute a replacement
   character, so what a consumer sees is not what the document carried.
+- **An escaped character that does not exist.** `"\ud800"` is half of a
+  UTF-16 pair with no other half. The JSON standard (RFC 8259, section 8.2)
+  says software receiving such a text behaves unpredictably: some readers
+  substitute a replacement character, some fail, and none can agree on what
+  the string was. Bomly refuses the document rather than guess.
 
-Both are refused with an error naming the repeated member and its path, or the
-byte offset of the bad sequence, so you can find the spot. The fix is to
-regenerate the document with a producer that emits each member once — Bomly
-will not guess which reading you meant.
+All three are refused with an error naming the class, and the repeated member
+and its path or the byte offset of the bad sequence, so you can find the spot.
+The fix is to regenerate the document with a producer that emits each member
+once and writes every string as Unicode text — Bomly will not guess which
+reading you meant.
 
 Checking for a repeated name means remembering the names already seen in an
 object, and holding them until that object closes. The check therefore costs

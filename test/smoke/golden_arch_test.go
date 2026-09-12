@@ -13,6 +13,8 @@
 package smoke
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -125,6 +127,40 @@ var reHostArchDpkgPath = regexp.MustCompile(
 var reHostArchToken = regexp.MustCompile(
 	`(?:^|[^0-9A-Za-z_])(?:` + archAlternation(hostArchTokens) + `)(?:[^0-9A-Za-z_]|$)`)
 
+// forEachJSONString visits every string in a decoded JSON document, including
+// object keys, since a key is wire surface too.
+func forEachJSONString(value any, visit func(string)) {
+	switch typed := value.(type) {
+	case string:
+		visit(typed)
+	case []any:
+		for _, element := range typed {
+			forEachJSONString(element, visit)
+		}
+	case map[string]any:
+		for key, element := range typed {
+			visit(key)
+			forEachJSONString(element, visit)
+		}
+	}
+}
+
+// lineOfValue reports the line a decoded string sits on, by asking
+// encoding/json to write the value back the way the file would have written
+// it. Searching for the raw text would miss exactly the escaped values this
+// scan exists to catch.
+func lineOfValue(raw []byte, value string) int {
+	encoded, err := json.Marshal(value)
+	if err != nil {
+		return 0
+	}
+	index := bytes.Index(raw, encoded)
+	if index < 0 {
+		return 0
+	}
+	return lineOf(raw, index)
+}
+
 // goldenDir is the single directory holding smoke golden files.
 const goldenDir = "testdata/golden"
 
@@ -181,18 +217,37 @@ func TestGoldensCarryNoHostArchitecture(t *testing.T) {
 			t.Fatalf("read golden %s: %v", path, err)
 		}
 
-		for _, check := range checks {
-			loc := check.re.FindIndex(raw)
-			if loc == nil {
-				continue
-			}
-			t.Errorf("%s:%d: golden carries the host architecture %q\n\n%s\n\n"+
-				"A golden is compared on ubuntu-latest (amd64) but is usually written "+
-				"on a contributor's machine, so an architecture baked into one fails "+
-				"CI for everybody after it merges. See issue #445.",
-				path, lineOf(raw, loc[0]), quoteMatch(raw, loc), check.advice)
-			break
+		// Scan the decoded strings, not the file bytes. Go writes "&" as
+		// \u0026 inside JSON, and five goldens here carry it that way, so a
+		// pattern expecting a literal separator walks straight past
+		// "?arch=386\u0026distro=..." -- the very qualifier it exists to
+		// find. encoding/json owns that escaping, so it decides what the
+		// value is rather than this file learning the escapes.
+		var document any
+		if err := json.Unmarshal(raw, &document); err != nil {
+			t.Errorf("%s: golden is not valid JSON: %v", path, err)
+			continue
 		}
+
+		found := false
+		forEachJSONString(document, func(value string) {
+			if found {
+				return
+			}
+			for _, check := range checks {
+				loc := check.re.FindStringIndex(value)
+				if loc == nil {
+					continue
+				}
+				found = true
+				t.Errorf("%s:%d: golden carries the host architecture %q\n\n%s\n\n"+
+					"A golden is compared on ubuntu-latest (amd64) but is usually written "+
+					"on a contributor's machine, so an architecture baked into one fails "+
+					"CI for everybody after it merges. See issue #445.",
+					path, lineOfValue(raw, value), value[loc[0]:loc[1]], check.advice)
+				return
+			}
+		})
 	}
 
 	// A guard that scans nothing passes forever. Fail if the goldens moved.

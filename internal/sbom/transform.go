@@ -323,25 +323,32 @@ func componentDigests(digests []sdk.Digest) []Digest {
 
 // digestHexSizes maps digest algorithms onto their raw byte lengths, used to
 // validate base64-encoded values (npm SRI integrity) before hex re-encoding.
-var digestHexSizes = map[string]int{
-	"md5":      16,
-	"sha1":     20,
-	"sha-1":    20,
-	"sha224":   28,
-	"sha-224":  28,
-	"sha256":   32,
-	"sha-256":  32,
-	"sha384":   48,
-	"sha-384":  48,
-	"sha512":   64,
-	"sha-512":  64,
-	"sha3-256": 32,
-	"sha3-384": 48,
-	"sha3-512": 64,
+//
+// Keyed by the SDK's canonical token, so the spelling variants of one
+// algorithm resolve through sdk.ParseDigestAlgorithm rather than needing a row
+// each. The lengths themselves are not the SDK's to hold: it deliberately
+// records no per-algorithm value length, because ecosystems publish digests in
+// hex, in base64, and over subjects that are not files. This table exists only
+// to recognize a base64 value that is exactly one raw digest, so an algorithm
+// missing from it is left verbatim rather than mis-decoded.
+var digestHexSizes = map[sdk.DigestAlgorithm]int{
+	sdk.DigestAlgorithmMD5:     16,
+	sdk.DigestAlgorithmSHA1:    20,
+	sdk.DigestAlgorithmSHA224:  28,
+	sdk.DigestAlgorithmSHA256:  32,
+	sdk.DigestAlgorithmSHA384:  48,
+	sdk.DigestAlgorithmSHA512:  64,
+	sdk.DigestAlgorithmSHA3256: 32,
+	sdk.DigestAlgorithmSHA3384: 48,
+	sdk.DigestAlgorithmSHA3512: 64,
 }
 
 func normalizeDigestValue(algorithm, value string) string {
-	size, ok := digestHexSizes[strings.ToLower(strings.TrimSpace(algorithm))]
+	canonical, err := sdk.ParseDigestAlgorithm(algorithm)
+	if err != nil {
+		return value
+	}
+	size, ok := digestHexSizes[canonical]
 	if !ok {
 		return value
 	}

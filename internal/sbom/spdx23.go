@@ -361,18 +361,23 @@ func spdxPackageComment(component Component) string {
 }
 
 // spdxChecksums maps component digests onto SPDX package checksums, dropping
-// entries whose algorithm is not part of the SPDX checksum vocabulary.
+// entries the SDK will not publish and entries whose algorithm SPDX has no
+// member for. publishableDigest is the gate; spdxChecksumAlgorithm renders.
 func spdxChecksums(digests []Digest) []common.Checksum {
 	if len(digests) == 0 {
 		return nil
 	}
 	out := make([]common.Checksum, 0, len(digests))
 	for _, d := range digests {
-		alg := spdxChecksumAlgorithm(d.Algorithm)
-		if alg == "" || strings.TrimSpace(d.Value) == "" {
+		algorithm, value, ok := publishableDigest(d)
+		if !ok {
 			continue
 		}
-		out = append(out, common.Checksum{Algorithm: alg, Value: d.Value})
+		spelling := spdxChecksumAlgorithm(string(algorithm))
+		if spelling == "" {
+			continue
+		}
+		out = append(out, common.Checksum{Algorithm: spelling, Value: value})
 	}
 	if len(out) == 0 {
 		return nil

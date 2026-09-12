@@ -579,24 +579,29 @@ func hasCompoundExpression(values []string) bool {
 	return false
 }
 
+// cycloneDXHashes maps component digests onto CycloneDX hashes, dropping
+// entries whose algorithm CycloneDX has no member for -- SHA224, MD2, MD4,
+// MD6, and ADLER32 are SPDX-only, and an SBOM ingested from SPDX can carry
+// them. publishableDigest is the gate; cycloneDXHashAlgorithm renders.
 func cycloneDXHashes(digests []Digest) []cdx.Hash {
 	if len(digests) == 0 {
 		return nil
 	}
 	out := make([]cdx.Hash, 0, len(digests))
 	for _, d := range digests {
-		alg := cycloneDXHashAlgorithm(d.Algorithm)
-		if alg == "" || strings.TrimSpace(d.Value) == "" {
+		algorithm, value, ok := publishableDigest(d)
+		if !ok {
 			continue
 		}
-		out = append(out, cdx.Hash{Algorithm: alg, Value: d.Value})
+		spelling := cycloneDXHashAlgorithm(string(algorithm))
+		if spelling == "" {
+			continue
+		}
+		out = append(out, cdx.Hash{Algorithm: spelling, Value: value})
 	}
 	return out
 }
 
-// cycloneDXHashAlgorithm maps a digest algorithm string onto a CycloneDX hash
-// algorithm constant. Returns "" when the algorithm is unsupported so the
-// digest is dropped rather than emitting an invalid BOM.
 // cycloneDXHashAlgorithm renders a digest algorithm in CycloneDX's spelling.
 //
 // The registry is the SDK's, not a list here. A hand-written switch stood in

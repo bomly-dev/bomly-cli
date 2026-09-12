@@ -5,52 +5,19 @@
       "dependencies": [
         {
           "depends_on": [
-            "pkg:swift/github.com/apple/swift-algorithms@1.2.1",
             "pkg:swift/github.com/apple/swift-argument-parser@1.3.0",
-            "pkg:swift/github.com/apple/swift-atomics@1.3.1",
-            "pkg:swift/github.com/apple/swift-collections@1.1.4",
-            "pkg:swift/github.com/apple/swift-crypto@3.3.0",
-            "pkg:swift/github.com/apple/swift-http-types@1.8.0",
-            "pkg:swift/github.com/apple/swift-log@1.5.4",
-            "pkg:swift/github.com/apple/swift-metrics@2.11.0",
-            "pkg:swift/github.com/apple/swift-nio-extras@1.22.0",
-            "pkg:swift/github.com/apple/swift-nio-http2@1.30.0",
-            "pkg:swift/github.com/apple/swift-nio-ssl@2.27.2",
-            "pkg:swift/github.com/apple/swift-nio-transport-services@1.23.1",
-            "pkg:swift/github.com/apple/swift-nio@2.65.0",
-            "pkg:swift/github.com/apple/swift-numerics@1.1.1",
-            "pkg:swift/github.com/apple/swift-system@1.8.1",
-            "pkg:swift/github.com/swift-server/async-http-client@1.22.0",
-            "pkg:swift/github.com/vapor/async-kit@1.20.0",
-            "pkg:swift/github.com/vapor/console-kit@4.14.2",
-            "pkg:swift/github.com/vapor/multipart-kit@4.5.4",
-            "pkg:swift/github.com/vapor/routing-kit@4.9.1",
-            "pkg:swift/github.com/vapor/vapor@4.89.0",
-            "pkg:swift/github.com/vapor/websocket-kit@2.15.0"
+            "pkg:swift/github.com/vapor/vapor@4.89.0"
           ],
           "id": "module:Package.swift#root",
           "licenses": [],
           "name": "root"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:swift/github.com/apple/swift-numerics@1.1.1"
+          ],
           "id": "pkg:swift/github.com/apple/swift-algorithms@1.2.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/apple:swift-algorithms",
           "package_ref": "pkg:swift/github.com/apple/swift-algorithms@1.2.1",
           "purl": "pkg:swift/github.com/apple/swift-algorithms@1.2.1",
@@ -63,21 +30,6 @@
           "depends_on": [],
           "id": "pkg:swift/github.com/apple/swift-argument-parser@1.3.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/apple:swift-argument-parser",
           "package_ref": "pkg:swift/github.com/apple/swift-argument-parser@1.3.0",
           "purl": "pkg:swift/github.com/apple/swift-argument-parser@1.3.0",
@@ -90,21 +42,6 @@
           "depends_on": [],
           "id": "pkg:swift/github.com/apple/swift-atomics@1.3.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/apple:swift-atomics",
           "package_ref": "pkg:swift/github.com/apple/swift-atomics@1.3.1",
           "purl": "pkg:swift/github.com/apple/swift-atomics@1.3.1",
@@ -117,21 +54,6 @@
           "depends_on": [],
           "id": "pkg:swift/github.com/apple/swift-collections@1.1.4",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/apple:swift-collections",
           "package_ref": "pkg:swift/github.com/apple/swift-collections@1.1.4",
           "purl": "pkg:swift/github.com/apple/swift-collections@1.1.4",
@@ -144,21 +66,6 @@
           "depends_on": [],
           "id": "pkg:swift/github.com/apple/swift-crypto@3.3.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/apple:swift-crypto",
           "package_ref": "pkg:swift/github.com/apple/swift-crypto@3.3.0",
           "purl": "pkg:swift/github.com/apple/swift-crypto@3.3.0",
@@ -171,21 +78,6 @@
           "depends_on": [],
           "id": "pkg:swift/github.com/apple/swift-http-types@1.8.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/apple:swift-http-types",
           "package_ref": "pkg:swift/github.com/apple/swift-http-types@1.8.0",
           "purl": "pkg:swift/github.com/apple/swift-http-types@1.8.0",
@@ -198,21 +90,6 @@
           "depends_on": [],
           "id": "pkg:swift/github.com/apple/swift-log@1.5.4",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/apple:swift-log",
           "package_ref": "pkg:swift/github.com/apple/swift-log@1.5.4",
           "purl": "pkg:swift/github.com/apple/swift-log@1.5.4",
@@ -225,21 +102,6 @@
           "depends_on": [],
           "id": "pkg:swift/github.com/apple/swift-metrics@2.11.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/apple:swift-metrics",
           "package_ref": "pkg:swift/github.com/apple/swift-metrics@2.11.0",
           "purl": "pkg:swift/github.com/apple/swift-metrics@2.11.0",
@@ -249,24 +111,13 @@
           "version": "2.11.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:swift/github.com/apple/swift-http-types@1.8.0",
+            "pkg:swift/github.com/apple/swift-nio-http2@1.30.0",
+            "pkg:swift/github.com/apple/swift-nio@2.65.0"
+          ],
           "id": "pkg:swift/github.com/apple/swift-nio-extras@1.22.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/apple:swift-nio-extras",
           "package_ref": "pkg:swift/github.com/apple/swift-nio-extras@1.22.0",
           "purl": "pkg:swift/github.com/apple/swift-nio-extras@1.22.0",
@@ -276,24 +127,12 @@
           "version": "1.22.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:swift/github.com/apple/swift-atomics@1.3.1",
+            "pkg:swift/github.com/apple/swift-nio@2.65.0"
+          ],
           "id": "pkg:swift/github.com/apple/swift-nio-http2@1.30.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/apple:swift-nio-http2",
           "package_ref": "pkg:swift/github.com/apple/swift-nio-http2@1.30.0",
           "purl": "pkg:swift/github.com/apple/swift-nio-http2@1.30.0",
@@ -303,24 +142,11 @@
           "version": "1.30.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:swift/github.com/apple/swift-nio@2.65.0"
+          ],
           "id": "pkg:swift/github.com/apple/swift-nio-ssl@2.27.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/apple:swift-nio-ssl",
           "package_ref": "pkg:swift/github.com/apple/swift-nio-ssl@2.27.2",
           "purl": "pkg:swift/github.com/apple/swift-nio-ssl@2.27.2",
@@ -330,24 +156,12 @@
           "version": "2.27.2"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:swift/github.com/apple/swift-atomics@1.3.1",
+            "pkg:swift/github.com/apple/swift-nio@2.65.0"
+          ],
           "id": "pkg:swift/github.com/apple/swift-nio-transport-services@1.23.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/apple:swift-nio-transport-services",
           "package_ref": "pkg:swift/github.com/apple/swift-nio-transport-services@1.23.1",
           "purl": "pkg:swift/github.com/apple/swift-nio-transport-services@1.23.1",
@@ -357,24 +171,13 @@
           "version": "1.23.1"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:swift/github.com/apple/swift-atomics@1.3.1",
+            "pkg:swift/github.com/apple/swift-collections@1.1.4",
+            "pkg:swift/github.com/apple/swift-system@1.8.1"
+          ],
           "id": "pkg:swift/github.com/apple/swift-nio@2.65.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/apple:swift-nio",
           "package_ref": "pkg:swift/github.com/apple/swift-nio@2.65.0",
           "purl": "pkg:swift/github.com/apple/swift-nio@2.65.0",
@@ -387,21 +190,6 @@
           "depends_on": [],
           "id": "pkg:swift/github.com/apple/swift-numerics@1.1.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/apple:swift-numerics",
           "package_ref": "pkg:swift/github.com/apple/swift-numerics@1.1.1",
           "purl": "pkg:swift/github.com/apple/swift-numerics@1.1.1",
@@ -414,21 +202,6 @@
           "depends_on": [],
           "id": "pkg:swift/github.com/apple/swift-system@1.8.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/apple:swift-system",
           "package_ref": "pkg:swift/github.com/apple/swift-system@1.8.1",
           "purl": "pkg:swift/github.com/apple/swift-system@1.8.1",
@@ -438,24 +211,18 @@
           "version": "1.8.1"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:swift/github.com/apple/swift-algorithms@1.2.1",
+            "pkg:swift/github.com/apple/swift-atomics@1.3.1",
+            "pkg:swift/github.com/apple/swift-log@1.5.4",
+            "pkg:swift/github.com/apple/swift-nio-extras@1.22.0",
+            "pkg:swift/github.com/apple/swift-nio-http2@1.30.0",
+            "pkg:swift/github.com/apple/swift-nio-ssl@2.27.2",
+            "pkg:swift/github.com/apple/swift-nio-transport-services@1.23.1",
+            "pkg:swift/github.com/apple/swift-nio@2.65.0"
+          ],
           "id": "pkg:swift/github.com/swift-server/async-http-client@1.22.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/swift-server:async-http-client",
           "package_ref": "pkg:swift/github.com/swift-server/async-http-client@1.22.0",
           "purl": "pkg:swift/github.com/swift-server/async-http-client@1.22.0",
@@ -465,24 +232,14 @@
           "version": "1.22.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:swift/github.com/apple/swift-algorithms@1.2.1",
+            "pkg:swift/github.com/apple/swift-collections@1.1.4",
+            "pkg:swift/github.com/apple/swift-log@1.5.4",
+            "pkg:swift/github.com/apple/swift-nio@2.65.0"
+          ],
           "id": "pkg:swift/github.com/vapor/async-kit@1.20.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/vapor:async-kit",
           "package_ref": "pkg:swift/github.com/vapor/async-kit@1.20.0",
           "purl": "pkg:swift/github.com/vapor/async-kit@1.20.0",
@@ -492,24 +249,12 @@
           "version": "1.20.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:swift/github.com/apple/swift-log@1.5.4",
+            "pkg:swift/github.com/apple/swift-nio@2.65.0"
+          ],
           "id": "pkg:swift/github.com/vapor/console-kit@4.14.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/vapor:console-kit",
           "package_ref": "pkg:swift/github.com/vapor/console-kit@4.14.2",
           "purl": "pkg:swift/github.com/vapor/console-kit@4.14.2",
@@ -519,24 +264,12 @@
           "version": "4.14.2"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:swift/github.com/apple/swift-collections@1.1.4",
+            "pkg:swift/github.com/apple/swift-nio@2.65.0"
+          ],
           "id": "pkg:swift/github.com/vapor/multipart-kit@4.5.4",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/vapor:multipart-kit",
           "package_ref": "pkg:swift/github.com/vapor/multipart-kit@4.5.4",
           "purl": "pkg:swift/github.com/vapor/multipart-kit@4.5.4",
@@ -546,24 +279,11 @@
           "version": "4.5.4"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:swift/github.com/apple/swift-log@1.5.4"
+          ],
           "id": "pkg:swift/github.com/vapor/routing-kit@4.9.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/vapor:routing-kit",
           "package_ref": "pkg:swift/github.com/vapor/routing-kit@4.9.1",
           "purl": "pkg:swift/github.com/vapor/routing-kit@4.9.1",
@@ -573,24 +293,25 @@
           "version": "4.9.1"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:swift/github.com/apple/swift-algorithms@1.2.1",
+            "pkg:swift/github.com/apple/swift-atomics@1.3.1",
+            "pkg:swift/github.com/apple/swift-crypto@3.3.0",
+            "pkg:swift/github.com/apple/swift-log@1.5.4",
+            "pkg:swift/github.com/apple/swift-metrics@2.11.0",
+            "pkg:swift/github.com/apple/swift-nio-extras@1.22.0",
+            "pkg:swift/github.com/apple/swift-nio-http2@1.30.0",
+            "pkg:swift/github.com/apple/swift-nio-ssl@2.27.2",
+            "pkg:swift/github.com/apple/swift-nio@2.65.0",
+            "pkg:swift/github.com/swift-server/async-http-client@1.22.0",
+            "pkg:swift/github.com/vapor/async-kit@1.20.0",
+            "pkg:swift/github.com/vapor/console-kit@4.14.2",
+            "pkg:swift/github.com/vapor/multipart-kit@4.5.4",
+            "pkg:swift/github.com/vapor/routing-kit@4.9.1",
+            "pkg:swift/github.com/vapor/websocket-kit@2.15.0"
+          ],
           "id": "pkg:swift/github.com/vapor/vapor@4.89.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/vapor:vapor",
           "package_ref": "pkg:swift/github.com/vapor/vapor@4.89.0",
           "purl": "pkg:swift/github.com/vapor/vapor@4.89.0",
@@ -600,24 +321,15 @@
           "version": "4.89.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:swift/github.com/apple/swift-atomics@1.3.1",
+            "pkg:swift/github.com/apple/swift-nio-extras@1.22.0",
+            "pkg:swift/github.com/apple/swift-nio-ssl@2.27.2",
+            "pkg:swift/github.com/apple/swift-nio-transport-services@1.23.1",
+            "pkg:swift/github.com/apple/swift-nio@2.65.0"
+          ],
           "id": "pkg:swift/github.com/vapor/websocket-kit@2.15.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "Package.resolved",
-              "module_root": ".",
-              "position": {
-                "file": "Package.resolved",
-                "line": 0
-              },
-              "real_path": "Package.resolved",
-              "relationship": "direct",
-              "scopes": [
-                "runtime"
-              ]
-            }
-          ],
           "name": "github.com/vapor:websocket-kit",
           "package_ref": "pkg:swift/github.com/vapor/websocket-kit@2.15.0",
           "purl": "pkg:swift/github.com/vapor/websocket-kit@2.15.0",
@@ -627,18 +339,11 @@
           "version": "2.15.0"
         }
       ],
-      "detector": "swiftpm-detector",
+      "detector": "swiftpm-native-detector",
       "ecosystem": "swift",
       "kind": "Package.resolved",
       "package_manager": "swiftpm",
       "path": "Package.resolved",
-      "resolution": {
-        "fallback": {
-          "from": "swiftpm-native-detector",
-          "reason": "swift package show-dependencies: exit status 1"
-        },
-        "install_executed": false
-      },
       "subproject": "."
     }
   ],
@@ -853,14 +558,5 @@
     "target_ref": "v1.0.0",
     "target_type": "git repository"
   },
-  "schema_version": "1.0",
-  "warnings": [
-    {
-      "manifest": "Package.resolved",
-      "message": "swiftpm-native-detector unavailable (swift package show-dependencies: exit status 1) — resolved with swiftpm-detector; transitive dependencies may be missing",
-      "source": "swiftpm-native-detector",
-      "subproject": ".",
-      "type": "fallback"
-    }
-  ]
+  "schema_version": "1.0"
 }

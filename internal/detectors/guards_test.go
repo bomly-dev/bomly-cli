@@ -112,8 +112,13 @@ func TestRuleRegistryCoversEveryRule(t *testing.T) {
 }
 
 // walkInternalGo visits every non-test Go file under internal/.
+//
+// It fails when it visits nothing. Every rule built on it reports offenders
+// and is silent otherwise, and a walk over an empty or moved tree is silent in
+// exactly the same way (ADR-0044).
 func walkInternalGo(t *testing.T, visit func(path, body string)) {
 	t.Helper()
+	scanned := 0
 	err := filepath.Walk(internalRoot, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -125,11 +130,15 @@ func walkInternalGo(t *testing.T, visit func(path, body string)) {
 		if err != nil {
 			return err
 		}
+		scanned++
 		visit(path, string(body))
 		return nil
 	})
 	if err != nil {
 		t.Fatalf("walk: %v", err)
+	}
+	if scanned == 0 {
+		t.Fatalf("no Go files found under %s; the guard scanned nothing", internalRoot)
 	}
 }
 
@@ -176,6 +185,7 @@ func TestExportNeverReadsResolvedURL(t *testing.T) {
 		t.Fatalf("read %s: %v", root, err)
 	}
 	var offenders []string
+	scanned := 0
 	for _, entry := range entries {
 		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".go") || strings.HasSuffix(entry.Name(), "_test.go") {
 			continue
@@ -185,12 +195,18 @@ func TestExportNeverReadsResolvedURL(t *testing.T) {
 		if err != nil {
 			t.Fatalf("read %s: %v", path, err)
 		}
+		scanned++
 		if strings.Contains(string(body), "ResolvedURL") {
 			offenders = append(offenders, path)
 		}
 	}
 	if len(offenders) > 0 {
 		t.Fatalf("the export layer references ResolvedURL; it must read Origin.Normalized() only: %v", offenders)
+	}
+	// The read is flat, so the export layer moving into a subdirectory would
+	// leave this loop with nothing to scan and nothing to report.
+	if scanned == 0 {
+		t.Fatalf("no Go files found under %s; the guard scanned nothing", root)
 	}
 }
 
@@ -300,9 +316,14 @@ func importsModule(t *testing.T, path, module string) bool {
 // path rather than by file name, and per module rather than wholesale. If a
 // guard file is moved or renamed, its exemption stops matching and the guard
 // reports it -- failing in the direction that gets noticed.
+//
+// It also fails when the walk reaches no Go files at all. An empty result is
+// what a clean tree returns and what a missing tree returns, and the callers
+// cannot tell the two apart (ADR-0044).
 func filesNamingModule(t *testing.T, module string) []string {
 	t.Helper()
 	var offenders []string
+	scanned := 0
 	err := filepath.Walk(internalRoot, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -310,6 +331,7 @@ func filesNamingModule(t *testing.T, module string) []string {
 		if info.IsDir() || !strings.HasSuffix(path, ".go") {
 			return nil
 		}
+		scanned++
 		if guardMayName(path, module) && !importsModule(t, path, module) {
 			return nil
 		}
@@ -324,6 +346,9 @@ func filesNamingModule(t *testing.T, module string) []string {
 	})
 	if err != nil {
 		t.Fatalf("walk %s: %v", internalRoot, err)
+	}
+	if scanned == 0 {
+		t.Fatalf("no Go files found under %s; the guard scanned nothing", internalRoot)
 	}
 	return offenders
 }

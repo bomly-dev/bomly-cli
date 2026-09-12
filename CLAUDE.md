@@ -188,7 +188,9 @@ In practice:
   `TestNodeInsertionGoesThroughTheSharedHelper` fails if a lookup-then-insert
   reappears anywhere under `internal/`, and `TestExportNeverReadsResolvedURL`
   fails if the export layer touches raw manifest values. A guard is cheap next
-  to the review round it replaces.
+  to the review round it replaces. What makes a guard worth having -- keyed on
+  where a decision is made, proven by mutation, and failing when it reaches
+  nothing -- is ADR-0044.
 - **The deepest home for shared meaning is the SDK (ADR-0040).** When a fix
   or feature touches what a shared domain object *means* — identity,
   coordinates, PURLs, licenses, SBOM assertions, graph or merge semantics,

@@ -47,6 +47,36 @@ Development may happen inside Git worktrees. Always run commands in the active w
 Do not assume the primary checkout path; use paths relative to the current worktree.
 Avoid destructive Git operations that can affect sibling worktrees or shared refs.
 
+### The modernizer, and the analyzers we decline
+
+`go fix ./...` is the Go 1.27 modernizer. It **applies** its rewrites in place;
+`go fix -diff ./...` prints them instead, which is how to look first.
+
+Three of its analyzers are declined here. Run it as:
+
+```sh
+go fix -embedlit=false -omitzero=false -stringsbuilder=false ./...
+```
+
+- **`embedlit`** flattens `Coordinates: sdk.Coordinates{...}` into the bare
+  promoted fields at construction sites — 119 of them here. `Coordinates` is a
+  named identity concept (ADR-0041, `dev-docs/MODELS.md`), and the wrapper is
+  what keeps the identity visible where a package is built. bomly-sdk declines
+  this one too, and the two repositories must keep agreeing: they disagreed
+  once, and undoing it cost 43 hunks there.
+- **`omitzero`** drops `omitempty` from struct-valued JSON fields in
+  golden- and schema-backed output types. The bytes do not move, so nothing
+  mechanical objects — but the tag *is* the published schema, and a consumer
+  generating one by reflection starts reading the field as required. The SDK
+  took this rewrite in its own pass and spent four review rounds undoing the
+  consequences.
+- **`stringsbuilder`** rewrites small bounded concatenations in the TUI; it
+  still concatenates inside `WriteString`, so it costs readability and saves
+  no allocation.
+
+None of these is caught by a test, a linter or the API gate, which is exactly
+why the list lives here. Running `go fix ./...` unqualified silently proposes
+all of them again.
 ## Architecture
 
 See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the public overview is [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)). Component map:

@@ -408,7 +408,7 @@ func packageNode(pkg mixPackage) (*sdk.DependencyNode, error) {
 		PackageManager: sdk.PackageManagerMix,
 		Type:           sdk.PackageTypePackage,
 		Language:       "elixir",
-		PURL:           sdk.BuildPackageURL("hex", "", pkg.Name, version),
+		PURL:           sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemElixir, sdk.PackageManagerMix), "", pkg.Name, version),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build mix node %q: %w", pkg.Name, err)

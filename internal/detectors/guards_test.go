@@ -1,6 +1,8 @@
 package detectors_test
 
 import (
+	"fmt"
+	"go/ast"
 	"go/parser"
 	"go/token"
 	"os"
@@ -543,4 +545,222 @@ func TestNamingAModuleIsNotImportingIt(t *testing.T) {
 		t.Errorf("%s-extras reads as %s; the prefix match is missing its separator",
 			packageURLModule, packageURLModule)
 	}
+}
+
+// A purl type is a name in the package-url specification, and choosing which
+// one an ecosystem gets is the SDK's job: sdk.PackageURLTypeForValues
+// delegates to purlkit, whose doc comment calls itself the one authority for
+// this mapping (ADR-0038). Fourteen detectors used to spell the answer out
+// themselves, as a string literal in the first argument to BuildPackageURL --
+// a second mapping table, maintained by whoever happened to be writing a
+// detector, next to the one that is maintained on purpose.
+//
+// It is the kind of table that is wrong without looking wrong. Nothing reads
+// oddly about pkg:generic until an advisory fails to match, which is how
+// go4.org shipped under that type (bomly-sdk#67). The swift pair is the
+// standing trap here: CocoaPods and SwiftPM share the ecosystem token
+// "swift", but their purl types are "cocoapods" and "swift", so the two
+// detectors sitting side by side need different literals -- and purlkit has
+// deliberately no "swift" case, so that the package manager is what decides.
+//
+// Written as a positive requirement -- the first argument must BE the call to
+// the SDK -- rather than as "no string literal in that position". A negative
+// rule is escaped by lifting the literal into a const one line up, which
+// renames the defect instead of removing it, and this file has four recorded
+// cases of a guard passing while the thing it forbade was present. A const
+// identifier is not a call to the authority either, so the positive form has
+// no such escape: anything but the delegation is reported, a type threaded in
+// through a parameter included, which fails in the direction that gets looked
+// at.
+//
+// Scoped to internal/detectors because that is where the duplicated table
+// lived and where new ones get written. Ingest is a different question -- a
+// document under internal/sbom arrives carrying a type somebody else chose --
+// and a rule about minting has nothing to say about reading.
+func TestDetectorPURLTypesComeFromTheSDK(t *testing.T) {
+	root := filepath.Join(internalRoot, "detectors")
+	var offenders []string
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+		offenders = append(offenders, purlTypeOffenders(t, path, nil)...)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("walk %s: %v", root, err)
+	}
+	if len(offenders) > 0 {
+		t.Fatalf("these detectors decide an ecosystem's package-url type themselves; the mapping belongs to "+
+			"sdk.PackageURLTypeForValues, which delegates to purlkit (ADR-0038): %v", offenders)
+	}
+}
+
+// purlTypeOffenders reports every place in one Go source file where a package
+// URL is minted with a type the SDK did not decide. src is the source text
+// when the caller has it, and nil to read the file at path.
+//
+// Split out from the guard so it can be pinned on fixtures below. A rule only
+// ever exercised against a tree that already passes is a rule nobody has seen
+// fail, and this file's history is mostly that.
+func purlTypeOffenders(t *testing.T, path string, src any) []string {
+	t.Helper()
+	const (
+		mint      = "BuildPackageURL"
+		authority = "PackageURLTypeForValues"
+	)
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, path, src, parser.SkipObjectResolution)
+	if err != nil {
+		t.Fatalf("parse %s: %v", path, err)
+	}
+	where := func(pos token.Pos) string {
+		return fmt.Sprintf("%s:%d", filepath.ToSlash(path), fset.Position(pos).Line)
+	}
+
+	var offenders []string
+	ast.Inspect(file, func(n ast.Node) bool {
+		call, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+		switch calleeName(call) {
+		case mint:
+			if len(call.Args) == 0 {
+				return true
+			}
+			if inner, ok := call.Args[0].(*ast.CallExpr); ok && calleeName(inner) == authority {
+				return true
+			}
+			offenders = append(offenders,
+				where(call.Args[0].Pos())+" mints a package URL with a type sdk."+authority+" did not decide")
+		case authority:
+			// Handing the authority the answer is the same hand-written
+			// mapping wearing its name: a literal here has already picked
+			// the type before any token reaches purlkit. Detectors hold
+			// sdk.Ecosystem and sdk.PackageManager values, so they never
+			// need to spell one.
+			for _, arg := range call.Args {
+				lit, ok := arg.(*ast.BasicLit)
+				if !ok || lit.Kind != token.STRING {
+					continue
+				}
+				offenders = append(offenders, where(arg.Pos())+" passes the literal "+lit.Value+" to sdk."+
+					authority+" instead of the detector's own ecosystem and package-manager values")
+			}
+		}
+		return true
+	})
+	return offenders
+}
+
+// calleeName returns the function name a call names, with its package
+// qualifier or receiver dropped: sdk.BuildPackageURL(...) and a dot-imported
+// BuildPackageURL(...) both answer "BuildPackageURL".
+//
+// Dropping the qualifier is deliberate. Matching "sdk.BuildPackageURL" as one
+// string is what a textual rule does, and an import alias -- or a local
+// helper somebody wraps the call in -- walks straight past that. The name of
+// the act is the stable half.
+func calleeName(call *ast.CallExpr) string {
+	switch fn := call.Fun.(type) {
+	case *ast.Ident:
+		return fn.Name
+	case *ast.SelectorExpr:
+		return fn.Sel.Name
+	}
+	return ""
+}
+
+// Detectors reach package URLs through the SDK, never through purlkit.
+//
+// This is the durable half of the rule above, and it is why that rule got to
+// shrink. purlkit is where a package URL is built, so a detector holding it
+// can pick a type by hand in more shapes than a pattern can enumerate: a
+// literal at the call, a literal assigned first, a literal in a helper, a
+// field set afterwards. Three review rounds found three of those. Removing the
+// import removes all of them and the ones nobody has thought of.
+//
+// Scoped to detectors on purpose. internal/sbom, internal/output and
+// internal/auditors use purlkit legitimately -- they read and render package
+// URLs that were minted elsewhere, and a minting rule has nothing to say about
+// reading.
+func TestDetectorsDoNotReachPURLKitDirectly(t *testing.T) {
+	const purlkitModule = "github.com/bomly-dev/bomly-sdk/purlkit"
+
+	root := filepath.Join(internalRoot, "detectors")
+	var offenders []string
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() || !strings.HasSuffix(path, ".go") {
+			return nil
+		}
+		// This file is the exception: it has to spell the module it forbids.
+		// No exemption for this file: it names purlkit in a string, and
+		// naming is not importing -- the distinction the entitlement rules
+		// above exist to make.
+		if !importsModule(t, path, purlkitModule) {
+			return nil
+		}
+		offenders = append(offenders, path)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("walk %s: %v", root, err)
+	}
+	if len(offenders) > 0 {
+		t.Fatalf("these detectors import purlkit directly; a detector asks the SDK for a package URL "+
+			"(sdk.BuildPackageURL with sdk.PackageURLTypeForValues) and never builds one itself, so "+
+			"holding purlkit is holding the ability to choose a type by hand: %v", offenders)
+	}
+}
+
+// The predicate behind that guard, pinned on fixtures in both directions so
+// it keeps its meaning when the detectors change. Four times in this file's
+// history a guard reported nothing because its pattern had stopped matching
+// the shape it was written for, and a rule exercised only against a passing
+// tree cannot tell that apart from success.
+func TestPURLTypeGuardSeesTheShapesItForbids(t *testing.T) {
+	dir := t.TempDir()
+	offendersFor := func(name, body string) []string {
+		t.Helper()
+		return purlTypeOffenders(t, filepath.Join(dir, name), "package p\n\n"+body)
+	}
+
+	// What every detector does now, and the only shape that passes.
+	if got := offendersFor("ok.go",
+		`var _ = sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemSwift, sdk.PackageManagerCocoaPods), "", n, v)`,
+	); len(got) != 0 {
+		t.Errorf("the delegating shape is reported as an offender: %v", got)
+	}
+
+	// The defect the guard exists for.
+	if got := offendersFor("literal.go", `var _ = sdk.BuildPackageURL("cocoapods", "", n, v)`); len(got) != 1 {
+		t.Errorf("a literal purl type at the mint site is not reported: %v", got)
+	}
+
+	// The escape a "no string literal there" rule would have left open.
+	if got := offendersFor("const.go",
+		"const podType = \"cocoapods\"\n\nvar _ = sdk.BuildPackageURL(podType, \"\", n, v)",
+	); len(got) != 1 {
+		t.Errorf("a purl type hoisted into a const is not reported: %v", got)
+	}
+
+	// Restating the answer as the question.
+	if got := offendersFor("restated.go",
+		`var _ = sdk.BuildPackageURL(sdk.PackageURLTypeForValues("cocoapods"), "", n, v)`,
+	); len(got) != 1 {
+		t.Errorf("a literal handed to the authority itself is not reported: %v", got)
+	}
+
+	// The qualifier is not part of the rule, so an alias must not evade it.
+	if got := offendersFor("aliased.go", `var _ = bomly.BuildPackageURL("cocoapods", "", n, v)`); len(got) != 1 {
+		t.Errorf("an aliased import of the SDK evades the rule: %v", got)
+	}
+
 }

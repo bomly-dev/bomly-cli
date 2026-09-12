@@ -352,7 +352,7 @@ func packageNode(name, version, checksum string) (*sdk.DependencyNode, error) {
 		PackageManager: sdk.PackageManagerCocoaPods,
 		Type:           "pod",
 		Language:       "swift",
-		PURL:           sdk.BuildPackageURL("cocoapods", "", name, version),
+		PURL:           sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemSwift, sdk.PackageManagerCocoaPods), "", name, version),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build pod node %q: %w", name, err)

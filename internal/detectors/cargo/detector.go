@@ -469,7 +469,7 @@ func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}, 
 		PackageManager: sdk.PackageManagerCargo,
 		Type:           sdk.ParsePackageType("crate"),
 		Language:       "rust",
-		PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version),
+		PURL:           sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemRust, sdk.PackageManagerCargo), "", pkg.Name, pkg.Version),
 	}
 	if _, workspaceMember := workspace[id]; workspaceMember {
 		// A workspace member is the project's own code, so it is a module
@@ -587,7 +587,7 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 		PackageManager: sdk.PackageManagerCargo,
 		Type:           sdk.PackageTypeApplication,
 		Language:       "rust",
-		PURL:           sdk.BuildPackageURL("cargo", "", manifest.Name, manifest.Version)})
+		PURL:           sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemRust, sdk.PackageManagerCargo), "", manifest.Name, manifest.Version)})
 	if err != nil {
 		return nil, fmt.Errorf("build root node: %w", err)
 	}

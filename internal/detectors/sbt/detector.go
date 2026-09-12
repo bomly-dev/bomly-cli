@@ -180,7 +180,7 @@ func packageNode(pkg sbtPackage) (*sdk.DependencyNode, error) {
 		PackageManager: sdk.PackageManagerSBT,
 		Type:           sdk.PackageTypePackage,
 		Language:       "scala",
-		PURL:           sdk.BuildPackageURL("maven", pkg.Org, pkg.Name, pkg.Version)})
+		PURL:           sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemScala, sdk.PackageManagerSBT), pkg.Org, pkg.Name, pkg.Version)})
 	if err != nil {
 		return nil, fmt.Errorf("build dependency node: %w", err)
 	}

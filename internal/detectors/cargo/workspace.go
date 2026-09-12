@@ -240,7 +240,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 			PackageManager: sdk.PackageManagerCargo,
 			Type:           sdk.PackageTypeApplication,
 			Language:       "rust",
-			PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version),
+			PURL:           sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemRust, sdk.PackageManagerCargo), "", pkg.Name, pkg.Version),
 		})
 		if err != nil {
 			return nil, fmt.Errorf("build cargo module node %q: %w", pkg.Name, err)
@@ -254,7 +254,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 			PackageManager: sdk.PackageManagerCargo,
 			Type:           sdk.ParsePackageType("crate"),
 			Language:       "rust",
-			PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)})
+			PURL:           sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemRust, sdk.PackageManagerCargo), "", pkg.Name, pkg.Version)})
 		if err != nil {
 			return nil, fmt.Errorf("build cargo node %q: %w", pkg.Name, err)
 		}

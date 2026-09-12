@@ -305,7 +305,7 @@ func packageNode(name, version string) (*sdk.DependencyNode, error) {
 		Org:            org,
 		Name:           packageName,
 		Version:        version,
-		PURL:           sdk.BuildPackageURL("composer", org, packageName, version),
+		PURL:           sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemPHP, sdk.PackageManagerComposer), org, packageName, version),
 		PackageManager: sdk.PackageManagerComposer,
 		Type:           sdk.PackageTypePackage,
 		Language:       "php",

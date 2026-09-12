@@ -206,9 +206,32 @@ the golden refresh happens **once**:
 
 1. Issues #410 and #396 closed by phase-2 PRs; survey defects 1–4 closed;
    ADR-0033 prose corrected.
-2. `bomly scan` → export → ingest → export is a fixed point for every
-   preserved field, and a self-scan round trip preserves `org` for 24/24
-   packages (today: 0/24).
+2. `bomly scan` → export → ingest → export is a fixed point, and a
+   self-scan round trip preserves `org` for every package that has one.
+   Measured, not assumed — the criterion originally read "24/24 packages
+   (today: 0/24)", but no fixture, script, or test behind that figure exists
+   in the repository, so it could not be reproduced and is amended here
+   (#455). The measurement that stands, taken 2026-09-12 on this repository
+   with the `gomod` detector:
+
+   ```sh
+   bomly scan --path . --detectors gomod -q -f json -o cyclonedx=hop1.cdx.json > hop0.json
+   bomly scan --sbom --path hop1.cdx.json -q -f json -o cyclonedx=hop2.cdx.json > hop1.json
+   bomly scan --sbom --path hop2.cdx.json -q -f json -o cyclonedx=hop3.cdx.json > hop2.json
+   diff <(jq -S 'del(.serialNumber,.metadata.timestamp)' hop2.cdx.json) \
+        <(jq -S 'del(.serialNumber,.metadata.timestamp)' hop3.cdx.json)
+   jq -r '.components[] | select(.group == null) | .purl' hop1.cdx.json
+   ```
+
+   Result: 317 components on every hop; hop 2 and hop 3 identical once the
+   serial and timestamp are stripped; 316 of 317 components carry `group`.
+   The one that does not is `pkg:golang/go4.org@v0.0.0-20230225012048-214862532bf5`,
+   whose module path has no organization segment, so there was nothing to
+   preserve — the original denominator counted it as a loss.
+   `TestOrgSurvivesACycloneDXRoundTripOnlyWhereItExists` (`internal/sbom`)
+   pins both halves so the check is no longer a one-off, and
+   `TestSingleSourceExportIsAFixedPoint` pins the fixed point over a source
+   document.
 3. Grep-level: zero purl-type string literals in detectors, zero
    `packageurl-go`/`go-spdx` imports outside the kits, zero PURL string
    concatenation outside `purlkit` — each enforced by a guard test, not a

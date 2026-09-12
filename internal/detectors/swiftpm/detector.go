@@ -290,7 +290,7 @@ func packageNode(pkg swiftPackage) (*sdk.DependencyNode, error) {
 		PackageManager: sdk.PackageManagerSwiftPM,
 		Type:           sdk.PackageTypePackage,
 		Language:       "swift",
-		PURL:           sdk.BuildPackageURL("swift", namespace, name, pkg.Version)})
+		PURL:           sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemSwift, sdk.PackageManagerSwiftPM), namespace, name, pkg.Version)})
 	if err != nil {
 		return nil, fmt.Errorf("build dependency node: %w", err)
 	}

@@ -196,7 +196,7 @@ func packageNode(name string, pkg pubLockPackage) (*sdk.DependencyNode, error) {
 		PackageManager: sdk.PackageManagerPub,
 		Type:           sdk.PackageTypePackage,
 		Language:       "dart",
-		PURL:           sdk.BuildPackageURL("pub", "", name, pkg.Version)})
+		PURL:           sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemDart, sdk.PackageManagerPub), "", name, pkg.Version)})
 	if err != nil {
 		return nil, fmt.Errorf("build dependency node: %w", err)
 	}

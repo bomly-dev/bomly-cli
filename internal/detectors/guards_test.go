@@ -11,6 +11,16 @@ import (
 // internalRoot is the tree these guards police.
 const internalRoot = "../../internal"
 
+// The modules no package under internal/ may reach for directly. They are
+// named once, here, so the forbidding rule and the exemption that lets a guard
+// spell the module share one string: a typo in either would otherwise open a
+// hole quietly, in the direction of passing.
+const (
+	spdxModule              = "github.com/github/go-spdx"
+	packageURLModule        = "github.com/package-url/packageurl-go"
+	anchorePackageURLModule = "github.com/anchore/packageurl-go"
+)
+
 // walkInternalGo visits every non-test Go file under internal/.
 func walkInternalGo(t *testing.T, visit func(path, body string)) {
 	t.Helper()
@@ -105,19 +115,22 @@ func TestExportNeverReadsResolvedURL(t *testing.T) {
 // module-path check rather than an import-list scan of one package, because
 // the point is that nothing under internal/ reaches the parser by any route.
 func TestNoDirectSPDXExpressionUse(t *testing.T) {
-	const spdxModule = "github.com/github/go-spdx"
-
 	if offenders := filesNamingModule(t, spdxModule); len(offenders) > 0 {
 		t.Fatalf("these files reference %s directly; the parser panics on malformed input, "+
 			"so go through bomly-sdk/spdxkit instead: %v", spdxModule, offenders)
 	}
 }
 
-// guardFiles are the files whose job is to forbid a module, so they are the
-// files that have to spell it. Exempting them is not a loophole -- naming a
-// module in a rule that bans it is the opposite of reaching for it.
+// guardFiles maps a guard file to the modules it is entitled to name. Its job
+// is to forbid those modules, so it has to spell them; naming a module in a
+// rule that bans it is the opposite of reaching for it.
 //
-// An explicit set of canonical paths, for two reasons learned the hard way.
+// Entitled to *those* modules, not to all of them. An exemption keyed by path
+// alone let this file's neighbour name go-spdx and the deprecated fork with no
+// rule reporting it -- it needed to spell one module and was excused from
+// every check. The value side is what keeps a guard's licence narrow.
+//
+// The key is an explicit canonical path, for two reasons learned the hard way.
 // Matching a name instead exempted every guards_test.go under internal/, so a
 // second guard file anywhere could name a forbidden module unnoticed. And
 // exempting only this one file made the guards flag each other the moment a
@@ -127,33 +140,45 @@ func TestNoDirectSPDXExpressionUse(t *testing.T) {
 // Adding a guard therefore costs one line here, on purpose. That is the point:
 // a new exemption should be a deliberate edit somebody reviews, not a pattern
 // that silently widens.
-var guardFiles = map[string]struct{}{
-	filepath.Clean(filepath.Join(internalRoot, "detectors", "guards_test.go")):             {},
-	filepath.Clean(filepath.Join(internalRoot, "output", "registry_lookup_guard_test.go")): {},
+var guardFiles = map[string][]string{
+	// This file states every module rule, so it names every module.
+	filepath.Clean(filepath.Join(internalRoot, "detectors", "guards_test.go")): {
+		spdxModule, packageURLModule, anchorePackageURLModule,
+	},
+	// The presentation-layer guard forbids exactly one module, so it may
+	// name exactly that one.
+	filepath.Clean(filepath.Join(internalRoot, "output", "registry_lookup_guard_test.go")): {
+		packageURLModule,
+	},
 }
 
-// isGuardFile reports whether a path is one of the guard files above.
+// guardMayName reports whether path is a guard file entitled to name module.
 //
-// By path. Exempting anything named guards_test.go was the earlier bug: it
-// meant a second guard file in any package could name a forbidden module and
-// no rule would report it.
-func isGuardFile(path string) bool {
-	_, ok := guardFiles[filepath.Clean(path)]
-	return ok
+// By path, and per module. Exempting anything named guards_test.go was the
+// first bug here: a second guard file in any package could then name a
+// forbidden module unreported. Exempting a path from every check was the
+// second: a guard that must spell one module was excused from the rules about
+// the others.
+func guardMayName(path, module string) bool {
+	for _, allowed := range guardFiles[filepath.Clean(path)] {
+		if allowed == module {
+			return true
+		}
+	}
+	return false
 }
 
 // filesNamingModule returns every Go file under internal/ -- test files
 // included -- whose text names the module path. Tests count because a test
 // reaching a library directly proves the hazard is still reachable, and a test
-// is where the temptation lives. This file is the one exemption: it has to
-// spell out the module paths it forbids.
+// is where the temptation lives. The only files skipped are the guards
+// entitled to name this particular module, per guardFiles.
 //
-// One file, not one file name. Matching the basename exempted every
-// guards_test.go under internal/, so a second guard file in any other package
-// could name a forbidden module and neither rule would report it -- and both
-// rules run through here, so the hole opened both at once. If this file ever
-// moves, the exemption stops matching and the guard reports itself, which is
-// the right direction to fail.
+// Every module rule runs through here, so a mistake in the exemption opens all
+// of them at once, which is why the exemption is narrow in both directions: by
+// path rather than by file name, and per module rather than wholesale. If a
+// guard file is moved or renamed, its exemption stops matching and the guard
+// reports it -- failing in the direction that gets noticed.
 func filesNamingModule(t *testing.T, module string) []string {
 	t.Helper()
 	var offenders []string
@@ -164,7 +189,7 @@ func filesNamingModule(t *testing.T, module string) []string {
 		if info.IsDir() || !strings.HasSuffix(path, ".go") {
 			return nil
 		}
-		if isGuardFile(path) {
+		if guardMayName(path, module) {
 			return nil
 		}
 		body, err := os.ReadFile(path)
@@ -311,22 +336,52 @@ func TestDetectionResultsCarryingGraphsAreAttributed(t *testing.T) {
 	}
 }
 
-// The exemption is a set of paths, and a file is not exempt for being named
-// like a guard. Both halves have been wrong here before: matching the basename
-// hid a forbidden import in a second guards_test.go, and exempting only one
-// file made two guards report each other.
-func TestGuardExemptionIsByPathNotByName(t *testing.T) {
-	for path := range guardFiles {
+// The exemption is keyed by path and scoped to a module. Every half of that
+// has been wrong here before: matching the basename hid a forbidden import in
+// a second guards_test.go, exempting only one file made two guards report each
+// other, and exempting a path from every rule let a guard name two modules it
+// has no business naming.
+func TestGuardExemptionIsByPathAndPerModule(t *testing.T) {
+	for path, modules := range guardFiles {
 		if _, err := os.Stat(path); err != nil {
 			t.Errorf("guard file %q does not exist; a dead exemption is a rule nobody is applying", path)
 		}
-		if !isGuardFile(path) {
-			t.Errorf("guard file %q is not recognized by its own predicate", path)
+		body, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatalf("read %q: %v", path, err)
+		}
+		for _, module := range modules {
+			if !guardMayName(path, module) {
+				t.Errorf("guard file %q is not entitled to %s by its own predicate", path, module)
+			}
+			// An entitlement the file does not use is an exemption
+			// nobody is applying -- the same dead rule as a path that
+			// no longer exists, one level down.
+			if !strings.Contains(string(body), module) {
+				t.Errorf("guard file %q is entitled to name %s but never names it; drop the entitlement",
+					path, module)
+			}
 		}
 	}
+
+	// A guard is excused from the rule it states, not from the others. This
+	// is the hole the path-only exemption left: internal/output's guard
+	// forbids packageurl-go, and was thereby excused from the go-spdx and
+	// deprecated-fork rules too.
+	outputGuard := filepath.Join(internalRoot, "output", "registry_lookup_guard_test.go")
+	for _, module := range []string{spdxModule, anchorePackageURLModule} {
+		if guardMayName(outputGuard, module) {
+			t.Errorf("%q may name %s, a module its rule says nothing about", outputGuard, module)
+		}
+	}
+
 	// A file named like a guard, in a package that has none, must not be
-	// exempt -- whether or not it exists today.
-	if impostor := filepath.Join(internalRoot, "sbom", "guards_test.go"); isGuardFile(impostor) {
-		t.Errorf("%q is exempt for being named guards_test.go rather than for being a guard", impostor)
+	// exempt from anything -- whether or not it exists today.
+	impostor := filepath.Join(internalRoot, "sbom", "guards_test.go")
+	for _, module := range []string{spdxModule, packageURLModule, anchorePackageURLModule} {
+		if guardMayName(impostor, module) {
+			t.Errorf("%q may name %s for being called guards_test.go rather than for being a guard",
+				impostor, module)
+		}
 	}
 }

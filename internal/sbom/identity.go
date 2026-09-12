@@ -29,26 +29,14 @@ func parsePURL(value string) *purlkit.PURL {
 // it and SPDX rebuilds it from the PURL — guessing here would relabel every
 // round-tripped Erlang dependency as Elixir, and packageManagerForPURLType
 // would then call it Mix. Leaving it unknown keeps the ambiguity visible.
-// The purl-type -> ecosystem table that lived here is purlkit's
-// (EcosystemForType). It was a second copy of the SDK's mapping, and a second
-// copy is a mapping that drifts: purl-spec adds a type, one table learns it
-// and the other keeps answering unknown. Phase 2.1 deletes the copy.
+// The purl-type -> ecosystem question is the SDK's, answered by
+// EcosystemForPURLType. It was reassembled here out of purlkit calls plus a
+// fallback of this package's own, which is the same drift in a thinner
+// disguise: the SDK grew a second lookup for manager-name aliases and this
+// copy did not, so "swiftpm" resolved to unknown here and to swift there.
+// Delegating picked that up rather than any change being made for it.
 func ecosystemFromPURLType(purlType string) sdk.Ecosystem {
-	normalized := strings.ToLower(strings.TrimSpace(purlType))
-	if normalized == "" {
-		return sdk.EcosystemUnknown
-	}
-	if name, ok := purlkit.EcosystemForType(normalized); ok {
-		if ecosystem, err := sdk.ParseEcosystem(name); err == nil {
-			return ecosystem
-		}
-	}
-	// A type purlkit does not map may still be an ecosystem name Bomly knows.
-	ecosystem, err := sdk.ParseEcosystem(normalized)
-	if err != nil {
-		return sdk.EcosystemUnknown
-	}
-	return ecosystem
+	return sdk.EcosystemForPURLType(purlType)
 }
 
 // ComponentEcosystem resolves the ecosystem a document component belongs to:

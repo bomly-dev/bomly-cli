@@ -44,6 +44,16 @@ func FuzzDocumentAssertions(f *testing.F) {
 			Creators:    []sdk.Contact{{Kind: sdk.ContactKindOrganization, Name: creator}},
 			Tools:       []sdk.DocumentTool{{Name: tool}},
 			Comment:     comment,
+			// The documents this one claims to be built from, asserted just
+			// as hostilely: they become external references and SPDX
+			// externalDocumentRefs on export, so an identity that is a local
+			// path or a digest that is not one must not reach a document.
+			// The self-reference -- the same identity this record claims --
+			// is the cycle the SDK's gate drops.
+			Sources: []sdk.DocumentSource{
+				{Identity: identity},
+				{Identity: name, Checksum: &sdk.Digest{Algorithm: sdk.DigestAlgorithm(dataLicense), Value: tool}},
+			},
 		}
 
 		g := mustFuzzGraph(t)

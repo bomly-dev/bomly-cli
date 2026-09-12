@@ -250,9 +250,15 @@ func TestMergedExportLinksItsSourcesInsteadOfAdoptingOne(t *testing.T) {
 	if len(links) != 2 {
 		t.Fatalf("links = %+v, want one per source", links)
 	}
+	// Each link is a full tuple, not a bare identity: the checksum is what
+	// SPDX's externalDocumentRef requires on every entry, and it can only be
+	// computed while the source's original bytes are in hand.
 	for _, link := range links {
-		if link.Type != string(cdx.ERTypeBOM) {
-			t.Errorf("link type = %q, want %q", link.Type, cdx.ERTypeBOM)
+		if link.Identity == "" {
+			t.Errorf("link %+v names no document", link)
+		}
+		if link.Checksum == nil {
+			t.Errorf("link %q carries no checksum, so SPDX cannot name it", link.Identity)
 		}
 	}
 }
@@ -497,6 +503,11 @@ func TestConfiguredProvenanceOutranksAnIngestedOrganization(t *testing.T) {
 
 // The record exists for a document that asserted nothing, which is what makes
 // a merge involving such a document read as a merge.
+//
+// "Asserted nothing" is about the claims the document made: no identity, no
+// name, no creators, no tools. The record is no longer empty even then,
+// because ingest stamps a checksum over the bytes it read -- the value SPDX's
+// externalDocumentRef requires and that nothing downstream can recompute.
 func TestDocumentAssertionsForAlwaysRecordsThatADocumentWasRead(t *testing.T) {
 	doc, _, err := UnmarshalAutoJSON([]byte(`{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"components":[]}`))
 	if err != nil {
@@ -506,8 +517,12 @@ func TestDocumentAssertionsForAlwaysRecordsThatADocumentWasRead(t *testing.T) {
 	if got == nil {
 		t.Fatal("a document that asserted nothing left no record that it was read")
 	}
-	if !got.IsEmpty() {
-		t.Errorf("assertions = %+v, want the empty record", *got)
+	if got.Identity != "" || got.Name != "" || got.DataLicense != "" || got.Comment != "" ||
+		len(got.Creators) != 0 || len(got.Tools) != 0 || len(got.Sources) != 0 {
+		t.Errorf("assertions = %+v, want no claims of its own", *got)
+	}
+	if got.Checksum == nil {
+		t.Errorf("assertions = %+v, want the ingest-captured checksum", *got)
 	}
 	if DocumentAssertionsFor(nil) != nil {
 		t.Error("no document must mean no record")

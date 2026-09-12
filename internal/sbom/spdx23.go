@@ -133,11 +133,15 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 		SPDXIdentifier:    common.ElementID("DOCUMENT"),
 		DocumentName:      doc.NameOrDefault(),
 		DocumentNamespace: doc.NamespaceOrDefault(),
-		CreationInfo:      creation,
-		DocumentComment:   doc.Assertions.Comment,
-		Packages:          packages,
-		Relationships:     relationships,
-		OtherLicenses:     spdxOtherLicenses(extractedLicenses),
+		// The documents this one was built from, named rather than inherited.
+		// Empty for a native scan and for a conversion that adopted its single
+		// source's identity; populated for a merge.
+		ExternalDocumentReferences: spdxSourceLinks(doc),
+		CreationInfo:               creation,
+		DocumentComment:            doc.Assertions.Comment,
+		Packages:                   packages,
+		Relationships:              relationships,
+		OtherLicenses:              spdxOtherLicenses(extractedLicenses),
 	}
 
 	return marshalJSON(spdxDoc, opts.Pretty)
@@ -152,16 +156,19 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 	extractedByRef := spdxExtractedTexts(spdxDoc.OtherLicenses)
 
 	components := make([]Component, 0, len(spdxDoc.Packages))
+	var unknownScopes []string
 	for _, p := range spdxDoc.Packages {
 		if p == nil {
 			continue
 		}
 		id := common.RenderElementID(p.PackageSPDXIdentifier)
+		scopes, unknown := spdxCommentScopes(p.PackageComment)
+		unknownScopes = mergeUnknownScopeTokens(unknownScopes, unknown)
 		component := Component{
 			ID:             id,
 			Name:           p.PackageName,
 			Version:        p.PackageVersion,
-			Scopes:         spdxCommentScopes(p.PackageComment),
+			Scopes:         scopes,
 			Type:           parseSPDXComponentType(p),
 			PURL:           parseSPDXPURL(p.PackageExternalReferences),
 			Ecosystem:      parseSPDXYcosystem(p.PackageExternalReferences),
@@ -220,15 +227,16 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 	sort.Strings(roots)
 
 	return &Document{
-		Name:         spdxDoc.DocumentName,
-		Namespace:    spdxDoc.DocumentNamespace,
-		Assertions:   spdxDocumentAssertions(&spdxDoc),
-		Tool:         extractSPDXToolName(spdxDoc.CreationInfo),
-		Tools:        extractSPDXToolNames(spdxDoc.CreationInfo),
-		Created:      parseSPDXCreated(spdxDoc.CreationInfo),
-		Components:   components,
-		Dependencies: dependencies,
-		Roots:        roots,
+		Name:               spdxDoc.DocumentName,
+		Namespace:          spdxDoc.DocumentNamespace,
+		Assertions:         spdxDocumentAssertions(&spdxDoc),
+		Tool:               extractSPDXToolName(spdxDoc.CreationInfo),
+		Tools:              extractSPDXToolNames(spdxDoc.CreationInfo),
+		Created:            parseSPDXCreated(spdxDoc.CreationInfo),
+		Components:         components,
+		Dependencies:       dependencies,
+		Roots:              roots,
+		UnknownScopeTokens: unknownScopes,
 	}, nil
 }
 
@@ -353,24 +361,48 @@ func spdxPackageComment(component Component) string {
 }
 
 // spdxChecksums maps component digests onto SPDX package checksums, dropping
-// entries whose algorithm SPDX has no member for. The vocabulary is the SDK
-// registry's, not a local switch -- see publishableDigest.
+// entries the SDK will not publish and entries whose algorithm SPDX has no
+// member for. publishableDigest is the gate; spdxChecksumAlgorithm renders.
 func spdxChecksums(digests []Digest) []common.Checksum {
 	if len(digests) == 0 {
 		return nil
 	}
 	out := make([]common.Checksum, 0, len(digests))
 	for _, d := range digests {
-		spelling, value, ok := publishableDigest(d, sdk.DigestAlgorithm.SPDXName)
+		algorithm, value, ok := publishableDigest(d)
 		if !ok {
 			continue
 		}
-		out = append(out, common.Checksum{Algorithm: common.ChecksumAlgorithm(spelling), Value: value})
+		spelling := spdxChecksumAlgorithm(string(algorithm))
+		if spelling == "" {
+			continue
+		}
+		out = append(out, common.Checksum{Algorithm: spelling, Value: value})
 	}
 	if len(out) == 0 {
 		return nil
 	}
 	return out
+}
+
+// spdxChecksumAlgorithm renders a digest algorithm in SPDX's spelling.
+//
+// The registry is the SDK's, not a list here. A hand-written switch stood in
+// this spot and knew nine algorithms against the registry's nineteen, so a
+// document carrying BLAKE2b, BLAKE3, MD2, MD4, MD6, ADLER32 or Streebog had
+// that checksum silently dropped on export -- correct the day it was written
+// and quietly lossy once the vocabulary grew. That is the failure this
+// project's delegation rule exists to prevent, and Streebog is the example it
+// cites.
+//
+// An algorithm SPDX does not define returns "", which the caller drops. That
+// is a real limit of the format rather than a gap in this mapping.
+func spdxChecksumAlgorithm(algorithm string) common.ChecksumAlgorithm {
+	parsed, err := sdk.ParseDigestAlgorithm(algorithm)
+	if err != nil {
+		return ""
+	}
+	return common.ChecksumAlgorithm(parsed.SPDXName())
 }
 
 func parseSPDXComponentType(p *v23.Package) string {
@@ -383,24 +415,27 @@ func parseSPDXComponentType(p *v23.Package) string {
 	return strings.ToLower(strings.TrimSpace(p.PrimaryPackagePurpose))
 }
 
-// spdxCommentScopes reads the scope set back out of the package comment.
+// spdxCommentScopes reads the scope set back out of the package comment, and
+// reports the tokens this build could not read.
 //
 // A carrier that will not parse is treated as absent rather than as an error:
 // this is a comment field on someone else's document, and refusing the whole
 // component because a Bomly-shaped comment was malformed would lose more than
 // it protects. The SDK owns what the carrier means in both directions.
-// One consequence is not what ADR-0037 asks for. The SDK's decode is
-// all-or-nothing, so a carrier naming one known scope beside one unknown token
-// yields nothing rather than the known scope plus a warning, and unlike
-// CycloneDX there is no native scalar here to fall back to -- the component
-// ends up unscoped. Tracked as bomly-dev/bomly-sdk#64; partial decode belongs
-// beside the grammar in the SDK rather than being re-derived here.
-func spdxCommentScopes(comment string) []sdk.Scope {
-	scopes, err := sdk.DecodeScopeSet(parseSPDXCommentField(comment, "scope"))
+//
+// The read is the SDK's lenient one, which is what ADR-0037 asks for: the
+// scopes this build knows are kept even when a token beside them is not. SPDX
+// has no native scalar to fall back on, so the strict read made a component
+// scoped "runtime,future" unscoped outright -- total loss from one token a
+// newer Bomly wrote. The tokens that were not read come back so a caller can
+// say so; they are the SDK's warning channel, since it does not log.
+func spdxCommentScopes(comment string) ([]sdk.Scope, []string) {
+	carrier := parseSPDXCommentField(comment, "scope")
+	decoded, err := sdk.DecodeScopeSetLenient(carrier)
 	if err != nil {
-		return nil
+		return nil, nil
 	}
-	return scopes
+	return decoded.Scopes, decoded.Unknown
 }
 
 func parseSPDXCommentField(comment, field string) string {

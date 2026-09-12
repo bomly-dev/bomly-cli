@@ -27,11 +27,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "certifi",
@@ -49,11 +54,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "chardet",
@@ -73,11 +83,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "django",
@@ -97,11 +112,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "feedparser",
@@ -119,11 +139,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "idna",
@@ -143,11 +168,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "jinja2",
@@ -165,11 +195,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "markupsafe",
@@ -187,11 +222,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pyasn1",
@@ -209,11 +249,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pyjwt",
@@ -231,11 +276,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pytz",
@@ -253,11 +303,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pyyaml",
@@ -280,11 +335,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "requests",
@@ -304,11 +364,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "rsa",
@@ -326,11 +391,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sgmllib3k",
@@ -348,11 +418,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sqlalchemy",
@@ -370,11 +445,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "urllib3",

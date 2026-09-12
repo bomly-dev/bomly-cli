@@ -46,6 +46,19 @@ linked instead. A caller-pinned identity always wins over both. The document
 *name* is not adopted at the CLI, which names a document after the scanned
 project.
 
+> **Amended 2026-09-12 (issue #433):** only a conversion that *restates* its
+> source adopts its identity. An export whose graph was scope-filtered,
+> enriched, or degraded between ingest and export is a different document with
+> the same one input, and behaves as a merge of one: its own identity and
+> timestamp, the source linked. The caller declares this through
+> `BuildOptions.RestatesSource`, which defaults to false; the CLI derives it
+> from the same predicate that decides `compositions.aggregate`, so a document
+> that cannot claim to be complete cannot claim to be its source either. The
+> fixed point in Consequences holds for restating exports only. An SPDX link
+> still requires the checksum captured at ingest, so a source written onto an
+> entry by a plugin without one is neither adopted nor linked -- the merge
+> behaviour that already existed, now stated.
+
 **A merge links its sources.** With two or more, the document mints its own
 identity and names each source through a reference of type `bom` carrying a
 BOM-Link or the source's namespace URI. Creators and tools union in both

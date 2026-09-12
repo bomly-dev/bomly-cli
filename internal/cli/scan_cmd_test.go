@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
@@ -266,6 +267,33 @@ func TestSBOMCompositionAggregate(t *testing.T) {
 	}
 	if got := sbomCompositionAggregate(sdk.ScopeUnknown, true); got != "unknown" {
 		t.Fatalf("degraded resolution must declare unknown completeness, got %q", got)
+	}
+}
+
+// TestSBOMRestatesSourceOnlyForAnUntransformedScan pins the predicate that
+// lets a single-source export adopt its source's identity (ADR-0042 as
+// amended by #433): anything that changed the graph after ingest -- a scope
+// filter, enrichment, degraded resolution -- makes the export a different
+// document, which mints its own identity and links the source instead.
+func TestSBOMRestatesSourceOnlyForAnUntransformedScan(t *testing.T) {
+	cases := []struct {
+		name     string
+		current  config.Resolved
+		scope    sdk.Scope
+		degraded bool
+		want     bool
+	}{
+		{name: "plain scan restates", scope: sdk.ScopeUnknown, want: true},
+		{name: "enrichment transforms", current: config.Resolved{Enrich: true}, scope: sdk.ScopeUnknown, want: false},
+		{name: "scope filter transforms", scope: sdk.ScopeRuntime, want: false},
+		{name: "degraded resolution transforms", scope: sdk.ScopeUnknown, degraded: true, want: false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := sbomRestatesSource(tc.current, tc.scope, tc.degraded); got != tc.want {
+				t.Fatalf("sbomRestatesSource(enrich=%v, scope=%q, degraded=%v) = %v, want %v", tc.current.Enrich, tc.scope, tc.degraded, got, tc.want)
+			}
+		})
 	}
 }
 

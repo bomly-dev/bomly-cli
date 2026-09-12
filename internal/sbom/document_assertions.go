@@ -10,14 +10,21 @@ import (
 // This file decides what an export says about itself when the graph it
 // describes was read from other documents (ADR-0037, issue #396).
 //
-// The rule turns on how many documents were ingested, because both formats
-// give a document exactly one identity:
+// The rule turns on how many documents were ingested and, for exactly one,
+// on whether the export still restates it, because both formats give a
+// document exactly one identity:
 //
 //   - none: a native scan. Bomly asserts everything itself; nothing here
 //     applies.
-//   - one: a conversion. The document restates that source's assertions,
-//     identity included, so `export -> ingest -> export` reproduces its own
-//     bytes -- the fixed point #396 asks for.
+//   - one, restated: a conversion. The document restates that source's
+//     assertions, identity included, so `export -> ingest -> export`
+//     reproduces its own bytes -- the fixed point #396 asks for.
+//   - one, transformed: a scope filter, enrichment, or degraded resolution
+//     changed the graph between ingest and export, so the document is a new
+//     one with a single input. It behaves as a merge of one: its own
+//     identity, timestamp, name and comment, with the source *linked*
+//     (issue #433). Only the caller can tell this case from the previous
+//     one, and says so through BuildOptions.RestatesSource.
 //   - many: a merge. The document is a new one and says so: it keeps its own
 //     identity and *links* each source instead of adopting one of them.
 //
@@ -47,7 +54,11 @@ func DocumentAssertionsFor(doc *Document) *sdk.DocumentAssertions {
 
 // applySourceAssertions folds the source documents' own claims into the
 // document being built, and records the sources for link emission.
-func applySourceAssertions(doc *Document, sources []sdk.DocumentAssertions) {
+//
+// restates is the caller's declaration that the graph being exported is the
+// single source's graph, untransformed; it decides whether one source's
+// identity is adopted or linked, and means nothing for zero or several.
+func applySourceAssertions(doc *Document, sources []sdk.DocumentAssertions, restates bool) {
 	if doc == nil {
 		return
 	}
@@ -80,9 +91,18 @@ func applySourceAssertions(doc *Document, sources []sdk.DocumentAssertions) {
 	doc.Assertions.Creators = aggregate.Creators
 	doc.Assertions.Tools = aggregate.Tools
 
-	if len(cleaned) > 1 {
+	if len(cleaned) > 1 || !restates {
 		// A merged document asserts its own identity. Its sources are named
 		// by documentSourceLinks, not adopted here.
+		//
+		// So does a transformed conversion. A graph that was scope-filtered,
+		// enriched, or degraded after ingest no longer describes the source
+		// document, and a document claiming that source's identity over
+		// different content is two documents sharing one name (issue #433).
+		// It is a new document with one input and behaves as a merge of one:
+		// its own identity, timestamp, name and comment, the source named by
+		// documentSourceLinks. Creators and tools were still unioned above --
+		// the source did produce this document's inventory.
 		return
 	}
 

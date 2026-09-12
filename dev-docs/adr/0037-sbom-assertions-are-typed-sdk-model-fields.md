@@ -174,7 +174,9 @@ formats are validated through the codecs and the official format validators
 as part of the adoption phase. The fixed-point
 round-trip promise is correspondingly scoped to single-source flows: one
 ingested document re-exported reproduces its own assertions; a merged
-export preserves component assertions and references its sources.
+export preserves component assertions and references its sources. (ADR-0042
+as amended by #433 narrows the first case further: a single source whose
+graph was transformed after ingest is exported as a merge of one.)
 
 **Validation lives with the type.** Every field that carries untrusted input
 validates at the model boundary the way `DependencyOrigin` already does:

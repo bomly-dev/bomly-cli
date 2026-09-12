@@ -27,11 +27,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -50,11 +55,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -75,11 +85,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -100,11 +115,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -123,11 +143,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -148,11 +173,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -171,11 +201,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -194,11 +229,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -217,11 +257,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -240,11 +285,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -263,11 +313,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -291,11 +346,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -316,11 +376,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -339,11 +404,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -362,11 +432,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -385,11 +460,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,

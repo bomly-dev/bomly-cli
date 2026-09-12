@@ -599,26 +599,38 @@ func TestDetectorPURLTypesComeFromTheSDK(t *testing.T) {
 	}
 }
 
-// purlTypeOffenders reports every place in one Go source file where a package
-// URL is minted with a type the SDK did not decide. src is the source text
-// when the caller has it, and nil to read the file at path.
+// purlTypeOffenders reports every place in one Go source file where a detector
+// reaches a package-URL entry point that takes the type as a string. src is
+// the source text when the caller has it, and nil to read the file at path.
 //
 // Split out from the guard so it can be pinned on fixtures below. A rule only
 // ever exercised against a tree that already passes is a rule nobody has seen
 // fail, and this file's history is mostly that.
+//
+// It is a ban on two names now, where it used to inspect arguments. Once
+// sdk.BuildPackageURLFor takes the ecosystem and the package manager and
+// decides the type itself, a detector has no reason to touch either of the
+// forms that accept a type -- and nothing left to get right at the call site,
+// so there is no shape to describe. Four review rounds went into describing
+// shapes; removing the parameter removed the shapes.
+//
+// Dropping the package qualifier cuts the useful way here. It used to mean a
+// locally defined PackageURLTypeForValues was accepted as the authority
+// (bomly-cli#449 gap 3); under a ban the same local function is reported,
+// because the rule no longer cares who defines the name -- only that a
+// detector is calling it.
 func purlTypeOffenders(t *testing.T, path string, src any) []string {
 	t.Helper()
-	const (
-		mint      = "BuildPackageURL"
-		authority = "PackageURLTypeForValues"
-	)
+	banned := map[string]string{
+		"BuildPackageURL": "takes the package-url type as a string; use sdk.BuildPackageURLFor, " +
+			"which takes the ecosystem and package manager and decides the type itself",
+		"PackageURLTypeForValues": "is the mapping itself; a detector that calls it is choosing when " +
+			"to consult the authority, which sdk.BuildPackageURLFor already does",
+	}
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, path, src, parser.SkipObjectResolution)
 	if err != nil {
 		t.Fatalf("parse %s: %v", path, err)
-	}
-	where := func(pos token.Pos) string {
-		return fmt.Sprintf("%s:%d", filepath.ToSlash(path), fset.Position(pos).Line)
 	}
 
 	var offenders []string
@@ -627,30 +639,9 @@ func purlTypeOffenders(t *testing.T, path string, src any) []string {
 		if !ok {
 			return true
 		}
-		switch calleeName(call) {
-		case mint:
-			if len(call.Args) == 0 {
-				return true
-			}
-			if inner, ok := call.Args[0].(*ast.CallExpr); ok && calleeName(inner) == authority {
-				return true
-			}
-			offenders = append(offenders,
-				where(call.Args[0].Pos())+" mints a package URL with a type sdk."+authority+" did not decide")
-		case authority:
-			// Handing the authority the answer is the same hand-written
-			// mapping wearing its name: a literal here has already picked
-			// the type before any token reaches purlkit. Detectors hold
-			// sdk.Ecosystem and sdk.PackageManager values, so they never
-			// need to spell one.
-			for _, arg := range call.Args {
-				lit, ok := arg.(*ast.BasicLit)
-				if !ok || lit.Kind != token.STRING {
-					continue
-				}
-				offenders = append(offenders, where(arg.Pos())+" passes the literal "+lit.Value+" to sdk."+
-					authority+" instead of the detector's own ecosystem and package-manager values")
-			}
+		if why, forbidden := banned[calleeName(call)]; forbidden {
+			offenders = append(offenders, fmt.Sprintf("%s:%d %s %s",
+				filepath.ToSlash(path), fset.Position(call.Pos()).Line, calleeName(call), why))
 		}
 		return true
 	})
@@ -720,8 +711,8 @@ func TestDetectorsDoNotReachPURLKitDirectly(t *testing.T) {
 	}
 }
 
-// The predicate behind that guard, pinned on fixtures in both directions so
-// it keeps its meaning when the detectors change. Four times in this file's
+// The predicate behind that guard, pinned on fixtures in both directions so it
+// keeps its meaning when the detectors change. Four times in this file's
 // history a guard reported nothing because its pattern had stopped matching
 // the shape it was written for, and a rule exercised only against a passing
 // tree cannot tell that apart from success.
@@ -734,33 +725,54 @@ func TestPURLTypeGuardSeesTheShapesItForbids(t *testing.T) {
 
 	// What every detector does now, and the only shape that passes.
 	if got := offendersFor("ok.go",
-		`var _ = sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemSwift, sdk.PackageManagerCocoaPods), "", n, v)`,
+		`var _ = sdk.BuildPackageURLFor(sdk.EcosystemSwift, sdk.PackageManagerCocoaPods, "", n, v)`,
 	); len(got) != 0 {
 		t.Errorf("the delegating shape is reported as an offender: %v", got)
 	}
 
-	// The defect the guard exists for.
-	if got := offendersFor("literal.go", `var _ = sdk.BuildPackageURL("cocoapods", "", n, v)`); len(got) != 1 {
-		t.Errorf("a literal purl type at the mint site is not reported: %v", got)
+	// A hand-picked type at the mint site: the defect this rule exists for.
+	if got := offendersFor("literal.go", `var _ = sdk.BuildPackageURL("cocoapods", "", n, v)`); len(got) == 0 {
+		t.Error("a literal purl type at the mint site is not reported")
 	}
 
-	// The escape a "no string literal there" rule would have left open.
+	// The shape that *used* to be the required one. It is forbidden now, not
+	// because it was wrong, but because the type is no longer a parameter a
+	// detector has any business supplying -- and a form that takes one is a
+	// form somebody can supply the wrong thing to.
+	if got := offendersFor("oldgood.go",
+		`var _ = sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemDart, sdk.PackageManagerPub), "", n, v)`,
+	); len(got) == 0 {
+		t.Error("the superseded type-taking form is not reported")
+	}
+
+	// A const hoists the literal out of the call and changes nothing: the
+	// rule bans the entry point, so there is no argument left to inspect.
 	if got := offendersFor("const.go",
 		"const podType = \"cocoapods\"\n\nvar _ = sdk.BuildPackageURL(podType, \"\", n, v)",
-	); len(got) != 1 {
-		t.Errorf("a purl type hoisted into a const is not reported: %v", got)
-	}
-
-	// Restating the answer as the question.
-	if got := offendersFor("restated.go",
-		`var _ = sdk.BuildPackageURL(sdk.PackageURLTypeForValues("cocoapods"), "", n, v)`,
-	); len(got) != 1 {
-		t.Errorf("a literal handed to the authority itself is not reported: %v", got)
+	); len(got) == 0 {
+		t.Error("a purl type hoisted into a const is not reported")
 	}
 
 	// The qualifier is not part of the rule, so an alias must not evade it.
-	if got := offendersFor("aliased.go", `var _ = bomly.BuildPackageURL("cocoapods", "", n, v)`); len(got) != 1 {
-		t.Errorf("an aliased import of the SDK evades the rule: %v", got)
+	if got := offendersFor("aliased.go", `var _ = bomly.BuildPackageURL("cocoapods", "", n, v)`); len(got) == 0 {
+		t.Error("an aliased import of the SDK evades the rule")
 	}
 
+	// bomly-cli#449 gap 3, closed by inversion. A local function wearing the
+	// authority's name used to be *accepted* as the authority, because
+	// calleeName drops the qualifier. Under a ban that same property reports
+	// it: the rule no longer asks who defines the name, only whether a
+	// detector calls it.
+	if got := offendersFor("shadow.go",
+		"func PackageURLTypeForValues(values ...any) string { return \"generic\" }\n\n"+
+			"var _ = sdk.BuildPackageURL(PackageURLTypeForValues(sdk.EcosystemDart), \"\", n, v)",
+	); len(got) == 0 {
+		t.Error("a local function wearing the authority's name is not reported")
+	}
+
+	// An unrelated call must not be swept in: the rule names two functions,
+	// it does not guess at intent.
+	if got := offendersFor("unrelated.go", `var _ = thing.BuildSomethingElse("cocoapods", n, v)`); len(got) != 0 {
+		t.Errorf("an unrelated call is reported: %v", got)
+	}
 }

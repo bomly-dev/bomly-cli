@@ -326,7 +326,7 @@ func packageNode(ref conanRef) (*sdk.DependencyNode, error) {
 		PackageManager: sdk.PackageManagerConan,
 		Type:           sdk.PackageTypePackage,
 		Language:       "cpp",
-		PURL:           sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemCPP, sdk.PackageManagerConan), "", ref.Name, ref.Version)})
+		PURL:           sdk.BuildPackageURLFor(sdk.EcosystemCPP, sdk.PackageManagerConan, "", ref.Name, ref.Version)})
 	if err != nil {
 		return nil, fmt.Errorf("build dependency node: %w", err)
 	}

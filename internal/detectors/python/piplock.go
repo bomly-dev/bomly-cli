@@ -75,7 +75,7 @@ func depGraphFromRequirementsLock(lockPath, projectPath, rootName string) (*sdk.
 			PackageManager: sdk.PackageManagerPip,
 			Language:       "python",
 			Type:           sdk.PackageTypePackage,
-			PURL:           sdk.BuildPackageURL(sdk.PackageURLTypeForValues(sdk.EcosystemPython, sdk.PackageManagerPip), "", e.name, e.version)})
+			PURL:           sdk.BuildPackageURLFor(sdk.EcosystemPython, sdk.PackageManagerPip, "", e.name, e.version)})
 		if err != nil {
 			return nil, fmt.Errorf("build dependency node: %w", err)
 		}

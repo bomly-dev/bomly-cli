@@ -9,58 +9,6 @@ import (
 	"github.com/bomly-dev/bomly-sdk"
 )
 
-// Every Python project root is built by pythonModuleRoot, which decides the
-// declaring manifest from the package manager.
-//
-// Four parsers each hard-coded "requirements.txt" instead, naming a file a
-// Pipenv or Poetry project does not have. The declaring path is part of a
-// module's identity and is published in scan JSON, SBOM references and
-// explain paths, so the literal was both a wrong reference and a fold risk
-// between projects declared by different manifests. A parser added later
-// would copy the nearest literal, so the rule gets a guard rather than a
-// convention.
-func TestPythonRootsGoThroughTheSharedConstructor(t *testing.T) {
-	var offenders []string
-	scanned := 0
-	// Recursive, so a parser added in a subpackage is inside the rule
-	// rather than outside the directory read; and counted, so the guard
-	// fails when it reached nothing (ADR-0044).
-	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
-			return nil
-		}
-		body, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		scanned++
-		// common.go holds the one permitted call, inside pythonModuleRoot.
-		if filepath.ToSlash(path) == "common.go" {
-			if strings.Count(string(body), "sdk.NewModuleNode(") > 1 {
-				offenders = append(offenders, path)
-			}
-			return nil
-		}
-		if strings.Contains(string(body), "sdk.NewModuleNode(") {
-			offenders = append(offenders, path)
-		}
-		return nil
-	})
-	if err != nil {
-		t.Fatalf("walk package dir: %v", err)
-	}
-	if scanned == 0 {
-		t.Fatal("no Go files found in the python package; the guard scanned nothing")
-	}
-	if len(offenders) > 0 {
-		t.Fatalf("these files build a module root directly, which hard-codes the declaring manifest; "+
-			"call pythonModuleRoot instead: %v", offenders)
-	}
-}
-
 // The declaring manifest is the file each tool treats as the project
 // declaration, not the lock it generates.
 func TestPythonDeclaringManifest(t *testing.T) {

@@ -5,9 +5,10 @@ GO_LICENSES_VERSION=v1.6.0
 GOPATH_BIN=$(shell go env GOPATH)/bin
 EXE_SUFFIX=$(if $(filter Windows_NT,$(OS)),.exe,)
 GOLANGCI_LINT=$(GOPATH_BIN)/golangci-lint$(EXE_SUFFIX)
+GUARDCHECK=bin/guardcheck$(EXE_SUFFIX)
 FUZZTIME?=60s
 
-.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test smoke fuzz verify run generate evidence benchmark benchmark-report licenses
+.PHONY: build build-full build-lite fmt fmt-check lint guardcheck install-hooks test smoke fuzz verify run generate evidence benchmark benchmark-report licenses
 
 build: build-full build-lite
 
@@ -26,8 +27,27 @@ fmt-check:
 $(GOLANGCI_LINT): Makefile
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 
-lint: $(GOLANGCI_LINT)
+# lint is every static house rule: golangci-lint (with the depguard import
+# bans and forbidigo identifier bans in .golangci.yml) and the structural
+# analyzers in internal/tools/guardcheck. CI runs the same three steps.
+lint: $(GOLANGCI_LINT) guardcheck
 	$(GOLANGCI_LINT) run
+	# composition_lite.go is the one file under internal/ behind the lite
+	# build tags, and golangci-lint sees one tag set per run.
+	$(GOLANGCI_LINT) run --build-tags "$(LITE_BUILD_TAGS)" ./internal/composition/...
+
+# The structural house rules run as a vet tool, so package scope and build
+# tags come from the go command and results ride the build cache. A package
+# pattern that matches nothing is only a warning to go vet, and a rule that
+# reached nothing reads exactly like a rule that passed, so reach is asserted
+# first (ADR-0044 rule 4).
+guardcheck:
+	go build -o $(GUARDCHECK) ./internal/tools/guardcheck
+	@test -n "$$(go list ./internal/...)" || { echo "guardcheck: no packages under internal/" >&2; exit 1; }
+	@test -n "$$(go list ./internal/detectors/...)" || { echo "guardcheck: no packages under internal/detectors/" >&2; exit 1; }
+	go vet -vettool=$(GUARDCHECK) -nodeinsert -purlstring ./internal/...
+	go vet -vettool=$(GUARDCHECK) -attributed ./internal/detectors/...
+	go vet -tags "$(LITE_BUILD_TAGS)" -vettool=$(GUARDCHECK) -nodeinsert -purlstring ./internal/composition/...
 
 install-hooks:
 	git config core.hooksPath .githooks

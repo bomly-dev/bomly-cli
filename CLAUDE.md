@@ -19,6 +19,7 @@ make smoke               # end-to-end tests driving the built binary (slow, requ
 make smoke ARGS="-update" # regenerate smoke golden files
 make verify              # everything that gates a push; writes .verify-stamp
 make verify SMOKE=1      # the same, including the network-driven smoke suite
+make lint                # golangci-lint under both build-tag sets, plus the guardcheck house-rule analyzers
 make fuzz FUZZTIME=5s    # run every registered fuzz target with a short per-target budget
 make benchmark           # run the hidden local dependency-graph benchmark
 make benchmark-report    # analyze local benchmark artifacts with Copilot CLI
@@ -113,7 +114,7 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 | `internal/git`         | Git target resolution and revision description                                                    |
 | `internal/mcp`         | MCP server, tools, and the compact `mcp/1` response projections                                   |
 | `internal/tui`         | Bubbletea interactive views for `scan` and `diff`                                                 |
-| `internal/tools/*`     | Repository tooling run through `go run`: benchmark reporting, gofmt check, evidence catalog, SBOM assurance |
+| `internal/tools/*`     | Repository tooling run through `go run`: benchmark reporting, gofmt check, evidence catalog, SBOM assurance, and the `guardcheck` house-rule analyzers `make lint` runs through `go vet` |
 | `internal/support`     | Docs generation (config reference, schemas, support matrix, component docs) behind the hidden `bomly internal docs-gen` command |
 
 Scan pipeline: `runtimePreparation → subprojectDiscovery (root-only by default; --recursive walks nested dirs) → detect (per-package-manager chains; resolve + consolidate into one graph; detectors may record CI-readiness resolution warnings on manifests) → scopeFilter → match (package enrichment, vulnerability consolidation, and remediation derivation) → analyze (reachability, when --analyze is set) → audit (including finding policy-status resolution) → format`. Consolidation is the tail of the detect stage, and remediation derivation is the tail of enrichment; neither is a separate stage.
@@ -149,8 +150,8 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - `internal/testnodes` is test-only: it routes fixture shapes through the real node constructors, panicking rather than taking a `testing.TB` so a table entry stays one expression. Label lookups ("name@version" to the canonical package URLs node IDs now are) delegate to `bomly-sdk/testkit` — the matching rules have one home, not two. Non-test code must not import it.
 - `internal/baseline` owns the baseline document and matching implementation. It depends on the SDK policy contracts and must not be imported by `internal/engine`.
 - `internal/remediation` owns canonical vulnerability remediation decisions. Detectors may supply validated read-only strategy hints, but they do not choose final actions or versions.
-- Package-URL handling is `bomly-sdk/purlkit`'s: parsing, escaping, canonical rendering, the one purl-type ↔ ecosystem table, and the identity/evidence qualifier split. No package under `internal/` may import `github.com/package-url/packageurl-go` (or the deprecated `github.com/anchore/packageurl-go`), and no shipped file may build a package URL by string concatenation — escaping the `pkg:` and `@` separators is the specification's rule, and a hand-built string gets it wrong for any name or version carrying one. `TestNoDirectPackageURLUse` and `TestPURLStringsAreBuiltByTheKit` (in `internal/detectors/guards_test.go`) enforce both. `internal/sbom.ComponentEcosystem` is the CLI's single purl-type → ecosystem answer; do not add a second table.
-- SPDX license expression handling is `bomly-sdk/spdxkit`'s: validation, identifier classification, composition, deprecated-ID canonicalization, and `LicenseRef-*` minting. The underlying parser panics on some malformed input, and license strings come from untrusted lockfiles and registry APIs, so no package under `internal/` may import `github.com/github/go-spdx` directly — the kit carries the panic guard. `TestNoDirectSPDXExpressionUse` (in `internal/detectors/guards_test.go`) enforces this across the whole tree, test files included. The CLI's own `internal/licenseexpr` wrapper is deleted; it duplicated the kit function for function.
+- Package-URL handling is `bomly-sdk/purlkit`'s: parsing, escaping, canonical rendering, the one purl-type ↔ ecosystem table, and the identity/evidence qualifier split. No package under `internal/` may import `github.com/package-url/packageurl-go` (or the deprecated `github.com/anchore/packageurl-go`), and no shipped file may build a package URL by string concatenation — escaping the `pkg:` and `@` separators is the specification's rule, and a hand-built string gets it wrong for any name or version carrying one. The `depguard` rule `internal-kits` in `.golangci.yml` enforces the import ban and the `purlstring` analyzer in `internal/tools/guardcheck` enforces the concatenation ban; both run in `make lint`. `internal/sbom.ComponentEcosystem` is the CLI's single purl-type → ecosystem answer; do not add a second table.
+- SPDX license expression handling is `bomly-sdk/spdxkit`'s: validation, identifier classification, composition, deprecated-ID canonicalization, and `LicenseRef-*` minting. The underlying parser panics on some malformed input, and license strings come from untrusted lockfiles and registry APIs, so no package under `internal/` may import `github.com/github/go-spdx` directly — the kit carries the panic guard. The `depguard` rule `internal-kits` in `.golangci.yml` enforces this across the whole tree, test files included. The CLI's own `internal/licenseexpr` wrapper is deleted; it duplicated the kit function for function.
 - `internal/registry` owns package-manager discovery, support lookups, and built-in registry wiring in `internal/registry/builder.go`. Do not create or reintroduce a separate `registrybuilder` package.
 - `internal/engine` may import `internal/detectors` and `internal/registry`, but detector packages must not point back into `internal/engine`. Runtime planning, prepared subprojects, and detector-chain reuse belong in `internal/engine`.
 
@@ -185,12 +186,19 @@ In practice:
   hand-written lookup-then-insert at each site says only what to type, and
   each copy decides duplicate handling differently.
 - **Add a guard when the rule can be bypassed by writing it out by hand.**
-  `TestNodeInsertionGoesThroughTheSharedHelper` fails if a lookup-then-insert
-  reappears anywhere under `internal/`, and `TestExportNeverReadsResolvedURL`
-  fails if the export layer touches raw manifest values. A guard is cheap next
-  to the review round it replaces. What makes a guard worth having -- keyed on
-  where a decision is made, proven by mutation, and failing when it reaches
-  nothing -- is ADR-0044.
+  A guard is cheap next to the review round it replaces, and it lives in the
+  tool that owns its kind of rule, never in a test that walks the tree: an
+  import ban is a `depguard` rule in `.golangci.yml`; an identifier or call
+  ban is a `forbidigo` pattern there, scoped by an exclusion rule keyed on the
+  bracketed tag its message starts with; a shape no linter expresses (a
+  lookup followed by an insert, a package URL pasted from a literal, a result
+  returned without its attribution) is an analyzer in
+  `internal/tools/guardcheck`, with a `// want` fixture under its `testdata`
+  that proves it can fail. An exemption is a `//nolint:forbidigo` line with
+  its reason at the one permitted call, or a typed call such as
+  `detectors.Unattributed(result, reason)` -- never a path list. What makes a
+  guard worth having -- keyed on where a decision is made, proven by
+  mutation, and failing when it reaches nothing -- is ADR-0044.
 - **The deepest home for shared meaning is the SDK (ADR-0040).** When a fix
   or feature touches what a shared domain object *means* — identity,
   coordinates, PURLs, licenses, SBOM assertions, graph or merge semantics,

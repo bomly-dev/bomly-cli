@@ -2,10 +2,97 @@ version: "2"
 linters:
   default: none
   enable:
+    - depguard
     - errcheck
+    - forbidigo
     - govet
     - ineffassign
     - staticcheck
+  settings:
+    # House rules that are import bans live here. Each rule names the files it
+    # covers with a glob (tests are covered unless "!$test" says otherwise) and
+    # the reason with each denied module. A new import ban is a new entry, not
+    # a new test that walks the tree (ADR-0044, amended for issue #464).
+    depguard:
+      rules:
+        # Package-URL and SPDX grammar have one home, bomly-sdk's purlkit and
+        # spdxkit (ADR-0038). Tests are covered too: a test reaching the
+        # library directly proves the hazard is still reachable.
+        internal-kits:
+          list-mode: lax
+          files:
+            - "**/internal/**"
+          deny:
+            - pkg: github.com/github/go-spdx
+              desc: the SPDX parser panics on malformed input; go through bomly-sdk/spdxkit, which carries the panic guard (ADR-0038)
+            - pkg: github.com/package-url/packageurl-go
+              desc: package-URL syntax, escaping and canonical form are bomly-sdk/purlkit's to decide (ADR-0038)
+            - pkg: github.com/anchore/packageurl-go
+              desc: deprecated fork; package-URL handling is bomly-sdk/purlkit's (ADR-0038)
+        # A detector asks the SDK for a package URL and never builds one, so it
+        # cannot pick a purl type by hand in any shape (ADR-0044 rule 3).
+        detectors-no-purlkit:
+          list-mode: lax
+          files:
+            - "**/internal/detectors/**"
+          deny:
+            - pkg: github.com/bomly-dev/bomly-sdk/purlkit
+              desc: detectors mint package URLs through sdk.BuildPackageURLFor; holding purlkit is holding the ability to choose a type by hand
+        # Strict JSON parsing is an ingest defense scoped to untrusted SBOM
+        # documents (ADR-0039). The plugin wire and everything else keep v1
+        # decoding; a new strict caller changes this rule on purpose.
+        strict-json-ingest-only:
+          list-mode: lax
+          files:
+            - "**/internal/**"
+            - "!**/internal/sbom/**"
+            - "!$test"
+          deny:
+            - pkg: encoding/json/v2
+              desc: strict JSON parsing is scoped to SBOM ingest under internal/sbom (ADR-0039)
+            - pkg: encoding/json/jsontext
+              desc: strict JSON parsing is scoped to SBOM ingest under internal/sbom (ADR-0039)
+        # testnodes panics on a fixture it cannot build, which is right for a
+        # test and wrong for a scan.
+        testnodes-tests-only:
+          list-mode: lax
+          files:
+            - "$all"
+            - "!$test"
+          deny:
+            - pkg: github.com/bomly-dev/bomly-cli/internal/testnodes
+              desc: testnodes panics on an unbuildable fixture; only test files may import it
+    # House rules that ban an identifier or a call live here. Type analysis is
+    # on, so a pattern matches the resolved name: an import alias, a dot
+    # import or a local function wearing the same name does not evade it.
+    # Each msg starts with a bracketed tag; the exclusion rules below use that
+    # tag to scope the pattern to the packages it polices.
+    forbidigo:
+      analyze-types: true
+      forbid:
+        # A purl type is the SDK's to choose (ADR-0038). The two entry points
+        # that take one are banned in detectors; the qualifier is left off the
+        # pattern so a local function wearing the authority's name is
+        # reported rather than accepted.
+        - pattern: '\.BuildPackageURL$'
+          msg: "[purl-type] takes the package-url type as a string; call sdk.BuildPackageURLFor, which takes the ecosystem and package manager and decides the type itself"
+        - pattern: '\.PackageURLTypeForValues$'
+          msg: "[purl-type] is the mapping itself; sdk.BuildPackageURLFor already consults it"
+        # Raw manifest values must be unreachable from the export layer: it
+        # reads Origin.Normalized(), and ResolvedURL is evidence, never output
+        # (ADR-0033). The name is banned outright, not just the SDK field.
+        - pattern: '(^|\.)ResolvedURL$'
+          msg: "[export-resolvedurl] the export layer reads Origin.Normalized() only; ResolvedURL is evidence, never output (ADR-0033)"
+        # The registry lookup was written six times across the presentation
+        # surfaces and drifted; output/registry_lookup.go is the one home.
+        - pattern: '^sdk\.PackageRegistry\.Get$'
+          pkg: '^github\.com/bomly-dev/bomly-sdk$'
+          msg: "[registry-lookup] call output.RegistryPackage, RegistryPackageForNode, FindingAdvisory, ResolvedLicenses, NodeVulnerabilities or IdentifyPackageRef"
+        # Every Python project root is built by pythonModuleRoot, which decides
+        # the declaring manifest from the package manager.
+        - pattern: '^sdk\.NewModuleNode$'
+          pkg: '^github\.com/bomly-dev/bomly-sdk$'
+          msg: "[python-root] call pythonModuleRoot, which decides the declaring manifest"
   exclusions:
     generated: lax
     presets:
@@ -21,6 +108,32 @@ linters:
           - staticcheck
         text: "SA5011"
         path: _test\.go
+      # The identifier bans police shipped code. A test spells the forbidden
+      # shape on purpose, and a fixture that builds a hundred package URLs in a
+      # loop is doing what a table would.
+      - linters:
+          - forbidigo
+        path: _test\.go
+      # Scope of each identifier ban, keyed by the tag its msg carries. An
+      # exemption inside a scope is a //nolint:forbidigo line with its reason
+      # at the one permitted call, not an entry here: output/registry_lookup.go
+      # for [registry-lookup], detectors/python/common.go for [python-root].
+      - linters:
+          - forbidigo
+        text: '\[purl-type\]'
+        path-except: ^internal/detectors/
+      - linters:
+          - forbidigo
+        text: '\[export-resolvedurl\]'
+        path-except: ^internal/sbom/
+      - linters:
+          - forbidigo
+        text: '\[registry-lookup\]'
+        path-except: ^internal/(output|cli/render|tui|mcp)/
+      - linters:
+          - forbidigo
+        text: '\[python-root\]'
+        path-except: ^internal/detectors/python/
     paths:
       - third_party$
       - builtin$

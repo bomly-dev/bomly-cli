@@ -115,3 +115,29 @@ that cannot meet them is not merged as a guard.
   rests on.
 - `CLAUDE.md` and `AGENTS.md` point here from their guard bullet, so the
   reasoning outlives the session that produced it.
+
+> **Amended 2026-09-13 (issue #464):** the guards named in the first bullet,
+> `test/smoke/golden_arch_test.go` excepted, no longer exist as tests. Each
+> rule moved to the tool that owns its kind: import bans are `depguard` rules
+> and identifier bans are `forbidigo` patterns in `.golangci.yml`; the shapes
+> no linter expresses -- a lookup followed by an insert, a package URL pasted
+> from a literal, a detection result returned without its attribution -- are
+> `go/analysis` analyzers in `internal/tools/guardcheck`, run by `make lint`
+> through `go vet -vettool`. Rule 6 is permanent rather than performed: each
+> analyzer has a fixture under `testdata` with a `// want` comment on every
+> forbidden shape, and it runs in `make test`; that supersedes
+> `TestPURLTypeGuardSeesTheShapesItForbids` and the hand-run mutation in
+> #460, and the migration itself was proved by one mutation per rule,
+> recorded in the pull request. Rule 5 takes its native form: an exemption is
+> a `//nolint:forbidigo` line carrying its reason at the one permitted call,
+> or the typed `detectors.Unattributed(result, reason)`, whose reason the
+> analyzer requires and whose staleness it reports; `guardFiles` and the
+> three tests that audited it are gone, because a rule no longer has to spell
+> the module it forbids. Rule 4 is the go command's for the analyzers -- the
+> Makefile asserts each package pattern is non-empty before vet runs, since
+> an empty pattern is only a warning to `go vet` -- and is a stated residual
+> for the golangci scopes: a directory renamed out from under a `path-except`
+> silently empties that scope, and `warn-unused` only warns. One narrowing
+> was accepted: depguard bans the import, where the old rule banned naming
+> the module string anywhere under `internal/`. The import is the hazard, and
+> the old file itself argued that naming is not importing.

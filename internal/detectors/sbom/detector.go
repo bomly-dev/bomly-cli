@@ -125,12 +125,12 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("convert sbom %q to graph: %w", sbomPath, err)
 	}
-	// Not wrapped in detectors.Attributed, and the guard test names this file
-	// as the exemption: this detector converts a document, it does not resolve
-	// a project. Whatever module produced those packages was resolved
-	// somewhere else, by something else, and the paths in the document are the
-	// producer's, not this scan's -- so an empty module root is the honest
-	// record of an unattributed site.
+	// Returned through detectors.Unattributed rather than Attributed: this
+	// detector converts a document, it does not resolve a project. Whatever
+	// module produced those packages was resolved somewhere else, by
+	// something else, and the paths in the document are the producer's, not
+	// this scan's -- so an empty module root is the honest record of an
+	// unattributed site.
 	graphs := sdk.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns))
 	// What the document said about itself rides the entry it became, so a
 	// later export can restate it instead of crediting only Bomly for a
@@ -141,12 +141,12 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	}
 
 	logger.Debug("resolved explicit sbom file", zap.String("path", sbomPath), zap.String("format", string(target)))
-	return sdk.DetectionResult{
+	return detectors.Unattributed(sdk.DetectionResult{
 		SubprojectInfo: req.Subproject,
 		DetectorName:   d.Descriptor().Name,
 		Technique:      d.Descriptor().Technique,
 		Graphs:         normalizeSBOMGraphContainer(normalizeSBOMManifestMetadata(graphs, req)),
-	}, nil
+	}, "an ingested document's packages were resolved elsewhere; the document carries no module root of this scan"), nil
 }
 
 func normalizeSBOMManifestMetadata(container *sdk.GraphContainer, req sdk.DetectionRequest) *sdk.GraphContainer {
@@ -206,12 +206,11 @@ func normalizeSBOMGraphIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 		// minted by the constructor (ADR-0041). The PURL-then-StableID
 		// fallback this ran is the identity machinery that replaced.
 		clone := pkg.Clone()
-		if _, exists := normalized.Node(clone.NodeID()); !exists {
-			if err := normalized.AddNode(clone); err != nil {
-				return nil, fmt.Errorf("normalize sbom package %q: %w", clone.NodeID(), err)
-			}
+		surviving, err := detectorkit.EnsureNode(normalized, clone)
+		if err != nil {
+			return nil, fmt.Errorf("normalize sbom package %q: %w", clone.NodeID(), err)
 		}
-		idMap[pkg.NodeID()] = clone.NodeID()
+		idMap[pkg.NodeID()] = surviving.NodeID()
 	}
 
 	for _, pkg := range src.DependencyNodes() {

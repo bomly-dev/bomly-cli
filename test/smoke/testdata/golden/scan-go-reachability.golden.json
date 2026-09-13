@@ -351,9 +351,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "govulncheck",
-                "dependency_refs": [
-                  "pkg:golang/golang.org/x/text@v0.3.5"
-                ],
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
                 "status": "unreachable",
@@ -430,9 +427,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "govulncheck",
-                "dependency_refs": [
-                  "pkg:golang/golang.org/x/text@v0.3.5"
-                ],
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
                 "status": "unreachable",
@@ -509,9 +503,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "govulncheck",
-                "dependency_refs": [
-                  "pkg:golang/golang.org/x/text@v0.3.5"
-                ],
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
                 "status": "unreachable",

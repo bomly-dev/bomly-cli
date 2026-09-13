@@ -20,30 +20,40 @@ import (
 // would copy the nearest literal, so the rule gets a guard rather than a
 // convention.
 func TestPythonRootsGoThroughTheSharedConstructor(t *testing.T) {
-	entries, err := os.ReadDir(".")
-	if err != nil {
-		t.Fatalf("read package dir: %v", err)
-	}
 	var offenders []string
-	for _, entry := range entries {
-		name := entry.Name()
-		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
-			continue
-		}
-		body, err := os.ReadFile(filepath.Join(".", name))
+	scanned := 0
+	// Recursive, so a parser added in a subpackage is inside the rule
+	// rather than outside the directory read; and counted, so the guard
+	// fails when it reached nothing (ADR-0044).
+	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			t.Fatalf("read %s: %v", name, err)
+			return err
 		}
+		if info.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+		body, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		scanned++
 		// common.go holds the one permitted call, inside pythonModuleRoot.
-		if name == "common.go" {
+		if filepath.ToSlash(path) == "common.go" {
 			if strings.Count(string(body), "sdk.NewModuleNode(") > 1 {
-				offenders = append(offenders, name)
+				offenders = append(offenders, path)
 			}
-			continue
+			return nil
 		}
 		if strings.Contains(string(body), "sdk.NewModuleNode(") {
-			offenders = append(offenders, name)
+			offenders = append(offenders, path)
 		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("walk package dir: %v", err)
+	}
+	if scanned == 0 {
+		t.Fatal("no Go files found in the python package; the guard scanned nothing")
 	}
 	if len(offenders) > 0 {
 		t.Fatalf("these files build a module root directly, which hard-codes the declaring manifest; "+

@@ -51,6 +51,30 @@ wire-compatibility suite (a payload with a duplicate name and one with
 replaced invalid UTF-8 must keep decoding under v1), so the json/v2
 migration cannot tighten the plugin wire by accident.
 
+> **Amended 2026-09-12 (issues #432 and #435):** the guarantee is three
+> classes, not two. Beside a repeated member name and bytes that are not
+> valid UTF-8, SBOM ingest refuses an escaped unpaired UTF-16 surrogate such
+> as `"\ud800"`. It arrived as a side effect of the library's UTF-8 check and
+> was reported as if a member were repeated; it is now named as a class of
+> its own, on the specification's own text. CycloneDX and SPDX JSON are
+> defined over JSON Schema draft-07, which defers to RFC 7159/8259, and
+> RFC 8259 §8.2 says a JSON text is interoperable only "when all the strings
+> represented in a JSON text are composed entirely of Unicode characters
+> (however escaped)", names `\uDEAD` as a sequence that "cannot encode
+> Unicode characters", and states that receiver behaviour on such a text "is
+> unpredictable". A document its own format says readers will not agree on
+> does not have one reading. The class is decided by what the readers
+> disagree about — a second library scan on the error path, never by matching
+> a message — and the error names it, so the user is not sent looking for a
+> repeated member that is not there. Also decided here, after nine memory
+> findings on the preflight (#435): the hand-instrumented preflight stays.
+> Its remaining residual — one oversized member name held once by the
+> decoder, at most 1× an input already capped at 256 MiB and already resident
+> — is the floor for any reader of the document; closing it properly is an
+> upstream `jsontext` token-size option, not a tenth bound here, and decoding
+> through json/v2 outright remains the separate behaviour study this ADR
+> declined.
+
 **Standard library over dependencies where it now suffices.** The stdlib
 `uuid` package takes over document serial-number generation. New language
 features are adopted where they delete code, not decoratively: generic

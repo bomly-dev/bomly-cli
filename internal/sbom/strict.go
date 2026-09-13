@@ -7,11 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"unicode/utf8"
 )
 
 // ErrAmbiguousJSON reports a document whose JSON does not have one unambiguous
-// reading: it repeats an object member name, or it contains bytes that are not
-// valid UTF-8.
+// reading: it repeats an object member name, it contains bytes that are not
+// valid UTF-8, or it escapes an unpaired UTF-16 surrogate, which names no
+// character. The wrapped error says which, and where.
 var ErrAmbiguousJSON = errors.New("ambiguous sbom json")
 
 // ErrUnverifiableJSON reports a document Bomly declines to validate because
@@ -104,11 +106,14 @@ type openObjectCost struct {
 // or package URL values out of it. For a tool whose whole job is to say what is
 // in someone else's dependency tree, that is a smuggling vector, not a
 // curiosity. Invalid UTF-8 is the same class: v1 silently substitutes U+FFFD,
-// so the bytes a consumer sees are not the bytes the document carried.
+// so the bytes a consumer sees are not the bytes the document carried. So is
+// an escaped unpaired UTF-16 surrogate such as "\ud800": the escape names no
+// character, v1 substitutes U+FFFD for it too, and the format's own grammar
+// says readers will not agree on such a text (see classifyStrictRefusal).
 //
 // This validates rather than decodes, and the distinction is deliberate. The
-// guarantee ADR-0039 makes is exactly these two ambiguity classes, and no
-// others. Decoding through encoding/json/v2 would also change field matching
+// guarantee ADR-0039 makes, as amended, is exactly these three ambiguity
+// classes, and no others. Decoding through encoding/json/v2 would also change field matching
 // from case-insensitive to case-sensitive and alter how the format libraries'
 // own unmarshalers are invoked -- behavior changes nobody validated and the ADR
 // explicitly does not claim. A separate strict pass over the same bytes buys
@@ -153,22 +158,7 @@ func requireUnambiguousJSON(data []byte) error {
 			if errors.Is(err, io.EOF) {
 				return nil
 			}
-			// Classified by what the two readers disagree about, rather than
-			// by matching the message. A document the permissive reader also
-			// rejects is malformed -- truncated, or not JSON at all -- and
-			// saying it "reads two ways" would send the user looking for a
-			// repeated member that is not there. Only a document v1 accepts
-			// and this one refuses is ambiguous, and the difference between
-			// them is exactly the two classes ADR-0039 names.
-			//
-			// The extra pass is on the error path only.
-			if !json.Valid(data) {
-				return fmt.Errorf("%w: %w", ErrMalformedJSON, err)
-			}
-			// The library's message names the offending member and its JSON
-			// pointer path, or the byte offset of the bad sequence, which is
-			// what makes this actionable: a user can find and fix the spot.
-			return fmt.Errorf("%w: %w", ErrAmbiguousJSON, err)
+			return classifyStrictRefusal(data, err)
 		}
 		// Checked as the document is read rather than at the end, so one
 		// built to exhaust memory is stopped while it is doing it.
@@ -244,6 +234,77 @@ func requireUnambiguousJSON(data []byte) error {
 		if totalNameBytes > maxOpenNameBytes {
 			return fmt.Errorf("%w: the object member names open at once exceed %d bytes, which is more than Bomly will hold to check for repeated names",
 				ErrUnverifiableJSON, int64(maxOpenNameBytes))
+		}
+	}
+}
+
+// classifyStrictRefusal names the class a refused document belongs to, so the
+// error can say what to fix. It is decided by what the readers disagree about,
+// never by matching the library's message, and every extra pass here is on
+// the error path only.
+//
+// A document the permissive reader also rejects is malformed -- truncated, or
+// not JSON at all -- and saying it "reads two ways" would send the user
+// looking for a repeated member that is not there. Past that, the library
+// says whether the objection was a repeated name. What remains is text
+// validity, confirmed by reading the document once more with both strict
+// checks waived: that pass retains no names and copies no values, so it
+// costs nothing the first pass did not. Then utf8.Valid over the raw bytes
+// tells the two text classes apart:
+//
+//   - bytes that are not valid UTF-8, which v1 replaces with U+FFFD; and
+//   - an escape that names no character: an unpaired UTF-16 surrogate such
+//     as "\ud800", which v1 also replaces with U+FFFD.
+//
+// The second is a class in its own right and not a bug in the first
+// (issue #432). CycloneDX and SPDX JSON are defined over JSON Schema
+// draft-07, which defers to RFC 7159/8259, and RFC 8259 section 8.2 says: a
+// JSON text is interoperable only "when all the strings represented in a JSON
+// text are composed entirely of Unicode characters (however escaped)"; the
+// grammar "allows member names and string values to contain bit sequences
+// that cannot encode Unicode characters; for example, "\uDEAD" (a single
+// unpaired UTF-16 surrogate)"; and "the behavior of software that receives
+// JSON texts containing such values is unpredictable". A document the format's
+// own specification says readers will not agree on does not have one reading,
+// so Bomly refuses it and says so, rather than substituting a character the
+// producer never wrote.
+//
+// A document carrying both text defects is reported as the first kind; the
+// wrapped error still names the offset of whichever the decoder met first.
+func classifyStrictRefusal(data []byte, cause error) error {
+	if !json.Valid(data) {
+		return fmt.Errorf("%w: %w", ErrMalformedJSON, cause)
+	}
+	// The library's message names the offending member and its JSON pointer
+	// path, or the byte offset of the bad sequence, which is what makes each
+	// of these actionable: a user can find and fix the spot.
+	var syntactic *jsontext.SyntacticError
+	if errors.As(cause, &syntactic) && errors.Is(syntactic.Err, jsontext.ErrDuplicateName) {
+		return fmt.Errorf("%w: an object member name is repeated: %w", ErrAmbiguousJSON, cause)
+	}
+	if !readsWithTextChecksWaived(data) {
+		// Not a text defect and not a repeated name; the library's own
+		// message is the most that can be said.
+		return fmt.Errorf("%w: %w", ErrAmbiguousJSON, cause)
+	}
+	if !utf8.Valid(data) {
+		return fmt.Errorf("%w: the document carries bytes that are not valid UTF-8: %w", ErrAmbiguousJSON, cause)
+	}
+	return fmt.Errorf("%w: a string escape names no Unicode character (an unpaired UTF-16 surrogate): %w", ErrAmbiguousJSON, cause)
+}
+
+// readsWithTextChecksWaived reports whether the document reads to the end
+// once duplicate names and invalid text are both tolerated -- that is,
+// whether text validity was the only objection the strict pass had. With
+// duplicate detection off the decoder retains no member names, and the buffer
+// is read in place, so this pass has none of the memory shapes the bounds on
+// requireUnambiguousJSON exist for.
+func readsWithTextChecksWaived(data []byte) bool {
+	decoder := jsontext.NewDecoder(bytes.NewBuffer(data),
+		jsontext.AllowDuplicateNames(true), jsontext.AllowInvalidUTF8(true))
+	for {
+		if _, err := decoder.ReadToken(); err != nil {
+			return errors.Is(err, io.EOF)
 		}
 	}
 }

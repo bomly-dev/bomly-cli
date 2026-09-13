@@ -68,7 +68,72 @@ func TestIngestRejectsInvalidUTF8(t *testing.T) {
 	}
 }
 
-// The rejection is bounded to those two classes. A document that is merely
+// An escaped unpaired UTF-16 surrogate is the third class, and a class in its
+// own right rather than a bug in the second (issue #432): its bytes are valid
+// UTF-8 and no member repeats, but the escape names no character, v1
+// substitutes U+FFFD for it, and RFC 8259 section 8.2 -- the grammar both
+// SBOM formats are defined over -- says the behaviour of software receiving
+// such a text is unpredictable. Refused, and the error says which class so
+// the user is not sent looking for a repeated member that is not there.
+func TestIngestRejectsEscapedLoneSurrogates(t *testing.T) {
+	raw := `{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,` +
+		`"components":[{"bom-ref":"a","type":"library","name":"widget","description":"\ud800"}]}`
+	_, _, err := UnmarshalAutoJSON([]byte(raw))
+	if !errors.Is(err, ErrAmbiguousJSON) {
+		t.Fatalf("err = %v, want %v", err, ErrAmbiguousJSON)
+	}
+	if errors.Is(err, ErrMalformedJSON) {
+		t.Fatalf("a syntactically valid document was reported as malformed: %v", err)
+	}
+	if !strings.Contains(err.Error(), "surrogate") {
+		t.Errorf("error does not name the class: %v", err)
+	}
+	if !strings.Contains(err.Error(), "description") {
+		t.Errorf("error does not locate the member: %v", err)
+	}
+}
+
+// Escapes that do name characters -- a paired surrogate, a BMP escape -- are
+// not the class, and a document using them imports as before.
+func TestStrictIngestAcceptsEscapedCharacters(t *testing.T) {
+	raw := `{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,` +
+		`"components":[{"bom-ref":"a","type":"library","name":"caf\u00e9","description":"\ud83d\ude00 ok"}]}`
+	doc, _, err := UnmarshalAutoJSON([]byte(raw))
+	if err != nil {
+		t.Fatalf("a document with well-formed escapes was rejected: %v", err)
+	}
+	if len(doc.Components) != 1 || doc.Components[0].Name != "caf\u00e9" {
+		t.Fatalf("components = %+v, want the escaped name decoded", doc.Components)
+	}
+}
+
+// Each refusal names its class, because each class has a different fix and
+// the advice used to name only the first.
+func TestStrictRefusalsNameTheirClass(t *testing.T) {
+	const prefix = `{"bomFormat":"CycloneDX","specVersion":"1.5","version":1,"components":[{"bom-ref":"a","type":"library",`
+	cases := map[string]struct {
+		raw  string
+		want string
+	}{
+		"repeated member":       {raw: prefix + `"name":"a","name":"b"}]}`, want: "repeated"},
+		"invalid bytes":         {raw: prefix + "\"name\":\"wi\xffdget\"}]}", want: "UTF-8"},
+		"unpaired escape":       {raw: prefix + `"name":"\udc00"}]}`, want: "surrogate"},
+		"repeated at top level": {raw: `{"bomFormat":"CycloneDX","bomFormat":"CycloneDX","specVersion":"1.5","version":1}`, want: "repeated"},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			_, _, err := UnmarshalAutoJSON([]byte(tc.raw))
+			if !errors.Is(err, ErrAmbiguousJSON) {
+				t.Fatalf("err = %v, want %v", err, ErrAmbiguousJSON)
+			}
+			if !strings.Contains(err.Error(), tc.want) {
+				t.Errorf("error %v does not say %q", err, tc.want)
+			}
+		})
+	}
+}
+
+// The rejection is bounded to those three classes. A document that is merely
 // unusual -- unknown members, deep nesting, an empty component list -- still
 // parses, because tightening beyond the stated guarantee would reject
 // documents whose meaning was never in doubt.

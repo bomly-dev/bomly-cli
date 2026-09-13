@@ -220,11 +220,20 @@ the golden refresh happens **once**:
    bomly scan --sbom --path hop2.cdx.json -q -f json -o cyclonedx=hop3.cdx.json > hop2.json
    diff <(jq -S 'del(.serialNumber,.metadata.timestamp)' hop2.cdx.json) \
         <(jq -S 'del(.serialNumber,.metadata.timestamp)' hop3.cdx.json)
+   diff <(jq -r '.components[] | "\(.purl)\t\(.group // "")"' hop1.cdx.json | sort) \
+        <(jq -r '.components[] | "\(.purl)\t\(.group // "")"' hop2.cdx.json | sort)
+   diff <(jq -r '.packages[] | "\(.purl)\t\(.org // "")"' hop0.json | sort) \
+        <(jq -r '.components[] | "\(.purl)\t\(.group // "")"' hop1.cdx.json | sort)
    jq -r '.components[] | select(.group == null) | .purl' hop1.cdx.json
    ```
 
    Result: 317 components on every hop; hop 2 and hop 3 identical once the
-   serial and timestamp are stripped; 316 of 317 components carry `group`.
+   serial and timestamp are stripped; the package-URL-to-group mapping is
+   identical between hop 1 and hop 2, so the first ingest neither dropped
+   nor rewrote a group before it stabilized; and the scan's own `org` per
+   package (hop 0) equals hop 1's groups, the only difference being the
+   root module, which the scan JSON does not list as a package and the SBOM
+   names as its primary component. 316 of 317 components carry `group`.
    The one that does not is `pkg:golang/go4.org@v0.0.0-20230225012048-214862532bf5`,
    whose module path has no organization segment, so there was nothing to
    preserve — the original denominator counted it as a loss.

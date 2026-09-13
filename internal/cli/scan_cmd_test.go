@@ -270,6 +270,34 @@ func TestSBOMCompositionAggregate(t *testing.T) {
 	}
 }
 
+// TestCoverageDegradedFiltersOnTheWarningKind pins that only a warning that
+// degrades coverage counts against completeness and restatement; a
+// readiness notice does not.
+func TestCoverageDegradedFiltersOnTheWarningKind(t *testing.T) {
+	if coverageDegraded(nil) {
+		t.Fatal("no warnings must not degrade coverage")
+	}
+	fallback := sdk.DetectorWarning{Type: sdk.DetectorWarningFallback}
+	if !fallback.DegradesCoverage() {
+		t.Fatalf("fixture %q must degrade coverage for this test to mean anything", fallback.Type)
+	}
+	if !coverageDegraded([]sdk.DetectorWarning{fallback}) {
+		t.Fatal("a fallback warning must degrade coverage")
+	}
+	// A package-manager notice says the graph is sound and an install
+	// elsewhere may not be; it must not count.
+	benign := sdk.DetectorWarning{Type: sdk.DetectorWarningPackageManager}
+	if benign.DegradesCoverage() {
+		t.Fatalf("fixture %q must keep coverage for this test to mean anything", benign.Type)
+	}
+	if coverageDegraded([]sdk.DetectorWarning{benign}) {
+		t.Fatalf("a %q warning keeps coverage and must not count as degraded", benign.Type)
+	}
+	if !coverageDegraded([]sdk.DetectorWarning{benign, fallback}) {
+		t.Fatal("one degrading warning among benign ones must still count")
+	}
+}
+
 // TestSBOMRestatesSourceOnlyForAnUntransformedScan pins the predicate that
 // lets a single-source export adopt its source's identity (ADR-0042 as
 // amended by #433): anything that changed the graph after ingest -- a scope

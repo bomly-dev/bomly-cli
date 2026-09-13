@@ -138,7 +138,7 @@ func newScanCmd() *cobra.Command {
 			if pipeResult.Consolidated.Graphs != nil {
 				sbomEntries = pipeResult.Consolidated.Graphs.Entries
 			}
-			sbomBuildOpts := scanSBOMBuildOptions(logger, payload.Project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry, selectedScope, len(pipeResult.DetectorWarnings) > 0)
+			sbomBuildOpts := scanSBOMBuildOptions(logger, payload.Project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry, selectedScope, coverageDegraded(pipeResult.DetectorWarnings))
 
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -282,6 +282,21 @@ func sbomCompositionAggregate(selectedScope sdk.Scope, degraded bool) string {
 		return "incomplete"
 	}
 	return "complete"
+}
+
+// coverageDegraded reports whether any detector warning means the graph is
+// not known to be whole. PipelineResult asks consumers concerned with coverage
+// to filter on DetectorWarning.DegradesCoverage rather than on the list being
+// empty: an install-gate or CI-readiness notice is a warning that degrades
+// nothing, and counting it made an unfiltered scan declare its completeness
+// unknown and disown its source's identity.
+func coverageDegraded(warnings []sdk.DetectorWarning) bool {
+	for _, warning := range warnings {
+		if warning.DegradesCoverage() {
+			return true
+		}
+	}
+	return false
 }
 
 // sbomRestatesSource reports whether an export of a single ingested SBOM may

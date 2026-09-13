@@ -71,7 +71,7 @@ func TestSetCargoOriginBySourcePrefix(t *testing.T) {
 // "pkg:cargo/helper@1.0.0" and keeping them apart would produce two components
 // with byte-identical identity. Nothing is lost -- the folded node carries both
 // repositories as origins, which says more than two indistinguishable nodes
-// did (ADR-0041; the reasoning is recorded in detectors.EnsureNode).
+// did (ADR-0041; the reasoning is recorded in the SDK's `Graph.InsertNode`, which `detectorkit.EnsureNode` wraps).
 func TestCargoDuplicateCrateSourcesFoldWithBothOrigins(t *testing.T) {
 	metadata := []byte(`{
       "packages": [

@@ -180,31 +180,34 @@ func TestNodeInsertionGoesThroughTheSharedHelper(t *testing.T) {
 // it cannot name it.
 func TestExportNeverReadsResolvedURL(t *testing.T) {
 	root := filepath.Join(internalRoot, "sbom")
-	entries, err := os.ReadDir(root)
-	if err != nil {
-		t.Fatalf("read %s: %v", root, err)
-	}
 	var offenders []string
 	scanned := 0
-	for _, entry := range entries {
-		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".go") || strings.HasSuffix(entry.Name(), "_test.go") {
-			continue
+	// Recursive, not a flat read of the directory: the export layer is
+	// everything under internal/sbom, and a codec that moved into a
+	// subpackage must stay inside the rule rather than fall out of it.
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
 		}
-		path := filepath.Join(root, entry.Name())
+		if info.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
 		body, err := os.ReadFile(path)
 		if err != nil {
-			t.Fatalf("read %s: %v", path, err)
+			return err
 		}
 		scanned++
 		if strings.Contains(string(body), "ResolvedURL") {
 			offenders = append(offenders, path)
 		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("walk %s: %v", root, err)
 	}
 	if len(offenders) > 0 {
 		t.Fatalf("the export layer references ResolvedURL; it must read Origin.Normalized() only: %v", offenders)
 	}
-	// The read is flat, so the export layer moving into a subdirectory would
-	// leave this loop with nothing to scan and nothing to report.
 	if scanned == 0 {
 		t.Fatalf("no Go files found under %s; the guard scanned nothing", root)
 	}
@@ -458,6 +461,10 @@ func TestDetectionResultsCarryingGraphsAreAttributed(t *testing.T) {
 	returnsGraphs := regexp.MustCompile(`return sdk\.DetectionResult\{[^}]*Graphs`)
 
 	var offenders []string
+	// Reach is counted after the guard narrows to its own scope, not by the
+	// shared walker: the walker visits all of internal/, so a detectors
+	// package that moved would leave the walker busy and this rule idle.
+	inspected := 0
 	walkInternalGo(t, func(path, body string) {
 		if !strings.Contains(filepath.ToSlash(path), "internal/detectors/") {
 			return
@@ -465,10 +472,14 @@ func TestDetectionResultsCarryingGraphsAreAttributed(t *testing.T) {
 		if _, ok := exempt[filepath.ToSlash(path)]; ok {
 			return
 		}
+		inspected++
 		if returnsGraphs.MatchString(body) {
 			offenders = append(offenders, path)
 		}
 	})
+	if inspected == 0 {
+		t.Fatalf("no detector Go files under internal/detectors/; the guard scanned nothing")
+	}
 	if len(offenders) > 0 {
 		t.Fatalf("these detectors return graphs without recording which module root produced each site; "+
 			"wrap the result in detectors.Attributed: %v", offenders)
@@ -605,6 +616,7 @@ func TestNamingAModuleIsNotImportingIt(t *testing.T) {
 func TestDetectorPURLTypesComeFromTheSDK(t *testing.T) {
 	root := filepath.Join(internalRoot, "detectors")
 	var offenders []string
+	scanned := 0
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -612,11 +624,15 @@ func TestDetectorPURLTypesComeFromTheSDK(t *testing.T) {
 		if info.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
 			return nil
 		}
+		scanned++
 		offenders = append(offenders, purlTypeOffenders(t, path, nil)...)
 		return nil
 	})
 	if err != nil {
 		t.Fatalf("walk %s: %v", root, err)
+	}
+	if scanned == 0 {
+		t.Fatalf("no Go files found under %s; the guard scanned nothing", root)
 	}
 	if len(offenders) > 0 {
 		t.Fatalf("these detectors decide an ecosystem's package-url type themselves; the mapping belongs to "+
@@ -709,6 +725,7 @@ func TestDetectorsDoNotReachPURLKitDirectly(t *testing.T) {
 
 	root := filepath.Join(internalRoot, "detectors")
 	var offenders []string
+	scanned := 0
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -716,6 +733,7 @@ func TestDetectorsDoNotReachPURLKitDirectly(t *testing.T) {
 		if info.IsDir() || !strings.HasSuffix(path, ".go") {
 			return nil
 		}
+		scanned++
 		// This file is the exception: it has to spell the module it forbids.
 		// No exemption for this file: it names purlkit in a string, and
 		// naming is not importing -- the distinction the entitlement rules
@@ -728,6 +746,9 @@ func TestDetectorsDoNotReachPURLKitDirectly(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatalf("walk %s: %v", root, err)
+	}
+	if scanned == 0 {
+		t.Fatalf("no Go files found under %s; the guard scanned nothing", root)
 	}
 	if len(offenders) > 0 {
 		t.Fatalf("these detectors import purlkit directly; a detector asks the SDK for a package URL "+

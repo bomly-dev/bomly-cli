@@ -64,3 +64,4 @@ status to `Superseded by [ADR-NNNN](NNNN-slug.md)`; do not rewrite history
 | ADR-0041 | 2026-08-29 | [Identity is the canonical PURL on typed graph nodes](0041-identity-is-the-canonical-purl-on-typed-nodes.md) | Accepted |
 | ADR-0042 | 2026-09-05 | [A conversion restates its source; a merge links its sources](0042-a-conversion-restates-its-source-a-merge-links-its-sources.md) | Accepted |
 | ADR-0043 | 2026-09-06 | [A scope filter selects on assertions; absence is not one](0043-a-scope-filter-selects-on-assertions.md) | Accepted |
+| ADR-0044 | 2026-09-12 | [A guard must be able to fail, and must know what it covers](0044-a-guard-must-be-able-to-fail-and-know-its-reach.md) | Accepted |

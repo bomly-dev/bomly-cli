@@ -83,12 +83,18 @@ func TestPresentationNeverParsesPackageURLsDirectly(t *testing.T) {
 
 // forEachPresentationFile visits every non-test Go file in the presentation
 // packages, recursively, so a new subpackage inherits the guards.
+//
+// Reach is checked per root, not in total: a root whose production files
+// moved out would still exist and still walk, and the other roots would keep
+// the traversal looking busy while that surface quietly left the rule
+// (ADR-0044).
 func forEachPresentationFile(t *testing.T, visit func(path, body string)) {
 	t.Helper()
 	for _, root := range presentationPackages {
 		if _, err := os.Stat(root); err != nil {
 			t.Fatalf("stat %s: %v", root, err)
 		}
+		scanned := 0
 		err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -100,11 +106,15 @@ func forEachPresentationFile(t *testing.T, visit func(path, body string)) {
 			if err != nil {
 				return err
 			}
+			scanned++
 			visit(path, string(body))
 			return nil
 		})
 		if err != nil {
 			t.Fatalf("walk %s: %v", root, err)
+		}
+		if scanned == 0 {
+			t.Fatalf("no Go files found under %s; the guard scanned nothing there", root)
 		}
 	}
 }

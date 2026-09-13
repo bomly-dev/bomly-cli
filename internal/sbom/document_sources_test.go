@@ -180,7 +180,7 @@ func TestMergedSourceLinksSurviveASecondConversion(t *testing.T) {
 			// documents that document named are still named.
 			_, entry := ingestDocument(t, string(first))
 			second, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, target,
-				BuildOptions{Created: fixedExportTime()}, EncodeOptions{Pretty: true})
+				BuildOptions{Created: fixedExportTime(), RestatesSource: true}, EncodeOptions{Pretty: true})
 			if err != nil {
 				t.Fatalf("second export: %v", err)
 			}
@@ -228,7 +228,7 @@ func TestCycloneDXSourceLinksCarryTheirChecksum(t *testing.T) {
 	// the whole reason the hash is written.
 	_, entry := ingestDocument(t, string(raw))
 	converted, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetSPDX23JSON,
-		BuildOptions{Created: fixedExportTime()}, EncodeOptions{Pretty: true})
+		BuildOptions{Created: fixedExportTime(), RestatesSource: true}, EncodeOptions{Pretty: true})
 	if err != nil {
 		t.Fatalf("convert to spdx: %v", err)
 	}
@@ -265,7 +265,7 @@ func TestNativeExportNamesNoSources(t *testing.T) {
 func TestConversionDoesNotLinkTheDocumentItRestates(t *testing.T) {
 	_, entry := ingestDocument(t, documentRichSPDX)
 	raw, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetSPDX23JSON,
-		BuildOptions{Created: fixedExportTime()}, EncodeOptions{Pretty: true})
+		BuildOptions{Created: fixedExportTime(), RestatesSource: true}, EncodeOptions{Pretty: true})
 	if err != nil {
 		t.Fatalf("export: %v", err)
 	}

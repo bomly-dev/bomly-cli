@@ -138,7 +138,7 @@ func TestDocumentClaimsSurviveTheGraphHop(t *testing.T) {
 func TestSingleSourceExportIsAFixedPoint(t *testing.T) {
 	for _, target := range []Target{TargetSPDX23JSON, TargetCycloneDX16JSON} {
 		t.Run(string(target), func(t *testing.T) {
-			opts := BuildOptions{ToolVersion: "0.0.0-test"}
+			opts := BuildOptions{ToolVersion: "0.0.0-test", RestatesSource: true}
 
 			_, entry := ingestDocument(t, supplierRichCycloneDX)
 			first, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, target, opts, EncodeOptions{Pretty: true})
@@ -163,7 +163,7 @@ func TestSingleSourceExportIsAFixedPoint(t *testing.T) {
 // produces still says which document it restates.
 func TestSingleSourceExportAdoptsTheSourceIdentity(t *testing.T) {
 	_, entry := ingestDocument(t, documentRichSPDX)
-	doc, err := FromGraphEntries(entry.Graph, []sdk.GraphEntry{entry}, BuildOptions{})
+	doc, err := FromGraphEntries(entry.Graph, []sdk.GraphEntry{entry}, BuildOptions{RestatesSource: true})
 	if err != nil {
 		t.Fatalf("export: %v", err)
 	}
@@ -188,8 +188,9 @@ func TestSingleSourceExportAdoptsTheSourceIdentity(t *testing.T) {
 func TestPinnedIdentityWinsOverTheSource(t *testing.T) {
 	_, entry := ingestDocument(t, documentRichSPDX)
 	doc, err := FromGraphEntries(entry.Graph, []sdk.GraphEntry{entry}, BuildOptions{
-		DocumentNS:   "https://pinned.example/ns",
-		DocumentName: "pinned-name",
+		RestatesSource: true,
+		DocumentNS:     "https://pinned.example/ns",
+		DocumentName:   "pinned-name",
 	})
 	if err != nil {
 		t.Fatalf("export: %v", err)
@@ -316,7 +317,7 @@ func TestSourceClaimsAreRegatedOnExport(t *testing.T) {
 		Comment:  strings.Repeat("x", 1<<20),
 		Creators: []sdk.Contact{{Kind: sdk.ContactKindPerson, Name: "ctrl\x00char"}},
 	}
-	doc, err := FromGraphEntries(entry.Graph, []sdk.GraphEntry{entry}, BuildOptions{})
+	doc, err := FromGraphEntries(entry.Graph, []sdk.GraphEntry{entry}, BuildOptions{RestatesSource: true})
 	if err != nil {
 		t.Fatalf("export: %v", err)
 	}
@@ -340,7 +341,7 @@ func TestSourceClaimsAreRegatedOnExport(t *testing.T) {
 // same tool at the same version, which is what would otherwise make each hop
 // of a round trip grow the creator list.
 func TestBomlyCreditIsNotDuplicatedAcrossHops(t *testing.T) {
-	opts := BuildOptions{ToolVersion: "0.0.0-test", Created: fixedExportTime()}
+	opts := BuildOptions{ToolVersion: "0.0.0-test", Created: fixedExportTime(), RestatesSource: true}
 	_, entry := ingestDocument(t, supplierRichCycloneDX)
 	first, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetSPDX23JSON, opts, EncodeOptions{Pretty: true})
 	if err != nil {
@@ -369,7 +370,7 @@ func TestBomlyCreditIsNotDuplicatedAcrossHops(t *testing.T) {
 // says nothing at all about where it came from.
 func TestCycloneDXConversionLinksAnSPDXSourceItCannotAdopt(t *testing.T) {
 	_, entry := ingestDocument(t, documentRichSPDX)
-	raw, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{Pretty: true})
+	raw, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetCycloneDX16JSON, BuildOptions{RestatesSource: true}, EncodeOptions{Pretty: true})
 	if err != nil {
 		t.Fatalf("export: %v", err)
 	}
@@ -393,7 +394,7 @@ func TestCycloneDXConversionLinksAnSPDXSourceItCannotAdopt(t *testing.T) {
 // point at this document itself.
 func TestCycloneDXConversionDoesNotLinkTheIdentityItAdopted(t *testing.T) {
 	_, entry := ingestDocument(t, serialCycloneDX)
-	raw, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{Pretty: true})
+	raw, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetCycloneDX16JSON, BuildOptions{RestatesSource: true}, EncodeOptions{Pretty: true})
 	if err != nil {
 		t.Fatalf("export: %v", err)
 	}
@@ -459,7 +460,7 @@ func TestAnAnonymousSourceStillCountsAsASource(t *testing.T) {
 // creation time is two statements that disagree.
 func TestConversionKeepsTheSourceCreationTime(t *testing.T) {
 	_, entry := ingestDocument(t, documentRichSPDX)
-	doc, err := FromGraphEntries(entry.Graph, []sdk.GraphEntry{entry}, BuildOptions{})
+	doc, err := FromGraphEntries(entry.Graph, []sdk.GraphEntry{entry}, BuildOptions{RestatesSource: true})
 	if err != nil {
 		t.Fatalf("export: %v", err)
 	}
@@ -473,7 +474,7 @@ func TestConversionKeepsTheSourceCreationTime(t *testing.T) {
 // configured provenance.
 func TestCycloneDXCreditsAnIngestedOrganization(t *testing.T) {
 	_, entry := ingestDocument(t, documentRichSPDX)
-	raw, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{Pretty: true})
+	raw, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetCycloneDX16JSON, BuildOptions{RestatesSource: true}, EncodeOptions{Pretty: true})
 	if err != nil {
 		t.Fatalf("export: %v", err)
 	}
@@ -491,7 +492,8 @@ func TestCycloneDXCreditsAnIngestedOrganization(t *testing.T) {
 func TestConfiguredProvenanceOutranksAnIngestedOrganization(t *testing.T) {
 	_, entry := ingestDocument(t, documentRichSPDX)
 	doc, err := FromGraphEntries(entry.Graph, []sdk.GraphEntry{entry}, BuildOptions{
-		Provenance: Provenance{Manufacturer: "Operator Ltd"},
+		RestatesSource: true,
+		Provenance:     Provenance{Manufacturer: "Operator Ltd"},
 	})
 	if err != nil {
 		t.Fatalf("export: %v", err)
@@ -589,7 +591,7 @@ func TestConversionKeepsTheSourceBOMRevision(t *testing.T) {
 	if entry.Document.Identity != "urn:cdx:3e671687-395b-41f5-a30f-a58921a69b79/4" {
 		t.Fatalf("identity = %q, want the revision kept", entry.Document.Identity)
 	}
-	raw, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetCycloneDX16JSON, BuildOptions{}, EncodeOptions{Pretty: true})
+	raw, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetCycloneDX16JSON, BuildOptions{RestatesSource: true}, EncodeOptions{Pretty: true})
 	if err != nil {
 		t.Fatalf("export: %v", err)
 	}
@@ -635,9 +637,10 @@ func TestADifferentRevisionOfTheSameSerialIsStillASource(t *testing.T) {
 // extra author per hop, in a flow advertised as a fixed point.
 func TestConfiguredProvenanceDoesNotDuplicateAuthorsAcrossHops(t *testing.T) {
 	opts := BuildOptions{
-		Provenance:   Provenance{Manufacturer: "Operator Ltd"},
-		Created:      fixedExportTime(),
-		SerialNumber: "urn:uuid:11111111-2222-4333-8444-555555555555",
+		RestatesSource: true,
+		Provenance:     Provenance{Manufacturer: "Operator Ltd"},
+		Created:        fixedExportTime(),
+		SerialNumber:   "urn:uuid:11111111-2222-4333-8444-555555555555",
 	}
 	_, entry := ingestDocument(t, supplierRichCycloneDX)
 	first, err := MarshalGraphEntriesJSON(entry.Graph, []sdk.GraphEntry{entry}, TargetCycloneDX16JSON, opts, EncodeOptions{Pretty: true})

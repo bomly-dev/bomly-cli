@@ -138,7 +138,7 @@ func newScanCmd() *cobra.Command {
 			if pipeResult.Consolidated.Graphs != nil {
 				sbomEntries = pipeResult.Consolidated.Graphs.Entries
 			}
-			sbomBuildOpts := scanSBOMBuildOptions(logger, payload.Project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry, selectedScope, len(pipeResult.DetectorWarnings) > 0)
+			sbomBuildOpts := scanSBOMBuildOptions(logger, payload.Project, commandCtx.ResolvedConfig, cmd.Root().Version, resolved, pipeResult.Registry, selectedScope, coverageDegraded(pipeResult.DetectorWarnings))
 
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -234,6 +234,9 @@ func scanSBOMBuildOptions(logger *zap.Logger, project output.ProjectDescriptor, 
 		Registry:    registry,
 		Lifecycle:   sbomLifecyclePhase(project.TargetType),
 		Aggregate:   sbomCompositionAggregate(selectedScope, degraded),
+		// The same predicate decides both: a graph that cannot claim to be
+		// complete cannot claim to be its source document either.
+		RestatesSource: sbomRestatesSource(current, selectedScope, degraded),
 		Provenance: sbom.Provenance{
 			Manufacturer:               strings.TrimSpace(current.SBOMManufacturer),
 			SecurityContact:            strings.TrimSpace(current.SBOMSecurityContact),
@@ -279,6 +282,33 @@ func sbomCompositionAggregate(selectedScope sdk.Scope, degraded bool) string {
 		return "incomplete"
 	}
 	return "complete"
+}
+
+// coverageDegraded reports whether any detector warning means the graph is
+// not known to be whole. PipelineResult asks consumers concerned with coverage
+// to filter on DetectorWarning.DegradesCoverage rather than on the list being
+// empty: an install-gate or CI-readiness notice is a warning that degrades
+// nothing, and counting it made an unfiltered scan declare its completeness
+// unknown and disown its source's identity.
+func coverageDegraded(warnings []sdk.DetectorWarning) bool {
+	for _, warning := range warnings {
+		if warning.DegradesCoverage() {
+			return true
+		}
+	}
+	return false
+}
+
+// sbomRestatesSource reports whether an export of a single ingested SBOM may
+// adopt that document's identity (ADR-0042, issue #433): only when the graph
+// handed to the exporter is the ingested one, untransformed. A scope filter
+// dropped part of the graph, enrichment added registry data to it, and
+// degraded resolution means it is not known to be whole -- each makes the
+// export a different document from its source, which then mints its own
+// identity and links the source. --analyze needs --enrich and writes nothing
+// into the SBOM, so enrichment covers it.
+func sbomRestatesSource(current config.Resolved, selectedScope sdk.Scope, degraded bool) bool {
+	return sbomCompositionAggregate(selectedScope, degraded) == "complete" && !current.Enrich
 }
 
 // gitDescribeVersion derives a project version from Git history when the scan

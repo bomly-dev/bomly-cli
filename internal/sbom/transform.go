@@ -42,9 +42,19 @@ func FromGraphEntries(g *sdk.Graph, entries []sdk.GraphEntry, opts BuildOptions)
 	if g == nil {
 		return nil, ErrNilGraph
 	}
+	// An entry without a document is a natively resolved manifest. Its
+	// packages are in the graph too, so a graph built from one document and
+	// one manifest is not that document's inventory whatever the caller
+	// declared: it is a merge with one source, and it mints its own identity
+	// and links the source. Decided here, where the entries are visible,
+	// rather than by every caller remembering to look (issue #433).
 	sources := make([]sdk.DocumentAssertions, 0, len(entries))
+	restates := opts.RestatesSource
 	for _, entry := range entries {
 		if entry.Document == nil {
+			if entry.Graph != nil {
+				restates = false
+			}
 			continue
 		}
 		sources = append(sources, *entry.Document)
@@ -214,9 +224,10 @@ func FromGraphEntries(g *sdk.Graph, entries []sdk.GraphEntry, opts BuildOptions)
 	// single source's identity, and it can only do that while the slot is
 	// still empty. An identity the caller pinned always wins over both.
 	// Adoption also needs the caller's word that the graph still restates
-	// the source; a transformed export leaves the slot empty here, mints its
-	// own identity below, and links the source instead.
-	applySourceAssertions(doc, sources, opts.RestatesSource)
+	// the source, and no native entry beside it; a transformed or mixed
+	// export leaves the slot empty here, mints its own identity below, and
+	// links the source instead.
+	applySourceAssertions(doc, sources, restates)
 	mintDocumentIdentity(doc)
 	if doc.Created.IsZero() {
 		// Only once nothing else supplied one: a caller's pinned timestamp

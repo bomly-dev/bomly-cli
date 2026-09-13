@@ -51,7 +51,9 @@ project.
 > enriched, or degraded between ingest and export is a different document with
 > the same one input, and behaves as a merge of one: its own identity and
 > timestamp, the source linked. The caller declares this through
-> `BuildOptions.RestatesSource`, which defaults to false; the CLI derives it
+> `BuildOptions.RestatesSource`, which defaults to false and which the model
+> overrides when a natively resolved entry sits beside the document, since that
+> graph holds packages the document never named; the CLI derives it
 > from the same predicate that decides `compositions.aggregate`, so a document
 > that cannot claim to be complete cannot claim to be its source either. The
 > fixed point in Consequences holds for restating exports only. An SPDX link

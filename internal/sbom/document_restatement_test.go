@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
 )
 
@@ -125,5 +126,44 @@ func TestRestatementFlagIsIgnoredByAMerge(t *testing.T) {
 	}
 	if got := documentSourceLinks(doc, documentIdentity{Namespace: doc.Namespace}); len(got) != 2 {
 		t.Fatalf("source links = %+v, want both documents", got)
+	}
+}
+
+// A document beside a natively resolved manifest is a merge with one source,
+// whatever the caller declared: the graph holds packages the document never
+// named, so publishing it under the document's identity would be the same
+// collision as a filtered export. The model decides this from the entries,
+// so no caller has to remember to.
+func TestADocumentBesideANativeManifestIsNotRestated(t *testing.T) {
+	_, ingested := ingestDocument(t, documentRichSPDX)
+	native := sdk.New()
+	if err := native.AddNode(testnodes.Dep(sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: "left-pad", Version: "1.3.0"})); err != nil {
+		t.Fatalf("add native node: %v", err)
+	}
+	merged := sdk.New()
+	for _, g := range []*sdk.Graph{ingested.Graph, native} {
+		if err := sdk.MergeGraph(merged, g); err != nil {
+			t.Fatalf("merge: %v", err)
+		}
+	}
+	entries := []sdk.GraphEntry{ingested, {Graph: native}}
+	doc, err := FromGraphEntries(merged, entries, BuildOptions{RestatesSource: true, Created: fixedExportTime()})
+	if err != nil {
+		t.Fatalf("export: %v", err)
+	}
+	if doc.Namespace == "https://acme.example/spdx/acme-platform-7f3c" {
+		t.Fatalf("a mixed export republished its one document's namespace over packages that document never named")
+	}
+	if got := documentSourceLinks(doc, documentIdentity{Namespace: doc.Namespace}); len(got) != 1 {
+		t.Fatalf("source links = %+v, want the document linked", got)
+	}
+
+	// The same entries without the native graph beside them still restate.
+	alone, err := FromGraphEntries(ingested.Graph, []sdk.GraphEntry{ingested}, BuildOptions{RestatesSource: true})
+	if err != nil {
+		t.Fatalf("export: %v", err)
+	}
+	if alone.Namespace != "https://acme.example/spdx/acme-platform-7f3c" {
+		t.Fatalf("a lone document stopped restating: namespace = %q", alone.Namespace)
 	}
 }

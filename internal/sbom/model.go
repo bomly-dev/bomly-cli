@@ -82,7 +82,9 @@ type BuildOptions struct {
 	// the graph between ingest and export. Only then does a conversion adopt
 	// the source's identity, creation time, name and comment (ADR-0042). The
 	// default, false, is the safe side: the document mints its own identity
-	// and links the source. Ignored with zero or several sources.
+	// and links the source. Ignored with zero or several sources, and
+	// overridden when a natively resolved entry sits beside the document:
+	// that graph is a merge whatever the caller says.
 	RestatesSource bool
 
 	// Registry, when non-nil, supplies matching-stage enrichment (licenses,

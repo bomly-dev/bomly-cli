@@ -89,3 +89,36 @@ func localType(g localGraph, p *pkg) error {
 	}
 	return nil
 }
+
+// An alias of the graph is the same graph.
+func viaAlias(g *sdk.Graph, p *pkg) error {
+	alias := g
+	if _, ok := g.Node(p.NodeID()); !ok { // want `lookup-then-insert on g`
+		return alias.AddNode(p)
+	}
+	return nil
+}
+
+// An alias declared with var, and assigned rather than defined.
+func viaAssignedAlias(g *sdk.Graph, p *pkg) error {
+	var alias *sdk.Graph
+	alias = g
+	_, ok := alias.Node(p.NodeID()) // want `lookup-then-insert on alias`
+	if !ok {
+		return g.AddNode(p)
+	}
+	return nil
+}
+
+// A shadowing name in an inner scope is a different graph, not this one.
+func shadowed(g *sdk.Graph, p *pkg) error {
+	_, ok := g.Node(p.NodeID())
+	{
+		g := &sdk.Graph{}
+		if err := g.AddNode(p); err != nil {
+			return err
+		}
+	}
+	_ = ok
+	return nil
+}

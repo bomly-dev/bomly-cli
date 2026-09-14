@@ -2,10 +2,11 @@
 // analyzers.
 //
 // It is a vet tool: `make guardcheck` builds it and runs
-// `go vet -vettool=bin/guardcheck ./internal/...`, so package scope and build
-// tags come from the go command and results ride the build cache. Each rule
-// is one analyzer under ./analyzers, selectable by its flag (-nodeinsert,
-// -purlstring, -attributed); with no flag, all of them run.
+// `go vet -vettool=bin/guardcheck` over the packages each rule polices, so
+// package scope and build tags come from the go command and results ride the
+// build cache. Each rule is one analyzer under ./analyzers, selectable by its
+// flag (-nodeinsert, -purlstring, -attributed, -resolvedurl); with no flag,
+// all of them run.
 //
 // Import and identifier bans are not here. Those are depguard and forbidigo
 // rules in .golangci.yml; this command holds only the shapes no linter can
@@ -19,5 +20,5 @@ import (
 )
 
 func main() {
-	multichecker.Main(analyzers.NodeInsert, analyzers.PURLString, analyzers.Attributed)
+	multichecker.Main(analyzers.NodeInsert, analyzers.PURLString, analyzers.Attributed, analyzers.ResolvedURL)
 }

@@ -1,19 +1,22 @@
 // Package analyzers holds the house rules that are about the shape of code
-// rather than about a name: a lookup followed by an insert, a package URL
-// pasted together from a literal, a detection result returned without its
-// attribution. No linter expresses those, so each is a go/analysis analyzer
-// run by the guardcheck command through go vet.
+// rather than about a resolved name: a lookup followed by an insert, a
+// package URL pasted together from a literal, a detection result built
+// without its attribution, a name the export layer may not mention even
+// inside a string. No linter expresses those, so each is a go/analysis
+// analyzer run by the guardcheck command through go vet.
 //
 // Each analyzer keys on where the decision is made and asks the type checker
-// which package a method or literal belongs to, so an alias, a wrapper or a
-// local type with the same method names does not evade it (ADR-0044 rules 1
-// and 6). Each has a fixture under testdata with a `// want` comment on every
-// forbidden shape and a passing shape beside it; the fixture runs in
-// `make test`, which is the rule "a guard must be able to fail" made
-// permanent rather than proved once by hand.
+// which package a method, literal or constant belongs to, so an alias, a
+// wrapper, a hoisted constant or a local type with the same method names
+// does not evade it (ADR-0044 rules 1 and 6). Each has a fixture under
+// testdata with a `// want` comment on every forbidden shape and a passing
+// shape beside it; the fixture runs in `make test`, which is the rule "a
+// guard must be able to fail" made permanent rather than proved once by
+// hand.
 //
 // Only shipped code is policed: files ending in _test.go are skipped, because
-// a test spells the forbidden shape on purpose.
+// a test spells the forbidden shape on purpose. Generated files are not
+// skipped: a generator's output is shipped code.
 //
 // gocritic's ruleguard DSL was considered for these rules and declined. The
 // two-statement lookup-then-insert shape is awkward in a single-expression
@@ -83,4 +86,16 @@ func funcIn(fn *types.Func, pkgPath, name string) bool {
 	}
 	sig, ok := fn.Type().(*types.Signature)
 	return ok && sig.Recv() == nil && fn.Pkg().Path() == pkgPath
+}
+
+// variableOf returns the variable an expression names, or nil when it is not
+// a plain identifier bound to one.
+func variableOf(pass *analysis.Pass, expr ast.Expr) *types.Var {
+	ident, ok := ast.Unparen(expr).(*ast.Ident)
+	if !ok {
+		return nil
+	}
+	obj := pass.TypesInfo.ObjectOf(ident)
+	v, _ := obj.(*types.Var)
+	return v
 }

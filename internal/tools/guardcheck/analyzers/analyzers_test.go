@@ -23,3 +23,7 @@ func TestPURLString(t *testing.T) {
 func TestAttributed(t *testing.T) {
 	analysistest.Run(t, analysistest.TestData(), Attributed, "github.com/bomly-dev/bomly-cli/internal/attributed")
 }
+
+func TestResolvedURL(t *testing.T) {
+	analysistest.Run(t, analysistest.TestData(), ResolvedURL, "github.com/bomly-dev/bomly-cli/internal/resolvedurl")
+}

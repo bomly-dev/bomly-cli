@@ -10,44 +10,59 @@ import (
 	"golang.org/x/tools/go/types/typeutil"
 )
 
-// Attributed reports a detection result that carries graphs and is returned
-// without going through detectors.Attributed or detectors.Unattributed.
+// Attributed reports a detection result that carries graphs and is built
+// anywhere but as the argument of detectors.Attributed or
+// detectors.Unattributed.
 //
 // A result that carries graphs but skips Attributed ships locations with
 // nothing to join reachability evidence to: the module root is the join key
 // ADR-0037 defines, and a detector that forgets it leaves every site
-// unattributed for the whole pipeline. Wrapping the returned literal is one
-// line, which is exactly the kind of rule that gets forgotten.
+// unattributed for the whole pipeline. Wrapping the literal is one line,
+// which is exactly the kind of rule that gets forgotten.
+//
+// The rule keys on the literal, not on the return statement (ADR-0044 rule
+// 1): a result held in a variable and returned later is reported where it
+// is built, and so is one wrapped only later, because the wrap belongs at
+// the construction site. There is no data flow to reason about and nothing
+// for a variable to hide behind.
 //
 // The exemption is typed, not listed: a detector with no module root to name
-// returns through Unattributed with its reason as an argument, and this
-// analyzer checks that the reason is present and that the wrapped literal
-// actually names Graphs, so an exemption cannot be empty or stale (ADR-0044
-// rule 5).
-//
-// The rule matches a literal in a return statement, as the regex it replaced
-// did; a literal built into a variable and returned later is not seen.
+// builds its result inside Unattributed with its reason as an argument, and
+// this analyzer checks that the reason is present and that the wrapped
+// literal actually names Graphs, so an exemption cannot be empty or stale
+// (ADR-0044 rule 5).
 var Attributed = &analysis.Analyzer{
 	Name: "attributed",
-	Doc:  "reports a detection result returned with graphs but without detectors.Attributed or a reasoned detectors.Unattributed",
+	Doc:  "reports a detection result built with graphs outside detectors.Attributed or a reasoned detectors.Unattributed",
 	Run:  runAttributed,
 }
 
 func runAttributed(pass *analysis.Pass) (any, error) {
 	for _, file := range shippedFiles(pass) {
+		// A literal that is the argument of a wrapper is marked when the
+		// call is visited, which is before the literal itself.
+		wrapped := map[*ast.CompositeLit]bool{}
 		ast.Inspect(file, func(n ast.Node) bool {
 			switch n := n.(type) {
-			case *ast.ReturnStmt:
-				for _, result := range n.Results {
-					if lit := detectionResultWithGraphs(pass, result); lit != nil {
-						pass.Reportf(lit.Pos(),
-							"returns graphs without recording which module root produced each site; wrap the result in detectors.Attributed, or in detectors.Unattributed with the reason there is no root to name")
-					}
-				}
 			case *ast.CallExpr:
 				fn, _ := typeutil.Callee(pass.TypesInfo, n).(*types.Func)
-				if funcIn(fn, detectorsPath, "Unattributed") {
+				isAttributed := funcIn(fn, detectorsPath, "Attributed")
+				isUnattributed := funcIn(fn, detectorsPath, "Unattributed")
+				if !isAttributed && !isUnattributed {
+					return true
+				}
+				if len(n.Args) > 0 {
+					if lit, ok := ast.Unparen(n.Args[0]).(*ast.CompositeLit); ok {
+						wrapped[lit] = true
+					}
+				}
+				if isUnattributed {
 					checkUnattributed(pass, n)
+				}
+			case *ast.CompositeLit:
+				if detectionResultWithGraphs(pass, n) != nil && !wrapped[n] {
+					pass.Reportf(n.Pos(),
+						"builds a detection result that carries graphs without recording which module root produced each site; build it inside detectors.Attributed, or inside detectors.Unattributed with the reason there is no root to name")
 				}
 			}
 			return true
@@ -59,7 +74,7 @@ func runAttributed(pass *analysis.Pass) (any, error) {
 // detectionResultWithGraphs returns expr when it is an sdk.DetectionResult
 // literal that names Graphs, and nil otherwise.
 func detectionResultWithGraphs(pass *analysis.Pass, expr ast.Expr) *ast.CompositeLit {
-	lit, ok := expr.(*ast.CompositeLit)
+	lit, ok := ast.Unparen(expr).(*ast.CompositeLit)
 	if !ok || !isNamed(pass.TypesInfo.TypeOf(lit), sdkPath, "DetectionResult") {
 		return nil
 	}

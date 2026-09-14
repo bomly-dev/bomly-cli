@@ -151,7 +151,7 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - `internal/baseline` owns the baseline document and matching implementation. It depends on the SDK policy contracts and must not be imported by `internal/engine`.
 - `internal/remediation` owns canonical vulnerability remediation decisions. Detectors may supply validated read-only strategy hints, but they do not choose final actions or versions.
 - Package-URL handling is `bomly-sdk/purlkit`'s: parsing, escaping, canonical rendering, the one purl-type ↔ ecosystem table, and the identity/evidence qualifier split. No package under `internal/` may import `github.com/package-url/packageurl-go` (or the deprecated `github.com/anchore/packageurl-go`), and no shipped file may build a package URL by string concatenation — escaping the `pkg:` and `@` separators is the specification's rule, and a hand-built string gets it wrong for any name or version carrying one. The `depguard` rule `internal-kits` in `.golangci.yml` enforces the import ban and the `purlstring` analyzer in `internal/tools/guardcheck` enforces the concatenation ban; both run in `make lint`. `internal/sbom.ComponentEcosystem` is the CLI's single purl-type → ecosystem answer; do not add a second table.
-- SPDX license expression handling is `bomly-sdk/spdxkit`'s: validation, identifier classification, composition, deprecated-ID canonicalization, and `LicenseRef-*` minting. The underlying parser panics on some malformed input, and license strings come from untrusted lockfiles and registry APIs, so no package under `internal/` may import `github.com/github/go-spdx` directly — the kit carries the panic guard. The `depguard` rule `internal-kits` in `.golangci.yml` enforces this across the whole tree, test files included. The CLI's own `internal/licenseexpr` wrapper is deleted; it duplicated the kit function for function.
+- SPDX license expression handling is `bomly-sdk/spdxkit`'s: validation, identifier classification, composition, deprecated-ID canonicalization, and `LicenseRef-*` minting. The underlying parser panics on some malformed input, and license strings come from untrusted lockfiles and registry APIs, so no package under `internal/` may import `github.com/github/go-spdx` directly — the kit carries the panic guard. The `depguard` rule `internal-kits` in `.golangci.yml` enforces this for every package under `internal/`, test files included. The CLI's own `internal/licenseexpr` wrapper is deleted; it duplicated the kit function for function.
 - `internal/registry` owns package-manager discovery, support lookups, and built-in registry wiring in `internal/registry/builder.go`. Do not create or reintroduce a separate `registrybuilder` package.
 - `internal/engine` may import `internal/detectors` and `internal/registry`, but detector packages must not point back into `internal/engine`. Runtime planning, prepared subprojects, and detector-chain reuse belong in `internal/engine`.
 
@@ -192,9 +192,11 @@ In practice:
   ban is a `forbidigo` pattern there, scoped by an exclusion rule keyed on the
   bracketed tag its message starts with; a shape no linter expresses (a
   lookup followed by an insert, a package URL pasted from a literal, a result
-  returned without its attribution) is an analyzer in
-  `internal/tools/guardcheck`, with a `// want` fixture under its `testdata`
-  that proves it can fail. An exemption is a `//nolint:forbidigo` line with
+  built without its attribution, a name the export layer may not mention even
+  inside a string) is an analyzer in `internal/tools/guardcheck`, with a
+  `// want` fixture under its `testdata` that proves it can fail. Generated
+  files are not exempt from any of these: a generator's output is shipped
+  code. An exemption is a `//nolint:forbidigo` line with
   its reason at the one permitted call, or a typed call such as
   `detectors.Unattributed(result, reason)` -- never a path list. What makes a
   guard worth having -- keyed on where a decision is made, proven by

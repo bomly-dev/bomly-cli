@@ -102,12 +102,14 @@ that cannot meet them is not merged as a guard.
 - The guards in `internal/detectors/guards_test.go`,
   `internal/output/registry_lookup_guard_test.go`,
   `internal/detectors/python/roots_guard_test.go` and
-  `test/smoke/golden_arch_test.go` are the current strongest form, and each
-  new guard is reviewed against the seven rules above. A pull request that
-  adds a guard says which rule it keys on and how it was mutated.
-- Rule 4 is enforced, not stated: the walkers under `internal/detectors`
-  fail when they visit no Go files, so a moved package cannot turn a guard
-  into a no-op.
+  `test/smoke/golden_arch_test.go` were the strongest form when this record
+  was written; where each rule lives now is the amendment below. Each new
+  guard is reviewed against the seven rules above, and a pull request that
+  adds one says which rule it keys on and how it was mutated.
+- Rule 4 was enforced, not stated: the walkers under `internal/detectors`
+  failed when they visited no Go files, so a moved package could not turn a
+  guard into a no-op. Their successors assert reach as the amendment below
+  describes.
 - The cost is accepted knowingly: a guard written this way is sometimes
   blunter than a hand-tuned one, and a capability removed under rule 3 is a
   capability nobody gets, including the one caller who had a good reason.
@@ -137,7 +139,14 @@ that cannot meet them is not merged as a guard.
 > Makefile asserts each package pattern is non-empty before vet runs, since
 > an empty pattern is only a warning to `go vet` -- and is a stated residual
 > for the golangci scopes: a directory renamed out from under a `path-except`
-> silently empties that scope, and `warn-unused` only warns. One narrowing
-> was accepted: depguard bans the import, where the old rule banned naming
-> the module string anywhere under `internal/`. The import is the hazard, and
-> the old file itself argued that naming is not importing.
+> silently empties that scope, and `warn-unused` only warns. Generated files
+> are not exempt: `linters.exclusions.generated` is `disable`, because a
+> generator's output is shipped code and the walkers never skipped it. The
+> export layer's rule stays a *name* ban rather than an identifier ban: the
+> `resolvedurl` analyzer reports `ResolvedURL` as an identifier, inside a
+> string, or in a comment, because a linter that resolves identifiers cannot
+> see a field reached by reflection through a string, and "cannot name it"
+> was the point (ADR-0033). One narrowing was accepted: depguard bans the
+> import, where the old rule banned naming the module string anywhere under
+> `internal/`. The import is the hazard, and the old file itself argued that
+> naming is not importing.

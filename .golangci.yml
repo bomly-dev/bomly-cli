@@ -66,7 +66,10 @@ linters:
     # on, so a pattern matches the resolved name: an import alias, a dot
     # import or a local function wearing the same name does not evade it.
     # Each msg starts with a bracketed tag; the exclusion rules below use that
-    # tag to scope the pattern to the packages it polices.
+    # tag to scope the pattern to the packages it polices. A rule that must
+    # also see a name inside a string (the export layer's ResolvedURL ban) is
+    # a guardcheck analyzer instead, because a resolved-identifier match
+    # cannot see reflection.
     forbidigo:
       analyze-types: true
       forbid:
@@ -78,11 +81,6 @@ linters:
           msg: "[purl-type] takes the package-url type as a string; call sdk.BuildPackageURLFor, which takes the ecosystem and package manager and decides the type itself"
         - pattern: '\.PackageURLTypeForValues$'
           msg: "[purl-type] is the mapping itself; sdk.BuildPackageURLFor already consults it"
-        # Raw manifest values must be unreachable from the export layer: it
-        # reads Origin.Normalized(), and ResolvedURL is evidence, never output
-        # (ADR-0033). The name is banned outright, not just the SDK field.
-        - pattern: '(^|\.)ResolvedURL$'
-          msg: "[export-resolvedurl] the export layer reads Origin.Normalized() only; ResolvedURL is evidence, never output (ADR-0033)"
         # The registry lookup was written six times across the presentation
         # surfaces and drifted; output/registry_lookup.go is the one home.
         - pattern: '^sdk\.PackageRegistry\.Get$'
@@ -94,7 +92,11 @@ linters:
           pkg: '^github\.com/bomly-dev/bomly-sdk$'
           msg: "[python-root] call pythonModuleRoot, which decides the declaring manifest"
   exclusions:
-    generated: lax
+    # Not lax: a generated file under internal/ is shipped code, and the
+    # house rules above must see it. The walkers they replaced never skipped
+    # one. There are no generated Go files today; the first one gets the
+    # ordinary linters too, which is the right default for shipped code.
+    generated: disable
     presets:
       - comments
       - common-false-positives
@@ -122,10 +124,6 @@ linters:
           - forbidigo
         text: '\[purl-type\]'
         path-except: ^internal/detectors/
-      - linters:
-          - forbidigo
-        text: '\[export-resolvedurl\]'
-        path-except: ^internal/sbom/
       - linters:
           - forbidigo
         text: '\[registry-lookup\]'

@@ -2,8 +2,8 @@ package analyzers
 
 import (
 	"go/ast"
+	"go/constant"
 	"go/token"
-	"strconv"
 	"strings"
 
 	"golang.org/x/tools/go/analysis"
@@ -17,8 +17,10 @@ import (
 // validated end to end; ResolvedURL is evidence, never output (ADR-0033). The
 // structural answer to "could export accidentally leak the raw value" is
 // that it cannot name it, and this analyzer keeps that literal: the name is
-// reported as an identifier, inside a string (which is how reflection would
-// reach the field), and in a comment. A forbidigo pattern resolves
+// reported as an identifier, inside any constant string (which is how
+// reflection would reach the field -- the type checker folds a literal, a
+// concatenation of pieces and a named constant alike, so splitting the name
+// does not hide it), and in a comment. A forbidigo pattern resolves
 // identifiers and would see none of the last two.
 var ResolvedURL = &analysis.Analyzer{
 	Name: "resolvedurl",
@@ -34,18 +36,21 @@ func runResolvedURL(pass *analysis.Pass) (any, error) {
 		report := func(pos token.Pos, how string) {
 			pass.Reportf(pos, "the export layer names %s (%s); it must read Origin.Normalized() only (ADR-0033)", exportForbiddenName, how)
 		}
+		// A constant expression is reported once, at its outermost node:
+		// the pieces of a split name do not contain it and the folded
+		// whole does, so descending past a match only finds nothing.
 		ast.Inspect(file, func(n ast.Node) bool {
-			switch n := n.(type) {
-			case *ast.Ident:
-				if n.Name == exportForbiddenName {
-					report(n.Pos(), "as an identifier")
-				}
-			case *ast.BasicLit:
-				if n.Kind == token.STRING {
-					if value, err := strconv.Unquote(n.Value); err == nil && strings.Contains(value, exportForbiddenName) {
-						report(n.Pos(), "inside a string")
-					}
-				}
+			if ident, ok := n.(*ast.Ident); ok && ident.Name == exportForbiddenName {
+				report(ident.Pos(), "as an identifier")
+			}
+			expr, ok := n.(ast.Expr)
+			if !ok {
+				return true
+			}
+			if tv, ok := pass.TypesInfo.Types[expr]; ok && tv.Value != nil && tv.Value.Kind() == constant.String &&
+				strings.Contains(constant.StringVal(tv.Value), exportForbiddenName) {
+				report(expr.Pos(), "inside a string")
+				return false
 			}
 			return true
 		})

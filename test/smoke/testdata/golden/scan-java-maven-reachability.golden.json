@@ -1230,9 +1230,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/com.h2database/h2@1.3.176"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -1310,9 +1307,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/com.h2database/h2@1.3.176"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -1438,9 +1432,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/com.orientechnologies/orientdb-core@2.1.9"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -1591,9 +1582,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/commons-collections/commons-collections@3.2.1"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -1671,9 +1659,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/commons-collections/commons-collections@3.2.1"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -1786,9 +1771,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/commons-fileupload/commons-fileupload@1.3.3"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -1869,9 +1851,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/commons-fileupload/commons-fileupload@1.3.3"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -1981,9 +1960,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/commons-io/commons-io@2.5"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -2061,9 +2037,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/commons-io/commons-io@2.5"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -2176,9 +2149,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.Final"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -2249,9 +2219,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.Final"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -2318,9 +2285,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.Final"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -2387,9 +2351,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.Final"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -2456,9 +2417,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.Final"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -2525,9 +2483,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.Final"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -2587,9 +2542,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.Final"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -2656,9 +2608,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.Final"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -2725,9 +2674,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.Final"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -2794,9 +2740,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.Final"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -2874,9 +2817,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/io.netty/netty@3.7.0.Final"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -3047,9 +2987,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/junit/junit@4.12"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -3146,9 +3083,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/log4j/log4j@1.2.15"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -3215,9 +3149,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/log4j/log4j@1.2.15"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -3284,9 +3215,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/log4j/log4j@1.2.15"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -3353,9 +3281,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/log4j/log4j@1.2.15"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -3433,9 +3358,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/log4j/log4j@1.2.15"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -3502,9 +3424,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/log4j/log4j@1.2.15"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -3612,9 +3531,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -3676,9 +3592,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -3755,9 +3668,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -3894,9 +3804,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/net.jpountz.lz4/lz4@1.2.0"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -3963,9 +3870,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/net.jpountz.lz4/lz4@1.2.0"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -4106,9 +4010,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.commons/commons-lang3@3.6"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -4250,9 +4151,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@1.4"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -4365,9 +4263,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -4489,9 +4384,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.santuario/xmlsec@1.5.1"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -4557,9 +4449,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.santuario/xmlsec@1.5.1"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -4640,9 +4529,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.santuario/xmlsec@1.5.1"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -4716,9 +4602,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.santuario/xmlsec@1.5.1"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -4799,9 +4682,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.santuario/xmlsec@1.5.1"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -4918,9 +4798,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.sling/org.apache.sling.api@2.0.4-incubator"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -4987,9 +4864,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.sling/org.apache.sling.api@2.0.4-incubator"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5060,9 +4934,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.sling/org.apache.sling.api@2.0.4-incubator"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5203,9 +5074,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5345,9 +5213,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.struts/struts2-core@2.5.13"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5425,9 +5290,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.struts/struts2-core@2.5.13"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5505,9 +5367,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.struts/struts2-core@2.5.13"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5585,9 +5444,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.struts/struts2-core@2.5.13"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5665,9 +5521,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.struts/struts2-core@2.5.13"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5745,9 +5598,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.struts/struts2-core@2.5.13"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5825,9 +5675,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.struts/struts2-core@2.5.13"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5915,9 +5762,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.struts/struts2-core@2.5.13"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -6013,9 +5857,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.struts/struts2-core@2.5.13"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -6082,9 +5923,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.struts/struts2-core@2.5.13"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -6162,9 +6000,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.struts/struts2-core@2.5.13"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -6242,9 +6077,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.struts/struts2-core@2.5.13"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -6322,9 +6154,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.struts/struts2-core@2.5.13"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -6391,9 +6220,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.struts/struts2-core@2.5.13"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -6497,9 +6323,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -6577,9 +6400,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -6657,9 +6477,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -6737,9 +6554,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -6918,9 +6732,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -6998,9 +6809,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -7078,9 +6886,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -7158,9 +6963,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -7433,9 +7235,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7516,9 +7315,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7618,9 +7414,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7690,9 +7483,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7773,9 +7563,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7878,9 +7665,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7950,9 +7734,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8033,9 +7814,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8116,9 +7894,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8199,9 +7974,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8274,9 +8046,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8350,9 +8119,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8463,9 +8229,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8546,9 +8309,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8618,9 +8378,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8701,9 +8458,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8773,9 +8527,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8845,9 +8596,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8917,9 +8665,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -9000,9 +8745,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -9113,9 +8855,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -9196,9 +8935,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -9268,9 +9004,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -9351,9 +9084,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -9434,9 +9164,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -9506,9 +9233,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -9582,9 +9306,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -9665,9 +9386,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -9748,9 +9466,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -9858,9 +9573,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -9938,9 +9650,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -10018,9 +9727,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -10098,9 +9804,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jvmreach",
-                "dependency_refs": [
-                  "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",

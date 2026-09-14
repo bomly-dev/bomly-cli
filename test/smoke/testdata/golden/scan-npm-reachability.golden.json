@@ -4240,9 +4240,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/algo-httpserv@1.1.1"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -4377,9 +4374,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/ansi-regex@3.0.0"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -4494,9 +4488,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/ansi-regex@4.1.0"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -4674,9 +4665,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/async@2.6.3"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -4833,9 +4821,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/brace-expansion@1.1.11"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -4913,9 +4898,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/brace-expansion@1.1.11"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -4993,9 +4975,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/brace-expansion@1.1.11"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5073,9 +5052,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/brace-expansion@1.1.11"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5153,9 +5129,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/brace-expansion@1.1.11"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5270,9 +5243,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/braces@3.0.2"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5590,9 +5560,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/debug@3.2.6"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5722,9 +5689,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/dicer@0.2.5"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -5839,9 +5803,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/diff@3.5.0"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -6229,9 +6190,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/glob-parent@5.1.1"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -6838,9 +6796,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/js-yaml@3.13.0"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -6921,9 +6876,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/js-yaml@3.13.0"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -6985,9 +6937,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/js-yaml@3.13.0"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7041,9 +6990,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/js-yaml@3.13.0"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7123,9 +7069,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/js-yaml@3.13.0"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7206,9 +7149,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/js-yaml@3.13.0"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7326,9 +7266,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/js-yaml@3.13.1"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7409,9 +7346,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/js-yaml@3.13.1"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7473,9 +7407,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/js-yaml@3.13.1"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7555,9 +7486,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/js-yaml@3.13.1"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7638,9 +7566,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/js-yaml@3.13.1"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7904,9 +7829,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/lodash@4.17.15"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -7987,9 +7909,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/lodash@4.17.15"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8070,9 +7989,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/lodash@4.17.15"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8153,9 +8069,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/lodash@4.17.15"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8236,9 +8149,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/lodash@4.17.15"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8319,9 +8229,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/lodash@4.17.15"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8459,9 +8366,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/marked@0.3.19"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8542,9 +8446,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/marked@0.3.19"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8606,9 +8507,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/marked@0.3.19"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -8722,9 +8620,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/minimatch@3.0.4"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -8802,9 +8697,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/minimatch@3.0.4"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -8882,9 +8774,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/minimatch@3.0.4"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -8962,9 +8851,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/minimatch@3.0.4"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -9082,9 +8968,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/minimist@0.0.10"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -9165,9 +9048,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/minimist@0.0.10"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 2,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -9282,9 +9162,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/minimist@1.2.5"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -9777,9 +9654,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/picomatch@2.2.2"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -9857,9 +9731,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/picomatch@2.2.2"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -9995,9 +9866,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/qs@6.9.1"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -10075,9 +9943,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/qs@6.9.1"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -10155,9 +10020,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/qs@6.9.1"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -10235,9 +10097,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/qs@6.9.1"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -10456,9 +10315,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/semver@5.7.1"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -10877,9 +10733,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/underscore@1.9.2"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -10960,9 +10813,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
                 "confidence": "low",
-                "dependency_refs": [
-                  "pkg:npm/underscore@1.9.2"
-                ],
                 "dynamic_imports_detected": true,
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
@@ -11119,9 +10969,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/uuid@3.4.0"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
@@ -11362,9 +11209,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "jsreach",
-                "dependency_refs": [
-                  "pkg:npm/y18n@4.0.0"
-                ],
                 "dynamic_imports_detected": true,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",

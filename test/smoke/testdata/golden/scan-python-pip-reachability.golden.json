@@ -617,9 +617,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/django@1.11.29"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -698,9 +695,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/django@1.11.29"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -779,9 +773,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/django@1.11.29"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -860,9 +851,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/django@1.11.29"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -941,9 +929,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/django@1.11.29"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -1022,9 +1007,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/django@1.11.29"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -1103,9 +1085,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/django@1.11.29"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -1184,9 +1163,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/django@1.11.29"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -1265,9 +1241,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/django@1.11.29"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -1346,9 +1319,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/django@1.11.29"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -1427,9 +1397,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/django@1.11.29"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -1508,9 +1475,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/django@1.11.29"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -1589,9 +1553,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/django@1.11.29"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -1715,9 +1676,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/idna@2.8"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -1796,9 +1754,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/idna@2.8"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -1904,9 +1859,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
-                "dependency_refs": [
-                  "pkg:pypi/jinja2@2.10.1"
-                ],
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
                 "status": "unreachable",
@@ -1983,9 +1935,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
-                "dependency_refs": [
-                  "pkg:pypi/jinja2@2.10.1"
-                ],
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
                 "status": "unreachable",
@@ -2062,9 +2011,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
-                "dependency_refs": [
-                  "pkg:pypi/jinja2@2.10.1"
-                ],
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
                 "status": "unreachable",
@@ -2141,9 +2087,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
-                "dependency_refs": [
-                  "pkg:pypi/jinja2@2.10.1"
-                ],
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
                 "status": "unreachable",
@@ -2220,9 +2163,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
-                "dependency_refs": [
-                  "pkg:pypi/jinja2@2.10.1"
-                ],
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
                 "status": "unreachable",
@@ -2347,9 +2287,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/pyasn1@0.6.3"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -2428,9 +2365,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/pyasn1@0.6.3"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -2509,9 +2443,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/pyasn1@0.6.3"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -2620,9 +2551,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/pyjwt@0.4.2"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -2693,9 +2621,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/pyjwt@0.4.2"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -2774,9 +2699,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/pyjwt@0.4.2"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -2898,9 +2820,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
-                "dependency_refs": [
-                  "pkg:pypi/pyyaml@5.3"
-                ],
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
                 "status": "unreachable",
@@ -2977,9 +2896,6 @@
               {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
-                "dependency_refs": [
-                  "pkg:pypi/pyyaml@5.3"
-                ],
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "reason": "package-not-imported",
                 "status": "unreachable",
@@ -3088,9 +3004,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/requests@2.21.0"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -3169,9 +3082,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/requests@2.21.0"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -3250,9 +3160,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/requests@2.21.0"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -3331,9 +3238,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/requests@2.21.0"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -3441,9 +3345,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/rsa@3.4"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -3522,9 +3423,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "high",
-                "dependency_refs": [
-                  "pkg:pypi/rsa@3.4"
-                ],
                 "hops": 0,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -3662,9 +3560,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/urllib3@1.24.1"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -3743,9 +3638,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/urllib3@1.24.1"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -3824,9 +3716,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/urllib3@1.24.1"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -3905,9 +3794,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/urllib3@1.24.1"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -3986,9 +3872,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/urllib3@1.24.1"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -4067,9 +3950,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/urllib3@1.24.1"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -4148,9 +4028,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/urllib3@1.24.1"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -4229,9 +4106,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/urllib3@1.24.1"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -4310,9 +4184,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/urllib3@1.24.1"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -4391,9 +4262,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/urllib3@1.24.1"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -4472,9 +4340,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/urllib3@1.24.1"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",
@@ -4553,9 +4418,6 @@
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "pyreach",
                 "confidence": "medium",
-                "dependency_refs": [
-                  "pkg:pypi/urllib3@1.24.1"
-                ],
                 "hops": 1,
                 "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
                 "status": "reachable",

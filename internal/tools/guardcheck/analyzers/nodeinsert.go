@@ -20,9 +20,10 @@ import (
 //
 // The two calls are paired by which graph they act on, not by how the
 // receiver is spelled: a receiver that is a variable is compared as the
-// type checker's object, so a shadowing name is a different graph, and
-// `alias := g` inside the function folds alias and g together. Any other
-// receiver expression (a field, a call) is compared as source text. The
+// type checker's object, so a shadowing name is a different graph; any
+// other receiver expression (a field, a call) is compared as source text;
+// and an assignment of one graph to another inside the function --
+// `alias := g`, `alias := h.graph` -- folds the two identities together. The
 // lookup's argument is not inspected at all: the regex this replaced
 // matched only an identifier there and walked past `g.Node(pkg.NodeID())`
 // for as long as it existed. Both calls must resolve to methods of the SDK's
@@ -97,28 +98,30 @@ func reportLookupThenInsert(pass *analysis.Pass, body *ast.BlockStmt) {
 	}
 }
 
-// aliasSet folds graph variables that one function assigns to each other:
-// after `alias := g`, alias and g are one graph. Union-find over the type
-// checker's variable objects, which is what makes a shadowing `g` in an
-// inner scope a different graph rather than the same name.
+// aliasSet folds graph expressions that one function assigns to each other:
+// after `alias := g` or `alias := h.graph`, both names are one graph.
+// Union-find over receiver identities -- the type checker's variable object
+// for a plain name, which is what makes a shadowing `g` in an inner scope a
+// different graph rather than the same name, and the source text for a
+// field or a call.
 type aliasSet struct {
-	parent map[*types.Var]*types.Var
+	parent map[string]string
 }
 
 func graphAliases(pass *analysis.Pass, body *ast.BlockStmt) *aliasSet {
-	set := &aliasSet{parent: map[*types.Var]*types.Var{}}
+	set := &aliasSet{parent: map[string]string{}}
 	ast.Inspect(body, func(n ast.Node) bool {
 		switch n := n.(type) {
 		case *ast.AssignStmt:
 			if (n.Tok == token.DEFINE || n.Tok == token.ASSIGN) && len(n.Lhs) == len(n.Rhs) {
 				for i := range n.Lhs {
-					set.unite(variableOf(pass, n.Lhs[i]), variableOf(pass, n.Rhs[i]))
+					set.unite(pass, n.Lhs[i], n.Rhs[i])
 				}
 			}
 		case *ast.ValueSpec:
 			if len(n.Names) == len(n.Values) {
 				for i := range n.Names {
-					set.unite(variableOf(pass, n.Names[i]), variableOf(pass, n.Values[i]))
+					set.unite(pass, n.Names[i], n.Values[i])
 				}
 			}
 		}
@@ -127,23 +130,23 @@ func graphAliases(pass *analysis.Pass, body *ast.BlockStmt) *aliasSet {
 	return set
 }
 
-func (s *aliasSet) find(v *types.Var) *types.Var {
+func (s *aliasSet) find(key string) string {
 	for {
-		p, ok := s.parent[v]
-		if !ok || p == v {
-			return v
+		p, ok := s.parent[key]
+		if !ok || p == key {
+			return key
 		}
-		v = p
+		key = p
 	}
 }
 
-// unite joins two graph variables; anything that is not a graph variable is
+// unite joins two graph expressions; anything that is not an SDK graph is
 // ignored, so an assignment of a node or an ID never folds two graphs.
-func (s *aliasSet) unite(a, b *types.Var) {
-	if a == nil || b == nil || !isNamed(a.Type(), sdkPath, "Graph") || !isNamed(b.Type(), sdkPath, "Graph") {
+func (s *aliasSet) unite(pass *analysis.Pass, a, b ast.Expr) {
+	if !isNamed(pass.TypesInfo.TypeOf(a), sdkPath, "Graph") || !isNamed(pass.TypesInfo.TypeOf(b), sdkPath, "Graph") {
 		return
 	}
-	ra, rb := s.find(a), s.find(b)
+	ra, rb := s.find(receiverIdentity(pass, a)), s.find(receiverIdentity(pass, b))
 	if ra != rb {
 		s.parent[ra] = rb
 	}
@@ -152,9 +155,14 @@ func (s *aliasSet) unite(a, b *types.Var) {
 // identity returns a key that is equal for two receiver expressions exactly
 // when they name the same graph as far as this function can tell.
 func (s *aliasSet) identity(pass *analysis.Pass, receiver ast.Expr) string {
+	return s.find(receiverIdentity(pass, receiver))
+}
+
+// receiverIdentity is the key before aliases are folded: the variable object
+// for a plain name, the source text for anything else.
+func receiverIdentity(pass *analysis.Pass, receiver ast.Expr) string {
 	if v := variableOf(pass, receiver); v != nil {
-		root := s.find(v)
-		return "var " + root.Name() + " " + pass.Fset.Position(root.Pos()).String()
+		return "var " + v.Name() + " " + pass.Fset.Position(v.Pos()).String()
 	}
-	return "expr " + types.ExprString(receiver)
+	return "expr " + types.ExprString(ast.Unparen(receiver))
 }

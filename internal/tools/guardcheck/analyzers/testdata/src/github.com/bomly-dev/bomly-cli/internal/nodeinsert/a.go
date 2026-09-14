@@ -122,3 +122,22 @@ func shadowed(g *sdk.Graph, p *pkg) error {
 	_ = ok
 	return nil
 }
+
+// An alias taken from a field folds with the field.
+func viaFieldAlias(h *holder, p *pkg) error {
+	alias := h.graph
+	if _, ok := h.graph.Node(p.NodeID()); !ok { // want `lookup-then-insert on h.graph`
+		return alias.AddNode(p)
+	}
+	return nil
+}
+
+// And the other way round: the field aliased to a name, looked up by the
+// name, inserted through the field.
+func viaFieldAliasReversed(h *holder, p *pkg) error {
+	var alias *sdk.Graph = h.graph
+	if _, ok := alias.Node(p.NodeID()); !ok { // want `lookup-then-insert on alias`
+		return h.graph.AddNode(p)
+	}
+	return nil
+}

@@ -3,6 +3,8 @@ package purlstring
 import (
 	"fmt"
 	"strings"
+
+	"github.com/bomly-dev/bomly-cli/internal/purlprefix"
 )
 
 // A bare literal is data.
@@ -63,7 +65,7 @@ func viaLocal(name string) string {
 }
 
 // Appending to a variable that started as the prefix.
-func viaAppend(name string) string {
+func viaAppend(name string) string { // want viaAppend:"returnsPURLPrefix"
 	value := "pkg:npm/"
 	value += name // want `package URL built from a "pkg:" string`
 	return value
@@ -105,4 +107,39 @@ func capturedLater(name string) string {
 	}
 	prefix = "pkg:npm/"
 	return build(name)
+}
+
+// A helper that returns the prefix renames the defect.
+func helperPrefix() string { return "pkg:npm/" } // want helperPrefix:"returnsPURLPrefix"
+
+func viaHelper(name string) string {
+	return helperPrefix() + name // want `package URL built from a "pkg:" string`
+}
+
+// A helper whose named result holds the prefix.
+func namedPrefix() (prefix string) { // want namedPrefix:"returnsPURLPrefix"
+	prefix = "pkg:npm/"
+	return
+}
+
+func viaNamedResult(name string) string {
+	return namedPrefix() + name // want `package URL built from a "pkg:" string`
+}
+
+// A helper in another package, seen through the fact it exports.
+func viaImportedHelper(name string) string {
+	return purlprefix.Scheme() + name // want `package URL built from a "pkg:" string`
+}
+
+// A function literal held in a variable.
+func viaLiteral(name string) string {
+	prefix := func() string { return "pkg:npm/" }
+	return prefix() + name // want `package URL built from a "pkg:" string`
+}
+
+// A helper that returns something else is not a prefix.
+func otherHelper() string { return "npm" }
+
+func viaOtherHelper(name string) string {
+	return otherHelper() + "/" + name
 }

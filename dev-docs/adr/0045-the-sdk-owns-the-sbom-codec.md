@@ -84,3 +84,17 @@ repositories today and need no SDK release.
   discovery six months later.
 - `dev-docs/ARCHITECTURE.md`, `CLAUDE.md` and `AGENTS.md` update their
   package tables when the CLI package is deleted, not before.
+
+> **Amended 2026-09-15:** the train ran. bomly-sdk v0.12.0 carries `sbom`
+> and `graphview`; bomly-plugin-grype-matcher#12 and
+> bomly-plugin-syft-detector#11 drop their copies; this repository deletes
+> `internal/sbom` and `internal/graphview` and pins the release. "Behaviour-
+> preserving by construction" held for the goldens, not for the code: review
+> of bomly-sdk#88 fixed data-loss defects every copy had shipped (ref-less
+> CycloneDX components overwriting each other, a primary component listed
+> only in metadata dropped on ingest, vulnerabilities, lifecycle and
+> composition lost on a direct round trip, non-ASCII and repeated SPDX
+> identifiers, and more), and every CLI smoke golden was re-run against the
+> reviewed SDK with no drift. A syft-json document is now recognized and
+> refused with `sbom.ErrSyftJSONUnsupported`, naming the conversion. The
+> declared-versus-concluded license split is still open as bomly-sdk#90.

@@ -6,8 +6,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/graphview"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/graphview"
 )
 
 // SchemaVersion is the current CLI output schema version.

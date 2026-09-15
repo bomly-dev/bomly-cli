@@ -31,4 +31,14 @@ Origins are never merged, reconciled, or disputed. Two records of one package ar
 > lookup's argument; the regex it replaced walked past `g.Node(pkg.NodeID())`
 > at two sites, both now routed through `detectorkit.EnsureNode`.
 
+> **Amended 2026-09-15 (issue #459, ADR-0045):** the export layer is no
+> longer in this repository. The SBOM codec moved to `bomly-sdk/sbom`, and
+> the rule moved with it as `TestExportNeverReadsResolvedURL` in that
+> package, which fails on the name in any shipped file there -- identifier,
+> string, or comment -- and when it scanned no file. The `resolvedurl`
+> analyzer is deleted: its only target was `internal/sbom`. One narrowing is
+> accepted and stated: the SDK test matches the name in each file's text, so a
+> name assembled from split string constants is visible to it only as the
+> pieces, where the analyzer folded constants first.
+
 One consequence worth stating: origin does not appear in `scan`/`diff`/`explain` payloads, because those documents are built from explicit projections rather than from the SDK types. It is provenance for the SBOM, which is where users read it. (While origin rode on metadata, keeping it out took an explicit prefix filter in `output.cloneRefMetadata`; the typed field made that unnecessary.)

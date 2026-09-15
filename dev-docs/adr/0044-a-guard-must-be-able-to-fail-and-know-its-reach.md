@@ -150,3 +150,8 @@ that cannot meet them is not merged as a guard.
 > import, where the old rule banned naming the module string anywhere under
 > `internal/`. The import is the hazard, and the old file itself argued that
 > naming is not importing.
+
+> **Amended 2026-09-15 (ADR-0045):** the `resolvedurl` analyzer is deleted.
+> The export layer it policed moved to `bomly-sdk/sbom`, and the rule lives
+> there as a test that fails when it scans no file (rule 4). The narrowing is
+> recorded in ADR-0033's amendment of the same date.

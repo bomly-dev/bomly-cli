@@ -9,8 +9,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/sbom"
 )
 
 const summarySchemaVersion = "bomly.benchmark.v2"

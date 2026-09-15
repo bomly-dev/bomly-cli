@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/sbom"
 )
 
 func TestBuildSourceSummaryScoresPackagesAndRelationships(t *testing.T) {

@@ -104,6 +104,15 @@ func reportLookupThenInsert(pass *analysis.Pass, body *ast.BlockStmt) {
 // for a plain name, which is what makes a shadowing `g` in an inner scope a
 // different graph rather than the same name, and the source text for a
 // field or a call.
+//
+// The union is function-wide and not order-sensitive: a variable reassigned
+// to another graph keeps both identities folded for the whole body. That
+// errs toward reporting -- a lookup on one graph followed by an insert on
+// the other through the same name is reported, not missed -- and a red that
+// names both call sites is the direction that gets looked at (ADR-0044).
+// Order-sensitive value tracking would need SSA, and what it would buy is
+// silence on a function that swaps graphs under one name, which is a shape
+// to restructure rather than to bless.
 type aliasSet struct {
 	parent map[string]string
 }

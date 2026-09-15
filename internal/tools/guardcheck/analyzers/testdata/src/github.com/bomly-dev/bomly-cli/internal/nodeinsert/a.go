@@ -141,3 +141,27 @@ func viaFieldAliasReversed(h *holder, p *pkg) error {
 	}
 	return nil
 }
+
+// A variable reassigned to another graph folds both identities for the
+// whole body, so the pair is reported rather than missed: the analyzer errs
+// toward a red a reviewer reads.
+func reassigned(first, second *sdk.Graph, p *pkg) error {
+	_, ok := first.Node(p.NodeID()) // want `lookup-then-insert on first`
+	first = second
+	if !ok {
+		return second.AddNode(p)
+	}
+	return nil
+}
+
+// The same under a conditional reassignment.
+func conditionallyReassigned(first, second *sdk.Graph, p *pkg, swap bool) error {
+	_, ok := first.Node(p.NodeID()) // want `lookup-then-insert on first`
+	if swap {
+		first = second
+	}
+	if !ok {
+		return second.AddNode(p)
+	}
+	return nil
+}

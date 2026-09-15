@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/sbom"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
@@ -143,10 +143,14 @@ func TestDetectorResolveGraph_RejectsUnsupportedOrMalformedJSON(t *testing.T) {
 // TestDetectorResolveGraph_RejectsSyftJSON asserts that syft-format JSON SBOMs
 // yield the actionable conversion error. The fixture is handcrafted so the test
 // runs identically under the default and bomly_external_syft build tags.
+//
+// The SDK codec recognizes syft JSON by the schema URL syft stamps and refuses
+// it with its own sentinel, so the refusal names the conversion instead of
+// reporting a generic unsupported format.
 func TestDetectorResolveGraph_RejectsSyftJSON(t *testing.T) {
 	syftJSON := []byte(`{"artifacts":[],"artifactRelationships":[],"source":{"type":"directory","target":"."},"descriptor":{"name":"syft","version":"1.0.0"},"schema":{"version":"16.0.34","url":"https://raw.githubusercontent.com/anchore/syft/main/schema/json/schema-16.0.34.json"}}`)
-	if _, err := sbom.DetectJSONTarget(syftJSON); !errors.Is(err, sbom.ErrUnsupportedFormat) {
-		t.Fatalf("fixture must be an unsupported format, got %v", err)
+	if target, err := sbom.DetectJSONTarget(syftJSON); err != nil || target != sbom.TargetSyftJSON {
+		t.Fatalf("fixture must be recognized as syft JSON, got (%q, %v)", target, err)
 	}
 
 	path := filepath.Join(t.TempDir(), "input.syft.json")
@@ -155,8 +159,11 @@ func TestDetectorResolveGraph_RejectsSyftJSON(t *testing.T) {
 	}
 
 	_, err := (Detector{}).ResolveGraph(context.Background(), requestForSBOMPath(path))
-	if err == nil || !errors.Is(err, sbom.ErrUnsupportedFormat) {
-		t.Fatalf("ResolveGraph() error = %v, want wrapped sbom.ErrUnsupportedFormat", err)
+	if err == nil || !errors.Is(err, sbom.ErrSyftJSONUnsupported) {
+		t.Fatalf("ResolveGraph() error = %v, want wrapped sbom.ErrSyftJSONUnsupported", err)
+	}
+	if !strings.Contains(err.Error(), "syft convert") {
+		t.Fatalf("ResolveGraph() error %q does not name the conversion", err.Error())
 	}
 	if !strings.Contains(err.Error(), path) {
 		t.Fatalf("ResolveGraph() error %q missing the file path", err.Error())

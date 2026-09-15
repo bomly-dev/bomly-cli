@@ -7,9 +7,9 @@ import (
 	"os"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+	"github.com/bomly-dev/bomly-sdk/sbom"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 )
@@ -86,6 +86,8 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 		switch {
 		case errors.Is(err, sbom.ErrMalformedJSON):
 			return sdk.DetectionResult{}, fmt.Errorf("parse sbom file %q: %w", sbomPath, err)
+		case errors.Is(err, sbom.ErrSyftJSONUnsupported):
+			return sdk.DetectionResult{}, fmt.Errorf("detect sbom format for %q: %w", sbomPath, err)
 		case errors.Is(err, sbom.ErrUnsupportedFormat):
 			return sdk.DetectionResult{}, fmt.Errorf("detect sbom format for %q: %w", sbomPath, err)
 		case errors.Is(err, sbom.ErrUnverifiableJSON):

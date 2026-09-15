@@ -5,7 +5,7 @@
 // `go vet -vettool=bin/guardcheck` over the packages each rule polices, so
 // package scope and build tags come from the go command and results ride the
 // build cache. Each rule is one analyzer under ./analyzers, selectable by its
-// flag (-nodeinsert, -purlstring, -attributed, -resolvedurl); with no flag,
+// flag (-nodeinsert, -purlstring, -attributed); with no flag,
 // all of them run.
 //
 // Import and identifier bans are not here. Those are depguard and forbidigo
@@ -20,5 +20,5 @@ import (
 )
 
 func main() {
-	multichecker.Main(analyzers.NodeInsert, analyzers.PURLString, analyzers.Attributed, analyzers.ResolvedURL)
+	multichecker.Main(analyzers.NodeInsert, analyzers.PURLString, analyzers.Attributed)
 }

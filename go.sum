@@ -257,8 +257,8 @@ github.com/bomly-dev/bomly-plugin-scorecard-matcher v0.2.2 h1:UIC9DOYSHHFdWwO30j
 github.com/bomly-dev/bomly-plugin-scorecard-matcher v0.2.2/go.mod h1:mXXNLrppMxsygi3jEiSyLsahZbFxNmJhLLYpRxqB9W8=
 github.com/bomly-dev/bomly-plugin-syft-detector v0.4.0 h1:9YJBnA7R6XEFVnOdRb6DTM6zpSiuMwu0p6FwcJD0s/E=
 github.com/bomly-dev/bomly-plugin-syft-detector v0.4.0/go.mod h1:Ij8rg7gcbQfczP2kQnIYgC4ppve1XGZmO2eC/DpULlw=
-github.com/bomly-dev/bomly-sdk v0.11.0 h1:jd+JUPEKIct4LcWDiAxewn/NEHW3BpQZojM2NqwMfOs=
-github.com/bomly-dev/bomly-sdk v0.11.0/go.mod h1:gAGOEa88BE8gELt2rM/ZrqGIJnOzXiR6ocuuKW6AaJ0=
+github.com/bomly-dev/bomly-sdk v0.12.0 h1:9Eh6U9qwIcrmW1lCd2+rPvaBUKWrze0ZWhF+3yJGjts=
+github.com/bomly-dev/bomly-sdk v0.12.0/go.mod h1:vl4bH9eDeJTXky68gl3gblWIbjicR/a4LDmmbCl8pjE=
 github.com/bradleyjkemp/cupaloy/v2 v2.8.0 h1:any4BmKE+jGIaMpnU8YgH/I2LPiLBufr6oMMlVBbn9M=
 github.com/bradleyjkemp/cupaloy/v2 v2.8.0/go.mod h1:bm7JXdkRd4BHJk9HpwqAI8BoAY1lps46Enkdqw6aRX0=
 github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/FBatYVw=

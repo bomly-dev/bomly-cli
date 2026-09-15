@@ -35,6 +35,12 @@ import (
 // a lookup on the same graph anywhere in the enclosing function. That errs
 // toward reporting a closure that is defined early and never called after
 // the lookup, which is the direction that gets looked at (ADR-0044).
+//
+// Taking either method as a value -- `lookup := g.Node`, `(*sdk.Graph).AddNode`
+// -- is reported on its own. A call through such a value names no graph, so
+// pairing it would need value tracking; the method value buys nothing a
+// direct call or detectorkit.EnsureNode does not, so the capability is
+// removed rather than followed (ADR-0044).
 var NodeInsert = &analysis.Analyzer{
 	Name: "nodeinsert",
 	Doc:  "reports a graph lookup followed by a hand-written insert; call detectorkit.EnsureNode instead",
@@ -43,6 +49,7 @@ var NodeInsert = &analysis.Analyzer{
 
 func runNodeInsert(pass *analysis.Pass) (any, error) {
 	for _, file := range shippedFiles(pass) {
+		reportGraphMethodValues(pass, file)
 		ast.Inspect(file, func(n ast.Node) bool {
 			switch fn := n.(type) {
 			case *ast.FuncDecl:
@@ -62,6 +69,41 @@ func runNodeInsert(pass *analysis.Pass) (any, error) {
 		})
 	}
 	return nil, nil
+}
+
+// reportGraphMethodValues reports Graph.Node or Graph.AddNode used as a
+// method value rather than called on its receiver, and any method expression
+// of either, called or not: `(*sdk.Graph).AddNode(g, n)` passes the graph as
+// an argument, where the pairing does not look.
+func reportGraphMethodValues(pass *analysis.Pass, file *ast.File) {
+	called := map[*ast.SelectorExpr]bool{}
+	ast.Inspect(file, func(n ast.Node) bool {
+		if call, ok := n.(*ast.CallExpr); ok {
+			if sel, ok := ast.Unparen(call.Fun).(*ast.SelectorExpr); ok {
+				if selection, ok := pass.TypesInfo.Selections[sel]; ok && selection.Kind() == types.MethodVal {
+					called[sel] = true
+				}
+			}
+		}
+		return true
+	})
+	ast.Inspect(file, func(n ast.Node) bool {
+		sel, ok := n.(*ast.SelectorExpr)
+		if !ok || called[sel] {
+			return true
+		}
+		selection, ok := pass.TypesInfo.Selections[sel]
+		if !ok || (selection.Kind() != types.MethodVal && selection.Kind() != types.MethodExpr) {
+			return true
+		}
+		fn, _ := selection.Obj().(*types.Func)
+		if methodOn(fn, sdkPath, "Graph", "Node") || methodOn(fn, sdkPath, "Graph", "AddNode") {
+			pass.Reportf(sel.Pos(),
+				"takes %s as a value, which hides a graph lookup or insert from the lookup-then-insert check; call it directly or use detectorkit.EnsureNode",
+				types.ExprString(sel))
+		}
+		return true
+	})
 }
 
 // graphCall is one Node or AddNode call on an SDK graph.

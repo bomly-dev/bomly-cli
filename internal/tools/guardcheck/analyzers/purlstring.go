@@ -23,14 +23,14 @@ import (
 // Construction is a "pkg:"-prefixed value on either side of +, appended with
 // +=, or handed to a printf-style call. The value need not be a literal at
 // the site: the type checker's constant folding answers for a literal, a
-// named constant, or a constant expression; a package-level variable
-// initialized from such a value is found before any expression is checked,
-// whatever order the declarations come in, since Go lets a function name a
-// variable declared below it; and a local variable whose definition was
-// such a value is tracked in source order. Hoisting the prefix into a const
-// or a variable therefore renames the defect rather than removing it. A
-// bare literal is data, and a prefix check against one is decomposition,
-// not construction; neither is reported.
+// named constant, or a constant expression; and a variable, package-level or
+// local, that is ever defined or assigned such a value is found before any
+// expression is checked, whatever order the code comes in -- Go lets a
+// function name a variable declared below it, and a closure runs after an
+// assignment written below it. Hoisting the prefix into a const or a
+// variable therefore renames the defect rather than removing it. A bare
+// literal is data, and a prefix check against one is decomposition, not
+// construction; neither is reported.
 var PURLString = &analysis.Analyzer{
 	Name: "purlstring",
 	Doc:  "reports a package URL built by concatenating or formatting a \"pkg:\" value; build it with the SDK",
@@ -44,10 +44,12 @@ var printfLike = regexp.MustCompile(`(?i)printf$`)
 
 func runPURLString(pass *analysis.Pass) (any, error) {
 	files := shippedFiles(pass)
-	// Variables defined from a "pkg:" value. Package-level ones are found
-	// first, to a fixed point, because declaration order says nothing about
-	// use order at package level; locals are marked as each file is read in
-	// source order, so a definition precedes the uses it taints.
+	// Variables defined or assigned from a "pkg:" value anywhere in the
+	// package, found to a fixed point before any expression is checked.
+	// Source order says nothing about run order: a package-level variable can
+	// be declared below the function that reads it, and a closure can read a
+	// local assigned below the closure. A variable ever given a prefix is
+	// therefore a prefix everywhere, which errs toward reporting (ADR-0044).
 	tainted := map[*types.Var]bool{}
 	prefixed := func(expr ast.Expr) bool {
 		if tv, ok := pass.TypesInfo.Types[expr]; ok && tv.Value != nil && tv.Value.Kind() == constant.String {
@@ -60,25 +62,33 @@ func runPURLString(pass *analysis.Pass) (any, error) {
 	}
 	for changed := true; changed; {
 		changed = false
-		for _, file := range files {
-			for _, decl := range file.Decls {
-				gen, ok := decl.(*ast.GenDecl)
-				if !ok || gen.Tok != token.VAR {
-					continue
-				}
-				for _, spec := range gen.Specs {
-					vs, ok := spec.(*ast.ValueSpec)
-					if !ok || len(vs.Names) != len(vs.Values) {
-						continue
-					}
-					for i := range vs.Names {
-						if v := variableOf(pass, vs.Names[i]); v != nil && !tainted[v] && prefixed(vs.Values[i]) {
-							tainted[v] = true
-							changed = true
-						}
-					}
+		taint := func(lhs []ast.Expr, rhs []ast.Expr) {
+			if len(lhs) != len(rhs) {
+				return
+			}
+			for i := range lhs {
+				if v := variableOf(pass, lhs[i]); v != nil && !tainted[v] && prefixed(rhs[i]) {
+					tainted[v] = true
+					changed = true
 				}
 			}
+		}
+		for _, file := range files {
+			ast.Inspect(file, func(n ast.Node) bool {
+				switch n := n.(type) {
+				case *ast.AssignStmt:
+					if n.Tok == token.DEFINE || n.Tok == token.ASSIGN {
+						taint(n.Lhs, n.Rhs)
+					}
+				case *ast.ValueSpec:
+					names := make([]ast.Expr, len(n.Names))
+					for i, name := range n.Names {
+						names[i] = name
+					}
+					taint(names, n.Values)
+				}
+				return true
+			})
 		}
 	}
 	for _, file := range files {
@@ -105,22 +115,6 @@ func runPURLString(pass *analysis.Pass) (any, error) {
 					}
 					for _, rhs := range n.Rhs {
 						report(rhs)
-					}
-				case token.DEFINE, token.ASSIGN:
-					if len(n.Lhs) == len(n.Rhs) {
-						for i := range n.Lhs {
-							if v := variableOf(pass, n.Lhs[i]); v != nil && prefixed(n.Rhs[i]) {
-								tainted[v] = true
-							}
-						}
-					}
-				}
-			case *ast.ValueSpec:
-				if len(n.Names) == len(n.Values) {
-					for i := range n.Names {
-						if v := variableOf(pass, n.Names[i]); v != nil && prefixed(n.Values[i]) {
-							tainted[v] = true
-						}
 					}
 				}
 			case *ast.CallExpr:

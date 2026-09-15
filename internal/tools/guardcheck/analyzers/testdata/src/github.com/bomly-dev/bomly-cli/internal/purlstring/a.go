@@ -96,3 +96,13 @@ func forwardChain(name string) string {
 var laterAlias = laterPrefix
 
 var laterPrefix = "pkg:npm/"
+
+// A closure that reads a local assigned below it runs after the assignment.
+func capturedLater(name string) string {
+	var prefix string
+	build := func(name string) string {
+		return prefix + name // want `package URL built from a "pkg:" string`
+	}
+	prefix = "pkg:npm/"
+	return build(name)
+}

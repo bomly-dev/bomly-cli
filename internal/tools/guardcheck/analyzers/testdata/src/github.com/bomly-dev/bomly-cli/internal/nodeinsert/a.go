@@ -185,3 +185,24 @@ func closureOnOtherGraph(from, to *sdk.Graph, p *pkg) error {
 	}
 	return nil
 }
+
+// Method values hide which graph a call acts on, so taking one is reported.
+func methodValues(g *sdk.Graph, p *pkg) error {
+	lookup, insert := g.Node, g.AddNode // want `takes g.Node as a value` `takes g.AddNode as a value`
+	if _, ok := lookup(p.NodeID()); !ok {
+		return insert(p)
+	}
+	return nil
+}
+
+// A method expression is the same capability.
+func methodExpression(g *sdk.Graph, p *pkg) error {
+	return (*sdk.Graph).AddNode(g, p) // want `takes \(\*sdk.Graph\).AddNode as a value`
+}
+
+// A method value of a method the check does not pair is not reported.
+func otherMethodValue(g *sdk.Graph, p *pkg) error {
+	insert := g.InsertNode
+	_, err := insert(p)
+	return err
+}

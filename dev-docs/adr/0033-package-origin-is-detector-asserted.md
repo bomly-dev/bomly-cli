@@ -30,7 +30,7 @@ Origins are never merged, reconciled, or disputed. Two records of one package ar
 > graph variable (aliases folded) and no longer depends on the shape of the
 > lookup's argument; the regex it replaced walked past `g.Node(pkg.NodeID())`
 > at two sites, both now routed through `detectorkit.EnsureNode`.
-
+>
 > **Amended 2026-09-15 (issue #459, ADR-0045):** the export layer is no
 > longer in this repository. The SBOM codec moved to `bomly-sdk/sbom`, and
 > the rule moved with it as `TestExportNeverReadsResolvedURL` in that

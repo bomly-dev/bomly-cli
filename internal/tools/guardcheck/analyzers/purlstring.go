@@ -23,11 +23,14 @@ import (
 // Construction is a "pkg:"-prefixed value on either side of +, appended with
 // +=, or handed to a printf-style call. The value need not be a literal at
 // the site: the type checker's constant folding answers for a literal, a
-// named constant, or a constant expression, and a local variable whose
-// definition in the same file was such a value is tracked in source order,
-// so hoisting the prefix into a const or a variable renames the defect
-// rather than removing it. A bare literal is data, and a prefix check
-// against one is decomposition, not construction; neither is reported.
+// named constant, or a constant expression; a package-level variable
+// initialized from such a value is found before any expression is checked,
+// whatever order the declarations come in, since Go lets a function name a
+// variable declared below it; and a local variable whose definition was
+// such a value is tracked in source order. Hoisting the prefix into a const
+// or a variable therefore renames the defect rather than removing it. A
+// bare literal is data, and a prefix check against one is decomposition,
+// not construction; neither is reported.
 var PURLString = &analysis.Analyzer{
 	Name: "purlstring",
 	Doc:  "reports a package URL built by concatenating or formatting a \"pkg:\" value; build it with the SDK",
@@ -40,19 +43,45 @@ const purlScheme = "pkg:"
 var printfLike = regexp.MustCompile(`(?i)printf$`)
 
 func runPURLString(pass *analysis.Pass) (any, error) {
-	for _, file := range shippedFiles(pass) {
-		// Variables defined from a "pkg:" value, marked as the file is read
-		// in source order so a definition precedes the uses it taints.
-		tainted := map[*types.Var]bool{}
-		prefixed := func(expr ast.Expr) bool {
-			if tv, ok := pass.TypesInfo.Types[expr]; ok && tv.Value != nil && tv.Value.Kind() == constant.String {
-				return strings.HasPrefix(constant.StringVal(tv.Value), purlScheme)
-			}
-			if v := variableOf(pass, expr); v != nil {
-				return tainted[v]
-			}
-			return false
+	files := shippedFiles(pass)
+	// Variables defined from a "pkg:" value. Package-level ones are found
+	// first, to a fixed point, because declaration order says nothing about
+	// use order at package level; locals are marked as each file is read in
+	// source order, so a definition precedes the uses it taints.
+	tainted := map[*types.Var]bool{}
+	prefixed := func(expr ast.Expr) bool {
+		if tv, ok := pass.TypesInfo.Types[expr]; ok && tv.Value != nil && tv.Value.Kind() == constant.String {
+			return strings.HasPrefix(constant.StringVal(tv.Value), purlScheme)
 		}
+		if v := variableOf(pass, expr); v != nil {
+			return tainted[v]
+		}
+		return false
+	}
+	for changed := true; changed; {
+		changed = false
+		for _, file := range files {
+			for _, decl := range file.Decls {
+				gen, ok := decl.(*ast.GenDecl)
+				if !ok || gen.Tok != token.VAR {
+					continue
+				}
+				for _, spec := range gen.Specs {
+					vs, ok := spec.(*ast.ValueSpec)
+					if !ok || len(vs.Names) != len(vs.Values) {
+						continue
+					}
+					for i := range vs.Names {
+						if v := variableOf(pass, vs.Names[i]); v != nil && !tainted[v] && prefixed(vs.Values[i]) {
+							tainted[v] = true
+							changed = true
+						}
+					}
+				}
+			}
+		}
+	}
+	for _, file := range files {
 		reported := map[token.Pos]bool{}
 		report := func(expr ast.Expr) {
 			if prefixed(expr) && !reported[expr.Pos()] {

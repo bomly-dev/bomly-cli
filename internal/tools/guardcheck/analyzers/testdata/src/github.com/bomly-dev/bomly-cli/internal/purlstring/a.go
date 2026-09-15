@@ -81,3 +81,18 @@ func localData(s string) bool {
 	known := "pkg:npm/left-pad@1.3.0"
 	return s == known || strings.HasPrefix(s, scheme)
 }
+
+// A package-level prefix declared below the function that uses it.
+func forwardReference(name string) string {
+	return laterPrefix + name // want `package URL built from a "pkg:" string`
+}
+
+// And one that reaches the prefix through another package-level variable
+// declared before its source: the pre-scan runs to a fixed point.
+func forwardChain(name string) string {
+	return laterAlias + name // want `package URL built from a "pkg:" string`
+}
+
+var laterAlias = laterPrefix
+
+var laterPrefix = "pkg:npm/"

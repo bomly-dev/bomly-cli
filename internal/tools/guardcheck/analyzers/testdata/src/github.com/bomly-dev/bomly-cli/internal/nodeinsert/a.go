@@ -165,3 +165,23 @@ func conditionallyReassigned(first, second *sdk.Graph, p *pkg, swap bool) error 
 	}
 	return nil
 }
+
+// A closure declared before the lookup and called after it: the insert
+// runs after the lookup even though it is written above it.
+func closureDeclaredFirst(g *sdk.Graph, p *pkg) error {
+	add := func() error { return g.AddNode(p) }
+	_, ok := g.Node(p.NodeID()) // want `lookup-then-insert on g`
+	if !ok {
+		return add()
+	}
+	return nil
+}
+
+// A closure on a different graph declared first is still not the hazard.
+func closureOnOtherGraph(from, to *sdk.Graph, p *pkg) error {
+	add := func() error { return to.AddNode(p) }
+	if _, ok := from.Node(p.NodeID()); ok {
+		return add()
+	}
+	return nil
+}

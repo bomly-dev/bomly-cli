@@ -29,6 +29,12 @@ import (
 // for as long as it existed. Both calls must resolve to methods of the SDK's
 // Graph; a local type with the same method names is not the hazard, and a
 // lookup on one graph followed by an insert into another is not either.
+//
+// Order is source order, except inside a closure: a closure's body runs when
+// it is called, not where it is written, so an insert inside one pairs with
+// a lookup on the same graph anywhere in the enclosing function. That errs
+// toward reporting a closure that is defined early and never called after
+// the lookup, which is the direction that gets looked at (ADR-0044).
 var NodeInsert = &analysis.Analyzer{
 	Name: "nodeinsert",
 	Doc:  "reports a graph lookup followed by a hand-written insert; call detectorkit.EnsureNode instead",
@@ -60,35 +66,46 @@ func runNodeInsert(pass *analysis.Pass) (any, error) {
 
 // graphCall is one Node or AddNode call on an SDK graph.
 type graphCall struct {
-	graph string // the identity the receiver resolves to
-	text  string // the receiver as written, for the message
-	call  *ast.CallExpr
+	graph     string // the identity the receiver resolves to
+	text      string // the receiver as written, for the message
+	call      *ast.CallExpr
+	inClosure bool // inside a func literal nested in the body being scanned
 }
 
 func reportLookupThenInsert(pass *analysis.Pass, body *ast.BlockStmt) {
 	aliases := graphAliases(pass, body)
 	var lookups, inserts []graphCall
-	ast.Inspect(body, func(n ast.Node) bool {
-		call, ok := n.(*ast.CallExpr)
-		if !ok {
+	var collect func(root ast.Node, inClosure bool)
+	collect = func(root ast.Node, inClosure bool) {
+		ast.Inspect(root, func(n ast.Node) bool {
+			if lit, ok := n.(*ast.FuncLit); ok {
+				collect(lit.Body, true)
+				return false
+			}
+			call, ok := n.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+			sel, ok := call.Fun.(*ast.SelectorExpr)
+			if !ok {
+				return true
+			}
+			fn, _ := typeutil.Callee(pass.TypesInfo, call).(*types.Func)
+			switch {
+			case methodOn(fn, sdkPath, "Graph", "Node"):
+				lookups = append(lookups, graphCall{aliases.identity(pass, sel.X), types.ExprString(sel.X), call, inClosure})
+			case methodOn(fn, sdkPath, "Graph", "AddNode"):
+				inserts = append(inserts, graphCall{aliases.identity(pass, sel.X), types.ExprString(sel.X), call, inClosure})
+			}
 			return true
-		}
-		sel, ok := call.Fun.(*ast.SelectorExpr)
-		if !ok {
-			return true
-		}
-		fn, _ := typeutil.Callee(pass.TypesInfo, call).(*types.Func)
-		switch {
-		case methodOn(fn, sdkPath, "Graph", "Node"):
-			lookups = append(lookups, graphCall{aliases.identity(pass, sel.X), types.ExprString(sel.X), call})
-		case methodOn(fn, sdkPath, "Graph", "AddNode"):
-			inserts = append(inserts, graphCall{aliases.identity(pass, sel.X), types.ExprString(sel.X), call})
-		}
-		return true
-	})
+		})
+	}
+	collect(body, false)
 	for _, lookup := range lookups {
 		for _, insert := range inserts {
-			if insert.graph == lookup.graph && insert.call.Pos() > lookup.call.Pos() {
+			// An insert inside a closure runs when the closure is called,
+			// which can be after a lookup written below it.
+			if insert.graph == lookup.graph && (insert.inClosure || insert.call.Pos() > lookup.call.Pos()) {
 				pass.Reportf(lookup.call.Pos(),
 					"lookup-then-insert on %s decides by hand what happens to a duplicate node; call detectorkit.EnsureNode",
 					lookup.text)

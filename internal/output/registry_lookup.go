@@ -25,8 +25,9 @@ import (
 // "deep" in three places.
 //
 // This file is the one home for those rules. Nothing under the presentation
-// layers calls PackageRegistry.Get directly any more, and
-// TestPresentationLookupsGoThroughTheSharedHelper keeps it that way.
+// layers calls PackageRegistry.Get directly any more; the forbidigo rule
+// tagged [registry-lookup] in .golangci.yml keeps it that way, and the one
+// call below carries the one nolint that rule permits.
 
 // RegistryPackage returns what the matching stage recorded for a package
 // reference, or nil when it recorded nothing.
@@ -39,7 +40,7 @@ func RegistryPackage(registry *sdk.PackageRegistry, packageRef string) *sdk.Pack
 	if registry == nil || packageRef == "" {
 		return nil
 	}
-	pkg, ok := registry.Get(packageRef)
+	pkg, ok := registry.Get(packageRef) //nolint:forbidigo // the one permitted lookup; every presentation surface routes through this file
 	if !ok {
 		return nil
 	}

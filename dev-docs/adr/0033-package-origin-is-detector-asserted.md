@@ -21,4 +21,14 @@ Origins are never merged, reconciled, or disputed. Two records of one package ar
 >
 > One qualification, because "both origins are kept" is easy to over-read: `MergeOrigins` does drop three kinds of entry — one that fails validation and therefore cannot be published, an exact duplicate keyed on the normalized form rather than the input bytes, and a narrowly superseded one. Supersession is deliberately narrow: same repository, same artifact URL, and the superseded entry states no revision while the survivor does, which collapses a floating repository reference into the pinned revision a lockfile later supplied. Two genuinely different places both survive, because that disagreement is the shape of a dependency-confusion signal rather than noise to tidy away. What `MergeOrigins` never does is choose between two origins that disagree.
 
+> **Amended 2026-09-13 (issue #464):** `TestExportNeverReadsResolvedURL` and
+> `TestNodeInsertionGoesThroughTheSharedHelper` are gone. Both rules are
+> analyzers in `internal/tools/guardcheck`: `resolvedurl` reports the name
+> `ResolvedURL` anywhere in the export layer's shipped files -- identifier,
+> string, or comment, so a field reached by reflection is as visible as a
+> field read -- and `nodeinsert` pairs the lookup with the insert by the
+> graph variable (aliases folded) and no longer depends on the shape of the
+> lookup's argument; the regex it replaced walked past `g.Node(pkg.NodeID())`
+> at two sites, both now routed through `detectorkit.EnsureNode`.
+
 One consequence worth stating: origin does not appear in `scan`/`diff`/`explain` payloads, because those documents are built from explicit projections rather than from the SDK types. It is provenance for the SBOM, which is where users read it. (While origin rode on metadata, keeping it out took an explicit prefix filter in `output.cloneRefMetadata`; the typed field made that unnecessary.)

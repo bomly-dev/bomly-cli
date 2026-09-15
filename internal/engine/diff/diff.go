@@ -8,6 +8,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/detectorkit"
 )
 
 // Target describes one side of a diff pipeline run.
@@ -144,13 +145,11 @@ func focusedAuditGraph(packages []*sdk.DependencyNode) (*sdk.Graph, error) {
 		if pkg == nil || pkg.NodeID() == "" {
 			continue
 		}
-		if _, exists := focused.Node(pkg.NodeID()); !exists {
-			if err := focused.AddNode(pkg.Clone()); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
-				return nil, err
-			}
-		}
-		if _, exists := focused.Node(pkg.NodeID()); !exists {
-			continue
+		// Insert-or-keep is the shared helper's decision, not a hand-written
+		// lookup: a package listed twice keeps the surviving node's records
+		// instead of being silently dropped on the second sighting.
+		if _, err := detectorkit.EnsureNode(focused, pkg.Clone()); err != nil {
+			return nil, err
 		}
 		if err := focused.AddEdge(root.NodeID(), pkg.NodeID()); err != nil && !errors.Is(err, sdk.ErrSelfDependency) {
 			return nil, err

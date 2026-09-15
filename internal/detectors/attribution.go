@@ -99,6 +99,24 @@ func Attributed(result sdk.DetectionResult, declarations ...ModuleDeclarations) 
 	return result
 }
 
+// Unattributed returns result unchanged and records, in the one place a
+// reviewer looks, why its graphs carry no module root.
+//
+// It is the typed exemption from the rule that a detection result carrying
+// graphs is returned through Attributed. The rule is enforced by the
+// attributed analyzer in internal/tools/guardcheck, which accepts a result
+// wrapped in either function and reports a bare one; the exemption therefore
+// lives at the site that needs it, with its reason as a required argument,
+// rather than in a path list the analyzer has to keep in step with the tree
+// (ADR-0044 rule 5). The reason is documentation: it is not logged or
+// published. Two detectors qualify today -- the SBOM detector converts a
+// document whose packages were resolved elsewhere, and the GitHub Actions
+// detector reads workflow files that declare no module -- and a third needs
+// the same kind of argument, not a comment.
+func Unattributed(result sdk.DetectionResult, reason string) sdk.DetectionResult {
+	return result
+}
+
 // attributionRoot is one module root together with everything its resolution
 // reached, and how.
 type attributionRoot struct {

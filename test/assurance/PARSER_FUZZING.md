@@ -49,7 +49,7 @@ oversized structures within the bound, and arbitrary path/reference text.
   those panics and reports the value as unparseable, so `FuzzSPDXLicenseValue`
   asserts the CLI's use of the kit rather than the dependency's behavior. A
   call site that reaches the dependency directly would reintroduce the crash,
-  which `TestNoDirectSPDXExpressionUse` prevents across the whole tree.
+  which the `depguard` rule `internal-kits` in `.golangci.yml` prevents for every package under `internal/`, test files included.
 - Filesystem discovery and package-manager subprocess orchestration are not
   parsers and remain covered by unit, integration, and smoke tests.
 - Reachability analyzers (govulncheck, jsreach, pyreach, jvmreach) and the

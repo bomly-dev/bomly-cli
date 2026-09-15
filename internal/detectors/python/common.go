@@ -416,13 +416,14 @@ func attachOrphansToRoot(depsGraph *sdk.Graph, rootID string) error {
 // or Poetry project does not have, and two projects declared by different
 // manifests could fold into one record on matching coordinates. One home for
 // the rule means a parser added later inherits it instead of copying the
-// nearest literal. TestPythonRootsGoThroughTheSharedConstructor fails if a
-// direct call reappears.
+// nearest literal. The forbidigo rule tagged [python-root] in .golangci.yml
+// reports a direct call anywhere else in this package; the call below carries
+// the one nolint that rule permits.
 func pythonModuleRoot(coords sdk.Coordinates) (*sdk.ModuleNode, error) {
 	if strings.TrimSpace(coords.Name) == "" {
 		coords.Name = "root"
 	}
-	return sdk.NewModuleNode(pythonDeclaringManifest(coords.PackageManager), coords)
+	return sdk.NewModuleNode(pythonDeclaringManifest(coords.PackageManager), coords) //nolint:forbidigo // the one permitted construction; pythonModuleRoot decides the declaring manifest
 }
 
 // pythonDeclaringManifest names the file that declares a Python project, per

@@ -76,6 +76,12 @@ directly, when a detector passes a purl-type string literal instead of
 deriving it from its coordinates, or when a second mapping table appears.
 The CLI keeps no shim copies: call sites migrate to the kit imports.
 
+> **Amended 2026-09-13 (issue #464):** in the CLI that test is now the
+> `depguard` rule `internal-kits` and the `forbidigo` patterns tagged
+> `[purl-type]` in `.golangci.yml`, plus the `purlstring` analyzer in
+> `internal/tools/guardcheck`. The rule is unchanged; its home is the tool
+> that owns import and identifier bans.
+
 ## Consequences
 
 - The known divergences become impossible rather than fixed-until-next-time:

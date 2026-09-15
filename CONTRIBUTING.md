@@ -44,7 +44,7 @@ make verify      # everything that gates a push (add SMOKE=1 for the smoke suite
 make smoke       # end-to-end tests (slow, requires network)
 make fuzz FUZZTIME=5s  # run the registered fuzz targets briefly
 make fmt         # format
-make lint        # golangci-lint
+make lint        # golangci-lint plus the house-rule analyzers in internal/tools/guardcheck
 make generate    # regenerate config reference, schemas, support matrix, component docs
 ```
 

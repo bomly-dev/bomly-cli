@@ -48,7 +48,7 @@ regression seed.
 
 - `make fmt` rewrites tracked Go files with `gofmt`
 - `make fmt-check` fails when tracked Go files are not formatted
-- `make lint` runs the repository-pinned `golangci-lint`
+- `make lint` runs the repository-pinned `golangci-lint` under both build-tag sets, then the house-rule analyzers in `internal/tools/guardcheck` through `go vet -vettool` (`make guardcheck` alone runs just those)
 - `make install-hooks` points Git at the `.githooks/` pre-commit hook
 
 ## Releases

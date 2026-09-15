@@ -21,7 +21,7 @@ require (
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.8.0
-	github.com/mark3labs/mcp-go v0.58.0
+	github.com/mark3labs/mcp-go v1.0.0
 	github.com/spdx/tools-golang v0.6.0-rc4
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10

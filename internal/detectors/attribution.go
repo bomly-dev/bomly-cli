@@ -54,14 +54,15 @@ type ModuleDeclarations struct {
 // that the producer did not attribute the site, and inventing a root here
 // would put a directory into the join key that nothing observed.
 //
-// One limit is the SDK's, not this function's, and is recorded here because
-// this is where the records are made: sdk's hasDependencyLocation compares a
-// location's paths and position and nothing else, so if two separate nodes
-// each carrying one root's record are merged into one, the second record is
-// dropped. Entries that share node pointers -- how every workspace detector
-// here partitions -- keep both, which is why the workspace case survives; two
-// detectors resolving one package from one path would not. Widening that
-// comparison to the module root belongs in the SDK.
+// The records survive the SDK fold as well as the workspace partition. Since
+// bomly-sdk v0.11.0 a location's identity in Graph.InsertNode is the usage
+// unit -- path, position and module root -- so two separate nodes each
+// carrying one root's record of the same path keep both records when they
+// are merged into one, and two witnesses of one usage merge their scopes and
+// relationship rather than dropping the second (bomly-dev/bomly-sdk#73).
+// Before that release the fold compared paths and position only, and the
+// second root's record was lost; that is why the module root is stored on
+// the record rather than inferred from the path.
 func Attributed(result sdk.DetectionResult, declarations ...ModuleDeclarations) sdk.DetectionResult {
 	if result.Graphs == nil {
 		return result

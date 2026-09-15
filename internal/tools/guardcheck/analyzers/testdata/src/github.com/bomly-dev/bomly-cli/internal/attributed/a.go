@@ -54,3 +54,27 @@ func wrappedLater(graphs *sdk.GraphContainer) (sdk.DetectionResult, error) {
 func parenthesized(graphs *sdk.GraphContainer) sdk.DetectionResult {
 	return detectors.Attributed((sdk.DetectionResult{Graphs: graphs}))
 }
+
+// Graphs set after construction escapes a literal-keyed rule; the assignment
+// itself is reported.
+func assignedLater(graphs *sdk.GraphContainer) (sdk.DetectionResult, error) {
+	result := sdk.DetectionResult{}
+	result.Graphs = graphs // want `assigns graphs onto a detection result`
+	return result, nil
+}
+
+// Through a pointer as well.
+func assignedThroughPointer(graphs *sdk.GraphContainer) (sdk.DetectionResult, error) {
+	result := &sdk.DetectionResult{}
+	result.Graphs = graphs // want `assigns graphs onto a detection result`
+	return *result, nil
+}
+
+// A Graphs field on some other type is not the rule's business.
+type unrelated struct{ Graphs *sdk.GraphContainer }
+
+func otherType(graphs *sdk.GraphContainer) unrelated {
+	u := unrelated{}
+	u.Graphs = graphs
+	return u
+}

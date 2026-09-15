@@ -64,6 +64,17 @@ func runAttributed(pass *analysis.Pass) (any, error) {
 					pass.Reportf(n.Pos(),
 						"builds a detection result that carries graphs without recording which module root produced each site; build it inside detectors.Attributed, or inside detectors.Unattributed with the reason there is no root to name")
 				}
+			case *ast.AssignStmt:
+				// Graphs set on a result after it was built is the same
+				// decision made a line later: a literal-keyed rule would
+				// not see it, so the assignment is reported on its own.
+				for _, lhs := range n.Lhs {
+					if sel, ok := ast.Unparen(lhs).(*ast.SelectorExpr); ok && sel.Sel.Name == "Graphs" &&
+						isNamed(pass.TypesInfo.TypeOf(sel.X), sdkPath, "DetectionResult") {
+						pass.Reportf(sel.Pos(),
+							"assigns graphs onto a detection result after it was built, which escapes the attribution wrappers; build the result as a literal inside detectors.Attributed or detectors.Unattributed")
+					}
+				}
 			}
 			return true
 		})

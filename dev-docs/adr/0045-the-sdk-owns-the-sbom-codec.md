@@ -85,10 +85,12 @@ repositories today and need no SDK release.
 - `dev-docs/ARCHITECTURE.md`, `CLAUDE.md` and `AGENTS.md` update their
   package tables when the CLI package is deleted, not before.
 
-> **Amended 2026-09-15:** the train ran. bomly-sdk v0.12.0 carries `sbom`
-> and `graphview`; bomly-plugin-grype-matcher#12 and
-> bomly-plugin-syft-detector#11 drop their copies; this repository deletes
-> `internal/sbom` and `internal/graphview` and pins the release. "Behaviour-
+> **Amended 2026-09-15:** the train ran, in the order this decision set.
+> bomly-sdk v0.12.0 carries `sbom` and `graphview`;
+> bomly-plugin-grype-matcher v0.5.0 and bomly-plugin-syft-detector v0.5.0
+> deleted their copies and pinned it; this repository deletes
+> `internal/sbom` and `internal/graphview` and pins all three. One codec
+> now, where there were four. "Behaviour-
 > preserving by construction" held for the goldens, not for the code: review
 > of bomly-sdk#88 fixed data-loss defects every copy had shipped (ref-less
 > CycloneDX components overwriting each other, a primary component listed

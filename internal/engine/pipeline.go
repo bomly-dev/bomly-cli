@@ -8,8 +8,10 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
 	"github.com/bomly-dev/bomly-cli/internal/remediation"
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // Pipeline orchestrates a full scan through a sequence of typed stages:
@@ -58,9 +60,9 @@ func (p *Pipeline) RunPreAudit(ctx context.Context, req PipelineRequest) (Pipeli
 }
 
 // RunAuditGraph evaluates policy for graph using req's configured auditors.
-func (p *Pipeline) RunAuditGraph(ctx context.Context, graph *sdk.Graph, registry *sdk.PackageRegistry, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
+func (p *Pipeline) RunAuditGraph(ctx context.Context, graph *model.Graph, registry *model.PackageRegistry, req PipelineRequest) (plugin.AuditResult, []PipelineWarning) {
 	if !req.AuditEnabled || graph == nil {
-		return sdk.AuditResult{}, nil
+		return plugin.AuditResult{}, nil
 	}
 	return p.runAuditStage(ctx, graph, registry, req)
 }
@@ -70,7 +72,7 @@ func (p *Pipeline) RunAuditGraph(ctx context.Context, graph *sdk.Graph, registry
 // start/completion logging. Shared by RunAuditGraph (explain's component
 // audit path) and runAudit (the full-scan audit stage) so the two callers
 // cannot drift out of sync.
-func (p *Pipeline) runAuditStage(ctx context.Context, graph *sdk.Graph, registry *sdk.PackageRegistry, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
+func (p *Pipeline) runAuditStage(ctx context.Context, graph *model.Graph, registry *model.PackageRegistry, req PipelineRequest) (plugin.AuditResult, []PipelineWarning) {
 	if req.Progress != nil {
 		req.Progress.StartStage("Evaluating policy", 1)
 	}
@@ -92,7 +94,7 @@ func (p *Pipeline) runAuditStage(ctx context.Context, graph *sdk.Graph, registry
 	return auditResult, auditWarnings
 }
 
-func (p *Pipeline) applyFindingPolicy(ctx context.Context, findings []sdk.Finding, registry *sdk.PackageRegistry, req PipelineRequest) []sdk.Finding {
+func (p *Pipeline) applyFindingPolicy(ctx context.Context, findings []model.Finding, registry *model.PackageRegistry, req PipelineRequest) []model.Finding {
 	beforeAccepted := acceptedFindingCount(findings)
 	started := time.Now()
 	resolved := applyFindingPolicy(ctx, findings, registry, req)
@@ -109,21 +111,21 @@ func (p *Pipeline) applyFindingPolicy(ctx context.Context, findings []sdk.Findin
 	return resolved
 }
 
-func applyFindingPolicy(ctx context.Context, findings []sdk.Finding, registry *sdk.PackageRegistry, req PipelineRequest) []sdk.Finding {
+func applyFindingPolicy(ctx context.Context, findings []model.Finding, registry *model.PackageRegistry, req PipelineRequest) []model.Finding {
 	if req.WarnOnly {
 		for idx := range findings {
-			if findings[idx].PolicyStatus == "" || findings[idx].PolicyStatus == sdk.FindingPolicyStatusFail {
-				findings[idx].PolicyStatus = sdk.FindingPolicyStatusWarn
+			if findings[idx].PolicyStatus == "" || findings[idx].PolicyStatus == model.FindingPolicyStatusFail {
+				findings[idx].PolicyStatus = model.FindingPolicyStatusWarn
 			}
 		}
 	}
 	return resolveFindingPolicyStatuses(ctx, findings, registry, req.FindingPolicyResolvers)
 }
 
-func acceptedFindingCount(findings []sdk.Finding) int {
+func acceptedFindingCount(findings []model.Finding) int {
 	total := 0
 	for _, finding := range findings {
-		if finding.PolicyStatus == sdk.FindingPolicyStatusSuppressed {
+		if finding.PolicyStatus == model.FindingPolicyStatusSuppressed {
 			total++
 		}
 	}
@@ -160,11 +162,11 @@ func (p *Pipeline) runResolve(ctx context.Context, result *PipelineResult, req P
 // resolutionFailureWarnings converts the (possibly joined) resolution error into
 // one warning per failed detector chain. The scan continues without those
 // subprojects, so the graph is incomplete: the type says so.
-func resolutionFailureWarnings(err error) []sdk.DetectorWarning {
-	warnings := make([]sdk.DetectorWarning, 0)
+func resolutionFailureWarnings(err error) []plugin.DetectorWarning {
+	warnings := make([]plugin.DetectorWarning, 0)
 	for _, warning := range PipelineWarningsFromError(err, "detector") {
-		warnings = append(warnings, sdk.DetectorWarning{
-			Type:    sdk.DetectorWarningResolutionFailure,
+		warnings = append(warnings, plugin.DetectorWarning{
+			Type:    plugin.DetectorWarningResolutionFailure,
 			Source:  warning.Source,
 			Message: warning.Message,
 		})
@@ -178,8 +180,8 @@ func resolutionFailureWarnings(err error) []sdk.DetectorWarning {
 // fallbackWarnings converts fallback annotations recorded during parallel
 // resolution into structured warnings and Warn logs. It runs single-goroutine
 // after resolveAll returns, so no synchronization is needed.
-func (p *Pipeline) fallbackWarnings(results []sdk.DetectionResult) []sdk.DetectorWarning {
-	var warnings []sdk.DetectorWarning
+func (p *Pipeline) fallbackWarnings(results []plugin.DetectionResult) []plugin.DetectorWarning {
+	var warnings []plugin.DetectorWarning
 	seen := make(map[string]struct{})
 	for _, result := range results {
 		if result.FallbackFrom == "" {
@@ -196,8 +198,8 @@ func (p *Pipeline) fallbackWarnings(results []sdk.DetectionResult) []sdk.Detecto
 			zap.String("subproject", result.SubprojectInfo.RelativePath),
 			zap.String("reason", result.FallbackReason),
 		)
-		warnings = append(warnings, sdk.DetectorWarning{
-			Type:       sdk.DetectorWarningFallback,
+		warnings = append(warnings, plugin.DetectorWarning{
+			Type:       plugin.DetectorWarningFallback,
 			Source:     result.FallbackFrom,
 			Subproject: result.SubprojectInfo.RelativePath,
 			Manifest:   firstManifestPath(result),
@@ -207,7 +209,7 @@ func (p *Pipeline) fallbackWarnings(results []sdk.DetectionResult) []sdk.Detecto
 	return warnings
 }
 
-func fallbackWarningMessage(result sdk.DetectionResult) string {
+func fallbackWarningMessage(result plugin.DetectionResult) string {
 	var b strings.Builder
 	reason := result.FallbackReason
 	if reason == "" {
@@ -221,7 +223,7 @@ func fallbackWarningMessage(result sdk.DetectionResult) string {
 // firstManifestPath names a manifest the result produced, so a warning can point
 // at a file. Fallback provenance is recorded on every manifest of the result;
 // one is enough to locate it.
-func firstManifestPath(result sdk.DetectionResult) string {
+func firstManifestPath(result plugin.DetectionResult) string {
 	if result.Graphs == nil {
 		return ""
 	}
@@ -241,8 +243,8 @@ func firstManifestPath(result sdk.DetectionResult) string {
 // Duplicates (a repo-root config shared by several subproject results) are
 // reported once. Like fallbackWarnings, this runs single-goroutine after
 // resolveAll returns.
-func (p *Pipeline) detectorReportedWarnings(results []sdk.DetectionResult) []sdk.DetectorWarning {
-	var warnings []sdk.DetectorWarning
+func (p *Pipeline) detectorReportedWarnings(results []plugin.DetectionResult) []plugin.DetectorWarning {
+	var warnings []plugin.DetectorWarning
 	seen := make(map[string]struct{})
 	for _, result := range results {
 		for _, warning := range result.Warnings {
@@ -284,7 +286,7 @@ func (p *Pipeline) runConsolidate(result *PipelineResult) error {
 	}
 	result.Graph = selectedGraph
 	result.Registry = consolidation.BuildPackageRegistry(consolidated)
-	p.logUnexpectedMultiRootGraph("consolidated", "", "", selectedGraph, sdk.ManifestMetadata{})
+	p.logUnexpectedMultiRootGraph("consolidated", "", "", selectedGraph, model.ManifestMetadata{})
 	packages := 0
 	if selectedGraph != nil {
 		packages = selectedGraph.Size()
@@ -299,7 +301,7 @@ func (p *Pipeline) runConsolidate(result *PipelineResult) error {
 	return nil
 }
 
-func (p *Pipeline) logUnexpectedMultiRootResolveGraphs(results []sdk.DetectionResult) {
+func (p *Pipeline) logUnexpectedMultiRootResolveGraphs(results []plugin.DetectionResult) {
 	for _, result := range results {
 		if result.Graphs == nil {
 			continue
@@ -316,7 +318,7 @@ func (p *Pipeline) logUnexpectedMultiRootResolveGraphs(results []sdk.DetectionRe
 	}
 }
 
-func (p *Pipeline) logUnexpectedMultiRootGraph(stage, detector, subproject string, graph *sdk.Graph, manifest sdk.ManifestMetadata) {
+func (p *Pipeline) logUnexpectedMultiRootGraph(stage, detector, subproject string, graph *model.Graph, manifest model.ManifestMetadata) {
 	if p == nil || p.Logger == nil || graph == nil {
 		return
 	}
@@ -335,7 +337,7 @@ func (p *Pipeline) logUnexpectedMultiRootGraph(stage, detector, subproject strin
 		// warning is about: dependencies hanging off the scanned project with
 		// no stated relationship. An application-typed dependency node is a
 		// consumed package and does not make the graph a project graph.
-		if root.Kind() == sdk.NodeKindModule {
+		if root.Kind() == model.NodeKindModule {
 			hasApplicationRoot = true
 		}
 	}
@@ -369,12 +371,12 @@ func (p *Pipeline) runMatch(ctx context.Context, result *PipelineResult, req Pip
 	// contradicting the comment below it and sending anyone reading -v after
 	// a missing enrichment.
 	candidates := 0
-	result.Graph.WalkNodes(func(graphNode sdk.GraphNode) bool {
+	result.Graph.WalkNodes(func(graphNode model.GraphNode) bool {
 		// Only dependency nodes are ever enriched: a manifest or a module is
 		// the project's own artifact, and there is no registry to ask about
 		// it. They are not counted as excluded either -- they were never
 		// candidates.
-		dependency, ok := graphNode.(*sdk.DependencyNode)
+		dependency, ok := graphNode.(*model.DependencyNode)
 		if !ok {
 			return true
 		}
@@ -426,7 +428,7 @@ func (p *Pipeline) runMatch(ctx context.Context, result *PipelineResult, req Pip
 	}
 }
 
-func remediationCounts(registry *sdk.PackageRegistry) (packages, suggestions int) {
+func remediationCounts(registry *model.PackageRegistry) (packages, suggestions int) {
 	if registry == nil {
 		return 0, 0
 	}
@@ -440,10 +442,10 @@ func remediationCounts(registry *sdk.PackageRegistry) (packages, suggestions int
 	return packages, suggestions
 }
 
-func remediationDetectorsByName(detectors []sdk.Detector) map[string]sdk.Detector {
-	result := make(map[string]sdk.Detector)
-	var add func(sdk.Detector)
-	add = func(detector sdk.Detector) {
+func remediationDetectorsByName(detectors []plugin.Detector) map[string]plugin.Detector {
+	result := make(map[string]plugin.Detector)
+	var add func(plugin.Detector)
+	add = func(detector plugin.Detector) {
 		if detector == nil {
 			return
 		}
@@ -453,7 +455,7 @@ func remediationDetectorsByName(detectors []sdk.Detector) map[string]sdk.Detecto
 		}
 		result[name] = detector
 		//nolint:staticcheck // deprecated interface still consulted during its one-release compatibility window
-		if provider, ok := detector.(sdk.FallbackDetector); ok {
+		if provider, ok := detector.(plugin.FallbackDetector); ok {
 			add(provider.FallbackDetector())
 		}
 	}
@@ -490,7 +492,7 @@ func (p *Pipeline) analyze(ctx context.Context, result *PipelineResult, req Pipe
 	if result.Graph == nil {
 		return
 	}
-	aReq := sdk.AnalyzeRequest{
+	aReq := plugin.AnalyzeRequest{
 		ProjectPath:     req.ProjectPath,
 		ExecutionTarget: req.ExecutionTarget,
 		Graph:           result.Graph,
@@ -528,7 +530,7 @@ func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req Pipeli
 	if result.Graph == nil {
 		return
 	}
-	mReq := sdk.MatchRequest{
+	mReq := plugin.MatchRequest{
 		ProjectPath:     req.ProjectPath,
 		ExecutionTarget: req.ExecutionTarget,
 		Graph:           result.Graph,
@@ -551,14 +553,14 @@ func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req Pipeli
 	}
 }
 
-func (p *Pipeline) audit(ctx context.Context, g *sdk.Graph, registry *sdk.PackageRegistry, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
-	auditReq := sdk.AuditRequest{
+func (p *Pipeline) audit(ctx context.Context, g *model.Graph, registry *model.PackageRegistry, req PipelineRequest) (plugin.AuditResult, []PipelineWarning) {
+	auditReq := plugin.AuditRequest{
 		ProjectPath:             req.ProjectPath,
 		ExecutionTarget:         req.ExecutionTarget,
 		Graph:                   g,
 		Registry:                registry,
 		BaselineGraph:           req.BaselineGraph,
-		DependencyDetailChanges: sdk.CloneDependencyDetailTransitions(req.DependencyDetailChanges),
+		DependencyDetailChanges: model.CloneDependencyDetailTransitions(req.DependencyDetailChanges),
 		AuditorFilter:           req.AuditorFilter,
 		Stderr:                  req.Stderr,
 	}
@@ -571,17 +573,17 @@ func (p *Pipeline) audit(ctx context.Context, g *sdk.Graph, registry *sdk.Packag
 	return result, warnings
 }
 
-func (p *Pipeline) auditComponent(ctx context.Context, g *sdk.Graph, registry *sdk.PackageRegistry, target *sdk.DependencyNode, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
+func (p *Pipeline) auditComponent(ctx context.Context, g *model.Graph, registry *model.PackageRegistry, target *model.DependencyNode, req PipelineRequest) (plugin.AuditResult, []PipelineWarning) {
 	if g == nil || target == nil {
-		return sdk.AuditResult{}, nil
+		return plugin.AuditResult{}, nil
 	}
-	auditReq := sdk.AuditRequest{
+	auditReq := plugin.AuditRequest{
 		ProjectPath:     req.ProjectPath,
 		ExecutionTarget: req.ExecutionTarget,
 		Graph:           g,
 		Registry:        registry,
 		Target:          target,
-		Ecosystem:       sdk.Ecosystem(target.Ecosystem),
+		Ecosystem:       model.Ecosystem(target.Ecosystem),
 		AuditorFilter:   req.AuditorFilter,
 		Stderr:          req.Stderr,
 	}

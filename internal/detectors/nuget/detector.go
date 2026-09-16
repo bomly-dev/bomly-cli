@@ -13,17 +13,19 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // Detector resolves NuGet dependency graphs from committed NuGet manifests.
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
+	Fallback   plugin.Detector
 }
 
 var evidencePatterns = []string{"packages.lock.json", "*.deps.json", "packages.config", "*.csproj", "*.fsproj", "*.vbproj", "*.vcxproj", "project.assets.json"}
@@ -80,17 +82,17 @@ type projectPackageReference struct {
 }
 
 // PackageManagerSupport returns NuGet package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerNuGet, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerNuGet, evidencePatterns...)}
 }
 
 // Ready reports whether the detector can parse committed NuGet files.
-func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
+func (d Detector) Ready(context.Context, plugin.DetectionRequest) error {
 	return nil
 }
 
 // Applicable reports whether a NuGet lockfile, legacy packages.config, or project file is present.
-func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	_ = ctx
 	workingDir := d.workingDir(req.ProjectPath)
 	for _, name := range []string{"packages.lock.json", "packages.config"} {
@@ -116,49 +118,49 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 }
 
 // Descriptor describes the NuGet detector.
-func (d Detector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d Detector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		Name:                detectors.NameNuGet,
-		Technique:           sdk.LockfileTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemDotNet},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerNuGet},
+		Technique:           plugin.LockfileTechnique,
+		SupportedEcosystems: []model.Ecosystem{model.EcosystemDotNet},
+		SupportedManagers:   []model.PackageManager{model.PackageManagerNuGet},
 		Tags:                []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
 	}
 }
 
 // ResolveGraph resolves a NuGet dependency graph.
-func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
 	workingDir := d.workingDir(req.ProjectPath)
 	lockPath := filepath.Join(workingDir, "packages.lock.json")
 	if ok, err := system.FileExists(lockPath); err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	} else if ok {
 		raw, err := system.ReadRepositoryFile(lockPath)
 		if err != nil {
-			return sdk.DetectionResult{}, fmt.Errorf("read NuGet lockfile: %w", err)
+			return plugin.DetectionResult{}, fmt.Errorf("read NuGet lockfile: %w", err)
 		}
 		g, err := depGraphFromLock(raw)
 		if err != nil {
-			return sdk.DetectionResult{}, err
+			return plugin.DetectionResult{}, err
 		}
 		AttachNugetPositions(g, workingDir)
-		return detectors.Attributed(sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, []string{"packages.lock.json"}))}), nil
+		return detectors.Attributed(plugin.DetectionResult{Graphs: model.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, []string{"packages.lock.json"}))}), nil
 	}
 
 	depsFiles, err := nugetDepsFiles(workingDir)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	if len(depsFiles) > 0 {
 		g, err := depGraphFromDepsFiles(depsFiles)
 		if err != nil {
-			return sdk.DetectionResult{}, err
+			return plugin.DetectionResult{}, err
 		}
 		AttachNugetPositions(g, workingDir)
-		return detectors.Attributed(sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, []string{"*.deps.json"}))}), nil
+		return detectors.Attributed(plugin.DetectionResult{Graphs: model.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, []string{"*.deps.json"}))}), nil
 	}
 
 	configPath := filepath.Join(workingDir, "packages.config")
@@ -166,29 +168,29 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	if err == nil {
 		g, err := depGraphFromPackagesConfig(raw)
 		if err != nil {
-			return sdk.DetectionResult{}, err
+			return plugin.DetectionResult{}, err
 		}
 		AttachNugetPositions(g, workingDir)
-		return detectors.Attributed(sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, []string{"packages.config"}))}), nil
+		return detectors.Attributed(plugin.DetectionResult{Graphs: model.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, []string{"packages.config"}))}), nil
 	}
 	if !errors.Is(err, os.ErrNotExist) {
-		return sdk.DetectionResult{}, fmt.Errorf("read NuGet packages.config: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("read NuGet packages.config: %w", err)
 	}
 
 	projectFiles, err := nugetProjectFiles(workingDir)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	g, err := depGraphFromProjectFiles(projectFiles)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	AttachNugetPositions(g, workingDir)
-	return detectors.Attributed(sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, projectFilePatterns))}), nil
+	return detectors.Attributed(plugin.DetectionResult{Graphs: model.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, projectFilePatterns))}), nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() sdk.Detector {
+func (d Detector) FallbackDetector() plugin.Detector {
 	return d.Fallback
 }
 
@@ -199,12 +201,12 @@ func (d Detector) workingDir(projectPath string) string {
 	return projectPath
 }
 
-func depGraphFromLock(raw []byte) (*sdk.Graph, error) {
+func depGraphFromLock(raw []byte) (*model.Graph, error) {
 	var lock lockFile
 	if err := json.Unmarshal(raw, &lock); err != nil {
 		return nil, fmt.Errorf("parse NuGet lockfile: %w", err)
 	}
-	g := sdk.New()
+	g := model.New()
 	root, err := rootNode()
 	if err != nil {
 		return nil, err
@@ -273,21 +275,21 @@ func depGraphFromLock(raw []byte) (*sdk.Graph, error) {
 			return nil, err
 		}
 		if existingNode, ok := g.Node(node.NodeID()); ok {
-			if existing, isDep := sdk.AsDependencyNode(existingNode); isDep {
-				existing.AddScope(sdk.ScopeRuntime)
+			if existing, isDep := model.AsDependencyNode(existingNode); isDep {
+				existing.AddScope(model.ScopeRuntime)
 			}
 		}
 		if err := g.AddEdge(root.NodeID(), node.NodeID()); err != nil {
 			return nil, fmt.Errorf("add NuGet root dependency %q: %w", node.NodeID(), err)
 		}
 	}
-	if err := propagateScope(g, packages, roots, sdk.ScopeRuntime); err != nil {
+	if err := propagateScope(g, packages, roots, model.ScopeRuntime); err != nil {
 		return nil, err
 	}
 	return g, nil
 }
 
-func depGraphFromPackagesConfig(raw []byte) (*sdk.Graph, error) {
+func depGraphFromPackagesConfig(raw []byte) (*model.Graph, error) {
 	var config packagesConfig
 	if err := xml.Unmarshal(raw, &config); err != nil {
 		return nil, fmt.Errorf("parse NuGet packages.config: %w", err)
@@ -295,7 +297,7 @@ func depGraphFromPackagesConfig(raw []byte) (*sdk.Graph, error) {
 	if len(config.Packages) == 0 {
 		return nil, fmt.Errorf("NuGet packages.config does not contain any packages")
 	}
-	g := sdk.New()
+	g := model.New()
 	root, err := rootNode()
 	if err != nil {
 		return nil, err
@@ -311,7 +313,7 @@ func depGraphFromPackagesConfig(raw []byte) (*sdk.Graph, error) {
 		if err != nil {
 			return nil, err
 		}
-		node.AddScope(sdk.ScopeRuntime)
+		node.AddScope(model.ScopeRuntime)
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
 		}
@@ -322,8 +324,8 @@ func depGraphFromPackagesConfig(raw []byte) (*sdk.Graph, error) {
 	return g, nil
 }
 
-func depGraphFromDepsFiles(paths []string) (*sdk.Graph, error) {
-	g := sdk.New()
+func depGraphFromDepsFiles(paths []string) (*model.Graph, error) {
+	g := model.New()
 	root, err := rootNode()
 	if err != nil {
 		return nil, err
@@ -409,8 +411,8 @@ func depGraphFromDepsFiles(paths []string) (*sdk.Graph, error) {
 			return nil, err
 		}
 		if existingNode, ok := g.Node(node.NodeID()); ok {
-			if existing, isDep := sdk.AsDependencyNode(existingNode); isDep {
-				existing.AddScope(sdk.ScopeRuntime)
+			if existing, isDep := model.AsDependencyNode(existingNode); isDep {
+				existing.AddScope(model.ScopeRuntime)
 			}
 		}
 		if err := g.AddEdge(root.NodeID(), node.NodeID()); err != nil {
@@ -419,14 +421,14 @@ func depGraphFromDepsFiles(paths []string) (*sdk.Graph, error) {
 		roots = append(roots, depName)
 	}
 	sort.Strings(roots)
-	if err := propagateScope(g, selected, roots, sdk.ScopeRuntime); err != nil {
+	if err := propagateScope(g, selected, roots, model.ScopeRuntime); err != nil {
 		return nil, err
 	}
 	return g, nil
 }
 
-func depGraphFromProjectFiles(paths []string) (*sdk.Graph, error) {
-	g := sdk.New()
+func depGraphFromProjectFiles(paths []string) (*model.Graph, error) {
+	g := model.New()
 	root, err := rootNode()
 	if err != nil {
 		return nil, err
@@ -454,7 +456,7 @@ func depGraphFromProjectFiles(paths []string) (*sdk.Graph, error) {
 			if err != nil {
 				return nil, err
 			}
-			node.AddScope(sdk.ScopeRuntime)
+			node.AddScope(model.ScopeRuntime)
 			if _, ok := seen[node.NodeID()]; ok {
 				continue
 			}
@@ -534,29 +536,29 @@ func firstNonEmpty(values ...string) string {
 	return ""
 }
 
-func rootNode() (*sdk.ModuleNode, error) {
-	return sdk.NewModuleNode("packages.config", sdk.Coordinates{Ecosystem: sdk.EcosystemDotNet,
+func rootNode() (*model.ModuleNode, error) {
+	return model.NewModuleNode("packages.config", model.Coordinates{Ecosystem: model.EcosystemDotNet,
 		Name:           "root",
-		PackageManager: sdk.PackageManagerNuGet,
-		Type:           sdk.PackageTypeApplication,
+		PackageManager: model.PackageManagerNuGet,
+		Type:           model.PackageTypeApplication,
 		Language:       "dotnet"})
 
 }
 
-func packageNode(name, version string, pkg lockPackage) (*sdk.DependencyNode, error) {
-	node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemDotNet,
+func packageNode(name, version string, pkg lockPackage) (*model.DependencyNode, error) {
+	node, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemDotNet,
 		Name:           name,
 		Version:        version,
-		PackageManager: sdk.PackageManagerNuGet,
-		Type:           sdk.PackageTypePackage,
+		PackageManager: model.PackageManagerNuGet,
+		Type:           model.PackageTypePackage,
 		Language:       "dotnet",
-		PURL:           sdk.BuildPackageURLFor(sdk.EcosystemDotNet, sdk.PackageManagerNuGet, "", name, version)})
+		PURL:           model.BuildPackageURLFor(model.EcosystemDotNet, model.PackageManagerNuGet, "", name, version)})
 	if err != nil {
 		return nil, fmt.Errorf("build dependency node: %w", err)
 	}
 
 	if pkg.ContentHash != "" {
-		node.Digests = append(node.Digests, sdk.Digest{Algorithm: "nuget-content-hash", Value: pkg.ContentHash})
+		node.Digests = append(node.Digests, model.Digest{Algorithm: "nuget-content-hash", Value: pkg.ContentHash})
 	}
 	return node, nil
 }
@@ -625,7 +627,7 @@ func splitDepsPackageKey(value string) (string, string, bool) {
 	return name, version, ok && name != "" && version != ""
 }
 
-func propagateScope(g *sdk.Graph, packages map[string]lockPackage, roots []string, scope sdk.Scope) error {
+func propagateScope(g *model.Graph, packages map[string]lockPackage, roots []string, scope model.Scope) error {
 	visited := make(map[string]struct{}, len(packages))
 	var walk func(string) error
 	walk = func(name string) error {
@@ -642,7 +644,7 @@ func propagateScope(g *sdk.Graph, packages map[string]lockPackage, roots []strin
 			return err
 		}
 		if existingNode, ok := g.Node(node.NodeID()); ok {
-			if existing, isDep := sdk.AsDependencyNode(existingNode); isDep {
+			if existing, isDep := model.AsDependencyNode(existingNode); isDep {
 				existing.AddScope(scope)
 			}
 		}
@@ -661,7 +663,7 @@ func propagateScope(g *sdk.Graph, packages map[string]lockPackage, roots []strin
 	return nil
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
+func addNodeIfMissing(g *model.Graph, node *model.DependencyNode) error {
 	_, err := detectorkit.EnsureNode(g, node)
 	return err
 }

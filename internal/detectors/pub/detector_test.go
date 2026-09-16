@@ -7,16 +7,18 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	detector := Detector{WorkingDir: "testdata/project"}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:     "testdata/project",
-		PackageManager:  sdk.PackageManagerPub,
-		Ecosystem:       sdk.EcosystemDart,
-		ExecutionTarget: sdk.ExecutionTarget{Location: "testdata/project"},
+		PackageManager:  model.PackageManagerPub,
+		Ecosystem:       model.EcosystemDart,
+		ExecutionTarget: plugin.ExecutionTarget{Location: "testdata/project"},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -29,7 +31,7 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if !ok {
 		t.Fatal("expected test package")
 	}
-	if string(pkg.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(pkg.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected development scope, got %q", string(pkg.PrimaryScope()))
 	}
 }
@@ -84,25 +86,25 @@ func TestDepGraphFromLockScopesDirectDependencies(t *testing.T) {
 	if !ok {
 		t.Fatal("expected test package")
 	}
-	if string(dev.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(dev.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected dev scope, got %q", string(dev.PrimaryScope()))
 	}
 	if !testnodes.Is(dev, "pkg:pub/test@1.25.8") {
 		t.Fatalf("unexpected purl %q", dev.NodeID())
 	}
-	if dev.Source != sdk.DependencySourceRegistry {
-		t.Fatalf("test source = %q, want %q", dev.Source, sdk.DependencySourceRegistry)
+	if dev.Source != model.DependencySourceRegistry {
+		t.Fatalf("test source = %q, want %q", dev.Source, model.DependencySourceRegistry)
 	}
 }
 
 func TestPubDependencySource(t *testing.T) {
 	tests := []struct {
 		source string
-		want   sdk.DependencySource
+		want   model.DependencySource
 	}{
-		{source: "hosted", want: sdk.DependencySourceRegistry},
-		{source: "git", want: sdk.DependencySourceGit},
-		{source: "path", want: sdk.DependencySourceFile},
+		{source: "hosted", want: model.DependencySourceRegistry},
+		{source: "git", want: model.DependencySourceGit},
+		{source: "path", want: model.DependencySourceFile},
 		{source: "sdk", want: ""},
 		{source: "", want: ""},
 	}
@@ -125,8 +127,8 @@ func TestPubPackagePreservesGitRevision(t *testing.T) {
 	if err != nil {
 		t.Fatalf("packageNode() error = %v", err)
 	}
-	if node.Source != sdk.DependencySourceGit {
-		t.Fatalf("source = %q, want %q", node.Source, sdk.DependencySourceGit)
+	if node.Source != model.DependencySourceGit {
+		t.Fatalf("source = %q, want %q", node.Source, model.DependencySourceGit)
 	}
 	if node.ResolvedURL != "https://github.com/example/pkg.git" {
 		t.Fatalf("resolved URL = %q", node.ResolvedURL)
@@ -155,7 +157,7 @@ func TestDepGraphFromPubDepsJSONBuildsTransitiveScopes(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected collection package, got %v", graph.DependencyNodes())
 	}
-	if string(mustDep(t, collection).PrimaryScope()) != string(sdk.ScopeRuntime) {
+	if string(mustDep(t, collection).PrimaryScope()) != string(model.ScopeRuntime) {
 		t.Fatalf("expected shared transitive dependency to be runtime, got %q", string(mustDep(t, collection).PrimaryScope()))
 	}
 
@@ -163,7 +165,7 @@ func TestDepGraphFromPubDepsJSONBuildsTransitiveScopes(t *testing.T) {
 	if !ok {
 		t.Fatal("expected test package")
 	}
-	if string(mustDep(t, testPkg).PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(mustDep(t, testPkg).PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected dev direct dependency, got %q", string(mustDep(t, testPkg).PrimaryScope()))
 	}
 }
@@ -207,9 +209,9 @@ sdks:
 
 // mustDep narrows a graph node to the dependency node a case is asserting
 // about, failing rather than panicking when the graph holds something else.
-func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
 	t.Helper()
-	dep, ok := node.(*sdk.DependencyNode)
+	dep, ok := node.(*model.DependencyNode)
 	if !ok {
 		t.Fatalf("expected a dependency node, got %T", node)
 	}

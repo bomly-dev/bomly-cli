@@ -12,9 +12,10 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/git"
 	"github.com/bomly-dev/bomly-cli/internal/progress"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger, baseRef, headRef string) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, map[string][]git.LineRange, error) {
@@ -97,8 +98,8 @@ func resolveDiffResultsForRef(ctx context.Context, options *opts.Options, logger
 	cleanup := func() error {
 		return os.RemoveAll(materializedPath)
 	}
-	executionTarget := sdk.ExecutionTarget{
-		Kind:          sdk.ExecutionTargetGitRepository,
+	executionTarget := plugin.ExecutionTarget{
+		Kind:          plugin.ExecutionTargetGitRepository,
 		Location:      materializedPath,
 		RepositoryURL: strings.TrimSpace(options.GetConfig().URL),
 		Ref:           ref,
@@ -144,14 +145,14 @@ func resolveContainerDiffGraphs(ctx context.Context, options *opts.Options, prog
 
 // executionTargetForResolved returns a filesystem target when the resolved location
 // is a local path, otherwise a container image target.
-func executionTargetForResolved(location string) sdk.ExecutionTarget {
+func executionTargetForResolved(location string) plugin.ExecutionTarget {
 	if localPathExists(location) {
-		return sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: location}
+		return plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: location}
 	}
-	return sdk.ExecutionTarget{Kind: sdk.ExecutionTargetContainerImage, Location: location}
+	return plugin.ExecutionTarget{Kind: plugin.ExecutionTargetContainerImage, Location: location}
 }
 
-func resolveDiffResultsForExecutionTarget(ctx context.Context, options *opts.Options, logger *zap.Logger, executionTarget sdk.ExecutionTarget) (diffResolvedTarget, error) {
+func resolveDiffResultsForExecutionTarget(ctx context.Context, options *opts.Options, logger *zap.Logger, executionTarget plugin.ExecutionTarget) (diffResolvedTarget, error) {
 	commandCtx, err := options.PrepareForExecutionTarget(ctx, logger, executionTarget, nil)
 	if err != nil {
 		return diffResolvedTarget{}, err
@@ -240,8 +241,8 @@ func resolveDiffResultsForSBOMFile(ctx context.Context, options *opts.Options, l
 	if err != nil {
 		return diffResolvedTarget{}, exit.InvalidInputError("resolve SBOM file %q: %v", sbomPath, err)
 	}
-	executionTarget := sdk.ExecutionTarget{
-		Kind:     sdk.ExecutionTargetFilesystem,
+	executionTarget := plugin.ExecutionTarget{
+		Kind:     plugin.ExecutionTargetFilesystem,
 		Location: absPath,
 	}
 	commandCtx, err := options.PrepareForExecutionTarget(ctx, logger, executionTarget, nil)

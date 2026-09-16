@@ -11,8 +11,9 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/benchmark"
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestBenchmarkSubprocessStderrForwardsOnlyAtDebug(t *testing.T) {
@@ -51,7 +52,7 @@ func TestBenchmarkNativeScannerUsesBomlyNativeDetector(t *testing.T) {
 		CheckoutDir: projectDir,
 		Repository:  "https://github.com/acme/demo",
 		Revision:    "abc123",
-		Ecosystem:   sdk.EcosystemNPM,
+		Ecosystem:   model.EcosystemNPM,
 	})
 	if err != nil {
 		t.Fatal(err)

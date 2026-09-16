@@ -70,7 +70,7 @@ func runAttributed(pass *analysis.Pass) (any, error) {
 				// not see it, so the assignment is reported on its own.
 				for _, lhs := range n.Lhs {
 					if sel, ok := ast.Unparen(lhs).(*ast.SelectorExpr); ok && sel.Sel.Name == "Graphs" &&
-						isNamed(pass.TypesInfo.TypeOf(sel.X), sdkPath, "DetectionResult") {
+						isNamed(pass.TypesInfo.TypeOf(sel.X), pluginPath, "DetectionResult") {
 						pass.Reportf(sel.Pos(),
 							"assigns graphs onto a detection result after it was built, which escapes the attribution wrappers; build the result as a literal inside detectors.Attributed or detectors.Unattributed")
 					}
@@ -86,7 +86,7 @@ func runAttributed(pass *analysis.Pass) (any, error) {
 // literal that names Graphs, and nil otherwise.
 func detectionResultWithGraphs(pass *analysis.Pass, expr ast.Expr) *ast.CompositeLit {
 	lit, ok := ast.Unparen(expr).(*ast.CompositeLit)
-	if !ok || !isNamed(pass.TypesInfo.TypeOf(lit), sdkPath, "DetectionResult") {
+	if !ok || !isNamed(pass.TypesInfo.TypeOf(lit), pluginPath, "DetectionResult") {
 		return nil
 	}
 	for _, elt := range lit.Elts {

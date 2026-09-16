@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // TestGradleDependenciesFixture drives the `gradle dependencies` output parser
@@ -42,10 +44,10 @@ func TestGradleDependenciesFixture(t *testing.T) {
 	requireGradleEdge(t, g, "org.junit.jupiter:junit-jupiter@5.10.2", "org.junit.jupiter:junit-jupiter-api@5.10.2")
 
 	// runtimeClasspath → runtime; testRuntimeClasspath → development.
-	requireGradleScope(t, g, "com.google.guava:guava@33.0.0-jre", sdk.ScopeRuntime)
-	requireGradleScope(t, g, "org.apache.commons:commons-lang3@3.14.0", sdk.ScopeRuntime)
-	requireGradleScope(t, g, "org.junit.jupiter:junit-jupiter@5.10.2", sdk.ScopeDevelopment)
-	requireGradleScope(t, g, "org.mockito:mockito-core@5.10.0", sdk.ScopeDevelopment)
+	requireGradleScope(t, g, "com.google.guava:guava@33.0.0-jre", model.ScopeRuntime)
+	requireGradleScope(t, g, "org.apache.commons:commons-lang3@3.14.0", model.ScopeRuntime)
+	requireGradleScope(t, g, "org.junit.jupiter:junit-jupiter@5.10.2", model.ScopeDevelopment)
+	requireGradleScope(t, g, "org.mockito:mockito-core@5.10.0", model.ScopeDevelopment)
 }
 
 // TestGradleMultiProjectDependenciesFixture drives the parser against a
@@ -82,7 +84,7 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 	// Subproject roots are the build's own first-party applications, and the
 	// root project node is first-party too.
 	rootNode, ok := testnodes.Find(parsed.rootGraph, parsed.rootID)
-	if !ok || !sdk.IsProjectOwned(rootNode) {
+	if !ok || !model.IsProjectOwned(rootNode) {
 		t.Fatalf("root project node must be first-party, got %#v", rootNode)
 	}
 	for _, moduleEntry := range parsed.modules {
@@ -90,7 +92,7 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 		if !ok {
 			t.Fatalf("missing subproject root node %q", moduleEntry.rootID)
 		}
-		if !sdk.IsProjectOwned(node) {
+		if !model.IsProjectOwned(node) {
 			t.Fatalf("subproject root %q = %#v, want first-party application", moduleEntry.rootID, mustDep(t, node).Coordinates)
 		}
 	}
@@ -128,7 +130,7 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 	// Both are the build's own code. Neither carries a scope: a module is not
 	// a consumed package, so the section's scope rides on the edge instead --
 	// which is also why the app-side scope can no longer leak into lib.
-	if !sdk.IsProjectOwned(libRef) || !sdk.IsProjectOwned(libOwnRoot) {
+	if !model.IsProjectOwned(libRef) || !model.IsProjectOwned(libOwnRoot) {
 		t.Fatalf("project reference = %s node, lib root = %s node; want the build's own modules",
 			libRef.Kind(), libOwnRoot.Kind())
 	}
@@ -151,10 +153,10 @@ func TestGradleMultiProjectDependenciesFixture(t *testing.T) {
 		}
 	}
 
-	requireGradleScope(t, appGraph, "org.junit.jupiter:junit-jupiter@5.10.2", sdk.ScopeDevelopment)
-	requireGradleScope(t, appGraph, "com.google.guava:guava@33.0.0-jre", sdk.ScopeRuntime)
-	requireGradleScope(t, appGraph, "org.slf4j:slf4j-api@2.0.12", sdk.ScopeRuntime)
-	requireGradleScope(t, libGraph, "org.slf4j:slf4j-api@2.0.12", sdk.ScopeRuntime)
+	requireGradleScope(t, appGraph, "org.junit.jupiter:junit-jupiter@5.10.2", model.ScopeDevelopment)
+	requireGradleScope(t, appGraph, "com.google.guava:guava@33.0.0-jre", model.ScopeRuntime)
+	requireGradleScope(t, appGraph, "org.slf4j:slf4j-api@2.0.12", model.ScopeRuntime)
+	requireGradleScope(t, libGraph, "org.slf4j:slf4j-api@2.0.12", model.ScopeRuntime)
 }
 
 // TestGradleMultiProjectRuntimeScopeFilterKeepsProjectEdges reproduces the
@@ -174,11 +176,11 @@ func TestGradleMultiProjectRuntimeScopeFilterKeepsProjectEdges(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromGradleOutput: %v", err)
 	}
-	result := sdk.DetectionResult{Graphs: &sdk.GraphContainer{
-		Entries: subprojectGraphEntries(parsed, sdk.ManifestMetadata{Path: "build.gradle"}, t.TempDir()),
+	result := plugin.DetectionResult{Graphs: &model.GraphContainer{
+		Entries: subprojectGraphEntries(parsed, model.ManifestMetadata{Path: "build.gradle"}, t.TempDir()),
 	}}
 
-	filtered, err := sdk.FilterDetectionResultByScope(result, sdk.ScopeRuntime)
+	filtered, err := plugin.FilterDetectionResultByScope(result, model.ScopeRuntime)
 	if err != nil {
 		t.Fatalf("FilterDetectionResultByScope: %v", err)
 	}
@@ -213,7 +215,7 @@ func TestGradleMultiProjectUnknownProjectTokenFallsBack(t *testing.T) {
 
 // requireGradleEdgeByID asserts an edge between two node IDs, for the module
 // roots whose IDs the parser reports rather than labels a case names.
-func requireGradleEdgeByID(t *testing.T, g *sdk.Graph, fromID, toID string) {
+func requireGradleEdgeByID(t *testing.T, g *model.Graph, fromID, toID string) {
 	t.Helper()
 	deps, err := g.DirectDependencies(fromID)
 	if err != nil {
@@ -227,7 +229,7 @@ func requireGradleEdgeByID(t *testing.T, g *sdk.Graph, fromID, toID string) {
 	t.Errorf("expected edge %s -> %s", fromID, toID)
 }
 
-func requireGradleEdge(t *testing.T, g *sdk.Graph, fromID, toID string) {
+func requireGradleEdge(t *testing.T, g *model.Graph, fromID, toID string) {
 	t.Helper()
 	deps, err := g.DirectDependencies(testnodes.ID(g, fromID))
 	if err != nil {
@@ -241,7 +243,7 @@ func requireGradleEdge(t *testing.T, g *sdk.Graph, fromID, toID string) {
 	t.Errorf("expected edge %s → %s", fromID, toID)
 }
 
-func requireGradleScope(t *testing.T, g *sdk.Graph, id string, scope sdk.Scope) {
+func requireGradleScope(t *testing.T, g *model.Graph, id string, scope model.Scope) {
 	t.Helper()
 	n, ok := testnodes.Find(g, id)
 	if !ok {
@@ -254,9 +256,9 @@ func requireGradleScope(t *testing.T, g *sdk.Graph, id string, scope sdk.Scope) 
 
 // mustDep narrows a graph node to the dependency node a case is asserting
 // about, failing rather than panicking when the graph holds something else.
-func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
 	t.Helper()
-	dep, ok := node.(*sdk.DependencyNode)
+	dep, ok := node.(*model.DependencyNode)
 	if !ok {
 		t.Fatalf("expected a dependency node, got %T", node)
 	}

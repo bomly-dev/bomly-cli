@@ -4,17 +4,19 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestRebaseGraphLocations_PrefixesSubprojectPath(t *testing.T) {
-	g := sdk.New()
-	dep := testnodes.DepFrom(sdk.DependencyNode{
-		Coordinates: sdk.Coordinates{Name: "lodash", Version: "4.17.21"},
-		Locations: []sdk.PackageLocation{{
+	g := model.New()
+	dep := testnodes.DepFrom(model.DependencyNode{
+		Coordinates: model.Coordinates{Name: "lodash", Version: "4.17.21"},
+		Locations: []model.PackageLocation{{
 			RealPath:   "package-lock.json",
 			AccessPath: "package-lock.json",
-			Position:   &sdk.SourcePosition{File: "package-lock.json", Line: 8},
+			Position:   &model.SourcePosition{File: "package-lock.json", Line: 8},
 		}},
 	})
 	if err := g.AddNode(dep); err != nil {
@@ -38,10 +40,10 @@ func TestRebaseGraphLocations_PrefixesSubprojectPath(t *testing.T) {
 
 func TestRebaseGraphLocations_RootIsNoOp(t *testing.T) {
 	for _, rel := range []string{".", "", "  "} {
-		g := sdk.New()
-		dep := testnodes.DepFrom(sdk.DependencyNode{
-			Coordinates: sdk.Coordinates{Name: "lodash", Version: "4.17.21"},
-			Locations:   []sdk.PackageLocation{{RealPath: "package-lock.json", Position: &sdk.SourcePosition{File: "package-lock.json", Line: 8}}},
+		g := model.New()
+		dep := testnodes.DepFrom(model.DependencyNode{
+			Coordinates: model.Coordinates{Name: "lodash", Version: "4.17.21"},
+			Locations:   []model.PackageLocation{{RealPath: "package-lock.json", Position: &model.SourcePosition{File: "package-lock.json", Line: 8}}},
 		})
 		if err := g.AddNode(dep); err != nil {
 			t.Fatalf("AddNode: %v", err)
@@ -57,12 +59,12 @@ func TestRebaseGraphLocations_RootIsNoOp(t *testing.T) {
 }
 
 func TestRebaseGraphLocations_SkipsAbsoluteAndAlreadyPrefixed(t *testing.T) {
-	g := sdk.New()
-	dep := testnodes.DepFrom(sdk.DependencyNode{
-		Coordinates: sdk.Coordinates{Name: "pkg", Version: "1.0.0"},
-		Locations: []sdk.PackageLocation{
-			{RealPath: "/abs/pom.xml", Position: &sdk.SourcePosition{File: "/abs/pom.xml", Line: 1}},
-			{RealPath: "apps/web/already.json", Position: &sdk.SourcePosition{File: "apps/web/already.json", Line: 2}},
+	g := model.New()
+	dep := testnodes.DepFrom(model.DependencyNode{
+		Coordinates: model.Coordinates{Name: "pkg", Version: "1.0.0"},
+		Locations: []model.PackageLocation{
+			{RealPath: "/abs/pom.xml", Position: &model.SourcePosition{File: "/abs/pom.xml", Line: 1}},
+			{RealPath: "apps/web/already.json", Position: &model.SourcePosition{File: "apps/web/already.json", Line: 2}},
 		},
 	})
 	if err := g.AddNode(dep); err != nil {
@@ -83,27 +85,27 @@ func TestRebaseGraphLocations_SkipsAbsoluteAndAlreadyPrefixed(t *testing.T) {
 // TestConsolidateGraphs_RebasesCoreDetectorLocations proves the core-gated
 // rebasing fires through the real consolidation entry point.
 func TestConsolidateGraphs_RebasesCoreDetectorLocations(t *testing.T) {
-	g := sdk.New()
-	dep := testnodes.DepFrom(sdk.DependencyNode{
-		Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"},
-		Locations:   []sdk.PackageLocation{{RealPath: "package-lock.json", Position: &sdk.SourcePosition{File: "package-lock.json", Line: 8}}},
+	g := model.New()
+	dep := testnodes.DepFrom(model.DependencyNode{
+		Coordinates: model.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"},
+		Locations:   []model.PackageLocation{{RealPath: "package-lock.json", Position: &model.SourcePosition{File: "package-lock.json", Line: 8}}},
 	})
 	if err := g.AddNode(dep); err != nil {
 		t.Fatalf("AddNode: %v", err)
 	}
 
-	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
-			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
+	consolidated, err := ConsolidateGraphs([]plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
+			ExecutionTarget:         plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: "/repo"},
 			RelativePath:            "apps/web",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-			Ecosystem:               sdk.EcosystemNPM,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
+			Ecosystem:               model.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
-		Technique:    sdk.BuildToolTechnique,
-		Graphs:       sdk.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "apps/web/package-lock.json", Kind: "package-lock.json"}),
+		Origin:       plugin.CoreOrigin,
+		Technique:    plugin.BuildToolTechnique,
+		Graphs:       model.SingleGraphContainer(g, model.ManifestMetadata{Path: "apps/web/package-lock.json", Kind: "package-lock.json"}),
 	}})
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
@@ -113,7 +115,7 @@ func TestConsolidateGraphs_RebasesCoreDetectorLocations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	var node *sdk.DependencyNode
+	var node *model.DependencyNode
 	for _, n := range graph.DependencyNodes() {
 		if n != nil && n.Name == "lodash" {
 			node = n
@@ -132,10 +134,10 @@ func TestConsolidateGraphs_RebasesCoreDetectorLocations(t *testing.T) {
 // join key ADR-0037 defines: a detector names its own working directory ".",
 // and two subprojects both claiming "." cannot be told apart.
 func TestRebaseGraphLocations_MovesModuleRootIntoRepositoryCoordinates(t *testing.T) {
-	g := sdk.New()
-	dep := testnodes.DepFrom(sdk.DependencyNode{
-		Coordinates: sdk.Coordinates{Name: "lodash", Version: "4.17.21"},
-		Locations: []sdk.PackageLocation{
+	g := model.New()
+	dep := testnodes.DepFrom(model.DependencyNode{
+		Coordinates: model.Coordinates{Name: "lodash", Version: "4.17.21"},
+		Locations: []model.PackageLocation{
 			{RealPath: "package-lock.json", ModuleRoot: "."},
 			{RealPath: "packages/lib/package.json", ModuleRoot: "packages/lib"},
 			{RealPath: "vendored/pom.xml"},

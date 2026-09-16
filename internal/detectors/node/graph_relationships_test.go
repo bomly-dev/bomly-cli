@@ -4,16 +4,17 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestAttachUnknownComponentsMarksOnlyComponentRoots(t *testing.T) {
-	graph := sdk.New()
-	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "app", Type: sdk.PackageTypeApplication}})
-	direct := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "direct"}})
-	orphan := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "orphan"}})
-	child := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "child"}})
-	for _, dep := range []*sdk.DependencyNode{root, direct, orphan, child} {
+	graph := model.New()
+	root := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "app", Type: model.PackageTypeApplication}})
+	direct := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "direct"}})
+	orphan := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "orphan"}})
+	child := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "child"}})
+	for _, dep := range []*model.DependencyNode{root, direct, orphan, child} {
 		if err := graph.AddNode(dep); err != nil {
 			t.Fatal(err)
 		}
@@ -32,7 +33,7 @@ func TestAttachUnknownComponentsMarksOnlyComponentRoots(t *testing.T) {
 	if len(components) != 1 || components[0].RootID != orphan.NodeID() || components[0].Size != 2 {
 		t.Fatalf("components = %#v", components)
 	}
-	if orphan.Relationship != sdk.DependencyRelationshipUnknown {
+	if orphan.Relationship != model.DependencyRelationshipUnknown {
 		t.Fatalf("orphan relationship = %q", orphan.Relationship)
 	}
 	if child.Relationship != "" {
@@ -42,17 +43,17 @@ func TestAttachUnknownComponentsMarksOnlyComponentRoots(t *testing.T) {
 	if err != nil || len(paths) != 1 {
 		t.Fatalf("CollectPathsTo() paths=%d err=%v", len(paths), err)
 	}
-	if got := sdk.RelationshipForPath(paths[0].Nodes); got != sdk.DependencyRelationshipTransitive {
+	if got := model.RelationshipForPath(paths[0].Nodes); got != model.DependencyRelationshipTransitive {
 		t.Fatalf("child relationship = %q, want transitive", got)
 	}
 }
 
 func TestAttachUnknownComponentsRetainsDisconnectedCycle(t *testing.T) {
-	graph := sdk.New()
-	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "app", Type: sdk.PackageTypeApplication}})
+	graph := model.New()
+	root := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "app", Type: model.PackageTypeApplication}})
 	a := testnodes.Ref("a", "1")
 	b := testnodes.Ref("b", "1")
-	for _, dependency := range []*sdk.DependencyNode{root, a, b} {
+	for _, dependency := range []*model.DependencyNode{root, a, b} {
 		if err := graph.AddNode(dependency); err != nil {
 			t.Fatal(err)
 		}
@@ -70,7 +71,7 @@ func TestAttachUnknownComponentsRetainsDisconnectedCycle(t *testing.T) {
 	if len(components) != 1 || components[0].Size != 2 {
 		t.Fatalf("components = %#v", components)
 	}
-	if components[0].RootID != a.NodeID() || a.Relationship != sdk.DependencyRelationshipUnknown {
+	if components[0].RootID != a.NodeID() || a.Relationship != model.DependencyRelationshipUnknown {
 		t.Fatalf("cycle root = %#v, relationship=%q", components[0], a.Relationship)
 	}
 }

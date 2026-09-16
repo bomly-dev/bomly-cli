@@ -11,10 +11,11 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"gopkg.in/yaml.v3"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // yarnLockfileHeadBytes bounds the format probe: Berry writes the __metadata
@@ -31,7 +32,7 @@ type yarnLockEntry struct {
 	Dependencies map[string]string
 }
 
-func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
+func depGraphFromYarnLockfile(projectPath string) (*model.Graph, error) {
 	raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "yarn.lock"))
 	if err != nil {
 		return nil, fmt.Errorf("read yarn.lock: %w", err)
@@ -50,12 +51,12 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		rootName = "root"
 	}
 
-	depsGraph := sdk.New()
-	rootNode, err := sdk.NewModuleNode("package.json", sdk.Coordinates{
-		Ecosystem: sdk.EcosystemNPM,
+	depsGraph := model.New()
+	rootNode, err := model.NewModuleNode("package.json", model.Coordinates{
+		Ecosystem: model.EcosystemNPM,
 		Name:      rootName,
 		Version:   manifest.Version,
-		Type:      sdk.PackageTypeApplication,
+		Type:      model.PackageTypeApplication,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build yarn root module node: %w", err)
@@ -81,7 +82,7 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 			return id, nil
 		}
 		entry := entries[idx]
-		pkg := sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+		pkg := model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM,
 			Name:    entry.Name,
 			Version: entry.Version}, Source: yarnEntrySource(entry), ResolvedURL: entry.Resolved,
 			Digests: node.ParseIntegrityDigests(entry.Integrity),
@@ -89,15 +90,15 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		// One identity is one node: a collision folds rather than minting a
 		// second ID for the same package, which is the occurrence machinery
 		// ADR-0041 removed.
-		pkgNode, err := sdk.NewDependencyNodeFrom(pkg)
+		pkgNode, err := model.NewDependencyNodeFrom(pkg)
 		if err != nil {
 			return "", err
 		}
 		// Yarn Classic records the tarball it fetched, with the package
 		// checksum as a URL fragment the invariant strips. Berry entries
 		// carry no resolved location, and git specs are rejected.
-		if origin := sdk.ArtifactOrigin(entry.Resolved); origin != nil {
-			pkgNode.Origins = sdk.MergeOrigins(pkgNode.Origins, []sdk.DependencyOrigin{*origin})
+		if origin := model.ArtifactOrigin(entry.Resolved); origin != nil {
+			pkgNode.Origins = model.MergeOrigins(pkgNode.Origins, []model.DependencyOrigin{*origin})
 		}
 		// Two selector entries can pin one name@version to different
 		// tarballs; the shared helper keeps both as distinct occurrences,
@@ -138,7 +139,7 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 				}
 				continue
 			}
-			synthetic, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)})
+			synthetic, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)})
 			if err != nil {
 				return nil, fmt.Errorf("build dependency node: %w", err)
 			}
@@ -157,7 +158,7 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 	for dependencyName, requested := range directDeps {
 		entryIdx, ok := selectYarnEntry(entries, entriesByName, dependencyName, requested)
 		if !ok {
-			synthetic, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)})
+			synthetic, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)})
 			if err != nil {
 				return nil, fmt.Errorf("build dependency node: %w", err)
 			}
@@ -433,7 +434,7 @@ func yarnPackageNameFromResolution(resolution string) string {
 	return yarnPackageNameFromSelector(value)
 }
 
-func yarnEntrySource(entry yarnLockEntry) sdk.DependencySource {
+func yarnEntrySource(entry yarnLockEntry) model.DependencySource {
 	for _, value := range append(append([]string(nil), entry.Selectors...), entry.Resolution) {
 		lower := strings.ToLower(value)
 		for _, marker := range []string{"workspace:", "link:", "file:", "git:", "git+", "github:", "http:", "https:"} {
@@ -442,7 +443,7 @@ func yarnEntrySource(entry yarnLockEntry) sdk.DependencySource {
 			}
 		}
 	}
-	return sdk.DependencySourceRegistry
+	return model.DependencySourceRegistry
 }
 
 // yarnLockfileFormat reports the lockfile format the project committed: "1"

@@ -3,8 +3,9 @@ package ruby
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
 	testutil "github.com/bomly-dev/bomly-sdk/testkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func FuzzDepGraphFromBundlerLock(f *testing.F) {
@@ -14,7 +15,7 @@ func FuzzDepGraphFromBundlerLock(f *testing.F) {
 		if len(data) > testutil.MaxFuzzInputSize {
 			return
 		}
-		graph, err := depGraphFromLock(data, map[string]sdk.Scope{})
+		graph, err := depGraphFromLock(data, map[string]model.Scope{})
 		if err == nil {
 			testutil.RequireFuzzGraphValid(t, graph)
 		}

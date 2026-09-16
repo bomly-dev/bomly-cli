@@ -6,7 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func writeProject(t *testing.T, files map[string]string) string {
@@ -24,13 +25,13 @@ func writeProject(t *testing.T, files map[string]string) string {
 	return dir
 }
 
-func requireWarning(t *testing.T, warnings []sdk.DetectorWarning, code sdk.DetectorWarningCode, substring string) {
+func requireWarning(t *testing.T, warnings []plugin.DetectorWarning, code plugin.DetectorWarningCode, substring string) {
 	t.Helper()
 	for _, warning := range warnings {
 		if warning.Code != code || !strings.Contains(warning.Message, substring) {
 			continue
 		}
-		if warning.Type != sdk.DetectorWarningPackageManager {
+		if warning.Type != plugin.DetectorWarningPackageManager {
 			t.Fatalf("expected the package-manager type, got %q", warning.Type)
 		}
 		if warning.DegradesCoverage() {
@@ -46,8 +47,8 @@ func TestPackageManagerWarnings_PinnedManagerCannotReadLockfileFormat(t *testing
 		"package.json":   `{"name": "app", "packageManager": "pnpm@8.15.4"}`,
 		"pnpm-lock.yaml": "lockfileVersion: '9.0'\n",
 	})
-	warnings := PackageManagerWarnings(dir, sdk.PackageManagerPNPM, LockfileFormat{File: "pnpm-lock.yaml", Version: "9.0"})
-	requireWarning(t, warnings, sdk.DetectorWarningCodeLockfileFormat, "requires pnpm >= 9, but package.json pins pnpm@8.15.4")
+	warnings := PackageManagerWarnings(dir, model.PackageManagerPNPM, LockfileFormat{File: "pnpm-lock.yaml", Version: "9.0"})
+	requireWarning(t, warnings, plugin.DetectorWarningCodeLockfileFormat, "requires pnpm >= 9, but package.json pins pnpm@8.15.4")
 }
 
 func TestPackageManagerWarnings_PinnedManagerMigratesOlderLockfileFormat(t *testing.T) {
@@ -55,8 +56,8 @@ func TestPackageManagerWarnings_PinnedManagerMigratesOlderLockfileFormat(t *test
 		"package.json":   `{"name": "app", "packageManager": "pnpm@11.0.0+sha512.abc"}`,
 		"pnpm-lock.yaml": "lockfileVersion: '6.0'\n",
 	})
-	warnings := PackageManagerWarnings(dir, sdk.PackageManagerPNPM, LockfileFormat{File: "pnpm-lock.yaml", Version: "6.0"})
-	requireWarning(t, warnings, sdk.DetectorWarningCodeLockfileFormat, "frozen-lockfile CI step fails")
+	warnings := PackageManagerWarnings(dir, model.PackageManagerPNPM, LockfileFormat{File: "pnpm-lock.yaml", Version: "6.0"})
+	requireWarning(t, warnings, plugin.DetectorWarningCodeLockfileFormat, "frozen-lockfile CI step fails")
 }
 
 func TestPackageManagerWarnings_CurrentFormatAndPinAreQuiet(t *testing.T) {
@@ -65,7 +66,7 @@ func TestPackageManagerWarnings_CurrentFormatAndPinAreQuiet(t *testing.T) {
 		"package.json":   `{"name": "app", "packageManager": "pnpm@10.4.1"}`,
 		"pnpm-lock.yaml": "lockfileVersion: '9.0'\n",
 	})
-	if warnings := PackageManagerWarnings(dir, sdk.PackageManagerPNPM, LockfileFormat{File: "pnpm-lock.yaml", Version: "9.0"}); warnings != nil {
+	if warnings := PackageManagerWarnings(dir, model.PackageManagerPNPM, LockfileFormat{File: "pnpm-lock.yaml", Version: "9.0"}); warnings != nil {
 		t.Fatalf("expected no warnings, got %+v", warnings)
 	}
 }
@@ -75,8 +76,8 @@ func TestPackageManagerWarnings_NpmLockfileVersionRequiresNpm7(t *testing.T) {
 		"package.json":      `{"name": "app", "packageManager": "npm@6.14.18"}`,
 		"package-lock.json": `{"lockfileVersion": 3}`,
 	})
-	warnings := PackageManagerWarnings(dir, sdk.PackageManagerNPM, LockfileFormat{File: "package-lock.json", Version: "3"})
-	requireWarning(t, warnings, sdk.DetectorWarningCodeLockfileFormat, "requires npm >= 7")
+	warnings := PackageManagerWarnings(dir, model.PackageManagerNPM, LockfileFormat{File: "package-lock.json", Version: "3"})
+	requireWarning(t, warnings, plugin.DetectorWarningCodeLockfileFormat, "requires npm >= 7")
 }
 
 func TestPackageManagerWarnings_YarnClassicLockfileWithBerryPin(t *testing.T) {
@@ -84,8 +85,8 @@ func TestPackageManagerWarnings_YarnClassicLockfileWithBerryPin(t *testing.T) {
 		"package.json": `{"name": "app", "packageManager": "yarn@4.1.0"}`,
 		"yarn.lock":    "# yarn lockfile v1\n",
 	})
-	warnings := PackageManagerWarnings(dir, sdk.PackageManagerYarn, LockfileFormat{File: "yarn.lock", Version: "1"})
-	requireWarning(t, warnings, sdk.DetectorWarningCodeLockfileFormat, "migrates the lockfile on install")
+	warnings := PackageManagerWarnings(dir, model.PackageManagerYarn, LockfileFormat{File: "yarn.lock", Version: "1"})
+	requireWarning(t, warnings, plugin.DetectorWarningCodeLockfileFormat, "migrates the lockfile on install")
 }
 
 func TestPackageManagerWarnings_BerryLockfileWithClassicPin(t *testing.T) {
@@ -93,8 +94,8 @@ func TestPackageManagerWarnings_BerryLockfileWithClassicPin(t *testing.T) {
 		"package.json": `{"name": "app", "packageManager": "yarn@1.22.22"}`,
 		"yarn.lock":    "__metadata:\n  version: 8\n",
 	})
-	warnings := PackageManagerWarnings(dir, sdk.PackageManagerYarn, LockfileFormat{File: "yarn.lock", Version: "8"})
-	requireWarning(t, warnings, sdk.DetectorWarningCodeLockfileFormat, "requires yarn >= 2")
+	warnings := PackageManagerWarnings(dir, model.PackageManagerYarn, LockfileFormat{File: "yarn.lock", Version: "8"})
+	requireWarning(t, warnings, plugin.DetectorWarningCodeLockfileFormat, "requires yarn >= 2")
 }
 
 func TestPackageManagerWarnings_PinnedManagerDoesNotReadCommittedLockfile(t *testing.T) {
@@ -102,12 +103,12 @@ func TestPackageManagerWarnings_PinnedManagerDoesNotReadCommittedLockfile(t *tes
 		"package.json":   `{"name": "app", "packageManager": "yarn@4.1.0"}`,
 		"pnpm-lock.yaml": "lockfileVersion: '9.0'\n",
 	})
-	warnings := PackageManagerWarnings(dir, sdk.PackageManagerPNPM, LockfileFormat{File: "pnpm-lock.yaml", Version: "9.0"})
-	requireWarning(t, warnings, sdk.DetectorWarningCodeLockfileUnsupported, `pins packageManager "yarn@4.1.0", which does not read pnpm-lock.yaml`)
+	warnings := PackageManagerWarnings(dir, model.PackageManagerPNPM, LockfileFormat{File: "pnpm-lock.yaml", Version: "9.0"})
+	requireWarning(t, warnings, plugin.DetectorWarningCodeLockfileUnsupported, `pins packageManager "yarn@4.1.0", which does not read pnpm-lock.yaml`)
 	// The format check is scoped to the pinned manager's own lockfile: a yarn pin
 	// says nothing about which pnpm version wrote pnpm-lock.yaml.
 	for _, warning := range warnings {
-		if warning.Code == sdk.DetectorWarningCodeLockfileFormat {
+		if warning.Code == plugin.DetectorWarningCodeLockfileFormat {
 			t.Fatalf("unexpected cross-manager format warning: %+v", warning)
 		}
 	}
@@ -120,7 +121,7 @@ func TestPackageManagerWarnings_NpmAcceptsYarnLockfile(t *testing.T) {
 		"package.json": `{"name": "app", "packageManager": "npm@10.9.0"}`,
 		"yarn.lock":    "# yarn lockfile v1\n",
 	})
-	if warnings := PackageManagerWarnings(dir, sdk.PackageManagerYarn, LockfileFormat{File: "yarn.lock", Version: "1"}); warnings != nil {
+	if warnings := PackageManagerWarnings(dir, model.PackageManagerYarn, LockfileFormat{File: "yarn.lock", Version: "1"}); warnings != nil {
 		t.Fatalf("expected no warnings for an interoperable lockfile, got %+v", warnings)
 	}
 }
@@ -132,7 +133,7 @@ func TestPackageManagerWarnings_UndocumentedCombinationsStaySilent(t *testing.T)
 		"package.json":      `{"name": "app", "packageManager": "bun@1.2.18"}`,
 		"package-lock.json": `{"lockfileVersion": 3}`,
 	})
-	if warnings := PackageManagerWarnings(dir, sdk.PackageManagerNPM, LockfileFormat{File: "package-lock.json", Version: "3"}); warnings != nil {
+	if warnings := PackageManagerWarnings(dir, model.PackageManagerNPM, LockfileFormat{File: "package-lock.json", Version: "3"}); warnings != nil {
 		t.Fatalf("expected no warnings for an undocumented combination, got %+v", warnings)
 	}
 }
@@ -144,23 +145,23 @@ func TestPackageManagerWarnings_SecondLockfileFoundOnDisk(t *testing.T) {
 		"pnpm-lock.yaml":    "lockfileVersion: '9.0'\n",
 		"package-lock.json": `{"lockfileVersion": 3}`,
 	})
-	warnings := PackageManagerWarnings(dir, sdk.PackageManagerPNPM, LockfileFormat{File: "pnpm-lock.yaml", Version: "9.0"})
-	requireWarning(t, warnings, sdk.DetectorWarningCodeLockfileUnsupported, "does not read package-lock.json")
+	warnings := PackageManagerWarnings(dir, model.PackageManagerPNPM, LockfileFormat{File: "pnpm-lock.yaml", Version: "9.0"})
+	requireWarning(t, warnings, plugin.DetectorWarningCodeLockfileUnsupported, "does not read package-lock.json")
 }
 
 func TestPackageManagerWarnings_EnginesContradictsPin(t *testing.T) {
 	dir := writeProject(t, map[string]string{
 		"package.json": `{"name": "app", "packageManager": "pnpm@9.15.0", "engines": {"pnpm": ">=10"}}`,
 	})
-	warnings := PackageManagerWarnings(dir, sdk.PackageManagerPNPM, LockfileFormat{})
-	requireWarning(t, warnings, sdk.DetectorWarningCodeEnginesConstraint, `pins pnpm@9.15.0 but requires engines.pnpm ">=10"`)
+	warnings := PackageManagerWarnings(dir, model.PackageManagerPNPM, LockfileFormat{})
+	requireWarning(t, warnings, plugin.DetectorWarningCodeEnginesConstraint, `pins pnpm@9.15.0 but requires engines.pnpm ">=10"`)
 }
 
 func TestPackageManagerWarnings_EnginesSatisfiedByPin(t *testing.T) {
 	dir := writeProject(t, map[string]string{
 		"package.json": `{"name": "app", "packageManager": "pnpm@10.4.1", "engines": {"pnpm": ">=10", "node": ">=22"}}`,
 	})
-	if warnings := PackageManagerWarnings(dir, sdk.PackageManagerPNPM, LockfileFormat{}); warnings != nil {
+	if warnings := PackageManagerWarnings(dir, model.PackageManagerPNPM, LockfileFormat{}); warnings != nil {
 		t.Fatalf("expected no warnings, got %+v", warnings)
 	}
 }
@@ -169,9 +170,9 @@ func TestPackageManagerWarnings_PnpmInstallGateUsesMinutes(t *testing.T) {
 	dir := writeProject(t, map[string]string{
 		"pnpm-workspace.yaml": "packages:\n  - packages/*\nminimumReleaseAge: 1440\n",
 	})
-	warnings := PackageManagerWarnings(dir, sdk.PackageManagerPNPM, LockfileFormat{})
-	requireWarning(t, warnings, sdk.DetectorWarningCodeInstallGate, "minimumReleaseAge=1440 (24h)")
-	requireWarning(t, warnings, sdk.DetectorWarningCodeInstallGate, "freshly published fix version fails CI")
+	warnings := PackageManagerWarnings(dir, model.PackageManagerPNPM, LockfileFormat{})
+	requireWarning(t, warnings, plugin.DetectorWarningCodeInstallGate, "minimumReleaseAge=1440 (24h)")
+	requireWarning(t, warnings, plugin.DetectorWarningCodeInstallGate, "freshly published fix version fails CI")
 	if warnings[0].Source != "pnpm" || warnings[0].Manifest != "pnpm-workspace.yaml" {
 		t.Fatalf("unexpected gate warning attribution: %+v", warnings[0])
 	}
@@ -182,9 +183,9 @@ func TestPackageManagerWarnings_NpmInstallGatesUseDays(t *testing.T) {
 	dir := writeProject(t, map[string]string{
 		".npmrc": "min-release-age=7\nbefore=2026-01-01\n",
 	})
-	warnings := PackageManagerWarnings(dir, sdk.PackageManagerNPM, LockfileFormat{})
-	requireWarning(t, warnings, sdk.DetectorWarningCodeInstallGate, "min-release-age=7 (7 days)")
-	requireWarning(t, warnings, sdk.DetectorWarningCodeInstallGate, "before=2026-01-01")
+	warnings := PackageManagerWarnings(dir, model.PackageManagerNPM, LockfileFormat{})
+	requireWarning(t, warnings, plugin.DetectorWarningCodeInstallGate, "min-release-age=7 (7 days)")
+	requireWarning(t, warnings, plugin.DetectorWarningCodeInstallGate, "before=2026-01-01")
 	for _, warning := range warnings {
 		if warning.Source != "npm" {
 			t.Fatalf("expected npm-sourced gate warnings, got %+v", warning)
@@ -199,7 +200,7 @@ func TestPackageManagerWarnings_GatesAreScopedToTheEffectiveManager(t *testing.T
 		"package.json": `{"name": "app", "packageManager": "pnpm@11.0.0"}`,
 		".npmrc":       "minimum-release-age=1440\nmin-release-age=7\nbefore=2026-01-01\n",
 	})
-	if warnings := PackageManagerWarnings(dir, sdk.PackageManagerPNPM, LockfileFormat{}); warnings != nil {
+	if warnings := PackageManagerWarnings(dir, model.PackageManagerPNPM, LockfileFormat{}); warnings != nil {
 		t.Fatalf("expected no gate warnings for keys pnpm ignores, got %+v", warnings)
 	}
 
@@ -208,7 +209,7 @@ func TestPackageManagerWarnings_GatesAreScopedToTheEffectiveManager(t *testing.T
 		"package.json":        `{"name": "app", "packageManager": "npm@10.9.0"}`,
 		"pnpm-workspace.yaml": "minimumReleaseAge: 1440\n",
 	})
-	if warnings := PackageManagerWarnings(dir, sdk.PackageManagerPNPM, LockfileFormat{}); warnings != nil {
+	if warnings := PackageManagerWarnings(dir, model.PackageManagerPNPM, LockfileFormat{}); warnings != nil {
 		t.Fatalf("expected pnpm's gate to be ignored under an npm pin, got %+v", warnings)
 	}
 }
@@ -218,7 +219,7 @@ func TestPackageManagerWarnings_IgnoresDisabledOrAbsentGates(t *testing.T) {
 		"pnpm-workspace.yaml": "packages:\n  - packages/*\nminimumReleaseAge: 0\n",
 		".npmrc":              "registry=https://registry.npmjs.org/\n# min-release-age=7\n",
 	})
-	if warnings := PackageManagerWarnings(dir, sdk.PackageManagerPNPM, LockfileFormat{}); warnings != nil {
+	if warnings := PackageManagerWarnings(dir, model.PackageManagerPNPM, LockfileFormat{}); warnings != nil {
 		t.Fatalf("expected no warnings, got %+v", warnings)
 	}
 }
@@ -229,7 +230,7 @@ func TestPackageManagerWarnings_MalformedInputsAreSilent(t *testing.T) {
 		"pnpm-workspace.yaml": "\tminimumReleaseAge: ][",
 		".npmrc":              "no-equals-sign\n",
 	})
-	if warnings := PackageManagerWarnings(dir, sdk.PackageManagerPNPM, LockfileFormat{File: "pnpm-lock.yaml", Version: "9.0"}); warnings != nil {
+	if warnings := PackageManagerWarnings(dir, model.PackageManagerPNPM, LockfileFormat{File: "pnpm-lock.yaml", Version: "9.0"}); warnings != nil {
 		t.Fatalf("expected no warnings, got %+v", warnings)
 	}
 }
@@ -239,10 +240,10 @@ func TestPackageManagerWarnings_UnknownPinAndEmptyDirAreSilent(t *testing.T) {
 		"package.json":   `{"name": "app", "packageManager": "cargo@1.0.0"}`,
 		"pnpm-lock.yaml": "lockfileVersion: '9.0'\n",
 	})
-	if warnings := PackageManagerWarnings(dir, sdk.PackageManagerPNPM, LockfileFormat{File: "pnpm-lock.yaml", Version: "9.0"}); warnings != nil {
+	if warnings := PackageManagerWarnings(dir, model.PackageManagerPNPM, LockfileFormat{File: "pnpm-lock.yaml", Version: "9.0"}); warnings != nil {
 		t.Fatalf("expected no warnings for an unrecognized pin, got %+v", warnings)
 	}
-	if warnings := PackageManagerWarnings("  ", sdk.PackageManagerPNPM, LockfileFormat{}); warnings != nil {
+	if warnings := PackageManagerWarnings("  ", model.PackageManagerPNPM, LockfileFormat{}); warnings != nil {
 		t.Fatalf("expected no warnings for an empty directory, got %+v", warnings)
 	}
 }
@@ -251,7 +252,7 @@ func TestPackageManagerWarnings_CollapsesNewlinesInScannedValues(t *testing.T) {
 	dir := writeProject(t, map[string]string{
 		"package.json": `{"name": "app", "packageManager": "pnpm@9.15.0", "engines": {"pnpm": ">=10\n\nInjected: line"}}`,
 	})
-	for _, warning := range PackageManagerWarnings(dir, sdk.PackageManagerPNPM, LockfileFormat{}) {
+	for _, warning := range PackageManagerWarnings(dir, model.PackageManagerPNPM, LockfileFormat{}) {
 		if strings.Contains(warning.Message, "\n") {
 			t.Fatalf("warning message must stay single-line: %q", warning.Message)
 		}
@@ -260,19 +261,19 @@ func TestPackageManagerWarnings_CollapsesNewlinesInScannedValues(t *testing.T) {
 
 func TestManagerRangeForFormat(t *testing.T) {
 	cases := []struct {
-		manager  sdk.PackageManager
+		manager  model.PackageManager
 		format   int
 		min, max int
 	}{
-		{sdk.PackageManagerPNPM, 5, 5, 7},
-		{sdk.PackageManagerPNPM, 6, 8, 8},
-		{sdk.PackageManagerPNPM, 9, 9, 0},
-		{sdk.PackageManagerPNPM, 12, 12, 0},
-		{sdk.PackageManagerNPM, 1, 0, 0},
-		{sdk.PackageManagerNPM, 3, 7, 0},
-		{sdk.PackageManagerYarn, 1, 1, 1},
-		{sdk.PackageManagerYarn, 8, 2, 0},
-		{sdk.PackageManagerBun, 1, 0, 0},
+		{model.PackageManagerPNPM, 5, 5, 7},
+		{model.PackageManagerPNPM, 6, 8, 8},
+		{model.PackageManagerPNPM, 9, 9, 0},
+		{model.PackageManagerPNPM, 12, 12, 0},
+		{model.PackageManagerNPM, 1, 0, 0},
+		{model.PackageManagerNPM, 3, 7, 0},
+		{model.PackageManagerYarn, 1, 1, 1},
+		{model.PackageManagerYarn, 8, 2, 0},
+		{model.PackageManagerBun, 1, 0, 0},
 	}
 	for _, tc := range cases {
 		minMajor, maxMajor := managerRangeForFormat(tc.manager, tc.format)
@@ -284,17 +285,17 @@ func TestManagerRangeForFormat(t *testing.T) {
 
 func TestLockfileUnread(t *testing.T) {
 	cases := []struct {
-		manager sdk.PackageManager
+		manager model.PackageManager
 		file    string
 		want    bool
 	}{
-		{sdk.PackageManagerNPM, "yarn.lock", false},         // documented install input
-		{sdk.PackageManagerNPM, "pnpm-lock.yaml", true},     // documented as not read
-		{sdk.PackageManagerPNPM, "yarn.lock", true},         // conversion is a manual `pnpm import`
-		{sdk.PackageManagerPNPM, "pnpm-lock.yaml", false},   // its own lockfile
-		{sdk.PackageManagerBun, "pnpm-lock.yaml", false},    // converted on install
-		{sdk.PackageManagerBun, "yarn.lock", false},         // undocumented: stay silent
-		{sdk.PackageManagerYarn, "package-lock.json", true}, // documented as not read
+		{model.PackageManagerNPM, "yarn.lock", false},         // documented install input
+		{model.PackageManagerNPM, "pnpm-lock.yaml", true},     // documented as not read
+		{model.PackageManagerPNPM, "yarn.lock", true},         // conversion is a manual `pnpm import`
+		{model.PackageManagerPNPM, "pnpm-lock.yaml", false},   // its own lockfile
+		{model.PackageManagerBun, "pnpm-lock.yaml", false},    // converted on install
+		{model.PackageManagerBun, "yarn.lock", false},         // undocumented: stay silent
+		{model.PackageManagerYarn, "package-lock.json", true}, // documented as not read
 	}
 	for _, tc := range cases {
 		if got := lockfileUnread(tc.manager, tc.file); got != tc.want {
@@ -305,13 +306,13 @@ func TestLockfileUnread(t *testing.T) {
 
 func TestParsePackageManagerPin(t *testing.T) {
 	manager, version := parsePackageManagerPin("pnpm@10.4.1+sha512.abc")
-	if manager != sdk.PackageManagerPNPM || version != "10.4.1" {
+	if manager != model.PackageManagerPNPM || version != "10.4.1" {
 		t.Fatalf("parsePackageManagerPin() = (%q, %q)", manager, version)
 	}
-	if manager, _ := parsePackageManagerPin("cargo@1.0.0"); manager != sdk.PackageManagerUnknown {
+	if manager, _ := parsePackageManagerPin("cargo@1.0.0"); manager != model.PackageManagerUnknown {
 		t.Fatalf("expected unknown manager, got %q", manager)
 	}
-	if manager, _ := parsePackageManagerPin(""); manager != sdk.PackageManagerUnknown {
+	if manager, _ := parsePackageManagerPin(""); manager != model.PackageManagerUnknown {
 		t.Fatalf("expected unknown manager for an empty pin, got %q", manager)
 	}
 }

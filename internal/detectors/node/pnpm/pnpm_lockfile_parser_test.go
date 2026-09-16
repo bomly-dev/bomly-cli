@@ -7,7 +7,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func writePNPMProject(t *testing.T, lockfile, manifest string) string {
@@ -89,7 +91,7 @@ packages:
 		t.Fatal("root missing")
 	}
 	dependenciesNodes, err := graphs.graph.DirectDependencies(root.NodeID())
-	dependencies := sdk.DependencyNodesOf(dependenciesNodes)
+	dependencies := model.DependencyNodesOf(dependenciesNodes)
 	if err != nil || len(dependencies) != 1 || dependencies[0].Name != "real-package" {
 		t.Fatalf("dependencies = %#v, err=%v", dependencies, err)
 	}
@@ -115,7 +117,7 @@ snapshots:
 	if err := os.WriteFile(filepath.Join(memberDir, "package.json"), []byte(`{"name":"cloudflare","version":"4.0.0"}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -145,16 +147,16 @@ snapshots:
 		t.Fatal(err)
 	}
 	dependency, ok := testnodes.Find(graphs.graph, "@example/local@packages/local")
-	if !ok || mustDep(t, dependency).Source != sdk.DependencySourceWorkspace {
+	if !ok || mustDep(t, dependency).Source != model.DependencySourceWorkspace {
 		t.Fatalf("dependency = %#v", dependency)
 	}
 }
 
 // mustDep narrows a graph node to the dependency node a case is asserting
 // about, failing rather than panicking when the graph holds something else.
-func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
 	t.Helper()
-	dep, ok := node.(*sdk.DependencyNode)
+	dep, ok := node.(*model.DependencyNode)
 	if !ok {
 		t.Fatalf("expected a dependency node, got %T", node)
 	}

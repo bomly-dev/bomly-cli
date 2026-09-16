@@ -4,14 +4,14 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // setCargoOrigin records the repository a git-sourced crate was resolved from.
 // Cargo writes one source string per package: "registry+"/"sparse+" name an
 // index root rather than this crate's location, path and workspace members
 // carry no source at all, and only "git+" identifies where the code came from.
-func setCargoOrigin(node *sdk.DependencyNode, source string) {
+func setCargoOrigin(node *model.DependencyNode, source string) {
 	trimmed := strings.TrimSpace(source)
 	if !strings.HasPrefix(trimmed, "git+") {
 		return
@@ -19,8 +19,8 @@ func setCargoOrigin(node *sdk.DependencyNode, source string) {
 	repository := strings.TrimPrefix(trimmed, "git+")
 	// Origins is a list now (ADR-0041): a node folds every source it was
 	// resolved from rather than holding one, and MergeOrigins is the door in.
-	if origin := sdk.RepositoryOrigin(repository, cargoSourceRevision(repository)); origin != nil {
-		node.Origins = sdk.MergeOrigins(node.Origins, []sdk.DependencyOrigin{*origin})
+	if origin := model.RepositoryOrigin(repository, cargoSourceRevision(repository)); origin != nil {
+		node.Origins = model.MergeOrigins(node.Origins, []model.DependencyOrigin{*origin})
 	}
 }
 

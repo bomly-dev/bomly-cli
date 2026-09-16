@@ -4,7 +4,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // Every depends_on ID must name a record the same document defines.
@@ -15,14 +16,14 @@ import (
 // could resolve, and dropping it severed the workspace instead. The hop is
 // stepped through, so the relationship survives in IDs the document defines.
 func TestDependenciesFromGraphResolveThroughStructuralNodes(t *testing.T) {
-	g := sdk.New()
+	g := model.New()
 	root := testnodes.Module("package.json", "workspace-root", "1.0.0")
-	childManifest := testnodes.Manifest("packages/web/package.json", sdk.ManifestKindPackageJSON)
-	child := testnodes.ModuleFrom("packages/web/package.json", sdk.Coordinates{
+	childManifest := testnodes.Manifest("packages/web/package.json", model.ManifestKindPackageJSON)
+	child := testnodes.ModuleFrom("packages/web/package.json", model.Coordinates{
 		Ecosystem: "npm", Name: "web", Version: "1.0.0",
 	})
-	leaf := testnodes.Dep(sdk.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"})
-	for _, node := range []sdk.GraphNode{root, childManifest, child, leaf} {
+	leaf := testnodes.Dep(model.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"})
+	for _, node := range []model.GraphNode{root, childManifest, child, leaf} {
 		if _, err := g.InsertNode(node); err != nil {
 			t.Fatalf("InsertNode(%q): %v", node.NodeID(), err)
 		}

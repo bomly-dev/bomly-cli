@@ -2,7 +2,8 @@ package mcp
 
 import (
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // maxExplainPaths caps how many root-to-target chains one match reports.
@@ -140,11 +141,11 @@ func packageRefLabel(pkg output.PackageRef) string {
 
 // findingsForPackage filters findings to those referencing purl. An empty
 // purl keeps everything (identity could not be resolved).
-func findingsForPackage(findings []sdk.Finding, purl string) []sdk.Finding {
+func findingsForPackage(findings []model.Finding, purl string) []model.Finding {
 	if purl == "" {
 		return findings
 	}
-	out := make([]sdk.Finding, 0, len(findings))
+	out := make([]model.Finding, 0, len(findings))
 	for _, f := range findings {
 		if f.PackageRef == purl {
 			out = append(out, f)

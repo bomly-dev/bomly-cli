@@ -17,10 +17,13 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/sbom"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/httpkit"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 var githubAPIBaseURL = "https://api.github.com"
@@ -52,13 +55,13 @@ type NativeScanRequest struct {
 	CheckoutDir  string
 	Repository   string
 	Revision     string
-	Ecosystem    sdk.Ecosystem
+	Ecosystem    model.Ecosystem
 	InstallFirst bool
 }
 
 // NativeScanResult contains the graph and detector provenance from one native scan.
 type NativeScanResult struct {
-	Graph     *sdk.Graph
+	Graph     *model.Graph
 	Detectors []string
 }
 
@@ -81,7 +84,7 @@ func Run(ctx context.Context, opts RunOptions) (RunSummary, error) {
 	}
 	opts.Logger = loggerOrNop(opts.Logger)
 	if opts.HTTPClient == nil {
-		provider, err := sdk.NewHTTPClientProviderFromEnv()
+		provider, err := httpkit.NewClientProviderFromEnv()
 		if err != nil {
 			return RunSummary{}, fmt.Errorf("configure benchmark HTTP client: %w", err)
 		}
@@ -160,7 +163,7 @@ func Run(ctx context.Context, opts RunOptions) (RunSummary, error) {
 	return summary, nil
 }
 
-func resolveTargets(ctx context.Context, opts RunOptions, ecosystems []sdk.Ecosystem) ([]Target, bool, error) {
+func resolveTargets(ctx context.Context, opts RunOptions, ecosystems []model.Ecosystem) ([]Target, bool, error) {
 	if strings.TrimSpace(opts.CustomRepository) != "" {
 		if len(opts.SelectedCases) > 0 {
 			return nil, false, fmt.Errorf("--repo cannot be combined with --case")
@@ -511,23 +514,23 @@ func writeSBOMDiffArtifact(basePath, headPath, outputPath string) error {
 	return writeJSON(outputPath, payload)
 }
 
-func benchmarkSBOMConsolidatedGraph(path string, graph *sdk.Graph) sdk.ConsolidatedGraph {
-	target := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: path}
-	subproject := sdk.Subproject{
+func benchmarkSBOMConsolidatedGraph(path string, graph *model.Graph) plugin.ConsolidatedGraph {
+	target := plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: path}
+	subproject := plugin.Subproject{
 		ExecutionTarget:         target,
 		RelativePath:            filepath.Base(path),
 		PrimaryDetector:         "sbom-detector",
-		DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerSBOM},
-		Ecosystem:               sdk.EcosystemSBOM,
+		DetectedPackageManagers: []model.PackageManager{model.PackageManagerSBOM},
+		Ecosystem:               model.EcosystemSBOM,
 	}
-	entry := sdk.GraphEntry{Graph: graph, Manifest: sdk.ManifestMetadata{Path: path, Kind: "sbom"}}
-	return sdk.ConsolidatedGraph{
+	entry := model.GraphEntry{Graph: graph, Manifest: model.ManifestMetadata{Path: path, Kind: "sbom"}}
+	return plugin.ConsolidatedGraph{
 		ExecutionTarget: target,
-		Graphs:          sdk.SingleGraphContainer(graph, entry.Manifest),
-		Manifests: []sdk.ConsolidatedManifest{{
-			Entry: entry, Subproject: subproject, DetectorName: "sbom-detector", Origin: sdk.CoreOrigin, Technique: sdk.SBOMTechnique,
+		Graphs:          model.SingleGraphContainer(graph, entry.Manifest),
+		Manifests: []plugin.ConsolidatedManifest{{
+			Entry: entry, Subproject: subproject, DetectorName: "sbom-detector", Origin: plugin.CoreOrigin, Technique: plugin.SBOMTechnique,
 		}},
-		Subprojects: []sdk.ConsolidatedSubproject{{Subproject: subproject, DetectorName: "sbom-detector"}},
+		Subprojects: []plugin.ConsolidatedSubproject{{Subproject: subproject, DetectorName: "sbom-detector"}},
 	}
 }
 
@@ -562,7 +565,7 @@ func sourceArtifacts(source string) SourceArtifacts {
 	return artifacts
 }
 
-func comparisonPolicy(graph *sdk.Graph, target Target) ComparisonPolicy {
+func comparisonPolicy(graph *model.Graph, target Target) ComparisonPolicy {
 	policy := ComparisonPolicy{PackageExtensions: make(map[string]string), RelationshipExtensions: make(map[string]string)}
 	if graph == nil {
 		return policy
@@ -571,11 +574,11 @@ func comparisonPolicy(graph *sdk.Graph, target Target) ComparisonPolicy {
 	// The project's own structural nodes -- manifests and modules -- are graph
 	// identity rather than packages a registry could match, so they extend the
 	// policy without any type check: the kind says it.
-	graph.WalkNodes(func(node sdk.GraphNode) bool {
+	graph.WalkNodes(func(node model.GraphNode) bool {
 		if node == nil {
 			return true
 		}
-		dependency, isDep := node.(*sdk.DependencyNode)
+		dependency, isDep := node.(*model.DependencyNode)
 		if isDep && dependency.RegistryMatchEligible() {
 			return true
 		}
@@ -593,7 +596,7 @@ func comparisonPolicy(graph *sdk.Graph, target Target) ComparisonPolicy {
 		extensionIDs[node.NodeID()] = reason
 		return true
 	})
-	graph.WalkEdges(func(from, to sdk.GraphNode) bool {
+	graph.WalkEdges(func(from, to model.GraphNode) bool {
 		if from == nil || to == nil {
 			return true
 		}
@@ -612,8 +615,8 @@ func comparisonPolicy(graph *sdk.Graph, target Target) ComparisonPolicy {
 		return true
 	})
 	for _, relationship := range target.AdjudicatedRelationships {
-		from := sdk.CanonicalizePackageURL(relationship.From)
-		to := sdk.CanonicalizePackageURL(relationship.To)
+		from := model.CanonicalizePackageURL(relationship.From)
+		to := model.CanonicalizePackageURL(relationship.To)
 		policy.RelationshipExtensions[relationshipKey(from, to)] = strings.TrimSpace(relationship.Reason)
 	}
 	return policy
@@ -684,11 +687,11 @@ func filterTargetsByCase(targets []Target, selected []string) ([]Target, error) 
 	return out, nil
 }
 
-func filterTargetsByEcosystem(targets []Target, ecosystems []sdk.Ecosystem) []Target {
+func filterTargetsByEcosystem(targets []Target, ecosystems []model.Ecosystem) []Target {
 	if len(ecosystems) == 0 {
 		return targets
 	}
-	selected := make(map[sdk.Ecosystem]struct{}, len(ecosystems))
+	selected := make(map[model.Ecosystem]struct{}, len(ecosystems))
 	for _, ecosystem := range ecosystems {
 		selected[ecosystem] = struct{}{}
 	}
@@ -701,11 +704,11 @@ func filterTargetsByEcosystem(targets []Target, ecosystems []sdk.Ecosystem) []Ta
 	return out
 }
 
-func parseEcosystems(values []string) ([]sdk.Ecosystem, error) {
+func parseEcosystems(values []string) ([]model.Ecosystem, error) {
 	names := ParseNames(values...)
-	out := make([]sdk.Ecosystem, 0, len(names))
+	out := make([]model.Ecosystem, 0, len(names))
 	for _, name := range names {
-		ecosystem, err := sdk.ParseEcosystem(name)
+		ecosystem, err := model.ParseEcosystem(name)
 		if err != nil {
 			return nil, err
 		}
@@ -741,7 +744,7 @@ func benchmarkCasesDir(runDir string) (string, error) {
 	return casesDir, nil
 }
 
-func filterSBOMFile(inputPath, outputPath string, ecosystem sdk.Ecosystem) error {
+func filterSBOMFile(inputPath, outputPath string, ecosystem model.Ecosystem) error {
 	doc, target, err := loadSBOMDocument(inputPath)
 	if err != nil {
 		return err

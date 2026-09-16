@@ -7,13 +7,15 @@ import (
 	"text/tabwriter"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/graphview"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // ScanGraphDisplayName returns a label for the scan target derived from g's
 // single root, or fallback when g has zero or multiple roots.
-func ScanGraphDisplayName(g *sdk.Graph, fallback string) string {
+func ScanGraphDisplayName(g *model.Graph, fallback string) string {
 	if g == nil {
 		return fallback
 	}
@@ -24,11 +26,11 @@ func ScanGraphDisplayName(g *sdk.Graph, fallback string) string {
 	// QualifiedName lives on the typed nodes; a manifest root has only its
 	// path, which NodeID already carries.
 	switch typed := roots[0].(type) {
-	case *sdk.DependencyNode:
+	case *model.DependencyNode:
 		if name := typed.QualifiedName(); name != "" {
 			return name
 		}
-	case *sdk.ModuleNode:
+	case *model.ModuleNode:
 		if name := typed.QualifiedName(); name != "" {
 			return name
 		}
@@ -46,7 +48,7 @@ func ScanGraphDisplayName(g *sdk.Graph, fallback string) string {
 // subprojects or modules a grouped manifest tree is rendered after the
 // scopes line. notices are pre-computed WarningNotices lines rendered above the
 // summary.
-func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, matcherStats []sdk.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, manifests []output.ScanManifest, notices []string) string {
+func Scan(g *model.Graph, registry *model.PackageRegistry, findings []model.Finding, matcherStats []plugin.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, manifests []output.ScanManifest, notices []string) string {
 	var b strings.Builder
 
 	if g == nil {
@@ -145,7 +147,7 @@ const maxNoticePaths = 5
 // collapse to one line naming the files they came from. Message and file text
 // originate in scanned repository content, so both are passed through
 // SanitizeUntrusted before rendering.
-func WarningNotices(warnings []sdk.DetectorWarning) []string {
+func WarningNotices(warnings []plugin.DetectorWarning) []string {
 	type group struct {
 		message string
 		paths   []string
@@ -219,7 +221,7 @@ func noticePathList(paths []string) string {
 //	└─ dev.bomly.example:multimodule-parent — 1 package, 2 modules [pom.xml]
 //	   ├─ dev.bomly.example:core (module, maven) — 2 packages [core/pom.xml]
 //	   └─ dev.bomly.example:web (module, maven) — 6 packages [web/pom.xml]
-func renderManifestHierarchy(g *sdk.Graph, hierarchy output.HierarchyNode, manifests []output.ScanManifest) string {
+func renderManifestHierarchy(g *model.Graph, hierarchy output.HierarchyNode, manifests []output.ScanManifest) string {
 	var b strings.Builder
 	type line struct {
 		indent string
@@ -359,7 +361,7 @@ func renderManifestHierarchy(g *sdk.Graph, hierarchy output.HierarchyNode, manif
 // topLevelParentIDs returns the nodes whose direct children count as
 // "top-level" dependencies. graphview owns the rule; two classifiers computed
 // it separately and only one of them learned about module nodes.
-func topLevelParentIDs(g *sdk.Graph) map[string]struct{} {
+func topLevelParentIDs(g *model.Graph) map[string]struct{} {
 	return graphview.TopLevelParentIDs(g)
 }
 
@@ -367,7 +369,7 @@ func topLevelParentIDs(g *sdk.Graph) map[string]struct{} {
 // packages that are direct dependencies of any top-level parent — the scan
 // roots and every module/application node — so multi-module scans list each
 // module's direct dependencies, not only the root's.
-func renderDirectDepsTable(g *sdk.Graph, registry *sdk.PackageRegistry) string {
+func renderDirectDepsTable(g *model.Graph, registry *model.PackageRegistry) string {
 	if g == nil || g.Size() == 0 {
 		return ""
 	}
@@ -389,7 +391,7 @@ func renderDirectDepsTable(g *sdk.Graph, registry *sdk.PackageRegistry) string {
 		if _, isRoot := rootIDs[pkg.NodeID()]; isRoot {
 			continue
 		}
-		if pkg.Relationship == sdk.DependencyRelationshipUnknown {
+		if pkg.Relationship == model.DependencyRelationshipUnknown {
 			continue
 		}
 		dependents, err := g.Dependents(pkg.NodeID())
@@ -483,7 +485,7 @@ func failOnIncludesAny(failOn []string) bool {
 
 // renderCompactFindings renders the "Findings" section with aligned columns.
 // When showNASeverity is false, findings with N/A or empty severity are omitted.
-func renderCompactFindings(findings []sdk.Finding, registry *sdk.PackageRegistry, reachabilityEnabled bool, showNASeverity bool) string {
+func renderCompactFindings(findings []model.Finding, registry *model.PackageRegistry, reachabilityEnabled bool, showNASeverity bool) string {
 	type findingRow struct {
 		severity string
 		id       string
@@ -578,17 +580,17 @@ func formatAuditSummary(summary *output.AuditSummary, auditEnabled bool) string 
 // formatReachabilityCell renders one Reachability annotation for the
 // findings table. Returns "-" when no analyzer ran (nil reachability) so
 // the column reads cleanly when only a subset of findings is annotated.
-func formatReachabilityCell(r *sdk.Reachability) string {
+func formatReachabilityCell(r *model.Reachability) string {
 	if r == nil {
 		return "-"
 	}
-	if r.Tier == "" || r.Tier == sdk.TierNone {
+	if r.Tier == "" || r.Tier == model.TierNone {
 		return string(r.Status)
 	}
 	return fmt.Sprintf("%s (%s)", r.Status, r.Tier)
 }
 
-func scanRelationshipCounts(g *sdk.Graph) (roots, direct, transitive, unknown int) {
+func scanRelationshipCounts(g *model.Graph) (roots, direct, transitive, unknown int) {
 	if g == nil {
 		return 0, 0, 0, 0
 	}
@@ -601,7 +603,7 @@ func scanRelationshipCounts(g *sdk.Graph) (roots, direct, transitive, unknown in
 		if _, isRoot := rootIDs[pkg.NodeID()]; isRoot {
 			continue
 		}
-		if pkg.Relationship == sdk.DependencyRelationshipUnknown {
+		if pkg.Relationship == model.DependencyRelationshipUnknown {
 			unknown++
 			continue
 		}
@@ -630,7 +632,7 @@ func scanRelationshipCounts(g *sdk.Graph) (roots, direct, transitive, unknown in
 // scanScopeCounts buckets dependencies by scope over the same node set the
 // relationship counts cover (structural project/module nodes excluded), so
 // runtime + dev + unscoped always equals direct + transitive + unknown.
-func scanScopeCounts(g *sdk.Graph) (runtimeCount, developmentCount, unscopedCount int) {
+func scanScopeCounts(g *model.Graph) (runtimeCount, developmentCount, unscopedCount int) {
 	if g == nil {
 		return 0, 0, 0
 	}
@@ -643,9 +645,9 @@ func scanScopeCounts(g *sdk.Graph) (runtimeCount, developmentCount, unscopedCoun
 			continue
 		}
 		switch pkg.PrimaryScope() {
-		case sdk.ScopeRuntime:
+		case model.ScopeRuntime:
 			runtimeCount++
-		case sdk.ScopeDevelopment:
+		case model.ScopeDevelopment:
 			developmentCount++
 		default:
 			unscopedCount++
@@ -654,7 +656,7 @@ func scanScopeCounts(g *sdk.Graph) (runtimeCount, developmentCount, unscopedCoun
 	return runtimeCount, developmentCount, unscopedCount
 }
 
-func scanUniqueLicenseCount(g *sdk.Graph, registry *sdk.PackageRegistry) int {
+func scanUniqueLicenseCount(g *model.Graph, registry *model.PackageRegistry) int {
 	if g == nil {
 		return 0
 	}
@@ -674,7 +676,7 @@ func scanUniqueLicenseCount(g *sdk.Graph, registry *sdk.PackageRegistry) int {
 
 // formatDepVulnCounts returns a compact coloured vuln-count string like "1C 2H" for a
 // direct dependency. Returns "-" when the registry has no vulnerability data.
-func formatDepVulnCounts(dep *sdk.DependencyNode, registry *sdk.PackageRegistry) string {
+func formatDepVulnCounts(dep *model.DependencyNode, registry *model.PackageRegistry) string {
 	if registry == nil || dep == nil || dep.NodeID() == "" {
 		return "-"
 	}
@@ -714,7 +716,7 @@ func formatDepVulnCounts(dep *sdk.DependencyNode, registry *sdk.PackageRegistry)
 	return strings.Join(parts, " ")
 }
 
-func graphLicenseIdentifier(license sdk.PackageLicense) string {
+func graphLicenseIdentifier(license model.PackageLicense) string {
 	switch {
 	case strings.TrimSpace(license.SPDXExpression) != "":
 		return strings.TrimSpace(license.SPDXExpression)

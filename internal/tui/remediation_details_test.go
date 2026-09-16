@@ -6,21 +6,23 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	sdkmodel "github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestComponentDetailsShowPackageRemediation(t *testing.T) {
 	const purl = "pkg:npm/example@1.0.0"
-	registry := sdk.NewPackageRegistry()
-	registry.Add(&sdk.Package{
-		Coordinates: sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
-		Remediation: &sdk.PackageRemediation{
-			Status:             sdk.PackageRemediationComplete,
+	registry := sdkmodel.NewPackageRegistry()
+	registry.Add(&sdkmodel.Package{
+		Coordinates: sdkmodel.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
+		Remediation: &sdkmodel.PackageRemediation{
+			Status:             sdkmodel.PackageRemediationComplete,
 			RecommendedVersion: "1.2.0",
-			Suggestions: []sdk.PackageRemediationSuggestion{{
+			Suggestions: []sdkmodel.PackageRemediationSuggestion{{
 				AffectedDependencyRefs: []string{"example@1.0.0"},
 				ManifestPath:           "package-lock.json",
-				Action:                 sdk.RemediationActionDirectBump,
+				Action:                 sdkmodel.RemediationActionDirectBump,
 			}},
 		},
 	})
@@ -63,8 +65,8 @@ func TestDiffComponentDetailsShowPackageRemediation(t *testing.T) {
 			Version: "1.0.0",
 			Purl:    "pkg:npm/example@1.0.0",
 		},
-		remediation: &sdk.PackageRemediation{
-			Status: sdk.PackageRemediationUnavailable,
+		remediation: &sdkmodel.PackageRemediation{
+			Status: sdkmodel.PackageRemediationUnavailable,
 		},
 	})
 	plain := render.StripANSI(strings.Join(lines, "\n"))
@@ -104,28 +106,28 @@ func TestCollectComponentChangesUsesRegistryForEachSide(t *testing.T) {
 		changedPURL = "pkg:npm/changed@2.0.0"
 		removedPURL = "pkg:npm/removed@1.0.0"
 	)
-	baseRegistry := sdk.NewPackageRegistry()
-	headRegistry := sdk.NewPackageRegistry()
+	baseRegistry := sdkmodel.NewPackageRegistry()
+	headRegistry := sdkmodel.NewPackageRegistry()
 	addRemediationPackage := func(
-		registry *sdk.PackageRegistry,
+		registry *sdkmodel.PackageRegistry,
 		purl string,
-		status sdk.PackageRemediationStatus,
+		status sdkmodel.PackageRemediationStatus,
 		version string,
 	) {
-		registry.Add(&sdk.Package{
-			Coordinates: sdk.Coordinates{PURL: purl},
-			Remediation: &sdk.PackageRemediation{
+		registry.Add(&sdkmodel.Package{
+			Coordinates: sdkmodel.Coordinates{PURL: purl},
+			Remediation: &sdkmodel.PackageRemediation{
 				Status:             status,
 				RecommendedVersion: version,
 			},
 		})
 	}
-	addRemediationPackage(headRegistry, addedPURL, sdk.PackageRemediationComplete, "1.1.0")
-	addRemediationPackage(baseRegistry, addedPURL, sdk.PackageRemediationUnavailable, "")
-	addRemediationPackage(headRegistry, changedPURL, sdk.PackageRemediationPartial, "")
-	addRemediationPackage(baseRegistry, changedPURL, sdk.PackageRemediationComplete, "9.0.0")
-	addRemediationPackage(baseRegistry, removedPURL, sdk.PackageRemediationUnavailable, "")
-	addRemediationPackage(headRegistry, removedPURL, sdk.PackageRemediationComplete, "9.0.0")
+	addRemediationPackage(headRegistry, addedPURL, sdkmodel.PackageRemediationComplete, "1.1.0")
+	addRemediationPackage(baseRegistry, addedPURL, sdkmodel.PackageRemediationUnavailable, "")
+	addRemediationPackage(headRegistry, changedPURL, sdkmodel.PackageRemediationPartial, "")
+	addRemediationPackage(baseRegistry, changedPURL, sdkmodel.PackageRemediationComplete, "9.0.0")
+	addRemediationPackage(baseRegistry, removedPURL, sdkmodel.PackageRemediationUnavailable, "")
+	addRemediationPackage(headRegistry, removedPURL, sdkmodel.PackageRemediationComplete, "9.0.0")
 
 	model := &DiffModel{
 		payload: output.DiffResponse{Results: output.DiffResults{
@@ -150,25 +152,25 @@ func TestCollectComponentChangesUsesRegistryForEachSide(t *testing.T) {
 	if len(changes) != 3 {
 		t.Fatalf("component changes = %#v, want added, changed, and removed", changes)
 	}
-	byStatus := make(map[string]*sdk.PackageRemediation, len(changes))
+	byStatus := make(map[string]*sdkmodel.PackageRemediation, len(changes))
 	for _, change := range changes {
 		byStatus[change.status] = change.remediation
 	}
 	if got := byStatus["added"]; got == nil ||
-		got.Status != sdk.PackageRemediationComplete || got.RecommendedVersion != "1.1.0" {
+		got.Status != sdkmodel.PackageRemediationComplete || got.RecommendedVersion != "1.1.0" {
 		t.Fatalf("added remediation = %#v, want head complete 1.1.0", got)
 	}
-	if got := byStatus["changed"]; got == nil || got.Status != sdk.PackageRemediationPartial {
+	if got := byStatus["changed"]; got == nil || got.Status != sdkmodel.PackageRemediationPartial {
 		t.Fatalf("changed remediation = %#v, want head partial", got)
 	}
-	if got := byStatus["removed"]; got == nil || got.Status != sdk.PackageRemediationUnavailable {
+	if got := byStatus["removed"]; got == nil || got.Status != sdkmodel.PackageRemediationUnavailable {
 		t.Fatalf("removed remediation = %#v, want base unavailable", got)
 	}
 }
 
 func TestInteractiveModelsHaveNoRemediationTab(t *testing.T) {
-	scan := NewScan(output.ProjectDescriptor{}, sdk.ConsolidatedGraph{}, nil, nil)
-	diff := NewDiff(output.DiffResponse{}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	scan := NewScan(output.ProjectDescriptor{}, plugin.ConsolidatedGraph{}, nil, nil)
+	diff := NewDiff(output.DiffResponse{}, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	for name, tabs := range map[string][]TabSpec{
 		"scan": scan.spec.Tabs,
 		"diff": diff.spec.Tabs,

@@ -6,8 +6,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/graphview"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // SchemaVersion is the current CLI output schema version.
@@ -15,11 +17,11 @@ const SchemaVersion = "1.0"
 
 // Metadata captures execution metadata shared by all command outputs.
 type Metadata struct {
-	DurationMS          int64                            `json:"duration_ms"`
-	ReachabilityEnabled bool                             `json:"reachability_enabled,omitempty"`
-	ScorecardEnabled    bool                             `json:"scorecard_enabled,omitempty"`
-	AnalyzerRuns        []string                         `json:"analyzer_runs,omitempty"`
-	AnalyzerStats       map[string]sdk.ReachabilityStats `json:"analyzer_stats,omitempty"`
+	DurationMS          int64                               `json:"duration_ms"`
+	ReachabilityEnabled bool                                `json:"reachability_enabled,omitempty"`
+	ScorecardEnabled    bool                                `json:"scorecard_enabled,omitempty"`
+	AnalyzerRuns        []string                            `json:"analyzer_runs,omitempty"`
+	AnalyzerStats       map[string]plugin.ReachabilityStats `json:"analyzer_stats,omitempty"`
 }
 
 // ReportOptions controls optional experimental data in structured command
@@ -28,30 +30,30 @@ type ReportOptions struct {
 	// DetectorWarnings are the detection-stage warnings the run produced. They
 	// are surfaced in the response document so a consumer reading JSON sees the
 	// same problems the progress stream showed.
-	DetectorWarnings    []sdk.DetectorWarning
+	DetectorWarnings    []plugin.DetectorWarning
 	ReachabilityEnabled bool
 	ScorecardEnabled    bool
 	AnalyzerRuns        []string
-	AnalyzerStats       map[string]sdk.ReachabilityStats
-	BaseRegistry        *sdk.PackageRegistry
-	HeadRegistry        *sdk.PackageRegistry
+	AnalyzerStats       map[string]plugin.ReachabilityStats
+	BaseRegistry        *model.PackageRegistry
+	HeadRegistry        *model.PackageRegistry
 }
 
 // ProjectDescriptor describes the project being analyzed.
 type ProjectDescriptor struct {
-	Name           string             `json:"name,omitempty"`
-	Path           string             `json:"path"`
-	TargetType     string             `json:"target_type,omitempty"`
-	TargetRef      string             `json:"target_ref,omitempty"`
-	Ecosystem      sdk.Ecosystem      `json:"ecosystem"`
-	PackageManager sdk.PackageManager `json:"package_manager,omitempty"`
+	Name           string               `json:"name,omitempty"`
+	Path           string               `json:"path"`
+	TargetType     string               `json:"target_type,omitempty"`
+	TargetRef      string               `json:"target_ref,omitempty"`
+	Ecosystem      model.Ecosystem      `json:"ecosystem"`
+	PackageManager model.PackageManager `json:"package_manager,omitempty"`
 }
 
 // LicenseRef identifies one package license in command outputs.
 type LicenseRef struct {
-	Value          string          `json:"value,omitempty"`
-	SPDXExpression string          `json:"spdxExpression,omitempty"`
-	Type           sdk.LicenseType `json:"type,omitempty"`
+	Value          string            `json:"value,omitempty"`
+	SPDXExpression string            `json:"spdxExpression,omitempty"`
+	Type           model.LicenseType `json:"type,omitempty"`
 }
 
 // Identifier returns the most useful license identifier for display.
@@ -68,46 +70,46 @@ func (l LicenseRef) Identifier() string {
 
 // VulnerabilityRef identifies one package vulnerability in command outputs.
 type VulnerabilityRef struct {
-	ID                   string               `json:"id"`
-	Source               string               `json:"source"`
-	Title                string               `json:"title,omitempty"`
-	Severity             sdk.SeverityLevel    `json:"severity,omitempty"`
-	SeveritySource       string               `json:"severity_source,omitempty"`
-	Aliases              []string             `json:"aliases,omitempty"`
-	Description          string               `json:"description,omitempty"`
-	Reasons              []string             `json:"reasons,omitempty"`
-	CVSS                 []sdk.CVSSScore      `json:"cvss,omitempty"`
-	FixedIn              string               `json:"fixed_in,omitempty"`
-	FixedVersions        []string             `json:"fixed_versions,omitempty"`
-	FixState             sdk.FixState         `json:"fix_state,omitempty"`
-	FixAvailable         []sdk.FixAvailable   `json:"fix_available,omitempty"`
-	AffectedVersionRange string               `json:"affected_version_range,omitempty"`
-	References           []sdk.Reference      `json:"references,omitempty"`
-	KEVExploited         bool                 `json:"kev_exploited,omitempty"`
-	KnownExploited       []sdk.KnownExploited `json:"known_exploited,omitempty"`
-	EPSS                 []sdk.EPSSScore      `json:"epss,omitempty"`
-	CWEs                 []sdk.CWE            `json:"cwes,omitempty"`
-	RiskScore            float64              `json:"risk_score,omitempty"`
-	DataSource           string               `json:"data_source,omitempty"`
-	Namespace            string               `json:"namespace,omitempty"`
-	CPEs                 []string             `json:"cpes,omitempty"`
-	AffectedSymbols      []sdk.AffectedSymbol `json:"affected_symbols,omitempty"`
-	Reachability         *sdk.Reachability    `json:"reachability,omitempty"`
+	ID                   string                 `json:"id"`
+	Source               string                 `json:"source"`
+	Title                string                 `json:"title,omitempty"`
+	Severity             model.SeverityLevel    `json:"severity,omitempty"`
+	SeveritySource       string                 `json:"severity_source,omitempty"`
+	Aliases              []string               `json:"aliases,omitempty"`
+	Description          string                 `json:"description,omitempty"`
+	Reasons              []string               `json:"reasons,omitempty"`
+	CVSS                 []model.CVSSScore      `json:"cvss,omitempty"`
+	FixedIn              string                 `json:"fixed_in,omitempty"`
+	FixedVersions        []string               `json:"fixed_versions,omitempty"`
+	FixState             model.FixState         `json:"fix_state,omitempty"`
+	FixAvailable         []model.FixAvailable   `json:"fix_available,omitempty"`
+	AffectedVersionRange string                 `json:"affected_version_range,omitempty"`
+	References           []model.Reference      `json:"references,omitempty"`
+	KEVExploited         bool                   `json:"kev_exploited,omitempty"`
+	KnownExploited       []model.KnownExploited `json:"known_exploited,omitempty"`
+	EPSS                 []model.EPSSScore      `json:"epss,omitempty"`
+	CWEs                 []model.CWE            `json:"cwes,omitempty"`
+	RiskScore            float64                `json:"risk_score,omitempty"`
+	DataSource           string                 `json:"data_source,omitempty"`
+	Namespace            string                 `json:"namespace,omitempty"`
+	CPEs                 []string               `json:"cpes,omitempty"`
+	AffectedSymbols      []model.AffectedSymbol `json:"affected_symbols,omitempty"`
+	Reachability         *model.Reachability    `json:"reachability,omitempty"`
 }
 
 // PackageRef identifies a package in command outputs.
 type PackageRef struct {
-	Name            string                `json:"name"`
-	Version         string                `json:"version,omitempty"`
-	Scope           string                `json:"scope,omitempty"`
-	Purl            string                `json:"purl,omitempty"`
-	ID              string                `json:"id,omitempty"`
-	Metadata        map[string]any        `json:"metadata,omitempty"`
-	Locations       []LocationRef         `json:"locations,omitempty"`
-	Licenses        []LicenseRef          `json:"licenses"`
-	Vulnerabilities []VulnerabilityRef    `json:"vulnerabilities"`
-	Scorecard       *sdk.PackageScorecard `json:"scorecard,omitempty"`
-	Relationship    string                `json:"relationship,omitempty"`
+	Name            string                  `json:"name"`
+	Version         string                  `json:"version,omitempty"`
+	Scope           string                  `json:"scope,omitempty"`
+	Purl            string                  `json:"purl,omitempty"`
+	ID              string                  `json:"id,omitempty"`
+	Metadata        map[string]any          `json:"metadata,omitempty"`
+	Locations       []LocationRef           `json:"locations,omitempty"`
+	Licenses        []LicenseRef            `json:"licenses"`
+	Vulnerabilities []VulnerabilityRef      `json:"vulnerabilities"`
+	Scorecard       *model.PackageScorecard `json:"scorecard,omitempty"`
+	Relationship    string                  `json:"relationship,omitempty"`
 	// Direct reports whether the package is a direct dependency of a project
 	// root. nil means directness could not be determined (e.g. a flat SBOM with
 	// no dependency edges); it is only populated where a graph is in scope.
@@ -119,7 +121,7 @@ type PackageRef struct {
 // entries and diff package changes do not repeat package-level enrichment.
 type ExplainDependency struct {
 	PackageRef
-	Remediation *sdk.PackageRemediation `json:"remediation,omitempty"`
+	Remediation *model.PackageRemediation `json:"remediation,omitempty"`
 }
 
 func (p ExplainDependency) withoutReachability() ExplainDependency {
@@ -169,7 +171,7 @@ type PositionRef struct {
 
 // LocationRefsFromGraphLocations converts SDK locations into
 // output-friendly values, dropping entries with no useful content.
-func LocationRefsFromGraphLocations(locations []sdk.PackageLocation) []LocationRef {
+func LocationRefsFromGraphLocations(locations []model.PackageLocation) []LocationRef {
 	if len(locations) == 0 {
 		return nil
 	}
@@ -221,7 +223,7 @@ type DependencyPath struct {
 // matching-stage enrichment (Vulnerabilities, Scorecard, EOL, licenses
 // learned during matching) must come from the registry — use
 // PackageFromDependencyAndRegistry when a registry is in scope.
-func PackageFromGraphPackage(dep *sdk.DependencyNode) PackageRef {
+func PackageFromGraphPackage(dep *model.DependencyNode) PackageRef {
 	return PackageFromDependencyAndRegistry(dep, nil)
 }
 
@@ -233,16 +235,16 @@ func PackageFromGraphPackage(dep *sdk.DependencyNode) PackageRef {
 // loose-envify here" answers with "react needs it" and never says which
 // project pulled react in -- so a structural node renders too, with the fields
 // its kind actually has.
-func PackageFromGraphNode(node sdk.GraphNode) PackageRef {
-	if dep, ok := node.(*sdk.DependencyNode); ok {
+func PackageFromGraphNode(node model.GraphNode) PackageRef {
+	if dep, ok := node.(*model.DependencyNode); ok {
 		return PackageFromDependencyAndRegistry(dep, nil)
 	}
 	// Scope is left unset deliberately. A dependency node returned above,
 	// so what reaches here is a module or a manifest, and neither carries
 	// one: scope is a claim about how a consumed package is used.
 	ref := PackageRef{
-		Name:            sdk.NodeDisplayName(node),
-		Version:         sdk.NodeVersion(node),
+		Name:            model.NodeDisplayName(node),
+		Version:         model.NodeVersion(node),
 		ID:              node.NodeID(),
 		Locations:       LocationRefsFromGraphLocations(node.NodeLocations()),
 		Licenses:        []LicenseRef{},
@@ -255,7 +257,7 @@ func PackageFromGraphNode(node sdk.GraphNode) PackageRef {
 // PurlFromGraphNode returns the package URL a node publishes, or "" when it
 // has none. It delegates to graphview, which is the one place that decides
 // this for every surface that publishes a purl.
-func PurlFromGraphNode(node sdk.GraphNode) string {
+func PurlFromGraphNode(node model.GraphNode) string {
 	return graphview.PurlFor(node)
 }
 
@@ -264,7 +266,7 @@ func PurlFromGraphNode(node sdk.GraphNode) string {
 // licenses learned during matching) by resolving dep.NodeID() against the
 // registry. registry may be nil — callers without a registry get the
 // detection-only projection.
-func PackageFromDependencyAndRegistry(dep *sdk.DependencyNode, registry *sdk.PackageRegistry) PackageRef {
+func PackageFromDependencyAndRegistry(dep *model.DependencyNode, registry *model.PackageRegistry) PackageRef {
 	if dep == nil {
 		return PackageRef{Licenses: []LicenseRef{}, Vulnerabilities: []VulnerabilityRef{}}
 	}
@@ -277,7 +279,7 @@ func PackageFromDependencyAndRegistry(dep *sdk.DependencyNode, registry *sdk.Pac
 		Relationship:    string(dep.Relationship),
 		Metadata:        cloneRefMetadata(dep.Metadata),
 		Locations:       LocationRefsFromGraphLocations(dep.Locations),
-		Licenses:        LicenseRefsFromGraphLicenses(sdk.DetectionLicenses(dep)),
+		Licenses:        LicenseRefsFromGraphLicenses(model.DetectionLicenses(dep)),
 		Vulnerabilities: []VulnerabilityRef{},
 	}
 	pkg := RegistryPackageForNode(registry, dep)
@@ -311,11 +313,11 @@ func (p PackageRef) withoutReachability() PackageRef {
 	return p
 }
 
-func cloneAffectedSymbols(src []sdk.AffectedSymbol) []sdk.AffectedSymbol {
+func cloneAffectedSymbols(src []model.AffectedSymbol) []model.AffectedSymbol {
 	if len(src) == 0 {
 		return nil
 	}
-	out := make([]sdk.AffectedSymbol, 0, len(src))
+	out := make([]model.AffectedSymbol, 0, len(src))
 	for _, sym := range src {
 		out = append(out, sym.Clone())
 	}
@@ -332,11 +334,11 @@ func cloneRefMetadata(src map[string]any) map[string]any {
 	return clone
 }
 
-func cloneKnownExploited(src []sdk.KnownExploited) []sdk.KnownExploited {
+func cloneKnownExploited(src []model.KnownExploited) []model.KnownExploited {
 	if len(src) == 0 {
 		return nil
 	}
-	out := make([]sdk.KnownExploited, 0, len(src))
+	out := make([]model.KnownExploited, 0, len(src))
 	for _, item := range src {
 		if len(item.URLs) > 0 {
 			item.URLs = append([]string(nil), item.URLs...)
@@ -350,7 +352,7 @@ func cloneKnownExploited(src []sdk.KnownExploited) []sdk.KnownExploited {
 }
 
 // LicenseRefsFromGraphLicenses converts graph licenses into output-friendly values.
-func LicenseRefsFromGraphLicenses(licenses []sdk.PackageLicense) []LicenseRef {
+func LicenseRefsFromGraphLicenses(licenses []model.PackageLicense) []LicenseRef {
 	if len(licenses) == 0 {
 		return []LicenseRef{}
 	}
@@ -366,7 +368,7 @@ func LicenseRefsFromGraphLicenses(licenses []sdk.PackageLicense) []LicenseRef {
 }
 
 // VulnerabilityRefsFromPackageVulnerabilities converts package vulnerability enrichment into output-friendly values.
-func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []sdk.Vulnerability) []VulnerabilityRef {
+func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []model.Vulnerability) []VulnerabilityRef {
 	if len(vulnerabilities) == 0 {
 		return []VulnerabilityRef{}
 	}
@@ -381,19 +383,19 @@ func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []sdk.Vulnerabi
 			Aliases:              append([]string(nil), vulnerability.Aliases...),
 			Description:          vulnerability.Details,
 			Reasons:              append([]string(nil), vulnerability.Reasons...),
-			CVSS:                 append([]sdk.CVSSScore(nil), vulnerability.CVSS...),
+			CVSS:                 append([]model.CVSSScore(nil), vulnerability.CVSS...),
 			FixedIn:              vulnerability.FixedIn,
 			FixedVersions:        append([]string(nil), vulnerability.FixedVersions...),
 			FixState:             vulnerability.FixState,
-			FixAvailable:         append([]sdk.FixAvailable(nil), vulnerability.FixAvailable...),
+			FixAvailable:         append([]model.FixAvailable(nil), vulnerability.FixAvailable...),
 			AffectedSymbols:      cloneAffectedSymbols(vulnerability.AffectedSymbols),
 			Reachability:         vulnerability.Reachability.Clone(),
 			AffectedVersionRange: vulnerability.AffectedVersionRange,
-			References:           append([]sdk.Reference(nil), vulnerability.References...),
+			References:           append([]model.Reference(nil), vulnerability.References...),
 			KEVExploited:         vulnerability.KEVExploited,
 			KnownExploited:       cloneKnownExploited(vulnerability.KnownExploited),
-			EPSS:                 append([]sdk.EPSSScore(nil), vulnerability.EPSS...),
-			CWEs:                 append([]sdk.CWE(nil), vulnerability.CWEs...),
+			EPSS:                 append([]model.EPSSScore(nil), vulnerability.EPSS...),
+			CWEs:                 append([]model.CWE(nil), vulnerability.CWEs...),
 			RiskScore:            vulnerability.RiskScore,
 			DataSource:           vulnerability.DataSource,
 			Namespace:            vulnerability.Namespace,
@@ -432,18 +434,18 @@ func (p FindingPackageRef) DisplayLabel() string {
 // (join to packages[].vulnerabilities), and the introducing graph nodes by
 // dependency_refs (join to manifests[].dependencies ids).
 type AuditFinding struct {
-	ID              string                  `json:"id"`
-	Kind            sdk.FindingKind         `json:"kind"`
-	Severity        sdk.SeverityLevel       `json:"severity"`
-	Package         FindingPackageRef       `json:"package"`
-	Title           string                  `json:"title"`
-	Reasons         []string                `json:"reasons,omitempty"`
-	Source          string                  `json:"source"`
-	Auditor         string                  `json:"auditor,omitempty"`
-	RuleID          string                  `json:"rule_id,omitempty"`
-	PolicyStatus    sdk.FindingPolicyStatus `json:"policy_status,omitempty"`
-	VulnerabilityID string                  `json:"vulnerability_id,omitempty"`
-	DependencyRefs  []string                `json:"dependency_refs,omitempty"`
+	ID              string                    `json:"id"`
+	Kind            model.FindingKind         `json:"kind"`
+	Severity        model.SeverityLevel       `json:"severity"`
+	Package         FindingPackageRef         `json:"package"`
+	Title           string                    `json:"title"`
+	Reasons         []string                  `json:"reasons,omitempty"`
+	Source          string                    `json:"source"`
+	Auditor         string                    `json:"auditor,omitempty"`
+	RuleID          string                    `json:"rule_id,omitempty"`
+	PolicyStatus    model.FindingPolicyStatus `json:"policy_status,omitempty"`
+	VulnerabilityID string                    `json:"vulnerability_id,omitempty"`
+	DependencyRefs  []string                  `json:"dependency_refs,omitempty"`
 }
 
 // AuditSummary aggregates finding counts by severity.
@@ -460,7 +462,7 @@ type AuditSummary struct {
 // When registry is non-nil the finding's package reference is resolved
 // against it for display identity (name/org/version/ecosystem), and a
 // missing finding severity is backfilled from the referenced advisory.
-func FindingsFromScan(findings []sdk.Finding, registry *sdk.PackageRegistry) []AuditFinding {
+func FindingsFromScan(findings []model.Finding, registry *model.PackageRegistry) []AuditFinding {
 	result := make([]AuditFinding, 0, len(findings))
 	for _, f := range findings {
 		_, advisory := FindingAdvisory(registry, f)
@@ -530,10 +532,10 @@ func MatchVulnerabilityRef(refs []VulnerabilityRef, id string) *VulnerabilityRef
 
 // FailingFindingCount reports how many findings should fail policy evaluation.
 // Warning and suppressed findings remain reportable but do not gate execution.
-func FailingFindingCount(findings []sdk.Finding) int {
+func FailingFindingCount(findings []model.Finding) int {
 	total := 0
 	for _, finding := range findings {
-		if finding.PolicyStatus == "" || finding.PolicyStatus == sdk.FindingPolicyStatusFail {
+		if finding.PolicyStatus == "" || finding.PolicyStatus == model.FindingPolicyStatusFail {
 			total++
 		}
 	}
@@ -541,7 +543,7 @@ func FailingFindingCount(findings []sdk.Finding) int {
 }
 
 // SummaryFromFindings aggregates finding counts by severity band.
-func SummaryFromFindings(findings []sdk.Finding) *AuditSummary {
+func SummaryFromFindings(findings []model.Finding) *AuditSummary {
 	s := &AuditSummary{}
 	for _, f := range findings {
 		s.Total++
@@ -591,9 +593,9 @@ type ScanDependency struct {
 // recorded scopes, mirroring sdk.DependencyNode.PrimaryScope so text/markdown
 // renderers reproduce the same scope label as before the model split.
 func (d ScanDependency) PrimaryScope() string {
-	result := sdk.ScopeUnknown
+	result := model.ScopeUnknown
 	for _, scope := range d.Scopes {
-		result = sdk.MergeScope(result, sdk.Scope(scope))
+		result = model.MergeScope(result, model.Scope(scope))
 	}
 	return string(result)
 }
@@ -603,20 +605,20 @@ func (d ScanDependency) PrimaryScope() string {
 // enrichment (licenses, vulnerabilities, scorecard, EOL, CPEs, digests) that
 // manifest dependencies reference by package_ref.
 type ScanPackageEntry struct {
-	Purl            string                  `json:"purl"`
-	Name            string                  `json:"name,omitempty"`
-	Org             string                  `json:"org,omitempty"`
-	Version         string                  `json:"version,omitempty"`
-	Ecosystem       string                  `json:"ecosystem,omitempty"`
-	Matched         bool                    `json:"matched,omitempty"`
-	Licenses        []LicenseRef            `json:"licenses"`
-	Vulnerabilities []VulnerabilityRef      `json:"vulnerabilities"`
-	Scorecard       *sdk.PackageScorecard   `json:"scorecard,omitempty"`
-	EOL             *sdk.PackageEOL         `json:"eol,omitempty"`
-	Remediation     *sdk.PackageRemediation `json:"remediation,omitempty"`
-	CPEs            []string                `json:"cpes,omitempty"`
-	Digests         []sdk.Digest            `json:"digests,omitempty"`
-	Metadata        map[string]any          `json:"metadata,omitempty"`
+	Purl            string                    `json:"purl"`
+	Name            string                    `json:"name,omitempty"`
+	Org             string                    `json:"org,omitempty"`
+	Version         string                    `json:"version,omitempty"`
+	Ecosystem       string                    `json:"ecosystem,omitempty"`
+	Matched         bool                      `json:"matched,omitempty"`
+	Licenses        []LicenseRef              `json:"licenses"`
+	Vulnerabilities []VulnerabilityRef        `json:"vulnerabilities"`
+	Scorecard       *model.PackageScorecard   `json:"scorecard,omitempty"`
+	EOL             *model.PackageEOL         `json:"eol,omitempty"`
+	Remediation     *model.PackageRemediation `json:"remediation,omitempty"`
+	CPEs            []string                  `json:"cpes,omitempty"`
+	Digests         []model.Digest            `json:"digests,omitempty"`
+	Metadata        map[string]any            `json:"metadata,omitempty"`
 }
 
 func (p ScanPackageEntry) withoutReachability() ScanPackageEntry {
@@ -632,7 +634,7 @@ func (p ScanPackageEntry) withoutReachability() ScanPackageEntry {
 // DependenciesFromGraph converts a graph into stable, lean scan dependency
 // payloads. registry, when non-nil, supplies the Matched flag via PURL lookup;
 // all richer enrichment is surfaced through PackagesFromRegistry instead.
-func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDependency {
+func DependenciesFromGraph(g *model.Graph, registry *model.PackageRegistry) []ScanDependency {
 	if g == nil {
 		return nil
 	}
@@ -643,7 +645,7 @@ func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDe
 	// headless -- a consumer could no longer say which module pulled a
 	// package in. Manifest nodes stay out; they are what the listing is
 	// about, not something in it.
-	listed := make([]sdk.GraphNode, 0, g.Size())
+	listed := make([]model.GraphNode, 0, g.Size())
 	for _, module := range g.ModuleNodes() {
 		listed = append(listed, module)
 	}
@@ -652,7 +654,7 @@ func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDe
 	}
 	listedIDs := make(map[string]struct{}, len(listed))
 	for _, node := range listed {
-		if !sdk.IsNilNode(node) {
+		if !model.IsNilNode(node) {
 			listedIDs[node.NodeID()] = struct{}{}
 		}
 	}
@@ -662,7 +664,7 @@ func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDe
 			continue
 		}
 		dependencyIDs := graphview.ChildrenAmong(g, node.NodeID(), listedIDs)
-		name, version := sdk.NodeDisplayName(node), sdk.NodeVersion(node)
+		name, version := model.NodeDisplayName(node), model.NodeVersion(node)
 		entry := ScanDependency{
 			ID:        node.NodeID(),
 			Name:      name,
@@ -672,12 +674,12 @@ func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDe
 			Locations: LocationRefsFromGraphLocations(node.NodeLocations()),
 			Licenses:  []LicenseRef{},
 		}
-		if module, isModule := node.(*sdk.ModuleNode); isModule {
+		if module, isModule := node.(*model.ModuleNode); isModule {
 			// A module publishes the package URL its coordinates mint, when
 			// they mint one; its node ID is not a package URL.
 			entry.Purl = module.PURL()
 		}
-		if dep, isDependency := node.(*sdk.DependencyNode); isDependency {
+		if dep, isDependency := node.(*model.DependencyNode); isDependency {
 			scopes := make([]string, 0, len(dep.Scopes))
 			for _, scope := range dep.Scopes {
 				scopes = append(scopes, string(scope))
@@ -690,7 +692,7 @@ func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDe
 			entry.Scopes = scopes
 			entry.Matched = matched
 			entry.PackageRef = dep.PackageRef
-			entry.Licenses = LicenseRefsFromGraphLicenses(sdk.DetectionLicenses(dep))
+			entry.Licenses = LicenseRefsFromGraphLicenses(model.DetectionLicenses(dep))
 		}
 		payload = append(payload, entry)
 	}
@@ -707,7 +709,7 @@ func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDe
 // packages collection, deduplicated by PURL. registry.All() is already
 // PURL-sorted. Returns a non-nil (possibly empty) slice so JSON consumers
 // always see a "packages" array.
-func PackagesFromRegistry(registry *sdk.PackageRegistry) []ScanPackageEntry {
+func PackagesFromRegistry(registry *model.PackageRegistry) []ScanPackageEntry {
 	if registry == nil {
 		return []ScanPackageEntry{}
 	}
@@ -730,7 +732,7 @@ func PackagesFromRegistry(registry *sdk.PackageRegistry) []ScanPackageEntry {
 			EOL:             pkg.EOL.Clone(),
 			Remediation:     pkg.Remediation.Clone(),
 			CPEs:            append([]string(nil), pkg.CPEs...),
-			Digests:         append([]sdk.Digest(nil), pkg.Digests...),
+			Digests:         append([]model.Digest(nil), pkg.Digests...),
 			Metadata:        cloneRefMetadata(pkg.Metadata),
 		}
 		payload = append(payload, entry)

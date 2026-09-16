@@ -7,16 +7,18 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	projectDir := filepath.Join("testdata", "project")
 	detector := Detector{}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:    projectDir,
-		PackageManager: sdk.PackageManagerConan,
-		Ecosystem:      sdk.EcosystemCPP,
+		PackageManager: model.PackageManagerConan,
+		Ecosystem:      model.EcosystemCPP,
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph returned error: %v", err)
@@ -36,7 +38,7 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected cmake package, got %v", graph.DependencyNodes())
 	}
-	if string(cmake.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(cmake.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected cmake development scope, got %q", string(cmake.PrimaryScope()))
 	}
 }
@@ -54,10 +56,10 @@ class Demo(ConanFile):
 		t.Fatalf("write conanfile.py: %v", err)
 	}
 	detector := Detector{}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:    projectDir,
-		PackageManager: sdk.PackageManagerConan,
-		Ecosystem:      sdk.EcosystemCPP,
+		PackageManager: model.PackageManagerConan,
+		Ecosystem:      model.EcosystemCPP,
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph returned error: %v", err)

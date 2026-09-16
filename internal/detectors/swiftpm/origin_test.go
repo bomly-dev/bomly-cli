@@ -6,21 +6,23 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(node sdk.GraphNode) sdk.DependencyOrigin {
-	dep, ok := node.(*sdk.DependencyNode)
+func originOf(node model.GraphNode) model.DependencyOrigin {
+	dep, ok := node.(*model.DependencyNode)
 	if !ok || dep == nil {
-		return sdk.DependencyOrigin{}
+		return model.DependencyOrigin{}
 	}
 	// Origins are gated on the way in, so the first entry is already
 	// publishable; these cases assert on a single asserted origin.
 	if len(dep.Origins) == 0 {
-		return sdk.DependencyOrigin{}
+		return model.DependencyOrigin{}
 	}
 	return dep.Origins[0]
 }
@@ -63,7 +65,7 @@ func TestSwiftPMOriginByPinKind(t *testing.T) {
 		switch node.Name {
 		case "swift-argument-parser":
 			checked++
-			want := sdk.DependencyOrigin{
+			want := model.DependencyOrigin{
 				Repository: "https://github.com/apple/swift-argument-parser.git",
 				Revision:   "8192a3b4c5d6e7f8091a2b3c4d5e6f7081921324",
 			}
@@ -126,12 +128,12 @@ func TestSwiftPMNativeOriginIsPinnedFromPackageResolved(t *testing.T) {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
 
-	want := sdk.DependencyOrigin{
+	want := model.DependencyOrigin{
 		Repository: "https://github.com/apple/swift-argument-parser.git",
 		Revision:   "f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b",
 	}
 	var checked int
-	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+	g.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		origin := originOf(dep)
 		switch dep.Name {
 		case "swift-argument-parser":
@@ -188,7 +190,7 @@ func TestSwiftPMEditedPackageIsNotCreditedToItsFormerPin(t *testing.T) {
 	}
 
 	var checked int
-	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+	g.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		if dep.Name != "helper" {
 			return true
 		}
@@ -237,7 +239,7 @@ func TestSwiftPMPinIsNotAttachedToADifferentRepository(t *testing.T) {
 	}
 
 	var checked int
-	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+	g.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		if dep.ResolvedURL == "" {
 			return true
 		}
@@ -272,9 +274,9 @@ func TestSwiftPMNativeOriginSurvivesMissingPackageResolved(t *testing.T) {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
 
-	want := sdk.DependencyOrigin{Repository: "https://github.com/apple/swift-argument-parser.git"}
+	want := model.DependencyOrigin{Repository: "https://github.com/apple/swift-argument-parser.git"}
 	var checked int
-	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+	g.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		if dep.Name == "swift-argument-parser" {
 			checked++
 			if got := originOf(dep); got != want {
@@ -353,7 +355,7 @@ func TestSwiftPMNativeOriginDoesNotMatchAcrossPathCase(t *testing.T) {
 	if err != nil {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
-	g.WalkNodes(func(dep sdk.GraphNode) bool {
+	g.WalkNodes(func(dep model.GraphNode) bool {
 		if origin := originOf(dep); origin.Revision == "5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f7081" {
 			t.Fatalf("%s took a pin belonging to a differently-cased repository: %+v", mustDep(t, dep).Name, origin)
 		}
@@ -399,12 +401,12 @@ func TestSwiftPMOriginIsPinnedFromTheXcodeLockfile(t *testing.T) {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
 
-	want := sdk.DependencyOrigin{
+	want := model.DependencyOrigin{
 		Repository: "https://github.com/apple/swift-argument-parser.git",
 		Revision:   "6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192",
 	}
 	var checked int
-	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+	g.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		if dep.Name != "swift-argument-parser" {
 			return true
 		}
@@ -419,7 +421,7 @@ func TestSwiftPMOriginIsPinnedFromTheXcodeLockfile(t *testing.T) {
 	}
 
 	// The same lockfile must also make the detector applicable and readable.
-	applicable, err := (Detector{WorkingDir: workingDir}).Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: workingDir})
+	applicable, err := (Detector{WorkingDir: workingDir}).Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: workingDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -430,9 +432,9 @@ func TestSwiftPMOriginIsPinnedFromTheXcodeLockfile(t *testing.T) {
 
 // mustDep narrows a graph node to the dependency node a case is asserting
 // about, failing rather than panicking when the graph holds something else.
-func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
 	t.Helper()
-	dep, ok := node.(*sdk.DependencyNode)
+	dep, ok := node.(*model.DependencyNode)
 	if !ok {
 		t.Fatalf("expected a dependency node, got %T", node)
 	}

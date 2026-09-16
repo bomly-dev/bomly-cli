@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 const (
@@ -132,40 +132,40 @@ type sarifThreadFlowLocation struct {
 // these fields give consumers everything needed to triage a finding
 // without parsing the parallel JSON output.
 type sarifProperties struct {
-	RuleID                 string               `json:"rule_id,omitempty"`
-	PackageRef             string               `json:"package_ref,omitempty"`
-	DependencyRefs         []string             `json:"dependency_refs,omitempty"`
-	LocationURIs           []string             `json:"location_uris,omitempty"`
-	FixedIn                string               `json:"fixed_in,omitempty"`
-	FixedVersions          []string             `json:"fixed_versions,omitempty"`
-	FixState               sdk.FixState         `json:"fix_state,omitempty"`
-	FixAvailable           []sdk.FixAvailable   `json:"fix_available,omitempty"`
-	SeveritySource         string               `json:"severity_source,omitempty"`
-	CVSS                   []sdk.CVSSScore      `json:"cvss,omitempty"`
-	Aliases                []string             `json:"aliases,omitempty"`
-	AffectedVersionRange   string               `json:"affected_version_range,omitempty"`
-	References             []sdk.Reference      `json:"references,omitempty"`
-	KEVExploited           bool                 `json:"kev_exploited,omitempty"`
-	KnownExploited         []sdk.KnownExploited `json:"known_exploited,omitempty"`
-	EPSS                   []sdk.EPSSScore      `json:"epss,omitempty"`
-	CWEs                   []sdk.CWE            `json:"cwes,omitempty"`
-	RiskScore              float64              `json:"risk_score,omitempty"`
-	DataSource             string               `json:"data_source,omitempty"`
-	Namespace              string               `json:"namespace,omitempty"`
-	CPEs                   []string             `json:"cpes,omitempty"`
-	Reachability           string               `json:"reachability,omitempty"`
-	ReachabilityTier       string               `json:"reachability_tier,omitempty"`
-	ReachabilityReason     string               `json:"reachability_reason,omitempty"`
-	Analyzer               string               `json:"analyzer,omitempty"`
-	ReachabilityConfidence string               `json:"reachability_confidence,omitempty"`
-	ReachabilityHops       *int                 `json:"reachability_hops,omitempty"`
-	DynamicImportsDetected bool                 `json:"reachability_dynamic_imports_detected,omitempty"`
+	RuleID                 string                 `json:"rule_id,omitempty"`
+	PackageRef             string                 `json:"package_ref,omitempty"`
+	DependencyRefs         []string               `json:"dependency_refs,omitempty"`
+	LocationURIs           []string               `json:"location_uris,omitempty"`
+	FixedIn                string                 `json:"fixed_in,omitempty"`
+	FixedVersions          []string               `json:"fixed_versions,omitempty"`
+	FixState               model.FixState         `json:"fix_state,omitempty"`
+	FixAvailable           []model.FixAvailable   `json:"fix_available,omitempty"`
+	SeveritySource         string                 `json:"severity_source,omitempty"`
+	CVSS                   []model.CVSSScore      `json:"cvss,omitempty"`
+	Aliases                []string               `json:"aliases,omitempty"`
+	AffectedVersionRange   string                 `json:"affected_version_range,omitempty"`
+	References             []model.Reference      `json:"references,omitempty"`
+	KEVExploited           bool                   `json:"kev_exploited,omitempty"`
+	KnownExploited         []model.KnownExploited `json:"known_exploited,omitempty"`
+	EPSS                   []model.EPSSScore      `json:"epss,omitempty"`
+	CWEs                   []model.CWE            `json:"cwes,omitempty"`
+	RiskScore              float64                `json:"risk_score,omitempty"`
+	DataSource             string                 `json:"data_source,omitempty"`
+	Namespace              string                 `json:"namespace,omitempty"`
+	CPEs                   []string               `json:"cpes,omitempty"`
+	Reachability           string                 `json:"reachability,omitempty"`
+	ReachabilityTier       string                 `json:"reachability_tier,omitempty"`
+	ReachabilityReason     string                 `json:"reachability_reason,omitempty"`
+	Analyzer               string                 `json:"analyzer,omitempty"`
+	ReachabilityConfidence string                 `json:"reachability_confidence,omitempty"`
+	ReachabilityHops       *int                   `json:"reachability_hops,omitempty"`
+	DynamicImportsDetected bool                   `json:"reachability_dynamic_imports_detected,omitempty"`
 }
 
 // SARIFOptions controls optional experimental data in SARIF output.
 type SARIFOptions struct {
 	IncludeReachability bool
-	LocationGraphs      []*sdk.Graph
+	LocationGraphs      []*model.Graph
 	BaselineState       string
 	ChangedLines        map[string][]SARIFLineRange
 }
@@ -183,7 +183,7 @@ type SARIFLineRange struct {
 // *sdk.Package and f.VulnerabilityID → *sdk.Vulnerability so each result
 // carries the rich properties (CVSS / EPSS / KEV / CWE / fix state /
 // reachability call paths) as SARIF `properties` / `codeFlows`.
-func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegistry, toolName, toolVersion string, options ...SARIFOptions) error {
+func WriteSARIF(w io.Writer, findings []model.Finding, registry *model.PackageRegistry, toolName, toolVersion string, options ...SARIFOptions) error {
 	includeReachability := false
 	if len(options) > 0 {
 		includeReachability = options[0].IncludeReachability
@@ -230,7 +230,7 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 			BaselineState:       sarifBaselineState(options),
 			PartialFingerprints: sarifPartialFingerprints(f, locationURIs, locations),
 		}
-		if f.PolicyStatus == sdk.FindingPolicyStatusSuppressed {
+		if f.PolicyStatus == model.FindingPolicyStatusSuppressed {
 			result.Suppressions = []sarifSuppression{{
 				Kind:          "external",
 				Justification: "Accepted by the project finding baseline",
@@ -315,7 +315,7 @@ func sarifBaselineState(options []SARIFOptions) string {
 	}
 }
 
-func sarifPartialFingerprints(f sdk.Finding, locationURIs []string, locations []sarifLocation) map[string]string {
+func sarifPartialFingerprints(f model.Finding, locationURIs []string, locations []sarifLocation) map[string]string {
 	parts := []string{
 		strings.TrimSpace(f.ID),
 		strings.TrimSpace(string(f.Kind)),
@@ -342,7 +342,7 @@ func sarifPartialFingerprints(f sdk.Finding, locationURIs []string, locations []
 // buildSARIFCodeFlows converts reachability call paths into SARIF
 // codeFlows. Returns nil if every path lacks frames so the final SARIF
 // document keeps the codeFlows array absent for affected rules.
-func buildSARIFCodeFlows(paths []sdk.CallPath) []sarifCodeFlow {
+func buildSARIFCodeFlows(paths []model.CallPath) []sarifCodeFlow {
 	flows := make([]sarifCodeFlow, 0, len(paths))
 	for _, path := range paths {
 		if len(path.Frames) == 0 {
@@ -368,14 +368,14 @@ func buildSARIFCodeFlows(paths []sdk.CallPath) []sarifCodeFlow {
 	return flows
 }
 
-func sarifRegionFromPosition(p sdk.SourcePosition) *sarifRegion {
+func sarifRegionFromPosition(p model.SourcePosition) *sarifRegion {
 	if p.Line == 0 && p.Column == 0 && p.EndLine == 0 {
 		return nil
 	}
 	return &sarifRegion{StartLine: p.Line, StartColumn: p.Column, EndLine: p.EndLine}
 }
 
-func sarifFrameDescription(frame sdk.CallFrame) string {
+func sarifFrameDescription(frame model.CallFrame) string {
 	switch {
 	case frame.Function != "" && frame.Package != "":
 		return frame.Package + "." + frame.Function
@@ -400,7 +400,7 @@ func sarifFrameDescription(frame sdk.CallFrame) string {
 // still get a SARIF location with artifactLocation.uri = RealPath
 // and no region. This is honest: we know which file the dep lives
 // in but not exactly where.
-func sarifLocationsForFinding(f sdk.Finding, includeReachability bool, options []SARIFOptions) ([]sarifLocation, []string) {
+func sarifLocationsForFinding(f model.Finding, includeReachability bool, options []SARIFOptions) ([]sarifLocation, []string) {
 	locations := make([]sarifLocation, 0)
 	originalURIs := make([]string, 0)
 	seen := make(map[string]struct{})
@@ -523,12 +523,12 @@ func sarifLocationDiffScore(uri string, region *sarifRegion, changedLines map[st
 // graph), and only the declaring module's instance carries manifest
 // locations. Pointer-identical instances shared across graphs are collected
 // once.
-func dependenciesForFinding(f sdk.Finding, options []SARIFOptions) []*sdk.DependencyNode {
+func dependenciesForFinding(f model.Finding, options []SARIFOptions) []*model.DependencyNode {
 	if len(options) == 0 || len(options[0].LocationGraphs) == 0 || len(f.DependencyRefs) == 0 {
 		return nil
 	}
-	out := make([]*sdk.DependencyNode, 0, len(f.DependencyRefs))
-	seen := make(map[*sdk.DependencyNode]struct{}, len(f.DependencyRefs))
+	out := make([]*model.DependencyNode, 0, len(f.DependencyRefs))
+	seen := make(map[*model.DependencyNode]struct{}, len(f.DependencyRefs))
 	for _, ref := range f.DependencyRefs {
 		for _, graph := range options[0].LocationGraphs {
 			if graph == nil {
@@ -540,7 +540,7 @@ func dependenciesForFinding(f sdk.Finding, options []SARIFOptions) []*sdk.Depend
 			}
 			// A finding references a package, so only dependency nodes are
 			// relevant; the graph also holds manifests and modules now.
-			dep, ok := node.(*sdk.DependencyNode)
+			dep, ok := node.(*model.DependencyNode)
 			if !ok {
 				continue
 			}
@@ -554,7 +554,7 @@ func dependenciesForFinding(f sdk.Finding, options []SARIFOptions) []*sdk.Depend
 	return out
 }
 
-func sarifLocationURIAndRegion(loc sdk.PackageLocation) (string, *sarifRegion) {
+func sarifLocationURIAndRegion(loc model.PackageLocation) (string, *sarifRegion) {
 	if loc.Position != nil {
 		uri := firstNonEmpty(loc.Position.File, loc.RealPath, loc.AccessPath)
 		return uri, sarifRegionFromPosition(*loc.Position)
@@ -631,7 +631,7 @@ func firstNonEmpty(values ...string) string {
 	return ""
 }
 
-func sarifPropertiesFromFinding(f sdk.Finding, locationURIs []string) sarifProperties {
+func sarifPropertiesFromFinding(f model.Finding, locationURIs []string) sarifProperties {
 	return sarifProperties{
 		RuleID:         f.RuleID,
 		PackageRef:     f.PackageRef,
@@ -697,21 +697,21 @@ func mergeSARIFProperties(base, extra sarifProperties) sarifProperties {
 // sarifPropertiesFromVulnerability converts a registry vulnerability into
 // the SARIF properties bag. Reachability-related fields are omitted unless
 // includeReachability is true.
-func sarifPropertiesFromVulnerability(v *sdk.Vulnerability, includeReachability bool) sarifProperties {
+func sarifPropertiesFromVulnerability(v *model.Vulnerability, includeReachability bool) sarifProperties {
 	props := sarifProperties{
 		FixedIn:              v.FixedIn,
 		FixedVersions:        append([]string(nil), v.FixedVersions...),
 		FixState:             v.FixState,
-		FixAvailable:         append([]sdk.FixAvailable(nil), v.FixAvailable...),
+		FixAvailable:         append([]model.FixAvailable(nil), v.FixAvailable...),
 		SeveritySource:       v.SeveritySource,
-		CVSS:                 append([]sdk.CVSSScore(nil), v.CVSS...),
+		CVSS:                 append([]model.CVSSScore(nil), v.CVSS...),
 		Aliases:              append([]string(nil), v.Aliases...),
 		AffectedVersionRange: v.AffectedVersionRange,
-		References:           append([]sdk.Reference(nil), v.References...),
+		References:           append([]model.Reference(nil), v.References...),
 		KEVExploited:         v.KEVExploited,
 		KnownExploited:       cloneKnownExploited(v.KnownExploited),
-		EPSS:                 append([]sdk.EPSSScore(nil), v.EPSS...),
-		CWEs:                 append([]sdk.CWE(nil), v.CWEs...),
+		EPSS:                 append([]model.EPSSScore(nil), v.EPSS...),
+		CWEs:                 append([]model.CWE(nil), v.CWEs...),
 		RiskScore:            v.RiskScore,
 		DataSource:           v.DataSource,
 		Namespace:            v.Namespace,
@@ -741,11 +741,11 @@ func sarifPropertiesFromVulnerability(v *sdk.Vulnerability, includeReachability 
 // the build still surfaces as "error" here, and a Critical one that's merely
 // a warning still surfaces as "warning": job impact and severity are
 // orthogonal, and GitHub's level/badge should track the former.
-func policyStatusToSARIFLevel(policyStatus sdk.FindingPolicyStatus) string {
+func policyStatusToSARIFLevel(policyStatus model.FindingPolicyStatus) string {
 	switch policyStatus {
-	case sdk.FindingPolicyStatusWarn:
+	case model.FindingPolicyStatusWarn:
 		return "warning"
-	case sdk.FindingPolicyStatusSuppressed:
+	case model.FindingPolicyStatusSuppressed:
 		return "note"
 	default:
 		// FindingPolicyStatusFail and "" both map to error; findings with no
@@ -826,8 +826,8 @@ func splitReasons(reasons []string) (facts, refs []string) {
 // rank security alerts. Only vulnerabilities (CVSS-backed) receive a numeric
 // security-severity and the "security" tag; license/package findings rely on
 // their SARIF level (Error/Warning/Note) instead.
-func sarifRulePropertiesForFinding(f sdk.Finding, registry *sdk.PackageRegistry) *sarifRuleProperties {
-	if f.Kind != sdk.FindingKindVulnerability {
+func sarifRulePropertiesForFinding(f model.Finding, registry *model.PackageRegistry) *sarifRuleProperties {
+	if f.Kind != model.FindingKindVulnerability {
 		return nil
 	}
 	score := securitySeverityScore(f, registry)
@@ -840,27 +840,27 @@ func sarifRulePropertiesForFinding(f sdk.Finding, registry *sdk.PackageRegistry)
 // securitySeverityScore returns the GitHub security-severity value for a
 // vulnerability finding: the real CVSS base score when available, otherwise a
 // representative midpoint for the severity band.
-func securitySeverityScore(f sdk.Finding, registry *sdk.PackageRegistry) string {
+func securitySeverityScore(f model.Finding, registry *model.PackageRegistry) string {
 	if _, vuln := FindingAdvisory(registry, f); vuln != nil {
 		if score := maxCVSSScore(vuln.CVSS); score > 0 {
 			return strconv.FormatFloat(score, 'f', 1, 64)
 		}
 	}
-	switch sdk.ParseSeverityLevel(string(f.Severity)) {
-	case sdk.SeverityCritical:
+	switch model.ParseSeverityLevel(string(f.Severity)) {
+	case model.SeverityCritical:
 		return "9.5"
-	case sdk.SeverityHigh:
+	case model.SeverityHigh:
 		return "8.0"
-	case sdk.SeverityMedium:
+	case model.SeverityMedium:
 		return "5.5"
-	case sdk.SeverityLow:
+	case model.SeverityLow:
 		return "2.0"
 	default:
 		return ""
 	}
 }
 
-func maxCVSSScore(scores []sdk.CVSSScore) float64 {
+func maxCVSSScore(scores []model.CVSSScore) float64 {
 	max := 0.0
 	for _, s := range scores {
 		if s.Score > max {

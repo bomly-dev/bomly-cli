@@ -12,8 +12,9 @@ import (
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/progress"
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // newCommandProgress constructs a Progress sourcing its writer + TTY-detection
@@ -43,7 +44,7 @@ func warningProgressChildren(warnings []engine.PipelineWarning) []progress.Child
 
 // detectorWarningProgressChildren converts detection warnings into ⚠ children
 // using the warning source as Label and the message as Detail.
-func detectorWarningProgressChildren(warnings []sdk.DetectorWarning) []progress.Child {
+func detectorWarningProgressChildren(warnings []plugin.DetectorWarning) []progress.Child {
 	children := make([]progress.Child, 0, len(warnings))
 	for _, warning := range warnings {
 		label := warning.Source
@@ -70,7 +71,7 @@ func detectorWarningProgressChildren(warnings []sdk.DetectorWarning) []progress.
 
 // subprojectProgressChildren returns one child per resolved subproject showing
 // the relative path and ecosystem.
-func subprojectProgressChildren(results []sdk.DetectionResult) []progress.Child {
+func subprojectProgressChildren(results []plugin.DetectionResult) []progress.Child {
 	children := make([]progress.Child, 0, len(results))
 	for _, r := range results {
 		label := r.SubprojectInfo.RelativePath
@@ -99,7 +100,7 @@ func subprojectProgressChildren(results []sdk.DetectionResult) []progress.Child 
 // subprojectProgressChildren: it reads from the planned []sdk.Subproject so
 // the "Indexed subprojects" step can be promoted right after Prepare returns,
 // before the detection pipeline starts.
-func plannedSubprojectChildren(subprojects []sdk.Subproject) []progress.Child {
+func plannedSubprojectChildren(subprojects []plugin.Subproject) []progress.Child {
 	children := make([]progress.Child, 0, len(subprojects))
 	for _, s := range subprojects {
 		label := s.RelativePath
@@ -166,10 +167,10 @@ func prepareCommandContextWithProgress(ctx context.Context, options *opts.Option
 // deduplicated child list. Used by diff progress to render one "Indexed
 // subprojects" tree spanning both refs. Subprojects are deduplicated by
 // relative path + ecosystem so identical sets across refs don't duplicate.
-func combinedSubprojectChildren(base, head []sdk.Subproject) []progress.Child {
+func combinedSubprojectChildren(base, head []plugin.Subproject) []progress.Child {
 	seen := make(map[string]struct{})
-	all := append(append([]sdk.Subproject(nil), base...), head...)
-	deduped := make([]sdk.Subproject, 0, len(all))
+	all := append(append([]plugin.Subproject(nil), base...), head...)
+	deduped := make([]plugin.Subproject, 0, len(all))
 	for _, s := range all {
 		key := s.RelativePath + "|" + string(s.Ecosystem)
 		if _, ok := seen[key]; ok {
@@ -200,14 +201,14 @@ func inputResolutionLabels(cfg opts.Options) (string, string, bool) {
 	}
 }
 
-func progressTargetLabel(target sdk.ExecutionTarget) string {
+func progressTargetLabel(target plugin.ExecutionTarget) string {
 	if label := gitProgressTargetLabel(target); label != "" {
 		return label
 	}
 	switch target.Kind {
-	case sdk.ExecutionTargetContainerImage:
+	case plugin.ExecutionTargetContainerImage:
 		return strings.TrimSpace(target.Location)
-	case sdk.ExecutionTargetFilesystem:
+	case plugin.ExecutionTargetFilesystem:
 		location := strings.TrimSpace(target.Location)
 		if location != "" {
 			return filepath.Base(location)
@@ -216,10 +217,10 @@ func progressTargetLabel(target sdk.ExecutionTarget) string {
 	return filepath.Base(target.Location)
 }
 
-func gitProgressTargetLabel(target sdk.ExecutionTarget) string {
+func gitProgressTargetLabel(target plugin.ExecutionTarget) string {
 	ref := strings.TrimSpace(target.Ref)
 	repo := strings.TrimSpace(target.RepositoryURL)
-	if target.Kind != sdk.ExecutionTargetGitRepository && repo == "" && ref == "" {
+	if target.Kind != plugin.ExecutionTargetGitRepository && repo == "" && ref == "" {
 		return ""
 	}
 	switch {
@@ -236,7 +237,7 @@ func gitProgressTargetLabel(target sdk.ExecutionTarget) string {
 
 // detectorProgressChildren groups results by detector name, sums the total
 // package count per detector, and returns children with ✔ icon.
-func detectorProgressChildren(results []sdk.DetectionResult) []progress.Child {
+func detectorProgressChildren(results []plugin.DetectionResult) []progress.Child {
 	type detectorInfo struct {
 		name     string
 		packages int
@@ -287,7 +288,7 @@ func auditProgressChildren(auditorRuns []string, auditorFindings map[string]int,
 
 // analyzerProgressChildren returns ✔ children for each successful reachability
 // analyzer run and ⚠ children for each warning.
-func analyzerProgressChildren(analyzerRuns []string, analyzerStats map[string]sdk.ReachabilityStats, warnings []engine.PipelineWarning) []progress.Child {
+func analyzerProgressChildren(analyzerRuns []string, analyzerStats map[string]plugin.ReachabilityStats, warnings []engine.PipelineWarning) []progress.Child {
 	children := make([]progress.Child, 0, len(analyzerRuns)+len(warnings))
 	for _, name := range analyzerRuns {
 		children = append(children, progress.Child{
@@ -300,7 +301,7 @@ func analyzerProgressChildren(analyzerRuns []string, analyzerStats map[string]sd
 	return children
 }
 
-func analyzerProgressDetail(stats sdk.ReachabilityStats) string {
+func analyzerProgressDetail(stats plugin.ReachabilityStats) string {
 	parts := make([]string, 0, 4)
 	if stats.Reachable > 0 {
 		parts = append(parts, fmt.Sprintf("%d reachable", stats.Reachable))
@@ -353,7 +354,7 @@ func diffPolicyOutcomeProgressChild(audit *diffengine.Audit) progress.Child {
 
 // matchProgressChildren returns ✔ children for each successful matcher run
 // and ⚠ children for each warning.
-func matchProgressChildren(stats []sdk.MatcherStats, warnings []engine.PipelineWarning) []progress.Child {
+func matchProgressChildren(stats []plugin.MatcherStats, warnings []engine.PipelineWarning) []progress.Child {
 	children := make([]progress.Child, 0, len(stats)+len(warnings))
 	for _, stat := range stats {
 		children = append(children, progress.Child{
@@ -366,7 +367,7 @@ func matchProgressChildren(stats []sdk.MatcherStats, warnings []engine.PipelineW
 	return children
 }
 
-func matcherProgressDetail(stats sdk.MatcherStats) string {
+func matcherProgressDetail(stats plugin.MatcherStats) string {
 	parts := make([]string, 0, 4)
 	if stats.MatchedPackages > 0 {
 		parts = append(parts, fmt.Sprintf("%d matched packages", stats.MatchedPackages))
@@ -386,7 +387,7 @@ func matcherProgressDetail(stats sdk.MatcherStats) string {
 	return "[" + strings.Join(parts, ", ") + "]"
 }
 
-func matcherStatsLabel(stats sdk.MatcherStats) string {
+func matcherStatsLabel(stats plugin.MatcherStats) string {
 	if strings.TrimSpace(stats.DisplayName) != "" {
 		return strings.TrimSpace(stats.DisplayName)
 	}

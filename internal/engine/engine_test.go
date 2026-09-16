@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 type fakeDetector struct {
@@ -22,10 +24,10 @@ type fakeDetector struct {
 
 func (f fakeDetector) Descriptor() DetectorDescriptor { return f.descriptor }
 
-func (f fakeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	values := make([]sdk.PackageManagerSupport, 0, len(f.descriptor.SupportedManagers))
+func (f fakeDetector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	values := make([]plugin.PackageManagerSupport, 0, len(f.descriptor.SupportedManagers))
 	for _, manager := range f.descriptor.SupportedManagers {
-		values = append(values, sdk.Support(manager))
+		values = append(values, plugin.Support(manager))
 	}
 	return values
 }
@@ -163,28 +165,28 @@ func TestEngineAudit_ReturnsPartialResultsWhenAnAuditorFails(t *testing.T) {
 func TestEngineAudit_ClonesDependencyDetailChangesPerAuditor(t *testing.T) {
 	// Named coordinates, because a node's identity is minted from them and a
 	// nameless one has no package URL to mint (ADR-0041).
-	coords := sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: "example", Version: "1.0.0"}
-	before := testnodes.DepFrom(sdk.DependencyNode{Coordinates: coords, Source: sdk.DependencySourceRegistry})
-	after := testnodes.DepFrom(sdk.DependencyNode{Coordinates: coords, Source: sdk.DependencySourceGit})
+	coords := model.Coordinates{Ecosystem: model.EcosystemNPM, Name: "example", Version: "1.0.0"}
+	before := testnodes.DepFrom(model.DependencyNode{Coordinates: coords, Source: model.DependencySourceRegistry})
+	after := testnodes.DepFrom(model.DependencyNode{Coordinates: coords, Source: model.DependencySourceGit})
 	request := AuditRequest{
 		Ecosystem:      EcosystemNPM,
 		PackageManager: PackageManagerNPM,
-		DependencyDetailChanges: []sdk.DependencyDetailTransition{{
+		DependencyDetailChanges: []model.DependencyDetailTransition{{
 			Before:        before,
 			After:         after,
-			ChangedFields: []sdk.DependencyDetailField{sdk.DependencyDetailSource},
+			ChangedFields: []model.DependencyDetailField{model.DependencyDetailSource},
 		}},
 	}
 	assertOriginal := func(phase string, req AuditRequest) {
 		t.Helper()
-		if req.DependencyDetailChanges[0].After.Source != sdk.DependencySourceGit ||
-			req.DependencyDetailChanges[0].ChangedFields[0] != sdk.DependencyDetailSource {
+		if req.DependencyDetailChanges[0].After.Source != model.DependencySourceGit ||
+			req.DependencyDetailChanges[0].ChangedFields[0] != model.DependencyDetailSource {
 			t.Fatalf("%s observed mutated request: %#v", phase, req.DependencyDetailChanges)
 		}
 	}
 	mutate := func(req AuditRequest) {
-		req.DependencyDetailChanges[0].After.Source = sdk.DependencySourceURL
-		req.DependencyDetailChanges[0].ChangedFields[0] = sdk.DependencyDetailRelationship
+		req.DependencyDetailChanges[0].After.Source = model.DependencySourceURL
+		req.DependencyDetailChanges[0].ChangedFields[0] = model.DependencyDetailRelationship
 	}
 	registry := newTestRegistry()
 	registry.registerAuditor(fakeAuditor{

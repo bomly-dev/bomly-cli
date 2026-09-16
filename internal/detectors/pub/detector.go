@@ -8,18 +8,20 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // Detector resolves Dart pub dependency graphs from pubspec files.
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
+	Fallback   plugin.Detector
 }
 
 var evidencePatterns = []string{"pubspec.lock", "pubspec.yaml", "pubspec.yml"}
@@ -43,17 +45,17 @@ type pubspec struct {
 }
 
 // PackageManagerSupport returns pub package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerPub, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerPub, evidencePatterns...)}
 }
 
 // Ready reports whether committed pub lockfiles can be parsed.
-func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
+func (d Detector) Ready(context.Context, plugin.DetectionRequest) error {
 	return nil
 }
 
 // Applicable reports whether pub manifests are present.
-func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	_ = ctx
 	workingDir := d.workingDir(req.ProjectPath)
 	for _, name := range []string{"pubspec.lock", "pubspec.yaml", "pubspec.yml"} {
@@ -65,18 +67,18 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 }
 
 // Descriptor describes the pub detector.
-func (d Detector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d Detector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		Name:                detectors.NamePub,
-		Technique:           sdk.LockfileTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemDart},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerPub},
+		Technique:           plugin.LockfileTechnique,
+		SupportedEcosystems: []model.Ecosystem{model.EcosystemDart},
+		SupportedManagers:   []model.PackageManager{model.PackageManagerPub},
 		Tags:                []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
 	}
 }
 
 // ResolveGraph resolves a pub dependency graph.
-func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
@@ -84,22 +86,22 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	lockPath := filepath.Join(workingDir, "pubspec.lock")
 	lockRaw, err := system.ReadRepositoryFile(lockPath)
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("read pub lockfile: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("read pub lockfile: %w", err)
 	}
 	manifest, err := readPubspec(workingDir)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	g, err := depGraphFromLock(lockRaw, manifest)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	AttachPubspecLockPositions(g, workingDir)
-	return detectors.Attributed(sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns))}), nil
+	return detectors.Attributed(plugin.DetectionResult{Graphs: model.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns))}), nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() sdk.Detector {
+func (d Detector) FallbackDetector() plugin.Detector {
 	return d.Fallback
 }
 
@@ -133,7 +135,7 @@ func readPubspec(workingDir string) (pubspec, error) {
 	return pubspec{}, nil
 }
 
-func depGraphFromLock(raw []byte, manifest pubspec) (*sdk.Graph, error) {
+func depGraphFromLock(raw []byte, manifest pubspec) (*model.Graph, error) {
 	var lock pubLock
 	if err := yaml.Unmarshal(raw, &lock); err != nil {
 		return nil, fmt.Errorf("parse pub lockfile: %w", err)
@@ -141,7 +143,7 @@ func depGraphFromLock(raw []byte, manifest pubspec) (*sdk.Graph, error) {
 	if len(lock.Packages) == 0 {
 		return nil, fmt.Errorf("pub lockfile does not contain any packages")
 	}
-	g := sdk.New()
+	g := model.New()
 	root, err := rootNode(manifest)
 	if err != nil {
 		return nil, err
@@ -169,34 +171,34 @@ func depGraphFromLock(raw []byte, manifest pubspec) (*sdk.Graph, error) {
 	return g, nil
 }
 
-func rootNode(manifest pubspec) (*sdk.ModuleNode, error) {
+func rootNode(manifest pubspec) (*model.ModuleNode, error) {
 	name := strings.TrimSpace(manifest.Name)
 	if name == "" {
 		name = "root"
 	}
-	return sdk.NewModuleNode("pubspec.yaml", sdk.Coordinates{Ecosystem: sdk.EcosystemDart,
+	return model.NewModuleNode("pubspec.yaml", model.Coordinates{Ecosystem: model.EcosystemDart,
 		Name:           name,
 		Version:        strings.TrimSpace(manifest.Version),
-		PackageManager: sdk.PackageManagerPub,
-		Type:           sdk.PackageTypeApplication,
+		PackageManager: model.PackageManagerPub,
+		Type:           model.PackageTypeApplication,
 		Language:       "dart"})
 
 }
 
-func packageNode(name string, pkg pubLockPackage) (*sdk.DependencyNode, error) {
+func packageNode(name string, pkg pubLockPackage) (*model.DependencyNode, error) {
 	metadata := map[string]any{
 		"source": strings.TrimSpace(pkg.Source),
 	}
 	if revision := descriptionString(pkg.Description, "resolved-ref"); revision != "" {
 		metadata["source_revision"] = revision
 	}
-	node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemDart,
+	node, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemDart,
 		Name:           name,
 		Version:        strings.TrimSpace(pkg.Version),
-		PackageManager: sdk.PackageManagerPub,
-		Type:           sdk.PackageTypePackage,
+		PackageManager: model.PackageManagerPub,
+		Type:           model.PackageTypePackage,
 		Language:       "dart",
-		PURL:           sdk.BuildPackageURLFor(sdk.EcosystemDart, sdk.PackageManagerPub, "", name, pkg.Version)})
+		PURL:           model.BuildPackageURLFor(model.EcosystemDart, model.PackageManagerPub, "", name, pkg.Version)})
 	if err != nil {
 		return nil, fmt.Errorf("build dependency node: %w", err)
 	}
@@ -206,43 +208,43 @@ func packageNode(name string, pkg pubLockPackage) (*sdk.DependencyNode, error) {
 	if resolved := resolvedURL(pkg.Description); resolved != "" {
 		node.ResolvedURL = resolved
 	}
-	if pubDependencySource(pkg.Source) == sdk.DependencySourceGit {
+	if pubDependencySource(pkg.Source) == model.DependencySourceGit {
 		// A git package names its repository and the commit pub resolved.
 		// A hosted package's "url" is the pub server, and path is local.
-		if origin := sdk.RepositoryOrigin(descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref")); origin != nil {
-			node.Origins = sdk.MergeOrigins(node.Origins, []sdk.DependencyOrigin{*origin})
+		if origin := model.RepositoryOrigin(descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref")); origin != nil {
+			node.Origins = model.MergeOrigins(node.Origins, []model.DependencyOrigin{*origin})
 		}
 	}
 	return node, nil
 }
 
-func pubDependencySource(source string) sdk.DependencySource {
+func pubDependencySource(source string) model.DependencySource {
 	switch strings.ToLower(strings.TrimSpace(source)) {
 	case "hosted":
-		return sdk.DependencySourceRegistry
+		return model.DependencySourceRegistry
 	case "git":
-		return sdk.DependencySourceGit
+		return model.DependencySourceGit
 	case "path":
-		return sdk.DependencySourceFile
+		return model.DependencySourceFile
 	default:
 		return ""
 	}
 }
 
-func scopeForPackage(name string, pkg pubLockPackage, manifest pubspec) sdk.Scope {
+func scopeForPackage(name string, pkg pubLockPackage, manifest pubspec) model.Scope {
 	if _, ok := manifest.DevDependencies[name]; ok {
-		return sdk.ScopeDevelopment
+		return model.ScopeDevelopment
 	}
 	if _, ok := manifest.Dependencies[name]; ok {
-		return sdk.ScopeRuntime
+		return model.ScopeRuntime
 	}
 	switch strings.TrimSpace(pkg.Dependency) {
 	case "direct dev":
-		return sdk.ScopeDevelopment
+		return model.ScopeDevelopment
 	case "direct main":
-		return sdk.ScopeRuntime
+		return model.ScopeRuntime
 	default:
-		return sdk.ScopeRuntime
+		return model.ScopeRuntime
 	}
 }
 
@@ -275,7 +277,7 @@ func sortedPackageNames(packages map[string]pubLockPackage) []string {
 	return values
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
+func addNodeIfMissing(g *model.Graph, node *model.DependencyNode) error {
 	_, err := detectorkit.EnsureNode(g, node)
 	return err
 }

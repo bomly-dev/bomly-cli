@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
-func newTestScorecard(repo string, score float64, checks ...sdk.PackageScorecardCheck) *sdk.PackageScorecard {
-	return &sdk.PackageScorecard{
+func newTestScorecard(repo string, score float64, checks ...model.PackageScorecardCheck) *model.PackageScorecard {
+	return &model.PackageScorecard{
 		Source:           "api.scorecard.dev",
 		Repository:       repo,
 		CommitSHA:        "abc123",
@@ -31,8 +32,8 @@ func TestExplain_OmitsScorecardFromCompactText(t *testing.T) {
 			Name:    "logrus",
 			Version: "v1.9.0",
 			Scorecard: newTestScorecard("github.com/sirupsen/logrus", 8.2,
-				sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 9, Reason: "branch protection enabled"},
-				sdk.PackageScorecardCheck{Name: "Code-Review", Score: 2, Reason: "missing reviews"},
+				model.PackageScorecardCheck{Name: "Branch-Protection", Score: 9, Reason: "branch protection enabled"},
+				model.PackageScorecardCheck{Name: "Code-Review", Score: 2, Reason: "missing reviews"},
 			),
 		}},
 	}

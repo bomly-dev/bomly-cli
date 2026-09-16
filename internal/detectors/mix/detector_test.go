@@ -6,16 +6,18 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	projectDir := filepath.Join("testdata", "project")
 	detector := Detector{}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:    projectDir,
-		PackageManager: sdk.PackageManagerMix,
-		Ecosystem:      sdk.EcosystemElixir,
+		PackageManager: model.PackageManagerMix,
+		Ecosystem:      model.EcosystemElixir,
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph returned error: %v", err)
@@ -35,7 +37,7 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected credo package, got %v", graph.DependencyNodes())
 	}
-	if string(credo.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(credo.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected credo development scope, got %q", string(credo.PrimaryScope()))
 	}
 	deps, err := graph.DirectDependencies(testnodes.ID(graph, "root"))

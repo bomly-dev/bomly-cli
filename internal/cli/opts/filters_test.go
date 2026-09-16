@@ -7,13 +7,15 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestResolveDetectorFilter_AliasAndExplicitSet(t *testing.T) {
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
-	reg.RegisterDetector(fakeDetector{descriptor: sdk.DetectorDescriptor{
+	reg.RegisterDetector(fakeDetector{descriptor: plugin.DetectorDescriptor{
 		Name:    "example-detector",
 		Aliases: []string{"example"},
 	}})
@@ -28,7 +30,7 @@ func TestResolveDetectorFilter_AliasAndExplicitSet(t *testing.T) {
 
 func TestResolveDetectorFilter_DefaultMinusToken(t *testing.T) {
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
-	reg.RegisterDetector(fakeDetector{descriptor: sdk.DetectorDescriptor{
+	reg.RegisterDetector(fakeDetector{descriptor: plugin.DetectorDescriptor{
 		Name:    "example-detector",
 		Aliases: []string{"example"},
 	}})
@@ -83,7 +85,7 @@ func TestResolveMatcherFilter_DefaultLeavesMatcherSelectionToRegistryDefaults(t 
 
 func TestResolveMatcherFilter_UsesDescriptorAliases(t *testing.T) {
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
-	reg.RegisterMatcher(fakeMatcher{descriptor: sdk.MatcherDescriptor{
+	reg.RegisterMatcher(fakeMatcher{descriptor: plugin.MatcherDescriptor{
 		Name:    "example-license-matcher",
 		Aliases: []string{"example-license"},
 	}})
@@ -98,7 +100,7 @@ func TestResolveMatcherFilter_UsesDescriptorAliases(t *testing.T) {
 
 func TestResolveAuditorFilter_UsesDescriptorAliases(t *testing.T) {
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
-	reg.RegisterAuditor(fakeAuditor{descriptor: sdk.AuditorDescriptor{
+	reg.RegisterAuditor(fakeAuditor{descriptor: plugin.AuditorDescriptor{
 		Name:    "example-auditor",
 		Aliases: []string{"example-audit"},
 	}})
@@ -113,7 +115,7 @@ func TestResolveAuditorFilter_UsesDescriptorAliases(t *testing.T) {
 
 func TestResolveAnalyzerFilter_UsesDescriptorAliases(t *testing.T) {
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
-	reg.RegisterAnalyzer(fakeAnalyzer{descriptor: sdk.AnalyzerDescriptor{
+	reg.RegisterAnalyzer(fakeAnalyzer{descriptor: plugin.AnalyzerDescriptor{
 		Name:    "example-analyzer",
 		Aliases: []string{"example-reach"},
 	}})
@@ -134,10 +136,10 @@ func TestResolveEcosystemFilter_PlainList(t *testing.T) {
 	if len(filter.Include) != 2 {
 		t.Fatalf("expected 2 included ecosystems, got %v", filter.Include)
 	}
-	if !containsEcosystem(filter.Include, sdk.EcosystemNPM) {
+	if !containsEcosystem(filter.Include, model.EcosystemNPM) {
 		t.Fatalf("expected npm in include, got %v", filter.Include)
 	}
-	if !containsEcosystem(filter.Include, sdk.EcosystemPython) {
+	if !containsEcosystem(filter.Include, model.EcosystemPython) {
 		t.Fatalf("expected python in include, got %v", filter.Include)
 	}
 	if len(filter.Exclude) != 0 {
@@ -153,7 +155,7 @@ func TestResolveEcosystemFilter_MinusSyntax(t *testing.T) {
 	if len(filter.Include) != 0 {
 		t.Fatalf("expected empty include for ops-mode, got %v", filter.Include)
 	}
-	if !containsEcosystem(filter.Exclude, sdk.EcosystemNPM) {
+	if !containsEcosystem(filter.Exclude, model.EcosystemNPM) {
 		t.Fatalf("expected npm in exclude, got %v", filter.Exclude)
 	}
 }
@@ -167,7 +169,7 @@ func TestResolveEcosystemFilter_GradleAlias(t *testing.T) {
 	if len(filter.Include) != 1 {
 		t.Fatalf("expected 1 included ecosystem, got %v", filter.Include)
 	}
-	if !containsEcosystem(filter.Include, sdk.EcosystemMaven) {
+	if !containsEcosystem(filter.Include, model.EcosystemMaven) {
 		t.Fatalf("expected gradle alias to resolve to maven, got %v", filter.Include)
 	}
 }
@@ -195,90 +197,90 @@ func TestResolveEcosystemFilter_UnknownReturnsError(t *testing.T) {
 	}
 }
 
-func containsEcosystem(values []sdk.Ecosystem, target sdk.Ecosystem) bool {
+func containsEcosystem(values []model.Ecosystem, target model.Ecosystem) bool {
 	return slices.Contains(values, target)
 }
 
 type fakeMatcher struct {
-	descriptor sdk.MatcherDescriptor
+	descriptor plugin.MatcherDescriptor
 }
 
-func (f fakeMatcher) Descriptor() sdk.MatcherDescriptor {
+func (f fakeMatcher) Descriptor() plugin.MatcherDescriptor {
 	return f.descriptor
 }
 
-func (f fakeMatcher) Ready(context.Context, sdk.MatchRequest) error {
+func (f fakeMatcher) Ready(context.Context, plugin.MatchRequest) error {
 	return nil
 }
 
-func (f fakeMatcher) Applicable(context.Context, sdk.MatchRequest) (bool, error) {
+func (f fakeMatcher) Applicable(context.Context, plugin.MatchRequest) (bool, error) {
 	return true, nil
 }
 
-func (f fakeMatcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
-	return sdk.MatchResult{Registry: req.Registry}, nil
+func (f fakeMatcher) Match(_ context.Context, req plugin.MatchRequest) (plugin.MatchResult, error) {
+	return plugin.MatchResult{Registry: req.Registry}, nil
 }
 
 type fakeDetector struct {
-	descriptor sdk.DetectorDescriptor
+	descriptor plugin.DetectorDescriptor
 }
 
-func (f fakeDetector) Descriptor() sdk.DetectorDescriptor {
+func (f fakeDetector) Descriptor() plugin.DetectorDescriptor {
 	return f.descriptor
 }
 
-func (f fakeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
+func (f fakeDetector) PackageManagerSupport() []plugin.PackageManagerSupport {
 	return nil
 }
 
-func (f fakeDetector) Ready(context.Context, sdk.DetectionRequest) error {
+func (f fakeDetector) Ready(context.Context, plugin.DetectionRequest) error {
 	return nil
 }
 
-func (f fakeDetector) Applicable(context.Context, sdk.DetectionRequest) (bool, error) {
+func (f fakeDetector) Applicable(context.Context, plugin.DetectionRequest) (bool, error) {
 	return true, nil
 }
 
-func (f fakeDetector) ResolveGraph(context.Context, sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	return sdk.DetectionResult{}, nil
+func (f fakeDetector) ResolveGraph(context.Context, plugin.DetectionRequest) (plugin.DetectionResult, error) {
+	return plugin.DetectionResult{}, nil
 }
 
 type fakeAuditor struct {
-	descriptor sdk.AuditorDescriptor
+	descriptor plugin.AuditorDescriptor
 }
 
-func (f fakeAuditor) Descriptor() sdk.AuditorDescriptor {
+func (f fakeAuditor) Descriptor() plugin.AuditorDescriptor {
 	return f.descriptor
 }
 
-func (f fakeAuditor) Ready(context.Context, sdk.AuditRequest) error {
+func (f fakeAuditor) Ready(context.Context, plugin.AuditRequest) error {
 	return nil
 }
 
-func (f fakeAuditor) Applicable(context.Context, sdk.AuditRequest) (bool, error) {
+func (f fakeAuditor) Applicable(context.Context, plugin.AuditRequest) (bool, error) {
 	return true, nil
 }
 
-func (f fakeAuditor) Audit(context.Context, sdk.AuditRequest) (sdk.AuditResult, error) {
-	return sdk.AuditResult{}, nil
+func (f fakeAuditor) Audit(context.Context, plugin.AuditRequest) (plugin.AuditResult, error) {
+	return plugin.AuditResult{}, nil
 }
 
 type fakeAnalyzer struct {
-	descriptor sdk.AnalyzerDescriptor
+	descriptor plugin.AnalyzerDescriptor
 }
 
-func (f fakeAnalyzer) Descriptor() sdk.AnalyzerDescriptor {
+func (f fakeAnalyzer) Descriptor() plugin.AnalyzerDescriptor {
 	return f.descriptor
 }
 
-func (f fakeAnalyzer) Ready(context.Context, sdk.AnalyzeRequest) error {
+func (f fakeAnalyzer) Ready(context.Context, plugin.AnalyzeRequest) error {
 	return nil
 }
 
-func (f fakeAnalyzer) Applicable(context.Context, sdk.AnalyzeRequest) (bool, error) {
+func (f fakeAnalyzer) Applicable(context.Context, plugin.AnalyzeRequest) (bool, error) {
 	return true, nil
 }
 
-func (f fakeAnalyzer) Analyze(context.Context, sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
-	return sdk.AnalyzeResult{}, nil
+func (f fakeAnalyzer) Analyze(context.Context, plugin.AnalyzeRequest) (plugin.AnalyzeResult, error) {
+	return plugin.AnalyzeResult{}, nil
 }

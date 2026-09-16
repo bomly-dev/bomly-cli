@@ -11,11 +11,13 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/sbom"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorResolveGraph_SPDXJSON(t *testing.T) {
@@ -64,22 +66,22 @@ func TestDetectorResolveGraph_NormalizesImportedComponentIDs(t *testing.T) {
 }
 
 func TestDetectorResolveGraph_PrefersImportedPURLIdentity(t *testing.T) {
-	g := sdk.New()
-	app := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	g := model.New()
+	app := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "demo-app",
 		Version:        "1.0.0",
 		PURL:           "pkg:npm/demo-app@1.0.0"},
 	})
 
-	react := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	react := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "react",
 		Version:        "18.2.0",
 		PURL:           "pkg:npm/react@18.2.0"},
 	})
 
-	for _, pkg := range []*sdk.DependencyNode{app, react} {
+	for _, pkg := range []*model.DependencyNode{app, react} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package %s: %v", pkg.NodeID(), err)
 		}
@@ -188,7 +190,7 @@ func TestDetectorResolveGraph_RejectsOversizedSBOM(t *testing.T) {
 	}
 }
 
-func resolveFixture(t *testing.T, path string) sdk.DetectionResult {
+func resolveFixture(t *testing.T, path string) plugin.DetectionResult {
 	t.Helper()
 	detector := Detector{}
 	result, err := detector.ResolveGraph(context.Background(), requestForSBOMPath(path))
@@ -198,29 +200,29 @@ func resolveFixture(t *testing.T, path string) sdk.DetectionResult {
 	return result
 }
 
-func requestForSBOMPath(path string) sdk.DetectionRequest {
-	executionTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: path}
-	return sdk.DetectionRequest{
+func requestForSBOMPath(path string) plugin.DetectionRequest {
+	executionTarget := plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: path}
+	return plugin.DetectionRequest{
 		ProjectPath:     path,
 		ExecutionTarget: executionTarget,
-		Subproject: sdk.Subproject{
+		Subproject: plugin.Subproject{
 			ExecutionTarget:         executionTarget,
 			RelativePath:            filepath.Base(path),
 			PrimaryDetector:         "sbom-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerSBOM},
-			Ecosystem:               sdk.EcosystemSBOM,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerSBOM},
+			Ecosystem:               model.EcosystemSBOM,
 		},
-		PackageManager: sdk.PackageManagerSBOM,
-		Ecosystem:      sdk.EcosystemSBOM,
+		PackageManager: model.PackageManagerSBOM,
+		Ecosystem:      model.EcosystemSBOM,
 	}
 }
 
 func writeSBOMFixture(t *testing.T, target sbom.Target) string {
 	t.Helper()
-	g := sdk.New()
+	g := model.New()
 	app := testnodes.Ref("demo-app", "1.0.0")
 	react := testnodes.Ref("react", "18.2.0")
-	for _, pkg := range []*sdk.DependencyNode{app, react} {
+	for _, pkg := range []*model.DependencyNode{app, react} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
@@ -243,7 +245,7 @@ func writeSBOMFixture(t *testing.T, target sbom.Target) string {
 	return path
 }
 
-func verifyResolvedGraph(t *testing.T, result sdk.DetectionResult, wantDependencyID string) {
+func verifyResolvedGraph(t *testing.T, result plugin.DetectionResult, wantDependencyID string) {
 	t.Helper()
 	g, err := result.ConsolidatedGraph()
 	if err != nil {
@@ -327,7 +329,7 @@ func TestDetectorWarnsAboutUnreadableScopeTokens(t *testing.T) {
 	if len(nodes) != 1 {
 		t.Fatalf("nodes = %d, want the component", len(nodes))
 	}
-	if len(nodes[0].Scopes) != 1 || nodes[0].Scopes[0] != sdk.ScopeRuntime {
+	if len(nodes[0].Scopes) != 1 || nodes[0].Scopes[0] != model.ScopeRuntime {
 		t.Errorf("scopes = %v, want runtime", nodes[0].Scopes)
 	}
 }

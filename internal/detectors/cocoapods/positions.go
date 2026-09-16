@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // podfileLockSpec matches a Podfile.lock spec entry. Examples:
@@ -17,8 +18,8 @@ import (
 // The captured name is the bare pod name without subspec slashes.
 var podfileLockSpec = regexp.MustCompile(`^\s*-\s+([A-Za-z0-9_-][A-Za-z0-9._/-]*)\s*\(([^)]+)\)\s*:?\s*$`)
 
-func podfileLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func podfileLockPositions(path, relPath string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	insideSpecs := false
 	_ = detectors.ScanLines(path, func(line int, text string) {
 		trimmed := strings.TrimSpace(text)
@@ -48,13 +49,13 @@ func podfileLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 		if _, exists := out[name]; exists {
 			return
 		}
-		out[name] = &sdk.SourcePosition{File: relPath, Line: line}
+		out[name] = &model.SourcePosition{File: relPath, Line: line}
 	})
 	return out
 }
 
 // AttachPodfileLockPositions wires Podfile.lock line numbers.
-func AttachPodfileLockPositions(g *sdk.Graph, projectDir string) {
+func AttachPodfileLockPositions(g *model.Graph, projectDir string) {
 	if g == nil || projectDir == "" {
 		return
 	}
@@ -62,7 +63,7 @@ func AttachPodfileLockPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.DependencyNode) string {
+	detectors.AttachPositions(g, positions, func(pkg *model.DependencyNode) string {
 		if pkg == nil {
 			return ""
 		}

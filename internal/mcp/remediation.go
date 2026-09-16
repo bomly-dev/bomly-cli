@@ -7,26 +7,27 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // remediationInput carries everything the compact builders need to turn raw
 // findings into ranked remediation groups.
 type remediationInput struct {
-	Findings  []sdk.Finding
-	Graph     *sdk.Graph
-	Registry  *sdk.PackageRegistry
+	Findings  []model.Finding
+	Graph     *model.Graph
+	Registry  *model.PackageRegistry
 	Manifests []output.ScanManifest
 	// FocusedRemediation limits explain projections to suggestions already
 	// filtered for the focused dependency occurrence.
-	FocusedRemediation *sdk.PackageRemediation
+	FocusedRemediation *model.PackageRemediation
 	// IncludeReachability gates the reachability field on compact findings
 	// (only meaningful when the analyze stage ran).
 	IncludeReachability bool
 	// Nodes is the graph's package-to-nodes reverse index, built once per
 	// batch by the entry points below. It is a derived view of Graph and is
 	// never carried across a mutation of it.
-	Nodes sdk.PackageNodeIndex
+	Nodes model.PackageNodeIndex
 }
 
 // remediationOutput is the classified, grouped, capped projection of the
@@ -52,9 +53,9 @@ func buildRemediations(in remediationInput) remediationOutput {
 	for _, f := range in.Findings {
 		_, vuln := output.FindingAdvisory(in.Registry, f)
 		compact, _ := buildCompactFinding(f, vuln, in)
-		if f.Kind != sdk.FindingKindVulnerability || f.PackageRef == "" ||
-			f.PolicyStatus == sdk.FindingPolicyStatusWarn ||
-			f.PolicyStatus == sdk.FindingPolicyStatusSuppressed {
+		if f.Kind != model.FindingKindVulnerability || f.PackageRef == "" ||
+			f.PolicyStatus == model.FindingPolicyStatusWarn ||
+			f.PolicyStatus == model.FindingPolicyStatusSuppressed {
 			appendInformational(&informational, compact, visibleFindings, omittedFindings)
 			continue
 		}
@@ -154,7 +155,7 @@ func compactFindingKey(finding CompactFinding) string {
 	}, "\x00")
 }
 
-func packagesWithRemediation(registry *sdk.PackageRegistry) []*sdk.Package {
+func packagesWithRemediation(registry *model.PackageRegistry) []*model.Package {
 	if registry == nil {
 		return nil
 	}
@@ -166,9 +167,9 @@ func packagesWithRemediation(registry *sdk.PackageRegistry) []*sdk.Package {
 }
 
 func canonicalRemediationGroup(
-	pkg *sdk.Package,
-	packageRemediation *sdk.PackageRemediation,
-	suggestion sdk.PackageRemediationSuggestion,
+	pkg *model.Package,
+	packageRemediation *model.PackageRemediation,
+	suggestion model.PackageRemediationSuggestion,
 	fixes []CompactFinding,
 	in remediationInput,
 ) RemediationGroup {
@@ -195,7 +196,7 @@ func canonicalRemediationGroup(
 			group.ManifestPath = manifest.Path
 		}
 	}
-	if packageRemediation.Status == sdk.PackageRemediationComplete {
+	if packageRemediation.Status == model.PackageRemediationComplete {
 		group.RecommendedVersion = packageRemediation.RecommendedVersion
 	}
 	return group
@@ -203,8 +204,8 @@ func canonicalRemediationGroup(
 
 func compactFixesForSuggestion(
 	fixes []CompactFinding,
-	suggestion sdk.PackageRemediationSuggestion,
-	graph *sdk.Graph,
+	suggestion model.PackageRemediationSuggestion,
+	graph *model.Graph,
 ) []CompactFinding {
 	out := append([]CompactFinding(nil), fixes...)
 	if graph == nil || len(suggestion.AffectedDependencyRefs) == 0 {
@@ -216,21 +217,21 @@ func compactFixesForSuggestion(
 	}
 	// Only a dependency node states a relationship; a module is the project
 	// itself and has nothing to remediate.
-	dependency, ok := sdk.AsDependencyNode(graphNode)
+	dependency, ok := model.AsDependencyNode(graphNode)
 	if !ok {
 		return out
 	}
 	for idx := range out {
 		out[idx].Direct = nil
 		out[idx].ShortestPath = nil
-		if dependency.Relationship == sdk.DependencyRelationshipUnknown {
+		if dependency.Relationship == model.DependencyRelationshipUnknown {
 			continue
 		}
 		path := shortestPathToRoot(graph, dependency.NodeID())
 		if len(path) == 0 {
 			continue
 		}
-		direct := dependency.Relationship == sdk.DependencyRelationshipDirect
+		direct := dependency.Relationship == model.DependencyRelationshipDirect
 		out[idx].Direct = &direct
 		out[idx].ShortestPath = pathLabels(path)
 	}
@@ -252,7 +253,7 @@ type ancestorTarget struct {
 // buildCompactFinding projects one finding (and its resolved advisory) into
 // the compact shape and resolves its shortest dependency path and direct
 // ancestor.
-func buildCompactFinding(f sdk.Finding, vuln *sdk.Vulnerability, in remediationInput) (CompactFinding, ancestorTarget) {
+func buildCompactFinding(f model.Finding, vuln *model.Vulnerability, in remediationInput) (CompactFinding, ancestorTarget) {
 	compact := CompactFinding{
 		VulnID:         output.FindingVulnerabilityID(f),
 		Kind:           string(f.Kind),
@@ -268,7 +269,7 @@ func buildCompactFinding(f sdk.Finding, vuln *sdk.Vulnerability, in remediationI
 			compact.Severity = string(vuln.ParsedSeverity)
 		}
 		compact.Aliases = capStrings(vuln.Aliases, maxAliases)
-		compact.FixedIn = maxFixedInVersion([]sdk.Vulnerability{*vuln})
+		compact.FixedIn = maxFixedInVersion([]model.Vulnerability{*vuln})
 		compact.KEV = vuln.KEVExploited
 		compact.EPSS = topEPSS(vuln.EPSS)
 		if in.IncludeReachability && vuln.Reachability != nil {
@@ -277,12 +278,12 @@ func buildCompactFinding(f sdk.Finding, vuln *sdk.Vulnerability, in remediationI
 	}
 
 	graphNode := resolveGraphNode(in.Graph, in.Nodes, f)
-	node, isDependency := sdk.AsDependencyNode(graphNode)
+	node, isDependency := model.AsDependencyNode(graphNode)
 	// Without graph placement we cannot name a different ancestor, so the
 	// package itself is the direct remediation target.
 	ancestor := ancestorTarget{identity: compact.Package, direct: true}
 	if isDependency {
-		if node.Relationship == sdk.DependencyRelationshipUnknown {
+		if node.Relationship == model.DependencyRelationshipUnknown {
 			compact.Direct = nil
 			ancestor.direct = false
 			ancestor.identity = packageIdentityFromDependency(node)
@@ -355,21 +356,21 @@ func finalizeCanonicalGroup(group *RemediationGroup) {
 // ran, enriched vulnerabilities omitted by policy remain visible with a
 // suppressed status instead of resurfacing as actionable suggestions.
 func remediationFindings(
-	registry *sdk.PackageRegistry,
-	auditFindings []sdk.Finding,
+	registry *model.PackageRegistry,
+	auditFindings []model.Finding,
 	auditRan bool,
-) []sdk.Finding {
+) []model.Finding {
 	used := make([]bool, len(auditFindings))
-	result := make([]sdk.Finding, 0, len(auditFindings))
+	result := make([]model.Finding, 0, len(auditFindings))
 	if registry != nil {
 		for _, pkg := range registry.All() {
 			if pkg == nil {
 				continue
 			}
 			for _, vulnerability := range pkg.Vulnerabilities {
-				finding := sdk.Finding{
+				finding := model.Finding{
 					ID:              vulnerability.ID,
-					Kind:            sdk.FindingKindVulnerability,
+					Kind:            model.FindingKindVulnerability,
 					Title:           firstNonEmpty(vulnerability.Title, vulnerability.Summary, vulnerability.ID),
 					Severity:        vulnerability.ParsedSeverity,
 					Source:          vulnerability.Source,
@@ -378,10 +379,10 @@ func remediationFindings(
 					VulnerabilityID: vulnerability.ID,
 				}
 				if auditRan {
-					finding.PolicyStatus = sdk.FindingPolicyStatusSuppressed
+					finding.PolicyStatus = model.FindingPolicyStatusSuppressed
 				}
 				for idx, candidate := range auditFindings {
-					if used[idx] || candidate.Kind != sdk.FindingKindVulnerability ||
+					if used[idx] || candidate.Kind != model.FindingKindVulnerability ||
 						candidate.PackageRef != pkg.ID ||
 						!findingIdentifiesVulnerability(candidate, vulnerability) {
 						continue
@@ -417,7 +418,7 @@ func remediationFindings(
 	return result
 }
 
-func findingIdentifiesVulnerability(finding sdk.Finding, vulnerability sdk.Vulnerability) bool {
+func findingIdentifiesVulnerability(finding model.Finding, vulnerability model.Vulnerability) bool {
 	identity := strings.ToLower(strings.TrimSpace(output.FindingVulnerabilityID(finding)))
 	if identity == "" {
 		return false
@@ -440,7 +441,7 @@ func rankGroups(groups []RemediationGroup) {
 	score := func(g RemediationGroup) (kev bool, severity int, epss float64) {
 		for _, f := range g.Fixes {
 			kev = kev || f.KEV
-			if rank := sdk.SeverityRank(sdk.SeverityLevel(f.Severity)); rank > severity {
+			if rank := model.SeverityRank(model.SeverityLevel(f.Severity)); rank > severity {
 				severity = rank
 			}
 			if f.EPSS > epss {
@@ -485,8 +486,8 @@ func rankGroups(groups []RemediationGroup) {
 
 func sortCompactFindings(findings []CompactFinding) {
 	sort.SliceStable(findings, func(i, j int) bool {
-		iSev := sdk.SeverityRank(sdk.SeverityLevel(findings[i].Severity))
-		jSev := sdk.SeverityRank(sdk.SeverityLevel(findings[j].Severity))
+		iSev := model.SeverityRank(model.SeverityLevel(findings[i].Severity))
+		jSev := model.SeverityRank(model.SeverityLevel(findings[j].Severity))
 		if iSev != jSev {
 			return iSev > jSev
 		}
@@ -505,7 +506,7 @@ func sortCompactFindings(findings []CompactFinding) {
 // makes the join constant-time.
 func (in *remediationInput) indexNodes() {
 	if in.Nodes == nil {
-		in.Nodes = sdk.IndexNodesByPackage(in.Graph)
+		in.Nodes = model.IndexNodesByPackage(in.Graph)
 	}
 }
 
@@ -519,7 +520,7 @@ func (in *remediationInput) indexNodes() {
 // package, and the nodes that resolved to that package are what the index
 // holds. Auditors that record no DependencyRefs -- and a scan with thousands
 // of findings -- no longer pay a full graph traversal each.
-func resolveGraphNode(g *sdk.Graph, nodes sdk.PackageNodeIndex, f sdk.Finding) sdk.GraphNode {
+func resolveGraphNode(g *model.Graph, nodes model.PackageNodeIndex, f model.Finding) model.GraphNode {
 	if g == nil {
 		return nil
 	}
@@ -540,7 +541,7 @@ func resolveGraphNode(g *sdk.Graph, nodes sdk.PackageNodeIndex, f sdk.Finding) s
 // a bounded upward BFS over reverse edges. It never enumerates all paths
 // (that is exponential on dense graphs). Returns nil when the node is
 // unknown; returns [target] when the target itself is a root.
-func shortestPathToRoot(g *sdk.Graph, targetID string) []sdk.GraphNode {
+func shortestPathToRoot(g *model.Graph, targetID string) []model.GraphNode {
 	if g == nil {
 		return nil
 	}
@@ -555,7 +556,7 @@ func shortestPathToRoot(g *sdk.Graph, targetID string) []sdk.GraphNode {
 		}
 	}
 	if _, isRoot := rootIDs[targetID]; isRoot || len(rootIDs) == 0 {
-		return []sdk.GraphNode{target}
+		return []model.GraphNode{target}
 	}
 
 	// BFS upward from the target through Dependents until a root is reached.
@@ -583,13 +584,13 @@ func shortestPathToRoot(g *sdk.Graph, targetID string) []sdk.GraphNode {
 		}
 	}
 	// No root reachable (disconnected component): report the node alone.
-	return []sdk.GraphNode{target}
+	return []model.GraphNode{target}
 }
 
 // chainFrom walks parentOf pointers from a root back down to the target,
 // producing the root→target node chain.
-func chainFrom(g *sdk.Graph, rootID string, parentOf map[string]string) []sdk.GraphNode {
-	var chain []sdk.GraphNode
+func chainFrom(g *model.Graph, rootID string, parentOf map[string]string) []model.GraphNode {
+	var chain []model.GraphNode
 	for id := rootID; id != ""; id = parentOf[id] {
 		node, ok := g.Node(id)
 		if !ok {
@@ -600,7 +601,7 @@ func chainFrom(g *sdk.Graph, rootID string, parentOf map[string]string) []sdk.Gr
 	return chain
 }
 
-func pathLabels(path []sdk.GraphNode) []string {
+func pathLabels(path []model.GraphNode) []string {
 	labels := make([]string, 0, len(path))
 	for idx, node := range path {
 		if idx == maxPathNodes-1 && len(path) > maxPathNodes {
@@ -616,9 +617,9 @@ func pathLabels(path []sdk.GraphNode) []string {
 // dependencyLabel renders a node the way a dependency path shows it: a
 // display name with its version appended when the name does not already
 // carry one.
-func dependencyLabel(node sdk.GraphNode) string {
-	name := sdk.NodeDisplayName(node)
-	version := sdk.NodeVersion(node)
+func dependencyLabel(node model.GraphNode) string {
+	name := model.NodeDisplayName(node)
+	version := model.NodeVersion(node)
 	if version == "" || strings.HasSuffix(name, "@"+version) {
 		return name
 	}
@@ -643,7 +644,7 @@ func manifestForDependency(manifests []output.ScanManifest, dependencyID string)
 // package reference into the compact wire shape. The resolution -- registry
 // first, package URL second -- belongs to output.IdentifyPackageRef, which the
 // CLI documents and the TUI answer from too; only the field names differ here.
-func packageIdentityFromRegistry(registry *sdk.PackageRegistry, purl string) PackageIdentity {
+func packageIdentityFromRegistry(registry *model.PackageRegistry, purl string) PackageIdentity {
 	identity := output.IdentifyPackageRef(registry, purl)
 	return PackageIdentity{
 		Name:      identity.Name,
@@ -654,8 +655,8 @@ func packageIdentityFromRegistry(registry *sdk.PackageRegistry, purl string) Pac
 	}
 }
 
-func packageIdentityFromDependency(node sdk.GraphNode) PackageIdentity {
-	coords, ok := sdk.NodeCoordinates(node)
+func packageIdentityFromDependency(node model.GraphNode) PackageIdentity {
+	coords, ok := model.NodeCoordinates(node)
 	if !ok {
 		return PackageIdentity{}
 	}
@@ -673,7 +674,7 @@ func packageIdentityFromDependency(node sdk.GraphNode) PackageIdentity {
 // maxFixedInVersion returns the highest FixedIn version across vulns, using
 // semver comparison when parseable and falling back to the first non-empty
 // value otherwise.
-func maxFixedInVersion(vulns []sdk.Vulnerability) string {
+func maxFixedInVersion(vulns []model.Vulnerability) string {
 	best := ""
 	for _, v := range vulns {
 		best = higherVersion(best, v.FixedIn)
@@ -701,7 +702,7 @@ func higherVersion(a, b string) string {
 	return a
 }
 
-func topEPSS(scores []sdk.EPSSScore) float64 {
+func topEPSS(scores []model.EPSSScore) float64 {
 	top := 0.0
 	for _, score := range scores {
 		if score.EPSS > top {

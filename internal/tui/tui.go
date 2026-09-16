@@ -9,9 +9,11 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
 	tea "github.com/charmbracelet/bubbletea"
 	"golang.org/x/term"
+
+	sdkmodel "github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // ErrNotATerminal is returned by Run when stdin or stderr is not an
@@ -210,8 +212,8 @@ type listPackageRow struct {
 }
 
 type rootDependencyGroup struct {
-	direct     []sdk.GraphNode
-	transitive []sdk.GraphNode
+	direct     []sdkmodel.GraphNode
+	transitive []sdkmodel.GraphNode
 }
 
 type scanMode string
@@ -238,14 +240,14 @@ type ScanModel struct {
 
 	titlePrefix           string
 	project               output.ProjectDescriptor
-	graphValue            *sdk.Graph
-	registry              *sdk.PackageRegistry
+	graphValue            *sdkmodel.Graph
+	registry              *sdkmodel.PackageRegistry
 	explainMode           bool
 	manifests             []listPackageRow
 	manifestByID          map[string]listPackageRow
-	subprojects           []sdk.ConsolidatedSubproject
+	subprojects           []plugin.ConsolidatedSubproject
 	mode                  scanMode
-	findings              []sdk.Finding
+	findings              []sdkmodel.Finding
 	enrichEnabled         bool
 	reachabilityEnabled   bool
 	currentManifestID     string

@@ -16,11 +16,13 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 var execLookPath = system.LookPath
@@ -43,19 +45,19 @@ var mavenScopes = map[string]struct{}{
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
+	Fallback   plugin.Detector
 }
 
 var evidencePatterns = []string{"pom.xml", "*pom.xml"}
 
 // PackageManagerSupport returns Maven package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerMaven, evidencePatterns...).WithMultiModule()}
+func (d Detector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerMaven, evidencePatterns...).WithMultiModule()}
 }
 
 // Ready reports whether a Maven wrapper is present or Maven is installed and a
 // usable Java runtime is available for the request's working directory.
-func (d Detector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
+func (d Detector) Ready(ctx context.Context, req plugin.DetectionRequest) error {
 	if _, _, err := d.resolveRunner(detectorkit.RequestWorkingDir(req)); err != nil {
 		return detectorkit.CommandNotReadyError("mvn", err)
 	}
@@ -63,7 +65,7 @@ func (d Detector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
 }
 
 // Applicable reports whether the project looks like a Maven project.
-func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	_ = ctx
 
 	workingDir := d.WorkingDir
@@ -76,14 +78,14 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 }
 
 // Descriptor describes the Maven graph detector.
-func (d Detector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d Detector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		IgnoredDirectories:      []string{"target"},
 		Name:                    detectors.NameMaven,
 		RemediationCapabilities: mavenRemediationCapabilities(),
-		Technique:               sdk.BuildToolTechnique,
-		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemMaven},
-		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerMaven},
+		Technique:               plugin.BuildToolTechnique,
+		SupportedEcosystems:     []model.Ecosystem{model.EcosystemMaven},
+		SupportedManagers:       []model.PackageManager{model.PackageManagerMaven},
 		Tags:                    []string{"graph-resolution", "component-targeting", "wrapper-detection"},
 		SupportsInstallFirst:    true,
 	}
@@ -93,7 +95,7 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 // multi-module reactor yields one manifest entry per module (the module's
 // pom.xml plus its reachable dependency subtree) alongside the root entry;
 // single-module projects keep exactly one entry.
-func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d Detector) ResolveGraph(ctx context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
@@ -103,7 +105,7 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 	}
 	depsGraph, err := d.resolveGraph(ctx, req.Stderr, req.ProjectPath, req.Verbose, req.ScopeFilter)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 
 	workingDir := d.WorkingDir
@@ -118,8 +120,8 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 		if err != nil {
 			logger.Warn("maven module walk failed; emitting a single reactor manifest", zap.Error(err))
 		}
-		return detectors.Attributed(sdk.DetectionResult{
-			Graphs: sdk.SingleGraphContainer(depsGraph, rootManifest),
+		return detectors.Attributed(plugin.DetectionResult{
+			Graphs: model.SingleGraphContainer(depsGraph, rootManifest),
 		}), nil
 	}
 
@@ -127,13 +129,13 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 	if matched == 0 {
 		// No TGF root matched a pom-declared module (e.g. the reactor was
 		// resolved for a subset); keep the merged single entry.
-		return detectors.Attributed(sdk.DetectionResult{
-			Graphs: sdk.SingleGraphContainer(depsGraph, rootManifest),
+		return detectors.Attributed(plugin.DetectionResult{
+			Graphs: model.SingleGraphContainer(depsGraph, rootManifest),
 		}), nil
 	}
 	logger.Info("maven detector resolved reactor modules", zap.Int("modules", matched))
-	return detectors.Attributed(sdk.DetectionResult{
-		Graphs: &sdk.GraphContainer{Entries: entries},
+	return detectors.Attributed(plugin.DetectionResult{
+		Graphs: &model.GraphContainer{Entries: entries},
 	}), nil
 }
 
@@ -142,7 +144,7 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 // coordinates. Unmatched graph roots (including the aggregator root pom's own
 // node) stay in the root entry, so blocks that cannot be mapped to a module
 // directory are never dropped.
-func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModule, rootManifest sdk.ManifestMetadata, workingDir string) ([]sdk.GraphEntry, int) {
+func (d Detector) reactorGraphEntries(depsGraph *model.Graph, modules []mavenModule, rootManifest model.ManifestMetadata, workingDir string) ([]model.GraphEntry, int) {
 	moduleByKey := make(map[string]mavenModule, len(modules))
 	for _, module := range modules {
 		moduleByKey[module.moduleKey()] = module
@@ -170,7 +172,7 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 	promotions := make([]pendingPromotion, 0, len(modules))
 	seen := map[string]struct{}{}
 	for _, node := range depsGraph.Nodes() {
-		coords, ok := sdk.NodeCoordinates(node)
+		coords, ok := model.NodeCoordinates(node)
 		if !ok {
 			continue
 		}
@@ -185,8 +187,8 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 		// Reactor modules are the project's own applications; typing them lets
 		// downstream views treat their direct dependencies as top-level even
 		// when a sibling module depends on them.
-		if dep, isDependency := sdk.AsDependencyNode(node); isDependency && dep.Type == "" {
-			dep.Type = sdk.PackageTypeApplication
+		if dep, isDependency := model.AsDependencyNode(node); isDependency && dep.Type == "" {
+			dep.Type = model.PackageTypeApplication
 		}
 		promotions = append(promotions, pendingPromotion{
 			nodeID:  node.NodeID(),
@@ -220,19 +222,19 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 	}
 	sort.Slice(matchedModules, func(i, j int) bool { return matchedModules[i].module.Dir < matchedModules[j].module.Dir })
 
-	entries := make([]sdk.GraphEntry, 0, len(matchedModules)+1)
-	rootGraph := sdk.New()
+	entries := make([]model.GraphEntry, 0, len(matchedModules)+1)
+	rootGraph := model.New()
 	for _, rootID := range rootIDs {
 		subgraph, err := detectorkit.SubgraphFrom(depsGraph, rootID)
 		if err != nil {
 			continue
 		}
-		if err := sdk.MergeGraph(rootGraph, subgraph); err != nil {
+		if err := model.MergeGraph(rootGraph, subgraph); err != nil {
 			continue
 		}
 	}
 	if rootGraph.Size() > 0 {
-		entries = append(entries, sdk.GraphEntry{Graph: rootGraph, Manifest: rootManifest})
+		entries = append(entries, model.GraphEntry{Graph: rootGraph, Manifest: rootManifest})
 	}
 	for _, matched := range matchedModules {
 		moduleGraph, err := detectorkit.SubgraphFrom(depsGraph, matched.rootID)
@@ -240,20 +242,20 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 			continue
 		}
 		AttachPomPositions(moduleGraph, filepath.Join(workingDir, filepath.FromSlash(matched.module.Dir)), matched.module.Dir+"/pom.xml")
-		entries = append(entries, sdk.GraphEntry{
+		entries = append(entries, model.GraphEntry{
 			Graph:    moduleGraph,
-			Manifest: sdk.ManifestMetadata{Path: matched.module.Dir + "/pom.xml", Kind: sdk.ManifestKind("pom.xml")},
+			Manifest: model.ManifestMetadata{Path: matched.module.Dir + "/pom.xml", Kind: model.ManifestKind("pom.xml")},
 		})
 	}
 	return entries, len(matchedModules)
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() sdk.Detector {
+func (d Detector) FallbackDetector() plugin.Detector {
 	return d.Fallback
 }
 
-func (d Detector) resolveGraph(ctx context.Context, stderr io.Writer, projectPath string, verbose bool, scopeFilter sdk.Scope) (*sdk.Graph, error) {
+func (d Detector) resolveGraph(ctx context.Context, stderr io.Writer, projectPath string, verbose bool, scopeFilter model.Scope) (*model.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -302,12 +304,12 @@ func (d Detector) resolveGraph(ctx context.Context, stderr io.Writer, projectPat
 	return depsGraph, nil
 }
 
-func mavenDependencyTreeArgs(prefixArgs []string, scopeFilter sdk.Scope) []string {
+func mavenDependencyTreeArgs(prefixArgs []string, scopeFilter model.Scope) []string {
 	args := append(append([]string(nil), prefixArgs...), "-B", "dependency:tree", "-DoutputType=tgf")
 	switch scopeFilter {
-	case sdk.ScopeRuntime:
+	case model.ScopeRuntime:
 		args = append(args, "-Dscope=runtime")
-	case sdk.ScopeDevelopment:
+	case model.ScopeDevelopment:
 		args = append(args, "-Dscope=test")
 	}
 	return args
@@ -384,15 +386,15 @@ func wrapperCandidates() []string {
 	return []string{"mvnw"}
 }
 
-func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
+func depGraphFromMavenTGF(raw []byte) (*model.Graph, error) {
 	scanner := bufio.NewScanner(strings.NewReader(string(raw)))
 	// bufio.Scanner defaults to a 64KB max token size. Large multi-module
 	// dependency trees (or single nodes with very long coordinate strings)
 	// routinely exceed that and fail with "token too long", so raise the cap.
 	scanner.Buffer(make([]byte, 0, 64*1024), maxTGFTokenSize)
 
-	tgfPackages := make(map[string]*sdk.DependencyNode)
-	tgfGraph := sdk.New()
+	tgfPackages := make(map[string]*model.DependencyNode)
+	tgfGraph := model.New()
 	type edge struct {
 		from string
 		to   string
@@ -552,7 +554,7 @@ func looksLikeMavenCoords(coords string) bool {
 	return strings.Count(coords, ":") >= 3
 }
 
-func parseTGFNodeLine(line string) (string, *sdk.DependencyNode, error) {
+func parseTGFNodeLine(line string) (string, *model.DependencyNode, error) {
 	parts := strings.Fields(line)
 	if len(parts) < 2 {
 		return "", nil, fmt.Errorf("parse maven tgf package %q: expected identifier and coordinates", line)
@@ -565,7 +567,7 @@ func parseTGFNodeLine(line string) (string, *sdk.DependencyNode, error) {
 	return parts[0], node, nil
 }
 
-func nodeFromMavenCoords(coords string) (*sdk.DependencyNode, error) {
+func nodeFromMavenCoords(coords string) (*model.DependencyNode, error) {
 	parts := strings.Split(coords, ":")
 	if len(parts) < 4 {
 		return nil, fmt.Errorf("parse maven coordinates %q: expected at least 4 segments", coords)
@@ -574,7 +576,7 @@ func nodeFromMavenCoords(coords string) (*sdk.DependencyNode, error) {
 	groupID := parts[0]
 	artifactID := parts[1]
 	versionIndex := len(parts) - 1
-	scope := sdk.ScopeUnknown
+	scope := model.ScopeUnknown
 	if _, ok := mavenScopes[parts[versionIndex]]; ok {
 		scope = scopeFromMavenScope(parts[versionIndex])
 		versionIndex--
@@ -591,33 +593,33 @@ func nodeFromMavenCoords(coords string) (*sdk.DependencyNode, error) {
 		}
 	}
 
-	node, err := sdk.NewDependencyNode(sdk.Coordinates{
-		Ecosystem:      sdk.EcosystemMaven,
+	node, err := model.NewDependencyNode(model.Coordinates{
+		Ecosystem:      model.EcosystemMaven,
 		Name:           name,
 		Version:        parts[versionIndex],
 		Org:            groupID,
-		PackageManager: sdk.PackageManagerMaven,
+		PackageManager: model.PackageManagerMaven,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build maven node %s:%s: %w", groupID, name, err)
 	}
-	node.Scopes = sdk.ScopesOf(scope)
+	node.Scopes = model.ScopesOf(scope)
 	return node, nil
 }
 
-func scopeFromMavenScope(value string) sdk.Scope {
+func scopeFromMavenScope(value string) model.Scope {
 	switch strings.ToLower(strings.TrimSpace(value)) {
 	case "test":
-		return sdk.ScopeDevelopment
+		return model.ScopeDevelopment
 	case "compile", "provided", "runtime", "system", "import":
-		return sdk.ScopeRuntime
+		return model.ScopeRuntime
 	default:
-		return sdk.ScopeUnknown
+		return model.ScopeUnknown
 	}
 }
 
 // Install prepares Maven dependencies before graph resolution.
-func (d Detector) Install(ctx context.Context, req sdk.DetectionRequest) error {
+func (d Detector) Install(ctx context.Context, req plugin.DetectionRequest) error {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()

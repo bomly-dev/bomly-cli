@@ -1,19 +1,21 @@
 package engine
 
-import "github.com/bomly-dev/bomly-sdk"
+import (
+	"github.com/bomly-dev/bomly-sdk/model"
+)
 
 // DeduplicateFindings removes duplicate package/vulnerability findings, keeping the highest-priority source.
-func DeduplicateFindings(findings []sdk.Finding) []sdk.Finding {
+func DeduplicateFindings(findings []model.Finding) []model.Finding {
 	type key struct{ pkgID, vulnID string }
 	type entry struct {
 		idx  int
 		rank int
 	}
 	best := make(map[key]entry, len(findings))
-	out := make([]sdk.Finding, 0, len(findings))
+	out := make([]model.Finding, 0, len(findings))
 
 	for _, finding := range findings {
-		if finding.ID == "" || finding.Kind != sdk.FindingKindVulnerability {
+		if finding.ID == "" || finding.Kind != model.FindingKindVulnerability {
 			out = append(out, finding)
 			continue
 		}

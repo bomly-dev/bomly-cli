@@ -7,11 +7,13 @@ import (
 	"os"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/sbom"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 const maxSBOMFileBytes int64 = 256 << 20
@@ -24,20 +26,20 @@ type Detector struct {
 var evidencePatterns = []string{"*.syft.json", "*.bom.*", "*.bom", "bom", "*.sbom.*", "*.sbom", "sbom", "*.cdx.*", "*.cdx", "*.spdx.*", "*.spdx"}
 
 // PackageManagerSupport returns SBOM package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerSBOM, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerSBOM, evidencePatterns...)}
 }
 
 // Ready reports whether the detector can run in the current environment.
-func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
+func (d Detector) Ready(context.Context, plugin.DetectionRequest) error {
 	return nil
 }
 
 // Applicable reports whether the request targets an explicit SBOM file.
-func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	_ = ctx
 
-	if req.PackageManager != sdk.PackageManagerSBOM || req.ExecutionTarget.Kind != sdk.ExecutionTargetFilesystem {
+	if req.PackageManager != model.PackageManagerSBOM || req.ExecutionTarget.Kind != plugin.ExecutionTargetFilesystem {
 		return false, nil
 	}
 
@@ -49,18 +51,18 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 }
 
 // Descriptor describes the first-party SBOM detector.
-func (d Detector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d Detector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		Name:                detectors.NameSBOM,
-		Technique:           sdk.SBOMTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemSBOM},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSBOM},
+		Technique:           plugin.SBOMTechnique,
+		SupportedEcosystems: []model.Ecosystem{model.EcosystemSBOM},
+		SupportedManagers:   []model.PackageManager{model.PackageManagerSBOM},
 		Tags:                []string{"graph-resolution", "sbom-import"},
 	}
 }
 
 // ResolveGraph resolves a dependency graph from a supported SBOM file.
-func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
@@ -76,22 +78,22 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	data, err := system.ReadFileLimit(sbomPath, maxSBOMFileBytes)
 	if err != nil {
 		if errors.Is(err, system.ErrInputTooLarge) {
-			return sdk.DetectionResult{}, fmt.Errorf("sbom file %q exceeds the 256 MiB limit: %w", sbomPath, system.ErrInputTooLarge)
+			return plugin.DetectionResult{}, fmt.Errorf("sbom file %q exceeds the 256 MiB limit: %w", sbomPath, system.ErrInputTooLarge)
 		}
-		return sdk.DetectionResult{}, fmt.Errorf("read sbom file %q: %w", sbomPath, err)
+		return plugin.DetectionResult{}, fmt.Errorf("read sbom file %q: %w", sbomPath, err)
 	}
 
 	doc, target, err := sbom.UnmarshalAutoJSON(data)
 	if err != nil {
 		switch {
 		case errors.Is(err, sbom.ErrMalformedJSON):
-			return sdk.DetectionResult{}, fmt.Errorf("parse sbom file %q: %w", sbomPath, err)
+			return plugin.DetectionResult{}, fmt.Errorf("parse sbom file %q: %w", sbomPath, err)
 		case errors.Is(err, sbom.ErrSyftJSONUnsupported):
-			return sdk.DetectionResult{}, fmt.Errorf("detect sbom format for %q: %w", sbomPath, err)
+			return plugin.DetectionResult{}, fmt.Errorf("detect sbom format for %q: %w", sbomPath, err)
 		case errors.Is(err, sbom.ErrUnsupportedFormat):
-			return sdk.DetectionResult{}, fmt.Errorf("detect sbom format for %q: %w", sbomPath, err)
+			return plugin.DetectionResult{}, fmt.Errorf("detect sbom format for %q: %w", sbomPath, err)
 		case errors.Is(err, sbom.ErrUnverifiableJSON):
-			return sdk.DetectionResult{}, fmt.Errorf(
+			return plugin.DetectionResult{}, fmt.Errorf(
 				"sbom file %q holds more object member names at once than Bomly will check for repeats, "+
 					"so it will not import it: %w", sbomPath, err)
 		case errors.Is(err, sbom.ErrAmbiguousJSON):
@@ -101,12 +103,12 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 			// error. The wrapped error names the class -- a repeated member,
 			// bytes that are not UTF-8, or an escape that names no character
 			// -- and the member path or byte offset.
-			return sdk.DetectionResult{}, fmt.Errorf(
+			return plugin.DetectionResult{}, fmt.Errorf(
 				"sbom file %q does not have a single unambiguous reading, so Bomly will not import it; "+
 					"regenerate it with a producer that emits each object member once and writes every string "+
 					"as Unicode text, without unpaired surrogate escapes: %w", sbomPath, err)
 		default:
-			return sdk.DetectionResult{}, fmt.Errorf("decode sbom file %q: %w", sbomPath, err)
+			return plugin.DetectionResult{}, fmt.Errorf("decode sbom file %q: %w", sbomPath, err)
 		}
 	}
 
@@ -125,7 +127,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 
 	depsGraph, err := sbom.ToGraph(doc)
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("convert sbom %q to graph: %w", sbomPath, err)
+		return plugin.DetectionResult{}, fmt.Errorf("convert sbom %q to graph: %w", sbomPath, err)
 	}
 	// Returned through detectors.Unattributed rather than Attributed: this
 	// detector converts a document, it does not resolve a project. Whatever
@@ -133,7 +135,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	// something else, and the paths in the document are the producer's, not
 	// this scan's -- so an empty module root is the honest record of an
 	// unattributed site.
-	graphs := sdk.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns))
+	graphs := model.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns))
 	// What the document said about itself rides the entry it became, so a
 	// later export can restate it instead of crediting only Bomly for a
 	// document Bomly only converted (ADR-0037). The codec decides what that
@@ -143,7 +145,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	}
 
 	logger.Debug("resolved explicit sbom file", zap.String("path", sbomPath), zap.String("format", string(target)))
-	return detectors.Unattributed(sdk.DetectionResult{
+	return detectors.Unattributed(plugin.DetectionResult{
 		SubprojectInfo: req.Subproject,
 		DetectorName:   d.Descriptor().Name,
 		Technique:      d.Descriptor().Technique,
@@ -151,11 +153,11 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	}, "an ingested document's packages were resolved elsewhere; the document carries no module root of this scan"), nil
 }
 
-func normalizeSBOMManifestMetadata(container *sdk.GraphContainer, req sdk.DetectionRequest) *sdk.GraphContainer {
+func normalizeSBOMManifestMetadata(container *model.GraphContainer, req plugin.DetectionRequest) *model.GraphContainer {
 	if container == nil || len(container.Entries) == 0 {
 		return container
 	}
-	normalized := &sdk.GraphContainer{Entries: make([]sdk.GraphEntry, 0, len(container.Entries))}
+	normalized := &model.GraphContainer{Entries: make([]model.GraphEntry, 0, len(container.Entries))}
 	defaultManifest := detectorkit.InferManifestMetadata(req, evidencePatterns)
 	for _, entry := range container.Entries {
 		manifest := entry.Manifest
@@ -165,7 +167,7 @@ func normalizeSBOMManifestMetadata(container *sdk.GraphContainer, req sdk.Detect
 		if manifest.Kind == "" {
 			manifest.Kind = defaultManifest.Kind
 		}
-		normalized.Entries = append(normalized.Entries, sdk.GraphEntry{
+		normalized.Entries = append(normalized.Entries, model.GraphEntry{
 			Graph:    entry.Graph,
 			Manifest: manifest,
 			Document: entry.Document,
@@ -174,17 +176,17 @@ func normalizeSBOMManifestMetadata(container *sdk.GraphContainer, req sdk.Detect
 	return normalized
 }
 
-func normalizeSBOMGraphContainer(container *sdk.GraphContainer) *sdk.GraphContainer {
+func normalizeSBOMGraphContainer(container *model.GraphContainer) *model.GraphContainer {
 	if container == nil {
 		return nil
 	}
-	normalized := &sdk.GraphContainer{Entries: make([]sdk.GraphEntry, 0, len(container.Entries))}
+	normalized := &model.GraphContainer{Entries: make([]model.GraphEntry, 0, len(container.Entries))}
 	for _, entry := range container.Entries {
 		normalizedGraph, err := normalizeSBOMGraphIdentity(entry.Graph)
 		if err != nil {
 			normalizedGraph = entry.Graph
 		}
-		normalized.Entries = append(normalized.Entries, sdk.GraphEntry{
+		normalized.Entries = append(normalized.Entries, model.GraphEntry{
 			Graph:    normalizedGraph,
 			Manifest: entry.Manifest,
 			Document: entry.Document,
@@ -193,12 +195,12 @@ func normalizeSBOMGraphContainer(container *sdk.GraphContainer) *sdk.GraphContai
 	return normalized
 }
 
-func normalizeSBOMGraphIdentity(src *sdk.Graph) (*sdk.Graph, error) {
+func normalizeSBOMGraphIdentity(src *model.Graph) (*model.Graph, error) {
 	if src == nil {
 		return nil, nil
 	}
 
-	normalized := sdk.NewWithCapacity(src.Size())
+	normalized := model.NewWithCapacity(src.Size())
 	idMap := make(map[string]string, src.Size())
 	for _, pkg := range src.DependencyNodes() {
 		if pkg == nil {

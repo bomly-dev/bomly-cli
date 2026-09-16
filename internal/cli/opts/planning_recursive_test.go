@@ -13,8 +13,10 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // writeEvidenceFile creates an empty manifest evidence file at a slash-form
@@ -30,13 +32,13 @@ func writeEvidenceFile(t *testing.T, root, rel string) {
 	}
 }
 
-func planRecursive(t *testing.T, root string, mutate func(*Request)) ([]sdk.Subproject, error) {
+func planRecursive(t *testing.T, root string, mutate func(*Request)) ([]plugin.Subproject, error) {
 	t.Helper()
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
 	req := Request{
 		Registry:        reg,
-		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: root},
+		ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: root},
 		Recursive:       true,
 		MaxDepth:        3,
 	}
@@ -46,7 +48,7 @@ func planRecursive(t *testing.T, root string, mutate func(*Request)) ([]sdk.Subp
 	return PlanSubprojects(reg, req)
 }
 
-func subprojectRelPaths(subprojects []sdk.Subproject) []string {
+func subprojectRelPaths(subprojects []plugin.Subproject) []string {
 	paths := make([]string, 0, len(subprojects))
 	for _, subproject := range subprojects {
 		paths = append(paths, subproject.RelativePath)
@@ -54,8 +56,8 @@ func subprojectRelPaths(subprojects []sdk.Subproject) []string {
 	return paths
 }
 
-func subprojectManagersByPath(subprojects []sdk.Subproject) map[string]sdk.PackageManager {
-	managers := make(map[string]sdk.PackageManager, len(subprojects))
+func subprojectManagersByPath(subprojects []plugin.Subproject) map[string]model.PackageManager {
+	managers := make(map[string]model.PackageManager, len(subprojects))
 	for _, subproject := range subprojects {
 		managers[subproject.RelativePath] = subproject.PrimaryPackageManager()
 	}
@@ -80,11 +82,11 @@ func TestPlanSubprojectsRecursiveFindsNestedManifests(t *testing.T) {
 		t.Fatalf("expected subprojects %v, got %v", wantPaths, got)
 	}
 	managers := subprojectManagersByPath(subprojects)
-	wantManagers := map[string]sdk.PackageManager{
-		"fixtures/api-java": sdk.PackageManagerMaven,
-		"fixtures/service":  sdk.PackageManagerPip,
-		"fixtures/webapp":   sdk.PackageManagerNPM,
-		"harness":           sdk.PackageManagerPip,
+	wantManagers := map[string]model.PackageManager{
+		"fixtures/api-java": model.PackageManagerMaven,
+		"fixtures/service":  model.PackageManagerPip,
+		"fixtures/webapp":   model.PackageManagerNPM,
+		"harness":           model.PackageManagerPip,
 	}
 	if !reflect.DeepEqual(managers, wantManagers) {
 		t.Fatalf("expected managers %v, got %v", wantManagers, managers)
@@ -175,14 +177,14 @@ func TestPlanSubprojectsRecursiveExcludeGlobs(t *testing.T) {
 func TestPlanSubprojectsRecursivePrunesMultiModuleDescendants(t *testing.T) {
 	cases := []struct {
 		name    string
-		manager sdk.PackageManager
+		manager model.PackageManager
 		root    string
 		nested  string
 	}{
-		{name: "maven reactor", manager: sdk.PackageManagerMaven, root: "pom.xml", nested: "module-a/pom.xml"},
-		{name: "gradle subproject", manager: sdk.PackageManagerGradle, root: "settings.gradle", nested: "app/build.gradle"},
-		{name: "npm workspace", manager: sdk.PackageManagerNPM, root: "package-lock.json", nested: "apps/web/package-lock.json"},
-		{name: "cargo workspace", manager: sdk.PackageManagerCargo, root: "Cargo.toml", nested: "crates/member/Cargo.toml"},
+		{name: "maven reactor", manager: model.PackageManagerMaven, root: "pom.xml", nested: "module-a/pom.xml"},
+		{name: "gradle subproject", manager: model.PackageManagerGradle, root: "settings.gradle", nested: "app/build.gradle"},
+		{name: "npm workspace", manager: model.PackageManagerNPM, root: "package-lock.json", nested: "apps/web/package-lock.json"},
+		{name: "cargo workspace", manager: model.PackageManagerCargo, root: "Cargo.toml", nested: "crates/member/Cargo.toml"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -214,9 +216,9 @@ func TestPlanSubprojectsRecursiveDoesNotPruneAcrossPackageManagers(t *testing.T)
 		t.Fatalf("PlanSubprojects() error = %v", err)
 	}
 	managers := subprojectManagersByPath(subprojects)
-	want := map[string]sdk.PackageManager{
-		".":       sdk.PackageManagerMaven,
-		"scripts": sdk.PackageManagerPip,
+	want := map[string]model.PackageManager{
+		".":       model.PackageManagerMaven,
+		"scripts": model.PackageManagerPip,
 	}
 	if !reflect.DeepEqual(managers, want) {
 		t.Fatalf("expected managers %v, got %v", want, managers)
@@ -326,7 +328,7 @@ func TestNoSubprojectsErrorSuggestsRecursiveWhenNestedManifestsExist(t *testing.
 
 	_, err := PlanSubprojects(reg, Request{
 		Registry:        reg,
-		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: root},
+		ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: root},
 	})
 	if !errors.Is(err, ErrNoSubprojects) {
 		t.Fatalf("expected ErrNoSubprojects, got %v", err)
@@ -362,7 +364,7 @@ func TestDescribeDiscoveryUsesSharedSkipRules(t *testing.T) {
 	writeEvidenceFile(t, root, "target/pom.xml")
 	writeEvidenceFile(t, root, "src/requirements.txt")
 
-	lines := DescribeDiscovery(sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: root})
+	lines := DescribeDiscovery(plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: root})
 	joined := strings.Join(lines, "\n")
 	if strings.Contains(joined, "dist") || strings.Contains(joined, "target") {
 		t.Fatalf("expected probe to honor built-in skip rules, got %q", joined)
@@ -376,20 +378,20 @@ func TestDescribeDiscoveryUsesSharedSkipRules(t *testing.T) {
 // discovery honors detector-declared ignore rules and native multi-module
 // support the same way for registered plugins as for built-ins.
 type fakeRulesDetector struct {
-	descriptor sdk.DetectorDescriptor
-	supports   []sdk.PackageManagerSupport
+	descriptor plugin.DetectorDescriptor
+	supports   []plugin.PackageManagerSupport
 }
 
-func (d fakeRulesDetector) Descriptor() sdk.DetectorDescriptor { return d.descriptor }
-func (d fakeRulesDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
+func (d fakeRulesDetector) Descriptor() plugin.DetectorDescriptor { return d.descriptor }
+func (d fakeRulesDetector) PackageManagerSupport() []plugin.PackageManagerSupport {
 	return d.supports
 }
-func (d fakeRulesDetector) Ready(context.Context, sdk.DetectionRequest) error { return nil }
-func (d fakeRulesDetector) Applicable(context.Context, sdk.DetectionRequest) (bool, error) {
+func (d fakeRulesDetector) Ready(context.Context, plugin.DetectionRequest) error { return nil }
+func (d fakeRulesDetector) Applicable(context.Context, plugin.DetectionRequest) (bool, error) {
 	return false, nil
 }
-func (d fakeRulesDetector) ResolveGraph(context.Context, sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	return sdk.DetectionResult{}, nil
+func (d fakeRulesDetector) ResolveGraph(context.Context, plugin.DetectionRequest) (plugin.DetectionResult, error) {
+	return plugin.DetectionResult{}, nil
 }
 
 func TestPlanSubprojectsRecursiveHonorsDetectorDeclaredIgnoreRules(t *testing.T) {
@@ -401,7 +403,7 @@ func TestPlanSubprojectsRecursiveHonorsDetectorDeclaredIgnoreRules(t *testing.T)
 
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
-	reg.RegisterDetector(fakeRulesDetector{descriptor: sdk.DetectorDescriptor{
+	reg.RegisterDetector(fakeRulesDetector{descriptor: plugin.DetectorDescriptor{
 		Name:                    "fake-rules-detector",
 		IgnoredDirectories:      []string{"generated-*"},
 		IgnoredDirectoryMarkers: []string{".bomlyskip"},
@@ -409,7 +411,7 @@ func TestPlanSubprojectsRecursiveHonorsDetectorDeclaredIgnoreRules(t *testing.T)
 
 	subprojects, err := PlanSubprojects(reg, Request{
 		Registry:        reg,
-		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: root},
+		ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: root},
 		Recursive:       true,
 		MaxDepth:        3,
 	})
@@ -432,13 +434,13 @@ func TestPlanSubprojectsRecursiveHonorsDetectorDeclaredMultiModule(t *testing.T)
 	// registered detector declaring native multi-module support for it must
 	// flip that, proving plugins can opt their manager into pruning.
 	reg.RegisterDetector(fakeRulesDetector{
-		descriptor: sdk.DetectorDescriptor{Name: "fake-go-workspace-detector"},
-		supports:   []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGoMod, "go.mod").WithMultiModule()},
+		descriptor: plugin.DetectorDescriptor{Name: "fake-go-workspace-detector"},
+		supports:   []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerGoMod, "go.mod").WithMultiModule()},
 	})
 
 	subprojects, err := PlanSubprojects(reg, Request{
 		Registry:        reg,
-		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: root},
+		ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: root},
 		Recursive:       true,
 		MaxDepth:        3,
 	})
@@ -463,17 +465,17 @@ func TestBuiltinDiscoveryRulesMatchExpectedCatalog(t *testing.T) {
 		t.Errorf("expected pyvenv.cfg marker, got %v", rules.ignoredDirMarkers)
 	}
 
-	wantManagers := []sdk.PackageManager{
-		sdk.PackageManagerMaven, sdk.PackageManagerGradle,
-		sdk.PackageManagerNPM, sdk.PackageManagerPNPM, sdk.PackageManagerYarn,
-		sdk.PackageManagerCargo, sdk.PackageManagerSBT, sdk.PackageManagerMix,
+	wantManagers := []model.PackageManager{
+		model.PackageManagerMaven, model.PackageManagerGradle,
+		model.PackageManagerNPM, model.PackageManagerPNPM, model.PackageManagerYarn,
+		model.PackageManagerCargo, model.PackageManagerSBT, model.PackageManagerMix,
 	}
 	for _, manager := range wantManagers {
 		if _, ok := rules.multiModuleManagers[manager]; !ok {
 			t.Errorf("expected %s in the native multi-module set, got %v", manager.Name(), rules.multiModuleManagers)
 		}
 	}
-	if _, ok := rules.multiModuleManagers[sdk.PackageManagerGoMod]; ok {
+	if _, ok := rules.multiModuleManagers[model.PackageManagerGoMod]; ok {
 		t.Error("gomod must not be in the native multi-module set: nested go.mod modules are independent")
 	}
 }

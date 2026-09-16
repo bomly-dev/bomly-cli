@@ -9,17 +9,19 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // Detector resolves Scala sbt dependency declarations from committed build files.
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
+	Fallback   plugin.Detector
 }
 
 var evidencePatterns = []string{"build.sbt", "project/plugins.sbt", "project/build.properties"}
@@ -28,23 +30,23 @@ type sbtPackage struct {
 	Org     string
 	Name    string
 	Version string
-	Scope   sdk.Scope
+	Scope   model.Scope
 }
 
 var sbtDependencyPattern = regexp.MustCompile(`"([^"]+)"\s*%{1,2}\s*"([^"]+)"\s*%\s*"([^"]+)"(?:\s*%\s*"?([^"\s,)]+)"?)?`)
 
 // PackageManagerSupport returns sbt package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerSBT, evidencePatterns...).WithMultiModule()}
+func (d Detector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerSBT, evidencePatterns...).WithMultiModule()}
 }
 
 // Ready reports whether committed sbt files can be parsed.
-func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
+func (d Detector) Ready(context.Context, plugin.DetectionRequest) error {
 	return nil
 }
 
 // Applicable reports whether sbt build files are present.
-func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	_ = ctx
 	workingDir := d.workingDir(req.ProjectPath)
 	for _, name := range evidencePatterns {
@@ -56,33 +58,33 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 }
 
 // Descriptor describes the sbt detector.
-func (d Detector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d Detector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		IgnoredDirectories:  []string{"target"},
 		Name:                detectors.NameSBT,
-		Technique:           sdk.ManifestTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemScala, sdk.EcosystemMaven},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSBT},
+		Technique:           plugin.ManifestTechnique,
+		SupportedEcosystems: []model.Ecosystem{model.EcosystemScala, model.EcosystemMaven},
+		SupportedManagers:   []model.PackageManager{model.PackageManagerSBT},
 		Tags:                []string{"graph-resolution", "component-targeting", "manifest-parsing", "scope-annotation"},
 	}
 }
 
 // ResolveGraph resolves an sbt dependency graph.
-func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
 	workingDir := d.workingDir(req.ProjectPath)
 	g, err := depGraphFromSBTFiles(workingDir)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	AttachSBTPositions(g, workingDir)
-	return detectors.Attributed(sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns))}), nil
+	return detectors.Attributed(plugin.DetectionResult{Graphs: model.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns))}), nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() sdk.Detector {
+func (d Detector) FallbackDetector() plugin.Detector {
 	return d.Fallback
 }
 
@@ -93,7 +95,7 @@ func (d Detector) workingDir(projectPath string) string {
 	return projectPath
 }
 
-func depGraphFromSBTFiles(workingDir string) (*sdk.Graph, error) {
+func depGraphFromSBTFiles(workingDir string) (*model.Graph, error) {
 	packages := make([]sbtPackage, 0)
 	for _, name := range []string{"build.sbt", "project/plugins.sbt"} {
 		raw, err := readOptional(filepath.Join(workingDir, name))
@@ -105,7 +107,7 @@ func depGraphFromSBTFiles(workingDir string) (*sdk.Graph, error) {
 	if len(packages) == 0 {
 		return nil, fmt.Errorf("sbt files do not contain any dependencies")
 	}
-	g := sdk.New()
+	g := model.New()
 	root, err := rootNode()
 	if err != nil {
 		return nil, err
@@ -140,10 +142,10 @@ func parseSBTDependencies(raw string) []sbtPackage {
 	matches := sbtDependencyPattern.FindAllStringSubmatch(raw, -1)
 	packages := make([]sbtPackage, 0, len(matches))
 	for _, match := range matches {
-		scope := sdk.ScopeRuntime
+		scope := model.ScopeRuntime
 		config := strings.ToLower(strings.Trim(match[4], `"`))
 		if strings.Contains(config, "test") || strings.Contains(config, "provided") {
-			scope = sdk.ScopeDevelopment
+			scope = model.ScopeDevelopment
 		}
 		packages = append(packages, sbtPackage{
 			Org:     strings.TrimSpace(match[1]),
@@ -163,24 +165,24 @@ func readOptional(path string) ([]byte, error) {
 	return system.ReadRepositoryFile(path)
 }
 
-func rootNode() (*sdk.ModuleNode, error) {
-	return sdk.NewModuleNode("build.sbt", sdk.Coordinates{Ecosystem: sdk.EcosystemScala,
+func rootNode() (*model.ModuleNode, error) {
+	return model.NewModuleNode("build.sbt", model.Coordinates{Ecosystem: model.EcosystemScala,
 		Name:           "root",
-		PackageManager: sdk.PackageManagerSBT,
-		Type:           sdk.PackageTypeApplication,
+		PackageManager: model.PackageManagerSBT,
+		Type:           model.PackageTypeApplication,
 		Language:       "scala"})
 
 }
 
-func packageNode(pkg sbtPackage) (*sdk.DependencyNode, error) {
-	node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemScala,
+func packageNode(pkg sbtPackage) (*model.DependencyNode, error) {
+	node, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemScala,
 		Org:            strings.TrimSpace(pkg.Org),
 		Name:           strings.TrimSpace(pkg.Name),
 		Version:        strings.TrimSpace(pkg.Version),
-		PackageManager: sdk.PackageManagerSBT,
-		Type:           sdk.PackageTypePackage,
+		PackageManager: model.PackageManagerSBT,
+		Type:           model.PackageTypePackage,
 		Language:       "scala",
-		PURL:           sdk.BuildPackageURLFor(sdk.EcosystemScala, sdk.PackageManagerSBT, pkg.Org, pkg.Name, pkg.Version)})
+		PURL:           model.BuildPackageURLFor(model.EcosystemScala, model.PackageManagerSBT, pkg.Org, pkg.Name, pkg.Version)})
 	if err != nil {
 		return nil, fmt.Errorf("build dependency node: %w", err)
 	}
@@ -191,7 +193,7 @@ func packageNode(pkg sbtPackage) (*sdk.DependencyNode, error) {
 	return node, nil
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
+func addNodeIfMissing(g *model.Graph, node *model.DependencyNode) error {
 	_, err := detectorkit.EnsureNode(g, node)
 	return err
 }

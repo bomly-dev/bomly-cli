@@ -7,7 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestLockfileDetectorUsesSyftFallbackForBinaryLockfile(t *testing.T) {
@@ -16,11 +17,11 @@ func TestLockfileDetectorUsesSyftFallbackForBinaryLockfile(t *testing.T) {
 		t.Fatal(err)
 	}
 	detector := LockfileDetector{}
-	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: project})
+	applicable, err := detector.Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: project})
 	if err != nil || !applicable {
 		t.Fatalf("expected binary lockfile to be applicable: applicable=%v err=%v", applicable, err)
 	}
-	_, err = detector.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: project})
+	_, err = detector.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: project})
 	if err == nil || !strings.Contains(err.Error(), "Syft fallback") || !strings.Contains(err.Error(), "--save-text-lockfile") {
 		t.Fatalf("expected actionable fallback error, got %v", err)
 	}
@@ -28,7 +29,7 @@ func TestLockfileDetectorUsesSyftFallbackForBinaryLockfile(t *testing.T) {
 
 func TestLockfileDetectorDescriptor(t *testing.T) {
 	descriptor := (LockfileDetector{}).Descriptor()
-	if len(descriptor.SupportedManagers) != 1 || descriptor.SupportedManagers[0] != sdk.PackageManagerBun {
+	if len(descriptor.SupportedManagers) != 1 || descriptor.SupportedManagers[0] != model.PackageManagerBun {
 		t.Fatalf("unexpected supported managers: %#v", descriptor.SupportedManagers)
 	}
 	support := (LockfileDetector{}).PackageManagerSupport()

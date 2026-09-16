@@ -7,7 +7,8 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // DiffMarkdown writes a GitHub-flavored Markdown diff report.
@@ -293,7 +294,7 @@ func persistedLicenseFindingCount(audit *output.DiffAudit) int {
 	}
 	packages := map[string]struct{}{}
 	for _, finding := range audit.Persisted {
-		if finding.Kind == sdk.FindingKindLicense {
+		if finding.Kind == model.FindingKindLicense {
 			packages[finding.Package.Purl] = struct{}{}
 		}
 	}
@@ -415,7 +416,7 @@ func diffAuditFindingTable(title, status string, findings []output.AuditFinding,
 // the text/JSON/SARIF outputs) is not modified.
 func emphasizeFindingTitle(finding output.AuditFinding) string {
 	title := firstNonEmpty(finding.Title, strings.Join(finding.Reasons, "; "))
-	if finding.Kind != sdk.FindingKindLicense {
+	if finding.Kind != model.FindingKindLicense {
 		return title
 	}
 	prefix, value, found := strings.Cut(title, ": ")

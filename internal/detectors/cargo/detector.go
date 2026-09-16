@@ -11,11 +11,13 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logging "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 var cargoExecLookPath = system.LookPath
@@ -25,7 +27,7 @@ var cargoExecCommand = system.Command
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
+	Fallback   plugin.Detector
 }
 
 var evidencePatterns = []string{"Cargo.lock", "Cargo.toml"}
@@ -77,37 +79,37 @@ type metadataDepKind struct {
 }
 
 // PackageManagerSupport returns Cargo package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerCargo, evidencePatterns...).WithMultiModule()}
+func (d Detector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerCargo, evidencePatterns...).WithMultiModule()}
 }
 
 // Ready reports whether Cargo is available.
-func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
+func (d Detector) Ready(context.Context, plugin.DetectionRequest) error {
 	return nil
 }
 
 // Applicable reports whether Cargo manifests are present.
-func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	_ = ctx
 	return system.FileExists(filepath.Join(d.workingDir(req.ProjectPath), "Cargo.toml"))
 }
 
 // Descriptor describes the Cargo detector.
-func (d Detector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d Detector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		IgnoredDirectories:      []string{"target"},
 		Name:                    detectors.NameCargo,
 		RemediationCapabilities: cargoRemediationCapabilities(),
-		Technique:               sdk.LockfileTechnique,
-		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemRust},
-		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerCargo},
+		Technique:               plugin.LockfileTechnique,
+		SupportedEcosystems:     []model.Ecosystem{model.EcosystemRust},
+		SupportedManagers:       []model.PackageManager{model.PackageManagerCargo},
 		Tags:                    []string{"graph-resolution", "component-targeting", "module-graph", "scope-annotation"},
 		SupportsInstallFirst:    true,
 	}
 }
 
 // ResolveGraph resolves a Cargo dependency graph.
-func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
@@ -116,14 +118,14 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 		logger = zap.NewNop()
 	}
 	if ok, err := system.FileExists(filepath.Join(d.workingDir(req.ProjectPath), "Cargo.lock")); err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	} else if ok {
 		return d.resolveFromLock(req)
 	}
 
 	cargoPath, err := cargoExecLookPath("cargo")
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("resolve cargo executable: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("resolve cargo executable: %w", err)
 	}
 	args := []string{"metadata", "--format-version", "1", "--locked"}
 	cmd := cargoExecCommand(cargoPath, args...)
@@ -138,7 +140,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 			fields = append(fields, zap.Int64("stderr_bytes", commandStderr.ByteCount()))
 		}
 		logger.Debug("cargo detector failure details", fields...)
-		return sdk.DetectionResult{}, fmt.Errorf("run cargo metadata: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("run cargo metadata: %w", err)
 	}
 	return d.detectionResultFromMetadata(req, raw)
 }
@@ -146,16 +148,16 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 // detectionResultFromMetadata builds the detection result from cargo metadata
 // output: a single entry for single-package projects, one manifest entry per
 // workspace member otherwise.
-func (d Detector) detectionResultFromMetadata(req sdk.DetectionRequest, raw []byte) (sdk.DetectionResult, error) {
+func (d Detector) detectionResultFromMetadata(req plugin.DetectionRequest, raw []byte) (plugin.DetectionResult, error) {
 	workingDir := d.workingDir(req.ProjectPath)
 	g, members, err := metadataGraphWithMembers(raw, req.ScopeFilter)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	AttachCargoLockPositions(g, workingDir)
 	rootManifest := detectorkit.InferManifestMetadata(req, evidencePatterns)
 	if len(members) <= 1 {
-		return detectors.Attributed(sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, rootManifest)}), nil
+		return detectors.Attributed(plugin.DetectionResult{Graphs: model.SingleGraphContainer(g, rootManifest)}), nil
 	}
 	modules := make([]cargoModuleGraph, 0, len(members))
 	for _, member := range members {
@@ -172,13 +174,13 @@ func (d Detector) detectionResultFromMetadata(req sdk.DetectionRequest, raw []by
 		// is promoted here rather than built as a module upstream.
 		rootID, err := detectorkit.PromoteToModule(g, member.nodeID, path.Join(dir, "Cargo.toml"))
 		if err != nil {
-			return sdk.DetectionResult{}, err
+			return plugin.DetectionResult{}, err
 		}
 		modules = append(modules, cargoModuleGraph{dir: dir, rootID: rootID})
 	}
 	result, err := cargoDetectionResultFromGraph(g, modules, rootManifest)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	logger := d.Logger
 	if logger == nil {
@@ -189,19 +191,19 @@ func (d Detector) detectionResultFromMetadata(req sdk.DetectionRequest, raw []by
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() sdk.Detector {
+func (d Detector) FallbackDetector() plugin.Detector {
 	return d.Fallback
 }
 
-func (d Detector) resolveFromLock(req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d Detector) resolveFromLock(req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	workingDir := d.workingDir(req.ProjectPath)
 	lockRaw, err := system.ReadRepositoryFile(filepath.Join(workingDir, "Cargo.lock"))
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("read Cargo.lock: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("read Cargo.lock: %w", err)
 	}
 	manifestRaw, err := system.ReadRepositoryFile(filepath.Join(workingDir, "Cargo.toml"))
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("read Cargo.toml: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("read Cargo.toml: %w", err)
 	}
 
 	// Workspace manifests need member-aware resolution: the plain lock path
@@ -214,10 +216,10 @@ func (d Detector) resolveFromLock(req sdk.DetectionRequest) (sdk.DetectionResult
 
 	g, err := depGraphFromLockWithScope(lockRaw, manifestRaw, req.ScopeFilter)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	AttachCargoLockPositions(g, workingDir)
-	return detectors.Attributed(sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns))}), nil
+	return detectors.Attributed(plugin.DetectionResult{Graphs: model.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns))}), nil
 }
 
 // resolveLockWorkspace resolves a workspace whose root carries a Cargo.lock.
@@ -227,7 +229,7 @@ func (d Detector) resolveFromLock(req sdk.DetectionRequest) (sdk.DetectionResult
 // lock graph by member package names — this also fixes virtual workspace
 // roots (workspace-only Cargo.toml), which previously failed with
 // "cargo.toml does not contain a package name".
-func (d Detector) resolveLockWorkspace(req sdk.DetectionRequest, workingDir string, lockRaw, manifestRaw []byte, memberDirs []string) (sdk.DetectionResult, error) {
+func (d Detector) resolveLockWorkspace(req plugin.DetectionRequest, workingDir string, lockRaw, manifestRaw []byte, memberDirs []string) (plugin.DetectionResult, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -249,11 +251,11 @@ func (d Detector) resolveLockWorkspace(req sdk.DetectionRequest, workingDir stri
 	rootManifest := applyWorkspaceVersion(parseCargoManifest(string(manifestRaw)), workspaceVersion)
 	members := readCargoLockMembers(workingDir, memberDirs, workspaceVersion)
 	if len(members) == 0 {
-		return sdk.DetectionResult{}, fmt.Errorf("cargo workspace members declared in Cargo.toml could not be read")
+		return plugin.DetectionResult{}, fmt.Errorf("cargo workspace members declared in Cargo.toml could not be read")
 	}
 	g, modules, rootID, err := depGraphFromLockWorkspace(lockRaw, rootManifest, members, req.ScopeFilter)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	AttachCargoLockPositions(g, workingDir)
 	if rootID != "" {
@@ -261,7 +263,7 @@ func (d Detector) resolveLockWorkspace(req sdk.DetectionRequest, workingDir stri
 	}
 	result, err := cargoDetectionResultFromGraph(g, modules, detectorkit.InferManifestMetadata(req, evidencePatterns))
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	logger.Info("cargo detector resolved workspace members from lockfile", zap.Int("members", len(members)))
 	return result, nil
@@ -274,11 +276,11 @@ func (d Detector) workingDir(projectPath string) string {
 	return projectPath
 }
 
-func depGraphFromMetadata(raw []byte) (*sdk.Graph, error) {
-	return depGraphFromMetadataWithScope(raw, sdk.ScopeUnknown)
+func depGraphFromMetadata(raw []byte) (*model.Graph, error) {
+	return depGraphFromMetadataWithScope(raw, model.ScopeUnknown)
 }
 
-func depGraphFromMetadataWithScope(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, error) {
+func depGraphFromMetadataWithScope(raw []byte, scopeFilter model.Scope) (*model.Graph, error) {
 	g, _, err := metadataGraphWithMembers(raw, scopeFilter)
 	return g, err
 }
@@ -290,7 +292,7 @@ type metadataMember struct {
 	manifestPath string
 }
 
-func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []metadataMember, error) {
+func metadataGraphWithMembers(raw []byte, scopeFilter model.Scope) (*model.Graph, []metadataMember, error) {
 	var out metadataOutput
 	dec := json.NewDecoder(bytes.NewReader(raw))
 	if err := dec.Decode(&out); err != nil {
@@ -311,8 +313,8 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 		workspace[id] = struct{}{}
 	}
 
-	g := sdk.New()
-	var root *sdk.ModuleNode
+	g := model.New()
+	var root *model.ModuleNode
 	if len(workspace) != 1 {
 		var err error
 		root, err = rootNode()
@@ -417,7 +419,7 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 			// A workspace member's direct dependencies take its scope. The
 			if parentNode, ok := g.Node(parentID); ok && isCargoProjectRoot(parentNode) {
 				if existingNode, ok := g.Node(childID); ok {
-					if existing, isDep := sdk.AsDependencyNode(existingNode); isDep {
+					if existing, isDep := model.AsDependencyNode(existingNode); isDep {
 						existing.AddScope(scopeForDepKinds(dep.DepKinds))
 					}
 				}
@@ -425,18 +427,18 @@ func metadataGraphWithMembers(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, []
 		}
 	}
 	propagateScopesFromApplicationRoots(g)
-	filtered, err := sdk.FilterGraphByScope(g, scopeFilter)
+	filtered, err := model.FilterGraphByScope(g, scopeFilter)
 	if err != nil {
 		return nil, nil, err
 	}
 	return filtered, members, nil
 }
 
-func rootNode() (*sdk.ModuleNode, error) {
-	return sdk.NewModuleNode("Cargo.toml", sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
+func rootNode() (*model.ModuleNode, error) {
+	return model.NewModuleNode("Cargo.toml", model.Coordinates{Ecosystem: model.EcosystemRust,
 		Name:           "root",
-		PackageManager: sdk.PackageManagerCargo,
-		Type:           sdk.PackageTypeApplication,
+		PackageManager: model.PackageManagerCargo,
+		Type:           model.PackageTypeApplication,
 		Language:       "rust"})
 
 }
@@ -461,15 +463,15 @@ func cargoModuleManifest(manifestPath, workspaceRoot string) string {
 	return slashed
 }
 
-func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}, workspaceRoot string) (sdk.GraphNode, error) {
-	coords := sdk.Coordinates{
-		Ecosystem:      sdk.EcosystemRust,
+func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}, workspaceRoot string) (model.GraphNode, error) {
+	coords := model.Coordinates{
+		Ecosystem:      model.EcosystemRust,
 		Name:           pkg.Name,
 		Version:        pkg.Version,
-		PackageManager: sdk.PackageManagerCargo,
-		Type:           sdk.ParsePackageType("crate"),
+		PackageManager: model.PackageManagerCargo,
+		Type:           model.ParsePackageType("crate"),
 		Language:       "rust",
-		PURL:           sdk.BuildPackageURLFor(sdk.EcosystemRust, sdk.PackageManagerCargo, "", pkg.Name, pkg.Version),
+		PURL:           model.BuildPackageURLFor(model.EcosystemRust, model.PackageManagerCargo, "", pkg.Name, pkg.Version),
 	}
 	if _, workspaceMember := workspace[id]; workspaceMember {
 		// A workspace member is the project's own code, so it is a module
@@ -477,14 +479,14 @@ func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}, 
 		// origin at all, which is the stronger form of the rule the old
 		// dependency node needed a guard for: a same-named lock entry cannot
 		// credit the project's code to someone else's remote.
-		coords.Type = sdk.PackageTypeApplication
-		node, err := sdk.NewModuleNode(cargoModuleManifest(pkg.ManifestPath, workspaceRoot), coords)
+		coords.Type = model.PackageTypeApplication
+		node, err := model.NewModuleNode(cargoModuleManifest(pkg.ManifestPath, workspaceRoot), coords)
 		if err != nil {
 			return nil, fmt.Errorf("build cargo module node %q: %w", pkg.Name, err)
 		}
 		return node, nil
 	}
-	node, err := sdk.NewDependencyNode(coords)
+	node, err := model.NewDependencyNode(coords)
 	if err != nil {
 		return nil, fmt.Errorf("build dependency node: %w", err)
 	}
@@ -494,28 +496,28 @@ func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}, 
 	return node, nil
 }
 
-func cargoDependencySource(source string) sdk.DependencySource {
+func cargoDependencySource(source string) model.DependencySource {
 	source = strings.TrimSpace(source)
 	switch {
 	case strings.HasPrefix(source, "registry+"),
 		strings.HasPrefix(source, "sparse+"):
-		return sdk.DependencySourceRegistry
+		return model.DependencySourceRegistry
 	case strings.HasPrefix(source, "git+"):
-		return sdk.DependencySourceGit
+		return model.DependencySourceGit
 	case source == "":
-		return sdk.DependencySourceFile
+		return model.DependencySourceFile
 	default:
 		return ""
 	}
 }
 
-func scopeForDepKinds(kinds []metadataDepKind) sdk.Scope {
+func scopeForDepKinds(kinds []metadataDepKind) model.Scope {
 	for _, kind := range kinds {
 		if strings.EqualFold(kind.Kind, "dev") {
-			return sdk.ScopeDevelopment
+			return model.ScopeDevelopment
 		}
 	}
-	return sdk.ScopeRuntime
+	return model.ScopeRuntime
 }
 
 func sortedWorkspaceMembers(workspace map[string]struct{}) []string {
@@ -539,7 +541,7 @@ func sortedPackageIDs(packages map[string]metadataPackage) []string {
 	return ids
 }
 
-func addNodeIfMissing(g *sdk.Graph, node sdk.GraphNode) error {
+func addNodeIfMissing(g *model.Graph, node model.GraphNode) error {
 	// Cargo can resolve one crate name and version from two sources -- the same
 	// crate pulled from two git remotes, say. They share a PURL, so they are
 	// one node, and the shared helper settles what that node claims.
@@ -564,11 +566,11 @@ type cargoManifest struct {
 	DevDependencies  []string
 }
 
-func depGraphFromLock(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
-	return depGraphFromLockWithScope(lockRaw, manifestRaw, sdk.ScopeUnknown)
+func depGraphFromLock(lockRaw, manifestRaw []byte) (*model.Graph, error) {
+	return depGraphFromLockWithScope(lockRaw, manifestRaw, model.ScopeUnknown)
 }
 
-func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scope) (*sdk.Graph, error) {
+func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter model.Scope) (*model.Graph, error) {
 	packages := parseCargoLockPackages(string(lockRaw))
 	if len(packages) == 0 {
 		return nil, fmt.Errorf("cargo.lock does not contain any packages")
@@ -580,14 +582,14 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 	if manifest.Name == "" {
 		return nil, fmt.Errorf("cargo.toml does not contain a package name")
 	}
-	g := sdk.New()
-	root, err := sdk.NewModuleNode("Cargo.toml", sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
+	g := model.New()
+	root, err := model.NewModuleNode("Cargo.toml", model.Coordinates{Ecosystem: model.EcosystemRust,
 		Name:           manifest.Name,
 		Version:        manifest.Version,
-		PackageManager: sdk.PackageManagerCargo,
-		Type:           sdk.PackageTypeApplication,
+		PackageManager: model.PackageManagerCargo,
+		Type:           model.PackageTypeApplication,
 		Language:       "rust",
-		PURL:           sdk.BuildPackageURLFor(sdk.EcosystemRust, sdk.PackageManagerCargo, "", manifest.Name, manifest.Version)})
+		PURL:           model.BuildPackageURLFor(model.EcosystemRust, model.PackageManagerCargo, "", manifest.Name, manifest.Version)})
 	if err != nil {
 		return nil, fmt.Errorf("build root node: %w", err)
 	}
@@ -639,9 +641,9 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 			continue
 		}
 		if existingNode, ok := g.Node(nodeID); ok {
-			existing, _ := sdk.AsDependencyNode(existingNode)
+			existing, _ := model.AsDependencyNode(existingNode)
 			if existing != nil {
-				existing.AddScope(sdk.ScopeRuntime)
+				existing.AddScope(model.ScopeRuntime)
 			}
 			if err := g.AddEdge(root.NodeID(), nodeID); err != nil {
 				return nil, fmt.Errorf("add Cargo root dependency %q: %w", nodeID, err)
@@ -654,9 +656,9 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 			continue
 		}
 		if existingNode, ok := g.Node(nodeID); ok {
-			existing, _ := sdk.AsDependencyNode(existingNode)
+			existing, _ := model.AsDependencyNode(existingNode)
 			if existing != nil {
-				existing.AddScope(sdk.ScopeDevelopment)
+				existing.AddScope(model.ScopeDevelopment)
 			}
 			if err := g.AddEdge(root.NodeID(), nodeID); err != nil {
 				return nil, fmt.Errorf("add Cargo dev dependency %q: %w", nodeID, err)
@@ -667,10 +669,10 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 	// BFS: propagate runtime/development scope from direct deps into the transitive tree.
 	// Runtime always wins over development.
 	directDepsNodes, _ := g.DirectDependencies(root.NodeID())
-	directDeps := sdk.DependencyNodesOf(directDepsNodes)
+	directDeps := model.DependencyNodesOf(directDepsNodes)
 	propagateScopes(g, directDeps, root.NodeID())
 
-	return sdk.FilterGraphByScope(g, scopeFilter)
+	return model.FilterGraphByScope(g, scopeFilter)
 }
 
 // isCargoProjectRoot reports whether a node stands for the project's own code.
@@ -680,15 +682,15 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 // metadata graph is built before the member's directory is known. Both spell
 // the same thing, so the predicate accepts either rather than each caller
 // picking one and quietly missing the other.
-func isCargoProjectRoot(node sdk.GraphNode) bool {
-	if sdk.IsProjectOwned(node) {
+func isCargoProjectRoot(node model.GraphNode) bool {
+	if model.IsProjectOwned(node) {
 		return true
 	}
-	dep, ok := sdk.AsDependencyNode(node)
-	return ok && dep.Type == sdk.PackageTypeApplication
+	dep, ok := model.AsDependencyNode(node)
+	return ok && dep.Type == model.PackageTypeApplication
 }
 
-func propagateScopesFromApplicationRoots(g *sdk.Graph) {
+func propagateScopesFromApplicationRoots(g *model.Graph) {
 	if g == nil {
 		return
 	}
@@ -696,7 +698,7 @@ func propagateScopesFromApplicationRoots(g *sdk.Graph) {
 	// application-typed dependency node the metadata path has not promoted
 	// yet. Reading only dependency nodes lost every propagation once the
 	// workspace root became a module.
-	roots := make([]sdk.GraphNode, 0, g.Size())
+	roots := make([]model.GraphNode, 0, g.Size())
 	for _, node := range g.Nodes() {
 		if isCargoProjectRoot(node) {
 			roots = append(roots, node)
@@ -704,7 +706,7 @@ func propagateScopesFromApplicationRoots(g *sdk.Graph) {
 	}
 	for _, root := range roots {
 		directDepNodes, err := g.DirectDependencies(root.NodeID())
-		directDeps := sdk.DependencyNodesOf(directDepNodes)
+		directDeps := model.DependencyNodesOf(directDepNodes)
 		if err != nil {
 			continue
 		}
@@ -712,16 +714,16 @@ func propagateScopesFromApplicationRoots(g *sdk.Graph) {
 	}
 }
 
-func propagateScopes(g *sdk.Graph, directDeps []*sdk.DependencyNode, rootID string) {
-	propagated := make(map[string]sdk.Scope, g.Size())
-	queue := make([]*sdk.DependencyNode, 0, len(directDeps))
+func propagateScopes(g *model.Graph, directDeps []*model.DependencyNode, rootID string) {
+	propagated := make(map[string]model.Scope, g.Size())
+	queue := make([]*model.DependencyNode, 0, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
 		}
 		scope := dep.PrimaryScope()
-		if scope == sdk.ScopeUnknown {
-			scope = sdk.ScopeRuntime
+		if scope == model.ScopeUnknown {
+			scope = model.ScopeRuntime
 			dep.AddScope(scope)
 		}
 		propagated[dep.NodeID()] = scope
@@ -731,11 +733,11 @@ func propagateScopes(g *sdk.Graph, directDeps []*sdk.DependencyNode, rootID stri
 		current := queue[0]
 		queue = queue[1:]
 		scope := propagated[current.NodeID()]
-		if scope == sdk.ScopeUnknown {
+		if scope == model.ScopeUnknown {
 			continue
 		}
 		childNodes, err := g.DirectDependencies(current.NodeID())
-		children := sdk.DependencyNodesOf(childNodes)
+		children := model.DependencyNodesOf(childNodes)
 		if err != nil {
 			continue
 		}
@@ -743,7 +745,7 @@ func propagateScopes(g *sdk.Graph, directDeps []*sdk.DependencyNode, rootID stri
 			if child == nil || child.NodeID() == rootID {
 				continue
 			}
-			nextScope := sdk.MergeScope(propagated[child.NodeID()], scope)
+			nextScope := model.MergeScope(propagated[child.NodeID()], scope)
 			if nextScope == propagated[child.NodeID()] && child.PrimaryScope() == nextScope {
 				continue
 			}
@@ -876,7 +878,7 @@ func trimTomlString(value string) string {
 }
 
 // Install prepares Cargo dependencies before graph resolution.
-func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
+func (d Detector) Install(_ context.Context, req plugin.DetectionRequest) error {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()

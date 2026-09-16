@@ -9,8 +9,10 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	testutil "github.com/bomly-dev/bomly-sdk/testkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestParseBunPMListLine(t *testing.T) {
@@ -44,12 +46,12 @@ func TestDepGraphFromBunPMListPreservesUnprovenParents(t *testing.T) {
 		t.Fatal(err)
 	}
 	direct, _ := testnodes.Find(graph, "direct@1.0.0")
-	if direct == nil || mustDep(t, direct).PrimaryScope() != sdk.ScopeRuntime || mustDep(t, direct).Relationship == sdk.DependencyRelationshipUnknown {
+	if direct == nil || mustDep(t, direct).PrimaryScope() != model.ScopeRuntime || mustDep(t, direct).Relationship == model.DependencyRelationshipUnknown {
 		t.Fatalf("expected a known direct dependency, got %#v", direct)
 	}
 	for _, id := range []string{"transitive@2.0.0", "duplicate@1.0.0", "duplicate@2.0.0"} {
 		dependency, _ := testnodes.Find(graph, id)
-		if dependency == nil || mustDep(t, dependency).Relationship != sdk.DependencyRelationshipUnknown {
+		if dependency == nil || mustDep(t, dependency).Relationship != model.DependencyRelationshipUnknown {
 			t.Fatalf("expected %s to retain unknown placement, got %#v", id, dependency)
 		}
 	}
@@ -57,7 +59,7 @@ func TestDepGraphFromBunPMListPreservesUnprovenParents(t *testing.T) {
 	if err != nil || len(children) != 1 || !testnodes.Is(children[0], "nested@3.0.0") {
 		t.Fatalf("expected proven nested edge, got children=%#v err=%v", children, err)
 	}
-	if mustDep(t, children[0]).Relationship == sdk.DependencyRelationshipUnknown {
+	if mustDep(t, children[0]).Relationship == model.DependencyRelationshipUnknown {
 		t.Fatalf("proven nested dependency must not be unknown: %#v", children[0])
 	}
 }
@@ -82,7 +84,7 @@ func main() { fmt.Print("/project node_modules\n├── @fixture/api@workspace
 	}
 	t.Setenv("PATH", binDir)
 
-	result, err := (NativeDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := (NativeDetector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,16 +100,16 @@ func main() { fmt.Print("/project node_modules\n├── @fixture/api@workspace
 		t.Fatalf("expected the root, the workspace, and four packages, got %d", graph.Size())
 	}
 	leftPad, _ := testnodes.Find(graph, "left-pad@1.3.0")
-	if leftPad == nil || mustDep(t, leftPad).Relationship != sdk.DependencyRelationshipUnknown {
+	if leftPad == nil || mustDep(t, leftPad).Relationship != model.DependencyRelationshipUnknown {
 		t.Fatalf("expected unproven package placement, got %#v", leftPad)
 	}
 	workspace, _ := testnodes.Find(graph, "api@1.0.0")
-	if workspace == nil || !sdk.IsProjectOwned(workspace) {
+	if workspace == nil || !model.IsProjectOwned(workspace) {
 		t.Fatalf("expected the workspace member to be the project's own module, got %#v", workspace)
 	}
 	// The alias resolves to the package it names, at that package's identity.
 	alias, _ := testnodes.FindDep(graph, "is-number@7.0.0")
-	if alias == nil || alias.PrimaryScope() != sdk.ScopeRuntime {
+	if alias == nil || alias.PrimaryScope() != model.ScopeRuntime {
 		t.Fatalf("expected the alias target as a runtime dependency, got %#v", alias)
 	}
 	children, err := graph.DirectDependencies(testnodes.ID(graph, "is-odd@0.1.2"))

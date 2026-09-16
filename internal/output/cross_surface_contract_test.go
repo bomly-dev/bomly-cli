@@ -5,34 +5,34 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestStructuredAndSARIFFindingContractsAgree(t *testing.T) {
 	const purl = "pkg:npm/@scope/library@1.0.0"
-	registry := sdk.NewPackageRegistry()
-	registry.Add(&sdk.Package{
-		Coordinates: sdk.Coordinates{
-			PURL: purl, Ecosystem: sdk.EcosystemNPM, Org: "scope", Name: "library", Version: "1.0.0",
+	registry := model.NewPackageRegistry()
+	registry.Add(&model.Package{
+		Coordinates: model.Coordinates{
+			PURL: purl, Ecosystem: model.EcosystemNPM, Org: "scope", Name: "library", Version: "1.0.0",
 		},
-		Vulnerabilities: []sdk.Vulnerability{{
+		Vulnerabilities: []model.Vulnerability{{
 			ID:             "GHSA-contract",
 			Aliases:        []string{"CVE-2026-4242"},
-			ParsedSeverity: sdk.SeverityHigh,
+			ParsedSeverity: model.SeverityHigh,
 			FixedIn:        "1.1.0",
-			Reachability: &sdk.Reachability{
-				Status: sdk.ReachabilityReachable,
-				Tier:   sdk.TierPackage,
+			Reachability: &model.Reachability{
+				Status: model.ReachabilityReachable,
+				Tier:   model.TierPackage,
 				Reason: "imported package",
 			},
 		}},
 	})
-	findings := []sdk.Finding{{
+	findings := []model.Finding{{
 		ID:              "GHSA-contract",
-		Kind:            sdk.FindingKindVulnerability,
+		Kind:            model.FindingKindVulnerability,
 		Title:           "Contract fixture",
-		Severity:        sdk.SeverityHigh,
-		PolicyStatus:    sdk.FindingPolicyStatusSuppressed,
+		Severity:        model.SeverityHigh,
+		PolicyStatus:    model.FindingPolicyStatusSuppressed,
 		RuleID:          "advisory",
 		PackageRef:      purl,
 		DependencyRefs:  []string{"dep-contract"},
@@ -82,7 +82,7 @@ func TestStructuredAndSARIFFindingContractsAgree(t *testing.T) {
 		result.Properties.RuleID != findings[0].RuleID ||
 		result.Properties.PackageRef != purl ||
 		len(result.Properties.Dependencies) != 1 ||
-		result.Properties.Reachability != string(sdk.ReachabilityReachable) {
+		result.Properties.Reachability != string(model.ReachabilityReachable) {
 		t.Fatalf("SARIF finding disagrees with structured contract: %#v", result)
 	}
 }

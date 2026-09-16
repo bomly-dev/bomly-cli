@@ -4,28 +4,30 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
-func yarnLockfileRemediationCapabilities() []sdk.RemediationCapability {
-	return []sdk.RemediationCapability{{
-		SupportedManagers: []sdk.PackageManager{sdk.PackageManagerYarn},
-		Actions: []sdk.RemediationAction{
-			sdk.RemediationActionDirectBump,
-			sdk.RemediationActionTransitiveOverride,
+func yarnLockfileRemediationCapabilities() []plugin.RemediationCapability {
+	return []plugin.RemediationCapability{{
+		SupportedManagers: []model.PackageManager{model.PackageManagerYarn},
+		Actions: []model.RemediationAction{
+			model.RemediationActionDirectBump,
+			model.RemediationActionTransitiveOverride,
 		},
 	}}
 }
 
 // RemediationHints provides Yarn-specific remediation guidance.
-func (d LockfileDetector) RemediationHints(_ context.Context, request sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
+func (d LockfileDetector) RemediationHints(_ context.Context, request plugin.RemediationHintRequest) (plugin.RemediationHintResponse, error) {
 	return detectors.BuildRemediationHints(
 		request,
-		sdk.PackageManagerYarn,
+		model.PackageManagerYarn,
 		yarnLockfileRemediationCapabilities()[0].Actions,
-		func(action sdk.RemediationAction, name, version, _ string) string {
-			if action != sdk.RemediationActionTransitiveOverride {
+		func(action model.RemediationAction, name, version, _ string) string {
+			if action != model.RemediationActionTransitiveOverride {
 				return ""
 			}
 			return fmt.Sprintf(`add "resolutions": {%q: %q} to package.json and run yarn install`, name, version)
@@ -33,24 +35,24 @@ func (d LockfileDetector) RemediationHints(_ context.Context, request sdk.Remedi
 	), nil
 }
 
-func yarnNativeRemediationCapabilities() []sdk.RemediationCapability {
-	return []sdk.RemediationCapability{{
-		SupportedManagers: []sdk.PackageManager{sdk.PackageManagerYarn},
-		Actions: []sdk.RemediationAction{
-			sdk.RemediationActionDirectBump,
-			sdk.RemediationActionTransitiveOverride,
+func yarnNativeRemediationCapabilities() []plugin.RemediationCapability {
+	return []plugin.RemediationCapability{{
+		SupportedManagers: []model.PackageManager{model.PackageManagerYarn},
+		Actions: []model.RemediationAction{
+			model.RemediationActionDirectBump,
+			model.RemediationActionTransitiveOverride,
 		},
 	}}
 }
 
 // RemediationHints provides Yarn-specific remediation guidance.
-func (d NativeDetector) RemediationHints(_ context.Context, request sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
+func (d NativeDetector) RemediationHints(_ context.Context, request plugin.RemediationHintRequest) (plugin.RemediationHintResponse, error) {
 	return detectors.BuildRemediationHints(
 		request,
-		sdk.PackageManagerYarn,
+		model.PackageManagerYarn,
 		yarnNativeRemediationCapabilities()[0].Actions,
-		func(action sdk.RemediationAction, name, version, _ string) string {
-			if action != sdk.RemediationActionTransitiveOverride {
+		func(action model.RemediationAction, name, version, _ string) string {
+			if action != model.RemediationActionTransitiveOverride {
 				return ""
 			}
 			return fmt.Sprintf(`add "resolutions": {%q: %q} to package.json and run yarn install`, name, version)

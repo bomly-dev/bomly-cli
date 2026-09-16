@@ -7,7 +7,8 @@ import (
 	"sync/atomic"
 	"testing"
 
-	plugschema "github.com/bomly-dev/bomly-sdk"
+	sdkplugin "github.com/bomly-dev/bomly-sdk/plugin"
+	"github.com/bomly-dev/bomly-sdk/runtime"
 )
 
 type fakePooledClient struct {
@@ -15,15 +16,15 @@ type fakePooledClient struct {
 	closed atomic.Bool
 }
 
-func (f *fakePooledClient) Raw() plugschema.Client { return nil }
-func (f *fakePooledClient) Exited() bool           { return f.exited.Load() }
-func (f *fakePooledClient) Close()                 { f.closed.Store(true) }
+func (f *fakePooledClient) Raw() runtime.Client { return nil }
+func (f *fakePooledClient) Exited() bool        { return f.exited.Load() }
+func (f *fakePooledClient) Close()              { f.closed.Store(true) }
 
 func poolWithFakeStart(t *testing.T, starts *atomic.Int32, clients *[]*fakePooledClient) *ClientPool {
 	t.Helper()
 	var mu sync.Mutex
 	pool := NewClientPool()
-	pool.startFn = func(_ context.Context, _, _ string, _ plugschema.PluginKind) (pooledClient, error) {
+	pool.startFn = func(_ context.Context, _, _ string, _ sdkplugin.PluginKind) (pooledClient, error) {
 		starts.Add(1)
 		client := &fakePooledClient{}
 		mu.Lock()

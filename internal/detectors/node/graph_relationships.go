@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // UnknownComponent describes a disconnected component attached to its owning
@@ -18,12 +19,12 @@ type UnknownComponent struct {
 // AttachUnknownComponentsToApplication finds the application root and
 // delegates to AttachUnknownComponents. Graphs without an application root
 // are left for consolidation to normalize beneath a manifest root.
-func AttachUnknownComponentsToApplication(graph *sdk.Graph, logger *zap.Logger, detector, manifest string) ([]UnknownComponent, error) {
+func AttachUnknownComponentsToApplication(graph *model.Graph, logger *zap.Logger, detector, manifest string) ([]UnknownComponent, error) {
 	if graph == nil {
 		return nil, nil
 	}
 	for _, root := range graph.Roots() {
-		if root != nil && root.Kind() == sdk.NodeKindModule {
+		if root != nil && root.Kind() == model.NodeKindModule {
 			return AttachUnknownComponents(graph, root.NodeID(), logger, detector, manifest)
 		}
 	}
@@ -33,7 +34,7 @@ func AttachUnknownComponentsToApplication(graph *sdk.Graph, logger *zap.Logger, 
 // AttachUnknownComponents attaches every component without an incoming edge
 // beneath rootID. Only the component root is marked unknown; known descendant
 // edges remain transitive.
-func AttachUnknownComponents(graph *sdk.Graph, rootID string, logger *zap.Logger, detector, manifest string) ([]UnknownComponent, error) {
+func AttachUnknownComponents(graph *model.Graph, rootID string, logger *zap.Logger, detector, manifest string) ([]UnknownComponent, error) {
 	if graph == nil || rootID == "" {
 		return nil, nil
 	}
@@ -42,7 +43,7 @@ func AttachUnknownComponents(graph *sdk.Graph, rootID string, logger *zap.Logger
 	}
 	known := make(map[string]struct{}, graph.Size())
 	for _, candidate := range graph.Roots() {
-		if candidate != nil && candidate.Kind() == sdk.NodeKindModule {
+		if candidate != nil && candidate.Kind() == model.NodeKindModule {
 			addReachable(graph, candidate.NodeID(), known)
 		}
 	}
@@ -55,7 +56,7 @@ func AttachUnknownComponents(graph *sdk.Graph, rootID string, logger *zap.Logger
 			break
 		}
 		candidate := unresolvedComponentRoot(graph, unresolved)
-		candidate.Relationship = sdk.DependencyRelationshipUnknown
+		candidate.Relationship = model.DependencyRelationshipUnknown
 		before := len(known)
 		addReachable(graph, candidate.NodeID(), known)
 		if err := graph.AddEdge(rootID, candidate.NodeID()); err != nil {
@@ -79,7 +80,7 @@ func AttachUnknownComponents(graph *sdk.Graph, rootID string, logger *zap.Logger
 	return components, nil
 }
 
-func addReachable(graph *sdk.Graph, rootID string, seen map[string]struct{}) {
+func addReachable(graph *model.Graph, rootID string, seen map[string]struct{}) {
 	if _, ok := seen[rootID]; ok {
 		return
 	}
@@ -105,10 +106,10 @@ func addReachable(graph *sdk.Graph, rootID string, seen map[string]struct{}) {
 	}
 }
 
-func unresolvedDependencyNodes(graph *sdk.Graph, known map[string]struct{}) []*sdk.DependencyNode {
-	var unresolved []*sdk.DependencyNode
+func unresolvedDependencyNodes(graph *model.Graph, known map[string]struct{}) []*model.DependencyNode {
+	var unresolved []*model.DependencyNode
 	for _, dependency := range graph.DependencyNodes() {
-		if dependency == nil || dependency.Type == sdk.PackageTypeApplication || dependency.Type == sdk.PackageTypeManifest {
+		if dependency == nil || dependency.Type == model.PackageTypeApplication || dependency.Type == model.PackageTypeManifest {
 			continue
 		}
 		if _, ok := known[dependency.NodeID()]; !ok {
@@ -119,7 +120,7 @@ func unresolvedDependencyNodes(graph *sdk.Graph, known map[string]struct{}) []*s
 	return unresolved
 }
 
-func unresolvedComponentRoot(graph *sdk.Graph, unresolved []*sdk.DependencyNode) *sdk.DependencyNode {
+func unresolvedComponentRoot(graph *model.Graph, unresolved []*model.DependencyNode) *model.DependencyNode {
 	set := make(map[string]struct{}, len(unresolved))
 	for _, dependency := range unresolved {
 		set[dependency.NodeID()] = struct{}{}

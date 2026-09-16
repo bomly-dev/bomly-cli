@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/spdxkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 const (
@@ -28,8 +30,8 @@ type Auditor struct {
 	ExemptPackages []string
 }
 
-func (a Auditor) Descriptor() sdk.AuditorDescriptor {
-	return sdk.AuditorDescriptor{
+func (a Auditor) Descriptor() plugin.AuditorDescriptor {
+	return plugin.AuditorDescriptor{
 		// No SupportedEcosystems: policy is evaluated over SPDX license
 		// expressions, whichever ecosystem produced them. Discovering the license
 		// is the matchers' job.
@@ -37,11 +39,11 @@ func (a Auditor) Descriptor() sdk.AuditorDescriptor {
 	}
 }
 
-func (a Auditor) Ready(context.Context, sdk.AuditRequest) error {
+func (a Auditor) Ready(context.Context, plugin.AuditRequest) error {
 	return nil
 }
 
-func (a Auditor) Applicable(_ context.Context, req sdk.AuditRequest) (bool, error) {
+func (a Auditor) Applicable(_ context.Context, req plugin.AuditRequest) (bool, error) {
 	if req.AuditorFilter.Excludes(auditorName) {
 		return false, nil
 	}
@@ -51,13 +53,13 @@ func (a Auditor) Applicable(_ context.Context, req sdk.AuditRequest) (bool, erro
 	return true, nil
 }
 
-func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
+func (a Auditor) Audit(_ context.Context, req plugin.AuditRequest) (plugin.AuditResult, error) {
 	if req.Graph == nil || req.Registry == nil {
-		return sdk.AuditResult{}, nil
+		return plugin.AuditResult{}, nil
 	}
 	deps := req.Graph.DependencyNodes()
 	if req.Target != nil {
-		deps = []*sdk.DependencyNode{req.Target}
+		deps = []*model.DependencyNode{req.Target}
 	}
 
 	// Root packages are the project itself — they rarely declare a license in
@@ -75,7 +77,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 	// One finding per offending PURL; the first dependency instance carries the
 	// reference set.
 	seenPURL := make(map[string]struct{}, len(deps))
-	findings := make([]sdk.Finding, 0)
+	findings := make([]model.Finding, 0)
 	for _, dep := range deps {
 		if dep == nil || packageExempt(dep, a.ExemptPackages) {
 			continue
@@ -97,12 +99,12 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 
 		licenses := registryLicenseValues(req.Registry, purl)
 		if len(licenses) == 0 {
-			findings = append(findings, finding(purl, dep.NodeID(), "unknown-license", "Package license is unknown", sdk.FindingPolicyStatusWarn))
+			findings = append(findings, finding(purl, dep.NodeID(), "unknown-license", "Package license is unknown", model.FindingPolicyStatusWarn))
 			continue
 		}
 		valid, invalid := spdxkit.ValidateAll(licenses)
 		if !valid {
-			findings = append(findings, finding(purl, dep.NodeID(), "invalid-license", "Package has invalid SPDX license: "+strings.Join(invalid, ", "), sdk.FindingPolicyStatusFail))
+			findings = append(findings, finding(purl, dep.NodeID(), "invalid-license", "Package has invalid SPDX license: "+strings.Join(invalid, ", "), model.FindingPolicyStatusFail))
 			continue
 		}
 		if len(a.AllowLicenses) > 0 {
@@ -115,7 +117,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 				}
 			}
 			if !allowed {
-				findings = append(findings, finding(purl, dep.NodeID(), "denied-license", "Package license is not allowlisted", sdk.FindingPolicyStatusFail))
+				findings = append(findings, finding(purl, dep.NodeID(), "denied-license", "Package license is not allowlisted", model.FindingPolicyStatusFail))
 			}
 			continue
 		}
@@ -126,16 +128,16 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 					continue
 				}
 				if intersectsLicenseList(used, a.DenyLicenses) {
-					findings = append(findings, finding(purl, dep.NodeID(), "denied-license", "Package license is denylisted", sdk.FindingPolicyStatusFail))
+					findings = append(findings, finding(purl, dep.NodeID(), "denied-license", "Package license is denylisted", model.FindingPolicyStatusFail))
 					break
 				}
 			}
 		}
 	}
-	return sdk.AuditResult{Findings: findings}, nil
+	return plugin.AuditResult{Findings: findings}, nil
 }
 
-func registryLicenseValues(registry *sdk.PackageRegistry, purl string) []string {
+func registryLicenseValues(registry *model.PackageRegistry, purl string) []string {
 	pkg, ok := registry.Get(purl)
 	if !ok || pkg == nil {
 		return nil
@@ -143,11 +145,11 @@ func registryLicenseValues(registry *sdk.PackageRegistry, purl string) []string 
 	return pkg.LicenseValues()
 }
 
-func finding(purl, depID, id, title string, policyStatus sdk.FindingPolicyStatus) sdk.Finding {
+func finding(purl, depID, id, title string, policyStatus model.FindingPolicyStatus) model.Finding {
 	prefix, severity := licenseFindingClass(id)
-	f := sdk.Finding{
+	f := model.Finding{
 		ID:           licenseFindingID(prefix, purl),
-		Kind:         sdk.FindingKindLicense,
+		Kind:         model.FindingKindLicense,
 		Title:        title,
 		Severity:     severity,
 		Source:       auditorName,
@@ -165,16 +167,16 @@ func finding(purl, depID, id, title string, policyStatus sdk.FindingPolicyStatus
 // licenseFindingClass maps a license check id to its finding-ID prefix and
 // GitHub-aligned severity. Invalid and unknown licenses are advisory (Warning);
 // a denylisted/not-allowlisted license is a policy failure (Error).
-func licenseFindingClass(id string) (prefix string, severity sdk.SeverityLevel) {
+func licenseFindingClass(id string) (prefix string, severity model.SeverityLevel) {
 	switch id {
 	case "unknown-license":
-		return unknownLicenseFindingID, sdk.SeverityWarning
+		return unknownLicenseFindingID, model.SeverityWarning
 	case "invalid-license":
-		return invalidLicenseFindingID, sdk.SeverityWarning
+		return invalidLicenseFindingID, model.SeverityWarning
 	case "denied-license":
-		return deniedLicenseFindingID, sdk.SeverityError
+		return deniedLicenseFindingID, model.SeverityError
 	default:
-		return strings.ToUpper(id), sdk.SeverityWarning
+		return strings.ToUpper(id), model.SeverityWarning
 	}
 }
 
@@ -192,13 +194,13 @@ func licenseFindingID(prefix, purl string) string {
 	return fmt.Sprintf("%s-%s-%s-%s", prefix, encoded[:4], encoded[4:8], encoded[8:12])
 }
 
-func packageExempt(dep *sdk.DependencyNode, exemptions []string) bool {
-	base := sdk.PackageURLBase(dep.NodeID())
+func packageExempt(dep *model.DependencyNode, exemptions []string) bool {
+	base := model.PackageURLBase(dep.NodeID())
 	if base == "" {
 		return false
 	}
 	for _, exemption := range exemptions {
-		if base == sdk.PackageURLBase(exemption) {
+		if base == model.PackageURLBase(exemption) {
 			return true
 		}
 	}

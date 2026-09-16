@@ -10,7 +10,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestParseNamesDeduplicatesCommaSeparatedValues(t *testing.T) {
@@ -122,11 +123,11 @@ func TestGitHubTokenUsesBenchmarkTokenFirst(t *testing.T) {
 }
 
 func TestComparisonPolicyClassifiesNonRegistryGraphAndPinnedEdges(t *testing.T) {
-	graph := sdk.New()
-	app := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{PURL: "pkg:npm/app@1.0.0", Ecosystem: sdk.EcosystemNPM, Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication}, Source: sdk.DependencySourceProject})
-	registry := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{PURL: "pkg:npm/registry@1.0.0", Ecosystem: sdk.EcosystemNPM, Name: "registry", Version: "1.0.0"}, Source: sdk.DependencySourceRegistry})
-	gitDependency := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{PURL: "pkg:npm/git-dependency@1.0.0", Ecosystem: sdk.EcosystemNPM, Name: "git-dependency", Version: "1.0.0"}, Source: sdk.DependencySourceGit})
-	for _, dependency := range []*sdk.DependencyNode{app, registry, gitDependency} {
+	graph := model.New()
+	app := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{PURL: "pkg:npm/app@1.0.0", Ecosystem: model.EcosystemNPM, Name: "app", Version: "1.0.0", Type: model.PackageTypeApplication}, Source: model.DependencySourceProject})
+	registry := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{PURL: "pkg:npm/registry@1.0.0", Ecosystem: model.EcosystemNPM, Name: "registry", Version: "1.0.0"}, Source: model.DependencySourceRegistry})
+	gitDependency := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{PURL: "pkg:npm/git-dependency@1.0.0", Ecosystem: model.EcosystemNPM, Name: "git-dependency", Version: "1.0.0"}, Source: model.DependencySourceGit})
+	for _, dependency := range []*model.DependencyNode{app, registry, gitDependency} {
 		if err := graph.AddNode(dependency); err != nil {
 			t.Fatal(err)
 		}
@@ -140,17 +141,17 @@ func TestComparisonPolicyClassifiesNonRegistryGraphAndPinnedEdges(t *testing.T) 
 
 	policy := comparisonPolicy(graph, target)
 	for _, purl := range []string{app.NodeID(), gitDependency.NodeID()} {
-		if policy.PackageExtensions[sdk.CanonicalizePackageURL(purl)] == "" {
+		if policy.PackageExtensions[model.CanonicalizePackageURL(purl)] == "" {
 			t.Fatalf("missing package extension for %s: %#v", purl, policy.PackageExtensions)
 		}
 	}
-	if _, ok := policy.PackageExtensions[sdk.CanonicalizePackageURL(registry.NodeID())]; ok {
+	if _, ok := policy.PackageExtensions[model.CanonicalizePackageURL(registry.NodeID())]; ok {
 		t.Fatalf("registry release classified as extension: %#v", policy.PackageExtensions)
 	}
 	for _, edge := range []string{
-		relationshipKey(sdk.CanonicalizePackageURL(app.NodeID()), sdk.CanonicalizePackageURL(registry.NodeID())),
-		relationshipKey(sdk.CanonicalizePackageURL(app.NodeID()), sdk.CanonicalizePackageURL(gitDependency.NodeID())),
-		relationshipKey(sdk.CanonicalizePackageURL(registry.NodeID()), "pkg:npm/child@1.0.0"),
+		relationshipKey(model.CanonicalizePackageURL(app.NodeID()), model.CanonicalizePackageURL(registry.NodeID())),
+		relationshipKey(model.CanonicalizePackageURL(app.NodeID()), model.CanonicalizePackageURL(gitDependency.NodeID())),
+		relationshipKey(model.CanonicalizePackageURL(registry.NodeID()), "pkg:npm/child@1.0.0"),
 	} {
 		if policy.RelationshipExtensions[edge] == "" {
 			t.Fatalf("missing relationship extension for %q: %#v", edge, policy.RelationshipExtensions)

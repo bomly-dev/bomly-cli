@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // TestMavenSharedDependencyGetsOneRecordPerReactorModule is the reactor form of
@@ -51,18 +53,18 @@ func TestMavenSharedDependencyGetsOneRecordPerReactorModule(t *testing.T) {
 	if err != nil {
 		t.Fatalf("walkPomModules() error = %v", err)
 	}
-	entries, matched := Detector{}.reactorGraphEntries(depsGraph, modules, sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}, root)
+	entries, matched := Detector{}.reactorGraphEntries(depsGraph, modules, model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}, root)
 	if matched != 2 {
 		t.Fatalf("expected both reactor modules to match, got %d", matched)
 	}
 
-	detectors.Attributed(sdk.DetectionResult{Graphs: &sdk.GraphContainer{Entries: entries}})
+	detectors.Attributed(plugin.DetectionResult{Graphs: &model.GraphContainer{Entries: entries}})
 
 	shared, ok := depsGraph.DependencyNode("pkg:maven/org.apache.commons/commons-lang3@3.12.0")
 	if !ok || shared == nil {
 		t.Fatal("expected the shared commons-lang3 node")
 	}
-	byRoot := map[string]sdk.PackageLocation{}
+	byRoot := map[string]model.PackageLocation{}
 	for _, location := range shared.Locations {
 		byRoot[location.ModuleRoot] = location
 	}
@@ -71,7 +73,7 @@ func TestMavenSharedDependencyGetsOneRecordPerReactorModule(t *testing.T) {
 		if !ok {
 			t.Fatalf("expected a record for reactor module %q, got %+v", want, shared.Locations)
 		}
-		if location.Relationship != sdk.DependencyRelationshipDirect {
+		if location.Relationship != model.DependencyRelationshipDirect {
 			t.Fatalf("%s declares commons-lang3 in its own pom: want direct, got %q", want, location.Relationship)
 		}
 		if location.RealPath != want+"/pom.xml" {

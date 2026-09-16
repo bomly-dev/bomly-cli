@@ -6,54 +6,56 @@ import (
 	"path/filepath"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // PipDetector resolves Python dependencies with pip inspect.
 type PipDetector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
+	Fallback   plugin.Detector
 }
 
 var pipEvidencePatterns = []string{"requirements.txt", "requirements-dev.txt", "requirements.in", "requirements.lock", "*requirements*.txt"}
 
 // PackageManagerSupport returns pip package-manager discovery metadata.
-func (d PipDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerPip, pipEvidencePatterns...)}
+func (d PipDetector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerPip, pipEvidencePatterns...)}
 }
 
 // Ready reports whether a Python interpreter is available.
-func (d PipDetector) Ready(context.Context, sdk.DetectionRequest) error {
+func (d PipDetector) Ready(context.Context, plugin.DetectionRequest) error {
 	_, err := pythonCommand()
 	return detectorkit.CommandNotReadyError("python", err)
 }
 
 // Applicable reports whether pip-style manifests are present.
-func (d PipDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d PipDetector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	return d.base().applicable(ctx, req, "requirements.txt", "requirements-dev.txt", "requirements.in", "requirements.lock")
 }
 
 // Descriptor describes the pip detector.
-func (d PipDetector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d PipDetector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		IgnoredDirectories:      []string{"__pycache__"},
 		IgnoredDirectoryMarkers: []string{"pyvenv.cfg"},
 		Name:                    detectors.NamePip,
 		RemediationCapabilities: pipRemediationCapabilities(),
-		Technique:               sdk.BuildToolTechnique,
-		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemPython},
-		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerPip},
+		Technique:               plugin.BuildToolTechnique,
+		SupportedEcosystems:     []model.Ecosystem{model.EcosystemPython},
+		SupportedManagers:       []model.PackageManager{model.PackageManagerPip},
 		Tags:                    []string{"graph-resolution", "component-targeting"},
 		SupportsInstallFirst:    true,
 	}
 }
 
 // ResolveGraph resolves a Python dependency graph with pip inspect.
-func (d PipDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d PipDetector) ResolveGraph(ctx context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
@@ -68,43 +70,43 @@ func (d PipDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest)
 		if depsGraph, err := depGraphFromRequirementsLock(lockPath, workingDir, rootName); err == nil {
 			attachDeclaredPositions(depsGraph, workingDir)
 			attachLoosePythonPositions(depsGraph, workingDir)
-			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, false, nil, workingDir)
+			resolution := resolutionMetadata(model.ResolutionMethodLockfile, false, nil, workingDir)
 			logResolution(base.Logger, "pip detector", workingDir, resolution)
-			return detectors.Attributed(sdk.DetectionResult{
-				Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipEvidencePatterns, resolution)),
+			return detectors.Attributed(plugin.DetectionResult{
+				Graphs: model.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipEvidencePatterns, resolution)),
 			}), nil
 		}
 	}
 
 	installCommand, err := d.ensureIsolatedPipEnvironment(ctx, req)
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("pip detector: prepare isolated Python environment: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("pip detector: prepare isolated Python environment: %w", err)
 	}
 	venvPython := venvPythonPath(pythonVenvDir(workingDir))
 	if venvPython == "" {
-		return sdk.DetectionResult{}, fmt.Errorf("pip detector: isolated Python environment was not created under %s", pythonVenvDir(workingDir))
+		return plugin.DetectionResult{}, fmt.Errorf("pip detector: isolated Python environment was not created under %s", pythonVenvDir(workingDir))
 	}
 	command := []string{venvPython, "-m", "pip", "inspect", "--local"}
 	depsGraph, err := base.resolveGraph(req, "pip detector", command)
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("pip detector: resolve isolated environment graph: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("pip detector: resolve isolated environment graph: %w", err)
 	}
-	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir, sdk.PackageManagerPip, rootName)
+	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir, model.PackageManagerPip, rootName)
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("pip detector: filter tool packages: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("pip detector: filter tool packages: %w", err)
 	}
 	annotateGraphScopes(depsGraph, workingDir)
 	attachDeclaredPositions(depsGraph, workingDir)
 	attachLoosePythonPositions(depsGraph, workingDir)
-	resolution := resolutionMetadata(sdk.ResolutionMethodIsolatedInstall, true, installCommand, workingDir)
+	resolution := resolutionMetadata(model.ResolutionMethodIsolatedInstall, true, installCommand, workingDir)
 	logResolution(base.Logger, "pip detector", workingDir, resolution)
-	return detectors.Attributed(sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipEvidencePatterns, resolution)),
+	return detectors.Attributed(plugin.DetectionResult{
+		Graphs: model.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipEvidencePatterns, resolution)),
 	}), nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d PipDetector) FallbackDetector() sdk.Detector {
+func (d PipDetector) FallbackDetector() plugin.Detector {
 	return d.Fallback
 }
 
@@ -112,7 +114,7 @@ func (d PipDetector) base() baseDetector {
 	return baseDetector{
 		Logger:     d.Logger,
 		WorkingDir: d.WorkingDir,
-		Manager:    sdk.PackageManagerPip,
+		Manager:    model.PackageManagerPip,
 	}
 }
 
@@ -120,7 +122,7 @@ func (d PipDetector) base() baseDetector {
 // clean, project-scoped virtualenv so the subsequent `pip inspect` sees only
 // the declared dependencies, not whatever tooling lives in the ambient
 // site-packages.
-func (d PipDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
+func (d PipDetector) Install(ctx context.Context, req plugin.DetectionRequest) error {
 	_, err := d.installIsolatedPipEnvironment(ctx, req)
 	if err != nil {
 		return fmt.Errorf("pip detector: prepare isolated Python environment: %w", err)
@@ -128,7 +130,7 @@ func (d PipDetector) Install(ctx context.Context, req sdk.DetectionRequest) erro
 	return nil
 }
 
-func (d PipDetector) ensureIsolatedPipEnvironment(ctx context.Context, req sdk.DetectionRequest) ([]string, error) {
+func (d PipDetector) ensureIsolatedPipEnvironment(ctx context.Context, req plugin.DetectionRequest) ([]string, error) {
 	if req.InstallFirst {
 		command := pipReconstructedInstallCommand(req, d.base().workingDir(req.ProjectPath))
 		if len(command) > 0 {
@@ -138,7 +140,7 @@ func (d PipDetector) ensureIsolatedPipEnvironment(ctx context.Context, req sdk.D
 	return d.installIsolatedPipEnvironment(ctx, req)
 }
 
-func (d PipDetector) installIsolatedPipEnvironment(ctx context.Context, req sdk.DetectionRequest) ([]string, error) {
+func (d PipDetector) installIsolatedPipEnvironment(ctx context.Context, req plugin.DetectionRequest) ([]string, error) {
 	workingDir := d.base().workingDir(req.ProjectPath)
 	requirementsFile, err := installRequirementsPath(workingDir)
 	if err != nil {
@@ -168,7 +170,7 @@ func (d PipDetector) installIsolatedPipEnvironment(ctx context.Context, req sdk.
 	return append(append([]string{}, command...), req.InstallArgs...), nil
 }
 
-func pipReconstructedInstallCommand(req sdk.DetectionRequest, workingDir string) []string {
+func pipReconstructedInstallCommand(req plugin.DetectionRequest, workingDir string) []string {
 	if !req.InstallFirst {
 		return nil
 	}
@@ -184,6 +186,6 @@ func pipReconstructedInstallCommand(req sdk.DetectionRequest, workingDir string)
 	return append(command, req.InstallArgs...)
 }
 
-func pipShouldInstallDevRequirements(scopeFilter sdk.Scope, requirementsFile string, devRequirementsExist bool) bool {
-	return devRequirementsExist && requirementsFile != "requirements-dev.txt" && scopeFilter != sdk.ScopeRuntime
+func pipShouldInstallDevRequirements(scopeFilter model.Scope, requirementsFile string, devRequirementsExist bool) bool {
+	return devRequirementsExist && requirementsFile != "requirements-dev.txt" && scopeFilter != model.ScopeRuntime
 }

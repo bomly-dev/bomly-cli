@@ -7,18 +7,19 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // NormalizeManifestPath renders a detector-reported manifest path the way the
 // consolidated manifests carry it: relative to the subproject's execution target
 // in slash form. Warnings that name a file go through this so an absolute path
 // inside a temporary clone directory never reaches output.
-func NormalizeManifestPath(subproject sdk.Subproject, manifestPath string) string {
+func NormalizeManifestPath(subproject plugin.Subproject, manifestPath string) string {
 	return normalizeNativeManifestPath(subproject, manifestPath)
 }
 
-func normalizeNativeManifestPath(subproject sdk.Subproject, manifestPath string) string {
+func normalizeNativeManifestPath(subproject plugin.Subproject, manifestPath string) string {
 	if manifestPath == "" {
 		return manifestPath
 	}
@@ -105,7 +106,7 @@ func splitPathVolume(value string) (string, string, bool) {
 // root-level subprojects (RelativePath "." or "") and for absolute paths. A
 // subproject planned directly on a manifest file (e.g. an SBOM document) has
 // the manifest itself as its RelativePath, which already is the rebased path.
-func rebaseManifestPathToRoot(subproject sdk.Subproject, manifestPath string) string {
+func rebaseManifestPathToRoot(subproject plugin.Subproject, manifestPath string) string {
 	rel := strings.Trim(strings.TrimSpace(strings.ReplaceAll(subproject.RelativePath, "\\", "/")), "/")
 	if rel == "" || rel == "." || manifestPath == "" || manifestPathIsAbs(manifestPath) {
 		return manifestPath
@@ -120,12 +121,12 @@ func rebaseManifestPathToRoot(subproject sdk.Subproject, manifestPath string) st
 // detector paths are repo-root-relative after rebaseManifestPathToRoot, so the
 // normalized path alone distinguishes same-named manifests in different
 // subprojects.
-func manifestDedupKey(subproject sdk.Subproject, manifest sdk.ManifestMetadata) string {
+func manifestDedupKey(subproject plugin.Subproject, manifest model.ManifestMetadata) string {
 	p := manifestDedupPath(subproject, manifest.Path)
 	return p
 }
 
-func manifestDedupPath(subproject sdk.Subproject, manifestPath string) string {
+func manifestDedupPath(subproject plugin.Subproject, manifestPath string) string {
 	p := strings.TrimSpace(strings.ReplaceAll(manifestPath, "\\", "/"))
 	if p == "" {
 		return p
@@ -155,7 +156,7 @@ func hasWindowsVolume(path string) bool {
 	return len(path) >= 3 && ((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z')) && path[1] == ':' && path[2] == '/'
 }
 
-func consolidatedEntryRootID(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) string {
+func consolidatedEntryRootID(g *model.Graph, manifest model.ManifestMetadata, idx int) string {
 	if g != nil {
 		roots := g.Roots()
 		if len(roots) > 0 && roots[0] != nil && strings.TrimSpace(roots[0].NodeID()) != "" {
@@ -172,7 +173,7 @@ func consolidatedEntryRootID(g *sdk.Graph, manifest sdk.ManifestMetadata, idx in
 	return fmt.Sprintf("entry-%d", idx+1)
 }
 
-func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error {
+func ensureEntryRoot(g *model.Graph, manifest model.ManifestMetadata, idx int) error {
 	if g == nil || g.Size() == 0 {
 		return nil
 	}
@@ -183,9 +184,9 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 	roots := g.Roots()
 	// Only dependency roots can be an application root or carry a
 	// relationship; manifests and modules are structure.
-	depRoots := make([]*sdk.DependencyNode, 0, len(roots))
+	depRoots := make([]*model.DependencyNode, 0, len(roots))
 	for _, root := range roots {
-		if dep, ok := root.(*sdk.DependencyNode); ok {
+		if dep, ok := root.(*model.DependencyNode); ok {
 			depRoots = append(depRoots, dep)
 		}
 	}
@@ -201,14 +202,14 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 		// about how a package is reached, and a module or manifest carries
 		// none.
 		for _, root := range roots {
-			if sdk.IsNilNode(root) || root.NodeID() == preferred.NodeID() {
+			if model.IsNilNode(root) || root.NodeID() == preferred.NodeID() {
 				continue
 			}
-			if dep, ok := sdk.AsDependencyNode(root); ok {
-				dep.Relationship = sdk.DependencyRelationshipUnknown
+			if dep, ok := model.AsDependencyNode(root); ok {
+				dep.Relationship = model.DependencyRelationshipUnknown
 			}
 			if err := g.AddEdge(preferred.NodeID(), root.NodeID()); err != nil {
-				if errors.Is(err, sdk.ErrSelfDependency) {
+				if errors.Is(err, model.ErrSelfDependency) {
 					continue
 				}
 				return fmt.Errorf("attach application root %q -> %q: %w", preferred.NodeID(), root.NodeID(), err)
@@ -227,7 +228,7 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 	// It was a dependency node typed PackageTypeManifest, which ADR-0041
 	// replaced with the kind itself -- a structural node that is never
 	// matched, never enriched, and never diffed as a package.
-	virtualRoot, err := sdk.NewManifestNode(manifestLabel, manifest.Kind)
+	virtualRoot, err := model.NewManifestNode(manifestLabel, manifest.Kind)
 	if err != nil {
 		return fmt.Errorf("build virtual manifest root %q: %w", manifestLabel, err)
 	}
@@ -250,11 +251,11 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 		if target == nil || target.NodeID() == rootID {
 			continue
 		}
-		if dep, ok := target.(*sdk.DependencyNode); ok && dep.Relationship == "" {
-			dep.Relationship = sdk.DependencyRelationshipUnknown
+		if dep, ok := target.(*model.DependencyNode); ok && dep.Relationship == "" {
+			dep.Relationship = model.DependencyRelationshipUnknown
 		}
 		if err := g.AddEdge(rootID, target.NodeID()); err != nil {
-			if errors.Is(err, sdk.ErrSelfDependency) {
+			if errors.Is(err, model.ErrSelfDependency) {
 				continue
 			}
 			return fmt.Errorf("attach virtual root %q -> %q: %w", rootID, target.NodeID(), err)
@@ -264,27 +265,27 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 	return nil
 }
 
-func selectApplicationRoot(roots []*sdk.DependencyNode) *sdk.DependencyNode {
+func selectApplicationRoot(roots []*model.DependencyNode) *model.DependencyNode {
 	for _, root := range roots {
 		if root == nil {
 			continue
 		}
-		if root.Type == sdk.PackageTypeApplication {
+		if root.Type == model.PackageTypeApplication {
 			return root
 		}
 	}
 	return nil
 }
 
-func packageManagerFromManifestKind(kind string) sdk.PackageManager {
-	manager, err := sdk.ParsePackageManager(kind)
+func packageManagerFromManifestKind(kind string) model.PackageManager {
+	manager, err := model.ParsePackageManager(kind)
 	if err != nil {
-		return sdk.PackageManagerUnknown
+		return model.PackageManagerUnknown
 	}
 	return manager
 }
 
-func hasSingleRoot(g *sdk.Graph) bool {
+func hasSingleRoot(g *model.Graph) bool {
 	if g == nil {
 		return false
 	}

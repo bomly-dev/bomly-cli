@@ -6,7 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	sdk "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // ModuleDeclarations carries what one module root's manifest declared about
@@ -29,7 +30,7 @@ type ModuleDeclarations struct {
 	ModuleRoot string
 	// Scopes maps a direct dependency's name to the scope this module
 	// declared it under.
-	Scopes map[string]sdk.Scope
+	Scopes map[string]model.Scope
 }
 
 // Attributed records, on every location the graphs in result carry, which
@@ -63,11 +64,11 @@ type ModuleDeclarations struct {
 // Before that release the fold compared paths and position only, and the
 // second root's record was lost; that is why the module root is stored on
 // the record rather than inferred from the path.
-func Attributed(result sdk.DetectionResult, declarations ...ModuleDeclarations) sdk.DetectionResult {
+func Attributed(result plugin.DetectionResult, declarations ...ModuleDeclarations) plugin.DetectionResult {
 	if result.Graphs == nil {
 		return result
 	}
-	declared := make(map[string]map[string]sdk.Scope, len(declarations))
+	declared := make(map[string]map[string]model.Scope, len(declarations))
 	for _, declaration := range declarations {
 		root := normalizeModuleRoot(declaration.ModuleRoot)
 		if root == "" || len(declaration.Scopes) == 0 {
@@ -113,7 +114,7 @@ func Attributed(result sdk.DetectionResult, declarations ...ModuleDeclarations) 
 // document whose packages were resolved elsewhere, and the GitHub Actions
 // detector reads workflow files that declare no module -- and a third needs
 // the same kind of argument, not a comment.
-func Unattributed(result sdk.DetectionResult, reason string) sdk.DetectionResult {
+func Unattributed(result plugin.DetectionResult, reason string) plugin.DetectionResult {
 	return result
 }
 
@@ -122,25 +123,25 @@ func Unattributed(result sdk.DetectionResult, reason string) sdk.DetectionResult
 type attributionRoot struct {
 	dir      string
 	nodeID   string
-	graph    *sdk.Graph
-	declared map[string]sdk.Scope
+	graph    *model.Graph
+	declared map[string]model.Scope
 	reached  map[string]reachedSite
 }
 
 // reachedSite is what one module root observed about one node.
 type reachedSite struct {
-	node         sdk.GraphNode
-	relationship sdk.DependencyRelationship
+	node         model.GraphNode
+	relationship model.DependencyRelationship
 	// scope is the scope propagated from this root's declarations. Unknown
 	// when the root declared nothing about the path that reached the node.
-	scope sdk.Scope
+	scope model.Scope
 }
 
 // attributionRoots finds every module root across the result's entries and
 // walks each one. Entries share node pointers when a detector partitions a
 // workspace graph into per-member entries, which is exactly why a node can
 // come back with one location record per member.
-func attributionRoots(container *sdk.GraphContainer, declared map[string]map[string]sdk.Scope) []attributionRoot {
+func attributionRoots(container *model.GraphContainer, declared map[string]map[string]model.Scope) []attributionRoot {
 	var roots []attributionRoot
 	seen := map[string]struct{}{}
 	for _, entry := range container.Entries {
@@ -179,8 +180,8 @@ func attributionRoots(container *sdk.GraphContainer, declared map[string]map[str
 // the walk stops at the first module on each path, because a workspace member
 // depended on by a sibling is a dependency of that sibling, not a second root
 // for it.
-func entryModuleRoots(g *sdk.Graph) []*sdk.ModuleNode {
-	var modules []*sdk.ModuleNode
+func entryModuleRoots(g *model.Graph) []*model.ModuleNode {
+	var modules []*model.ModuleNode
 	seen := map[string]struct{}{}
 	queue := g.Roots()
 	for len(queue) > 0 {
@@ -193,11 +194,11 @@ func entryModuleRoots(g *sdk.Graph) []*sdk.ModuleNode {
 			continue
 		}
 		seen[current.NodeID()] = struct{}{}
-		if module, ok := current.(*sdk.ModuleNode); ok {
+		if module, ok := current.(*model.ModuleNode); ok {
 			modules = append(modules, module)
 			continue
 		}
-		if current.Kind() != sdk.NodeKindManifest {
+		if current.Kind() != model.NodeKindManifest {
 			continue
 		}
 		children, err := g.DirectDependencies(current.NodeID())
@@ -232,8 +233,8 @@ func (r *attributionRoot) walk() {
 		return
 	}
 	type queued struct {
-		node  sdk.GraphNode
-		scope sdk.Scope
+		node  model.GraphNode
+		scope model.Scope
 	}
 	queue := make([]queued, 0, len(directNodes))
 	for _, direct := range directNodes {
@@ -241,7 +242,7 @@ func (r *attributionRoot) walk() {
 			continue
 		}
 		scope := r.declaredScope(direct)
-		r.record(direct, sdk.DependencyRelationshipDirect, scope)
+		r.record(direct, model.DependencyRelationshipDirect, scope)
 		queue = append(queue, queued{node: direct, scope: scope})
 	}
 	for len(queue) > 0 {
@@ -259,11 +260,11 @@ func (r *attributionRoot) walk() {
 			// while the merged value grows always settles — a cyclic graph
 			// otherwise walks forever.
 			existing, known := r.reached[child.NodeID()]
-			next := sdk.MergeScope(existing.scope, current.scope)
+			next := model.MergeScope(existing.scope, current.scope)
 			if known && next == existing.scope {
 				continue
 			}
-			relationship := sdk.DependencyRelationshipTransitive
+			relationship := model.DependencyRelationshipTransitive
 			if known {
 				relationship = existing.relationship
 			}
@@ -275,19 +276,19 @@ func (r *attributionRoot) walk() {
 
 // record stores what the walk learned about one node, keeping the relationship
 // a detector stated over the one the walk derived.
-func (r *attributionRoot) record(node sdk.GraphNode, relationship sdk.DependencyRelationship, scope sdk.Scope) {
-	if dependency, ok := sdk.AsDependencyNode(node); ok && dependency.Relationship == sdk.DependencyRelationshipUnknown {
-		relationship = sdk.DependencyRelationshipUnknown
+func (r *attributionRoot) record(node model.GraphNode, relationship model.DependencyRelationship, scope model.Scope) {
+	if dependency, ok := model.AsDependencyNode(node); ok && dependency.Relationship == model.DependencyRelationshipUnknown {
+		relationship = model.DependencyRelationshipUnknown
 	}
 	r.reached[node.NodeID()] = reachedSite{node: node, relationship: relationship, scope: scope}
 }
 
 // declaredScope returns the scope this module's manifest gave a direct
 // dependency, or unknown when the detector supplied no declarations.
-func (r *attributionRoot) declaredScope(node sdk.GraphNode) sdk.Scope {
-	dependency, ok := sdk.AsDependencyNode(node)
+func (r *attributionRoot) declaredScope(node model.GraphNode) model.Scope {
+	dependency, ok := model.AsDependencyNode(node)
 	if !ok || len(r.declared) == 0 {
-		return sdk.ScopeUnknown
+		return model.ScopeUnknown
 	}
 	if scope, ok := r.declared[dependency.Name]; ok {
 		return scope
@@ -313,7 +314,7 @@ func (r *attributionRoot) attribute(reachCount map[string]int, dirs []string) {
 			moduleRoot:   r.dir,
 			relationship: site.relationship,
 			scopes:       r.siteScopes(site, reachCount),
-			owns: func(location sdk.PackageLocation) bool {
+			owns: func(location model.PackageLocation) bool {
 				// A site at the top of the scan is shared by every module
 				// that reaches it; a site inside a module's own directory
 				// belongs to that module alone.
@@ -331,15 +332,15 @@ func (r *attributionRoot) attribute(reachCount map[string]int, dirs []string) {
 // node's union is this root's view only when no other root reaches the node;
 // when several do, the union mixes roots and the site's scopes stay empty
 // rather than claiming a scope no one observed at that site.
-func (r *attributionRoot) siteScopes(site reachedSite, reachCount map[string]int) []sdk.Scope {
-	if site.scope != sdk.ScopeUnknown {
-		return sdk.ScopesOf(site.scope)
+func (r *attributionRoot) siteScopes(site reachedSite, reachCount map[string]int) []model.Scope {
+	if site.scope != model.ScopeUnknown {
+		return model.ScopesOf(site.scope)
 	}
-	dependency, ok := sdk.AsDependencyNode(site.node)
+	dependency, ok := model.AsDependencyNode(site.node)
 	if !ok || reachCount[site.node.NodeID()] != 1 {
 		return nil
 	}
-	return sdk.ScopesOf(dependency.Scopes...)
+	return model.ScopesOf(dependency.Scopes...)
 }
 
 // attributeSites returns locations carrying a record for this module root at
@@ -349,11 +350,11 @@ func (r *attributionRoot) siteScopes(site reachedSite, reachCount map[string]int
 // another root gains a second record, because that is a second usage. Running
 // twice for one root changes nothing, which matters because entries share node
 // pointers and a node is walked once per entry it appears in.
-func attributeSites(locations []sdk.PackageLocation, attribution siteAttribution) []sdk.PackageLocation {
+func attributeSites(locations []model.PackageLocation, attribution siteAttribution) []model.PackageLocation {
 	moduleRoot, relationship, scopes := attribution.moduleRoot, attribution.relationship, attribution.scopes
-	out := append([]sdk.PackageLocation(nil), locations...)
+	out := append([]model.PackageLocation(nil), locations...)
 	attributed := make(map[string]struct{}, len(out))
-	templates := make(map[string]sdk.PackageLocation, len(out))
+	templates := make(map[string]model.PackageLocation, len(out))
 	order := make([]string, 0, len(out))
 	for _, location := range out {
 		key := siteKey(location)
@@ -365,10 +366,10 @@ func attributeSites(locations []sdk.PackageLocation, attribution siteAttribution
 			attributed[key] = struct{}{}
 		}
 	}
-	stamp := func(location *sdk.PackageLocation) {
+	stamp := func(location *model.PackageLocation) {
 		location.ModuleRoot = moduleRoot
 		location.Relationship = relationship
-		location.Scopes = append([]sdk.Scope(nil), scopes...)
+		location.Scopes = append([]model.Scope(nil), scopes...)
 	}
 	for i := range out {
 		key := siteKey(out[i])
@@ -398,9 +399,9 @@ func attributeSites(locations []sdk.PackageLocation, attribution siteAttribution
 // record, and which sites are its own to record it on.
 type siteAttribution struct {
 	moduleRoot   string
-	relationship sdk.DependencyRelationship
-	scopes       []sdk.Scope
-	owns         func(sdk.PackageLocation) bool
+	relationship model.DependencyRelationship
+	scopes       []model.Scope
+	owns         func(model.PackageLocation) bool
 }
 
 // owningModuleDir returns the module whose directory contains a site, or "."
@@ -411,7 +412,7 @@ type siteAttribution struct {
 // resolves the same artifact. A file at the top, on the other hand, is shared:
 // npm workspace members are all resolved from one package-lock.json, and each
 // member's usage of a line in it is a usage of its own.
-func owningModuleDir(location sdk.PackageLocation, dirs []string) string {
+func owningModuleDir(location model.PackageLocation, dirs []string) string {
 	path := strings.TrimSpace(toSlash(location.RealPath))
 	if path == "" {
 		path = strings.TrimSpace(toSlash(location.AccessPath))
@@ -437,7 +438,7 @@ func toSlash(p string) string {
 
 // siteKey identifies a declaration site: the paths and the position, never the
 // attribution, which is what distinguishes two records of one site.
-func siteKey(location sdk.PackageLocation) string {
+func siteKey(location model.PackageLocation) string {
 	key := location.RealPath + "\x00" + location.AccessPath
 	if location.Position == nil {
 		return key
@@ -454,14 +455,14 @@ func siteKey(location sdk.PackageLocation) string {
 
 // mutableNodeLocations returns a pointer to the node's own location slice, so
 // an attributed record lands on the node rather than on a copy.
-func mutableNodeLocations(node sdk.GraphNode) *[]sdk.PackageLocation {
+func mutableNodeLocations(node model.GraphNode) *[]model.PackageLocation {
 	switch typed := node.(type) {
-	case *sdk.DependencyNode:
+	case *model.DependencyNode:
 		if typed == nil {
 			return nil
 		}
 		return &typed.Locations
-	case *sdk.ModuleNode:
+	case *model.ModuleNode:
 		if typed == nil {
 			return nil
 		}

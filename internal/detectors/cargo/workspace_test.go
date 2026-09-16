@@ -8,7 +8,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestParseCargoWorkspaceMembers(t *testing.T) {
@@ -58,7 +60,7 @@ func TestDetectionResultFromMetadataWorkspacePerModuleEntries(t *testing.T) {
     ]
   }
 }`)
-	result, err := Detector{}.detectionResultFromMetadata(sdk.DetectionRequest{ProjectPath: "/demo"}, raw)
+	result, err := Detector{}.detectionResultFromMetadata(plugin.DetectionRequest{ProjectPath: "/demo"}, raw)
 	if err != nil {
 		t.Fatalf("detectionResultFromMetadata() error = %v", err)
 	}
@@ -66,7 +68,7 @@ func TestDetectionResultFromMetadataWorkspacePerModuleEntries(t *testing.T) {
 	if len(entries) != 2 {
 		t.Fatalf("expected one entry per member, got %d", len(entries))
 	}
-	byPath := map[string]sdk.GraphEntry{}
+	byPath := map[string]model.GraphEntry{}
 	for _, entry := range entries {
 		byPath[entry.Manifest.Path] = entry
 	}
@@ -93,7 +95,7 @@ func TestDetectionResultFromMetadataWorkspacePerModuleEntries(t *testing.T) {
 	}
 	// A workspace member is a module node now: ownership is the kind, not a
 	// DependencySourceWorkspace value on a dependency node (ADR-0041).
-	if !sdk.IsProjectOwned(member) {
+	if !model.IsProjectOwned(member) {
 		t.Fatalf("workspace member is a %s node, want the project's own module", member.Kind())
 	}
 }
@@ -146,7 +148,7 @@ version = "1.0.210"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 `)
 
-	result, err := Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: root})
+	result, err := Detector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: root})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -154,7 +156,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 	if len(entries) != 2 {
 		t.Fatalf("expected one entry per member for a virtual workspace, got %d", len(entries))
 	}
-	byPath := map[string]sdk.GraphEntry{}
+	byPath := map[string]model.GraphEntry{}
 	for _, entry := range entries {
 		byPath[entry.Manifest.Path] = entry
 	}
@@ -172,11 +174,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 		}
 	}
 	member, ok := testnodes.Find(a.Graph, "a@0.1.0")
-	if !ok || !sdk.IsProjectOwned(member) {
+	if !ok || !model.IsProjectOwned(member) {
 		t.Fatalf("member a = %#v, want the project's own module", member)
 	}
 	serde, ok := testnodes.Find(a.Graph, "serde@1.0.210")
-	if !ok || mustDep(t, serde).Source != sdk.DependencySourceRegistry {
+	if !ok || mustDep(t, serde).Source != model.DependencySourceRegistry {
 		t.Fatalf("serde source = %#v, want registry", serde)
 	}
 	if _, ok := testnodes.Find(b.Graph, "a@0.1.0"); ok {
@@ -188,7 +190,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 	}
 	hasDev := false
 	for _, scope := range mustDep(t, dev).Scopes {
-		if scope == sdk.ScopeDevelopment {
+		if scope == model.ScopeDevelopment {
 			hasDev = true
 		}
 	}
@@ -209,7 +211,7 @@ func TestResolveFromLockSinglePackageStillSingleEntry(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(root, "Cargo.lock"), []byte("version = 3\n\n[[package]]\nname = \"app\"\nversion = \"0.1.0\"\ndependencies = [\n \"serde\",\n]\n\n[[package]]\nname = \"serde\"\nversion = \"1.0.210\"\n"), 0o644); err != nil {
 		t.Fatalf("write Cargo.lock: %v", err)
 	}
-	result, err := Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: root})
+	result, err := Detector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: root})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}

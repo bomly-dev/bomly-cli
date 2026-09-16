@@ -7,7 +7,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestNPMLockfileAcceptsUTF8BOM(t *testing.T) {
@@ -20,7 +22,7 @@ func TestNPMLockfileAcceptsUTF8BOM(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(projectDir, "package-lock.json"), lockfile, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -64,13 +66,13 @@ func TestNPMLockfileRetainsUnknownComponent(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(projectDir, "package-lock.json"), lockfile, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatal(err)
 	}
 	graph := result.Graphs.Entries[0].Graph
 	orphan, ok := testnodes.FindDep(graph, "orphan@1.0.0")
-	if !ok || orphan.Relationship != sdk.DependencyRelationshipUnknown {
+	if !ok || orphan.Relationship != model.DependencyRelationshipUnknown {
 		t.Fatalf("orphan = %#v", orphan)
 	}
 	child, ok := testnodes.FindDep(graph, "child@2.0.0")
@@ -125,7 +127,7 @@ func TestNPMLockfileClassifiesLocalFileDependency(t *testing.T) {
 		t.Fatal(err)
 	}
 	dependency, ok := testnodes.FindDep(graphs.graph, "local-lib@1.0.0")
-	if !ok || dependency.Source != sdk.DependencySourceFile || dependency.Type == sdk.PackageTypeApplication {
+	if !ok || dependency.Source != model.DependencySourceFile || dependency.Type == model.PackageTypeApplication {
 		t.Fatalf("local dependency = %#v", dependency)
 	}
 }
@@ -167,7 +169,7 @@ func TestNPMLockfileParserAllowsArrayEngines(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected benchmark@1.0.0 package")
 	}
-	if _, ok := pkg.Metadata[sdk.MetadataKeyNPM]; ok {
+	if _, ok := pkg.Metadata[model.MetadataKeyNPM]; ok {
 		t.Fatalf("expected array engines to be ignored, got metadata: %+v", pkg.Metadata)
 	}
 }

@@ -8,25 +8,27 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
 	tea "github.com/charmbracelet/bubbletea"
+
+	sdkmodel "github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func newScanModelWithPosture(t *testing.T, repo string, score float64) *ScanModel {
 	t.Helper()
-	g := sdk.New()
+	g := sdkmodel.New()
 	root := testnodes.Ref("demo-app", "1.0.0")
 	const libPURL = "pkg:npm/lib@1.0.0"
-	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", PURL: libPURL}})
-	registry := sdk.NewPackageRegistry()
+	dep := testnodes.DepFrom(sdkmodel.DependencyNode{Coordinates: sdkmodel.Coordinates{Name: "lib", Version: "1.0.0", PURL: libPURL}})
+	registry := sdkmodel.NewPackageRegistry()
 	regLib := registry.Ensure(libPURL)
 	regLib.Name = "lib"
 	regLib.Version = "1.0.0"
 	regLib.Scorecard = newTestScorecardTUI(repo, score,
-		sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 2, Reason: "off"},
-		sdk.PackageScorecardCheck{Name: "Code-Review", Score: 8, Reason: "ok"},
+		sdkmodel.PackageScorecardCheck{Name: "Branch-Protection", Score: 2, Reason: "off"},
+		sdkmodel.PackageScorecardCheck{Name: "Code-Review", Score: 8, Reason: "ok"},
 	)
-	for _, pkg := range []*sdk.DependencyNode{root, dep} {
+	for _, pkg := range []*sdkmodel.DependencyNode{root, dep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add: %v", err)
 		}
@@ -34,15 +36,15 @@ func newScanModelWithPosture(t *testing.T, repo string, score float64) *ScanMode
 	if err := g.AddEdge(root.NodeID(), dep.NodeID()); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
-	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
-			ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo"},
+	consolidated := consolidatedForInteractive(t, []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
+			ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/tmp/demo"},
 			RelativePath:    ".",
 			PrimaryDetector: "npm-detector",
-			Ecosystem:       sdk.EcosystemNPM,
+			Ecosystem:       sdkmodel.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json"}),
+		Graphs:       engine.SingleGraphContainer(g, sdkmodel.ManifestMetadata{Path: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -150,28 +152,28 @@ func TestTabCycle_ResetsDetailsFocus(t *testing.T) {
 
 func TestPostureGrouping_ByCheckRendersFailingFirst(t *testing.T) {
 	t.Parallel()
-	g := sdk.New()
+	g := sdkmodel.New()
 	rootA := testnodes.Ref("app", "1.0.0")
 	const aPURL = "pkg:npm/a@1"
 	const bPURL = "pkg:npm/b@1"
-	a := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "a", Version: "1", PURL: aPURL}})
-	b := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "b", Version: "1", PURL: bPURL}})
-	registry := sdk.NewPackageRegistry()
+	a := testnodes.DepFrom(sdkmodel.DependencyNode{Coordinates: sdkmodel.Coordinates{Name: "a", Version: "1", PURL: aPURL}})
+	b := testnodes.DepFrom(sdkmodel.DependencyNode{Coordinates: sdkmodel.Coordinates{Name: "b", Version: "1", PURL: bPURL}})
+	registry := sdkmodel.NewPackageRegistry()
 	regA := registry.Ensure(aPURL)
 	regA.Name = "a"
 	regA.Version = "1"
 	regA.Scorecard = newTestScorecardTUI("github.com/example/a", 6.0,
-		sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 1},
-		sdk.PackageScorecardCheck{Name: "Code-Review", Score: 9},
+		sdkmodel.PackageScorecardCheck{Name: "Branch-Protection", Score: 1},
+		sdkmodel.PackageScorecardCheck{Name: "Code-Review", Score: 9},
 	)
 	regB := registry.Ensure(bPURL)
 	regB.Name = "b"
 	regB.Version = "1"
 	regB.Scorecard = newTestScorecardTUI("github.com/example/b", 4.0,
-		sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 0},
-		sdk.PackageScorecardCheck{Name: "Code-Review", Score: 7},
+		sdkmodel.PackageScorecardCheck{Name: "Branch-Protection", Score: 0},
+		sdkmodel.PackageScorecardCheck{Name: "Code-Review", Score: 7},
 	)
-	for _, pkg := range []*sdk.DependencyNode{rootA, a, b} {
+	for _, pkg := range []*sdkmodel.DependencyNode{rootA, a, b} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add: %v", err)
 		}
@@ -182,15 +184,15 @@ func TestPostureGrouping_ByCheckRendersFailingFirst(t *testing.T) {
 	if err := g.AddEdge(rootA.NodeID(), b.NodeID()); err != nil {
 		t.Fatalf("dep b: %v", err)
 	}
-	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
-			ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo"},
+	consolidated := consolidatedForInteractive(t, []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
+			ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/tmp/demo"},
 			RelativePath:    ".",
 			PrimaryDetector: "npm-detector",
-			Ecosystem:       sdk.EcosystemNPM,
+			Ecosystem:       sdkmodel.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json"}),
+		Graphs:       engine.SingleGraphContainer(g, sdkmodel.ManifestMetadata{Path: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -226,12 +228,12 @@ func TestPostureDiffGrouping_ByCheckRegressionsFirst(t *testing.T) {
 		Changed: []output.DiffChangedPackage{
 			{
 				Before: output.PackageRef{Name: "a", Scorecard: newTestScorecardTUI("github.com/a/repo", 7.0,
-					sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 9},
-					sdk.PackageScorecardCheck{Name: "Code-Review", Score: 8},
+					sdkmodel.PackageScorecardCheck{Name: "Branch-Protection", Score: 9},
+					sdkmodel.PackageScorecardCheck{Name: "Code-Review", Score: 8},
 				)},
 				After: output.PackageRef{Name: "a", Scorecard: newTestScorecardTUI("github.com/a/repo", 5.0,
-					sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 3}, // regression
-					sdk.PackageScorecardCheck{Name: "Code-Review", Score: 9},       // improvement
+					sdkmodel.PackageScorecardCheck{Name: "Branch-Protection", Score: 3}, // regression
+					sdkmodel.PackageScorecardCheck{Name: "Code-Review", Score: 9},       // improvement
 				)},
 			},
 		},
@@ -240,7 +242,7 @@ func TestPostureDiffGrouping_ByCheckRegressionsFirst(t *testing.T) {
 		Comparison: output.DiffComparison{Base: "main", Head: "HEAD"},
 		Results:    output.DiffResults{Dependencies: results},
 	}
-	model := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	model := NewDiff(payload, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	model.SelectView(6)
 
 	wrapper := &teaModel{inner: model, width: 200, height: 60}

@@ -4,14 +4,16 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestBuildPackageRegistry_DeduplicatesByPURLAndLinksDependencies(t *testing.T) {
-	g := sdk.New()
-	app := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	libA := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.2.3"}})
-	for _, node := range []*sdk.DependencyNode{app, libA} {
+	g := model.New()
+	app := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: model.PackageTypeApplication}})
+	libA := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.2.3"}})
+	for _, node := range []*model.DependencyNode{app, libA} {
 		if err := g.AddNode(node); err != nil {
 			t.Fatalf("AddNode(%q): %v", node.NodeID(), err)
 		}
@@ -20,8 +22,8 @@ func TestBuildPackageRegistry_DeduplicatesByPURLAndLinksDependencies(t *testing.
 		t.Fatalf("AddEdge: %v", err)
 	}
 
-	consolidated := sdk.ConsolidatedGraph{
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{Graph: g}}},
+	consolidated := plugin.ConsolidatedGraph{
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{Graph: g}}},
 	}
 
 	registry := BuildPackageRegistry(consolidated)
@@ -38,15 +40,15 @@ func TestBuildPackageRegistry_DeduplicatesByPURLAndLinksDependencies(t *testing.
 }
 
 func TestBuildPackageRegistry_LiftsDetectionLicenses(t *testing.T) {
-	g := sdk.New()
-	lib := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.2.3"}})
-	sdk.SetDetectionLicenses(lib, []sdk.PackageLicense{{Value: "MIT", Type: "declared"}})
+	g := model.New()
+	lib := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.2.3"}})
+	model.SetDetectionLicenses(lib, []model.PackageLicense{{Value: "MIT", Type: "declared"}})
 	if err := g.AddNode(lib); err != nil {
 		t.Fatalf("AddNode: %v", err)
 	}
 
-	consolidated := sdk.ConsolidatedGraph{
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{Graph: g}}},
+	consolidated := plugin.ConsolidatedGraph{
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{Graph: g}}},
 	}
 	registry := BuildPackageRegistry(consolidated)
 	pkg, ok := registry.Get(lib.NodeID())

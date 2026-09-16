@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // ScorecardHeadline renders a one-line summary suitable for a
@@ -14,7 +14,7 @@ import (
 //	"8.2/10  github.com/ossf/scorecard  (updated 2026-04-12, scorecard v5.0.0)"
 //
 // Returns "" when card is nil so callers can branch cleanly.
-func ScorecardHeadline(card *sdk.PackageScorecard) string {
+func ScorecardHeadline(card *model.PackageScorecard) string {
 	if card == nil {
 		return ""
 	}
@@ -30,7 +30,7 @@ func ScorecardHeadline(card *sdk.PackageScorecard) string {
 	return strings.Join(parts, "  ")
 }
 
-func explainScorecardHeadline(card *sdk.PackageScorecard) string {
+func explainScorecardHeadline(card *model.PackageScorecard) string {
 	return ScorecardHeadline(card)
 }
 
@@ -43,7 +43,7 @@ func scorecardAggregateScore(score float64) string {
 	return fmt.Sprintf("%.1f/10", score)
 }
 
-func scorecardHeadlineMeta(card *sdk.PackageScorecard) string {
+func scorecardHeadlineMeta(card *model.PackageScorecard) string {
 	parts := make([]string, 0, 2)
 	if !card.RunDate.IsZero() {
 		parts = append(parts, "updated "+card.RunDate.UTC().Format("2006-01-02"))
@@ -57,11 +57,11 @@ func scorecardHeadlineMeta(card *sdk.PackageScorecard) string {
 // topScorecardChecks returns up to max checks, lowest score first so the
 // most actionable failures bubble to the top. Inconclusive checks
 // (score == -1) sort to the end.
-func topScorecardChecks(checks []sdk.PackageScorecardCheck, max int) []sdk.PackageScorecardCheck {
+func topScorecardChecks(checks []model.PackageScorecardCheck, max int) []model.PackageScorecardCheck {
 	if len(checks) == 0 || max <= 0 {
 		return nil
 	}
-	out := make([]sdk.PackageScorecardCheck, len(checks))
+	out := make([]model.PackageScorecardCheck, len(checks))
 	copy(out, checks)
 	sort.SliceStable(out, func(i, j int) bool {
 		left := normalizedScorecardScore(out[i].Score)
@@ -114,7 +114,7 @@ func explainScorecardCheckScore(score int) string {
 
 // explainScorecardCheckLine renders the human-readable portion of a single
 // check row: the check name, then its reason if present.
-func explainScorecardCheckLine(check sdk.PackageScorecardCheck) string {
+func explainScorecardCheckLine(check model.PackageScorecardCheck) string {
 	name := strings.TrimSpace(check.Name)
 	reason := strings.TrimSpace(check.Reason)
 	switch {

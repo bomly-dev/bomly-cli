@@ -7,14 +7,16 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
-func diffAuditOutput(audit *diffengine.Audit, baseRegistry, headRegistry *sdk.PackageRegistry) *output.DiffAudit {
+func diffAuditOutput(audit *diffengine.Audit, baseRegistry, headRegistry *model.PackageRegistry) *output.DiffAudit {
 	if audit == nil {
 		return nil
 	}
-	combined := append(append([]sdk.Finding{}, audit.Introduced...), audit.Persisted...)
+	combined := append(append([]model.Finding{}, audit.Introduced...), audit.Persisted...)
 	return &output.DiffAudit{
 		Introduced:   output.FindingsFromScan(audit.Introduced, headRegistry),
 		Resolved:     output.FindingsFromScan(audit.Resolved, baseRegistry),
@@ -33,7 +35,7 @@ func reportOptionsFromPipelineResults(enabled bool, results ...engine.PipelineRe
 		return options
 	}
 	runsSeen := make(map[string]struct{})
-	stats := make(map[string]sdk.ReachabilityStats)
+	stats := make(map[string]plugin.ReachabilityStats)
 	for _, result := range results {
 		for _, run := range result.AnalyzerRuns {
 			if run == "" {
@@ -64,9 +66,9 @@ func reportOptionsFromPipelineResults(enabled bool, results ...engine.PipelineRe
 // detectorWarningsFromResults concatenates the detection warnings of every
 // pipeline run in the command (diff has two), dropping duplicates so the two
 // sides of a diff do not report the same misconfiguration twice.
-func detectorWarningsFromResults(results ...engine.PipelineResult) []sdk.DetectorWarning {
-	var warnings []sdk.DetectorWarning
-	seen := make(map[sdk.DetectorWarning]struct{})
+func detectorWarningsFromResults(results ...engine.PipelineResult) []plugin.DetectorWarning {
+	var warnings []plugin.DetectorWarning
+	seen := make(map[plugin.DetectorWarning]struct{})
 	for _, result := range results {
 		for _, warning := range result.DetectorWarnings {
 			if _, ok := seen[warning]; ok {
@@ -81,7 +83,7 @@ func detectorWarningsFromResults(results ...engine.PipelineResult) []sdk.Detecto
 
 // matcherRan reports whether a matcher with the given name produced stats in
 // any of the supplied pipeline runs (i.e. it was selected and executed).
-func matcherRan(name string, statSets ...[]sdk.MatcherStats) bool {
+func matcherRan(name string, statSets ...[]plugin.MatcherStats) bool {
 	for _, stats := range statSets {
 		for _, stat := range stats {
 			if stat.Name == name {
@@ -92,7 +94,7 @@ func matcherRan(name string, statSets ...[]sdk.MatcherStats) bool {
 	return false
 }
 
-func explainPackageRef(pkg *sdk.DependencyNode, registry *sdk.PackageRegistry) output.ExplainDependency {
+func explainPackageRef(pkg *model.DependencyNode, registry *model.PackageRegistry) output.ExplainDependency {
 	ref := output.PackageFromDependencyAndRegistry(pkg, registry)
 	if pkg == nil {
 		return output.ExplainDependency{PackageRef: ref}
@@ -117,13 +119,13 @@ func explainPackageRef(pkg *sdk.DependencyNode, registry *sdk.PackageRegistry) o
 }
 
 func remediationSuggestionsForDependency(
-	suggestions []sdk.PackageRemediationSuggestion,
+	suggestions []model.PackageRemediationSuggestion,
 	dependencyRef string,
-) []sdk.PackageRemediationSuggestion {
+) []model.PackageRemediationSuggestion {
 	if dependencyRef == "" {
 		return nil
 	}
-	filtered := make([]sdk.PackageRemediationSuggestion, 0, len(suggestions))
+	filtered := make([]model.PackageRemediationSuggestion, 0, len(suggestions))
 	for _, suggestion := range suggestions {
 		if !slices.Contains(suggestion.AffectedDependencyRefs, dependencyRef) {
 			continue

@@ -9,8 +9,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/sbom"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 const summarySchemaVersion = "bomly.benchmark.v2"
@@ -116,7 +117,7 @@ type CaseSummary struct {
 	Case          string          `json:"case"`
 	Repository    string          `json:"repository"`
 	HeadSHA       string          `json:"head_sha,omitempty"`
-	Ecosystem     sdk.Ecosystem   `json:"ecosystem"`
+	Ecosystem     model.Ecosystem `json:"ecosystem"`
 	Status        string          `json:"status"`
 	Reason        string          `json:"reason,omitempty"`
 	Detectors     []string        `json:"used_detectors,omitempty"`
@@ -307,7 +308,7 @@ func averageScores(items []*ScoreSummary) *ScoreSummary {
 }
 
 // FilterDocument returns a copy containing only packages from ecosystem and their relationships.
-func FilterDocument(doc *sbom.Document, ecosystem sdk.Ecosystem) *sbom.Document {
+func FilterDocument(doc *sbom.Document, ecosystem model.Ecosystem) *sbom.Document {
 	if doc == nil {
 		return nil
 	}
@@ -350,7 +351,7 @@ func packagePURLs(doc *sbom.Document) (map[string]struct{}, int) {
 		return out, ignored
 	}
 	for _, component := range doc.Components {
-		purl := sdk.CanonicalizePackageURL(component.PURL)
+		purl := model.CanonicalizePackageURL(component.PURL)
 		if purl == "" {
 			ignored++
 			continue
@@ -363,7 +364,7 @@ func packagePURLs(doc *sbom.Document) (map[string]struct{}, int) {
 func purlsByBase(purls map[string]struct{}) map[string][]string {
 	out := make(map[string][]string)
 	for purl := range purls {
-		base := sdk.PackageURLBase(purl)
+		base := model.PackageURLBase(purl)
 		out[base] = append(out[base], purl)
 	}
 	return out
@@ -376,7 +377,7 @@ func purlDependencyEdges(doc *sbom.Document) map[string]struct{} {
 	}
 	purlsByID := make(map[string]string, len(doc.Components))
 	for _, component := range doc.Components {
-		if purl := sdk.CanonicalizePackageURL(component.PURL); purl != "" {
+		if purl := model.CanonicalizePackageURL(component.PURL); purl != "" {
 			purlsByID[component.ID] = purl
 		}
 	}

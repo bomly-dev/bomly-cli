@@ -11,7 +11,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorApplicable_BuildGradleKTS(t *testing.T) {
@@ -21,7 +23,7 @@ func TestDetectorApplicable_BuildGradleKTS(t *testing.T) {
 	}
 
 	detector := Detector{WorkingDir: projectDir}
-	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := detector.Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -93,7 +95,7 @@ func TestDetectorReadyRequiresJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	err := detector.Ready(context.Background(), plugin.DetectionRequest{})
 	if err == nil {
 		t.Fatal("expected detector to be not ready without a usable Java runtime")
 	}
@@ -108,7 +110,7 @@ func TestDetectorReadyRequiresGradleRunner(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	err := detector.Ready(context.Background(), plugin.DetectionRequest{})
 	if err == nil {
 		t.Fatal("expected detector to be not ready without gradle")
 	}
@@ -124,7 +126,7 @@ func TestDetectorReadyWithWrapperAndJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	if err := detector.Ready(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir}); err != nil {
+	if err := detector.Ready(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir}); err != nil {
 		t.Fatalf("expected detector to be ready, got %v", err)
 	}
 }
@@ -132,23 +134,23 @@ func TestDetectorReadyWithWrapperAndJava(t *testing.T) {
 func TestGradleScopedDependenciesArgs(t *testing.T) {
 	tests := []struct {
 		name   string
-		scope  sdk.Scope
+		scope  model.Scope
 		want   []string
 		isZero bool
 	}{
 		{
 			name:  "runtime selects runtimeClasspath",
-			scope: sdk.ScopeRuntime,
+			scope: model.ScopeRuntime,
 			want:  []string{"dependencies", "--console=plain", "--configuration", "runtimeClasspath"},
 		},
 		{
 			name:  "development selects testRuntimeClasspath",
-			scope: sdk.ScopeDevelopment,
+			scope: model.ScopeDevelopment,
 			want:  []string{"dependencies", "--console=plain", "--configuration", "testRuntimeClasspath"},
 		},
 		{
 			name:   "unknown resolves all configurations",
-			scope:  sdk.ScopeUnknown,
+			scope:  model.ScopeUnknown,
 			isZero: true,
 		},
 	}
@@ -217,14 +219,14 @@ testRuntimeClasspath - Test runtime classpath of source set 'test'.
 	if guava.Ecosystem != "maven" || guava.Org != "com.google.guava" || guava.Name != "guava" || guava.PackageManager != "gradle" {
 		t.Fatalf("unexpected gradle coordinates: %#v", guava)
 	}
-	if string(guava.PrimaryScope()) != string(sdk.ScopeRuntime) {
+	if string(guava.PrimaryScope()) != string(model.ScopeRuntime) {
 		t.Fatalf("expected runtime scope for guava, got %q", string(guava.PrimaryScope()))
 	}
 	junit, ok := testnodes.FindDep(g, "org.junit:junit-bom@5.10.2")
 	if !ok {
 		t.Fatal("expected junit package")
 	}
-	if string(junit.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(junit.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected development scope for junit, got %q", string(junit.PrimaryScope()))
 	}
 }
@@ -301,7 +303,7 @@ func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
 	t.Setenv("BOMLY_FAKE_GRADLE_ARGS_FILE", argsFile)
 	t.Setenv("PATH", fakeToolDir(t, "gradle"))
 
-	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := (Detector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -324,7 +326,7 @@ func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
 	if !reflect.DeepEqual(paths, []string{"app/build.gradle", "lib/build.gradle"}) {
 		t.Fatalf("module manifest paths = %v", paths)
 	}
-	if entries[1].Manifest.Kind != sdk.ManifestKind("build.gradle") {
+	if entries[1].Manifest.Kind != model.ManifestKind("build.gradle") {
 		t.Fatalf("module manifest kind = %q", entries[1].Manifest.Kind)
 	}
 
@@ -350,10 +352,10 @@ func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
 		t.Fatal("lib entry must not contain app dependencies")
 	}
 	libRoots := libGraph.Roots()
-	if len(libRoots) != 1 || !sdk.IsProjectOwned(libRoots[0]) {
+	if len(libRoots) != 1 || !model.IsProjectOwned(libRoots[0]) {
 		t.Fatalf("unexpected lib entry root: %#v", libRoots)
 	}
-	if name := sdk.NodeDisplayName(libRoots[0]); name != "com.acme:lib" {
+	if name := model.NodeDisplayName(libRoots[0]); name != "com.acme:lib" {
 		t.Fatalf("lib entry root = %q, want com.acme:lib", name)
 	}
 
@@ -394,7 +396,7 @@ func TestResolveGraphSingleProjectStillSingleEntry(t *testing.T) {
 	t.Setenv("BOMLY_FAKE_GRADLE_FIXTURE", fakeGradleReportFixture(t, fakeGradleSingleReport))
 	t.Setenv("PATH", fakeToolDir(t, "gradle"))
 
-	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := (Detector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -415,7 +417,7 @@ func TestResolveGraphMultiTaskFailureRetriesRootOnly(t *testing.T) {
 	t.Setenv("BOMLY_FAKE_GRADLE_FIXTURE", fakeGradleReportFixture(t, fakeGradleSingleReport))
 	t.Setenv("PATH", fakeToolDir(t, "gradle"))
 
-	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := (Detector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -442,7 +444,7 @@ func TestResolveGraphMultiTaskFailureFallbackKeepsScope(t *testing.T) {
 	t.Setenv("BOMLY_FAKE_GRADLE_ARGS_FILE", argsLog)
 	t.Setenv("PATH", fakeToolDir(t, "gradle"))
 
-	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir, ScopeFilter: sdk.ScopeRuntime})
+	result, err := (Detector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir, ScopeFilter: model.ScopeRuntime})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}

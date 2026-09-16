@@ -7,7 +7,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func workspacesFixtureDir(t *testing.T) string {
@@ -20,7 +22,7 @@ func workspacesFixtureDir(t *testing.T) string {
 }
 
 func TestNPMLockfileWorkspacesEmitsPerModuleEntries(t *testing.T) {
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: workspacesFixtureDir(t)})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: workspacesFixtureDir(t)})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -29,7 +31,7 @@ func TestNPMLockfileWorkspacesEmitsPerModuleEntries(t *testing.T) {
 		t.Fatalf("expected root + 2 member entries, got %d", len(entries))
 	}
 
-	paths := map[string]sdk.GraphEntry{}
+	paths := map[string]model.GraphEntry{}
 	for _, entry := range entries {
 		paths[filepath.ToSlash(entry.Manifest.Path)] = entry
 	}
@@ -37,7 +39,7 @@ func TestNPMLockfileWorkspacesEmitsPerModuleEntries(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected apps/web/package.json entry, got %v", keysOf(paths))
 	}
-	if web.Manifest.Kind != sdk.ManifestKind("package.json") {
+	if web.Manifest.Kind != model.ManifestKind("package.json") {
 		t.Fatalf("expected package.json kind for member, got %q", web.Manifest.Kind)
 	}
 	lib, ok := paths["packages/lib/package.json"]
@@ -79,7 +81,7 @@ func TestNPMLockfileWorkspaceLinkEntriesDoNotDuplicateNodes(t *testing.T) {
 	// The link alias node_modules/lib must resolve to the member node, not a
 	// synthetic versionless "lib" package.
 	for _, node := range graphs.graph.Nodes() {
-		name, version := sdk.NodeDisplayName(node), sdk.NodeVersion(node)
+		name, version := model.NodeDisplayName(node), model.NodeVersion(node)
 		if name == "lib" && version == "" {
 			t.Fatalf("unexpected versionless link ghost node for lib: %s", node.NodeID())
 		}
@@ -90,7 +92,7 @@ func TestNPMLockfileWorkspaceLinkEntriesDoNotDuplicateNodes(t *testing.T) {
 	}
 	// A workspace member is the project's own code, so it is a module node:
 	// ownership is the kind now, not the application package type (ADR-0041).
-	if !sdk.IsProjectOwned(member) {
+	if !model.IsProjectOwned(member) {
 		t.Fatalf("expected the member to be the project's own module, got a %s node", member.Kind())
 	}
 	// web depends on lib via the workspace link; the edge must target the member.
@@ -105,7 +107,7 @@ func TestNPMLockfileWorkspaceLinkEntriesDoNotDuplicateNodes(t *testing.T) {
 		}
 	}
 	if !found {
-		t.Fatalf("expected web -> lib@1.0.0 edge, got %v", depIDs(sdk.DependencyNodesOf(deps)))
+		t.Fatalf("expected web -> lib@1.0.0 edge, got %v", depIDs(model.DependencyNodesOf(deps)))
 	}
 }
 
@@ -120,7 +122,7 @@ func TestNPMLockfileWorkspaceMemberDevDependenciesScoped(t *testing.T) {
 	}
 	hasDev := false
 	for _, scope := range devDep.Scopes {
-		if scope == sdk.ScopeDevelopment {
+		if scope == model.ScopeDevelopment {
 			hasDev = true
 		}
 	}
@@ -135,7 +137,7 @@ func TestNPMLockfileSingleProjectStillSingleEntry(t *testing.T) {
 		t.Fatal("resolve caller path")
 	}
 	dir := filepath.Join(filepath.Dir(here), "..", "testdata", "lockfiles", "npm-v3")
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -144,7 +146,7 @@ func TestNPMLockfileSingleProjectStillSingleEntry(t *testing.T) {
 	}
 }
 
-func keysOf(m map[string]sdk.GraphEntry) []string {
+func keysOf(m map[string]model.GraphEntry) []string {
 	keys := make([]string, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
@@ -152,7 +154,7 @@ func keysOf(m map[string]sdk.GraphEntry) []string {
 	return keys
 }
 
-func depIDs(deps []*sdk.DependencyNode) []string {
+func depIDs(deps []*model.DependencyNode) []string {
 	ids := make([]string, 0, len(deps))
 	for _, dep := range deps {
 		ids = append(ids, dep.NodeID())

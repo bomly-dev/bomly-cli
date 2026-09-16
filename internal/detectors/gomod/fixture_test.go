@@ -6,7 +6,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // readFixture loads a committed fixture file from testdata. These tests drive
@@ -70,13 +71,13 @@ func TestGoModFixture_Scopes(t *testing.T) {
 	}
 
 	// Imported via main → runtime; reachable only through TestImports → development.
-	requireScope(t, g, "github.com/google/uuid@v1.6.0", sdk.ScopeRuntime)
-	requireScope(t, g, "golang.org/x/text@v0.14.0", sdk.ScopeRuntime)
-	requireScope(t, g, "github.com/stretchr/testify@v1.9.0", sdk.ScopeDevelopment)
-	requireScope(t, g, "github.com/davecgh/go-spew@v1.1.1", sdk.ScopeDevelopment)
+	requireScope(t, g, "github.com/google/uuid@v1.6.0", model.ScopeRuntime)
+	requireScope(t, g, "golang.org/x/text@v0.14.0", model.ScopeRuntime)
+	requireScope(t, g, "github.com/stretchr/testify@v1.9.0", model.ScopeDevelopment)
+	requireScope(t, g, "github.com/davecgh/go-spew@v1.1.1", model.ScopeDevelopment)
 }
 
-func nodeIDs(g *sdk.Graph) []string {
+func nodeIDs(g *model.Graph) []string {
 	nodes := g.DependencyNodes()
 	ids := make([]string, len(nodes))
 	for i, n := range nodes {
@@ -85,7 +86,7 @@ func nodeIDs(g *sdk.Graph) []string {
 	return ids
 }
 
-func requireScope(t *testing.T, g *sdk.Graph, id string, scope sdk.Scope) {
+func requireScope(t *testing.T, g *model.Graph, id string, scope model.Scope) {
 	t.Helper()
 	n, ok := testnodes.Find(g, id)
 	if !ok {

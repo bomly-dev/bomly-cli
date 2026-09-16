@@ -4,28 +4,28 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestPNPMListArgsScopeFilter(t *testing.T) {
 	tests := []struct {
 		name  string
-		scope sdk.Scope
+		scope model.Scope
 		want  []string
 	}{
 		{
 			name:  "unknown resolves full graph",
-			scope: sdk.ScopeUnknown,
+			scope: model.ScopeUnknown,
 			want:  []string{"list", "--json", "--depth", "Infinity"},
 		},
 		{
 			name:  "runtime uses production graph",
-			scope: sdk.ScopeRuntime,
+			scope: model.ScopeRuntime,
 			want:  []string{"list", "--json", "--depth", "Infinity", "--prod"},
 		},
 		{
 			name:  "development uses development graph",
-			scope: sdk.ScopeDevelopment,
+			scope: model.ScopeDevelopment,
 			want:  []string{"list", "--json", "--depth", "Infinity", "--dev"},
 		},
 	}

@@ -4,35 +4,37 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestConsolidateGraphs_PreservesOriginAndFallbackProvenance(t *testing.T) {
-	graph := sdk.New()
-	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.example", Name: "app", Version: "1.0.0", PURL: "pkg:maven/org.example/app@1.0.0"}})
+	graph := model.New()
+	root := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "maven", Org: "org.example", Name: "app", Version: "1.0.0", PURL: "pkg:maven/org.example/app@1.0.0"}})
 	if err := graph.AddNode(root); err != nil {
 		t.Fatalf("add root: %v", err)
 	}
 
-	subproject := sdk.Subproject{
-		ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
+	subproject := plugin.Subproject{
+		ExecutionTarget:         plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: "/repo"},
 		RelativePath:            ".",
 		PrimaryDetector:         "maven-detector",
-		DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerMaven},
-		Ecosystem:               sdk.EcosystemMaven,
+		DetectedPackageManagers: []model.PackageManager{model.PackageManagerMaven},
+		Ecosystem:               model.EcosystemMaven,
 	}
-	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{{
+	consolidated, err := ConsolidateGraphs([]plugin.DetectionResult{{
 		SubprojectInfo: subproject,
 		DetectorName:   "syft-detector",
-		Origin:         sdk.BundledOrigin,
-		Technique:      sdk.MultipleTechnique,
+		Origin:         plugin.BundledOrigin,
+		Technique:      plugin.MultipleTechnique,
 		FallbackFrom:   "maven-detector",
 		FallbackReason: "not ready: java executable not found on PATH",
-		Graphs: sdk.SingleGraphContainer(graph, sdk.ManifestMetadata{
+		Graphs: model.SingleGraphContainer(graph, model.ManifestMetadata{
 			Path: "pom.xml",
 			Kind: "pom.xml",
-			Resolution: &sdk.ResolutionMetadata{
-				Fallback: &sdk.ResolutionFallback{From: "maven-detector", Reason: "not ready: java executable not found on PATH"},
+			Resolution: &model.ResolutionMetadata{
+				Fallback: &model.ResolutionFallback{From: "maven-detector", Reason: "not ready: java executable not found on PATH"},
 			},
 		}),
 	}})
@@ -43,7 +45,7 @@ func TestConsolidateGraphs_PreservesOriginAndFallbackProvenance(t *testing.T) {
 		t.Fatalf("expected 1 manifest, got %d", len(consolidated.Manifests))
 	}
 	manifest := consolidated.Manifests[0]
-	if manifest.Origin != sdk.BundledOrigin {
+	if manifest.Origin != plugin.BundledOrigin {
 		t.Fatalf("expected origin to survive consolidation, got %q", manifest.Origin)
 	}
 	resolution := manifest.Entry.Manifest.Resolution

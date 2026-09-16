@@ -8,7 +8,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDepGraphFromPipInspect(t *testing.T) {
@@ -59,7 +61,7 @@ func TestDepGraphFromPipInspect(t *testing.T) {
 	if !ok {
 		t.Fatal("expected synthetic root node")
 	}
-	if !sdk.IsProjectOwned(rootNode) {
+	if !model.IsProjectOwned(rootNode) {
 		t.Fatalf("pip-inspect root must be the project's own module node, got a %s node", rootNode.Kind())
 	}
 	// Only the requested distribution is direct; the rest reach the graph
@@ -263,26 +265,26 @@ func TestPythonRootNameFromRequest(t *testing.T) {
 	if err := os.MkdirAll(cloneDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	remote := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetGitRepository, RepositoryURL: "https://github.com/acme/billing-service.git"}
+	remote := plugin.ExecutionTarget{Kind: plugin.ExecutionTargetGitRepository, RepositoryURL: "https://github.com/acme/billing-service.git"}
 
 	tests := []struct {
 		name string
-		req  sdk.DetectionRequest
+		req  plugin.DetectionRequest
 		want string
 	}{
 		{
 			name: "subproject directory",
-			req:  sdk.DetectionRequest{Subproject: sdk.Subproject{RelativePath: "services/billing"}},
+			req:  plugin.DetectionRequest{Subproject: plugin.Subproject{RelativePath: "services/billing"}},
 			want: "billing",
 		},
 		{
 			name: "remote repository",
-			req:  sdk.DetectionRequest{ExecutionTarget: remote, Subproject: sdk.Subproject{RelativePath: "."}},
+			req:  plugin.DetectionRequest{ExecutionTarget: remote, Subproject: plugin.Subproject{RelativePath: "."}},
 			want: "billing-service",
 		},
 		{
 			name: "temp clone directory is not a name",
-			req:  sdk.DetectionRequest{},
+			req:  plugin.DetectionRequest{},
 			want: "root",
 		},
 	}
@@ -295,7 +297,7 @@ func TestPythonRootNameFromRequest(t *testing.T) {
 	}
 }
 
-func assertDirectDependencies(t *testing.T, g *sdk.Graph, parentID string, want []string) {
+func assertDirectDependencies(t *testing.T, g *model.Graph, parentID string, want []string) {
 	t.Helper()
 	deps, err := g.DirectDependencies(testnodes.ID(g, parentID))
 	if err != nil {
@@ -305,7 +307,7 @@ func assertDirectDependencies(t *testing.T, g *sdk.Graph, parentID string, want 
 	// package URL an ID is now.
 	got := make([]string, 0, len(deps))
 	for _, dep := range deps {
-		name, version := sdk.NodeDisplayName(dep), sdk.NodeVersion(dep)
+		name, version := model.NodeDisplayName(dep), model.NodeVersion(dep)
 		if version != "" {
 			got = append(got, name+"@"+version)
 			continue
@@ -373,24 +375,24 @@ func TestDepGraphFromPipfileLockPackageInBothGroupsKeepsBothScopes(t *testing.T)
 	if !ok {
 		t.Fatalf("expected requests package, got %s", g.PrettyString())
 	}
-	if !shared.HasScope(sdk.ScopeRuntime) || !shared.HasScope(sdk.ScopeDevelopment) {
+	if !shared.HasScope(model.ScopeRuntime) || !shared.HasScope(model.ScopeDevelopment) {
 		t.Fatalf("requests scopes = %v; want both the default and develop group scopes", shared.Scopes)
 	}
 	devOnly, ok := g.DependencyNode("pkg:pypi/pytest@9.0.3")
 	if !ok {
 		t.Fatalf("expected pytest package, got %s", g.PrettyString())
 	}
-	if devOnly.HasScope(sdk.ScopeRuntime) || !devOnly.HasScope(sdk.ScopeDevelopment) {
+	if devOnly.HasScope(model.ScopeRuntime) || !devOnly.HasScope(model.ScopeDevelopment) {
 		t.Fatalf("pytest scopes = %v; want the develop group scope only", devOnly.Scopes)
 	}
 }
 
 func TestFilterPythonToolPackagesRemovesUndeclaredTools(t *testing.T) {
-	g := sdk.New()
-	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "root"}})
-	requests := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "requests", Version: "2.32.0"}})
-	pip := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pip", Version: "25.0"}})
-	for _, pkg := range []*sdk.DependencyNode{root, requests, pip} {
+	g := model.New()
+	root := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemPython, Name: "root"}})
+	requests := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemPython, Name: "requests", Version: "2.32.0"}})
+	pip := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemPython, Name: "pip", Version: "25.0"}})
+	for _, pkg := range []*model.DependencyNode{root, requests, pip} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
@@ -419,11 +421,11 @@ func TestFilterPythonToolPackagesKeepsDeclaredTools(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, "requirements.txt"), []byte("pip==25.0\nrequests==2.32.0\n"), 0o644); err != nil {
 		t.Fatalf("write requirements: %v", err)
 	}
-	g := sdk.New()
-	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "root"}})
-	pip := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pip", Version: "25.0"}})
-	wheel := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "wheel", Version: "0.45.0"}})
-	for _, pkg := range []*sdk.DependencyNode{root, pip, wheel} {
+	g := model.New()
+	root := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemPython, Name: "root"}})
+	pip := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemPython, Name: "pip", Version: "25.0"}})
+	wheel := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemPython, Name: "wheel", Version: "0.45.0"}})
+	for _, pkg := range []*model.DependencyNode{root, pip, wheel} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
@@ -450,42 +452,42 @@ func TestFilterPythonToolPackagesKeepsDeclaredTools(t *testing.T) {
 func TestPipShouldInstallDevRequirements(t *testing.T) {
 	tests := []struct {
 		name                 string
-		scope                sdk.Scope
+		scope                model.Scope
 		requirementsFile     string
 		devRequirementsExist bool
 		want                 bool
 	}{
 		{
 			name:                 "runtime skips dev requirements",
-			scope:                sdk.ScopeRuntime,
+			scope:                model.ScopeRuntime,
 			requirementsFile:     "requirements.txt",
 			devRequirementsExist: true,
 			want:                 false,
 		},
 		{
 			name:                 "development installs dev requirements",
-			scope:                sdk.ScopeDevelopment,
+			scope:                model.ScopeDevelopment,
 			requirementsFile:     "requirements.txt",
 			devRequirementsExist: true,
 			want:                 true,
 		},
 		{
 			name:                 "unknown installs dev requirements to preserve full graph",
-			scope:                sdk.ScopeUnknown,
+			scope:                model.ScopeUnknown,
 			requirementsFile:     "requirements.txt",
 			devRequirementsExist: true,
 			want:                 true,
 		},
 		{
 			name:                 "primary dev file is not installed twice",
-			scope:                sdk.ScopeDevelopment,
+			scope:                model.ScopeDevelopment,
 			requirementsFile:     "requirements-dev.txt",
 			devRequirementsExist: true,
 			want:                 false,
 		},
 		{
 			name:                 "missing dev file is skipped",
-			scope:                sdk.ScopeDevelopment,
+			scope:                model.ScopeDevelopment,
 			requirementsFile:     "requirements.txt",
 			devRequirementsExist: false,
 			want:                 false,
@@ -510,12 +512,12 @@ func TestAnnotateGraphScopes_DevelopmentFilterExcludesRuntime(t *testing.T) {
 		t.Fatalf("write dev requirements: %v", err)
 	}
 
-	g := sdk.New()
-	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "demo-app", Version: "1.0.0"}})
-	requests := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "requests", Version: "2.32.0"}})
-	pytest := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pytest", Version: "8.0.0"}})
-	shared := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pluggy", Version: "1.5.0"}})
-	for _, pkg := range []*sdk.DependencyNode{root, requests, pytest, shared} {
+	g := model.New()
+	root := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemPython, Name: "demo-app", Version: "1.0.0"}})
+	requests := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemPython, Name: "requests", Version: "2.32.0"}})
+	pytest := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemPython, Name: "pytest", Version: "8.0.0"}})
+	shared := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemPython, Name: "pluggy", Version: "1.5.0"}})
+	for _, pkg := range []*model.DependencyNode{root, requests, pytest, shared} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
@@ -532,7 +534,7 @@ func TestAnnotateGraphScopes_DevelopmentFilterExcludesRuntime(t *testing.T) {
 	}
 
 	annotateGraphScopes(g, dir)
-	filtered, err := sdk.FilterGraphByScope(g, sdk.ScopeDevelopment)
+	filtered, err := model.FilterGraphByScope(g, model.ScopeDevelopment)
 	if err != nil {
 		t.Fatalf("FilterGraphByScope() error = %v", err)
 	}
@@ -559,9 +561,9 @@ func TestAttachDeclaredPositions(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	g := sdk.New()
+	g := model.New()
 	for _, name := range []string{"requests", "flask", "numpy", "urllib3"} {
-		pkg := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+		pkg := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemPython,
 			Name:    name,
 			Version: "0.0.0"},
 		})
@@ -603,9 +605,9 @@ func TestAttachDeclaredPositions(t *testing.T) {
 
 // mustDep narrows a graph node to the dependency node a case is asserting
 // about, failing rather than panicking when the graph holds something else.
-func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
 	t.Helper()
-	dep, ok := node.(*sdk.DependencyNode)
+	dep, ok := node.(*model.DependencyNode)
 	if !ok {
 		t.Fatalf("expected a dependency node, got %T", node)
 	}

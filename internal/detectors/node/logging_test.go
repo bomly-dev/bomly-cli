@@ -8,9 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
+
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestInstallLogsReproducibleCommandAndDebugStderr(t *testing.T) {
@@ -31,7 +32,7 @@ func TestInstallLogsReproducibleCommandAndDebugStderr(t *testing.T) {
 
 	err = (BaseDetector{Logger: logger, WorkingDir: workingDir}).Install(
 		context.Background(),
-		sdk.DetectionRequest{InstallArgs: args, Stderr: &visibleStderr, Verbose: true},
+		plugin.DetectionRequest{InstallArgs: args, Stderr: &visibleStderr, Verbose: true},
 		executable,
 		[]string{"-test.run=TestNodeInstallLoggingHelper", "--"},
 		"test detector",

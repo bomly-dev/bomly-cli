@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // rebaseModuleDeclaringPaths rewrites each module's declaring manifest path so
@@ -29,7 +30,7 @@ import (
 // The identity changes, so the node is re-minted through PromoteToModule,
 // which re-points every edge and preserves edge kinds. IDs are collected
 // before any promotion because promoting mutates the graph being walked.
-func rebaseModuleDeclaringPaths(g *sdk.Graph, relativePath string) error {
+func rebaseModuleDeclaringPaths(g *model.Graph, relativePath string) error {
 	rel := strings.Trim(strings.TrimSpace(toSlashPath(relativePath)), "/")
 	if g == nil || rel == "" || rel == "." {
 		return nil

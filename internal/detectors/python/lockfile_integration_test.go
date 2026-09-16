@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // These tests drive each Python detector's lock fast-path end-to-end through
@@ -28,9 +30,9 @@ func pyFixture(name string) string {
 	return filepath.Join("testdata", "lockfiles", name)
 }
 
-func resolvePyLockGraph(t *testing.T, detector sdk.Detector, projectDir string) *sdk.Graph {
+func resolvePyLockGraph(t *testing.T, detector plugin.Detector, projectDir string) *model.Graph {
 	t.Helper()
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("%T.ResolveGraph(%s): %v", detector, projectDir, err)
 	}
@@ -41,7 +43,7 @@ func resolvePyLockGraph(t *testing.T, detector sdk.Detector, projectDir string) 
 	return g
 }
 
-func pyGraphIDs(g *sdk.Graph) []string {
+func pyGraphIDs(g *model.Graph) []string {
 	nodes := g.DependencyNodes()
 	ids := make([]string, len(nodes))
 	for i, n := range nodes {
@@ -50,7 +52,7 @@ func pyGraphIDs(g *sdk.Graph) []string {
 	return ids
 }
 
-func requirePyPackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.DependencyNode {
+func requirePyPackage(t *testing.T, g *model.Graph, name, version string) *model.DependencyNode {
 	t.Helper()
 	id := pyStableID(name, version)
 	pkg, ok := testnodes.FindDep(g, id)
@@ -60,7 +62,7 @@ func requirePyPackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.Dep
 	return pkg
 }
 
-func requirePyEdge(t *testing.T, g *sdk.Graph, fromName, fromVersion, toName, toVersion string) {
+func requirePyEdge(t *testing.T, g *model.Graph, fromName, fromVersion, toName, toVersion string) {
 	t.Helper()
 	fromID := pyStableID(fromName, fromVersion)
 	toID := pyStableID(toName, toVersion)
@@ -76,7 +78,7 @@ func requirePyEdge(t *testing.T, g *sdk.Graph, fromName, fromVersion, toName, to
 	t.Errorf("expected edge %s → %s", fromID, toID)
 }
 
-func requirePyScope(t *testing.T, g *sdk.Graph, name, version string, scope sdk.Scope) {
+func requirePyScope(t *testing.T, g *model.Graph, name, version string, scope model.Scope) {
 	t.Helper()
 	pkg := requirePyPackage(t, g, name, version)
 	if got := pkg.PrimaryScope(); got != scope {
@@ -84,7 +86,7 @@ func requirePyScope(t *testing.T, g *sdk.Graph, name, version string, scope sdk.
 	}
 }
 
-func requirePySource(t *testing.T, g *sdk.Graph, name, version string, source sdk.DependencySource) {
+func requirePySource(t *testing.T, g *model.Graph, name, version string, source model.DependencySource) {
 	t.Helper()
 	pkg := requirePyPackage(t, g, name, version)
 	if pkg.Source != source {
@@ -93,7 +95,7 @@ func requirePySource(t *testing.T, g *sdk.Graph, name, version string, source sd
 }
 
 // requirePySingleRoot asserts the graph has exactly one root with the expected ID.
-func requirePySingleRoot(t *testing.T, g *sdk.Graph, rootID string) {
+func requirePySingleRoot(t *testing.T, g *model.Graph, rootID string) {
 	t.Helper()
 	roots := g.Roots()
 	if len(roots) != 1 {
@@ -123,10 +125,10 @@ func TestPipRequirementsLockFixture(t *testing.T) {
 	requirePyEdge(t, g, "requests", "2.32.3", "urllib3", "2.2.3")
 
 	// Scope: runtime deps stay runtime; the requirements-dev.in input marks pytest dev.
-	requirePyScope(t, g, "requests", "2.32.3", sdk.ScopeRuntime)
-	requirePyScope(t, g, "urllib3", "2.2.3", sdk.ScopeRuntime)
-	requirePyScope(t, g, "pytest", "8.3.3", sdk.ScopeDevelopment)
-	requirePySource(t, g, "requests", "2.32.3", sdk.DependencySourceRegistry)
+	requirePyScope(t, g, "requests", "2.32.3", model.ScopeRuntime)
+	requirePyScope(t, g, "urllib3", "2.2.3", model.ScopeRuntime)
+	requirePyScope(t, g, "pytest", "8.3.3", model.ScopeDevelopment)
+	requirePySource(t, g, "requests", "2.32.3", model.DependencySourceRegistry)
 }
 
 // ---- poetry (poetry.lock + pyproject.toml fast-path) -----------------------
@@ -149,11 +151,11 @@ func TestPoetryLockFixture(t *testing.T) {
 	requirePyEdge(t, g, "pytest", "8.3.3", "pluggy", "1.5.0")
 
 	// "main" group → runtime; "dev" group → development, propagated transitively.
-	requirePyScope(t, g, "requests", "2.32.3", sdk.ScopeRuntime)
-	requirePyScope(t, g, "idna", "3.10", sdk.ScopeRuntime)
-	requirePyScope(t, g, "pytest", "8.3.3", sdk.ScopeDevelopment)
-	requirePyScope(t, g, "pluggy", "1.5.0", sdk.ScopeDevelopment)
-	requirePySource(t, g, "requests", "2.32.3", sdk.DependencySourceRegistry)
+	requirePyScope(t, g, "requests", "2.32.3", model.ScopeRuntime)
+	requirePyScope(t, g, "idna", "3.10", model.ScopeRuntime)
+	requirePyScope(t, g, "pytest", "8.3.3", model.ScopeDevelopment)
+	requirePyScope(t, g, "pluggy", "1.5.0", model.ScopeDevelopment)
+	requirePySource(t, g, "requests", "2.32.3", model.DependencySourceRegistry)
 }
 
 // ---- uv (uv.lock fast-path) ------------------------------------------------
@@ -164,7 +166,7 @@ func TestUVLockFixture(t *testing.T) {
 	// The editable package is the scanned project itself, so it is a module
 	// node -- and a module is never enriched (ADR-0041).
 	roots := g.Roots()
-	if len(roots) != 1 || !sdk.IsProjectOwned(roots[0]) {
+	if len(roots) != 1 || !model.IsProjectOwned(roots[0]) {
 		t.Fatalf("uv editable root must be the project's own module, got %#v", roots)
 	}
 	for _, want := range [][2]string{
@@ -181,14 +183,14 @@ func TestUVLockFixture(t *testing.T) {
 	requirePyEdge(t, g, "pytest", "8.3.3", "pluggy", "1.5.0")
 
 	// Runtime deps (and their transitives) vs. the dev-dependency group.
-	requirePyScope(t, g, "requests", "2.32.3", sdk.ScopeRuntime)
-	requirePyScope(t, g, "urllib3", "2.2.3", sdk.ScopeRuntime)
-	requirePyScope(t, g, "pytest", "8.3.3", sdk.ScopeDevelopment)
-	requirePyScope(t, g, "pluggy", "1.5.0", sdk.ScopeDevelopment)
-	requirePySource(t, g, "requests", "2.32.3", sdk.DependencySourceRegistry)
+	requirePyScope(t, g, "requests", "2.32.3", model.ScopeRuntime)
+	requirePyScope(t, g, "urllib3", "2.2.3", model.ScopeRuntime)
+	requirePyScope(t, g, "pytest", "8.3.3", model.ScopeDevelopment)
+	requirePyScope(t, g, "pluggy", "1.5.0", model.ScopeDevelopment)
+	requirePySource(t, g, "requests", "2.32.3", model.DependencySourceRegistry)
 	gitHelper := requirePyPackage(t, g, "git-helper", "1.0.0")
-	if gitHelper.Source != sdk.DependencySourceGit {
-		t.Fatalf("git-helper source = %q, want %q", gitHelper.Source, sdk.DependencySourceGit)
+	if gitHelper.Source != model.DependencySourceGit {
+		t.Fatalf("git-helper source = %q, want %q", gitHelper.Source, model.DependencySourceGit)
 	}
 	if gitHelper.Metadata["source_revision"] != "abc123" {
 		t.Fatalf("git-helper source revision = %#v, want abc123", gitHelper.Metadata["source_revision"])
@@ -217,7 +219,7 @@ func TestPipenvLockFixture(t *testing.T) {
 	// requests is runtime, pytest is development. pluggy is only a transitive
 	// dependency of pytest, but Pipfile.lock is flat (no edge records it), so it
 	// stays runtime — a known limitation of the lock-only fast-path.
-	requirePyScope(t, g, "requests", "2.32.3", sdk.ScopeRuntime)
-	requirePyScope(t, g, "pytest", "8.3.3", sdk.ScopeDevelopment)
-	requirePySource(t, g, "requests", "2.32.3", sdk.DependencySourceRegistry)
+	requirePyScope(t, g, "requests", "2.32.3", model.ScopeRuntime)
+	requirePyScope(t, g, "pytest", "8.3.3", model.ScopeDevelopment)
+	requirePySource(t, g, "requests", "2.32.3", model.DependencySourceRegistry)
 }

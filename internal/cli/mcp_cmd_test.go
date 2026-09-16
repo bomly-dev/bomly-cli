@@ -6,7 +6,8 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestApplyStringOverride(t *testing.T) {
@@ -130,9 +131,9 @@ func TestValidatedCloneWithOverridesRejectsInvalidCombinations(t *testing.T) {
 
 func TestMCPDiagnosticsFromPipelineIncludesDetectorWarnings(t *testing.T) {
 	diagnostics := mcpDiagnosticsFromPipeline(engine.PipelineResult{
-		DetectorWarnings: []sdk.DetectorWarning{
-			{Type: sdk.DetectorWarningFallback, Source: "maven-detector", Message: "maven-detector unavailable"},
-			{Type: sdk.DetectorWarningPackageManager, Source: "pnpm", Message: "pnpm-lock.yaml is format version 9.0"},
+		DetectorWarnings: []plugin.DetectorWarning{
+			{Type: plugin.DetectorWarningFallback, Source: "maven-detector", Message: "maven-detector unavailable"},
+			{Type: plugin.DetectorWarningPackageManager, Source: "pnpm", Message: "pnpm-lock.yaml is format version 9.0"},
 		},
 		MatchWarnings: []engine.PipelineWarning{{Source: "osv", Message: "timeout"}},
 	})

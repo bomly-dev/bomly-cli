@@ -12,8 +12,9 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	scanengine "github.com/bomly-dev/bomly-cli/internal/engine/scan"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/spf13/cobra"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func newBaselineCmd() *cobra.Command {
@@ -69,7 +70,7 @@ func newBaselineWriteCmd(action string) *cobra.Command {
 			}
 
 			pipeline := engine.NewPipeline(commandCtx.Registry(), logger)
-			request := commandCtx.PipelineRequest(sdk.ScopeUnknown, cmd.ErrOrStderr())
+			request := commandCtx.PipelineRequest(model.ScopeUnknown, cmd.ErrOrStderr())
 			result, err := scanengine.Run(cmd.Context(), pipeline, request)
 			if err != nil {
 				return exit.ResolutionFailureError(err)

@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // A structural node's PURL column must carry a real package URL, or nothing.
@@ -16,8 +17,8 @@ import (
 // parse, while scan JSON and both SBOM exports had it right.
 func TestPackageRowPurlIsNeverAStructuralID(t *testing.T) {
 	module := testnodes.Module("package.json", "app", "1.0.0")
-	manifest := testnodes.Manifest("package.json", sdk.ManifestKindPackageJSON)
-	dependency := testnodes.Dep(sdk.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"})
+	manifest := testnodes.Manifest("package.json", model.ManifestKindPackageJSON)
+	dependency := testnodes.Dep(model.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"})
 
 	moduleRow := packageRowFromGraph(module, "root")
 	if strings.HasPrefix(moduleRow.purl, "module:") {
@@ -47,11 +48,11 @@ func TestPackageRowPurlIsNeverAStructuralID(t *testing.T) {
 // "Roots: 0" for a scan that plainly has one. Nested workspace modules were
 // hidden the same way.
 func TestExplainRelationshipsCountModuleRoots(t *testing.T) {
-	g := sdk.New()
+	g := model.New()
 	root := testnodes.Module("package.json", "app", "1.0.0")
-	direct := testnodes.Dep(sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
-	transitive := testnodes.Dep(sdk.Coordinates{Ecosystem: "npm", Name: "loose-envify", Version: "1.4.0"})
-	for _, node := range []sdk.GraphNode{root, direct, transitive} {
+	direct := testnodes.Dep(model.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
+	transitive := testnodes.Dep(model.Coordinates{Ecosystem: "npm", Name: "loose-envify", Version: "1.4.0"})
+	for _, node := range []model.GraphNode{root, direct, transitive} {
 		if _, err := g.InsertNode(node); err != nil {
 			t.Fatalf("InsertNode(%q): %v", node.NodeID(), err)
 		}
@@ -91,13 +92,13 @@ func TestExplainRelationshipsCountModuleRoots(t *testing.T) {
 // on it. renderDirectDepsTable had already learned this; this classifier had
 // not, which is why the rule now has one home.
 func TestClassifyRelationshipsTreatsNonRootModulesAsParents(t *testing.T) {
-	g := sdk.New()
+	g := model.New()
 	root := testnodes.Module("package.json", "workspace-root", "1.0.0")
-	child := testnodes.ModuleFrom("packages/web/package.json", sdk.Coordinates{
+	child := testnodes.ModuleFrom("packages/web/package.json", model.Coordinates{
 		Ecosystem: "npm", Name: "web", Version: "1.0.0",
 	})
-	pkg := testnodes.Dep(sdk.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"})
-	for _, node := range []sdk.GraphNode{root, child, pkg} {
+	pkg := testnodes.Dep(model.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"})
+	for _, node := range []model.GraphNode{root, child, pkg} {
 		if _, err := g.InsertNode(node); err != nil {
 			t.Fatalf("InsertNode: %v", err)
 		}
@@ -120,10 +121,10 @@ func TestClassifyRelationshipsTreatsNonRootModulesAsParents(t *testing.T) {
 // as parents omitted every edge out of it — for a project with only direct
 // dependencies the view was empty while the count beside it was not.
 func TestRelationshipRawLinesIncludeModuleEdges(t *testing.T) {
-	g := sdk.New()
+	g := model.New()
 	root := testnodes.Module("package.json", "app", "1.0.0")
-	pkg := testnodes.Dep(sdk.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"})
-	for _, node := range []sdk.GraphNode{root, pkg} {
+	pkg := testnodes.Dep(model.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"})
+	for _, node := range []model.GraphNode{root, pkg} {
 		if _, err := g.InsertNode(node); err != nil {
 			t.Fatalf("InsertNode: %v", err)
 		}

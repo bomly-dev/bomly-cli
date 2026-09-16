@@ -13,12 +13,14 @@ import (
 	scanengine "github.com/bomly-dev/bomly-cli/internal/engine/scan"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/tui"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/sbom"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func newScanCmd() *cobra.Command {
@@ -64,7 +66,7 @@ func newScanCmd() *cobra.Command {
 			if graphOutputFormat == output.FormatSARIF && !commandCtx.ResolvedConfig.Audit {
 				return exit.InvalidInputError("--format sarif requires --audit")
 			}
-			selectedScope, err := sdk.ParseScope(scopeValue)
+			selectedScope, err := model.ParseScope(scopeValue)
 			if err != nil {
 				return exit.InvalidInputError("%v", err)
 			}
@@ -101,7 +103,7 @@ func newScanCmd() *cobra.Command {
 			consolidated := pipeResult.Consolidated
 			selectedGraph := pipeResult.Graph
 
-			var findings []sdk.Finding
+			var findings []model.Finding
 			if commandCtx.ResolvedConfig.Audit {
 				findings = pipeResult.Findings
 				prog.CompleteStep("Evaluated policy", auditProgressChildren(pipeResult.AuditorRuns, pipeResult.AuditorFindings, pipeResult.AuditWarnings))
@@ -127,14 +129,14 @@ func newScanCmd() *cobra.Command {
 				Text:     textRenderer,
 			}
 			sarifRenderer := func(w io.Writer) error {
-				return output.WriteSARIF(w, findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Analyze, LocationGraphs: []*sdk.Graph{pipeResult.Graph}})
+				return output.WriteSARIF(w, findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Analyze, LocationGraphs: []*model.Graph{pipeResult.Graph}})
 			}
 
 			// The entries, not just the merged graph: a graph consolidated
 			// from ingested SBOMs no longer records what each source document
 			// said about itself, and the export needs that to restate it
 			// rather than credit only Bomly (ADR-0037).
-			var sbomEntries []sdk.GraphEntry
+			var sbomEntries []model.GraphEntry
 			if pipeResult.Consolidated.Graphs != nil {
 				sbomEntries = pipeResult.Consolidated.Graphs.Entries
 			}
@@ -215,7 +217,7 @@ func newScanCmd() *cobra.Command {
 	return cmd
 }
 
-func scanPolicyExit(auditEnabled bool, findings []sdk.Finding) error {
+func scanPolicyExit(auditEnabled bool, findings []model.Finding) error {
 	if auditEnabled {
 		if failing := output.FailingFindingCount(findings); failing > 0 {
 			return exit.PolicyViolationFindings(failing)
@@ -227,7 +229,7 @@ func scanPolicyExit(auditEnabled bool, findings []sdk.Finding) error {
 // scanSBOMBuildOptions assembles the SBOM projection options for a scan: the
 // document is named after the scanned project, the primary component mirrors
 // it, and optional provenance metadata comes from configuration.
-func scanSBOMBuildOptions(logger *zap.Logger, project output.ProjectDescriptor, current config.Resolved, version string, resolved []sdk.DetectionResult, registry *sdk.PackageRegistry, selectedScope sdk.Scope, degraded bool) sbom.BuildOptions {
+func scanSBOMBuildOptions(logger *zap.Logger, project output.ProjectDescriptor, current config.Resolved, version string, resolved []plugin.DetectionResult, registry *model.PackageRegistry, selectedScope model.Scope, degraded bool) sbom.BuildOptions {
 	opts := sbom.BuildOptions{
 		ToolNames:   sbomToolNames(resolved),
 		ToolVersion: strings.TrimSpace(version),
@@ -274,11 +276,11 @@ func sbomLifecyclePhase(targetType string) string {
 // filter deliberately drops part of the graph, and degraded resolution means
 // completeness is unknown; only an unfiltered, warning-free scan may claim
 // "complete".
-func sbomCompositionAggregate(selectedScope sdk.Scope, degraded bool) string {
+func sbomCompositionAggregate(selectedScope model.Scope, degraded bool) string {
 	if degraded {
 		return "unknown"
 	}
-	if selectedScope != sdk.ScopeUnknown && selectedScope != "" {
+	if selectedScope != model.ScopeUnknown && selectedScope != "" {
 		return "incomplete"
 	}
 	return "complete"
@@ -290,7 +292,7 @@ func sbomCompositionAggregate(selectedScope sdk.Scope, degraded bool) string {
 // empty: an install-gate or CI-readiness notice is a warning that degrades
 // nothing, and counting it made an unfiltered scan declare its completeness
 // unknown and disown its source's identity.
-func coverageDegraded(warnings []sdk.DetectorWarning) bool {
+func coverageDegraded(warnings []plugin.DetectorWarning) bool {
 	for _, warning := range warnings {
 		if warning.DegradesCoverage() {
 			return true
@@ -307,7 +309,7 @@ func coverageDegraded(warnings []sdk.DetectorWarning) bool {
 // export a different document from its source, which then mints its own
 // identity and links the source. --analyze needs --enrich and writes nothing
 // into the SBOM, so enrichment covers it.
-func sbomRestatesSource(current config.Resolved, selectedScope sdk.Scope, degraded bool) bool {
+func sbomRestatesSource(current config.Resolved, selectedScope model.Scope, degraded bool) bool {
 	return sbomCompositionAggregate(selectedScope, degraded) == "complete" && !current.Enrich
 }
 
@@ -337,7 +339,7 @@ func gitDescribeVersion(logger *zap.Logger, path string) string {
 	return strings.TrimSpace(string(out))
 }
 
-func sbomToolNames(results []sdk.DetectionResult) []string {
+func sbomToolNames(results []plugin.DetectionResult) []string {
 	tools := make([]string, 0, len(results))
 	seen := make(map[string]struct{}, len(results))
 	for _, result := range results {

@@ -8,28 +8,30 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestBuildScanResponseIncludesFallbackProvenance(t *testing.T) {
 	g := newViewTestGraph(t)
-	results := []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
+	results := []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
 			RelativePath:            ".",
 			PrimaryDetector:         "maven-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerMaven},
-			Ecosystem:               sdk.EcosystemMaven,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerMaven},
+			Ecosystem:               model.EcosystemMaven,
 		},
 		DetectorName:   "syft-detector",
 		FallbackFrom:   "maven-detector",
 		FallbackReason: "not ready: java executable not found on PATH",
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph: g,
-			Manifest: sdk.ManifestMetadata{
+			Manifest: model.ManifestMetadata{
 				Path: "pom.xml",
-				Kind: sdk.ManifestKindPomXML,
-				Resolution: &sdk.ResolutionMetadata{
-					Fallback: &sdk.ResolutionFallback{From: "maven-detector", Reason: "not ready: java executable not found on PATH"},
+				Kind: model.ManifestKindPomXML,
+				Resolution: &model.ResolutionMetadata{
+					Fallback: &model.ResolutionFallback{From: "maven-detector", Reason: "not ready: java executable not found on PATH"},
 				},
 			},
 		}}},
@@ -61,17 +63,17 @@ func TestBuildScanResponseIncludesFallbackProvenance(t *testing.T) {
 
 func TestBuildScanResponseOmitsFallbackWhenAbsent(t *testing.T) {
 	g := newViewTestGraph(t)
-	results := []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
+	results := []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
 			RelativePath:            ".",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-			Ecosystem:               sdk.EcosystemNPM,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
+			Ecosystem:               model.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph:    g,
-			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+			Manifest: model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}}
 	consolidated, err := consolidation.ConsolidateGraphs(results)

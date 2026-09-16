@@ -97,7 +97,7 @@ func reportGraphMethodValues(pass *analysis.Pass, file *ast.File) {
 			return true
 		}
 		fn, _ := selection.Obj().(*types.Func)
-		if methodOn(fn, sdkPath, "Graph", "Node") || methodOn(fn, sdkPath, "Graph", "AddNode") {
+		if methodOn(fn, modelPath, "Graph", "Node") || methodOn(fn, modelPath, "Graph", "AddNode") {
 			pass.Reportf(sel.Pos(),
 				"takes %s as a value, which hides a graph lookup or insert from the lookup-then-insert check; call it directly or use detectorkit.EnsureNode",
 				types.ExprString(sel))
@@ -134,9 +134,9 @@ func reportLookupThenInsert(pass *analysis.Pass, body *ast.BlockStmt) {
 			}
 			fn, _ := typeutil.Callee(pass.TypesInfo, call).(*types.Func)
 			switch {
-			case methodOn(fn, sdkPath, "Graph", "Node"):
+			case methodOn(fn, modelPath, "Graph", "Node"):
 				lookups = append(lookups, graphCall{aliases.identity(pass, sel.X), types.ExprString(sel.X), call, inClosure})
-			case methodOn(fn, sdkPath, "Graph", "AddNode"):
+			case methodOn(fn, modelPath, "Graph", "AddNode"):
 				inserts = append(inserts, graphCall{aliases.identity(pass, sel.X), types.ExprString(sel.X), call, inClosure})
 			}
 			return true
@@ -211,7 +211,7 @@ func (s *aliasSet) find(key string) string {
 // unite joins two graph expressions; anything that is not an SDK graph is
 // ignored, so an assignment of a node or an ID never folds two graphs.
 func (s *aliasSet) unite(pass *analysis.Pass, a, b ast.Expr) {
-	if !isNamed(pass.TypesInfo.TypeOf(a), sdkPath, "Graph") || !isNamed(pass.TypesInfo.TypeOf(b), sdkPath, "Graph") {
+	if !isNamed(pass.TypesInfo.TypeOf(a), modelPath, "Graph") || !isNamed(pass.TypesInfo.TypeOf(b), modelPath, "Graph") {
 		return
 	}
 	ra, rb := s.find(receiverIdentity(pass, a)), s.find(receiverIdentity(pass, b))

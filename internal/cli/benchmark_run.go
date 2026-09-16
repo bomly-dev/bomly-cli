@@ -13,8 +13,10 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	scanengine "github.com/bomly-dev/bomly-cli/internal/engine/scan"
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // benchmarkNativeScanner builds pipeline requests directly instead of going
@@ -32,16 +34,16 @@ func benchmarkNativeScanner(logger *zap.Logger, stderr io.Writer, debug bool) be
 		}
 		// Build the native registry directly so local config and managed plugins
 		// cannot change benchmark detector selection.
-		detectorFilter := sdk.DetectorFilter{Exclude: []string{detectors.NameSyft}}
-		ecosystemFilter := sdk.EcosystemFilter{Include: []sdk.Ecosystem{req.Ecosystem}}
+		detectorFilter := plugin.DetectorFilter{Exclude: []string{detectors.NameSyft}}
+		ecosystemFilter := model.EcosystemFilter{Include: []model.Ecosystem{req.Ecosystem}}
 		registry := engine.NewRegistry(engine.RegistryConfigs{}, *logger)
 		registry.Build()
 		filteredRegistry := registry.Filter(engine.RegistryFilter{
 			DetectorFilter:  detectorFilter,
 			EcosystemFilter: ecosystemFilter,
 		})
-		executionTarget := sdk.ExecutionTarget{
-			Kind:          sdk.ExecutionTargetGitRepository,
+		executionTarget := plugin.ExecutionTarget{
+			Kind:          plugin.ExecutionTargetGitRepository,
 			Location:      checkoutDir,
 			RepositoryURL: req.Repository,
 			Ref:           req.Revision,
@@ -65,7 +67,7 @@ func benchmarkNativeScanner(logger *zap.Logger, stderr io.Writer, debug bool) be
 			ProjectPath:     checkoutDir,
 			ExecutionTarget: executionTarget,
 			Subprojects:     subprojects,
-			ScopeFilter:     sdk.ScopeUnknown,
+			ScopeFilter:     model.ScopeUnknown,
 			DetectorFilter:  detectorFilter,
 			InstallFirst:    req.InstallFirst,
 			Stderr:          stderr,
@@ -81,7 +83,7 @@ func benchmarkNativeScanner(logger *zap.Logger, stderr io.Writer, debug bool) be
 	}
 }
 
-func benchmarkDetectorNames(results []sdk.DetectionResult) []string {
+func benchmarkDetectorNames(results []plugin.DetectionResult) []string {
 	seen := make(map[string]struct{}, len(results))
 	names := make([]string, 0, len(results))
 	for _, result := range results {

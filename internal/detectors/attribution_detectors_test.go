@@ -17,7 +17,8 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/python"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/ruby"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/swiftpm"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // Two detectors are absent on purpose. The bun detector attaches no positions,
@@ -33,126 +34,126 @@ func TestDetectorsAttributeTheirLocations(t *testing.T) {
 	cases := []struct {
 		name     string
 		fixture  string
-		resolve  func(string) (sdk.DetectionResult, error)
+		resolve  func(string) (plugin.DetectionResult, error)
 		wantRoot string
 	}{
 		{
 			name:    "cargo",
 			fixture: "cargo/testdata/project",
-			resolve: func(dir string) (sdk.DetectionResult, error) {
-				return cargo.Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+			resolve: func(dir string) (plugin.DetectionResult, error) {
+				return cargo.Detector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 			},
 			wantRoot: ".",
 		},
 		{
 			name:    "cocoapods",
 			fixture: "cocoapods/testdata/project",
-			resolve: func(dir string) (sdk.DetectionResult, error) {
-				return cocoapods.Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+			resolve: func(dir string) (plugin.DetectionResult, error) {
+				return cocoapods.Detector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 			},
 			wantRoot: ".",
 		},
 		{
 			name:    "composer",
 			fixture: "composer/testdata/project",
-			resolve: func(dir string) (sdk.DetectionResult, error) {
-				return composer.Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+			resolve: func(dir string) (plugin.DetectionResult, error) {
+				return composer.Detector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 			},
 			wantRoot: ".",
 		},
 		{
 			name:    "conan",
 			fixture: "conan/testdata/project",
-			resolve: func(dir string) (sdk.DetectionResult, error) {
-				return conan.Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+			resolve: func(dir string) (plugin.DetectionResult, error) {
+				return conan.Detector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 			},
 			wantRoot: ".",
 		},
 		{
 			name:    "mix",
 			fixture: "mix/testdata/project",
-			resolve: func(dir string) (sdk.DetectionResult, error) {
-				return mix.Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+			resolve: func(dir string) (plugin.DetectionResult, error) {
+				return mix.Detector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 			},
 			wantRoot: ".",
 		},
 		{
 			name:    "nuget",
 			fixture: "nuget/testdata/project",
-			resolve: func(dir string) (sdk.DetectionResult, error) {
-				return nuget.Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+			resolve: func(dir string) (plugin.DetectionResult, error) {
+				return nuget.Detector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 			},
 			wantRoot: ".",
 		},
 		{
 			name:    "pub",
 			fixture: "pub/testdata/project",
-			resolve: func(dir string) (sdk.DetectionResult, error) {
-				return pub.Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+			resolve: func(dir string) (plugin.DetectionResult, error) {
+				return pub.Detector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 			},
 			wantRoot: ".",
 		},
 		{
 			name:    "ruby",
 			fixture: "ruby/testdata/project",
-			resolve: func(dir string) (sdk.DetectionResult, error) {
-				return ruby.Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+			resolve: func(dir string) (plugin.DetectionResult, error) {
+				return ruby.Detector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 			},
 			wantRoot: ".",
 		},
 		{
 			name:    "swiftpm",
 			fixture: "swiftpm/testdata/project",
-			resolve: func(dir string) (sdk.DetectionResult, error) {
-				return swiftpm.Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+			resolve: func(dir string) (plugin.DetectionResult, error) {
+				return swiftpm.Detector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 			},
 			wantRoot: ".",
 		},
 		{
 			name:    "pnpm",
 			fixture: "node/testdata/lockfiles/pnpm-v9",
-			resolve: func(dir string) (sdk.DetectionResult, error) {
-				return pnpm.LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+			resolve: func(dir string) (plugin.DetectionResult, error) {
+				return pnpm.LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 			},
 			wantRoot: ".",
 		},
 		{
 			name:    "yarn",
 			fixture: "node/testdata/lockfiles/yarn-v1",
-			resolve: func(dir string) (sdk.DetectionResult, error) {
-				return yarn.LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+			resolve: func(dir string) (plugin.DetectionResult, error) {
+				return yarn.LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 			},
 			wantRoot: ".",
 		},
 		{
 			name:    "poetry",
 			fixture: "python/testdata/lockfiles/poetry",
-			resolve: func(dir string) (sdk.DetectionResult, error) {
-				return python.PoetryDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+			resolve: func(dir string) (plugin.DetectionResult, error) {
+				return python.PoetryDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 			},
 			wantRoot: ".",
 		},
 		{
 			name:    "uv",
 			fixture: "python/testdata/lockfiles/uv",
-			resolve: func(dir string) (sdk.DetectionResult, error) {
-				return python.UVDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+			resolve: func(dir string) (plugin.DetectionResult, error) {
+				return python.UVDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 			},
 			wantRoot: ".",
 		},
 		{
 			name:    "pip",
 			fixture: "python/testdata/lockfiles/pip",
-			resolve: func(dir string) (sdk.DetectionResult, error) {
-				return python.PipDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+			resolve: func(dir string) (plugin.DetectionResult, error) {
+				return python.PipDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 			},
 			wantRoot: ".",
 		},
 		{
 			name:    "pipenv",
 			fixture: "python/testdata/lockfiles/pipenv",
-			resolve: func(dir string) (sdk.DetectionResult, error) {
-				return python.PipenvDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+			resolve: func(dir string) (plugin.DetectionResult, error) {
+				return python.PipenvDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 			},
 			wantRoot: ".",
 		},

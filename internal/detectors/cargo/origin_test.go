@@ -5,20 +5,21 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(node sdk.GraphNode) sdk.DependencyOrigin {
-	dep, ok := node.(*sdk.DependencyNode)
+func originOf(node model.GraphNode) model.DependencyOrigin {
+	dep, ok := node.(*model.DependencyNode)
 	if !ok || dep == nil {
-		return sdk.DependencyOrigin{}
+		return model.DependencyOrigin{}
 	}
 	// Origins are gated on the way in, so the first entry is already
 	// publishable; these cases assert on a single asserted origin.
 	if len(dep.Origins) == 0 {
-		return sdk.DependencyOrigin{}
+		return model.DependencyOrigin{}
 	}
 	return dep.Origins[0]
 }
@@ -30,22 +31,22 @@ func TestSetCargoOriginBySourcePrefix(t *testing.T) {
 	cases := []struct {
 		name   string
 		source string
-		want   sdk.DependencyOrigin
+		want   model.DependencyOrigin
 	}{
 		{
 			name:   "git dependency pins the resolved commit in the fragment",
 			source: "git+https://github.com/example/helper?rev=main#3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f",
-			want:   sdk.DependencyOrigin{Repository: "https://github.com/example/helper", Revision: "3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f"},
+			want:   model.DependencyOrigin{Repository: "https://github.com/example/helper", Revision: "3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f"},
 		},
 		{
 			name:   "requested tag is used when no commit was recorded",
 			source: "git+https://github.com/example/helper?tag=v1.2.3",
-			want:   sdk.DependencyOrigin{Repository: "https://github.com/example/helper", Revision: "v1.2.3"},
+			want:   model.DependencyOrigin{Repository: "https://github.com/example/helper", Revision: "v1.2.3"},
 		},
 		{
 			name:   "branch dependency without a pin keeps the repository",
 			source: "git+https://github.com/example/helper",
-			want:   sdk.DependencyOrigin{Repository: "https://github.com/example/helper"},
+			want:   model.DependencyOrigin{Repository: "https://github.com/example/helper"},
 		},
 		{name: "crates.io index root", source: "registry+https://github.com/rust-lang/crates.io-index"},
 		{name: "sparse index root", source: "sparse+https://index.crates.io/"},
@@ -56,7 +57,7 @@ func TestSetCargoOriginBySourcePrefix(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			node := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "helper", Version: "1.0.0"}})
+			node := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "helper", Version: "1.0.0"}})
 			setCargoOrigin(node, tc.source)
 			if got := originOf(node); got != tc.want {
 				t.Fatalf("origin = %+v, want %+v", got, tc.want)
@@ -140,9 +141,9 @@ func TestCargoRegistryAndGitRecordsFoldKeepingTheRepository(t *testing.T) {
 }
 
 // helperNodes returns every node named "helper" in a graph.
-func helperNodes(graph *sdk.Graph) []*sdk.DependencyNode {
-	var found []*sdk.DependencyNode
-	graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+func helperNodes(graph *model.Graph) []*model.DependencyNode {
+	var found []*model.DependencyNode
+	graph.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		if dep.Name == "helper" {
 			found = append(found, dep)
 		}
@@ -167,12 +168,12 @@ func TestCargoDuplicateCrateSameSourceKeepsOrigin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromMetadata() error = %v", err)
 	}
-	want := sdk.DependencyOrigin{
+	want := model.DependencyOrigin{
 		Repository: "https://github.com/a/helper",
 		Revision:   "aaaabbbbccccddddeeeeffff0000111122223333",
 	}
 	var checked int
-	graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+	graph.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		if dep.Name == "helper" {
 			checked++
 			if got := originOf(dep); got != want {
@@ -209,17 +210,17 @@ source = "git+https://github.com/external/helper#aaaabbbbccccddddeeeeffff0000111
 	root := cargoManifest{Name: "demo", Version: "0.1.0"}
 	members := []cargoLockMember{{manifest: cargoManifest{Name: "helper", Version: "0.1.0"}, dir: "crates/helper"}}
 
-	graph, _, _, err := depGraphFromLockWorkspace(lock, root, members, sdk.Scope(""))
+	graph, _, _, err := depGraphFromLockWorkspace(lock, root, members, model.Scope(""))
 	if err != nil {
 		t.Fatalf("depGraphFromLockWorkspace() error = %v", err)
 	}
 
 	var checked int
-	graph.WalkNodes(func(node sdk.GraphNode) bool {
+	graph.WalkNodes(func(node model.GraphNode) bool {
 		// The project's own artifacts are module nodes now (ADR-0041), and a
 		// module carries no origins at all -- which is the stronger form of
 		// what this case asserts.
-		if !sdk.IsProjectOwned(node) {
+		if !model.IsProjectOwned(node) {
 			return true
 		}
 		checked++
@@ -262,7 +263,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 	if !ok {
 		t.Fatal("expected helper in graph")
 	}
-	want := sdk.DependencyOrigin{Repository: "https://github.com/example/helper", Revision: "6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192"}
+	want := model.DependencyOrigin{Repository: "https://github.com/example/helper", Revision: "6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192"}
 	if got := originOf(helper); got != want {
 		t.Fatalf("helper origin = %+v, want %+v", got, want)
 	}
@@ -302,17 +303,17 @@ source = "git+https://token:s3cret@git.corp/a/helper#aaaabbbbccccddddeeeeffff000
 `)
 	manifest := []byte("[package]\nname = \"demo\"\nversion = \"0.1.0\"\n")
 
-	graph, err := depGraphFromLockWithScope(lock, manifest, sdk.Scope(""))
+	graph, err := depGraphFromLockWithScope(lock, manifest, model.Scope(""))
 	if err != nil {
 		t.Fatalf("depGraphFromLockWithScope() error = %v", err)
 	}
 
 	var helpers int
-	graph.WalkNodes(func(node sdk.GraphNode) bool {
+	graph.WalkNodes(func(node model.GraphNode) bool {
 		if strings.Contains(node.NodeID(), "s3cret") || strings.Contains(node.NodeID(), "git.corp") {
 			t.Fatalf("node ID %q embeds the raw source", node.NodeID())
 		}
-		if dep, ok := sdk.AsDependencyNode(node); ok && dep.Name == "helper" {
+		if dep, ok := model.AsDependencyNode(node); ok && dep.Name == "helper" {
 			helpers++
 		}
 		return true

@@ -3,31 +3,32 @@ package engine
 import (
 	"fmt"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // registryMatchRequest builds the matcher-facing graph without mutating the
 // complete pipeline graph or package registry retained for later stages.
-func registryMatchRequest(req sdk.MatchRequest) (sdk.MatchRequest, error) {
-	filtered := sdk.New()
+func registryMatchRequest(req plugin.MatchRequest) (plugin.MatchRequest, error) {
+	filtered := model.New()
 	if req.Graph == nil {
 		req.Graph = filtered
 		return req, nil
 	}
 
-	eligible := make(map[string]*sdk.DependencyNode)
+	eligible := make(map[string]*model.DependencyNode)
 	for _, dependency := range req.Graph.DependencyNodes() {
 		if !dependency.RegistryMatchEligible() {
 			continue
 		}
 		clone := dependency.Clone()
 		if err := filtered.AddNode(clone); err != nil {
-			return sdk.MatchRequest{}, fmt.Errorf("add registry-match dependency %q: %w", dependency.NodeID(), err)
+			return plugin.MatchRequest{}, fmt.Errorf("add registry-match dependency %q: %w", dependency.NodeID(), err)
 		}
 		eligible[dependency.NodeID()] = clone
 	}
 	var edgeErr error
-	req.Graph.WalkEdges(func(from, to sdk.GraphNode) bool {
+	req.Graph.WalkEdges(func(from, to model.GraphNode) bool {
 		if _, ok := eligible[from.NodeID()]; !ok {
 			return true
 		}
@@ -40,7 +41,7 @@ func registryMatchRequest(req sdk.MatchRequest) (sdk.MatchRequest, error) {
 		return edgeErr == nil
 	})
 	if edgeErr != nil {
-		return sdk.MatchRequest{}, edgeErr
+		return plugin.MatchRequest{}, edgeErr
 	}
 
 	if req.Target != nil {
@@ -48,7 +49,7 @@ func registryMatchRequest(req sdk.MatchRequest) (sdk.MatchRequest, error) {
 		if !ok {
 			// A targeted match must never widen to all other eligible
 			// packages when the requested node itself is ineligible.
-			req.Graph = sdk.New()
+			req.Graph = model.New()
 			req.Target = nil
 			return req, nil
 		}

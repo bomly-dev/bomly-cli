@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // swiftPMIdentity matches an `"identity": "foo"` line in
@@ -15,8 +16,8 @@ var swiftPMIdentity = regexp.MustCompile(`"identity"\s*:\s*"([^"]+)"`)
 var swiftPMRevision = regexp.MustCompile(`"revision"\s*:\s*"([^"]+)"`)
 var swiftPMVersion = regexp.MustCompile(`"version"\s*:\s*"([^"]+)"`)
 
-func packageResolvedPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func packageResolvedPositions(path, relPath string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	pendingName := ""
 	identityLine := 0
 	revisionLine := 0
@@ -30,7 +31,7 @@ func packageResolvedPositions(path, relPath string) map[string]*sdk.SourcePositi
 		}
 		if positionLine > 0 {
 			if _, exists := out[pendingName]; !exists {
-				out[pendingName] = &sdk.SourcePosition{File: relPath, Line: positionLine}
+				out[pendingName] = &model.SourcePosition{File: relPath, Line: positionLine}
 			}
 		}
 		pendingName = ""
@@ -55,7 +56,7 @@ func packageResolvedPositions(path, relPath string) map[string]*sdk.SourcePositi
 			return
 		}
 		if _, exists := out[pendingName]; !exists {
-			out[pendingName] = &sdk.SourcePosition{File: relPath, Line: line}
+			out[pendingName] = &model.SourcePosition{File: relPath, Line: line}
 		}
 		pendingName = ""
 		identityLine = 0
@@ -68,12 +69,12 @@ func packageResolvedPositions(path, relPath string) map[string]*sdk.SourcePositi
 // AttachPackageResolvedPositions wires Package.resolved line numbers
 // into the graph. Identity is matched case-insensitively because the
 // SwiftPM detector lowercases names on graph construction.
-func AttachPackageResolvedPositions(g *sdk.Graph, projectDir string) {
+func AttachPackageResolvedPositions(g *model.Graph, projectDir string) {
 	if g == nil || projectDir == "" {
 		return
 	}
 	candidates := resolvedCandidates
-	merged := make(map[string]*sdk.SourcePosition)
+	merged := make(map[string]*model.SourcePosition)
 	for _, rel := range candidates {
 		got := packageResolvedPositions(filepath.Join(projectDir, rel), filepath.ToSlash(rel))
 		for k, v := range got {
@@ -85,7 +86,7 @@ func AttachPackageResolvedPositions(g *sdk.Graph, projectDir string) {
 	if len(merged) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, merged, func(pkg *sdk.DependencyNode) string {
+	detectors.AttachPositions(g, merged, func(pkg *model.DependencyNode) string {
 		if pkg == nil {
 			return ""
 		}

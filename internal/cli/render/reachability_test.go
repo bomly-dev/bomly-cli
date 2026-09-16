@@ -7,7 +7,8 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	model "github.com/bomly-dev/bomly-sdk"
+
+	sdkmodel "github.com/bomly-dev/bomly-sdk/model"
 )
 
 // libPURL is the identity the fixture package mints: a Go module path always
@@ -15,30 +16,30 @@ import (
 const libPURL = "pkg:golang/example.com/lib@1.0.0"
 
 func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
-	g := model.New()
-	pkg := testnodes.Dep(model.Coordinates{Name: "example.com/lib", Version: "1.0.0", Ecosystem: model.EcosystemGo, PURL: libPURL})
+	g := sdkmodel.New()
+	pkg := testnodes.Dep(sdkmodel.Coordinates{Name: "example.com/lib", Version: "1.0.0", Ecosystem: sdkmodel.EcosystemGo, PURL: libPURL})
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}
-	registry := model.NewPackageRegistry()
+	registry := sdkmodel.NewPackageRegistry()
 	regPkg := registry.Ensure(libPURL)
 	regPkg.Name = "lib"
 	regPkg.Version = "1.0.0"
-	regPkg.Vulnerabilities = []model.Vulnerability{{
+	regPkg.Vulnerabilities = []sdkmodel.Vulnerability{{
 		ID:     "CVE-2024-0001",
 		Title:  "tls bypass",
 		Source: "osv",
-		Reachability: &model.Reachability{
-			Status:   model.ReachabilityReachable,
-			Tier:     model.TierSymbol,
+		Reachability: &sdkmodel.Reachability{
+			Status:   sdkmodel.ReachabilityReachable,
+			Tier:     sdkmodel.TierSymbol,
 			Analyzer: "govulncheck",
 		},
 	}}
-	findings := []model.Finding{
+	findings := []sdkmodel.Finding{
 		{
 			ID:              "CVE-2024-0001",
 			VulnerabilityID: "CVE-2024-0001",
-			Kind:            model.FindingKindVulnerability,
+			Kind:            sdkmodel.FindingKindVulnerability,
 			PackageRef:      libPURL,
 			Severity:        "high",
 			Title:           "tls bypass",
@@ -65,7 +66,7 @@ func TestScanMarkdownRendersReachabilityOnlyWhenEnabled(t *testing.T) {
 			Vulnerabilities: []output.VulnerabilityRef{{
 				ID:           "CVE-2024-0001",
 				Source:       "osv",
-				Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
+				Reachability: &sdkmodel.Reachability{Status: sdkmodel.ReachabilityReachable, Tier: sdkmodel.TierPackage},
 			}},
 		}},
 		Findings: []output.AuditFinding{{
@@ -103,7 +104,7 @@ func TestDiffTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 					Vulnerability: output.VulnerabilityRef{
 						ID:           "CVE-2024-0001",
 						Severity:     "high",
-						Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
+						Reachability: &sdkmodel.Reachability{Status: sdkmodel.ReachabilityReachable, Tier: sdkmodel.TierPackage},
 					},
 				}},
 			},
@@ -114,7 +115,7 @@ func TestDiffTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 			Vulnerabilities: []output.VulnerabilityRef{{
 				ID:           "CVE-2024-0001",
 				Severity:     "high",
-				Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
+				Reachability: &sdkmodel.Reachability{Status: sdkmodel.ReachabilityReachable, Tier: sdkmodel.TierPackage},
 			}},
 		}},
 		Audit: &output.DiffAudit{
@@ -167,7 +168,7 @@ func TestExplainTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 				ID:           "CVE-2024-0001",
 				Source:       "osv",
 				Severity:     "high",
-				Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
+				Reachability: &sdkmodel.Reachability{Status: sdkmodel.ReachabilityReachable, Tier: sdkmodel.TierPackage},
 			}},
 		}},
 		Findings: []output.AuditFinding{{
@@ -214,13 +215,13 @@ func TestExplainTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 }
 
 func TestScanOmitsReachabilityColumnWhenDisabled(t *testing.T) {
-	g := model.New()
-	pkg := testnodes.Dep(model.Coordinates{Name: "example.com/lib", Version: "1.0.0", Ecosystem: model.EcosystemGo})
+	g := sdkmodel.New()
+	pkg := testnodes.Dep(sdkmodel.Coordinates{Name: "example.com/lib", Version: "1.0.0", Ecosystem: sdkmodel.EcosystemGo})
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}
-	findings := []model.Finding{
-		{ID: "CVE-2024-0001", Kind: model.FindingKindVulnerability, PackageRef: pkg.NodeID(), Severity: "high", Title: "x", Source: "osv"},
+	findings := []sdkmodel.Finding{
+		{ID: "CVE-2024-0001", Kind: sdkmodel.FindingKindVulnerability, PackageRef: pkg.NodeID(), Severity: "high", Title: "x", Source: "osv"},
 	}
 	out := Scan(g, nil, findings, nil, true, true, false, nil, nil, nil)
 	// Compact text format never shows a REACHABILITY column; detailed info is in JSON/Markdown.
@@ -235,13 +236,13 @@ func TestScanOmitsReachabilityColumnWhenDisabled(t *testing.T) {
 func TestFormatReachabilityCell(t *testing.T) {
 	cases := []struct {
 		name string
-		in   *model.Reachability
+		in   *sdkmodel.Reachability
 		want string
 	}{
 		{"nil", nil, "-"},
-		{"reachable+symbol", &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierSymbol}, "reachable (symbol)"},
-		{"unknown+none", &model.Reachability{Status: model.ReachabilityUnknown, Tier: model.TierNone}, "unknown"},
-		{"unreachable, no tier", &model.Reachability{Status: model.ReachabilityUnreachable}, "unreachable"},
+		{"reachable+symbol", &sdkmodel.Reachability{Status: sdkmodel.ReachabilityReachable, Tier: sdkmodel.TierSymbol}, "reachable (symbol)"},
+		{"unknown+none", &sdkmodel.Reachability{Status: sdkmodel.ReachabilityUnknown, Tier: sdkmodel.TierNone}, "unknown"},
+		{"unreachable, no tier", &sdkmodel.Reachability{Status: sdkmodel.ReachabilityUnreachable}, "unreachable"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

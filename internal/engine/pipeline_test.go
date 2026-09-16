@@ -7,19 +7,21 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 type fakeRemediationDetector struct {
 	fakeDetector
-	hints sdk.RemediationHintResponse
+	hints plugin.RemediationHintResponse
 }
 
 func (f fakeRemediationDetector) RemediationHints(
 	context.Context,
-	sdk.RemediationHintRequest,
-) (sdk.RemediationHintResponse, error) {
+	plugin.RemediationHintRequest,
+) (plugin.RemediationHintResponse, error) {
 	return f.hints, nil
 }
 
@@ -40,14 +42,14 @@ func (p *recordingProgress) Detail(label, detail string) {
 
 func TestResolveDetectors_RunsMatchingDetector(t *testing.T) {
 	registry := newTestRegistry()
-	nativeGraph := sdk.New()
+	nativeGraph := model.New()
 	if err := nativeGraph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(nativeGraph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(nativeGraph, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
@@ -69,14 +71,14 @@ func TestResolveDetectors_RunsMatchingDetector(t *testing.T) {
 
 func TestResolveDetectors_ReportsDetectorDetail(t *testing.T) {
 	registry := newTestRegistry()
-	graph := sdk.New()
+	graph := model.New()
 	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
 
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(graph, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 
 	progress := &recordingProgress{}
@@ -105,7 +107,7 @@ func TestResolveDetectors_ReportsDetectorDetail(t *testing.T) {
 
 func TestResolveDetectors_FallsBackWhenPrimaryFails(t *testing.T) {
 	registry := newTestRegistry()
-	fallbackGraph := sdk.New()
+	fallbackGraph := model.New()
 	if err := fallbackGraph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
@@ -116,7 +118,7 @@ func TestResolveDetectors_FallsBackWhenPrimaryFails(t *testing.T) {
 	})
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, model.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
@@ -138,7 +140,7 @@ func TestResolveDetectors_FallsBackWhenPrimaryFails(t *testing.T) {
 
 func TestResolveDetectors_DoesNotRunExcludedFallback(t *testing.T) {
 	registry := newTestRegistry()
-	fallbackGraph := sdk.New()
+	fallbackGraph := model.New()
 	if err := fallbackGraph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
@@ -149,7 +151,7 @@ func TestResolveDetectors_DoesNotRunExcludedFallback(t *testing.T) {
 	})
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, model.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
@@ -246,7 +248,7 @@ func TestResolveDetectors_KeepsRunFailuresVerbatim(t *testing.T) {
 
 func TestPipeline_UsesPlannedDetectorChainWithoutEagerFallbackExecution(t *testing.T) {
 	registry := newTestRegistry()
-	fallbackGraph := sdk.New()
+	fallbackGraph := model.New()
 	if err := fallbackGraph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
@@ -262,16 +264,16 @@ func TestPipeline_UsesPlannedDetectorChainWithoutEagerFallbackExecution(t *testi
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{
 			Name:      "syft-detector",
-			Technique: sdk.MultipleTechnique,
+			Technique: plugin.MultipleTechnique,
 		},
-		result: ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
+		result: ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, model.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
 	})
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{
 			Name:      "syft-detector",
-			Technique: sdk.MultipleTechnique,
+			Technique: plugin.MultipleTechnique,
 		},
-		result: ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
+		result: ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, model.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
@@ -300,7 +302,7 @@ func TestPipeline_UsesPlannedDetectorChainWithoutEagerFallbackExecution(t *testi
 
 func TestPipeline_DoesNotEnableDetectorEnrichmentForAuditOnly(t *testing.T) {
 	registry := newTestRegistry()
-	graph := sdk.New()
+	graph := model.New()
 	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
@@ -309,11 +311,11 @@ func TestPipeline_DoesNotEnableDetectorEnrichmentForAuditOnly(t *testing.T) {
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{
 			Name:                "syft-detector",
-			Technique:           sdk.MultipleTechnique,
+			Technique:           plugin.MultipleTechnique,
 			SupportedEcosystems: []Ecosystem{EcosystemNPM},
 			SupportedManagers:   []PackageManager{PackageManagerNPM},
 		},
-		result: ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		result: ResolveGraphResult{Graphs: SingleGraphContainer(graph, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 		onResolve: func(req ResolveGraphRequest) {
 			seen = true
 			if req.EnrichmentEnabled {
@@ -333,8 +335,8 @@ func TestPipeline_DoesNotEnableDetectorEnrichmentForAuditOnly(t *testing.T) {
 			Ecosystem:               EcosystemNPM,
 		}},
 		AuditEnabled: true,
-		FindingPolicyResolvers: []sdk.FindingPolicyResolver{
-			fixedPolicyResolver{status: sdk.FindingPolicyStatusSuppressed},
+		FindingPolicyResolvers: []model.FindingPolicyResolver{
+			fixedPolicyResolver{status: model.FindingPolicyStatusSuppressed},
 		},
 	})
 	if err != nil {
@@ -347,7 +349,7 @@ func TestPipeline_DoesNotEnableDetectorEnrichmentForAuditOnly(t *testing.T) {
 
 func TestPipeline_ThreadsEnrichEnabledIntoResolveRequest(t *testing.T) {
 	registry := newTestRegistry()
-	graph := sdk.New()
+	graph := model.New()
 	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
@@ -356,11 +358,11 @@ func TestPipeline_ThreadsEnrichEnabledIntoResolveRequest(t *testing.T) {
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{
 			Name:                "syft-detector",
-			Technique:           sdk.MultipleTechnique,
+			Technique:           plugin.MultipleTechnique,
 			SupportedEcosystems: []Ecosystem{EcosystemNPM},
 			SupportedManagers:   []PackageManager{PackageManagerNPM},
 		},
-		result: ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		result: ResolveGraphResult{Graphs: SingleGraphContainer(graph, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 		onResolve: func(req ResolveGraphRequest) {
 			seen = true
 			if !req.EnrichmentEnabled {
@@ -400,10 +402,10 @@ func TestPipeline_ThreadsScopeFilterIntoPrimaryAndFiltersResult(t *testing.T) {
 			SupportedEcosystems: []Ecosystem{EcosystemNPM},
 			SupportedManagers:   []PackageManager{PackageManagerNPM},
 		},
-		result: ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		result: ResolveGraphResult{Graphs: SingleGraphContainer(graph, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 		onResolve: func(req ResolveGraphRequest) {
 			seen = true
-			if req.ScopeFilter != sdk.ScopeDevelopment {
+			if req.ScopeFilter != model.ScopeDevelopment {
 				t.Fatalf("expected development scope in detector request, got %q", req.ScopeFilter)
 			}
 		},
@@ -418,7 +420,7 @@ func TestPipeline_ThreadsScopeFilterIntoPrimaryAndFiltersResult(t *testing.T) {
 			DetectedPackageManagers: []PackageManager{PackageManagerNPM},
 			Ecosystem:               EcosystemNPM,
 		}},
-		ScopeFilter: sdk.ScopeDevelopment,
+		ScopeFilter: model.ScopeDevelopment,
 	})
 	if err != nil {
 		t.Fatalf("Run() error = %v", err)
@@ -445,10 +447,10 @@ func TestPipeline_ThreadsScopeFilterIntoFallbackDetector(t *testing.T) {
 	})
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-lockfile", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 		onResolve: func(req ResolveGraphRequest) {
 			seenFallback = true
-			if req.ScopeFilter != sdk.ScopeRuntime {
+			if req.ScopeFilter != model.ScopeRuntime {
 				t.Fatalf("expected runtime scope in fallback request, got %q", req.ScopeFilter)
 			}
 		},
@@ -457,7 +459,7 @@ func TestPipeline_ThreadsScopeFilterIntoFallbackDetector(t *testing.T) {
 	results, err := NewPipeline(registry, zap.NewNop()).resolveDetectors(context.Background(), ResolveGraphRequest{
 		Ecosystem:      EcosystemNPM,
 		PackageManager: PackageManagerNPM,
-		ScopeFilter:    sdk.ScopeRuntime,
+		ScopeFilter:    model.ScopeRuntime,
 	}, registry.Detectors(ResolveGraphRequest{PackageManager: PackageManagerNPM}), nil)
 	if err != nil {
 		t.Fatalf("resolveDetectors() error = %v", err)
@@ -484,14 +486,14 @@ func TestPipeline_ThreadsScopeFilterIntoInstallFirstDetector(t *testing.T) {
 		fakeDetector: fakeDetector{
 			descriptor: DetectorDescriptor{
 				Name:                 "pip-detector",
-				SupportedEcosystems:  []Ecosystem{sdk.EcosystemPython},
-				SupportedManagers:    []PackageManager{sdk.PackageManagerPip},
+				SupportedEcosystems:  []Ecosystem{model.EcosystemPython},
+				SupportedManagers:    []PackageManager{model.PackageManagerPip},
 				SupportsInstallFirst: true,
 			},
-			result: ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "requirements.txt", Kind: "requirements.txt"})},
+			result: ResolveGraphResult{Graphs: SingleGraphContainer(graph, model.ManifestMetadata{Path: "requirements.txt", Kind: "requirements.txt"})},
 		},
 		onInstall: func(req ResolveGraphRequest) {
-			if req.ScopeFilter != sdk.ScopeRuntime {
+			if req.ScopeFilter != model.ScopeRuntime {
 				t.Fatalf("expected runtime scope in install-first request, got %q", req.ScopeFilter)
 			}
 		},
@@ -504,10 +506,10 @@ func TestPipeline_ThreadsScopeFilterIntoInstallFirstDetector(t *testing.T) {
 			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
 			RelativePath:            ".",
 			PrimaryDetector:         "pip-detector",
-			DetectedPackageManagers: []PackageManager{sdk.PackageManagerPip},
-			Ecosystem:               sdk.EcosystemPython,
+			DetectedPackageManagers: []PackageManager{model.PackageManagerPip},
+			Ecosystem:               model.EcosystemPython,
 		}},
-		ScopeFilter:  sdk.ScopeRuntime,
+		ScopeFilter:  model.ScopeRuntime,
 		InstallFirst: true,
 	}); err != nil {
 		t.Fatalf("Run() error = %v", err)
@@ -517,13 +519,13 @@ func TestPipeline_ThreadsScopeFilterIntoInstallFirstDetector(t *testing.T) {
 	}
 }
 
-func scopedTestGraph(t *testing.T) *sdk.Graph {
+func scopedTestGraph(t *testing.T) *model.Graph {
 	t.Helper()
-	graph := sdk.New()
-	app := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	runtimeDep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
-	devDep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0", PURL: "pkg:npm/vitest@2.0.0"}, Scopes: sdk.ScopesOf(sdk.ScopeDevelopment)})
-	for _, dep := range []*sdk.DependencyNode{app, runtimeDep, devDep} {
+	graph := model.New()
+	app := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: model.PackageTypeApplication}})
+	runtimeDep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"}, Scopes: model.ScopesOf(model.ScopeRuntime)})
+	devDep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0", PURL: "pkg:npm/vitest@2.0.0"}, Scopes: model.ScopesOf(model.ScopeDevelopment)})
+	for _, dep := range []*model.DependencyNode{app, runtimeDep, devDep} {
 		if err := graph.AddNode(dep); err != nil {
 			t.Fatalf("add %q: %v", dep.NodeID(), err)
 		}
@@ -543,7 +545,7 @@ func scopedTestGraph(t *testing.T) *sdk.Graph {
 
 func TestPipeline_Run_ProducesConsolidatedResult(t *testing.T) {
 	registry := newTestRegistry()
-	g := sdk.New()
+	g := model.New()
 	if err := g.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
@@ -556,7 +558,7 @@ func TestPipeline_Run_ProducesConsolidatedResult(t *testing.T) {
 
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
@@ -586,28 +588,28 @@ func TestPipeline_Run_ProducesConsolidatedResult(t *testing.T) {
 func TestPipeline_Run_DerivesCanonicalRemediationAtEndOfEnrichment(t *testing.T) {
 	const purl = "pkg:npm/react@18.2.0"
 	registry := newTestRegistry()
-	graph := sdk.New()
-	root := testnodes.DepFrom(sdk.DependencyNode{
-		Coordinates: sdk.Coordinates{
+	graph := model.New()
+	root := testnodes.DepFrom(model.DependencyNode{
+		Coordinates: model.Coordinates{
 			Name:           "app",
-			Type:           sdk.PackageTypeApplication,
-			PackageManager: sdk.PackageManagerNPM,
+			Type:           model.PackageTypeApplication,
+			PackageManager: model.PackageManagerNPM,
 		},
-		Relationship: sdk.DependencyRelationshipDirect,
-		Source:       sdk.DependencySourceProject,
+		Relationship: model.DependencyRelationshipDirect,
+		Source:       model.DependencySourceProject,
 	})
-	dependency := testnodes.DepFrom(sdk.DependencyNode{
-		Coordinates: sdk.Coordinates{
+	dependency := testnodes.DepFrom(model.DependencyNode{
+		Coordinates: model.Coordinates{
 			Name:           "react",
 			Version:        "18.2.0",
 			PURL:           purl,
-			PackageManager: sdk.PackageManagerNPM,
+			PackageManager: model.PackageManagerNPM,
 		},
-		Relationship: sdk.DependencyRelationshipDirect,
-		Source:       sdk.DependencySourceRegistry,
+		Relationship: model.DependencyRelationshipDirect,
+		Source:       model.DependencySourceRegistry,
 		PackageRef:   purl,
 	})
-	for _, node := range []*sdk.DependencyNode{root, dependency} {
+	for _, node := range []*model.DependencyNode{root, dependency} {
 		if err := graph.AddNode(node); err != nil {
 			t.Fatalf("AddNode(%s) error = %v", node.NodeID(), err)
 		}
@@ -621,28 +623,28 @@ func TestPipeline_Run_DerivesCanonicalRemediationAtEndOfEnrichment(t *testing.T)
 				Name:                "npm-detector",
 				SupportedEcosystems: []Ecosystem{EcosystemNPM},
 				SupportedManagers:   []PackageManager{PackageManagerNPM},
-				RemediationCapabilities: []sdk.RemediationCapability{{
-					SupportedManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-					Actions:           []sdk.RemediationAction{sdk.RemediationActionDirectBump},
+				RemediationCapabilities: []plugin.RemediationCapability{{
+					SupportedManagers: []model.PackageManager{model.PackageManagerNPM},
+					Actions:           []model.RemediationAction{model.RemediationActionDirectBump},
 				}},
 			},
 			result: ResolveGraphResult{Graphs: SingleGraphContainer(
 				graph,
-				sdk.ManifestMetadata{Path: "/repo/package-lock.json", Kind: "package-lock.json"},
+				model.ManifestMetadata{Path: "/repo/package-lock.json", Kind: "package-lock.json"},
 			)},
 		},
-		hints: sdk.RemediationHintResponse{Hints: []sdk.RemediationHint{{
+		hints: plugin.RemediationHintResponse{Hints: []plugin.RemediationHint{{
 			DependencyRef: dependency.NodeID(),
 			ManifestPath:  "/repo/package-lock.json",
-			Strategies: []sdk.RemediationStrategyHint{{
-				Action: sdk.RemediationActionDirectBump,
+			Strategies: []plugin.RemediationStrategyHint{{
+				Action: model.RemediationActionDirectBump,
 			}},
 		}}},
 	})
 	registry.registerMatcher(fakeMatcher{
 		name: "vulnerability-matcher",
-		run: func(packages *sdk.PackageRegistry) {
-			packages.Ensure(purl).Vulnerabilities = []sdk.Vulnerability{{
+		run: func(packages *model.PackageRegistry) {
+			packages.Ensure(purl).Vulnerabilities = []model.Vulnerability{{
 				ID:      "GHSA-example",
 				FixedIn: "19.0.0",
 			}}
@@ -667,10 +669,10 @@ func TestPipeline_Run_DerivesCanonicalRemediationAtEndOfEnrichment(t *testing.T)
 	if !ok || pkg.Remediation == nil {
 		t.Fatalf("canonical remediation missing: %#v", pkg)
 	}
-	if pkg.Remediation.Status != sdk.PackageRemediationComplete ||
+	if pkg.Remediation.Status != model.PackageRemediationComplete ||
 		pkg.Remediation.RecommendedVersion != "19.0.0" ||
 		len(pkg.Remediation.Suggestions) != 1 ||
-		pkg.Remediation.Suggestions[0].Action != sdk.RemediationActionDirectBump ||
+		pkg.Remediation.Suggestions[0].Action != model.RemediationActionDirectBump ||
 		pkg.Remediation.Suggestions[0].ManifestPath != "package-lock.json" {
 		t.Fatalf("canonical remediation = %#v; warnings = %#v", pkg.Remediation, result.MatchWarnings)
 	}
@@ -678,8 +680,8 @@ func TestPipeline_Run_DerivesCanonicalRemediationAtEndOfEnrichment(t *testing.T)
 
 func TestPipeline_Run_DeduplicatesAuditFindings(t *testing.T) {
 	registry := newTestRegistry()
-	g := sdk.New()
-	pkg := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	g := model.New()
+	pkg := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm",
 		Name:    "react",
 		Version: "18.2.0",
 		PURL:    "pkg:npm/react@18.2.0"},
@@ -689,13 +691,13 @@ func TestPipeline_Run_DeduplicatesAuditFindings(t *testing.T) {
 	}
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 	registry.registerAuditor(fakeAuditor{
 		descriptor: AuditorDescriptor{Name: "severity-policy"},
 		result: AuditResult{Findings: []Finding{
-			{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "osv", PackageRef: pkg.NodeID()},
-			{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "grype", PackageRef: pkg.NodeID()},
+			{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: model.FindingKindVulnerability, Source: "osv", PackageRef: pkg.NodeID()},
+			{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: model.FindingKindVulnerability, Source: "grype", PackageRef: pkg.NodeID()},
 		}},
 	})
 
@@ -708,8 +710,8 @@ func TestPipeline_Run_DeduplicatesAuditFindings(t *testing.T) {
 			Ecosystem:               EcosystemNPM,
 		}},
 		AuditEnabled: true,
-		FindingPolicyResolvers: []sdk.FindingPolicyResolver{
-			fixedPolicyResolver{status: sdk.FindingPolicyStatusSuppressed},
+		FindingPolicyResolvers: []model.FindingPolicyResolver{
+			fixedPolicyResolver{status: model.FindingPolicyStatusSuppressed},
 		},
 	})
 	if err != nil {
@@ -721,16 +723,16 @@ func TestPipeline_Run_DeduplicatesAuditFindings(t *testing.T) {
 	if result.Findings[0].Source != "grype" {
 		t.Fatalf("expected grype finding to win, got %#v", result.Findings[0])
 	}
-	if result.Findings[0].PolicyStatus != sdk.FindingPolicyStatusSuppressed {
+	if result.Findings[0].PolicyStatus != model.FindingPolicyStatusSuppressed {
 		t.Fatalf("expected scan audit policy resolver to suppress finding, got %#v", result.Findings[0])
 	}
 }
 
 func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testing.T) {
 	registry := newTestRegistry()
-	g := sdk.New()
-	app := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"}})
-	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "dep", Version: "2.0.0", PURL: "pkg:npm/dep@2.0.0"}})
+	g := model.New()
+	app := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"}})
+	dep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "dep", Version: "2.0.0", PURL: "pkg:npm/dep@2.0.0"}})
 	if err := g.AddNode(app); err != nil {
 		t.Fatalf("add app: %v", err)
 	}
@@ -742,13 +744,13 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 	}
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 	registry.registerMatcher(fakeMatcher{
 		name: "license-matcher",
-		run: func(reg *sdk.PackageRegistry) {
+		run: func(reg *model.PackageRegistry) {
 			pkg := reg.Ensure(dep.NodeID())
-			pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
+			pkg.Licenses = []model.PackageLicense{{SPDXExpression: "MIT"}}
 		},
 	})
 	registry.registerAuditor(fakeAuditor{
@@ -757,7 +759,7 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 			if req.Target == nil || !testnodes.Is(req.Target, dep.NodeID()) {
 				t.Fatalf("expected component target %q, got %#v", dep.NodeID(), req.Target)
 			}
-			return AuditResult{Findings: []Finding{{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "osv", PackageRef: req.Target.NodeID()}}}
+			return AuditResult{Findings: []Finding{{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: model.FindingKindVulnerability, Source: "osv", PackageRef: req.Target.NodeID()}}}
 		},
 	})
 
@@ -774,8 +776,8 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 			}},
 			EnrichEnabled: true,
 			AuditEnabled:  true,
-			FindingPolicyResolvers: []sdk.FindingPolicyResolver{
-				fixedPolicyResolver{status: sdk.FindingPolicyStatusSuppressed},
+			FindingPolicyResolvers: []model.FindingPolicyResolver{
+				fixedPolicyResolver{status: model.FindingPolicyStatusSuppressed},
 			},
 		},
 	}
@@ -796,7 +798,7 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 	if len(result.Targets[0].Findings) != 1 || len(result.Findings) != 1 {
 		t.Fatalf("expected component audit findings, target=%#v all=%#v", result.Targets[0].Findings, result.Findings)
 	}
-	if result.Findings[0].PolicyStatus != sdk.FindingPolicyStatusSuppressed || result.Targets[0].Findings[0].PolicyStatus != sdk.FindingPolicyStatusSuppressed {
+	if result.Findings[0].PolicyStatus != model.FindingPolicyStatusSuppressed || result.Targets[0].Findings[0].PolicyStatus != model.FindingPolicyStatusSuppressed {
 		t.Fatalf("explain findings did not apply audit policy resolver: target=%#v all=%#v", result.Targets[0].Findings, result.Findings)
 	}
 	if result.FocusedGraph == nil || result.FocusedGraph.Size() != 2 {
@@ -809,20 +811,20 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 	if err != nil {
 		t.Fatalf("RunExplain(warn-only) error = %v", err)
 	}
-	if len(warnOnly.Findings) != 1 || warnOnly.Findings[0].PolicyStatus != sdk.FindingPolicyStatusWarn {
+	if len(warnOnly.Findings) != 1 || warnOnly.Findings[0].PolicyStatus != model.FindingPolicyStatusWarn {
 		t.Fatalf("explain warn-only findings = %#v", warnOnly.Findings)
 	}
 }
 
 func TestPipeline_RunExplain_ReturnsNotFoundWhenQueryIsAbsent(t *testing.T) {
 	registry := newTestRegistry()
-	g := sdk.New()
-	if err := g.AddNode(testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0"}})); err != nil {
+	g := model.New()
+	if err := g.AddNode(testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0"}})); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 
 	_, err := NewPipeline(registry, zap.NewNop()).RunExplain(context.Background(), ExplainRequest{
@@ -844,7 +846,7 @@ func TestPipeline_RunExplain_UsesScopedDetectionResult(t *testing.T) {
 	registry := newTestRegistry()
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(scopedTestGraph(t), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(scopedTestGraph(t), model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 
 	baseReq := PipelineRequest{
@@ -855,7 +857,7 @@ func TestPipeline_RunExplain_UsesScopedDetectionResult(t *testing.T) {
 			DetectedPackageManagers: []PackageManager{PackageManagerNPM},
 			Ecosystem:               EcosystemNPM,
 		}},
-		ScopeFilter: sdk.ScopeDevelopment,
+		ScopeFilter: model.ScopeDevelopment,
 	}
 	result, err := NewPipeline(registry, zap.NewNop()).RunExplain(context.Background(), ExplainRequest{
 		Query:    "vitest",
@@ -882,15 +884,15 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	const reactPURL = "pkg:npm/react@18.2.0"
 	registry.registerMatcher(fakeMatcher{
 		name: "license-matcher",
-		run: func(reg *sdk.PackageRegistry) {
+		run: func(reg *model.PackageRegistry) {
 			pkg := reg.Ensure(reactPURL)
-			pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
+			pkg.Licenses = []model.PackageLicense{{SPDXExpression: "MIT"}}
 			pkg.Metadata = map[string]any{"endoflife.date": map[string]any{"status": "supported"}}
 		},
 	})
 
-	nativeGraph := sdk.New()
-	nativeApp := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	nativeGraph := model.New()
+	nativeApp := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "app",
 		Version:        "1.0.0",
@@ -899,7 +901,7 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	if err := nativeGraph.AddNode(nativeApp); err != nil {
 		t.Fatalf("add native app: %v", err)
 	}
-	nativeReact := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	nativeReact := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "react",
 		Version:        "18.2.0",
@@ -912,8 +914,8 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 		t.Fatalf("add native dependency: %v", err)
 	}
 
-	sbomGraph := sdk.New()
-	if err := sbomGraph.AddNode(testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	sbomGraph := model.New()
+	if err := sbomGraph.AddNode(testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "app",
 		Version:        "1.0.0",
@@ -921,7 +923,7 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	})); err != nil {
 		t.Fatalf("add sbom app: %v", err)
 	}
-	if err := sbomGraph.AddNode(testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+	if err := sbomGraph.AddNode(testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "react",
 		Version:        "18.2.0",
@@ -937,11 +939,11 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(nativeGraph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(nativeGraph, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "sbom-detector", SupportedEcosystems: []Ecosystem{EcosystemSBOM}, SupportedManagers: []PackageManager{PackageManagerSBOM}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(sbomGraph, sdk.ManifestMetadata{Path: "app.spdx.json", Kind: "spdx"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(sbomGraph, model.ManifestMetadata{Path: "app.spdx.json", Kind: "spdx"})},
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
@@ -1061,13 +1063,13 @@ func TestPipelineWarningsFromError_JoinedErrors(t *testing.T) {
 
 func TestPipeline_Run_CollectsDetectorReportedWarnings(t *testing.T) {
 	registry := newTestRegistry()
-	graph := sdk.New()
+	graph := model.New()
 	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
-	warning := sdk.DetectorWarning{
-		Type:     sdk.DetectorWarningPackageManager,
-		Code:     sdk.DetectorWarningCodeInstallGate,
+	warning := plugin.DetectorWarning{
+		Type:     plugin.DetectorWarningPackageManager,
+		Code:     plugin.DetectorWarningCodeInstallGate,
 		Source:   "pnpm",
 		Manifest: "pnpm-workspace.yaml",
 		Message:  "pnpm-workspace.yaml sets minimumReleaseAge=1440 (24h)",
@@ -1075,8 +1077,8 @@ func TestPipeline_Run_CollectsDetectorReportedWarnings(t *testing.T) {
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "pnpm-lockfile", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerPNPM}},
 		result: ResolveGraphResult{
-			Graphs:   SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "pnpm-lock.yaml", Kind: "pnpm-lock.yaml"}),
-			Warnings: []sdk.DetectorWarning{warning},
+			Graphs:   SingleGraphContainer(graph, model.ManifestMetadata{Path: "pnpm-lock.yaml", Kind: "pnpm-lock.yaml"}),
+			Warnings: []plugin.DetectorWarning{warning},
 		},
 	})
 
@@ -1108,21 +1110,21 @@ func TestPipeline_Run_CollectsDetectorReportedWarnings(t *testing.T) {
 
 func TestPipeline_Run_DeduplicatesRepeatedDetectorWarnings(t *testing.T) {
 	registry := newTestRegistry()
-	graph := sdk.New()
+	graph := model.New()
 	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
-	warning := sdk.DetectorWarning{
-		Type:    sdk.DetectorWarningPackageManager,
-		Code:    sdk.DetectorWarningCodeInstallGate,
+	warning := plugin.DetectorWarning{
+		Type:    plugin.DetectorWarningPackageManager,
+		Code:    plugin.DetectorWarningCodeInstallGate,
 		Source:  "npm",
 		Message: ".npmrc sets before=2026-01-01",
 	}
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-lockfile", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result: ResolveGraphResult{
-			Graphs:   SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "package-lock.json"}),
-			Warnings: []sdk.DetectorWarning{warning, warning},
+			Graphs:   SingleGraphContainer(graph, model.ManifestMetadata{Path: "package-lock.json"}),
+			Warnings: []plugin.DetectorWarning{warning, warning},
 		},
 	})
 
@@ -1146,7 +1148,7 @@ func TestPipeline_Run_DeduplicatesRepeatedDetectorWarnings(t *testing.T) {
 
 func TestPipeline_Run_TypesFallbackWarningsAsDegradedCoverage(t *testing.T) {
 	registry := newTestRegistry()
-	fallbackGraph := sdk.New()
+	fallbackGraph := model.New()
 	if err := fallbackGraph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
@@ -1156,7 +1158,7 @@ func TestPipeline_Run_TypesFallbackWarningsAsDegradedCoverage(t *testing.T) {
 	})
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemMaven}, SupportedManagers: []PackageManager{PackageManagerMaven}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"})},
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
@@ -1176,7 +1178,7 @@ func TestPipeline_Run_TypesFallbackWarningsAsDegradedCoverage(t *testing.T) {
 		t.Fatalf("expected 1 fallback warning, got %+v", result.DetectorWarnings)
 	}
 	got := result.DetectorWarnings[0]
-	if got.Type != sdk.DetectorWarningFallback || got.Source != "maven-detector" || got.Manifest != "pom.xml" {
+	if got.Type != plugin.DetectorWarningFallback || got.Source != "maven-detector" || got.Manifest != "pom.xml" {
 		t.Fatalf("unexpected fallback warning: %+v", got)
 	}
 	if !got.DegradesCoverage() {

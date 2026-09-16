@@ -7,17 +7,18 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 	in := remediationFixture(t)
-	baseRegistry := sdk.NewPackageRegistry()
-	baseRegistry.Add(&sdk.Package{
-		Coordinates: sdk.Coordinates{PURL: "pkg:npm/old-lib@0.9.0", Name: "old-lib", Version: "0.9.0", Ecosystem: sdk.EcosystemNPM},
-		Vulnerabilities: []sdk.Vulnerability{{
-			ID: "GHSA-resolved", Source: "osv", ParsedSeverity: sdk.SeverityHigh,
-			FixState: sdk.FixStateFixed, FixedIn: "1.0.0",
+	baseRegistry := model.NewPackageRegistry()
+	baseRegistry.Add(&model.Package{
+		Coordinates: model.Coordinates{PURL: "pkg:npm/old-lib@0.9.0", Name: "old-lib", Version: "0.9.0", Ecosystem: model.EcosystemNPM},
+		Vulnerabilities: []model.Vulnerability{{
+			ID: "GHSA-resolved", Source: "osv", ParsedSeverity: model.SeverityHigh,
+			FixState: model.FixStateFixed, FixedIn: "1.0.0",
 		}},
 	})
 
@@ -32,7 +33,7 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 						Version:          "1.0.0",
 						Purl:             "pkg:npm/lib-a@1.0.0",
 						Relationship:     "direct",
-						Source:           sdk.DependencySourceRegistry,
+						Source:           model.DependencySourceRegistry,
 						RegistryEligible: true,
 					},
 					After: output.DiffDependencyTransitionState{
@@ -40,13 +41,13 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 						Version:          "1.0.0",
 						Purl:             "pkg:npm/lib-a@1.0.0",
 						Relationship:     "transitive",
-						Source:           sdk.DependencySourceGit,
+						Source:           model.DependencySourceGit,
 						RegistryEligible: false,
 					},
-					ChangedFields: []sdk.DependencyDetailField{
-						sdk.DependencyDetailRelationship,
-						sdk.DependencyDetailSource,
-						sdk.DependencyDetailRegistryEligibility,
+					ChangedFields: []model.DependencyDetailField{
+						model.DependencyDetailRelationship,
+						model.DependencyDetailSource,
+						model.DependencyDetailRegistryEligibility,
 					},
 				}},
 			}},
@@ -54,11 +55,11 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 		},
 		// lib-a's finding is introduced by head; deep's persists; the
 		// old-lib finding only existed on base (resolved by this ref).
-		Introduced: []sdk.Finding{in.Findings[0]},
-		Persisted:  []sdk.Finding{in.Findings[1]},
-		Resolved: []sdk.Finding{{
+		Introduced: []model.Finding{in.Findings[0]},
+		Persisted:  []model.Finding{in.Findings[1]},
+		Resolved: []model.Finding{{
 			ID: "GHSA-resolved", VulnerabilityID: "GHSA-resolved",
-			Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityHigh,
+			Kind: model.FindingKindVulnerability, Severity: model.SeverityHigh,
 			Source: "osv", Auditor: "vulnerability", PackageRef: "pkg:npm/old-lib@0.9.0",
 		}},
 		HeadGraph:     in.Graph,
@@ -95,7 +96,7 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 	}
 	if len(compact.Informational) != 1 ||
 		compact.Informational[0].Package.Name != "legacy" ||
-		compact.Informational[0].PolicyStatus != string(sdk.FindingPolicyStatusSuppressed) {
+		compact.Informational[0].PolicyStatus != string(model.FindingPolicyStatusSuppressed) {
 		t.Fatalf("audit-omitted vulnerability was not retained as informational: %#v",
 			compact.Informational)
 	}
@@ -116,7 +117,7 @@ func TestBuildCompactDiffBucketsAndRemediation(t *testing.T) {
 		t.Fatalf("compact detail-change names are inconsistent: %s", encoded)
 	}
 	if compact.Transitions[0].Before.Relationship != "direct" ||
-		compact.Transitions[0].After.Source != sdk.DependencySourceGit ||
+		compact.Transitions[0].After.Source != model.DependencySourceGit ||
 		compact.Transitions[0].After.RegistryEligible {
 		t.Fatalf("dependency detail-change evidence wrong: %#v", compact.Transitions[0])
 	}
@@ -133,7 +134,7 @@ func TestBuildCompactDiffCapsDependencyTransitions(t *testing.T) {
 			After: output.DiffDependencyTransitionState{
 				Name: name, Purl: "pkg:npm/" + name + "@1.0.0", Relationship: "transitive",
 			},
-			ChangedFields: []sdk.DependencyDetailField{sdk.DependencyDetailRelationship},
+			ChangedFields: []model.DependencyDetailField{model.DependencyDetailRelationship},
 		})
 	}
 	compact := BuildCompactDiff(DiffRunResult{Response: output.DiffResponse{
@@ -181,7 +182,7 @@ func TestBuildCompactExplainAttachesRemediationAndDetail(t *testing.T) {
 			Command: "explain",
 			Query:   output.ExplainQuery{Name: "@scope/deep"},
 			Targets: []output.ExplainTargetResponse{{
-				PackageManager: sdk.PackageManagerNPM,
+				PackageManager: model.PackageManagerNPM,
 				Dependency: output.ExplainDependency{PackageRef: output.PackageRef{
 					Name:            "@scope/deep",
 					Version:         "2.0.0",
@@ -286,7 +287,7 @@ func TestBuildCompactExplainTreatsAuditOmissionAsSuppressed(t *testing.T) {
 		},
 		// Audit omitted lib-a as if the advisory were allowed or below
 		// --fail-on. Other findings are irrelevant to the focused package.
-		Findings:  append([]sdk.Finding(nil), in.Findings[1:]...),
+		Findings:  append([]model.Finding(nil), in.Findings[1:]...),
 		Graph:     in.Graph,
 		Registry:  in.Registry,
 		Manifests: in.Manifests,
@@ -300,15 +301,15 @@ func TestBuildCompactExplainTreatsAuditOmissionAsSuppressed(t *testing.T) {
 		t.Fatalf("audit-suppressed explain finding became actionable: %#v", match.Remediations)
 	}
 	for _, finding := range match.Findings {
-		if finding.Kind == string(sdk.FindingKindVulnerability) &&
-			finding.PolicyStatus == string(sdk.FindingPolicyStatusSuppressed) {
+		if finding.Kind == string(model.FindingKindVulnerability) &&
+			finding.PolicyStatus == string(model.FindingPolicyStatusSuppressed) {
 			return
 		}
 	}
 	t.Fatalf("audit-suppressed explain finding = %#v", match.Findings)
 }
 
-func mustRegistryVulns(t *testing.T, registry *sdk.PackageRegistry, purl string) []sdk.Vulnerability {
+func mustRegistryVulns(t *testing.T, registry *model.PackageRegistry, purl string) []model.Vulnerability {
 	t.Helper()
 	pkg, ok := registry.Get(purl)
 	if !ok || pkg == nil {

@@ -9,16 +9,17 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
-func depGraphFromBunPMList(raw []byte, manifest node.PackageJSONManifest, projectDir string, logger *zap.Logger) (*sdk.Graph, error) {
+func depGraphFromBunPMList(raw []byte, manifest node.PackageJSONManifest, projectDir string, logger *zap.Logger) (*model.Graph, error) {
 	rootName := manifest.Name
 	if rootName == "" {
 		rootName = "root"
 	}
-	graph := sdk.New()
+	graph := model.New()
 	root, err := bunRootModuleNode("package.json", rootName, manifest.Version)
 	if err != nil {
 		return nil, err
@@ -27,7 +28,7 @@ func depGraphFromBunPMList(raw []byte, manifest node.PackageJSONManifest, projec
 		return nil, fmt.Errorf("add Bun project root: %w", err)
 	}
 
-	byName := make(map[string]map[string]sdk.GraphNode)
+	byName := make(map[string]map[string]model.GraphNode)
 	parents := make([]string, 0)
 	for line := range strings.SplitSeq(string(raw), "\n") {
 		name, version, depth, ok := parseBunPMListLine(line)
@@ -43,7 +44,7 @@ func depGraphFromBunPMList(raw []byte, manifest node.PackageJSONManifest, projec
 		}
 		stored, _ := graph.Node(dependency.NodeID())
 		if byName[name] == nil {
-			byName[name] = make(map[string]sdk.GraphNode)
+			byName[name] = make(map[string]model.GraphNode)
 		}
 		byName[name][stored.NodeID()] = stored
 
@@ -60,7 +61,7 @@ func depGraphFromBunPMList(raw []byte, manifest node.PackageJSONManifest, projec
 
 		// Ownership is the node kind now, not a Source value on a
 		// dependency node (ADR-0041): a workspace member is a module.
-		if stored.Kind() == sdk.NodeKindModule {
+		if stored.Kind() == model.NodeKindModule {
 			if err := graph.AddEdge(root.NodeID(), stored.NodeID()); err != nil {
 				return nil, fmt.Errorf("attach Bun workspace %q: %w", stored.NodeID(), err)
 			}
@@ -79,11 +80,11 @@ func depGraphFromBunPMList(raw []byte, manifest node.PackageJSONManifest, projec
 		if len(matches) != 1 {
 			continue
 		}
-		var match sdk.GraphNode
+		var match model.GraphNode
 		for _, dependency := range matches {
 			match = dependency
 		}
-		if dependency, ok := sdk.AsDependencyNode(match); ok {
+		if dependency, ok := model.AsDependencyNode(match); ok {
 			dependency.AddScope(scope)
 		}
 		if err := graph.AddEdge(root.NodeID(), match.NodeID()); err != nil {
@@ -97,13 +98,13 @@ func depGraphFromBunPMList(raw []byte, manifest node.PackageJSONManifest, projec
 }
 
 // bunRootModuleNode builds the project's own node for a `bun pm ls` graph.
-func bunRootModuleNode(manifestPath, name, version string) (*sdk.ModuleNode, error) {
-	moduleNode, err := sdk.NewModuleNode(manifestPath, sdk.Coordinates{
-		Ecosystem:      sdk.EcosystemNPM,
-		PackageManager: sdk.PackageManagerBun,
+func bunRootModuleNode(manifestPath, name, version string) (*model.ModuleNode, error) {
+	moduleNode, err := model.NewModuleNode(manifestPath, model.Coordinates{
+		Ecosystem:      model.EcosystemNPM,
+		PackageManager: model.PackageManagerBun,
 		Name:           name,
 		Version:        version,
-		Type:           sdk.PackageTypeApplication,
+		Type:           model.PackageTypeApplication,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build Bun module node %q: %w", name, err)
@@ -111,11 +112,11 @@ func bunRootModuleNode(manifestPath, name, version string) (*sdk.ModuleNode, err
 	return moduleNode, nil
 }
 
-func bunPMListDependency(projectDir string, manifest node.PackageJSONManifest, listedName, listedVersion string) (sdk.GraphNode, error) {
+func bunPMListDependency(projectDir string, manifest node.PackageJSONManifest, listedName, listedVersion string) (model.GraphNode, error) {
 	source := node.DependencySourceFromSpecifier(listedVersion)
 	name, version := listedName, listedVersion
 	workspaceDir := ""
-	if source == sdk.DependencySourceWorkspace {
+	if source == model.DependencySourceWorkspace {
 		workspacePath := strings.TrimPrefix(listedVersion, "workspace:")
 		workspace, err := node.ReadPackageJSONManifest(filepath.Join(projectDir, filepath.FromSlash(workspacePath)))
 		if err == nil {
@@ -137,16 +138,16 @@ func bunPMListDependency(projectDir string, manifest node.PackageJSONManifest, l
 			name = actualName
 		}
 	}
-	if source == sdk.DependencySourceWorkspace {
+	if source == model.DependencySourceWorkspace {
 		return bunRootModuleNode(path.Join(workspaceDir, "package.json"), name, version)
 	}
 
-	dependency, err := sdk.NewDependencyNode(sdk.Coordinates{
-		Ecosystem:      sdk.EcosystemNPM,
-		PackageManager: sdk.PackageManagerBun,
+	dependency, err := model.NewDependencyNode(model.Coordinates{
+		Ecosystem:      model.EcosystemNPM,
+		PackageManager: model.PackageManagerBun,
 		Name:           name,
 		Version:        version,
-		Type:           sdk.PackageTypePackage,
+		Type:           model.PackageTypePackage,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build Bun dependency node %q: %w", name, err)

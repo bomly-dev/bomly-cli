@@ -7,7 +7,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func pnpmWorkspacesFixtureDir(t *testing.T) string {
@@ -20,7 +22,7 @@ func pnpmWorkspacesFixtureDir(t *testing.T) string {
 }
 
 func TestPNPMLockfileImportersEmitPerModuleEntries(t *testing.T) {
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: pnpmWorkspacesFixtureDir(t)})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: pnpmWorkspacesFixtureDir(t)})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -28,7 +30,7 @@ func TestPNPMLockfileImportersEmitPerModuleEntries(t *testing.T) {
 	if len(entries) != 3 {
 		t.Fatalf("expected root + 2 importer entries, got %d", len(entries))
 	}
-	paths := map[string]sdk.GraphEntry{}
+	paths := map[string]model.GraphEntry{}
 	for _, entry := range entries {
 		paths[filepath.ToSlash(entry.Manifest.Path)] = entry
 	}
@@ -73,7 +75,7 @@ func TestPNPMLockfileWorkspaceLinkDependenciesResolveToMembers(t *testing.T) {
 			found = true
 			// A workspace member is the project's own code, so the link
 			// resolves to a module node (ADR-0041).
-			if !sdk.IsProjectOwned(dep) {
+			if !model.IsProjectOwned(dep) {
 				t.Fatalf("expected the member target to be a module, got a %s node", dep.Kind())
 			}
 		}
@@ -93,7 +95,7 @@ func TestPNPMLockfileSingleImporterStillSingleEntry(t *testing.T) {
 		t.Fatal("resolve caller path")
 	}
 	dir := filepath.Join(filepath.Dir(here), "..", "testdata", "lockfiles", "pnpm-v9")
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}

@@ -7,16 +7,18 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	detector := Detector{}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:     "testdata/project",
-		PackageManager:  sdk.PackageManagerGitHubActions,
-		Ecosystem:       sdk.EcosystemGitHub,
-		ExecutionTarget: sdk.ExecutionTarget{Location: "testdata/project"},
+		PackageManager:  model.PackageManagerGitHubActions,
+		Ecosystem:       model.EcosystemGitHub,
+		ExecutionTarget: plugin.ExecutionTarget{Location: "testdata/project"},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -69,7 +71,7 @@ func TestDepGraphFromRepository(t *testing.T) {
 	if !ok {
 		t.Fatal("expected actions/cache package")
 	}
-	if got := string(cache.PrimaryScope()); got != string(sdk.ScopeRuntime) {
+	if got := string(cache.PrimaryScope()); got != string(model.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", got)
 	}
 
@@ -108,11 +110,11 @@ func TestDetectorResolveGraphAttachesUsesLineLocations(t *testing.T) {
 		t.Fatalf("write workflow: %v", err)
 	}
 
-	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := (Detector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:     projectDir,
-		PackageManager:  sdk.PackageManagerGitHubActions,
-		Ecosystem:       sdk.EcosystemGitHub,
-		ExecutionTarget: sdk.ExecutionTarget{Location: projectDir},
+		PackageManager:  model.PackageManagerGitHubActions,
+		Ecosystem:       model.EcosystemGitHub,
+		ExecutionTarget: plugin.ExecutionTarget{Location: projectDir},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -159,11 +161,11 @@ func TestDetectorResolveGraphPreservesDuplicateUsesLocations(t *testing.T) {
 		t.Fatalf("write guard workflow: %v", err)
 	}
 
-	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := (Detector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:     projectDir,
-		PackageManager:  sdk.PackageManagerGitHubActions,
-		Ecosystem:       sdk.EcosystemGitHub,
-		ExecutionTarget: sdk.ExecutionTarget{Location: projectDir},
+		PackageManager:  model.PackageManagerGitHubActions,
+		Ecosystem:       model.EcosystemGitHub,
+		ExecutionTarget: plugin.ExecutionTarget{Location: projectDir},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -207,21 +209,21 @@ func TestDepGraphDigests(t *testing.T) {
 		t.Fatalf("depGraphFromRepository() error = %v", err)
 	}
 
-	found := map[string][]sdk.Digest{}
-	g.WalkDependencyNodes(func(node *sdk.DependencyNode) bool {
+	found := map[string][]model.Digest{}
+	g.WalkDependencyNodes(func(node *model.DependencyNode) bool {
 		found[node.Name] = node.Digests
 		return true
 	})
 
 	checkout := found["checkout"]
-	if len(checkout) != 1 || checkout[0].Algorithm != sdk.DigestAlgorithmSHA1 || checkout[0].Value != pinned {
+	if len(checkout) != 1 || checkout[0].Algorithm != model.DigestAlgorithmSHA1 || checkout[0].Value != pinned {
 		t.Fatalf("expected pinned commit digest on actions/checkout, got %#v", checkout)
 	}
 	if len(found["cache"]) != 0 {
 		t.Fatalf("tag-pinned action must not carry a digest, got %#v", found["cache"])
 	}
 	wf := found[".github/workflows/ci.yml"]
-	if len(wf) != 1 || wf[0].Algorithm != sdk.DigestAlgorithmSHA256 || len(wf[0].Value) != 64 {
+	if len(wf) != 1 || wf[0].Algorithm != model.DigestAlgorithmSHA256 || len(wf[0].Value) != 64 {
 		t.Fatalf("expected sha256 file digest on the workflow manifest, got %#v", wf)
 	}
 }
@@ -239,9 +241,9 @@ func TestIsGitCommitSHA(t *testing.T) {
 
 // mustDep narrows a graph node to the dependency node a case is asserting
 // about, failing rather than panicking when the graph holds something else.
-func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
 	t.Helper()
-	dep, ok := node.(*sdk.DependencyNode)
+	dep, ok := node.(*model.DependencyNode)
 	if !ok {
 		t.Fatalf("expected a dependency node, got %T", node)
 	}

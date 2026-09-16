@@ -9,9 +9,10 @@ import (
 	"regexp"
 	"strings"
 
-	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // pipLockFileName is the committed, fully-pinned lock the pip fast-path reads.
@@ -53,7 +54,7 @@ func pipLockFilePath(projectPath string) string {
 // scope. Direct dependencies are those whose "# via" annotation references an
 // input file ("-r foo.in"); a file matching pipLockDevHint marks development
 // scope. Runtime always wins over development during BFS propagation.
-func depGraphFromRequirementsLock(lockPath, projectPath, rootName string) (*sdk.Graph, error) {
+func depGraphFromRequirementsLock(lockPath, projectPath, rootName string) (*model.Graph, error) {
 	data, err := system.ReadRepositoryFile(lockPath)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", pipLockFileName, err)
@@ -67,29 +68,29 @@ func depGraphFromRequirementsLock(lockPath, projectPath, rootName string) (*sdk.
 		return nil, fmt.Errorf("%s contains no pinned packages", pipLockFileName)
 	}
 
-	nodesByName := make(map[string]*sdk.DependencyNode, len(entries))
+	nodesByName := make(map[string]*model.DependencyNode, len(entries))
 	for _, e := range entries {
-		node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+		node, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemPython,
 			Name:           e.name,
 			Version:        e.version,
-			PackageManager: sdk.PackageManagerPip,
+			PackageManager: model.PackageManagerPip,
 			Language:       "python",
-			Type:           sdk.PackageTypePackage,
-			PURL:           sdk.BuildPackageURLFor(sdk.EcosystemPython, sdk.PackageManagerPip, "", e.name, e.version)})
+			Type:           model.PackageTypePackage,
+			PURL:           model.BuildPackageURLFor(model.EcosystemPython, model.PackageManagerPip, "", e.name, e.version)})
 		if err != nil {
 			return nil, fmt.Errorf("build dependency node: %w", err)
 		}
-		node.Source = sdk.DependencySourceRegistry
+		node.Source = model.DependencySourceRegistry
 		nodesByName[e.name] = node
 	}
 
-	g := sdk.New()
-	root, err := pythonModuleRoot(sdk.Coordinates{
-		Ecosystem:      sdk.EcosystemPython,
+	g := model.New()
+	root, err := pythonModuleRoot(model.Coordinates{
+		Ecosystem:      model.EcosystemPython,
 		Name:           pythonRootNameOrDefault(rootName, projectPath),
-		PackageManager: sdk.PackageManagerPip,
+		PackageManager: model.PackageManagerPip,
 		Language:       "python",
-		Type:           sdk.PackageTypeApplication,
+		Type:           model.PackageTypeApplication,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build root node: %w", err)
@@ -104,18 +105,18 @@ func depGraphFromRequirementsLock(lockPath, projectPath, rootName string) (*sdk.
 	}
 
 	// Wire edges and seed direct-dependency scopes.
-	directScope := make(map[string]sdk.Scope, len(entries))
+	directScope := make(map[string]model.Scope, len(entries))
 	for _, e := range entries {
 		child := nodesByName[e.name]
 		if child == nil {
 			continue
 		}
 		for _, file := range e.viaFiles {
-			scope := sdk.ScopeRuntime
+			scope := model.ScopeRuntime
 			if pipLockDevHint.MatchString(file) {
-				scope = sdk.ScopeDevelopment
+				scope = model.ScopeDevelopment
 			}
-			directScope[child.NodeID()] = sdk.MergeScope(directScope[child.NodeID()], scope)
+			directScope[child.NodeID()] = model.MergeScope(directScope[child.NodeID()], scope)
 			if err := g.AddEdge(root.NodeID(), child.NodeID()); err != nil {
 				return nil, fmt.Errorf("wire root→%s: %w", e.name, err)
 			}
@@ -208,8 +209,8 @@ func parsePipLockViaLine(comment string, entry *pipLockEntry) {
 // propagatePipScopes seeds direct-dependency scopes and BFS-propagates them so
 // that any package reachable on a runtime path is marked runtime even if it is
 // also a development dependency. Remaining unscoped packages default to runtime.
-func propagatePipScopes(g *sdk.Graph, root sdk.GraphNode, directScope map[string]sdk.Scope) {
-	detectorkit.PropagateScopes(g, root.NodeID(), func(dep *sdk.DependencyNode) sdk.Scope {
+func propagatePipScopes(g *model.Graph, root model.GraphNode, directScope map[string]model.Scope) {
+	detectorkit.PropagateScopes(g, root.NodeID(), func(dep *model.DependencyNode) model.Scope {
 		return directScope[dep.NodeID()]
 	})
 }

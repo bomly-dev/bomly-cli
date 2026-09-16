@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // usesLine matches `uses: owner/repo[/path]@ref` entries in workflow
@@ -16,8 +17,8 @@ var usesLine = regexp.MustCompile(`^\s*-?\s*uses\s*:\s*['"]?([A-Za-z0-9][A-Za-z0
 // workflowPositions walks .github/workflows/*.yml + .github/actions/*/action.yml
 // and returns every line where a `uses:` entry appears for each owner/repo
 // coordinate.
-func workflowPositions(projectDir string) map[string][]*sdk.SourcePosition {
-	out := make(map[string][]*sdk.SourcePosition)
+func workflowPositions(projectDir string) map[string][]*model.SourcePosition {
+	out := make(map[string][]*model.SourcePosition)
 	patterns := []string{
 		filepath.Join(projectDir, ".github", "workflows", "*.yml"),
 		filepath.Join(projectDir, ".github", "workflows", "*.yaml"),
@@ -42,7 +43,7 @@ func workflowPositions(projectDir string) map[string][]*sdk.SourcePosition {
 				if key == "" {
 					return
 				}
-				detectors.AppendPosition(out, key, &sdk.SourcePosition{File: rel, Line: line, Column: matches[2] + 1, EndLine: line})
+				detectors.AppendPosition(out, key, &model.SourcePosition{File: rel, Line: line, Column: matches[2] + 1, EndLine: line})
 			})
 		}
 	}
@@ -51,7 +52,7 @@ func workflowPositions(projectDir string) map[string][]*sdk.SourcePosition {
 
 // AttachWorkflowPositions wires workflow / action.yml line numbers
 // into the resolved graph.
-func AttachWorkflowPositions(g *sdk.Graph, projectDir string) {
+func AttachWorkflowPositions(g *model.Graph, projectDir string) {
 	if g == nil || projectDir == "" {
 		return
 	}
@@ -59,7 +60,7 @@ func AttachWorkflowPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositionCandidates(g, positions, func(pkg *sdk.DependencyNode) []string {
+	detectors.AttachPositionCandidates(g, positions, func(pkg *model.DependencyNode) []string {
 		if pkg == nil {
 			return nil
 		}

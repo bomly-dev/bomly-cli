@@ -6,11 +6,13 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/progress"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestMatchProgressChildren_ReportsMatcherCounts(t *testing.T) {
-	children := matchProgressChildren([]sdk.MatcherStats{
+	children := matchProgressChildren([]plugin.MatcherStats{
 		{Name: "license-matcher", DisplayName: "Example License Matcher", MatchedPackages: 2, Licenses: 3},
 		{Name: "vulnerability-matcher", DisplayName: "Example Vulnerability Matcher", MatchedPackages: 3, UnmatchedPackages: 1, Vulnerabilities: 4},
 	}, nil)
@@ -61,16 +63,16 @@ func TestAuditProgressChildren_DoesNotRepeatAuditorSuffix(t *testing.T) {
 }
 
 func TestSubprojectProgressChildren_UsesGitIdentityWhenConcreteTargetIsFilesystem(t *testing.T) {
-	children := subprojectProgressChildren([]sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
-			ExecutionTarget: sdk.ExecutionTarget{
-				Kind:          sdk.ExecutionTargetFilesystem,
+	children := subprojectProgressChildren([]plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
+			ExecutionTarget: plugin.ExecutionTarget{
+				Kind:          plugin.ExecutionTargetFilesystem,
 				Location:      `C:\Temp\bomly-git-ref-123`,
 				RepositoryURL: "https://github.com/bomly-dev/bomly-cli",
 				Ref:           "main",
 			},
 			RelativePath: ".",
-			Ecosystem:    sdk.EcosystemNPM,
+			Ecosystem:    model.EcosystemNPM,
 		},
 	}})
 
@@ -84,9 +86,9 @@ func TestSubprojectProgressChildren_UsesGitIdentityWhenConcreteTargetIsFilesyste
 
 func TestDiffPolicyOutcomeProgressChild_ReportsIntroducedOutcome(t *testing.T) {
 	child := diffPolicyOutcomeProgressChild(&diffengine.Audit{
-		Introduced: []sdk.Finding{
-			{PolicyStatus: sdk.FindingPolicyStatusFail},
-			{PolicyStatus: sdk.FindingPolicyStatusWarn},
+		Introduced: []model.Finding{
+			{PolicyStatus: model.FindingPolicyStatusFail},
+			{PolicyStatus: model.FindingPolicyStatusWarn},
 		},
 	})
 	if child.Icon != progress.CrossMark {
@@ -101,8 +103,8 @@ func TestDiffPolicyOutcomeProgressChild_PersistedFindingsAlsoFail(t *testing.T) 
 	// A persisted finding is tied to a package the diff actually changed, so
 	// it must gate the run exactly like an introduced one.
 	child := diffPolicyOutcomeProgressChild(&diffengine.Audit{
-		Persisted: []sdk.Finding{
-			{PolicyStatus: sdk.FindingPolicyStatusFail},
+		Persisted: []model.Finding{
+			{PolicyStatus: model.FindingPolicyStatusFail},
 		},
 	})
 	if child.Icon != progress.CrossMark {

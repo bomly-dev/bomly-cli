@@ -12,7 +12,9 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestAnnotateScopesFromPackageJSON(t *testing.T) {
@@ -30,13 +32,13 @@ func TestAnnotateScopesFromPackageJSON(t *testing.T) {
 		t.Fatalf("write package.json: %v", err)
 	}
 
-	depsGraph := sdk.New()
-	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"}})
-	react := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
-	scheduler := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "scheduler", Version: "0.23.0"}})
-	vitest := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"}})
-	chai := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "chai", Version: "5.1.0"}})
-	for _, pkg := range []*sdk.DependencyNode{root, react, scheduler, vitest, chai} {
+	depsGraph := model.New()
+	root := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"}})
+	react := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
+	scheduler := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "scheduler", Version: "0.23.0"}})
+	vitest := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"}})
+	chai := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "chai", Version: "5.1.0"}})
+	for _, pkg := range []*model.DependencyNode{root, react, scheduler, vitest, chai} {
 		if err := depsGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
@@ -56,10 +58,10 @@ func TestAnnotateScopesFromPackageJSON(t *testing.T) {
 		t.Fatalf("AnnotateScopesFromPackageJSON() error = %v", err)
 	}
 
-	if string(react.PrimaryScope()) != string(sdk.ScopeRuntime) || string(scheduler.PrimaryScope()) != string(sdk.ScopeRuntime) {
+	if string(react.PrimaryScope()) != string(model.ScopeRuntime) || string(scheduler.PrimaryScope()) != string(model.ScopeRuntime) {
 		t.Fatalf("expected runtime scopes for runtime chain, got react=%q scheduler=%q", string(react.PrimaryScope()), string(scheduler.PrimaryScope()))
 	}
-	if string(vitest.PrimaryScope()) != string(sdk.ScopeDevelopment) || string(chai.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(vitest.PrimaryScope()) != string(model.ScopeDevelopment) || string(chai.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected development scopes for dev chain, got vitest=%q chai=%q", string(vitest.PrimaryScope()), string(chai.PrimaryScope()))
 	}
 }
@@ -79,12 +81,12 @@ func TestAnnotateScopesFromPackageJSON_DevelopmentFilterExcludesRuntime(t *testi
 		t.Fatalf("write package.json: %v", err)
 	}
 
-	depsGraph := sdk.New()
-	root := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"}})
-	react := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
-	vitest := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"}})
-	shared := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "shared", Version: "1.0.0"}})
-	for _, pkg := range []*sdk.DependencyNode{root, react, vitest, shared} {
+	depsGraph := model.New()
+	root := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"}})
+	react := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
+	vitest := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"}})
+	shared := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "shared", Version: "1.0.0"}})
+	for _, pkg := range []*model.DependencyNode{root, react, vitest, shared} {
 		if err := depsGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
@@ -103,7 +105,7 @@ func TestAnnotateScopesFromPackageJSON_DevelopmentFilterExcludesRuntime(t *testi
 	if err := node.AnnotateScopesFromPackageJSON(projectDir, depsGraph); err != nil {
 		t.Fatalf("AnnotateScopesFromPackageJSON() error = %v", err)
 	}
-	filtered, err := sdk.FilterGraphByScope(depsGraph, sdk.ScopeDevelopment)
+	filtered, err := model.FilterGraphByScope(depsGraph, model.ScopeDevelopment)
 	if err != nil {
 		t.Fatalf("FilterGraphByScope() error = %v", err)
 	}
@@ -317,12 +319,12 @@ loose-envify@^1.4.0:
 func TestLockfileDetectorsDoNotRequirePackageManagerBinaries(t *testing.T) {
 	t.Setenv("PATH", t.TempDir())
 
-	for name, detector := range map[string]sdk.Detector{
+	for name, detector := range map[string]plugin.Detector{
 		"npm":  npm.LockfileDetector{},
 		"pnpm": pnpm.LockfileDetector{},
 		"yarn": yarn.LockfileDetector{},
 	} {
-		if err := detector.Ready(context.Background(), sdk.DetectionRequest{}); err != nil {
+		if err := detector.Ready(context.Background(), plugin.DetectionRequest{}); err != nil {
 			t.Fatalf("expected %s lockfile detector to be ready without package manager on PATH: %v", name, err)
 		}
 	}
@@ -340,7 +342,7 @@ func TestLockfileDetectorsDoNotRequirePackageManagerBinaries(t *testing.T) {
 	}
 
 	detector := npm.LockfileDetector{}
-	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := detector.Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -356,7 +358,7 @@ func TestLockfileDetectorRequiresLockfile(t *testing.T) {
 	}
 
 	detector := npm.LockfileDetector{}
-	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := detector.Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -371,20 +373,20 @@ func TestMergedNPMDetectorInstallFirstDisabledByConfig(t *testing.T) {
 	// With installFirst disabled, Install must be a no-op even when the host
 	// requested install-first execution: no npm subprocess runs (the test has
 	// no project dir, so a real install attempt would fail loudly).
-	if err := detector.Install(context.Background(), sdk.DetectionRequest{InstallFirst: true}); err != nil {
+	if err := detector.Install(context.Background(), plugin.DetectionRequest{InstallFirst: true}); err != nil {
 		t.Fatalf("Install() error = %v", err)
 	}
 }
 
 func TestMergedNPMDetectorRejectsUnknownStrategy(t *testing.T) {
 	detector := npm.Detector{Config: node.StrategyConfig{Strategy: []string{"lockfile", "bogus"}}}
-	if err := detector.Ready(context.Background(), sdk.DetectionRequest{}); err == nil || !strings.Contains(err.Error(), `unknown strategy action "bogus"`) {
+	if err := detector.Ready(context.Background(), plugin.DetectionRequest{}); err == nil || !strings.Contains(err.Error(), `unknown strategy action "bogus"`) {
 		t.Fatalf("expected unknown-strategy error from Ready, got %v", err)
 	}
-	if _, err := detector.Applicable(context.Background(), sdk.DetectionRequest{}); err == nil {
+	if _, err := detector.Applicable(context.Background(), plugin.DetectionRequest{}); err == nil {
 		t.Fatal("expected unknown-strategy error from Applicable")
 	}
-	if _, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{}); err == nil {
+	if _, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{}); err == nil {
 		t.Fatal("expected unknown-strategy error from ResolveGraph")
 	}
 }
@@ -411,15 +413,15 @@ func TestMergedNPMDetectorLockfileFirst(t *testing.T) {
 		t.Fatalf("write package-lock.json: %v", err)
 	}
 	detector := npm.Detector{}
-	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := detector.Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil || !applicable {
 		t.Fatalf("expected merged npm detector to be applicable, got %v / %v", applicable, err)
 	}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
-	if result.Technique != sdk.LockfileTechnique {
+	if result.Technique != plugin.LockfileTechnique {
 		t.Fatalf("expected the winning lockfile strategy to stamp its technique, got %q", result.Technique)
 	}
 	if result.Graphs == nil || result.Graphs.Len() == 0 {
@@ -427,9 +429,9 @@ func TestMergedNPMDetectorLockfileFirst(t *testing.T) {
 	}
 }
 
-func resolveTestGraph(t *testing.T, detector sdk.Detector, projectDir string) (*sdk.Graph, error) {
+func resolveTestGraph(t *testing.T, detector plugin.Detector, projectDir string) (*model.Graph, error) {
 	t.Helper()
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		return nil, err
 	}
@@ -438,9 +440,9 @@ func resolveTestGraph(t *testing.T, detector sdk.Detector, projectDir string) (*
 
 // resolveTestWarnings resolves a project and returns the warnings the detector
 // reported alongside its graphs.
-func resolveTestWarnings(t *testing.T, detector sdk.Detector, projectDir string) []sdk.DetectorWarning {
+func resolveTestWarnings(t *testing.T, detector plugin.Detector, projectDir string) []plugin.DetectorWarning {
 	t.Helper()
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -474,8 +476,8 @@ packages:
 	if len(warnings) != 1 {
 		t.Fatalf("expected 1 warning, got %+v", warnings)
 	}
-	if warnings[0].Type != sdk.DetectorWarningPackageManager ||
-		warnings[0].Code != sdk.DetectorWarningCodeLockfileFormat ||
+	if warnings[0].Type != plugin.DetectorWarningPackageManager ||
+		warnings[0].Code != plugin.DetectorWarningCodeLockfileFormat ||
 		warnings[0].Source != "pnpm" ||
 		warnings[0].Manifest != "pnpm-lock.yaml" {
 		t.Fatalf("unexpected warning: %+v", warnings[0])
@@ -506,7 +508,7 @@ func TestYarnLockfileDetectorReportsBerryFormatWarning(t *testing.T) {
 	}
 
 	warnings := resolveTestWarnings(t, yarn.LockfileDetector{}, projectDir)
-	if len(warnings) != 1 || warnings[0].Code != sdk.DetectorWarningCodeLockfileFormat {
+	if len(warnings) != 1 || warnings[0].Code != plugin.DetectorWarningCodeLockfileFormat {
 		t.Fatalf("unexpected warnings: %+v", warnings)
 	}
 }

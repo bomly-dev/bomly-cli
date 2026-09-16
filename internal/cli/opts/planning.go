@@ -12,18 +12,20 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // Request defines the inputs required to build one execution runtime.
 type Request struct {
 	Registry             *engine.Registry
-	ExecutionTarget      sdk.ExecutionTarget
-	ForcedPackageManager sdk.PackageManager
-	DetectorFilter       sdk.DetectorFilter
-	EcosystemFilter      sdk.EcosystemFilter
+	ExecutionTarget      plugin.ExecutionTarget
+	ForcedPackageManager model.PackageManager
+	DetectorFilter       plugin.DetectorFilter
+	EcosystemFilter      model.EcosystemFilter
 	// Recursive enables nested-manifest discovery below the execution-target
 	// root. MaxDepth bounds the walk (0 = unlimited) and ExcludeGlobs adds
 	// root-relative glob skips on top of the built-in ignore rules. Both are
@@ -39,8 +41,8 @@ type Request struct {
 var ErrNoSubprojects = errors.New("no subprojects discovered for execution target with the applied filters")
 
 // PlanSubprojects discovers subprojects for an execution target with the provided registry and filters.
-func PlanSubprojects(registryValue *engine.Registry, req Request) ([]sdk.Subproject, error) {
-	if req.ForcedPackageManager != sdk.PackageManagerUnknown {
+func PlanSubprojects(registryValue *engine.Registry, req Request) ([]plugin.Subproject, error) {
+	if req.ForcedPackageManager != model.PackageManagerUnknown {
 		subproject, ok := plannedSubprojectForPackageManager(
 			registryValue,
 			req.ExecutionTarget,
@@ -52,30 +54,30 @@ func PlanSubprojects(registryValue *engine.Registry, req Request) ([]sdk.Subproj
 		if !ok {
 			return nil, noSubprojectsError(registryValue, req)
 		}
-		return []sdk.Subproject{subproject}, nil
+		return []plugin.Subproject{subproject}, nil
 	}
 
 	switch req.ExecutionTarget.Kind {
-	case sdk.ExecutionTargetContainerImage:
+	case plugin.ExecutionTargetContainerImage:
 		return planContainerSubprojects(registryValue, req)
 	default:
 		return planFilesystemSubprojects(registryValue, req)
 	}
 }
 
-func planContainerSubprojects(registryValue *engine.Registry, req Request) ([]sdk.Subproject, error) {
+func planContainerSubprojects(registryValue *engine.Registry, req Request) ([]plugin.Subproject, error) {
 	plans := registryValue.DiscoveryPlans()
 	if len(plans) == 0 {
 		return nil, noSubprojectsError(registryValue, req)
 	}
 
-	subprojects := make([]sdk.Subproject, 0, len(plans))
+	subprojects := make([]plugin.Subproject, 0, len(plans))
 	seen := make(map[string]struct{}, len(plans))
 	for detectorName, plan := range plans {
-		if !supportsTargetKind(plan.TargetKinds, sdk.ExecutionTargetContainerImage) {
+		if !supportsTargetKind(plan.TargetKinds, plugin.ExecutionTargetContainerImage) {
 			continue
 		}
-		detectorList := registryValue.PlannedDetectors(sdk.DetectionRequest{
+		detectorList := registryValue.PlannedDetectors(plugin.DetectionRequest{
 			ProjectPath:     req.ExecutionTarget.Location,
 			ExecutionTarget: req.ExecutionTarget,
 			Ecosystem:       singleEcosystem(plan.SupportedEcosystems, req.EcosystemFilter),
@@ -91,11 +93,11 @@ func planContainerSubprojects(registryValue *engine.Registry, req Request) ([]sd
 			continue
 		}
 		seen[key] = struct{}{}
-		subprojects = append(subprojects, sdk.Subproject{
+		subprojects = append(subprojects, plugin.Subproject{
 			ExecutionTarget:         req.ExecutionTarget,
 			RelativePath:            ".",
 			PrimaryDetector:         chain[0],
-			DetectedPackageManagers: append([]sdk.PackageManager(nil), plan.SupportedManagers...),
+			DetectedPackageManagers: append([]model.PackageManager(nil), plan.SupportedManagers...),
 			PlannedDetectors:        chain,
 			Ecosystem:               singleEcosystem(plan.SupportedEcosystems, req.EcosystemFilter),
 		})
@@ -108,7 +110,7 @@ func planContainerSubprojects(registryValue *engine.Registry, req Request) ([]sd
 	return subprojects, nil
 }
 
-func planFilesystemSubprojects(registryValue *engine.Registry, req Request) ([]sdk.Subproject, error) {
+func planFilesystemSubprojects(registryValue *engine.Registry, req Request) ([]plugin.Subproject, error) {
 	isSingleFile, err := executionTargetIsSingleFile(req.ExecutionTarget)
 	if err != nil {
 		return nil, fmt.Errorf("discover subprojects: %w", err)
@@ -134,7 +136,7 @@ func planFilesystemSubprojects(registryValue *engine.Registry, req Request) ([]s
 		return planRecursiveFilesystemSubprojects(registryValue, req)
 	}
 
-	seen := map[string]sdk.Subproject{}
+	seen := map[string]plugin.Subproject{}
 	for _, subproject := range plannedSubprojectsForPath(
 		registryValue,
 		req.ExecutionTarget,
@@ -145,7 +147,7 @@ func planFilesystemSubprojects(registryValue *engine.Registry, req Request) ([]s
 		seen[subprojectDedupKey(subproject)] = subproject
 	}
 
-	subprojects := make([]sdk.Subproject, 0, len(seen))
+	subprojects := make([]plugin.Subproject, 0, len(seen))
 	for _, subproject := range seen {
 		subprojects = append(subprojects, subproject)
 	}
@@ -158,12 +160,12 @@ func planFilesystemSubprojects(registryValue *engine.Registry, req Request) ([]s
 
 func plannedSubprojectsForPath(
 	registryValue *engine.Registry,
-	executionTarget sdk.ExecutionTarget,
+	executionTarget plugin.ExecutionTarget,
 	candidatePath string,
-	detectorFilter sdk.DetectorFilter,
-	ecosystemFilter sdk.EcosystemFilter,
-) []sdk.Subproject {
-	grouped := make(map[string]*sdk.Subproject)
+	detectorFilter plugin.DetectorFilter,
+	ecosystemFilter model.EcosystemFilter,
+) []plugin.Subproject {
+	grouped := make(map[string]*plugin.Subproject)
 
 	for manager, evidencePatterns := range detectPackageManagersForPath(registryValue, executionTarget.Kind, candidatePath) {
 		ecosystem := manager.Ecosystem()
@@ -182,7 +184,7 @@ func plannedSubprojectsForPath(
 		existing, ok := grouped[key]
 		if !ok {
 			copyValue := subproject
-			copyValue.DetectedPackageManagers = append([]sdk.PackageManager(nil), subproject.DetectedPackageManagers...)
+			copyValue.DetectedPackageManagers = append([]model.PackageManager(nil), subproject.DetectedPackageManagers...)
 			copyValue.PlannedDetectors = append([]string(nil), subproject.PlannedDetectors...)
 			grouped[key] = &copyValue
 			continue
@@ -190,7 +192,7 @@ func plannedSubprojectsForPath(
 		existing.DetectedPackageManagers = appendUniquePackageManager(existing.DetectedPackageManagers, manager)
 	}
 
-	subprojects := make([]sdk.Subproject, 0, len(grouped))
+	subprojects := make([]plugin.Subproject, 0, len(grouped))
 	for _, subproject := range grouped {
 		subprojects = append(subprojects, *subproject)
 	}
@@ -207,7 +209,7 @@ func plannedSubprojectsForPath(
 	return subprojects
 }
 
-func detectPackageManagers(candidatePath string) []sdk.PackageManager {
+func detectPackageManagers(candidatePath string) []model.PackageManager {
 	managers, err := registry.DetectPackageManagers(candidatePath)
 	if err != nil {
 		return nil
@@ -217,10 +219,10 @@ func detectPackageManagers(candidatePath string) []sdk.PackageManager {
 
 func detectPackageManagersForPath(
 	registryValue *engine.Registry,
-	targetKind sdk.ExecutionTargetKind,
+	targetKind plugin.ExecutionTargetKind,
 	candidatePath string,
-) map[sdk.PackageManager][]string {
-	detected := make(map[sdk.PackageManager][]string)
+) map[model.PackageManager][]string {
+	detected := make(map[model.PackageManager][]string)
 	for _, manager := range detectPackageManagers(candidatePath) {
 		detected[manager] = appendUniquePatterns(detected[manager], registry.EvidencePatternsForPackageManager(manager)...)
 	}
@@ -251,38 +253,38 @@ func detectPackageManagersForPath(
 
 func plannedSubprojectForPackageManager(
 	registryValue *engine.Registry,
-	executionTarget sdk.ExecutionTarget,
+	executionTarget plugin.ExecutionTarget,
 	candidatePath string,
-	manager sdk.PackageManager,
+	manager model.PackageManager,
 	evidencePatterns []string,
-	detectorFilter sdk.DetectorFilter,
-) (sdk.Subproject, bool) {
+	detectorFilter plugin.DetectorFilter,
+) (plugin.Subproject, bool) {
 	patterns := evidencePatterns
 	if len(patterns) == 0 {
 		patterns = registry.EvidencePatternsForPackageManager(manager)
 	}
 	if len(patterns) == 0 {
-		return sdk.Subproject{}, false
+		return plugin.Subproject{}, false
 	}
 
 	projectPath := candidatePath
-	if manager == sdk.PackageManagerSBOM {
+	if manager == model.PackageManagerSBOM {
 		resolvedPath, ok := resolveMatchedManifestPath(candidatePath, patterns)
 		if !ok {
-			return sdk.Subproject{}, false
+			return plugin.Subproject{}, false
 		}
 		projectPath = resolvedPath
 	}
 
 	relPath, err := filepath.Rel(executionTarget.Location, projectPath)
 	if err != nil {
-		return sdk.Subproject{}, false
+		return plugin.Subproject{}, false
 	}
 	if relPath == "" {
 		relPath = "."
 	}
 
-	resolveReq := sdk.DetectionRequest{
+	resolveReq := plugin.DetectionRequest{
 		ProjectPath:     projectPath,
 		ExecutionTarget: executionTarget,
 		Ecosystem:       manager.Ecosystem(),
@@ -291,14 +293,14 @@ func plannedSubprojectForPackageManager(
 	}
 	chain := expandDetectorNames(registryValue, registryValue.PlannedDetectors(resolveReq, detectorNamesForPackageManager(registryValue, executionTarget.Kind, candidatePath, manager)))
 	if len(chain) == 0 {
-		return sdk.Subproject{}, false
+		return plugin.Subproject{}, false
 	}
 
-	return sdk.Subproject{
+	return plugin.Subproject{
 		ExecutionTarget:         concreteSubprojectExecutionTarget(executionTarget, projectPath),
 		RelativePath:            filepath.ToSlash(relPath),
 		PrimaryDetector:         chain[0],
-		DetectedPackageManagers: []sdk.PackageManager{manager},
+		DetectedPackageManagers: []model.PackageManager{manager},
 		PlannedDetectors:        chain,
 		Ecosystem:               manager.Ecosystem(),
 	}, true
@@ -306,12 +308,12 @@ func plannedSubprojectForPackageManager(
 
 func plannedPluginSubprojectsForPath(
 	registryValue *engine.Registry,
-	executionTarget sdk.ExecutionTarget,
+	executionTarget plugin.ExecutionTarget,
 	candidatePath string,
-	detectorFilter sdk.DetectorFilter,
-	ecosystemFilter sdk.EcosystemFilter,
-) []sdk.Subproject {
-	if executionTarget.Kind != sdk.ExecutionTargetFilesystem && executionTarget.Kind != sdk.ExecutionTargetGitRepository {
+	detectorFilter plugin.DetectorFilter,
+	ecosystemFilter model.EcosystemFilter,
+) []plugin.Subproject {
+	if executionTarget.Kind != plugin.ExecutionTargetFilesystem && executionTarget.Kind != plugin.ExecutionTargetGitRepository {
 		return nil
 	}
 
@@ -328,7 +330,7 @@ func plannedPluginSubprojectsForPath(
 		relPath = "."
 	}
 
-	subprojects := make([]sdk.Subproject, 0)
+	subprojects := make([]plugin.Subproject, 0)
 	for _, planEntry := range sortedDiscoveryPlans(plans) {
 		detectorName := planEntry.name
 		plan := planEntry.plan
@@ -341,7 +343,7 @@ func plannedPluginSubprojectsForPath(
 		if len(plan.EvidencePatterns) == 0 || !pathMatchesPatterns(candidatePath, plan.EvidencePatterns) {
 			continue
 		}
-		detectorList := registryValue.PlannedDetectors(sdk.DetectionRequest{
+		detectorList := registryValue.PlannedDetectors(plugin.DetectionRequest{
 			ProjectPath:     candidatePath,
 			ExecutionTarget: executionTarget,
 			Ecosystem:       singleEcosystem(plan.SupportedEcosystems, ecosystemFilter),
@@ -352,11 +354,11 @@ func plannedPluginSubprojectsForPath(
 		if len(chain) == 0 {
 			continue
 		}
-		subprojects = append(subprojects, sdk.Subproject{
+		subprojects = append(subprojects, plugin.Subproject{
 			ExecutionTarget:         concreteSubprojectExecutionTarget(executionTarget, candidatePath),
 			RelativePath:            filepath.ToSlash(relPath),
 			PrimaryDetector:         chain[0],
-			DetectedPackageManagers: append([]sdk.PackageManager(nil), plan.SupportedManagers...),
+			DetectedPackageManagers: append([]model.PackageManager(nil), plan.SupportedManagers...),
 			PlannedDetectors:        chain,
 			Ecosystem:               singleEcosystem(plan.SupportedEcosystems, ecosystemFilter),
 		})
@@ -386,18 +388,18 @@ func sortedDiscoveryPlans(plans map[string]registry.DetectorDiscoveryPlan) []dis
 	return entries
 }
 
-func discoveryTargetKinds(targetKind sdk.ExecutionTargetKind) []sdk.ExecutionTargetKind {
-	if targetKind == sdk.ExecutionTargetGitRepository {
-		return []sdk.ExecutionTargetKind{sdk.ExecutionTargetGitRepository, sdk.ExecutionTargetFilesystem}
+func discoveryTargetKinds(targetKind plugin.ExecutionTargetKind) []plugin.ExecutionTargetKind {
+	if targetKind == plugin.ExecutionTargetGitRepository {
+		return []plugin.ExecutionTargetKind{plugin.ExecutionTargetGitRepository, plugin.ExecutionTargetFilesystem}
 	}
-	return []sdk.ExecutionTargetKind{targetKind}
+	return []plugin.ExecutionTargetKind{targetKind}
 }
 
 func detectorNamesForPackageManager(
 	registryValue *engine.Registry,
-	targetKind sdk.ExecutionTargetKind,
+	targetKind plugin.ExecutionTargetKind,
 	candidatePath string,
-	manager sdk.PackageManager,
+	manager model.PackageManager,
 ) []string {
 	names := append([]string(nil), registry.DetectorNamesForPackageManager(manager)...)
 	if registryValue == nil {
@@ -420,7 +422,7 @@ func detectorNamesForPackageManager(
 	return names
 }
 
-func containsPackageManager(managers []sdk.PackageManager, target sdk.PackageManager) bool {
+func containsPackageManager(managers []model.PackageManager, target model.PackageManager) bool {
 	return slices.Contains(managers, target)
 }
 
@@ -431,7 +433,7 @@ func appendUniqueDetectorName(names []string, name string) []string {
 	return append(names, name)
 }
 
-func subprojectDedupKey(subproject sdk.Subproject) string {
+func subprojectDedupKey(subproject plugin.Subproject) string {
 	return strings.Join([]string{
 		subproject.RelativePath,
 		subproject.PrimaryPackageManager().Name(),
@@ -452,7 +454,7 @@ func appendUniquePatterns(existing []string, patterns ...string) []string {
 	return existing
 }
 
-func expandDetectorNames(registryValue *engine.Registry, detectors []sdk.Detector) []string {
+func expandDetectorNames(registryValue *engine.Registry, detectors []plugin.Detector) []string {
 	if len(detectors) == 0 {
 		return nil
 	}
@@ -475,7 +477,7 @@ func expandDetectorNames(registryValue *engine.Registry, detectors []sdk.Detecto
 	return names
 }
 
-func appendDetectorChain(detector sdk.Detector, allowed map[string]struct{}, seen map[string]struct{}, names *[]string) {
+func appendDetectorChain(detector plugin.Detector, allowed map[string]struct{}, seen map[string]struct{}, names *[]string) {
 	if detector == nil {
 		return
 	}
@@ -493,17 +495,17 @@ func appendDetectorChain(detector sdk.Detector, allowed map[string]struct{}, see
 	}
 }
 
-func concreteSubprojectExecutionTarget(parent sdk.ExecutionTarget, location string) sdk.ExecutionTarget {
+func concreteSubprojectExecutionTarget(parent plugin.ExecutionTarget, location string) plugin.ExecutionTarget {
 	target := parent
 	target.Location = location
-	if parent.Kind == sdk.ExecutionTargetContainerImage {
+	if parent.Kind == plugin.ExecutionTargetContainerImage {
 		return target
 	}
-	target.Kind = sdk.ExecutionTargetFilesystem
+	target.Kind = plugin.ExecutionTargetFilesystem
 	return target
 }
 
-func supportsTargetKind(targetKinds []sdk.ExecutionTargetKind, candidates ...sdk.ExecutionTargetKind) bool {
+func supportsTargetKind(targetKinds []plugin.ExecutionTargetKind, candidates ...plugin.ExecutionTargetKind) bool {
 	if len(targetKinds) == 0 {
 		return false
 	}
@@ -515,31 +517,31 @@ func supportsTargetKind(targetKinds []sdk.ExecutionTargetKind, candidates ...sdk
 	return false
 }
 
-func singleEcosystem(ecosystems []sdk.Ecosystem, ecosystemFilter sdk.EcosystemFilter) sdk.Ecosystem {
+func singleEcosystem(ecosystems []model.Ecosystem, ecosystemFilter model.EcosystemFilter) model.Ecosystem {
 	if len(ecosystemFilter.Include) == 1 {
 		return ecosystemFilter.Include[0]
 	}
 	if len(ecosystems) == 1 {
 		return ecosystems[0]
 	}
-	return sdk.EcosystemUnknown
+	return model.EcosystemUnknown
 }
 
-func singlePackageManager(managers []sdk.PackageManager) sdk.PackageManager {
+func singlePackageManager(managers []model.PackageManager) model.PackageManager {
 	if len(managers) == 1 {
 		return managers[0]
 	}
-	return sdk.PackageManagerUnknown
+	return model.PackageManagerUnknown
 }
 
-func appendUniquePackageManager(values []sdk.PackageManager, value sdk.PackageManager) []sdk.PackageManager {
+func appendUniquePackageManager(values []model.PackageManager, value model.PackageManager) []model.PackageManager {
 	if slices.Contains(values, value) {
 		return values
 	}
 	return append(values, value)
 }
 
-func sortSubprojects(subprojects []sdk.Subproject) {
+func sortSubprojects(subprojects []plugin.Subproject) {
 	sort.Slice(subprojects, func(i, j int) bool {
 		if subprojects[i].RelativePath != subprojects[j].RelativePath {
 			return subprojects[i].RelativePath < subprojects[j].RelativePath
@@ -615,7 +617,7 @@ func describeDiscoverySearch(req Request) string {
 // every candidate shares one skip reason — the common case, e.g. a monorepo
 // scanned without --recursive — the reason is hoisted into the header instead
 // of repeating on every line.
-func discoveryProbeSection(target sdk.ExecutionTarget, findings []discoveryFinding, truncated bool) []string {
+func discoveryProbeSection(target plugin.ExecutionTarget, findings []discoveryFinding, truncated bool) []string {
 	probe := renderDiscoveryProbe(target, findings, truncated)
 	if len(probe) == 0 {
 		return nil
@@ -701,7 +703,7 @@ const (
 // the probe runs with request context — why discovery skipped it.
 type discoveryFinding struct {
 	RelativePath string
-	Manager      sdk.PackageManager
+	Manager      model.PackageManager
 	Evidence     string
 	SkipReason   string
 }
@@ -711,7 +713,7 @@ type discoveryFinding struct {
 // "no subprojects discovered" failure explains itself: which manifest files
 // exist, where, and which package manager they belong to. Returns nil for
 // non-filesystem targets.
-func DescribeDiscovery(target sdk.ExecutionTarget) []string {
+func DescribeDiscovery(target plugin.ExecutionTarget) []string {
 	findings, truncated := describeDiscoveryFindings(target, builtinDiscoveryRules(), nil)
 	return renderDiscoveryProbe(target, findings, truncated)
 }
@@ -721,12 +723,12 @@ func DescribeDiscovery(target sdk.ExecutionTarget) []string {
 // and returns the manifest evidence it saw, plus whether output was truncated.
 // A non-nil diagnostics annotates each finding with the reason discovery
 // skipped it.
-func describeDiscoveryFindings(target sdk.ExecutionTarget, rules discoveryRules, diagnostics *discoveryDiagnostics) ([]discoveryFinding, bool) {
+func describeDiscoveryFindings(target plugin.ExecutionTarget, rules discoveryRules, diagnostics *discoveryDiagnostics) ([]discoveryFinding, bool) {
 	if strings.TrimSpace(target.Location) == "" {
 		return nil, false
 	}
 	switch target.Kind {
-	case sdk.ExecutionTargetFilesystem, sdk.ExecutionTargetGitRepository, "":
+	case plugin.ExecutionTargetFilesystem, plugin.ExecutionTargetGitRepository, "":
 	default:
 		return nil, false
 	}
@@ -785,12 +787,12 @@ func describeDiscoveryFindings(target sdk.ExecutionTarget, rules discoveryRules,
 
 // renderDiscoveryProbe formats probe findings for the "no subprojects
 // discovered" error text. Returns nil for targets the probe does not cover.
-func renderDiscoveryProbe(target sdk.ExecutionTarget, findings []discoveryFinding, truncated bool) []string {
+func renderDiscoveryProbe(target plugin.ExecutionTarget, findings []discoveryFinding, truncated bool) []string {
 	if strings.TrimSpace(target.Location) == "" {
 		return nil
 	}
 	switch target.Kind {
-	case sdk.ExecutionTargetFilesystem, sdk.ExecutionTargetGitRepository, "":
+	case plugin.ExecutionTargetFilesystem, plugin.ExecutionTargetGitRepository, "":
 	default:
 		return nil
 	}
@@ -931,8 +933,8 @@ func resolveManifestCandidate(basePath, pattern string) (string, bool) {
 	return "", false
 }
 
-func executionTargetIsSingleFile(executionTarget sdk.ExecutionTarget) (bool, error) {
-	if executionTarget.Kind != sdk.ExecutionTargetFilesystem {
+func executionTargetIsSingleFile(executionTarget plugin.ExecutionTarget) (bool, error) {
+	if executionTarget.Kind != plugin.ExecutionTargetFilesystem {
 		return false, nil
 	}
 	info, err := os.Stat(executionTarget.Location)

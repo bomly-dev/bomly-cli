@@ -6,7 +6,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // A baseline written before ADR-0041 must keep suppressing the same findings
@@ -48,27 +49,27 @@ func TestBaselineWrittenBeforeTheIdentityChangeStillSuppresses(t *testing.T) {
 
 	// The finding a current scan produces: its DependencyRefs are canonical
 	// package URLs now, and its PackageRef is what it always was.
-	finding := sdk.Finding{
-		Kind:            sdk.FindingKindVulnerability,
+	finding := model.Finding{
+		Kind:            model.FindingKindVulnerability,
 		Auditor:         "vulnerability",
 		RuleID:          "advisory",
 		PackageRef:      purl,
 		VulnerabilityID: "GHSA-example",
 		DependencyRefs:  []string{purl},
-		Severity:        sdk.SeverityHigh,
-		PolicyStatus:    sdk.FindingPolicyStatusFail,
+		Severity:        model.SeverityHigh,
+		PolicyStatus:    model.FindingPolicyStatusFail,
 	}
 
-	registry := sdk.NewPackageRegistry()
+	registry := model.NewPackageRegistry()
 	pkg := registry.Ensure(purl)
 	pkg.Name, pkg.Version = "left-pad", "1.3.0"
-	pkg.Vulnerabilities = []sdk.Vulnerability{{ID: "GHSA-example"}}
+	pkg.Vulnerabilities = []model.Vulnerability{{ID: "GHSA-example"}}
 
 	decision, ok := resolver.ResolveFindingPolicy(context.Background(), finding, registry)
 	if !ok {
 		t.Fatal("the baseline stopped matching a finding it was written to suppress")
 	}
-	if decision.Status != sdk.FindingPolicyStatusSuppressed {
+	if decision.Status != model.FindingPolicyStatusSuppressed {
 		t.Fatalf("policy status = %q, want the baseline's suppression", decision.Status)
 	}
 }
@@ -84,26 +85,26 @@ func TestBaselineMatchesRegardlessOfGraphShape(t *testing.T) {
 
 	document := Document{SchemaVersion: SchemaVersion, Entries: []Entry{{
 		PackageRef:   purl,
-		Kind:         sdk.FindingKindVulnerability,
+		Kind:         model.FindingKindVulnerability,
 		Auditor:      "vulnerability",
 		RuleID:       "advisory",
 		AdvisoryIDs:  []string{"GHSA-example"},
-		PolicyStatus: sdk.FindingPolicyStatusSuppressed,
+		PolicyStatus: model.FindingPolicyStatusSuppressed,
 	}}}
 	resolver, err := NewResolver(document)
 	if err != nil {
 		t.Fatalf("NewResolver() error = %v", err)
 	}
 
-	registry := sdk.NewPackageRegistry()
+	registry := model.NewPackageRegistry()
 	pkg := registry.Ensure(purl)
 	pkg.Name, pkg.Version = "left-pad", "1.3.0"
-	pkg.Vulnerabilities = []sdk.Vulnerability{{ID: "GHSA-example"}}
+	pkg.Vulnerabilities = []model.Vulnerability{{ID: "GHSA-example"}}
 
-	underModule := sdk.New()
+	underModule := model.New()
 	module := testnodes.Module("package.json", "app", "1.0.0")
-	consumed := testnodes.Dep(sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: "left-pad", Version: "1.3.0"})
-	for _, node := range []sdk.GraphNode{module, consumed} {
+	consumed := testnodes.Dep(model.Coordinates{Ecosystem: model.EcosystemNPM, Name: "left-pad", Version: "1.3.0"})
+	for _, node := range []model.GraphNode{module, consumed} {
 		if err := underModule.AddNode(node); err != nil {
 			t.Fatal(err)
 		}
@@ -112,8 +113,8 @@ func TestBaselineMatchesRegardlessOfGraphShape(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	standalone := sdk.New()
-	orphan := testnodes.Dep(sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: "left-pad", Version: "1.3.0"})
+	standalone := model.New()
+	orphan := testnodes.Dep(model.Coordinates{Ecosystem: model.EcosystemNPM, Name: "left-pad", Version: "1.3.0"})
 	if err := standalone.AddNode(orphan); err != nil {
 		t.Fatal(err)
 	}
@@ -123,8 +124,8 @@ func TestBaselineMatchesRegardlessOfGraphShape(t *testing.T) {
 		"standalone":     {orphan.NodeID()},
 	} {
 		t.Run(name, func(t *testing.T) {
-			finding := sdk.Finding{
-				Kind:            sdk.FindingKindVulnerability,
+			finding := model.Finding{
+				Kind:            model.FindingKindVulnerability,
 				Auditor:         "vulnerability",
 				RuleID:          "advisory",
 				PackageRef:      purl,

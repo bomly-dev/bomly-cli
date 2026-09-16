@@ -7,8 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // mavenModule is one reactor module discovered by walking pom <modules>
@@ -121,7 +122,7 @@ func (m mavenModule) moduleKey() string {
 // coordinates, stripping the ":classifier" suffix depGraphFromMavenTGF appends
 // to names. It takes coordinates rather than a dependency node because a
 // reactor module may already be a module node by the time it is matched.
-func mavenCoordinatesModuleKey(coords sdk.Coordinates) string {
+func mavenCoordinatesModuleKey(coords model.Coordinates) string {
 	name := coords.Name
 	if idx := strings.Index(name, ":"); idx >= 0 {
 		name = name[:idx]

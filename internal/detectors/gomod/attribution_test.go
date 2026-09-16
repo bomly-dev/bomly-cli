@@ -5,7 +5,9 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // TestGoModLocationsCarryTheirModuleRoot covers the one place under
@@ -23,8 +25,8 @@ func TestGoModLocationsCarryTheirModuleRoot(t *testing.T) {
 		t.Fatalf("depGraphFromGoList: %v", err)
 	}
 
-	detectors.Attributed(sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"}),
+	detectors.Attributed(plugin.DetectionResult{
+		Graphs: model.SingleGraphContainer(g, model.ManifestMetadata{Path: "go.mod", Kind: "go.mod"}),
 	})
 
 	direct, ok := testnodes.FindDep(g, "github.com/direct/dep@v1.0.0")
@@ -38,10 +40,10 @@ func TestGoModLocationsCarryTheirModuleRoot(t *testing.T) {
 	if location.ModuleRoot != "." {
 		t.Fatalf("module root = %q, want \".\": the main module declares this require line", location.ModuleRoot)
 	}
-	if location.Relationship != sdk.DependencyRelationshipDirect {
+	if location.Relationship != model.DependencyRelationshipDirect {
 		t.Fatalf("relationship = %q, want direct: go.mod is where the main module declares it", location.Relationship)
 	}
-	if len(location.Scopes) != 1 || location.Scopes[0] != sdk.ScopeRuntime {
+	if len(location.Scopes) != 1 || location.Scopes[0] != model.ScopeRuntime {
 		t.Fatalf("site scopes = %v, want [runtime]", location.Scopes)
 	}
 }

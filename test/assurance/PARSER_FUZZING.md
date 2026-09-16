@@ -17,14 +17,20 @@ the reader inventory, cache behavior, and intentional exclusions.
 | Configuration and policy documents | strict YAML configuration, finding baseline |
 | Shared JSON contracts | dependency graph, package registry |
 | Package identifiers and plugin paths | package URL canonicalization, plugin path sanitizers |
-| SBOM | automatic SPDX and CycloneDX decoding; Syft JSON identification and deterministic rejection (the format is no longer ingested) |
-| License expressions | SPDX identifier classification, expression validation, and multi-license composition on the export path (`FuzzSPDXLicenseValue`), plus the deprecated-identifier rewriter (`FuzzNormalizeSPDXLicenseExpression`) |
 | Node lockfiles | npm, pnpm, Yarn, Bun |
 | Node project configuration | package.json, pnpm-workspace.yaml, and .npmrc behind the package-manager warning checks |
 | Python lockfiles | Poetry, uv, Pipenv |
 | Other lockfiles and manifests | Cargo, CocoaPods, Composer, Conan, Go list, Mix, NuGet lock and packages.config, Pub, Bundler, SwiftPM |
 | Workflow manifests | GitHub Actions workflow references |
 | Matcher evidence | vulnerability consolidation and advisory aliases |
+
+The SBOM codec's targets moved with the codec to `bomly-sdk/sbom` (ADR-0045)
+and run in that repository's fuzz workflow: automatic SPDX and CycloneDX
+decoding with Syft JSON identification and deterministic rejection
+(`FuzzUnmarshalAutoJSON`), multi-license composition on the export path
+(`FuzzSPDXLicenseValue`), the deprecated-identifier rewriter
+(`FuzzNormalizeSPDXLicenseExpression`), and ingested and document assertions
+(`FuzzIngestedAssertions`, `FuzzDocumentAssertions`).
 
 Seeds include valid minimal documents and malformed/truncated structures.
 The fuzz engine supplies invalid encodings, deep nesting, duplicate values,

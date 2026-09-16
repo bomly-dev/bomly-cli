@@ -4,25 +4,23 @@ go 1.27.0
 
 require (
 	github.com/BurntSushi/toml v1.6.0
-	github.com/CycloneDX/cyclonedx-go v0.12.0
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/bomly-dev/bomly-plugin-depsdev-license-matcher v0.2.2
 	github.com/bomly-dev/bomly-plugin-govulncheck-analyzer v0.3.2
-	github.com/bomly-dev/bomly-plugin-grype-matcher v0.4.0
+	github.com/bomly-dev/bomly-plugin-grype-matcher v0.5.0
 	github.com/bomly-dev/bomly-plugin-jsreach-analyzer v0.3.2
 	github.com/bomly-dev/bomly-plugin-jvmreach-analyzer v0.3.2
 	github.com/bomly-dev/bomly-plugin-osv-matcher v0.2.2
 	github.com/bomly-dev/bomly-plugin-pyreach-analyzer v0.3.2
 	github.com/bomly-dev/bomly-plugin-scorecard-matcher v0.2.2
-	github.com/bomly-dev/bomly-plugin-syft-detector v0.4.0
-	github.com/bomly-dev/bomly-sdk v0.11.0
+	github.com/bomly-dev/bomly-plugin-syft-detector v0.5.0
+	github.com/bomly-dev/bomly-sdk v0.12.0
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/mark3labs/mcp-go v1.0.0
-	github.com/spdx/tools-golang v0.6.0-rc4
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	go.uber.org/zap v1.28.0
@@ -42,6 +40,7 @@ require (
 	cloud.google.com/go/monitoring v1.24.3 // indirect
 	cloud.google.com/go/storage v1.61.3 // indirect
 	dario.cat/mergo v1.0.2 // indirect
+	github.com/CycloneDX/cyclonedx-go v0.12.0 // indirect
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.33.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.55.0 // indirect
@@ -274,6 +273,7 @@ require (
 	github.com/sorairolake/lzip-go v0.3.8 // indirect
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/spdx/gordf v0.0.0-20250128162952-000978ccd6fb // indirect
+	github.com/spdx/tools-golang v0.6.0-rc4 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/viper v1.21.0 // indirect

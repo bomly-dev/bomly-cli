@@ -39,19 +39,20 @@ linters:
             - pkg: github.com/bomly-dev/bomly-sdk/purlkit
               desc: detectors mint package URLs through sdk.BuildPackageURLFor; holding purlkit is holding the ability to choose a type by hand
         # Strict JSON parsing is an ingest defense scoped to untrusted SBOM
-        # documents (ADR-0039). The plugin wire and everything else keep v1
-        # decoding; a new strict caller changes this rule on purpose.
+        # documents (ADR-0039), and the SBOM codec that owns it lives in
+        # bomly-sdk/sbom (ADR-0045). Nothing in this repository parses strictly:
+        # the plugin wire and everything else keep v1 decoding, and a new
+        # strict caller changes this rule on purpose.
         strict-json-ingest-only:
           list-mode: lax
           files:
             - "**/internal/**"
-            - "!**/internal/sbom/**"
             - "!$test"
           deny:
             - pkg: encoding/json/v2
-              desc: strict JSON parsing is scoped to SBOM ingest under internal/sbom (ADR-0039)
+              desc: strict JSON parsing is scoped to SBOM ingest in bomly-sdk/sbom (ADR-0039, ADR-0045)
             - pkg: encoding/json/jsontext
-              desc: strict JSON parsing is scoped to SBOM ingest under internal/sbom (ADR-0039)
+              desc: strict JSON parsing is scoped to SBOM ingest in bomly-sdk/sbom (ADR-0039, ADR-0045)
         # testnodes panics on a fixture it cannot build, which is right for a
         # test and wrong for a scan.
         testnodes-tests-only:
@@ -67,9 +68,8 @@ linters:
     # import or a local function wearing the same name does not evade it.
     # Each msg starts with a bracketed tag; the exclusion rules below use that
     # tag to scope the pattern to the packages it polices. A rule that must
-    # also see a name inside a string (the export layer's ResolvedURL ban) is
-    # a guardcheck analyzer instead, because a resolved-identifier match
-    # cannot see reflection.
+    # also see a name inside a string is a guardcheck analyzer instead,
+    # because a resolved-identifier match cannot see reflection.
     forbidigo:
       analyze-types: true
       forbid:

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/bomly-dev/bomly-cli/internal/graphview"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/graphview"
 )
 
 // ScanGraphDisplayName returns a label for the scan target derived from g's

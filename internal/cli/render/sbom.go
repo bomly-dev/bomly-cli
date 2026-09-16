@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-cli/internal/sbom"
+	"github.com/bomly-dev/bomly-sdk/sbom"
 )
 
 // OutputSpec describes one parsed -o argument: an output format and the

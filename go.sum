@@ -243,8 +243,8 @@ github.com/bomly-dev/bomly-plugin-depsdev-license-matcher v0.2.2 h1:XnGwBCIiHKPo
 github.com/bomly-dev/bomly-plugin-depsdev-license-matcher v0.2.2/go.mod h1:d8qwh3RO3LH6OWtobchmv4AzxvLCTBZwuhvNUEQTDco=
 github.com/bomly-dev/bomly-plugin-govulncheck-analyzer v0.3.2 h1:5qBRTgX5bUvBG7VON09FqC0NpYx82N/GzSrI6jSFvbs=
 github.com/bomly-dev/bomly-plugin-govulncheck-analyzer v0.3.2/go.mod h1:TDuxfdE0YmeMQTBIh/FAaE0PLjHR7tAMMbl39ugVvFE=
-github.com/bomly-dev/bomly-plugin-grype-matcher v0.4.0 h1:x8Rjc6TUBlhYt9nGDnihW2hM0LxuRrvz5eEAyW2h5+A=
-github.com/bomly-dev/bomly-plugin-grype-matcher v0.4.0/go.mod h1:2UxxceNwT2yjR5GWl5leFPSERpjbHL1X6ZPY/AK5UFY=
+github.com/bomly-dev/bomly-plugin-grype-matcher v0.5.0 h1:bqiprNYuLWbWVDlJiS0La4NGuNsf5UmgKm5ePIdoCN8=
+github.com/bomly-dev/bomly-plugin-grype-matcher v0.5.0/go.mod h1:o29VZgigJWHaz6oxFwNIKzSrvIEc6rBvWUfsxTrtv/Y=
 github.com/bomly-dev/bomly-plugin-jsreach-analyzer v0.3.2 h1:hGR3GY66M5ugHeOaCSfNH5qpxC/byhb0zGHqKG58VME=
 github.com/bomly-dev/bomly-plugin-jsreach-analyzer v0.3.2/go.mod h1:YJbNGvXVhb6yHPjEx8bX04bJb9egVUdQX867Ouopwps=
 github.com/bomly-dev/bomly-plugin-jvmreach-analyzer v0.3.2 h1:vRhZY8sCNXHoMEWi2XoHpwiW+rL99W32qL7QQEnEEFI=
@@ -255,10 +255,10 @@ github.com/bomly-dev/bomly-plugin-pyreach-analyzer v0.3.2 h1:fXIdNRaTYdwprocs1lB
 github.com/bomly-dev/bomly-plugin-pyreach-analyzer v0.3.2/go.mod h1:chEhFaCmSlM2l0nggOL/IkG8bsbWHT6oOo+6znh7P6o=
 github.com/bomly-dev/bomly-plugin-scorecard-matcher v0.2.2 h1:UIC9DOYSHHFdWwO30jz1/9ieoDBbOEl5yS6tTgJl780=
 github.com/bomly-dev/bomly-plugin-scorecard-matcher v0.2.2/go.mod h1:mXXNLrppMxsygi3jEiSyLsahZbFxNmJhLLYpRxqB9W8=
-github.com/bomly-dev/bomly-plugin-syft-detector v0.4.0 h1:9YJBnA7R6XEFVnOdRb6DTM6zpSiuMwu0p6FwcJD0s/E=
-github.com/bomly-dev/bomly-plugin-syft-detector v0.4.0/go.mod h1:Ij8rg7gcbQfczP2kQnIYgC4ppve1XGZmO2eC/DpULlw=
-github.com/bomly-dev/bomly-sdk v0.11.0 h1:jd+JUPEKIct4LcWDiAxewn/NEHW3BpQZojM2NqwMfOs=
-github.com/bomly-dev/bomly-sdk v0.11.0/go.mod h1:gAGOEa88BE8gELt2rM/ZrqGIJnOzXiR6ocuuKW6AaJ0=
+github.com/bomly-dev/bomly-plugin-syft-detector v0.5.0 h1:H2gGENBP5VwTp2S0bohEhEOZbs7G8w11rzNMfIEPCTY=
+github.com/bomly-dev/bomly-plugin-syft-detector v0.5.0/go.mod h1:LekJqf4iWIOvmkd7FE5CTY5PUfqsO2Hx5O9gqMfCFbE=
+github.com/bomly-dev/bomly-sdk v0.12.0 h1:9Eh6U9qwIcrmW1lCd2+rPvaBUKWrze0ZWhF+3yJGjts=
+github.com/bomly-dev/bomly-sdk v0.12.0/go.mod h1:vl4bH9eDeJTXky68gl3gblWIbjicR/a4LDmmbCl8pjE=
 github.com/bradleyjkemp/cupaloy/v2 v2.8.0 h1:any4BmKE+jGIaMpnU8YgH/I2LPiLBufr6oMMlVBbn9M=
 github.com/bradleyjkemp/cupaloy/v2 v2.8.0/go.mod h1:bm7JXdkRd4BHJk9HpwqAI8BoAY1lps46Enkdqw6aRX0=
 github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/FBatYVw=

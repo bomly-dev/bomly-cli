@@ -37,7 +37,7 @@ linters:
             - "**/internal/detectors/**"
           deny:
             - pkg: github.com/bomly-dev/bomly-sdk/purlkit
-              desc: detectors mint package URLs through sdk.BuildPackageURLFor; holding purlkit is holding the ability to choose a type by hand
+              desc: detectors mint package URLs through model.BuildPackageURLFor; holding purlkit is holding the ability to choose a type by hand
         # Strict JSON parsing is an ingest defense scoped to untrusted SBOM
         # documents (ADR-0039), and the SBOM codec that owns it lives in
         # bomly-sdk/sbom (ADR-0045). Nothing in this repository parses strictly:
@@ -78,18 +78,18 @@ linters:
         # pattern so a local function wearing the authority's name is
         # reported rather than accepted.
         - pattern: '\.BuildPackageURL$'
-          msg: "[purl-type] takes the package-url type as a string; call sdk.BuildPackageURLFor, which takes the ecosystem and package manager and decides the type itself"
+          msg: "[purl-type] takes the package-url type as a string; call model.BuildPackageURLFor, which takes the ecosystem and package manager and decides the type itself"
         - pattern: '\.PackageURLTypeForValues$'
-          msg: "[purl-type] is the mapping itself; sdk.BuildPackageURLFor already consults it"
+          msg: "[purl-type] is the mapping itself; model.BuildPackageURLFor already consults it"
         # The registry lookup was written six times across the presentation
         # surfaces and drifted; output/registry_lookup.go is the one home.
-        - pattern: '^sdk\.PackageRegistry\.Get$'
-          pkg: '^github\.com/bomly-dev/bomly-sdk$'
+        - pattern: '^model\.PackageRegistry\.Get$'
+          pkg: '^github\.com/bomly-dev/bomly-sdk/model$'
           msg: "[registry-lookup] call output.RegistryPackage, RegistryPackageForNode, FindingAdvisory, ResolvedLicenses, NodeVulnerabilities or IdentifyPackageRef"
         # Every Python project root is built by pythonModuleRoot, which decides
         # the declaring manifest from the package manager.
-        - pattern: '^sdk\.NewModuleNode$'
-          pkg: '^github\.com/bomly-dev/bomly-sdk$'
+        - pattern: '^model\.NewModuleNode$'
+          pkg: '^github\.com/bomly-dev/bomly-sdk/model$'
           msg: "[python-root] call pythonModuleRoot, which decides the declaring manifest"
   exclusions:
     # Not lax: a generated file under internal/ is shipped code, and the

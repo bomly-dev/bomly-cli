@@ -1,0 +1,60 @@
+#!/usr/bin/env sh
+#
+# Refuse to push work that has not been verified since it last changed.
+#
+# The failure this prevents is a slow one: a push lands, CI runs for six
+# minutes, and comes back red on something `go test ./...` would have caught
+# in one. Worse on a pull request, where the reviewer has already started.
+#
+# The stamp is written by `make verify` and records which suites ran. This
+# hook only checks that a passing stamp exists and is newer than every
+# tracked source file -- it does not run the suites itself, because a hook
+# that takes six minutes gets bypassed, and a bypassed hook enforces nothing.
+#
+# Smoke is not required by default: it needs the network and several minutes.
+# `make verify SMOKE=1` records it, and `BOMLY_REQUIRE_SMOKE=1` makes this
+# hook insist on it -- worth setting when a change touches detector output.
+#
+# To push without verifying, say so out loud: `git push --no-verify`.
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+stamp="$repo_root/.verify-stamp"
+
+fail() {
+	printf 'pre-push: %s\n' "$1" >&2
+	printf 'pre-push: run `make verify` (or `make verify SMOKE=1`), then push again.\n' >&2
+	printf 'pre-push: to skip deliberately, use `git push --no-verify`.\n' >&2
+	exit 1
+}
+
+[ -f "$stamp" ] || fail 'no verification stamp; this work has never been verified.'
+
+# shellcheck disable=SC1090
+. "$stamp"
+
+[ "${VERIFY_STATUS:-}" = "pass" ] || fail "the last verification did not pass (status: ${VERIFY_STATUS:-unknown})."
+
+# The stamp records a digest of the repository state that was verified;
+# scripts/verify-snapshot.sh defines it and `make verify` writes it, so there
+# is one definition rather than two that drift.
+#
+# This replaced comparing modification times of a hand-written file list. That
+# list named 541 of the repository's 816 tracked files, so editing a shell
+# script, a workflow, an npm wrapper source or a nested testdata fixture left
+# the stamp looking fresh; a deleted file vanished from the list rather than
+# invalidating anything; and a restored mtime read as unchanged. Each of those
+# reported a passing verification for work that was never tested, which is the
+# one thing this hook exists to prevent.
+snapshot_script="$repo_root/scripts/verify-snapshot.sh"
+[ -x "$snapshot_script" ] || fail 'scripts/verify-snapshot.sh is missing or not executable.'
+
+current_snapshot=$("$snapshot_script") || fail 'could not snapshot the repository state.'
+[ -n "${VERIFY_SNAPSHOT:-}" ] || fail 'the stamp predates snapshot verification; run `make verify` again.'
+[ "${VERIFY_SNAPSHOT}" = "${current_snapshot}" ] || fail 'the repository changed after the last verification.'
+
+if [ "${BOMLY_REQUIRE_SMOKE:-0}" = "1" ] && [ "${VERIFY_SMOKE:-no}" != "yes" ]; then
+	fail 'BOMLY_REQUIRE_SMOKE=1 but the stamp records no smoke run.'
+fi
+
+printf 'pre-push: verified at %s (smoke: %s).\n' "${VERIFY_AT_HUMAN:-?}" "${VERIFY_SMOKE:-no}"

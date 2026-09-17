@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // Strategy action names accepted by StrategyConfig.Strategy.
@@ -68,13 +69,13 @@ func ResolveStrategyOrder(c StrategyConfig) ([]string, error) {
 // implements it and the technique its results should be labelled with.
 type Strategy struct {
 	Name      string
-	Detector  sdk.Detector
-	Technique sdk.DetectorTechnique
+	Detector  plugin.Detector
+	Technique plugin.DetectorTechnique
 }
 
 // StrategiesReady reports readiness for a merged detector: ready when any
 // configured strategy is ready, otherwise the joined per-strategy reasons.
-func StrategiesReady(ctx context.Context, req sdk.DetectionRequest, strategies []Strategy) error {
+func StrategiesReady(ctx context.Context, req plugin.DetectionRequest, strategies []Strategy) error {
 	var errs []error
 	for _, strategy := range strategies {
 		err := strategy.Detector.Ready(ctx, req)
@@ -91,7 +92,7 @@ func StrategiesReady(ctx context.Context, req sdk.DetectionRequest, strategies [
 
 // StrategiesApplicable reports whether any configured strategy applies to the
 // request.
-func StrategiesApplicable(ctx context.Context, req sdk.DetectionRequest, strategies []Strategy) (bool, error) {
+func StrategiesApplicable(ctx context.Context, req plugin.DetectionRequest, strategies []Strategy) (bool, error) {
 	var errs []error
 	for _, strategy := range strategies {
 		applicable, err := strategy.Detector.Applicable(ctx, req)
@@ -115,7 +116,7 @@ func StrategiesApplicable(ctx context.Context, req sdk.DetectionRequest, strateg
 // silently; the first strategy that produces a non-empty graph wins and its
 // technique is stamped on the result. When every strategy fails the joined
 // errors are returned.
-func RunStrategies(ctx context.Context, req sdk.DetectionRequest, detectorName string, strategies []Strategy, logger *zap.Logger) (sdk.DetectionResult, error) {
+func RunStrategies(ctx context.Context, req plugin.DetectionRequest, detectorName string, strategies []Strategy, logger *zap.Logger) (plugin.DetectionResult, error) {
 	logger = req.DetectorLogger(logger)
 	var errs []error
 	for _, strategy := range strategies {
@@ -160,7 +161,7 @@ func RunStrategies(ctx context.Context, req sdk.DetectionRequest, detectorName s
 		return result, nil
 	}
 	if len(errs) == 0 {
-		return sdk.DetectionResult{}, fmt.Errorf("no applicable detection strategy")
+		return plugin.DetectionResult{}, fmt.Errorf("no applicable detection strategy")
 	}
-	return sdk.DetectionResult{}, errors.Join(errs...)
+	return plugin.DetectionResult{}, errors.Join(errs...)
 }

@@ -34,9 +34,9 @@ func parseWarningSource(text, prefix string) (source, message string) {
 		return "", text
 	}
 	rest := text[len(p):]
-	idx := strings.Index(rest, ": ")
-	if idx < 0 {
+	before, after, ok := strings.Cut(rest, ": ")
+	if !ok {
 		return "", text
 	}
-	return rest[:idx], rest[idx+2:]
+	return before, after
 }

@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 var (
@@ -19,8 +22,8 @@ var (
 // MatchResult contains aggregate matcher output after the engine runs all
 // selected matchers for a pipeline stage.
 type MatchResult struct {
-	Registry                    *sdk.PackageRegistry
-	MatcherStats                []sdk.MatcherStats
+	Registry                    *model.PackageRegistry
+	MatcherStats                []plugin.MatcherStats
 	VulnerabilitiesConsolidated int
 }
 
@@ -38,13 +41,13 @@ func NewEngine(registry *Registry) *Engine {
 }
 
 // Audit selects auditors by priority and aggregates their findings.
-func (e *Engine) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
+func (e *Engine) Audit(ctx context.Context, req plugin.AuditRequest) (plugin.AuditResult, error) {
 	auditorsList := e.registry.Auditors(req)
 	if len(auditorsList) == 0 {
-		return sdk.AuditResult{}, fmt.Errorf("%w for ecosystem %q, and package manager %q", ErrNoAuditor, req.Ecosystem, req.PackageManager)
+		return plugin.AuditResult{}, fmt.Errorf("%w for ecosystem %q, and package manager %q", ErrNoAuditor, req.Ecosystem, req.PackageManager)
 	}
 
-	aggregated := sdk.AuditResult{
+	aggregated := plugin.AuditResult{
 		AuditorFindings: make(map[string]int),
 	}
 	var errs []error
@@ -82,9 +85,9 @@ func (e *Engine) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResu
 	return aggregated, nil
 }
 
-func cloneAuditRequest(req sdk.AuditRequest) sdk.AuditRequest {
+func cloneAuditRequest(req plugin.AuditRequest) plugin.AuditRequest {
 	cloned := req
-	cloned.DependencyDetailChanges = sdk.CloneDependencyDetailTransitions(req.DependencyDetailChanges)
+	cloned.DependencyDetailChanges = model.CloneDependencyDetailTransitions(req.DependencyDetailChanges)
 	return cloned
 }
 
@@ -92,19 +95,19 @@ func cloneAuditRequest(req sdk.AuditRequest) sdk.AuditRequest {
 // reachability-annotated graph. Unlike Audit, Analyze does NOT error when
 // zero analyzers apply — reachability is opt-in and a request with no
 // applicable analyzers is a normal outcome.
-func (e *Engine) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
+func (e *Engine) Analyze(ctx context.Context, req plugin.AnalyzeRequest) (plugin.AnalyzeResult, error) {
 	analyzers := e.registry.Analyzers(req)
 	if len(analyzers) == 0 {
-		return sdk.AnalyzeResult{Registry: req.Registry}, nil
+		return plugin.AnalyzeResult{Registry: req.Registry}, nil
 	}
 
 	// The engine understands AnalyzeResult.PackageUpdates deltas, so advertise
 	// it to every analyzer, embedded or external.
 	req.AcceptPackageUpdates = true
 
-	aggregated := sdk.AnalyzeResult{
+	aggregated := plugin.AnalyzeResult{
 		Registry:      req.Registry,
-		AnalyzerStats: make(map[string]sdk.ReachabilityStats),
+		AnalyzerStats: make(map[string]plugin.ReachabilityStats),
 	}
 	var errs []error
 	for _, analyzer := range analyzers {
@@ -139,13 +142,11 @@ func (e *Engine) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.Analy
 			aggregated.Registry = result.Registry
 			req.Registry = result.Registry
 		case len(result.PackageUpdates) > 0:
-			updated := sdk.ApplyPackageUpdates(req.Registry, result.PackageUpdates)
+			updated := model.ApplyPackageUpdates(req.Registry, result.PackageUpdates)
 			aggregated.Registry = updated
 			req.Registry = updated
 		}
-		for analyzerName, stats := range result.AnalyzerStats {
-			aggregated.AnalyzerStats[analyzerName] = stats
-		}
+		maps.Copy(aggregated.AnalyzerStats, result.AnalyzerStats)
 	}
 	if len(errs) > 0 {
 		return aggregated, errors.Join(errs...)
@@ -154,7 +155,7 @@ func (e *Engine) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.Analy
 }
 
 // Match runs registered matchers against the graph and returns the enriched graph.
-func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (MatchResult, error) {
+func (e *Engine) Match(ctx context.Context, req plugin.MatchRequest) (MatchResult, error) {
 	originalGraphSize := 0
 	if req.Graph != nil {
 		originalGraphSize = req.Graph.Size()
@@ -217,7 +218,7 @@ func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (MatchResult, 
 			aggregated.Registry = result.Registry
 			req.Registry = result.Registry
 		case len(result.PackageUpdates) > 0:
-			updated := sdk.ApplyPackageUpdates(req.Registry, result.PackageUpdates)
+			updated := model.ApplyPackageUpdates(req.Registry, result.PackageUpdates)
 			aggregated.Registry = updated
 			req.Registry = updated
 		}
@@ -237,7 +238,7 @@ func finalizeMatchResult(result *MatchResult) {
 	result.VulnerabilitiesConsolidated = before - after
 }
 
-func matcherStats(descriptor sdk.MatcherDescriptor, stats sdk.MatcherStats) sdk.MatcherStats {
+func matcherStats(descriptor plugin.MatcherDescriptor, stats plugin.MatcherStats) plugin.MatcherStats {
 	if stats.Name == "" {
 		stats.Name = descriptor.Name
 	}

@@ -10,23 +10,27 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
+func originOf(dep *model.DependencyNode) model.DependencyOrigin {
 	if dep == nil {
-		return sdk.DependencyOrigin{}
+		return model.DependencyOrigin{}
 	}
-	if origin := dep.Origin.Normalized(); origin != nil {
-		return *origin
+	// Origins are gated on the way in, so the first entry is already
+	// publishable; these cases assert on a single asserted origin.
+	if len(dep.Origins) == 0 {
+		return model.DependencyOrigin{}
 	}
-	return sdk.DependencyOrigin{}
+	return dep.Origins[0]
 }
 
 // requireArtifactOrigin asserts a package asserts exactly the given artifact.
-func requireArtifactOrigin(t *testing.T, g *sdk.Graph, name, version, want string) {
+func requireArtifactOrigin(t *testing.T, g *model.Graph, name, version, want string) {
 	t.Helper()
 	origin := originOf(requirePackage(t, g, name, version))
 	if origin.ArtifactURL != want {
@@ -38,7 +42,21 @@ func requireArtifactOrigin(t *testing.T, g *sdk.Graph, name, version, want strin
 }
 
 // requireNoOrigin asserts a package publishes no location at all.
-func requireNoOrigin(t *testing.T, g *sdk.Graph, name, version string) {
+// requireNoModuleOrigin asserts that the project's own module for a name
+// publishes nothing about where it came from.
+func requireNoModuleOrigin(t *testing.T, g *model.Graph, name string) {
+	t.Helper()
+	for _, module := range g.ModuleNodes() {
+		// EcosystemName, not Name: normalization splits a scoped npm name
+		// into Org and Name.
+		if module.EcosystemName() == name {
+			return
+		}
+	}
+	t.Errorf("no module node named %q; modules: %v", name, moduleLabels(g))
+}
+
+func requireNoOrigin(t *testing.T, g *model.Graph, name, version string) {
 	t.Helper()
 	if origin := originOf(requirePackage(t, g, name, version)); !origin.Empty() {
 		t.Errorf("%s@%s asserted an origin it should not have: %+v", name, version, origin)
@@ -68,7 +86,7 @@ func TestNPMLockfileV1OriginIsTheRegistryTarball(t *testing.T) {
 // Workspace members are local directories. npm records that directory as the
 // member's "resolved" value, which must never reach an SBOM.
 func TestNPMWorkspaceMembersAssertNoOrigin(t *testing.T) {
-	result, err := (npm.LockfileDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: fixture("npm-v3-workspaces")})
+	result, err := (npm.LockfileDetector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: fixture("npm-v3-workspaces")})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,8 +95,8 @@ func TestNPMWorkspaceMembersAssertNoOrigin(t *testing.T) {
 		t.Fatal(err)
 	}
 	requireArtifactOrigin(t, g, "lodash", "4.17.21", "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz")
-	requireNoOrigin(t, g, "web", "0.2.0")
-	requireNoOrigin(t, g, "lib", "1.0.0")
+	requireNoModuleOrigin(t, g, "web")
+	requireNoModuleOrigin(t, g, "lib")
 }
 
 func TestPNPMLockfileOriginIsTheResolutionTarball(t *testing.T) {
@@ -93,7 +111,7 @@ func TestPNPMLockfileOriginIsTheResolutionTarball(t *testing.T) {
 // location, and the registry root is not this package's origin, so there is
 // nothing to assert.
 func TestPNPMIntegrityOnlyEntriesAssertNoOrigin(t *testing.T) {
-	result, err := (pnpm.LockfileDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: fixture("pnpm-v9-workspaces")})
+	result, err := (pnpm.LockfileDetector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: fixture("pnpm-v9-workspaces")})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -126,7 +144,7 @@ func TestYarnBerryAssertsNoOrigin(t *testing.T) {
 }
 
 func TestBunLockfileOriginIsTheRegistryTarball(t *testing.T) {
-	result, err := (bun.LockfileDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: fixture("bun-v1-workspaces")})
+	result, err := (bun.LockfileDetector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: fixture("bun-v1-workspaces")})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,12 +153,15 @@ func TestBunLockfileOriginIsTheRegistryTarball(t *testing.T) {
 		t.Fatal(err)
 	}
 	requireArtifactOrigin(t, g, "is-number", "7.0.0", "https://registry.npmjs.org/is-number/-/is-number-7.0.0.tgz")
-	requireNoOrigin(t, g, "workspace:packages/lib", "")
+	// The workspace member is a module node now, and a module carries no
+	// origins at all -- which is the stronger form of what this asserts.
+	requireNoModuleOrigin(t, g, "@fixture/lib")
 }
 
 // Yarn Classic can pin one name@version to different tarballs under different
-// selectors. Both stay as distinct occurrences with their own origins.
-func TestYarnDuplicateResolvedEntriesStayDistinct(t *testing.T) {
+// selectors. They are one identity, so they fold -- and the folded node keeps
+// both tarballs as origins.
+func TestYarnDuplicateResolvedEntriesFoldKeepingBothOrigins(t *testing.T) {
 	dir := t.TempDir()
 	lock := `# yarn.lock classic (v1) format
 
@@ -163,16 +184,23 @@ shared@^2.0.0:
 	if err != nil {
 		t.Fatal(err)
 	}
+	shared := 0
 	origins := map[string]int{}
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		if dep.Name == "shared" {
-			origins[originOf(dep).ArtifactURL]++
+			shared++
+			for _, origin := range dep.Origins {
+				origins[origin.ArtifactURL]++
+			}
 		}
 		return true
 	})
+	if shared != 1 {
+		t.Fatalf("shared nodes = %d, want one node per identity", shared)
+	}
 	if len(origins) != 2 ||
 		origins["https://registry.npmjs.org/shared/-/shared-2.0.0.tgz"] != 1 ||
 		origins["https://npm.corp/mirror/shared/-/shared-2.0.0.tgz"] != 1 {
-		t.Fatalf("shared occurrences = %v, want both tarballs as distinct nodes", origins)
+		t.Fatalf("shared origins = %v, want both tarballs on the folded node", origins)
 	}
 }

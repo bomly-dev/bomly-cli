@@ -5,19 +5,20 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // ConsolidateGraphs merges resolved subproject graph containers while preserving manifest roots.
-func ConsolidateGraphs(results []sdk.DetectionResult) (sdk.ConsolidatedGraph, error) {
-	consolidated := sdk.ConsolidatedGraph{
-		Graphs:      &sdk.GraphContainer{},
-		Manifests:   make([]sdk.ConsolidatedManifest, 0, len(results)),
-		Subprojects: make([]sdk.ConsolidatedSubproject, 0, len(results)),
+func ConsolidateGraphs(results []plugin.DetectionResult) (plugin.ConsolidatedGraph, error) {
+	consolidated := plugin.ConsolidatedGraph{
+		Graphs:      &model.GraphContainer{},
+		Manifests:   make([]plugin.ConsolidatedManifest, 0, len(results)),
+		Subprojects: make([]plugin.ConsolidatedSubproject, 0, len(results)),
 	}
 	selectedTarget, selectedManifests, err := selectManifestEntries(results)
 	if err != nil {
-		return sdk.ConsolidatedGraph{}, err
+		return plugin.ConsolidatedGraph{}, err
 	}
 	consolidated.ExecutionTarget = selectedTarget
 	consolidated.Manifests = selectedManifests
@@ -26,26 +27,17 @@ func ConsolidateGraphs(results []sdk.DetectionResult) (sdk.ConsolidatedGraph, er
 		consolidated.Graphs.Entries = append(consolidated.Graphs.Entries, selected.Entry)
 	}
 
-	// Occurrence renaming can touch an entry's root, so it runs before root
-	// IDs are recorded anywhere; each entry's stored root then reflects
-	// whatever its node is now called. The rename maps are per entry: the
-	// same canonical ID can become different occurrence IDs in different
-	// entries.
-	renames := preserveContradictingOccurrences(consolidated.Graphs.Entries)
-
 	subprojectIndex := make(map[string]int)
-	for i, selected := range selectedManifests {
+	for _, selected := range selectedManifests {
+		// No rename step: a root manifest's ID is its identity and nothing
+		// reassigns it now that occurrences are gone.
 		rootManifestID := selected.RootManifestID
-		if renamed, ok := renames[i][rootManifestID]; ok {
-			rootManifestID = renamed
-			consolidated.Manifests[i].RootManifestID = renamed
-		}
 
 		subprojectKey := consolidatedSubprojectKey(selected.Subproject, selected.DetectorName)
 		idx, exists := subprojectIndex[subprojectKey]
 		if !exists {
 			subprojectIndex[subprojectKey] = len(consolidated.Subprojects)
-			consolidated.Subprojects = append(consolidated.Subprojects, sdk.ConsolidatedSubproject{
+			consolidated.Subprojects = append(consolidated.Subprojects, plugin.ConsolidatedSubproject{
 				Subproject:      selected.Subproject,
 				DetectorName:    selected.DetectorName,
 				RootManifestIDs: []string{rootManifestID},
@@ -58,17 +50,17 @@ func ConsolidateGraphs(results []sdk.DetectionResult) (sdk.ConsolidatedGraph, er
 }
 
 type consolidatedEntryCandidate struct {
-	entry          sdk.GraphEntry
-	subproject     sdk.Subproject
+	entry          model.GraphEntry
+	subproject     plugin.Subproject
 	detectorName   string
-	origin         sdk.DetectorOrigin
-	technique      sdk.DetectorTechnique
+	origin         plugin.DetectorOrigin
+	technique      plugin.DetectorTechnique
 	rootManifestID string
 	priority       int
 }
 
-func selectManifestEntries(results []sdk.DetectionResult) (sdk.ExecutionTarget, []sdk.ConsolidatedManifest, error) {
-	var executionTarget sdk.ExecutionTarget
+func selectManifestEntries(results []plugin.DetectionResult) (plugin.ExecutionTarget, []plugin.ConsolidatedManifest, error) {
+	var executionTarget plugin.ExecutionTarget
 	selectedEntries := make([]consolidatedEntryCandidate, 0)
 	entryIndexByManifest := make(map[string]int)
 	for _, result := range results {
@@ -82,32 +74,43 @@ func selectManifestEntries(results []sdk.DetectionResult) (sdk.ExecutionTarget, 
 		if executionTarget.Kind == "" {
 			executionTarget = candidateTarget
 		} else if executionTarget != candidateTarget {
-			return sdk.ExecutionTarget{}, nil, fmt.Errorf("cannot consolidate graphs from multiple execution targets")
+			return plugin.ExecutionTarget{}, nil, fmt.Errorf("cannot consolidate graphs from multiple execution targets")
 		}
 
 		for idx, entry := range result.Graphs.Entries {
 			if err := validateGraphEntry(entry); err != nil {
-				return sdk.ExecutionTarget{}, nil, fmt.Errorf("subproject %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
+				return plugin.ExecutionTarget{}, nil, fmt.Errorf("subproject %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
 			}
 
 			normalizedGraph, err := normalizeGraphPackageIdentity(entry.Graph)
 			if err != nil {
-				return sdk.ExecutionTarget{}, nil, fmt.Errorf("normalize graph identity for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
+				return plugin.ExecutionTarget{}, nil, fmt.Errorf("normalize graph identity for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
 			}
 			if isCoreDetector(result.Origin) {
 				// Rebase detector-relative location paths onto the subproject
 				// root so diff-aware SARIF sees repository-relative paths. A
 				// no-op for today's root-level subprojects (RelativePath ".").
 				rebaseGraphLocations(normalizedGraph, result.SubprojectInfo.RelativePath)
+				// Module identities carry the declaring manifest path, so
+				// they need the same rebase or two same-named nested
+				// projects mint one ID and fold into each other.
+				if err := rebaseModuleDeclaringPaths(normalizedGraph, result.SubprojectInfo.RelativePath); err != nil {
+					return plugin.ExecutionTarget{}, nil, fmt.Errorf(
+						"rebase module paths for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
+				}
 			}
 			manifest := normalizeSubprojectManifest(result.SubprojectInfo, entry.Manifest, idx, result.Origin)
 			if err := ensureEntryRoot(normalizedGraph, manifest, idx); err != nil {
-				return sdk.ExecutionTarget{}, nil, fmt.Errorf("ensure entry root for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
+				return plugin.ExecutionTarget{}, nil, fmt.Errorf("ensure entry root for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
 			}
 			candidate := consolidatedEntryCandidate{
-				entry: sdk.GraphEntry{
+				entry: model.GraphEntry{
 					Graph:    normalizedGraph,
 					Manifest: manifest,
+					// Carried, not dropped: this is the only record of what
+					// the source document said about itself, and export is
+					// downstream of here (ADR-0037).
+					Document: entry.Document,
 				},
 				subproject:     result.SubprojectInfo,
 				detectorName:   result.DetectorName,
@@ -131,9 +134,9 @@ func selectManifestEntries(results []sdk.DetectionResult) (sdk.ExecutionTarget, 
 		}
 	}
 
-	selectedManifests := make([]sdk.ConsolidatedManifest, 0, len(selectedEntries))
+	selectedManifests := make([]plugin.ConsolidatedManifest, 0, len(selectedEntries))
 	for _, selected := range selectedEntries {
-		selectedManifests = append(selectedManifests, sdk.ConsolidatedManifest{
+		selectedManifests = append(selectedManifests, plugin.ConsolidatedManifest{
 			Entry:          selected.entry,
 			Subproject:     selected.subproject,
 			DetectorName:   selected.detectorName,
@@ -145,7 +148,7 @@ func selectManifestEntries(results []sdk.DetectionResult) (sdk.ExecutionTarget, 
 	return executionTarget, selectedManifests, nil
 }
 
-func normalizeSubprojectManifest(subproject sdk.Subproject, manifest sdk.ManifestMetadata, idx int, origin sdk.DetectorOrigin) sdk.ManifestMetadata {
+func normalizeSubprojectManifest(subproject plugin.Subproject, manifest model.ManifestMetadata, idx int, origin plugin.DetectorOrigin) model.ManifestMetadata {
 	if strings.TrimSpace(manifest.Path) == "" {
 		manifest.Path = subprojectManifestPath(subproject, idx)
 	}
@@ -155,9 +158,9 @@ func normalizeSubprojectManifest(subproject sdk.Subproject, manifest sdk.Manifes
 		manifest.Path = rebaseManifestPathToRoot(subproject, manifest.Path)
 	}
 	if strings.TrimSpace(string(manifest.Kind)) == "" {
-		manifest.Kind = sdk.ManifestKind(subproject.PrimaryPackageManager().Name())
+		manifest.Kind = model.ManifestKind(subproject.PrimaryPackageManager().Name())
 	}
-	manifest.Kind = sdk.ManifestKind(strings.TrimSpace(string(manifest.Kind)))
+	manifest.Kind = model.ManifestKind(strings.TrimSpace(string(manifest.Kind)))
 	return manifest
 }
 
@@ -168,27 +171,27 @@ func normalizeSubprojectManifest(subproject sdk.Subproject, manifest sdk.Manifes
 // 0. External detectors
 // 1. Core detectors (Bomly-native implementations)
 // 2. Bundled third-party detectors (e.g. Syft fallback)
-func ManifestDedupPriority(origin sdk.DetectorOrigin) int {
+func ManifestDedupPriority(origin plugin.DetectorOrigin) int {
 	switch origin {
-	case sdk.ExternalOrigin:
+	case plugin.ExternalOrigin:
 		return 0
-	case sdk.CoreOrigin:
+	case plugin.CoreOrigin:
 		return 1
-	case sdk.BundledOrigin:
+	case plugin.BundledOrigin:
 		return 2
 	}
 	return 3
 }
 
-func isCoreDetector(origin sdk.DetectorOrigin) bool {
-	return origin == sdk.CoreOrigin
+func isCoreDetector(origin plugin.DetectorOrigin) bool {
+	return origin == plugin.CoreOrigin
 }
 
-func consolidatedSubprojectKey(subproject sdk.Subproject, detectorName string) string {
+func consolidatedSubprojectKey(subproject plugin.Subproject, detectorName string) string {
 	return strings.Join([]string{subproject.RelativePath, subproject.PrimaryPackageManager().Name(), detectorName, subproject.ExecutionTarget.Location}, "::")
 }
 
-func subprojectManifestPath(subproject sdk.Subproject, idx int) string {
+func subprojectManifestPath(subproject plugin.Subproject, idx int) string {
 	label := strings.TrimSpace(subproject.RelativePath)
 	if label == "" || label == "." {
 		label = strings.TrimSpace(subproject.ExecutionTarget.Location)
@@ -199,7 +202,7 @@ func subprojectManifestPath(subproject sdk.Subproject, idx int) string {
 	return strings.ReplaceAll(label, "\\", "/")
 }
 
-func validateGraphEntry(entry sdk.GraphEntry) error {
+func validateGraphEntry(entry model.GraphEntry) error {
 	if entry.Graph == nil {
 		return errors.New("graph entry graph is nil")
 	}

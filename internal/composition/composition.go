@@ -1,5 +1,5 @@
 // Package composition declares the build-time composition of Bomly's
-// embedded (native) components as execution-neutral sdk.Module entries. The
+// embedded (native) components as execution-neutral plugin.Module entries. The
 // registry consumes Entries() and registers each module through
 // Registry.RegisterModule instead of bespoke per-component wiring. Build-tag
 // variants (composition_full.go / composition_lite.go) decide which
@@ -18,9 +18,11 @@ import (
 	osvmatcher "github.com/bomly-dev/bomly-plugin-osv-matcher/plugin"
 	pyreach "github.com/bomly-dev/bomly-plugin-pyreach-analyzer/plugin"
 	scorecard "github.com/bomly-dev/bomly-plugin-scorecard-matcher/plugin"
-	"github.com/bomly-dev/bomly-sdk"
 	logging "github.com/bomly-dev/bomly-sdk/logkit"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/httpkit"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // Implementation values accepted by Entry.Implementation.
@@ -38,7 +40,7 @@ const (
 // provider.
 type Deps struct {
 	Logger             *zap.Logger
-	HTTPClientProvider *sdk.HTTPClientProvider
+	HTTPClientProvider *httpkit.ClientProvider
 
 	OsvAPIBase  string
 	OsvCacheDir string
@@ -63,29 +65,29 @@ type Entry struct {
 	// Name is the component's descriptor name.
 	Name string
 	// Kind is the component's plugin kind.
-	Kind sdk.PluginKind
+	Kind plugin.PluginKind
 	// Implementation is ImplementationNative or ImplementationPlugin.
 	Implementation string
 	// DefaultEnabled reports whether the component runs without explicit
 	// selection.
 	DefaultEnabled bool
 	// Module builds the execution-neutral module for this entry.
-	Module func(Deps) sdk.Module
+	Module func(Deps) plugin.Module
 }
 
 // Origin maps the entry's implementation and the requested execution mode to
 // the component origin the registry records. Native components must run
 // embedded: a native entry combined with any non-embedded execution is a
 // composition bug and is rejected.
-func (e Entry) Origin(execution sdk.ExecutionMode) (sdk.DetectorOrigin, error) {
+func (e Entry) Origin(execution plugin.ExecutionMode) (plugin.DetectorOrigin, error) {
 	switch e.Implementation {
 	case ImplementationNative:
-		if execution != sdk.ExecutionEmbedded {
+		if execution != plugin.ExecutionEmbedded {
 			return "", fmt.Errorf("composition entry %q: native components must run embedded, got execution mode %q", e.Name, execution)
 		}
-		return sdk.CoreOrigin, nil
+		return plugin.CoreOrigin, nil
 	case ImplementationPlugin:
-		return sdk.ExternalOrigin, nil
+		return plugin.ExternalOrigin, nil
 	default:
 		return "", fmt.Errorf("composition entry %q: unknown implementation %q", e.Name, e.Implementation)
 	}
@@ -111,13 +113,13 @@ func Entries() []Entry {
 func osvEntry() Entry {
 	return Entry{
 		Name:           "osv",
-		Kind:           sdk.PluginKindMatcher,
+		Kind:           plugin.PluginKindMatcher,
 		Implementation: ImplementationNative,
 		DefaultEnabled: false,
-		Module: func(deps Deps) sdk.Module {
-			return sdk.Module{Kind: sdk.PluginKindMatcher, Matcher: &sdk.MatcherModule{
-				Descriptor: sdk.MatcherDescriptor{Name: "osv", DisplayName: "OSV"},
-				New: func(_ context.Context, _ sdk.HostContext) (sdk.Matcher, error) {
+		Module: func(deps Deps) plugin.Module {
+			return plugin.Module{Kind: plugin.PluginKindMatcher, Matcher: &plugin.MatcherModule{
+				Descriptor: plugin.MatcherDescriptor{Name: "osv", DisplayName: "OSV"},
+				New: func(_ context.Context, _ plugin.HostContext) (plugin.Matcher, error) {
 					logger := deps.logger()
 					cfg := osvmatcher.DefaultConfig()
 					cfg.Logger = logger
@@ -155,13 +157,13 @@ func osvEntry() Entry {
 func depsDevEntry() Entry {
 	return Entry{
 		Name:           "depsdev-license-matcher",
-		Kind:           sdk.PluginKindMatcher,
+		Kind:           plugin.PluginKindMatcher,
 		Implementation: ImplementationNative,
 		DefaultEnabled: true,
-		Module: func(deps Deps) sdk.Module {
-			return sdk.Module{Kind: sdk.PluginKindMatcher, Matcher: &sdk.MatcherModule{
-				Descriptor: sdk.MatcherDescriptor{Name: "depsdev-license-matcher", DisplayName: "deps.dev License Matcher"},
-				New: func(_ context.Context, _ sdk.HostContext) (sdk.Matcher, error) {
+		Module: func(deps Deps) plugin.Module {
+			return plugin.Module{Kind: plugin.PluginKindMatcher, Matcher: &plugin.MatcherModule{
+				Descriptor: plugin.MatcherDescriptor{Name: "depsdev-license-matcher", DisplayName: "deps.dev License Matcher"},
+				New: func(_ context.Context, _ plugin.HostContext) (plugin.Matcher, error) {
 					cfg := depsdev.DefaultConfig()
 					cfg.Logger = deps.logger()
 					cfg.HTTPClientProvider = deps.HTTPClientProvider
@@ -180,13 +182,13 @@ func depsDevEntry() Entry {
 func scorecardEntry() Entry {
 	return Entry{
 		Name:           "scorecard",
-		Kind:           sdk.PluginKindMatcher,
+		Kind:           plugin.PluginKindMatcher,
 		Implementation: ImplementationNative,
 		DefaultEnabled: false,
-		Module: func(deps Deps) sdk.Module {
-			return sdk.Module{Kind: sdk.PluginKindMatcher, Matcher: &sdk.MatcherModule{
-				Descriptor: sdk.MatcherDescriptor{Name: "scorecard", DisplayName: "OpenSSF Scorecard"},
-				New: func(_ context.Context, _ sdk.HostContext) (sdk.Matcher, error) {
+		Module: func(deps Deps) plugin.Module {
+			return plugin.Module{Kind: plugin.PluginKindMatcher, Matcher: &plugin.MatcherModule{
+				Descriptor: plugin.MatcherDescriptor{Name: "scorecard", DisplayName: "OpenSSF Scorecard"},
+				New: func(_ context.Context, _ plugin.HostContext) (plugin.Matcher, error) {
 					logger := deps.logger()
 					cfg := scorecard.DefaultConfig()
 					cfg.Logger = logger
@@ -225,39 +227,39 @@ func scorecardEntry() Entry {
 }
 
 func govulncheckEntry() Entry {
-	return analyzerEntry("govulncheck", func(deps Deps) sdk.Analyzer {
+	return analyzerEntry("govulncheck", func(deps Deps) plugin.Analyzer {
 		return govulncheck.Analyzer{Logger: deps.logger()}
 	})
 }
 
 func jsReachEntry() Entry {
-	return analyzerEntry("jsreach", func(deps Deps) sdk.Analyzer {
+	return analyzerEntry("jsreach", func(deps Deps) plugin.Analyzer {
 		return jsreach.Analyzer{Logger: deps.logger()}
 	})
 }
 
 func pyReachEntry() Entry {
-	return analyzerEntry("pyreach", func(deps Deps) sdk.Analyzer {
+	return analyzerEntry("pyreach", func(deps Deps) plugin.Analyzer {
 		return pyreach.Analyzer{Logger: deps.logger()}
 	})
 }
 
 func jvmReachEntry() Entry {
-	return analyzerEntry("jvmreach", func(deps Deps) sdk.Analyzer {
+	return analyzerEntry("jvmreach", func(deps Deps) plugin.Analyzer {
 		return jvmreach.Analyzer{Logger: deps.logger()}
 	})
 }
 
-func analyzerEntry(name string, build func(Deps) sdk.Analyzer) Entry {
+func analyzerEntry(name string, build func(Deps) plugin.Analyzer) Entry {
 	return Entry{
 		Name:           name,
-		Kind:           sdk.PluginKindAnalyzer,
+		Kind:           plugin.PluginKindAnalyzer,
 		Implementation: ImplementationNative,
 		DefaultEnabled: true,
-		Module: func(deps Deps) sdk.Module {
-			return sdk.Module{Kind: sdk.PluginKindAnalyzer, Analyzer: &sdk.AnalyzerModule{
-				Descriptor: sdk.AnalyzerDescriptor{Name: name},
-				New: func(_ context.Context, _ sdk.HostContext) (sdk.Analyzer, error) {
+		Module: func(deps Deps) plugin.Module {
+			return plugin.Module{Kind: plugin.PluginKindAnalyzer, Analyzer: &plugin.AnalyzerModule{
+				Descriptor: plugin.AnalyzerDescriptor{Name: name},
+				New: func(_ context.Context, _ plugin.HostContext) (plugin.Analyzer, error) {
 					return build(deps), nil
 				},
 			}}

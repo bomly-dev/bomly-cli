@@ -6,7 +6,10 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func workspacesFixtureDir(t *testing.T) string {
@@ -19,7 +22,7 @@ func workspacesFixtureDir(t *testing.T) string {
 }
 
 func TestNPMLockfileWorkspacesEmitsPerModuleEntries(t *testing.T) {
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: workspacesFixtureDir(t)})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: workspacesFixtureDir(t)})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -28,7 +31,7 @@ func TestNPMLockfileWorkspacesEmitsPerModuleEntries(t *testing.T) {
 		t.Fatalf("expected root + 2 member entries, got %d", len(entries))
 	}
 
-	paths := map[string]sdk.GraphEntry{}
+	paths := map[string]model.GraphEntry{}
 	for _, entry := range entries {
 		paths[filepath.ToSlash(entry.Manifest.Path)] = entry
 	}
@@ -36,7 +39,7 @@ func TestNPMLockfileWorkspacesEmitsPerModuleEntries(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected apps/web/package.json entry, got %v", keysOf(paths))
 	}
-	if web.Manifest.Kind != sdk.ManifestKind("package.json") {
+	if web.Manifest.Kind != model.ManifestKind("package.json") {
 		t.Fatalf("expected package.json kind for member, got %q", web.Manifest.Kind)
 	}
 	lib, ok := paths["packages/lib/package.json"]
@@ -47,11 +50,11 @@ func TestNPMLockfileWorkspacesEmitsPerModuleEntries(t *testing.T) {
 	// The web member reaches its own deps, the lib member (a workspace link
 	// dependency), and lib's transitive dep — but never the root's lodash.
 	for _, want := range []string{"web@0.2.0", "lib@1.0.0", "shared-transitive@2.0.0", "member-dev-tool@3.1.0"} {
-		if _, ok := web.Graph.Node(want); !ok {
+		if _, ok := testnodes.Find(web.Graph, want); !ok {
 			t.Fatalf("expected %q in web member graph, nodes missing", want)
 		}
 	}
-	if _, ok := web.Graph.Node("lodash@4.17.21"); ok {
+	if _, ok := testnodes.Find(web.Graph, "lodash@4.17.21"); ok {
 		t.Fatal("web member graph must not contain the root-only dependency lodash")
 	}
 
@@ -62,10 +65,10 @@ func TestNPMLockfileWorkspacesEmitsPerModuleEntries(t *testing.T) {
 
 	// The root entry carries the root node and its own deps only.
 	root := entries[0]
-	if _, ok := root.Graph.Node("lodash@4.17.21"); !ok {
+	if _, ok := testnodes.Find(root.Graph, "lodash@4.17.21"); !ok {
 		t.Fatal("expected lodash in root entry graph")
 	}
-	if _, ok := root.Graph.Node("web@0.2.0"); ok {
+	if _, ok := testnodes.Find(root.Graph, "web@0.2.0"); ok {
 		t.Fatal("root entry graph must not contain workspace members")
 	}
 }
@@ -77,29 +80,34 @@ func TestNPMLockfileWorkspaceLinkEntriesDoNotDuplicateNodes(t *testing.T) {
 	}
 	// The link alias node_modules/lib must resolve to the member node, not a
 	// synthetic versionless "lib" package.
-	if _, ok := graphs.graph.Node("lib"); ok {
-		t.Fatal("unexpected versionless link ghost node for lib")
+	for _, node := range graphs.graph.Nodes() {
+		name, version := model.NodeDisplayName(node), model.NodeVersion(node)
+		if name == "lib" && version == "" {
+			t.Fatalf("unexpected versionless link ghost node for lib: %s", node.NodeID())
+		}
 	}
-	member, ok := graphs.graph.Node("lib@1.0.0")
+	member, ok := testnodes.Find(graphs.graph, "lib@1.0.0")
 	if !ok {
 		t.Fatal("expected lib member node")
 	}
-	if member.Type != sdk.PackageTypeApplication {
-		t.Fatalf("expected member node to be an application, got %q", member.Type)
+	// A workspace member is the project's own code, so it is a module node:
+	// ownership is the kind now, not the application package type (ADR-0041).
+	if !model.IsProjectOwned(member) {
+		t.Fatalf("expected the member to be the project's own module, got a %s node", member.Kind())
 	}
 	// web depends on lib via the workspace link; the edge must target the member.
-	deps, err := graphs.graph.DirectDependencies("web@0.2.0")
+	deps, err := graphs.graph.DirectDependencies(testnodes.ID(graphs.graph, "web@0.2.0"))
 	if err != nil {
 		t.Fatalf("DirectDependencies(web) error = %v", err)
 	}
 	found := false
 	for _, dep := range deps {
-		if dep.ID == "lib@1.0.0" {
+		if testnodes.Is(dep, "lib@1.0.0") {
 			found = true
 		}
 	}
 	if !found {
-		t.Fatalf("expected web -> lib@1.0.0 edge, got %v", depIDs(deps))
+		t.Fatalf("expected web -> lib@1.0.0 edge, got %v", depIDs(model.DependencyNodesOf(deps)))
 	}
 }
 
@@ -108,13 +116,13 @@ func TestNPMLockfileWorkspaceMemberDevDependenciesScoped(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromNPMLockfile() error = %v", err)
 	}
-	devDep, ok := graphs.graph.Node("member-dev-tool@3.1.0")
+	devDep, ok := testnodes.FindDep(graphs.graph, "member-dev-tool@3.1.0")
 	if !ok {
 		t.Fatal("expected member devDependency in graph")
 	}
 	hasDev := false
 	for _, scope := range devDep.Scopes {
-		if scope == sdk.ScopeDevelopment {
+		if scope == model.ScopeDevelopment {
 			hasDev = true
 		}
 	}
@@ -129,7 +137,7 @@ func TestNPMLockfileSingleProjectStillSingleEntry(t *testing.T) {
 		t.Fatal("resolve caller path")
 	}
 	dir := filepath.Join(filepath.Dir(here), "..", "testdata", "lockfiles", "npm-v3")
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -138,7 +146,7 @@ func TestNPMLockfileSingleProjectStillSingleEntry(t *testing.T) {
 	}
 }
 
-func keysOf(m map[string]sdk.GraphEntry) []string {
+func keysOf(m map[string]model.GraphEntry) []string {
 	keys := make([]string, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
@@ -146,10 +154,10 @@ func keysOf(m map[string]sdk.GraphEntry) []string {
 	return keys
 }
 
-func depIDs(deps []*sdk.Dependency) []string {
+func depIDs(deps []*model.DependencyNode) []string {
 	ids := make([]string, 0, len(deps))
 	for _, dep := range deps {
-		ids = append(ids, dep.ID)
+		ids = append(ids, dep.NodeID())
 	}
 	return ids
 }

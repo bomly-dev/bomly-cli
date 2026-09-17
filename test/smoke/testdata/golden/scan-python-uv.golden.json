@@ -4,17 +4,37 @@
     {
       "dependencies": [
         {
+          "depends_on": [
+            "pkg:pypi/django@1.11.29",
+            "pkg:pypi/feedparser@6.0.8",
+            "pkg:pypi/pyjwt@0.4.2",
+            "pkg:pypi/pytest@9.0.3",
+            "pkg:pypi/requests@2.21.0",
+            "pkg:pypi/rsa@3.4"
+          ],
+          "id": "module:pyproject.toml#pkg:pypi/example-python-uv@1.0.0",
+          "licenses": [],
+          "name": "example-python-uv",
+          "purl": "pkg:pypi/example-python-uv@1.0.0",
+          "version": "1.0.0"
+        },
+        {
           "depends_on": [],
           "id": "pkg:pypi/certifi@2026.4.22",
           "licenses": [],
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "certifi",
@@ -32,11 +52,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "chardet",
@@ -54,11 +79,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "colorama",
@@ -78,11 +108,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "django",
@@ -95,32 +130,6 @@
         },
         {
           "depends_on": [
-            "pkg:pypi/django@1.11.29",
-            "pkg:pypi/feedparser@6.0.8",
-            "pkg:pypi/pyjwt@0.4.2",
-            "pkg:pypi/pytest@9.0.3",
-            "pkg:pypi/requests@2.21.0",
-            "pkg:pypi/rsa@3.4"
-          ],
-          "id": "pkg:pypi/example-python-uv@1.0.0",
-          "licenses": [],
-          "locations": [
-            {
-              "access_path": "uv.lock",
-              "position": {
-                "file": "uv.lock",
-                "line": 0
-              },
-              "real_path": "uv.lock"
-            }
-          ],
-          "name": "example-python-uv",
-          "package_ref": "pkg:pypi/example-python-uv@1.0.0",
-          "purl": "pkg:pypi/example-python-uv@1.0.0",
-          "version": "1.0.0"
-        },
-        {
-          "depends_on": [
             "pkg:pypi/sgmllib3k@1.0.0"
           ],
           "id": "pkg:pypi/feedparser@6.0.8",
@@ -128,11 +137,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "feedparser",
@@ -150,11 +164,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "idna",
@@ -172,11 +191,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "iniconfig",
@@ -194,11 +218,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "packaging",
@@ -216,11 +245,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "pluggy",
@@ -238,11 +272,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pyasn1",
@@ -260,11 +299,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "pygments",
@@ -282,11 +326,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pyjwt",
@@ -310,11 +359,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "pytest",
@@ -332,11 +386,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pytz",
@@ -359,11 +418,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "requests",
@@ -383,11 +447,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "rsa",
@@ -405,11 +474,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "sgmllib3k",
@@ -427,11 +501,16 @@
           "locations": [
             {
               "access_path": "uv.lock",
+              "module_root": ".",
               "position": {
                 "file": "uv.lock",
                 "line": 0
               },
-              "real_path": "uv.lock"
+              "real_path": "uv.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "urllib3",
@@ -489,14 +568,6 @@
       "name": "django",
       "purl": "pkg:pypi/django@1.11.29",
       "version": "1.11.29",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "example-python-uv",
-      "purl": "pkg:pypi/example-python-uv@1.0.0",
-      "version": "1.0.0",
       "vulnerabilities": []
     },
     {

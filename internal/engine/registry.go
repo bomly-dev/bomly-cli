@@ -2,8 +2,9 @@ package engine
 
 import (
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // RegistryConfigs holds built-in registry wiring options resolved by the CLI layer.
@@ -28,21 +29,21 @@ func NewRegistry(configs RegistryConfigs, logger zap.Logger) *Registry {
 	return &Registry{Registry: registry.NewRegistry(configs, logger)}
 }
 
-func (r *Registry) registerDetector(detector sdk.Detector) {
+func (r *Registry) registerDetector(detector plugin.Detector) {
 	if r == nil {
 		return
 	}
 	r.RegisterDetector(detector)
 }
 
-func (r *Registry) registerMatcher(matcher sdk.Matcher) {
+func (r *Registry) registerMatcher(matcher plugin.Matcher) {
 	if r == nil {
 		return
 	}
 	r.RegisterMatcher(matcher)
 }
 
-func (r *Registry) registerAuditor(auditor sdk.Auditor) {
+func (r *Registry) registerAuditor(auditor plugin.Auditor) {
 	if r == nil {
 		return
 	}

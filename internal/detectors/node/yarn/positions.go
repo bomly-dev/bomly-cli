@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // yarnLockEntryHeader matches the start of a yarn.lock entry, e.g.
@@ -15,8 +16,8 @@ import (
 // of `[package]@[range]` selectors terminated by `:`.
 var yarnLockEntryHeader = regexp.MustCompile(`^"?((?:@[^/"@]+/)?[^/"@\s]+)@[^",:]+["']?(?:,\s*"?(?:@[^/"@]+/)?[^/"@\s]+@[^",:]+"?)*\s*:\s*$`)
 
-func yarnLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func yarnLockPositions(path, relPath string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	_ = detectors.ScanLines(path, func(line int, text string) {
 		// Yarn lockfile entries are at column 0 (no indent).
 		if strings.HasPrefix(text, " ") || strings.HasPrefix(text, "\t") {
@@ -33,13 +34,13 @@ func yarnLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 		if _, exists := out[name]; exists {
 			return
 		}
-		out[name] = &sdk.SourcePosition{File: relPath, Line: line}
+		out[name] = &model.SourcePosition{File: relPath, Line: line}
 	})
 	return out
 }
 
 // AttachYarnLockPositions wires yarn.lock line numbers.
-func AttachYarnLockPositions(g *sdk.Graph, projectDir string) {
+func AttachYarnLockPositions(g *model.Graph, projectDir string) {
 	if g == nil || projectDir == "" {
 		return
 	}
@@ -47,7 +48,7 @@ func AttachYarnLockPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.Dependency) string {
+	detectors.AttachPositions(g, positions, func(pkg *model.DependencyNode) string {
 		if pkg == nil {
 			return ""
 		}

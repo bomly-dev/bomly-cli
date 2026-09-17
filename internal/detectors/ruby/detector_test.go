@@ -6,16 +6,19 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	detector := Detector{WorkingDir: "testdata/project"}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:     "testdata/project",
-		PackageManager:  sdk.PackageManagerBundler,
-		Ecosystem:       sdk.EcosystemRuby,
-		ExecutionTarget: sdk.ExecutionTarget{Location: "testdata/project"},
+		PackageManager:  model.PackageManagerBundler,
+		Ecosystem:       model.EcosystemRuby,
+		ExecutionTarget: plugin.ExecutionTarget{Location: "testdata/project"},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -24,18 +27,18 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	rack, ok := g.Node("rack@3.1.8")
+	rack, ok := testnodes.FindDep(g, "rack@3.1.8")
 	if !ok {
 		t.Fatal("expected rack package")
 	}
-	if string(rack.PrimaryScope()) != string(sdk.ScopeRuntime) {
+	if string(rack.PrimaryScope()) != string(model.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", rack.PrimaryScope())
 	}
-	rake, ok := g.Node("rake@13.2.1")
+	rake, ok := testnodes.FindDep(g, "rake@13.2.1")
 	if !ok {
 		t.Fatal("expected rake package")
 	}
-	if string(rake.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(rake.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected development scope, got %q", rake.PrimaryScope())
 	}
 }
@@ -55,9 +58,9 @@ DEPENDENCIES
   rake
 `)
 
-	g, err := depGraphFromLock(raw, map[string]sdk.Scope{
-		"rake":  sdk.ScopeDevelopment,
-		"rails": sdk.ScopeRuntime,
+	g, err := depGraphFromLock(raw, map[string]model.Scope{
+		"rake":  model.ScopeDevelopment,
+		"rails": model.ScopeRuntime,
 	})
 	if err != nil {
 		t.Fatalf("depGraphFromLock() error = %v", err)
@@ -66,23 +69,23 @@ DEPENDENCIES
 		t.Fatalf("expected 4 packages, got %d", g.Size())
 	}
 
-	rake, ok := g.Node("rake@13.2.1")
+	rake, ok := testnodes.FindDep(g, "rake@13.2.1")
 	if !ok {
 		t.Fatal("expected rake package")
 	}
-	if got := string(rake.PrimaryScope()); got != string(sdk.ScopeRuntime) {
+	if got := string(rake.PrimaryScope()); got != string(model.ScopeRuntime) {
 		t.Fatalf("expected rake scope runtime, got %q", got)
 	}
 
-	activeSupport, ok := g.Node("activesupport@7.1.0")
+	activeSupport, ok := testnodes.FindDep(g, "activesupport@7.1.0")
 	if !ok {
 		t.Fatal("expected activesupport package")
 	}
-	if got := string(activeSupport.PrimaryScope()); got != string(sdk.ScopeRuntime) {
+	if got := string(activeSupport.PrimaryScope()); got != string(model.ScopeRuntime) {
 		t.Fatalf("expected activesupport scope runtime, got %q", got)
 	}
-	if activeSupport.Source != sdk.DependencySourceRegistry {
-		t.Fatalf("activesupport source = %q, want %q", activeSupport.Source, sdk.DependencySourceRegistry)
+	if activeSupport.Source != model.DependencySourceRegistry {
+		t.Fatalf("activesupport source = %q, want %q", activeSupport.Source, model.DependencySourceRegistry)
 	}
 }
 
@@ -114,12 +117,12 @@ DEPENDENCIES
 	}
 	tests := []struct {
 		name string
-		want sdk.DependencySource
+		want model.DependencySource
 		url  string
 	}{
-		{name: "rack", want: sdk.DependencySourceRegistry, url: "https://rubygems.org/"},
-		{name: "helper", want: sdk.DependencySourceGit, url: "https://github.com/example/helper.git"},
-		{name: "local-gem", want: sdk.DependencySourceFile, url: "../local-gem"},
+		{name: "rack", want: model.DependencySourceRegistry, url: "https://rubygems.org/"},
+		{name: "helper", want: model.DependencySourceGit, url: "https://github.com/example/helper.git"},
+		{name: "local-gem", want: model.DependencySourceFile, url: "../local-gem"},
 	}
 	for _, tt := range tests {
 		spec, ok := specs[tt.name]
@@ -136,7 +139,10 @@ DEPENDENCIES
 	if got := specs["helper"].Revision; got != "abc" {
 		t.Fatalf("helper revision = %q, want abc", got)
 	}
-	helper := gemNode(specs["helper"])
+	helper, err := gemNode(specs["helper"])
+	if err != nil {
+		t.Fatalf("gemNode() error = %v", err)
+	}
 	if helper.Metadata["source_revision"] != "abc" {
 		t.Fatalf("helper source revision = %#v, want abc", helper.Metadata["source_revision"])
 	}
@@ -160,10 +166,10 @@ func TestParseGemfileScopes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("parseGemfileScopes() error = %v", err)
 	}
-	if scopes["rails"] != sdk.ScopeRuntime {
+	if scopes["rails"] != model.ScopeRuntime {
 		t.Fatalf("expected rails runtime scope, got %q", scopes["rails"])
 	}
-	if scopes["rubocop"] != sdk.ScopeDevelopment {
+	if scopes["rubocop"] != model.ScopeDevelopment {
 		t.Fatalf("expected rubocop development scope, got %q", scopes["rubocop"])
 	}
 }

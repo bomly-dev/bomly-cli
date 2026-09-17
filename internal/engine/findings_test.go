@@ -3,15 +3,15 @@ package engine
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestDeduplicateFindingsKeepsHighestPrioritySource(t *testing.T) {
 	const pkgRef = "pkg:npm/pkg@1.0.0"
-	findings := []sdk.Finding{
-		{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "osv", PackageRef: pkgRef},
-		{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "grype", PackageRef: pkgRef},
-		{ID: "POLICY-1", Kind: sdk.FindingKindLicense, Source: "license", PackageRef: pkgRef},
+	findings := []model.Finding{
+		{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: model.FindingKindVulnerability, Source: "osv", PackageRef: pkgRef},
+		{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: model.FindingKindVulnerability, Source: "grype", PackageRef: pkgRef},
+		{ID: "POLICY-1", Kind: model.FindingKindLicense, Source: "license", PackageRef: pkgRef},
 	}
 
 	got := DeduplicateFindings(findings)

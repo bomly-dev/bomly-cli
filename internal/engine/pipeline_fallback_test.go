@@ -6,16 +6,19 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
-func fallbackTestGraph(t *testing.T) *sdk.Graph {
+func fallbackTestGraph(t *testing.T) *model.Graph {
 	t.Helper()
-	graph := sdk.New()
-	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	graph := model.New()
+	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 	return graph
@@ -31,7 +34,7 @@ func TestResolveDetectors_FallbackAnnotatesResult(t *testing.T) {
 	})
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), model.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
@@ -64,26 +67,26 @@ func TestResolveDetectors_FallbackAnnotatesResult(t *testing.T) {
 func TestResolveDetectors_FallbackPreservesDetectorResolutionMetadata(t *testing.T) {
 	registry := newTestRegistry()
 	registry.registerDetector(fakeDetector{
-		descriptor: DetectorDescriptor{Name: "pip-detector", SupportedEcosystems: []Ecosystem{sdk.EcosystemPython}, SupportedManagers: []PackageManager{sdk.PackageManagerPip}},
+		descriptor: DetectorDescriptor{Name: "pip-detector", SupportedEcosystems: []Ecosystem{model.EcosystemPython}, SupportedManagers: []PackageManager{model.PackageManagerPip}},
 		err:        errors.New("pip inspect failed"),
 	})
 	registry.registerDetector(fakeDetector{
-		descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{sdk.EcosystemPython}, SupportedManagers: []PackageManager{sdk.PackageManagerPip}},
-		result: ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), sdk.ManifestMetadata{
+		descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{model.EcosystemPython}, SupportedManagers: []PackageManager{model.PackageManagerPip}},
+		result: ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), model.ManifestMetadata{
 			Path:       "requirements.txt",
-			Kind:       sdk.ManifestKindRequirementsTXT,
-			Resolution: &sdk.ResolutionMetadata{Method: sdk.ResolutionMethodManifestOnly},
+			Kind:       model.ManifestKindRequirementsTXT,
+			Resolution: &model.ResolutionMetadata{Method: model.ResolutionMethodManifestOnly},
 		})},
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
-	req := ResolveGraphRequest{Ecosystem: sdk.EcosystemPython, PackageManager: sdk.PackageManagerPip}
+	req := ResolveGraphRequest{Ecosystem: model.EcosystemPython, PackageManager: model.PackageManagerPip}
 	results, err := pipeline.resolveDetectors(context.Background(), req, registry.Detectors(req), nil)
 	if err != nil {
 		t.Fatalf("resolveDetectors() error = %v", err)
 	}
 	resolution := results[0].Graphs.Entries[0].Manifest.Resolution
-	if resolution == nil || resolution.Method != sdk.ResolutionMethodManifestOnly {
+	if resolution == nil || resolution.Method != model.ResolutionMethodManifestOnly {
 		t.Fatalf("expected detector-owned resolution method to survive, got %#v", resolution)
 	}
 	if resolution.Fallback == nil || resolution.Fallback.From != "pip-detector" {
@@ -100,7 +103,7 @@ func TestResolveDetectors_NotApplicableFallbackNotAnnotated(t *testing.T) {
 	})
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), sdk.ManifestMetadata{Path: "package.json", Kind: "package.json"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), model.ManifestMetadata{Path: "package.json", Kind: "package.json"})},
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
@@ -136,7 +139,7 @@ func TestResolveDetectors_ChainedFallbackKeepsOutermostFailure(t *testing.T) {
 		})
 		registry.registerDetector(fakeDetector{
 			descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-			result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), sdk.ManifestMetadata{Path: "package.json", Kind: "package.json"})},
+			result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), model.ManifestMetadata{Path: "package.json", Kind: "package.json"})},
 		})
 	}
 
@@ -185,7 +188,7 @@ func TestPipeline_RunRecordsFallbackWarning(t *testing.T) {
 	})
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemMaven}, SupportedManagers: []PackageManager{PackageManagerMaven}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), sdk.ManifestMetadata{Path: "pom.xml", Kind: sdk.ManifestKindPomXML})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), model.ManifestMetadata{Path: "pom.xml", Kind: model.ManifestKindPomXML})},
 	})
 
 	core, observed := observer.New(zapcore.WarnLevel)
@@ -214,7 +217,7 @@ func TestPipeline_RunRecordsFallbackWarning(t *testing.T) {
 	if want := "maven-detector unavailable (not ready: java executable not found on PATH) — resolved with syft-detector; transitive dependencies may be missing"; warning.Message != want {
 		t.Fatalf("unexpected warning message:\n got %q\nwant %q", warning.Message, want)
 	}
-	if warning.Type != sdk.DetectorWarningFallback || !warning.DegradesCoverage() {
+	if warning.Type != plugin.DetectorWarningFallback || !warning.DegradesCoverage() {
 		t.Fatalf("expected a coverage-degrading fallback warning, got %+v", warning)
 	}
 
@@ -242,7 +245,7 @@ func TestPipeline_RunAttributesFallbackWarningToSubproject(t *testing.T) {
 	})
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), model.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
@@ -282,7 +285,7 @@ func TestPipeline_RunNoWarningForNotApplicableFallback(t *testing.T) {
 	})
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), sdk.ManifestMetadata{Path: "package.json", Kind: "package.json"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), model.ManifestMetadata{Path: "package.json", Kind: "package.json"})},
 	})
 
 	core, observed := observer.New(zapcore.WarnLevel)
@@ -312,7 +315,7 @@ func TestPipeline_EmitsStageInfoLogs(t *testing.T) {
 	registry := newTestRegistry()
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackTestGraph(t), model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 
 	core, observed := observer.New(zapcore.InfoLevel)

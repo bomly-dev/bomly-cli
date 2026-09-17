@@ -13,11 +13,13 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // NativeDetector resolves Scala sbt dependency graphs by running
@@ -26,16 +28,16 @@ import (
 type NativeDetector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
+	Fallback   plugin.Detector
 }
 
 // PackageManagerSupport returns sbt package-manager discovery metadata.
-func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerSBT, evidencePatterns...).WithMultiModule()}
+func (d NativeDetector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerSBT, evidencePatterns...).WithMultiModule()}
 }
 
 // Ready reports whether the sbt binary and a usable Java runtime are available.
-func (d NativeDetector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
+func (d NativeDetector) Ready(ctx context.Context, req plugin.DetectionRequest) error {
 	if _, err := system.LookPath("sbt"); err != nil {
 		return detectorkit.CommandNotReadyError("sbt", err)
 	}
@@ -43,7 +45,7 @@ func (d NativeDetector) Ready(ctx context.Context, req sdk.DetectionRequest) err
 }
 
 // Applicable reports whether sbt build files are present.
-func (d NativeDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d NativeDetector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	workingDir := d.workingDir(req.ProjectPath)
 	applicable, err := (Detector{WorkingDir: workingDir}).Applicable(ctx, req)
 	if err != nil || !applicable {
@@ -60,19 +62,19 @@ func (d NativeDetector) Applicable(ctx context.Context, req sdk.DetectionRequest
 }
 
 // Descriptor describes the sbt native detector.
-func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d NativeDetector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		IgnoredDirectories:  []string{"target"},
 		Name:                detectors.NameSBTNative,
-		Technique:           sdk.BuildToolTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemScala, sdk.EcosystemMaven},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSBT},
+		Technique:           plugin.BuildToolTechnique,
+		SupportedEcosystems: []model.Ecosystem{model.EcosystemScala, model.EcosystemMaven},
+		SupportedManagers:   []model.PackageManager{model.PackageManagerSBT},
 		Tags:                []string{"graph-resolution", "component-targeting", "scope-annotation"},
 	}
 }
 
 // ResolveGraph resolves an sbt dependency graph via sbt dependencyTree.
-func (d NativeDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d NativeDetector) ResolveGraph(ctx context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
@@ -96,22 +98,22 @@ func (d NativeDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 			err = fmt.Errorf("timed out after %s: %w", detectorkit.BuildToolTimeout, err)
 		}
 		logger.Debug("sbt dependencyTree failed", zap.Error(err))
-		return sdk.DetectionResult{}, fmt.Errorf("sbt dependencyTree: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("sbt dependencyTree: %w", err)
 	}
 
 	g, err := depGraphFromSBTDependencyTree(out.Bytes())
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("parse sbt dependencyTree output: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("parse sbt dependencyTree output: %w", err)
 	}
 	logger.Info(fmt.Sprintf("sbt native detector found %d dependencies in %s", g.Size(), logging.FormatDuration(time.Since(started))))
 	AttachSBTPositions(g, workingDir)
-	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns)),
-	}, nil
+	return detectors.Attributed(plugin.DetectionResult{
+		Graphs: model.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns)),
+	}), nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d NativeDetector) FallbackDetector() sdk.Detector {
+func (d NativeDetector) FallbackDetector() plugin.Detector {
 	return d.Fallback
 }
 
@@ -146,7 +148,7 @@ func sbtVersion(workingDir string) string {
 	if err != nil {
 		return ""
 	}
-	for _, line := range strings.Split(string(raw), "\n") {
+	for line := range strings.SplitSeq(string(raw), "\n") {
 		key, value, ok := strings.Cut(line, "=")
 		if !ok {
 			continue
@@ -214,18 +216,21 @@ var sbtPackageCoordPattern = regexp.MustCompile(`^([^:]+):([^:]+):([^\s\[]+)`)
 //
 // Scope: sbt does not embed scope in dependencyTree output by default.
 // We fall back to parsing build.sbt for scope annotation via parseSBTDependencies.
-func depGraphFromSBTDependencyTree(raw []byte) (*sdk.Graph, error) {
+func depGraphFromSBTDependencyTree(raw []byte) (*model.Graph, error) {
 	lines := strings.Split(string(raw), "\n")
 
-	g := sdk.New()
-	root := rootNode()
+	g := model.New()
+	root, err := rootNode()
+	if err != nil {
+		return nil, err
+	}
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
 	// parentStack[depth] = nodeID of the package at that depth.
 	// Depth 0 = root.
-	parentStack := []string{root.ID}
+	parentStack := []string{root.NodeID()}
 	seen := make(map[string]bool)
 
 	for _, line := range lines {
@@ -238,10 +243,7 @@ func depGraphFromSBTDependencyTree(raw []byte) (*sdk.Graph, error) {
 		// Each "  " (2 chars) or "| " represents one level of nesting.
 		indent := m[1]
 		// Count groups of 2 chars; each group is one level.
-		depth := len([]rune(indent)) / 2
-		if depth < 0 {
-			depth = 0
-		}
+		depth := max(len([]rune(indent))/2, 0)
 
 		coord := strings.TrimSpace(m[2])
 		cm := sbtPackageCoordPattern.FindStringSubmatch(coord)
@@ -264,18 +266,21 @@ func depGraphFromSBTDependencyTree(raw []byte) (*sdk.Graph, error) {
 			Org:     org,
 			Name:    name,
 			Version: version,
-			Scope:   sdk.ScopeRuntime,
+			Scope:   model.ScopeRuntime,
 		}
-		node := packageNode(pkg)
+		node, err := packageNode(pkg)
+		if err != nil {
+			return nil, err
+		}
 
-		if !seen[node.ID] {
-			seen[node.ID] = true
+		if !seen[node.NodeID()] {
+			seen[node.NodeID()] = true
 			if err := addNodeIfMissing(g, node); err != nil {
 				return nil, err
 			}
 		}
 
-		existing, ok := g.Node(node.ID)
+		existing, ok := g.Node(node.NodeID())
 		if !ok {
 			continue
 		}
@@ -284,7 +289,7 @@ func depGraphFromSBTDependencyTree(raw []byte) (*sdk.Graph, error) {
 		if depth >= len(parentStack) {
 			// Extend the stack.
 			for len(parentStack) <= depth {
-				parentStack = append(parentStack, root.ID)
+				parentStack = append(parentStack, root.NodeID())
 			}
 		} else {
 			// Trim the stack back.
@@ -292,16 +297,16 @@ func depGraphFromSBTDependencyTree(raw []byte) (*sdk.Graph, error) {
 		}
 
 		parentID := parentStack[depth]
-		if err := g.AddEdge(parentID, existing.ID); err != nil {
+		if err := g.AddEdge(parentID, existing.NodeID()); err != nil {
 			// Duplicate edges are silently ignored.
 			_ = err
 		}
 
 		// Push this node as the parent for the next (deeper) level.
 		if depth+1 < len(parentStack) {
-			parentStack[depth+1] = existing.ID
+			parentStack[depth+1] = existing.NodeID()
 		} else {
-			parentStack = append(parentStack, existing.ID)
+			parentStack = append(parentStack, existing.NodeID())
 		}
 	}
 

@@ -10,15 +10,16 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-cli/internal/sbom"
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/sbom"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestBuildSourceSummaryScoresPackagesAndRelationships(t *testing.T) {
 	bomly := &sbom.Document{
 		Tools: []string{"bomly-cli", "bomly-detector:npm-detector"},
 		Components: []sbom.Component{
-			{ID: "app", PURL: "pkg:npm/app@1.0.0", Scope: "runtime"},
+			{ID: "app", PURL: "pkg:npm/app@1.0.0", Scopes: []model.Scope{model.ScopeRuntime}},
 			{ID: "exact", PURL: "pkg:npm/exact@1.0.0"},
 			{ID: "version", PURL: "pkg:npm/version@2.0.0"},
 			{ID: "extra", PURL: "pkg:npm/extra@1.0.0"},
@@ -101,7 +102,7 @@ func TestRenderTextShowsUnavailableEdgesAndIgnoredPackages(t *testing.T) {
 		RunDir: ".benchmark-runs/latest",
 		Cases: []CaseSummary{{
 			Case:      "scan-npm",
-			Ecosystem: sdk.EcosystemNPM,
+			Ecosystem: model.EcosystemNPM,
 			Sources: []SourceSummary{{
 				Source:   "github",
 				Status:   "completed",
@@ -177,7 +178,7 @@ func TestFilterDocumentKeepsOnlySelectedEcosystemAndInternalEdges(t *testing.T) 
 		},
 	}
 
-	filtered := FilterDocument(doc, sdk.EcosystemNPM)
+	filtered := FilterDocument(doc, model.EcosystemNPM)
 	if len(filtered.Components) != 2 {
 		t.Fatalf("components = %#v", filtered.Components)
 	}

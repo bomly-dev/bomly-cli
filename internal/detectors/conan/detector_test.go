@@ -6,16 +6,19 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	projectDir := filepath.Join("testdata", "project")
 	detector := Detector{}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:    projectDir,
-		PackageManager: sdk.PackageManagerConan,
-		Ecosystem:      sdk.EcosystemCPP,
+		PackageManager: model.PackageManagerConan,
+		Ecosystem:      model.EcosystemCPP,
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph returned error: %v", err)
@@ -24,18 +27,18 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if graph == nil {
 		t.Fatal("expected graph")
 	}
-	zlib, ok := graph.Node("zlib@1.2.13")
+	zlib, ok := testnodes.FindDep(graph, "zlib@1.2.13")
 	if !ok {
-		t.Fatalf("expected zlib package, got %v", graph.Nodes())
+		t.Fatalf("expected zlib package, got %v", graph.DependencyNodes())
 	}
-	if zlib.PURL != "pkg:conan/zlib@1.2.13" {
-		t.Fatalf("expected zlib PURL, got %q", zlib.PURL)
+	if !testnodes.Is(zlib, "pkg:conan/zlib@1.2.13") {
+		t.Fatalf("expected zlib PURL, got %q", zlib.NodeID())
 	}
-	cmake, ok := graph.Node("cmake@3.27.0")
+	cmake, ok := testnodes.FindDep(graph, "cmake@3.27.0")
 	if !ok {
-		t.Fatalf("expected cmake package, got %v", graph.Nodes())
+		t.Fatalf("expected cmake package, got %v", graph.DependencyNodes())
 	}
-	if string(cmake.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(cmake.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected cmake development scope, got %q", string(cmake.PrimaryScope()))
 	}
 }
@@ -53,18 +56,18 @@ class Demo(ConanFile):
 		t.Fatalf("write conanfile.py: %v", err)
 	}
 	detector := Detector{}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:    projectDir,
-		PackageManager: sdk.PackageManagerConan,
-		Ecosystem:      sdk.EcosystemCPP,
+		PackageManager: model.PackageManagerConan,
+		Ecosystem:      model.EcosystemCPP,
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph returned error: %v", err)
 	}
 	graph := result.Graphs.Entries[0].Graph
-	fmtPkg, ok := graph.Node("fmt@10.2.1")
+	fmtPkg, ok := testnodes.FindDep(graph, "fmt@10.2.1")
 	if !ok {
-		t.Fatalf("expected fmt package, got %v", graph.Nodes())
+		t.Fatalf("expected fmt package, got %v", graph.DependencyNodes())
 	}
 	if len(fmtPkg.Locations) != 1 || fmtPkg.Locations[0].Position == nil || fmtPkg.Locations[0].Position.Line != 6 {
 		t.Fatalf("fmt locations = %#v, want conanfile.py line 6", fmtPkg.Locations)

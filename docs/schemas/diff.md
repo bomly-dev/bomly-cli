@@ -304,6 +304,9 @@ Complete reference for the `bomly diff` JSON output.
 | `real_path` | `string` | |
 | `access_path` | `string` | |
 | `position` | [`PositionRef`](#positionref) | |
+| `module_root` | `string` | |
+| `scopes` | Array<`string`> | |
+| `relationship` | `string` | |
 
 ### `Metadata`
 
@@ -407,6 +410,24 @@ Complete reference for the `bomly diff` JSON output.
 
 | Field | Type | Description |
 |-------|------|-------------|
+| `status` | `string` | |
+| `tier` | `string` | |
+| `analyzer` | `string` | |
+| `reason` | `string` | |
+| `symbols` | Array<[`AffectedSymbol`](#affectedsymbol)> | |
+| `call_paths` | Array<[`CallPath`](#callpath)> | |
+| `hops` | `integer` | |
+| `confidence` | `string` | |
+| `dynamic_imports_detected` | `boolean` | |
+| `analyzed_at` | `string` | |
+| `evidence` | Array<[`ReachabilityEvidence`](#reachabilityevidence)> | |
+
+### `ReachabilityEvidence`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `module_root` | `string` | |
+| `dependency_refs` | Array<`string`> | |
 | `status` | `string` | |
 | `tier` | `string` | |
 | `analyzer` | `string` | |

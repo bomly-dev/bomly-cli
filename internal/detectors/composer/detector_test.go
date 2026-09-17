@@ -4,16 +4,19 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	detector := Detector{WorkingDir: "testdata/project"}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:     "testdata/project",
-		PackageManager:  sdk.PackageManagerComposer,
-		Ecosystem:       sdk.EcosystemPHP,
-		ExecutionTarget: sdk.ExecutionTarget{Location: "testdata/project"},
+		PackageManager:  model.PackageManagerComposer,
+		Ecosystem:       model.EcosystemPHP,
+		ExecutionTarget: plugin.ExecutionTarget{Location: "testdata/project"},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -22,18 +25,18 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	runtimePkg, ok := g.Node("monolog:monolog@3.7.0")
+	runtimePkg, ok := testnodes.FindDep(g, "monolog:monolog@3.7.0")
 	if !ok {
 		t.Fatal("expected monolog package")
 	}
-	if string(runtimePkg.PrimaryScope()) != string(sdk.ScopeRuntime) {
+	if string(runtimePkg.PrimaryScope()) != string(model.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", string(runtimePkg.PrimaryScope()))
 	}
-	devPkg, ok := g.Node("phpunit:phpunit@11.4.3")
+	devPkg, ok := testnodes.FindDep(g, "phpunit:phpunit@11.4.3")
 	if !ok {
 		t.Fatal("expected phpunit package")
 	}
-	if string(devPkg.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(devPkg.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected development scope, got %q", string(devPkg.PrimaryScope()))
 	}
 }
@@ -89,19 +92,19 @@ func TestDepGraphFromLock(t *testing.T) {
 		t.Fatalf("expected 5 packages, got %d", g.Size())
 	}
 
-	shared, ok := g.Node("vendor:shared@3.4.5")
+	shared, ok := testnodes.FindDep(g, "vendor:shared@3.4.5")
 	if !ok {
 		t.Fatal("expected shared package to exist")
 	}
-	if got := string(shared.PrimaryScope()); got != string(sdk.ScopeRuntime) {
+	if got := string(shared.PrimaryScope()); got != string(model.ScopeRuntime) {
 		t.Fatalf("expected shared scope runtime, got %q", got)
 	}
 
-	devTool, ok := g.Node("vendor:dev-tool@4.0.0")
+	devTool, ok := testnodes.FindDep(g, "vendor:dev-tool@4.0.0")
 	if !ok {
 		t.Fatal("expected dev package to exist")
 	}
-	if got := string(devTool.PrimaryScope()); got != string(sdk.ScopeDevelopment) {
+	if got := string(devTool.PrimaryScope()); got != string(model.ScopeDevelopment) {
 		t.Fatalf("expected dev package scope development, got %q", got)
 	}
 }

@@ -1,6 +1,7 @@
 package output
 
 import (
+	"maps"
 	"math"
 	"path/filepath"
 	"sort"
@@ -8,7 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/purlkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // ScanResponse is the structured payload for the scan command. It surfaces the
@@ -26,20 +30,20 @@ type ScanResponse struct {
 	// Warnings are the detection-stage problems the run reported: resolution
 	// failures, detector fallbacks, and package-manager misconfiguration. Each
 	// carries a type so consumers can tell degraded coverage from advice.
-	Warnings []sdk.DetectorWarning `json:"warnings,omitempty"`
-	Metadata Metadata              `json:"metadata"`
+	Warnings []plugin.DetectorWarning `json:"warnings,omitempty"`
+	Metadata Metadata                 `json:"metadata"`
 }
 
 // ScanManifest is one manifest-scoped dependency inventory in the scan payload.
 type ScanManifest struct {
-	Path           string                  `json:"path,omitempty"`
-	Kind           sdk.ManifestKind        `json:"kind,omitempty"`
-	Subproject     string                  `json:"subproject,omitempty"`
-	Ecosystem      sdk.Ecosystem           `json:"ecosystem,omitempty"`
-	PackageManager sdk.PackageManager      `json:"package_manager,omitempty"`
-	Detector       string                  `json:"detector,omitempty"`
-	Resolution     *sdk.ResolutionMetadata `json:"resolution,omitempty"`
-	Dependencies   []ScanDependency        `json:"dependencies"`
+	Path           string                    `json:"path,omitempty"`
+	Kind           model.ManifestKind        `json:"kind,omitempty"`
+	Subproject     string                    `json:"subproject,omitempty"`
+	Ecosystem      model.Ecosystem           `json:"ecosystem,omitempty"`
+	PackageManager model.PackageManager      `json:"package_manager,omitempty"`
+	Detector       string                    `json:"detector,omitempty"`
+	Resolution     *model.ResolutionMetadata `json:"resolution,omitempty"`
+	Dependencies   []ScanDependency          `json:"dependencies"`
 }
 
 // DiffResponse is the structured payload for the diff command. Packages is
@@ -47,16 +51,16 @@ type ScanManifest struct {
 // conflict) so audit findings can be joined against advisory data the same
 // way scan findings join against ScanResponse.Packages.
 type DiffResponse struct {
-	SchemaVersion string                `json:"schema_version"`
-	Command       string                `json:"command"`
-	Project       ProjectDescriptor     `json:"project"`
-	Comparison    DiffComparison        `json:"comparison"`
-	Results       DiffResults           `json:"results"`
-	Summary       DiffSummary           `json:"summary"`
-	Packages      []ScanPackageEntry    `json:"packages"`
-	Audit         *DiffAudit            `json:"audit,omitempty"`
-	Warnings      []sdk.DetectorWarning `json:"warnings,omitempty"`
-	Metadata      Metadata              `json:"metadata"`
+	SchemaVersion string                   `json:"schema_version"`
+	Command       string                   `json:"command"`
+	Project       ProjectDescriptor        `json:"project"`
+	Comparison    DiffComparison           `json:"comparison"`
+	Results       DiffResults              `json:"results"`
+	Summary       DiffSummary              `json:"summary"`
+	Packages      []ScanPackageEntry       `json:"packages"`
+	Audit         *DiffAudit               `json:"audit,omitempty"`
+	Warnings      []plugin.DetectorWarning `json:"warnings,omitempty"`
+	Metadata      Metadata                 `json:"metadata"`
 }
 
 // DiffAudit groups audit deltas for diff output.
@@ -140,30 +144,30 @@ type DiffChangedPackage struct {
 type DiffDependencyTransition struct {
 	Before        DiffDependencyTransitionState `json:"before"`
 	After         DiffDependencyTransitionState `json:"after"`
-	ChangedFields []sdk.DependencyDetailField   `json:"changed_fields"`
+	ChangedFields []model.DependencyDetailField `json:"changed_fields"`
 }
 
 // DiffDependencyTransitionState preserves the identity and details of one
 // occurrence before or after a transition.
 type DiffDependencyTransitionState struct {
-	ID               string                     `json:"id"`
-	Name             string                     `json:"name"`
-	Version          string                     `json:"version,omitempty"`
-	Purl             string                     `json:"purl,omitempty"`
-	Scope            string                     `json:"scope,omitempty"`
-	Relationship     sdk.DependencyRelationship `json:"relationship"`
-	Source           sdk.DependencySource       `json:"source,omitempty"`
-	RegistryEligible bool                       `json:"registry_eligible"`
+	ID               string                       `json:"id"`
+	Name             string                       `json:"name"`
+	Version          string                       `json:"version,omitempty"`
+	Purl             string                       `json:"purl,omitempty"`
+	Scope            string                       `json:"scope,omitempty"`
+	Relationship     model.DependencyRelationship `json:"relationship"`
+	Source           model.DependencySource       `json:"source,omitempty"`
+	RegistryEligible bool                         `json:"registry_eligible"`
 }
 
 // DiffManifestResult describes changes for one manifest.
 type DiffManifestResult struct {
 	Status         string                     `json:"status"`
 	Path           string                     `json:"path,omitempty"`
-	Kind           sdk.ManifestKind           `json:"kind,omitempty"`
+	Kind           model.ManifestKind         `json:"kind,omitempty"`
 	Subproject     string                     `json:"subproject,omitempty"`
-	Ecosystem      sdk.Ecosystem              `json:"ecosystem,omitempty"`
-	PackageManager sdk.PackageManager         `json:"package_manager,omitempty"`
+	Ecosystem      model.Ecosystem            `json:"ecosystem,omitempty"`
+	PackageManager model.PackageManager       `json:"package_manager,omitempty"`
 	Added          []DiffPackageChange        `json:"added,omitempty"`
 	Removed        []DiffPackageChange        `json:"removed,omitempty"`
 	Changed        []DiffChangedPackage       `json:"changed,omitempty"`
@@ -187,17 +191,17 @@ type DiffSummary struct {
 
 // ExplainResponse is the structured payload for the explain command.
 type ExplainResponse struct {
-	SchemaVersion string                  `json:"schema_version"`
-	Command       string                  `json:"command"`
-	Project       ProjectDescriptor       `json:"project"`
-	Query         ExplainQuery            `json:"query"`
-	Dependency    ExplainDependency       `json:"dependency,omitempty"`
-	Paths         []DependencyPath        `json:"paths,omitempty"`
-	Findings      []AuditFinding          `json:"findings,omitempty"`
-	AuditSummary  *AuditSummary           `json:"audit_summary,omitempty"`
-	Targets       []ExplainTargetResponse `json:"targets,omitempty"`
-	Warnings      []sdk.DetectorWarning   `json:"warnings,omitempty"`
-	Metadata      Metadata                `json:"metadata"`
+	SchemaVersion string                   `json:"schema_version"`
+	Command       string                   `json:"command"`
+	Project       ProjectDescriptor        `json:"project"`
+	Query         ExplainQuery             `json:"query"`
+	Dependency    ExplainDependency        `json:"dependency,omitempty"`
+	Paths         []DependencyPath         `json:"paths,omitempty"`
+	Findings      []AuditFinding           `json:"findings,omitempty"`
+	AuditSummary  *AuditSummary            `json:"audit_summary,omitempty"`
+	Targets       []ExplainTargetResponse  `json:"targets,omitempty"`
+	Warnings      []plugin.DetectorWarning `json:"warnings,omitempty"`
+	Metadata      Metadata                 `json:"metadata"`
 }
 
 // ExplainQuery records the user query issued to the explain command.
@@ -207,19 +211,19 @@ type ExplainQuery struct {
 
 // ExplainTargetResponse represents explain output for one resolved target.
 type ExplainTargetResponse struct {
-	Project        ProjectDescriptor  `json:"project"`
-	Detector       string             `json:"detector,omitempty"`
-	PackageManager sdk.PackageManager `json:"package_manager,omitempty"`
-	Dependency     ExplainDependency  `json:"dependency"`
-	Paths          []DependencyPath   `json:"paths"`
-	Findings       []AuditFinding     `json:"findings,omitempty"`
-	AuditSummary   *AuditSummary      `json:"audit_summary,omitempty"`
+	Project        ProjectDescriptor    `json:"project"`
+	Detector       string               `json:"detector,omitempty"`
+	PackageManager model.PackageManager `json:"package_manager,omitempty"`
+	Dependency     ExplainDependency    `json:"dependency"`
+	Paths          []DependencyPath     `json:"paths"`
+	Findings       []AuditFinding       `json:"findings,omitempty"`
+	AuditSummary   *AuditSummary        `json:"audit_summary,omitempty"`
 }
 
 // BuildScanResponse constructs the structured scan payload from consolidated
 // manifest selections and findings. Reachability metadata (analyzer runs and
 // per-analyzer stats) is attached afterwards via ScanResponse.WithAnalyzerRuns.
-func BuildScanResponse(project ProjectDescriptor, consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRegistry, findings []sdk.Finding, started time.Time, options ...ReportOptions) ScanResponse {
+func BuildScanResponse(project ProjectDescriptor, consolidated plugin.ConsolidatedGraph, registry *model.PackageRegistry, findings []model.Finding, started time.Time, options ...ReportOptions) ScanResponse {
 	response := ScanResponse{
 		SchemaVersion: SchemaVersion,
 		Command:       "scan",
@@ -239,7 +243,7 @@ func BuildScanResponse(project ProjectDescriptor, consolidated sdk.ConsolidatedG
 // per-analyzer reachability stats. Returns the response by value so it
 // can be chained from BuildScanResponse callers without intermediate
 // state.
-func (r ScanResponse) WithAnalyzerRuns(runs []string, stats map[string]sdk.ReachabilityStats) ScanResponse {
+func (r ScanResponse) WithAnalyzerRuns(runs []string, stats map[string]plugin.ReachabilityStats) ScanResponse {
 	return r.WithReportOptions(ReportOptions{
 		ReachabilityEnabled: len(runs) > 0 || len(stats) > 0,
 		AnalyzerRuns:        runs,
@@ -266,7 +270,7 @@ func (r ScanResponse) WithReportOptions(options ReportOptions) ScanResponse {
 // ScanManifestsFromConsolidated converts consolidated manifest selections into stable scan payloads.
 // registry, when non-nil, enriches each manifest's packages with matching-stage
 // data (vulnerabilities / scorecard / etc.) resolved by PURL.
-func ScanManifestsFromConsolidated(consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRegistry) []ScanManifest {
+func ScanManifestsFromConsolidated(consolidated plugin.ConsolidatedGraph, registry *model.PackageRegistry) []ScanManifest {
 	manifests := make([]ScanManifest, 0, len(consolidated.Manifests))
 	for idx, manifest := range consolidated.Manifests {
 		if manifest.Entry.Graph == nil {
@@ -289,14 +293,14 @@ func ScanManifestsFromConsolidated(consolidated sdk.ConsolidatedGraph, registry 
 	return manifests
 }
 
-func scanManifestFromConsolidated(manifest sdk.ConsolidatedManifest, idx int, registry *sdk.PackageRegistry) ScanManifest {
+func scanManifestFromConsolidated(manifest plugin.ConsolidatedManifest, idx int, registry *model.PackageRegistry) ScanManifest {
 	kind := strings.TrimSpace(string(manifest.Entry.Manifest.Kind))
 	if kind == "" {
 		kind = "entry-" + strconv.Itoa(idx+1)
 	}
 	return ScanManifest{
 		Path:           normalizeScanManifestPath(manifest.Subproject, diffManifestPath(manifest.Subproject, manifest.Entry.Manifest), manifest.Entry.Manifest.Path),
-		Kind:           sdk.ManifestKind(kind),
+		Kind:           model.ManifestKind(kind),
 		Subproject:     manifest.Subproject.RelativePath,
 		Ecosystem:      manifest.Subproject.Ecosystem,
 		PackageManager: manifest.Subproject.PrimaryPackageManager(),
@@ -306,7 +310,7 @@ func scanManifestFromConsolidated(manifest sdk.ConsolidatedManifest, idx int, re
 	}
 }
 
-func normalizeScanManifestPath(subproject sdk.Subproject, candidates ...string) string {
+func normalizeScanManifestPath(subproject plugin.Subproject, candidates ...string) string {
 	for _, candidate := range candidates {
 		normalized := strings.TrimSpace(strings.ReplaceAll(candidate, "\\", "/"))
 		if normalized == "" {
@@ -356,7 +360,7 @@ func BuildExplainResponse(project ProjectDescriptor, query string, targets []Exp
 }
 
 // BuildDiffResponse constructs the structured diff payload from consolidated manifest selections.
-func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, headConsolidated sdk.ConsolidatedGraph, audit *DiffAudit, started time.Time, options ...ReportOptions) DiffResponse {
+func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, headConsolidated plugin.ConsolidatedGraph, audit *DiffAudit, started time.Time, options ...ReportOptions) DiffResponse {
 	reportOptions := firstReportOptions(options)
 	results, summary := diffResultsFromConsolidated(baseConsolidated, headConsolidated, reportOptions.BaseRegistry, reportOptions.HeadRegistry)
 	response := DiffResponse{
@@ -366,8 +370,8 @@ func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, h
 			Name:           filepathBase(projectPath),
 			Path:           projectPath,
 			TargetType:     "dependency diff",
-			Ecosystem:      sdk.EcosystemOther,
-			PackageManager: sdk.PackageManagerMultiple,
+			Ecosystem:      model.EcosystemOther,
+			PackageManager: model.PackageManagerMultiple,
 		},
 		Comparison: DiffComparison{Base: baseRef, Head: headRef},
 		Results:    results,
@@ -383,7 +387,7 @@ func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, h
 // into one PURL-deduplicated packages collection. Head entries win on
 // conflict, so findings computed against the head state resolve to head
 // advisory data while base-only (resolved-finding) packages stay joinable.
-func PackagesFromRegistries(base, head *sdk.PackageRegistry) []ScanPackageEntry {
+func PackagesFromRegistries(base, head *model.PackageRegistry) []ScanPackageEntry {
 	headEntries := PackagesFromRegistry(head)
 	seen := make(map[string]struct{}, len(headEntries))
 	for _, entry := range headEntries {
@@ -468,10 +472,8 @@ func metadataWithReportOptions(metadata Metadata, options ReportOptions) Metadat
 		sort.Strings(metadata.AnalyzerRuns)
 	}
 	if len(options.AnalyzerStats) > 0 {
-		metadata.AnalyzerStats = make(map[string]sdk.ReachabilityStats, len(options.AnalyzerStats))
-		for k, v := range options.AnalyzerStats {
-			metadata.AnalyzerStats[k] = v
-		}
+		metadata.AnalyzerStats = make(map[string]plugin.ReachabilityStats, len(options.AnalyzerStats))
+		maps.Copy(metadata.AnalyzerStats, options.AnalyzerStats)
 	}
 	return metadata
 }
@@ -566,18 +568,18 @@ func copyExplainTargets(targets []ExplainTargetResponse) []ExplainTargetResponse
 type diffManifestSnapshot struct {
 	Key      string
 	Manifest diffManifestRef
-	Graph    *sdk.Graph
+	Graph    *model.Graph
 }
 
 type diffManifestRef struct {
 	Path           string
-	Kind           sdk.ManifestKind
+	Kind           model.ManifestKind
 	Subproject     string
-	Ecosystem      sdk.Ecosystem
-	PackageManager sdk.PackageManager
+	Ecosystem      model.Ecosystem
+	PackageManager model.PackageManager
 }
 
-func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.ConsolidatedGraph, baseRegistry, headRegistry *sdk.PackageRegistry) (DiffResults, DiffSummary) {
+func diffResultsFromConsolidated(baseConsolidated, headConsolidated plugin.ConsolidatedGraph, baseRegistry, headRegistry *model.PackageRegistry) (DiffResults, DiffSummary) {
 	baseByKey := manifestSnapshotsByConsolidated(baseConsolidated)
 	headByKey := manifestSnapshotsByConsolidated(headConsolidated)
 	keys := make([]string, 0, len(baseByKey)+len(headByKey))
@@ -613,7 +615,7 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 				Subproject:     headManifest.Manifest.Subproject,
 				Ecosystem:      headManifest.Manifest.Ecosystem,
 				PackageManager: headManifest.Manifest.PackageManager,
-				Added:          diffPackageChangesFromPackages(headManifest.Graph.Nodes(), headRegistry, graphDirectMembership(headManifest.Graph)),
+				Added:          diffPackageChangesFromPackages(headManifest.Graph.DependencyNodes(), headRegistry, graphDirectMembership(headManifest.Graph)),
 			}
 			results.Manifests = append(results.Manifests, result)
 			summary.AddedManifestCount++
@@ -627,14 +629,14 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 				Subproject:     baseManifest.Manifest.Subproject,
 				Ecosystem:      baseManifest.Manifest.Ecosystem,
 				PackageManager: baseManifest.Manifest.PackageManager,
-				Removed:        diffPackageChangesFromPackages(baseManifest.Graph.Nodes(), baseRegistry, graphDirectMembership(baseManifest.Graph)),
+				Removed:        diffPackageChangesFromPackages(baseManifest.Graph.DependencyNodes(), baseRegistry, graphDirectMembership(baseManifest.Graph)),
 			}
 			results.Manifests = append(results.Manifests, result)
 			summary.RemovedManifestCount++
 			summary.RemovedPackageCount += len(result.Removed)
 			summary.UnmatchedPackageCount += len(result.Removed)
 		case hasBase && hasHead:
-			manifestDiff := sdk.Compare(baseManifest.Graph, headManifest.Graph)
+			manifestDiff := model.Compare(baseManifest.Graph, headManifest.Graph)
 			if isSBOMDiffManifest(baseManifest, headManifest) {
 				filterSBOMPseudoPackageDiff(&manifestDiff, baseManifest.Graph, headManifest.Graph)
 			}
@@ -867,7 +869,7 @@ func diffManifestStatusOrder(status string) int {
 	}
 }
 
-func manifestSnapshotsByConsolidated(consolidated sdk.ConsolidatedGraph) map[string]diffManifestSnapshot {
+func manifestSnapshotsByConsolidated(consolidated plugin.ConsolidatedGraph) map[string]diffManifestSnapshot {
 	snapshots := make(map[string]diffManifestSnapshot)
 	for idx, manifest := range consolidated.Manifests {
 		if manifest.Entry.Graph == nil {
@@ -884,7 +886,7 @@ func manifestSnapshotsByConsolidated(consolidated sdk.ConsolidatedGraph) map[str
 	return snapshots
 }
 
-func diffManifestRefFromConsolidated(manifest sdk.ConsolidatedManifest, idx int) diffManifestRef {
+func diffManifestRefFromConsolidated(manifest plugin.ConsolidatedManifest, idx int) diffManifestRef {
 	pathValue := normalizeScanManifestPath(manifest.Subproject, diffManifestPath(manifest.Subproject, manifest.Entry.Manifest), manifest.Entry.Manifest.Path)
 	kind := strings.TrimSpace(string(manifest.Entry.Manifest.Kind))
 	if kind == "" {
@@ -892,14 +894,14 @@ func diffManifestRefFromConsolidated(manifest sdk.ConsolidatedManifest, idx int)
 	}
 	return diffManifestRef{
 		Path:           pathValue,
-		Kind:           sdk.ManifestKind(kind),
+		Kind:           model.ManifestKind(kind),
 		Subproject:     manifest.Subproject.RelativePath,
 		Ecosystem:      manifest.Subproject.Ecosystem,
 		PackageManager: manifest.Subproject.PrimaryPackageManager(),
 	}
 }
 
-func diffManifestPath(subproject sdk.Subproject, manifest sdk.ManifestMetadata) string {
+func diffManifestPath(subproject plugin.Subproject, manifest model.ManifestMetadata) string {
 	rawPath := strings.TrimSpace(manifest.Path)
 	if rawPath == "" {
 		if subproject.RelativePath == "." {
@@ -958,7 +960,7 @@ func diffManifestKey(manifest diffManifestRef, idx int) string {
 	return strings.Join([]string{subproject, manifest.PackageManager.Name(), pathValue}, "::")
 }
 
-func diffManifestKeyForConsolidated(manifest sdk.ConsolidatedManifest, ref diffManifestRef, idx int) string {
+func diffManifestKeyForConsolidated(manifest plugin.ConsolidatedManifest, ref diffManifestRef, idx int) string {
 	if !isSBOMManifest(manifest.Subproject) {
 		return diffManifestKey(ref, idx)
 	}
@@ -974,7 +976,7 @@ func diffManifestKeyForConsolidated(manifest sdk.ConsolidatedManifest, ref diffM
 	}, "::")
 }
 
-func derivedSBOMManifestKey(manifest sdk.ConsolidatedManifest, ref diffManifestRef) (string, bool) {
+func derivedSBOMManifestKey(manifest plugin.ConsolidatedManifest, ref diffManifestRef) (string, bool) {
 	pathValue := strings.TrimSpace(strings.ReplaceAll(ref.Path, "\\", "/"))
 	if pathValue == "" || !sbomManifestPathLooksDerived(manifest, pathValue) {
 		return "", false
@@ -986,7 +988,7 @@ func derivedSBOMManifestKey(manifest sdk.ConsolidatedManifest, ref diffManifestR
 	}, "::"), true
 }
 
-func sbomManifestPathLooksDerived(manifest sdk.ConsolidatedManifest, candidate string) bool {
+func sbomManifestPathLooksDerived(manifest plugin.ConsolidatedManifest, candidate string) bool {
 	if candidate == "" {
 		return false
 	}
@@ -1012,15 +1014,15 @@ func sbomManifestPathLooksDerived(manifest sdk.ConsolidatedManifest, candidate s
 	return true
 }
 
-func isSBOMManifest(subproject sdk.Subproject) bool {
-	return subproject.PrimaryPackageManager() == sdk.PackageManagerSBOM || subproject.Ecosystem == sdk.EcosystemSBOM
+func isSBOMManifest(subproject plugin.Subproject) bool {
+	return subproject.PrimaryPackageManager() == model.PackageManagerSBOM || subproject.Ecosystem == model.EcosystemSBOM
 }
 
 func isSBOMDiffManifest(base, head diffManifestSnapshot) bool {
-	return base.Manifest.PackageManager == sdk.PackageManagerSBOM || head.Manifest.PackageManager == sdk.PackageManagerSBOM
+	return base.Manifest.PackageManager == model.PackageManagerSBOM || head.Manifest.PackageManager == model.PackageManagerSBOM
 }
 
-func filterSBOMPseudoPackageDiff(diff *sdk.Diff, baseGraph, headGraph *sdk.Graph) {
+func filterSBOMPseudoPackageDiff(diff *model.Diff, baseGraph, headGraph *model.Graph) {
 	if diff == nil {
 		return
 	}
@@ -1029,7 +1031,7 @@ func filterSBOMPseudoPackageDiff(diff *sdk.Diff, baseGraph, headGraph *sdk.Graph
 	if len(diff.Transitions) > 0 {
 		baseRoots := graphRootIDs(baseGraph)
 		headRoots := graphRootIDs(headGraph)
-		filtered := make([]sdk.DependencyDetailTransition, 0, len(diff.Transitions))
+		filtered := make([]model.DependencyDetailTransition, 0, len(diff.Transitions))
 		for _, transition := range diff.Transitions {
 			if isSBOMPseudoPackage(transition.Before, baseRoots) || isSBOMPseudoPackage(transition.After, headRoots) {
 				continue
@@ -1040,12 +1042,12 @@ func filterSBOMPseudoPackageDiff(diff *sdk.Diff, baseGraph, headGraph *sdk.Graph
 	}
 }
 
-func filterSBOMPseudoPackages(packages []*sdk.Dependency, graph *sdk.Graph) []*sdk.Dependency {
+func filterSBOMPseudoPackages(packages []*model.DependencyNode, graph *model.Graph) []*model.DependencyNode {
 	if len(packages) == 0 {
 		return packages
 	}
 	rootIDs := graphRootIDs(graph)
-	filtered := make([]*sdk.Dependency, 0, len(packages))
+	filtered := make([]*model.DependencyNode, 0, len(packages))
 	for _, pkg := range packages {
 		if isSBOMPseudoPackage(pkg, rootIDs) {
 			continue
@@ -1055,7 +1057,7 @@ func filterSBOMPseudoPackages(packages []*sdk.Dependency, graph *sdk.Graph) []*s
 	return filtered
 }
 
-func graphRootIDs(graph *sdk.Graph) map[string]struct{} {
+func graphRootIDs(graph *model.Graph) map[string]struct{} {
 	roots := map[string]struct{}{}
 	if graph == nil {
 		return roots
@@ -1064,28 +1066,30 @@ func graphRootIDs(graph *sdk.Graph) map[string]struct{} {
 		if root == nil {
 			continue
 		}
-		roots[root.ID] = struct{}{}
+		roots[root.NodeID()] = struct{}{}
 	}
 	return roots
 }
 
-func isSBOMPseudoPackage(pkg *sdk.Dependency, rootIDs map[string]struct{}) bool {
+func isSBOMPseudoPackage(pkg *model.DependencyNode, rootIDs map[string]struct{}) bool {
 	if pkg == nil {
 		return false
 	}
-	if !sdk.NodeIsDiffable(pkg) {
-		return true
-	}
-	if _, ok := rootIDs[pkg.ID]; !ok {
+	// A dependency node by type here, so the old diffable check is redundant:
+	// under ADR-0041 "diffable" means "is a dependency node", which the
+	// signature already guarantees.
+	if _, ok := rootIDs[pkg.NodeID()]; !ok {
 		return false
 	}
-	if purl := sdk.ParsePackageURL(pkg.PURL); purl != nil && strings.EqualFold(purl.Type, "github") {
+	// purlkit is the kit over the official packageurl-go; sdk.ParsePackageURL
+	// was the deprecated anchore-fork entry point and is gone.
+	if parsed, err := purlkit.Parse(pkg.NodeID()); err == nil && strings.EqualFold(parsed.Type, "github") {
 		return true
 	}
 	return false
 }
 
-func diffPackageChangesFromPackages(packages []*sdk.Dependency, registry *sdk.PackageRegistry, direct directMembership) []DiffPackageChange {
+func diffPackageChangesFromPackages(packages []*model.DependencyNode, registry *model.PackageRegistry, direct directMembership) []DiffPackageChange {
 	changes := make([]DiffPackageChange, 0, len(packages))
 	for _, pkg := range packages {
 		ref := PackageFromDependencyAndRegistry(pkg, registry)
@@ -1096,7 +1100,7 @@ func diffPackageChangesFromPackages(packages []*sdk.Dependency, registry *sdk.Pa
 	return changes
 }
 
-func diffChangedPackagesFromDiff(changes []sdk.VersionChange, baseRegistry, headRegistry *sdk.PackageRegistry, baseDirect, headDirect directMembership) []DiffChangedPackage {
+func diffChangedPackagesFromDiff(changes []model.VersionChange, baseRegistry, headRegistry *model.PackageRegistry, baseDirect, headDirect directMembership) []DiffChangedPackage {
 	out := make([]DiffChangedPackage, 0, len(changes))
 	for _, change := range changes {
 		after := PackageFromDependencyAndRegistry(change.After, headRegistry)
@@ -1109,13 +1113,13 @@ func diffChangedPackagesFromDiff(changes []sdk.VersionChange, baseRegistry, head
 	return out
 }
 
-func diffDependencyTransitionsFromDiff(transitions []sdk.DependencyDetailTransition) []DiffDependencyTransition {
+func diffDependencyTransitionsFromDiff(transitions []model.DependencyDetailTransition) []DiffDependencyTransition {
 	out := make([]DiffDependencyTransition, 0, len(transitions))
 	for _, transition := range transitions {
 		out = append(out, DiffDependencyTransition{
 			Before:        diffDependencyTransitionState(transition.Before, transition.BeforeRelationship, transition.BeforeRegistryEligible),
 			After:         diffDependencyTransitionState(transition.After, transition.AfterRelationship, transition.AfterRegistryEligible),
-			ChangedFields: append([]sdk.DependencyDetailField(nil), transition.ChangedFields...),
+			ChangedFields: append([]model.DependencyDetailField(nil), transition.ChangedFields...),
 		})
 	}
 	sort.Slice(out, func(i, j int) bool {
@@ -1126,11 +1130,11 @@ func diffDependencyTransitionsFromDiff(transitions []sdk.DependencyDetailTransit
 
 // DependencyDetailReviewReasons classifies a projected dependency detail
 // transition without adding a derived field to the JSON contract.
-func DependencyDetailReviewReasons(transition DiffDependencyTransition) []sdk.DependencyDetailReviewReason {
-	projected := sdk.DependencyDetailTransition{
-		Before:                 &sdk.Dependency{Source: transition.Before.Source},
-		After:                  &sdk.Dependency{Source: transition.After.Source},
-		ChangedFields:          append([]sdk.DependencyDetailField(nil), transition.ChangedFields...),
+func DependencyDetailReviewReasons(transition DiffDependencyTransition) []model.DependencyDetailReviewReason {
+	projected := model.DependencyDetailTransition{
+		Before:                 &model.DependencyNode{Source: transition.Before.Source},
+		After:                  &model.DependencyNode{Source: transition.After.Source},
+		ChangedFields:          append([]model.DependencyDetailField(nil), transition.ChangedFields...),
 		BeforeRelationship:     transition.Before.Relationship,
 		AfterRelationship:      transition.After.Relationship,
 		BeforeRegistryEligible: transition.Before.RegistryEligible,
@@ -1145,15 +1149,15 @@ func DependencyDetailNeedsReview(transition DiffDependencyTransition) bool {
 	return len(DependencyDetailReviewReasons(transition)) > 0
 }
 
-func diffDependencyTransitionState(dependency *sdk.Dependency, relationship sdk.DependencyRelationship, eligible bool) DiffDependencyTransitionState {
+func diffDependencyTransitionState(dependency *model.DependencyNode, relationship model.DependencyRelationship, eligible bool) DiffDependencyTransitionState {
 	if dependency == nil {
 		return DiffDependencyTransitionState{Relationship: relationship, RegistryEligible: eligible}
 	}
 	return DiffDependencyTransitionState{
-		ID:               dependency.ID,
+		ID:               dependency.NodeID(),
 		Name:             dependency.Name,
 		Version:          dependency.Version,
-		Purl:             dependency.PURL,
+		Purl:             dependency.NodeID(),
 		Scope:            string(dependency.PrimaryScope()),
 		Relationship:     relationship,
 		Source:           dependency.Source,
@@ -1172,7 +1176,7 @@ type directMembership struct {
 // indeterminate when the graph has no roots, or when every node is a root
 // (a flat SBOM with no dependency edges), so callers leave PackageRef.Direct
 // nil in those cases rather than mislabeling transitive packages as direct.
-func graphDirectMembership(graph *sdk.Graph) directMembership {
+func graphDirectMembership(graph *model.Graph) directMembership {
 	m := directMembership{ids: map[string]struct{}{}}
 	if graph == nil {
 		return m
@@ -1186,34 +1190,34 @@ func graphDirectMembership(graph *sdk.Graph) directMembership {
 		if root == nil {
 			continue
 		}
-		deps, err := graph.DirectDependencies(root.ID)
+		deps, err := graph.DirectDependencies(root.NodeID())
 		if err != nil {
 			continue
 		}
 		for _, dep := range deps {
 			if dep != nil {
-				m.ids[dep.ID] = struct{}{}
+				m.ids[dep.NodeID()] = struct{}{}
 			}
 		}
 	}
 	return m
 }
 
-func (m directMembership) apply(ref *PackageRef, dep *sdk.Dependency) {
+func (m directMembership) apply(ref *PackageRef, dep *model.DependencyNode) {
 	if !m.known || dep == nil {
 		return
 	}
-	if dep.Relationship == sdk.DependencyRelationshipUnknown {
-		ref.Relationship = string(sdk.DependencyRelationshipUnknown)
+	if dep.Relationship == model.DependencyRelationshipUnknown {
+		ref.Relationship = string(model.DependencyRelationshipUnknown)
 		ref.Direct = nil
 		return
 	}
-	_, isDirect := m.ids[dep.ID]
+	_, isDirect := m.ids[dep.NodeID()]
 	ref.Direct = &isDirect
 	if isDirect {
-		ref.Relationship = string(sdk.DependencyRelationshipDirect)
+		ref.Relationship = string(model.DependencyRelationshipDirect)
 	} else {
-		ref.Relationship = string(sdk.DependencyRelationshipTransitive)
+		ref.Relationship = string(model.DependencyRelationshipTransitive)
 	}
 }
 
@@ -1223,7 +1227,7 @@ const (
 	diffFuzzyTierKey       = "bomly.diff.fuzzy_tier"
 )
 
-func reconcileDiffWithFuzzyMatches(diff *sdk.Diff, baseGraph, headGraph *sdk.Graph) {
+func reconcileDiffWithFuzzyMatches(diff *model.Diff, baseGraph, headGraph *model.Graph) {
 	if diff == nil || len(diff.Added) == 0 || len(diff.Removed) == 0 {
 		return
 	}
@@ -1273,8 +1277,8 @@ func reconcileDiffWithFuzzyMatches(diff *sdk.Diff, baseGraph, headGraph *sdk.Gra
 		after := diff.Added[match.addedIdx]
 		before := diff.Removed[match.removedIdx]
 		applyFuzzyMetadata(before, after, match.score, match.tier)
-		diff.Updated = append(diff.Updated, sdk.VersionChange{Before: before, After: after})
-		if transition, changed := sdk.CompareDependencyDetails(baseGraph, headGraph, before, after); changed {
+		diff.Updated = append(diff.Updated, model.VersionChange{Before: before, After: after})
+		if transition, changed := model.CompareDependencyDetails(baseGraph, headGraph, before, after); changed {
 			diff.Transitions = append(diff.Transitions, transition)
 		}
 		matchedAdded[match.addedIdx] = struct{}{}
@@ -1285,14 +1289,14 @@ func reconcileDiffWithFuzzyMatches(diff *sdk.Diff, baseGraph, headGraph *sdk.Gra
 		return
 	}
 
-	remainingAdded := make([]*sdk.Dependency, 0, len(diff.Added)-len(matchedAdded))
+	remainingAdded := make([]*model.DependencyNode, 0, len(diff.Added)-len(matchedAdded))
 	for idx, pkg := range diff.Added {
 		if _, ok := matchedAdded[idx]; ok {
 			continue
 		}
 		remainingAdded = append(remainingAdded, pkg)
 	}
-	remainingRemoved := make([]*sdk.Dependency, 0, len(diff.Removed)-len(matchedRemoved))
+	remainingRemoved := make([]*model.DependencyNode, 0, len(diff.Removed)-len(matchedRemoved))
 	for idx, pkg := range diff.Removed {
 		if _, ok := matchedRemoved[idx]; ok {
 			continue
@@ -1305,8 +1309,8 @@ func reconcileDiffWithFuzzyMatches(diff *sdk.Diff, baseGraph, headGraph *sdk.Gra
 	sort.Slice(diff.Updated, func(i, j int) bool {
 		left := diff.Updated[i]
 		right := diff.Updated[j]
-		if left.Before.IdentityKey() != right.Before.IdentityKey() {
-			return left.Before.IdentityKey() < right.Before.IdentityKey()
+		if left.Before.NodeID() != right.Before.NodeID() {
+			return left.Before.NodeID() < right.Before.NodeID()
 		}
 		if left.Before.Version != right.Before.Version {
 			return left.Before.Version < right.Before.Version
@@ -1314,12 +1318,12 @@ func reconcileDiffWithFuzzyMatches(diff *sdk.Diff, baseGraph, headGraph *sdk.Gra
 		if left.After.Version != right.After.Version {
 			return left.After.Version < right.After.Version
 		}
-		return left.Before.ID < right.Before.ID
+		return left.Before.NodeID() < right.Before.NodeID()
 	})
-	sdk.SortDependencyDetailTransitions(diff.Transitions)
+	model.SortDependencyDetailTransitions(diff.Transitions)
 }
 
-func fuzzyReconcileScore(before, after *sdk.Dependency) (float64, string) {
+func fuzzyReconcileScore(before, after *model.DependencyNode) (float64, string) {
 	if before == nil || after == nil {
 		return 0, ""
 	}
@@ -1327,16 +1331,22 @@ func fuzzyReconcileScore(before, after *sdk.Dependency) (float64, string) {
 		return 0, ""
 	}
 
-	beforeNorm := before.Clone()
-	afterNorm := after.Clone()
-	sdk.NormalizeDependencyIdentity(beforeNorm)
-	sdk.NormalizeDependencyIdentity(afterNorm)
+	// No normalization pass: a node's identity is canonical by construction
+	// under ADR-0041, so the clone-and-normalize step this used to run had
+	// nothing left to do.
+	beforeNorm := before
+	afterNorm := after
 
-	if sdk.PackageURLBase(beforeNorm.PURL) != "" && sdk.PackageURLBase(beforeNorm.PURL) == sdk.PackageURLBase(afterNorm.PURL) {
+	// purlkit.WithoutVersion rather than a base-string trim: it strips the
+	// version while keeping qualifiers and subpath, so two builds of one
+	// package that differ by architecture stay distinct instead of reading as
+	// a version change.
+	beforeBase := purlkit.WithoutVersion(beforeNorm.NodeID())
+	if beforeBase != "" && beforeBase == purlkit.WithoutVersion(afterNorm.NodeID()) {
 		return 1.0, "purl-base"
 	}
 
-	if beforeNorm.IdentityKey() == afterNorm.IdentityKey() {
+	if beforeNorm.NodeID() == afterNorm.NodeID() {
 		return 0.97, "normalized-identity"
 	}
 
@@ -1354,7 +1364,7 @@ func fuzzyReconcileScore(before, after *sdk.Dependency) (float64, string) {
 	return final, "name-similarity"
 }
 
-func sameEcosystemForFuzzy(before, after *sdk.Dependency) bool {
+func sameEcosystemForFuzzy(before, after *model.DependencyNode) bool {
 	b := strings.ToLower(strings.TrimSpace(string(before.Ecosystem)))
 	a := strings.ToLower(strings.TrimSpace(string(after.Ecosystem)))
 	if b == "" || a == "" {
@@ -1454,9 +1464,9 @@ func maxInt(values ...int) int {
 	return best
 }
 
-func applyFuzzyMetadata(before, after *sdk.Dependency, score float64, tier string) {
+func applyFuzzyMetadata(before, after *model.DependencyNode, score float64, tier string) {
 	roundedScore := math.Round(score*1000) / 1000
-	for _, pkg := range []*sdk.Dependency{before, after} {
+	for _, pkg := range []*model.DependencyNode{before, after} {
 		if pkg == nil {
 			continue
 		}

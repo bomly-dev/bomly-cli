@@ -7,7 +7,8 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // ErrDependencyNotFound indicates the requested package was not found.
@@ -17,7 +18,7 @@ var ErrDependencyNotFound = errors.New("dependency not found")
 type Path = output.DependencyPath
 
 // FindWhy resolves a target package and returns all root-to-target paths.
-func FindWhy(deps *sdk.Graph, query string) (output.PackageRef, []Path, error) {
+func FindWhy(deps *model.Graph, query string) (output.PackageRef, []Path, error) {
 	target, paths, err := FindWhyPackage(deps, query)
 	if err != nil {
 		return output.PackageRef{}, nil, err
@@ -26,13 +27,13 @@ func FindWhy(deps *sdk.Graph, query string) (output.PackageRef, []Path, error) {
 }
 
 // FindWhyPackage resolves a target package and returns the package plus all root-to-target paths.
-func FindWhyPackage(deps *sdk.Graph, query string) (*sdk.Dependency, []Path, error) {
+func FindWhyPackage(deps *model.Graph, query string) (*model.DependencyNode, []Path, error) {
 	target, err := resolveTarget(deps, query)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	rawPaths, err := deps.CollectPathsTo(target.ID)
+	rawPaths, err := deps.CollectPathsTo(target.NodeID())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -48,15 +49,19 @@ func FindWhyPackage(deps *sdk.Graph, query string) (*sdk.Dependency, []Path, err
 	return target, paths, nil
 }
 
-func resolveTarget(deps *sdk.Graph, query string) (*sdk.Dependency, error) {
-	var exact *sdk.Dependency
-	var matches []*sdk.Dependency
-	for _, pkg := range deps.Nodes() {
-		if pkg.ID == query {
+func resolveTarget(deps *model.Graph, query string) (*model.DependencyNode, error) {
+	var exact *model.DependencyNode
+	var matches []*model.DependencyNode
+	for _, pkg := range deps.DependencyNodes() {
+		if pkg.NodeID() == query {
 			exact = pkg
 			break
 		}
-		if pkg.Name == query || pkg.QualifiedName() == query {
+		// EcosystemName as well as Name: normalization splits a qualified
+		// name into Org and Name -- "golang.org/x/text" becomes org
+		// "golang.org/x" plus name "text", and "@scope/pkg" likewise -- and
+		// the ecosystem-native spelling is what a user types.
+		if pkg.Name == query || pkg.QualifiedName() == query || pkg.EcosystemName() == query {
 			matches = append(matches, pkg)
 		}
 	}
@@ -66,16 +71,24 @@ func resolveTarget(deps *sdk.Graph, query string) (*sdk.Dependency, error) {
 	if len(matches) == 0 {
 		return nil, fmt.Errorf("%w: %s", ErrDependencyNotFound, query)
 	}
-	sort.Slice(matches, func(i, j int) bool { return matches[i].ID < matches[j].ID })
+	sort.Slice(matches, func(i, j int) bool { return matches[i].NodeID() < matches[j].NodeID() })
 	return matches[0], nil
 }
 
-func toPath(packages []*sdk.Dependency, cyclic bool, cycleTo string) Path {
+// Takes the union type: a path runs through manifests and modules as well
+// as dependencies, and RelationshipForPath counts only the dependency hops.
+func toPath(packages []model.GraphNode, cyclic bool, cycleTo string) Path {
+	// Every node on the path renders, structural ones included: a path that
+	// starts at a consumed package does not say which project pulled it in,
+	// which is the question explain answers.
 	refs := make([]output.PackageRef, 0, len(packages))
-	for _, pkg := range packages {
-		refs = append(refs, output.PackageFromGraphPackage(pkg))
+	for _, node := range packages {
+		refs = append(refs, output.PackageFromGraphNode(node))
 	}
-	relationship := sdk.RelationshipForPath(packages)
+	if len(refs) == 0 {
+		return Path{Cyclic: cyclic, CycleTo: cycleTo}
+	}
+	relationship := model.RelationshipForPath(packages)
 	introducedVia := refs[0].ID
 	return Path{
 		Relationship:  string(relationship),
@@ -96,21 +109,24 @@ func pathKey(path Path) string {
 
 // GraphFromPaths returns a focused subgraph of source containing only the
 // packages and edges that appear in the supplied explain paths.
-func GraphFromPaths(source *sdk.Graph, paths []Path) (*sdk.Graph, error) {
-	focused := sdk.New()
+func GraphFromPaths(source *model.Graph, paths []Path) (*model.Graph, error) {
+	focused := model.New()
 	if source == nil {
 		return focused, nil
 	}
+	// Nodes repeat across paths -- a shared dependency is on every path that
+	// reaches it -- so insertion folds rather than skipping. Every witness here
+	// is a clone of one source node, so the fold is a no-op in practice; it is
+	// the shared entry point regardless, because "skipping is fine here" is a
+	// judgement each site otherwise re-makes on its own.
 	for _, path := range paths {
 		for i, ref := range path.Packages {
 			pkg, ok := source.Node(ref.ID)
 			if !ok || pkg == nil {
 				continue
 			}
-			if _, exists := focused.Node(pkg.ID); !exists {
-				if err := focused.AddNode(pkg.Clone()); err != nil {
-					return nil, err
-				}
+			if _, err := focused.InsertNode(pkg.CloneNode()); err != nil {
+				return nil, err
 			}
 			if i == 0 {
 				continue
@@ -120,12 +136,10 @@ func GraphFromPaths(source *sdk.Graph, paths []Path) (*sdk.Graph, error) {
 			if !ok || parent == nil {
 				continue
 			}
-			if _, exists := focused.Node(parent.ID); !exists {
-				if err := focused.AddNode(parent.Clone()); err != nil {
-					return nil, err
-				}
+			if _, err := focused.InsertNode(parent.CloneNode()); err != nil {
+				return nil, err
 			}
-			if err := focused.AddEdge(parent.ID, pkg.ID); err != nil && !errors.Is(err, sdk.ErrCycleDetected) {
+			if err := focused.AddEdge(parent.NodeID(), pkg.NodeID()); err != nil && !errors.Is(err, model.ErrCycleDetected) {
 				return nil, err
 			}
 		}

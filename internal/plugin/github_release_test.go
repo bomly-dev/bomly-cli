@@ -18,8 +18,9 @@ import (
 	"strings"
 	"testing"
 
-	plugschema "github.com/bomly-dev/bomly-sdk"
 	testutil "github.com/bomly-dev/bomly-sdk/testkit"
+
+	sdkplugin "github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestResolveGitHubReleaseAndInstall(t *testing.T) {
@@ -40,7 +41,7 @@ func TestResolveGitHubReleaseAndInstall(t *testing.T) {
 		ID:      "acme.detector.release",
 		Name:    "Acme Release Detector",
 		Version: "1.0.0",
-		Kind:    plugschema.PluginKindDetector,
+		Kind:    sdkplugin.PluginKindDetector,
 		Entrypoint: map[string]string{
 			platformKey(): filepath.ToSlash(filepath.Join("bin", filepath.Base(binaryPath))),
 		},
@@ -129,7 +130,7 @@ func TestInstallStaleTokenFallbackEndToEnd(t *testing.T) {
 		ID:      "acme.detector.release",
 		Name:    "Acme Release Detector",
 		Version: "1.0.0",
-		Kind:    plugschema.PluginKindDetector,
+		Kind:    sdkplugin.PluginKindDetector,
 		Entrypoint: map[string]string{
 			platformKey(): filepath.ToSlash(filepath.Join("bin", filepath.Base(binaryPath))),
 		},
@@ -463,52 +464,55 @@ func fakeDetectorPluginSource(id string) string {
 import (
 	"context"
 	"path/filepath"
-	schemav1 "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
+	"github.com/bomly-dev/bomly-sdk/runtime"
 )
 
 type detector struct{}
 
-func (d *detector) Descriptor(ctx context.Context) (*schemav1.DetectorDescriptor, error) {
-	return &schemav1.DetectorDescriptor{
+func (d *detector) Descriptor(ctx context.Context) (*plugin.DetectorDescriptor, error) {
+	return &plugin.DetectorDescriptor{
 		Name:           "` + id + `",
 		Tags:   []string{"dependency-detection"},
 	}, nil
 }
 
-func (d *detector) PackageManagerSupport(context.Context) ([]schemav1.PackageManagerSupport, error) {
-	return []schemav1.PackageManagerSupport{schemav1.Support(schemav1.PackageManagerGoMod, "go.mod")}, nil
+func (d *detector) PackageManagerSupport(context.Context) ([]plugin.PackageManagerSupport, error) {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerGoMod, "go.mod")}, nil
 }
 
-func (d *detector) Ready(context.Context, *schemav1.DetectRequest) (*schemav1.ReadyResponse, error) {
-	return &schemav1.ReadyResponse{Ready: true}, nil
+func (d *detector) Ready(context.Context, *plugin.DetectRequest) (*plugin.ReadyResponse, error) {
+	return &plugin.ReadyResponse{Ready: true}, nil
 }
 
-func (d *detector) Applicable(context.Context, *schemav1.DetectRequest) (*schemav1.ApplicableResponse, error) {
-	return &schemav1.ApplicableResponse{Applicable: true}, nil
+func (d *detector) Applicable(context.Context, *plugin.DetectRequest) (*plugin.ApplicableResponse, error) {
+	return &plugin.ApplicableResponse{Applicable: true}, nil
 }
 
-func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*schemav1.DetectResponse, error) {
-	packageNode := schemav1.NewDependencyWithID("example.com/demo@v1.0.0", schemav1.Dependency{
-		Coordinates: schemav1.Coordinates{
-			Ecosystem: schemav1.EcosystemGo,
-			Name:      "example.com/demo",
-			Version:   "v1.0.0",
-			PURL:      "pkg:golang/example.com/demo@v1.0.0",
-		},
+func (d *detector) Detect(ctx context.Context, req *plugin.DetectRequest) (*plugin.DetectResponse, error) {
+	packageNode, err := model.NewDependencyNode(model.Coordinates{
+		Ecosystem: model.EcosystemGo,
+		Name:      "example.com/demo",
+		Version:   "v1.0.0",
+		PURL:      "pkg:golang/example.com/demo@v1.0.0",
 	})
-	graph := schemav1.New()
+	if err != nil {
+		return nil, err
+	}
+	graph := model.New()
 	if err := graph.AddNode(packageNode); err != nil {
 		return nil, err
 	}
-	return &schemav1.DetectResponse{
+	return &plugin.DetectResponse{
 		SubprojectInfo:      req.Subproject,
 		RootExecutionTarget: req.ExecutionTarget,
 		DetectorName:        "` + id + `",
-		Graphs: &schemav1.GraphContainer{
-			Entries: []schemav1.GraphEntry{{
-				Manifest: schemav1.ManifestMetadata{
+		Graphs: &model.GraphContainer{
+			Entries: []model.GraphEntry{{
+				Manifest: model.ManifestMetadata{
 					Path: filepath.Join(req.ProjectPath, "go.mod"),
-					Kind: schemav1.ManifestKind("go.mod"),
+					Kind: model.ManifestKind("go.mod"),
 				},
 				Graph: graph,
 			}},
@@ -517,7 +521,7 @@ func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*sc
 }
 
 func main() {
-	schemav1.ServeDetector(&detector{})
+	runtime.ServeDetector(&detector{})
 }
 `
 }

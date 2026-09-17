@@ -6,7 +6,8 @@ import (
 	"context"
 
 	grype "github.com/bomly-dev/bomly-plugin-grype-matcher/plugin"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // grypeEntry composes the grype matcher for the lite build: the matcher
@@ -15,13 +16,13 @@ import (
 func grypeEntry() Entry {
 	return Entry{
 		Name:           "grype",
-		Kind:           sdk.PluginKindMatcher,
+		Kind:           plugin.PluginKindMatcher,
 		Implementation: ImplementationNative,
 		DefaultEnabled: true,
-		Module: func(deps Deps) sdk.Module {
-			return sdk.Module{Kind: sdk.PluginKindMatcher, Matcher: &sdk.MatcherModule{
-				Descriptor: sdk.MatcherDescriptor{Name: "grype", DisplayName: "Grype"},
-				New: func(_ context.Context, _ sdk.HostContext) (sdk.Matcher, error) {
+		Module: func(deps Deps) plugin.Module {
+			return plugin.Module{Kind: plugin.PluginKindMatcher, Matcher: &plugin.MatcherModule{
+				Descriptor: plugin.MatcherDescriptor{Name: "grype", DisplayName: "Grype"},
+				New: func(_ context.Context, _ plugin.HostContext) (plugin.Matcher, error) {
 					return grype.Matcher{Logger: deps.logger()}, nil
 				},
 			}}

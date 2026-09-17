@@ -14,12 +14,14 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 var pythonExecutables = []string{"python", "python3", "py"}
@@ -36,6 +38,11 @@ var pythonToolPackageNames = map[string]struct{}{
 type baseDetector struct {
 	Logger     *zap.Logger
 	WorkingDir string
+	// Manager is the package manager this detector speaks for. It decides
+	// which file declares the project, so the pip-inspect path and the
+	// lockfile parsers mint the same root identity for one project rather
+	// than disagreeing by resolution strategy.
+	Manager model.PackageManager
 }
 
 type pipInspectReport struct {
@@ -68,7 +75,7 @@ func (d baseDetector) workingDir(projectPath string) string {
 	return projectPath
 }
 
-func (d baseDetector) applicable(ctx context.Context, req sdk.DetectionRequest, names ...string) (bool, error) {
+func (d baseDetector) applicable(ctx context.Context, req plugin.DetectionRequest, names ...string) (bool, error) {
 	_ = ctx
 	workingDir := d.workingDir(req.ProjectPath)
 	for _, name := range names {
@@ -83,7 +90,7 @@ func (d baseDetector) applicable(ctx context.Context, req sdk.DetectionRequest, 
 	return false, nil
 }
 
-func (d baseDetector) resolveGraph(req sdk.DetectionRequest, detectorName string, command []string) (*sdk.Graph, error) {
+func (d baseDetector) resolveGraph(req plugin.DetectionRequest, detectorName string, command []string) (*model.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -117,7 +124,11 @@ func (d baseDetector) resolveGraph(req sdk.DetectionRequest, detectorName string
 	if err != nil {
 		return nil, fmt.Errorf("collect declared dependencies for %s: %w", detectorName, err)
 	}
-	depsGraph, err := depGraphFromPipInspect(out.Bytes(), pythonSyntheticRoot(pythonRootName(req, cmd.Dir)), declared)
+	pythonSyntheticRootResult, err := pythonSyntheticRoot(d.Manager, pythonRootName(req, cmd.Dir))
+	if err != nil {
+		return nil, err
+	}
+	depsGraph, err := depGraphFromPipInspect(out.Bytes(), pythonSyntheticRootResult, declared)
 	if err != nil {
 		logger.Warn(fmt.Sprintf("Failed to map %s output to a dependency graph: %v", detectorName, err))
 		logger.Debug("dependency detector output mapping failed", zap.String("detector", detectorName), zap.Error(err))
@@ -128,7 +139,7 @@ func (d baseDetector) resolveGraph(req sdk.DetectionRequest, detectorName string
 	return depsGraph, nil
 }
 
-func (d baseDetector) install(ctx context.Context, req sdk.DetectionRequest, detectorName string, command []string) error {
+func (d baseDetector) install(ctx context.Context, req plugin.DetectionRequest, detectorName string, command []string) error {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -192,7 +203,7 @@ func pipInspectCommand(prefix ...string) ([]string, error) {
 // declared holds the normalized names the project asks for by name (its
 // requirements files / manifests) and decides, together with each package's
 // REQUESTED marker, which packages hang off the root as direct dependencies.
-func depGraphFromPipInspect(raw []byte, rootNode *sdk.Dependency, declared map[string]struct{}) (*sdk.Graph, error) {
+func depGraphFromPipInspect(raw []byte, rootNode model.GraphNode, declared map[string]struct{}) (*model.Graph, error) {
 	var report pipInspectReport
 	if err := json.Unmarshal(raw, &report); err != nil {
 		return nil, fmt.Errorf("parse pip inspect json: %w", err)
@@ -201,23 +212,36 @@ func depGraphFromPipInspect(raw []byte, rootNode *sdk.Dependency, declared map[s
 		return nil, errors.New("pip inspect output is empty")
 	}
 
-	depsGraph := sdk.New()
+	depsGraph := model.New()
 	if rootNode == nil {
-		rootNode = pythonSyntheticRoot("")
+		// Only reached by direct callers that supply no root -- tests, and
+		// the defensive path below a detector. No manager is knowable here,
+		// so the declaring manifest falls back to requirements.txt; a
+		// detector always passes the root it built, which carries its own.
+		synthetic, err := pythonSyntheticRoot("", "")
+		if err != nil {
+			return nil, err
+		}
+		rootNode = synthetic
 	}
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
-	nodesByName := make(map[string]*sdk.Dependency, len(report.Installed))
+	nodesByName := make(map[string]*model.DependencyNode, len(report.Installed))
 	for _, pkg := range report.Installed {
 		if pkg.Metadata.Name == "" {
 			continue
 		}
-		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+		node, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemPython,
 			Name:    normalizePythonName(pkg.Metadata.Name),
-			Version: pkg.Metadata.Version}, Source: pipInspectDependencySource(pkg.DirectURL), ResolvedURL: pipInspectResolvedURL(pkg.DirectURL), Metadata: sourceRevisionMetadata(pipInspectRevision(pkg.DirectURL)),
-		})
+			Version: pkg.Metadata.Version})
+		if err != nil {
+			return nil, fmt.Errorf("build dependency node: %w", err)
+		}
+		node.Source = pipInspectDependencySource(pkg.DirectURL)
+		node.ResolvedURL = pipInspectResolvedURL(pkg.DirectURL)
+		node.Metadata = sourceRevisionMetadata(pipInspectRevision(pkg.DirectURL))
 		setPipInspectOrigin(node, pkg.DirectURL)
 
 		if _, exists := nodesByName[node.Name]; !exists {
@@ -247,11 +271,11 @@ func depGraphFromPipInspect(raw []byte, rootNode *sdk.Dependency, declared map[s
 				continue
 			}
 			child := nodesByName[dependencyName]
-			if child == nil || child.ID == parent.ID {
+			if child == nil || child.NodeID() == parent.NodeID() {
 				continue
 			}
-			if err := depsGraph.AddEdge(parent.ID, child.ID); err != nil {
-				return nil, fmt.Errorf("add dependency %q -> %q: %w", parent.ID, child.ID, err)
+			if err := depsGraph.AddEdge(parent.NodeID(), child.NodeID()); err != nil {
+				return nil, fmt.Errorf("add dependency %q -> %q: %w", parent.NodeID(), child.NodeID(), err)
 			}
 		}
 	}
@@ -261,37 +285,37 @@ func depGraphFromPipInspect(raw []byte, rootNode *sdk.Dependency, declared map[s
 		if node == nil || !pipDirectDependency(pkg, declared) {
 			continue
 		}
-		if err := depsGraph.AddEdge(rootNode.ID, node.ID); err != nil {
-			return nil, fmt.Errorf("add direct dependency %q: %w", node.ID, err)
+		if err := depsGraph.AddEdge(rootNode.NodeID(), node.NodeID()); err != nil {
+			return nil, fmt.Errorf("add direct dependency %q: %w", node.NodeID(), err)
 		}
 	}
 
-	if err := attachOrphansToRoot(depsGraph, rootNode.ID); err != nil {
+	if err := attachOrphansToRoot(depsGraph, rootNode.NodeID()); err != nil {
 		return nil, err
 	}
 
 	return depsGraph, nil
 }
 
-func pipInspectDependencySource(directURL map[string]any) sdk.DependencySource {
+func pipInspectDependencySource(directURL map[string]any) model.DependencySource {
 	if len(directURL) == 0 {
-		return sdk.DependencySourceRegistry
+		return model.DependencySourceRegistry
 	}
 	if _, ok := directURL["dir_info"]; ok {
-		return sdk.DependencySourceFile
+		return model.DependencySourceFile
 	}
 	if vcsInfo, ok := directURL["vcs_info"].(map[string]any); ok {
 		if vcs, _ := vcsInfo["vcs"].(string); strings.EqualFold(strings.TrimSpace(vcs), "git") {
-			return sdk.DependencySourceGit
+			return model.DependencySourceGit
 		}
-		return sdk.DependencySourceURL
+		return model.DependencySourceURL
 	}
 	resolved := pipInspectResolvedURL(directURL)
 	if strings.HasPrefix(strings.ToLower(resolved), "file:") {
-		return sdk.DependencySourceFile
+		return model.DependencySourceFile
 	}
 	if resolved != "" {
-		return sdk.DependencySourceURL
+		return model.DependencySourceURL
 	}
 	return ""
 }
@@ -339,7 +363,7 @@ func pipDirectDependency(pkg pipInspectPackage, declared map[string]struct{}) bo
 // graph root. Reachability is what matters, not parent count: `requires_dist`
 // cycles are legal, and a mutually-dependent pair has parents while still
 // being unreachable from the root.
-func attachOrphansToRoot(depsGraph *sdk.Graph, rootID string) error {
+func attachOrphansToRoot(depsGraph *model.Graph, rootID string) error {
 	if depsGraph == nil {
 		return nil
 	}
@@ -358,46 +382,84 @@ func attachOrphansToRoot(depsGraph *sdk.Graph, rootID string) error {
 				if child == nil {
 					continue
 				}
-				if _, seen := reachable[child.ID]; seen {
+				if _, seen := reachable[child.NodeID()]; seen {
 					continue
 				}
-				reachable[child.ID] = struct{}{}
-				queue = append(queue, child.ID)
+				reachable[child.NodeID()] = struct{}{}
+				queue = append(queue, child.NodeID())
 			}
 		}
 	}
 
 	markReachable(rootID)
-	for _, node := range depsGraph.Nodes() {
+	for _, node := range depsGraph.DependencyNodes() {
 		if node == nil {
 			continue
 		}
-		if _, ok := reachable[node.ID]; ok {
+		if _, ok := reachable[node.NodeID()]; ok {
 			continue
 		}
-		if err := depsGraph.AddEdge(rootID, node.ID); err != nil {
-			return fmt.Errorf("add direct dependency %q: %w", node.ID, err)
+		if err := depsGraph.AddEdge(rootID, node.NodeID()); err != nil {
+			return fmt.Errorf("add direct dependency %q: %w", node.NodeID(), err)
 		}
 		// The newly attached package brings its own subtree back with it.
-		markReachable(node.ID)
+		markReachable(node.NodeID())
 	}
 	return nil
+}
+
+// pythonModuleRoot builds the module node standing for the scanned Python
+// project, declared by the manifest its package manager actually uses.
+//
+// Every Python parser goes through here rather than calling NewModuleNode
+// itself. A module's declaring path is part of its identity now, and it is
+// published in scan JSON, SBOM references, and explain paths -- so the four
+// parsers that each hard-coded "requirements.txt" were naming a file a Pipenv
+// or Poetry project does not have, and two projects declared by different
+// manifests could fold into one record on matching coordinates. One home for
+// the rule means a parser added later inherits it instead of copying the
+// nearest literal. The forbidigo rule tagged [python-root] in .golangci.yml
+// reports a direct call anywhere else in this package; the call below carries
+// the one nolint that rule permits.
+func pythonModuleRoot(coords model.Coordinates) (*model.ModuleNode, error) {
+	if strings.TrimSpace(coords.Name) == "" {
+		coords.Name = "root"
+	}
+	return model.NewModuleNode(pythonDeclaringManifest(coords.PackageManager), coords) //nolint:forbidigo // the one permitted construction; pythonModuleRoot decides the declaring manifest
+}
+
+// pythonDeclaringManifest names the file that declares a Python project, per
+// package manager.
+//
+// This is Bomly's own mapping, not a grammar any library owns: it records
+// which file each tool treats as the project declaration, as opposed to the
+// lock it generates. Pipenv locks Pipfile.lock but is declared by Pipfile;
+// Poetry, uv and PDM are declared by pyproject.toml. Plain pip has no
+// declaration file of its own, so the requirements file it reads is the
+// closest thing and stays the fallback -- which is also what every caller
+// produced before this existed, so pip-path identities are unchanged.
+func pythonDeclaringManifest(manager model.PackageManager) string {
+	switch manager {
+	case model.PackageManagerPipenv:
+		return "Pipfile"
+	case model.PackageManagerPoetry, model.PackageManagerUV, model.PackageManagerPDM:
+		return "pyproject.toml"
+	default:
+		return "requirements.txt"
+	}
 }
 
 // pythonSyntheticRoot builds the node that represents the scanned project
 // itself, named by pythonRootName. "root" survives only as the last resort:
 // it told the user nothing and collides with a real PyPI package name, which
-// is why the node stays FirstParty and is never enriched.
-func pythonSyntheticRoot(rootName string) *sdk.Dependency {
-	if strings.TrimSpace(rootName) == "" {
-		rootName = "root"
-	}
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
-		Ecosystem:  sdk.EcosystemPython,
-		Name:       rootName,
-		Type:       sdk.PackageTypeApplication,
-		FirstParty: true,
-	}})
+// is why the node is a module and is never enriched.
+func pythonSyntheticRoot(manager model.PackageManager, rootName string) (*model.ModuleNode, error) {
+	return pythonModuleRoot(model.Coordinates{
+		Ecosystem:      model.EcosystemPython,
+		PackageManager: manager,
+		Name:           rootName,
+		Type:           model.PackageTypeApplication,
+	})
 }
 
 // pythonRootName names a Python project root. requirements.txt and
@@ -406,14 +468,14 @@ func pythonSyntheticRoot(rootName string) *sdk.Dependency {
 // pyproject.toml, the subproject directory, the scanned repository, and
 // finally the project directory on disk. Bomly's own temp clone directories
 // are skipped — they are random per run and mean nothing to the user.
-func pythonRootName(req sdk.DetectionRequest, projectPath string) string {
+func pythonRootName(req plugin.DetectionRequest, projectPath string) string {
 	if name := pyprojectProjectName(projectPath); name != "" {
 		return name
 	}
 	if name := pathBaseName(req.Subproject.RelativePath); name != "" {
 		return name
 	}
-	for _, target := range []sdk.ExecutionTarget{req.Subproject.ExecutionTarget, req.ExecutionTarget} {
+	for _, target := range []plugin.ExecutionTarget{req.Subproject.ExecutionTarget, req.ExecutionTarget} {
 		if name := repositoryBaseName(target.RepositoryURL); name != "" {
 			return name
 		}
@@ -427,7 +489,7 @@ func pythonRootName(req sdk.DetectionRequest, projectPath string) string {
 // pythonProjectName derives a display name for a Python project root when no
 // detection request is at hand (lockfile parsers reached directly from tests).
 func pythonProjectName(projectPath string) string {
-	return pythonRootName(sdk.DetectionRequest{}, projectPath)
+	return pythonRootName(plugin.DetectionRequest{}, projectPath)
 }
 
 // pythonRootNameOrDefault lets a lockfile parser accept the name its caller
@@ -511,7 +573,7 @@ func projectDirectoryName(projectPath string) string {
 	return base
 }
 
-func filterPythonToolPackages(depsGraph *sdk.Graph, projectPath, rootName string) (*sdk.Graph, error) {
+func filterPythonToolPackages(depsGraph *model.Graph, projectPath string, manager model.PackageManager, rootName string) (*model.Graph, error) {
 	if depsGraph == nil {
 		return depsGraph, nil
 	}
@@ -520,7 +582,7 @@ func filterPythonToolPackages(depsGraph *sdk.Graph, projectPath, rootName string
 		return nil, err
 	}
 	removed := false
-	for _, pkg := range depsGraph.Nodes() {
+	for _, pkg := range depsGraph.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
@@ -531,14 +593,18 @@ func filterPythonToolPackages(depsGraph *sdk.Graph, projectPath, rootName string
 		if _, keep := declared[name]; keep {
 			continue
 		}
-		depsGraph.RemoveNode(pkg.ID)
+		depsGraph.RemoveNode(pkg.NodeID())
 		removed = true
 	}
 	// Dropping a tool package can strand the packages it pulled in; re-parent
 	// them so the graph keeps a single root.
 	if removed {
-		if root, ok := depsGraph.Node(pythonSyntheticRoot(rootName).ID); ok {
-			if err := attachOrphansToRoot(depsGraph, root.ID); err != nil {
+		pythonSyntheticRootResult, err := pythonSyntheticRoot(manager, rootName)
+		if err != nil {
+			return nil, err
+		}
+		if root, ok := depsGraph.Node(pythonSyntheticRootResult.NodeID()); ok {
+			if err := attachOrphansToRoot(depsGraph, root.NodeID()); err != nil {
 				return nil, err
 			}
 		}
@@ -689,7 +755,7 @@ func collectRequirementFileDependencies(path string, declared map[string]struct{
 	if err != nil {
 		return fmt.Errorf("read Python requirements %q: %w", path, err)
 	}
-	for _, line := range strings.Split(string(raw), "\n") {
+	for line := range strings.SplitSeq(string(raw), "\n") {
 		line = strings.TrimSpace(strings.SplitN(line, "#", 2)[0])
 		if line == "" || strings.HasPrefix(line, "-") {
 			continue
@@ -706,8 +772,8 @@ func collectRequirementFileDependencies(path string, declared map[string]struct{
 // output can deep-link into the user's lockfile. Loose manifests
 // (pyproject.toml, poetry.lock, etc.) are not handled here yet —
 // they need a positional decoder per format.
-func declaredPythonPositions(projectPath string) map[string]*sdk.SourcePosition {
-	positions := make(map[string]*sdk.SourcePosition)
+func declaredPythonPositions(projectPath string) map[string]*model.SourcePosition {
+	positions := make(map[string]*model.SourcePosition)
 	if projectPath == "" {
 		return positions
 	}
@@ -717,7 +783,7 @@ func declaredPythonPositions(projectPath string) map[string]*sdk.SourcePosition 
 	return positions
 }
 
-func collectRequirementFilePositions(path, relPath string, positions map[string]*sdk.SourcePosition) {
+func collectRequirementFilePositions(path, relPath string, positions map[string]*model.SourcePosition) {
 	raw, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return
@@ -740,7 +806,7 @@ func collectRequirementFilePositions(path, relPath string, positions map[string]
 		if _, exists := positions[normalized]; exists {
 			continue
 		}
-		positions[normalized] = &sdk.SourcePosition{File: relPath, Line: i + 1}
+		positions[normalized] = &model.SourcePosition{File: relPath, Line: i + 1}
 	}
 }
 
@@ -748,7 +814,7 @@ func collectRequirementFilePositions(path, relPath string, positions map[string]
 // graph packages whose normalized name appears in a requirements
 // file. Transitive deps that are not declared anywhere get no
 // Locations entry from this pass.
-func attachDeclaredPositions(depsGraph *sdk.Graph, projectPath string) {
+func attachDeclaredPositions(depsGraph *model.Graph, projectPath string) {
 	if depsGraph == nil {
 		return
 	}
@@ -756,7 +822,7 @@ func attachDeclaredPositions(depsGraph *sdk.Graph, projectPath string) {
 	if len(positions) == 0 {
 		return
 	}
-	for _, pkg := range depsGraph.Nodes() {
+	for _, pkg := range depsGraph.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
@@ -776,7 +842,7 @@ func attachDeclaredPositions(depsGraph *sdk.Graph, projectPath string) {
 		if duplicate {
 			continue
 		}
-		pkg.Locations = append(pkg.Locations, sdk.PackageLocation{
+		pkg.Locations = append(pkg.Locations, model.PackageLocation{
 			RealPath:   pos.File,
 			AccessPath: pos.File,
 			Position:   pos,
@@ -792,13 +858,13 @@ func collectLoosePythonManifestDependencies(path string, declared map[string]str
 	if err != nil {
 		return fmt.Errorf("read Python manifest %q: %w", path, err)
 	}
-	for _, line := range strings.Split(string(raw), "\n") {
+	for line := range strings.SplitSeq(string(raw), "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
-		if strings.HasPrefix(line, "name = ") {
-			value := strings.Trim(strings.TrimSpace(strings.TrimPrefix(line, "name = ")), `"'`)
+		if after, ok := strings.CutPrefix(line, "name = "); ok {
+			value := strings.Trim(strings.TrimSpace(after), `"'`)
 			addDeclaredPythonName(value, declared)
 			continue
 		}
@@ -828,8 +894,8 @@ func requirementName(value string) string {
 // behind an extras marker (e.g. `pytest; extra == "test"`). Such requirements
 // are optional and should not create transitive graph edges.
 func isExtrasRequirement(requirement string) bool {
-	if idx := strings.Index(requirement, ";"); idx >= 0 {
-		marker := strings.ToLower(requirement[idx+1:])
+	if _, after, ok := strings.Cut(requirement, ";"); ok {
+		marker := strings.ToLower(after)
 		return strings.Contains(marker, "extra")
 	}
 	return false
@@ -853,8 +919,8 @@ func normalizePythonName(value string) string {
 	return strings.ToLower(strings.ReplaceAll(value, "_", "-"))
 }
 
-func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
-	_, err := detectors.EnsureNode(depsGraph, node)
+func addNodeIfMissing(depsGraph *model.Graph, node model.GraphNode) error {
+	_, err := detectorkit.EnsureNode(depsGraph, node)
 	return err
 }
 
@@ -862,7 +928,7 @@ func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
 // graph. All non-root packages default to ScopeRuntime; packages declared as dev dependencies
 // in pyproject.toml (Poetry / UV) or Pipfile are marked ScopeDevelopment. Scope is propagated
 // transitively: a package reachable from a runtime path is always runtime.
-func annotateGraphScopes(depsGraph *sdk.Graph, projectPath string) {
+func annotateGraphScopes(depsGraph *model.Graph, projectPath string) {
 	if depsGraph == nil {
 		return
 	}
@@ -873,7 +939,7 @@ func annotateGraphScopes(depsGraph *sdk.Graph, projectPath string) {
 	rootID := ""
 	for _, root := range roots {
 		if root != nil {
-			rootID = root.ID
+			rootID = root.NodeID()
 			break
 		}
 	}
@@ -883,80 +949,82 @@ func annotateGraphScopes(depsGraph *sdk.Graph, projectPath string) {
 
 	devDeps := collectPythonDevDependencies(projectPath)
 
-	directDeps, err := depsGraph.DirectDependencies(rootID)
+	directDepsNodes, err := depsGraph.DirectDependencies(rootID)
+	directDeps := model.DependencyNodesOf(directDepsNodes)
 	if err != nil || len(directDeps) == 0 {
 		// Fall back: graph has no edges from root — use devDeps by name for best-effort scoping.
-		for _, pkg := range depsGraph.Nodes() {
-			if pkg == nil || pkg.ID == rootID {
+		for _, pkg := range depsGraph.DependencyNodes() {
+			if pkg == nil || pkg.NodeID() == rootID {
 				continue
 			}
 			name := normalizePythonName(pkg.Name)
 			if _, isDev := devDeps[name]; isDev {
-				pkg.AddScope(sdk.ScopeDevelopment)
-			} else if pkg.PrimaryScope() == sdk.ScopeUnknown {
-				pkg.AddScope(sdk.ScopeRuntime)
+				pkg.AddScope(model.ScopeDevelopment)
+			} else if pkg.PrimaryScope() == model.ScopeUnknown {
+				pkg.AddScope(model.ScopeRuntime)
 			}
 		}
 		return
 	}
 
-	directScopes := make(map[string]sdk.Scope, len(directDeps))
+	directScopes := make(map[string]model.Scope, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
 		}
 		name := normalizePythonName(dep.Name)
-		scope := sdk.ScopeRuntime
+		scope := model.ScopeRuntime
 		if _, isDev := devDeps[name]; isDev {
-			scope = sdk.ScopeDevelopment
+			scope = model.ScopeDevelopment
 		}
 		directScopes[dep.Name] = scope
 		directScopes[name] = scope
 	}
 
 	// BFS from root, propagating scopes. Runtime always wins over development.
-	propagated := make(map[string]sdk.Scope, depsGraph.Size())
-	queue := make([]*sdk.Dependency, 0, len(directDeps))
+	propagated := make(map[string]model.Scope, depsGraph.Size())
+	queue := make([]*model.DependencyNode, 0, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
 		}
 		scope := directScopes[dep.Name]
-		if scope == sdk.ScopeUnknown {
-			scope = sdk.ScopeRuntime
+		if scope == model.ScopeUnknown {
+			scope = model.ScopeRuntime
 		}
 		dep.AddScope(scope)
-		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
+		propagated[dep.NodeID()] = model.MergeScope(propagated[dep.NodeID()], scope)
 		queue = append(queue, dep)
 	}
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
-		scope := propagated[current.ID]
-		if scope == sdk.ScopeUnknown {
+		scope := propagated[current.NodeID()]
+		if scope == model.ScopeUnknown {
 			continue
 		}
-		children, err := depsGraph.DirectDependencies(current.ID)
+		childrenNodes, err := depsGraph.DirectDependencies(current.NodeID())
+		children := model.DependencyNodesOf(childrenNodes)
 		if err != nil {
 			continue
 		}
 		for _, child := range children {
-			if child == nil || child.ID == rootID {
+			if child == nil || child.NodeID() == rootID {
 				continue
 			}
-			nextScope := sdk.MergeScope(propagated[child.ID], scope)
-			if nextScope == propagated[child.ID] && child.PrimaryScope() == nextScope {
+			nextScope := model.MergeScope(propagated[child.NodeID()], scope)
+			if nextScope == propagated[child.NodeID()] && child.PrimaryScope() == nextScope {
 				continue
 			}
-			propagated[child.ID] = nextScope
+			propagated[child.NodeID()] = nextScope
 			child.AddScope(nextScope)
 			queue = append(queue, child)
 		}
 	}
 	// Any remaining unscoped non-root packages get runtime.
-	for _, pkg := range depsGraph.Nodes() {
-		if pkg != nil && pkg.ID != rootID && pkg.PrimaryScope() == sdk.ScopeUnknown {
-			pkg.AddScope(sdk.ScopeRuntime)
+	for _, pkg := range depsGraph.DependencyNodes() {
+		if pkg != nil && pkg.NodeID() != rootID && pkg.PrimaryScope() == model.ScopeUnknown {
+			pkg.AddScope(model.ScopeRuntime)
 		}
 	}
 }
@@ -973,7 +1041,7 @@ func collectPythonDevDependencies(projectPath string) map[string]struct{} {
 	if raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "pyproject.toml")); err == nil {
 		section := ""
 		inDevArray := false
-		for _, line := range strings.Split(string(raw), "\n") {
+		for line := range strings.SplitSeq(string(raw), "\n") {
 			trimmed := strings.TrimSpace(line)
 			if strings.HasPrefix(trimmed, "[") {
 				section = strings.ToLower(strings.Trim(trimmed, "[]"))
@@ -1023,7 +1091,7 @@ func collectPythonDevDependencies(projectPath string) map[string]struct{} {
 	// Pipfile [dev-packages]
 	if raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "Pipfile")); err == nil {
 		inDev := false
-		for _, line := range strings.Split(string(raw), "\n") {
+		for line := range strings.SplitSeq(string(raw), "\n") {
 			trimmed := strings.TrimSpace(line)
 			if strings.HasPrefix(trimmed, "[") {
 				inDev = strings.ToLower(strings.Trim(trimmed, "[]")) == "dev-packages"
@@ -1040,7 +1108,7 @@ func collectPythonDevDependencies(projectPath string) map[string]struct{} {
 
 	// pip: requirements-dev.txt (plain list of dev packages)
 	if raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "requirements-dev.txt")); err == nil {
-		for _, line := range strings.Split(string(raw), "\n") {
+		for line := range strings.SplitSeq(string(raw), "\n") {
 			trimmed := strings.TrimSpace(line)
 			if trimmed == "" || strings.HasPrefix(trimmed, "#") || strings.HasPrefix(trimmed, "-") {
 				continue

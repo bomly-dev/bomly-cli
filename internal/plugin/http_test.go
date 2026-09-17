@@ -11,8 +11,10 @@ import (
 	"testing"
 	"time"
 
-	plugschema "github.com/bomly-dev/bomly-sdk"
 	testutil "github.com/bomly-dev/bomly-sdk/testkit"
+
+	"github.com/bomly-dev/bomly-sdk/httpkit"
+	sdkplugin "github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestInstallRemoteArchiveUsesConfiguredProxy(t *testing.T) {
@@ -29,7 +31,7 @@ func TestInstallRemoteArchiveUsesConfiguredProxy(t *testing.T) {
 		ID:      "acme.detector.proxy",
 		Name:    "Acme Proxy Detector",
 		Version: "1.0.0",
-		Kind:    plugschema.PluginKindDetector,
+		Kind:    sdkplugin.PluginKindDetector,
 		Entrypoint: map[string]string{
 			platformKey(): filepath.ToSlash(filepath.Join("bin", filepath.Base(binaryPath))),
 		},
@@ -79,7 +81,7 @@ func TestInstallRemoteArchiveDoesNotUseUnsafeGitHubAssetName(t *testing.T) {
 		ID:      "acme.detector.unsafe-name",
 		Name:    "Acme Unsafe Name Detector",
 		Version: "1.0.0",
-		Kind:    plugschema.PluginKindDetector,
+		Kind:    sdkplugin.PluginKindDetector,
 		Entrypoint: map[string]string{
 			platformKey(): filepath.ToSlash(filepath.Join("bin", filepath.Base(binaryPath))),
 		},
@@ -130,7 +132,7 @@ func TestInstallArchiveRejectsUnsafeManifestEntrypoint(t *testing.T) {
 		ID:      "acme.detector.unsafe-entrypoint",
 		Name:    "Acme Unsafe Entrypoint Detector",
 		Version: "1.0.0",
-		Kind:    plugschema.PluginKindDetector,
+		Kind:    sdkplugin.PluginKindDetector,
 		Entrypoint: map[string]string{
 			platformKey(): filepath.ToSlash(filepath.Join("..", "bin", filepath.Base(binaryPath))),
 		},
@@ -148,7 +150,7 @@ func TestInstallArchiveRejectsUnsafeManifestEntrypoint(t *testing.T) {
 }
 
 func TestHTTPClientFromLaunchContextUsesSharedProvider(t *testing.T) {
-	provider, err := plugschema.NewHTTPClientProvider(plugschema.HTTPClientConfig{ProxyURL: "http://proxy.example:8080"})
+	provider, err := httpkit.NewClientProvider(httpkit.ClientConfig{ProxyURL: "http://proxy.example:8080"})
 	if err != nil {
 		t.Fatalf("NewHTTPClientProvider() error = %v", err)
 	}

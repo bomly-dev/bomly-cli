@@ -4,10 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
 	"github.com/bomly-dev/bomly-cli/internal/engine/explain"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // ExplainRequest defines input for an explain pipeline run.
@@ -18,19 +21,19 @@ type ExplainRequest struct {
 
 // ExplainTarget contains one selected manifest where the queried dependency exists.
 type ExplainTarget struct {
-	Manifest     sdk.ConsolidatedManifest
-	Dependency   *sdk.Dependency
+	Manifest     plugin.ConsolidatedManifest
+	Dependency   *model.DependencyNode
 	Paths        []explain.Path
-	Findings     []sdk.Finding
-	FocusedGraph *sdk.Graph
+	Findings     []model.Finding
+	FocusedGraph *model.Graph
 }
 
 // ExplainResult contains full and focused explain pipeline output.
 type ExplainResult struct {
 	PipelineResult
 	Targets             []ExplainTarget
-	FocusedConsolidated sdk.ConsolidatedGraph
-	FocusedGraph        *sdk.Graph
+	FocusedConsolidated plugin.ConsolidatedGraph
+	FocusedGraph        *model.Graph
 }
 
 // RunExplain resolves, enriches, and optionally audits selected manifests for an explain query.
@@ -47,8 +50,8 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 	p.runAnalyze(ctx, &base, pipeReq)
 
 	result := ExplainResult{PipelineResult: base}
-	focusedResults := make([]sdk.DetectionResult, 0, len(base.Consolidated.Manifests))
-	allFindings := make([]sdk.Finding, 0)
+	focusedResults := make([]plugin.DetectionResult, 0, len(base.Consolidated.Manifests))
+	allFindings := make([]model.Finding, 0)
 	auditorFindings := make(map[string]int)
 
 	for _, manifest := range base.Consolidated.Manifests {
@@ -61,7 +64,7 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 			return result, fmt.Errorf("explain dependency paths: %w", err)
 		}
 
-		var findings []sdk.Finding
+		var findings []model.Finding
 		if auditEnabled {
 			auditResult, warnings := p.auditComponent(ctx, g, base.Registry, dependency, pipeReq)
 			findings = auditResult.Findings
@@ -85,12 +88,12 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 			Findings:     findings,
 			FocusedGraph: focusedGraph,
 		})
-		focusedResults = append(focusedResults, sdk.DetectionResult{
+		focusedResults = append(focusedResults, plugin.DetectionResult{
 			SubprojectInfo: manifest.Subproject,
 			DetectorName:   manifest.DetectorName,
 			Origin:         manifest.Origin,
 			Technique:      manifest.Technique,
-			Graphs:         sdk.SingleGraphContainer(focusedGraph, manifest.Entry.Manifest),
+			Graphs:         model.SingleGraphContainer(focusedGraph, manifest.Entry.Manifest),
 		})
 	}
 
@@ -120,13 +123,7 @@ func appendUnique(values []string, candidates ...string) []string {
 		if candidate == "" {
 			continue
 		}
-		found := false
-		for _, value := range values {
-			if value == candidate {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(values, candidate)
 		if !found {
 			values = append(values, candidate)
 		}

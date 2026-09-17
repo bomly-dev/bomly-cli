@@ -3,10 +3,12 @@ package registry
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestDetectPackageManagersDoesNotGuessPDMFromUnreadablePyproject(t *testing.T) {
@@ -28,16 +30,11 @@ func TestDetectPackageManagersDoesNotGuessPDMFromUnreadablePyproject(t *testing.
 	if err != nil {
 		t.Fatalf("DetectPackageManagers() error = %v", err)
 	}
-	if containsPackageManager(managers, sdk.PackageManagerPDM) {
+	if containsPackageManager(managers, model.PackageManagerPDM) {
 		t.Fatalf("DetectPackageManagers() = %#v, must not infer PDM from unreadable pyproject.toml", managers)
 	}
 }
 
-func containsPackageManager(managers []sdk.PackageManager, target sdk.PackageManager) bool {
-	for _, manager := range managers {
-		if manager == target {
-			return true
-		}
-	}
-	return false
+func containsPackageManager(managers []model.PackageManager, target model.PackageManager) bool {
+	return slices.Contains(managers, target)
 }

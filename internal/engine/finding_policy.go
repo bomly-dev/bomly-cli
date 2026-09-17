@@ -3,17 +3,17 @@ package engine
 import (
 	"context"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
-func resolveFindingPolicyStatuses(ctx context.Context, findings []sdk.Finding, registry *sdk.PackageRegistry, resolvers []sdk.FindingPolicyResolver) []sdk.Finding {
+func resolveFindingPolicyStatuses(ctx context.Context, findings []model.Finding, registry *model.PackageRegistry, resolvers []model.FindingPolicyResolver) []model.Finding {
 	if len(findings) == 0 || len(resolvers) == 0 {
 		return findings
 	}
-	out := make([]sdk.Finding, len(findings))
+	out := make([]model.Finding, len(findings))
 	for idx, finding := range findings {
 		out[idx] = finding.Clone()
-		var selected sdk.FindingPolicyDecision
+		var selected model.FindingPolicyDecision
 		selectedRank := 0
 		matched := false
 		for _, resolver := range resolvers {
@@ -21,7 +21,7 @@ func resolveFindingPolicyStatuses(ctx context.Context, findings []sdk.Finding, r
 				continue
 			}
 			decision, ok := resolver.ResolveFindingPolicy(ctx, out[idx], registry)
-			rank, known := sdk.FindingPolicyStatusRank(decision.Status)
+			rank, known := model.FindingPolicyStatusRank(decision.Status)
 			if !ok || decision.Status == "" || !known {
 				continue
 			}

@@ -67,6 +67,67 @@ This is fast, offline, and useful for:
 
 Format is auto-detected by content. The supported ingest formats are SPDX 2.3 JSON and CycloneDX 1.4–1.7 JSON; anything else is rejected as an unsupported format. Most SBOM producers, including Syft, can emit one of the supported formats directly (for example `syft <target> -o spdx-json`).
 
+### What Bomly refuses to import
+
+An SBOM is refused when its JSON does not have a single unambiguous reading:
+
+- **A repeated object member name.** `{"purl": "pkg:npm/a@1", "purl": "pkg:npm/b@1"}`
+  parses under most JSON readers, and which value wins depends on how the
+  reader is written. Two tools can therefore read two different packages out
+  of one file. For a document whose whole purpose is to state what you depend
+  on, that is a smuggling vector.
+- **Bytes that are not valid UTF-8.** Readers usually substitute a replacement
+  character, so what a consumer sees is not what the document carried.
+- **An escaped character that does not exist.** `"\ud800"` is half of a
+  UTF-16 pair with no other half. The JSON standard (RFC 8259, section 8.2)
+  says software receiving such a text behaves unpredictably: some readers
+  substitute a replacement character, some fail, and none can agree on what
+  the string was. Bomly refuses the document rather than guess.
+
+All three are refused with an error naming the class, and the repeated member
+and its path or the byte offset of the bad sequence, so you can find the spot.
+The fix is to regenerate the document with a producer that emits each member
+once and writes every string as Unicode text — Bomly will not guess which
+reading you meant.
+
+Checking for a repeated name means remembering the names already seen in an
+object, and holding them until that object closes. The check therefore costs
+memory in proportion to the names open at once — across every object currently
+being read, not just the widest one. Bomly refuses a document that would hold
+more than 100,000 of them, or more than 16 MB of them, rather than spend that
+memory — a count alone is not a size, since a few long names can outweigh very
+many short ones. Neither format produces anything close: components live in an
+array, so a document being read has a handful of small objects open at a time,
+however many components it lists. Passing the largest files through unchecked
+would put the gap exactly where a crafted one would aim.
+
+A document is also refused when one of its components carries a package URL
+that cannot be made well-formed. Skipping that component would drop it and
+every relationship naming it, and a scan of what remained would report clean
+while a genuinely vulnerable dependency was simply absent from the answer. The
+error names the component so the fix can be made in the document.
+
+Beyond those, nothing was tightened. A document with unknown members, unusual
+nesting, many thousands of components, or fields Bomly does not model still
+imports exactly as before.
+
+### What an ingested document keeps
+
+Ingest reads more than package coordinates. What a source document asserted
+about each component is carried through the scan and written back out:
+supplier, originator or publisher, description, homepage, checksums, CPEs,
+and the document's own external references with the category and type it
+stated.
+
+The document's claims about *itself* are kept too — its identity, name, data
+license, timestamp, credited people, organizations and tools, and its comment.
+
+Every one of those values is untrusted input that Bomly re-publishes under its
+own name, so each is re-checked on the way in *and* on the way out. A value
+that cannot be published — a credential in a URL, a local path, a control
+character, a malformed CPE or digest — is dropped rather than passed along.
+Email addresses are never retained on a contact.
+
 ## Diffing SBOMs
 
 Compare two SBOM files without re-running detectors on either side:
@@ -117,7 +178,7 @@ where it came:
 |---|---|---|
 | One SPDX identifier (`MIT`) | `license.id`, spelled canonically | the identifier |
 | A compound expression (`MIT OR Apache-2.0`) | `expression` | the expression |
-| Anything else (`see LICENSE file`) | `license.name`, as free text | the text as-is |
+| Anything else (`see LICENSE file`) | `license.name`, as free text | a `LicenseRef-*` identifier, with the original text in `hasExtractedLicensingInfos` |
 | Nothing | no `licenses` key | `NOASSERTION` |
 
 When a source records several licenses for one package, it is saying which
@@ -241,7 +302,33 @@ Every generated document carries a stable identity:
 
 - A generated `urn:uuid` serial number (CycloneDX `serialNumber`; the same
   nonce forms the SPDX document namespace, so the two exports of one scan are
-  correlatable).
+  correlatable). Two cases differ, and both apply only when the scan read
+  SBOMs rather than lockfiles:
+  - **One source document** (a conversion). The output keeps that document's
+    identity instead of minting a new one, because it restates one document
+    rather than describing a new subject. This is what makes
+    export → ingest → export reproduce the same bytes. A CycloneDX serial can
+    only hold a UUID URN, so an SPDX namespace that is not one is linked
+    instead of adopted (see below). The document *name* is unaffected: it
+    stays the scanned project's name.
+  - **Several source documents** (a merge). The output mints its own identity
+    — both formats give a document exactly one, and adopting a source's would
+    name a document that is not this one — and *links* each source. CycloneDX
+    writes a document-level external reference of type `bom`, carrying a
+    BOM-Link (`urn:cdx:<serial>/<version>`) for a CycloneDX source or the
+    namespace URI for an SPDX one. SPDX writes an `externalDocumentRefs`
+    entry naming the same identity, with a SHA-256 checksum over the source
+    document's bytes, which the specification requires on every entry; the
+    CycloneDX reference carries that checksum too, so the link stays usable
+    if the merged document is later converted to SPDX. The checksum is
+    computed while the source document is being read, because it cannot be
+    recovered from the parsed model afterwards — a source that reached Bomly
+    without those bytes is left unnamed in SPDX rather than written as an
+    invalid reference. People and tools credited by any source are credited by
+    the merged document too.
+  - Source links are read back on import, so provenance survives more than one
+    conversion: converting a merged document again produces a document that
+    still names the documents behind it, in either format.
 - The producing tool with its version (CycloneDX `metadata.tools[]`; SPDX
   `Creator: Tool: bomly-cli-<version>`), plus one tool entry per detector that
   contributed to the graph.
@@ -310,47 +397,114 @@ Reachability annotations and other Bomly-specific metadata are emitted in the JS
 
 Bomly preserves component identity (including PURL), dependency edges, roots,
 scope, package type, licenses, digests, CPEs, and the enrichment fields
-described above when the destination format has an equivalent representation. Encoding is
-deterministic when the scan timestamp and document identifiers are fixed.
+described above when the destination format has an equivalent representation.
+An ingested document keeps more than that list — supplier, originator,
+description, homepage, copyright, its own external references, and the
+document's own assertions all survive the round trip; see
+[What an ingested document keeps](#what-an-ingested-document-keeps) for the
+full set. Encoding is deterministic when the scan timestamp and document
+identifiers are fixed.
 
 Some information necessarily becomes less specific during conversion:
 
-- CycloneDX vulnerability records preserve ratings, CWEs, affected component
-  references, descriptions, and advisory URLs. SPDX 2.3 represents each
-  vulnerability as a package security advisory reference, so ratings, affected
-  ranges, fix versions, and descriptions are not carried through an SPDX 2.3
-  round trip.
-- Development scope maps to CycloneDX `excluded`; runtime scope maps to
-  `required`. SPDX stores Bomly's normalized scope in the package comment.
+- Vulnerabilities are written but never read back. A CycloneDX export carries
+  ratings, CWEs, affected component references, descriptions, and advisory
+  URLs; an SPDX 2.3 export carries each vulnerability as a package security
+  advisory reference. Neither format's importer builds vulnerability records,
+  so converting a document does not carry its vulnerabilities across — Bomly
+  re-derives them by scanning with `--enrich`. What does survive an SPDX round
+  trip is the advisory reference itself, because it is preserved as an
+  ordinary external reference like any other the source stated.
+- Scope is a set in Bomly and a single value in both formats. A package
+  reachable from both a runtime and a development root carries both scopes, so
+  each format gets Bomly's projection in its native field — runtime wins a
+  mixed set and maps to CycloneDX `required`, development-only maps to
+  `excluded` — with the full set written beside it in a carrier the importer
+  prefers: a `bomly:scopes` CycloneDX property, and the `scope=` field of the
+  SPDX package comment. A Bomly document therefore round-trips its scope set
+  exactly, and a document from any other producer still yields a usable scope.
+  Reading the other way, CycloneDX `required` becomes runtime, while
+  `optional` and `excluded` become development — the specification defines an
+  optional component as one that is not installed or otherwise reachable, so
+  it is absent from what runs.
+- A scope carrier naming a token this build does not recognize keeps the
+  scopes it does recognize. The carrier is Bomly's own, so an unreadable token
+  is almost always one a newer Bomly wrote; refusing the whole value would have
+  left the component unscoped, which in SPDX — where there is no native scope
+  field to fall back on — meant losing the scope entirely. The tokens that were
+  not read are reported as a warning naming the file.
+- A source document's own scope word is preserved and written back. A
+  component a CycloneDX document marked `optional` re-exports as `optional`,
+  not as Bomly's projection of the set it derives — so `optional` and
+  `excluded` do not collapse into `required` across a round trip that asserted
+  neither. The word yields to the projection when Bomly's own scope set stops
+  meaning what the word meant, for example once the package turns out to be
+  reachable from a development root as well. SPDX 2.3 has no scope field, so
+  the word is carried only through a CycloneDX export; an SPDX document still
+  carries the full set in its package comment.
 - Package origin is written on export but not read back on ingest: scanning an
   SBOM produces packages with no origin, so re-exporting that graph emits
   `NOASSERTION` and no distribution or vcs reference. Origin comes from a
-  lockfile, and an ingested document is not one.
+  lockfile, and an ingested document is not one. This is why references of
+  type `distribution` and `vcs` are the two Bomly does not preserve from a
+  source document: they are the shape Bomly's own origin export takes, and
+  nothing in a document distinguishes Bomly's emission from a third party's —
+  so reading them back would let a detector's guess about where a package came
+  from re-enter as though the document had asserted it. SPDX drops a third
+  type for the same reason — Bomly's own `bomly-package-origin` reference —
+  and re-derives the `purl` and CPE references from the component's identity
+  and CPE list, so ingesting them would grow the document on every round trip.
+  Every other reference type is preserved with the category and type the
+  source stated.
 - Bomly relationship confidence (`direct`, `transitive`, or `unknown`), source
   provenance, reachability analysis, policy findings, and run diagnostics are
   report data rather than portable SBOM fields. Use JSON when those distinctions
   must survive export and import.
 - A CycloneDX document has one metadata component. When an input graph has
   multiple roots, every root remains in the dependency graph and the
-  synthesized primary component (see "Document identity" above) links them;
-  ingest paths that predate the synthesized root treat the first
-  deterministic root as the primary component. The primary component is
-  written with the same detail as an inventory entry, so a package that is
+  synthesized primary component (see "Document identity" above) links them.
+  An export that names no project falls back to the first deterministic root
+  instead; the internal benchmark is the only caller that does. The primary
+  component is written with the same detail as an inventory entry, so a
+  package that is
   both the document's subject and a component describes itself the same way
   in both places.
+- A conversion is a fixed point within a format, not across one. A CycloneDX
+  serial can hold only a UUID URN, so an SPDX source converted to CycloneDX is
+  linked rather than adopted, and converting back produces a different
+  document. See "Document identity" above for how sources are named.
 - The CycloneDX `group` namespace survives a CycloneDX round trip. SPDX 2.3
   has no group field, so an SPDX round trip recovers the namespace only from
   the PURL.
 - SPDX 2.3 holds one license expression per package, so several licenses are
   composed with `AND` there while CycloneDX lists them (see "How licenses are
-  written" above). A set that mixes real expressions with free text cannot be
-  composed without producing an expression that does not parse; SPDX then
-  keeps the first value, while CycloneDX keeps every license as its own entry.
-- SPDX has no free-text license field. CycloneDX carries an unrecognized
-  license as `license.name`, but SPDX writes it into `licenseDeclared`, where
-  it is not a valid SPDX expression. A strict SPDX consumer may reject such a
-  package. This only affects packages whose declared license is not an SPDX
-  identifier or expression.
+  written" above). Every license is kept either way: a value SPDX cannot hold
+  verbatim becomes a `LicenseRef-*`, which is a valid expression element, so a
+  mixed set composes rather than losing its members. Reading an SPDX document
+  back gives one license per package — the composed expression, taken from the
+  concluded field when the document states both a concluded and a declared
+  license. A CycloneDX list that went out as `A AND B` therefore returns as
+  the single expression `A AND B` rather than as two entries.
+- End-of-life data is written but never read back. Both formats carry it —
+  `bomly:eol` properties in CycloneDX, `eol=` and `eol_date=` in the SPDX
+  package comment — and neither importer looks for it, so a Bomly document
+  converted through Bomly loses its EOL fields. Re-run with `--enrich` to
+  restore them.
+- A component's own identifier does not survive. Ingest re-mints each node's
+  identity from its package URL, so the source document's `bom-ref` or
+  `SPDXID` is not carried into the graph and not re-emitted. Anything that
+  compares identifiers across a conversion should compare package URLs
+  instead.
+- SPDX relationships are flattened on export. Ingest accepts the whole
+  `*_DEPENDENCY_OF` family, but export writes only `DEPENDS_ON` and
+  `DESCRIBES`, so a source document's `DEV_DEPENDENCY_OF` comes back as
+  `DEPENDS_ON`. The development scope itself is preserved separately, through
+  the scope carrier described above.
+- An SPDX scope carrier that Bomly cannot fully read leaves the component
+  unscoped. The `scope=` comment field decodes all-or-nothing, so one unknown
+  token beside a known one yields no scope at all, and SPDX — unlike
+  CycloneDX — has no native scope field to fall back on (tracked as
+  bomly-dev/bomly-sdk#64).
 
 Before treating a generated file as a release artifact, validate it with the
 standard validator required by the receiving system. Bomly's tests parse every

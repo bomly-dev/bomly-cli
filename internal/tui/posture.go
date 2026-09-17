@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/output"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // posturePackageRef is the per-package back-pointer attached to each
@@ -21,11 +23,11 @@ type posturePackageRef struct {
 // postureRow aggregates a single source repository's Scorecard run
 // alongside the packages that resolved to it. The matcher dedupes by repo
 // while attaching `pkg.Scorecard`, so multiple packages can carry the same
-// underlying *sdk.PackageScorecard; we collect every distinct package here
+// underlying *model.PackageScorecard; we collect every distinct package here
 // so the details pane can render the affected component list.
 type postureRow struct {
 	repository string
-	card       *sdk.PackageScorecard
+	card       *model.PackageScorecard
 	packages   []posturePackageRef
 }
 
@@ -35,22 +37,22 @@ type postureRow struct {
 // text report's Project Posture section behaves). Scorecard data lives on
 // the PURL-keyed registry; the graph dependencies provide the display
 // labels.
-func postureRowsFromGraph(graphValue *sdk.Graph, registry *sdk.PackageRegistry) []postureRow {
+func postureRowsFromGraph(graphValue *model.Graph, registry *model.PackageRegistry) []postureRow {
 	if graphValue == nil || registry == nil {
 		return nil
 	}
 	byRepo := make(map[string]*postureRow)
-	for _, dep := range graphValue.Nodes() {
-		if dep == nil || dep.PURL == "" {
+	for _, dep := range graphValue.DependencyNodes() {
+		if dep == nil || dep.NodeID() == "" {
 			continue
 		}
-		pkg, ok := registry.Get(dep.PURL)
-		if !ok || pkg == nil || pkg.Scorecard == nil {
+		pkg := output.RegistryPackageForNode(registry, dep)
+		if pkg == nil || pkg.Scorecard == nil {
 			continue
 		}
 		repo := pkg.Scorecard.Repository
 		if repo == "" {
-			repo = dep.PURL
+			repo = dep.NodeID()
 		}
 		row, ok := byRepo[repo]
 		if !ok {
@@ -62,7 +64,7 @@ func postureRowsFromGraph(graphValue *sdk.Graph, registry *sdk.PackageRegistry) 
 			byRepo[repo] = row
 		}
 		row.packages = append(row.packages, posturePackageRef{
-			id:          dep.ID,
+			id:          dep.NodeID(),
 			displayName: dep.DisplayName(),
 			version:     dep.Version,
 		})
@@ -280,13 +282,7 @@ func postureTopFailingLines(rows []postureRow, width int) []string {
 	if width < 32 {
 		width = 32
 	}
-	baseLabelWidth := width / 2
-	if baseLabelWidth < 18 {
-		baseLabelWidth = 18
-	}
-	if baseLabelWidth > 32 {
-		baseLabelWidth = 32
-	}
+	baseLabelWidth := min(max(width/2, 18), 32)
 	out := make([]string, 0, len(checks))
 	maxFail := 0
 	for _, c := range checks {
@@ -303,10 +299,7 @@ func postureTopFailingLines(rows []postureRow, width int) []string {
 			labelWidth = width - barWidth - 1 - len(suffix) - 2
 			if labelWidth < 8 {
 				labelWidth = 8
-				barWidth = width - labelWidth - 1 - len(suffix) - 2
-				if barWidth < 1 {
-					barWidth = 1
-				}
+				barWidth = max(width-labelWidth-1-len(suffix)-2, 1)
 			}
 		}
 		label := padRight(truncateToWidth(c.Name, labelWidth), labelWidth)
@@ -337,7 +330,7 @@ func postureRowDetails(row postureRow) []string {
 	}
 
 	lines = append(lines, "", render.Style(fmt.Sprintf("Checks (%d)", len(row.card.Checks)), render.Bold, render.Magenta), "")
-	checks := make([]sdk.PackageScorecardCheck, len(row.card.Checks))
+	checks := make([]model.PackageScorecardCheck, len(row.card.Checks))
 	copy(checks, row.card.Checks)
 	sort.SliceStable(checks, func(i, j int) bool {
 		li := normalizedPostureCheckScore(checks[i].Score)

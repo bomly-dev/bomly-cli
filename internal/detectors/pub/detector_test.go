@@ -6,16 +6,19 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	detector := Detector{WorkingDir: "testdata/project"}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:     "testdata/project",
-		PackageManager:  sdk.PackageManagerPub,
-		Ecosystem:       sdk.EcosystemDart,
-		ExecutionTarget: sdk.ExecutionTarget{Location: "testdata/project"},
+		PackageManager:  model.PackageManagerPub,
+		Ecosystem:       model.EcosystemDart,
+		ExecutionTarget: plugin.ExecutionTarget{Location: "testdata/project"},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -24,11 +27,11 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	pkg, ok := g.Node("test@1.25.8")
+	pkg, ok := testnodes.FindDep(g, "test@1.25.8")
 	if !ok {
 		t.Fatal("expected test package")
 	}
-	if string(pkg.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(pkg.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected development scope, got %q", string(pkg.PrimaryScope()))
 	}
 }
@@ -68,40 +71,40 @@ func TestDepGraphFromLockScopesDirectDependencies(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
-	root, ok := g.Node("demo@1.0.0")
+	root, ok := testnodes.Find(g, "demo@1.0.0")
 	if !ok {
 		t.Fatal("expected root package")
 	}
-	deps, err := g.DirectDependencies(root.ID)
+	deps, err := g.DirectDependencies(root.NodeID())
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}
 	if len(deps) != 3 {
 		t.Fatalf("expected three direct dependencies, got %d", len(deps))
 	}
-	dev, ok := g.Node("test@1.25.8")
+	dev, ok := testnodes.FindDep(g, "test@1.25.8")
 	if !ok {
 		t.Fatal("expected test package")
 	}
-	if string(dev.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(dev.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected dev scope, got %q", string(dev.PrimaryScope()))
 	}
-	if dev.PURL != "pkg:pub/test@1.25.8" {
-		t.Fatalf("unexpected purl %q", dev.PURL)
+	if !testnodes.Is(dev, "pkg:pub/test@1.25.8") {
+		t.Fatalf("unexpected purl %q", dev.NodeID())
 	}
-	if dev.Source != sdk.DependencySourceRegistry {
-		t.Fatalf("test source = %q, want %q", dev.Source, sdk.DependencySourceRegistry)
+	if dev.Source != model.DependencySourceRegistry {
+		t.Fatalf("test source = %q, want %q", dev.Source, model.DependencySourceRegistry)
 	}
 }
 
 func TestPubDependencySource(t *testing.T) {
 	tests := []struct {
 		source string
-		want   sdk.DependencySource
+		want   model.DependencySource
 	}{
-		{source: "hosted", want: sdk.DependencySourceRegistry},
-		{source: "git", want: sdk.DependencySourceGit},
-		{source: "path", want: sdk.DependencySourceFile},
+		{source: "hosted", want: model.DependencySourceRegistry},
+		{source: "git", want: model.DependencySourceGit},
+		{source: "path", want: model.DependencySourceFile},
 		{source: "sdk", want: ""},
 		{source: "", want: ""},
 	}
@@ -113,7 +116,7 @@ func TestPubDependencySource(t *testing.T) {
 }
 
 func TestPubPackagePreservesGitRevision(t *testing.T) {
-	node := packageNode("example", pubLockPackage{
+	node, err := packageNode("example", pubLockPackage{
 		Source:  "git",
 		Version: "1.0.0",
 		Description: map[string]any{
@@ -121,8 +124,11 @@ func TestPubPackagePreservesGitRevision(t *testing.T) {
 			"resolved-ref": "abc123",
 		},
 	})
-	if node.Source != sdk.DependencySourceGit {
-		t.Fatalf("source = %q, want %q", node.Source, sdk.DependencySourceGit)
+	if err != nil {
+		t.Fatalf("packageNode() error = %v", err)
+	}
+	if node.Source != model.DependencySourceGit {
+		t.Fatalf("source = %q, want %q", node.Source, model.DependencySourceGit)
 	}
 	if node.ResolvedURL != "https://github.com/example/pkg.git" {
 		t.Fatalf("resolved URL = %q", node.ResolvedURL)
@@ -147,20 +153,20 @@ func TestDepGraphFromPubDepsJSONBuildsTransitiveScopes(t *testing.T) {
 		t.Fatalf("depGraphFromPubDepsJSON() error = %v", err)
 	}
 
-	collection, ok := graph.Node("collection@1.18.0")
+	collection, ok := testnodes.Find(graph, "collection@1.18.0")
 	if !ok {
-		t.Fatalf("expected collection package, got %v", graph.Nodes())
+		t.Fatalf("expected collection package, got %v", graph.DependencyNodes())
 	}
-	if string(collection.PrimaryScope()) != string(sdk.ScopeRuntime) {
-		t.Fatalf("expected shared transitive dependency to be runtime, got %q", string(collection.PrimaryScope()))
+	if string(mustDep(t, collection).PrimaryScope()) != string(model.ScopeRuntime) {
+		t.Fatalf("expected shared transitive dependency to be runtime, got %q", string(mustDep(t, collection).PrimaryScope()))
 	}
 
-	testPkg, ok := graph.Node("test@1.25.8")
+	testPkg, ok := testnodes.Find(graph, "test@1.25.8")
 	if !ok {
 		t.Fatal("expected test package")
 	}
-	if string(testPkg.PrimaryScope()) != string(sdk.ScopeDevelopment) {
-		t.Fatalf("expected dev direct dependency, got %q", string(testPkg.PrimaryScope()))
+	if string(mustDep(t, testPkg).PrimaryScope()) != string(model.ScopeDevelopment) {
+		t.Fatalf("expected dev direct dependency, got %q", string(mustDep(t, testPkg).PrimaryScope()))
 	}
 }
 
@@ -199,4 +205,15 @@ sdks:
 	if got := positions["path"]; got == nil || got.Line != 15 {
 		t.Fatalf("path position = %#v, want version line 15", got)
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*model.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

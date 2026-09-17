@@ -12,9 +12,12 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	testutil "github.com/bomly-dev/bomly-sdk/testkit"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestInstallDevBinaryVerifyEnableDisableAndUninstall(t *testing.T) {
@@ -71,7 +74,7 @@ func TestInstallDevBinaryVerifyEnableDisableAndUninstall(t *testing.T) {
 	if len(installed) != 1 || installed[0].Enabled {
 		t.Fatalf("expected plugin to be disabled")
 	}
-	if got := installed[0].DetectorDescriptor.SupportedManagers; len(got) != 1 || got[0] != sdk.PackageManagerGoMod {
+	if got := installed[0].DetectorDescriptor.SupportedManagers; len(got) != 1 || got[0] != model.PackageManagerGoMod {
 		t.Fatalf("expected loaded manifest to derive supported manager gomod, got %#v", got)
 	}
 
@@ -224,14 +227,14 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 		t.Fatalf("RegisterRuntimePlugins() error = %v", err)
 	}
 	filtered := reg.Filter(engine.RegistryFilter{
-		DetectorFilter:  sdk.DetectorFilter{Include: []string{"acme.detector.gomod"}},
-		EcosystemFilter: sdk.EcosystemFilter{Include: []sdk.Ecosystem{sdk.EcosystemGo}},
+		DetectorFilter:  plugin.DetectorFilter{Include: []string{"acme.detector.gomod"}},
+		EcosystemFilter: model.EcosystemFilter{Include: []model.Ecosystem{model.EcosystemGo}},
 	})
 	subprojects, err := opts.PlanSubprojects(filtered, opts.Request{
 		Registry:        reg,
-		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectDir},
-		DetectorFilter:  sdk.DetectorFilter{Include: []string{"acme.detector.gomod"}},
-		EcosystemFilter: sdk.EcosystemFilter{Include: []sdk.Ecosystem{sdk.EcosystemGo}},
+		ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: projectDir},
+		DetectorFilter:  plugin.DetectorFilter{Include: []string{"acme.detector.gomod"}},
+		EcosystemFilter: model.EcosystemFilter{Include: []model.Ecosystem{model.EcosystemGo}},
 	})
 	if err != nil {
 		t.Fatalf("PlanSubprojects() error = %v", err)
@@ -243,23 +246,23 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 		t.Fatalf("expected external detector to be planned, got %q", subprojects[0].PrimaryDetector)
 	}
 
-	detectors := filtered.PlannedDetectors(sdk.DetectionRequest{
+	detectors := filtered.PlannedDetectors(plugin.DetectionRequest{
 		ProjectPath:     projectDir,
-		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectDir},
+		ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: projectDir},
 		Subproject:      subprojects[0],
-		Ecosystem:       sdk.EcosystemGo,
-		PackageManager:  sdk.PackageManagerGoMod,
+		Ecosystem:       model.EcosystemGo,
+		PackageManager:  model.PackageManagerGoMod,
 	}, []string{"acme.detector.gomod"})
 	if len(detectors) != 1 {
 		t.Fatalf("expected one planned detector, got %d", len(detectors))
 	}
-	result, err := detectors[0].ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detectors[0].ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:     projectDir,
-		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectDir},
+		ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: projectDir},
 		Subproject:      subprojects[0],
-		Ecosystem:       sdk.EcosystemGo,
-		PackageManager:  sdk.PackageManagerGoMod,
-		ScopeFilter:     sdk.ScopeRuntime,
+		Ecosystem:       model.EcosystemGo,
+		PackageManager:  model.PackageManagerGoMod,
+		ScopeFilter:     model.ScopeRuntime,
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -271,17 +274,17 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 	if graph == nil || graph.Size() != 1 {
 		t.Fatalf("expected one package in plugin graph, got %#v", graph)
 	}
-	if _, ok := graph.Node("example.com/runtime@v1.0.0"); !ok {
+	if _, ok := testnodes.Find(graph, "example.com/runtime@v1.0.0"); !ok {
 		t.Fatalf("expected plugin detector to receive runtime scope, got %s", graph.PrettyString())
 	}
 	if len(detectors[0].Descriptor().RemediationCapabilities) != 0 {
 		t.Fatalf("legacy detector unexpectedly advertises remediation: %#v", detectors[0].Descriptor())
 	}
-	provider, ok := detectors[0].(sdk.DetectorRemediationProvider)
+	provider, ok := detectors[0].(plugin.DetectorRemediationProvider)
 	if !ok {
 		t.Fatalf("external detector wrapper does not implement optional provider: %T", detectors[0])
 	}
-	hints, err := provider.RemediationHints(context.Background(), sdk.RemediationHintRequest{})
+	hints, err := provider.RemediationHints(context.Background(), plugin.RemediationHintRequest{})
 	if err != nil || len(hints.Hints) != 0 {
 		t.Fatalf("legacy detector remediation call = %#v, %v", hints, err)
 	}
@@ -305,7 +308,7 @@ func TestExternalDetectorProvidesAdvertisedRemediationHints(t *testing.T) {
 	if err := managedplugin.RegisterRuntimePlugins(context.Background(), reg, root); err != nil {
 		t.Fatalf("RegisterRuntimePlugins() error = %v", err)
 	}
-	var detector sdk.Detector
+	var detector plugin.Detector
 	for _, candidate := range reg.AllDetectors() {
 		if candidate.Descriptor().Name == "acme.detector.remediation" {
 			detector = candidate
@@ -315,18 +318,18 @@ func TestExternalDetectorProvidesAdvertisedRemediationHints(t *testing.T) {
 	if detector == nil {
 		t.Fatal("external remediation detector was not registered")
 	}
-	provider, ok := detector.(sdk.DetectorRemediationProvider)
+	provider, ok := detector.(plugin.DetectorRemediationProvider)
 	if !ok {
 		t.Fatalf("registered detector does not implement DetectorRemediationProvider: %T", detector)
 	}
-	response, err := provider.RemediationHints(context.Background(), sdk.RemediationHintRequest{})
+	response, err := provider.RemediationHints(context.Background(), plugin.RemediationHintRequest{})
 	if err != nil {
 		t.Fatalf("RemediationHints() error = %v", err)
 	}
 	if len(response.Hints) != 1 ||
 		response.Hints[0].DependencyRef != "example.com/demo@v1.0.0" ||
 		len(response.Hints[0].Strategies) != 1 ||
-		response.Hints[0].Strategies[0].Action != sdk.RemediationActionLockfileRefresh {
+		response.Hints[0].Strategies[0].Action != model.RemediationActionLockfileRefresh {
 		t.Fatalf("RemediationHints() = %#v", response)
 	}
 }
@@ -354,21 +357,21 @@ func TestExternalMatcherReceivesAndReturnsRegistry(t *testing.T) {
 	if err := managedplugin.RegisterRuntimePlugins(launchCtx, reg, root); err != nil {
 		t.Fatalf("RegisterRuntimePlugins() error = %v", err)
 	}
-	matchers := reg.Matchers(sdk.MatchRequest{
-		MatcherFilter: sdk.MatcherFilter{Include: []string{"acme.matcher.registry"}},
+	matchers := reg.Matchers(plugin.MatchRequest{
+		MatcherFilter: plugin.MatcherFilter{Include: []string{"acme.matcher.registry"}},
 	})
 	if len(matchers) != 1 {
 		t.Fatalf("expected one external matcher, got %d", len(matchers))
 	}
 
-	if err := matchers[0].Ready(context.Background(), sdk.MatchRequest{}); err != nil {
+	if err := matchers[0].Ready(context.Background(), plugin.MatchRequest{}); err != nil {
 		t.Fatalf("Ready() through pooled subprocess error = %v", err)
 	}
 
 	const purl = "pkg:npm/react@18.2.0"
-	registry := sdk.NewPackageRegistry()
+	registry := model.NewPackageRegistry()
 	registry.Ensure(purl).Name = "react"
-	result, err := matchers[0].Match(context.Background(), sdk.MatchRequest{
+	result, err := matchers[0].Match(context.Background(), plugin.MatchRequest{
 		Registry: registry,
 	})
 	if err != nil {
@@ -395,56 +398,59 @@ func fakeDetectorPluginSource(id string) string {
 import (
 	"context"
 	"path/filepath"
-	schemav1 "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
+	"github.com/bomly-dev/bomly-sdk/runtime"
 )
 
 type detector struct{}
 
-func (d *detector) Descriptor(ctx context.Context) (*schemav1.DetectorDescriptor, error) {
-	return &schemav1.DetectorDescriptor{
+func (d *detector) Descriptor(ctx context.Context) (*plugin.DetectorDescriptor, error) {
+	return &plugin.DetectorDescriptor{
 		Name:           "` + id + `",
 		Tags:   []string{"dependency-detection"},
 	}, nil
 }
 
-func (d *detector) PackageManagerSupport(context.Context) ([]schemav1.PackageManagerSupport, error) {
-	return []schemav1.PackageManagerSupport{schemav1.Support(schemav1.PackageManagerGoMod, "go.mod")}, nil
+func (d *detector) PackageManagerSupport(context.Context) ([]plugin.PackageManagerSupport, error) {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerGoMod, "go.mod")}, nil
 }
 
-func (d *detector) Ready(context.Context, *schemav1.DetectRequest) (*schemav1.ReadyResponse, error) {
-	return &schemav1.ReadyResponse{Ready: true}, nil
+func (d *detector) Ready(context.Context, *plugin.DetectRequest) (*plugin.ReadyResponse, error) {
+	return &plugin.ReadyResponse{Ready: true}, nil
 }
 
-func (d *detector) Applicable(context.Context, *schemav1.DetectRequest) (*schemav1.ApplicableResponse, error) {
-	return &schemav1.ApplicableResponse{Applicable: true}, nil
+func (d *detector) Applicable(context.Context, *plugin.DetectRequest) (*plugin.ApplicableResponse, error) {
+	return &plugin.ApplicableResponse{Applicable: true}, nil
 }
 
-func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*schemav1.DetectResponse, error) {
+func (d *detector) Detect(ctx context.Context, req *plugin.DetectRequest) (*plugin.DetectResponse, error) {
 	name := "example.com/demo"
-	if req.ScopeFilter != schemav1.ScopeUnknown {
+	if req.ScopeFilter != model.ScopeUnknown {
 		name = "example.com/" + string(req.ScopeFilter)
 	}
-	packageNode := schemav1.NewDependencyWithID(name + "@v1.0.0", schemav1.Dependency{
-		Coordinates: schemav1.Coordinates{
-			Ecosystem: schemav1.EcosystemGo,
-			Name:      name,
-			Version:   "v1.0.0",
-			PURL:      "pkg:golang/" + name + "@v1.0.0",
-		},
+	packageNode, err := model.NewDependencyNode(model.Coordinates{
+		Ecosystem: model.EcosystemGo,
+		Name:      name,
+		Version:   "v1.0.0",
+		PURL:      "pkg:golang/" + name + "@v1.0.0",
 	})
-	graph := schemav1.New()
+	if err != nil {
+		return nil, err
+	}
+	graph := model.New()
 	if err := graph.AddNode(packageNode); err != nil {
 		return nil, err
 	}
-	return &schemav1.DetectResponse{
+	return &plugin.DetectResponse{
 		SubprojectInfo:      req.Subproject,
 		RootExecutionTarget: req.ExecutionTarget,
 		DetectorName:        "` + id + `",
-		Graphs: &schemav1.GraphContainer{
-			Entries: []schemav1.GraphEntry{{
-				Manifest: schemav1.ManifestMetadata{
+		Graphs: &model.GraphContainer{
+			Entries: []model.GraphEntry{{
+				Manifest: model.ManifestMetadata{
 					Path: filepath.Join(req.ProjectPath, "go.mod"),
-					Kind: schemav1.ManifestKind("go.mod"),
+					Kind: model.ManifestKind("go.mod"),
 				},
 				Graph: graph,
 			}},
@@ -453,7 +459,7 @@ func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*sc
 }
 
 func main() {
-	schemav1.ServeDetector(&detector{})
+	runtime.ServeDetector(&detector{})
 }
 `
 }
@@ -464,26 +470,28 @@ func fakeMatcherPluginSource(id string) string {
 import (
 	"context"
 	"fmt"
-	schemav1 "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
+	"github.com/bomly-dev/bomly-sdk/runtime"
 )
 
 type matcher struct{}
 
-func (m *matcher) Descriptor(ctx context.Context) (*schemav1.MatcherDescriptor, error) {
-	return &schemav1.MatcherDescriptor{
+func (m *matcher) Descriptor(ctx context.Context) (*plugin.MatcherDescriptor, error) {
+	return &plugin.MatcherDescriptor{
 		Name:           "` + id + `",
 	}, nil
 }
 
-func (m *matcher) Ready(context.Context, *schemav1.MatchRequest) (*schemav1.ReadyResponse, error) {
-	return &schemav1.ReadyResponse{Ready: true}, nil
+func (m *matcher) Ready(context.Context, *plugin.MatchRequest) (*plugin.ReadyResponse, error) {
+	return &plugin.ReadyResponse{Ready: true}, nil
 }
 
-func (m *matcher) Applicable(context.Context, *schemav1.MatchRequest) (*schemav1.ApplicableResponse, error) {
-	return &schemav1.ApplicableResponse{Applicable: true}, nil
+func (m *matcher) Applicable(context.Context, *plugin.MatchRequest) (*plugin.ApplicableResponse, error) {
+	return &plugin.ApplicableResponse{Applicable: true}, nil
 }
 
-func (m *matcher) Match(ctx context.Context, req *schemav1.MatchRequest) (*schemav1.MatchResponse, error) {
+func (m *matcher) Match(ctx context.Context, req *plugin.MatchRequest) (*plugin.MatchResponse, error) {
 	if req.Registry == nil {
 		return nil, fmt.Errorf("registry is nil")
 	}
@@ -491,10 +499,10 @@ func (m *matcher) Match(ctx context.Context, req *schemav1.MatchRequest) (*schem
 	if !ok || pkg == nil {
 		return nil, fmt.Errorf("expected registry package")
 	}
-	pkg.Licenses = []schemav1.PackageLicense{{SPDXExpression: "MIT"}}
-	return &schemav1.MatchResponse{
+	pkg.Licenses = []model.PackageLicense{{SPDXExpression: "MIT"}}
+	return &plugin.MatchResponse{
 		Registry: req.Registry,
-		MatcherStats: schemav1.MatcherStats{
+		MatcherStats: plugin.MatcherStats{
 			Name: "` + id + `",
 			MatchedPackages: 1,
 			Licenses: 1,
@@ -503,7 +511,7 @@ func (m *matcher) Match(ctx context.Context, req *schemav1.MatchRequest) (*schem
 }
 
 func main() {
-	schemav1.ServeMatcher(&matcher{})
+	runtime.ServeMatcher(&matcher{})
 }
 `
 }
@@ -513,36 +521,37 @@ func fakeDetectorPluginSourceWithoutPackageManagers(id string) string {
 
 import (
 	"context"
-	schemav1 "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/plugin"
+	"github.com/bomly-dev/bomly-sdk/runtime"
 )
 
 type detector struct{}
 
-func (d *detector) Descriptor(ctx context.Context) (*schemav1.DetectorDescriptor, error) {
-	return &schemav1.DetectorDescriptor{
+func (d *detector) Descriptor(ctx context.Context) (*plugin.DetectorDescriptor, error) {
+	return &plugin.DetectorDescriptor{
 		Name:           "` + id + `",
 		Tags:   []string{"dependency-detection"},
 	}, nil
 }
 
-func (d *detector) PackageManagerSupport(context.Context) ([]schemav1.PackageManagerSupport, error) {
+func (d *detector) PackageManagerSupport(context.Context) ([]plugin.PackageManagerSupport, error) {
 	return nil, nil
 }
 
-func (d *detector) Ready(context.Context, *schemav1.DetectRequest) (*schemav1.ReadyResponse, error) {
-	return &schemav1.ReadyResponse{Ready: true}, nil
+func (d *detector) Ready(context.Context, *plugin.DetectRequest) (*plugin.ReadyResponse, error) {
+	return &plugin.ReadyResponse{Ready: true}, nil
 }
 
-func (d *detector) Applicable(context.Context, *schemav1.DetectRequest) (*schemav1.ApplicableResponse, error) {
-	return &schemav1.ApplicableResponse{Applicable: true}, nil
+func (d *detector) Applicable(context.Context, *plugin.DetectRequest) (*plugin.ApplicableResponse, error) {
+	return &plugin.ApplicableResponse{Applicable: true}, nil
 }
 
-func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*schemav1.DetectResponse, error) {
-	return &schemav1.DetectResponse{}, nil
+func (d *detector) Detect(ctx context.Context, req *plugin.DetectRequest) (*plugin.DetectResponse, error) {
+	return &plugin.DetectResponse{}, nil
 }
 
 func main() {
-	schemav1.ServeDetector(&detector{})
+	runtime.ServeDetector(&detector{})
 }
 `
 }
@@ -552,54 +561,56 @@ func fakeRemediationDetectorPluginSource(id string) string {
 
 import (
 	"context"
-	schemav1 "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
+	"github.com/bomly-dev/bomly-sdk/runtime"
 )
 
 type detector struct{}
 
-func (d *detector) Descriptor(context.Context) (*schemav1.DetectorDescriptor, error) {
-	return &schemav1.DetectorDescriptor{
+func (d *detector) Descriptor(context.Context) (*plugin.DetectorDescriptor, error) {
+	return &plugin.DetectorDescriptor{
 		Name: "` + id + `",
 		Tags: []string{"dependency-detection"},
-		RemediationCapabilities: []schemav1.RemediationCapability{{
-			SupportedManagers: []schemav1.PackageManager{schemav1.PackageManagerGoMod},
-			Actions: []schemav1.RemediationAction{schemav1.RemediationActionLockfileRefresh},
+		RemediationCapabilities: []plugin.RemediationCapability{{
+			SupportedManagers: []model.PackageManager{model.PackageManagerGoMod},
+			Actions: []model.RemediationAction{model.RemediationActionLockfileRefresh},
 		}},
 	}, nil
 }
 
-func (d *detector) PackageManagerSupport(context.Context) ([]schemav1.PackageManagerSupport, error) {
-	return []schemav1.PackageManagerSupport{schemav1.Support(schemav1.PackageManagerGoMod, "go.mod")}, nil
+func (d *detector) PackageManagerSupport(context.Context) ([]plugin.PackageManagerSupport, error) {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerGoMod, "go.mod")}, nil
 }
 
-func (d *detector) Ready(context.Context, *schemav1.DetectRequest) (*schemav1.ReadyResponse, error) {
-	return &schemav1.ReadyResponse{Ready: true}, nil
+func (d *detector) Ready(context.Context, *plugin.DetectRequest) (*plugin.ReadyResponse, error) {
+	return &plugin.ReadyResponse{Ready: true}, nil
 }
 
-func (d *detector) Applicable(context.Context, *schemav1.DetectRequest) (*schemav1.ApplicableResponse, error) {
-	return &schemav1.ApplicableResponse{Applicable: true}, nil
+func (d *detector) Applicable(context.Context, *plugin.DetectRequest) (*plugin.ApplicableResponse, error) {
+	return &plugin.ApplicableResponse{Applicable: true}, nil
 }
 
-func (d *detector) Detect(context.Context, *schemav1.DetectRequest) (*schemav1.DetectResponse, error) {
-	return &schemav1.DetectResponse{}, nil
+func (d *detector) Detect(context.Context, *plugin.DetectRequest) (*plugin.DetectResponse, error) {
+	return &plugin.DetectResponse{}, nil
 }
 
 func (d *detector) RemediationHints(
 	context.Context,
-	*schemav1.RemediationHintRequest,
-) (*schemav1.RemediationHintResponse, error) {
-	return &schemav1.RemediationHintResponse{Hints: []schemav1.RemediationHint{{
+	*plugin.RemediationHintRequest,
+) (*plugin.RemediationHintResponse, error) {
+	return &plugin.RemediationHintResponse{Hints: []plugin.RemediationHint{{
 		DependencyRef: "example.com/demo@v1.0.0",
 		ManifestPath: "go.mod",
-		Strategies: []schemav1.RemediationStrategyHint{{
-			Action: schemav1.RemediationActionLockfileRefresh,
+		Strategies: []plugin.RemediationStrategyHint{{
+			Action: model.RemediationActionLockfileRefresh,
 			Advice: "refresh go.sum",
 		}},
 	}}}, nil
 }
 
 func main() {
-	schemav1.ServeDetector(&detector{})
+	runtime.ServeDetector(&detector{})
 }
 `
 }

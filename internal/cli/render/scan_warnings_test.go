@@ -7,29 +7,32 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	model "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	sdkmodel "github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
-func fallbackWarnings() []model.DetectorWarning {
-	return []model.DetectorWarning{{
-		Type:     model.DetectorWarningFallback,
+func fallbackWarnings() []plugin.DetectorWarning {
+	return []plugin.DetectorWarning{{
+		Type:     plugin.DetectorWarningFallback,
 		Source:   "maven-detector",
 		Manifest: "pom.xml",
 		Message:  "maven-detector unavailable (not ready: java executable not found on PATH) — resolved with syft-detector; transitive dependencies may be missing",
 	}}
 }
 
-func installGateWarnings() []model.DetectorWarning {
-	warning := model.DetectorWarning{
-		Type:     model.DetectorWarningPackageManager,
-		Code:     model.DetectorWarningCodeInstallGate,
+func installGateWarnings() []plugin.DetectorWarning {
+	warning := plugin.DetectorWarning{
+		Type:     plugin.DetectorWarningPackageManager,
+		Code:     plugin.DetectorWarningCodeInstallGate,
 		Source:   "pnpm",
 		Manifest: "pnpm-workspace.yaml",
 		Message:  "pnpm-workspace.yaml sets minimumReleaseAge=1440 (24h); versions published inside that window are rejected at install",
 	}
 	second := warning
 	second.Manifest = "packages/api/pnpm-workspace.yaml"
-	return []model.DetectorWarning{warning, second}
+	return []plugin.DetectorWarning{warning, second}
 }
 
 func TestWarningNotices(t *testing.T) {
@@ -60,10 +63,10 @@ func TestWarningNotices_GroupsRepeatedWarnings(t *testing.T) {
 }
 
 func TestWarningNotices_CapsFanOut(t *testing.T) {
-	warnings := make([]model.DetectorWarning, 0, 9)
-	for idx := 0; idx < 9; idx++ {
-		warnings = append(warnings, model.DetectorWarning{
-			Type:     model.DetectorWarningFallback,
+	warnings := make([]plugin.DetectorWarning, 0, 9)
+	for idx := range 9 {
+		warnings = append(warnings, plugin.DetectorWarning{
+			Type:     plugin.DetectorWarningFallback,
 			Source:   "maven-detector",
 			Manifest: fmt.Sprintf("module-%d/pom.xml", idx),
 			Message:  "maven-detector unavailable (not ready) — resolved with syft-detector",
@@ -85,8 +88,8 @@ func TestWarningNotices_StripsTerminalControlSequences(t *testing.T) {
 	// Message and file text come from scanned repository content, so a crafted
 	// package.json or filename must not be able to clear the screen, reposition
 	// the cursor, or forge output once the notice is wrapped in Style().
-	warnings := []model.DetectorWarning{{
-		Type:     model.DetectorWarningPackageManager,
+	warnings := []plugin.DetectorWarning{{
+		Type:     plugin.DetectorWarningPackageManager,
 		Source:   "pnpm",
 		Manifest: "\x1b[2Jpkg/\x1b]0;forged title\x07package.json",
 		Message:  "engines mismatch\x1b[2J\x1b[1;1H✗ Bomly: no issues found\r\nforged",
@@ -127,8 +130,8 @@ func TestSanitizeUntrusted(t *testing.T) {
 }
 
 func TestScanRendersWarningNotices(t *testing.T) {
-	g := model.New()
-	if err := g.AddNode(model.NewDependencyRef("app", "1.0.0")); err != nil {
+	g := sdkmodel.New()
+	if err := g.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 	out := Scan(g, nil, nil, nil, false, false, false, nil, nil, WarningNotices(fallbackWarnings()))
@@ -141,12 +144,12 @@ func TestScanRendersWarningNotices(t *testing.T) {
 }
 
 func TestScanRendersWarningNoticesWithoutControlSequences(t *testing.T) {
-	g := model.New()
-	if err := g.AddNode(model.NewDependencyRef("app", "1.0.0")); err != nil {
+	g := sdkmodel.New()
+	if err := g.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
-	warnings := []model.DetectorWarning{{
-		Type:    model.DetectorWarningPackageManager,
+	warnings := []plugin.DetectorWarning{{
+		Type:    plugin.DetectorWarningPackageManager,
 		Source:  "pnpm",
 		Message: "gate\x1b[2Jcleared the screen",
 	}}
@@ -173,8 +176,8 @@ func TestScanMarkdownRendersWarning(t *testing.T) {
 func TestScanMarkdownEscapesUntrustedWarningText(t *testing.T) {
 	payload := output.ScanResponse{
 		Project: output.ProjectDescriptor{Name: "demo"},
-		Warnings: []model.DetectorWarning{{
-			Type:     model.DetectorWarningFallback,
+		Warnings: []plugin.DetectorWarning{{
+			Type:     plugin.DetectorWarningFallback,
 			Source:   "maven-detector",
 			Manifest: "<script>alert(1)</script>/pom.xml",
 			Message:  "maven-detector unavailable (not ready: <img src=x onerror=alert(1)>)",

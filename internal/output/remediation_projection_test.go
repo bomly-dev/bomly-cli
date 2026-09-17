@@ -6,33 +6,34 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestScanAndDiffJSONKeepRemediationOnTopLevelPackages(t *testing.T) {
 	const purl = "pkg:npm/example@1.0.0"
-	registry := sdk.NewPackageRegistry()
-	registry.Add(&sdk.Package{
-		Coordinates: sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
-		Vulnerabilities: []sdk.Vulnerability{{
+	registry := model.NewPackageRegistry()
+	registry.Add(&model.Package{
+		Coordinates: model.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
+		Vulnerabilities: []model.Vulnerability{{
 			ID:      "GHSA-example",
 			FixedIn: "1.2.0",
 		}},
-		Remediation: &sdk.PackageRemediation{
-			Status:             sdk.PackageRemediationComplete,
+		Remediation: &model.PackageRemediation{
+			Status:             model.PackageRemediationComplete,
 			RecommendedVersion: "1.2.0",
 		},
 	})
 
-	scan := BuildScanResponse(ProjectDescriptor{Name: "demo"}, sdk.ConsolidatedGraph{}, registry, nil, time.Now())
+	scan := BuildScanResponse(ProjectDescriptor{Name: "demo"}, plugin.ConsolidatedGraph{}, registry, nil, time.Now())
 	assertOnlyPackageRemediation(t, scan, 1)
 
 	diff := BuildDiffResponse(
 		"/tmp/demo",
 		"main",
 		"feature",
-		sdk.ConsolidatedGraph{},
-		sdk.ConsolidatedGraph{},
+		plugin.ConsolidatedGraph{},
+		plugin.ConsolidatedGraph{},
 		nil,
 		time.Now(),
 		ReportOptions{HeadRegistry: registry},

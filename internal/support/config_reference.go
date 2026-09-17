@@ -217,12 +217,11 @@ func writeNestedConfigExample(builder *strings.Builder, fields []configField) {
 	for _, field := range fields {
 		fieldsByPath[field.YAMLKey] = field
 	}
-	writeNestedConfigType(builder, reflect.TypeOf(config.File{}), "", 0, fieldsByPath)
+	writeNestedConfigType(builder, reflect.TypeFor[config.File](), "", 0, fieldsByPath)
 }
 
 func writeNestedConfigType(builder *strings.Builder, t reflect.Type, prefix string, depth int, fields map[string]configField) {
-	for idx := 0; idx < t.NumField(); idx++ {
-		structField := t.Field(idx)
+	for structField := range t.Fields() {
 		key := yamlTagName(structField.Tag.Get("yaml"))
 		if key == "" || key == "-" {
 			continue

@@ -2,14 +2,17 @@ package cargo
 
 import (
 	"fmt"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // cargoModuleGraph identifies one workspace member for manifest-entry
@@ -41,17 +44,17 @@ func parseCargoWorkspaceMembers(text string) []string {
 				return
 			}
 			rest := fragment[start+1:]
-			end := strings.IndexByte(rest, '"')
-			if end < 0 {
+			before, after, ok := strings.Cut(rest, "\"")
+			if !ok {
 				return
 			}
-			if value := strings.TrimSpace(rest[:end]); value != "" {
+			if value := strings.TrimSpace(before); value != "" {
 				members = append(members, value)
 			}
-			fragment = rest[end+1:]
+			fragment = after
 		}
 	}
-	for _, rawLine := range strings.Split(text, "\n") {
+	for rawLine := range strings.SplitSeq(text, "\n") {
 		line := strings.TrimSpace(rawLine)
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
@@ -91,7 +94,7 @@ func parseCargoWorkspaceMembers(text string) []string {
 // root manifest declares none.
 func parseCargoWorkspaceInheritedVersion(text string) string {
 	section := ""
-	for _, rawLine := range strings.Split(text, "\n") {
+	for rawLine := range strings.SplitSeq(text, "\n") {
 		line := strings.TrimSpace(rawLine)
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
@@ -127,7 +130,7 @@ func inlineTableValue(table, key string) string {
 	if end := strings.LastIndexByte(table, '}'); end >= 0 {
 		table = table[:end]
 	}
-	for _, fragment := range strings.Split(table, ",") {
+	for fragment := range strings.SplitSeq(table, ",") {
 		k, v, ok := strings.Cut(fragment, "=")
 		if ok && strings.TrimSpace(k) == key {
 			return trimTomlString(strings.TrimSpace(v))
@@ -192,26 +195,26 @@ func expandCargoWorkspaceMemberDirs(workingDir string, patterns []string) []stri
 // the root manifest metadata; a virtual workspace (no root package) emits
 // member entries only. Members whose root node was removed by scope
 // filtering are skipped.
-func cargoDetectionResultFromGraph(g *sdk.Graph, modules []cargoModuleGraph, rootManifest sdk.ManifestMetadata) (sdk.DetectionResult, error) {
-	entries := make([]sdk.GraphEntry, 0, len(modules))
+func cargoDetectionResultFromGraph(g *model.Graph, modules []cargoModuleGraph, rootManifest model.ManifestMetadata) (plugin.DetectionResult, error) {
+	entries := make([]model.GraphEntry, 0, len(modules))
 	for _, module := range modules {
 		if _, ok := g.Node(module.rootID); !ok {
 			continue
 		}
 		moduleGraph, err := detectorkit.SubgraphFrom(g, module.rootID)
 		if err != nil {
-			return sdk.DetectionResult{}, fmt.Errorf("extract cargo workspace member graph %q: %w", module.dir, err)
+			return plugin.DetectionResult{}, fmt.Errorf("extract cargo workspace member graph %q: %w", module.dir, err)
 		}
-		manifest := sdk.ManifestMetadata{Path: module.dir + "/Cargo.toml", Kind: sdk.ManifestKind("Cargo.toml")}
+		manifest := model.ManifestMetadata{Path: module.dir + "/Cargo.toml", Kind: model.ManifestKind("Cargo.toml")}
 		if module.dir == "." {
 			manifest = rootManifest
 		}
-		entries = append(entries, sdk.GraphEntry{Graph: moduleGraph, Manifest: manifest})
+		entries = append(entries, model.GraphEntry{Graph: moduleGraph, Manifest: manifest})
 	}
 	if len(entries) == 0 {
-		return sdk.DetectionResult{}, fmt.Errorf("cargo workspace produced no member entries")
+		return plugin.DetectionResult{}, fmt.Errorf("cargo workspace produced no member entries")
 	}
-	return sdk.DetectionResult{Graphs: &sdk.GraphContainer{Entries: entries}}, nil
+	return detectors.Attributed(plugin.DetectionResult{Graphs: &model.GraphContainer{Entries: entries}}), nil
 }
 
 // depGraphFromLockWorkspace builds a workspace graph from Cargo.lock plus the
@@ -219,35 +222,48 @@ func cargoDetectionResultFromGraph(g *sdk.Graph, modules []cargoModuleGraph, roo
 // members become application root nodes; member manifest dependency lists
 // annotate direct-edge scopes exactly like the single-package lock path does
 // for its root.
-func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, members []cargoLockMember, scopeFilter sdk.Scope) (*sdk.Graph, []cargoModuleGraph, string, error) {
+func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, members []cargoLockMember, scopeFilter model.Scope) (*model.Graph, []cargoModuleGraph, string, error) {
 	packages := parseCargoLockPackages(string(lockRaw))
 	if len(packages) == 0 {
 		return nil, nil, "", fmt.Errorf("cargo.lock does not contain any packages")
 	}
 
-	g := sdk.New()
-	nodeFor := func(pkg lockPackage, application bool) *sdk.Dependency {
-		pkgType := "crate"
-		source := cargoDependencySource(pkg.Source)
-		if application {
-			pkgType = "application"
-			source = sdk.DependencySourceWorkspace
-		}
-		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
+	g := model.New()
+	// A workspace member is the project's own code, so it is a module node
+	// declared by its own manifest: ownership is the node kind (ADR-0041), and
+	// a module carries no origin at all -- so a lock entry that merely shares
+	// its name, an unrelated crate from a git remote, cannot be credited to
+	// it by construction rather than by a guard.
+	moduleFor := func(pkg lockPackage, manifestPath string) (*model.ModuleNode, error) {
+		node, err := model.NewModuleNode(manifestPath, model.Coordinates{
+			Ecosystem:      model.EcosystemRust,
 			Name:           pkg.Name,
 			Version:        pkg.Version,
-			PackageManager: sdk.PackageManagerCargo,
-			Type:           sdk.ParsePackageType(pkgType),
+			PackageManager: model.PackageManagerCargo,
+			Type:           model.PackageTypeApplication,
 			Language:       "rust",
-			PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)}, Source: source, ResolvedURL: pkg.Source,
+			PURL:           model.BuildPackageURLFor(model.EcosystemRust, model.PackageManagerCargo, "", pkg.Name, pkg.Version),
 		})
-		if !application {
-			// A workspace member is the project's own code. It has no external
-			// origin, and a lock entry that merely shares its name -- an
-			// unrelated crate from a git remote -- must not be credited to it.
-			setCargoOrigin(node, pkg.Source)
+		if err != nil {
+			return nil, fmt.Errorf("build cargo module node %q: %w", pkg.Name, err)
 		}
-		return node
+		return node, nil
+	}
+	nodeFor := func(pkg lockPackage) (*model.DependencyNode, error) {
+		node, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemRust,
+			Name:           pkg.Name,
+			Version:        pkg.Version,
+			PackageManager: model.PackageManagerCargo,
+			Type:           model.ParsePackageType("crate"),
+			Language:       "rust",
+			PURL:           model.BuildPackageURLFor(model.EcosystemRust, model.PackageManagerCargo, "", pkg.Name, pkg.Version)})
+		if err != nil {
+			return nil, fmt.Errorf("build cargo node %q: %w", pkg.Name, err)
+		}
+		node.Source = cargoDependencySource(pkg.Source)
+		node.ResolvedURL = pkg.Source
+		setCargoOrigin(node, pkg.Source)
+		return node, nil
 	}
 	// Each application root claims its own lock record -- matched by name,
 	// declared version, and the absence of a source (isProjectLockRecord) --
@@ -264,9 +280,12 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 	claimed := map[string]struct{}{}
 	applicationRefs := map[string]string{}
 	roots := make([]applicationRoot, 0, len(members)+1)
-	addRoot := func(manifest cargoManifest) (string, error) {
+	addRoot := func(manifest cargoManifest, manifestPath string) (string, error) {
 		record := projectLockRecord(packages, manifest)
-		node := nodeFor(record, true)
+		node, err := moduleFor(record, manifestPath)
+		if err != nil {
+			return "", err
+		}
 		if err := addNodeIfMissing(g, node); err != nil {
 			return "", err
 		}
@@ -275,16 +294,16 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 		// first-wins keeps resolution deterministic in declaration order.
 		for _, ref := range []string{record.Name, strings.TrimSpace(record.Name + " " + record.Version)} {
 			if _, taken := applicationRefs[ref]; !taken {
-				applicationRefs[ref] = node.ID
+				applicationRefs[ref] = node.NodeID()
 			}
 		}
-		roots = append(roots, applicationRoot{manifest: manifest, record: record, id: node.ID})
-		return node.ID, nil
+		roots = append(roots, applicationRoot{manifest: manifest, record: record, id: node.NodeID()})
+		return node.NodeID(), nil
 	}
 
 	rootID := ""
 	if rootManifest.Name != "" {
-		id, err := addRoot(rootManifest)
+		id, err := addRoot(rootManifest, "Cargo.toml")
 		if err != nil {
 			return nil, nil, "", err
 		}
@@ -295,7 +314,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 		if member.manifest.Name == "" {
 			continue
 		}
-		id, err := addRoot(member.manifest)
+		id, err := addRoot(member.manifest, path.Join(member.dir, "Cargo.toml"))
 		if err != nil {
 			return nil, nil, "", err
 		}
@@ -306,12 +325,15 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 		if _, ok := claimed[qualifiedLockKey(pkg)]; ok {
 			continue
 		}
-		node := nodeFor(pkg, false)
-		surviving, err := detectors.EnsureOccurrence(g, node, strings.TrimSpace(pkg.Source))
+		node, err := nodeFor(pkg)
 		if err != nil {
 			return nil, nil, "", err
 		}
-		index.record(pkg, surviving.ID)
+		surviving, err := detectorkit.EnsureNode(g, node)
+		if err != nil {
+			return nil, nil, "", err
+		}
+		index.record(pkg, surviving.NodeID())
 	}
 
 	idFor := func(ref string) (string, bool) {
@@ -347,7 +369,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 	// disambiguates it; prefer that over the manifest's bare name.
 	applyManifestEdges := func(root applicationRoot) error {
 		refs := lockDependencyRefs(root.record)
-		addDirect := func(names []string, scope sdk.Scope) error {
+		addDirect := func(names []string, scope model.Scope) error {
 			for _, depName := range names {
 				ref := depName
 				if qualified, ok := refs[depName]; ok {
@@ -360,19 +382,22 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 				if !ok || childID == root.id {
 					continue
 				}
-				if existing, ok := g.Node(childID); ok {
-					existing.AddScope(scope)
-				}
-				if err := g.AddEdge(root.id, childID); err != nil {
-					return fmt.Errorf("add Cargo direct dependency %q -> %q: %w", root.id, childID, err)
+				if existingNode, ok := g.Node(childID); ok {
+					existing, _ := model.AsDependencyNode(existingNode)
+					if existing != nil {
+						existing.AddScope(scope)
+					}
+					if err := g.AddEdge(root.id, childID); err != nil {
+						return fmt.Errorf("add Cargo direct dependency %q -> %q: %w", root.id, childID, err)
+					}
 				}
 			}
 			return nil
 		}
-		if err := addDirect(root.manifest.Dependencies, sdk.ScopeRuntime); err != nil {
+		if err := addDirect(root.manifest.Dependencies, model.ScopeRuntime); err != nil {
 			return err
 		}
-		return addDirect(root.manifest.DevDependencies, sdk.ScopeDevelopment)
+		return addDirect(root.manifest.DevDependencies, model.ScopeDevelopment)
 	}
 	for _, root := range roots {
 		if err := applyManifestEdges(root); err != nil {
@@ -381,7 +406,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 	}
 
 	propagateScopesFromApplicationRoots(g)
-	filtered, err := sdk.FilterGraphByScope(g, scopeFilter)
+	filtered, err := model.FilterGraphByScope(g, scopeFilter)
 	if err != nil {
 		return nil, nil, "", err
 	}

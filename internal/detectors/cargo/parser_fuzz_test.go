@@ -3,8 +3,9 @@ package cargo
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
 	testutil "github.com/bomly-dev/bomly-sdk/testkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // FuzzDepGraphFromCargoLockWorkspace drives the workspace lock path end to
@@ -27,14 +28,14 @@ func FuzzDepGraphFromCargoLockWorkspace(f *testing.F) {
 		if len(lockRaw)+len(rootRaw)+len(memberRaw) > testutil.MaxFuzzInputSize {
 			return
 		}
-		parse := func() (*sdk.Graph, error) {
+		parse := func() (*model.Graph, error) {
 			workspaceVersion := parseCargoWorkspaceInheritedVersion(string(rootRaw))
 			rootManifest := applyWorkspaceVersion(parseCargoManifest(string(rootRaw)), workspaceVersion)
 			member := cargoLockMember{
 				dir:      "crates/member",
 				manifest: applyWorkspaceVersion(parseCargoManifest(string(memberRaw)), workspaceVersion),
 			}
-			graph, _, _, err := depGraphFromLockWorkspace(lockRaw, rootManifest, []cargoLockMember{member}, sdk.Scope(""))
+			graph, _, _, err := depGraphFromLockWorkspace(lockRaw, rootManifest, []cargoLockMember{member}, model.Scope(""))
 			return graph, err
 		}
 		graph, err := parse()
@@ -61,7 +62,7 @@ func FuzzDepGraphFromCargoLock(f *testing.F) {
 		if len(lockRaw)+len(manifestRaw) > testutil.MaxFuzzInputSize {
 			return
 		}
-		graph, err := depGraphFromLockWithScope(lockRaw, manifestRaw, sdk.Scope(""))
+		graph, err := depGraphFromLockWithScope(lockRaw, manifestRaw, model.Scope(""))
 		if err == nil {
 			testutil.RequireFuzzGraphValid(t, graph)
 		}

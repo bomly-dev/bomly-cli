@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // poetryLockPackageHeader matches the `[[package]]` start of a
@@ -21,23 +22,23 @@ var tomlVersionLine = regexp.MustCompile(`^\s*version\s*=\s*["']([^"']+)["']\s*$
 // poetryLockPositions returns name -> SourcePosition for every
 // `[[package]]` block in a poetry.lock file. The position points at
 // the `name = "..."` line.
-func poetryLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func poetryLockPositions(path, relPath string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	collectTOMLPackagePositions(path, relPath, out, poetryLockPackageHeader)
 	return out
 }
 
 // uvLockPositions reuses the same TOML positional shape — uv.lock is
 // also a TOML file with `[[package]]` blocks.
-func uvLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func uvLockPositions(path, relPath string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	collectTOMLPackagePositions(path, relPath, out, poetryLockPackageHeader)
 	return out
 }
 
 // pdmLockPositions also uses the same TOML shape.
-func pdmLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func pdmLockPositions(path, relPath string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	collectTOMLPackagePositions(path, relPath, out, poetryLockPackageHeader)
 	return out
 }
@@ -45,7 +46,7 @@ func pdmLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 // collectTOMLPackagePositions walks a TOML file looking for blocks
 // that start with the supplied header regex (e.g. `[[package]]`). For
 // each block it records the line of the `name = "..."` field.
-func collectTOMLPackagePositions(path, relPath string, out map[string]*sdk.SourcePosition, header *regexp.Regexp) {
+func collectTOMLPackagePositions(path, relPath string, out map[string]*model.SourcePosition, header *regexp.Regexp) {
 	inBlock := false
 	pendingName := ""
 	pendingNameLine := 0
@@ -68,7 +69,7 @@ func collectTOMLPackagePositions(path, relPath string, out map[string]*sdk.Sourc
 			}
 			if matches := tomlVersionLine.FindStringSubmatch(text); matches != nil && pendingName != "" {
 				if _, exists := out[pendingName]; !exists {
-					out[pendingName] = &sdk.SourcePosition{File: relPath, Line: line}
+					out[pendingName] = &model.SourcePosition{File: relPath, Line: line}
 				}
 				inBlock = false
 				pendingName = ""
@@ -79,7 +80,7 @@ func collectTOMLPackagePositions(path, relPath string, out map[string]*sdk.Sourc
 			if strings.HasPrefix(strings.TrimSpace(text), "[") && !strings.HasPrefix(strings.TrimSpace(text), "[[package]]") {
 				if pendingName != "" {
 					if _, exists := out[pendingName]; !exists {
-						out[pendingName] = &sdk.SourcePosition{File: relPath, Line: pendingNameLine}
+						out[pendingName] = &model.SourcePosition{File: relPath, Line: pendingNameLine}
 					}
 				}
 				inBlock = false
@@ -90,7 +91,7 @@ func collectTOMLPackagePositions(path, relPath string, out map[string]*sdk.Sourc
 	})
 	if pendingName != "" {
 		if _, exists := out[pendingName]; !exists {
-			out[pendingName] = &sdk.SourcePosition{File: relPath, Line: pendingNameLine}
+			out[pendingName] = &model.SourcePosition{File: relPath, Line: pendingNameLine}
 		}
 	}
 }
@@ -105,8 +106,8 @@ func collectTOMLPackagePositions(path, relPath string, out map[string]*sdk.Sourc
 // pattern is rare outside package keys.
 var pipfileLockPackageKey = regexp.MustCompile(`^\s*"([^"]+)"\s*:\s*\{\s*$`)
 
-func pipfileLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func pipfileLockPositions(path, relPath string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	// Only count keys after we see "default": { or "develop": {.
 	inSection := false
 	scanLinesQuiet(path, func(line int, text string) {
@@ -131,7 +132,7 @@ func pipfileLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 		if _, exists := out[name]; exists {
 			return
 		}
-		out[name] = &sdk.SourcePosition{File: relPath, Line: line}
+		out[name] = &model.SourcePosition{File: relPath, Line: line}
 	})
 	return out
 }
@@ -142,8 +143,8 @@ func pipfileLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 var pipfileSectionHeader = regexp.MustCompile(`^\[(packages|dev-packages)\]\s*$`)
 var pipfileNameLine = regexp.MustCompile(`^\s*([A-Za-z0-9._-]+)\s*=`)
 
-func pipfilePositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func pipfilePositions(path, relPath string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	inSection := false
 	scanLinesQuiet(path, func(line int, text string) {
 		trimmed := strings.TrimSpace(text)
@@ -169,7 +170,7 @@ func pipfilePositions(path, relPath string) map[string]*sdk.SourcePosition {
 		if _, exists := out[name]; exists {
 			return
 		}
-		out[name] = &sdk.SourcePosition{File: relPath, Line: line}
+		out[name] = &model.SourcePosition{File: relPath, Line: line}
 	})
 	return out
 }
@@ -191,8 +192,8 @@ var (
 	pyprojectDepTableEntry    = regexp.MustCompile(`^\s*([A-Za-z0-9._-]+)\s*=`)
 )
 
-func pyprojectTomlPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func pyprojectTomlPositions(path, relPath string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	state := pyprojectStateNone
 	scanLinesQuiet(path, func(line int, text string) {
 		trimmed := strings.TrimSpace(text)
@@ -230,7 +231,7 @@ func pyprojectTomlPositions(path, relPath string) map[string]*sdk.SourcePosition
 			if _, exists := out[name]; exists {
 				return
 			}
-			out[name] = &sdk.SourcePosition{File: relPath, Line: line}
+			out[name] = &model.SourcePosition{File: relPath, Line: line}
 		case pyprojectStateDepTable:
 			matches := pyprojectDepTableEntry.FindStringSubmatch(text)
 			if matches == nil {
@@ -248,7 +249,7 @@ func pyprojectTomlPositions(path, relPath string) map[string]*sdk.SourcePosition
 			if _, exists := out[normalized]; exists {
 				return
 			}
-			out[normalized] = &sdk.SourcePosition{File: relPath, Line: line}
+			out[normalized] = &model.SourcePosition{File: relPath, Line: line}
 		}
 	})
 	return out
@@ -266,14 +267,14 @@ const (
 // attachLoosePythonPositions invokes every Python-side extractor and
 // attaches positions to graph packages. The existing requirements*.txt
 // pass in attachDeclaredPositions runs separately.
-func attachLoosePythonPositions(g *sdk.Graph, projectPath string) {
+func attachLoosePythonPositions(g *model.Graph, projectPath string) {
 	if g == nil || projectPath == "" {
 		return
 	}
-	merged := make(map[string]*sdk.SourcePosition)
+	merged := make(map[string]*model.SourcePosition)
 	files := []struct {
 		name    string
-		extract func(string, string) map[string]*sdk.SourcePosition
+		extract func(string, string) map[string]*model.SourcePosition
 	}{
 		{"poetry.lock", poetryLockPositions},
 		{"uv.lock", uvLockPositions},
@@ -295,7 +296,7 @@ func attachLoosePythonPositions(g *sdk.Graph, projectPath string) {
 	if len(merged) == 0 {
 		return
 	}
-	for _, pkg := range g.Nodes() {
+	for _, pkg := range g.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
@@ -314,7 +315,7 @@ func attachLoosePythonPositions(g *sdk.Graph, projectPath string) {
 		if duplicate {
 			continue
 		}
-		pkg.Locations = append(pkg.Locations, sdk.PackageLocation{
+		pkg.Locations = append(pkg.Locations, model.PackageLocation{
 			RealPath:   pos.File,
 			AccessPath: pos.File,
 			Position:   pos,

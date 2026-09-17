@@ -4,12 +4,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 type fakeMatcher struct {
 	name string
-	run  func(reg *sdk.PackageRegistry)
+	run  func(reg *model.PackageRegistry)
 }
 
 func (f fakeMatcher) Descriptor() MatcherDescriptor {
@@ -18,11 +19,11 @@ func (f fakeMatcher) Descriptor() MatcherDescriptor {
 	}
 }
 
-func (f fakeMatcher) Match(_ context.Context, req MatchRequest) (sdk.MatchResult, error) {
+func (f fakeMatcher) Match(_ context.Context, req MatchRequest) (plugin.MatchResult, error) {
 	if f.run != nil {
 		f.run(req.Registry)
 	}
-	return sdk.MatchResult{Registry: req.Registry}, nil
+	return plugin.MatchResult{Registry: req.Registry}, nil
 }
 
 func TestRegistryMatchers_PreservesRegistrationOrder(t *testing.T) {
@@ -53,7 +54,7 @@ func TestRegistryMatchers_UsesEnabledDefaultsButAllowsExplicitInclude(t *testing
 	}
 
 	matchers = registry.Matchers(MatchRequest{
-		MatcherFilter: sdk.MatcherFilter{Include: []string{"default-off"}},
+		MatcherFilter: plugin.MatcherFilter{Include: []string{"default-off"}},
 	})
 	if len(matchers) != 1 || matchers[0].Descriptor().Name != "default-off" {
 		t.Fatalf("expected explicit include to override disabled default, got %#v", matchers)
@@ -66,26 +67,26 @@ func TestEngineMatch_RunsMultipleMatchersWithoutOverwritingExistingLicenses(t *t
 
 	registry.registerMatcher(fakeMatcher{
 		name: "first",
-		run: func(reg *sdk.PackageRegistry) {
+		run: func(reg *model.PackageRegistry) {
 			pkg := reg.Ensure(purl)
 			if len(pkg.Licenses) == 0 {
-				pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
+				pkg.Licenses = []model.PackageLicense{{SPDXExpression: "MIT"}}
 			}
 		},
 	})
 	registry.registerMatcher(fakeMatcher{
 		name: "second",
-		run: func(reg *sdk.PackageRegistry) {
+		run: func(reg *model.PackageRegistry) {
 			pkg := reg.Ensure(purl)
 			if len(pkg.Licenses) == 0 {
-				pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "Apache-2.0"}}
+				pkg.Licenses = []model.PackageLicense{{SPDXExpression: "Apache-2.0"}}
 			}
 		},
 	})
 	engine := NewEngine(registry)
 
-	g := sdk.New()
-	reg := sdk.NewPackageRegistry()
+	g := model.New()
+	reg := model.NewPackageRegistry()
 
 	result, err := engine.Match(context.Background(), MatchRequest{
 		Graph:    g,
@@ -113,24 +114,24 @@ func TestEngineMatchConsolidatesAliasEquivalentVulnerabilitiesAcrossMatchers(t *
 
 	registry.registerMatcher(fakeMatcher{
 		name: "first",
-		run: func(reg *sdk.PackageRegistry) {
-			reg.Ensure(purl).Vulnerabilities = append(reg.Ensure(purl).Vulnerabilities, sdk.Vulnerability{
+		run: func(reg *model.PackageRegistry) {
+			reg.Ensure(purl).Vulnerabilities = append(reg.Ensure(purl).Vulnerabilities, model.Vulnerability{
 				ID: "GHSA-ppp9-7jff-5vj2", Aliases: []string{"CVE-2021-38561"}, Source: "first",
 			})
 		},
 	})
 	registry.registerMatcher(fakeMatcher{
 		name: "second",
-		run: func(reg *sdk.PackageRegistry) {
-			reg.Ensure(purl).Vulnerabilities = append(reg.Ensure(purl).Vulnerabilities, sdk.Vulnerability{
+		run: func(reg *model.PackageRegistry) {
+			reg.Ensure(purl).Vulnerabilities = append(reg.Ensure(purl).Vulnerabilities, model.Vulnerability{
 				ID: "GO-2021-0113", Aliases: []string{"CVE-2021-38561", "GHSA-ppp9-7jff-5vj2"}, Source: "second",
 			})
 		},
 	})
 
 	result, err := NewEngine(registry).Match(context.Background(), MatchRequest{
-		Graph:    sdk.New(),
-		Registry: sdk.NewPackageRegistry(),
+		Graph:    model.New(),
+		Registry: model.NewPackageRegistry(),
 	})
 	if err != nil {
 		t.Fatalf("Match() error = %v", err)

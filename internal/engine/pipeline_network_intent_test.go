@@ -5,31 +5,34 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 type matcherIntentProbe struct {
 	calls *[]string
 }
 
-func (m matcherIntentProbe) Descriptor() sdk.MatcherDescriptor {
-	return sdk.MatcherDescriptor{Name: "network-intent-probe"}
+func (m matcherIntentProbe) Descriptor() plugin.MatcherDescriptor {
+	return plugin.MatcherDescriptor{Name: "network-intent-probe"}
 }
 
-func (m matcherIntentProbe) Ready(context.Context, sdk.MatchRequest) error {
+func (m matcherIntentProbe) Ready(context.Context, plugin.MatchRequest) error {
 	*m.calls = append(*m.calls, "ready")
 	return nil
 }
 
-func (m matcherIntentProbe) Applicable(context.Context, sdk.MatchRequest) (bool, error) {
+func (m matcherIntentProbe) Applicable(context.Context, plugin.MatchRequest) (bool, error) {
 	*m.calls = append(*m.calls, "applicable")
 	return true, nil
 }
 
-func (m matcherIntentProbe) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
+func (m matcherIntentProbe) Match(_ context.Context, req plugin.MatchRequest) (plugin.MatchResult, error) {
 	*m.calls = append(*m.calls, "match")
-	return sdk.MatchResult{Registry: req.Registry}, nil
+	return plugin.MatchResult{Registry: req.Registry}, nil
 }
 
 func TestPipelineRequiresExplicitMatcherIntent(t *testing.T) {
@@ -54,7 +57,7 @@ func TestPipelineRequiresExplicitMatcherIntent(t *testing.T) {
 		{
 			name: "policy inputs only",
 			configure: func(req *PipelineRequest) {
-				req.FailOn = []sdk.FailOnConstraint{{Kind: sdk.SeverityConstraint, Value: "high"}}
+				req.FailOn = []model.FailOnConstraint{{Kind: model.SeverityConstraint, Value: "high"}}
 				req.WarnOnly = true
 			},
 		},
@@ -98,46 +101,46 @@ func TestPipelineRequiresExplicitMatcherIntent(t *testing.T) {
 
 func networkIntentDetector(t *testing.T) fakeDetector {
 	t.Helper()
-	graph := sdk.New()
-	dependency := sdk.NewDependencyWithID("lodash@4.17.21", sdk.Dependency{
-		Coordinates: sdk.Coordinates{
-			Ecosystem:      sdk.EcosystemNPM,
-			PackageManager: sdk.PackageManagerNPM,
+	graph := model.New()
+	dependency := testnodes.DepFrom(model.DependencyNode{
+		Coordinates: model.Coordinates{
+			Ecosystem:      model.EcosystemNPM,
+			PackageManager: model.PackageManagerNPM,
 			Name:           "lodash",
 			Version:        "4.17.21",
 			PURL:           "pkg:npm/lodash@4.17.21",
 		},
-		Relationship: sdk.DependencyRelationshipDirect,
-		Source:       sdk.DependencySourceRegistry,
+		Relationship: model.DependencyRelationshipDirect,
+		Source:       model.DependencySourceRegistry,
 	})
 	if err := graph.AddNode(dependency); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 	return fakeDetector{
-		descriptor: sdk.DetectorDescriptor{
+		descriptor: plugin.DetectorDescriptor{
 			Name:                "npm-detector",
-			SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemNPM},
-			SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerNPM},
+			SupportedEcosystems: []model.Ecosystem{model.EcosystemNPM},
+			SupportedManagers:   []model.PackageManager{model.PackageManagerNPM},
 		},
-		result: sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(
+		result: plugin.DetectionResult{Graphs: model.SingleGraphContainer(
 			graph,
-			sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+			model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
 		)},
 	}
 }
 
 func networkIntentPipelineRequest() PipelineRequest {
-	target := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/repo"}
+	target := plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/repo"}
 	return PipelineRequest{
 		ProjectPath:     "/repo",
 		ExecutionTarget: target,
-		Subprojects: []sdk.Subproject{{
+		Subprojects: []plugin.Subproject{{
 			ExecutionTarget:         target,
 			RelativePath:            ".",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-			Ecosystem:               sdk.EcosystemNPM,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
+			Ecosystem:               model.EcosystemNPM,
 		}},
-		MatcherFilter: sdk.MatcherFilter{Include: []string{"network-intent-probe"}},
+		MatcherFilter: plugin.MatcherFilter{Include: []string{"network-intent-probe"}},
 	}
 }

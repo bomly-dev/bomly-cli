@@ -8,16 +8,19 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	projectDir := filepath.Join("testdata", "project")
 	detector := Detector{}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:    projectDir,
-		PackageManager: sdk.PackageManagerSBT,
-		Ecosystem:      sdk.EcosystemScala,
+		PackageManager: model.PackageManagerSBT,
+		Ecosystem:      model.EcosystemScala,
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph returned error: %v", err)
@@ -26,18 +29,18 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if graph == nil {
 		t.Fatal("expected graph")
 	}
-	config, ok := graph.Node("com.typesafe:config@1.4.3")
+	config, ok := testnodes.FindDep(graph, "com.typesafe:config@1.4.3")
 	if !ok {
-		t.Fatalf("expected config package, got %v", graph.Nodes())
+		t.Fatalf("expected config package, got %v", graph.DependencyNodes())
 	}
-	if config.PURL != "pkg:maven/com.typesafe/config@1.4.3" {
-		t.Fatalf("expected config PURL, got %q", config.PURL)
+	if !testnodes.Is(config, "pkg:maven/com.typesafe/config@1.4.3") {
+		t.Fatalf("expected config PURL, got %q", config.NodeID())
 	}
-	scalatest, ok := graph.Node("org.scalatest:scalatest@3.2.18")
+	scalatest, ok := testnodes.FindDep(graph, "org.scalatest:scalatest@3.2.18")
 	if !ok {
-		t.Fatalf("expected scalatest package, got %v", graph.Nodes())
+		t.Fatalf("expected scalatest package, got %v", graph.DependencyNodes())
 	}
-	if string(scalatest.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(scalatest.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected scalatest development scope, got %q", string(scalatest.PrimaryScope()))
 	}
 }
@@ -51,19 +54,19 @@ func TestDepGraphFromSBTDependencyTreePreservesScalaArtifactSuffix(t *testing.T)
 		t.Fatalf("depGraphFromSBTDependencyTree returned error: %v", err)
 	}
 
-	core, ok := graph.Node("org.typelevel:cats-core_2.13@2.10.0")
+	core, ok := testnodes.FindDep(graph, "org.typelevel:cats-core_2.13@2.10.0")
 	if !ok {
-		t.Fatalf("expected cats-core_2.13 package, got %v", graph.Nodes())
+		t.Fatalf("expected cats-core_2.13 package, got %v", graph.DependencyNodes())
 	}
-	if core.PURL != "pkg:maven/org.typelevel/cats-core_2.13@2.10.0" {
-		t.Fatalf("expected suffixed Maven PURL, got %q", core.PURL)
+	if !testnodes.Is(core, "pkg:maven/org.typelevel/cats-core_2.13@2.10.0") {
+		t.Fatalf("expected suffixed Maven PURL, got %q", core.NodeID())
 	}
 
-	children, err := graph.DirectDependencies(core.ID)
+	children, err := graph.DirectDependencies(core.NodeID())
 	if err != nil {
 		t.Fatalf("core dependencies: %v", err)
 	}
-	if len(children) != 1 || children[0].Name != "cats-kernel_2.13" {
+	if len(children) != 1 || mustDep(t, children[0]).Name != "cats-kernel_2.13" {
 		t.Fatalf("expected cats-kernel_2.13 child, got %#v", children)
 	}
 }
@@ -80,7 +83,7 @@ func TestNativeDetectorApplicable_SkipsOldSBTWithoutDependencyGraphPlugin(t *tes
 		t.Fatalf("write build.properties: %v", err)
 	}
 
-	applicable, err := (NativeDetector{WorkingDir: projectDir}).Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := (NativeDetector{WorkingDir: projectDir}).Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -96,7 +99,7 @@ func TestNativeDetectorReadyRequiresJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := NativeDetector{}
-	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	err := detector.Ready(context.Background(), plugin.DetectionRequest{})
 	if err == nil {
 		t.Fatal("expected detector to be not ready without a usable Java runtime")
 	}
@@ -112,7 +115,7 @@ func TestNativeDetectorReadyRequiresSBT(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := NativeDetector{}
-	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	err := detector.Ready(context.Background(), plugin.DetectionRequest{})
 	if err == nil {
 		t.Fatal("expected detector to be not ready without sbt")
 	}
@@ -128,7 +131,7 @@ func TestNativeDetectorReadyWithSBTAndJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := NativeDetector{}
-	if err := detector.Ready(context.Background(), sdk.DetectionRequest{}); err != nil {
+	if err := detector.Ready(context.Background(), plugin.DetectionRequest{}); err != nil {
 		t.Fatalf("expected detector to be ready, got %v", err)
 	}
 }
@@ -179,7 +182,7 @@ func TestNativeDetectorApplicable_AllowsOldSBTWithDependencyGraphPlugin(t *testi
 		t.Fatalf("write plugins.sbt: %v", err)
 	}
 
-	applicable, err := (NativeDetector{WorkingDir: projectDir}).Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := (NativeDetector{WorkingDir: projectDir}).Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -200,11 +203,22 @@ func TestNativeDetectorApplicable_AllowsModernSBT(t *testing.T) {
 		t.Fatalf("write build.properties: %v", err)
 	}
 
-	applicable, err := (NativeDetector{WorkingDir: projectDir}).Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := (NativeDetector{WorkingDir: projectDir}).Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
 	if !applicable {
 		t.Fatalf("expected modern sbt project to use native detector")
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*model.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

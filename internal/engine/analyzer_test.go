@@ -5,12 +5,13 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 type fakeAnalyzer struct {
-	descriptor sdk.AnalyzerDescriptor
-	result     sdk.AnalyzeResult
+	descriptor plugin.AnalyzerDescriptor
+	result     plugin.AnalyzeResult
 	err        error
 	ready      *bool
 	applicable *bool
@@ -18,16 +19,16 @@ type fakeAnalyzer struct {
 	calls      int
 }
 
-func (f *fakeAnalyzer) Descriptor() sdk.AnalyzerDescriptor { return f.descriptor }
+func (f *fakeAnalyzer) Descriptor() plugin.AnalyzerDescriptor { return f.descriptor }
 
-func (f *fakeAnalyzer) Ready(context.Context, sdk.AnalyzeRequest) error {
+func (f *fakeAnalyzer) Ready(context.Context, plugin.AnalyzeRequest) error {
 	if f.ready != nil && !*f.ready {
 		return errors.New("not ready")
 	}
 	return nil
 }
 
-func (f *fakeAnalyzer) Applicable(_ context.Context, _ sdk.AnalyzeRequest) (bool, error) {
+func (f *fakeAnalyzer) Applicable(_ context.Context, _ plugin.AnalyzeRequest) (bool, error) {
 	if f.applyErr != nil {
 		return false, f.applyErr
 	}
@@ -37,15 +38,15 @@ func (f *fakeAnalyzer) Applicable(_ context.Context, _ sdk.AnalyzeRequest) (bool
 	return *f.applicable, nil
 }
 
-func (f *fakeAnalyzer) Analyze(_ context.Context, _ sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
+func (f *fakeAnalyzer) Analyze(_ context.Context, _ plugin.AnalyzeRequest) (plugin.AnalyzeResult, error) {
 	f.calls++
 	return f.result, f.err
 }
 
 func TestEngineAnalyzeNoAnalyzersIsNotAnError(t *testing.T) {
 	engine := NewEngine(newTestRegistry())
-	g := sdk.New()
-	result, err := engine.Analyze(context.Background(), sdk.AnalyzeRequest{Graph: g})
+	g := model.New()
+	result, err := engine.Analyze(context.Background(), plugin.AnalyzeRequest{Graph: g})
 	if err != nil {
 		t.Fatalf("Analyze with no analyzers returned err: %v", err)
 	}
@@ -57,13 +58,13 @@ func TestEngineAnalyzeNoAnalyzersIsNotAnError(t *testing.T) {
 
 func TestEngineAnalyzeRunsApplicableAndCollectsStats(t *testing.T) {
 	reg := newTestRegistry()
-	g := sdk.New()
+	g := model.New()
 	a := &fakeAnalyzer{
-		descriptor: sdk.AnalyzerDescriptor{
+		descriptor: plugin.AnalyzerDescriptor{
 			Name: "fake",
 		},
-		result: sdk.AnalyzeResult{
-			AnalyzerStats: map[string]sdk.ReachabilityStats{
+		result: plugin.AnalyzeResult{
+			AnalyzerStats: map[string]plugin.ReachabilityStats{
 				"fake": {Reachable: 2, Unreachable: 1},
 			},
 		},
@@ -71,7 +72,7 @@ func TestEngineAnalyzeRunsApplicableAndCollectsStats(t *testing.T) {
 	reg.RegisterAnalyzer(a)
 
 	engine := NewEngine(reg)
-	result, err := engine.Analyze(context.Background(), sdk.AnalyzeRequest{
+	result, err := engine.Analyze(context.Background(), plugin.AnalyzeRequest{
 		Graph: g,
 	})
 	if err != nil {
@@ -90,24 +91,24 @@ func TestEngineAnalyzeRunsApplicableAndCollectsStats(t *testing.T) {
 
 func TestEngineAnalyzeAggregatesErrorsAndContinues(t *testing.T) {
 	reg := newTestRegistry()
-	g := sdk.New()
+	g := model.New()
 	failing := &fakeAnalyzer{
-		descriptor: sdk.AnalyzerDescriptor{
+		descriptor: plugin.AnalyzerDescriptor{
 			Name: "boom",
 		},
 		err: errors.New("boom"),
 	}
 	ok := &fakeAnalyzer{
-		descriptor: sdk.AnalyzerDescriptor{
+		descriptor: plugin.AnalyzerDescriptor{
 			Name: "ok",
 		},
-		result: sdk.AnalyzeResult{},
+		result: plugin.AnalyzeResult{},
 	}
 	reg.RegisterAnalyzer(failing)
 	reg.RegisterAnalyzer(ok)
 
 	engine := NewEngine(reg)
-	result, err := engine.Analyze(context.Background(), sdk.AnalyzeRequest{
+	result, err := engine.Analyze(context.Background(), plugin.AnalyzeRequest{
 		Graph: g,
 	})
 	if err == nil {
@@ -123,20 +124,20 @@ func TestEngineAnalyzeAggregatesErrorsAndContinues(t *testing.T) {
 
 func TestEngineAnalyzeRespectsLanguageFilter(t *testing.T) {
 	reg := newTestRegistry()
-	g := sdk.New()
+	g := model.New()
 	goOnly := &fakeAnalyzer{
-		descriptor: sdk.AnalyzerDescriptor{
+		descriptor: plugin.AnalyzerDescriptor{
 			Name:               "goonly",
-			SupportedLanguages: []sdk.Language{sdk.LanguageGo},
+			SupportedLanguages: []model.Language{model.LanguageGo},
 		},
-		result: sdk.AnalyzeResult{},
+		result: plugin.AnalyzeResult{},
 	}
 	reg.RegisterAnalyzer(goOnly)
 
 	engine := NewEngine(reg)
-	result, err := engine.Analyze(context.Background(), sdk.AnalyzeRequest{
+	result, err := engine.Analyze(context.Background(), plugin.AnalyzeRequest{
 		Graph:    g,
-		Language: sdk.LanguageJavaScript,
+		Language: model.LanguageJavaScript,
 	})
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)

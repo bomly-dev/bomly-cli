@@ -5,6 +5,23 @@
       "dependencies": [
         {
           "depends_on": [
+            "pkg:cocoapods/AFNetworking@3.2.1",
+            "pkg:cocoapods/Alamofire@4.3.0",
+            "pkg:cocoapods/Expecta@1.0.6",
+            "pkg:cocoapods/HockeyKit@2.0.7",
+            "pkg:cocoapods/KIF@3.7.7",
+            "pkg:cocoapods/OCMock@3.4.3",
+            "pkg:cocoapods/OpenSSL-Static@1.0.2.c1",
+            "pkg:cocoapods/ReactiveCocoa@5.0.0-rc.1",
+            "pkg:cocoapods/Specta@1.0.7"
+          ],
+          "id": "module:Podfile#pkg:cocoapods/root",
+          "licenses": [],
+          "name": "root",
+          "purl": "pkg:cocoapods/root"
+        },
+        {
+          "depends_on": [
             "pkg:cocoapods/AFNetworking%2FReachability@3.2.1",
             "pkg:cocoapods/AFNetworking%2FSecurity@3.2.1",
             "pkg:cocoapods/AFNetworking%2FSerialization@3.2.1"
@@ -14,11 +31,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "AFNetworking/NSURLSession",
@@ -36,11 +58,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "AFNetworking/Reachability",
@@ -58,11 +85,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "AFNetworking/Security",
@@ -80,11 +112,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "AFNetworking/Serialization",
@@ -104,11 +141,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "AFNetworking/UIKit",
@@ -132,11 +174,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "AFNetworking",
@@ -154,11 +201,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "Alamofire",
@@ -176,11 +228,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "Expecta",
@@ -198,11 +255,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "HockeyKit",
@@ -220,11 +282,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "KIF",
@@ -242,11 +309,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "OCMock",
@@ -264,11 +336,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "OpenSSL-Static",
@@ -288,11 +365,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ReactiveCocoa",
@@ -312,11 +394,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ReactiveSwift",
@@ -334,11 +421,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "Result",
@@ -356,11 +448,16 @@
           "locations": [
             {
               "access_path": "Podfile.lock",
+              "module_root": ".",
               "position": {
                 "file": "Podfile.lock",
                 "line": 0
               },
-              "real_path": "Podfile.lock"
+              "real_path": "Podfile.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "Specta",
@@ -370,24 +467,6 @@
             "development"
           ],
           "version": "1.0.7"
-        },
-        {
-          "depends_on": [
-            "pkg:cocoapods/AFNetworking@3.2.1",
-            "pkg:cocoapods/Alamofire@4.3.0",
-            "pkg:cocoapods/Expecta@1.0.6",
-            "pkg:cocoapods/HockeyKit@2.0.7",
-            "pkg:cocoapods/KIF@3.7.7",
-            "pkg:cocoapods/OCMock@3.4.3",
-            "pkg:cocoapods/OpenSSL-Static@1.0.2.c1",
-            "pkg:cocoapods/ReactiveCocoa@5.0.0-rc.1",
-            "pkg:cocoapods/Specta@1.0.7"
-          ],
-          "id": "pkg:cocoapods/root",
-          "licenses": [],
-          "name": "root",
-          "package_ref": "pkg:cocoapods/root",
-          "purl": "pkg:cocoapods/root"
         }
       ],
       "detector": "cocoapods-detector",
@@ -528,13 +607,6 @@
       "name": "Specta",
       "purl": "pkg:cocoapods/Specta@1.0.7",
       "version": "1.0.7",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "swift",
-      "licenses": [],
-      "name": "root",
-      "purl": "pkg:cocoapods/root",
       "vulnerabilities": []
     }
   ],

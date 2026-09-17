@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	plugschema "github.com/bomly-dev/bomly-sdk"
+	sdkplugin "github.com/bomly-dev/bomly-sdk/plugin"
+	"github.com/bomly-dev/bomly-sdk/runtime"
 )
 
 // isNotInstalledError reports whether err is the sentinel returned by findInstalled
@@ -88,28 +89,28 @@ func Test(ctx context.Context, root, id string, builtins []Info) (*TestResult, e
 	}, nil
 }
 
-func probePluginReadiness(ctx context.Context, client plugschema.Client, kind plugschema.PluginKind) (bool, string, error) {
+func probePluginReadiness(ctx context.Context, client runtime.Client, kind sdkplugin.PluginKind) (bool, string, error) {
 	switch kind {
-	case plugschema.PluginKindDetector:
-		resp, err := client.DetectorReady(ctx, &plugschema.DetectRequest{})
+	case sdkplugin.PluginKindDetector:
+		resp, err := client.DetectorReady(ctx, &sdkplugin.DetectRequest{})
 		if err != nil {
 			return false, "detector-ready", fmt.Errorf("run detector readiness probe: %w", err)
 		}
 		return resp != nil && resp.Ready, "detector-ready", nil
-	case plugschema.PluginKindMatcher:
-		resp, err := client.MatcherReady(ctx, &plugschema.MatchRequest{})
+	case sdkplugin.PluginKindMatcher:
+		resp, err := client.MatcherReady(ctx, &sdkplugin.MatchRequest{})
 		if err != nil {
 			return false, "matcher-ready", fmt.Errorf("run matcher readiness probe: %w", err)
 		}
 		return resp != nil && resp.Ready, "matcher-ready", nil
-	case plugschema.PluginKindAuditor:
-		resp, err := client.AuditorReady(ctx, &plugschema.AuditRequest{})
+	case sdkplugin.PluginKindAuditor:
+		resp, err := client.AuditorReady(ctx, &sdkplugin.AuditRequest{})
 		if err != nil {
 			return false, "auditor-ready", fmt.Errorf("run auditor readiness probe: %w", err)
 		}
 		return resp != nil && resp.Ready, "auditor-ready", nil
-	case plugschema.PluginKindAnalyzer:
-		resp, err := client.AnalyzerReady(ctx, &plugschema.AnalyzeRequest{})
+	case sdkplugin.PluginKindAnalyzer:
+		resp, err := client.AnalyzerReady(ctx, &sdkplugin.AnalyzeRequest{})
 		if err != nil {
 			return false, "analyzer-ready", fmt.Errorf("run analyzer readiness probe: %w", err)
 		}

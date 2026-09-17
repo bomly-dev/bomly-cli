@@ -7,14 +7,16 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
-func diffAuditOutput(audit *diffengine.Audit, baseRegistry, headRegistry *sdk.PackageRegistry) *output.DiffAudit {
+func diffAuditOutput(audit *diffengine.Audit, baseRegistry, headRegistry *model.PackageRegistry) *output.DiffAudit {
 	if audit == nil {
 		return nil
 	}
-	combined := append(append([]sdk.Finding{}, audit.Introduced...), audit.Persisted...)
+	combined := append(append([]model.Finding{}, audit.Introduced...), audit.Persisted...)
 	return &output.DiffAudit{
 		Introduced:   output.FindingsFromScan(audit.Introduced, headRegistry),
 		Resolved:     output.FindingsFromScan(audit.Resolved, baseRegistry),
@@ -33,7 +35,7 @@ func reportOptionsFromPipelineResults(enabled bool, results ...engine.PipelineRe
 		return options
 	}
 	runsSeen := make(map[string]struct{})
-	stats := make(map[string]sdk.ReachabilityStats)
+	stats := make(map[string]plugin.ReachabilityStats)
 	for _, result := range results {
 		for _, run := range result.AnalyzerRuns {
 			if run == "" {
@@ -64,9 +66,9 @@ func reportOptionsFromPipelineResults(enabled bool, results ...engine.PipelineRe
 // detectorWarningsFromResults concatenates the detection warnings of every
 // pipeline run in the command (diff has two), dropping duplicates so the two
 // sides of a diff do not report the same misconfiguration twice.
-func detectorWarningsFromResults(results ...engine.PipelineResult) []sdk.DetectorWarning {
-	var warnings []sdk.DetectorWarning
-	seen := make(map[sdk.DetectorWarning]struct{})
+func detectorWarningsFromResults(results ...engine.PipelineResult) []plugin.DetectorWarning {
+	var warnings []plugin.DetectorWarning
+	seen := make(map[plugin.DetectorWarning]struct{})
 	for _, result := range results {
 		for _, warning := range result.DetectorWarnings {
 			if _, ok := seen[warning]; ok {
@@ -81,7 +83,7 @@ func detectorWarningsFromResults(results ...engine.PipelineResult) []sdk.Detecto
 
 // matcherRan reports whether a matcher with the given name produced stats in
 // any of the supplied pipeline runs (i.e. it was selected and executed).
-func matcherRan(name string, statSets ...[]sdk.MatcherStats) bool {
+func matcherRan(name string, statSets ...[]plugin.MatcherStats) bool {
 	for _, stats := range statSets {
 		for _, stat := range stats {
 			if stat.Name == name {
@@ -92,37 +94,38 @@ func matcherRan(name string, statSets ...[]sdk.MatcherStats) bool {
 	return false
 }
 
-func explainPackageRef(pkg *sdk.Dependency, registry *sdk.PackageRegistry) output.ExplainDependency {
+func explainPackageRef(pkg *model.DependencyNode, registry *model.PackageRegistry) output.ExplainDependency {
 	ref := output.PackageFromDependencyAndRegistry(pkg, registry)
 	if pkg == nil {
 		return output.ExplainDependency{PackageRef: ref}
 	}
 	result := output.ExplainDependency{PackageRef: ref}
-	if registry != nil && pkg.PURL != "" {
-		if matched, ok := registry.Get(pkg.PURL); ok && matched != nil {
+	if registry != nil && pkg.NodeID() != "" {
+		if matched, ok := registry.Get(pkg.NodeID()); ok && matched != nil {
 			result.Remediation = matched.Remediation.Clone()
 			if result.Remediation != nil {
 				result.Remediation.Suggestions = remediationSuggestionsForDependency(
 					result.Remediation.Suggestions,
-					pkg.ID,
+					pkg.NodeID(),
 				)
 			}
 		}
 	}
-	if legacyID := pkg.StableID(); legacyID != "" {
-		result.ID = legacyID
-	}
+	// The published ID is the node's identity: a canonical package URL. The
+	// separate "stable ID" this used to emit was the pre-ADR-0041 identity
+	// machinery, minted alongside the node ID and free to disagree with it.
+	result.ID = pkg.NodeID()
 	return result
 }
 
 func remediationSuggestionsForDependency(
-	suggestions []sdk.PackageRemediationSuggestion,
+	suggestions []model.PackageRemediationSuggestion,
 	dependencyRef string,
-) []sdk.PackageRemediationSuggestion {
+) []model.PackageRemediationSuggestion {
 	if dependencyRef == "" {
 		return nil
 	}
-	filtered := make([]sdk.PackageRemediationSuggestion, 0, len(suggestions))
+	filtered := make([]model.PackageRemediationSuggestion, 0, len(suggestions))
 	for _, suggestion := range suggestions {
 		if !slices.Contains(suggestion.AffectedDependencyRefs, dependencyRef) {
 			continue
@@ -134,14 +137,22 @@ func remediationSuggestionsForDependency(
 	return filtered
 }
 
-func explainPathsWithStableIDs(paths []output.DependencyPath) []output.DependencyPath {
+// explainPathsWithLinks fills in the cross-references a path carries -- which
+// package introduced it, and which member a cycle returns to -- naming them by
+// the IDs the packages already have.
+//
+// It used to rewrite every path package's ID to "name@version" as well. That
+// was the pre-ADR-0041 identity, and keeping it here while the focused
+// dependency published its node ID left the document unable to join to itself:
+// "dependency.id" read "pkg:npm/lodash@4.17.21" and the same node under
+// "paths[].packages[]" read "lodash@4.17.21", so no consumer could match a
+// path entry to a dependency, package, or finding record. The short form also
+// collides across ecosystems, where the canonical package URL does not.
+func explainPathsWithLinks(paths []output.DependencyPath) []output.DependencyPath {
 	out := make([]output.DependencyPath, len(paths))
 	for i, path := range paths {
 		out[i] = path
-		out[i].Packages = make([]output.PackageRef, len(path.Packages))
-		for j, ref := range path.Packages {
-			out[i].Packages[j] = explainPackageRefFromOutput(ref)
-		}
+		out[i].Packages = append([]output.PackageRef(nil), path.Packages...)
 		if len(out[i].Packages) > 0 {
 			out[i].IntroducedVia = out[i].Packages[0].ID
 		}
@@ -155,11 +166,4 @@ func explainPathsWithStableIDs(paths []output.DependencyPath) []output.Dependenc
 		}
 	}
 	return out
-}
-
-func explainPackageRefFromOutput(ref output.PackageRef) output.PackageRef {
-	if ref.Name != "" && ref.Version != "" {
-		ref.ID = ref.Name + "@" + ref.Version
-	}
-	return ref
 }

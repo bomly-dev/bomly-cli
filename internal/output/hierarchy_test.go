@@ -1,9 +1,10 @@
 package output
 
 import (
-	"github.com/bomly-dev/bomly-sdk"
 	"reflect"
 	"testing"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestClassifyManifest(t *testing.T) {
@@ -120,9 +121,9 @@ func TestBuildHierarchySubprojectsAndModules(t *testing.T) {
 
 func TestBuildHierarchyAttachesModulesToParentManifest(t *testing.T) {
 	hierarchy := BuildHierarchy([]ScanManifest{
-		{Path: "package-lock.json", Subproject: ".", PackageManager: sdk.PackageManagerNPM, Ecosystem: sdk.EcosystemNPM},
-		{Path: "go.mod", Subproject: ".", PackageManager: sdk.PackageManagerGoMod, Ecosystem: sdk.EcosystemGo},
-		{Path: "apps/web/package.json", Subproject: ".", PackageManager: sdk.PackageManagerNPM, Ecosystem: sdk.EcosystemNPM},
+		{Path: "package-lock.json", Subproject: ".", PackageManager: model.PackageManagerNPM, Ecosystem: model.EcosystemNPM},
+		{Path: "go.mod", Subproject: ".", PackageManager: model.PackageManagerGoMod, Ecosystem: model.EcosystemGo},
+		{Path: "apps/web/package.json", Subproject: ".", PackageManager: model.PackageManagerNPM, Ecosystem: model.EcosystemNPM},
 	})
 	if len(hierarchy.Children) != 1 {
 		t.Fatalf("expected one module child, got %#v", hierarchy.Children)
@@ -137,9 +138,9 @@ func TestBuildHierarchyAttachesModulesToParentManifest(t *testing.T) {
 
 func TestBuildHierarchyModuleWithoutParentManifestUnattached(t *testing.T) {
 	hierarchy := BuildHierarchy([]ScanManifest{
-		{Path: "package-lock.json", Subproject: ".", PackageManager: sdk.PackageManagerNPM, Ecosystem: sdk.EcosystemNPM},
-		{Path: "yarn.lock", Subproject: ".", PackageManager: sdk.PackageManagerYarn, Ecosystem: sdk.EcosystemNPM},
-		{Path: "crates/api/Cargo.toml", Subproject: ".", PackageManager: sdk.PackageManagerCargo, Ecosystem: sdk.EcosystemRust},
+		{Path: "package-lock.json", Subproject: ".", PackageManager: model.PackageManagerNPM, Ecosystem: model.EcosystemNPM},
+		{Path: "yarn.lock", Subproject: ".", PackageManager: model.PackageManagerYarn, Ecosystem: model.EcosystemNPM},
+		{Path: "crates/api/Cargo.toml", Subproject: ".", PackageManager: model.PackageManagerCargo, Ecosystem: model.EcosystemRust},
 	})
 	if len(hierarchy.Children) != 1 {
 		t.Fatalf("expected one module child, got %#v", hierarchy.Children)

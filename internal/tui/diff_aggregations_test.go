@@ -6,7 +6,10 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	sdkmodel "github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // fixtureDiffPayload returns a representative DiffResponse covering every
@@ -52,14 +55,14 @@ func fixtureDiffPayload() output.DiffResponse {
 		}},
 		Audit: &output.DiffAudit{
 			Introduced: []output.AuditFinding{
-				{ID: "CVE-2024-0001", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityHigh, Source: "osv", Package: output.FindingPackageRef{Name: "react", Version: "19.0.0"}},
-				{ID: "license:unknown-license:zod@3.23.0", Kind: sdk.FindingKindLicense, Severity: "n/a", Auditor: "license", Source: "license", Package: output.FindingPackageRef{Name: "zod", Version: "3.23.0"}},
+				{ID: "CVE-2024-0001", Kind: sdkmodel.FindingKindVulnerability, Severity: sdkmodel.SeverityHigh, Source: "osv", Package: output.FindingPackageRef{Name: "react", Version: "19.0.0"}},
+				{ID: "license:unknown-license:zod@3.23.0", Kind: sdkmodel.FindingKindLicense, Severity: "n/a", Auditor: "license", Source: "license", Package: output.FindingPackageRef{Name: "zod", Version: "3.23.0"}},
 			},
 			Persisted: []output.AuditFinding{
-				{ID: "CVE-2023-9999", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityMedium, Source: "osv", Package: output.FindingPackageRef{Name: "lodash", Version: "4.17.20"}},
+				{ID: "CVE-2023-9999", Kind: sdkmodel.FindingKindVulnerability, Severity: sdkmodel.SeverityMedium, Source: "osv", Package: output.FindingPackageRef{Name: "lodash", Version: "4.17.20"}},
 			},
 			Resolved: []output.AuditFinding{
-				{ID: "CVE-2022-1111", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityLow, Source: "osv", Package: output.FindingPackageRef{Name: "dropped", Version: "0.1.0"}},
+				{ID: "CVE-2022-1111", Kind: sdkmodel.FindingKindVulnerability, Severity: sdkmodel.SeverityLow, Source: "osv", Package: output.FindingPackageRef{Name: "dropped", Version: "0.1.0"}},
 			},
 			// AuditSummary.Total now reflects Introduced + Persisted only
 			// (scan_output.go no longer appends Resolved). For this fixture
@@ -70,7 +73,7 @@ func fixtureDiffPayload() output.DiffResponse {
 }
 
 func newFixtureDiffModel() *DiffModel {
-	return NewDiff(fixtureDiffPayload(), sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	return NewDiff(fixtureDiffPayload(), plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 }
 
 // ---- diffAggregateCounts (footer) -----------------------------------------
@@ -112,7 +115,7 @@ func TestDiffAggregateCounts_FromFixture(t *testing.T) {
 }
 
 func TestDiffAggregateCounts_EmptyPayload(t *testing.T) {
-	m := NewDiff(output.DiffResponse{}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(output.DiffResponse{}, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	c := m.diffAggregateCounts()
 	if c.ManifestDeltas != 0 || c.PackageDeltas != 0 || c.VulnDeltas != 0 || c.FindingDeltas != 0 || c.LicenseUniqueDeltas != 0 {
 		t.Errorf("empty payload should yield zero counts, got %+v", c)
@@ -126,7 +129,7 @@ func TestDiffComponentsProjectDependencyDetailTransition(t *testing.T) {
 			Name:             "example",
 			Version:          "1.0.0",
 			Relationship:     "direct",
-			Source:           sdk.DependencySourceRegistry,
+			Source:           sdkmodel.DependencySourceRegistry,
 			RegistryEligible: true,
 		},
 		After: output.DiffDependencyTransitionState{
@@ -134,13 +137,13 @@ func TestDiffComponentsProjectDependencyDetailTransition(t *testing.T) {
 			Name:             "example",
 			Version:          "1.0.0",
 			Relationship:     "transitive",
-			Source:           sdk.DependencySourceGit,
+			Source:           sdkmodel.DependencySourceGit,
 			RegistryEligible: false,
 		},
-		ChangedFields: []sdk.DependencyDetailField{
-			sdk.DependencyDetailRelationship,
-			sdk.DependencyDetailSource,
-			sdk.DependencyDetailRegistryEligibility,
+		ChangedFields: []sdkmodel.DependencyDetailField{
+			sdkmodel.DependencyDetailRelationship,
+			sdkmodel.DependencyDetailSource,
+			sdkmodel.DependencyDetailRegistryEligibility,
 		},
 	}
 	payload := output.DiffResponse{
@@ -148,11 +151,11 @@ func TestDiffComponentsProjectDependencyDetailTransition(t *testing.T) {
 		Results: output.DiffResults{Manifests: []output.DiffManifestResult{{
 			Status:      "changed",
 			Path:        "package-lock.json",
-			Ecosystem:   sdk.EcosystemNPM,
+			Ecosystem:   sdkmodel.EcosystemNPM,
 			Transitions: []output.DiffDependencyTransition{transition},
 		}}},
 	}
-	model := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	model := NewDiff(payload, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	changes := model.collectComponentChanges()
 	if len(changes) != 1 || changes[0].status != "transitioned" {
 		t.Fatalf("component changes = %#v", changes)
@@ -183,8 +186,8 @@ func TestDiffComponentsFoldVersionAndDetailChangesIntoOneRow(t *testing.T) {
 	transition := output.DiffDependencyTransition{
 		Before: output.DiffDependencyTransitionState{ID: "example@1.0.0", Name: "example", Version: "1.0.0", Relationship: "direct"},
 		After:  output.DiffDependencyTransitionState{ID: "example@2.0.0", Name: "example", Version: "2.0.0", Relationship: "transitive"},
-		ChangedFields: []sdk.DependencyDetailField{
-			sdk.DependencyDetailRelationship,
+		ChangedFields: []sdkmodel.DependencyDetailField{
+			sdkmodel.DependencyDetailRelationship,
 		},
 	}
 	payload := output.DiffResponse{
@@ -199,7 +202,7 @@ func TestDiffComponentsFoldVersionAndDetailChangesIntoOneRow(t *testing.T) {
 			Transitions: []output.DiffDependencyTransition{transition},
 		}}},
 	}
-	model := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	model := NewDiff(payload, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	changes := model.collectComponentChanges()
 	if len(changes) != 1 || changes[0].status != "changed" || changes[0].transition == nil {
 		t.Fatalf("combined component change was not folded into one row: %#v", changes)
@@ -227,7 +230,7 @@ func TestDiffAggregateCounts_LicenseDedup(t *testing.T) {
 			{Package: output.PackageRef{Name: "e", Licenses: []output.LicenseRef{{SPDXExpression: "MIT"}}}},
 		},
 	}}}}
-	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(payload, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	if got := m.diffAggregateCounts().LicenseUniqueDeltas; got != 1 {
 		t.Errorf("LicenseUniqueDeltas = %d, want 1", got)
 	}
@@ -290,34 +293,34 @@ func TestComputeOverviewStats_ScopesAreStatusComposite(t *testing.T) {
 
 func TestComputeOverviewStats_RelationshipsScopedToChanges(t *testing.T) {
 	// Build a head graph where react is root, lodash is direct, otherwise transitive.
-	g := sdk.New()
-	react := sdk.NewDependencyRef("react", "19.0.0")
-	lodash := sdk.NewDependencyRef("lodash", "4.17.20")
+	g := sdkmodel.New()
+	react := testnodes.Ref("react", "19.0.0")
+	lodash := testnodes.Ref("lodash", "4.17.20")
 	if err := g.AddNode(react); err != nil {
 		t.Fatalf("add react: %v", err)
 	}
 	if err := g.AddNode(lodash); err != nil {
 		t.Fatalf("add lodash: %v", err)
 	}
-	if err := g.AddEdge(react.ID, lodash.ID); err != nil {
+	if err := g.AddEdge(react.NodeID(), lodash.NodeID()); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
 
 	payload := output.DiffResponse{Results: output.DiffResults{Manifests: []output.DiffManifestResult{{
 		Status: "changed", Path: "package.json", Ecosystem: "npm",
 		Changed: []output.DiffChangedPackage{
-			{Before: output.PackageRef{Name: "react", Version: "18.2.0"}, After: output.PackageRef{ID: react.ID, Name: "react", Version: "19.0.0"}},
+			{Before: output.PackageRef{Name: "react", Version: "18.2.0"}, After: output.PackageRef{ID: react.NodeID(), Name: "react", Version: "19.0.0"}},
 		},
 		Added: []output.DiffPackageChange{
-			{Package: output.PackageRef{ID: lodash.ID, Name: "lodash", Version: "4.17.20"}},
+			{Package: output.PackageRef{ID: lodash.NodeID(), Name: "lodash", Version: "4.17.20"}},
 		},
 		Removed: []output.DiffPackageChange{
 			{Package: output.PackageRef{Name: "old-pkg", Version: "1.0.0"}}, // not in head graph
 		},
 	}}}}
 
-	consolidated := sdk.ConsolidatedGraph{Graphs: sdk.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package.json"})}
-	m := NewDiff(payload, sdk.ConsolidatedGraph{}, consolidated)
+	consolidated := plugin.ConsolidatedGraph{Graphs: sdkmodel.SingleGraphContainer(g, sdkmodel.ManifestMetadata{Path: "package.json"})}
+	m := NewDiff(payload, plugin.ConsolidatedGraph{}, consolidated)
 	stats := m.computeOverviewStats()
 
 	// New shape: composite keys "<status> <relationship>".
@@ -346,26 +349,26 @@ func TestComputeOverviewStats_RemovedPkgUsesBaseGraphForRelationship(t *testing.
 	// Build a base graph where "old-pkg" is direct (under a root); build a
 	// head graph that does NOT contain it. The Overview must classify it
 	// as "removed direct", not "removed unknown".
-	baseG := sdk.New()
-	root := sdk.NewDependencyRef("root", "1")
-	old := sdk.NewDependencyRef("old-pkg", "1.0.0")
-	for _, p := range []*sdk.Dependency{root, old} {
+	baseG := sdkmodel.New()
+	root := testnodes.Ref("root", "1")
+	old := testnodes.Ref("old-pkg", "1.0.0")
+	for _, p := range []*sdkmodel.DependencyNode{root, old} {
 		if err := baseG.AddNode(p); err != nil {
 			t.Fatalf("add: %v", err)
 		}
 	}
-	if err := baseG.AddEdge(root.ID, old.ID); err != nil {
+	if err := baseG.AddEdge(root.NodeID(), old.NodeID()); err != nil {
 		t.Fatalf("dep: %v", err)
 	}
 
 	payload := output.DiffResponse{Results: output.DiffResults{Manifests: []output.DiffManifestResult{{
 		Status: "changed", Path: "go.mod", Ecosystem: "go",
 		Removed: []output.DiffPackageChange{
-			{Package: output.PackageRef{ID: old.ID, Name: "old-pkg", Version: "1.0.0"}},
+			{Package: output.PackageRef{ID: old.NodeID(), Name: "old-pkg", Version: "1.0.0"}},
 		},
 	}}}}
-	base := sdk.ConsolidatedGraph{Graphs: sdk.SingleGraphContainer(baseG, sdk.ManifestMetadata{Path: "go.mod"})}
-	m := NewDiff(payload, base, sdk.ConsolidatedGraph{})
+	base := plugin.ConsolidatedGraph{Graphs: sdkmodel.SingleGraphContainer(baseG, sdkmodel.ManifestMetadata{Path: "go.mod"})}
+	m := NewDiff(payload, base, plugin.ConsolidatedGraph{})
 	stats := m.computeOverviewStats()
 	if got := stats.relationships["removed direct"]; got != 1 {
 		t.Errorf("relationships[removed direct] = %d, want 1 (looked up in BASE graph)", got)
@@ -452,24 +455,24 @@ func TestComputeOverviewStats_LicenseAndPackageByStatus(t *testing.T) {
 	// when the rule keyword isn't one we know about.
 	payload := output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
-			{ID: "license:unknown-license:pkg@1", Kind: sdk.FindingKindLicense, Auditor: "license"},
-			{ID: "license:invalid-license:pkg@2", Kind: sdk.FindingKindLicense, Auditor: "license"},
-			{ID: "license:denied-license:pkg@3", Kind: sdk.FindingKindLicense, Auditor: "license"},
-			{ID: "package:denied-package:pkg@4", Kind: sdk.FindingKindPackage, Auditor: "package"},
-			{ID: "package:denied-group:pkg@5", Kind: sdk.FindingKindPackage, Auditor: "package"},
-			{ID: "package:suspicious-package:pkg@6", Kind: sdk.FindingKindPackage, Auditor: "package"},
+			{ID: "license:unknown-license:pkg@1", Kind: sdkmodel.FindingKindLicense, Auditor: "license"},
+			{ID: "license:invalid-license:pkg@2", Kind: sdkmodel.FindingKindLicense, Auditor: "license"},
+			{ID: "license:denied-license:pkg@3", Kind: sdkmodel.FindingKindLicense, Auditor: "license"},
+			{ID: "package:denied-package:pkg@4", Kind: sdkmodel.FindingKindPackage, Auditor: "package"},
+			{ID: "package:denied-group:pkg@5", Kind: sdkmodel.FindingKindPackage, Auditor: "package"},
+			{ID: "package:suspicious-package:pkg@6", Kind: sdkmodel.FindingKindPackage, Auditor: "package"},
 		},
 		Persisted: []output.AuditFinding{
-			{ID: "license:unknown-license:pkg@7", Kind: sdk.FindingKindLicense, Auditor: "license"},
+			{ID: "license:unknown-license:pkg@7", Kind: sdkmodel.FindingKindLicense, Auditor: "license"},
 			// External plugin emitting a kind we don't know — must land
 			// in the "other" row.
-			{ID: "ext:weird-rule:pkg@8", Kind: sdk.FindingKindPackage, Auditor: "external"},
+			{ID: "ext:weird-rule:pkg@8", Kind: sdkmodel.FindingKindPackage, Auditor: "external"},
 		},
 		Resolved: []output.AuditFinding{
-			{ID: "license:denied-license:pkg@9", Kind: sdk.FindingKindLicense, Auditor: "license"},
+			{ID: "license:denied-license:pkg@9", Kind: sdkmodel.FindingKindLicense, Auditor: "license"},
 		},
 	}}
-	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(payload, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	stats := m.computeOverviewStats()
 
 	// License table.
@@ -508,9 +511,9 @@ func TestFindingKindOf_ClassifiesBuiltinAuditors(t *testing.T) {
 		f    output.AuditFinding
 		want string
 	}{
-		{output.AuditFinding{Kind: sdk.FindingKindVulnerability}, "vulnerability"},
-		{output.AuditFinding{Kind: sdk.FindingKindLicense}, "license"},
-		{output.AuditFinding{Kind: sdk.FindingKindPackage}, "package"},
+		{output.AuditFinding{Kind: sdkmodel.FindingKindVulnerability}, "vulnerability"},
+		{output.AuditFinding{Kind: sdkmodel.FindingKindLicense}, "license"},
+		{output.AuditFinding{Kind: sdkmodel.FindingKindPackage}, "package"},
 		{output.AuditFinding{Kind: "vuln"}, "vulnerability"},     // alias
 		{output.AuditFinding{Kind: "advisory"}, "vulnerability"}, // alias
 		{output.AuditFinding{Kind: "cve"}, "vulnerability"},      // alias
@@ -564,7 +567,7 @@ func TestComputeOverviewStats_AuditRanAndTotal(t *testing.T) {
 		t.Errorf("auditSummaryTotal = %d, want 3 (Introduced+Persisted from fixture)", stats.auditSummaryTotal)
 	}
 
-	noAudit := NewDiff(output.DiffResponse{}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	noAudit := NewDiff(output.DiffResponse{}, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	if got := noAudit.computeOverviewStats(); got.auditRan {
 		t.Errorf("auditRan = true for payload without Audit, want false")
 	}
@@ -573,7 +576,7 @@ func TestComputeOverviewStats_AuditRanAndTotal(t *testing.T) {
 // ---- auditVerdict (mirrors diff_cmd.go:161-165) ---------------------------
 
 func TestAuditVerdict_NotEvaluatedWhenAuditMissing(t *testing.T) {
-	m := NewDiff(output.DiffResponse{}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(output.DiffResponse{}, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	v := m.auditVerdict()
 	if v.Ran {
 		t.Errorf("v.Ran = true, want false")
@@ -585,7 +588,7 @@ func TestAuditVerdict_NotEvaluatedWhenAuditMissing(t *testing.T) {
 
 func TestAuditVerdict_PassWhenNoIntroduced(t *testing.T) {
 	m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{AuditSummary: &output.AuditSummary{Total: 0}}},
-		sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+		plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	v := m.auditVerdict()
 	if !v.Ran {
 		t.Errorf("v.Ran = false, want true")
@@ -600,9 +603,9 @@ func TestAuditVerdict_PassWhenNoIntroduced(t *testing.T) {
 // A diff that resolves findings — even high-severity ones — must NOT FAIL.
 func TestAuditVerdict_ResolvedOnlyIsPass(t *testing.T) {
 	m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{
-		Resolved:     []output.AuditFinding{{ID: "CVE-2022-X", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityHigh, Source: "osv"}},
+		Resolved:     []output.AuditFinding{{ID: "CVE-2022-X", Kind: sdkmodel.FindingKindVulnerability, Severity: sdkmodel.SeverityHigh, Source: "osv"}},
 		AuditSummary: &output.AuditSummary{},
-	}}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	}}, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	v := m.auditVerdict()
 	if got := v.Verdict(); got != "PASS" {
 		t.Errorf("Verdict() = %q, want PASS (only Resolved findings; no introduced gate)", got)
@@ -619,9 +622,9 @@ func TestAuditVerdict_ResolvedOnlyIsPass(t *testing.T) {
 // runs on Introduced only.
 func TestAuditVerdict_PersistedOnlyIsPass(t *testing.T) {
 	m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{
-		Persisted:    []output.AuditFinding{{ID: "CVE-2023-X", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityCritical, Source: "osv"}},
+		Persisted:    []output.AuditFinding{{ID: "CVE-2023-X", Kind: sdkmodel.FindingKindVulnerability, Severity: sdkmodel.SeverityCritical, Source: "osv"}},
 		AuditSummary: &output.AuditSummary{Critical: 1, Total: 1},
-	}}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	}}, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	if got := m.auditVerdict().Verdict(); got != "PASS" {
 		t.Errorf("Verdict() = %q, want PASS (Persisted is not gated by FailingFindingCount)", got)
 	}
@@ -633,23 +636,23 @@ func TestAuditVerdict_PersistedOnlyIsPass(t *testing.T) {
 func TestAuditVerdict_PolicyStatusGate(t *testing.T) {
 	cases := []struct {
 		name         string
-		policyStatus sdk.FindingPolicyStatus
+		policyStatus sdkmodel.FindingPolicyStatus
 		wantFail     bool
 	}{
 		{"empty policyStatus (legacy default = fail)", "", true},
-		{"explicit fail", sdk.FindingPolicyStatusFail, true},
-		{"warn does not gate exit code", sdk.FindingPolicyStatusWarn, false},
-		{"unknown policyStatus treated as non-failing", sdk.FindingPolicyStatus("informational"), false},
+		{"explicit fail", sdkmodel.FindingPolicyStatusFail, true},
+		{"warn does not gate exit code", sdkmodel.FindingPolicyStatusWarn, false},
+		{"unknown policyStatus treated as non-failing", sdkmodel.FindingPolicyStatus("informational"), false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{
 				Introduced: []output.AuditFinding{{
-					ID: "X-1", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityHigh, Source: "osv",
+					ID: "X-1", Kind: sdkmodel.FindingKindVulnerability, Severity: sdkmodel.SeverityHigh, Source: "osv",
 					PolicyStatus: tc.policyStatus,
 				}},
 				AuditSummary: &output.AuditSummary{High: 1, Total: 1},
-			}}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+			}}, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 			v := m.auditVerdict()
 			gotFail := v.Verdict() == "FAIL"
 			if gotFail != tc.wantFail {
@@ -666,11 +669,11 @@ func TestAuditVerdict_PolicyStatusGate(t *testing.T) {
 func TestAuditVerdict_WarnOnlyIntroducedYieldsPassWithCount(t *testing.T) {
 	m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
-			{ID: "W-1", PolicyStatus: sdk.FindingPolicyStatusWarn},
-			{ID: "W-2", PolicyStatus: sdk.FindingPolicyStatusWarn},
+			{ID: "W-1", PolicyStatus: sdkmodel.FindingPolicyStatusWarn},
+			{ID: "W-2", PolicyStatus: sdkmodel.FindingPolicyStatusWarn},
 		},
 		AuditSummary: &output.AuditSummary{Total: 2},
-	}}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	}}, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	v := m.auditVerdict()
 	if v.Verdict() != "PASS" {
 		t.Errorf("Verdict() = %q, want PASS", v.Verdict())
@@ -690,11 +693,11 @@ func TestAuditVerdict_SuppressedIntroducedIsCountedAsAccepted(t *testing.T) {
 	m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{{
 			ID:           "S-1",
-			Kind:         sdk.FindingKindVulnerability,
-			PolicyStatus: sdk.FindingPolicyStatusSuppressed,
+			Kind:         sdkmodel.FindingKindVulnerability,
+			PolicyStatus: sdkmodel.FindingPolicyStatusSuppressed,
 		}},
 		AuditSummary: &output.AuditSummary{Total: 1},
-	}}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	}}, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	v := m.auditVerdict()
 	if v.Verdict() != "PASS" || v.SuppressedIntroduced != 1 || v.SuppressedIntroducedVuln != 1 {
 		t.Fatalf("suppressed verdict = %#v", v)
@@ -795,13 +798,13 @@ func TestIsVulnerabilityFinding_KindFirstThenFallback(t *testing.T) {
 		f    output.AuditFinding
 		want bool
 	}{
-		{"Kind=vulnerability", output.AuditFinding{Kind: sdk.FindingKindVulnerability}, true},
+		{"Kind=vulnerability", output.AuditFinding{Kind: sdkmodel.FindingKindVulnerability}, true},
 		{"Kind=vuln", output.AuditFinding{Kind: "vuln"}, true},
 		{"Kind=advisory", output.AuditFinding{Kind: "advisory"}, true},
 		{"Kind=cve", output.AuditFinding{Kind: "cve"}, true},
 		{"Kind=policy", output.AuditFinding{Kind: "policy"}, false},
 		{"Kind=risk", output.AuditFinding{Kind: "risk"}, false},
-		{"Kind=license", output.AuditFinding{Kind: sdk.FindingKindLicense}, false},
+		{"Kind=license", output.AuditFinding{Kind: sdkmodel.FindingKindLicense}, false},
 		// Fallback path when Kind is empty:
 		{"empty Kind, CVE id", output.AuditFinding{ID: "CVE-2024-0001"}, true},
 		{"empty Kind, GHSA id", output.AuditFinding{ID: "GHSA-abcd"}, true},
@@ -821,34 +824,34 @@ func TestIsVulnerabilityFinding_KindFirstThenFallback(t *testing.T) {
 
 func TestClassifyRelationships(t *testing.T) {
 	// Build: root1 -> child1 -> grandchild1; root2 (no children).
-	g := sdk.New()
-	root1 := sdk.NewDependencyRef("root1", "1")
-	root2 := sdk.NewDependencyRef("root2", "1")
-	child := sdk.NewDependencyRef("child", "1")
-	grandchild := sdk.NewDependencyRef("grandchild", "1")
-	for _, p := range []*sdk.Dependency{root1, root2, child, grandchild} {
+	g := sdkmodel.New()
+	root1 := testnodes.Ref("root1", "1")
+	root2 := testnodes.Ref("root2", "1")
+	child := testnodes.Ref("child", "1")
+	grandchild := testnodes.Ref("grandchild", "1")
+	for _, p := range []*sdkmodel.DependencyNode{root1, root2, child, grandchild} {
 		if err := g.AddNode(p); err != nil {
-			t.Fatalf("add %s: %v", p.ID, err)
+			t.Fatalf("add %s: %v", p.NodeID(), err)
 		}
 	}
-	if err := g.AddEdge(root1.ID, child.ID); err != nil {
+	if err := g.AddEdge(root1.NodeID(), child.NodeID()); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
-	if err := g.AddEdge(child.ID, grandchild.ID); err != nil {
+	if err := g.AddEdge(child.NodeID(), grandchild.NodeID()); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
 
 	rels := classifyRelationships(g)
-	if got := rels[root1.ID]; got != "root" {
+	if got := rels[root1.NodeID()]; got != "root" {
 		t.Errorf("root1 -> %q, want root", got)
 	}
-	if got := rels[root2.ID]; got != "root" {
+	if got := rels[root2.NodeID()]; got != "root" {
 		t.Errorf("root2 -> %q, want root", got)
 	}
-	if got := rels[child.ID]; got != "direct" {
+	if got := rels[child.NodeID()]; got != "direct" {
 		t.Errorf("child -> %q, want direct", got)
 	}
-	if got := rels[grandchild.ID]; got != "transitive" {
+	if got := rels[grandchild.NodeID()]; got != "transitive" {
 		t.Errorf("grandchild -> %q, want transitive", got)
 	}
 }
@@ -927,13 +930,13 @@ func TestCollectComponentChanges_MaxSeverityFromInlineVulns(t *testing.T) {
 		Added: []output.DiffPackageChange{{Package: output.PackageRef{
 			Name: "vulny", Version: "1",
 			Vulnerabilities: []output.VulnerabilityRef{
-				{ID: "X-1", Severity: sdk.SeverityLow},
-				{ID: "X-2", Severity: sdk.SeverityCritical},
-				{ID: "X-3", Severity: sdk.SeverityHigh},
+				{ID: "X-1", Severity: sdkmodel.SeverityLow},
+				{ID: "X-2", Severity: sdkmodel.SeverityCritical},
+				{ID: "X-3", Severity: sdkmodel.SeverityHigh},
 			},
 		}}},
 	}}}}
-	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(payload, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	changes := m.collectComponentChanges()
 	if len(changes) != 1 {
 		t.Fatalf("expected 1 change, got %d", len(changes))
@@ -974,7 +977,7 @@ func TestFindingsTableLines_KeepsZeroRowsForStableLayout(t *testing.T) {
 	// An audit with zero findings of any kind must still render the full
 	// severity table — the user expects the layout to be present even
 	// when the diff is clean.
-	m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{}}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{}}, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	stats := m.computeOverviewStats()
 	lines := findingsTableLines("Severity", severityRowKeys(), stats.vulnByStatus, severityRowColor, 60)
 	plain := render.StripANSI(strings.Join(lines, "\n"))
@@ -991,10 +994,10 @@ func TestFindingsTableLines_PackageOtherRowAbsorbsUnknownRules(t *testing.T) {
 	// row so the pre-seeded table stays exhaustive.
 	payload := output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
-			{ID: "ext:mystery:pkg@1", Kind: sdk.FindingKindPackage, Auditor: "external"},
+			{ID: "ext:mystery:pkg@1", Kind: sdkmodel.FindingKindPackage, Auditor: "external"},
 		},
 	}}
-	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(payload, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	stats := m.computeOverviewStats()
 	if got := stats.packageByStatus["other"]["introduced"]; got != 1 {
 		t.Errorf("packageByStatus[other][introduced] = %d, want 1", got)
@@ -1030,7 +1033,7 @@ func TestOverviewHeadline_FailReflectsIntroducedPolicyStatus(t *testing.T) {
 func TestOverviewHeadline_PassWhenNoIntroduced(t *testing.T) {
 	p := fixtureDiffPayload()
 	p.Audit = &output.DiffAudit{AuditSummary: &output.AuditSummary{Total: 0}}
-	m := NewDiff(p, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(p, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	plain := render.StripANSI(m.overviewHeadline(200))
 	if !strings.Contains(plain, "Audit PASS (exit 0)") {
 		t.Errorf("headline expected Audit PASS, got: %q", plain)
@@ -1041,10 +1044,10 @@ func TestOverviewHeadline_PassWhenNoIntroduced(t *testing.T) {
 // regression for diff_cmd.go's new gate (Introduced only).
 func TestOverviewHeadline_ResolvedOnlyIsPass(t *testing.T) {
 	p := output.DiffResponse{Audit: &output.DiffAudit{
-		Resolved:     []output.AuditFinding{{ID: "CVE-2022-X", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityHigh}},
+		Resolved:     []output.AuditFinding{{ID: "CVE-2022-X", Kind: sdkmodel.FindingKindVulnerability, Severity: sdkmodel.SeverityHigh}},
 		AuditSummary: &output.AuditSummary{},
 	}}
-	m := NewDiff(p, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(p, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	plain := render.StripANSI(m.overviewHeadline(200))
 	if !strings.Contains(plain, "Audit PASS") {
 		t.Errorf("resolved-only headline expected PASS, got: %q", plain)
@@ -1059,12 +1062,12 @@ func TestOverviewHeadline_ResolvedOnlyIsPass(t *testing.T) {
 func TestOverviewHeadline_WarnOnlyIntroducedIsPassWithCount(t *testing.T) {
 	p := output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
-			{ID: "W-1", PolicyStatus: sdk.FindingPolicyStatusWarn},
-			{ID: "W-2", PolicyStatus: sdk.FindingPolicyStatusWarn},
+			{ID: "W-1", PolicyStatus: sdkmodel.FindingPolicyStatusWarn},
+			{ID: "W-2", PolicyStatus: sdkmodel.FindingPolicyStatusWarn},
 		},
 		AuditSummary: &output.AuditSummary{Total: 2},
 	}}
-	m := NewDiff(p, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(p, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	plain := render.StripANSI(m.overviewHeadline(200))
 	if !strings.Contains(plain, "Audit PASS (2 non-gating, exit 0)") {
 		t.Errorf("non-gating headline expected 'Audit PASS (2 non-gating, exit 0)', got: %q", plain)
@@ -1074,7 +1077,7 @@ func TestOverviewHeadline_WarnOnlyIntroducedIsPassWithCount(t *testing.T) {
 func TestOverviewHeadline_NotEvaluatedWhenAuditMissing(t *testing.T) {
 	p := fixtureDiffPayload()
 	p.Audit = nil
-	m := NewDiff(p, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(p, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	plain := render.StripANSI(m.overviewHeadline(200))
 	if !strings.Contains(plain, "Audit not run") {
 		t.Errorf("headline expected 'Audit not run', got: %q", plain)
@@ -1115,7 +1118,7 @@ func TestAuditStatusLabel(t *testing.T) {
 func TestComponentChangeBadges_NoDuplicateStatus(t *testing.T) {
 	c := flatComponentChange{
 		status:       "changed",
-		maxSeverity:  string(sdk.SeverityHigh),
+		maxSeverity:  string(sdkmodel.SeverityHigh),
 		relationship: "direct",
 	}
 	for _, b := range componentChangeBadges(c) {
@@ -1257,20 +1260,20 @@ func TestFindingsOutcomePanels_BucketsCoverAllKinds(t *testing.T) {
 // shows vulnerability + license + package counts.
 func TestFindingsOutcomePanels_SpansAllKinds(t *testing.T) {
 	var intro []output.AuditFinding
-	for i := 0; i < 6; i++ {
+	for i := range 6 {
 		intro = append(intro, output.AuditFinding{
 			ID:       "CVE-X-" + string(rune('A'+i)),
-			Kind:     sdk.FindingKindVulnerability,
+			Kind:     sdkmodel.FindingKindVulnerability,
 			Auditor:  "vulnerability",
 			Source:   "osv",
-			Severity: sdk.SeverityHigh,
+			Severity: sdkmodel.SeverityHigh,
 		})
 	}
 	var persisted []output.AuditFinding
-	for i := 0; i < 6; i++ {
+	for i := range 6 {
 		persisted = append(persisted, output.AuditFinding{
 			ID:       "license:unknown-license:pkg-" + string(rune('A'+i)),
-			Kind:     sdk.FindingKindLicense,
+			Kind:     sdkmodel.FindingKindLicense,
 			Auditor:  "license",
 			Source:   "license",
 			Severity: "n/a",
@@ -1281,7 +1284,7 @@ func TestFindingsOutcomePanels_SpansAllKinds(t *testing.T) {
 		Persisted:    persisted,
 		AuditSummary: &output.AuditSummary{High: 6, Total: 12},
 	}}
-	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(payload, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	plain := stripPanels(m.findingsOutcomePanels())
 
 	// FAIL reflects all 6 introduced vulnerabilities (now that vulns are
@@ -1314,13 +1317,13 @@ func TestFindingsOutcomePanels_SpansAllKinds(t *testing.T) {
 func TestFindingsOutcomePanels_PassWhenNoIntroduced(t *testing.T) {
 	payload := output.DiffResponse{Audit: &output.DiffAudit{
 		Persisted: []output.AuditFinding{
-			{ID: "CVE-1", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability"},
+			{ID: "CVE-1", Kind: sdkmodel.FindingKindVulnerability, Auditor: "vulnerability"},
 		},
 		Resolved: []output.AuditFinding{
-			{ID: "license:denied-license:pkg@1", Kind: sdk.FindingKindLicense, Auditor: "license"},
+			{ID: "license:denied-license:pkg@1", Kind: sdkmodel.FindingKindLicense, Auditor: "license"},
 		},
 	}}
-	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(payload, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	plain := stripPanels(m.findingsOutcomePanels())
 	if !strings.Contains(plain, " PASS ") {
 		t.Errorf("expected PASS verdict with no introduced findings, got:\n%s", plain)
@@ -1336,15 +1339,15 @@ func TestFindingsOutcomePanels_PassWhenNoIntroduced(t *testing.T) {
 func TestVulnsOutcomePanels_ScopedToVulns(t *testing.T) {
 	payload := output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
-			{ID: "CVE-1", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", Source: "osv", Severity: sdk.SeverityCritical},
-			{ID: "license:unknown-license:pkg@1", Kind: sdk.FindingKindLicense, Auditor: "license", Source: "license", Severity: "n/a"},
+			{ID: "CVE-1", Kind: sdkmodel.FindingKindVulnerability, Auditor: "vulnerability", Source: "osv", Severity: sdkmodel.SeverityCritical},
+			{ID: "license:unknown-license:pkg@1", Kind: sdkmodel.FindingKindLicense, Auditor: "license", Source: "license", Severity: "n/a"},
 		},
 		Persisted: []output.AuditFinding{
-			{ID: "CVE-2", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", Source: "osv", Severity: sdk.SeverityMedium},
+			{ID: "CVE-2", Kind: sdkmodel.FindingKindVulnerability, Auditor: "vulnerability", Source: "osv", Severity: sdkmodel.SeverityMedium},
 		},
 		AuditSummary: &output.AuditSummary{Critical: 1, Medium: 1, Total: 3},
 	}}
-	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(payload, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	plain := stripPanels(m.vulnsOutcomePanels())
 
 	// FAIL verdict reflects the 1 introduced vuln.
@@ -1379,7 +1382,7 @@ func TestVulnsOutcomePanels_ScopedToVulns(t *testing.T) {
 
 // TestVulnsOutcomePanels_NotEvaluated locks in the empty-state.
 func TestVulnsOutcomePanels_NotEvaluated(t *testing.T) {
-	m := NewDiff(output.DiffResponse{}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(output.DiffResponse{}, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	plain := stripPanels(m.vulnsOutcomePanels())
 	if !strings.Contains(plain, " NOT EVALUATED ") {
 		t.Errorf("expected NOT EVALUATED outcome, got:\n%s", plain)
@@ -1395,17 +1398,17 @@ func TestAuditVerdict_FailingSplitByKind(t *testing.T) {
 	payload := output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
 			// 2 failing vulns (empty PolicyStatus = fail).
-			{ID: "CVE-1", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability"},
-			{ID: "CVE-2", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", PolicyStatus: sdk.FindingPolicyStatusFail},
+			{ID: "CVE-1", Kind: sdkmodel.FindingKindVulnerability, Auditor: "vulnerability"},
+			{ID: "CVE-2", Kind: sdkmodel.FindingKindVulnerability, Auditor: "vulnerability", PolicyStatus: sdkmodel.FindingPolicyStatusFail},
 			// 1 warn vuln — counted in WarnIntroduced, not FailingIntroduced*.
-			{ID: "CVE-3", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", PolicyStatus: sdk.FindingPolicyStatusWarn},
+			{ID: "CVE-3", Kind: sdkmodel.FindingKindVulnerability, Auditor: "vulnerability", PolicyStatus: sdkmodel.FindingPolicyStatusWarn},
 			// 1 failing license-kind finding.
-			{ID: "license:denied-license:pkg@1", Kind: sdk.FindingKindLicense, Auditor: "license"},
+			{ID: "license:denied-license:pkg@1", Kind: sdkmodel.FindingKindLicense, Auditor: "license"},
 			// 1 warn license-kind finding.
-			{ID: "license:unknown-license:pkg@2", Kind: sdk.FindingKindLicense, Auditor: "license", PolicyStatus: sdk.FindingPolicyStatusWarn},
+			{ID: "license:unknown-license:pkg@2", Kind: sdkmodel.FindingKindLicense, Auditor: "license", PolicyStatus: sdkmodel.FindingPolicyStatusWarn},
 		},
 	}}
-	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(payload, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	v := m.auditVerdict()
 	if v.FailingIntroduced != 3 {
 		t.Errorf("FailingIntroduced = %d, want 3", v.FailingIntroduced)
@@ -1427,14 +1430,14 @@ func TestFindingsOutcomePanels_ByKindReadsFindingKind(t *testing.T) {
 	// every kind so we can see all three rows.
 	payload := output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
-			{ID: "CVE-1", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", Source: "osv"},
-			{ID: "license:unknown-license:pkg@1", Kind: sdk.FindingKindLicense, Auditor: "license", Source: "license"},
-			{ID: "license:invalid-license:pkg@2", Kind: sdk.FindingKindLicense, Auditor: "license", Source: "license"},
-			{ID: "package:denied-package:pkg@3", Kind: sdk.FindingKindPackage, Auditor: "package", Source: "package"},
+			{ID: "CVE-1", Kind: sdkmodel.FindingKindVulnerability, Auditor: "vulnerability", Source: "osv"},
+			{ID: "license:unknown-license:pkg@1", Kind: sdkmodel.FindingKindLicense, Auditor: "license", Source: "license"},
+			{ID: "license:invalid-license:pkg@2", Kind: sdkmodel.FindingKindLicense, Auditor: "license", Source: "license"},
+			{ID: "package:denied-package:pkg@3", Kind: sdkmodel.FindingKindPackage, Auditor: "package", Source: "package"},
 		},
 		AuditSummary: &output.AuditSummary{Total: 4},
 	}}
-	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(payload, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	plain := stripPanels(m.findingsOutcomePanels())
 
 	if !strings.Contains(plain, "By Kind") {
@@ -1517,20 +1520,20 @@ func TestDetectorForManifest_LooksUpInBothGraphs(t *testing.T) {
 	// Build a consolidated graph that knows about manifest "go.mod"
 	// detected by "gomod-detector". Whether it's on the head side or
 	// the base side, lookupDetector must find it.
-	g := sdk.New()
-	head := sdk.ConsolidatedGraph{
-		Graphs: sdk.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"}),
-		Manifests: []sdk.ConsolidatedManifest{{
-			Entry:        sdk.GraphEntry{Manifest: sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"}},
-			Subproject:   sdk.Subproject{RelativePath: "."},
+	g := sdkmodel.New()
+	head := plugin.ConsolidatedGraph{
+		Graphs: sdkmodel.SingleGraphContainer(g, sdkmodel.ManifestMetadata{Path: "go.mod", Kind: "go.mod"}),
+		Manifests: []plugin.ConsolidatedManifest{{
+			Entry:        sdkmodel.GraphEntry{Manifest: sdkmodel.ManifestMetadata{Path: "go.mod", Kind: "go.mod"}},
+			Subproject:   plugin.Subproject{RelativePath: "."},
 			DetectorName: "gomod-detector",
 		}},
 	}
-	base := sdk.ConsolidatedGraph{
-		Graphs: sdk.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package.json", Kind: "package-lock.json"}),
-		Manifests: []sdk.ConsolidatedManifest{{
-			Entry:        sdk.GraphEntry{Manifest: sdk.ManifestMetadata{Path: "package.json", Kind: "package-lock.json"}},
-			Subproject:   sdk.Subproject{RelativePath: "web/"},
+	base := plugin.ConsolidatedGraph{
+		Graphs: sdkmodel.SingleGraphContainer(g, sdkmodel.ManifestMetadata{Path: "package.json", Kind: "package-lock.json"}),
+		Manifests: []plugin.ConsolidatedManifest{{
+			Entry:        sdkmodel.GraphEntry{Manifest: sdkmodel.ManifestMetadata{Path: "package.json", Kind: "package-lock.json"}},
+			Subproject:   plugin.Subproject{RelativePath: "web/"},
 			DetectorName: "npm-detector",
 		}},
 	}
@@ -1568,12 +1571,12 @@ func TestComponentChangeDetails_ChangedShowsLicenseAndVulnDelta(t *testing.T) {
 		beforePkg: output.PackageRef{
 			Name: "react", Version: "18.2.0",
 			Licenses:        []output.LicenseRef{{SPDXExpression: "MIT"}, {SPDXExpression: "BSD-2-Clause"}},
-			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-OLD", Severity: sdk.SeverityHigh}},
+			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-OLD", Severity: sdkmodel.SeverityHigh}},
 		},
 		pkgRef: output.PackageRef{
 			Name: "react", Version: "19.0.0",
 			Licenses:        []output.LicenseRef{{SPDXExpression: "MIT"}, {SPDXExpression: "Apache-2.0"}},
-			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-NEW", Severity: sdk.SeverityCritical}},
+			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-NEW", Severity: sdkmodel.SeverityCritical}},
 		},
 	}
 	plain := render.StripANSI(strings.Join(componentChangeDetails(c), "\n"))
@@ -1619,7 +1622,7 @@ func TestComponentChangeDetails_AddedRemovedShowsPlainLists(t *testing.T) {
 		pkgRef: output.PackageRef{
 			Name: "new-thing", Version: "1",
 			Licenses:        []output.LicenseRef{{SPDXExpression: "ISC"}},
-			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-X", Severity: sdk.SeverityLow}},
+			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-X", Severity: sdkmodel.SeverityLow}},
 		},
 	}
 	plain := render.StripANSI(strings.Join(componentChangeDetails(added), "\n"))
@@ -1660,7 +1663,7 @@ func TestDiffInteractiveModel_ComponentsGroupBySubproject(t *testing.T) {
 	payload := fixtureDiffPayload()
 	payload.Results.Manifests[0].Subproject = "."
 	payload.Results.Manifests[1].Subproject = "services/api"
-	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m := NewDiff(payload, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	m.componentsGroup = componentsGroupSubproject
 	m.SelectView(2)
 	plain := render.StripANSI(m.View(140, 50))

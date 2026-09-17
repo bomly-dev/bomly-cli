@@ -7,7 +7,8 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // postureDiffRow is the per-repository state for the diff Posture tab.
@@ -15,8 +16,8 @@ import (
 // so the details pane can render a side-by-side delta.
 type postureDiffRow struct {
 	repository string
-	before     *sdk.PackageScorecard
-	after      *sdk.PackageScorecard
+	before     *model.PackageScorecard
+	after      *model.PackageScorecard
 	packages   []posturePackageRef
 }
 
@@ -73,7 +74,7 @@ func postureDiffRowsFromPayload(results output.DiffDependencyResults) []postureD
 	rowsByRepo := make(map[string]*postureDiffRow)
 	pkgsByRepo := make(map[string]map[string]posturePackageRef)
 
-	record := func(ref output.PackageRef, before, after *sdk.PackageScorecard) {
+	record := func(ref output.PackageRef, before, after *model.PackageScorecard) {
 		var repo string
 		switch {
 		case after != nil && after.Repository != "":
@@ -254,17 +255,8 @@ func postureDiffMoversLines(rows []postureDiffRow, width int) []string {
 	if len(movers) > 6 {
 		movers = movers[:6]
 	}
-	labelWidth := width / 2
-	if labelWidth < 18 {
-		labelWidth = 18
-	}
-	if labelWidth > 38 {
-		labelWidth = 38
-	}
-	barWidth := width - labelWidth - 12
-	if barWidth < 8 {
-		barWidth = 8
-	}
+	labelWidth := min(max(width/2, 18), 38)
+	barWidth := max(width-labelWidth-12, 8)
 	maxMag := 0.0
 	for _, m := range movers {
 		mag := m.delta
@@ -337,7 +329,7 @@ func postureDiffRowDetails(row postureDiffRow) []string {
 	return lines
 }
 
-func postureDiffMetaLine(card *sdk.PackageScorecard) string {
+func postureDiffMetaLine(card *model.PackageScorecard) string {
 	parts := make([]string, 0, 2)
 	if !card.RunDate.IsZero() {
 		parts = append(parts, "updated "+card.RunDate.UTC().Format("2006-01-02"))
@@ -388,14 +380,14 @@ func postureDiffStatusBadge(status postureDiffStatus) string {
 // details pane can render a side-by-side per-check delta.
 type postureDiffMergedCheck struct {
 	name          string
-	before        *sdk.PackageScorecardCheck
-	after         *sdk.PackageScorecardCheck
+	before        *model.PackageScorecardCheck
+	after         *model.PackageScorecardCheck
 	documentation string
 }
 
 func postureDiffMergedChecks(row postureDiffRow) []postureDiffMergedCheck {
 	merged := make(map[string]*postureDiffMergedCheck)
-	add := func(checks []sdk.PackageScorecardCheck, side string) {
+	add := func(checks []model.PackageScorecardCheck, side string) {
 		for i := range checks {
 			c := checks[i]
 			name := strings.TrimSpace(c.Name)
@@ -611,7 +603,7 @@ func postureDiffCheckGroups(rows []postureDiffRow) []postureDiffCheckGroup {
 	docs := make(map[string]string)
 
 	for _, row := range rows {
-		record := func(checks []sdk.PackageScorecardCheck, side string) {
+		record := func(checks []model.PackageScorecardCheck, side string) {
 			for i := range checks {
 				c := checks[i]
 				name := strings.TrimSpace(c.Name)

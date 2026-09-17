@@ -5,15 +5,16 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // composerNameLine matches `"name": "vendor/pkg"` inside composer.lock.
 var composerNameLine = regexp.MustCompile(`^\s*"name"\s*:\s*"([^"]+)"\s*,?\s*$`)
 
-func composerLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func composerLockPositions(path, relPath string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	_ = detectors.ScanLines(path, func(line int, text string) {
 		matches := composerNameLine.FindStringSubmatch(text)
 		if matches == nil {
@@ -26,13 +27,13 @@ func composerLockPositions(path, relPath string) map[string]*sdk.SourcePosition 
 		if _, exists := out[name]; exists {
 			return
 		}
-		out[name] = &sdk.SourcePosition{File: relPath, Line: line}
+		out[name] = &model.SourcePosition{File: relPath, Line: line}
 	})
 	return out
 }
 
 // AttachComposerLockPositions wires composer.lock line numbers.
-func AttachComposerLockPositions(g *sdk.Graph, projectDir string) {
+func AttachComposerLockPositions(g *model.Graph, projectDir string) {
 	if g == nil || projectDir == "" {
 		return
 	}
@@ -40,7 +41,7 @@ func AttachComposerLockPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.Dependency) string {
+	detectors.AttachPositions(g, positions, func(pkg *model.DependencyNode) string {
 		if pkg == nil {
 			return ""
 		}

@@ -2,12 +2,16 @@ package tui
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/graphview"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // componentsGroup names the cycling-axis for the Components tab. "status"
@@ -37,11 +41,11 @@ type DiffModel struct {
 	*shellModel
 
 	payload   output.DiffResponse
-	baseGraph sdk.ConsolidatedGraph
-	headGraph sdk.ConsolidatedGraph
+	baseGraph plugin.ConsolidatedGraph
+	headGraph plugin.ConsolidatedGraph
 
-	baseRegistry *sdk.PackageRegistry
-	headRegistry *sdk.PackageRegistry
+	baseRegistry *model.PackageRegistry
+	headRegistry *model.PackageRegistry
 
 	enrichEnabled bool
 
@@ -71,7 +75,7 @@ type DiffModel struct {
 
 // NewDiff constructs the diff TUI model. baseGraph and headGraph are the
 // consolidated graphs from the two pipeline runs; they feed the Source tab.
-func NewDiff(payload output.DiffResponse, baseGraph, headGraph sdk.ConsolidatedGraph) *DiffModel {
+func NewDiff(payload output.DiffResponse, baseGraph, headGraph plugin.ConsolidatedGraph) *DiffModel {
 	m := &DiffModel{
 		payload:            payload,
 		baseGraph:          baseGraph,
@@ -110,7 +114,7 @@ func NewDiff(payload output.DiffResponse, baseGraph, headGraph sdk.ConsolidatedG
 
 // WithRegistry attaches the base/head package registries so source-tree package
 // details can show matcher and analyzer enrichment by PURL.
-func (m *DiffModel) WithRegistry(base, head *sdk.PackageRegistry) *DiffModel {
+func (m *DiffModel) WithRegistry(base, head *model.PackageRegistry) *DiffModel {
 	if m == nil {
 		return nil
 	}
@@ -908,18 +912,20 @@ func isFuzzyReconciled(pkg output.PackageRef) bool {
 // classifyRelationships labels every package in a graph as root, direct, or
 // transitive. Roots are packages with no incoming edges; direct dependencies
 // are immediate children of any root; everything else is transitive.
-func classifyRelationships(g *sdk.Graph) map[string]string {
+func classifyRelationships(g *model.Graph) map[string]string {
 	out := make(map[string]string)
 	if g == nil {
 		return out
 	}
-	rootIDs := make(map[string]struct{})
-	for _, r := range g.Roots() {
-		if r == nil {
-			continue
-		}
-		rootIDs[r.ID] = struct{}{}
-		out[r.ID] = "root"
+	// The shared top-level rule, not Roots() alone. A workspace or reactor
+	// module that another module depends on has an incoming edge, so it never
+	// appeared here -- and its immediate packages fell through as transitive,
+	// corrupting the relationship summary and every relationship filter built
+	// on it. renderDirectDepsTable had already learned this; this classifier
+	// had not, which is the argument for one rule rather than two.
+	rootIDs := graphview.TopLevelParentIDs(g)
+	for id := range rootIDs {
+		out[id] = "root"
 	}
 	for rid := range rootIDs {
 		deps, _ := g.DirectDependencies(rid)
@@ -927,21 +933,21 @@ func classifyRelationships(g *sdk.Graph) map[string]string {
 			if d == nil {
 				continue
 			}
-			if _, isRoot := rootIDs[d.ID]; isRoot {
+			if _, isRoot := rootIDs[d.NodeID()]; isRoot {
 				continue
 			}
-			if _, alreadyLabeled := out[d.ID]; alreadyLabeled {
+			if _, alreadyLabeled := out[d.NodeID()]; alreadyLabeled {
 				continue
 			}
-			out[d.ID] = "direct"
+			out[d.NodeID()] = "direct"
 		}
 	}
-	for _, pkg := range g.Nodes() {
+	for _, pkg := range g.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
-		if _, ok := out[pkg.ID]; !ok {
-			out[pkg.ID] = "transitive"
+		if _, ok := out[pkg.NodeID()]; !ok {
+			out[pkg.NodeID()] = "transitive"
 		}
 	}
 	return out
@@ -1051,7 +1057,7 @@ func (m *DiffModel) overviewDashboardView(width, height int) string {
 			render.Style(fmt.Sprintf("%d package", stats.findingsByKind["package"]), render.Cyan),
 		), cardWidth, cardHeight, render.Magenta),
 	}
-	for idx := 0; idx < cardHeight; idx++ {
+	for idx := range cardHeight {
 		row := cards[0][idx]
 		for c := 1; c < len(cards); c++ {
 			row += " " + cards[c][idx]
@@ -1068,10 +1074,7 @@ func (m *DiffModel) overviewDashboardView(width, height int) string {
 		leftA = 6
 	}
 	leftB := (remaining - leftA - 2) / 2
-	leftC := remaining - leftA - leftB - 2
-	if leftC < 4 {
-		leftC = 4
-	}
+	leftC := max(remaining-leftA-leftB-2, 4)
 	leftContent := stackBoxes(
 		boxView("Changes per Ecosystem", coloredDistributionLines(stats.ecosystems, stats.changedTotal, 8, leftWidth-2), leftWidth, leftA, render.Cyan),
 		boxView("Changes per Relationship", coloredDistributionLines(stats.relationships, sumCounts(stats.relationships), 6, leftWidth-2), leftWidth, leftB, render.Cyan),
@@ -1082,10 +1085,7 @@ func (m *DiffModel) overviewDashboardView(width, height int) string {
 		rightA = 6
 	}
 	rightB := (remaining - rightA - 2) / 2
-	rightC := remaining - rightA - rightB - 2
-	if rightC < 4 {
-		rightC = 4
-	}
+	rightC := max(remaining-rightA-rightB-2, 4)
 	rightContent := stackBoxes(
 		boxView("Vulnerability Findings", findingsTableLines("Severity", severityRowKeys(), stats.vulnByStatus, severityRowColor, rightWidth-2), rightWidth, rightA, render.Red),
 		boxView("License Findings", findingsTableLines("Rule", licenseRuleRowKeys(), stats.licenseByStatus, ruleRowColor, rightWidth-2), rightWidth, rightB, render.Yellow),
@@ -1329,11 +1329,8 @@ func (m *DiffModel) overviewTopChangedManifests() []string {
 	}
 	sort.Slice(rows, func(i, j int) bool { return rows[i].count > rows[j].count })
 	lines := []string{render.Style("Top Changed Manifests", render.Bold, render.Cyan), ""}
-	limit := 10
-	if len(rows) < limit {
-		limit = len(rows)
-	}
-	for i := 0; i < limit; i++ {
+	limit := min(len(rows), 10)
+	for i := range limit {
 		if rows[i].count == 0 {
 			continue
 		}
@@ -1363,7 +1360,7 @@ type flatComponentChange struct {
 	afterVer     string
 	maxSeverity  string // worst severity across pkgRef.Vulnerabilities
 	relationship string // root/direct/transitive — looked up in head/base graph
-	remediation  *sdk.PackageRemediation
+	remediation  *model.PackageRemediation
 	transition   *output.DiffDependencyTransition
 }
 
@@ -1472,10 +1469,10 @@ func packageRefFromTransitionState(state output.DiffDependencyTransitionState) o
 		Vulnerabilities: []output.VulnerabilityRef{},
 	}
 	switch state.Relationship {
-	case sdk.DependencyRelationshipDirect:
+	case model.DependencyRelationshipDirect:
 		direct := true
 		ref.Direct = &direct
-	case sdk.DependencyRelationshipTransitive:
+	case model.DependencyRelationshipTransitive:
 		direct := false
 		ref.Direct = &direct
 	}
@@ -1789,7 +1786,7 @@ func (m *DiffModel) detectorForManifest(mf output.DiffManifestResult) string {
 	return ""
 }
 
-func lookupDetector(consolidated sdk.ConsolidatedGraph, mf output.DiffManifestResult) string {
+func lookupDetector(consolidated plugin.ConsolidatedGraph, mf output.DiffManifestResult) string {
 	for _, cm := range consolidated.Manifests {
 		if cm.Entry.Manifest.Path == mf.Path && cm.Subproject.RelativePath == mf.Subproject {
 			return cm.DetectorName
@@ -1865,28 +1862,28 @@ func renderDependencyDetailTransition(transition output.DiffDependencyTransition
 	for _, reason := range output.DependencyDetailReviewReasons(transition) {
 		var message string
 		switch reason {
-		case sdk.DependencyDetailReviewSourceGit:
+		case model.DependencyDetailReviewSourceGit:
 			message = "Dependency source changed to Git. Registry-based vulnerability checks may no longer cover it."
-		case sdk.DependencyDetailReviewSourceURL:
+		case model.DependencyDetailReviewSourceURL:
 			message = "Dependency source changed to a URL. Registry-based vulnerability checks may no longer cover it."
 		default:
 			continue
 		}
 		lines = append(lines, render.Style("  Review: ", render.Yellow, render.Bold)+message)
 	}
-	sourceChanged := dependencyDetailFieldChangedForTUI(transition, sdk.DependencyDetailSource)
+	sourceChanged := dependencyDetailFieldChangedForTUI(transition, model.DependencyDetailSource)
 	for _, field := range transition.ChangedFields {
 		var label, before, after string
 		switch field {
-		case sdk.DependencyDetailRelationship:
+		case model.DependencyDetailRelationship:
 			label = "Relationship"
 			before = valueOrDash(string(transition.Before.Relationship))
 			after = valueOrDash(string(transition.After.Relationship))
-		case sdk.DependencyDetailSource:
+		case model.DependencyDetailSource:
 			label = "Source"
 			before = valueOrDash(string(transition.Before.Source))
 			after = valueOrDash(string(transition.After.Source))
-		case sdk.DependencyDetailRegistryEligibility:
+		case model.DependencyDetailRegistryEligibility:
 			if sourceChanged {
 				continue
 			}
@@ -1903,13 +1900,8 @@ func renderDependencyDetailTransition(transition output.DiffDependencyTransition
 	return lines
 }
 
-func dependencyDetailFieldChangedForTUI(transition output.DiffDependencyTransition, wanted sdk.DependencyDetailField) bool {
-	for _, field := range transition.ChangedFields {
-		if field == wanted {
-			return true
-		}
-	}
-	return false
+func dependencyDetailFieldChangedForTUI(transition output.DiffDependencyTransition, wanted model.DependencyDetailField) bool {
+	return slices.Contains(transition.ChangedFields, wanted)
 }
 
 func tuiRegistryEligibilityLabel(eligible bool) string {
@@ -2230,16 +2222,16 @@ func (m *DiffModel) auditVerdict() auditVerdict {
 	// stays consistent with the rows it's actually showing.
 	for _, f := range m.payload.Audit.Introduced {
 		switch f.PolicyStatus {
-		case "", sdk.FindingPolicyStatusFail:
+		case "", model.FindingPolicyStatusFail:
 			v.FailingIntroduced++
 			if isVulnerabilityFinding(f) {
 				v.FailingIntroducedVuln++
 			} else {
 				v.FailingIntroducedNonVuln++
 			}
-		case sdk.FindingPolicyStatusWarn:
+		case model.FindingPolicyStatusWarn:
 			v.WarnIntroduced++
-		case sdk.FindingPolicyStatusSuppressed:
+		case model.FindingPolicyStatusSuppressed:
 			v.SuppressedIntroduced++
 			if isVulnerabilityFinding(f) {
 				v.SuppressedIntroducedVuln++
@@ -2786,8 +2778,8 @@ func auditGroupDetails(key, group string, deltas []auditDelta, noun string) []st
 // pluralize is a *very* dumb pluralizer that's fine for our nouns
 // ("vulnerability" → "vulnerabilities", "finding" → "findings").
 func pluralize(noun string) string {
-	if strings.HasSuffix(noun, "y") {
-		return strings.TrimSuffix(noun, "y") + "ies"
+	if before, ok := strings.CutSuffix(noun, "y"); ok {
+		return before + "ies"
 	}
 	if strings.HasSuffix(noun, "s") {
 		return noun
@@ -3150,7 +3142,7 @@ func (m *DiffModel) renderSourceBody(width, height int, focused diffSourceSide, 
 	rightBox := boxView(rightTitle, rightLines, rightWidth, height, rightColor)
 
 	out := make([]string, 0, height)
-	for i := 0; i < height; i++ {
+	for i := range height {
 		l := ""
 		r := ""
 		if i < len(leftBox) {
@@ -3203,7 +3195,7 @@ func sourceItemPlain(it listItem) string {
 	return it.tree + marker + it.title
 }
 
-func diffSourceItems(consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRegistry, expanded map[string]bool, sidePrefix string) []listItem {
+func diffSourceItems(consolidated plugin.ConsolidatedGraph, registry *model.PackageRegistry, expanded map[string]bool, sidePrefix string) []listItem {
 	items := []listItem{sourceNode(fmt.Sprintf("%s: {}", sidePrefix), "root", "", 0, true, expandedValue(expanded, "root", true))}
 	if !expandedValue(expanded, "root", true) {
 		return items
@@ -3260,7 +3252,7 @@ func diffSourceItems(consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRe
 				items = append(items, sourceNode("(no consolidated graph)", "", prefix+"└─ ", 2, false, false))
 				break
 			}
-			pkgs := graph.Nodes()
+			pkgs := graph.DependencyNodes()
 			sort.Slice(pkgs, func(i, j int) bool { return packageSortKey(pkgs[i]) < packageSortKey(pkgs[j]) })
 			limit := len(pkgs)
 			truncated := false
@@ -3272,9 +3264,9 @@ func diffSourceItems(consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRe
 				pkg := pkgs[i]
 				last := i == limit-1 && !truncated
 				tree := prefix + branch(last)
-				key := "package:" + pkg.ID
+				key := "package:" + pkg.NodeID()
 				isExp := expandedValue(expanded, key, false)
-				items = append(items, sourceNode(fmt.Sprintf("%q: {}", pkg.ID), key, tree, 2, true, isExp))
+				items = append(items, sourceNode(fmt.Sprintf("%q: {}", pkg.NodeID()), key, tree, 2, true, isExp))
 				if !isExp {
 					continue
 				}
@@ -3310,7 +3302,7 @@ func diffSourceItems(consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRe
 	return items
 }
 
-func graphFromConsolidated(c sdk.ConsolidatedGraph) (*sdk.Graph, error) {
+func graphFromConsolidated(c plugin.ConsolidatedGraph) (*model.Graph, error) {
 	if c.Graphs == nil {
 		return nil, nil
 	}

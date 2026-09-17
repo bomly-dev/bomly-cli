@@ -6,28 +6,30 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 const sarifTestPURL = "pkg:npm/lodash@4.17.15"
 
 func TestWriteSARIF_ValidDocument(t *testing.T) {
-	findings := []sdk.Finding{
+	findings := []model.Finding{
 		{
 			ID:         "CVE-2021-23337",
-			Kind:       sdk.FindingKindVulnerability,
+			Kind:       model.FindingKindVulnerability,
 			PackageRef: sarifTestPURL,
 			Title:      "Prototype pollution in lodash",
-			Severity:   sdk.SeverityHigh,
+			Severity:   model.SeverityHigh,
 			Reasons:    []string{"Fix available: upgrade to 4.17.21"},
 			Source:     "osv",
 		},
 		{
 			ID:         "CVE-2020-8203",
-			Kind:       sdk.FindingKindVulnerability,
+			Kind:       model.FindingKindVulnerability,
 			PackageRef: sarifTestPURL,
 			Title:      "Prototype pollution",
-			Severity:   sdk.SeverityCritical,
+			Severity:   model.SeverityCritical,
 			Source:     "osv",
 		},
 	}
@@ -74,31 +76,31 @@ func TestWriteSARIF_ValidDocument(t *testing.T) {
 }
 
 func TestWriteSARIFIgnoresPackageRemediationSummary(t *testing.T) {
-	registry := sdk.NewPackageRegistry()
-	pkg := registry.Add(&sdk.Package{
-		Coordinates: sdk.Coordinates{PURL: sarifTestPURL, Name: "lodash", Version: "4.17.15"},
-		Vulnerabilities: []sdk.Vulnerability{{
+	registry := model.NewPackageRegistry()
+	pkg := registry.Add(&model.Package{
+		Coordinates: model.Coordinates{PURL: sarifTestPURL, Name: "lodash", Version: "4.17.15"},
+		Vulnerabilities: []model.Vulnerability{{
 			ID:            "CVE-2021-23337",
 			FixedIn:       "4.17.21",
 			FixedVersions: []string{"4.17.21"},
-			FixState:      sdk.FixStateFixed,
+			FixState:      model.FixStateFixed,
 		}},
 	})
-	findings := []sdk.Finding{{
+	findings := []model.Finding{{
 		ID:              "CVE-2021-23337",
-		Kind:            sdk.FindingKindVulnerability,
+		Kind:            model.FindingKindVulnerability,
 		PackageRef:      sarifTestPURL,
 		VulnerabilityID: "CVE-2021-23337",
 		Title:           "Prototype pollution in lodash",
-		Severity:        sdk.SeverityHigh,
+		Severity:        model.SeverityHigh,
 	}}
 
 	var without bytes.Buffer
 	if err := WriteSARIF(&without, findings, registry, "bomly", "test"); err != nil {
 		t.Fatalf("WriteSARIF() without remediation error = %v", err)
 	}
-	pkg.Remediation = &sdk.PackageRemediation{
-		Status:             sdk.PackageRemediationComplete,
+	pkg.Remediation = &model.PackageRemediation{
+		Status:             model.PackageRemediationComplete,
 		RecommendedVersion: "4.17.21",
 	}
 	var with bytes.Buffer
@@ -114,9 +116,9 @@ func TestWriteSARIFIgnoresPackageRemediationSummary(t *testing.T) {
 }
 
 func TestWriteSARIF_RuleDeduplication(t *testing.T) {
-	findings := []sdk.Finding{
-		{ID: "CVE-2021-23337", PackageRef: sarifTestPURL, Title: "Pollution", Severity: sdk.SeverityHigh, Source: "osv"},
-		{ID: "CVE-2021-23337", PackageRef: sarifTestPURL, Title: "Pollution", Severity: sdk.SeverityHigh, Source: "osv"},
+	findings := []model.Finding{
+		{ID: "CVE-2021-23337", PackageRef: sarifTestPURL, Title: "Pollution", Severity: model.SeverityHigh, Source: "osv"},
+		{ID: "CVE-2021-23337", PackageRef: sarifTestPURL, Title: "Pollution", Severity: model.SeverityHigh, Source: "osv"},
 	}
 
 	var buf bytes.Buffer
@@ -175,12 +177,12 @@ func TestWriteSARIF_EmptyFindingsEncodeArrayFields(t *testing.T) {
 
 func TestPolicyStatusToSARIFLevel(t *testing.T) {
 	tests := []struct {
-		policyStatus sdk.FindingPolicyStatus
+		policyStatus model.FindingPolicyStatus
 		level        string
 	}{
-		{sdk.FindingPolicyStatusFail, "error"},
-		{sdk.FindingPolicyStatusWarn, "warning"},
-		{sdk.FindingPolicyStatusSuppressed, "note"},
+		{model.FindingPolicyStatusFail, "error"},
+		{model.FindingPolicyStatusWarn, "warning"},
+		{model.FindingPolicyStatusSuppressed, "note"},
 		{"", "error"}, // unset policy status is treated as failing, like FailingFindingCount
 	}
 	for _, tt := range tests {
@@ -192,10 +194,10 @@ func TestPolicyStatusToSARIFLevel(t *testing.T) {
 }
 
 func TestWriteSARIFMarksAcceptedFindingAsSuppressed(t *testing.T) {
-	findings := []sdk.Finding{{
+	findings := []model.Finding{{
 		ID: "package:denied:example", RuleID: "denied-package",
-		Kind: sdk.FindingKindPackage, PackageRef: "pkg:npm/example@1.0.0",
-		Title: "Denied package", PolicyStatus: sdk.FindingPolicyStatusSuppressed,
+		Kind: model.FindingKindPackage, PackageRef: "pkg:npm/example@1.0.0",
+		Title: "Denied package", PolicyStatus: model.FindingPolicyStatusSuppressed,
 	}}
 	var buf bytes.Buffer
 	if err := WriteSARIF(&buf, findings, nil, "bomly", "test"); err != nil {
@@ -218,9 +220,9 @@ func TestWriteSARIFMarksAcceptedFindingAsSuppressed(t *testing.T) {
 // severity are orthogonal: a Low-severity finding that fails the build is
 // still "error", and a Critical one that's only a warning is still "warning".
 func TestSARIFLevelIgnoresSeverity(t *testing.T) {
-	findings := []sdk.Finding{
-		{ID: "fail-low", PackageRef: sarifTestPURL, Title: "x", Severity: sdk.SeverityLow, PolicyStatus: sdk.FindingPolicyStatusFail},
-		{ID: "warn-critical", PackageRef: sarifTestPURL, Title: "y", Severity: sdk.SeverityCritical, PolicyStatus: sdk.FindingPolicyStatusWarn},
+	findings := []model.Finding{
+		{ID: "fail-low", PackageRef: sarifTestPURL, Title: "x", Severity: model.SeverityLow, PolicyStatus: model.FindingPolicyStatusFail},
+		{ID: "warn-critical", PackageRef: sarifTestPURL, Title: "y", Severity: model.SeverityCritical, PolicyStatus: model.FindingPolicyStatusWarn},
 	}
 	var buf bytes.Buffer
 	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0"); err != nil {
@@ -243,13 +245,13 @@ func TestSARIFLevelIgnoresSeverity(t *testing.T) {
 }
 
 func TestWriteSARIF_SecuritySeverityAndFormattedHelp(t *testing.T) {
-	findings := []sdk.Finding{
+	findings := []model.Finding{
 		{
 			ID:         "CVE-2025-48924",
-			Kind:       sdk.FindingKindVulnerability,
+			Kind:       model.FindingKindVulnerability,
 			PackageRef: sarifTestPURL,
 			Title:      "Uncontrolled recursion in commons-lang",
-			Severity:   sdk.SeverityMedium,
+			Severity:   model.SeverityMedium,
 			Source:     "osv",
 			Reasons: []string{
 				"Fix available: upgrade to 3.18.0",
@@ -259,11 +261,11 @@ func TestWriteSARIF_SecuritySeverityAndFormattedHelp(t *testing.T) {
 		},
 		{
 			ID:           "INVALID-abcd-efgh-ijkl",
-			Kind:         sdk.FindingKindLicense,
+			Kind:         model.FindingKindLicense,
 			PackageRef:   sarifTestPURL,
 			Title:        "Package has invalid SPDX license: non-standard",
-			Severity:     sdk.SeverityWarning,
-			PolicyStatus: sdk.FindingPolicyStatusWarn,
+			Severity:     model.SeverityWarning,
+			PolicyStatus: model.FindingPolicyStatusWarn,
 			Source:       "license",
 		},
 	}
@@ -313,8 +315,8 @@ func TestWriteSARIF_SecuritySeverityAndFormattedHelp(t *testing.T) {
 }
 
 func TestWriteSARIF_OSVHelpURI(t *testing.T) {
-	findings := []sdk.Finding{
-		{ID: "CVE-2021-23337", PackageRef: sarifTestPURL, Title: "Vuln", Severity: sdk.SeverityHigh, Source: "osv"},
+	findings := []model.Finding{
+		{ID: "CVE-2021-23337", PackageRef: sarifTestPURL, Title: "Vuln", Severity: model.SeverityHigh, Source: "osv"},
 	}
 	var buf bytes.Buffer
 	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0"); err != nil {
@@ -326,8 +328,8 @@ func TestWriteSARIF_OSVHelpURI(t *testing.T) {
 }
 
 func TestWriteSARIF_EmitsBaselineStateAndStableFingerprint(t *testing.T) {
-	findings := []sdk.Finding{
-		{ID: "BOMLY-LIC-UNKNOWN", Kind: sdk.FindingKindLicense, PackageRef: sarifTestPURL, Title: "Package license is unknown", Severity: sdk.SeverityLow, Source: "license"},
+	findings := []model.Finding{
+		{ID: "BOMLY-LIC-UNKNOWN", Kind: model.FindingKindLicense, PackageRef: sarifTestPURL, Title: "Package license is unknown", Severity: model.SeverityLow, Source: "license"},
 	}
 	var buf bytes.Buffer
 	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0", SARIFOptions{BaselineState: "new"}); err != nil {
@@ -351,8 +353,8 @@ func TestWriteSARIF_EmitsBaselineStateAndStableFingerprint(t *testing.T) {
 // GitHub-compatible repository file when no richer dependency location is
 // available. Package identity stays in the SARIF properties bag.
 func TestWriteSARIF_LocationsFallBackToRepoFile(t *testing.T) {
-	findings := []sdk.Finding{
-		{ID: "CVE-2021-23337", Kind: sdk.FindingKindVulnerability, PackageRef: sarifTestPURL, Title: "Vuln", Severity: sdk.SeverityHigh},
+	findings := []model.Finding{
+		{ID: "CVE-2021-23337", Kind: model.FindingKindVulnerability, PackageRef: sarifTestPURL, Title: "Vuln", Severity: model.SeverityHigh},
 	}
 	var buf bytes.Buffer
 	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0"); err != nil {
@@ -379,12 +381,12 @@ func TestWriteSARIF_LocationsFallBackToRepoFile(t *testing.T) {
 }
 
 func TestWriteSARIF_UsesDependencyLocationsFromGraph(t *testing.T) {
-	graph := sdk.New()
-	dep := sdk.NewDependencyWithID("lodash@4.17.15", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lodash"}, PackageRef: sarifTestPURL,
-		Locations: []sdk.PackageLocation{
+	graph := model.New()
+	dep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "lodash"}, PackageRef: sarifTestPURL,
+		Locations: []model.PackageLocation{
 			{
 				RealPath: "package-lock.json",
-				Position: &sdk.SourcePosition{
+				Position: &model.SourcePosition{
 					File:    "package-lock.json",
 					Line:    42,
 					Column:  5,
@@ -396,19 +398,19 @@ func TestWriteSARIF_UsesDependencyLocationsFromGraph(t *testing.T) {
 	if err := graph.AddNode(dep); err != nil {
 		t.Fatalf("AddNode: %v", err)
 	}
-	findings := []sdk.Finding{
+	findings := []model.Finding{
 		{
 			ID:             "CVE-2021-23337",
-			Kind:           sdk.FindingKindVulnerability,
+			Kind:           model.FindingKindVulnerability,
 			PackageRef:     sarifTestPURL,
-			DependencyRefs: []string{dep.ID},
+			DependencyRefs: []string{dep.NodeID()},
 			Title:          "Vuln",
-			Severity:       sdk.SeverityHigh,
+			Severity:       model.SeverityHigh,
 		},
 	}
 
 	var buf bytes.Buffer
-	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0", SARIFOptions{LocationGraphs: []*sdk.Graph{graph}}); err != nil {
+	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0", SARIFOptions{LocationGraphs: []*model.Graph{graph}}); err != nil {
 		t.Fatalf("WriteSARIF: %v", err)
 	}
 	var doc map[string]any
@@ -423,8 +425,8 @@ func TestWriteSARIF_UsesDependencyLocationsFromGraph(t *testing.T) {
 		t.Errorf("region = %#v, want line 42 column 5", region)
 	}
 	props := result["properties"].(map[string]any)
-	if refs := props["dependency_refs"].([]any); len(refs) != 1 || refs[0] != dep.ID {
-		t.Errorf("dependency_refs = %#v, want [%s]", refs, dep.ID)
+	if refs := props["dependency_refs"].([]any); len(refs) != 1 || refs[0] != dep.NodeID() {
+		t.Errorf("dependency_refs = %#v, want [%s]", refs, dep.NodeID())
 	}
 }
 
@@ -435,41 +437,41 @@ func TestWriteSARIF_UsesDependencyLocationsFromGraph(t *testing.T) {
 // instance carries manifest locations, the located instance must win instead
 // of the location-less first match falling back to the repository file.
 func TestWriteSARIF_UnionsLocationsAcrossGraphs(t *testing.T) {
-	consumer := sdk.New()
-	bare := sdk.NewDependencyWithID("org.apache.commons:commons-text@1.9", sdk.Dependency{
-		Coordinates: sdk.Coordinates{Name: "commons-text"},
+	consumer := model.New()
+	bare := testnodes.DepFrom(model.DependencyNode{
+		Coordinates: model.Coordinates{Name: "commons-text"},
 		PackageRef:  sarifTestPURL,
 	})
 	if err := consumer.AddNode(bare); err != nil {
 		t.Fatalf("AddNode: %v", err)
 	}
-	declaring := sdk.New()
-	located := sdk.NewDependencyWithID("org.apache.commons:commons-text@1.9", sdk.Dependency{
-		Coordinates: sdk.Coordinates{Name: "commons-text"},
+	declaring := model.New()
+	located := testnodes.DepFrom(model.DependencyNode{
+		Coordinates: model.Coordinates{Name: "commons-text"},
 		PackageRef:  sarifTestPURL,
-		Locations: []sdk.PackageLocation{
+		Locations: []model.PackageLocation{
 			{
 				RealPath: "lib/build.gradle",
-				Position: &sdk.SourcePosition{File: "lib/build.gradle", Line: 7},
+				Position: &model.SourcePosition{File: "lib/build.gradle", Line: 7},
 			},
 		},
 	})
 	if err := declaring.AddNode(located); err != nil {
 		t.Fatalf("AddNode: %v", err)
 	}
-	findings := []sdk.Finding{
+	findings := []model.Finding{
 		{
 			ID:             "CVE-2022-42889",
-			Kind:           sdk.FindingKindVulnerability,
+			Kind:           model.FindingKindVulnerability,
 			PackageRef:     sarifTestPURL,
-			DependencyRefs: []string{bare.ID},
+			DependencyRefs: []string{bare.NodeID()},
 			Title:          "Vuln",
-			Severity:       sdk.SeverityCritical,
+			Severity:       model.SeverityCritical,
 		},
 	}
 
 	var buf bytes.Buffer
-	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0", SARIFOptions{LocationGraphs: []*sdk.Graph{consumer, declaring}}); err != nil {
+	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0", SARIFOptions{LocationGraphs: []*model.Graph{consumer, declaring}}); err != nil {
 		t.Fatalf("WriteSARIF: %v", err)
 	}
 	var doc map[string]any
@@ -489,21 +491,21 @@ func TestWriteSARIF_UnionsLocationsAcrossGraphs(t *testing.T) {
 }
 
 func TestWriteSARIF_PrefersLocationIntersectingChangedLines(t *testing.T) {
-	graph := sdk.New()
-	dep := sdk.NewDependencyWithID("actions:checkout@v5", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "actions/checkout"}, PackageRef: "actions:checkout@v5",
-		Locations: []sdk.PackageLocation{
-			{RealPath: ".github/workflows/old.yml", Position: &sdk.SourcePosition{File: ".github/workflows/old.yml", Line: 4}},
-			{RealPath: ".github/workflows/guard.yml", Position: &sdk.SourcePosition{File: ".github/workflows/guard.yml", Line: 12}},
+	graph := model.New()
+	dep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "actions/checkout"}, PackageRef: "actions:checkout@v5",
+		Locations: []model.PackageLocation{
+			{RealPath: ".github/workflows/old.yml", Position: &model.SourcePosition{File: ".github/workflows/old.yml", Line: 4}},
+			{RealPath: ".github/workflows/guard.yml", Position: &model.SourcePosition{File: ".github/workflows/guard.yml", Line: 12}},
 		},
 	})
 	if err := graph.AddNode(dep); err != nil {
 		t.Fatalf("AddNode: %v", err)
 	}
-	finding := sdk.Finding{ID: "policy:actions", PackageRef: dep.PackageRef, DependencyRefs: []string{dep.ID}, Title: "Denied action"}
+	finding := model.Finding{ID: "policy:actions", PackageRef: dep.PackageRef, DependencyRefs: []string{dep.NodeID()}, Title: "Denied action"}
 
 	var buf bytes.Buffer
-	err := WriteSARIF(&buf, []sdk.Finding{finding}, nil, "bomly", "0.1.0", SARIFOptions{
-		LocationGraphs: []*sdk.Graph{graph},
+	err := WriteSARIF(&buf, []model.Finding{finding}, nil, "bomly", "0.1.0", SARIFOptions{
+		LocationGraphs: []*model.Graph{graph},
 		ChangedLines: map[string][]SARIFLineRange{
 			".github/workflows/guard.yml": {{Start: 12, End: 12}},
 		},
@@ -525,21 +527,21 @@ func TestWriteSARIF_PrefersLocationIntersectingChangedLines(t *testing.T) {
 }
 
 func TestWriteSARIF_PrefersChangedFileWhenLineDoesNotIntersect(t *testing.T) {
-	graph := sdk.New()
-	dep := sdk.NewDependencyWithID("lodash@4.17.21", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lodash"}, PackageRef: sarifTestPURL,
-		Locations: []sdk.PackageLocation{
-			{RealPath: "package-lock.json", Position: &sdk.SourcePosition{File: "package-lock.json", Line: 8}},
-			{RealPath: "package.json", Position: &sdk.SourcePosition{File: "package.json", Line: 22}},
+	graph := model.New()
+	dep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "lodash"}, PackageRef: sarifTestPURL,
+		Locations: []model.PackageLocation{
+			{RealPath: "package-lock.json", Position: &model.SourcePosition{File: "package-lock.json", Line: 8}},
+			{RealPath: "package.json", Position: &model.SourcePosition{File: "package.json", Line: 22}},
 		},
 	})
 	if err := graph.AddNode(dep); err != nil {
 		t.Fatalf("AddNode: %v", err)
 	}
-	finding := sdk.Finding{ID: "CVE-2021-23337", PackageRef: dep.PackageRef, DependencyRefs: []string{dep.ID}, Title: "Vuln"}
+	finding := model.Finding{ID: "CVE-2021-23337", PackageRef: dep.PackageRef, DependencyRefs: []string{dep.NodeID()}, Title: "Vuln"}
 
 	var buf bytes.Buffer
-	err := WriteSARIF(&buf, []sdk.Finding{finding}, nil, "bomly", "0.1.0", SARIFOptions{
-		LocationGraphs: []*sdk.Graph{graph},
+	err := WriteSARIF(&buf, []model.Finding{finding}, nil, "bomly", "0.1.0", SARIFOptions{
+		LocationGraphs: []*model.Graph{graph},
 		ChangedLines: map[string][]SARIFLineRange{
 			"package.json": {{Start: 30, End: 30}},
 		},
@@ -561,16 +563,16 @@ func TestWriteSARIF_PrefersChangedFileWhenLineDoesNotIntersect(t *testing.T) {
 }
 
 func TestWriteSARIF_SelectsChangedLocationsPerDependency(t *testing.T) {
-	graph := sdk.New()
-	touched := sdk.NewDependencyWithID("lodash@4.17.21", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lodash"}, PackageRef: "pkg:npm/lodash@4.17.21",
-		Locations: []sdk.PackageLocation{
-			{RealPath: "package-lock.json", Position: &sdk.SourcePosition{File: "package-lock.json", Line: 9}},
-			{RealPath: "package.json", Position: &sdk.SourcePosition{File: "package.json", Line: 22}},
+	graph := model.New()
+	touched := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "lodash"}, PackageRef: "pkg:npm/lodash@4.17.21",
+		Locations: []model.PackageLocation{
+			{RealPath: "package-lock.json", Position: &model.SourcePosition{File: "package-lock.json", Line: 9}},
+			{RealPath: "package.json", Position: &model.SourcePosition{File: "package.json", Line: 22}},
 		},
 	})
-	unchanged := sdk.NewDependencyWithID("minimist@1.2.8", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "minimist"}, PackageRef: "pkg:npm/minimist@1.2.8",
-		Locations: []sdk.PackageLocation{
-			{RealPath: "yarn.lock", Position: &sdk.SourcePosition{File: "yarn.lock", Line: 33}},
+	unchanged := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "minimist"}, PackageRef: "pkg:npm/minimist@1.2.8",
+		Locations: []model.PackageLocation{
+			{RealPath: "yarn.lock", Position: &model.SourcePosition{File: "yarn.lock", Line: 33}},
 		},
 	})
 	if err := graph.AddNode(touched); err != nil {
@@ -579,16 +581,16 @@ func TestWriteSARIF_SelectsChangedLocationsPerDependency(t *testing.T) {
 	if err := graph.AddNode(unchanged); err != nil {
 		t.Fatalf("AddNode unchanged: %v", err)
 	}
-	finding := sdk.Finding{
+	finding := model.Finding{
 		ID:             "policy:multi",
 		PackageRef:     touched.PackageRef,
-		DependencyRefs: []string{touched.ID, unchanged.ID},
+		DependencyRefs: []string{touched.NodeID(), unchanged.NodeID()},
 		Title:          "Denied package set",
 	}
 
 	var buf bytes.Buffer
-	err := WriteSARIF(&buf, []sdk.Finding{finding}, nil, "bomly", "0.1.0", SARIFOptions{
-		LocationGraphs: []*sdk.Graph{graph},
+	err := WriteSARIF(&buf, []model.Finding{finding}, nil, "bomly", "0.1.0", SARIFOptions{
+		LocationGraphs: []*model.Graph{graph},
 		ChangedLines: map[string][]SARIFLineRange{
 			"package.json": {{Start: 22, End: 22}},
 		},
@@ -620,26 +622,26 @@ func TestWriteSARIF_SelectsChangedLocationsPerDependency(t *testing.T) {
 }
 
 func TestWriteSARIF_RewritesNonFileLocationSchemes(t *testing.T) {
-	graph := sdk.New()
-	dep := sdk.NewDependencyWithID("actions:checkout@v5", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "actions/checkout"}, PackageRef: "actions:checkout@v5",
-		Locations: []sdk.PackageLocation{{RealPath: "actions:checkout@v5"}},
+	graph := model.New()
+	dep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "actions/checkout"}, PackageRef: "actions:checkout@v5",
+		Locations: []model.PackageLocation{{RealPath: "actions:checkout@v5"}},
 	})
 	if err := graph.AddNode(dep); err != nil {
 		t.Fatalf("AddNode: %v", err)
 	}
-	findings := []sdk.Finding{
+	findings := []model.Finding{
 		{
 			ID:             "policy:actions",
-			Kind:           sdk.FindingKindPackage,
+			Kind:           model.FindingKindPackage,
 			PackageRef:     "actions:checkout@v5",
-			DependencyRefs: []string{dep.ID},
+			DependencyRefs: []string{dep.NodeID()},
 			Title:          "Denied action",
-			Severity:       sdk.SeverityHigh,
+			Severity:       model.SeverityHigh,
 		},
 	}
 
 	var buf bytes.Buffer
-	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0", SARIFOptions{LocationGraphs: []*sdk.Graph{graph}}); err != nil {
+	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0", SARIFOptions{LocationGraphs: []*model.Graph{graph}}); err != nil {
 		t.Fatalf("WriteSARIF: %v", err)
 	}
 	var doc map[string]any

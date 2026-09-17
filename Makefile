@@ -1,13 +1,14 @@
 BINARY_NAME=bomly
 LITE_BUILD_TAGS=bomly_external_syft,bomly_external_grype
-GOLANGCI_LINT_VERSION=v2.12.0
+GOLANGCI_LINT_VERSION=v2.13.2
 GO_LICENSES_VERSION=v1.6.0
 GOPATH_BIN=$(shell go env GOPATH)/bin
 EXE_SUFFIX=$(if $(filter Windows_NT,$(OS)),.exe,)
 GOLANGCI_LINT=$(GOPATH_BIN)/golangci-lint$(EXE_SUFFIX)
+GUARDCHECK=bin/guardcheck$(EXE_SUFFIX)
 FUZZTIME?=60s
 
-.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test smoke fuzz run generate assurance-catalog assurance-report benchmark benchmark-samples benchmark-report licenses
+.PHONY: build build-full build-lite fmt fmt-check lint guardcheck install-hooks test smoke fuzz verify run generate assurance-catalog assurance-report benchmark benchmark-samples benchmark-report licenses
 
 build: build-full build-lite
 
@@ -26,8 +27,27 @@ fmt-check:
 $(GOLANGCI_LINT): Makefile
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 
-lint: $(GOLANGCI_LINT)
+# lint is every static house rule: golangci-lint (with the depguard import
+# bans and forbidigo identifier bans in .golangci.yml) and the structural
+# analyzers in internal/tools/guardcheck. CI runs the same three steps.
+lint: $(GOLANGCI_LINT) guardcheck
 	$(GOLANGCI_LINT) run
+	# composition_lite.go is the one file under internal/ behind the lite
+	# build tags, and golangci-lint sees one tag set per run.
+	$(GOLANGCI_LINT) run --build-tags "$(LITE_BUILD_TAGS)" ./internal/composition/...
+
+# The structural house rules run as a vet tool, so package scope and build
+# tags come from the go command and results ride the build cache. A package
+# pattern that matches nothing is only a warning to go vet, and a rule that
+# reached nothing reads exactly like a rule that passed, so reach is asserted
+# first (ADR-0044 rule 4).
+guardcheck:
+	go build -o $(GUARDCHECK) ./internal/tools/guardcheck
+	@test -n "$$(go list ./internal/...)" || { echo "guardcheck: no packages under internal/" >&2; exit 1; }
+	@test -n "$$(go list ./internal/detectors/...)" || { echo "guardcheck: no packages under internal/detectors/" >&2; exit 1; }
+	go vet -vettool=$(GUARDCHECK) -nodeinsert -purlstring ./internal/...
+	go vet -vettool=$(GUARDCHECK) -attributed ./internal/detectors/...
+	go vet -tags "$(LITE_BUILD_TAGS)" -vettool=$(GUARDCHECK) -nodeinsert -purlstring ./internal/composition/...
 
 install-hooks:
 	git config core.hooksPath .githooks
@@ -40,6 +60,47 @@ smoke:
 
 fuzz:
 	FUZZTIME="$(FUZZTIME)" scripts/run-fuzz.sh
+
+# verify runs everything that gates a push and records that it passed.
+#
+# The stamp is what .githooks/pre-push reads: a push is refused unless a
+# passing stamp exists and is newer than every tracked source file. Keeping
+# the run here rather than in the hook means it happens once, deliberately,
+# instead of on every push attempt -- a six-minute hook gets bypassed, and a
+# bypassed hook enforces nothing.
+#
+# SMOKE=1 adds the network-driven smoke suite and records that it ran.
+# Generated-docs drift is checked too: it is a CI job, and it fails for edits
+# that look unrelated to it.
+verify:
+	@rm -f .verify-stamp
+	$(MAKE) fmt-check
+	$(MAKE) lint
+	go vet ./...
+	go vet -tags "$(LITE_BUILD_TAGS)" ./...
+	# The smoke suite is behind a build tag, so `go vet ./...` never compiles
+	# it. Running it needs the network and several minutes; compiling it costs
+	# a second and catches the failure that actually happens -- a smoke file
+	# left un-updated by a change everything else absorbed.
+	go vet -tags smoke ./test/smoke/...
+	go build ./...
+	go build -tags "$(LITE_BUILD_TAGS)" ./...
+	go test ./...
+	$(MAKE) generate
+	@git diff --quiet -- docs/ || { \
+		echo "verify: generated docs drifted; commit the result of 'make generate'" >&2; \
+		git --no-pager diff --stat -- docs/ >&2; \
+		exit 1; \
+	}
+	@if [ "$(SMOKE)" = "1" ]; then $(MAKE) smoke; fi
+	@{ \
+		echo "VERIFY_STATUS=pass"; \
+		echo "VERIFY_AT=$$(date +%s)"; \
+		echo "VERIFY_AT_HUMAN=$$(date -u +%Y-%m-%dT%H:%M:%SZ)"; \
+		echo "VERIFY_SNAPSHOT=$$(./scripts/verify-snapshot.sh)"; \
+		if [ "$(SMOKE)" = "1" ]; then echo "VERIFY_SMOKE=yes"; else echo "VERIFY_SMOKE=no"; fi; \
+	} > .verify-stamp
+	@echo "verify: passed; stamp written to .verify-stamp"
 
 assurance-catalog:
 	go run ./internal/assurance/cmd catalog-validate $(if $(CHECK),--check $(CHECK),) $(if $(EVIDENCE),--evidence $(EVIDENCE),)

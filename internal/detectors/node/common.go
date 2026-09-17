@@ -12,12 +12,14 @@ import (
 	"sort"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // BaseDetector provides shared command execution behavior for Node package-manager detectors.
@@ -66,7 +68,7 @@ func (d BaseDetector) ProjectDir(projectPath string) string {
 }
 
 // ResolveGraph runs a package-manager CLI command and maps its JSON output into a graph.
-func (d BaseDetector) ResolveGraph(stderr io.Writer, projectPath string, verbose bool, executable string, args []string, detectorName string, parse func([]byte) (*sdk.Graph, error)) (*sdk.Graph, error) {
+func (d BaseDetector) ResolveGraph(stderr io.Writer, projectPath string, verbose bool, executable string, args []string, detectorName string, parse func([]byte) (*model.Graph, error)) (*model.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -103,7 +105,7 @@ func (d BaseDetector) ResolveGraph(stderr io.Writer, projectPath string, verbose
 }
 
 // Install runs a package-manager install command for detectors that support install-first.
-func (d BaseDetector) Install(ctx context.Context, req sdk.DetectionRequest, executable string, defaultArgs []string, detectorName string) error {
+func (d BaseDetector) Install(ctx context.Context, req plugin.DetectionRequest, executable string, defaultArgs []string, detectorName string) error {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -131,7 +133,7 @@ func (d BaseDetector) Install(ctx context.Context, req sdk.DetectionRequest, exe
 }
 
 // DepGraphFromNPMJSON maps npm list JSON output into a dependency graph.
-func DepGraphFromNPMJSON(raw []byte) (*sdk.Graph, error) {
+func DepGraphFromNPMJSON(raw []byte) (*model.Graph, error) {
 	var root NPMListNode
 	if err := json.Unmarshal(raw, &root); err != nil {
 		return nil, fmt.Errorf("parse npm json: %w", err)
@@ -140,21 +142,24 @@ func DepGraphFromNPMJSON(raw []byte) (*sdk.Graph, error) {
 }
 
 // DepGraphFromNPMNode maps a npm dependency tree node into a dependency graph.
-func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
+func DepGraphFromNPMNode(root *NPMListNode) (*model.Graph, error) {
 	if root == nil {
 		return nil, errors.New("npm root node is nil")
 	}
 
-	depsGraph := sdk.New()
+	depsGraph := model.New()
 	rootName := root.Name
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+	rootNode, err := model.NewModuleNode("package.json", model.Coordinates{Ecosystem: model.EcosystemNPM,
 		Name:    rootName,
 		Version: root.Version,
-		Type:    sdk.PackageTypeApplication, FirstParty: true},
+		Type:    model.PackageTypeApplication,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
@@ -164,7 +169,7 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 		parentID string
 		deps     map[string]*NPMListNode
 	}
-	stack := []frame{{parentID: rootNode.ID, deps: root.Dependencies}}
+	stack := []frame{{parentID: rootNode.NodeID(), deps: root.Dependencies}}
 	for len(stack) > 0 {
 		current := stack[len(stack)-1]
 		stack = stack[:len(stack)-1]
@@ -186,28 +191,35 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 			if name == "" {
 				name = depName
 			}
-			node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+			node, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemNPM,
 				Name:    name,
-				Version: depNode.Version}, ResolvedURL: depNode.Resolved,
-			})
-			node.Origin = sdk.ArtifactOrigin(depNode.Resolved)
+				Version: depNode.Version})
+			if err != nil {
+				return nil, fmt.Errorf("build dependency node: %w", err)
+			}
+			node.ResolvedURL = depNode.Resolved
+			// Origins is a list now: a node folds every tarball it was
+			// resolved from rather than holding one.
+			if origin := model.ArtifactOrigin(depNode.Resolved); origin != nil {
+				node.Origins = model.MergeOrigins(node.Origins, []model.DependencyOrigin{*origin})
+			}
 
 			// Two tree positions can pin one name@version to different
-			// tarballs; the resolved string is the discriminator, so each
-			// distinct resolution keeps its own occurrence and each
-			// position's edge attaches to the occurrence it references.
-			surviving, err := detectors.EnsureOccurrence(depsGraph, node, depNode.Resolved)
+			// tarballs. They fold into one node under ADR-0041 -- identity is
+			// the canonical package URL, which the tarball does not change --
+			// and both tarballs survive on the node's Origins list.
+			surviving, err := detectorkit.EnsureNode(depsGraph, node)
 			if err != nil {
 				return nil, err
 			}
 			if surviving == nil {
 				continue
 			}
-			if err := depsGraph.AddEdge(current.parentID, surviving.ID); err != nil {
-				return nil, fmt.Errorf("add dependency %q -> %q: %w", current.parentID, surviving.ID, err)
+			if err := depsGraph.AddEdge(current.parentID, surviving.NodeID()); err != nil {
+				return nil, fmt.Errorf("add dependency %q -> %q: %w", current.parentID, surviving.NodeID(), err)
 			}
 			if len(depNode.Dependencies) > 0 {
-				stack = append(stack, frame{parentID: surviving.ID, deps: depNode.Dependencies})
+				stack = append(stack, frame{parentID: surviving.NodeID(), deps: depNode.Dependencies})
 			}
 		}
 	}
@@ -216,7 +228,7 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 }
 
 // DepGraphFromPNPMJSON maps pnpm list JSON output into a dependency graph.
-func DepGraphFromPNPMJSON(raw []byte) (*sdk.Graph, error) {
+func DepGraphFromPNPMJSON(raw []byte) (*model.Graph, error) {
 	var roots []pnpmListNode
 	if err := json.Unmarshal(raw, &roots); err != nil {
 		return nil, fmt.Errorf("parse pnpm json: %w", err)
@@ -225,25 +237,28 @@ func DepGraphFromPNPMJSON(raw []byte) (*sdk.Graph, error) {
 		return nil, errors.New("pnpm output is empty")
 	}
 
-	depsGraph := sdk.New()
+	depsGraph := model.New()
 	for _, root := range roots {
-		rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+		rootNode, err := model.NewModuleNode("package.json", model.Coordinates{Ecosystem: model.EcosystemNPM,
 			Name:    root.Name,
 			Version: root.Version,
-			Type:    sdk.PackageTypeApplication, FirstParty: true},
+			Type:    model.PackageTypeApplication,
 		})
+		if err != nil {
+			return nil, err
+		}
 
 		if err := AddNodeIfMissing(depsGraph, rootNode); err != nil {
 			return nil, err
 		}
-		if err := addPNPMDependencies(depsGraph, rootNode.ID, root.Dependencies); err != nil {
+		if err := addPNPMDependencies(depsGraph, rootNode.NodeID(), root.Dependencies); err != nil {
 			return nil, err
 		}
 	}
 	return depsGraph, nil
 }
 
-func addPNPMDependencies(depsGraph *sdk.Graph, parentID string, deps map[string]*pnpmListNode) error {
+func addPNPMDependencies(depsGraph *model.Graph, parentID string, deps map[string]*pnpmListNode) error {
 	for depName, depNode := range deps {
 		if depNode == nil {
 			continue
@@ -252,18 +267,20 @@ func addPNPMDependencies(depsGraph *sdk.Graph, parentID string, deps map[string]
 		if name == "" {
 			name = depName
 		}
-		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+		node, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemNPM,
 			Name:    name,
-			Version: depNode.Version},
-		})
+			Version: depNode.Version})
+		if err != nil {
+			return fmt.Errorf("build dependency node: %w", err)
+		}
 
 		if err := AddNodeIfMissing(depsGraph, node); err != nil {
 			return err
 		}
-		if err := depsGraph.AddEdge(parentID, node.ID); err != nil {
-			return fmt.Errorf("add dependency %q -> %q: %w", parentID, node.ID, err)
+		if err := depsGraph.AddEdge(parentID, node.NodeID()); err != nil {
+			return fmt.Errorf("add dependency %q -> %q: %w", parentID, node.NodeID(), err)
 		}
-		if err := addPNPMDependencies(depsGraph, node.ID, depNode.Dependencies); err != nil {
+		if err := addPNPMDependencies(depsGraph, node.NodeID(), depNode.Dependencies); err != nil {
 			return err
 		}
 	}
@@ -271,7 +288,7 @@ func addPNPMDependencies(depsGraph *sdk.Graph, parentID string, deps map[string]
 }
 
 // DepGraphFromYarnJSON maps Yarn list JSON output into a dependency graph.
-func DepGraphFromYarnJSON(raw []byte) (*sdk.Graph, error) {
+func DepGraphFromYarnJSON(raw []byte) (*model.Graph, error) {
 	events := bytes.Split(raw, []byte{'\n'})
 	var treeData yarnListTreeData
 	for _, line := range events {
@@ -295,41 +312,46 @@ func DepGraphFromYarnJSON(raw []byte) (*sdk.Graph, error) {
 		return nil, errors.New("yarn tree output is empty")
 	}
 
-	depsGraph := sdk.New()
-	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+	depsGraph := model.New()
+	rootNode, err := model.NewModuleNode("package.json", model.Coordinates{Ecosystem: model.EcosystemNPM,
 		Name: "root",
-		Type: sdk.PackageTypeApplication, FirstParty: true},
+		Type: model.PackageTypeApplication,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 	for _, tree := range treeData.Trees {
-		if err := addYarnTree(depsGraph, rootNode.ID, tree); err != nil {
+		if err := addYarnTree(depsGraph, rootNode.NodeID(), tree); err != nil {
 			return nil, err
 		}
 	}
 	return depsGraph, nil
 }
 
-func addYarnTree(depsGraph *sdk.Graph, parentID string, tree yarnTreeNode) error {
+func addYarnTree(depsGraph *model.Graph, parentID string, tree yarnTreeNode) error {
 	name, version, err := splitYarnTreeName(tree.Name)
 	if err != nil {
 		return err
 	}
-	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+	node, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemNPM,
 		Name:    name,
-		Version: version},
-	})
+		Version: version})
+	if err != nil {
+		return fmt.Errorf("build dependency node: %w", err)
+	}
 
 	if err := AddNodeIfMissing(depsGraph, node); err != nil {
 		return err
 	}
-	if err := depsGraph.AddEdge(parentID, node.ID); err != nil {
-		return fmt.Errorf("add dependency %q -> %q: %w", parentID, node.ID, err)
+	if err := depsGraph.AddEdge(parentID, node.NodeID()); err != nil {
+		return fmt.Errorf("add dependency %q -> %q: %w", parentID, node.NodeID(), err)
 	}
 	for _, child := range tree.Children {
-		if err := addYarnTree(depsGraph, node.ID, child); err != nil {
+		if err := addYarnTree(depsGraph, node.NodeID(), child); err != nil {
 			return err
 		}
 	}
@@ -345,10 +367,15 @@ func splitYarnTreeName(value string) (string, string, error) {
 }
 
 // AddNodeIfMissing adds a package to a graph or merges scope into the existing package.
-func AddNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
-	// A package reached twice carries both scopes; the shared helper unions
-	// them on fold.
-	_, err := detectors.EnsureNode(depsGraph, node)
+// AddNodeIfMissing inserts any node kind, folding a repeat into the node that
+// already carries its identity. Node detectors add module roots through it as
+// well as dependencies, so it takes the union.
+func AddNodeIfMissing(depsGraph *model.Graph, node model.GraphNode) error {
+	if depsGraph == nil || node == nil {
+		return nil
+	}
+	// The fold is the SDK's: it unions scopes, locations and origins.
+	_, err := depsGraph.InsertNode(node)
 	return err
 }
 
@@ -363,7 +390,7 @@ type PackageJSONManifest struct {
 }
 
 // AnnotateScopesFromPackageJSON annotates graph packages using direct dependency scopes from package.json.
-func AnnotateScopesFromPackageJSON(projectPath string, depsGraph *sdk.Graph) error {
+func AnnotateScopesFromPackageJSON(projectPath string, depsGraph *model.Graph) error {
 	if depsGraph == nil {
 		return nil
 	}
@@ -381,16 +408,16 @@ func AnnotateScopesFromPackageJSON(projectPath string, depsGraph *sdk.Graph) err
 		return fmt.Errorf("parse package.json: %w", err)
 	}
 
-	directScopes := make(map[string]sdk.Scope, len(manifest.Dependencies)+len(manifest.OptionalDependencies)+len(manifest.PeerDependencies)+len(manifest.DevDependencies))
-	recordDirectScopes(directScopes, manifest.Dependencies, sdk.ScopeRuntime)
-	recordDirectScopes(directScopes, manifest.OptionalDependencies, sdk.ScopeRuntime)
-	recordDirectScopes(directScopes, manifest.PeerDependencies, sdk.ScopeRuntime)
-	recordDirectScopes(directScopes, manifest.DevDependencies, sdk.ScopeDevelopment)
+	directScopes := make(map[string]model.Scope, len(manifest.Dependencies)+len(manifest.OptionalDependencies)+len(manifest.PeerDependencies)+len(manifest.DevDependencies))
+	recordDirectScopes(directScopes, manifest.Dependencies, model.ScopeRuntime)
+	recordDirectScopes(directScopes, manifest.OptionalDependencies, model.ScopeRuntime)
+	recordDirectScopes(directScopes, manifest.PeerDependencies, model.ScopeRuntime)
+	recordDirectScopes(directScopes, manifest.DevDependencies, model.ScopeDevelopment)
 
 	rootID := ""
 	for _, root := range depsGraph.Roots() {
 		if root != nil {
-			rootID = root.ID
+			rootID = root.NodeID()
 			break
 		}
 	}
@@ -402,25 +429,26 @@ func AnnotateScopesFromPackageJSON(projectPath string, depsGraph *sdk.Graph) err
 	return nil
 }
 
-func recordDirectScopes(target map[string]sdk.Scope, dependencies map[string]string, scope sdk.Scope) {
+func recordDirectScopes(target map[string]model.Scope, dependencies map[string]string, scope model.Scope) {
 	for name := range dependencies {
 		key := name
 		if _, ok := target[key]; ok {
-			target[key] = sdk.MergeScope(target[key], scope)
+			target[key] = model.MergeScope(target[key], scope)
 			continue
 		}
 		target[key] = scope
 	}
 }
 
-func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, directScopes map[string]sdk.Scope) {
-	rootDeps, err := depsGraph.DirectDependencies(rootID)
+func propagateScopesFromRootDependencies(depsGraph *model.Graph, rootID string, directScopes map[string]model.Scope) {
+	rootDepNodes, err := depsGraph.DirectDependencies(rootID)
+	rootDeps := model.DependencyNodesOf(rootDepNodes)
 	if err != nil {
 		return
 	}
 
-	queue := make([]*sdk.Dependency, 0, len(rootDeps))
-	propagated := make(map[string]sdk.Scope, depsGraph.Size())
+	queue := make([]*model.DependencyNode, 0, len(rootDeps))
+	propagated := make(map[string]model.Scope, depsGraph.Size())
 	for _, dep := range rootDeps {
 		if dep == nil {
 			continue
@@ -429,11 +457,11 @@ func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, di
 		if !ok {
 			scope, ok = directScopes[dep.QualifiedName()]
 		}
-		if !ok || scope == sdk.ScopeUnknown {
+		if !ok || scope == model.ScopeUnknown {
 			continue
 		}
 		dep.AddScope(scope)
-		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
+		propagated[dep.NodeID()] = model.MergeScope(propagated[dep.NodeID()], scope)
 		queue = append(queue, dep)
 	}
 
@@ -441,12 +469,13 @@ func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, di
 		current := queue[0]
 		queue = queue[1:]
 
-		scope := propagated[current.ID]
-		if scope == sdk.ScopeUnknown {
+		scope := propagated[current.NodeID()]
+		if scope == model.ScopeUnknown {
 			continue
 		}
 
-		children, err := depsGraph.DirectDependencies(current.ID)
+		childrenNodes, err := depsGraph.DirectDependencies(current.NodeID())
+		children := model.DependencyNodesOf(childrenNodes)
 		if err != nil {
 			continue
 		}
@@ -454,11 +483,11 @@ func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, di
 			if child == nil {
 				continue
 			}
-			nextScope := sdk.MergeScope(propagated[child.ID], scope)
-			if nextScope == propagated[child.ID] && child.PrimaryScope() == nextScope {
+			nextScope := model.MergeScope(propagated[child.NodeID()], scope)
+			if nextScope == propagated[child.NodeID()] && child.PrimaryScope() == nextScope {
 				continue
 			}
-			propagated[child.ID] = nextScope
+			propagated[child.NodeID()] = nextScope
 			child.AddScope(nextScope)
 			queue = append(queue, child)
 		}
@@ -467,7 +496,7 @@ func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, di
 
 // ApplyDirectDependencyScopes annotates direct root dependencies and their
 // transitive dependencies with normalized scopes.
-func ApplyDirectDependencyScopes(depsGraph *sdk.Graph, rootID string, directScopes map[string]sdk.Scope) {
+func ApplyDirectDependencyScopes(depsGraph *model.Graph, rootID string, directScopes map[string]model.Scope) {
 	if depsGraph == nil || rootID == "" || len(directScopes) == 0 {
 		return
 	}
@@ -475,11 +504,11 @@ func ApplyDirectDependencyScopes(depsGraph *sdk.Graph, rootID string, directScop
 }
 
 // DirectDependencyScopes builds direct dependency scopes from package.json dependency maps.
-func DirectDependencyScopes(manifest PackageJSONManifest) map[string]sdk.Scope {
-	directScopes := make(map[string]sdk.Scope, len(manifest.Dependencies)+len(manifest.OptionalDependencies)+len(manifest.PeerDependencies)+len(manifest.DevDependencies))
-	recordDirectScopes(directScopes, manifest.Dependencies, sdk.ScopeRuntime)
-	recordDirectScopes(directScopes, manifest.OptionalDependencies, sdk.ScopeRuntime)
-	recordDirectScopes(directScopes, manifest.PeerDependencies, sdk.ScopeRuntime)
-	recordDirectScopes(directScopes, manifest.DevDependencies, sdk.ScopeDevelopment)
+func DirectDependencyScopes(manifest PackageJSONManifest) map[string]model.Scope {
+	directScopes := make(map[string]model.Scope, len(manifest.Dependencies)+len(manifest.OptionalDependencies)+len(manifest.PeerDependencies)+len(manifest.DevDependencies))
+	recordDirectScopes(directScopes, manifest.Dependencies, model.ScopeRuntime)
+	recordDirectScopes(directScopes, manifest.OptionalDependencies, model.ScopeRuntime)
+	recordDirectScopes(directScopes, manifest.PeerDependencies, model.ScopeRuntime)
+	recordDirectScopes(directScopes, manifest.DevDependencies, model.ScopeDevelopment)
 	return directScopes
 }

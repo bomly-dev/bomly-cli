@@ -3,65 +3,71 @@ package consolidation
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
-func TestNormalizeGraphPackageIdentity_CollapsesEquivalentPythonPackages(t *testing.T) {
-	g := sdk.New()
-	root := sdk.NewDependencyWithID("app@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "app", Version: "1.0.0"}})
-	pyA := sdk.NewDependencyWithID("Requests_Toolbelt@1.0.0RC1", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "python", Name: "Requests_Toolbelt", Version: "1.0.0RC1"}})
-	pyB := sdk.NewDependencyWithID("requests-toolbelt@1.0.0rc1", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "python", Name: "requests-toolbelt", Version: "1.0.0rc1"}})
-	for _, pkg := range []*sdk.Dependency{root, pyA, pyB} {
-		if err := g.AddNode(pkg); err != nil {
-			t.Fatalf("AddPackage(%q) error = %v", pkg.ID, err)
+// Two spellings of one Python package -- name case and separators, and a
+// release-candidate version written in a different case -- mint the same
+// identity, so the second insertion folds into the first and the consumer's
+// edges point at one node.
+//
+// The version half came back with bomly-sdk v0.9.2, which canonicalizes a
+// PyPI version per PEP 440 before minting. It was briefly untrue: v0.9.0
+// stopped lowercasing every version containing a letter, which was right --
+// that rule corrupted Maven's "1.0-SNAPSHOT" -- and cost this fold until the
+// ecosystem-correct rule replaced the blanket one.
+//
+// Normalization moved into the constructor with ADR-0041, which is why this
+// case no longer builds two nodes and then collapses them: the second node
+// never exists.
+func TestEquivalentPythonSpellingsFoldOnInsertion(t *testing.T) {
+	g := model.New()
+	root := testnodes.Ref("app", "1.0.0")
+	pyA := testnodes.Dep(model.Coordinates{Ecosystem: "python", Name: "Requests_Toolbelt", Version: "1.0.0RC1"})
+	pyB := testnodes.Dep(model.Coordinates{Ecosystem: "python", Name: "requests-toolbelt", Version: "1.0.0rc1"})
+
+	const want = "pkg:pypi/requests-toolbelt@1.0.0rc1"
+	if pyA.NodeID() != want || pyB.NodeID() != want {
+		t.Fatalf("identities = %q and %q, want both to mint %q", pyA.NodeID(), pyB.NodeID(), want)
+	}
+	for _, pkg := range []*model.DependencyNode{root, pyA, pyB} {
+		if _, err := g.InsertNode(pkg); err != nil {
+			t.Fatalf("InsertNode(%q) error = %v", pkg.NodeID(), err)
 		}
 	}
-	if err := g.AddEdge(root.ID, pyA.ID); err != nil {
-		t.Fatalf("AddDependency(pyA) error = %v", err)
+	if err := g.AddEdge(root.NodeID(), pyA.NodeID()); err != nil {
+		t.Fatalf("AddEdge(pyA) error = %v", err)
 	}
-	if err := g.AddEdge(root.ID, pyB.ID); err != nil {
-		t.Fatalf("AddDependency(pyB) error = %v", err)
+	if err := g.AddEdge(root.NodeID(), pyB.NodeID()); err != nil {
+		t.Fatalf("AddEdge(pyB) error = %v", err)
 	}
 
 	normalized, err := normalizeGraphPackageIdentity(g)
 	if err != nil {
 		t.Fatalf("normalizeGraphPackageIdentity() error = %v", err)
 	}
-
 	if normalized.Size() != 2 {
-		t.Fatalf("expected duplicate python packages to collapse to 2 nodes, got %d", normalized.Size())
+		t.Fatalf("graph size = %d, want the root plus one folded package", normalized.Size())
 	}
-	depID := "pkg:pypi/requests-toolbelt@1.0.0rc1"
-	dep, ok := normalized.Node(depID)
-	if !ok {
-		t.Fatalf("expected normalized python package %q", depID)
-	}
-	deps, err := normalized.DirectDependencies("pkg:generic/app@1.0.0")
+	deps, err := normalized.DirectDependencies(root.NodeID())
 	if err != nil {
-		t.Fatalf("Dependencies() error = %v", err)
+		t.Fatalf("DirectDependencies() error = %v", err)
 	}
-	if len(deps) != 1 || deps[0].ID != dep.ID {
-		t.Fatalf("expected single collapsed dependency %q, got %#v", dep.ID, deps)
-	}
-	if dep.Metadata == nil {
-		t.Fatal("expected normalization metadata on collapsed dependency")
+	if len(deps) != 1 || deps[0].NodeID() != want {
+		t.Fatalf("root dependencies = %#v, want the one folded package", deps)
 	}
 }
 
-func TestNormalizeGraphPackageIdentity_NormalizesScopedNPMPackage(t *testing.T) {
-	g := graphFixture(
-		[]nodeFixture{{id: "@Types/Node@20.11.30", name: "@Types/Node", version: "20.11.30"}},
-		nil,
-	)
-	pkg, _ := g.Node("@Types/Node@20.11.30")
-	pkg.Ecosystem = "npm"
-
-	normalized, err := normalizeGraphPackageIdentity(g)
-	if err != nil {
-		t.Fatalf("normalizeGraphPackageIdentity() error = %v", err)
-	}
-	if _, ok := normalized.Node("pkg:npm/%40types/node@20.11.30"); !ok {
-		t.Fatal("expected scoped npm package to normalize to canonical namespace and name")
+// A scoped npm name is canonicalized into namespace and name by the same
+// constructor gate, so the identity is percent-encoded exactly as the purl
+// spec requires.
+func TestScopedNPMNameMintsTheCanonicalIdentity(t *testing.T) {
+	pkg := testnodes.Dep(model.Coordinates{Ecosystem: "npm", Name: "@Types/Node", Version: "20.11.30"})
+	if pkg.NodeID() != "pkg:npm/%40types/node@20.11.30" {
+		t.Fatalf("identity = %q, want the canonical scoped npm package URL", pkg.NodeID())
 	}
 }
 
@@ -75,9 +81,9 @@ func TestConsolidateGraphs_PreservesManifestRoots(t *testing.T) {
 		[][2]string{{"example.com/api", "rsc.io/quote@v1.5.2"}},
 	)
 
-	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{
-		{SubprojectInfo: sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"}, RelativePath: "apps/web", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM}, DetectorName: "npm-detector", Graphs: sdk.SingleGraphContainer(npmGraph, sdk.ManifestMetadata{Path: "apps/web/package-lock.json", Kind: "package-lock.json"})},
-		{SubprojectInfo: sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"}, RelativePath: "services/api", PrimaryDetector: "go-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerGoMod}, Ecosystem: sdk.EcosystemGo}, DetectorName: "go-detector", Graphs: sdk.SingleGraphContainer(goGraph, sdk.ManifestMetadata{Path: "services/api/go.mod", Kind: "go.mod"})},
+	consolidated, err := ConsolidateGraphs([]plugin.DetectionResult{
+		{SubprojectInfo: plugin.Subproject{ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: "/repo"}, RelativePath: "apps/web", PrimaryDetector: "npm-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM}, Ecosystem: model.EcosystemNPM}, DetectorName: "npm-detector", Graphs: model.SingleGraphContainer(npmGraph, model.ManifestMetadata{Path: "apps/web/package-lock.json", Kind: "package-lock.json"})},
+		{SubprojectInfo: plugin.Subproject{ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: "/repo"}, RelativePath: "services/api", PrimaryDetector: "go-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerGoMod}, Ecosystem: model.EcosystemGo}, DetectorName: "go-detector", Graphs: model.SingleGraphContainer(goGraph, model.ManifestMetadata{Path: "services/api/go.mod", Kind: "go.mod"})},
 	})
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
@@ -95,14 +101,14 @@ func TestConsolidateGraphs_PreservesManifestRoots(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	if _, ok := mergedGraph.Node("subproject:npm:apps/web"); ok {
+	if _, ok := testnodes.Find(mergedGraph, "subproject:npm:apps/web"); ok {
 		t.Fatal("did not expect synthetic npm subproject root")
 	}
-	if _, ok := mergedGraph.Node("subproject:gomod:services/api"); ok {
+	if _, ok := testnodes.Find(mergedGraph, "subproject:gomod:services/api"); ok {
 		t.Fatal("did not expect synthetic go subproject root")
 	}
 
-	if _, ok := mergedGraph.Node("apps/web/package-lock.json"); ok {
+	if _, ok := testnodes.Find(mergedGraph, "apps/web/package-lock.json"); ok {
 		t.Fatal("did not expect manifest node in merged graph")
 	}
 	if _, ok := mergedGraph.Node("pkg:generic/web-app@1.0.0"); !ok {
@@ -115,9 +121,9 @@ func TestConsolidateGraphs_PreservesManifestRoots(t *testing.T) {
 }
 
 func TestConsolidateGraphs_RejectsMultipleExecutionTargets(t *testing.T) {
-	_, err := ConsolidateGraphs([]sdk.DetectionResult{
-		{SubprojectInfo: sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo-a"}, RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM}, Graphs: sdk.SingleGraphContainer(graphFixture(nil, nil), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
-		{SubprojectInfo: sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo-b"}, RelativePath: ".", PrimaryDetector: "go-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerGoMod}, Ecosystem: sdk.EcosystemGo}, Graphs: sdk.SingleGraphContainer(graphFixture(nil, nil), sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
+	_, err := ConsolidateGraphs([]plugin.DetectionResult{
+		{SubprojectInfo: plugin.Subproject{ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: "/repo-a"}, RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM}, Ecosystem: model.EcosystemNPM}, Graphs: model.SingleGraphContainer(graphFixture(nil, nil), model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		{SubprojectInfo: plugin.Subproject{ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: "/repo-b"}, RelativePath: ".", PrimaryDetector: "go-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerGoMod}, Ecosystem: model.EcosystemGo}, Graphs: model.SingleGraphContainer(graphFixture(nil, nil), model.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
 	})
 	if err == nil {
 		t.Fatal("expected error for multiple execution targets")
@@ -125,21 +131,21 @@ func TestConsolidateGraphs_RejectsMultipleExecutionTargets(t *testing.T) {
 }
 
 func TestConsolidateGraphs_DeduplicatesManifestAndPrefersNative(t *testing.T) {
-	nativeGraph := sdk.New()
-	nativeRoot := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0"}})
-	nativeDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.slf4j", Name: "slf4j-api", Version: "2.0.9"}})
+	nativeGraph := model.New()
+	nativeRoot := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0"}})
+	nativeDep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "maven", Org: "org.slf4j", Name: "slf4j-api", Version: "2.0.9"}})
 	if err := nativeGraph.AddNode(nativeRoot); err != nil {
 		t.Fatalf("add native root: %v", err)
 	}
 	if err := nativeGraph.AddNode(nativeDep); err != nil {
 		t.Fatalf("add native dep: %v", err)
 	}
-	if err := nativeGraph.AddEdge(nativeRoot.ID, nativeDep.ID); err != nil {
+	if err := nativeGraph.AddEdge(nativeRoot.NodeID(), nativeDep.NodeID()); err != nil {
 		t.Fatalf("add native dependency: %v", err)
 	}
 
-	syftGraph := sdk.New()
-	syftRoot := sdk.NewDependencyWithID("1234567890123456", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0", PURL: "pkg:maven/org.owasp.webgoat/webgoat@1.0.0"}})
+	syftGraph := model.New()
+	syftRoot := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0", PURL: "pkg:maven/org.owasp.webgoat/webgoat@1.0.0"}})
 	if err := syftGraph.AddNode(syftRoot); err != nil {
 		t.Fatalf("add syft root: %v", err)
 	}
@@ -147,20 +153,20 @@ func TestConsolidateGraphs_DeduplicatesManifestAndPrefersNative(t *testing.T) {
 	projectRoot := "C:/Users/ahmed/repos/examples/WebGoat"
 	manifestAbs := projectRoot + "/pom.xml"
 
-	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{
+	consolidated, err := ConsolidateGraphs([]plugin.DetectionResult{
 		{
-			SubprojectInfo: sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: projectRoot}, RelativePath: ".", PrimaryDetector: "maven-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerMaven}, Ecosystem: sdk.EcosystemMaven},
+			SubprojectInfo: plugin.Subproject{ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: projectRoot}, RelativePath: ".", PrimaryDetector: "maven-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerMaven}, Ecosystem: model.EcosystemMaven},
 			DetectorName:   "syft-detector",
-			Origin:         sdk.BundledOrigin,
-			Technique:      sdk.MultipleTechnique,
-			Graphs:         sdk.SingleGraphContainer(syftGraph, sdk.ManifestMetadata{Path: manifestAbs, Kind: "pom.xml"}),
+			Origin:         plugin.BundledOrigin,
+			Technique:      plugin.MultipleTechnique,
+			Graphs:         model.SingleGraphContainer(syftGraph, model.ManifestMetadata{Path: manifestAbs, Kind: "pom.xml"}),
 		},
 		{
-			SubprojectInfo: sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: projectRoot}, RelativePath: ".", PrimaryDetector: "maven-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerMaven}, Ecosystem: sdk.EcosystemMaven},
+			SubprojectInfo: plugin.Subproject{ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: projectRoot}, RelativePath: ".", PrimaryDetector: "maven-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerMaven}, Ecosystem: model.EcosystemMaven},
 			DetectorName:   "maven-detector",
-			Origin:         sdk.CoreOrigin,
-			Technique:      sdk.BuildToolTechnique,
-			Graphs:         sdk.SingleGraphContainer(nativeGraph, sdk.ManifestMetadata{Path: manifestAbs, Kind: "pom.xml"}),
+			Origin:         plugin.CoreOrigin,
+			Technique:      plugin.BuildToolTechnique,
+			Graphs:         model.SingleGraphContainer(nativeGraph, model.ManifestMetadata{Path: manifestAbs, Kind: "pom.xml"}),
 		},
 	})
 	if err != nil {
@@ -190,21 +196,21 @@ func TestConsolidateGraphs_DeduplicatesManifestAndPrefersNative(t *testing.T) {
 }
 
 func TestManifestDedupPriorityPrefersNativeOverSyft(t *testing.T) {
-	if got := ManifestDedupPriority(sdk.CoreOrigin); got != 1 {
+	if got := ManifestDedupPriority(plugin.CoreOrigin); got != 1 {
 		t.Fatalf("expected core build-tool detector priority 1, got %d", got)
 	}
-	if got := ManifestDedupPriority(sdk.BundledOrigin); got != 2 {
+	if got := ManifestDedupPriority(plugin.BundledOrigin); got != 2 {
 		t.Fatalf("expected bundled multiple-technique detector priority 2, got %d", got)
 	}
-	if ManifestDedupPriority(sdk.CoreOrigin) >= ManifestDedupPriority(sdk.BundledOrigin) {
+	if ManifestDedupPriority(plugin.CoreOrigin) >= ManifestDedupPriority(plugin.BundledOrigin) {
 		t.Fatal("expected core detector to outrank bundled multiple-technique detector for manifest deduplication")
 	}
 }
 
 func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *testing.T) {
-	actionsGraph := sdk.New()
-	checkout := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "github-actions", Name: "actions/checkout", Version: "v4.1.6"}})
-	setupJava := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "github-actions", Name: "actions/setup-java", Version: "v5"}})
+	actionsGraph := model.New()
+	checkout := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "github-actions", Name: "actions/checkout", Version: "v4.1.6"}})
+	setupJava := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "github-actions", Name: "actions/setup-java", Version: "v5"}})
 	if err := actionsGraph.AddNode(checkout); err != nil {
 		t.Fatalf("add checkout: %v", err)
 	}
@@ -212,16 +218,16 @@ func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *t
 		t.Fatalf("add setup-java: %v", err)
 	}
 
-	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
-			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
+	consolidated, err := ConsolidateGraphs([]plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
+			ExecutionTarget:         plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: "/repo"},
 			RelativePath:            ".github/actions/java-setup",
 			PrimaryDetector:         "github-actions-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerGitHubActions},
-			Ecosystem:               sdk.EcosystemGitHub,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerGitHubActions},
+			Ecosystem:               model.EcosystemGitHub,
 		},
 		DetectorName: "syft-detector",
-		Graphs: sdk.SingleGraphContainer(actionsGraph, sdk.ManifestMetadata{
+		Graphs: model.SingleGraphContainer(actionsGraph, model.ManifestMetadata{
 			Path: ".github/actions/java-setup",
 			Kind: "github-actions",
 		}),
@@ -235,16 +241,18 @@ func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *t
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 
+	// A synthesized root standing in for a manifest is a manifest node now,
+	// not a dependency node typed "manifest" (ADR-0041).
 	virtualRootID := ".github/actions/java-setup"
-	virtualRoot, ok := mergedGraph.Node(virtualRootID)
+	virtualRoot, ok := testnodes.Find(mergedGraph, virtualRootID)
 	if !ok {
-		t.Fatalf("expected synthesized virtual root package %q", virtualRootID)
+		t.Fatalf("expected a synthesized root for %q", virtualRootID)
 	}
-	if virtualRoot.Type != "manifest" {
-		t.Fatalf("expected virtual root type manifest, got %q", virtualRoot.Type)
+	if virtualRoot.Kind() != model.NodeKindManifest {
+		t.Fatalf("synthesized root is a %s node, want a manifest node", virtualRoot.Kind())
 	}
 
-	deps, err := mergedGraph.DirectDependencies(virtualRootID)
+	deps, err := mergedGraph.DirectDependencies(testnodes.ID(mergedGraph, virtualRootID))
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
@@ -254,29 +262,29 @@ func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *t
 }
 
 func TestConsolidateGraphs_PrefersApplicationRootWhenEntryHasMultipleRoots(t *testing.T) {
-	npmGraph := sdk.New()
-	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
-	orphan := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "string-width", Version: "2.1.1"}})
-	for _, pkg := range []*sdk.Dependency{app, react, orphan} {
+	npmGraph := model.New()
+	app := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0", Type: model.PackageTypeApplication}})
+	react := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
+	orphan := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "string-width", Version: "2.1.1"}})
+	for _, pkg := range []*model.DependencyNode{app, react, orphan} {
 		if err := npmGraph.AddNode(pkg); err != nil {
-			t.Fatalf("add %s: %v", pkg.ID, err)
+			t.Fatalf("add %s: %v", pkg.NodeID(), err)
 		}
 	}
-	if err := npmGraph.AddEdge(app.ID, react.ID); err != nil {
+	if err := npmGraph.AddEdge(app.NodeID(), react.NodeID()); err != nil {
 		t.Fatalf("link app->react: %v", err)
 	}
 
-	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
-			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
+	consolidated, err := ConsolidateGraphs([]plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
+			ExecutionTarget:         plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: "/repo"},
 			RelativePath:            ".",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-			Ecosystem:               sdk.EcosystemNPM,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
+			Ecosystem:               model.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Graphs: sdk.SingleGraphContainer(npmGraph, sdk.ManifestMetadata{
+		Graphs: model.SingleGraphContainer(npmGraph, model.ManifestMetadata{
 			Path: "package-lock.json",
 			Kind: "package-lock.json",
 		}),
@@ -296,7 +304,7 @@ func TestConsolidateGraphs_PrefersApplicationRootWhenEntryHasMultipleRoots(t *te
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	if _, ok := mergedGraph.Node("package-lock.json"); ok {
+	if _, ok := testnodes.Find(mergedGraph, "package-lock.json"); ok {
 		t.Fatal("did not expect synthesized manifest package for npm graph with application root")
 	}
 
@@ -307,11 +315,11 @@ func TestConsolidateGraphs_PrefersApplicationRootWhenEntryHasMultipleRoots(t *te
 	if len(deps) != 2 {
 		t.Fatalf("expected application root to depend on both original roots, got %d", len(deps))
 	}
-	orphanNode, ok := mergedGraph.Node("pkg:npm/string-width@2.1.1")
+	orphanNode, ok := mergedGraph.DependencyNode("pkg:npm/string-width@2.1.1")
 	if !ok {
 		t.Fatal("expected orphan dependency to remain in the graph")
 	}
-	if orphanNode.Relationship != sdk.DependencyRelationshipUnknown {
+	if orphanNode.Relationship != model.DependencyRelationshipUnknown {
 		t.Fatalf("orphan relationship = %q, want unknown", orphanNode.Relationship)
 	}
 }
@@ -322,15 +330,19 @@ type nodeFixture struct {
 	version string
 }
 
-func graphFixture(packages []nodeFixture, relationships [][2]string) *sdk.Graph {
-	g := sdk.New()
+func graphFixture(packages []nodeFixture, relationships [][2]string) *model.Graph {
+	g := model.New()
 	for _, pkg := range packages {
-		if err := g.AddNode(sdk.NewDependencyRefWithID(pkg.id, pkg.name, pkg.version)); err != nil {
+		if err := g.AddNode(testnodes.Ref(pkg.name, pkg.version)); err != nil {
 			panic(err)
 		}
 	}
 	for _, relationship := range relationships {
-		if err := g.AddEdge(relationship[0], relationship[1]); err != nil {
+		// Resolved from the label the fixture names, because a node ID is a
+		// canonical package URL now (ADR-0041).
+		from := testnodes.ID(g, relationship[0])
+		to := testnodes.ID(g, relationship[1])
+		if err := g.AddEdge(from, to); err != nil {
 			panic(err)
 		}
 	}
@@ -338,7 +350,7 @@ func graphFixture(packages []nodeFixture, relationships [][2]string) *sdk.Graph 
 }
 
 func TestConsolidateGraphs_KeepsSameManifestNameAcrossSubprojects(t *testing.T) {
-	rootTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"}
+	rootTarget := plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: "/repo"}
 	serviceGraph := graphFixture(
 		[]nodeFixture{{id: "svc@1.0.0", name: "svc", version: "1.0.0"}},
 		nil,
@@ -351,20 +363,20 @@ func TestConsolidateGraphs_KeepsSameManifestNameAcrossSubprojects(t *testing.T) 
 	// Two nested subprojects that each emit a manifest named requirements.txt
 	// in their own coordinate space. Consolidation must rebase both onto the
 	// repository root instead of collapsing them into one dedup key.
-	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{
+	consolidated, err := ConsolidateGraphs([]plugin.DetectionResult{
 		{
-			SubprojectInfo:      sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/repo/fixtures/service"}, RelativePath: "fixtures/service", PrimaryDetector: "python-pip", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerPip}, Ecosystem: sdk.EcosystemPython},
+			SubprojectInfo:      plugin.Subproject{ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/repo/fixtures/service"}, RelativePath: "fixtures/service", PrimaryDetector: "python-pip", DetectedPackageManagers: []model.PackageManager{model.PackageManagerPip}, Ecosystem: model.EcosystemPython},
 			RootExecutionTarget: rootTarget,
 			DetectorName:        "python-pip",
-			Origin:              sdk.CoreOrigin,
-			Graphs:              sdk.SingleGraphContainer(serviceGraph, sdk.ManifestMetadata{Path: "requirements.txt", Kind: "pip"}),
+			Origin:              plugin.CoreOrigin,
+			Graphs:              model.SingleGraphContainer(serviceGraph, model.ManifestMetadata{Path: "requirements.txt", Kind: "pip"}),
 		},
 		{
-			SubprojectInfo:      sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/repo/harness"}, RelativePath: "harness", PrimaryDetector: "python-pip", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerPip}, Ecosystem: sdk.EcosystemPython},
+			SubprojectInfo:      plugin.Subproject{ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/repo/harness"}, RelativePath: "harness", PrimaryDetector: "python-pip", DetectedPackageManagers: []model.PackageManager{model.PackageManagerPip}, Ecosystem: model.EcosystemPython},
 			RootExecutionTarget: rootTarget,
 			DetectorName:        "python-pip",
-			Origin:              sdk.CoreOrigin,
-			Graphs:              sdk.SingleGraphContainer(harnessGraph, sdk.ManifestMetadata{Path: "requirements.txt", Kind: "pip"}),
+			Origin:              plugin.CoreOrigin,
+			Graphs:              model.SingleGraphContainer(harnessGraph, model.ManifestMetadata{Path: "requirements.txt", Kind: "pip"}),
 		},
 	})
 	if err != nil {
@@ -386,17 +398,17 @@ func TestConsolidateGraphs_AcceptsNestedSubprojectExecutionTargets(t *testing.T)
 	// Nested subprojects carry their own ExecutionTarget locations; the
 	// multiple-execution-target guard must key on RootExecutionTarget (stamped
 	// by the resolve stage), not the per-subproject targets.
-	rootTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"}
-	_, err := ConsolidateGraphs([]sdk.DetectionResult{
+	rootTarget := plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: "/repo"}
+	_, err := ConsolidateGraphs([]plugin.DetectionResult{
 		{
-			SubprojectInfo:      sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/repo/apps/web"}, RelativePath: "apps/web", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
+			SubprojectInfo:      plugin.Subproject{ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/repo/apps/web"}, RelativePath: "apps/web", PrimaryDetector: "npm-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM}, Ecosystem: model.EcosystemNPM},
 			RootExecutionTarget: rootTarget,
-			Graphs:              sdk.SingleGraphContainer(graphFixture([]nodeFixture{{id: "web@1.0.0", name: "web", version: "1.0.0"}}, nil), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+			Graphs:              model.SingleGraphContainer(graphFixture([]nodeFixture{{id: "web@1.0.0", name: "web", version: "1.0.0"}}, nil), model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 		},
 		{
-			SubprojectInfo:      sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/repo/services/api"}, RelativePath: "services/api", PrimaryDetector: "go-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerGoMod}, Ecosystem: sdk.EcosystemGo},
+			SubprojectInfo:      plugin.Subproject{ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/repo/services/api"}, RelativePath: "services/api", PrimaryDetector: "go-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerGoMod}, Ecosystem: model.EcosystemGo},
 			RootExecutionTarget: rootTarget,
-			Graphs:              sdk.SingleGraphContainer(graphFixture([]nodeFixture{{id: "api", name: "api"}}, nil), sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"}),
+			Graphs:              model.SingleGraphContainer(graphFixture([]nodeFixture{{id: "api", name: "api"}}, nil), model.ManifestMetadata{Path: "go.mod", Kind: "go.mod"}),
 		},
 	})
 	if err != nil {
@@ -407,36 +419,36 @@ func TestConsolidateGraphs_AcceptsNestedSubprojectExecutionTargets(t *testing.T)
 func TestConsolidateGraphs_SharedDependencyAcrossModuleEntriesCountsOnce(t *testing.T) {
 	// Two module entries from one workspace resolution share a transitive
 	// dependency. The consolidated graph must contain it once.
-	shared := sdk.NewDependencyWithID("shared@2.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "shared", Version: "2.0.0"}})
-	webRoot := sdk.NewDependencyWithID("web@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "web", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
-	libRoot := sdk.NewDependencyWithID("lib@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	shared := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "shared", Version: "2.0.0"}})
+	webRoot := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "web", Version: "1.0.0", Type: model.PackageTypeApplication}})
+	libRoot := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.0.0", Type: model.PackageTypeApplication}})
 
-	webGraph := sdk.New()
-	for _, pkg := range []*sdk.Dependency{webRoot, shared} {
+	webGraph := model.New()
+	for _, pkg := range []*model.DependencyNode{webRoot, shared} {
 		if err := webGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add web node: %v", err)
 		}
 	}
-	if err := webGraph.AddEdge(webRoot.ID, shared.ID); err != nil {
+	if err := webGraph.AddEdge(webRoot.NodeID(), shared.NodeID()); err != nil {
 		t.Fatalf("add web edge: %v", err)
 	}
-	libGraph := sdk.New()
-	for _, pkg := range []*sdk.Dependency{libRoot, shared} {
+	libGraph := model.New()
+	for _, pkg := range []*model.DependencyNode{libRoot, shared} {
 		if err := libGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add lib node: %v", err)
 		}
 	}
-	if err := libGraph.AddEdge(libRoot.ID, shared.ID); err != nil {
+	if err := libGraph.AddEdge(libRoot.NodeID(), shared.NodeID()); err != nil {
 		t.Fatalf("add lib edge: %v", err)
 	}
 
-	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"}, RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
+	consolidated, err := ConsolidateGraphs([]plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: "/repo"}, RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM}, Ecosystem: model.EcosystemNPM},
 		DetectorName:   "npm-detector",
-		Origin:         sdk.CoreOrigin,
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{
-			{Graph: webGraph, Manifest: sdk.ManifestMetadata{Path: "apps/web/package.json", Kind: "package.json"}},
-			{Graph: libGraph, Manifest: sdk.ManifestMetadata{Path: "packages/lib/package.json", Kind: "package.json"}},
+		Origin:         plugin.CoreOrigin,
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{
+			{Graph: webGraph, Manifest: model.ManifestMetadata{Path: "apps/web/package.json", Kind: "package.json"}},
+			{Graph: libGraph, Manifest: model.ManifestMetadata{Path: "packages/lib/package.json", Kind: "package.json"}},
 		}},
 	}})
 	if err != nil {
@@ -450,7 +462,7 @@ func TestConsolidateGraphs_SharedDependencyAcrossModuleEntriesCountsOnce(t *test
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 	sharedCount := 0
-	for _, pkg := range merged.Nodes() {
+	for _, pkg := range merged.DependencyNodes() {
 		if pkg != nil && pkg.Name == "shared" {
 			sharedCount++
 		}

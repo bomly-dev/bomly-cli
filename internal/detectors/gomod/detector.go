@@ -18,11 +18,13 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 var goExecLookPath = system.LookPath
@@ -64,31 +66,31 @@ type moduleNode struct {
 
 type queuedPackage struct {
 	pkg   goListPackage
-	scope sdk.Scope
+	scope model.Scope
 }
 
 // Detector resolves Go module dependency graphs by invoking the Go CLI.
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
+	Fallback   plugin.Detector
 }
 
 var evidencePatterns = []string{"go.mod"}
 
 // PackageManagerSupport returns Go module package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGoMod, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerGoMod, evidencePatterns...)}
 }
 
 // Ready reports whether the Go CLI is available.
-func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
+func (d Detector) Ready(context.Context, plugin.DetectionRequest) error {
 	_, err := goExecLookPath("go")
 	return detectorkit.CommandNotReadyError("go", err)
 }
 
 // Applicable reports whether the target project contains a go.mod file.
-func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	_ = ctx
 
 	workingDir := d.WorkingDir
@@ -100,40 +102,40 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 }
 
 // Descriptor describes the Go CLI-backed detector.
-func (d Detector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d Detector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		IgnoredDirectories:      []string{"vendor"},
 		Name:                    detectors.NameGoMod,
 		RemediationCapabilities: goModRemediationCapabilities(),
-		Technique:               sdk.BuildToolTechnique,
-		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemGo},
-		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerGoMod},
+		Technique:               plugin.BuildToolTechnique,
+		SupportedEcosystems:     []model.Ecosystem{model.EcosystemGo},
+		SupportedManagers:       []model.PackageManager{model.PackageManagerGoMod},
 		Tags:                    []string{"graph-resolution", "component-targeting", "module-graph"},
 		SupportsInstallFirst:    true,
 	}
 }
 
 // ResolveGraph resolves a Go module dependency graph for the scan engine.
-func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
 	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, req.ScopeFilter)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 
-	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns)),
-	}, nil
+	return detectors.Attributed(plugin.DetectionResult{
+		Graphs: model.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns)),
+	}), nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() sdk.Detector {
+func (d Detector) FallbackDetector() plugin.Detector {
 	return d.Fallback
 }
 
-func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool, scopeFilter sdk.Scope) (*sdk.Graph, error) {
+func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool, scopeFilter model.Scope) (*model.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -204,11 +206,11 @@ func buildGoListArgs() []string {
 	return append(args, "all")
 }
 
-func depGraphFromGoList(raw []byte, rootModule string, directRequires []moduleRef) (*sdk.Graph, error) {
-	return depGraphFromGoListWithScope(raw, rootModule, directRequires, sdk.ScopeUnknown, nil)
+func depGraphFromGoList(raw []byte, rootModule string, directRequires []moduleRef) (*model.Graph, error) {
+	return depGraphFromGoListWithScope(raw, rootModule, directRequires, model.ScopeUnknown, nil)
 }
 
-func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires []moduleRef, scopeFilter sdk.Scope, sumDigests map[string]sdk.Digest) (*sdk.Graph, error) {
+func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires []moduleRef, scopeFilter model.Scope, sumDigests map[string]model.Digest) (*model.Graph, error) {
 	if strings.TrimSpace(rootModule) == "" {
 		return nil, errors.New("go module path is empty")
 	}
@@ -229,13 +231,18 @@ func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires [
 		return nil, errors.New("go list output is empty")
 	}
 
-	depsGraph := sdk.New()
-	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGo,
-		Name: rootModule,
-		// The main module is the scanned project itself: enrichment must not
-		// query advisory/registry/scorecard sources for it.
-		FirstParty: true},
+	depsGraph := model.New()
+	// The main module is the scanned project itself, so it is a module node.
+	// ADR-0041 made ownership the node kind: the FirstParty flag is gone, and
+	// enrichment skips the project's own artifacts because DependencyNodes()
+	// never yields them rather than because a flag says so.
+	rootNode, err := model.NewModuleNode("go.mod", model.Coordinates{
+		Ecosystem: model.EcosystemGo,
+		Name:      rootModule,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("build root module node: %w", err)
+	}
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
@@ -261,20 +268,20 @@ func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires [
 			continue
 		}
 
-		baseScope := sdk.ScopeRuntime
+		baseScope := model.ScopeRuntime
 		if strings.TrimSpace(pkg.ForTest) != "" {
-			baseScope = sdk.ScopeDevelopment
+			baseScope = model.ScopeDevelopment
 		}
 		queue = append(queue, queuedPackage{pkg: pkg, scope: baseScope})
 	}
 
-	visited := make(map[string]sdk.Scope, len(packages))
+	visited := make(map[string]model.Scope, len(packages))
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
 
 		visitKey := current.pkg.ImportPath + "|" + current.pkg.ForTest
-		mergedScope := sdk.MergeScope(visited[visitKey], current.scope)
+		mergedScope := model.MergeScope(visited[visitKey], current.scope)
 		if visited[visitKey] == mergedScope {
 			continue
 		}
@@ -285,22 +292,25 @@ func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires [
 			continue
 		}
 		if !currentModule.Main {
-			currentNode := packageFromModuleNode(currentModule, mergedScope, directLines, sumDigests)
+			currentNode, err := packageFromModuleNode(currentModule, mergedScope, directLines, sumDigests)
+			if err != nil {
+				return nil, err
+			}
 			if err := addOrMergeModuleNode(depsGraph, currentNode); err != nil {
 				return nil, err
 			}
 		}
 
-		if scopeFilter != sdk.ScopeDevelopment || mergedScope == sdk.ScopeDevelopment {
-			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, mergedScope, current.pkg.Imports, packageRecords, packageModules, directLines, sumDigests, &queue); err != nil {
+		if scopeFilter != model.ScopeDevelopment || mergedScope == model.ScopeDevelopment {
+			if err := enqueueImportedPackages(depsGraph, rootNode.NodeID(), currentModule, mergedScope, current.pkg.Imports, packageRecords, packageModules, directLines, sumDigests, &queue); err != nil {
 				return nil, err
 			}
 		}
-		if scopeFilter != sdk.ScopeRuntime {
-			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.TestImports, packageRecords, packageModules, directLines, sumDigests, &queue); err != nil {
+		if scopeFilter != model.ScopeRuntime {
+			if err := enqueueImportedPackages(depsGraph, rootNode.NodeID(), currentModule, model.ScopeDevelopment, current.pkg.TestImports, packageRecords, packageModules, directLines, sumDigests, &queue); err != nil {
 				return nil, err
 			}
-			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.XTestImports, packageRecords, packageModules, directLines, sumDigests, &queue); err != nil {
+			if err := enqueueImportedPackages(depsGraph, rootNode.NodeID(), currentModule, model.ScopeDevelopment, current.pkg.XTestImports, packageRecords, packageModules, directLines, sumDigests, &queue); err != nil {
 				return nil, err
 			}
 		}
@@ -340,7 +350,7 @@ func moduleNodeFromPackage(pkg goListPackage, rootModule string) (moduleNode, bo
 	}, true
 }
 
-func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNode, scope sdk.Scope, imports []string, packageRecords map[string]goListPackage, packageModules map[string]moduleNode, directLines map[string]int, sumDigests map[string]sdk.Digest, queue *[]queuedPackage) error {
+func enqueueImportedPackages(depsGraph *model.Graph, rootID string, from moduleNode, scope model.Scope, imports []string, packageRecords map[string]goListPackage, packageModules map[string]moduleNode, directLines map[string]int, sumDigests map[string]model.Digest, queue *[]queuedPackage) error {
 	fromID := rootID
 	if !from.Main {
 		fromID = moduleNodeID(from)
@@ -356,13 +366,16 @@ func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNod
 			continue
 		}
 		if !to.Main {
-			pkg := packageFromModuleNode(to, scope, directLines, sumDigests)
+			pkg, err := packageFromModuleNode(to, scope, directLines, sumDigests)
+			if err != nil {
+				return err
+			}
 			if err := addOrMergeModuleNode(depsGraph, pkg); err != nil {
 				return err
 			}
 			if from.Path != to.Path || from.Version != to.Version {
-				if err := depsGraph.AddEdge(fromID, pkg.ID); err != nil {
-					return fmt.Errorf("add go dependency %q -> %q: %w", fromID, pkg.ID, err)
+				if err := depsGraph.AddEdge(fromID, pkg.NodeID()); err != nil {
+					return fmt.Errorf("add go dependency %q -> %q: %w", fromID, pkg.NodeID(), err)
 				}
 			}
 		}
@@ -371,34 +384,39 @@ func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNod
 	return nil
 }
 
-func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[string]int, sumDigests map[string]sdk.Digest) *sdk.Dependency {
-	dep := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGo,
-		Name:    node.Path,
-		Version: node.Version},
+func packageFromModuleNode(node moduleNode, scope model.Scope, directLines map[string]int, sumDigests map[string]model.Digest) (*model.DependencyNode, error) {
+	dep, err := model.NewDependencyNode(model.Coordinates{
+		Ecosystem: model.EcosystemGo,
+		Name:      node.Path,
+		Version:   node.Version,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("build node for %s@%s: %w", node.Path, node.Version, err)
 	}
-	if scope != sdk.ScopeUnknown {
-		dep.Scopes = []sdk.Scope{scope}
+	if scope != model.ScopeUnknown {
+		dep.Scopes = []model.Scope{scope}
 	}
 	if digest, ok := sumDigests[node.Path+"@"+node.Version]; ok {
-		dep.Digests = []sdk.Digest{digest}
+		dep.Digests = []model.Digest{digest}
 	}
 	if line, ok := directLines[node.Path]; ok && line > 0 {
-		dep.Locations = []sdk.PackageLocation{
+		dep.Locations = []model.PackageLocation{
 			{
 				RealPath:   "go.mod",
 				AccessPath: "go.mod",
-				Position:   &sdk.SourcePosition{File: "go.mod", Line: line},
+				Position:   &model.SourcePosition{File: "go.mod", Line: line},
 			},
 		}
 	}
-	return sdk.NewDependency(dep)
+	return dep, nil
 }
 
+// moduleNodeID is the canonical package URL for a module, which is what a
+// node's ID is under ADR-0041. It asks the SDK for the identity rather than
+// building a throwaway node to read one off, and never assembles the string
+// itself.
 func moduleNodeID(node moduleNode) string {
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGo,
-		Name:    node.Path,
-		Version: node.Version},
-	}).ID
+	return model.CanonicalPackageURLFromParts("", model.EcosystemGo, "", "", "", node.Path, node.Version)
 }
 
 // parseGoSumDigests reads go.sum and returns a "path@version" → digest map for
@@ -406,13 +424,13 @@ func moduleNodeID(node moduleNode) string {
 // hash is SHA-256 over the Go module dirhash manifest; it is exposed as a
 // sha256 digest in hex, matching the convention CycloneDX's cyclonedx-gomod
 // uses for Go module component hashes.
-func parseGoSumDigests(path string) (map[string]sdk.Digest, error) {
+func parseGoSumDigests(path string) (map[string]model.Digest, error) {
 	data, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read %q: %w", path, err)
 	}
 
-	digests := make(map[string]sdk.Digest)
+	digests := make(map[string]model.Digest)
 	scanner := bufio.NewScanner(strings.NewReader(strings.ReplaceAll(string(data), "\r\n", "\n")))
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
@@ -427,7 +445,7 @@ func parseGoSumDigests(path string) (map[string]sdk.Digest, error) {
 		if err != nil || len(raw) != sha256.Size {
 			continue
 		}
-		digests[modulePath+"@"+version] = sdk.Digest{Algorithm: sdk.DigestAlgorithmSHA256, Value: hex.EncodeToString(raw)}
+		digests[modulePath+"@"+version] = model.Digest{Algorithm: model.DigestAlgorithmSHA256, Value: hex.EncodeToString(raw)}
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, fmt.Errorf("scan %q: %w", path, err)
@@ -500,7 +518,7 @@ func parseGoModFile(path string) (string, []moduleRef, error) {
 }
 
 // Install prepares Go module dependencies before graph resolution.
-func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
+func (d Detector) Install(_ context.Context, req plugin.DetectionRequest) error {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -548,8 +566,8 @@ func parseRequireDirective(value string) (moduleRef, bool, error) {
 }
 
 func stripLineComment(line string) string {
-	if idx := strings.Index(line, "//"); idx >= 0 {
-		return line[:idx]
+	if before, _, ok := strings.Cut(line, "//"); ok {
+		return before
 	}
 	return line
 }
@@ -567,8 +585,8 @@ func appendUniqueModule(modules []moduleRef, seen map[string]struct{}, ref modul
 	return append(modules, ref)
 }
 
-func addOrMergeModuleNode(depsGraph *sdk.Graph, node *sdk.Dependency) error {
+func addOrMergeModuleNode(depsGraph *model.Graph, node *model.DependencyNode) error {
 	// The node carries its scope; the shared helper unions scopes on fold.
-	_, err := detectors.EnsureNode(depsGraph, node)
+	_, err := detectorkit.EnsureNode(depsGraph, node)
 	return err
 }

@@ -4,17 +4,37 @@
     {
       "dependencies": [
         {
+          "depends_on": [
+            "pkg:cargo/chrono@0.4.19",
+            "pkg:cargo/hyper@0.13.0",
+            "pkg:cargo/openssl@0.10.48",
+            "pkg:cargo/serde_json@1.0.127",
+            "pkg:cargo/tempfile@3.8.1",
+            "pkg:cargo/tokio@1.36.0"
+          ],
+          "id": "module:Cargo.toml#pkg:cargo/example-rust-cargo@0.1.0",
+          "licenses": [],
+          "name": "example-rust-cargo",
+          "purl": "pkg:cargo/example-rust-cargo@0.1.0",
+          "version": "0.1.0"
+        },
+        {
           "depends_on": [],
           "id": "pkg:cargo/autocfg@1.4.0",
           "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "autocfg",
@@ -32,11 +52,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "bitflags",
@@ -54,11 +79,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "bytes",
@@ -76,11 +106,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "cfg-if",
@@ -100,11 +135,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "chrono",
@@ -116,43 +156,22 @@
           "version": "0.4.19"
         },
         {
-          "depends_on": [
-            "pkg:cargo/chrono@0.4.19",
-            "pkg:cargo/hyper@0.13.0",
-            "pkg:cargo/openssl@0.10.48",
-            "pkg:cargo/serde_json@1.0.127",
-            "pkg:cargo/tempfile@3.8.1",
-            "pkg:cargo/tokio@1.36.0"
-          ],
-          "id": "pkg:cargo/example-rust-cargo@0.1.0",
-          "licenses": [],
-          "locations": [
-            {
-              "access_path": "Cargo.lock",
-              "position": {
-                "file": "Cargo.lock",
-                "line": 0
-              },
-              "real_path": "Cargo.lock"
-            }
-          ],
-          "name": "example-rust-cargo",
-          "package_ref": "pkg:cargo/example-rust-cargo@0.1.0",
-          "purl": "pkg:cargo/example-rust-cargo@0.1.0",
-          "version": "0.1.0"
-        },
-        {
           "depends_on": [],
           "id": "pkg:cargo/fnv@1.0.7",
           "licenses": [],
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "fnv",
@@ -170,11 +189,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "foreign-types-shared",
@@ -194,11 +218,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "foreign-types",
@@ -221,11 +250,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "h2",
@@ -247,11 +281,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "http",
@@ -274,11 +313,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "hyper",
@@ -298,11 +342,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "indexmap",
@@ -320,11 +369,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "itoa",
@@ -342,11 +396,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "libc",
@@ -367,14 +426,19 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
-          "name": "lock-api",
+          "name": "lock_api",
           "package_ref": "pkg:cargo/lock_api@0.4.12",
           "purl": "pkg:cargo/lock_api@0.4.12",
           "scopes": [
@@ -391,11 +455,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "mio",
@@ -415,11 +484,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "openssl-sys",
@@ -443,11 +517,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "openssl",
@@ -469,14 +548,19 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
-          "name": "parking-lot-core",
+          "name": "parking_lot_core",
           "package_ref": "pkg:cargo/parking_lot_core@0.9.10",
           "purl": "pkg:cargo/parking_lot_core@0.9.10",
           "scopes": [
@@ -491,11 +575,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "pin-project-lite",
@@ -513,11 +602,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "scopeguard",
@@ -535,11 +629,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "serde",
@@ -560,14 +659,19 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
-          "name": "serde-json",
+          "name": "serde_json",
           "package_ref": "pkg:cargo/serde_json@1.0.127",
           "purl": "pkg:cargo/serde_json@1.0.127",
           "scopes": [
@@ -582,11 +686,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "tempfile",
@@ -604,11 +713,16 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "time",
@@ -631,11 +745,17 @@
           "locations": [
             {
               "access_path": "Cargo.lock",
+              "module_root": ".",
               "position": {
                 "file": "Cargo.lock",
                 "line": 0
               },
-              "real_path": "Cargo.lock"
+              "real_path": "Cargo.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development",
+                "runtime"
+              ]
             }
           ],
           "name": "tokio",
@@ -698,14 +818,6 @@
       "name": "chrono",
       "purl": "pkg:cargo/chrono@0.4.19",
       "version": "0.4.19",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "rust",
-      "licenses": [],
-      "name": "example-rust-cargo",
-      "purl": "pkg:cargo/example-rust-cargo@0.1.0",
-      "version": "0.1.0",
       "vulnerabilities": []
     },
     {
@@ -783,7 +895,7 @@
     {
       "ecosystem": "rust",
       "licenses": [],
-      "name": "lock-api",
+      "name": "lock_api",
       "purl": "pkg:cargo/lock_api@0.4.12",
       "version": "0.4.12",
       "vulnerabilities": []
@@ -815,7 +927,7 @@
     {
       "ecosystem": "rust",
       "licenses": [],
-      "name": "parking-lot-core",
+      "name": "parking_lot_core",
       "purl": "pkg:cargo/parking_lot_core@0.9.10",
       "version": "0.9.10",
       "vulnerabilities": []
@@ -847,7 +959,7 @@
     {
       "ecosystem": "rust",
       "licenses": [],
-      "name": "serde-json",
+      "name": "serde_json",
       "purl": "pkg:cargo/serde_json@1.0.127",
       "version": "1.0.127",
       "vulnerabilities": []

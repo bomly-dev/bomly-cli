@@ -124,6 +124,13 @@ type sbomAssuranceManifest struct {
 		ExitCode   int      `json:"exit_code"`
 		DurationMS int64    `json:"duration_ms"`
 	} `json:"commands"`
+	// Checks are assertions the tool makes about the documents that no
+	// external validator does, such as a merged document linking its sources.
+	Checks []struct {
+		Name   string `json:"name"`
+		Passed bool   `json:"passed"`
+		Detail string `json:"detail"`
+	} `json:"checks"`
 	Failure string `json:"failure,omitempty"`
 }
 
@@ -154,6 +161,14 @@ func ConvertSBOMAssurance(data []byte, base CheckResult) (CheckResult, error) {
 			DurationMS: float64(command.DurationMS),
 		})
 	}
+	for _, check := range manifest.Checks {
+		status := StatusPass
+		if !check.Passed {
+			status = StatusFail
+			failures++
+		}
+		result.Details = append(result.Details, Detail{Name: check.Name, Status: status, Note: check.Detail})
+	}
 	for _, validator := range manifest.Validators {
 		result.Details = append(result.Details, Detail{
 			Name:   validator.Name + " " + validator.Version,
@@ -169,6 +184,7 @@ func ConvertSBOMAssurance(data []byte, base CheckResult) (CheckResult, error) {
 	result.Metrics = map[string]float64{
 		"validators": float64(len(manifest.Validators)),
 		"documents":  float64(len(manifest.Artifacts)),
+		"checks":     float64(len(manifest.Checks)),
 	}
 	switch {
 	case manifest.Failure != "":
@@ -176,7 +192,8 @@ func ConvertSBOMAssurance(data []byte, base CheckResult) (CheckResult, error) {
 		result.Summary = "SBOM interoperability run failed: " + manifest.Failure + "."
 	case failures > 0:
 		result.Status = StatusFail
-		result.Summary = fmt.Sprintf("%d of %d validator commands failed.", failures, len(manifest.Commands))
+		result.Summary = fmt.Sprintf("%d of %d validator commands and document checks failed.",
+			failures, len(manifest.Commands)+len(manifest.Checks))
 	case len(manifest.Artifacts) == 0:
 		result.Status = StatusFail
 		result.Summary = "The run produced no SBOM documents to validate."
@@ -185,8 +202,12 @@ func ConvertSBOMAssurance(data []byte, base CheckResult) (CheckResult, error) {
 		for _, validator := range manifest.Validators {
 			names = append(names, validator.Name+" "+validator.Version)
 		}
-		result.Summary = fmt.Sprintf("%d generated SBOM documents passed %s.",
+		result.Summary = fmt.Sprintf("%d generated SBOM documents passed %s",
 			len(manifest.Artifacts), strings.Join(names, " and "))
+		if len(manifest.Checks) > 0 {
+			result.Summary += fmt.Sprintf(", and %d document check(s) held", len(manifest.Checks))
+		}
+		result.Summary += "."
 	}
 	return result, nil
 }

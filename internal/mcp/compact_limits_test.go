@@ -6,7 +6,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestCompactScanInventoryCapIsDeterministicAndCounted(t *testing.T) {
@@ -60,21 +61,21 @@ func TestCompactRemediationCapsAliasesAndFindingsWithCounters(t *testing.T) {
 		t.Fatal("fixture package missing")
 	}
 	pkg.Vulnerabilities[0].Aliases = []string{"CVE-1", "CVE-2", "CVE-3", "CVE-4", "CVE-5"}
-	for i := 0; i < maxFindingsPerGroup+6; i++ {
+	for i := range maxFindingsPerGroup + 6 {
 		id := fmt.Sprintf("GHSA-extra-%02d", i)
-		pkg.Vulnerabilities = append(pkg.Vulnerabilities, sdk.Vulnerability{
+		pkg.Vulnerabilities = append(pkg.Vulnerabilities, model.Vulnerability{
 			ID:             id,
 			Aliases:        []string{"A-1", "A-2", "A-3", "A-4"},
-			ParsedSeverity: sdk.SeverityLow,
-			FixState:       sdk.FixStateFixed,
+			ParsedSeverity: model.SeverityLow,
+			FixState:       model.FixStateFixed,
 			FixedIn:        "1.2.0",
 		})
-		in.Findings = append(in.Findings, sdk.Finding{
+		in.Findings = append(in.Findings, model.Finding{
 			ID:              id,
 			VulnerabilityID: id,
-			Kind:            sdk.FindingKindVulnerability,
-			Severity:        sdk.SeverityLow,
-			PackageRef:      pkg.PURL,
+			Kind:            model.FindingKindVulnerability,
+			Severity:        model.SeverityLow,
+			PackageRef:      pkg.ID,
 			DependencyRefs:  append([]string(nil), in.Findings[0].DependencyRefs...),
 		})
 	}

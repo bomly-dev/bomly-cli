@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // pnpmLockKeyLine matches top-level `packages:` entries in pnpm-lock.yaml.
@@ -18,8 +19,8 @@ import (
 //	'@scope/pkg@1.0.0':
 var pnpmLockKeyLine = regexp.MustCompile(`^\s*['"]?/?((?:@[^/'"@]+/)?[^/'"@\s]+)[@/]([^:'"\s(]+)`)
 
-func pnpmLockPositions(path, relPath string) map[string][]*sdk.SourcePosition {
-	out := make(map[string][]*sdk.SourcePosition)
+func pnpmLockPositions(path, relPath string) map[string][]*model.SourcePosition {
+	out := make(map[string][]*model.SourcePosition)
 	insidePackages := false
 	_ = detectors.ScanLines(path, func(line int, text string) {
 		trimmed := strings.TrimSpace(text)
@@ -44,7 +45,7 @@ func pnpmLockPositions(path, relPath string) map[string][]*sdk.SourcePosition {
 			return
 		}
 		version := strings.TrimSpace(matches[2])
-		pos := &sdk.SourcePosition{File: relPath, Line: line}
+		pos := &model.SourcePosition{File: relPath, Line: line}
 		if version != "" {
 			detectors.AppendPosition(out, name+"@"+version, pos)
 		}
@@ -54,7 +55,7 @@ func pnpmLockPositions(path, relPath string) map[string][]*sdk.SourcePosition {
 }
 
 // AttachPnpmLockPositions wires pnpm-lock.yaml line numbers.
-func AttachPnpmLockPositions(g *sdk.Graph, projectDir string) {
+func AttachPnpmLockPositions(g *model.Graph, projectDir string) {
 	if g == nil || projectDir == "" {
 		return
 	}
@@ -62,7 +63,7 @@ func AttachPnpmLockPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositionCandidates(g, positions, func(pkg *sdk.Dependency) []string {
+	detectors.AttachPositionCandidates(g, positions, func(pkg *model.DependencyNode) []string {
 		if pkg == nil {
 			return nil
 		}

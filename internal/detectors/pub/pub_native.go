@@ -10,12 +10,14 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // NativeDetector resolves Dart pub dependency graphs by running `dart pub deps --json`.
@@ -24,38 +26,38 @@ import (
 type NativeDetector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
+	Fallback   plugin.Detector
 }
 
 // PackageManagerSupport returns pub package-manager discovery metadata.
-func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerPub, evidencePatterns...)}
+func (d NativeDetector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerPub, evidencePatterns...)}
 }
 
 // Ready reports whether the dart binary is available.
-func (d NativeDetector) Ready(context.Context, sdk.DetectionRequest) error {
+func (d NativeDetector) Ready(context.Context, plugin.DetectionRequest) error {
 	_, err := system.LookPath("dart")
 	return detectorkit.CommandNotReadyError("dart", err)
 }
 
 // Applicable reports whether pub manifests are present.
-func (d NativeDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d NativeDetector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	return (Detector{WorkingDir: d.workingDir(req.ProjectPath)}).Applicable(ctx, req)
 }
 
 // Descriptor describes the pub native detector.
-func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d NativeDetector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		Name:                detectors.NamePubNative,
-		Technique:           sdk.BuildToolTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemDart},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerPub},
+		Technique:           plugin.BuildToolTechnique,
+		SupportedEcosystems: []model.Ecosystem{model.EcosystemDart},
+		SupportedManagers:   []model.PackageManager{model.PackageManagerPub},
 		Tags:                []string{"graph-resolution", "component-targeting", "scope-annotation"},
 	}
 }
 
 // ResolveGraph resolves a pub dependency graph via dart pub deps --json.
-func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d NativeDetector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
@@ -74,23 +76,23 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	logger.Debug("running pub native detector", logkit.CommandFields(executable, args, workingDir)...)
 	if err := cmd.Run(); err != nil {
 		logger.Debug("dart pub deps failed", zap.Error(err))
-		return sdk.DetectionResult{}, fmt.Errorf("dart pub deps: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("dart pub deps: %w", err)
 	}
 
 	g, err := nativeGraph(out.Bytes(), workingDir, logger)
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("parse dart pub deps output: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("parse dart pub deps output: %w", err)
 	}
 	logger.Info(fmt.Sprintf("pub native detector found %d dependencies in %s", g.Size(), logging.FormatDuration(time.Since(started))))
-	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns)),
-	}, nil
+	return detectors.Attributed(plugin.DetectionResult{
+		Graphs: model.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns)),
+	}), nil
 }
 
 // nativeGraph builds the dependency graph for a native pub run: the tool's own
 // output for structure, and the committed pubspec.lock for the package sources
 // that output omits.
-func nativeGraph(raw []byte, workingDir string, logger *zap.Logger) (*sdk.Graph, error) {
+func nativeGraph(raw []byte, workingDir string, logger *zap.Logger) (*model.Graph, error) {
 	g, err := depGraphFromPubDepsJSON(raw)
 	if err != nil {
 		return nil, err
@@ -106,7 +108,7 @@ func nativeGraph(raw []byte, workingDir string, logger *zap.Logger) (*sdk.Graph,
 // repository and the commit pub resolved.
 //
 // Best effort: a project with no readable pubspec.lock keeps the graph as it is.
-func applyLockOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
+func applyLockOrigins(g *model.Graph, workingDir string, logger *zap.Logger) {
 	if logger == nil {
 		logger = zap.NewNop()
 	}
@@ -124,18 +126,24 @@ func applyLockOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 	}
 
 	recorded := 0
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
-		if dep.Source != sdk.DependencySourceGit {
+	g.WalkNodes(func(graphNode model.GraphNode) bool {
+		dep, isDependency := model.AsDependencyNode(graphNode)
+		if !isDependency {
+			return true
+		}
+		if dep.Source != model.DependencySourceGit {
 			// An override can point a package at a local path while the lock
 			// still describes the git dependency it replaced. What pub
 			// resolved for this build is the truth.
 			return true
 		}
 		pkg, ok := lock.Packages[dep.Name]
-		if !ok || pubDependencySource(pkg.Source) != sdk.DependencySourceGit {
+		if !ok || pubDependencySource(pkg.Source) != model.DependencySourceGit {
 			return true
 		}
-		dep.Origin = sdk.RepositoryOrigin(descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref"))
+		if origin := model.RepositoryOrigin(descriptionString(pkg.Description, "url"), descriptionString(pkg.Description, "resolved-ref")); origin != nil {
+			dep.Origins = model.MergeOrigins(dep.Origins, []model.DependencyOrigin{*origin})
+		}
 		recorded++
 		return true
 	})
@@ -143,7 +151,7 @@ func applyLockOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d NativeDetector) FallbackDetector() sdk.Detector {
+func (d NativeDetector) FallbackDetector() plugin.Detector {
 	return d.Fallback
 }
 
@@ -184,7 +192,7 @@ type pubDepsJSON struct {
 //   - kind "direct"    → ScopeRuntime
 //   - kind "dev"       → ScopeDevelopment
 //   - kind "transitive"→ inherited via BFS propagation
-func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
+func depGraphFromPubDepsJSON(raw []byte) (*model.Graph, error) {
 	var output pubDepsJSON
 	if err := json.Unmarshal(raw, &output); err != nil {
 		return nil, fmt.Errorf("parse pub deps JSON: %w", err)
@@ -208,28 +216,33 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 		}
 	}
 
-	g := sdk.New()
+	g := model.New()
 
-	var rootPkg *sdk.Dependency
+	var (
+		rootPkg *model.ModuleNode
+		err     error
+	)
 	if rootEntry != nil {
-		rootPkg = sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemDart,
+		rootPkg, err = model.NewModuleNode("pubspec.yaml", model.Coordinates{
+			Ecosystem:      model.EcosystemDart,
 			Name:           rootEntry.Name,
 			Version:        rootEntry.Version,
-			PackageManager: sdk.PackageManagerPub,
-			Type:           sdk.PackageTypeApplication,
-			FirstParty:     true,
-			Language:       "dart"},
+			PackageManager: model.PackageManagerPub,
+			Type:           model.PackageTypeApplication,
+			Language:       "dart",
 		})
-
 	} else {
-		rootPkg = rootNode(pubspec{})
+		rootPkg, err = rootNode(pubspec{})
+	}
+	if err != nil {
+		return nil, fmt.Errorf("build root node: %w", err)
 	}
 	if err := g.AddNode(rootPkg); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
 	// Add all non-root package nodes with initial scope from kind.
-	nodeByName := make(map[string]*sdk.Dependency, len(output.Packages))
+	nodeByName := make(map[string]model.GraphNode, len(output.Packages))
 	for i := range output.Packages {
 		p := &output.Packages[i]
 		if p.Kind == "root" {
@@ -240,12 +253,15 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 			Version: p.Version,
 			Source:  p.Source,
 		}
-		node := packageNode(p.Name, lockPkg)
+		node, err := packageNode(p.Name, lockPkg)
+		if err != nil {
+			return nil, err
+		}
 		switch p.Kind {
 		case "direct":
-			node.AddScope(sdk.ScopeRuntime)
+			node.AddScope(model.ScopeRuntime)
 		case "dev":
-			node.AddScope(sdk.ScopeDevelopment)
+			node.AddScope(model.ScopeDevelopment)
 		}
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
@@ -262,70 +278,72 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 		}
 		for _, depName := range p.Dependencies {
 			child := nodeByName[depName]
-			if child == nil || child.ID == parent.ID {
+			if child == nil || child.NodeID() == parent.NodeID() {
 				continue
 			}
-			if err := g.AddEdge(parent.ID, child.ID); err != nil {
-				return nil, fmt.Errorf("add pub dep %q -> %q: %w", parent.ID, child.ID, err)
+			if err := g.AddEdge(parent.NodeID(), child.NodeID()); err != nil {
+				return nil, fmt.Errorf("add pub dep %q -> %q: %w", parent.NodeID(), child.NodeID(), err)
 			}
 		}
 	}
 
 	// Connect any orphan non-root packages to root.
 	for _, node := range nodeByName {
-		if node == nil || node.ID == rootPkg.ID {
+		if node == nil || node.NodeID() == rootPkg.NodeID() {
 			continue
 		}
-		dependents, _ := g.Dependents(node.ID)
+		dependents, _ := g.Dependents(node.NodeID())
 		if len(dependents) == 0 {
-			_ = g.AddEdge(rootPkg.ID, node.ID)
+			_ = g.AddEdge(rootPkg.NodeID(), node.NodeID())
 		}
 	}
 
 	// BFS scope propagation: runtime beats development.
-	directDeps, _ := g.DirectDependencies(rootPkg.ID)
-	propagated := make(map[string]sdk.Scope, g.Size())
-	queue := make([]*sdk.Dependency, 0, len(directDeps))
+	directDepsNodes, _ := g.DirectDependencies(rootPkg.NodeID())
+	directDeps := model.DependencyNodesOf(directDepsNodes)
+	propagated := make(map[string]model.Scope, g.Size())
+	queue := make([]*model.DependencyNode, 0, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
 		}
 		scope := dep.PrimaryScope()
-		if scope == sdk.ScopeUnknown {
-			scope = sdk.ScopeRuntime
+		if scope == model.ScopeUnknown {
+			scope = model.ScopeRuntime
 		}
-		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
-		dep.AddScope(propagated[dep.ID])
+		propagated[dep.NodeID()] = model.MergeScope(propagated[dep.NodeID()], scope)
+		dep.AddScope(propagated[dep.NodeID()])
 		queue = append(queue, dep)
 	}
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
-		scope := propagated[current.ID]
-		if scope == sdk.ScopeUnknown {
+		scope := propagated[current.NodeID()]
+		if scope == model.ScopeUnknown {
 			continue
 		}
-		children, err := g.DirectDependencies(current.ID)
+		childrenNodes, err := g.DirectDependencies(current.NodeID())
+		children := model.DependencyNodesOf(childrenNodes)
 		if err != nil {
 			continue
 		}
 		for _, child := range children {
-			if child == nil || child.ID == rootPkg.ID {
+			if child == nil || child.NodeID() == rootPkg.NodeID() {
 				continue
 			}
-			next := sdk.MergeScope(propagated[child.ID], scope)
-			if next == propagated[child.ID] && child.PrimaryScope() == next {
+			next := model.MergeScope(propagated[child.NodeID()], scope)
+			if next == propagated[child.NodeID()] && child.PrimaryScope() == next {
 				continue
 			}
-			propagated[child.ID] = next
+			propagated[child.NodeID()] = next
 			child.AddScope(next)
 			queue = append(queue, child)
 		}
 	}
 	// Default unscoped non-root packages to runtime.
-	for _, pkg := range g.Nodes() {
-		if pkg != nil && pkg.ID != rootPkg.ID && pkg.PrimaryScope() == sdk.ScopeUnknown {
-			pkg.AddScope(sdk.ScopeRuntime)
+	for _, pkg := range g.DependencyNodes() {
+		if pkg != nil && pkg.NodeID() != rootPkg.NodeID() && pkg.PrimaryScope() == model.ScopeUnknown {
+			pkg.AddScope(model.ScopeRuntime)
 		}
 	}
 

@@ -4,19 +4,24 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
-	if dep == nil {
-		return sdk.DependencyOrigin{}
+func originOf(node model.GraphNode) model.DependencyOrigin {
+	dep, ok := node.(*model.DependencyNode)
+	if !ok || dep == nil {
+		return model.DependencyOrigin{}
 	}
-	if origin := dep.Origin.Normalized(); origin != nil {
-		return *origin
+	// Origins are gated on the way in, so the first entry is already
+	// publishable; these cases assert on a single asserted origin.
+	if len(dep.Origins) == 0 {
+		return model.DependencyOrigin{}
 	}
-	return sdk.DependencyOrigin{}
+	return dep.Origins[0]
 }
 
 // Cargo.lock records one source string per package. Only "git+" names where the
@@ -26,22 +31,22 @@ func TestSetCargoOriginBySourcePrefix(t *testing.T) {
 	cases := []struct {
 		name   string
 		source string
-		want   sdk.DependencyOrigin
+		want   model.DependencyOrigin
 	}{
 		{
 			name:   "git dependency pins the resolved commit in the fragment",
 			source: "git+https://github.com/example/helper?rev=main#3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f",
-			want:   sdk.DependencyOrigin{Repository: "https://github.com/example/helper", Revision: "3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f"},
+			want:   model.DependencyOrigin{Repository: "https://github.com/example/helper", Revision: "3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f"},
 		},
 		{
 			name:   "requested tag is used when no commit was recorded",
 			source: "git+https://github.com/example/helper?tag=v1.2.3",
-			want:   sdk.DependencyOrigin{Repository: "https://github.com/example/helper", Revision: "v1.2.3"},
+			want:   model.DependencyOrigin{Repository: "https://github.com/example/helper", Revision: "v1.2.3"},
 		},
 		{
 			name:   "branch dependency without a pin keeps the repository",
 			source: "git+https://github.com/example/helper",
-			want:   sdk.DependencyOrigin{Repository: "https://github.com/example/helper"},
+			want:   model.DependencyOrigin{Repository: "https://github.com/example/helper"},
 		},
 		{name: "crates.io index root", source: "registry+https://github.com/rust-lang/crates.io-index"},
 		{name: "sparse index root", source: "sparse+https://index.crates.io/"},
@@ -52,7 +57,7 @@ func TestSetCargoOriginBySourcePrefix(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "helper", Version: "1.0.0"}})
+			node := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "helper", Version: "1.0.0"}})
 			setCargoOrigin(node, tc.source)
 			if got := originOf(node); got != tc.want {
 				t.Fatalf("origin = %+v, want %+v", got, tc.want)
@@ -62,10 +67,13 @@ func TestSetCargoOriginBySourcePrefix(t *testing.T) {
 }
 
 // Cargo can resolve one crate name and version from two sources -- the same
-// crate pulled from two git remotes. Cargo's package IDs are source-qualified,
-// so these are distinguishable occurrences: both stay in the graph, each with
-// its own origin, rather than one being folded into the other.
-func TestCargoDuplicateCrateSourcesStayDistinct(t *testing.T) {
+// crate pulled from two git remotes -- and it builds both. They fold into one
+// node anyway: a cargo package URL carries no source, so both records mint
+// "pkg:cargo/helper@1.0.0" and keeping them apart would produce two components
+// with byte-identical identity. Nothing is lost -- the folded node carries both
+// repositories as origins, which says more than two indistinguishable nodes
+// did (ADR-0041; the reasoning is recorded in the SDK's `Graph.InsertNode`, which `detectorkit.EnsureNode` wraps).
+func TestCargoDuplicateCrateSourcesFoldWithBothOrigins(t *testing.T) {
 	metadata := []byte(`{
       "packages": [
         {"id": "demo 0.1.0 (path+file:///w)", "name": "demo", "version": "0.1.0", "source": null, "dependencies": []},
@@ -83,27 +91,28 @@ func TestCargoDuplicateCrateSourcesStayDistinct(t *testing.T) {
 		if err != nil {
 			t.Fatalf("depGraphFromMetadata() error = %v", err)
 		}
+		helpers := helperNodes(graph)
+		if len(helpers) != 1 {
+			t.Fatalf("helper nodes = %d, want one node per identity", len(helpers))
+		}
 		repositories := map[string]int{}
-		graph.WalkNodes(func(dep *sdk.Dependency) bool {
-			if dep.Name != "helper" {
-				return true
-			}
-			if origin := originOf(dep); origin.Repository != "" {
-				repositories[origin.Repository]++
-			}
-			return true
-		})
-		if len(repositories) != 2 || repositories["https://github.com/a/helper"] != 1 || repositories["https://github.com/b/helper"] != 1 {
-			t.Fatalf("helper occurrences = %v, want both repositories as distinct nodes", repositories)
+		for _, origin := range helpers[0].Origins {
+			repositories[origin.Repository]++
+		}
+		if len(repositories) != 2 ||
+			repositories["https://github.com/a/helper"] != 1 ||
+			repositories["https://github.com/b/helper"] != 1 {
+			t.Fatalf("helper origins = %v, want both remotes recorded on the one node", repositories)
 		}
 	}
 }
 
 // A crate can be resolved from the registry and from a git remote at one
-// name@version (renamed dependencies). Only the git occurrence has a
-// publishable origin, but they are still two resolutions: the registry
-// occurrence must not vanish into the git node and take its repository.
-func TestCargoRegistryAndGitOccurrencesStayDistinct(t *testing.T) {
+// name@version (renamed dependencies). They fold for the same reason, and the
+// registry record must not erase the git remote the other one asserted: only
+// one of the two states a publishable origin, and a fold that let the
+// origin-free record win would drop it.
+func TestCargoRegistryAndGitRecordsFoldKeepingTheRepository(t *testing.T) {
 	metadata := []byte(`{
       "packages": [
         {"id": "demo 0.1.0 (path+file:///w)", "name": "demo", "version": "0.1.0", "source": null, "dependencies": []},
@@ -118,29 +127,29 @@ func TestCargoRegistryAndGitOccurrencesStayDistinct(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromMetadata() error = %v", err)
 	}
+	helpers := helperNodes(graph)
+	if len(helpers) != 1 {
+		t.Fatalf("helper nodes = %d, want one node per identity", len(helpers))
+	}
+	repositories := map[string]int{}
+	for _, origin := range helpers[0].Origins {
+		repositories[origin.Repository]++
+	}
+	if repositories["https://github.com/a/helper"] != 1 {
+		t.Fatalf("helper origins = %v, want the git remote kept through the fold", repositories)
+	}
+}
 
-	var nodes, withOrigin, without int
-	graph.WalkNodes(func(dep *sdk.Dependency) bool {
-		if dep.Name != "helper" {
-			return true
-		}
-		nodes++
-		if origin := originOf(dep); origin.Repository != "" {
-			withOrigin++
-			if dep.Source != sdk.DependencySourceGit {
-				t.Fatalf("the %s occurrence claims the git repository", dep.Source)
-			}
-		} else {
-			without++
-			if dep.Source != sdk.DependencySourceRegistry {
-				t.Fatalf("expected the origin-free occurrence to be the registry one, got %s", dep.Source)
-			}
+// helperNodes returns every node named "helper" in a graph.
+func helperNodes(graph *model.Graph) []*model.DependencyNode {
+	var found []*model.DependencyNode
+	graph.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
+		if dep.Name == "helper" {
+			found = append(found, dep)
 		}
 		return true
 	})
-	if nodes != 2 || withOrigin != 1 || without != 1 {
-		t.Fatalf("helper nodes = %d (with origin %d, without %d), want both occurrences distinct", nodes, withOrigin, without)
-	}
+	return found
 }
 
 // Two records naming the same source still publish it.
@@ -159,12 +168,12 @@ func TestCargoDuplicateCrateSameSourceKeepsOrigin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromMetadata() error = %v", err)
 	}
-	want := sdk.DependencyOrigin{
+	want := model.DependencyOrigin{
 		Repository: "https://github.com/a/helper",
 		Revision:   "aaaabbbbccccddddeeeeffff0000111122223333",
 	}
 	var checked int
-	graph.WalkNodes(func(dep *sdk.Dependency) bool {
+	graph.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		if dep.Name == "helper" {
 			checked++
 			if got := originOf(dep); got != want {
@@ -201,19 +210,22 @@ source = "git+https://github.com/external/helper#aaaabbbbccccddddeeeeffff0000111
 	root := cargoManifest{Name: "demo", Version: "0.1.0"}
 	members := []cargoLockMember{{manifest: cargoManifest{Name: "helper", Version: "0.1.0"}, dir: "crates/helper"}}
 
-	graph, _, _, err := depGraphFromLockWorkspace(lock, root, members, sdk.Scope(""))
+	graph, _, _, err := depGraphFromLockWorkspace(lock, root, members, model.Scope(""))
 	if err != nil {
 		t.Fatalf("depGraphFromLockWorkspace() error = %v", err)
 	}
 
 	var checked int
-	graph.WalkNodes(func(dep *sdk.Dependency) bool {
-		if dep.Type != sdk.PackageTypeApplication {
+	graph.WalkNodes(func(node model.GraphNode) bool {
+		// The project's own artifacts are module nodes now (ADR-0041), and a
+		// module carries no origins at all -- which is the stronger form of
+		// what this case asserts.
+		if !model.IsProjectOwned(node) {
 			return true
 		}
 		checked++
-		if origin := originOf(dep); !origin.Empty() {
-			t.Fatalf("%s is the project's own code but claims %+v", dep.ID, origin)
+		if origin := originOf(node); !origin.Empty() {
+			t.Fatalf("%s is the project's own code but claims %+v", node.NodeID(), origin)
 		}
 		return true
 	})
@@ -247,15 +259,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
 
-	helper, ok := graph.Node("helper@1.0.0")
+	helper, ok := testnodes.Find(graph, "helper@1.0.0")
 	if !ok {
 		t.Fatal("expected helper in graph")
 	}
-	want := sdk.DependencyOrigin{Repository: "https://github.com/example/helper", Revision: "6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192"}
+	want := model.DependencyOrigin{Repository: "https://github.com/example/helper", Revision: "6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192"}
 	if got := originOf(helper); got != want {
 		t.Fatalf("helper origin = %+v, want %+v", got, want)
 	}
-	serde, ok := graph.Node("serde@1.0.0")
+	serde, ok := testnodes.Find(graph, "serde@1.0.0")
 	if !ok {
 		t.Fatal("expected serde in graph")
 	}
@@ -291,22 +303,23 @@ source = "git+https://token:s3cret@git.corp/a/helper#aaaabbbbccccddddeeeeffff000
 `)
 	manifest := []byte("[package]\nname = \"demo\"\nversion = \"0.1.0\"\n")
 
-	graph, err := depGraphFromLockWithScope(lock, manifest, sdk.Scope(""))
+	graph, err := depGraphFromLockWithScope(lock, manifest, model.Scope(""))
 	if err != nil {
 		t.Fatalf("depGraphFromLockWithScope() error = %v", err)
 	}
 
-	var nodes int
-	graph.WalkNodes(func(dep *sdk.Dependency) bool {
-		if strings.Contains(dep.ID, "s3cret") || strings.Contains(dep.ID, "git.corp") {
-			t.Fatalf("node ID %q embeds the raw source", dep.ID)
+	var helpers int
+	graph.WalkNodes(func(node model.GraphNode) bool {
+		if strings.Contains(node.NodeID(), "s3cret") || strings.Contains(node.NodeID(), "git.corp") {
+			t.Fatalf("node ID %q embeds the raw source", node.NodeID())
 		}
-		if dep.Name == "helper" {
-			nodes++
+		if dep, ok := model.AsDependencyNode(node); ok && dep.Name == "helper" {
+			helpers++
 		}
 		return true
 	})
-	if nodes != 2 {
-		t.Fatalf("helper nodes = %d, want both source-qualified records", nodes)
+	// Both source-qualified records fold into the one identity they share.
+	if helpers != 1 {
+		t.Fatalf("helper nodes = %d, want one node per identity", helpers)
 	}
 }

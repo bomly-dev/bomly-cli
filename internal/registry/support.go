@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"slices"
 	"strings"
 
 	rootdetectors "github.com/bomly-dev/bomly-cli/internal/detectors"
@@ -25,13 +26,15 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/sbt"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/swiftpm"
 	syft "github.com/bomly-dev/bomly-plugin-syft-detector/plugin"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // PackageManagerSupport records Bomly's built-in support metadata for one package manager.
 type PackageManagerSupport struct {
-	Manager                    sdk.PackageManager
-	Ecosystem                  sdk.Ecosystem
+	Manager                    model.PackageManager
+	Ecosystem                  model.Ecosystem
 	Aliases                    []string
 	EvidencePatterns           []string
 	Detectors                  []string
@@ -65,8 +68,8 @@ var operatingSystemSupport = []OperatingSystemSupport{
 	{Name: "wolfi", Provider: "apk-db-cataloger", VersionSource: "/etc/os-release"},
 }
 
-func builtInSupportDetectors() []sdk.Detector {
-	return []sdk.Detector{
+func builtInSupportDetectors() []plugin.Detector {
+	return []plugin.Detector{
 		npm.Detector{},
 		pnpm.Detector{},
 		yarn.Detector{},
@@ -103,14 +106,14 @@ func builtInSupportDetectors() []sdk.Detector {
 // (discovery ignore rules, native multi-module support) when no runtime
 // registry is available, e.g. in diagnostics that run before registry
 // construction.
-func BuiltinDetectors() []sdk.Detector {
+func BuiltinDetectors() []plugin.Detector {
 	return builtInSupportDetectors()
 }
 
 // SupportedPackageManagers returns package managers known to Bomly's built-in registry.
-func SupportedPackageManagers() []sdk.PackageManager {
-	values := make([]sdk.PackageManager, 0, len(packageManagerSupport))
-	for _, manager := range sdk.AllPackageManagers() {
+func SupportedPackageManagers() []model.PackageManager {
+	values := make([]model.PackageManager, 0, len(packageManagerSupport))
+	for _, manager := range model.AllPackageManagers() {
 		if _, ok := packageManagerSupport[manager]; ok {
 			values = append(values, manager)
 		}
@@ -119,12 +122,12 @@ func SupportedPackageManagers() []sdk.PackageManager {
 }
 
 // SupportedEcosystems returns ecosystems known to Bomly's built-in support catalog.
-func SupportedEcosystems() []sdk.Ecosystem {
-	seen := make(map[sdk.Ecosystem]struct{})
-	values := make([]sdk.Ecosystem, 0)
+func SupportedEcosystems() []model.Ecosystem {
+	seen := make(map[model.Ecosystem]struct{})
+	values := make([]model.Ecosystem, 0)
 	for _, manager := range SupportedPackageManagers() {
 		ecosystem := manager.Ecosystem()
-		if ecosystem == sdk.EcosystemUnknown {
+		if ecosystem == model.EcosystemUnknown {
 			continue
 		}
 		if _, ok := seen[ecosystem]; ok {
@@ -142,12 +145,12 @@ func EcosystemAliasMap() map[string]string {
 	for _, ecosystem := range SupportedEcosystems() {
 		aliases[string(ecosystem)] = string(ecosystem)
 	}
-	aliases[sdk.PackageManagerGradle.Name()] = string(sdk.EcosystemMaven)
+	aliases[model.PackageManagerGradle.Name()] = string(model.EcosystemMaven)
 	return aliases
 }
 
 // EvidencePatternsForPackageManager returns built-in discovery evidence patterns.
-func EvidencePatternsForPackageManager(manager sdk.PackageManager) []string {
+func EvidencePatternsForPackageManager(manager model.PackageManager) []string {
 	entry, ok := packageManagerSupport[manager]
 	if !ok {
 		return nil
@@ -156,7 +159,7 @@ func EvidencePatternsForPackageManager(manager sdk.PackageManager) []string {
 }
 
 // DetectorNamesForPackageManager returns the built-in detector chain for a package manager.
-func DetectorNamesForPackageManager(manager sdk.PackageManager) []string {
+func DetectorNamesForPackageManager(manager model.PackageManager) []string {
 	entry, ok := packageManagerSupport[manager]
 	if !ok {
 		return nil
@@ -165,14 +168,11 @@ func DetectorNamesForPackageManager(manager sdk.PackageManager) []string {
 }
 
 // PackageManagersByDetector returns package managers whose built-in chain includes detectorName.
-func PackageManagersByDetector(detectorName string) ([]sdk.PackageManager, bool) {
-	values := make([]sdk.PackageManager, 0)
+func PackageManagersByDetector(detectorName string) ([]model.PackageManager, bool) {
+	values := make([]model.PackageManager, 0)
 	for _, manager := range SupportedPackageManagers() {
-		for _, detector := range DetectorNamesForPackageManager(manager) {
-			if detector == detectorName {
-				values = append(values, manager)
-				break
-			}
+		if slices.Contains(DetectorNamesForPackageManager(manager), detectorName) {
+			values = append(values, manager)
 		}
 	}
 	if len(values) == 0 {
@@ -182,18 +182,18 @@ func PackageManagersByDetector(detectorName string) ([]sdk.PackageManager, bool)
 }
 
 // SupportedPackageManagersForDetector returns package managers supported by a built-in detector.
-func SupportedPackageManagersForDetector(detectorName string) []sdk.PackageManager {
+func SupportedPackageManagersForDetector(detectorName string) []model.PackageManager {
 	values, _ := PackageManagersByDetector(detectorName)
 	return values
 }
 
 // SupportedEcosystemsForDetector returns ecosystems supported by a built-in detector.
-func SupportedEcosystemsForDetector(detectorName string) []sdk.Ecosystem {
-	seen := make(map[sdk.Ecosystem]struct{})
-	values := make([]sdk.Ecosystem, 0)
+func SupportedEcosystemsForDetector(detectorName string) []model.Ecosystem {
+	seen := make(map[model.Ecosystem]struct{})
+	values := make([]model.Ecosystem, 0)
 	for _, manager := range SupportedPackageManagersForDetector(detectorName) {
 		ecosystem := manager.Ecosystem()
-		if ecosystem == sdk.EcosystemUnknown {
+		if ecosystem == model.EcosystemUnknown {
 			continue
 		}
 		if _, ok := seen[ecosystem]; ok {
@@ -206,19 +206,19 @@ func SupportedEcosystemsForDetector(detectorName string) []sdk.Ecosystem {
 }
 
 // DetectorOriginForName returns the origin for a built-in detector name.
-func DetectorOriginForName(name string) sdk.DetectorOrigin {
+func DetectorOriginForName(name string) plugin.DetectorOrigin {
 	return detectorOriginByName[strings.TrimSpace(name)]
 }
 
 // DetectorTechniqueForName returns the detection technique for a built-in detector name.
-func DetectorTechniqueForName(name string) sdk.DetectorTechnique {
+func DetectorTechniqueForName(name string) plugin.DetectorTechnique {
 	return detectorTechniqueByName[strings.TrimSpace(name)]
 }
 
 // SupportEntries returns Bomly's built-in package-manager support catalog.
 func SupportEntries() []PackageManagerSupport {
 	values := make([]PackageManagerSupport, 0, len(packageManagerSupport))
-	for _, manager := range sdk.AllPackageManagers() {
+	for _, manager := range model.AllPackageManagers() {
 		if entry, ok := packageManagerSupport[manager]; ok {
 			values = append(values, cloneSupport(entry))
 		}
@@ -227,7 +227,7 @@ func SupportEntries() []PackageManagerSupport {
 }
 
 // SupportEntriesForTechnique returns support entries backed by the requested detector technique.
-func SupportEntriesForTechnique(technique sdk.DetectorTechnique) []PackageManagerSupport {
+func SupportEntriesForTechnique(technique plugin.DetectorTechnique) []PackageManagerSupport {
 	values := make([]PackageManagerSupport, 0)
 	for _, entry := range SupportEntries() {
 		filtered := entry
@@ -258,19 +258,19 @@ func SupportedOperatingSystems() []OperatingSystemSupport {
 	return values
 }
 
-func buildPackageManagerSupportCatalog(detectorList []sdk.Detector) map[sdk.PackageManager]PackageManagerSupport {
-	catalog := make(map[sdk.PackageManager]PackageManagerSupport)
+func buildPackageManagerSupportCatalog(detectorList []plugin.Detector) map[model.PackageManager]PackageManagerSupport {
+	catalog := make(map[model.PackageManager]PackageManagerSupport)
 	for _, detector := range detectorList {
 		if detector == nil {
 			continue
 		}
 		descriptor := detector.Descriptor()
 		for _, support := range detector.PackageManagerSupport() {
-			if support.PackageManager == sdk.PackageManagerUnknown || support.PackageManager == sdk.PackageManagerOther {
+			if support.PackageManager == model.PackageManagerUnknown || support.PackageManager == model.PackageManagerOther {
 				continue
 			}
 			entry := catalog[support.PackageManager]
-			if entry.Manager == sdk.PackageManagerUnknown {
+			if entry.Manager == model.PackageManagerUnknown {
 				entry.Manager = support.PackageManager
 				entry.Ecosystem = support.PackageManager.Ecosystem()
 			}
@@ -299,15 +299,15 @@ func buildPackageManagerSupportCatalog(detectorList []sdk.Detector) map[sdk.Pack
 // field). That was a latent wiring bug, not intent: Syft genuinely supports
 // github-actions and the declared-support catalog always listed it, so the
 // chain is now deliberately [github-actions-detector, syft-detector].
-func applyChainFixups(catalog map[sdk.PackageManager]PackageManagerSupport) {
-	if entry, ok := catalog[sdk.PackageManagerSBT]; ok {
+func applyChainFixups(catalog map[model.PackageManager]PackageManagerSupport) {
+	if entry, ok := catalog[model.PackageManagerSBT]; ok {
 		entry.Detectors = appendUniqueStrings(entry.Detectors, rootdetectors.NameSyft)
-		catalog[sdk.PackageManagerSBT] = entry
+		catalog[model.PackageManagerSBT] = entry
 	}
 }
 
-func buildDetectorOriginCatalog(detectorList []sdk.Detector) map[string]sdk.DetectorOrigin {
-	catalog := make(map[string]sdk.DetectorOrigin, len(detectorList))
+func buildDetectorOriginCatalog(detectorList []plugin.Detector) map[string]plugin.DetectorOrigin {
+	catalog := make(map[string]plugin.DetectorOrigin, len(detectorList))
 	for _, detector := range detectorList {
 		if detector == nil {
 			continue
@@ -317,16 +317,16 @@ func buildDetectorOriginCatalog(detectorList []sdk.Detector) map[string]sdk.Dete
 			continue
 		}
 		if descriptor.Name == rootdetectors.NameSyft {
-			catalog[descriptor.Name] = sdk.BundledOrigin
+			catalog[descriptor.Name] = plugin.BundledOrigin
 		} else {
-			catalog[descriptor.Name] = sdk.CoreOrigin
+			catalog[descriptor.Name] = plugin.CoreOrigin
 		}
 	}
 	return catalog
 }
 
-func buildDetectorTechniqueCatalog(detectorList []sdk.Detector) map[string]sdk.DetectorTechnique {
-	catalog := make(map[string]sdk.DetectorTechnique, len(detectorList))
+func buildDetectorTechniqueCatalog(detectorList []plugin.Detector) map[string]plugin.DetectorTechnique {
+	catalog := make(map[string]plugin.DetectorTechnique, len(detectorList))
 	for _, detector := range detectorList {
 		if detector == nil {
 			continue
@@ -346,13 +346,7 @@ func appendUniqueStrings(values []string, additions ...string) []string {
 		if value == "" {
 			continue
 		}
-		seen := false
-		for _, existing := range values {
-			if existing == value {
-				seen = true
-				break
-			}
-		}
+		seen := slices.Contains(values, value)
 		if !seen {
 			values = append(values, value)
 		}

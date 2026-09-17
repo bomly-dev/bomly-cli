@@ -4,25 +4,26 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
-// pkg is a convenience constructor for tests.
-func pkg(id, name, version, scope string) *sdk.Dependency {
-	return &sdk.Dependency{Coordinates: sdk.Coordinates{Name: name,
-		Version: version,
-
-		PURL: id}, ID: id,
-
-		Scopes: sdk.ScopesOf(sdk.Scope(scope)),
-
-		PackageRef: id,
-	}
+// pkg is a convenience constructor for tests. The id argument is the PURL the
+// node's identity is minted from, so it is both the coordinates' PURL and the
+// resulting node ID -- there is no separate ID to set (ADR-0041).
+func pkg(id, name, version, scope string) *model.DependencyNode {
+	return testnodes.DepFrom(model.DependencyNode{
+		Coordinates: model.Coordinates{Name: name, Version: version, PURL: id},
+		Scopes:      model.ScopesOf(model.Scope(scope)),
+		PackageRef:  id,
+	})
 }
 
 // graphOf builds a Graph from the provided packages, panicking on error.
-func graphOf(pkgs ...*sdk.Dependency) *sdk.Graph {
-	g := sdk.New()
+func graphOf(pkgs ...*model.DependencyNode) *model.Graph {
+	g := model.New()
 	for _, p := range pkgs {
 		if err := g.AddNode(p); err != nil {
 			panic(err)
@@ -31,7 +32,7 @@ func graphOf(pkgs ...*sdk.Dependency) *sdk.Graph {
 	return g
 }
 
-func findingIDs(findings []sdk.Finding) []string {
+func findingIDs(findings []model.Finding) []string {
 	ids := make([]string, len(findings))
 	for i, f := range findings {
 		ids[i] = f.ID
@@ -39,7 +40,7 @@ func findingIDs(findings []sdk.Finding) []string {
 	return ids
 }
 
-func findingKinds(findings []sdk.Finding) map[string]string {
+func findingKinds(findings []model.Finding) map[string]string {
 	out := make(map[string]string, len(findings))
 	for _, f := range findings {
 		out[f.ID] = string(f.PolicyStatus)
@@ -67,8 +68,8 @@ func TestAudit(t *testing.T) {
 	tests := []struct {
 		name             string
 		auditor          Auditor
-		graph            *sdk.Graph
-		baseline         *sdk.Graph
+		graph            *model.Graph
+		baseline         *model.Graph
 		wantFindingCount int
 		wantFindingIDs   []string
 		wantPolicyStatus map[string]string // finding ID → policy status
@@ -96,7 +97,7 @@ func TestAudit(t *testing.T) {
 			},
 			// head introduces containerd/v2 for the first time; base is empty.
 			graph:            graphOf(pkgContainerdV2New),
-			baseline:         sdk.New(),
+			baseline:         model.New(),
 			wantFindingCount: 1,
 			wantFindingIDs: []string{
 				"package:suspicious-package:" + idContainerdV2New,
@@ -162,13 +163,13 @@ func TestAudit(t *testing.T) {
 				DenyPackages: []string{"pkg:golang/github.com/evil/malware"},
 			},
 			graph:    graphOf(pkgDenied),
-			baseline: sdk.New(),
+			baseline: model.New(),
 			wantFindingIDs: []string{
 				"package:denied-package:" + idDenied,
 			},
 			wantFindingCount: 1,
 			wantPolicyStatus: map[string]string{
-				"package:denied-package:" + idDenied: string(sdk.FindingPolicyStatusFail),
+				"package:denied-package:" + idDenied: string(model.FindingPolicyStatusFail),
 			},
 		},
 		{
@@ -178,13 +179,13 @@ func TestAudit(t *testing.T) {
 				DenyGroups: []string{"pkg:golang/github.com/blocked"},
 			},
 			graph:    graphOf(pkgDeniedGroup),
-			baseline: sdk.New(),
+			baseline: model.New(),
 			wantFindingIDs: []string{
 				"package:denied-group:" + idDeniedGroup,
 			},
 			wantFindingCount: 1,
 			wantPolicyStatus: map[string]string{
-				"package:denied-group:" + idDeniedGroup: string(sdk.FindingPolicyStatusFail),
+				"package:denied-group:" + idDeniedGroup: string(model.FindingPolicyStatusFail),
 			},
 		},
 		{
@@ -196,10 +197,10 @@ func TestAudit(t *testing.T) {
 				TyposquatMode:      "fail",
 			},
 			graph:            graphOf(pkgContainerdV2New),
-			baseline:         sdk.New(),
+			baseline:         model.New(),
 			wantFindingCount: 1,
 			wantPolicyStatus: map[string]string{
-				"package:suspicious-package:" + idContainerdV2New: string(sdk.FindingPolicyStatusFail),
+				"package:suspicious-package:" + idContainerdV2New: string(model.FindingPolicyStatusFail),
 			},
 		},
 		{
@@ -211,7 +212,7 @@ func TestAudit(t *testing.T) {
 				TyposquatThreshold: 0.90,
 			},
 			graph:            graphOf(pkgFake),
-			baseline:         sdk.New(),
+			baseline:         model.New(),
 			wantFindingCount: 0,
 		},
 		{
@@ -226,7 +227,7 @@ func TestAudit(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			req := sdk.AuditRequest{
+			req := plugin.AuditRequest{
 				Graph:         tc.graph,
 				BaselineGraph: tc.baseline,
 			}
@@ -238,9 +239,9 @@ func TestAudit(t *testing.T) {
 				t.Errorf("finding count = %d, want %d; findings: %v", got, tc.wantFindingCount, findingIDs(result.Findings))
 			}
 			for _, finding := range result.Findings {
-				wantSeverity := sdk.SeverityError
-				if finding.PolicyStatus == sdk.FindingPolicyStatusWarn {
-					wantSeverity = sdk.SeverityWarning
+				wantSeverity := model.SeverityError
+				if finding.PolicyStatus == model.FindingPolicyStatusWarn {
+					wantSeverity = model.SeverityWarning
 				}
 				if finding.Severity != wantSeverity {
 					t.Errorf("finding %q severity = %q, want %q (policy status %q)", finding.ID, finding.Severity, wantSeverity, finding.PolicyStatus)
@@ -273,82 +274,90 @@ func TestAudit(t *testing.T) {
 }
 
 func TestAuditDependencySourceChanges(t *testing.T) {
-	const purl = "pkg:npm/example@1.0.0"
-	transition := func(id string, source sdk.DependencySource) sdk.DependencyDetailTransition {
-		before := sdk.NewDependencyWithID(id, sdk.Dependency{
-			Coordinates: sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
-			Source:      sdk.DependencySourceRegistry,
+	// One node per name: identity is minted from the coordinates now, so two
+	// transitions that share a name are one dependency, and this case is
+	// about two distinct ones both moving to Git.
+	transition := func(name string, source model.DependencySource) model.DependencyDetailTransition {
+		purl := "pkg:npm/" + name + "@1.0.0"
+		before := testnodes.DepFrom(model.DependencyNode{
+			Coordinates: model.Coordinates{PURL: purl, Ecosystem: model.EcosystemNPM, Name: name, Version: "1.0.0"},
+			Source:      model.DependencySourceRegistry,
 			PackageRef:  purl,
 		})
 		after := before.Clone()
 		after.Source = source
-		return sdk.DependencyDetailTransition{
+		return model.DependencyDetailTransition{
 			Before:                 before,
 			After:                  after,
-			ChangedFields:          []sdk.DependencyDetailField{sdk.DependencyDetailSource, sdk.DependencyDetailRegistryEligibility},
+			ChangedFields:          []model.DependencyDetailField{model.DependencyDetailSource, model.DependencyDetailRegistryEligibility},
 			BeforeRegistryEligible: true,
 		}
 	}
 
-	result, err := (Auditor{}).Audit(context.Background(), sdk.AuditRequest{
-		DependencyDetailChanges: []sdk.DependencyDetailTransition{
-			transition("npm:one", sdk.DependencySourceGit),
-			transition("npm:two", sdk.DependencySourceGit),
-			transition("npm:url", sdk.DependencySourceURL),
+	result, err := (Auditor{}).Audit(context.Background(), plugin.AuditRequest{
+		DependencyDetailChanges: []model.DependencyDetailTransition{
+			transition("one", model.DependencySourceGit),
+			transition("two", model.DependencySourceGit),
+			transition("url-package", model.DependencySourceURL),
 		},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(result.Findings) != 2 {
-		t.Fatalf("findings = %#v, want one Git and one URL finding", result.Findings)
+	// One finding per package: findings group by package reference, and two
+	// packages that both moved to Git are two references. There is no longer
+	// a case where one package contributes two transitions -- occurrences
+	// were what produced that, and identity is unique by construction now.
+	if len(result.Findings) != 3 {
+		t.Fatalf("findings = %#v, want one per changed package", result.Findings)
 	}
-	git := result.Findings[0]
-	if git.RuleID != "dependency-source-change-to-git" ||
-		git.PolicyStatus != sdk.FindingPolicyStatusWarn ||
-		git.Severity != sdk.SeverityWarning ||
-		len(git.DependencyRefs) != 2 {
-		t.Fatalf("Git source finding = %#v", git)
+	for _, git := range result.Findings[:2] {
+		if git.RuleID != "dependency-source-change-to-git" ||
+			git.PolicyStatus != model.FindingPolicyStatusWarn ||
+			git.Severity != model.SeverityWarning ||
+			len(git.DependencyRefs) != 1 {
+			t.Fatalf("Git source finding = %#v", git)
+		}
 	}
-	if result.Findings[1].RuleID != "dependency-source-change-to-url" {
-		t.Fatalf("URL source finding = %#v", result.Findings[1])
+	if result.Findings[2].RuleID != "dependency-source-change-to-url" {
+		t.Fatalf("URL source finding = %#v", result.Findings[2])
 	}
 
 	enforced, err := (Auditor{
-		FailOn: []sdk.FailOnConstraint{{
-			Kind: sdk.SourceChangeConstraint, Value: sdk.SourceChangeValue,
+		FailOn: []model.FailOnConstraint{{
+			Kind: model.SourceChangeConstraint, Value: model.SourceChangeValue,
 		}},
-	}).Audit(context.Background(), sdk.AuditRequest{
-		DependencyDetailChanges: []sdk.DependencyDetailTransition{
-			transition("npm:one", sdk.DependencySourceGit),
-			transition("npm:url", sdk.DependencySourceURL),
+	}).Audit(context.Background(), plugin.AuditRequest{
+		DependencyDetailChanges: []model.DependencyDetailTransition{
+			transition("npm:one", model.DependencySourceGit),
+			transition("npm:url", model.DependencySourceURL),
 		},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if enforced.Findings[0].PolicyStatus != sdk.FindingPolicyStatusFail ||
-		enforced.Findings[0].Severity != sdk.SeverityError {
+	if enforced.Findings[0].PolicyStatus != model.FindingPolicyStatusFail ||
+		enforced.Findings[0].Severity != model.SeverityError {
 		t.Fatalf("denied Git source finding = %#v", enforced.Findings[0])
 	}
-	if enforced.Findings[1].PolicyStatus != sdk.FindingPolicyStatusFail ||
-		enforced.Findings[1].Severity != sdk.SeverityError {
+	if enforced.Findings[1].PolicyStatus != model.FindingPolicyStatusFail ||
+		enforced.Findings[1].Severity != model.SeverityError {
 		t.Fatalf("enforced URL source finding = %#v", enforced.Findings[1])
 	}
 }
 
 func TestAuditDependencySourceChangesIgnoresInformationalTransitions(t *testing.T) {
-	dependency := sdk.NewDependencyWithID("example", sdk.Dependency{
-		Coordinates: sdk.Coordinates{Name: "example", Version: "1.0.0"},
-		Source:      sdk.DependencySourceRegistry,
+	dependency := testnodes.DepFrom(model.DependencyNode{
+		Coordinates: model.Coordinates{Name: "example", Version: "1.0.0"},
+		Source:      model.DependencySourceRegistry,
 	})
 	after := dependency.Clone()
-	after.Relationship = sdk.DependencyRelationshipTransitive
-	result, err := (Auditor{}).Audit(context.Background(), sdk.AuditRequest{
-		DependencyDetailChanges: []sdk.DependencyDetailTransition{{
+	after.Relationship = model.DependencyRelationshipTransitive
+	result, err := (Auditor{}).Audit(context.Background(), plugin.AuditRequest{
+		DependencyDetailChanges: []model.DependencyDetailTransition{{
 			Before:        dependency,
 			After:         after,
-			ChangedFields: []sdk.DependencyDetailField{sdk.DependencyDetailRelationship},
+			ChangedFields: []model.DependencyDetailField{model.DependencyDetailRelationship},
 		}},
 	})
 	if err != nil {

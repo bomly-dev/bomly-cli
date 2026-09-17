@@ -7,11 +7,6 @@ import (
 	"testing"
 )
 
-// minSupportedSDKVersion is the oldest github.com/bomly-dev/bomly-sdk release
-// whose plugin binaries the current Bomly binary must keep loading and
-// running. Bump it only when a wire-protocol major version is retired.
-const minSupportedSDKVersion = "v0.1.0"
-
 // TestPluginMinVersionWireCompat proves wire compatibility with old plugin
 // binaries: it builds the example detector fixture against the OLDEST
 // supported SDK release (not the pinned one), installs and enables it with

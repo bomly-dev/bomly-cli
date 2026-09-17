@@ -17,8 +17,6 @@ the reader inventory, cache behavior, and intentional exclusions.
 | Configuration and policy documents | strict YAML configuration, finding baseline |
 | Shared JSON contracts | dependency graph, package registry |
 | Package identifiers and plugin paths | package URL canonicalization, plugin path sanitizers |
-| SBOM | automatic SPDX and CycloneDX decoding; Syft JSON identification and deterministic rejection (the format is no longer ingested) |
-| License expressions | SPDX identifier classification, expression validation, and multi-license composition on the export path (`FuzzSPDXLicenseValue`), plus the deprecated-identifier rewriter (`FuzzNormalizeSPDXLicenseExpression`) |
 | Node lockfiles | npm, pnpm, Yarn, Bun |
 | Node project configuration | package.json, pnpm-workspace.yaml, and .npmrc behind the package-manager warning checks |
 | Python lockfiles | Poetry, uv, Pipenv |
@@ -26,6 +24,14 @@ the reader inventory, cache behavior, and intentional exclusions.
 | Workflow manifests | GitHub Actions workflow references |
 | Matcher evidence | vulnerability consolidation and advisory aliases |
 | Release assurance | check-result documents, the assurance catalog, and `go test -json` streams |
+
+The SBOM codec's targets moved with the codec to `bomly-sdk/sbom` (ADR-0045)
+and run in that repository's fuzz workflow: automatic SPDX and CycloneDX
+decoding with Syft JSON identification and deterministic rejection
+(`FuzzUnmarshalAutoJSON`), multi-license composition on the export path
+(`FuzzSPDXLicenseValue`), the deprecated-identifier rewriter
+(`FuzzNormalizeSPDXLicenseExpression`), and ingested and document assertions
+(`FuzzIngestedAssertions`, `FuzzDocumentAssertions`).
 
 Seeds include valid minimal documents and malformed/truncated structures.
 The fuzz engine supplies invalid encodings, deep nesting, duplicate values,
@@ -46,11 +52,11 @@ oversized structures within the bound, and arbitrary path/reference text.
   and validation code around them is the target.
 - The SPDX expression parser (`github.com/github/go-spdx`) panics on some
   malformed expressions rather than returning an error, and license strings
-  are untrusted repository and registry data. `internal/licenseexpr` contains
+  are untrusted repository and registry data. `bomly-sdk/spdxkit` contains
   those panics and reports the value as unparseable, so `FuzzSPDXLicenseValue`
-  asserts the wrapper's behavior rather than the dependency's. A call site
-  that reaches the dependency directly would reintroduce the crash, which
-  `TestNoDirectSPDXExpressionUse` prevents.
+  asserts the CLI's use of the kit rather than the dependency's behavior. A
+  call site that reaches the dependency directly would reintroduce the crash,
+  which the `depguard` rule `internal-kits` in `.golangci.yml` prevents for every package under `internal/`, test files included.
 - Filesystem discovery and package-manager subprocess orchestration are not
   parsers and remain covered by unit, integration, and smoke tests.
 - Reachability analyzers (govulncheck, jsreach, pyreach, jvmreach) and the

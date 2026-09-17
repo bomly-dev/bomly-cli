@@ -136,8 +136,16 @@ func TestRootVersion_IncludesTrackedDependencyVersions(t *testing.T) {
 	if !strings.Contains(versionText, "bomly 0.9.0-test") {
 		t.Fatalf("expected version output to contain core version, got:\n%s", versionText)
 	}
-	for _, item := range selectedDependencyVersions() {
-		want := item.Label + ":"
+	// Test binaries carry dependency build info on the required toolchain,
+	// so an empty resolution means the assertion loop below would be
+	// vacuous — which is exactly how the old "Label:" expectation survived
+	// years after the rendered format gained the module path.
+	resolved := selectedDependencyVersions()
+	if len(resolved) == 0 {
+		t.Fatal("selectedDependencyVersions() resolved nothing; the assertions below would be vacuous")
+	}
+	for _, item := range resolved {
+		want := item.Label + " (" + item.Module + "): " + item.Version
 		if !strings.Contains(versionText, want) {
 			t.Fatalf("expected version output to contain %q, got:\n%s", want, versionText)
 		}

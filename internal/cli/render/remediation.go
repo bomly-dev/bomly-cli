@@ -6,7 +6,8 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 type remediationReport struct {
@@ -18,9 +19,9 @@ type remediationReport struct {
 
 type remediationRow struct {
 	packageLabel       string
-	status             sdk.PackageRemediationStatus
+	status             model.PackageRemediationStatus
 	recommendedVersion string
-	action             sdk.RemediationAction
+	action             model.RemediationAction
 	actionTarget       string
 	manifestPath       string
 	advice             string
@@ -53,7 +54,7 @@ func buildRemediationReport(packages []output.ScanPackageEntry) remediationRepor
 				manifestPath:       suggestion.ManifestPath,
 				advice:             suggestion.OverrideAdvice,
 			})
-			if pkg.Remediation.Status == sdk.PackageRemediationComplete &&
+			if pkg.Remediation.Status == model.PackageRemediationComplete &&
 				isConcreteFixAction(suggestion.Action) {
 				report.fixSuggestions++
 				hasFixSuggestion = true
@@ -66,11 +67,11 @@ func buildRemediationReport(packages []output.ScanPackageEntry) remediationRepor
 	return report
 }
 
-func isConcreteFixAction(action sdk.RemediationAction) bool {
+func isConcreteFixAction(action model.RemediationAction) bool {
 	switch action {
-	case sdk.RemediationActionDirectBump,
-		sdk.RemediationActionTransitiveOverride,
-		sdk.RemediationActionLockfileRefresh:
+	case model.RemediationActionDirectBump,
+		model.RemediationActionTransitiveOverride,
+		model.RemediationActionLockfileRefresh:
 		return true
 	default:
 		return false
@@ -159,22 +160,22 @@ func remediationMarkdown(packages []output.ScanPackageEntry) []string {
 }
 
 // RemediationStatusLabel describes package fix coverage in plain language.
-func RemediationStatusLabel(status sdk.PackageRemediationStatus) string {
+func RemediationStatusLabel(status model.PackageRemediationStatus) string {
 	switch status {
-	case sdk.PackageRemediationComplete:
+	case model.PackageRemediationComplete:
 		return "Complete fix available"
-	case sdk.PackageRemediationPartial:
+	case model.PackageRemediationPartial:
 		return "Partial fix available"
-	case sdk.PackageRemediationUnavailable:
+	case model.PackageRemediationUnavailable:
 		return "No fix available"
-	case sdk.PackageRemediationUnknown:
+	case model.PackageRemediationUnknown:
 		return "Fix availability unknown"
 	default:
 		return "Fix availability unknown"
 	}
 }
 
-func remediationActionText(action sdk.RemediationAction) string {
+func remediationActionText(action model.RemediationAction) string {
 	value := strings.ReplaceAll(strings.TrimSpace(string(action)), "-", " ")
 	if value == "" {
 		return "-"

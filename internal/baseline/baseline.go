@@ -13,9 +13,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 const (
@@ -38,14 +40,14 @@ type Document struct {
 
 // Entry identifies one package finding that may be suppressed.
 type Entry struct {
-	PackageRef   string                  `json:"package_ref"`
-	Kind         sdk.FindingKind         `json:"kind"`
-	Auditor      string                  `json:"auditor"`
-	RuleID       string                  `json:"rule_id,omitempty"`
-	AdvisoryIDs  []string                `json:"advisory_ids,omitempty"`
-	Severity     sdk.SeverityLevel       `json:"severity,omitempty"`
-	PolicyStatus sdk.FindingPolicyStatus `json:"policy_status,omitempty"`
-	Reachability sdk.ReachabilityStatus  `json:"reachability,omitempty"`
+	PackageRef   string                    `json:"package_ref"`
+	Kind         model.FindingKind         `json:"kind"`
+	Auditor      string                    `json:"auditor"`
+	RuleID       string                    `json:"rule_id,omitempty"`
+	AdvisoryIDs  []string                  `json:"advisory_ids,omitempty"`
+	Severity     model.SeverityLevel       `json:"severity,omitempty"`
+	PolicyStatus model.FindingPolicyStatus `json:"policy_status,omitempty"`
+	Reachability model.ReachabilityStatus  `json:"reachability,omitempty"`
 }
 
 // Resolver applies a validated baseline during the audit stage.
@@ -53,7 +55,7 @@ type Resolver struct{ document Document }
 
 // LoadResult describes a baseline discovered for one execution target.
 type LoadResult struct {
-	Resolvers []sdk.FindingPolicyResolver
+	Resolvers []model.FindingPolicyResolver
 	Path      string
 	Entries   int
 	Automatic bool
@@ -68,21 +70,21 @@ func NewResolver(document Document) (*Resolver, error) {
 }
 
 // ResolveFindingPolicy accepts a finding when a compatible package entry exists.
-func (r *Resolver) ResolveFindingPolicy(_ context.Context, finding sdk.Finding, registry *sdk.PackageRegistry) (sdk.FindingPolicyDecision, bool) {
+func (r *Resolver) ResolveFindingPolicy(_ context.Context, finding model.Finding, registry *model.PackageRegistry) (model.FindingPolicyDecision, bool) {
 	candidate := EntryFromFinding(finding, registry)
 	for _, entry := range r.document.Entries {
 		if entriesMatch(entry, candidate) && stateCompatible(entry, candidate) {
-			return sdk.FindingPolicyDecision{Status: sdk.FindingPolicyStatusSuppressed, Source: "baseline", Reason: "matched package finding baseline"}, true
+			return model.FindingPolicyDecision{Status: model.FindingPolicyStatusSuppressed, Source: "baseline", Reason: "matched package finding baseline"}, true
 		}
 	}
-	return sdk.FindingPolicyDecision{}, false
+	return model.FindingPolicyDecision{}, false
 }
 
 // EntryFromFinding constructs a portable entry from a finding and registry.
-func EntryFromFinding(finding sdk.Finding, registry *sdk.PackageRegistry) Entry {
+func EntryFromFinding(finding model.Finding, registry *model.PackageRegistry) Entry {
 	policyStatus := finding.PolicyStatus
 	if policyStatus == "" {
-		policyStatus = sdk.FindingPolicyStatusFail
+		policyStatus = model.FindingPolicyStatusFail
 	}
 	entry := Entry{
 		PackageRef:   strings.TrimSpace(finding.PackageRef),
@@ -92,9 +94,9 @@ func EntryFromFinding(finding sdk.Finding, registry *sdk.PackageRegistry) Entry 
 		Severity:     finding.Severity,
 		PolicyStatus: policyStatus,
 	}
-	if finding.Kind == sdk.FindingKindVulnerability {
+	if finding.Kind == model.FindingKindVulnerability {
 		entry.AdvisoryIDs = advisoryIDs(finding, registry)
-		entry.Reachability = sdk.ReachabilityUnknown
+		entry.Reachability = model.ReachabilityUnknown
 		if vulnerability := referencedVulnerability(finding, registry); vulnerability != nil && vulnerability.Reachability != nil {
 			entry.Reachability = vulnerability.Reachability.Status
 		}
@@ -103,7 +105,7 @@ func EntryFromFinding(finding sdk.Finding, registry *sdk.PackageRegistry) Entry 
 }
 
 // NewDocument constructs a deterministic document from findings.
-func NewDocument(findings []sdk.Finding, registry *sdk.PackageRegistry) Document {
+func NewDocument(findings []model.Finding, registry *model.PackageRegistry) Document {
 	entries := make([]Entry, 0, len(findings))
 	for _, finding := range findings {
 		entry := EntryFromFinding(finding, registry)
@@ -132,7 +134,7 @@ func (d Document) Validate() error {
 			return fmt.Errorf("baseline entry %d is missing package_ref, kind, or auditor", idx)
 		}
 		switch entry.PolicyStatus {
-		case "", sdk.FindingPolicyStatusFail, sdk.FindingPolicyStatusWarn, sdk.FindingPolicyStatusSuppressed:
+		case "", model.FindingPolicyStatusFail, model.FindingPolicyStatusWarn, model.FindingPolicyStatusSuppressed:
 		default:
 			return fmt.Errorf("baseline entry %d has unsupported policy_status %q", idx, entry.PolicyStatus)
 		}
@@ -140,14 +142,14 @@ func (d Document) Validate() error {
 			return fmt.Errorf("baseline entry %d has unsupported severity %q", idx, entry.Severity)
 		}
 		switch entry.Reachability {
-		case "", sdk.ReachabilityUnknown, sdk.ReachabilityReachable, sdk.ReachabilityUnreachable:
+		case "", model.ReachabilityUnknown, model.ReachabilityReachable, model.ReachabilityUnreachable:
 		default:
 			return fmt.Errorf("baseline entry %d has unsupported reachability %q", idx, entry.Reachability)
 		}
-		if entry.Kind == sdk.FindingKindVulnerability && len(entry.AdvisoryIDs) == 0 {
+		if entry.Kind == model.FindingKindVulnerability && len(entry.AdvisoryIDs) == 0 {
 			return fmt.Errorf("baseline entry %d is missing advisory_ids", idx)
 		}
-		if entry.Kind != sdk.FindingKindVulnerability && strings.TrimSpace(entry.RuleID) == "" {
+		if entry.Kind != model.FindingKindVulnerability && strings.TrimSpace(entry.RuleID) == "" {
 			return fmt.Errorf("baseline entry %d is missing rule_id", idx)
 		}
 		key := entryKey(entry)
@@ -170,7 +172,7 @@ func (d Document) Validate() error {
 
 type entryMatchKey struct {
 	packageRef string
-	kind       sdk.FindingKind
+	kind       model.FindingKind
 	auditor    string
 	identity   string
 }
@@ -181,7 +183,7 @@ func entryMatchKeys(entry Entry) []entryMatchKey {
 		kind:       entry.Kind,
 		auditor:    entry.Auditor,
 	}
-	if entry.Kind != sdk.FindingKindVulnerability {
+	if entry.Kind != model.FindingKindVulnerability {
 		base.identity = entry.RuleID
 		return []entryMatchKey{base}
 	}
@@ -214,18 +216,18 @@ func foldASCII(value string) string {
 	return string(folded)
 }
 
-func validBaselineSeverity(severity sdk.SeverityLevel) bool {
+func validBaselineSeverity(severity model.SeverityLevel) bool {
 	switch severity {
 	case "",
-		sdk.SeverityUnknown,
-		sdk.SeverityLevel("n/a"),
-		sdk.SeverityLow,
-		sdk.SeverityMedium,
-		sdk.SeverityHigh,
-		sdk.SeverityCritical,
-		sdk.SeverityNote,
-		sdk.SeverityWarning,
-		sdk.SeverityError:
+		model.SeverityUnknown,
+		model.SeverityLevel("n/a"),
+		model.SeverityLow,
+		model.SeverityMedium,
+		model.SeverityHigh,
+		model.SeverityCritical,
+		model.SeverityNote,
+		model.SeverityWarning,
+		model.SeverityError:
 		return true
 	default:
 		return false
@@ -258,7 +260,7 @@ func Load(path string) (Document, error) {
 }
 
 // ResolversForTarget discovers or loads the selected baseline for target.
-func ResolversForTarget(selection string, target sdk.ExecutionTarget, logger *zap.Logger) (LoadResult, error) {
+func ResolversForTarget(selection string, target plugin.ExecutionTarget, logger *zap.Logger) (LoadResult, error) {
 	if logger == nil {
 		logger = zap.NewNop()
 	}
@@ -297,14 +299,14 @@ func ResolversForTarget(selection string, target sdk.ExecutionTarget, logger *za
 		zap.Bool("automatic", automatic),
 		zap.String("target_kind", string(target.Kind)))
 	return LoadResult{
-		Resolvers: []sdk.FindingPolicyResolver{resolver},
+		Resolvers: []model.FindingPolicyResolver{resolver},
 		Path:      path,
 		Entries:   len(document.Entries),
 		Automatic: automatic,
 	}, nil
 }
 
-func validateAutomaticPath(target sdk.ExecutionTarget, path string) error {
+func validateAutomaticPath(target plugin.ExecutionTarget, path string) error {
 	root := baselineRoot(target)
 	absoluteRoot, err := filepath.Abs(root)
 	if err != nil {
@@ -325,7 +327,7 @@ func validateAutomaticPath(target sdk.ExecutionTarget, path string) error {
 	}
 
 	current := absoluteRoot
-	for _, component := range strings.Split(relative, string(os.PathSeparator)) {
+	for component := range strings.SplitSeq(relative, string(os.PathSeparator)) {
 		if component == "" || component == "." {
 			continue
 		}
@@ -353,7 +355,7 @@ func validateAutomaticPath(target sdk.ExecutionTarget, path string) error {
 
 // Update returns a document that accepts all current entries while retaining
 // historical entries that were not observed by the current scan.
-func Update(existing Document, current []sdk.Finding, registry *sdk.PackageRegistry) Document {
+func Update(existing Document, current []model.Finding, registry *model.PackageRegistry) Document {
 	updated := NewDocument(current, registry)
 	byKey := make(map[string]Entry, len(existing.Entries)+len(updated.Entries))
 	for _, entry := range existing.Entries {
@@ -372,7 +374,7 @@ func Update(existing Document, current []sdk.Finding, registry *sdk.PackageRegis
 
 // Prune removes entries that are not present in a complete current scan and
 // never adds findings that have not already been accepted.
-func Prune(existing Document, current []sdk.Finding, registry *sdk.PackageRegistry) Document {
+func Prune(existing Document, current []model.Finding, registry *model.PackageRegistry) Document {
 	observed := NewDocument(current, registry)
 	result := make(map[string]Entry)
 	for _, accepted := range existing.Entries {
@@ -421,14 +423,14 @@ func consolidateEntries(entries []Entry) []Entry {
 }
 
 func mergeEntries(base, incoming Entry) Entry {
-	if base.Kind == sdk.FindingKindVulnerability {
+	if base.Kind == model.FindingKindVulnerability {
 		base.AdvisoryIDs = appendUniqueAdvisoryIDs(base.AdvisoryIDs, incoming.AdvisoryIDs...)
 	}
-	if sdk.SeverityRank(incoming.Severity) > sdk.SeverityRank(base.Severity) {
+	if model.SeverityRank(incoming.Severity) > model.SeverityRank(base.Severity) {
 		base.Severity = incoming.Severity
 	}
-	baseRank, baseKnown := sdk.FindingPolicyStatusRank(base.PolicyStatus)
-	incomingRank, incomingKnown := sdk.FindingPolicyStatusRank(incoming.PolicyStatus)
+	baseRank, baseKnown := model.FindingPolicyStatusRank(base.PolicyStatus)
+	incomingRank, incomingKnown := model.FindingPolicyStatusRank(incoming.PolicyStatus)
 	if incomingKnown && (!baseKnown || incomingRank > baseRank ||
 		(incomingRank == baseRank && base.PolicyStatus == "")) {
 		base.PolicyStatus = incoming.PolicyStatus
@@ -462,10 +464,10 @@ func appendUniqueAdvisoryIDs(existing []string, values ...string) []string {
 
 // ResolvePath resolves a baseline selection for an execution target. The
 // required result distinguishes explicit paths from optional auto-discovery.
-func ResolvePath(selection string, target sdk.ExecutionTarget) (path string, required, ok bool, err error) {
+func ResolvePath(selection string, target plugin.ExecutionTarget) (path string, required, ok bool, err error) {
 	selection = strings.TrimSpace(selection)
 	if selection == "" || strings.EqualFold(selection, "auto") {
-		if target.Kind != sdk.ExecutionTargetFilesystem && target.Kind != sdk.ExecutionTargetGitRepository {
+		if target.Kind != plugin.ExecutionTargetFilesystem && target.Kind != plugin.ExecutionTargetGitRepository {
 			return "", false, false, nil
 		}
 		root := baselineRoot(target)
@@ -478,13 +480,13 @@ func ResolvePath(selection string, target sdk.ExecutionTarget) (path string, req
 		return filepath.Clean(selection), true, true, nil
 	}
 	root := baselineRoot(target)
-	if strings.TrimSpace(root) == "" || target.Kind == sdk.ExecutionTargetContainerImage {
+	if strings.TrimSpace(root) == "" || target.Kind == plugin.ExecutionTargetContainerImage {
 		return "", false, false, fmt.Errorf("relative baseline path requires a filesystem or git project target")
 	}
 	return filepath.Join(root, filepath.Clean(selection)), true, true, nil
 }
 
-func baselineRoot(target sdk.ExecutionTarget) string {
+func baselineRoot(target plugin.ExecutionTarget) string {
 	root := target.Location
 	if info, err := os.Stat(root); err == nil && !info.IsDir() {
 		return filepath.Dir(root)
@@ -546,7 +548,7 @@ func entriesMatch(expected, actual Entry) bool {
 	if expected.PackageRef != actual.PackageRef || expected.Kind != actual.Kind || expected.Auditor != actual.Auditor {
 		return false
 	}
-	if expected.Kind != sdk.FindingKindVulnerability {
+	if expected.Kind != model.FindingKindVulnerability {
 		return expected.RuleID == actual.RuleID
 	}
 	for _, left := range expected.AdvisoryIDs {
@@ -560,12 +562,12 @@ func entriesMatch(expected, actual Entry) bool {
 }
 
 func stateCompatible(expected, actual Entry) bool {
-	if expected.Severity != "" && sdk.SeverityRank(actual.Severity) > sdk.SeverityRank(expected.Severity) {
+	if expected.Severity != "" && model.SeverityRank(actual.Severity) > model.SeverityRank(expected.Severity) {
 		return false
 	}
-	if expected.PolicyStatus != "" && expected.PolicyStatus != sdk.FindingPolicyStatusSuppressed {
-		actualRank, actualKnown := sdk.FindingPolicyStatusRank(actual.PolicyStatus)
-		expectedRank, expectedKnown := sdk.FindingPolicyStatusRank(expected.PolicyStatus)
+	if expected.PolicyStatus != "" && expected.PolicyStatus != model.FindingPolicyStatusSuppressed {
+		actualRank, actualKnown := model.FindingPolicyStatusRank(actual.PolicyStatus)
+		expectedRank, expectedKnown := model.FindingPolicyStatusRank(expected.PolicyStatus)
 		if !actualKnown || !expectedKnown || actualRank > expectedRank {
 			return false
 		}
@@ -573,30 +575,30 @@ func stateCompatible(expected, actual Entry) bool {
 	return expected.Reachability == "" || reachabilityRisk(actual.Reachability) <= reachabilityRisk(expected.Reachability)
 }
 
-func reachabilityRisk(status sdk.ReachabilityStatus) int {
+func reachabilityRisk(status model.ReachabilityStatus) int {
 	switch status {
-	case sdk.ReachabilityUnreachable:
+	case model.ReachabilityUnreachable:
 		return 1
-	case "", sdk.ReachabilityUnknown:
+	case "", model.ReachabilityUnknown:
 		return 2
-	case sdk.ReachabilityReachable:
+	case model.ReachabilityReachable:
 		return 3
 	default:
 		return 4
 	}
 }
 
-func stableRuleID(finding sdk.Finding) string {
+func stableRuleID(finding model.Finding) string {
 	if value := strings.TrimSpace(finding.RuleID); value != "" {
 		return value
 	}
-	if finding.Kind != sdk.FindingKindVulnerability {
+	if finding.Kind != model.FindingKindVulnerability {
 		return strings.TrimSpace(finding.ID)
 	}
 	return ""
 }
 
-func advisoryIDs(finding sdk.Finding, registry *sdk.PackageRegistry) []string {
+func advisoryIDs(finding model.Finding, registry *model.PackageRegistry) []string {
 	values := []string{finding.VulnerabilityID, finding.ID}
 	if vulnerability := referencedVulnerability(finding, registry); vulnerability != nil {
 		values = append(values, vulnerability.ID)
@@ -620,7 +622,7 @@ func advisoryIDs(finding sdk.Finding, registry *sdk.PackageRegistry) []string {
 	return out
 }
 
-func referencedVulnerability(finding sdk.Finding, registry *sdk.PackageRegistry) *sdk.Vulnerability {
+func referencedVulnerability(finding model.Finding, registry *model.PackageRegistry) *model.Vulnerability {
 	if registry == nil {
 		return nil
 	}

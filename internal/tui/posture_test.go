@@ -8,11 +8,14 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	sdkmodel "github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
-func newTestScorecardTUI(repo string, score float64, checks ...sdk.PackageScorecardCheck) *sdk.PackageScorecard {
-	return &sdk.PackageScorecard{
+func newTestScorecardTUI(repo string, score float64, checks ...sdkmodel.PackageScorecardCheck) *sdkmodel.PackageScorecard {
+	return &sdkmodel.PackageScorecard{
 		Source:           "api.scorecard.dev",
 		Repository:       repo,
 		CommitSHA:        "abc",
@@ -24,36 +27,36 @@ func newTestScorecardTUI(repo string, score float64, checks ...sdk.PackageScorec
 }
 
 func TestPostureTab_ScanRendersList(t *testing.T) {
-	g := sdk.New()
-	root := sdk.NewDependencyRef("demo-app", "1.0.0")
+	g := sdkmodel.New()
+	root := testnodes.Ref("demo-app", "1.0.0")
 	const libPURL = "pkg:npm/lib@1.0.0"
-	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", PURL: libPURL}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
-	registry := sdk.NewPackageRegistry()
+	dep := testnodes.DepFrom(sdkmodel.DependencyNode{Coordinates: sdkmodel.Coordinates{Name: "lib", Version: "1.0.0", PURL: libPURL}, Scopes: sdkmodel.ScopesOf(sdkmodel.ScopeRuntime)})
+	registry := sdkmodel.NewPackageRegistry()
 	regLib := registry.Ensure(libPURL)
 	regLib.Name = "lib"
 	regLib.Version = "1.0.0"
 	regLib.Scorecard = newTestScorecardTUI("github.com/example/lib", 3.5,
-		sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 2, Reason: "branch protection disabled"},
-		sdk.PackageScorecardCheck{Name: "Code-Review", Score: 7, Reason: "most changes reviewed"},
+		sdkmodel.PackageScorecardCheck{Name: "Branch-Protection", Score: 2, Reason: "branch protection disabled"},
+		sdkmodel.PackageScorecardCheck{Name: "Code-Review", Score: 7, Reason: "most changes reviewed"},
 	)
-	for _, pkg := range []*sdk.Dependency{root, dep} {
+	for _, pkg := range []*sdkmodel.DependencyNode{root, dep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	if err := g.AddEdge(root.ID, dep.ID); err != nil {
+	if err := g.AddEdge(root.NodeID(), dep.NodeID()); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
-	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
-			ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo"},
+	consolidated := consolidatedForInteractive(t, []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
+			ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/tmp/demo"},
 			RelativePath:    ".",
 			PrimaryDetector: "npm-detector",
-			Ecosystem:       sdk.EcosystemNPM,
+			Ecosystem:       sdkmodel.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		Graphs:       engine.SingleGraphContainer(g, sdkmodel.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -80,21 +83,21 @@ func TestPostureTab_ScanRendersList(t *testing.T) {
 }
 
 func TestPostureTab_ScanEmptyStateHints(t *testing.T) {
-	g := sdk.New()
-	root := sdk.NewDependencyRef("demo-app", "1.0.0")
+	g := sdkmodel.New()
+	root := testnodes.Ref("demo-app", "1.0.0")
 	if err := g.AddNode(root); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
 
-	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
-			ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo"},
+	consolidated := consolidatedForInteractive(t, []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
+			ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/tmp/demo"},
 			RelativePath:    ".",
 			PrimaryDetector: "npm-detector",
-			Ecosystem:       sdk.EcosystemNPM,
+			Ecosystem:       sdkmodel.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json"}),
+		Graphs:       engine.SingleGraphContainer(g, sdkmodel.ManifestMetadata{Path: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -111,29 +114,29 @@ func TestPostureTab_ScanEmptyStateHints(t *testing.T) {
 }
 
 func TestPostureTab_CheckNotesFitSplitPane(t *testing.T) {
-	g := sdk.New()
-	registry := sdk.NewPackageRegistry()
+	g := sdkmodel.New()
+	registry := sdkmodel.NewPackageRegistry()
 	const purl = "pkg:golang/github.com/anchore/go-struct-converter@1.0.0"
-	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "go-struct-converter", Version: "1.0.0", PURL: purl}})
+	dep := testnodes.DepFrom(sdkmodel.DependencyNode{Coordinates: sdkmodel.Coordinates{Name: "go-struct-converter", Version: "1.0.0", PURL: purl}})
 	regPkg := registry.Ensure(purl)
 	regPkg.Name = "go-struct-converter"
 	regPkg.Version = "1.0.0"
 	regPkg.Scorecard = newTestScorecardTUI("github.com/anchore/go-struct-converter", 2.0,
-		sdk.PackageScorecardCheck{Name: "CI-Best-Practices", Score: 0, Reason: "agg note should stay visible"},
+		sdkmodel.PackageScorecardCheck{Name: "CI-Best-Practices", Score: 0, Reason: "agg note should stay visible"},
 	)
 	if err := g.AddNode(dep); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
 
-	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
-			ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo"},
+	consolidated := consolidatedForInteractive(t, []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
+			ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/tmp/demo"},
 			RelativePath:    ".",
 			PrimaryDetector: "go-detector",
-			Ecosystem:       sdk.EcosystemGo,
+			Ecosystem:       sdkmodel.EcosystemGo,
 		},
 		DetectorName: "go-detector",
-		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "go.mod"}),
+		Graphs:       engine.SingleGraphContainer(g, sdkmodel.ManifestMetadata{Path: "go.mod"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -153,14 +156,14 @@ func TestPostureTab_CheckNotesFitSplitPane(t *testing.T) {
 }
 
 func TestTopAffectedLines_FitBoxBudget(t *testing.T) {
-	pkg := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "org.springframework:spring-web",
-		Version: "6.0.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime),
+	pkg := testnodes.DepFrom(sdkmodel.DependencyNode{Coordinates: sdkmodel.Coordinates{Name: "org.springframework:spring-web",
+		Version: "6.0.0"}, Scopes: sdkmodel.ScopesOf(sdkmodel.ScopeRuntime),
 	})
 	rows := make([]packageVulnerabilityRow, 0, 12)
-	for i := 0; i < 12; i++ {
+	for i := range 12 {
 		rows = append(rows, packageVulnerabilityRow{
 			pkg:           pkg,
-			vulnerability: sdk.Vulnerability{ID: "CVE-2026-" + string(rune('A'+i))},
+			vulnerability: sdkmodel.Vulnerability{ID: "CVE-2026-" + string(rune('A'+i))},
 		})
 	}
 
@@ -180,10 +183,10 @@ func TestTopAffectedLines_FitBoxBudget(t *testing.T) {
 }
 
 func TestPostureRowsFromGraph_DedupesAndSortsWorstFirst(t *testing.T) {
-	g := sdk.New()
-	registry := sdk.NewPackageRegistry()
-	add := func(name, purl, repo string, score float64) *sdk.Dependency {
-		dep := sdk.NewDependencyWithID(purl, sdk.Dependency{Coordinates: sdk.Coordinates{Name: name, Version: "1", PURL: purl}})
+	g := sdkmodel.New()
+	registry := sdkmodel.NewPackageRegistry()
+	add := func(name, purl, repo string, score float64) *sdkmodel.DependencyNode {
+		dep := testnodes.DepFrom(sdkmodel.DependencyNode{Coordinates: sdkmodel.Coordinates{Name: name, Version: "1", PURL: purl}})
 		regPkg := registry.Ensure(purl)
 		regPkg.Name = name
 		regPkg.Version = "1"
@@ -195,7 +198,7 @@ func TestPostureRowsFromGraph_DedupesAndSortsWorstFirst(t *testing.T) {
 	mid := add("mid", "pkg:npm/mid@1", "github.com/mid/repo", 6.0)
 	monoA := add("a", "pkg:npm/a@1", "github.com/mono/repo", 7.5)
 	monoB := add("b", "pkg:npm/b@1", "github.com/mono/repo", 7.5)
-	for _, pkg := range []*sdk.Dependency{low, high, mid, monoA, monoB} {
+	for _, pkg := range []*sdkmodel.DependencyNode{low, high, mid, monoA, monoB} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add: %v", err)
 		}
@@ -228,12 +231,12 @@ func TestPostureRowsFromGraph_DedupesAndSortsWorstFirst(t *testing.T) {
 
 func TestPostureTopFailingLines_FitBoxBudget(t *testing.T) {
 	rows := make([]postureRow, 0, 196)
-	for i := 0; i < 196; i++ {
+	for range 196 {
 		rows = append(rows, postureRow{
 			repository: "github.com/example/repo",
 			card: newTestScorecardTUI("github.com/example/repo", 4.8,
-				sdk.PackageScorecardCheck{Name: "CI-Best-Practices", Score: 1},
-				sdk.PackageScorecardCheck{Name: "Security-Policy", Score: 2},
+				sdkmodel.PackageScorecardCheck{Name: "CI-Best-Practices", Score: 1},
+				sdkmodel.PackageScorecardCheck{Name: "Security-Policy", Score: 2},
 			),
 		})
 	}
@@ -304,21 +307,21 @@ func TestPostureTab_DiffRendersList(t *testing.T) {
 			Dependencies: output.DiffDependencyResults{
 				Changed: []output.DiffChangedPackage{{
 					Before: output.PackageRef{Name: "shared", Scorecard: newTestScorecardTUI("github.com/shared/repo", 5.0,
-						sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 4},
+						sdkmodel.PackageScorecardCheck{Name: "Branch-Protection", Score: 4},
 					)},
 					After: output.PackageRef{Name: "shared", Scorecard: newTestScorecardTUI("github.com/shared/repo", 8.0,
-						sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 7},
+						sdkmodel.PackageScorecardCheck{Name: "Branch-Protection", Score: 7},
 					)},
 				}},
 				Added: []output.DiffPackageChange{{
 					Package: output.PackageRef{Name: "new", Scorecard: newTestScorecardTUI("github.com/new/repo", 6.0,
-						sdk.PackageScorecardCheck{Name: "Code-Review", Score: 6},
+						sdkmodel.PackageScorecardCheck{Name: "Code-Review", Score: 6},
 					)},
 				}},
 			},
 		},
 	}
-	model := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	model := NewDiff(payload, plugin.ConsolidatedGraph{}, plugin.ConsolidatedGraph{})
 	model.SelectView(6)
 
 	plain := render.StripANSI(model.View(160, 40))

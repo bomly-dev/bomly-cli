@@ -6,7 +6,7 @@ Bomly is a **customer-facing, security-sensitive CLI** for dependency intelligen
 
 This is the main public repository for the Bomly CLI: the engine, auditors, and native detectors (`internal/*`), the `cmd/bomly` entry point, user documentation (`docs/`), release automation, install scripts, the npm MCP wrapper, and the binary-driven smoke test suite. Two kinds of modules live outside this repository:
 
-- **`github.com/bomly-dev/bomly-sdk`** (public, separate repo): the contract both built-in components and external managed plugins implement — domain types, plugin kinds, validation, support metadata, and the shared helper subpackages (`system`, `filecache`, `logkit`, `detectorkit`, `matcherkit`, `testkit`). It has its own tests and releases; this repo pins released versions. Any reference to `sdk.<Type>` below means that module. Plugin authors start there, with `docs/PLUGINS.md`, `docs/plugins/`, and the public plugin template repo.
+- **`github.com/bomly-dev/bomly-sdk`** (public, separate repo): the contract both built-in components and external managed plugins implement — domain types, plugin kinds, validation, support metadata, and the shared helper subpackages (`system`, `filecache`, `logkit`, `detectorkit`, `matcherkit`, `testkit`), plus the SBOM codec (`sbom`) and the graph reads every renderer and exporter shares (`graphview`). It has its own tests and releases; this repo pins released versions. Any reference to `sdk.<Type>` below means that module. Plugin authors start there, with `docs/PLUGINS.md`, `docs/plugins/`, and the public plugin template repo.
 - **`github.com/bomly-dev/bomly-plugin-*`** (public, one repo per component): external-integration components consumed as ordinary pinned Go modules — the four reachability analyzers (`govulncheck`, `jsreach`, `pyreach`, `jvmreach`), the `osv` / `depsdev-license` / `scorecard` / `grype` matchers, and the `syft` detector. Their implementations are NOT under `internal/`; changes to them happen in their repos, and Dependabot bumps the pins here. Auditors and all other detectors are Bomly's own logic and stay in this repository.
 
 ## Build & Test
@@ -17,6 +17,9 @@ make build-lite          # go build -tags "bomly_external_syft,bomly_external_gr
 make test                # go test ./...
 make smoke               # end-to-end tests driving the built binary (slow, requires network)
 make smoke ARGS="-update" # regenerate smoke golden files
+make verify              # everything that gates a push; writes .verify-stamp
+make verify SMOKE=1      # the same, including the network-driven smoke suite
+make lint                # golangci-lint under both build-tag sets, plus the guardcheck house-rule analyzers
 make fuzz FUZZTIME=5s    # run every registered fuzz target with a short per-target budget
 make benchmark           # run the hidden local dependency-graph benchmark
 make benchmark-report    # analyze local benchmark artifacts with Copilot CLI
@@ -26,7 +29,16 @@ make run ARGS="scan"    # go run ./cmd/bomly <ARGS>
 make generate            # regenerate config reference, JSON schemas, schema docs, support matrix, and component docs (binary-driven)
 ```
 
-Always run `make test` after changes. All tests must pass before marking work is done.
+Always run `make verify` before pushing or updating a pull request; it runs formatting, lint, vet and build on both build variants, the unit suite, and the generated-docs drift check. All of it must pass before marking work done.
+`.githooks/pre-push` refuses a push unless `make verify` has passed since the
+last source change (`git config core.hooksPath .githooks`, or `make
+install-hooks`, enables it). The check is a stamp read, not a test run: a
+six-minute hook gets bypassed, and a bypassed hook enforces nothing. Smoke is
+not required by default because it needs the network and several minutes --
+run `make verify SMOKE=1` when a change touches detector output, and set
+`BOMLY_REQUIRE_SMOKE=1` to make the hook insist on it. `git push --no-verify`
+skips the gate deliberately.
+
 If you change `internal/cli/config.go`, `internal/output/*`, or `internal/registry/support.go`, or bump the pinned `bomly-dev/bomly-sdk` version (its catalog or support-matrix data feeds the generated docs), also run `make generate` and commit the docs drift.
 
 `go.mod` pins released versions and must not contain `replace` directives on main (CI enforces this), so remote `go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest` stays supported. External component modules (`bomly-plugin-*`) are ordinary pinned dependencies bumped by Dependabot. Local cross-repo development: `go work init . ../bomly-sdk` (never commit `go.work`).
@@ -37,6 +49,36 @@ Development may happen inside Git worktrees. Always run commands in the active w
 Do not assume the primary checkout path; use paths relative to the current worktree.
 Avoid destructive Git operations that can affect sibling worktrees or shared refs.
 
+### The modernizer, and the analyzers we decline
+
+`go fix ./...` is the Go 1.27 modernizer. It **applies** its rewrites in place;
+`go fix -diff ./...` prints them instead, which is how to look first.
+
+Three of its analyzers are declined here. Run it as:
+
+```sh
+go fix -embedlit=false -omitzero=false -stringsbuilder=false ./...
+```
+
+- **`embedlit`** flattens `Coordinates: sdk.Coordinates{...}` into the bare
+  promoted fields at construction sites — 119 of them here. `Coordinates` is a
+  named identity concept (ADR-0041, `dev-docs/MODELS.md`), and the wrapper is
+  what keeps the identity visible where a package is built. bomly-sdk declines
+  this one too, and the two repositories must keep agreeing: they disagreed
+  once, and undoing it cost 43 hunks there.
+- **`omitzero`** drops `omitempty` from struct-valued JSON fields in
+  golden- and schema-backed output types. The bytes do not move, so nothing
+  mechanical objects — but the tag *is* the published schema, and a consumer
+  generating one by reflection starts reading the field as required. The SDK
+  took this rewrite in its own pass and spent four review rounds undoing the
+  consequences.
+- **`stringsbuilder`** rewrites small bounded concatenations in the TUI; it
+  still concatenates inside `WriteString`, so it costs readability and saves
+  no allocation.
+
+None of these is caught by a test, a linter or the API gate, which is exactly
+why the list lives here. Running `go fix ./...` unqualified silently proposes
+all of them again.
 ## Architecture
 
 See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the public overview is [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)). Component map:
@@ -45,18 +87,21 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 |------------------------|---------------------------------------------------------------------------------------------------|
 | `cmd/bomly`            | Entry point — calls `internal/cli.Execute()`                                                      |
 | `internal/cli`         | Cobra root + all commands (`scan`, `explain`, `diff`, `plugin`, `version`)                        |
-| `sdk` (external module) | Unified domain types: `Dependency` (detection graph nodes), `Package` (PURL-keyed matching artifacts in `PackageRegistry`), `Vulnerability` (OSV-aligned), reference-style `Finding`, plus neutral package/ecosystem/support identifiers. See `dev-docs/MODELS.md`. |
+| `internal/cli/opts`    | Flag declarations, flag/config override resolution, and the `PipelineRequest` builder             |
+| `internal/cli/render`  | Terminal rendering for every command, plus the ANSI helpers                                        |
+| `internal/config`      | Config file, env, and flag resolution (`Resolved`, the nested `File` leaves, and `Validate`)      |
+| `sdk` (external module) | Unified domain types: the sealed `GraphNode` union (`ManifestNode` / `ModuleNode` / `DependencyNode`, identity minted by the constructors), `Package` (PURL-keyed matching artifacts in `PackageRegistry`), `Vulnerability` (OSV-aligned), reference-style `Finding`, plus neutral package/ecosystem/support identifiers and the `purlkit` / `spdxkit` behavior kits. See `dev-docs/MODELS.md`. |
 | `internal/detectors`   | Detector contracts, descriptors, requests/results, and detector-only helpers                      |
 | `internal/engine`      | Pipeline, engine, consolidation, auditors, matchers, and orchestration                            |
+| `internal/engine/consolidation` | Detector-result consolidation into one graph, and the PURL-keyed package registry build   |
 | `internal/registry`    | Canonical support/discovery registry and built-in engine registry wiring                          |
-| `internal/detectors/*` | Concrete native dependency resolution per ecosystem (gomod, gradle, maven, node, python, sbom); the Syft catch-all detector lives in `bomly-plugin-syft-detector` |
+| `internal/detectors/*` | Concrete native dependency resolution per ecosystem (cargo, cocoapods, composer, conan, githubactions, gomod, gradle, maven, mix, node, nuget, pub, python, ruby, sbom, sbt, swiftpm); the Syft catch-all detector lives in `bomly-plugin-syft-detector` |
 | `bomly-plugin-*` (external modules) | External-integration components consumed as pinned Go modules: enrichment matchers (osv, grype, deps.dev license, scorecard), reachability analyzers (govulncheck, jsreach, pyreach, jvmreach), and the Syft detector; ClearlyDefined and eol run as external matcher plugins; the shared cache lives in `bomly-sdk/filecache` |
-| `internal/auditors/*`  | Policy evaluators and audit-only logic (policy, noop)                                             |
+| `internal/auditors/*`  | Policy evaluators and audit-only logic (license, package, vulnerability)                          |
+| `internal/testnodes`   | Test-only fixture builders for graph nodes (panic on an unbuildable fixture); label lookups delegate to `bomly-sdk/testkit` |
 | `internal/baseline`    | Portable package-finding baseline codec and audit-integrated policy-status resolver               |
 | `internal/remediation` | Canonical vulnerability fix status, version, detector-hint validation, and occurrence suggestions |
-| `internal/sbom`        | SBOM codec (SPDX 2.3, CycloneDX)                                                                  |
 | `internal/assurance`   | Release assurance framework: check-result contract, catalog, report generation, release-asset verification, and the `sbominterop` and `perfrun` check tools |
-| `internal/licenseexpr` | SPDX license expression parsing and identifier classification (guards the parser's panics)        |
 | `internal/benchmark`   | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets       |
 | `internal/output`      | Output rendering plus structured command payloads and schema generation for `scan`, `diff`, `explain`, JSON, and SARIF 2.1.0 |
 | `internal/plugin`      | Plugin discovery, protocol, handshake, and pooled subprocess execution                            |
@@ -65,6 +110,11 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 | `internal/engine/explain` | Dependency path traversal (`explain` command)                                                  |
 | `internal/engine/scan` | Scan command pipeline API                                                                         |
 | `internal/logging`     | Zap console wrapper (subprocess logging helpers live in `bomly-sdk/logkit`)                       |
+| `internal/progress`    | Default-verbosity progress reporting, including the pipeline-warning channel                      |
+| `internal/git`         | Git target resolution and revision description                                                    |
+| `internal/mcp`         | MCP server, tools, and the compact `mcp/1` response projections                                   |
+| `internal/tui`         | Bubbletea interactive views for `scan` and `diff`                                                 |
+| `internal/tools/*`     | Repository tooling run through `go run`: benchmark reporting, gofmt check, and the `guardcheck` house-rule analyzers `make lint` runs through `go vet` (the evidence catalog, SBOM assurance, and performance sampling tools live in `internal/assurance`) |
 | `internal/support`     | Docs generation (config reference, schemas, support matrix, component docs) behind the hidden `bomly internal docs-gen` command |
 
 Scan pipeline: `runtimePreparation → subprojectDiscovery (root-only by default; --recursive walks nested dirs) → detect (per-package-manager chains; resolve + consolidate into one graph; detectors may record CI-readiness resolution warnings on manifests) → scopeFilter → match (package enrichment, vulnerability consolidation, and remediation derivation) → analyze (reachability, when --analyze is set) → audit (including finding policy-status resolution) → format`. Consolidation is the tail of the detect stage, and remediation derivation is the tail of enrichment; neither is a separate stage.
@@ -95,11 +145,16 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - Built-in reachability analyzers live in their own `bomly-plugin-*-analyzer` repositories, consumed as pinned Go modules. They depend only on the SDK and its helper subpackages (`system`, `filecache`, `logkit`) and must not import any `internal/*` package.
 - `internal/detectors` owns detector-facing contracts such as `Detector`, `DetectorDescriptor`, `ResolveGraphRequest`, and detector helper functions.
 - The SDK owns neutral shared identifiers and support metadata that would otherwise create package cycles, including ecosystems, package managers, detector types, and support-matrix data.
+- Reading a node of any kind -- coordinates, display name, version, narrowing over the sealed union -- is the SDK's: `sdk.NodeCoordinates`, `sdk.NodeDisplayName`, `sdk.NodeVersion`, `sdk.AsDependencyNode`, `sdk.DependencyNodesOf`, `sdk.IsProjectOwned`. Building or mutating a detector graph is `bomly-sdk/detectorkit`: `EnsureNode`, `PromoteToModule`, `PropagateScopes`. Do not reintroduce a CLI-local copy of either — both were CLI stopgaps until bomly-sdk v0.9.0 and were deleted when it shipped.
+- `bomly-sdk/graphview` owns the three questions every renderer and exporter asks of a node: what package URL it publishes, which of its children a document can actually name (structural nodes are stepped through, never named), and which nodes count as top-level parents. It moved to the SDK with the SBOM codec (ADR-0045), so the codec, the renderers and the TUI all read one copy; do not reintroduce a CLI-local one. A copy per surface is what it replaced, and every one of those copies had shipped a defect the others had already fixed.
+- The SBOM codec is `bomly-sdk/sbom`'s (ADR-0045): SPDX 2.3 and CycloneDX encoding and decoding, the strict ingest preflight, and the document assertions. `internal/detectors/sbom` ingests through it and `internal/cli` exports through it; the CLI and the codec-carrying plugins used to hold three drifting copies. A codec fix lands in the SDK first.
+- `internal/testnodes` is test-only: it routes fixture shapes through the real node constructors, panicking rather than taking a `testing.TB` so a table entry stays one expression. Label lookups ("name@version" to the canonical package URLs node IDs now are) delegate to `bomly-sdk/testkit` — the matching rules have one home, not two. Non-test code must not import it.
 - `internal/baseline` owns the baseline document and matching implementation. It depends on the SDK policy contracts and must not be imported by `internal/engine`.
 - `internal/remediation` owns canonical vulnerability remediation decisions. Detectors may supply validated read-only strategy hints, but they do not choose final actions or versions.
-- `internal/licenseexpr` owns all SPDX license expression parsing. The underlying parser panics on some malformed input, and license strings come from untrusted lockfiles and registry APIs, so no other package under `internal/` may import `github.com/github/go-spdx` directly; `TestNoDirectSPDXExpressionUse` enforces this.
+- Package-URL handling is `bomly-sdk/purlkit`'s: parsing, escaping, canonical rendering, the one purl-type ↔ ecosystem table, and the identity/evidence qualifier split. No package under `internal/` may import `github.com/package-url/packageurl-go` (or the deprecated `github.com/anchore/packageurl-go`), and no shipped file may build a package URL by string concatenation — escaping the `pkg:` and `@` separators is the specification's rule, and a hand-built string gets it wrong for any name or version carrying one. The `depguard` rule `internal-kits` in `.golangci.yml` enforces the import ban and the `purlstring` analyzer in `internal/tools/guardcheck` enforces the concatenation ban; both run in `make lint`. `bomly-sdk/sbom.ComponentEcosystem` is the single purl-type → ecosystem answer for an ingested component; do not add a second table.
+- SPDX license expression handling is `bomly-sdk/spdxkit`'s: validation, identifier classification, composition, deprecated-ID canonicalization, and `LicenseRef-*` minting. The underlying parser panics on some malformed input, and license strings come from untrusted lockfiles and registry APIs, so no package under `internal/` may import `github.com/github/go-spdx` directly — the kit carries the panic guard. The `depguard` rule `internal-kits` in `.golangci.yml` enforces this for every package under `internal/`, test files included. The CLI's own `internal/licenseexpr` wrapper is deleted; it duplicated the kit function for function.
 - `internal/registry` owns package-manager discovery, support lookups, and built-in registry wiring in `internal/registry/builder.go`. Do not create or reintroduce a separate `registrybuilder` package.
-- `internal/assurance` owns the release assurance framework and must not be imported by any package under `cmd/`, `internal/cli`, or `internal/engine`: it is repository tooling, not shipped CLI behavior. It may read repository files and run downloaded release binaries, which no shipped package may do.
+- `internal/assurance` owns the release assurance framework and must not be imported by anything the binary ships: it is repository tooling, not CLI behavior. It may read repository files, download validators, and run released binaries, which no shipped package may do. The `depguard` rule `assurance-is-not-shipped` in `.golangci.yml` enforces this for `cmd/bomly` and every package under `internal/` except the framework itself and `internal/tools`.
 - `internal/engine` may import `internal/detectors` and `internal/registry`, but detector packages must not point back into `internal/engine`. Runtime planning, prepared subprojects, and detector-chain reuse belong in `internal/engine`.
 
 ## Non-Negotiable
@@ -109,6 +164,7 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - **No secrets or credentials in logs.** Ever.
 - **Matcher network calls require explicit enrichment.** Built-in matchers may contact OSV (`https://api.osv.dev`), CISA KEV, deps.dev (`https://api.deps.dev`), OpenSSF Scorecard (`https://api.scorecard.dev`), and Grype's database service (`https://grype.anchore.io/databases`, plus the archive URL it returns) only during `--enrich`. Installed external matcher plugins such as ClearlyDefined and endoflife.date may contact their documented services during `--enrich`. `--audit` evaluates existing package data and must not trigger matcher calls. Remote Git targets and build-tool detectors have separate, explicit network behavior.
 - **Record architecture decisions as architecture decision records (ADRs) in [`dev-docs/adr/`](dev-docs/adr/README.md).** Copy [`dev-docs/adr/TEMPLATE.md`](dev-docs/adr/TEMPLATE.md), take the next number, and add a row to the index. `dev-docs/ARCHITECTURE.md` stays the architecture narrative; `docs/ARCHITECTURE.md` is the public, user-facing overview.
+- **A format's specification outranks anything Bomly wrote.** When a specification and a Bomly document disagree about what a value in that format means, the specification wins — in every case, without being weighed against anything, accepted ADRs included. Bomly never got to decide what a word means in a format it does not own. Resolve such a question by citing the specification text, preferably as the pinned dependency vendors it (`cyclonedx-go` ships the CycloneDX schemas with their normative `meta:enum` descriptions), quote it in the code next to the behavior it settles, and correct whichever Bomly document was wrong. Neither "producers in the wild spell it loosely" nor "this direction is safer for a scanner" licenses a non-conforming reading: the first misreads every conforming document to accommodate the ones that are not, and the second is answered by a warning, a Bomly-owned policy knob that states plainly that it departs from the specification, or an upstream bug report. Worked examples, both in ADR-0037's scope rule and both resolved in bomly-dev/bomly-sdk#63: `optional` was read as runtime on a pre-1.6 gloss and defended as the safer reading for a scanner, and an absent scope — which CycloneDX says a consumer should assume is `required` — was read as no scope and dropped from every runtime filter. Reading the spec text once found both; another round of arguing the merits would have found neither.
 - **Prefer `internal/`.** Add new packages inside `internal/` unless there is a clear public API need; genuinely public contract surface belongs in the SDK module.
 - **Standard library + Cobra + existing deps only.** Do not add new dependencies without discussion.
 
@@ -127,15 +183,36 @@ In practice:
   second says the rule has no home. Give it one — a named helper, a shared
   entry point, or an invariant enforced where the data is created — and route
   every site through it.
-- **Name the concept, not the mechanics.** `detectors.EnsureNode(g, node)`
+- **Name the concept, not the mechanics.** `detectorkit.EnsureNode(g, node)`
   says what the caller is doing — insert or return the existing node; a
   hand-written lookup-then-insert at each site says only what to type, and
   each copy decides duplicate handling differently.
 - **Add a guard when the rule can be bypassed by writing it out by hand.**
-  `TestNodeInsertionGoesThroughTheSharedHelper` fails if a lookup-then-insert
-  reappears anywhere under `internal/`, and `TestExportNeverReadsResolvedURL`
-  fails if the export layer touches raw manifest values. A guard is cheap next
-  to the review round it replaces.
+  A guard is cheap next to the review round it replaces, and it lives in the
+  tool that owns its kind of rule, never in a test that walks the tree: an
+  import ban is a `depguard` rule in `.golangci.yml`; an identifier or call
+  ban is a `forbidigo` pattern there, scoped by an exclusion rule keyed on the
+  bracketed tag its message starts with; a shape no linter expresses (a
+  lookup followed by an insert, a package URL pasted from a literal, a result
+  built without its attribution) is an analyzer in `internal/tools/guardcheck`, with a
+  `// want` fixture under its `testdata` that proves it can fail. Generated
+  files are not exempt from any of these: a generator's output is shipped
+  code. An exemption is a `//nolint:forbidigo` line with
+  its reason at the one permitted call, or a typed call such as
+  `detectors.Unattributed(result, reason)` -- never a path list. What makes a
+  guard worth having -- keyed on where a decision is made, proven by
+  mutation, and failing when it reaches nothing -- is ADR-0044.
+- **The deepest home for shared meaning is the SDK (ADR-0040).** When a fix
+  or feature touches what a shared domain object *means* — identity,
+  coordinates, PURLs, licenses, SBOM assertions, graph or merge semantics,
+  validation gates — it lands in `bomly-dev/bomly-sdk` first and this repo
+  consumes the new release. CLI-level is presentation, command surface, and
+  orchestration (how Bomly *uses* the model); plugin-level is one external
+  tool's integration specifics. "Only the CLI needs this today" is not a
+  reason to keep model behavior local — a single consumer is how every
+  drifted copy started. If the release schedule genuinely cannot absorb the
+  SDK-first ordering, ship the local fix with the SDK issue already filed
+  and linked from the code.
 - **Say so when you decline.** If centralizing is genuinely out of scope for
   the change in hand, record why in an ADR under `dev-docs/adr/` and what the
   durable fix would be, so the next person inherits the reasoning rather than
@@ -233,6 +310,7 @@ Smoke tests (`test/smoke/`, `make smoke`) drive the built binary end-to-end agai
 
 - Scan cases come from `test/smoke/testdata/scan_targets.json`; keep it in sync with `internal/benchmark/testdata/scan_targets.json` (the benchmark target list) when cases change.
 - Pin every scan case's detectors with `--detectors`; normalize volatile fields in `helpers_test.go::normalizeJSON` before goldens.
+- A golden must never carry a host architecture. `make smoke ARGS="-update"` on an arm64 laptop writes a golden CI cannot match, so `normalizeJSON` erases the architecture and `TestGoldensCarryNoHostArchitecture` (untagged, runs in `make test`) fails if one reaches a committed golden. A new architecture-bearing shape means teaching the normalizer, not excepting the guard.
 - Register new tests in both slice matrices (`smoke.yml` and exactly one slice in `update-smoke-goldens.yml`); `go test -run` elements are unanchored regexes — use `$` anchors to keep slice ownership exact.
 - A new slice also needs an entry in the `smoke` check's `expected_instances` in `docs/assurance/catalog.json` (with its `ecosystems`, which is what puts an ecosystem on the report's coverage list). `TestCatalogSmokeInstancesMatchWorkflowMatrix` fails when the two drift.
 - Regenerating goldens invalidates the checksums the catalog's claims pin. `Update Smoke Goldens` runs `catalog-validate --refresh` and commits the catalog with them; do the same when refreshing by hand.
@@ -336,7 +414,9 @@ A declared check with no result is reported as `missing` and blocks its stage, s
 
 ## Release
 
-Draft releases are created automatically after merges to `main` from commit prefixes: `feat:` → minor, other → patch, `type!:`/`BREAKING CHANGE:` → major, `[skip release]` → none. Squash titles count. Publishing runs GoReleaser with signed checksums and SLSA provenance; see `dev-docs/RELEASE_CHECKLIST.md`.
+Releases are cut deliberately, never by merging. Run the **Auto Version** workflow from `main` and choose the bump (`patch` / `minor` / `major`); it rewrites `var version` in `cmd/bomly/main.go`, commits, and pushes the `vX.Y.Z` tag. Pushing that tag is what triggers **Release**, which runs GoReleaser with signed checksums and SLSA provenance; see `dev-docs/RELEASE_CHECKLIST.md`.
+
+Nothing about a merge to `main` starts a release, and no commit prefix chooses the bump — a `feat!:` squash title does not make the next release major. The person dispatching the workflow picks that, so choosing it is a decision, not a consequence.
 
 ## Reference Docs
 

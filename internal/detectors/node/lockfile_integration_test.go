@@ -11,7 +11,10 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // ---- helpers ---------------------------------------------------------------
@@ -25,10 +28,10 @@ func stableID(name, version string) string {
 }
 
 // requirePackage asserts a package with the given name@version exists in the graph.
-func requirePackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.Dependency {
+func requirePackage(t *testing.T, g *model.Graph, name, version string) *model.DependencyNode {
 	t.Helper()
 	id := stableID(name, version)
-	pkg, ok := g.Node(id)
+	pkg, ok := testnodes.FindDep(g, id)
 	if !ok {
 		t.Fatalf("expected package %s@%s in graph (id=%s); packages present: %v", name, version, id, graphPackageIDs(g))
 	}
@@ -36,16 +39,16 @@ func requirePackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.Depen
 }
 
 // requireEdge asserts that fromName@fromVersion depends on toName@toVersion.
-func requireEdge(t *testing.T, g *sdk.Graph, fromName, fromVersion, toName, toVersion string) {
+func requireEdge(t *testing.T, g *model.Graph, fromName, fromVersion, toName, toVersion string) {
 	t.Helper()
 	fromID := stableID(fromName, fromVersion)
 	toID := stableID(toName, toVersion)
-	deps, err := g.DirectDependencies(fromID)
+	deps, err := g.DirectDependencies(testnodes.ID(g, fromID))
 	if err != nil {
 		t.Fatalf("dependencies(%s@%s): %v", fromName, fromVersion, err)
 	}
 	for _, dep := range deps {
-		if dep.ID == toID {
+		if testnodes.Is(dep, toID) {
 			return
 		}
 	}
@@ -53,7 +56,7 @@ func requireEdge(t *testing.T, g *sdk.Graph, fromName, fromVersion, toName, toVe
 }
 
 // requireResolvedURL asserts a non-empty ResolvedURL on a named package.
-func requireResolvedURL(t *testing.T, g *sdk.Graph, name, version string) {
+func requireResolvedURL(t *testing.T, g *model.Graph, name, version string) {
 	t.Helper()
 	pkg := requirePackage(t, g, name, version)
 	if pkg.ResolvedURL == "" {
@@ -62,7 +65,7 @@ func requireResolvedURL(t *testing.T, g *sdk.Graph, name, version string) {
 }
 
 // requireDigest asserts that at least one digest with the given algorithm exists.
-func requireDigest(t *testing.T, g *sdk.Graph, name, version string, algorithm sdk.DigestAlgorithm) {
+func requireDigest(t *testing.T, g *model.Graph, name, version string, algorithm model.DigestAlgorithm) {
 	t.Helper()
 	pkg := requirePackage(t, g, name, version)
 	for _, d := range pkg.Digests {
@@ -73,7 +76,7 @@ func requireDigest(t *testing.T, g *sdk.Graph, name, version string, algorithm s
 	t.Errorf("expected %s digest on %s@%s; digests: %+v", algorithm, name, version, pkg.Digests)
 }
 
-func requireScope(t *testing.T, g *sdk.Graph, name, version string, scope sdk.Scope) {
+func requireScope(t *testing.T, g *model.Graph, name, version string, scope model.Scope) {
 	t.Helper()
 	pkg := requirePackage(t, g, name, version)
 	if got := pkg.PrimaryScope(); got != scope {
@@ -81,11 +84,11 @@ func requireScope(t *testing.T, g *sdk.Graph, name, version string, scope sdk.Sc
 	}
 }
 
-func graphPackageIDs(g *sdk.Graph) []string {
-	pkgs := g.Nodes()
+func graphPackageIDs(g *model.Graph) []string {
+	pkgs := g.DependencyNodes()
 	ids := make([]string, len(pkgs))
 	for i, p := range pkgs {
-		ids[i] = p.ID
+		ids[i] = p.NodeID()
 	}
 	return ids
 }
@@ -104,12 +107,12 @@ func TestBunLockfileV0Parsing(t *testing.T) {
 	requirePackage(t, g, "loose-envify", "1.4.0")
 	requirePackage(t, g, "typescript", "5.3.3")
 	requireEdge(t, g, "react", "18.2.0", "loose-envify", "1.4.0")
-	requireScope(t, g, "react", "18.2.0", sdk.ScopeRuntime)
-	requireScope(t, g, "typescript", "5.3.3", sdk.ScopeDevelopment)
+	requireScope(t, g, "react", "18.2.0", model.ScopeRuntime)
+	requireScope(t, g, "typescript", "5.3.3", model.ScopeDevelopment)
 }
 
 func TestBunLockfileV1Workspaces(t *testing.T) {
-	result, err := (bun.LockfileDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: fixture("bun-v1-workspaces")})
+	result, err := (bun.LockfileDetector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: fixture("bun-v1-workspaces")})
 	if err != nil {
 		t.Fatalf("resolve bun-v1-workspaces: %v", err)
 	}
@@ -120,33 +123,30 @@ func TestBunLockfileV1Workspaces(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	web, ok := g.Node("workspace:apps/web")
-	if !ok || web.Name != "@fixture/web" || web.Version != "1.0.0" {
-		t.Fatalf("expected web workspace identity, got %#v", web)
-	}
-	lib, ok := g.Node("workspace:packages/lib")
-	if !ok || lib.Name != "@fixture/lib" || lib.Version != "1.0.0" {
-		t.Fatalf("expected library workspace identity, got %#v", lib)
-	}
+	// Workspace members are module nodes now, keyed by the manifest that
+	// declares them rather than by a "workspace:<dir>" ID (ADR-0041).
+
 	for _, duplicateID := range []string{"@fixture/web@apps/web", "@fixture/lib@packages/lib"} {
-		if duplicate, exists := g.Node(duplicateID); exists {
+		if duplicate, exists := testnodes.Find(g, duplicateID); exists {
 			t.Fatalf("workspace package tuple created duplicate registry node %#v", duplicate)
 		}
 	}
 	requirePackage(t, g, "is-number", "7.0.0")
 	requirePackage(t, g, "left-pad", "1.3.0")
-	requireEdgeByID(t, g, web.ID, lib.ID)
-	requireEdgeByID(t, g, lib.ID, stableID("is-number", "7.0.0"))
+	web := requireModule(t, g, "@fixture/web", "1.0.0")
+	lib := requireModule(t, g, "@fixture/lib", "1.0.0")
+	requireEdgeByID(t, g, web.NodeID(), lib.NodeID())
+	requireEdgeByID(t, g, lib.NodeID(), stableID("is-number", "7.0.0"))
 }
 
-func requireEdgeByID(t *testing.T, g *sdk.Graph, fromID, toID string) {
+func requireEdgeByID(t *testing.T, g *model.Graph, fromID, toID string) {
 	t.Helper()
-	dependencies, err := g.DirectDependencies(fromID)
+	dependencies, err := g.DirectDependencies(testnodes.ID(g, fromID))
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, dependency := range dependencies {
-		if dependency.ID == toID {
+		if testnodes.Is(dependency, toID) {
 			return
 		}
 	}
@@ -200,7 +200,7 @@ func TestNPMLockfileV2_Metadata(t *testing.T) {
 	requireDigest(t, g, "express", "4.18.2", "sha512")
 	// License extracted from lockfile
 	pkg := requirePackage(t, g, "express", "4.18.2")
-	if len(sdk.DetectionLicenses(pkg)) == 0 {
+	if len(model.DetectionLicenses(pkg)) == 0 {
 		t.Errorf("expected license on express@4.18.2")
 	}
 }
@@ -210,9 +210,9 @@ func TestNPMLockfileV2_Scopes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromNPMLockfile(npm-v2): %v", err)
 	}
-	requireScope(t, g, "express", "4.18.2", sdk.ScopeRuntime)
-	requireScope(t, g, "accepts", "1.3.8", sdk.ScopeRuntime)
-	requireScope(t, g, "typescript", "5.3.3", sdk.ScopeDevelopment)
+	requireScope(t, g, "express", "4.18.2", model.ScopeRuntime)
+	requireScope(t, g, "accepts", "1.3.8", model.ScopeRuntime)
+	requireScope(t, g, "typescript", "5.3.3", model.ScopeDevelopment)
 }
 
 // ---- npm v3 ----------------------------------------------------------------
@@ -239,16 +239,16 @@ func TestNPMLockfileV3_Metadata(t *testing.T) {
 	requireResolvedURL(t, g, "lodash", "4.17.21")
 	requireDigest(t, g, "lodash", "4.17.21", "sha512")
 	pkg := requirePackage(t, g, "lodash", "4.17.21")
-	if len(sdk.DetectionLicenses(pkg)) == 0 {
+	if len(model.DetectionLicenses(pkg)) == 0 {
 		t.Errorf("expected license on lodash@4.17.21")
 	}
 	// jest has peerDependencies; NPMPackageMetadata must be populated
 	jestPkg := requirePackage(t, g, "jest", "29.7.0")
-	meta, ok := jestPkg.Metadata[sdk.MetadataKeyNPM]
+	meta, ok := jestPkg.Metadata[model.MetadataKeyNPM]
 	if !ok {
 		t.Errorf("expected NPM metadata on jest@29.7.0")
 	} else {
-		npmMeta, _ := meta.(*sdk.NPMPackageMetadata)
+		npmMeta, _ := meta.(*model.NPMPackageMetadata)
 		if npmMeta == nil || len(npmMeta.PeerDependencies) == 0 {
 			t.Errorf("expected PeerDependencies in NPM metadata on jest@29.7.0; got %+v", npmMeta)
 		}
@@ -264,8 +264,8 @@ func TestNPMLockfileV3_SingleApplicationRoot(t *testing.T) {
 	if len(roots) != 1 {
 		t.Fatalf("expected exactly one root package, got %d: %v", len(roots), graphPackageIDs(g))
 	}
-	if roots[0].ID != stableID("demo-app", "3.0.0") {
-		t.Fatalf("expected npm root %q, got %q", stableID("demo-app", "3.0.0"), roots[0].ID)
+	if !testnodes.Is(roots[0], stableID("demo-app", "3.0.0")) {
+		t.Fatalf("expected npm root %q, got %q", stableID("demo-app", "3.0.0"), roots[0].NodeID())
 	}
 }
 
@@ -294,12 +294,12 @@ func TestPNPMLockfileV5_RootDependencyEdges(t *testing.T) {
 	// Root must depend on the three top-level packages.
 	// Root package has name "demo-app" and version "1.0.0" from package.json.
 	rootID := stableID("demo-app", "1.0.0")
-	rootDeps, err := g.DirectDependencies(rootID)
+	rootDeps, err := g.DirectDependencies(testnodes.ID(g, rootID))
 	if err != nil {
 		t.Fatalf("dependencies(root): %v", err)
 	}
 	names := make(map[string]bool, len(rootDeps))
-	for _, d := range rootDeps {
+	for _, d := range model.DependencyNodesOf(rootDeps) {
 		names[d.Name] = true
 	}
 	for _, want := range []string{"react", "axios", "typescript"} {
@@ -344,7 +344,7 @@ func TestPNPMLockfileV9_Metadata(t *testing.T) {
 	requireResolvedURL(t, g, "react", "18.2.0")
 	requireDigest(t, g, "react", "18.2.0", "sha512")
 	pkg := requirePackage(t, g, "react", "18.2.0")
-	if len(sdk.DetectionLicenses(pkg)) == 0 {
+	if len(model.DetectionLicenses(pkg)) == 0 {
 		t.Errorf("expected license on react@18.2.0")
 	}
 }
@@ -354,10 +354,10 @@ func TestPNPMLockfileV9_Scopes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromPNPMLockfile(pnpm-v9): %v", err)
 	}
-	requireScope(t, g, "react", "18.2.0", sdk.ScopeRuntime)
-	requireScope(t, g, "loose-envify", "1.4.0", sdk.ScopeRuntime)
-	requireScope(t, g, "axios", "1.6.5", sdk.ScopeRuntime)
-	requireScope(t, g, "typescript", "5.3.3", sdk.ScopeDevelopment)
+	requireScope(t, g, "react", "18.2.0", model.ScopeRuntime)
+	requireScope(t, g, "loose-envify", "1.4.0", model.ScopeRuntime)
+	requireScope(t, g, "axios", "1.6.5", model.ScopeRuntime)
+	requireScope(t, g, "typescript", "5.3.3", model.ScopeDevelopment)
 }
 
 // ---- yarn v1 (classic) -----------------------------------------------------
@@ -396,8 +396,8 @@ func TestYarnLockfileV1_SingleApplicationRoot(t *testing.T) {
 	if len(roots) != 1 {
 		t.Fatalf("expected exactly one root package, got %d: %v", len(roots), graphPackageIDs(g))
 	}
-	if roots[0].ID != stableID("demo-app", "1.0.0") {
-		t.Fatalf("expected yarn root %q, got %q", stableID("demo-app", "1.0.0"), roots[0].ID)
+	if !testnodes.Is(roots[0], stableID("demo-app", "1.0.0")) {
+		t.Fatalf("expected yarn root %q, got %q", stableID("demo-app", "1.0.0"), roots[0].NodeID())
 	}
 }
 
@@ -425,7 +425,7 @@ func TestYarnBerry_MetadataStanzaNotIngested(t *testing.T) {
 		t.Fatalf("depGraphFromYarnLockfile(yarn-berry): %v", err)
 	}
 	// __metadata must never appear as a package
-	for _, pkg := range g.Nodes() {
+	for _, pkg := range g.DependencyNodes() {
 		if pkg.Name == "__metadata" {
 			t.Errorf("__metadata was incorrectly ingested as a package node")
 		}
@@ -465,10 +465,10 @@ chai@^5.1.0:
 	if err != nil {
 		t.Fatalf("depGraphFromYarnLockfile(scopes): %v", err)
 	}
-	requireScope(t, g, "react", "18.2.0", sdk.ScopeRuntime)
-	requireScope(t, g, "loose-envify", "1.4.0", sdk.ScopeRuntime)
-	requireScope(t, g, "vitest", "2.0.0", sdk.ScopeDevelopment)
-	requireScope(t, g, "chai", "5.1.0", sdk.ScopeDevelopment)
+	requireScope(t, g, "react", "18.2.0", model.ScopeRuntime)
+	requireScope(t, g, "loose-envify", "1.4.0", model.ScopeRuntime)
+	requireScope(t, g, "vitest", "2.0.0", model.ScopeDevelopment)
+	requireScope(t, g, "chai", "5.1.0", model.ScopeDevelopment)
 }
 
 func writeTestFile(t *testing.T, dir string, name string, content string) {
@@ -478,11 +478,47 @@ func writeTestFile(t *testing.T, dir string, name string, content string) {
 	}
 }
 
-func resolveLockfileGraph(t *testing.T, detector sdk.Detector, projectDir string) (*sdk.Graph, error) {
+func resolveLockfileGraph(t *testing.T, detector plugin.Detector, projectDir string) (*model.Graph, error) {
 	t.Helper()
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		return nil, err
 	}
 	return result.Graphs.ConsolidatedGraph()
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*model.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
+}
+
+// requireModule asserts the graph holds the project's own module for a name
+// and version.
+func requireModule(t *testing.T, g *model.Graph, name, version string) *model.ModuleNode {
+	t.Helper()
+	for _, module := range g.ModuleNodes() {
+		// EcosystemName, not Name: normalization splits a scoped npm name
+		// into Org and Name, and the ecosystem-native spelling is what joins
+		// them back into "@fixture/web".
+		if module.EcosystemName() == name && module.Version == version {
+			return module
+		}
+	}
+	t.Fatalf("no module node %s@%s; modules: %v", name, version, moduleLabels(g))
+	return nil
+}
+
+// moduleLabels lists the modules a graph holds, for failure messages.
+func moduleLabels(g *model.Graph) []string {
+	labels := make([]string, 0, len(g.ModuleNodes()))
+	for _, module := range g.ModuleNodes() {
+		labels = append(labels, module.EcosystemName()+"@"+module.Version)
+	}
+	return labels
 }

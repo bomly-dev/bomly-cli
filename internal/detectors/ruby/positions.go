@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // gemSpecLine matches a top-level gem spec line inside the GEM/specs:
@@ -17,8 +18,8 @@ var gemSpecLine = regexp.MustCompile(`^ {4}([a-zA-Z0-9._-]+) \(([^)]+)\)\s*$`)
 
 // gemfileLockPositions returns a map from gem name to the line in
 // Gemfile.lock where the gem's spec entry appears.
-func gemfileLockPositions(lockPath, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func gemfileLockPositions(lockPath, relPath string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	_ = detectors.ScanLines(lockPath, func(line int, text string) {
 		matches := gemSpecLine.FindStringSubmatch(text)
 		if matches == nil {
@@ -31,14 +32,14 @@ func gemfileLockPositions(lockPath, relPath string) map[string]*sdk.SourcePositi
 		if _, exists := out[name]; exists {
 			return
 		}
-		out[name] = &sdk.SourcePosition{File: relPath, Line: line}
+		out[name] = &model.SourcePosition{File: relPath, Line: line}
 	})
 	return out
 }
 
 // AttachGemfileLockPositions wires Gemfile.lock line numbers into
 // the resolved graph.
-func AttachGemfileLockPositions(g *sdk.Graph, lockPath, projectDir string) {
+func AttachGemfileLockPositions(g *model.Graph, lockPath, projectDir string) {
 	if g == nil || lockPath == "" {
 		return
 	}
@@ -48,7 +49,7 @@ func AttachGemfileLockPositions(g *sdk.Graph, lockPath, projectDir string) {
 	}
 	rel = filepath.ToSlash(rel)
 	positions := gemfileLockPositions(lockPath, rel)
-	detectors.AttachPositions(g, positions, func(pkg *sdk.Dependency) string {
+	detectors.AttachPositions(g, positions, func(pkg *model.DependencyNode) string {
 		if pkg == nil {
 			return ""
 		}

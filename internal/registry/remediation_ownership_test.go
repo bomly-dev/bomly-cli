@@ -5,35 +5,38 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestBuiltInDetectorsOwnRemediationCapabilitiesAndAdvice(t *testing.T) {
 	testCases := []struct {
 		name    string
-		manager sdk.PackageManager
-		action  sdk.RemediationAction
+		manager model.PackageManager
+		action  model.RemediationAction
 		advice  string
 	}{
-		{detectors.NameNPM, sdk.PackageManagerNPM, sdk.RemediationActionTransitiveOverride, `add "overrides": {"example": "1.2.0"} to package.json and run npm install`},
-		{detectors.NamePNPM, sdk.PackageManagerPNPM, sdk.RemediationActionTransitiveOverride, `add "example": "1.2.0" under "pnpm"."overrides" in package.json (or under "overrides:" in pnpm-workspace.yaml for workspaces) and run pnpm install`},
-		{detectors.NameYarn, sdk.PackageManagerYarn, sdk.RemediationActionTransitiveOverride, `add "resolutions": {"example": "1.2.0"} to package.json and run yarn install`},
-		{detectors.NameBun, sdk.PackageManagerBun, sdk.RemediationActionLockfileRefresh, "run bun update example@1.2.0"},
-		{detectors.NameBunNative, sdk.PackageManagerBun, sdk.RemediationActionLockfileRefresh, "run bun update example@1.2.0"},
-		{detectors.NameGoMod, sdk.PackageManagerGoMod, sdk.RemediationActionLockfileRefresh, "run go get example@v1.2.0 && go mod tidy"},
-		{detectors.NameCargo, sdk.PackageManagerCargo, sdk.RemediationActionLockfileRefresh, "run cargo update -p example --precise 1.2.0"},
-		{detectors.NameMaven, sdk.PackageManagerMaven, sdk.RemediationActionTransitiveOverride, "pin example to 1.2.0 in <dependencyManagement> of manifest.file"},
-		{detectors.NameGradle, sdk.PackageManagerGradle, sdk.RemediationActionTransitiveOverride, `add dependencies { constraints { implementation("example:1.2.0") } } in manifest.file`},
-		{detectors.NamePip, sdk.PackageManagerPip, sdk.RemediationActionTransitiveOverride, "add a constraint `example>=1.2.0` to your requirements or constraints file and reinstall"},
-		{detectors.NamePipenv, sdk.PackageManagerPipenv, sdk.RemediationActionTransitiveOverride, "add a constraint `example>=1.2.0` to your requirements or constraints file and reinstall"},
-		{detectors.NamePoetry, sdk.PackageManagerPoetry, sdk.RemediationActionTransitiveOverride, "pin `example>=1.2.0` in pyproject.toml and refresh the lockfile"},
-		{detectors.NameUV, sdk.PackageManagerUV, sdk.RemediationActionTransitiveOverride, "pin `example>=1.2.0` in pyproject.toml and refresh the lockfile"},
-		{detectors.NameBundler, sdk.PackageManagerBundler, sdk.RemediationActionTransitiveOverride, `add gem "example", ">= 1.2.0" to the Gemfile and run bundle update example`},
-		{detectors.NameComposer, sdk.PackageManagerComposer, sdk.RemediationActionTransitiveOverride, `require "example": "^1.2.0" in manifest.file and run composer update example`},
+		{detectors.NameNPM, model.PackageManagerNPM, model.RemediationActionTransitiveOverride, `add "overrides": {"example": "1.2.0"} to package.json and run npm install`},
+		{detectors.NamePNPM, model.PackageManagerPNPM, model.RemediationActionTransitiveOverride, `add "example": "1.2.0" under "pnpm"."overrides" in package.json (or under "overrides:" in pnpm-workspace.yaml for workspaces) and run pnpm install`},
+		{detectors.NameYarn, model.PackageManagerYarn, model.RemediationActionTransitiveOverride, `add "resolutions": {"example": "1.2.0"} to package.json and run yarn install`},
+		{detectors.NameBun, model.PackageManagerBun, model.RemediationActionLockfileRefresh, "run bun update example@1.2.0"},
+		{detectors.NameBunNative, model.PackageManagerBun, model.RemediationActionLockfileRefresh, "run bun update example@1.2.0"},
+		{detectors.NameGoMod, model.PackageManagerGoMod, model.RemediationActionLockfileRefresh, "run go get example@v1.2.0 && go mod tidy"},
+		{detectors.NameCargo, model.PackageManagerCargo, model.RemediationActionLockfileRefresh, "run cargo update -p example --precise 1.2.0"},
+		{detectors.NameMaven, model.PackageManagerMaven, model.RemediationActionTransitiveOverride, "pin example to 1.2.0 in <dependencyManagement> of manifest.file"},
+		{detectors.NameGradle, model.PackageManagerGradle, model.RemediationActionTransitiveOverride, `add dependencies { constraints { implementation("example:1.2.0") } } in manifest.file`},
+		{detectors.NamePip, model.PackageManagerPip, model.RemediationActionTransitiveOverride, "add a constraint `example>=1.2.0` to your requirements or constraints file and reinstall"},
+		{detectors.NamePipenv, model.PackageManagerPipenv, model.RemediationActionTransitiveOverride, "add a constraint `example>=1.2.0` to your requirements or constraints file and reinstall"},
+		{detectors.NamePoetry, model.PackageManagerPoetry, model.RemediationActionTransitiveOverride, "pin `example>=1.2.0` in pyproject.toml and refresh the lockfile"},
+		{detectors.NameUV, model.PackageManagerUV, model.RemediationActionTransitiveOverride, "pin `example>=1.2.0` in pyproject.toml and refresh the lockfile"},
+		{detectors.NameBundler, model.PackageManagerBundler, model.RemediationActionTransitiveOverride, `add gem "example", ">= 1.2.0" to the Gemfile and run bundle update example`},
+		{detectors.NameComposer, model.PackageManagerComposer, model.RemediationActionTransitiveOverride, `require "example": "^1.2.0" in manifest.file and run composer update example`},
 	}
 
-	builtIns := make(map[string]sdk.Detector)
+	builtIns := make(map[string]plugin.Detector)
 	for _, detector := range BuiltinDetectors() {
 		builtIns[detector.Descriptor().Name] = detector
 	}
@@ -48,7 +51,7 @@ func TestBuiltInDetectorsOwnRemediationCapabilitiesAndAdvice(t *testing.T) {
 			if len(descriptor.RemediationCapabilities) == 0 {
 				t.Fatalf("%s does not advertise its remediation capability", testCase.name)
 			}
-			provider, ok := detector.(sdk.DetectorRemediationProvider)
+			provider, ok := detector.(plugin.DetectorRemediationProvider)
 			if !ok {
 				t.Fatalf("%s advertises remediation without implementing the provider", testCase.name)
 			}
@@ -67,7 +70,7 @@ func TestRegistryDoesNotInferRemediationCapabilities(t *testing.T) {
 	reg := NewRegistry(Configs{}, *zap.NewNop())
 	reg.RegisterDetectorWithOptions(detectorWithoutRemediation{}, ComponentOptions{
 		DefaultEnabled: true,
-		Origin:         sdk.CoreOrigin,
+		Origin:         plugin.CoreOrigin,
 	})
 
 	descriptors := reg.DetectorDescriptors()
@@ -77,49 +80,48 @@ func TestRegistryDoesNotInferRemediationCapabilities(t *testing.T) {
 	if len(descriptors[0].RemediationCapabilities) != 0 {
 		t.Fatalf("registry inferred remediation capabilities: %#v", descriptors[0].RemediationCapabilities)
 	}
-	if _, ok := reg.AllDetectors()[0].(sdk.DetectorRemediationProvider); ok {
+	if _, ok := reg.AllDetectors()[0].(plugin.DetectorRemediationProvider); ok {
 		t.Fatal("registry added the remediation provider contract to an unsupported detector")
 	}
 }
 
-func remediationHintRequest(t *testing.T, manager sdk.PackageManager) sdk.RemediationHintRequest {
+func remediationHintRequest(t *testing.T, manager model.PackageManager) plugin.RemediationHintRequest {
 	t.Helper()
 	const packageRef = "pkg:generic/example@1.0.0"
-	graph := sdk.New()
-	dependency := sdk.NewDependencyWithID("example", sdk.Dependency{
-		Coordinates: sdk.Coordinates{
+	graph := model.New()
+	dependency := testnodes.DepFrom(model.DependencyNode{
+		Coordinates: model.Coordinates{
 			PURL:           packageRef,
 			Name:           "example",
 			Version:        "1.0.0",
 			PackageManager: manager,
 		},
-		ID:         "example",
 		PackageRef: packageRef,
-		Source:     sdk.DependencySourceRegistry,
+		Source:     model.DependencySourceRegistry,
 	})
 	if err := graph.AddNode(dependency); err != nil {
 		t.Fatalf("AddNode() error = %v", err)
 	}
-	registry := sdk.NewPackageRegistry()
-	registry.Add(&sdk.Package{
+	registry := model.NewPackageRegistry()
+	registry.Add(&model.Package{
 		Coordinates: dependency.Coordinates,
-		Remediation: &sdk.PackageRemediation{
-			Status:             sdk.PackageRemediationComplete,
+		Remediation: &model.PackageRemediation{
+			Status:             model.PackageRemediationComplete,
 			RecommendedVersion: "1.2.0",
 		},
 	})
-	return sdk.RemediationHintRequest{
-		Detection: sdk.DetectionResult{
-			SubprojectInfo: sdk.Subproject{
-				DetectedPackageManagers: []sdk.PackageManager{manager},
+	return plugin.RemediationHintRequest{
+		Detection: plugin.DetectionResult{
+			SubprojectInfo: plugin.Subproject{
+				DetectedPackageManagers: []model.PackageManager{manager},
 			},
-			Graphs: sdk.SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "manifest.file"}),
+			Graphs: model.SingleGraphContainer(graph, model.ManifestMetadata{Path: "manifest.file"}),
 		},
 		Registry: registry,
 	}
 }
 
-func adviceForAction(response sdk.RemediationHintResponse, action sdk.RemediationAction) string {
+func adviceForAction(response plugin.RemediationHintResponse, action model.RemediationAction) string {
 	for _, hint := range response.Hints {
 		for _, strategy := range hint.Strategies {
 			if strategy.Action == action {
@@ -132,25 +134,25 @@ func adviceForAction(response sdk.RemediationHintResponse, action sdk.Remediatio
 
 type detectorWithoutRemediation struct{}
 
-func (detectorWithoutRemediation) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (detectorWithoutRemediation) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		Name:              "detector-without-remediation",
-		SupportedManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+		SupportedManagers: []model.PackageManager{model.PackageManagerNPM},
 	}
 }
 
-func (detectorWithoutRemediation) PackageManagerSupport() []sdk.PackageManagerSupport {
+func (detectorWithoutRemediation) PackageManagerSupport() []plugin.PackageManagerSupport {
 	return nil
 }
 
-func (detectorWithoutRemediation) Ready(context.Context, sdk.DetectionRequest) error {
+func (detectorWithoutRemediation) Ready(context.Context, plugin.DetectionRequest) error {
 	return nil
 }
 
-func (detectorWithoutRemediation) Applicable(context.Context, sdk.DetectionRequest) (bool, error) {
+func (detectorWithoutRemediation) Applicable(context.Context, plugin.DetectionRequest) (bool, error) {
 	return true, nil
 }
 
-func (detectorWithoutRemediation) ResolveGraph(context.Context, sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	return sdk.DetectionResult{}, nil
+func (detectorWithoutRemediation) ResolveGraph(context.Context, plugin.DetectionRequest) (plugin.DetectionResult, error) {
+	return plugin.DetectionResult{}, nil
 }

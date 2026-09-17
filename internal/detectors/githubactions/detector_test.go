@@ -6,16 +6,19 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	detector := Detector{}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:     "testdata/project",
-		PackageManager:  sdk.PackageManagerGitHubActions,
-		Ecosystem:       sdk.EcosystemGitHub,
-		ExecutionTarget: sdk.ExecutionTarget{Location: "testdata/project"},
+		PackageManager:  model.PackageManagerGitHubActions,
+		Ecosystem:       model.EcosystemGitHub,
+		ExecutionTarget: plugin.ExecutionTarget{Location: "testdata/project"},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -24,10 +27,10 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	if _, ok := g.Node("actions:checkout@v4"); !ok {
+	if _, ok := testnodes.Find(g, "actions:checkout@v4"); !ok {
 		t.Fatal("expected actions/checkout package")
 	}
-	if _, ok := g.Node("actions:cache@v4"); !ok {
+	if _, ok := testnodes.Find(g, "actions:cache@v4"); !ok {
 		t.Fatal("expected actions/cache package")
 	}
 }
@@ -64,30 +67,30 @@ func TestDepGraphFromRepository(t *testing.T) {
 		t.Fatalf("expected 6 packages, got %d", g.Size())
 	}
 
-	cache, ok := g.Node("actions:cache@v4")
+	cache, ok := testnodes.FindDep(g, "actions:cache@v4")
 	if !ok {
 		t.Fatal("expected actions/cache package")
 	}
-	if got := string(cache.PrimaryScope()); got != string(sdk.ScopeRuntime) {
+	if got := string(cache.PrimaryScope()); got != string(model.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", got)
 	}
 
-	localAction, ok := g.Node("action:.github/actions/local-setup")
+	localAction, ok := testnodes.Find(g, "action:.github/actions/local-setup")
 	if !ok {
 		t.Fatal("expected local action package")
 	}
-	deps, err := g.DirectDependencies(localAction.ID)
+	deps, err := g.DirectDependencies(localAction.NodeID())
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
-	if len(deps) != 1 || deps[0].ID != "actions:cache@v4" {
+	if len(deps) != 1 || !testnodes.Is(deps[0], "actions:cache@v4") {
 		t.Fatalf("expected local action to depend on actions/cache, got %#v", deps)
 	}
-	workflowNode, ok := g.Node("workflow:.github/workflows/ci.yml")
+	workflowNode, ok := testnodes.Find(g, "workflow:.github/workflows/ci.yml")
 	if !ok {
 		t.Fatal("expected ci workflow package")
 	}
-	workflowDeps, err := g.DirectDependencies(workflowNode.ID)
+	workflowDeps, err := g.DirectDependencies(workflowNode.NodeID())
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
@@ -107,11 +110,11 @@ func TestDetectorResolveGraphAttachesUsesLineLocations(t *testing.T) {
 		t.Fatalf("write workflow: %v", err)
 	}
 
-	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := (Detector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:     projectDir,
-		PackageManager:  sdk.PackageManagerGitHubActions,
-		Ecosystem:       sdk.EcosystemGitHub,
-		ExecutionTarget: sdk.ExecutionTarget{Location: projectDir},
+		PackageManager:  model.PackageManagerGitHubActions,
+		Ecosystem:       model.EcosystemGitHub,
+		ExecutionTarget: plugin.ExecutionTarget{Location: projectDir},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -121,7 +124,7 @@ func TestDetectorResolveGraphAttachesUsesLineLocations(t *testing.T) {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 
-	dependencyReview, ok := g.Node("actions:dependency-review-action@v5")
+	dependencyReview, ok := testnodes.FindDep(g, "actions:dependency-review-action@v5")
 	if !ok {
 		t.Fatal("expected actions/dependency-review-action package")
 	}
@@ -136,7 +139,7 @@ func TestDetectorResolveGraphAttachesUsesLineLocations(t *testing.T) {
 		t.Fatalf("location position = %#v, want workflow uses line with column", loc.Position)
 	}
 
-	codeql, ok := g.Node("github:codeql-action/upload-sarif@v4")
+	codeql, ok := testnodes.FindDep(g, "github:codeql-action/upload-sarif@v4")
 	if !ok {
 		t.Fatal("expected github/codeql-action/upload-sarif package")
 	}
@@ -158,11 +161,11 @@ func TestDetectorResolveGraphPreservesDuplicateUsesLocations(t *testing.T) {
 		t.Fatalf("write guard workflow: %v", err)
 	}
 
-	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := (Detector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:     projectDir,
-		PackageManager:  sdk.PackageManagerGitHubActions,
-		Ecosystem:       sdk.EcosystemGitHub,
-		ExecutionTarget: sdk.ExecutionTarget{Location: projectDir},
+		PackageManager:  model.PackageManagerGitHubActions,
+		Ecosystem:       model.EcosystemGitHub,
+		ExecutionTarget: plugin.ExecutionTarget{Location: projectDir},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -171,7 +174,7 @@ func TestDetectorResolveGraphPreservesDuplicateUsesLocations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	checkout, ok := g.Node("actions:checkout@v5")
+	checkout, ok := testnodes.FindDep(g, "actions:checkout@v5")
 	if !ok {
 		t.Fatal("expected actions/checkout package")
 	}
@@ -206,21 +209,21 @@ func TestDepGraphDigests(t *testing.T) {
 		t.Fatalf("depGraphFromRepository() error = %v", err)
 	}
 
-	found := map[string][]sdk.Digest{}
-	g.WalkNodes(func(node *sdk.Dependency) bool {
+	found := map[string][]model.Digest{}
+	g.WalkDependencyNodes(func(node *model.DependencyNode) bool {
 		found[node.Name] = node.Digests
 		return true
 	})
 
 	checkout := found["checkout"]
-	if len(checkout) != 1 || checkout[0].Algorithm != sdk.DigestAlgorithmSHA1 || checkout[0].Value != pinned {
+	if len(checkout) != 1 || checkout[0].Algorithm != model.DigestAlgorithmSHA1 || checkout[0].Value != pinned {
 		t.Fatalf("expected pinned commit digest on actions/checkout, got %#v", checkout)
 	}
 	if len(found["cache"]) != 0 {
 		t.Fatalf("tag-pinned action must not carry a digest, got %#v", found["cache"])
 	}
 	wf := found[".github/workflows/ci.yml"]
-	if len(wf) != 1 || wf[0].Algorithm != sdk.DigestAlgorithmSHA256 || len(wf[0].Value) != 64 {
+	if len(wf) != 1 || wf[0].Algorithm != model.DigestAlgorithmSHA256 || len(wf[0].Value) != 64 {
 		t.Fatalf("expected sha256 file digest on the workflow manifest, got %#v", wf)
 	}
 }
@@ -234,4 +237,15 @@ func TestIsGitCommitSHA(t *testing.T) {
 			t.Fatalf("value %q must not be treated as a commit SHA", value)
 		}
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*model.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

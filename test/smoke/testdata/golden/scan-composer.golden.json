@@ -5,6 +5,16 @@
       "dependencies": [
         {
           "depends_on": [
+            "pkg:composer/guzzlehttp/guzzle@6.2.3",
+            "pkg:composer/phpunit/phpunit@4.8.36",
+            "pkg:composer/twig/twig@1.44.7"
+          ],
+          "id": "module:composer.json#root",
+          "licenses": [],
+          "name": "root"
+        },
+        {
+          "depends_on": [
             "pkg:composer/guzzlehttp/promises@1.5.3",
             "pkg:composer/guzzlehttp/psr7@1.9.1"
           ],
@@ -13,11 +23,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "guzzlehttp/guzzle",
@@ -35,11 +50,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "guzzlehttp/promises",
@@ -60,11 +80,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "guzzlehttp/psr7",
@@ -82,11 +107,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "phpunit/php-file-iterator",
@@ -104,11 +134,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "phpunit/php-text-template",
@@ -126,11 +161,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "phpunit/php-timer",
@@ -153,11 +193,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "phpunit/phpunit",
@@ -175,11 +220,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "psr/http-message",
@@ -197,11 +247,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "ralouphie/getallheaders",
@@ -213,29 +268,22 @@
           "version": "3.0.3"
         },
         {
-          "depends_on": [
-            "pkg:composer/guzzlehttp/guzzle@6.2.3",
-            "pkg:composer/phpunit/phpunit@4.8.36",
-            "pkg:composer/twig/twig@1.44.7"
-          ],
-          "id": "pkg:composer/root",
-          "licenses": [],
-          "name": "root",
-          "package_ref": "pkg:composer/root",
-          "purl": "pkg:composer/root"
-        },
-        {
           "depends_on": [],
           "id": "pkg:composer/symfony/polyfill-mbstring@v1.28.0",
           "licenses": [],
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "symfony/polyfill-mbstring",
@@ -244,7 +292,7 @@
           "scopes": [
             "runtime"
           ],
-          "version": "1.28.0"
+          "version": "v1.28.0"
         },
         {
           "depends_on": [],
@@ -253,11 +301,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "name": "symfony/yaml",
@@ -266,7 +319,7 @@
           "scopes": [
             "development"
           ],
-          "version": "2.8.52"
+          "version": "v2.8.52"
         },
         {
           "depends_on": [
@@ -277,11 +330,16 @@
           "locations": [
             {
               "access_path": "composer.lock",
+              "module_root": ".",
               "position": {
                 "file": "composer.lock",
                 "line": 0
               },
-              "real_path": "composer.lock"
+              "real_path": "composer.lock",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "name": "twig/twig",
@@ -389,17 +447,10 @@
     {
       "ecosystem": "php",
       "licenses": [],
-      "name": "root",
-      "purl": "pkg:composer/root",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "php",
-      "licenses": [],
       "name": "symfony/polyfill-mbstring",
       "org": "symfony",
       "purl": "pkg:composer/symfony/polyfill-mbstring@v1.28.0",
-      "version": "1.28.0",
+      "version": "v1.28.0",
       "vulnerabilities": []
     },
     {
@@ -408,7 +459,7 @@
       "name": "symfony/yaml",
       "org": "symfony",
       "purl": "pkg:composer/symfony/yaml@v2.8.52",
-      "version": "2.8.52",
+      "version": "v2.8.52",
       "vulnerabilities": []
     },
     {

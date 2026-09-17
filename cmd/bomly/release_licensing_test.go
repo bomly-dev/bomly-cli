@@ -226,7 +226,7 @@ func TestLinuxPackagesCarryLicenseSet(t *testing.T) {
 // (rather than substring search) ensures the assertion fails if a statement
 // is commented out, mangled, or merely mentioned in surrounding text.
 func hasStatementLine(block string, pattern *regexp.Regexp) bool {
-	for _, line := range strings.Split(block, "\n") {
+	for line := range strings.SplitSeq(block, "\n") {
 		if pattern.MatchString(strings.TrimSpace(line)) {
 			return true
 		}
@@ -260,7 +260,7 @@ func TestHomebrewFormulaLicensing(t *testing.T) {
 		// Collect the arguments of every doc.install statement line; the
 		// union must cover the full license set.
 		docInstalled := map[string]bool{}
-		for _, line := range strings.Split(brew.ExtraInstall, "\n") {
+		for line := range strings.SplitSeq(brew.ExtraInstall, "\n") {
 			line = strings.TrimSpace(line)
 			if !docInstall.MatchString(line) {
 				continue

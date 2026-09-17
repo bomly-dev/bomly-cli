@@ -3,54 +3,56 @@ package engine
 import (
 	"context"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
-type Detector = sdk.Detector
-type DetectorDescriptor = sdk.DetectorDescriptor
-type ResolveGraphRequest = sdk.DetectionRequest
-type ResolveGraphResult = sdk.DetectionResult
-type DetectorFilter = sdk.DetectorFilter
-type PackageManager = sdk.PackageManager
-type Ecosystem = sdk.Ecosystem
+type Detector = plugin.Detector
+type DetectorDescriptor = plugin.DetectorDescriptor
+type ResolveGraphRequest = plugin.DetectionRequest
+type ResolveGraphResult = plugin.DetectionResult
+type DetectorFilter = plugin.DetectorFilter
+type PackageManager = model.PackageManager
+type Ecosystem = model.Ecosystem
 
-type AuditorDescriptor = sdk.AuditorDescriptor
-type AuditRequest = sdk.AuditRequest
-type AuditResult = sdk.AuditResult
+type AuditorDescriptor = plugin.AuditorDescriptor
+type AuditRequest = plugin.AuditRequest
+type AuditResult = plugin.AuditResult
 
-type MatcherDescriptor = sdk.MatcherDescriptor
-type MatchRequest = sdk.MatchRequest
+type MatcherDescriptor = plugin.MatcherDescriptor
+type MatchRequest = plugin.MatchRequest
 
-type ExecutionTarget = sdk.ExecutionTarget
-type Subproject = sdk.Subproject
-type Finding = sdk.Finding
-type RiskScore = sdk.RiskScore
+type ExecutionTarget = plugin.ExecutionTarget
+type Subproject = plugin.Subproject
+type Finding = model.Finding
+type RiskScore = model.RiskScore
 
 const (
-	PackageManagerUnknown           = sdk.PackageManagerUnknown
-	PackageManagerNPM               = sdk.PackageManagerNPM
-	PackageManagerPNPM              = sdk.PackageManagerPNPM
-	PackageManagerMaven             = sdk.PackageManagerMaven
-	PackageManagerGoMod             = sdk.PackageManagerGoMod
-	PackageManagerGitHubActions     = sdk.PackageManagerGitHubActions
-	PackageManagerRPM               = sdk.PackageManagerRPM
-	PackageManagerAPK               = sdk.PackageManagerAPK
-	PackageManagerSBOM              = sdk.PackageManagerSBOM
-	PackageManagerCargo             = sdk.PackageManagerCargo
-	EcosystemUnknown                = sdk.EcosystemUnknown
-	EcosystemNPM                    = sdk.EcosystemNPM
-	EcosystemMaven                  = sdk.EcosystemMaven
-	EcosystemGo                     = sdk.EcosystemGo
-	EcosystemGitHub                 = sdk.EcosystemGitHub
-	EcosystemRPM                    = sdk.EcosystemRPM
-	EcosystemAPK                    = sdk.EcosystemAPK
-	EcosystemSBOM                   = sdk.EcosystemSBOM
-	ExecutionTargetFilesystem       = sdk.ExecutionTargetFilesystem
-	ExecutionTargetWorkingDirectory = sdk.ExecutionTargetWorkingDirectory
-	ExecutionTargetContainerImage   = sdk.ExecutionTargetContainerImage
-	ScopeRuntime                    = sdk.ScopeRuntime
-	ScopeDevelopment                = sdk.ScopeDevelopment
+	PackageManagerUnknown           = model.PackageManagerUnknown
+	PackageManagerNPM               = model.PackageManagerNPM
+	PackageManagerPNPM              = model.PackageManagerPNPM
+	PackageManagerMaven             = model.PackageManagerMaven
+	PackageManagerGoMod             = model.PackageManagerGoMod
+	PackageManagerGitHubActions     = model.PackageManagerGitHubActions
+	PackageManagerRPM               = model.PackageManagerRPM
+	PackageManagerAPK               = model.PackageManagerAPK
+	PackageManagerSBOM              = model.PackageManagerSBOM
+	PackageManagerCargo             = model.PackageManagerCargo
+	EcosystemUnknown                = model.EcosystemUnknown
+	EcosystemNPM                    = model.EcosystemNPM
+	EcosystemMaven                  = model.EcosystemMaven
+	EcosystemGo                     = model.EcosystemGo
+	EcosystemGitHub                 = model.EcosystemGitHub
+	EcosystemRPM                    = model.EcosystemRPM
+	EcosystemAPK                    = model.EcosystemAPK
+	EcosystemSBOM                   = model.EcosystemSBOM
+	ExecutionTargetFilesystem       = plugin.ExecutionTargetFilesystem
+	ExecutionTargetWorkingDirectory = plugin.ExecutionTargetWorkingDirectory
+	ExecutionTargetContainerImage   = plugin.ExecutionTargetContainerImage
+	ScopeRuntime                    = model.ScopeRuntime
+	ScopeDevelopment                = model.ScopeDevelopment
 )
 
 func newTestRegistry() *Registry {

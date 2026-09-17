@@ -180,7 +180,7 @@
         [
           "sh",
           "-c",
-          "BOMLY_VERSION=<tag> BOMLY_INSTALL_DIR=$PWD/bin sh scripts/install.sh"
+          "BOMLY_VERSION=\u003ctag\u003e BOMLY_INSTALL_DIR=$PWD/bin sh scripts/install.sh"
         ]
       ],
       "proves": [
@@ -230,7 +230,7 @@
           "gh",
           "release",
           "download",
-          "<tag>",
+          "\u003ctag\u003e",
           "--repo",
           "bomly-dev/bomly-cli"
         ]
@@ -264,7 +264,7 @@
           "--dir",
           "assets",
           "--version",
-          "<version>"
+          "\u003cversion\u003e"
         ]
       ],
       "proves": [
@@ -308,7 +308,7 @@
           "--dir",
           "assets",
           "--version",
-          "<version>",
+          "\u003cversion\u003e",
           "--scope",
           "native"
         ]
@@ -374,7 +374,7 @@
         [
           "slsa-verifier",
           "verify-artifact",
-          "<archive>",
+          "\u003carchive\u003e",
           "--provenance-path",
           "multiple.intoto.jsonl",
           "--source-uri",
@@ -470,7 +470,7 @@
       "area": "sbom",
       "stage": "post-release",
       "level": "gate",
-      "description": "Generates SPDX 2.3 and CycloneDX 1.7 documents with the released binary and validates them with checksum-pinned official SPDX and CycloneDX tools.",
+      "description": "Generates SPDX 2.3 and CycloneDX 1.7 documents with the released binary — one pair from a single input and one pair merged from two source documents — and validates all four with checksum-pinned official SPDX and CycloneDX tools.",
       "source": {
         "workflow": "sbom-interoperability.yml",
         "job": "validate"
@@ -485,10 +485,12 @@
         ]
       ],
       "proves": [
-        "The SBOM documents this release writes are accepted by the official SPDX and CycloneDX validators, at the exact validator versions recorded in the result."
+        "The SBOM documents this release writes are accepted by the official SPDX and CycloneDX validators, at the exact validator versions recorded in the result.",
+        "A document merged from two sources states its own identity and links both sources, rather than adopting one of them."
       ],
       "limitations": [
-        "Validators check that a document is well formed against its specification. They do not check that every receiving tool interprets it the same way."
+        "Validators check that a document is well formed against its specification. They do not check that every receiving tool interprets it the same way.",
+        "The merge case uses two checked-in fixtures; it does not cover every combination of source formats."
       ]
     },
     {
@@ -758,7 +760,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/finding-baseline-workflow.golden.json",
-          "sha256": "8fa2b220af563a89d1fbaaab03a75ccc0952ae43251438bc27a2314301315aa0"
+          "sha256": "fd6a432ac3e48bf46bdb19db672b686b30a50f5779934bbb40674bc859fb8209"
         }
       ],
       "proves": [
@@ -801,7 +803,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/container-scan-alpine.golden.json",
-          "sha256": "50f7d4426ead3af9ea5a07df7eeb77743e7aa1412260e1a665a7301f3c22ecc5"
+          "sha256": "de799fc179af5bd9d578e77ce21b4e0b225746cad422b194c5d21a20b22d2903"
         }
       ],
       "proves": [
@@ -822,7 +824,7 @@
         {
           "kind": "fixture",
           "location": "internal/engine/pipeline_fallback_test.go",
-          "sha256": "7751d6137dd39c8616857f2e0891ed4928bf2b37e72475d567c1e38262755a6d"
+          "sha256": "c8c189a7eeb7ec13e647c33746deac0aae99238be0e57d0cadfdbef0dee5d140"
         }
       ],
       "required_tools": [
@@ -841,7 +843,7 @@
       "artifacts": [
         {
           "path": "internal/engine/pipeline_fallback_test.go",
-          "sha256": "7751d6137dd39c8616857f2e0891ed4928bf2b37e72475d567c1e38262755a6d"
+          "sha256": "c8c189a7eeb7ec13e647c33746deac0aae99238be0e57d0cadfdbef0dee5d140"
         }
       ],
       "proves": [
@@ -888,7 +890,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-bun.golden.json",
-          "sha256": "c61ccae15f3d36028ec1e741436abbf036236b9e2f018393b863e98d14360fb4"
+          "sha256": "7d4a0ca909c6ecdf5647adca072ba9aa885efd36d5e2f94b70fc4228af7c5d6e"
         }
       ],
       "proves": [
@@ -936,7 +938,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-go.golden.json",
-          "sha256": "728f949898446657c4987bc1202a8d00c78b118868b4945141e4db8c4c54cdea"
+          "sha256": "0124e1b56bd757a02948afcd8f858c291856d1794390cc4e5101dd7a8439e67a"
         }
       ],
       "proves": [
@@ -985,7 +987,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-maven.golden.json",
-          "sha256": "a1077544af4bd637311e1767abe2a140e3ba8f0f65a64e662378e5ccca07de9b"
+          "sha256": "68cebc156a16a6bb6d4335226ace018836cddc0b45f7de02fcf439db3ea4c40b"
         }
       ],
       "proves": [
@@ -1033,7 +1035,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-npm.golden.json",
-          "sha256": "82f741b8f7291cb1f885cba788a2a7e3505b143a9f2ded646d01334b8abfaa8a"
+          "sha256": "864d2cb68f03bbb3d8fdd60f61ec90be64a39076d556d4049ff0b7f859ed6905"
         }
       ],
       "proves": [
@@ -1081,7 +1083,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-pnpm.golden.json",
-          "sha256": "92b867725f0617f273d8f52d1d9174ace6a6712f4d9fb11da988e455e764a221"
+          "sha256": "d5ebf6fa56ebff04a6f357a7667ef93616d3737c5d0258778a0eadb51cc26478"
         }
       ],
       "proves": [
@@ -1128,7 +1130,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-python-pip.golden.json",
-          "sha256": "025d14ad1a3c93f3af22a4a83a358ee85b42d782f50798b285048e35e8632bf2"
+          "sha256": "f58992458ec67f81353e61898664d586d89b23c59c3bb383abb001081e9392cb"
         }
       ],
       "proves": [
@@ -1176,7 +1178,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-yarn.golden.json",
-          "sha256": "1e1a5f1579089169b1cf3f55bb399ea83591bfc660dcac82d3355ab83c98c2af"
+          "sha256": "9ebd76c1a08409adbaeec07874bd7c13994792652d24bb891685a9dc47d0c40a"
         }
       ],
       "proves": [
@@ -1197,7 +1199,7 @@
         {
           "kind": "fixture",
           "location": "internal/auditors/license/spdx_policy_matrix_test.go",
-          "sha256": "04d8e3528b33687a09d317b867f7c24068081c1ac60bb53cee1e0a03c0b143f2"
+          "sha256": "846bc1cbff37531829124935192034c3cfdc9267c226ccd5144355d0dceec33b"
         }
       ],
       "required_tools": [
@@ -1216,7 +1218,7 @@
       "artifacts": [
         {
           "path": "internal/auditors/license/spdx_policy_matrix_test.go",
-          "sha256": "04d8e3528b33687a09d317b867f7c24068081c1ac60bb53cee1e0a03c0b143f2"
+          "sha256": "846bc1cbff37531829124935192034c3cfdc9267c226ccd5144355d0dceec33b"
         }
       ],
       "proves": [
@@ -1237,7 +1239,7 @@
         {
           "kind": "fixture",
           "location": "internal/engine/diff/diff_test.go",
-          "sha256": "abe87f7b95e55e5cf70bd0684c36027757308f7f405a9db370a894238f16f195"
+          "sha256": "b2f8300336868c2af153d7c77b88ced45955b7b17a0da09c1d3ba08e72a7af73"
         }
       ],
       "required_tools": [
@@ -1256,7 +1258,7 @@
       "artifacts": [
         {
           "path": "internal/engine/diff/diff_test.go",
-          "sha256": "abe87f7b95e55e5cf70bd0684c36027757308f7f405a9db370a894238f16f195"
+          "sha256": "b2f8300336868c2af153d7c77b88ced45955b7b17a0da09c1d3ba08e72a7af73"
         }
       ],
       "proves": [
@@ -1304,7 +1306,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-go-reachability.golden.json",
-          "sha256": "2d1db6318d75c491b8866ff9643ae80635702591046e4be89c362ca1b828a4cd"
+          "sha256": "c59680936c14bd1a2834a9278328cc71563823edd469d355b4be7426bb0473bc"
         }
       ],
       "proves": [
@@ -1353,7 +1355,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-java-maven-reachability.golden.json",
-          "sha256": "cae9114ef8280849afad9135b92b7a6a7e1cb3c0c25f9e049a60448b912f7874"
+          "sha256": "8afa5c942576315db8e0256f77751d012fc342bd17b1f7b7d26472d023df6fc7"
         }
       ],
       "proves": [
@@ -1401,7 +1403,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-npm-reachability.golden.json",
-          "sha256": "3fb1b3b9a11e65fa4b76daa56c90098ce442831d79bb1fdaeba675f201fb78ec"
+          "sha256": "5b39568467b6a9a60c62a07b52750c99e632786d011f83765b72bb8b9c5ff727"
         }
       ],
       "proves": [
@@ -1448,7 +1450,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-python-pip-reachability.golden.json",
-          "sha256": "61d9b6d3e91e33755c19c7d2b35c0b2fb1c6a98692cdf57dc4630323ad315ca4"
+          "sha256": "7928b4f38d6aff12f58e3ba7ee8ee687b1c9f32e0945a6325f40777785bf7168"
         }
       ],
       "proves": [
@@ -1469,7 +1471,7 @@
         {
           "kind": "fixture",
           "location": "internal/remediation/derive_test.go",
-          "sha256": "8afb2ca42404363f3eaaf29eaa20e0c57ddb92aed6209b5720af2c8ba8681e97"
+          "sha256": "0be22480c9395c834dbcc23f015629cc837a51d5e122eaac36b520b43d1759ed"
         }
       ],
       "required_tools": [
@@ -1488,7 +1490,7 @@
       "artifacts": [
         {
           "path": "internal/remediation/derive_test.go",
-          "sha256": "8afb2ca42404363f3eaaf29eaa20e0c57ddb92aed6209b5720af2c8ba8681e97"
+          "sha256": "0be22480c9395c834dbcc23f015629cc837a51d5e122eaac36b520b43d1759ed"
         }
       ],
       "proves": [
@@ -1534,7 +1536,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-sbom-cyclonedx.golden.json",
-          "sha256": "54f5e33a47d884e1705d22102dd4745b4474295d0cc56da827bc3f172792dabb"
+          "sha256": "d4ccc0060c6d5a1bb6ca59643074bab0a6c9abdad2500e9566826e482952fe55"
         }
       ],
       "proves": [
@@ -1580,7 +1582,7 @@
       "artifacts": [
         {
           "path": "test/smoke/testdata/golden/scan-sbom-spdx.golden.json",
-          "sha256": "d49e4fc3f9c61fdb4c533116d9a5988e1841c7ccacc3675b93fb069d5ec14a00"
+          "sha256": "c64358425f3ac5136fd0d11827de16988612ded3bd208de4e4dffe4b0571a16c"
         }
       ],
       "proves": [
@@ -1634,7 +1636,7 @@
       "artifacts": [
         {
           "path": "test/smoke/audit_test.go",
-          "sha256": "96fcd3b6a411a9651edce806fdc0e60f2e71208c33f4d91a4640177ab2b828fe"
+          "sha256": "d0d49980d6d4a5fd3cc67ac1ca39d5aa4f17bd378faac7831f11f02d3271a1a6"
         }
       ],
       "proves": [
@@ -1655,7 +1657,7 @@
         {
           "kind": "fixture",
           "location": "internal/auditors/vulnerability/policy_matrix_test.go",
-          "sha256": "8cd341ca5eea7df5ce50a1bdbe076637154e8f4ba760b64ba4ea366435a9a460"
+          "sha256": "3bc30277032a8a1159e5f1a5d9b4697c0be914368a7946d69a2480754937283b"
         }
       ],
       "required_tools": [
@@ -1674,7 +1676,7 @@
       "artifacts": [
         {
           "path": "internal/auditors/vulnerability/policy_matrix_test.go",
-          "sha256": "8cd341ca5eea7df5ce50a1bdbe076637154e8f4ba760b64ba4ea366435a9a460"
+          "sha256": "3bc30277032a8a1159e5f1a5d9b4697c0be914368a7946d69a2480754937283b"
         }
       ],
       "proves": [

@@ -4,17 +4,39 @@
     {
       "dependencies": [
         {
+          "depends_on": [
+            "pkg:pypi/django@1.11.29",
+            "pkg:pypi/feedparser@6.0.8",
+            "pkg:pypi/jinja2@2.10.1",
+            "pkg:pypi/pyjwt@0.4.2",
+            "pkg:pypi/pyyaml@5.3",
+            "pkg:pypi/requests@2.21.0",
+            "pkg:pypi/rsa@3.4",
+            "pkg:pypi/sqlalchemy@1.4.46",
+            "pkg:pypi/urllib3@1.24.1"
+          ],
+          "id": "module:requirements.txt#pkg:pypi/example-python-pip",
+          "licenses": [],
+          "name": "example-python-pip",
+          "purl": "pkg:pypi/example-python-pip"
+        },
+        {
           "depends_on": [],
           "id": "pkg:pypi/certifi@2026.6.17",
           "licenses": [],
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -33,11 +55,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -58,11 +85,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -76,24 +108,6 @@
         },
         {
           "depends_on": [
-            "pkg:pypi/django@1.11.29",
-            "pkg:pypi/feedparser@6.0.8",
-            "pkg:pypi/jinja2@2.10.1",
-            "pkg:pypi/pyjwt@0.4.2",
-            "pkg:pypi/pyyaml@5.3",
-            "pkg:pypi/requests@2.21.0",
-            "pkg:pypi/rsa@3.4",
-            "pkg:pypi/sqlalchemy@1.4.46",
-            "pkg:pypi/urllib3@1.24.1"
-          ],
-          "id": "pkg:pypi/example-python-pip",
-          "licenses": [],
-          "name": "example-python-pip",
-          "package_ref": "pkg:pypi/example-python-pip",
-          "purl": "pkg:pypi/example-python-pip"
-        },
-        {
-          "depends_on": [
             "pkg:pypi/sgmllib3k@1.0.0"
           ],
           "id": "pkg:pypi/feedparser@6.0.8",
@@ -101,11 +115,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -124,11 +143,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -149,11 +173,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -172,11 +201,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -195,11 +229,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -218,11 +257,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -241,11 +285,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -264,11 +313,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -292,11 +346,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -317,11 +376,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -340,11 +404,16 @@
           "locations": [
             {
               "access_path": "requirements.lock",
+              "module_root": ".",
               "position": {
                 "file": "requirements.lock",
                 "line": 0
               },
-              "real_path": "requirements.lock"
+              "real_path": "requirements.lock",
+              "relationship": "transitive",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -363,11 +432,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -386,11 +460,16 @@
           "locations": [
             {
               "access_path": "requirements.txt",
+              "module_root": ".",
               "position": {
                 "file": "requirements.txt",
                 "line": 0
               },
-              "real_path": "requirements.txt"
+              "real_path": "requirements.txt",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -434,7 +513,7 @@
       "licenses": [
         {
           "spdxExpression": "MPL-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "MPL-2.0"
         }
       ],
@@ -448,8 +527,7 @@
       "ecosystem": "python",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -463,8 +541,7 @@
       "ecosystem": "python",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -535,6 +612,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -602,6 +690,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -669,6 +768,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -736,6 +846,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -803,6 +924,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -870,6 +1002,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -937,6 +1080,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -1004,6 +1158,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -1071,6 +1236,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -1138,6 +1314,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -1205,6 +1392,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -1272,6 +1470,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -1339,6 +1548,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -1362,17 +1582,10 @@
     },
     {
       "ecosystem": "python",
-      "licenses": [],
-      "name": "example-python-pip",
-      "purl": "pkg:pypi/example-python-pip",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
       "licenses": [
         {
           "spdxExpression": "BSD-2-Clause",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "BSD-2-Clause"
         }
       ],
@@ -1386,8 +1599,7 @@
       "ecosystem": "python",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -1459,6 +1671,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -1526,6 +1749,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -1551,8 +1785,7 @@
       "ecosystem": "python",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -1622,6 +1855,16 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -1688,6 +1931,16 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -1754,6 +2007,16 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -1820,6 +2083,16 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -1886,6 +2159,16 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -1912,7 +2195,7 @@
       "licenses": [
         {
           "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
@@ -1927,7 +2210,7 @@
       "licenses": [
         {
           "spdxExpression": "BSD-2-Clause",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "BSD-2-Clause"
         }
       ],
@@ -1999,6 +2282,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -2066,6 +2360,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -2133,6 +2438,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -2159,7 +2475,7 @@
       "licenses": [
         {
           "spdxExpression": "MIT",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "MIT"
         }
       ],
@@ -2230,6 +2546,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -2289,6 +2616,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -2356,6 +2694,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -2382,7 +2731,7 @@
       "licenses": [
         {
           "spdxExpression": "MIT",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "MIT"
         }
       ],
@@ -2397,7 +2746,7 @@
       "licenses": [
         {
           "spdxExpression": "MIT",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "MIT"
         }
       ],
@@ -2467,6 +2816,16 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2533,6 +2892,16 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2559,7 +2928,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -2630,6 +2999,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -2697,6 +3077,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -2764,6 +3155,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -2831,6 +3233,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -2856,8 +3269,7 @@
       "ecosystem": "python",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -2928,6 +3340,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -2995,6 +3418,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "high",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -3020,8 +3454,7 @@
       "ecosystem": "python",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -3036,7 +3469,7 @@
       "licenses": [
         {
           "spdxExpression": "MIT",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "MIT"
         }
       ],
@@ -3051,7 +3484,7 @@
       "licenses": [
         {
           "spdxExpression": "MIT",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "MIT"
         }
       ],
@@ -3122,6 +3555,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -3189,6 +3633,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -3256,6 +3711,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -3323,6 +3789,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -3390,6 +3867,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -3457,6 +3945,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -3524,6 +4023,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -3591,6 +4101,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -3658,6 +4179,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -3725,6 +4257,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -3792,6 +4335,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -3859,6 +4413,17 @@
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
             "confidence": "medium",
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"

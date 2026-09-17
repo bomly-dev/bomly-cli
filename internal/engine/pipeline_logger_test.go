@@ -5,10 +5,13 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // TestResolveDetector_InjectsRequestScopedLogger verifies the pipeline binds a
@@ -16,15 +19,15 @@ import (
 // shared across concurrently-resolved subprojects can attribute its output.
 func TestResolveDetector_InjectsRequestScopedLogger(t *testing.T) {
 	registry := newTestRegistry()
-	graph := sdk.New()
-	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	graph := model.New()
+	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 
 	var seen *zap.Logger
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(graph, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 		onResolve: func(req ResolveGraphRequest) {
 			seen = req.Logger
 		},
@@ -57,8 +60,8 @@ func TestResolveDetector_InjectsRequestScopedLogger(t *testing.T) {
 // fallback's log lines are not misattributed to the primary detector.
 func TestResolveDetector_FallbackLoggerRelabelled(t *testing.T) {
 	registry := newTestRegistry()
-	graph := sdk.New()
-	if err := graph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+	graph := model.New()
+	if err := graph.AddNode(testnodes.Ref("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
 
@@ -74,7 +77,7 @@ func TestResolveDetector_FallbackLoggerRelabelled(t *testing.T) {
 	})
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(graph, model.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
 		onResolve:  logDetector("syft-detector"),
 	})
 
@@ -118,14 +121,14 @@ func TestResolveDetector_FallbackLoggerRelabelled(t *testing.T) {
 // TestDetectorLoggerFallback documents the resolution order without a pipeline.
 func TestDetectorLoggerFallback(t *testing.T) {
 	fallback := zap.NewNop()
-	if got := (sdk.DetectionRequest{}).DetectorLogger(fallback); got != fallback {
+	if got := (plugin.DetectionRequest{}).DetectorLogger(fallback); got != fallback {
 		t.Fatal("expected fallback logger when request logger is unset")
 	}
 	scoped := zap.NewNop().Named("scoped")
-	if got := (sdk.DetectionRequest{Logger: scoped}).DetectorLogger(fallback); got != scoped {
+	if got := (plugin.DetectionRequest{Logger: scoped}).DetectorLogger(fallback); got != scoped {
 		t.Fatal("expected request-scoped logger to take precedence over fallback")
 	}
-	if got := (sdk.DetectionRequest{}).DetectorLogger(nil); got == nil {
+	if got := (plugin.DetectionRequest{}).DetectorLogger(nil); got == nil {
 		t.Fatal("expected a no-op logger, got nil")
 	}
 }

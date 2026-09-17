@@ -4,7 +4,8 @@ import (
 	"sort"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // scanHint tells agents where the omitted detail lives.
@@ -109,11 +110,11 @@ func addPackageInventory(response *CompactScanResponse, manifests []output.ScanM
 }
 
 func severityBucket(severity string) string {
-	switch sdk.SeverityLevel(severity) {
-	case sdk.SeverityCritical, sdk.SeverityHigh, sdk.SeverityMedium, sdk.SeverityLow:
+	switch model.SeverityLevel(severity) {
+	case model.SeverityCritical, model.SeverityHigh, model.SeverityMedium, model.SeverityLow:
 		return severity
 	default:
-		if sdk.SeverityRank(sdk.SeverityLevel(severity)) > 0 {
+		if model.SeverityRank(model.SeverityLevel(severity)) > 0 {
 			return severity
 		}
 		return "unknown"

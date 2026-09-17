@@ -9,55 +9,57 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logging "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // PipenvDetector resolves Python dependencies through Pipenv.
 type PipenvDetector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
+	Fallback   plugin.Detector
 }
 
 var pipenvEvidencePatterns = []string{"Pipfile", "Pipfile.lock"}
 
 // PackageManagerSupport returns Pipenv package-manager discovery metadata.
-func (d PipenvDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerPipenv, pipenvEvidencePatterns...)}
+func (d PipenvDetector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerPipenv, pipenvEvidencePatterns...)}
 }
 
 // Ready reports whether Pipenv is available.
-func (d PipenvDetector) Ready(context.Context, sdk.DetectionRequest) error {
+func (d PipenvDetector) Ready(context.Context, plugin.DetectionRequest) error {
 	_, err := system.LookPath("pipenv")
 	return detectorkit.CommandNotReadyError("pipenv", err)
 }
 
 // Applicable reports whether Pipenv manifests are present.
-func (d PipenvDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d PipenvDetector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	return d.base().applicable(ctx, req, "Pipfile", "Pipfile.lock")
 }
 
 // Descriptor describes the Pipenv detector.
-func (d PipenvDetector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d PipenvDetector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		IgnoredDirectories:      []string{"__pycache__"},
 		IgnoredDirectoryMarkers: []string{"pyvenv.cfg"},
 		Name:                    detectors.NamePipenv,
 		RemediationCapabilities: pipenvRemediationCapabilities(),
-		Technique:               sdk.BuildToolTechnique,
-		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemPython},
-		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerPipenv},
+		Technique:               plugin.BuildToolTechnique,
+		SupportedEcosystems:     []model.Ecosystem{model.EcosystemPython},
+		SupportedManagers:       []model.PackageManager{model.PackageManagerPipenv},
 		Tags:                    []string{"graph-resolution", "component-targeting"},
 		SupportsInstallFirst:    true,
 	}
 }
 
 // ResolveGraph resolves a Python dependency graph through Pipenv.
-func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d PipenvDetector) ResolveGraph(ctx context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
@@ -76,14 +78,14 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 		command, err := pipInspectCommand("pipenv", "run")
 		if err == nil {
 			if depsGraph, err := base.resolveGraph(req, "Pipenv detector", command); err == nil {
-				resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, false, nil, workingDir)
+				resolution := resolutionMetadata(model.ResolutionMethodProjectEnvironment, false, nil, workingDir)
 				logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
 				annotateGraphScopes(depsGraph, workingDir)
 				attachDeclaredPositions(depsGraph, workingDir)
 				attachLoosePythonPositions(depsGraph, workingDir)
-				return sdk.DetectionResult{
-					Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
-				}, nil
+				return detectors.Attributed(plugin.DetectionResult{
+					Graphs: model.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
+				}), nil
 			}
 		}
 	}
@@ -96,11 +98,11 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 					annotateGraphScopes(depsGraph, workingDir)
 					attachDeclaredPositions(depsGraph, workingDir)
 					attachLoosePythonPositions(depsGraph, workingDir)
-					resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, true, append(installCommand, req.InstallArgs...), workingDir)
+					resolution := resolutionMetadata(model.ResolutionMethodProjectEnvironment, true, append(installCommand, req.InstallArgs...), workingDir)
 					logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
-					return sdk.DetectionResult{
-						Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
-					}, nil
+					return detectors.Attributed(plugin.DetectionResult{
+						Graphs: model.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
+					}), nil
 				}
 			}
 		} else if err != nil {
@@ -113,18 +115,18 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 		annotateGraphScopes(depsGraph, workingDir)
 		attachDeclaredPositions(depsGraph, workingDir)
 		attachLoosePythonPositions(depsGraph, workingDir)
-		resolution := resolutionMetadata(sdk.ResolutionMethodManifestOnly, false, nil, workingDir)
+		resolution := resolutionMetadata(model.ResolutionMethodManifestOnly, false, nil, workingDir)
 		logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
-		return sdk.DetectionResult{
-			Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
-		}, nil
+		return detectors.Attributed(plugin.DetectionResult{
+			Graphs: model.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
+		}), nil
 	}
 
-	return sdk.DetectionResult{}, fmt.Errorf("pipenv detector: unable to resolve dependency graph")
+	return plugin.DetectionResult{}, fmt.Errorf("pipenv detector: unable to resolve dependency graph")
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d PipenvDetector) FallbackDetector() sdk.Detector {
+func (d PipenvDetector) FallbackDetector() plugin.Detector {
 	return d.Fallback
 }
 
@@ -132,11 +134,12 @@ func (d PipenvDetector) base() baseDetector {
 	return baseDetector{
 		Logger:     d.Logger,
 		WorkingDir: d.WorkingDir,
+		Manager:    model.PackageManagerPipenv,
 	}
 }
 
 // Install prepares Pipenv dependencies before graph resolution.
-func (d PipenvDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
+func (d PipenvDetector) Install(ctx context.Context, req plugin.DetectionRequest) error {
 	return d.base().install(ctx, req, "Pipenv detector", pipenvInstallCommand(d.base().workingDir(req.ProjectPath), req))
 }
 
@@ -161,22 +164,22 @@ func pipenvVenvExists(workingDir string, logger *zap.Logger, stderr io.Writer, d
 	return err == nil && ok
 }
 
-func pipenvInstallCommand(workingDir string, req sdk.DetectionRequest) []string {
+func pipenvInstallCommand(workingDir string, req plugin.DetectionRequest) []string {
 	if fileExists(filepath.Join(workingDir, "Pipfile.lock")) {
 		return pipenvSyncCommand(req)
 	}
 	return []string{"pipenv", "install"}
 }
 
-func pipenvSyncCommand(req sdk.DetectionRequest) []string {
+func pipenvSyncCommand(req plugin.DetectionRequest) []string {
 	command := []string{"pipenv", "sync"}
-	if req.ScopeFilter != sdk.ScopeRuntime {
+	if req.ScopeFilter != model.ScopeRuntime {
 		command = append(command, "--dev")
 	}
 	return command
 }
 
-func pipenvReconstructedInstallCommand(req sdk.DetectionRequest, workingDir string) []string {
+func pipenvReconstructedInstallCommand(req plugin.DetectionRequest, workingDir string) []string {
 	if !req.InstallFirst {
 		return nil
 	}
@@ -202,7 +205,7 @@ type pipfileLockPackage struct {
 	Ref     string `json:"ref"`
 }
 
-func depGraphFromPipfileLock(path, rootName string) (*sdk.Graph, error) {
+func depGraphFromPipfileLock(path, rootName string) (*model.Graph, error) {
 	raw, err := system.ReadRepositoryFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read Pipfile.lock: %w", err)
@@ -214,61 +217,69 @@ func depGraphFromPipfileLock(path, rootName string) (*sdk.Graph, error) {
 	if len(lock.Default) == 0 && len(lock.Develop) == 0 {
 		return nil, fmt.Errorf("pipfile.lock does not contain dependencies")
 	}
-	depsGraph := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
-		PackageManager: sdk.PackageManagerPipenv,
+	depsGraph := model.New()
+	root, err := pythonModuleRoot(model.Coordinates{
+		Ecosystem:      model.EcosystemPython,
+		PackageManager: model.PackageManagerPipenv,
 		Name:           pythonRootNameOrDefault(rootName, filepath.Dir(path)),
-		Type:           sdk.PackageTypeProject,
-		FirstParty:     true},
+		Type:           model.PackageTypeProject,
 	})
-
+	if err != nil {
+		return nil, fmt.Errorf("build root node: %w", err)
+	}
 	if err := depsGraph.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root package: %w", err)
 	}
-	if err := addPipfileLockPackages(depsGraph, root, lock.Default, sdk.ScopeRuntime); err != nil {
+	if err := addPipfileLockPackages(depsGraph, root, lock.Default, model.ScopeRuntime); err != nil {
 		return nil, err
 	}
-	if err := addPipfileLockPackages(depsGraph, root, lock.Develop, sdk.ScopeDevelopment); err != nil {
+	if err := addPipfileLockPackages(depsGraph, root, lock.Develop, model.ScopeDevelopment); err != nil {
 		return nil, err
 	}
 	return depsGraph, nil
 }
 
-func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Dependency, packages map[string]pipfileLockPackage, scope sdk.Scope) error {
+func addPipfileLockPackages(depsGraph *model.Graph, root model.GraphNode, packages map[string]pipfileLockPackage, scope model.Scope) error {
 	for name, pkg := range packages {
 		normalizedName := normalizePythonName(name)
-		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
-			PackageManager: sdk.PackageManagerPipenv,
+		node, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemPython,
+			PackageManager: model.PackageManagerPipenv,
 			Name:           normalizedName,
-			Version:        strings.TrimPrefix(pkg.Version, "==")}, Source: pipfileDependencySource(pkg), ResolvedURL: pipfileResolvedURL(pkg), Metadata: sourceRevisionMetadata(pkg.Ref), Scopes: sdk.ScopesOf(scope),
-		})
+			Version:        strings.TrimPrefix(pkg.Version, "==")})
+		if err != nil {
+			return fmt.Errorf("build dependency node: %w", err)
+		}
+		node.Source = pipfileDependencySource(pkg)
+		node.ResolvedURL = pipfileResolvedURL(pkg)
+		node.Metadata = sourceRevisionMetadata(pkg.Ref)
+		node.Scopes = model.ScopesOf(scope)
 		setPipenvOrigin(node, pkg)
 
 		// One package can be listed in both groups; they are one node, and the
 		// shared helper settles what it claims.
-		if _, err := detectors.EnsureNode(depsGraph, node); err != nil {
+		if _, err := detectorkit.EnsureNode(depsGraph, node); err != nil {
 			return fmt.Errorf("add Pipfile.lock package %q: %w", normalizedName, err)
 		}
-		if err := depsGraph.AddEdge(root.ID, node.ID); err != nil {
+		if err := depsGraph.AddEdge(root.NodeID(), node.NodeID()); err != nil {
 			return fmt.Errorf("add Pipfile.lock dependency %q: %w", normalizedName, err)
 		}
 	}
 	return nil
 }
 
-func pipfileDependencySource(pkg pipfileLockPackage) sdk.DependencySource {
+func pipfileDependencySource(pkg pipfileLockPackage) model.DependencySource {
 	switch {
 	case strings.TrimSpace(pkg.Git) != "":
-		return sdk.DependencySourceGit
+		return model.DependencySourceGit
 	case strings.TrimSpace(pkg.Path) != "", strings.HasPrefix(strings.ToLower(strings.TrimSpace(pkg.File)), "file:"):
-		return sdk.DependencySourceFile
+		return model.DependencySourceFile
 	case strings.TrimSpace(pkg.File) != "":
 		if strings.Contains(strings.TrimSpace(pkg.File), "://") {
-			return sdk.DependencySourceURL
+			return model.DependencySourceURL
 		}
-		return sdk.DependencySourceFile
+		return model.DependencySourceFile
 	case strings.TrimSpace(pkg.Index) != "", strings.TrimSpace(pkg.Version) != "":
-		return sdk.DependencySourceRegistry
+		return model.DependencySourceRegistry
 	default:
 		return ""
 	}

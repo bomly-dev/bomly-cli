@@ -8,20 +8,23 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestReportOptionsFromPipelineResultsCombinesAnalyzerMetadata(t *testing.T) {
 	options := reportOptionsFromPipelineResults(true,
 		engine.PipelineResult{
 			AnalyzerRuns: []string{"jsreach", "govulncheck"},
-			AnalyzerStats: map[string]sdk.ReachabilityStats{
+			AnalyzerStats: map[string]plugin.ReachabilityStats{
 				"jsreach": {Reachable: 1, Unknown: 2},
 			},
 		},
 		engine.PipelineResult{
 			AnalyzerRuns: []string{"pyreach", "jsreach"},
-			AnalyzerStats: map[string]sdk.ReachabilityStats{
+			AnalyzerStats: map[string]plugin.ReachabilityStats{
 				"jsreach": {Reachable: 3, Unreachable: 4},
 				"pyreach": {NotApplicable: 5},
 			},
@@ -47,7 +50,7 @@ func TestReportOptionsFromPipelineResultsCombinesAnalyzerMetadata(t *testing.T) 
 func TestReportOptionsFromPipelineResultsDisabledOmitsAnalyzerMetadata(t *testing.T) {
 	options := reportOptionsFromPipelineResults(false, engine.PipelineResult{
 		AnalyzerRuns:  []string{"jsreach"},
-		AnalyzerStats: map[string]sdk.ReachabilityStats{"jsreach": {Reachable: 1}},
+		AnalyzerStats: map[string]plugin.ReachabilityStats{"jsreach": {Reachable: 1}},
 	})
 	if options.ReachabilityEnabled || len(options.AnalyzerRuns) > 0 || len(options.AnalyzerStats) > 0 {
 		t.Fatalf("disabled options should be empty: %#v", options)
@@ -56,28 +59,28 @@ func TestReportOptionsFromPipelineResultsDisabledOmitsAnalyzerMetadata(t *testin
 
 func TestExplainPackageRefPlacesRemediationOnlyOnFocusedDependency(t *testing.T) {
 	const purl = "pkg:npm/example@1.0.0"
-	dependency := sdk.NewDependency(sdk.Dependency{
-		Coordinates: sdk.Coordinates{
+	dependency := testnodes.DepFrom(model.DependencyNode{
+		Coordinates: model.Coordinates{
 			PURL:    purl,
 			Name:    "example",
 			Version: "1.0.0",
 		},
 	})
-	registry := sdk.NewPackageRegistry()
-	registry.Add(&sdk.Package{
+	registry := model.NewPackageRegistry()
+	registry.Add(&model.Package{
 		Coordinates: dependency.Coordinates,
-		Remediation: &sdk.PackageRemediation{
-			Status:             sdk.PackageRemediationComplete,
+		Remediation: &model.PackageRemediation{
+			Status:             model.PackageRemediationComplete,
 			RecommendedVersion: "1.2.0",
-			Suggestions: []sdk.PackageRemediationSuggestion{
+			Suggestions: []model.PackageRemediationSuggestion{
 				{
-					AffectedDependencyRefs:       []string{dependency.ID},
-					SuggestedActionDependencyRef: dependency.ID,
-					Action:                       sdk.RemediationActionDirectBump,
+					AffectedDependencyRefs:       []string{dependency.NodeID()},
+					SuggestedActionDependencyRef: dependency.NodeID(),
+					Action:                       model.RemediationActionDirectBump,
 				},
 				{
 					AffectedDependencyRefs: []string{"other-occurrence"},
-					Action:                 sdk.RemediationActionManualReview,
+					Action:                 model.RemediationActionManualReview,
 				},
 			},
 		},
@@ -88,14 +91,28 @@ func TestExplainPackageRefPlacesRemediationOnlyOnFocusedDependency(t *testing.T)
 		t.Fatalf("focused remediation = %#v", focused.Remediation)
 	}
 	if len(focused.Remediation.Suggestions) != 1 ||
-		focused.Remediation.Suggestions[0].Action != sdk.RemediationActionDirectBump {
+		focused.Remediation.Suggestions[0].Action != model.RemediationActionDirectBump {
 		t.Fatalf("focused remediation suggestions = %#v", focused.Remediation.Suggestions)
 	}
-	paths := explainPathsWithStableIDs([]output.DependencyPath{{
+	paths := explainPathsWithLinks([]output.DependencyPath{{
 		Packages: []output.PackageRef{
 			output.PackageFromGraphPackage(dependency),
 		},
 	}})
+	// A path entry names the node by the same identity the focused dependency
+	// does, so a consumer can join the two. This is the assertion that was
+	// missing while paths published "name@version" and the dependency
+	// published its canonical package URL.
+	if len(paths) != 1 || len(paths[0].Packages) != 1 {
+		t.Fatalf("paths = %#v; want one path of one package", paths)
+	}
+	if got := paths[0].Packages[0].ID; got != focused.ID {
+		t.Fatalf("path package ID = %q, focused dependency ID = %q; want the same node identity", got, focused.ID)
+	}
+	if paths[0].IntroducedVia != focused.ID {
+		t.Fatalf("introduced_via = %q, want the canonical node ID %q", paths[0].IntroducedVia, focused.ID)
+	}
+
 	pathData, err := json.Marshal(paths)
 	if err != nil {
 		t.Fatalf("Marshal(paths) error = %v", err)

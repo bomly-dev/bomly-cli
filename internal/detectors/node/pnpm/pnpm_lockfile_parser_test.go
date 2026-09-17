@@ -6,7 +6,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func writePNPMProject(t *testing.T, lockfile, manifest string) string {
@@ -44,10 +47,10 @@ snapshots:
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, ok := graphs.graph.Node("selected@2.0.0"); !ok {
+	if _, ok := testnodes.Find(graphs.graph, "selected@2.0.0"); !ok {
 		t.Fatal("expected package from project document")
 	}
-	if _, ok := graphs.graph.Node("ignored@1.0.0"); ok {
+	if _, ok := testnodes.Find(graphs.graph, "ignored@1.0.0"); ok {
 		t.Fatal("must not merge an unrelated YAML document")
 	}
 }
@@ -63,8 +66,8 @@ packages:
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, ok := graphs.graph.Node("@scope/pkg@1.2.3"); !ok {
-		t.Fatalf("nodes = %#v", graphs.graph.Nodes())
+	if _, ok := testnodes.Find(graphs.graph, "@scope/pkg@1.2.3"); !ok {
+		t.Fatalf("nodes = %#v", graphs.graph.DependencyNodes())
 	}
 }
 
@@ -83,11 +86,12 @@ packages:
 	if err != nil {
 		t.Fatal(err)
 	}
-	root, ok := graphs.graph.Node(graphs.rootID)
+	root, ok := testnodes.Find(graphs.graph, graphs.rootID)
 	if !ok {
 		t.Fatal("root missing")
 	}
-	dependencies, err := graphs.graph.DirectDependencies(root.ID)
+	dependenciesNodes, err := graphs.graph.DirectDependencies(root.NodeID())
+	dependencies := model.DependencyNodesOf(dependenciesNodes)
 	if err != nil || len(dependencies) != 1 || dependencies[0].Name != "real-package" {
 		t.Fatalf("dependencies = %#v, err=%v", dependencies, err)
 	}
@@ -113,7 +117,7 @@ snapshots:
 	if err := os.WriteFile(filepath.Join(memberDir, "package.json"), []byte(`{"name":"cloudflare","version":"4.0.0"}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -121,10 +125,10 @@ snapshots:
 		t.Fatalf("entries = %d", len(result.Graphs.Entries))
 	}
 	member := result.Graphs.Entries[1].Graph
-	if _, ok := member.Node("workspace:packages/cloudflare"); !ok {
-		t.Fatalf("workspace node missing: %#v", member.Nodes())
+	if len(member.ModuleNodes()) == 0 {
+		t.Fatalf("workspace module node missing: %#v", member.Nodes())
 	}
-	if _, ok := member.Node("cloudflare@4.0.0"); !ok {
+	if _, ok := testnodes.Find(member, "cloudflare@4.0.0"); !ok {
 		t.Fatal("registry package with the same name missing")
 	}
 }
@@ -142,8 +146,19 @@ snapshots:
 	if err != nil {
 		t.Fatal(err)
 	}
-	dependency, ok := graphs.graph.Node("@example/local@packages/local")
-	if !ok || dependency.Source != sdk.DependencySourceWorkspace {
+	dependency, ok := testnodes.Find(graphs.graph, "@example/local@packages/local")
+	if !ok || mustDep(t, dependency).Source != model.DependencySourceWorkspace {
 		t.Fatalf("dependency = %#v", dependency)
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*model.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

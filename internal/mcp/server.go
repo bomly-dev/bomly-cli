@@ -8,10 +8,11 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
-	"github.com/bomly-dev/bomly-sdk"
 	mcplib "github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // ScanRequest holds per-call overrides for the bomly_scan tool.
@@ -100,9 +101,9 @@ type DiffRequest struct {
 // internal/engine).
 type ScanRunResult struct {
 	Response    output.ScanResponse
-	Findings    []sdk.Finding
-	Graph       *sdk.Graph
-	Registry    *sdk.PackageRegistry
+	Findings    []model.Finding
+	Graph       *model.Graph
+	Registry    *model.PackageRegistry
 	Diagnostics []Diagnostic
 	EnrichRan   bool
 	AuditRan    bool
@@ -113,9 +114,9 @@ type ScanRunResult struct {
 // package.
 type ExplainRunResult struct {
 	Response    output.ExplainResponse
-	Findings    []sdk.Finding
-	Graph       *sdk.Graph
-	Registry    *sdk.PackageRegistry
+	Findings    []model.Finding
+	Graph       *model.Graph
+	Registry    *model.PackageRegistry
 	Manifests   []output.ScanManifest
 	Diagnostics []Diagnostic
 	EnrichRan   bool
@@ -123,17 +124,17 @@ type ExplainRunResult struct {
 }
 
 // DiffRunResult carries a diff run's output plus the audit delta buckets
-// ([]sdk.Finding per bucket, computed version-independently by advisory id)
+// ([]model.Finding per bucket, computed version-independently by advisory id)
 // and the head-side domain data used to build remediation context for what
 // remains after merge.
 type DiffRunResult struct {
 	Response      output.DiffResponse
-	Introduced    []sdk.Finding
-	Resolved      []sdk.Finding
-	Persisted     []sdk.Finding
-	HeadGraph     *sdk.Graph
-	HeadRegistry  *sdk.PackageRegistry
-	BaseRegistry  *sdk.PackageRegistry
+	Introduced    []model.Finding
+	Resolved      []model.Finding
+	Persisted     []model.Finding
+	HeadGraph     *model.Graph
+	HeadRegistry  *model.PackageRegistry
+	BaseRegistry  *model.PackageRegistry
 	HeadManifests []output.ScanManifest
 	Diagnostics   []Diagnostic
 	EnrichRan     bool
@@ -235,8 +236,7 @@ func jsonResult(v any) (*mcplib.CallToolResult, error) {
 
 func toolErrorResult(mcpCtx Context, tool string, err error) *mcplib.CallToolResult {
 	kind := ToolErrorKind("")
-	var categorized *toolError
-	if errors.As(err, &categorized) {
+	if categorized, ok := errors.AsType[*toolError](err); ok {
 		kind = categorized.kind
 	}
 	cause := errors.Unwrap(err)

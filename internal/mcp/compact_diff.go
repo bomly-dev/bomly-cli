@@ -6,7 +6,8 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // diffHint tells agents how to drill into the delta.
@@ -38,9 +39,9 @@ type CompactDiffSummary struct {
 // CompactDependencyTransitionState is one side of a dependency occurrence
 // detail change.
 type CompactDependencyTransitionState struct {
-	Relationship     sdk.DependencyRelationship `json:"relationship,omitempty"`
-	Source           sdk.DependencySource       `json:"source,omitempty"`
-	RegistryEligible bool                       `json:"registry_eligible"`
+	Relationship     model.DependencyRelationship `json:"relationship,omitempty"`
+	Source           model.DependencySource       `json:"source,omitempty"`
+	RegistryEligible bool                         `json:"registry_eligible"`
 }
 
 // CompactDependencyTransition reports one same-identity detail change
@@ -48,7 +49,7 @@ type CompactDependencyTransitionState struct {
 // package detail.
 type CompactDependencyTransition struct {
 	Package       PackageIdentity                  `json:"package"`
-	ChangedFields []sdk.DependencyDetailField      `json:"changed_fields"`
+	ChangedFields []model.DependencyDetailField    `json:"changed_fields"`
 	Before        CompactDependencyTransitionState `json:"before"`
 	After         CompactDependencyTransitionState `json:"after"`
 }
@@ -118,7 +119,7 @@ func BuildCompactDiff(run DiffRunResult) CompactDiffResponse {
 
 	// Remediation context covers every enriched head vulnerability. Audit
 	// findings overlay policy status for findings that remain open after merge.
-	open := append(append([]sdk.Finding{}, run.Introduced...), run.Persisted...)
+	open := append(append([]model.Finding{}, run.Introduced...), run.Persisted...)
 	headInput.Findings = remediationFindings(run.HeadRegistry, open, run.AuditRan)
 	remediation := buildRemediations(headInput)
 	response.Remediations = remediation.Remediations
@@ -135,17 +136,18 @@ func BuildCompactDiff(run DiffRunResult) CompactDiffResponse {
 
 // compactFindingList converts one delta bucket, capped at maxInformational
 // entries per bucket.
-func compactFindingList(findings []sdk.Finding, in remediationInput, trunc *TruncationInfo) []CompactFinding {
+func compactFindingList(findings []model.Finding, in remediationInput, trunc *TruncationInfo) []CompactFinding {
 	if len(findings) == 0 {
 		return nil
 	}
+	in.indexNodes()
 	out := make([]CompactFinding, 0, len(findings))
 	for _, f := range findings {
 		if len(out) >= maxInformational {
 			trunc.OmittedFindings++
 			continue
 		}
-		vuln := lookupFindingVulnerability(in.Registry, f)
+		_, vuln := output.FindingAdvisory(in.Registry, f)
 		compact, _ := buildCompactFinding(f, vuln, in)
 		out = append(out, compact)
 	}
@@ -197,7 +199,7 @@ func compactDependencyTransitions(transitions []output.DiffDependencyTransition,
 				Version: pkg.Version,
 				Purl:    pkg.Purl,
 			},
-			ChangedFields: append([]sdk.DependencyDetailField(nil), transition.ChangedFields...),
+			ChangedFields: append([]model.DependencyDetailField(nil), transition.ChangedFields...),
 			Before: CompactDependencyTransitionState{
 				Relationship:     transition.Before.Relationship,
 				Source:           transition.Before.Source,

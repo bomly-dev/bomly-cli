@@ -7,7 +7,10 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/config"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/httpkit"
+	sdkplugin "github.com/bomly-dev/bomly-sdk/plugin"
+	"github.com/bomly-dev/bomly-sdk/runtime"
 )
 
 func TestPluginEnvIncludesProxyAndPluginConfig(t *testing.T) {
@@ -32,32 +35,32 @@ func TestPluginEnvIncludesProxyAndPluginConfig(t *testing.T) {
 	defer cleanup()
 
 	values := envMap(env)
-	if values[EnvPluginAPIVersion] != sdk.PluginAPIVersion {
+	if values[EnvPluginAPIVersion] != sdkplugin.PluginAPIVersion {
 		t.Fatalf("api version env = %q", values[EnvPluginAPIVersion])
 	}
 	if values[EnvPluginConfig] != "/tmp/bomly.yaml" {
 		t.Fatalf("config env = %q", values[EnvPluginConfig])
 	}
-	if values[sdk.EnvPluginID] != "acme.matcher" {
-		t.Fatalf("plugin id env = %q", values[sdk.EnvPluginID])
+	if values[runtime.EnvPluginID] != "acme.matcher" {
+		t.Fatalf("plugin id env = %q", values[runtime.EnvPluginID])
 	}
-	if values[sdk.EnvHTTPProxy] != "socks5://agent:secret@proxy.example:1080" || values["HTTPS_PROXY"] != "socks5://agent:secret@proxy.example:1080" {
+	if values[httpkit.EnvHTTPProxy] != "socks5://agent:secret@proxy.example:1080" || values["HTTPS_PROXY"] != "socks5://agent:secret@proxy.example:1080" {
 		t.Fatalf("proxy env = %#v", values)
 	}
-	if values[sdk.EnvHTTPProxyType] != "socks5" || values[sdk.EnvHTTPProxyHost] != "proxy.example" || values[sdk.EnvHTTPProxyPort] != "1080" {
+	if values[httpkit.EnvHTTPProxyType] != "socks5" || values[httpkit.EnvHTTPProxyHost] != "proxy.example" || values[httpkit.EnvHTTPProxyPort] != "1080" {
 		t.Fatalf("split proxy env = %#v", values)
 	}
-	if values[sdk.EnvHTTPProxyUsername] != "agent" || values[sdk.EnvHTTPProxyPassword] != "secret" {
+	if values[httpkit.EnvHTTPProxyUsername] != "agent" || values[httpkit.EnvHTTPProxyPassword] != "secret" {
 		t.Fatalf("proxy auth env = %#v", values)
 	}
-	if values[sdk.EnvHTTPCACertFile] != "/tmp/proxy-ca.pem" {
+	if values[httpkit.EnvHTTPCACertFile] != "/tmp/proxy-ca.pem" {
 		t.Fatalf("CA cert env = %#v", values)
 	}
-	if values[sdk.EnvHTTPNoProxy] != "localhost,.corp.example" || values["NO_PROXY"] != "localhost,.corp.example" {
+	if values[httpkit.EnvHTTPNoProxy] != "localhost,.corp.example" || values["NO_PROXY"] != "localhost,.corp.example" {
 		t.Fatalf("no-proxy env = %#v", values)
 	}
 
-	configPath := values[sdk.EnvPluginConfigFile]
+	configPath := values[runtime.EnvPluginConfigFile]
 	if configPath == "" {
 		t.Fatalf("missing plugin config file env")
 	}
@@ -118,8 +121,8 @@ func TestPluginEnvDoesNotForwardUnrelatedHostEnvironment(t *testing.T) {
 			t.Fatalf("plugin environment forwarded unrelated %s=%q", name, value)
 		}
 	}
-	if values[EnvPluginAPIVersion] != sdk.PluginAPIVersion ||
-		values[sdk.EnvPluginID] != "acme.matcher" {
+	if values[EnvPluginAPIVersion] != sdkplugin.PluginAPIVersion ||
+		values[runtime.EnvPluginID] != "acme.matcher" {
 		t.Fatalf("plugin environment omitted required protocol values: %#v", values)
 	}
 }
@@ -141,7 +144,7 @@ func TestPluginEnvOnlyWritesSelectedPluginConfig(t *testing.T) {
 	defer cleanup()
 
 	values := envMap(env)
-	configPath := values[sdk.EnvPluginConfigFile]
+	configPath := values[runtime.EnvPluginConfigFile]
 	if configPath == "" {
 		t.Fatal("missing plugin config file env")
 	}
@@ -187,7 +190,7 @@ func TestPluginEnvSelectsConfigByKind(t *testing.T) {
 	defer cleanup()
 	var configPath string
 	for _, entry := range env {
-		if value, ok := strings.CutPrefix(entry, sdk.EnvPluginConfigFile+"="); ok {
+		if value, ok := strings.CutPrefix(entry, runtime.EnvPluginConfigFile+"="); ok {
 			configPath = value
 		}
 	}

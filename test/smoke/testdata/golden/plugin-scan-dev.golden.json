@@ -29,6 +29,7 @@
       "ecosystem": "go",
       "licenses": [],
       "name": "example.com/plugin-smoke",
+      "org": "example.com",
       "purl": "pkg:golang/example.com/plugin-smoke@v0.0.0",
       "version": "v0.0.0",
       "vulnerabilities": []

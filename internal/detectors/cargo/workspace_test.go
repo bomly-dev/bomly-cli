@@ -7,7 +7,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestParseCargoWorkspaceMembers(t *testing.T) {
@@ -57,7 +60,7 @@ func TestDetectionResultFromMetadataWorkspacePerModuleEntries(t *testing.T) {
     ]
   }
 }`)
-	result, err := Detector{}.detectionResultFromMetadata(sdk.DetectionRequest{ProjectPath: "/demo"}, raw)
+	result, err := Detector{}.detectionResultFromMetadata(plugin.DetectionRequest{ProjectPath: "/demo"}, raw)
 	if err != nil {
 		t.Fatalf("detectionResultFromMetadata() error = %v", err)
 	}
@@ -65,7 +68,7 @@ func TestDetectionResultFromMetadataWorkspacePerModuleEntries(t *testing.T) {
 	if len(entries) != 2 {
 		t.Fatalf("expected one entry per member, got %d", len(entries))
 	}
-	byPath := map[string]sdk.GraphEntry{}
+	byPath := map[string]model.GraphEntry{}
 	for _, entry := range entries {
 		byPath[entry.Manifest.Path] = entry
 	}
@@ -79,19 +82,21 @@ func TestDetectionResultFromMetadataWorkspacePerModuleEntries(t *testing.T) {
 	// Member a reaches its inter-member dep b and the shared serde;
 	// the synthesized virtual workspace root never appears in entries.
 	for _, want := range []string{"a@0.1.0", "b@0.2.0", "serde@1.0.210"} {
-		if _, ok := a.Graph.Node(want); !ok {
+		if _, ok := testnodes.Find(a.Graph, want); !ok {
 			t.Fatalf("expected %q in member a graph", want)
 		}
 	}
-	if _, ok := a.Graph.Node("root"); ok {
+	if _, ok := testnodes.Find(a.Graph, "root"); ok {
 		t.Fatal("virtual workspace root must not leak into member entries")
 	}
-	member, ok := a.Graph.Node("a@0.1.0")
+	member, ok := testnodes.Find(a.Graph, "a@0.1.0")
 	if !ok {
 		t.Fatal("expected workspace member a")
 	}
-	if member.Source != sdk.DependencySourceWorkspace {
-		t.Fatalf("workspace member source = %q, want %q", member.Source, sdk.DependencySourceWorkspace)
+	// A workspace member is a module node now: ownership is the kind, not a
+	// DependencySourceWorkspace value on a dependency node (ADR-0041).
+	if !model.IsProjectOwned(member) {
+		t.Fatalf("workspace member is a %s node, want the project's own module", member.Kind())
 	}
 }
 
@@ -143,7 +148,7 @@ version = "1.0.210"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 `)
 
-	result, err := Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: root})
+	result, err := Detector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: root})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -151,7 +156,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 	if len(entries) != 2 {
 		t.Fatalf("expected one entry per member for a virtual workspace, got %d", len(entries))
 	}
-	byPath := map[string]sdk.GraphEntry{}
+	byPath := map[string]model.GraphEntry{}
 	for _, entry := range entries {
 		byPath[entry.Manifest.Path] = entry
 	}
@@ -164,33 +169,33 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 		t.Fatalf("expected crates/b/Cargo.toml entry, got %v", byPath)
 	}
 	for _, want := range []string{"a@0.1.0", "b@0.2.0", "serde@1.0.210"} {
-		if _, ok := a.Graph.Node(want); !ok {
+		if _, ok := testnodes.Find(a.Graph, want); !ok {
 			t.Fatalf("expected %q in member a graph", want)
 		}
 	}
-	member, ok := a.Graph.Node("a@0.1.0")
-	if !ok || member.Source != sdk.DependencySourceWorkspace {
-		t.Fatalf("member a source = %#v, want workspace", member)
+	member, ok := testnodes.Find(a.Graph, "a@0.1.0")
+	if !ok || !model.IsProjectOwned(member) {
+		t.Fatalf("member a = %#v, want the project's own module", member)
 	}
-	serde, ok := a.Graph.Node("serde@1.0.210")
-	if !ok || serde.Source != sdk.DependencySourceRegistry {
+	serde, ok := testnodes.Find(a.Graph, "serde@1.0.210")
+	if !ok || mustDep(t, serde).Source != model.DependencySourceRegistry {
 		t.Fatalf("serde source = %#v, want registry", serde)
 	}
-	if _, ok := b.Graph.Node("a@0.1.0"); ok {
+	if _, ok := testnodes.Find(b.Graph, "a@0.1.0"); ok {
 		t.Fatal("member b graph must not contain member a")
 	}
-	dev, ok := b.Graph.Node("pretty_assertions@1.4.1")
+	dev, ok := testnodes.Find(b.Graph, "pretty_assertions@1.4.1")
 	if !ok {
 		t.Fatal("expected member dev dependency in member b graph")
 	}
 	hasDev := false
-	for _, scope := range dev.Scopes {
-		if scope == sdk.ScopeDevelopment {
+	for _, scope := range mustDep(t, dev).Scopes {
+		if scope == model.ScopeDevelopment {
 			hasDev = true
 		}
 	}
 	if !hasDev {
-		t.Fatalf("expected development scope on member dev dependency, got %v", dev.Scopes)
+		t.Fatalf("expected development scope on member dev dependency, got %v", mustDep(t, dev).Scopes)
 	}
 }
 
@@ -206,7 +211,7 @@ func TestResolveFromLockSinglePackageStillSingleEntry(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(root, "Cargo.lock"), []byte("version = 3\n\n[[package]]\nname = \"app\"\nversion = \"0.1.0\"\ndependencies = [\n \"serde\",\n]\n\n[[package]]\nname = \"serde\"\nversion = \"1.0.210\"\n"), 0o644); err != nil {
 		t.Fatalf("write Cargo.lock: %v", err)
 	}
-	result, err := Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: root})
+	result, err := Detector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: root})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}

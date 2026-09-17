@@ -16,10 +16,13 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/git"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/plugin"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/httpkit"
+	"github.com/bomly-dev/bomly-sdk/model"
+	sdkplugin "github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // Options encapsulates the context for executing a CLI command,
@@ -27,19 +30,19 @@ import (
 type Options struct {
 	ResolvedConfig         config.Resolved
 	registry               *engine.Registry
-	executionTarget        sdk.ExecutionTarget
-	subprojects            []sdk.Subproject
-	detectorFilter         sdk.DetectorFilter
-	auditorFilter          sdk.AuditorFilter
-	matcherFilter          sdk.MatcherFilter
-	analyzerFilter         sdk.AnalyzerFilter
-	ecosystemFilter        sdk.EcosystemFilter
-	httpProvider           *sdk.HTTPClientProvider
+	executionTarget        sdkplugin.ExecutionTarget
+	subprojects            []sdkplugin.Subproject
+	detectorFilter         sdkplugin.DetectorFilter
+	auditorFilter          sdkplugin.AuditorFilter
+	matcherFilter          sdkplugin.MatcherFilter
+	analyzerFilter         sdkplugin.AnalyzerFilter
+	ecosystemFilter        model.EcosystemFilter
+	httpProvider           *httpkit.ClientProvider
 	Format                 output.Format
 	outputPath             string
 	verbose                bool
 	cleanup                func() error
-	findingPolicyResolvers []sdk.FindingPolicyResolver
+	findingPolicyResolvers []model.FindingPolicyResolver
 	baselineEvaluation     *engine.BaselineEvaluation
 	pluginPool             *plugin.ClientPool
 }
@@ -86,38 +89,38 @@ func (o *Options) Registry() *engine.Registry {
 }
 
 // ExecutionTarget returns the target prepared for command execution.
-func (o *Options) ExecutionTarget() sdk.ExecutionTarget {
+func (o *Options) ExecutionTarget() sdkplugin.ExecutionTarget {
 	return o.executionTarget
 }
 
 // Subprojects returns the subprojects prepared for command execution.
-func (o *Options) Subprojects() []sdk.Subproject {
-	return append([]sdk.Subproject(nil), o.subprojects...)
+func (o *Options) Subprojects() []sdkplugin.Subproject {
+	return append([]sdkplugin.Subproject(nil), o.subprojects...)
 }
 
 // DetectorFilter returns the detector filter prepared for command execution.
-func (o *Options) DetectorFilter() sdk.DetectorFilter {
+func (o *Options) DetectorFilter() sdkplugin.DetectorFilter {
 	return o.detectorFilter
 }
 
 // AuditorFilter returns the auditor filter prepared for command execution.
-func (o *Options) AuditorFilter() sdk.AuditorFilter {
+func (o *Options) AuditorFilter() sdkplugin.AuditorFilter {
 	return o.auditorFilter
 }
 
 // MatcherFilter returns the matcher filter prepared for command execution.
-func (o *Options) MatcherFilter() sdk.MatcherFilter {
+func (o *Options) MatcherFilter() sdkplugin.MatcherFilter {
 	return o.matcherFilter
 }
 
 // AnalyzerFilter returns the analyzer filter prepared for command execution.
-func (o *Options) AnalyzerFilter() sdk.AnalyzerFilter {
+func (o *Options) AnalyzerFilter() sdkplugin.AnalyzerFilter {
 	return o.analyzerFilter
 }
 
 // PipelineRequest builds the scan pipeline request for this prepared command context.
-func (o *Options) PipelineRequest(scope sdk.Scope, stderr io.Writer) engine.PipelineRequest {
-	failOn, _ := sdk.ParseFailOnList(o.ResolvedConfig.FailOn)
+func (o *Options) PipelineRequest(scope model.Scope, stderr io.Writer) engine.PipelineRequest {
+	failOn, _ := model.ParseFailOnList(o.ResolvedConfig.FailOn)
 	typosquatThreshold, _ := strconv.ParseFloat(strings.TrimSpace(o.ResolvedConfig.TyposquatThreshold), 64)
 	if !o.Verbose() {
 		stderr = nil
@@ -145,7 +148,7 @@ func (o *Options) PipelineRequest(scope sdk.Scope, stderr io.Writer) engine.Pipe
 		TyposquatThreshold:         typosquatThreshold,
 		TyposquatMode:              strings.TrimSpace(o.ResolvedConfig.TyposquatMode),
 		WarnOnly:                   o.ResolvedConfig.WarnOnly,
-		FindingPolicyResolvers:     append([]sdk.FindingPolicyResolver(nil), o.findingPolicyResolvers...),
+		FindingPolicyResolvers:     append([]model.FindingPolicyResolver(nil), o.findingPolicyResolvers...),
 		BaselineEvaluation:         cloneBaselineEvaluation(o.baselineEvaluation),
 		InstallFirst:               o.ResolvedConfig.InstallFirst,
 		InstallArgs:                append([]string(nil), o.ResolvedConfig.InstallArgs...),
@@ -220,12 +223,12 @@ func (o *Options) Prepare(ctx context.Context, logger *zap.Logger) (Options, err
 // this directly when they want to surface a dedicated "Cloning repository"
 // (or similar) progress step around just this phase, before calling
 // PrepareForExecutionTarget for the subproject-indexing phase.
-func (o *Options) ResolveExecutionTarget(ctx context.Context, logger *zap.Logger) (sdk.ExecutionTarget, func() error, error) {
+func (o *Options) ResolveExecutionTarget(ctx context.Context, logger *zap.Logger) (sdkplugin.ExecutionTarget, func() error, error) {
 	target, _, cleanup, err := o.resolveExecutionTarget(ctx, logger)
 	return target, cleanup, err
 }
 
-func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Logger, executionTarget sdk.ExecutionTarget, cleanup func() error) (Options, error) {
+func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Logger, executionTarget sdkplugin.ExecutionTarget, cleanup func() error) (Options, error) {
 	resolved := o.ResolvedConfig
 
 	format, err := o.OutputFormat()
@@ -236,13 +239,13 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		return Options{}, exit.InvalidInputError("parse format: %v", err)
 	}
 
-	if _, err := sdk.ParseFailOnList(resolved.FailOn); err != nil {
+	if _, err := model.ParseFailOnList(resolved.FailOn); err != nil {
 		if cleanup != nil {
 			_ = cleanup()
 		}
 		return Options{}, exit.InvalidInputError("%v", err)
 	}
-	httpProvider, err := sdk.NewHTTPClientProvider(httpClientConfigFromResolved(resolved))
+	httpProvider, err := httpkit.NewClientProvider(httpClientConfigFromResolved(resolved))
 	if err != nil {
 		if cleanup != nil {
 			_ = cleanup()
@@ -312,9 +315,9 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		}
 	}
 
-	forcedPackageManager := sdk.PackageManagerUnknown
+	forcedPackageManager := model.PackageManagerUnknown
 	if resolved.SBOM {
-		forcedPackageManager = sdk.PackageManagerSBOM
+		forcedPackageManager = model.PackageManagerSBOM
 	}
 
 	filteredRegistry := scanRegistry.Filter(engine.RegistryFilter{
@@ -448,7 +451,7 @@ func (o *Options) PluginLaunchContext(ctx context.Context) context.Context {
 	current := o.GetConfig()
 	httpProvider := o.httpProvider
 	if httpProvider == nil {
-		httpProvider, _ = sdk.NewHTTPClientProvider(httpClientConfigFromResolved(current))
+		httpProvider, _ = httpkit.NewClientProvider(httpClientConfigFromResolved(current))
 	}
 	if o.pluginPool == nil {
 		o.pluginPool = plugin.NewClientPool()
@@ -470,8 +473,8 @@ func (o *Options) PluginLaunchContext(ctx context.Context) context.Context {
 	})
 }
 
-func httpClientConfigFromResolved(current config.Resolved) sdk.HTTPClientConfig {
-	return sdk.HTTPClientConfig{
+func httpClientConfigFromResolved(current config.Resolved) httpkit.ClientConfig {
+	return httpkit.ClientConfig{
 		ProxyURL:      current.HTTPProxy,
 		NoProxy:       current.HTTPNoProxy,
 		ProxyType:     current.HTTPProxyType,
@@ -486,8 +489,8 @@ func httpClientConfigFromResolved(current config.Resolved) sdk.HTTPClientConfig 
 // ProjectDescriptor returns a descriptor for the main project being analyzed,
 // summarizing its name, path, ecosystem, and package manager.
 func (o *Options) ProjectDescriptor() output.ProjectDescriptor {
-	ecosystem := sdk.EcosystemOther
-	packageManager := sdk.PackageManagerMultiple
+	ecosystem := model.EcosystemOther
+	packageManager := model.PackageManagerMultiple
 	if len(o.subprojects) == 1 {
 		ecosystem = o.subprojects[0].Ecosystem
 		packageManager = o.subprojects[0].PrimaryPackageManager()
@@ -506,7 +509,7 @@ func (o *Options) ProjectDescriptor() output.ProjectDescriptor {
 // ProjectDescriptorForSubproject returns a descriptor for a given subproject,
 // summarizing its name, path, ecosystem, and package manager.
 // If the subproject's relative path is ".", it uses the main execution target's name instead.
-func (o *Options) ProjectDescriptorForSubproject(subproject sdk.Subproject) output.ProjectDescriptor {
+func (o *Options) ProjectDescriptorForSubproject(subproject sdkplugin.Subproject) output.ProjectDescriptor {
 	name := filepath.Base(subproject.ExecutionTarget.Location)
 	if subproject.RelativePath == "." {
 		name = displayTargetName(o.executionTarget)
@@ -521,19 +524,19 @@ func (o *Options) ProjectDescriptorForSubproject(subproject sdk.Subproject) outp
 	}
 }
 
-func displayTargetLocation(target sdk.ExecutionTarget) string {
-	if target.Kind == sdk.ExecutionTargetGitRepository && strings.TrimSpace(target.RepositoryURL) != "" {
+func displayTargetLocation(target sdkplugin.ExecutionTarget) string {
+	if target.Kind == sdkplugin.ExecutionTargetGitRepository && strings.TrimSpace(target.RepositoryURL) != "" {
 		return strings.TrimSpace(target.RepositoryURL)
 	}
 	return target.Location
 }
 
-func displayTargetName(target sdk.ExecutionTarget) string {
+func displayTargetName(target sdkplugin.ExecutionTarget) string {
 	location := displayTargetLocation(target)
 	if strings.TrimSpace(location) == "" {
 		return ""
 	}
-	if target.Kind == sdk.ExecutionTargetContainerImage {
+	if target.Kind == sdkplugin.ExecutionTargetContainerImage {
 		return location
 	}
 	// Git repositories and filesystem paths both name themselves after the
@@ -546,13 +549,13 @@ func displayTargetName(target sdk.ExecutionTarget) string {
 	return filepath.Base(trimmed)
 }
 
-func displayTargetType(target sdk.ExecutionTarget) string {
+func displayTargetType(target sdkplugin.ExecutionTarget) string {
 	switch target.Kind {
-	case sdk.ExecutionTargetGitRepository:
+	case sdkplugin.ExecutionTargetGitRepository:
 		return "git repository"
-	case sdk.ExecutionTargetContainerImage:
+	case sdkplugin.ExecutionTargetContainerImage:
 		return "container image"
-	case sdk.ExecutionTargetFilesystem:
+	case sdkplugin.ExecutionTargetFilesystem:
 		return "filesystem"
 	default:
 		return string(target.Kind)
@@ -611,17 +614,17 @@ func (o *Options) configLoadPaths(explicitConfig string) ([]string, error) {
 	return paths, nil
 }
 
-func (o *Options) resolveExecutionTarget(ctx context.Context, logger *zap.Logger) (sdk.ExecutionTarget, string, func() error, error) {
+func (o *Options) resolveExecutionTarget(ctx context.Context, logger *zap.Logger) (sdkplugin.ExecutionTarget, string, func() error, error) {
 	resolved := o.ResolvedConfig
 	if resolved.SBOM {
 		if resolved.Image != "" || resolved.URL != "" || resolved.Ref != "" {
-			return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("--sbom cannot be combined with --image, --url, or --ref")
+			return sdkplugin.ExecutionTarget{}, "", nil, exit.InvalidInputError("--sbom cannot be combined with --image, --url, or --ref")
 		}
 		sbomPath, err := system.ResolveExistingFile(resolved.Path)
 		if err != nil {
-			return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("resolve --path for --sbom: %v", err)
+			return sdkplugin.ExecutionTarget{}, "", nil, exit.InvalidInputError("resolve --path for --sbom: %v", err)
 		}
-		return sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: sbomPath}, sbomPath, nil, nil
+		return sdkplugin.ExecutionTarget{Kind: sdkplugin.ExecutionTargetFilesystem, Location: sbomPath}, sbomPath, nil, nil
 	}
 	targetCount := 0
 	if resolved.Path != "" {
@@ -634,18 +637,18 @@ func (o *Options) resolveExecutionTarget(ctx context.Context, logger *zap.Logger
 		targetCount++
 	}
 	if targetCount > 1 {
-		return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("--path, --url, and --image cannot be used together")
+		return sdkplugin.ExecutionTarget{}, "", nil, exit.InvalidInputError("--path, --url, and --image cannot be used together")
 	}
 	if resolved.URL != "" {
 		projectPath, err := git.CloneTemp(ctx, logger, resolved.URL, resolved.Ref)
 		if err != nil {
-			return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("clone --url %q: %v", resolved.URL, err)
+			return sdkplugin.ExecutionTarget{}, "", nil, exit.InvalidInputError("clone --url %q: %v", resolved.URL, err)
 		}
 		cleanup := func() error {
 			return os.RemoveAll(projectPath)
 		}
-		return sdk.ExecutionTarget{
-			Kind:          sdk.ExecutionTargetGitRepository,
+		return sdkplugin.ExecutionTarget{
+			Kind:          sdkplugin.ExecutionTargetGitRepository,
 			Location:      projectPath,
 			RepositoryURL: resolved.URL,
 			Ref:           resolved.Ref,
@@ -653,18 +656,18 @@ func (o *Options) resolveExecutionTarget(ctx context.Context, logger *zap.Logger
 	}
 	if resolved.Image != "" {
 		if resolved.Ref != "" {
-			return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("--ref can only be used with --url")
+			return sdkplugin.ExecutionTarget{}, "", nil, exit.InvalidInputError("--ref can only be used with --url")
 		}
-		return sdk.ExecutionTarget{
-			Kind:     sdk.ExecutionTargetContainerImage,
+		return sdkplugin.ExecutionTarget{
+			Kind:     sdkplugin.ExecutionTargetContainerImage,
 			Location: strings.TrimSpace(resolved.Image),
 		}, resolved.Image, nil, nil
 	}
 	projectPath, err := o.ResolveProjectPath()
 	if err != nil {
-		return sdk.ExecutionTarget{}, "", nil, err
+		return sdkplugin.ExecutionTarget{}, "", nil, err
 	}
-	return sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectPath}, projectPath, nil, nil
+	return sdkplugin.ExecutionTarget{Kind: sdkplugin.ExecutionTargetFilesystem, Location: projectPath}, projectPath, nil, nil
 }
 
 func (o *Options) registerInstalledPluginDescriptors(ctx context.Context, reg *engine.Registry) error {

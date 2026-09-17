@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // gradleDependencyCoord matches the typical declarations in
@@ -35,8 +36,8 @@ var gradleLockfileLine = regexp.MustCompile(`^([a-zA-Z][a-zA-Z0-9._-]+):([a-zA-Z
 // wins. relDir is the scan-root-relative subproject directory (slash
 // form, empty for the root project) prefixed onto every recorded file
 // so multi-project locations stay repo-relative.
-func gradlePositions(projectDir, relDir string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func gradlePositions(projectDir, relDir string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	files := []string{
 		"gradle.lockfile",
 		"build.gradle.kts",
@@ -71,7 +72,7 @@ func gradlePositions(projectDir, relDir string) map[string]*sdk.SourcePosition {
 	return out
 }
 
-func record(out map[string]*sdk.SourcePosition, file, name string, line int) {
+func record(out map[string]*model.SourcePosition, file, name string, line int) {
 	name = strings.TrimSpace(name)
 	if name == "" {
 		return
@@ -79,7 +80,7 @@ func record(out map[string]*sdk.SourcePosition, file, name string, line int) {
 	if _, exists := out[name]; exists {
 		return
 	}
-	out[name] = &sdk.SourcePosition{File: file, Line: line}
+	out[name] = &model.SourcePosition{File: file, Line: line}
 }
 
 // AttachGradlePositions wires gradle build/lock file line numbers
@@ -87,7 +88,7 @@ func record(out map[string]*sdk.SourcePosition, file, name string, line int) {
 // relDir is the scan-root-relative subproject directory (slash form,
 // empty for the root project) used to keep recorded file paths
 // repo-relative.
-func AttachGradlePositions(g *sdk.Graph, projectDir, relDir string) {
+func AttachGradlePositions(g *model.Graph, projectDir, relDir string) {
 	if g == nil || projectDir == "" {
 		return
 	}
@@ -95,7 +96,7 @@ func AttachGradlePositions(g *sdk.Graph, projectDir, relDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.Dependency) string {
+	detectors.AttachPositions(g, positions, func(pkg *model.DependencyNode) string {
 		if pkg == nil {
 			return ""
 		}

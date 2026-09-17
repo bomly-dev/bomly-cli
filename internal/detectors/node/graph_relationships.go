@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // UnknownComponent describes a disconnected component attached to its owning
@@ -18,13 +19,13 @@ type UnknownComponent struct {
 // AttachUnknownComponentsToApplication finds the application root and
 // delegates to AttachUnknownComponents. Graphs without an application root
 // are left for consolidation to normalize beneath a manifest root.
-func AttachUnknownComponentsToApplication(graph *sdk.Graph, logger *zap.Logger, detector, manifest string) ([]UnknownComponent, error) {
+func AttachUnknownComponentsToApplication(graph *model.Graph, logger *zap.Logger, detector, manifest string) ([]UnknownComponent, error) {
 	if graph == nil {
 		return nil, nil
 	}
 	for _, root := range graph.Roots() {
-		if root != nil && root.Type == sdk.PackageTypeApplication {
-			return AttachUnknownComponents(graph, root.ID, logger, detector, manifest)
+		if root != nil && root.Kind() == model.NodeKindModule {
+			return AttachUnknownComponents(graph, root.NodeID(), logger, detector, manifest)
 		}
 	}
 	return nil, nil
@@ -33,7 +34,7 @@ func AttachUnknownComponentsToApplication(graph *sdk.Graph, logger *zap.Logger, 
 // AttachUnknownComponents attaches every component without an incoming edge
 // beneath rootID. Only the component root is marked unknown; known descendant
 // edges remain transitive.
-func AttachUnknownComponents(graph *sdk.Graph, rootID string, logger *zap.Logger, detector, manifest string) ([]UnknownComponent, error) {
+func AttachUnknownComponents(graph *model.Graph, rootID string, logger *zap.Logger, detector, manifest string) ([]UnknownComponent, error) {
 	if graph == nil || rootID == "" {
 		return nil, nil
 	}
@@ -42,8 +43,8 @@ func AttachUnknownComponents(graph *sdk.Graph, rootID string, logger *zap.Logger
 	}
 	known := make(map[string]struct{}, graph.Size())
 	for _, candidate := range graph.Roots() {
-		if candidate != nil && candidate.Type == sdk.PackageTypeApplication {
-			addReachable(graph, candidate.ID, known)
+		if candidate != nil && candidate.Kind() == model.NodeKindModule {
+			addReachable(graph, candidate.NodeID(), known)
 		}
 	}
 	addReachable(graph, rootID, known)
@@ -55,13 +56,13 @@ func AttachUnknownComponents(graph *sdk.Graph, rootID string, logger *zap.Logger
 			break
 		}
 		candidate := unresolvedComponentRoot(graph, unresolved)
-		candidate.Relationship = sdk.DependencyRelationshipUnknown
+		candidate.Relationship = model.DependencyRelationshipUnknown
 		before := len(known)
-		addReachable(graph, candidate.ID, known)
-		if err := graph.AddEdge(rootID, candidate.ID); err != nil {
-			return nil, fmt.Errorf("attach unknown component %q to %q: %w", candidate.ID, rootID, err)
+		addReachable(graph, candidate.NodeID(), known)
+		if err := graph.AddEdge(rootID, candidate.NodeID()); err != nil {
+			return nil, fmt.Errorf("attach unknown component %q to %q: %w", candidate.NodeID(), rootID, err)
 		}
-		components = append(components, UnknownComponent{RootID: candidate.ID, Size: len(known) - before})
+		components = append(components, UnknownComponent{RootID: candidate.NodeID(), Size: len(known) - before})
 	}
 	if len(components) == 0 {
 		return nil, nil
@@ -79,7 +80,7 @@ func AttachUnknownComponents(graph *sdk.Graph, rootID string, logger *zap.Logger
 	return components, nil
 }
 
-func addReachable(graph *sdk.Graph, rootID string, seen map[string]struct{}) {
+func addReachable(graph *model.Graph, rootID string, seen map[string]struct{}) {
 	if _, ok := seen[rootID]; ok {
 		return
 	}
@@ -96,36 +97,36 @@ func addReachable(graph *sdk.Graph, rootID string, seen map[string]struct{}) {
 			if child == nil {
 				continue
 			}
-			if _, ok := seen[child.ID]; ok {
+			if _, ok := seen[child.NodeID()]; ok {
 				continue
 			}
-			seen[child.ID] = struct{}{}
-			queue = append(queue, child.ID)
+			seen[child.NodeID()] = struct{}{}
+			queue = append(queue, child.NodeID())
 		}
 	}
 }
 
-func unresolvedDependencyNodes(graph *sdk.Graph, known map[string]struct{}) []*sdk.Dependency {
-	var unresolved []*sdk.Dependency
-	for _, dependency := range graph.Nodes() {
-		if dependency == nil || dependency.Type == sdk.PackageTypeApplication || dependency.Type == sdk.PackageTypeManifest {
+func unresolvedDependencyNodes(graph *model.Graph, known map[string]struct{}) []*model.DependencyNode {
+	var unresolved []*model.DependencyNode
+	for _, dependency := range graph.DependencyNodes() {
+		if dependency == nil || dependency.Type == model.PackageTypeApplication || dependency.Type == model.PackageTypeManifest {
 			continue
 		}
-		if _, ok := known[dependency.ID]; !ok {
+		if _, ok := known[dependency.NodeID()]; !ok {
 			unresolved = append(unresolved, dependency)
 		}
 	}
-	sort.Slice(unresolved, func(i, j int) bool { return unresolved[i].ID < unresolved[j].ID })
+	sort.Slice(unresolved, func(i, j int) bool { return unresolved[i].NodeID() < unresolved[j].NodeID() })
 	return unresolved
 }
 
-func unresolvedComponentRoot(graph *sdk.Graph, unresolved []*sdk.Dependency) *sdk.Dependency {
+func unresolvedComponentRoot(graph *model.Graph, unresolved []*model.DependencyNode) *model.DependencyNode {
 	set := make(map[string]struct{}, len(unresolved))
 	for _, dependency := range unresolved {
-		set[dependency.ID] = struct{}{}
+		set[dependency.NodeID()] = struct{}{}
 	}
 	for _, dependency := range unresolved {
-		parents, err := graph.Dependents(dependency.ID)
+		parents, err := graph.Dependents(dependency.NodeID())
 		if err != nil {
 			continue
 		}
@@ -134,7 +135,7 @@ func unresolvedComponentRoot(graph *sdk.Graph, unresolved []*sdk.Dependency) *sd
 			if parent == nil {
 				continue
 			}
-			if _, ok := set[parent.ID]; ok {
+			if _, ok := set[parent.NodeID()]; ok {
 				hasUnresolvedParent = true
 				break
 			}

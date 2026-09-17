@@ -10,7 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorApplicable_BuildGradleKTS(t *testing.T) {
@@ -20,7 +23,7 @@ func TestDetectorApplicable_BuildGradleKTS(t *testing.T) {
 	}
 
 	detector := Detector{WorkingDir: projectDir}
-	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := detector.Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -92,7 +95,7 @@ func TestDetectorReadyRequiresJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	err := detector.Ready(context.Background(), plugin.DetectionRequest{})
 	if err == nil {
 		t.Fatal("expected detector to be not ready without a usable Java runtime")
 	}
@@ -107,7 +110,7 @@ func TestDetectorReadyRequiresGradleRunner(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	err := detector.Ready(context.Background(), plugin.DetectionRequest{})
 	if err == nil {
 		t.Fatal("expected detector to be not ready without gradle")
 	}
@@ -123,7 +126,7 @@ func TestDetectorReadyWithWrapperAndJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	if err := detector.Ready(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir}); err != nil {
+	if err := detector.Ready(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir}); err != nil {
 		t.Fatalf("expected detector to be ready, got %v", err)
 	}
 }
@@ -131,23 +134,23 @@ func TestDetectorReadyWithWrapperAndJava(t *testing.T) {
 func TestGradleScopedDependenciesArgs(t *testing.T) {
 	tests := []struct {
 		name   string
-		scope  sdk.Scope
+		scope  model.Scope
 		want   []string
 		isZero bool
 	}{
 		{
 			name:  "runtime selects runtimeClasspath",
-			scope: sdk.ScopeRuntime,
+			scope: model.ScopeRuntime,
 			want:  []string{"dependencies", "--console=plain", "--configuration", "runtimeClasspath"},
 		},
 		{
 			name:  "development selects testRuntimeClasspath",
-			scope: sdk.ScopeDevelopment,
+			scope: model.ScopeDevelopment,
 			want:  []string{"dependencies", "--console=plain", "--configuration", "testRuntimeClasspath"},
 		},
 		{
 			name:   "unknown resolves all configurations",
-			scope:  sdk.ScopeUnknown,
+			scope:  model.ScopeUnknown,
 			isZero: true,
 		},
 	}
@@ -193,7 +196,7 @@ testRuntimeClasspath - Test runtime classpath of source set 'test'.
 		t.Fatalf("expected 7 packages, got %d", g.Size())
 	}
 
-	rootDeps, err := g.DirectDependencies("demo")
+	rootDeps, err := g.DirectDependencies(testnodes.ID(g, "demo"))
 	if err != nil {
 		t.Fatalf("dependencies(root) error = %v", err)
 	}
@@ -201,7 +204,7 @@ testRuntimeClasspath - Test runtime classpath of source set 'test'.
 		t.Fatalf("expected 3 root deps, got %d", len(rootDeps))
 	}
 
-	guavaDeps, err := g.DirectDependencies("com.google.guava:guava@33.0.0-jre")
+	guavaDeps, err := g.DirectDependencies(testnodes.ID(g, "com.google.guava:guava@33.0.0-jre"))
 	if err != nil {
 		t.Fatalf("dependencies(guava) error = %v", err)
 	}
@@ -209,21 +212,21 @@ testRuntimeClasspath - Test runtime classpath of source set 'test'.
 		t.Fatalf("expected 2 guava deps, got %d", len(guavaDeps))
 	}
 
-	if _, ok := g.Node("org.springframework:spring-jcl@6.1.1"); !ok {
+	if _, ok := testnodes.Find(g, "org.springframework:spring-jcl@6.1.1"); !ok {
 		t.Fatalf("expected transitive dependency package")
 	}
-	guava, _ := g.Node("com.google.guava:guava@33.0.0-jre")
+	guava, _ := testnodes.FindDep(g, "com.google.guava:guava@33.0.0-jre")
 	if guava.Ecosystem != "maven" || guava.Org != "com.google.guava" || guava.Name != "guava" || guava.PackageManager != "gradle" {
 		t.Fatalf("unexpected gradle coordinates: %#v", guava)
 	}
-	if string(guava.PrimaryScope()) != string(sdk.ScopeRuntime) {
+	if string(guava.PrimaryScope()) != string(model.ScopeRuntime) {
 		t.Fatalf("expected runtime scope for guava, got %q", string(guava.PrimaryScope()))
 	}
-	junit, ok := g.Node("org.junit:junit-bom@5.10.2")
+	junit, ok := testnodes.FindDep(g, "org.junit:junit-bom@5.10.2")
 	if !ok {
 		t.Fatal("expected junit package")
 	}
-	if string(junit.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(junit.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected development scope for junit, got %q", string(junit.PrimaryScope()))
 	}
 }
@@ -238,7 +241,7 @@ func TestDepGraphFromGradleOutput_UsesResolvedVersion(t *testing.T) {
 		t.Fatalf("depGraphFromGradleOutput() error = %v", err)
 	}
 
-	if _, ok := parsed.rootGraph.Node("org.slf4j:slf4j-api@2.0.12"); !ok {
+	if _, ok := testnodes.Find(parsed.rootGraph, "org.slf4j:slf4j-api@2.0.12"); !ok {
 		t.Fatalf("expected resolved version package to exist")
 	}
 }
@@ -276,10 +279,10 @@ func TestRunDependencies_UsesSettingsGradleRootName(t *testing.T) {
 	if err != nil {
 		t.Fatalf("runDependencies() error = %v", err)
 	}
-	if _, ok := parsed.rootGraph.Node("example-java-gradle"); !ok {
+	if _, ok := testnodes.Find(parsed.rootGraph, "example-java-gradle"); !ok {
 		t.Fatalf("expected settings.gradle root node")
 	}
-	if _, ok := parsed.rootGraph.Node(filepath.Base(projectDir)); ok {
+	if _, ok := testnodes.Find(parsed.rootGraph, filepath.Base(projectDir)); ok {
 		t.Fatalf("did not expect temp directory root node")
 	}
 }
@@ -300,7 +303,7 @@ func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
 	t.Setenv("BOMLY_FAKE_GRADLE_ARGS_FILE", argsFile)
 	t.Setenv("PATH", fakeToolDir(t, "gradle"))
 
-	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := (Detector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -323,46 +326,49 @@ func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
 	if !reflect.DeepEqual(paths, []string{"app/build.gradle", "lib/build.gradle"}) {
 		t.Fatalf("module manifest paths = %v", paths)
 	}
-	if entries[1].Manifest.Kind != sdk.ManifestKind("build.gradle") {
+	if entries[1].Manifest.Kind != model.ManifestKind("build.gradle") {
 		t.Fatalf("module manifest kind = %q", entries[1].Manifest.Kind)
 	}
 
 	// Root entry: root project node + its own dependency only.
-	if _, ok := entries[0].Graph.Node("org.apache.commons:commons-lang3@3.14.0"); !ok {
+	if _, ok := testnodes.Find(entries[0].Graph, "org.apache.commons:commons-lang3@3.14.0"); !ok {
 		t.Fatal("root entry must contain the root project's own dependency")
 	}
-	if _, ok := entries[0].Graph.Node("com.google.guava:guava@33.0.0-jre"); ok {
+	if _, ok := testnodes.Find(entries[0].Graph, "com.google.guava:guava@33.0.0-jre"); ok {
 		t.Fatal("root entry must not absorb subproject dependencies")
 	}
 
 	// app entry: its deps plus the lib subtree through the project edge.
 	appGraph := entries[1].Graph
 	for _, want := range []string{"com.google.guava:guava@33.0.0-jre", "org.slf4j:slf4j-api@2.0.12"} {
-		if _, ok := appGraph.Node(want); !ok {
+		if _, ok := testnodes.Find(appGraph, want); !ok {
 			t.Fatalf("app entry missing %s", want)
 		}
 	}
 
 	// lib entry: rooted at an application-typed node with only its own dep.
 	libGraph := entries[2].Graph
-	if _, ok := libGraph.Node("com.google.guava:guava@33.0.0-jre"); ok {
+	if _, ok := testnodes.Find(libGraph, "com.google.guava:guava@33.0.0-jre"); ok {
 		t.Fatal("lib entry must not contain app dependencies")
 	}
 	libRoots := libGraph.Roots()
-	if len(libRoots) != 1 || libRoots[0].Type != sdk.PackageTypeApplication || libRoots[0].Name != "lib" {
+	if len(libRoots) != 1 || !model.IsProjectOwned(libRoots[0]) {
 		t.Fatalf("unexpected lib entry root: %#v", libRoots)
+	}
+	if name := model.NodeDisplayName(libRoots[0]); name != "com.acme:lib" {
+		t.Fatalf("lib entry root = %q, want com.acme:lib", name)
 	}
 
 	// Regression: subproject positions must keep the module directory prefix
 	// so SARIF/diff annotations point at the child build file, not the root.
-	guava, _ := appGraph.Node("com.google.guava:guava@33.0.0-jre")
+	guava, _ := testnodes.FindDep(appGraph, "com.google.guava:guava@33.0.0-jre")
 	if guava == nil || len(guava.Locations) == 0 {
 		t.Fatalf("guava location missing: %+v", guava)
 	}
 	if loc := guava.Locations[0]; loc.RealPath != "app/build.gradle" || loc.Position == nil || loc.Position.File != "app/build.gradle" || loc.Position.Line != 3 {
 		t.Fatalf("guava location = %+v, want app/build.gradle line 3", loc)
 	}
-	libSlf4j, _ := libGraph.Node("org.slf4j:slf4j-api@2.0.12")
+	libSlf4j, _ := testnodes.FindDep(libGraph, "org.slf4j:slf4j-api@2.0.12")
 	if libSlf4j == nil || len(libSlf4j.Locations) == 0 {
 		t.Fatalf("lib slf4j-api location missing: %+v", libSlf4j)
 	}
@@ -372,7 +378,7 @@ func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
 	// The consuming subproject's copy of the api dependency is a distinct
 	// node instance with no declaration in app/build.gradle, so it carries no
 	// location; SARIF unions locations across entry graphs to compensate.
-	appSlf4j, _ := appGraph.Node("org.slf4j:slf4j-api@2.0.12")
+	appSlf4j, _ := testnodes.FindDep(appGraph, "org.slf4j:slf4j-api@2.0.12")
 	if appSlf4j == nil {
 		t.Fatal("app entry must expose lib's api dependency through the project edge")
 	}
@@ -390,7 +396,7 @@ func TestResolveGraphSingleProjectStillSingleEntry(t *testing.T) {
 	t.Setenv("BOMLY_FAKE_GRADLE_FIXTURE", fakeGradleReportFixture(t, fakeGradleSingleReport))
 	t.Setenv("PATH", fakeToolDir(t, "gradle"))
 
-	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := (Detector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -411,14 +417,14 @@ func TestResolveGraphMultiTaskFailureRetriesRootOnly(t *testing.T) {
 	t.Setenv("BOMLY_FAKE_GRADLE_FIXTURE", fakeGradleReportFixture(t, fakeGradleSingleReport))
 	t.Setenv("PATH", fakeToolDir(t, "gradle"))
 
-	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := (Detector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
 	if len(result.Graphs.Entries) != 1 {
 		t.Fatalf("expected root-only fallback single entry, got %d", len(result.Graphs.Entries))
 	}
-	if _, ok := result.Graphs.Entries[0].Graph.Node("org.springframework:spring-core@6.1.1"); !ok {
+	if _, ok := testnodes.Find(result.Graphs.Entries[0].Graph, "org.springframework:spring-core@6.1.1"); !ok {
 		t.Fatal("expected root-only graph from the fallback run")
 	}
 }
@@ -438,7 +444,7 @@ func TestResolveGraphMultiTaskFailureFallbackKeepsScope(t *testing.T) {
 	t.Setenv("BOMLY_FAKE_GRADLE_ARGS_FILE", argsLog)
 	t.Setenv("PATH", fakeToolDir(t, "gradle"))
 
-	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir, ScopeFilter: sdk.ScopeRuntime})
+	result, err := (Detector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir, ScopeFilter: model.ScopeRuntime})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}

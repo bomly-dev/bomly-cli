@@ -4,24 +4,26 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"path/filepath"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // ParseIntegrityDigests parses a space-separated integrity string (for example "sha512-abc sha1-xyz")
 // into Digest values. Returns nil when the string is empty.
-func ParseIntegrityDigests(integrity string) []sdk.Digest {
+func ParseIntegrityDigests(integrity string) []model.Digest {
 	if integrity == "" {
 		return nil
 	}
 	tokens := strings.Fields(integrity)
-	digests := make([]sdk.Digest, 0, len(tokens))
+	digests := make([]model.Digest, 0, len(tokens))
 	for _, token := range tokens {
 		if idx := strings.Index(token, "-"); idx > 0 {
-			digests = append(digests, sdk.Digest{Algorithm: sdk.DigestAlgorithm(token[:idx]), Value: token[idx+1:]})
+			digests = append(digests, model.Digest{Algorithm: model.DigestAlgorithm(token[:idx]), Value: token[idx+1:]})
 		}
 	}
 	return digests
@@ -47,21 +49,21 @@ func StripUTF8BOM(data []byte) []byte {
 
 // DependencySourceFromSpecifier classifies a Node dependency specifier by
 // where its resolved artifact originates.
-func DependencySourceFromSpecifier(value string) sdk.DependencySource {
+func DependencySourceFromSpecifier(value string) model.DependencySource {
 	normalized := strings.ToLower(strings.TrimSpace(value))
 	switch {
 	case strings.HasPrefix(normalized, "workspace:"), strings.HasPrefix(normalized, "link:"):
-		return sdk.DependencySourceWorkspace
+		return model.DependencySourceWorkspace
 	case strings.HasPrefix(normalized, "file:"):
-		return sdk.DependencySourceFile
+		return model.DependencySourceFile
 	case strings.HasPrefix(normalized, "git:"), strings.HasPrefix(normalized, "git+"),
 		strings.HasPrefix(normalized, "github:"), strings.HasPrefix(normalized, "gitlab:"),
 		strings.HasPrefix(normalized, "bitbucket:"):
-		return sdk.DependencySourceGit
+		return model.DependencySourceGit
 	case strings.HasPrefix(normalized, "http:"), strings.HasPrefix(normalized, "https:"):
-		return sdk.DependencySourceURL
+		return model.DependencySourceURL
 	default:
-		return sdk.DependencySourceRegistry
+		return model.DependencySourceRegistry
 	}
 }
 
@@ -86,11 +88,7 @@ func NormalizeVersionToken(value string) string {
 // MergeStringMaps returns a shallow merge of two string maps.
 func MergeStringMaps(left map[string]string, right map[string]string) map[string]string {
 	out := make(map[string]string, len(left)+len(right))
-	for key, value := range left {
-		out[key] = value
-	}
-	for key, value := range right {
-		out[key] = value
-	}
+	maps.Copy(out, left)
+	maps.Copy(out, right)
 	return out
 }

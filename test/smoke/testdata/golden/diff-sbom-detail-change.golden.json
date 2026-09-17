@@ -12,6 +12,7 @@
       "ecosystem": "go",
       "licenses": [],
       "name": "example.com/app",
+      "org": "example.com",
       "purl": "pkg:golang/example.com/app@1.0.0",
       "version": "1.0.0",
       "vulnerabilities": []
@@ -20,6 +21,7 @@
       "ecosystem": "go",
       "licenses": [],
       "name": "example.com/parent",
+      "org": "example.com",
       "purl": "pkg:golang/example.com/parent@1.0.0",
       "version": "1.0.0",
       "vulnerabilities": []
@@ -28,6 +30,7 @@
       "ecosystem": "go",
       "licenses": [],
       "name": "example.com/shared",
+      "org": "example.com",
       "purl": "pkg:golang/example.com/shared@1.0.0",
       "version": "1.0.0",
       "vulnerabilities": []
@@ -60,7 +63,7 @@
         {
           "after": {
             "id": "pkg:golang/example.com/shared@1.0.0",
-            "name": "example.com/shared",
+            "name": "shared",
             "purl": "pkg:golang/example.com/shared@1.0.0",
             "registry_eligible": true,
             "relationship": "transitive",
@@ -68,7 +71,7 @@
           },
           "before": {
             "id": "pkg:golang/example.com/shared@1.0.0",
-            "name": "example.com/shared",
+            "name": "shared",
             "purl": "pkg:golang/example.com/shared@1.0.0",
             "registry_eligible": true,
             "relationship": "direct",
@@ -107,7 +110,7 @@
           {
             "after": {
               "id": "pkg:golang/example.com/shared@1.0.0",
-              "name": "example.com/shared",
+              "name": "shared",
               "purl": "pkg:golang/example.com/shared@1.0.0",
               "registry_eligible": true,
               "relationship": "transitive",
@@ -115,7 +118,7 @@
             },
             "before": {
               "id": "pkg:golang/example.com/shared@1.0.0",
-              "name": "example.com/shared",
+              "name": "shared",
               "purl": "pkg:golang/example.com/shared@1.0.0",
               "registry_eligible": true,
               "relationship": "direct",

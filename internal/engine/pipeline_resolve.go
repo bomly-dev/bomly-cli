@@ -10,14 +10,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // resolveAll resolves dependency graphs for each subproject using registered detectors.
-func (p *Pipeline) resolveAll(ctx context.Context, req PipelineRequest) ([]sdk.DetectionResult, error) {
+func (p *Pipeline) resolveAll(ctx context.Context, req PipelineRequest) ([]plugin.DetectionResult, error) {
 	type subprojectResolution struct {
-		results []sdk.DetectionResult
+		results []plugin.DetectionResult
 		err     error
 	}
 	ordered := make([]subprojectResolution, len(req.Subprojects))
@@ -47,10 +49,8 @@ func (p *Pipeline) resolveAll(ctx context.Context, req PipelineRequest) ([]sdk.D
 	var wg sync.WaitGroup
 	var progressMu sync.Mutex
 	completed := 0
-	for i := 0; i < workerCount; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range workerCount {
+		wg.Go(func() {
 			for idx := range jobs {
 				sub := req.Subprojects[idx]
 				reportProgressDetail(req.Progress, "Detecting dependencies", subprojectProgressDetail(sub))
@@ -63,7 +63,7 @@ func (p *Pipeline) resolveAll(ctx context.Context, req PipelineRequest) ([]sdk.D
 					progressMu.Unlock()
 				}
 			}
-		}()
+		})
 	}
 	for idx := range req.Subprojects {
 		select {
@@ -80,7 +80,7 @@ func (p *Pipeline) resolveAll(ctx context.Context, req PipelineRequest) ([]sdk.D
 		req.Progress.CompleteStage("Detecting dependencies", len(req.Subprojects))
 	}
 
-	results := make([]sdk.DetectionResult, 0, len(req.Subprojects))
+	results := make([]plugin.DetectionResult, 0, len(req.Subprojects))
 	var errs []error
 	for idx, resolution := range ordered {
 		sub := req.Subprojects[idx]
@@ -116,21 +116,15 @@ func resolveWorkerCount(subprojectCount int) int {
 	if subprojectCount <= 1 {
 		return 1
 	}
-	workers := runtime.NumCPU()
-	if workers < 1 {
-		workers = 1
-	}
-	if workers > 4 {
-		workers = 4
-	}
+	workers := min(max(runtime.NumCPU(), 1), 4)
 	if workers > subprojectCount {
 		return subprojectCount
 	}
 	return workers
 }
 
-func (p *Pipeline) resolveSubproject(ctx context.Context, req PipelineRequest, sub sdk.Subproject) ([]sdk.DetectionResult, error) {
-	baseReq := sdk.DetectionRequest{
+func (p *Pipeline) resolveSubproject(ctx context.Context, req PipelineRequest, sub plugin.Subproject) ([]plugin.DetectionResult, error) {
+	baseReq := plugin.DetectionRequest{
 		ProjectPath:        sub.ExecutionTarget.Location,
 		ExecutionTarget:    sub.ExecutionTarget,
 		Subproject:         sub,
@@ -176,7 +170,7 @@ func (p *Pipeline) resolveSubproject(ctx context.Context, req PipelineRequest, s
 // graph wins. When a later detector succeeds after a real failure, its
 // results carry FallbackFrom/FallbackReason provenance naming the first
 // failed detector. When every link fails the joined failures are returned.
-func (p *Pipeline) resolveDetectors(ctx context.Context, req sdk.DetectionRequest, detectorList []sdk.Detector, progress ProgressReporter) ([]sdk.DetectionResult, error) {
+func (p *Pipeline) resolveDetectors(ctx context.Context, req plugin.DetectionRequest, detectorList []plugin.Detector, progress ProgressReporter) ([]plugin.DetectionResult, error) {
 	var errs []error
 	var firstFailureName string
 	var firstFailureErr error
@@ -283,7 +277,7 @@ func collectNotReadyDetectors(err error, seen map[string]struct{}, reasons *[]st
 	return true
 }
 
-func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest, detector sdk.Detector, progress ProgressReporter) ([]sdk.DetectionResult, error) {
+func (p *Pipeline) resolveDetector(ctx context.Context, req plugin.DetectionRequest, detector plugin.Detector, progress ProgressReporter) ([]plugin.DetectionResult, error) {
 	descriptor := detector.Descriptor()
 	support := detector.PackageManagerSupport()
 	// Bind a request-scoped logger so lines a detector emits while resolving
@@ -326,7 +320,7 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 	}
 
 	if req.InstallFirst {
-		if installer, ok := detector.(sdk.InstallFirstDetector); ok {
+		if installer, ok := detector.(plugin.InstallFirstDetector); ok {
 			p.Logger.Debug("pipeline: running detector install-first",
 				zap.String("detector", descriptor.Name),
 				zap.String("subproject", req.Subproject.RelativePath),
@@ -355,9 +349,35 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 	if result.Graphs == nil || result.Graphs.Len() == 0 {
 		return nil, fmt.Errorf("detector %s: no graph data", descriptor.Name)
 	}
-	result, err = sdk.FilterDetectionResultByScope(result, req.ScopeFilter)
+	result, scopeReport, err := plugin.FilterDetectionResultByScopeWithReport(result, req.ScopeFilter)
 	if err != nil {
 		return nil, fmt.Errorf("detector %s: scope filter: %w", descriptor.Name, err)
+	}
+	// A runtime view keeps a dependency that asserted no scope (ADR-0043), so
+	// the filter can narrow far less than the flag implies -- over a
+	// third-party SPDX document, which has no scope concept at all, it narrows
+	// nothing. Saying so is the point of the report: a result that was barely
+	// filtered must not read as a filtered one. Warn rather than Debug because
+	// Warn is the default level, so this reaches the user without being asked
+	// for.
+	//
+	// Deliberately not an plugin.DetectorWarning. Every DetectorWarningType means
+	// something about the run that this does not, and two of the three make
+	// DegradesCoverage report true, which gates finding baselines. Nothing
+	// here is missing from the graph; it is the narrowing that did not happen.
+	if len(scopeReport.Unasserted) > 0 {
+		sample := scopeReport.Unasserted
+		if len(sample) > 5 {
+			sample = sample[:5]
+		}
+		p.Logger.Warn("pipeline: scope filter kept dependencies that asserted no scope",
+			zap.String("detector", descriptor.Name),
+			zap.String("subproject", req.Subproject.RelativePath),
+			zap.String("scope", string(req.ScopeFilter)),
+			zap.Int("unasserted", len(scopeReport.Unasserted)),
+			zap.Int("shown", len(sample)),
+			zap.Strings("dependencies", sample),
+		)
 	}
 
 	result.SubprojectInfo = req.Subproject
@@ -377,7 +397,7 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 		zap.Int("packages", packages),
 		zap.Int("edges", edges),
 	)
-	return []sdk.DetectionResult{result}, nil
+	return []plugin.DetectionResult{result}, nil
 }
 
 // annotateFallbackResults records fallback provenance on every result produced
@@ -387,7 +407,7 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 // results unannotated. The reason is collapsed to a single line because tool
 // errors (e.g. macOS java_home) can span multiple lines, which would break
 // the single-line warning channels.
-func annotateFallbackResults(results []sdk.DetectionResult, primaryName string, primaryErr error) {
+func annotateFallbackResults(results []plugin.DetectionResult, primaryName string, primaryErr error) {
 	reason := trimDetectorErrorPrefix(strings.Join(strings.Fields(primaryErr.Error()), " "), primaryName)
 	for i := range results {
 		results[i].FallbackFrom = primaryName
@@ -398,9 +418,9 @@ func annotateFallbackResults(results []sdk.DetectionResult, primaryName string, 
 		for j := range results[i].Graphs.Entries {
 			manifest := &results[i].Graphs.Entries[j].Manifest
 			if manifest.Resolution == nil {
-				manifest.Resolution = &sdk.ResolutionMetadata{}
+				manifest.Resolution = &model.ResolutionMetadata{}
 			}
-			manifest.Resolution.Fallback = &sdk.ResolutionFallback{From: primaryName, Reason: reason}
+			manifest.Resolution.Fallback = &model.ResolutionFallback{From: primaryName, Reason: reason}
 		}
 	}
 }
@@ -418,7 +438,7 @@ func reportProgressDetail(progress ProgressReporter, label, detail string) {
 	}
 }
 
-func subprojectProgressDetail(sub sdk.Subproject) string {
+func subprojectProgressDetail(sub plugin.Subproject) string {
 	label := strings.TrimSpace(sub.RelativePath)
 	if label == "" || label == "." {
 		label = filepath.Base(sub.ExecutionTarget.Location)
@@ -433,7 +453,7 @@ func subprojectProgressDetail(sub sdk.Subproject) string {
 	return fmt.Sprintf("%s (%s)", label, manager)
 }
 
-func detectorProgressDetail(sub sdk.Subproject, detectorName string) string {
+func detectorProgressDetail(sub plugin.Subproject, detectorName string) string {
 	detail := subprojectProgressDetail(sub)
 	if detectorName == "" {
 		return detail
@@ -447,7 +467,7 @@ func detectorProgressDetail(sub sdk.Subproject, detectorName string) string {
 // concurrently resolving multiple subprojects stay attributable to their
 // source. Derived from p.Logger rather than any existing request logger so a
 // fallback detector is not mislabelled with the primary detector's name.
-func (p *Pipeline) detectorLogger(sub sdk.Subproject, detectorName string) *zap.Logger {
+func (p *Pipeline) detectorLogger(sub plugin.Subproject, detectorName string) *zap.Logger {
 	logger := p.Logger
 	if scope := loggerScopeName(sub); scope != "" {
 		logger = logger.Named(scope)
@@ -458,7 +478,7 @@ func (p *Pipeline) detectorLogger(sub sdk.Subproject, detectorName string) *zap.
 // loggerScopeName returns a short, stable label for a subproject suitable for
 // use as a zap logger name: the relative path, or "root" for the top-level
 // project.
-func loggerScopeName(sub sdk.Subproject) string {
+func loggerScopeName(sub plugin.Subproject) string {
 	label := strings.TrimSpace(sub.RelativePath)
 	if label == "" || label == "." {
 		return "root"
@@ -466,10 +486,10 @@ func loggerScopeName(sub sdk.Subproject) string {
 	return label
 }
 
-func evidencePatternsForSupport(support []sdk.PackageManagerSupport, manager sdk.PackageManager) []string {
+func evidencePatternsForSupport(support []plugin.PackageManagerSupport, manager model.PackageManager) []string {
 	var values []string
 	for _, entry := range support {
-		if manager != sdk.PackageManagerUnknown && entry.PackageManager != manager {
+		if manager != model.PackageManagerUnknown && entry.PackageManager != manager {
 			continue
 		}
 		values = append(values, entry.EvidencePatterns...)
@@ -499,7 +519,7 @@ func dedupeStrings(values []string) []string {
 	return out
 }
 
-func graphContainerStats(container *sdk.GraphContainer) (packages, edges int) {
+func graphContainerStats(container *model.GraphContainer) (packages, edges int) {
 	if container == nil {
 		return 0, 0
 	}
@@ -508,7 +528,7 @@ func graphContainerStats(container *sdk.GraphContainer) (packages, edges int) {
 			continue
 		}
 		packages += entry.Graph.Size()
-		entry.Graph.WalkEdges(func(_, _ *sdk.Dependency) bool {
+		entry.Graph.WalkEdges(func(_, _ model.GraphNode) bool {
 			edges++
 			return true
 		})

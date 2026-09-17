@@ -214,7 +214,7 @@ func (e *prettyConsoleEncoder) AddUintptr(key string, value uintptr) {
 	e.context.AddUintptr(key, value)
 }
 
-func (e *prettyConsoleEncoder) AddReflected(key string, value interface{}) error {
+func (e *prettyConsoleEncoder) AddReflected(key string, value any) error {
 	return e.context.AddReflected(key, value)
 }
 

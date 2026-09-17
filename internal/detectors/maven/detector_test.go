@@ -9,7 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDepGraphFromMavenTGF(t *testing.T) {
@@ -32,32 +35,32 @@ func TestDepGraphFromMavenTGF(t *testing.T) {
 		t.Fatalf("expected 4 packages, got %d", g.Size())
 	}
 
-	rootDeps, err := g.DirectDependencies("com.example:demo-app@1.0.0")
+	rootDeps, err := g.DirectDependencies(testnodes.ID(g, "com.example:demo-app@1.0.0"))
 	if err != nil {
 		t.Fatalf("dependencies(root) error = %v", err)
 	}
-	if len(rootDeps) != 1 || rootDeps[0].ID != "ch.qos.logback:logback-classic@1.5.6" {
+	if len(rootDeps) != 1 || !testnodes.Is(rootDeps[0], "ch.qos.logback:logback-classic@1.5.6") {
 		t.Fatalf("unexpected root deps: %#v", rootDeps)
 	}
 
 	// The TGF block root is the project's own artifact: first-party, so
 	// enrichment never queries it; its dependencies stay enrichable.
-	rootNode, _ := g.Node("com.example:demo-app@1.0.0")
-	if !rootNode.FirstParty || sdk.NodeIsEnrichable(rootNode) {
-		t.Fatalf("project artifact must be first-party and not enrichable, got %#v", rootNode.Coordinates)
+	rootNode, _ := testnodes.Find(g, "com.example:demo-app@1.0.0")
+	if !model.IsProjectOwned(rootNode) {
+		t.Fatalf("project artifact must be first-party and not enrichable, got %#v", mustDep(t, rootNode).Coordinates)
 	}
-	if rootDeps[0].FirstParty || !sdk.NodeIsEnrichable(rootDeps[0]) {
-		t.Fatalf("fetched dependency must stay enrichable, got %#v", rootDeps[0].Coordinates)
+	if dep, isDep := model.AsDependencyNode(rootDeps[0]); !isDep || !dep.RegistryMatchEligible() {
+		t.Fatalf("fetched dependency must stay enrichable, got %#v", mustDep(t, rootDeps[0]).Coordinates)
 	}
 
-	logbackDeps, err := g.DirectDependencies("ch.qos.logback:logback-classic@1.5.6")
+	logbackDeps, err := g.DirectDependencies(testnodes.ID(g, "ch.qos.logback:logback-classic@1.5.6"))
 	if err != nil {
 		t.Fatalf("dependencies(logback-classic) error = %v", err)
 	}
 	if len(logbackDeps) != 2 {
 		t.Fatalf("expected 2 transitive deps, got %d", len(logbackDeps))
 	}
-	if logbackDeps[0].ID != "ch.qos.logback:logback-core@1.5.6" || logbackDeps[1].ID != "org.slf4j:slf4j-api@2.0.13" {
+	if !testnodes.Is(logbackDeps[0], "ch.qos.logback:logback-core@1.5.6") || !testnodes.Is(logbackDeps[1], "org.slf4j:slf4j-api@2.0.13") {
 		t.Fatalf("unexpected logback deps: %#v", logbackDeps)
 	}
 }
@@ -85,11 +88,11 @@ func TestDepGraphFromMavenTGF_LongLineExceedsDefaultBuffer(t *testing.T) {
 	if g.Size() != 2 {
 		t.Fatalf("expected 2 packages, got %d", g.Size())
 	}
-	rootDeps, err := g.DirectDependencies("com.example:demo-app@1.0.0")
+	rootDeps, err := g.DirectDependencies(testnodes.ID(g, "com.example:demo-app@1.0.0"))
 	if err != nil {
 		t.Fatalf("dependencies(root) error = %v", err)
 	}
-	if len(rootDeps) != 1 || rootDeps[0].ID != "org.slf4j:slf4j-api@2.0.13" {
+	if len(rootDeps) != 1 || !testnodes.Is(rootDeps[0], "org.slf4j:slf4j-api@2.0.13") {
 		t.Fatalf("unexpected root deps: %#v", rootDeps)
 	}
 }
@@ -120,22 +123,22 @@ func TestDepGraphFromMavenTGF_WithMavenLogPrefixes(t *testing.T) {
 		t.Fatalf("expected 4 packages, got %d", g.Size())
 	}
 
-	rootDeps, err := g.DirectDependencies("com.bomly:example-java-maven@1.0-SNAPSHOT")
+	rootDeps, err := g.DirectDependencies(testnodes.ID(g, "com.bomly:example-java-maven@1.0-SNAPSHOT"))
 	if err != nil {
 		t.Fatalf("dependencies(root) error = %v", err)
 	}
 	if len(rootDeps) != 2 {
 		t.Fatalf("expected 2 root deps, got %d", len(rootDeps))
 	}
-	if rootDeps[0].ID != "org.apache.struts:struts2-core@2.5.12" || rootDeps[1].ID != "org.mindrot:jbcrypt@0.3m" {
+	if !testnodes.Is(rootDeps[0], "org.apache.struts:struts2-core@2.5.12") || !testnodes.Is(rootDeps[1], "org.mindrot:jbcrypt@0.3m") {
 		t.Fatalf("unexpected root deps: %#v", rootDeps)
 	}
 
-	strutsDeps, err := g.DirectDependencies("org.apache.struts:struts2-core@2.5.12")
+	strutsDeps, err := g.DirectDependencies(testnodes.ID(g, "org.apache.struts:struts2-core@2.5.12"))
 	if err != nil {
 		t.Fatalf("dependencies(struts2-core) error = %v", err)
 	}
-	if len(strutsDeps) != 1 || strutsDeps[0].ID != "org.freemarker:freemarker@2.3.23" {
+	if len(strutsDeps) != 1 || !testnodes.Is(strutsDeps[0], "org.freemarker:freemarker@2.3.23") {
 		t.Fatalf("unexpected struts deps: %#v", strutsDeps)
 	}
 }
@@ -177,10 +180,10 @@ func TestNodeFromMavenCoords_WithClassifier(t *testing.T) {
 	if node.QualifiedName() != "com.example:demo-artifact:sources" {
 		t.Fatalf("unexpected qualified name %q", node.QualifiedName())
 	}
-	if node.ID != "com.example:demo-artifact:sources@1.0.0" {
-		t.Fatalf("unexpected package id %q", node.ID)
+	if !testnodes.Is(node, "com.example:demo-artifact:sources@1.0.0") {
+		t.Fatalf("unexpected package id %q", node.NodeID())
 	}
-	if string(node.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(node.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected development scope, got %q", string(node.PrimaryScope()))
 	}
 }
@@ -192,7 +195,7 @@ func TestMavenDetectorApplicable(t *testing.T) {
 	}
 
 	detector := Detector{WorkingDir: projectDir}
-	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := detector.Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -208,7 +211,7 @@ func TestMavenDetectorReadyRequiresJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	err := detector.Ready(context.Background(), plugin.DetectionRequest{})
 	if err == nil {
 		t.Fatal("expected detector to be not ready without a usable Java runtime")
 	}
@@ -224,7 +227,7 @@ func TestMavenDetectorReadyRequiresMavenRunner(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	err := detector.Ready(context.Background(), plugin.DetectionRequest{})
 	if err == nil {
 		t.Fatal("expected detector to be not ready without mvn")
 	}
@@ -241,7 +244,7 @@ func TestMavenDetectorReadyWithWrapperAndJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	if err := detector.Ready(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir}); err != nil {
+	if err := detector.Ready(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir}); err != nil {
 		t.Fatalf("expected detector to be ready, got %v", err)
 	}
 }
@@ -250,25 +253,25 @@ func TestMavenDependencyTreeArgsScopeFilter(t *testing.T) {
 	tests := []struct {
 		name      string
 		prefix    []string
-		scope     sdk.Scope
+		scope     model.Scope
 		want      []string
 		unchanged []string
 	}{
 		{
 			name:  "unknown resolves full tree",
-			scope: sdk.ScopeUnknown,
+			scope: model.ScopeUnknown,
 			want:  []string{"-B", "dependency:tree", "-DoutputType=tgf"},
 		},
 		{
 			name:   "runtime selects runtime scope",
 			prefix: []string{"./mvnw"},
-			scope:  sdk.ScopeRuntime,
+			scope:  model.ScopeRuntime,
 			want:   []string{"./mvnw", "-B", "dependency:tree", "-DoutputType=tgf", "-Dscope=runtime"},
 		},
 		{
 			name:      "development selects test scope",
 			prefix:    []string{"-f", "demo/pom.xml"},
-			scope:     sdk.ScopeDevelopment,
+			scope:     model.ScopeDevelopment,
 			want:      []string{"-f", "demo/pom.xml", "-B", "dependency:tree", "-DoutputType=tgf", "-Dscope=test"},
 			unchanged: []string{"-f", "demo/pom.xml"},
 		},
@@ -403,4 +406,15 @@ func TestMavenDetectorResolveRunner_FallsBackToInstalledMaven(t *testing.T) {
 	if len(prefixArgs) != 0 {
 		t.Fatalf("expected no prefix args, got %#v", prefixArgs)
 	}
+}
+
+// mustDep narrows a graph node to the dependency node a case is asserting
+// about, failing rather than panicking when the graph holds something else.
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
+	t.Helper()
+	dep, ok := node.(*model.DependencyNode)
+	if !ok {
+		t.Fatalf("expected a dependency node, got %T", node)
+	}
+	return dep
 }

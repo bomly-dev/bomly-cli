@@ -226,7 +226,7 @@ func logoRevealFrames() []string {
 	grid, width := logoRuneGrid(bomlyLogoArt())
 
 	frames := make([]string, 0, logoFrameCount)
-	for frame := 0; frame < logoRevealFrameCount; frame++ {
+	for frame := range logoRevealFrameCount {
 		boundary := (frame + 1) * (width + logoScrambleBand) / logoRevealFrameCount
 		frames = append(frames, renderBomlyLogoFrame(revealFrameCells(grid, frame, boundary), ""))
 	}
@@ -249,7 +249,7 @@ func logoRainFrames() []string {
 	grid, _ := logoRuneGrid(bomlyLogoArt())
 
 	frames := make([]string, 0, logoFrameCount)
-	for frame := 0; frame < logoRevealFrameCount; frame++ {
+	for frame := range logoRevealFrameCount {
 		rows := make([][]logoCell, len(grid))
 		for row, line := range grid {
 			cells := make([]logoCell, len(line))
@@ -289,7 +289,7 @@ func logoGlitchFrames() []string {
 	grid, _ := logoRuneGrid(bomlyLogoArt())
 
 	frames := make([]string, 0, logoFrameCount)
-	for frame := 0; frame < logoRevealFrameCount; frame++ {
+	for frame := range logoRevealFrameCount {
 		density := maxDensity * (logoRevealFrameCount - 1 - frame) / (logoRevealFrameCount - 1)
 		rows := make([][]logoCell, len(grid))
 		for row, line := range grid {
@@ -326,34 +326,28 @@ func logoSlideFrames() []string {
 	slideDuration := logoRevealFrameCount - slideStagger*(len(grid)-1)
 
 	frames := make([]string, 0, logoFrameCount)
-	for frame := 0; frame < logoRevealFrameCount; frame++ {
+	for frame := range logoRevealFrameCount {
 		rows := make([][]logoCell, len(grid))
 		for row, line := range grid {
 			cells := make([]logoCell, len(line))
 			for col := range line {
 				cells[col] = logoCell{glyph: ' ', style: logoCellPlain}
 			}
-			visible := (frame - slideStagger*row + 1) * width / slideDuration
-			if visible < 0 {
-				visible = 0
-			}
-			if visible > width {
-				visible = width
-			}
+			visible := min(max((frame-slideStagger*row+1)*width/slideDuration, 0), width)
 			style := logoCellScramble
 			if visible == width {
 				style = logoCellRevealed
 			}
 			if row%2 == 0 {
 				// Enter from the left: the row's tail is visible at the left edge.
-				for idx := 0; idx < visible; idx++ {
+				for idx := range visible {
 					if glyph := line[width-visible+idx]; glyph != ' ' {
 						cells[idx] = logoCell{glyph: glyph, style: style}
 					}
 				}
 			} else {
 				// Enter from the right: the row's head is visible at the right edge.
-				for idx := 0; idx < visible; idx++ {
+				for idx := range visible {
 					if glyph := line[idx]; glyph != ' ' {
 						cells[width-visible+idx] = logoCell{glyph: glyph, style: style}
 					}

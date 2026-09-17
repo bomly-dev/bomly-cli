@@ -12,7 +12,8 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestRenderDiffTextShowsFindingsSummaryLine(t *testing.T) {
@@ -53,14 +54,14 @@ func TestDiffSARIFFindingsIncludesIntroducedAndPersisted(t *testing.T) {
 	// Persisted findings are always tied to a package the diff changed, so
 	// they must stay in the SARIF output or GitHub closes their alert as if
 	// the issue had been resolved.
-	introduced := sdk.Finding{ID: "new", PackageRef: "pkg:npm/new@1.0.0"}
-	resolved := sdk.Finding{ID: "old", PackageRef: "pkg:npm/old@1.0.0"}
-	persisted := sdk.Finding{ID: "kept", PackageRef: "pkg:npm/kept@1.0.0"}
+	introduced := model.Finding{ID: "new", PackageRef: "pkg:npm/new@1.0.0"}
+	resolved := model.Finding{ID: "old", PackageRef: "pkg:npm/old@1.0.0"}
+	persisted := model.Finding{ID: "kept", PackageRef: "pkg:npm/kept@1.0.0"}
 
 	got := diffSARIFFindings(&diffengine.Audit{
-		Introduced: []sdk.Finding{introduced},
-		Resolved:   []sdk.Finding{resolved},
-		Persisted:  []sdk.Finding{persisted},
+		Introduced: []model.Finding{introduced},
+		Resolved:   []model.Finding{resolved},
+		Persisted:  []model.Finding{persisted},
 	})
 	gotIDs := make(map[string]bool, len(got))
 	for _, f := range got {
@@ -70,7 +71,7 @@ func TestDiffSARIFFindingsIncludesIntroducedAndPersisted(t *testing.T) {
 		t.Fatalf("diffSARIFFindings() = %#v, want introduced + persisted, excluding resolved", got)
 	}
 
-	if got := diffSARIFFindings(&diffengine.Audit{Resolved: []sdk.Finding{resolved}}); len(got) != 0 {
+	if got := diffSARIFFindings(&diffengine.Audit{Resolved: []model.Finding{resolved}}); len(got) != 0 {
 		t.Fatalf("resolved-only SARIF findings = %#v, want none", got)
 	}
 }
@@ -81,7 +82,7 @@ func TestDiffPolicyExit_PersistedFailingFindingsAlsoFailTheJob(t *testing.T) {
 	// fail --fail-on any, since the finding is tied to a package this diff
 	// actually changed.
 	err := diffPolicyExit(true, &diffengine.Audit{
-		Persisted: []sdk.Finding{{ID: "CVE-PERSISTS", PolicyStatus: sdk.FindingPolicyStatusFail}},
+		Persisted: []model.Finding{{ID: "CVE-PERSISTS", PolicyStatus: model.FindingPolicyStatusFail}},
 	})
 	if err == nil {
 		t.Fatal("expected a policy violation error for a failing persisted finding")
@@ -90,7 +91,7 @@ func TestDiffPolicyExit_PersistedFailingFindingsAlsoFailTheJob(t *testing.T) {
 
 func TestDiffPolicyExit_PersistedWarningsDoNotFailTheJob(t *testing.T) {
 	err := diffPolicyExit(true, &diffengine.Audit{
-		Persisted: []sdk.Finding{{ID: "license:warn", PolicyStatus: sdk.FindingPolicyStatusWarn}},
+		Persisted: []model.Finding{{ID: "license:warn", PolicyStatus: model.FindingPolicyStatusWarn}},
 	})
 	if err != nil {
 		t.Fatalf("expected no policy violation for a warning-only persisted finding, got %v", err)
@@ -99,7 +100,7 @@ func TestDiffPolicyExit_PersistedWarningsDoNotFailTheJob(t *testing.T) {
 
 func TestDiffPolicyExit_NoAuditNoExit(t *testing.T) {
 	if err := diffPolicyExit(false, &diffengine.Audit{
-		Persisted: []sdk.Finding{{ID: "x", PolicyStatus: sdk.FindingPolicyStatusFail}},
+		Persisted: []model.Finding{{ID: "x", PolicyStatus: model.FindingPolicyStatusFail}},
 	}); err != nil {
 		t.Fatalf("expected no exit error when audit is disabled, got %v", err)
 	}

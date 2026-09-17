@@ -3,34 +3,36 @@ package registry
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // IndexedDetectors describes a set of package managers that will be detected by the same primary detector.
 type IndexedDetectors struct {
 	Path            string
 	PrimaryDetector string
-	PackageManagers []sdk.PackageManager
+	PackageManagers []model.PackageManager
 }
 
 // packageManagerMatch describes a package manager that matches a set of evidence patterns.
 type packageManagerMatch struct {
-	manager         sdk.PackageManager
+	manager         model.PackageManager
 	matchedPatterns []string
 	score           int
 }
 
 // DetectPackageManagers identifies package managers for a filesystem path.
-func DetectPackageManagers(candidatePath string) ([]sdk.PackageManager, error) {
+func DetectPackageManagers(candidatePath string) ([]model.PackageManager, error) {
 	info, err := os.Stat(candidatePath)
 	if err != nil {
 		return nil, err
 	}
 	matches := detectPackageManagerMatches(candidatePath, info.IsDir())
-	managers := make([]sdk.PackageManager, 0, len(matches))
+	managers := make([]model.PackageManager, 0, len(matches))
 	for _, match := range deduplicateMatches(matches) {
 		managers = append(managers, match.manager)
 	}
@@ -66,7 +68,7 @@ func deduplicateMatches(matches []packageManagerMatch) []packageManagerMatch {
 
 	filtered := make([]packageManagerMatch, 0, len(matches))
 	for i, current := range matches {
-		if current.manager == sdk.PackageManagerUnknown {
+		if current.manager == model.PackageManagerUnknown {
 			continue
 		}
 		drop := false
@@ -94,7 +96,7 @@ func deduplicateMatches(matches []packageManagerMatch) []packageManagerMatch {
 	return filtered
 }
 
-func matchingPatternsInDirectory(dir string, manager sdk.PackageManager, patterns []string) []string {
+func matchingPatternsInDirectory(dir string, manager model.PackageManager, patterns []string) []string {
 	matched := make([]string, 0, len(patterns))
 	for _, pattern := range patterns {
 		if patternMatchesDirectory(dir, manager, pattern) {
@@ -104,7 +106,7 @@ func matchingPatternsInDirectory(dir string, manager sdk.PackageManager, pattern
 	return matched
 }
 
-func matchingPatternsForFile(path string, manager sdk.PackageManager, patterns []string) []string {
+func matchingPatternsForFile(path string, manager model.PackageManager, patterns []string) []string {
 	matched := make([]string, 0, len(patterns))
 	slashPath := filepath.ToSlash(path)
 	base := filepath.Base(slashPath)
@@ -138,7 +140,7 @@ func patternExists(dir string, pattern string) bool {
 	return err == nil && len(matches) > 0
 }
 
-func patternMatchesDirectory(dir string, manager sdk.PackageManager, pattern string) bool {
+func patternMatchesDirectory(dir string, manager model.PackageManager, pattern string) bool {
 	if !patternExists(dir, pattern) {
 		return false
 	}
@@ -148,7 +150,7 @@ func patternMatchesDirectory(dir string, manager sdk.PackageManager, pattern str
 	return pyprojectBelongsToManager(filepath.Join(dir, filepath.FromSlash(pattern)), manager)
 }
 
-func pyprojectPatternMatches(path string, manager sdk.PackageManager, pattern string) bool {
+func pyprojectPatternMatches(path string, manager model.PackageManager, pattern string) bool {
 	if !isPyprojectPattern(pattern) {
 		return true
 	}
@@ -178,15 +180,15 @@ func patternSpecificity(pattern string) int {
 	}
 }
 
-func pyprojectBelongsToManager(path string, manager sdk.PackageManager) bool {
+func pyprojectBelongsToManager(path string, manager model.PackageManager) bool {
 	switch manager {
-	case sdk.PackageManagerPoetry:
+	case model.PackageManagerPoetry:
 		hasTable, _ := pyprojectHasTable(path, "tool.poetry")
 		return hasTable
-	case sdk.PackageManagerUV:
+	case model.PackageManagerUV:
 		hasTable, _ := pyprojectHasTable(path, "tool.uv")
 		return hasTable
-	case sdk.PackageManagerPDM:
+	case model.PackageManagerPDM:
 		hasPoetryTable, readable := pyprojectHasTable(path, "tool.poetry")
 		if !readable {
 			return false
@@ -203,7 +205,7 @@ func pyprojectHasTable(path string, table string) (bool, bool) {
 	if err != nil {
 		return false, false
 	}
-	for _, line := range strings.Split(string(raw), "\n") {
+	for line := range strings.SplitSeq(string(raw), "\n") {
 		trimmed := strings.TrimSpace(line)
 		if !strings.HasPrefix(trimmed, "[") || !strings.Contains(trimmed, "]") {
 			continue
@@ -219,11 +221,11 @@ func pyprojectHasTable(path string, table string) (bool, bool) {
 	return false, true
 }
 
-func uniquePackageManagers(values []sdk.PackageManager) []sdk.PackageManager {
-	result := make([]sdk.PackageManager, 0, len(values))
-	seen := make(map[sdk.PackageManager]struct{}, len(values))
+func uniquePackageManagers(values []model.PackageManager) []model.PackageManager {
+	result := make([]model.PackageManager, 0, len(values))
+	seen := make(map[model.PackageManager]struct{}, len(values))
 	for _, value := range values {
-		if value == sdk.PackageManagerUnknown {
+		if value == model.PackageManagerUnknown {
 			continue
 		}
 		if _, ok := seen[value]; ok {
@@ -260,10 +262,5 @@ func sameStringSet(left []string, right []string) bool {
 }
 
 func containsString(values []string, target string) bool {
-	for _, value := range values {
-		if value == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(values, target)
 }

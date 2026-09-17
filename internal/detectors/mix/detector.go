@@ -9,17 +9,19 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // Detector resolves Elixir Mix dependency graphs from committed Mix files.
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
+	Fallback   plugin.Detector
 }
 
 var evidencePatterns = []string{"mix.lock", "mix.exs"}
@@ -28,7 +30,7 @@ type mixPackage struct {
 	Name    string
 	Version string
 	Source  string
-	Scope   sdk.Scope
+	Scope   model.Scope
 	Direct  bool
 	Deps    []string
 }
@@ -43,17 +45,17 @@ var (
 )
 
 // PackageManagerSupport returns Mix package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerMix, evidencePatterns...).WithMultiModule()}
+func (d Detector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerMix, evidencePatterns...).WithMultiModule()}
 }
 
 // Ready reports whether committed Mix files can be parsed.
-func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
+func (d Detector) Ready(context.Context, plugin.DetectionRequest) error {
 	return nil
 }
 
 // Applicable reports whether Mix files are present.
-func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	_ = ctx
 	workingDir := d.workingDir(req.ProjectPath)
 	for _, name := range []string{"mix.lock", "mix.exs"} {
@@ -65,40 +67,40 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 }
 
 // Descriptor describes the Mix detector.
-func (d Detector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d Detector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		Name:                detectors.NameMix,
-		Technique:           sdk.LockfileTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemElixir},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerMix},
+		Technique:           plugin.LockfileTechnique,
+		SupportedEcosystems: []model.Ecosystem{model.EcosystemElixir},
+		SupportedManagers:   []model.PackageManager{model.PackageManagerMix},
 		Tags:                []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
 	}
 }
 
 // ResolveGraph resolves a Mix dependency graph.
-func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
 	workingDir := d.workingDir(req.ProjectPath)
 	lockRaw, err := readOptional(filepath.Join(workingDir, "mix.lock"))
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("read mix.lock: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("read mix.lock: %w", err)
 	}
 	manifestRaw, err := readOptional(filepath.Join(workingDir, "mix.exs"))
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("read mix.exs: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("read mix.exs: %w", err)
 	}
 	g, err := depGraphFromMix(lockRaw, manifestRaw)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	AttachMixLockPositions(g, workingDir)
-	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns))}, nil
+	return detectors.Attributed(plugin.DetectionResult{Graphs: model.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns))}), nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() sdk.Detector {
+func (d Detector) FallbackDetector() plugin.Detector {
 	return d.Fallback
 }
 
@@ -117,7 +119,7 @@ func readOptional(path string) ([]byte, error) {
 	return system.ReadRepositoryFile(path)
 }
 
-func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
+func depGraphFromMix(lockRaw, manifestRaw []byte) (*model.Graph, error) {
 	packages := parseMixLock(string(lockRaw))
 	for name, dep := range parseMixManifest(string(manifestRaw)) {
 		pkg := packages[name]
@@ -132,23 +134,31 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 		return nil, fmt.Errorf("mix files do not contain any dependencies")
 	}
 
-	g := sdk.New()
-	root := rootNode()
+	g := model.New()
+	root, err := rootNode()
+	if err != nil {
+		return nil, err
+	}
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
 	// Add all package nodes first.
-	nodesByName := make(map[string]*sdk.Dependency, len(packages))
+	nodesByName := make(map[string]*model.DependencyNode, len(packages))
 	for _, name := range sortedMixNames(packages) {
 		pkg := packages[name]
-		node := packageNode(pkg)
+		node, err := packageNode(pkg)
+		if err != nil {
+			return nil, err
+		}
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
 		}
 		if pkg.Scope != "" {
-			if existing, ok := g.Node(node.ID); ok {
-				existing.AddScope(pkg.Scope)
+			if existingNode, ok := g.Node(node.NodeID()); ok {
+				if existing, isDep := model.AsDependencyNode(existingNode); isDep {
+					existing.AddScope(pkg.Scope)
+				}
 			}
 		}
 		nodesByName[name] = node
@@ -164,8 +174,8 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 		if node == nil {
 			continue
 		}
-		if err := g.AddEdge(root.ID, node.ID); err != nil {
-			return nil, fmt.Errorf("add Mix root dependency %q: %w", node.ID, err)
+		if err := g.AddEdge(root.NodeID(), node.NodeID()); err != nil {
+			return nil, fmt.Errorf("add Mix root dependency %q: %w", node.NodeID(), err)
 		}
 	}
 
@@ -178,10 +188,10 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 		}
 		for _, depName := range pkg.Deps {
 			child := nodesByName[depName]
-			if child == nil || child.ID == root.ID || child.ID == parent.ID {
+			if child == nil || child.NodeID() == root.NodeID() || child.NodeID() == parent.NodeID() {
 				continue
 			}
-			_ = g.AddEdge(parent.ID, child.ID)
+			_ = g.AddEdge(parent.NodeID(), child.NodeID())
 		}
 	}
 
@@ -190,56 +200,58 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 		if node == nil {
 			continue
 		}
-		dependents, _ := g.Dependents(node.ID)
+		dependents, _ := g.Dependents(node.NodeID())
 		if len(dependents) == 0 {
-			_ = g.AddEdge(root.ID, node.ID)
+			_ = g.AddEdge(root.NodeID(), node.NodeID())
 		}
 	}
 
 	// BFS scope propagation: runtime always beats development.
-	directDeps, _ := g.DirectDependencies(root.ID)
-	propagated := make(map[string]sdk.Scope, g.Size())
-	queue := make([]*sdk.Dependency, 0, len(directDeps))
+	directDepsNodes, _ := g.DirectDependencies(root.NodeID())
+	directDeps := model.DependencyNodesOf(directDepsNodes)
+	propagated := make(map[string]model.Scope, g.Size())
+	queue := make([]*model.DependencyNode, 0, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
 		}
 		scope := dep.PrimaryScope()
-		if scope == sdk.ScopeUnknown {
-			scope = sdk.ScopeRuntime
+		if scope == model.ScopeUnknown {
+			scope = model.ScopeRuntime
 		}
-		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
-		dep.AddScope(propagated[dep.ID])
+		propagated[dep.NodeID()] = model.MergeScope(propagated[dep.NodeID()], scope)
+		dep.AddScope(propagated[dep.NodeID()])
 		queue = append(queue, dep)
 	}
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
-		scope := propagated[current.ID]
-		if scope == sdk.ScopeUnknown {
+		scope := propagated[current.NodeID()]
+		if scope == model.ScopeUnknown {
 			continue
 		}
-		children, err := g.DirectDependencies(current.ID)
+		childrenNodes, err := g.DirectDependencies(current.NodeID())
+		children := model.DependencyNodesOf(childrenNodes)
 		if err != nil {
 			continue
 		}
 		for _, child := range children {
-			if child == nil || child.ID == root.ID {
+			if child == nil || child.NodeID() == root.NodeID() {
 				continue
 			}
-			next := sdk.MergeScope(propagated[child.ID], scope)
-			if next == propagated[child.ID] && child.PrimaryScope() == next {
+			next := model.MergeScope(propagated[child.NodeID()], scope)
+			if next == propagated[child.NodeID()] && child.PrimaryScope() == next {
 				continue
 			}
-			propagated[child.ID] = next
+			propagated[child.NodeID()] = next
 			child.AddScope(next)
 			queue = append(queue, child)
 		}
 	}
 	// Any remaining unscoped non-root packages default to runtime.
-	for _, pkg := range g.Nodes() {
-		if pkg != nil && pkg.ID != root.ID && pkg.PrimaryScope() == sdk.ScopeUnknown {
-			pkg.AddScope(sdk.ScopeRuntime)
+	for _, pkg := range g.DependencyNodes() {
+		if pkg != nil && pkg.NodeID() != root.NodeID() && pkg.PrimaryScope() == model.ScopeUnknown {
+			pkg.AddScope(model.ScopeRuntime)
 		}
 	}
 	return g, nil
@@ -358,14 +370,14 @@ func parseMixManifest(raw string) map[string]mixPackage {
 		if name == "" {
 			continue
 		}
-		scope := sdk.ScopeRuntime
+		scope := model.ScopeRuntime
 		onlyValues := match[0] + " " + match[3] + " " + match[4]
 		if strings.Contains(onlyValues, "test") || strings.Contains(onlyValues, "dev") {
-			scope = sdk.ScopeDevelopment
+			scope = model.ScopeDevelopment
 		}
 		for _, only := range mixOnlyAtomPattern.FindAllStringSubmatch(onlyValues, -1) {
 			if only[1] == "prod" {
-				scope = sdk.ScopeRuntime
+				scope = model.ScopeRuntime
 			}
 		}
 		packages[name] = mixPackage{Name: name, Direct: true, Scope: scope}
@@ -373,34 +385,38 @@ func parseMixManifest(raw string) map[string]mixPackage {
 	return packages
 }
 
-func rootNode() *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemElixir,
+// rootNode is the scanned project's own artifact: a module node, since
+// ADR-0041 made ownership the node kind.
+func rootNode() (*model.ModuleNode, error) {
+	return model.NewModuleNode("mix.exs", model.Coordinates{
+		Ecosystem:      model.EcosystemElixir,
 		Name:           "root",
-		PackageManager: sdk.PackageManagerMix,
-		Type:           sdk.PackageTypeApplication,
-		FirstParty:     true,
-		Language:       "elixir"},
+		PackageManager: model.PackageManagerMix,
+		Type:           model.PackageTypeApplication,
+		Language:       "elixir",
 	})
-
 }
 
-func packageNode(pkg mixPackage) *sdk.Dependency {
+func packageNode(pkg mixPackage) (*model.DependencyNode, error) {
 	version := strings.TrimSpace(pkg.Version)
 	source := strings.TrimSpace(pkg.Source)
 	if source == "" {
 		source = "hex"
 	}
-	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemElixir,
+	node, err := model.NewDependencyNode(model.Coordinates{
+		Ecosystem:      model.EcosystemElixir,
 		Name:           strings.TrimSpace(pkg.Name),
 		Version:        version,
-		PackageManager: sdk.PackageManagerMix,
-		Type:           sdk.PackageTypePackage,
+		PackageManager: model.PackageManagerMix,
+		Type:           model.PackageTypePackage,
 		Language:       "elixir",
-		PURL:           sdk.BuildPackageURL("hex", "", pkg.Name, version)}, Metadata: map[string]any{
-		"source": source,
-	},
+		PURL:           model.BuildPackageURLFor(model.EcosystemElixir, model.PackageManagerMix, "", pkg.Name, version),
 	})
-
+	if err != nil {
+		return nil, fmt.Errorf("build mix node %q: %w", pkg.Name, err)
+	}
+	node.Metadata = map[string]any{"source": source}
+	return node, nil
 }
 
 func sortedMixNames(packages map[string]mixPackage) []string {
@@ -412,7 +428,7 @@ func sortedMixNames(packages map[string]mixPackage) []string {
 	return values
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
-	_, err := detectors.EnsureNode(g, node)
+func addNodeIfMissing(g *model.Graph, node *model.DependencyNode) error {
+	_, err := detectorkit.EnsureNode(g, node)
 	return err
 }

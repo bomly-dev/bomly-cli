@@ -4,28 +4,28 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestNPMListArgsScopeFilter(t *testing.T) {
 	tests := []struct {
 		name  string
-		scope sdk.Scope
+		scope model.Scope
 		want  []string
 	}{
 		{
 			name:  "unknown resolves full graph",
-			scope: sdk.ScopeUnknown,
+			scope: model.ScopeUnknown,
 			want:  []string{"ls", "--all", "--json", "--package-lock-only"},
 		},
 		{
 			name:  "runtime omits dev dependencies",
-			scope: sdk.ScopeRuntime,
+			scope: model.ScopeRuntime,
 			want:  []string{"ls", "--all", "--json", "--package-lock-only", "--omit=dev"},
 		},
 		{
 			name:  "development resolves full graph for shared filtering",
-			scope: sdk.ScopeDevelopment,
+			scope: model.ScopeDevelopment,
 			want:  []string{"ls", "--all", "--json", "--package-lock-only"},
 		},
 	}

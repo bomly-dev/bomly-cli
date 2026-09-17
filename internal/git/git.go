@@ -433,7 +433,7 @@ func relativePath(root, path string) string {
 func parseChangedLineRanges(diff string) map[string][]LineRange {
 	ranges := make(map[string][]LineRange)
 	currentFile := ""
-	for _, line := range strings.Split(diff, "\n") {
+	for line := range strings.SplitSeq(diff, "\n") {
 		switch {
 		case strings.HasPrefix(line, "+++ "):
 			path := strings.TrimSpace(strings.TrimPrefix(line, "+++ "))

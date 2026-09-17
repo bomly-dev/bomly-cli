@@ -9,8 +9,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/sbom"
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/sbom"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 const summarySchemaVersion = "bomly.benchmark.v2"
@@ -116,7 +117,7 @@ type CaseSummary struct {
 	Case          string          `json:"case"`
 	Repository    string          `json:"repository"`
 	HeadSHA       string          `json:"head_sha,omitempty"`
-	Ecosystem     sdk.Ecosystem   `json:"ecosystem"`
+	Ecosystem     model.Ecosystem `json:"ecosystem"`
 	Status        string          `json:"status"`
 	Reason        string          `json:"reason,omitempty"`
 	Detectors     []string        `json:"used_detectors,omitempty"`
@@ -191,12 +192,9 @@ func comparePackages(bomlyDoc, sourceDoc *sbom.Document, policy ComparisonPolicy
 		sourcePURLs := sourceByBase[base]
 		sort.Strings(bomlyPURLs)
 		sort.Strings(sourcePURLs)
-		matched := len(bomlyPURLs)
-		if len(sourcePURLs) < matched {
-			matched = len(sourcePURLs)
-		}
+		matched := min(len(sourcePURLs), len(bomlyPURLs))
 		metrics.VersionMismatch += matched
-		for idx := 0; idx < matched; idx++ {
+		for idx := range matched {
 			differences = append(differences, ComparisonDifference{Kind: "package", Classification: "version_mismatch", BomlyPURL: bomlyPURLs[idx], SourcePURL: sourcePURLs[idx]})
 		}
 		metrics.BomlyOnly += len(bomlyPURLs) - matched
@@ -310,7 +308,7 @@ func averageScores(items []*ScoreSummary) *ScoreSummary {
 }
 
 // FilterDocument returns a copy containing only packages from ecosystem and their relationships.
-func FilterDocument(doc *sbom.Document, ecosystem sdk.Ecosystem) *sbom.Document {
+func FilterDocument(doc *sbom.Document, ecosystem model.Ecosystem) *sbom.Document {
 	if doc == nil {
 		return nil
 	}
@@ -320,7 +318,7 @@ func FilterDocument(doc *sbom.Document, ecosystem sdk.Ecosystem) *sbom.Document 
 	out.Roots = nil
 	kept := make(map[string]struct{})
 	for _, component := range doc.Components {
-		if componentEcosystem(component) != ecosystem {
+		if sbom.ComponentEcosystem(component) != ecosystem {
 			continue
 		}
 		out.Components = append(out.Components, component)
@@ -346,42 +344,6 @@ func FilterDocument(doc *sbom.Document, ecosystem sdk.Ecosystem) *sbom.Document 
 	return &out
 }
 
-func componentEcosystem(component sbom.Component) sdk.Ecosystem {
-	if value, err := sdk.ParseEcosystem(component.Ecosystem); err == nil {
-		return value
-	}
-	if purl := sdk.ParsePackageURL(component.PURL); purl != nil {
-		switch strings.ToLower(strings.TrimSpace(purl.Type)) {
-		case "golang":
-			return sdk.EcosystemGo
-		case "pypi":
-			return sdk.EcosystemPython
-		case "nuget":
-			return sdk.EcosystemDotNet
-		case "cargo":
-			return sdk.EcosystemRust
-		case "composer":
-			return sdk.EcosystemPHP
-		case "gem":
-			return sdk.EcosystemRuby
-		case "cocoapods", "swift":
-			return sdk.EcosystemSwift
-		case "pub":
-			return sdk.EcosystemDart
-		case "hex":
-			return sdk.EcosystemElixir
-		case "conan":
-			return sdk.EcosystemCPP
-		case "githubactions":
-			return sdk.EcosystemGitHub
-		default:
-			value, _ := sdk.ParseEcosystem(purl.Type)
-			return value
-		}
-	}
-	return sdk.EcosystemUnknown
-}
-
 func packagePURLs(doc *sbom.Document) (map[string]struct{}, int) {
 	out := make(map[string]struct{})
 	ignored := 0
@@ -389,7 +351,7 @@ func packagePURLs(doc *sbom.Document) (map[string]struct{}, int) {
 		return out, ignored
 	}
 	for _, component := range doc.Components {
-		purl := sdk.CanonicalizePackageURL(component.PURL)
+		purl := model.CanonicalizePackageURL(component.PURL)
 		if purl == "" {
 			ignored++
 			continue
@@ -402,7 +364,7 @@ func packagePURLs(doc *sbom.Document) (map[string]struct{}, int) {
 func purlsByBase(purls map[string]struct{}) map[string][]string {
 	out := make(map[string][]string)
 	for purl := range purls {
-		base := sdk.PackageURLBase(purl)
+		base := model.PackageURLBase(purl)
 		out[base] = append(out[base], purl)
 	}
 	return out
@@ -415,7 +377,7 @@ func purlDependencyEdges(doc *sbom.Document) map[string]struct{} {
 	}
 	purlsByID := make(map[string]string, len(doc.Components))
 	for _, component := range doc.Components {
-		if purl := sdk.CanonicalizePackageURL(component.PURL); purl != "" {
+		if purl := model.CanonicalizePackageURL(component.PURL); purl != "" {
 			purlsByID[component.ID] = purl
 		}
 	}
@@ -439,7 +401,7 @@ func detectorCreators(doc *sbom.Document) []string {
 	}
 	out := make([]string, 0)
 	for _, tool := range doc.Tools {
-		if name := strings.TrimPrefix(tool, "bomly-detector:"); name != tool {
+		if name, ok := strings.CutPrefix(tool, "bomly-detector:"); ok {
 			out = append(out, name)
 		}
 	}
@@ -453,13 +415,18 @@ func summarizeScopes(doc *sbom.Document) *ScopeSummary {
 		return summary
 	}
 	for _, component := range doc.Components {
-		scope := strings.TrimSpace(component.Scope)
-		if scope == "" {
+		// A component now carries a scope set. It counts once as known, and
+		// each scope it holds counts in the per-scope tally -- a package that
+		// is both runtime and development is one known component with two
+		// scopes, which is what the union means.
+		if len(component.Scopes) == 0 {
 			summary.UnknownScopeCount++
 			continue
 		}
 		summary.KnownScopeCount++
-		summary.Scopes[scope]++
+		for _, scope := range component.Scopes {
+			summary.Scopes[string(scope)]++
+		}
 	}
 	if len(summary.Scopes) == 0 {
 		summary.Scopes = nil

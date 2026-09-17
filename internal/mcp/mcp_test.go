@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"maps"
 	"reflect"
 	"strings"
 	"testing"
@@ -11,11 +12,12 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/mcp"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/mark3labs/mcp-go/client"
 	mcplib "github.com/mark3labs/mcp-go/mcp"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // mockAdapter is a test double for OptionsAdapter.
@@ -521,9 +523,9 @@ func TestDiffTool_ReturnsCompactJSONResult(t *testing.T) {
 				Command:    "diff",
 				Comparison: output.DiffComparison{Base: "main", Head: "HEAD"},
 			},
-			Resolved: []sdk.Finding{{
+			Resolved: []model.Finding{{
 				ID: "GHSA-fixed", VulnerabilityID: "GHSA-fixed",
-				Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityHigh,
+				Kind: model.FindingKindVulnerability, Severity: model.SeverityHigh,
 				PackageRef: "pkg:npm/lib@1.0.0",
 			}},
 			AuditRan: true,
@@ -639,9 +641,7 @@ func TestTools_PropagateRecursiveDiscoveryArgs(t *testing.T) {
 	adapter = &mockAdapter{explainResult: mcp.ExplainRunResult{Response: output.ExplainResponse{Command: "explain"}}}
 	c = newTestClient(t, adapter)
 	explainArgs := map[string]any{"package": "lodash"}
-	for k, v := range args {
-		explainArgs[k] = v
-	}
+	maps.Copy(explainArgs, args)
 	if result := callTool(t, c, "bomly_explain", explainArgs); result.IsError {
 		t.Fatalf("unexpected explain tool error: %v", result.Content)
 	}
@@ -652,9 +652,7 @@ func TestTools_PropagateRecursiveDiscoveryArgs(t *testing.T) {
 	adapter = &mockAdapter{diffResult: mcp.DiffRunResult{Response: output.DiffResponse{Command: "diff"}}}
 	c = newTestClient(t, adapter)
 	diffArgs := map[string]any{"base": "main", "head": "HEAD"}
-	for k, v := range args {
-		diffArgs[k] = v
-	}
+	maps.Copy(diffArgs, args)
 	if result := callTool(t, c, "bomly_diff", diffArgs); result.IsError {
 		t.Fatalf("unexpected diff tool error: %v", result.Content)
 	}

@@ -6,7 +6,8 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // ExplainMarkdown writes a GitHub-flavored Markdown explain report.
@@ -134,7 +135,7 @@ func explainImpactMarkdown(payload output.ExplainResponse) []string {
 				}
 				suffix := ""
 				if payload.Metadata.ReachabilityEnabled {
-					reachability := (*sdk.Reachability)(nil)
+					reachability := (*model.Reachability)(nil)
 					if vuln := output.MatchVulnerabilityRef(target.Dependency.Vulnerabilities, finding.ResolvedVulnerabilityID()); vuln != nil {
 						reachability = vuln.Reachability
 					}

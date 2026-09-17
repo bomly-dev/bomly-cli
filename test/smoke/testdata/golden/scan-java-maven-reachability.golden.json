@@ -4,6 +4,26 @@
     {
       "dependencies": [
         {
+          "depends_on": [
+            "pkg:maven/com.h2database/h2@1.3.176",
+            "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
+            "pkg:maven/junit/junit@4.12",
+            "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
+            "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
+            "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
+            "pkg:maven/org.apache.struts/struts2-core@2.5.13",
+            "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
+            "pkg:maven/org.mindrot/jbcrypt@0.4",
+            "pkg:maven/org.neo4j/neo4j-jmx@1.3",
+            "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
+          ],
+          "id": "module:pom.xml#pkg:maven/com.bomly/example-java-maven@1.0-SNAPSHOT",
+          "licenses": [],
+          "name": "com.bomly:example-java-maven",
+          "purl": "pkg:maven/com.bomly/example-java-maven@1.0-SNAPSHOT",
+          "version": "1.0-SNAPSHOT"
+        },
+        {
           "depends_on": [],
           "id": "pkg:maven/aopalliance/aopalliance@1.0",
           "licenses": [],
@@ -33,27 +53,6 @@
           "version": "0.7"
         },
         {
-          "depends_on": [
-            "pkg:maven/com.h2database/h2@1.3.176",
-            "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
-            "pkg:maven/junit/junit@4.12",
-            "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
-            "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
-            "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
-            "pkg:maven/org.apache.struts/struts2-core@2.5.13",
-            "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
-            "pkg:maven/org.mindrot/jbcrypt@0.4",
-            "pkg:maven/org.neo4j/neo4j-jmx@1.3",
-            "pkg:maven/org.springframework/spring-web@3.1.1.release"
-          ],
-          "id": "pkg:maven/com.bomly/example-java-maven@1.0-snapshot",
-          "licenses": [],
-          "name": "com.bomly:example-java-maven",
-          "package_ref": "pkg:maven/com.bomly/example-java-maven@1.0-snapshot",
-          "purl": "pkg:maven/com.bomly/example-java-maven@1.0-snapshot",
-          "version": "1.0-snapshot"
-        },
-        {
           "depends_on": [],
           "id": "pkg:maven/com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru@1.4.1",
           "licenses": [],
@@ -73,11 +72,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -146,11 +150,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -229,16 +238,16 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:maven/io.netty/netty@3.7.0.final",
+          "id": "pkg:maven/io.netty/netty@3.7.0.Final",
           "licenses": [],
           "matched": true,
           "name": "io.netty:netty",
-          "package_ref": "pkg:maven/io.netty/netty@3.7.0.final",
-          "purl": "pkg:maven/io.netty/netty@3.7.0.final",
+          "package_ref": "pkg:maven/io.netty/netty@3.7.0.Final",
+          "purl": "pkg:maven/io.netty/netty@3.7.0.Final",
           "scopes": [
             "runtime"
           ],
-          "version": "3.7.0.final"
+          "version": "3.7.0.Final"
         },
         {
           "depends_on": [],
@@ -303,11 +312,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "development"
+              ]
             }
           ],
           "matched": true,
@@ -341,11 +355,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -411,7 +430,7 @@
         },
         {
           "depends_on": [
-            "pkg:maven/org.javassist/javassist@3.20.0-ga"
+            "pkg:maven/org.javassist/javassist@3.20.0-GA"
           ],
           "id": "pkg:maven/ognl/ognl@3.1.15",
           "licenses": [],
@@ -512,11 +531,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -621,11 +645,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -682,11 +711,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -700,7 +734,7 @@
         },
         {
           "depends_on": [
-            "pkg:maven/io.netty/netty@3.7.0.final",
+            "pkg:maven/io.netty/netty@3.7.0.Final",
             "pkg:maven/jline/jline@0.9.94"
           ],
           "id": "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6",
@@ -742,15 +776,16 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:maven/org.javassist/javassist@3.20.0-ga",
+          "id": "pkg:maven/org.javassist/javassist@3.20.0-GA",
           "licenses": [],
+          "matched": true,
           "name": "org.javassist:javassist",
-          "package_ref": "pkg:maven/org.javassist/javassist@3.20.0-ga",
-          "purl": "pkg:maven/org.javassist/javassist@3.20.0-ga",
+          "package_ref": "pkg:maven/org.javassist/javassist@3.20.0-GA",
+          "purl": "pkg:maven/org.javassist/javassist@3.20.0-GA",
           "scopes": [
             "runtime"
           ],
-          "version": "3.20.0-ga"
+          "version": "3.20.0-GA"
         },
         {
           "depends_on": [],
@@ -769,26 +804,31 @@
           "depends_on": [
             "pkg:maven/org.apache.santuario/xmlsec@1.5.1"
           ],
-          "id": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
+          "id": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
           "licenses": [],
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
           "name": "org.keycloak:keycloak-saml-core",
-          "package_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
-          "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
+          "package_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
+          "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
           "scopes": [
             "runtime"
           ],
-          "version": "1.8.1.final"
+          "version": "1.8.1.Final"
         },
         {
           "depends_on": [],
@@ -797,11 +837,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -820,11 +865,16 @@
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
@@ -903,113 +953,120 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
           "licenses": [],
+          "matched": true,
           "name": "org.springframework:spring-aop",
-          "package_ref": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
           "scopes": [
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [],
-          "id": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
           "licenses": [],
+          "matched": true,
           "name": "org.springframework:spring-asm",
-          "package_ref": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
           "scopes": [
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [],
-          "id": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
           "licenses": [],
           "matched": true,
           "name": "org.springframework:spring-beans",
-          "package_ref": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
           "scopes": [
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [
-            "pkg:maven/org.springframework/spring-aop@3.1.1.release",
-            "pkg:maven/org.springframework/spring-asm@3.1.1.release",
-            "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+            "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
           ],
-          "id": "pkg:maven/org.springframework/spring-context@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
           "licenses": [],
           "matched": true,
           "name": "org.springframework:spring-context",
-          "package_ref": "pkg:maven/org.springframework/spring-context@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-context@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
           "scopes": [
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [
             "pkg:maven/commons-logging/commons-logging@1.1.1"
           ],
-          "id": "pkg:maven/org.springframework/spring-core@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
           "licenses": [],
           "matched": true,
           "name": "org.springframework:spring-core",
-          "package_ref": "pkg:maven/org.springframework/spring-core@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-core@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
           "scopes": [
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [],
-          "id": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
           "licenses": [],
           "matched": true,
           "name": "org.springframework:spring-expression",
-          "package_ref": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
           "scopes": [
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [
             "pkg:maven/aopalliance/aopalliance@1.0",
-            "pkg:maven/org.springframework/spring-beans@3.1.1.release",
-            "pkg:maven/org.springframework/spring-context@3.1.1.release",
-            "pkg:maven/org.springframework/spring-core@3.1.1.release"
+            "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
+            "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
           ],
-          "id": "pkg:maven/org.springframework/spring-web@3.1.1.release",
+          "id": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
           "licenses": [],
           "locations": [
             {
               "access_path": "pom.xml",
+              "module_root": ".",
               "position": {
                 "file": "pom.xml",
                 "line": 0
               },
-              "real_path": "pom.xml"
+              "real_path": "pom.xml",
+              "relationship": "direct",
+              "scopes": [
+                "runtime"
+              ]
             }
           ],
           "matched": true,
           "name": "org.springframework:spring-web",
-          "package_ref": "pkg:maven/org.springframework/spring-web@3.1.1.release",
-          "purl": "pkg:maven/org.springframework/spring-web@3.1.1.release",
+          "package_ref": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
+          "purl": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
           "scopes": [
             "runtime"
           ],
-          "version": "3.1.1.release"
+          "version": "3.1.1.RELEASE"
         },
         {
           "depends_on": [],
@@ -1051,8 +1108,7 @@
       "ecosystem": "maven",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -1068,7 +1124,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -1081,19 +1137,10 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
-      "name": "com.bomly:example-java-maven",
-      "org": "com.bomly",
-      "purl": "pkg:maven/com.bomly/example-java-maven@1.0-snapshot",
-      "version": "1.0-snapshot",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "maven",
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -1108,8 +1155,7 @@
       "ecosystem": "maven",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -1180,7 +1226,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -1247,7 +1303,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -1274,7 +1340,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -1290,7 +1356,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -1362,7 +1428,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -1389,7 +1465,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -1405,7 +1481,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -1421,7 +1497,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -1437,7 +1513,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -1502,7 +1578,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -1569,7 +1655,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -1596,7 +1692,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -1670,6 +1766,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -1738,6 +1846,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -1764,7 +1884,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -1836,7 +1956,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -1903,7 +2033,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -1930,7 +2070,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -1943,25 +2083,31 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
       "matched": true,
       "name": "io.netty:netty",
       "org": "io.netty",
-      "purl": "pkg:maven/io.netty/netty@3.7.0.final",
+      "purl": "pkg:maven/io.netty/netty@3.7.0.Final",
       "remediation": {
         "status": "partial",
         "suggestions": [
           {
             "action": "manual-review",
             "affected_dependency_refs": [
-              "pkg:maven/io.netty/netty@3.7.0.final"
+              "pkg:maven/io.netty/netty@3.7.0.Final"
             ],
             "manifest_path": "pom.xml",
             "suggested_action_dependency_ref": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1"
           }
         ]
       },
-      "version": "3.7.0.final",
+      "version": "3.7.0.Final",
       "vulnerabilities": [
         {
           "affected_version_range": "\u003cnormalized\u003e",
@@ -1999,7 +2145,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2059,7 +2215,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2115,7 +2281,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2171,7 +2347,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2227,7 +2413,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2283,7 +2479,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2332,7 +2538,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2388,7 +2604,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2444,7 +2670,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2500,7 +2736,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2567,7 +2813,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2593,8 +2849,7 @@
       "ecosystem": "maven",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -2609,8 +2864,7 @@
       "ecosystem": "maven",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -2625,8 +2879,7 @@
       "ecosystem": "maven",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -2641,8 +2894,7 @@
       "ecosystem": "maven",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -2657,8 +2909,7 @@
       "ecosystem": "maven",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -2731,6 +2982,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -2757,7 +3020,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -2816,7 +3079,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2872,7 +3145,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2928,7 +3211,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -2984,7 +3277,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -3051,7 +3354,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -3107,7 +3420,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -3133,8 +3456,7 @@
       "ecosystem": "maven",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -3205,7 +3527,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -3256,7 +3588,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -3322,7 +3664,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -3348,13 +3700,12 @@
       "ecosystem": "maven",
       "licenses": [
         {
-          "spdxExpression": "LGPL-2.1",
-          "type": "external-depsdev",
+          "spdxExpression": "LGPL-2.1-only",
+          "type": "declared",
           "value": "LGPL-2.1"
         },
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -3369,13 +3720,12 @@
       "ecosystem": "maven",
       "licenses": [
         {
-          "spdxExpression": "LGPL-2.1",
-          "type": "external-depsdev",
+          "spdxExpression": "LGPL-2.1-only",
+          "type": "declared",
           "value": "LGPL-2.1"
         },
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -3391,7 +3741,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -3450,7 +3800,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -3506,7 +3866,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -3532,8 +3902,7 @@
       "ecosystem": "maven",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -3549,7 +3918,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -3565,7 +3934,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -3637,7 +4006,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -3664,7 +4043,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -3680,7 +4059,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -3696,7 +4075,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -3768,7 +4147,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -3795,7 +4184,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -3811,7 +4200,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -3870,7 +4259,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -3897,7 +4296,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -3913,7 +4312,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -3932,7 +4331,7 @@
             ],
             "manifest_path": "pom.xml",
             "override_advice": "\u003cnormalized\u003e",
-            "suggested_action_dependency_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final"
+            "suggested_action_dependency_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final"
           }
         ]
       },
@@ -3980,6 +4379,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -4033,6 +4444,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -4101,6 +4524,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -4162,6 +4597,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -4230,6 +4677,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -4256,7 +4715,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -4272,7 +4731,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -4335,7 +4794,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -4391,7 +4860,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -4451,7 +4930,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -4478,7 +4967,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -4494,7 +4983,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -4510,7 +4999,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -4581,7 +5070,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -4608,7 +5107,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -4624,7 +5123,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -4640,7 +5139,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -4710,7 +5209,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -4777,7 +5286,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -4844,7 +5363,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -4911,7 +5440,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -4978,7 +5517,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -5045,7 +5594,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -5112,7 +5671,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -5189,7 +5758,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -5274,7 +5853,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -5330,7 +5919,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -5397,7 +5996,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -5464,7 +6073,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -5531,7 +6150,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -5587,7 +6216,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -5680,7 +6319,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -5747,7 +6396,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -5814,7 +6473,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -5881,7 +6550,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -5908,7 +6587,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -5923,8 +6602,7 @@
       "ecosystem": "maven",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -5937,19 +6615,34 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "non-standard"
+        },
+        {
+          "spdxExpression": "LGPL-2.1-only",
+          "type": "declared",
+          "value": "LGPL-2.1"
+        },
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
       "name": "org.javassist:javassist",
       "org": "org.javassist",
-      "purl": "pkg:maven/org.javassist/javassist@3.20.0-ga",
-      "version": "3.20.0-ga",
+      "purl": "pkg:maven/org.javassist/javassist@3.20.0-GA",
+      "version": "3.20.0-GA",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "non-standard"
         }
       ],
@@ -5962,25 +6655,31 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
       "matched": true,
       "name": "org.keycloak:keycloak-saml-core",
       "org": "org.keycloak",
-      "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
+      "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
       "remediation": {
         "status": "partial",
         "suggestions": [
           {
             "action": "manual-review",
             "affected_dependency_refs": [
-              "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final"
+              "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final"
             ],
             "manifest_path": "pom.xml",
-            "suggested_action_dependency_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final"
+            "suggested_action_dependency_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final"
           }
         ]
       },
-      "version": "1.8.1.final",
+      "version": "1.8.1.Final",
       "vulnerabilities": [
         {
           "affected_version_range": "\u003cnormalized\u003e",
@@ -6029,7 +6728,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -6096,7 +6805,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -6163,7 +6882,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -6230,7 +6959,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -6257,7 +6996,7 @@
       "licenses": [
         {
           "spdxExpression": "ISC",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "ISC"
         }
       ],
@@ -6272,8 +7011,8 @@
       "ecosystem": "maven",
       "licenses": [
         {
-          "spdxExpression": "GPL-3.0",
-          "type": "external-depsdev",
+          "spdxExpression": "GPL-3.0-only",
+          "type": "declared",
           "value": "GPL-3.0"
         }
       ],
@@ -6289,7 +7028,7 @@
       "licenses": [
         {
           "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
@@ -6305,7 +7044,7 @@
       "licenses": [
         {
           "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
@@ -6321,7 +7060,7 @@
       "licenses": [
         {
           "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "BSD-3-Clause"
         }
       ],
@@ -6337,7 +7076,7 @@
       "licenses": [
         {
           "spdxExpression": "MIT",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "MIT"
         }
       ],
@@ -6353,7 +7092,7 @@
       "licenses": [
         {
           "spdxExpression": "MIT",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "MIT"
         }
       ],
@@ -6366,43 +7105,63 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
       "name": "org.springframework:spring-aop",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
-      "version": "3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.RELEASE",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
       "name": "org.springframework:spring-asm",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
-      "version": "3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.RELEASE",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
       "matched": true,
       "name": "org.springframework:spring-beans",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE",
       "remediation": {
         "status": "partial",
         "suggestions": [
           {
             "action": "manual-review",
             "affected_dependency_refs": [
-              "pkg:maven/org.springframework/spring-beans@3.1.1.release"
+              "pkg:maven/org.springframework/spring-beans@3.1.1.RELEASE"
             ],
             "manifest_path": "pom.xml",
-            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.release"
+            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
           }
         ]
       },
-      "version": "3.1.1.release",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": [
         {
           "affected_version_range": "\u003cnormalized\u003e",
@@ -6471,6 +7230,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -6539,6 +7310,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -6562,25 +7345,31 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
       "matched": true,
       "name": "org.springframework:spring-context",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-context@3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE",
       "remediation": {
         "status": "partial",
         "suggestions": [
           {
             "action": "manual-review",
             "affected_dependency_refs": [
-              "pkg:maven/org.springframework/spring-context@3.1.1.release"
+              "pkg:maven/org.springframework/spring-context@3.1.1.RELEASE"
             ],
             "manifest_path": "pom.xml",
-            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.release"
+            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
           }
         ]
       },
-      "version": "3.1.1.release",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": [
         {
           "affected_version_range": "\u003cnormalized\u003e",
@@ -6620,6 +7409,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -6677,6 +7478,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -6745,6 +7558,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -6768,25 +7593,31 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
       "matched": true,
       "name": "org.springframework:spring-core",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-core@3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE",
       "remediation": {
         "status": "partial",
         "suggestions": [
           {
             "action": "manual-review",
             "affected_dependency_refs": [
-              "pkg:maven/org.springframework/spring-core@3.1.1.release"
+              "pkg:maven/org.springframework/spring-core@3.1.1.RELEASE"
             ],
             "manifest_path": "pom.xml",
-            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.release"
+            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
           }
         ]
       },
-      "version": "3.1.1.release",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": [
         {
           "affected_version_range": "\u003cnormalized\u003e",
@@ -6829,6 +7660,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -6886,6 +7729,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -6954,6 +7809,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -7022,6 +7889,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -7090,6 +7969,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -7150,6 +8041,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -7211,6 +8114,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 1,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 1,
             "status": "reachable",
             "tier": "package"
@@ -7234,25 +8149,31 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
       "matched": true,
       "name": "org.springframework:spring-expression",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE",
       "remediation": {
         "status": "partial",
         "suggestions": [
           {
             "action": "manual-review",
             "affected_dependency_refs": [
-              "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+              "pkg:maven/org.springframework/spring-expression@3.1.1.RELEASE"
             ],
             "manifest_path": "pom.xml",
-            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.release"
+            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
           }
         ]
       },
-      "version": "3.1.1.release",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": [
         {
           "affected_version_range": "\u003cnormalized\u003e",
@@ -7303,6 +8224,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 2,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 2,
             "status": "reachable",
             "tier": "package"
@@ -7371,6 +8304,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 2,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 2,
             "status": "reachable",
             "tier": "package"
@@ -7428,6 +8373,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 2,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 2,
             "status": "reachable",
             "tier": "package"
@@ -7496,6 +8453,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 2,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 2,
             "status": "reachable",
             "tier": "package"
@@ -7553,6 +8522,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 2,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 2,
             "status": "reachable",
             "tier": "package"
@@ -7610,6 +8591,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 2,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 2,
             "status": "reachable",
             "tier": "package"
@@ -7667,6 +8660,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 2,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 2,
             "status": "reachable",
             "tier": "package"
@@ -7735,6 +8740,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 2,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 2,
             "status": "reachable",
             "tier": "package"
@@ -7758,25 +8775,31 @@
     },
     {
       "ecosystem": "maven",
-      "licenses": [],
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
       "matched": true,
       "name": "org.springframework:spring-web",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-web@3.1.1.release",
+      "purl": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
       "remediation": {
         "status": "partial",
         "suggestions": [
           {
             "action": "manual-review",
             "affected_dependency_refs": [
-              "pkg:maven/org.springframework/spring-web@3.1.1.release"
+              "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
             ],
             "manifest_path": "pom.xml",
-            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.release"
+            "suggested_action_dependency_ref": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
           }
         ]
       },
-      "version": "3.1.1.release",
+      "version": "3.1.1.RELEASE",
       "vulnerabilities": [
         {
           "affected_version_range": "\u003cnormalized\u003e",
@@ -7827,6 +8850,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -7895,6 +8930,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -7952,6 +8999,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -8020,6 +9079,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -8088,6 +9159,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -8145,6 +9228,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -8206,6 +9301,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -8274,6 +9381,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -8342,6 +9461,18 @@
             "analyzer": "jvmreach",
             "confidence": "low",
             "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "confidence": "low",
+                "dynamic_imports_detected": true,
+                "hops": 0,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "status": "reachable",
+                "tier": "package"
+              }
+            ],
             "hops": 0,
             "status": "reachable",
             "tier": "package"
@@ -8368,7 +9499,7 @@
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
+          "type": "declared",
           "value": "Apache-2.0"
         }
       ],
@@ -8438,7 +9569,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -8505,7 +9646,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -8572,7 +9723,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"
@@ -8639,7 +9800,17 @@
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "jvmreach",
-            "dynamic_imports_detected": true,
+            "evidence": [
+              {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jvmreach",
+                "dynamic_imports_detected": true,
+                "module_root": "\u003ctmp\u003e/bomly-git-\u003cnormalized\u003e",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              }
+            ],
             "reason": "package-not-imported",
             "status": "unreachable",
             "tier": "package"

@@ -7,8 +7,9 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
-	plugschema "github.com/bomly-dev/bomly-sdk"
 	"github.com/spf13/cobra"
+
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // warnPluginConfigIssues emits warning-only diagnostics for the resolved
@@ -62,15 +63,15 @@ func pluginConfigCatalog(current config.Resolved, coreVersion string) config.Plu
 	return catalog
 }
 
-func pluginConfigKind(kind plugschema.PluginKind) string {
+func pluginConfigKind(kind plugin.PluginKind) string {
 	switch kind {
-	case plugschema.PluginKindDetector:
+	case plugin.PluginKindDetector:
 		return config.PluginKindDetector
-	case plugschema.PluginKindMatcher:
+	case plugin.PluginKindMatcher:
 		return config.PluginKindMatcher
-	case plugschema.PluginKindAuditor:
+	case plugin.PluginKindAuditor:
 		return config.PluginKindAuditor
-	case plugschema.PluginKindAnalyzer:
+	case plugin.PluginKindAnalyzer:
 		return config.PluginKindAnalyzer
 	default:
 		return ""
@@ -81,19 +82,19 @@ func pluginConfigKind(kind plugschema.PluginKind) string {
 // any, across the four descriptor kinds.
 func pluginInfoConfigSchema(info managedplugin.Info) json.RawMessage {
 	switch info.Kind {
-	case plugschema.PluginKindDetector:
+	case plugin.PluginKindDetector:
 		if info.DetectorDescriptor != nil {
 			return info.DetectorDescriptor.ConfigSchema
 		}
-	case plugschema.PluginKindMatcher:
+	case plugin.PluginKindMatcher:
 		if info.MatcherDescriptor != nil {
 			return info.MatcherDescriptor.ConfigSchema
 		}
-	case plugschema.PluginKindAuditor:
+	case plugin.PluginKindAuditor:
 		if info.AuditorDescriptor != nil {
 			return info.AuditorDescriptor.ConfigSchema
 		}
-	case plugschema.PluginKindAnalyzer:
+	case plugin.PluginKindAnalyzer:
 		if info.AnalyzerDescriptor != nil {
 			return info.AnalyzerDescriptor.ConfigSchema
 		}

@@ -8,9 +8,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	logging "github.com/bomly-dev/bomly-sdk/logkit"
 	testutil "github.com/bomly-dev/bomly-sdk/testkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 const fakePythonSource = `package main
@@ -96,7 +99,7 @@ func TestPipDetectorDoesNotReturnAmbientPipAuditEnvironment(t *testing.T) {
 	logs := setupFakePython(t, ambientPipAuditInspect, projectRequirementsInspect)
 	t.Cleanup(func() { _ = os.RemoveAll(pythonVenvDir(projectDir)) })
 
-	result, err := (PipDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := (PipDetector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -105,18 +108,18 @@ func TestPipDetectorDoesNotReturnAmbientPipAuditEnvironment(t *testing.T) {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 	for _, want := range []string{"fastapi@0.139.0", "pyjwt@1.7.1", "ecdsa@0.19.2", "urllib3@1.26.5"} {
-		if _, ok := graph.Node(want); !ok {
+		if _, ok := testnodes.Find(graph, want); !ok {
 			t.Fatalf("expected project dependency %s in graph: %s", want, graph.PrettyString())
 		}
 	}
-	if _, ok := graph.Node("pip-audit@2.9.0"); ok {
+	if _, ok := testnodes.Find(graph, "pip-audit@2.9.0"); ok {
 		t.Fatalf("ambient pip-audit dependency leaked into project graph: %s", graph.PrettyString())
 	}
 	if raw, err := os.ReadFile(logs.install); err != nil || !strings.Contains(string(raw), "pip install -r requirements.txt") {
 		t.Fatalf("expected isolated pip install to run, log=%q err=%v", string(raw), err)
 	}
 	resolution := result.Graphs.Entries[0].Manifest.Resolution
-	if resolution == nil || resolution.Method != sdk.ResolutionMethodIsolatedInstall || !resolution.InstallExecuted {
+	if resolution == nil || resolution.Method != model.ResolutionMethodIsolatedInstall || !resolution.InstallExecuted {
 		t.Fatalf("unexpected resolution metadata: %#v", resolution)
 	}
 }
@@ -136,18 +139,18 @@ func TestPythonLockfileResultsIncludeResolutionMetadata(t *testing.T) {
 	t.Setenv("PATH", t.TempDir())
 	tests := []struct {
 		name     string
-		detector sdk.Detector
+		detector plugin.Detector
 		fixture  string
-		method   sdk.ResolutionMethod
+		method   model.ResolutionMethod
 	}{
-		{name: "pip", detector: PipDetector{}, fixture: pyFixture("pip"), method: sdk.ResolutionMethodLockfile},
-		{name: "pipenv", detector: PipenvDetector{}, fixture: pyFixture("pipenv"), method: sdk.ResolutionMethodManifestOnly},
-		{name: "poetry", detector: PoetryDetector{}, fixture: pyFixture("poetry"), method: sdk.ResolutionMethodLockfile},
-		{name: "uv", detector: UVDetector{}, fixture: pyFixture("uv"), method: sdk.ResolutionMethodLockfile},
+		{name: "pip", detector: PipDetector{}, fixture: pyFixture("pip"), method: model.ResolutionMethodLockfile},
+		{name: "pipenv", detector: PipenvDetector{}, fixture: pyFixture("pipenv"), method: model.ResolutionMethodManifestOnly},
+		{name: "poetry", detector: PoetryDetector{}, fixture: pyFixture("poetry"), method: model.ResolutionMethodLockfile},
+		{name: "uv", detector: UVDetector{}, fixture: pyFixture("uv"), method: model.ResolutionMethodLockfile},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := tt.detector.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: tt.fixture})
+			result, err := tt.detector.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: tt.fixture})
 			if err != nil {
 				t.Fatalf("ResolveGraph() error = %v", err)
 			}
@@ -166,12 +169,12 @@ func TestPythonLockfileResultsIncludeResolutionMetadata(t *testing.T) {
 }
 
 func TestPoetryAndUVFailWithoutLockfile(t *testing.T) {
-	for _, detector := range []sdk.Detector{PoetryDetector{}, UVDetector{}} {
+	for _, detector := range []plugin.Detector{PoetryDetector{}, UVDetector{}} {
 		projectDir := t.TempDir()
 		if err := os.WriteFile(filepath.Join(projectDir, "pyproject.toml"), []byte("[project]\nname = \"demo\"\ndependencies = [\"requests==2.32.3\"]\n"), 0o644); err != nil {
 			t.Fatalf("write pyproject.toml: %v", err)
 		}
-		_, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+		_, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 		if err == nil {
 			t.Fatalf("%T unexpectedly resolved without a lockfile", detector)
 		}
@@ -216,7 +219,7 @@ func TestPipDetectorReportsUnsupportedPipVersion(t *testing.T) {
 	t.Setenv("BOMLY_FAKE_PIP_VERSION", "21.2.4")
 	t.Cleanup(func() { _ = os.RemoveAll(pythonVenvDir(projectDir)) })
 
-	_, err := (PipDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	_, err := (PipDetector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err == nil {
 		t.Fatal("expected ResolveGraph to fail on a pip too old for `pip inspect`")
 	}

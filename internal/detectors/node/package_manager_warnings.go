@@ -5,14 +5,17 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"gopkg.in/yaml.v3"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // LockfileFormat identifies the lockfile a Node detector parsed and the format
@@ -26,11 +29,11 @@ type LockfileFormat struct {
 
 // managerBinaries maps the Node package managers to the binary name a project
 // declares them under in packageManager and engines.
-var managerBinaries = map[sdk.PackageManager]string{
-	sdk.PackageManagerNPM:  "npm",
-	sdk.PackageManagerPNPM: "pnpm",
-	sdk.PackageManagerYarn: "yarn",
-	sdk.PackageManagerBun:  "bun",
+var managerBinaries = map[model.PackageManager]string{
+	model.PackageManagerNPM:  "npm",
+	model.PackageManagerPNPM: "pnpm",
+	model.PackageManagerYarn: "yarn",
+	model.PackageManagerBun:  "bun",
 }
 
 // nodeLockfiles are every lockfile name the Node ecosystem commits, used to find
@@ -53,11 +56,11 @@ var nodeLockfiles = []string{
 //     separate, manual `pnpm import`.
 //   - Yarn reads only yarn.lock.
 //   - Bun reads bun.lock/bun.lockb and converts pnpm-lock.yaml on install.
-var consumedLockfiles = map[sdk.PackageManager][]string{
-	sdk.PackageManagerNPM:  {"package-lock.json", "npm-shrinkwrap.json", "yarn.lock"},
-	sdk.PackageManagerPNPM: {"pnpm-lock.yaml"},
-	sdk.PackageManagerYarn: {"yarn.lock"},
-	sdk.PackageManagerBun:  {"bun.lock", "bun.lockb", "pnpm-lock.yaml"},
+var consumedLockfiles = map[model.PackageManager][]string{
+	model.PackageManagerNPM:  {"package-lock.json", "npm-shrinkwrap.json", "yarn.lock"},
+	model.PackageManagerPNPM: {"pnpm-lock.yaml"},
+	model.PackageManagerYarn: {"yarn.lock"},
+	model.PackageManagerBun:  {"bun.lock", "bun.lockb", "pnpm-lock.yaml"},
 }
 
 // unreadLockfiles lists, per package manager, the lockfiles that manager is
@@ -65,11 +68,11 @@ var consumedLockfiles = map[sdk.PackageManager][]string{
 // mismatch. A combination in neither table is treated as unknown and never
 // warned about — Bun's handling of npm and Yarn lockfiles, for instance, is not
 // documented either way.
-var unreadLockfiles = map[sdk.PackageManager][]string{
-	sdk.PackageManagerNPM:  {"pnpm-lock.yaml", "bun.lock", "bun.lockb"},
-	sdk.PackageManagerPNPM: {"package-lock.json", "npm-shrinkwrap.json", "yarn.lock", "bun.lock", "bun.lockb"},
-	sdk.PackageManagerYarn: {"package-lock.json", "npm-shrinkwrap.json", "pnpm-lock.yaml", "bun.lock", "bun.lockb"},
-	sdk.PackageManagerBun:  nil,
+var unreadLockfiles = map[model.PackageManager][]string{
+	model.PackageManagerNPM:  {"pnpm-lock.yaml", "bun.lock", "bun.lockb"},
+	model.PackageManagerPNPM: {"package-lock.json", "npm-shrinkwrap.json", "yarn.lock", "bun.lock", "bun.lockb"},
+	model.PackageManagerYarn: {"package-lock.json", "npm-shrinkwrap.json", "pnpm-lock.yaml", "bun.lock", "bun.lockb"},
+	model.PackageManagerBun:  nil,
 }
 
 // PackageManagerWarnings reports non-fatal problems with a Node project's
@@ -86,7 +89,7 @@ var unreadLockfiles = map[sdk.PackageManager][]string{
 //
 // Unreadable or unrecognized inputs are skipped: malformed lockfiles are the
 // detector's error to report, not this check's.
-func PackageManagerWarnings(projectDir string, manager sdk.PackageManager, lockfile LockfileFormat) []sdk.DetectorWarning {
+func PackageManagerWarnings(projectDir string, manager model.PackageManager, lockfile LockfileFormat) []plugin.DetectorWarning {
 	projectDir = strings.TrimSpace(projectDir)
 	if projectDir == "" {
 		return nil
@@ -97,11 +100,11 @@ func PackageManagerWarnings(projectDir string, manager sdk.PackageManager, lockf
 	// Install gates are keyed to the manager that will actually run: the pin
 	// when the project declares one, otherwise the detector's manager.
 	effectiveManager := pinnedManager
-	if effectiveManager == sdk.PackageManagerUnknown {
+	if effectiveManager == model.PackageManagerUnknown {
 		effectiveManager = manager
 	}
 
-	var warnings []sdk.DetectorWarning
+	var warnings []plugin.DetectorWarning
 	warnings = append(warnings, lockfileWarnings(projectDir, pinnedManager, pinnedVersion, lockfile, pkg)...)
 	warnings = append(warnings, enginesWarning(pkg, pinnedManager, pinnedVersion)...)
 	warnings = append(warnings, installGateWarnings(projectDir, effectiveManager)...)
@@ -127,20 +130,20 @@ func (p *packageJSONConfig) packageManager() string {
 	return p.PackageManager
 }
 
-func lockfileWarnings(projectDir string, pinnedManager sdk.PackageManager, pinnedVersion string, lockfile LockfileFormat, pkg *packageJSONConfig) []sdk.DetectorWarning {
-	if pinnedManager == sdk.PackageManagerUnknown {
+func lockfileWarnings(projectDir string, pinnedManager model.PackageManager, pinnedVersion string, lockfile LockfileFormat, pkg *packageJSONConfig) []plugin.DetectorWarning {
+	if pinnedManager == model.PackageManagerUnknown {
 		return nil
 	}
 	binary := managerBinaries[pinnedManager]
 
-	var warnings []sdk.DetectorWarning
+	var warnings []plugin.DetectorWarning
 	for _, committed := range committedLockfiles(projectDir, lockfile) {
 		if !lockfileUnread(pinnedManager, committed) {
 			continue
 		}
-		warnings = append(warnings, sdk.DetectorWarning{
-			Type:     sdk.DetectorWarningPackageManager,
-			Code:     sdk.DetectorWarningCodeLockfileUnsupported,
+		warnings = append(warnings, plugin.DetectorWarning{
+			Type:     plugin.DetectorWarningPackageManager,
+			Code:     plugin.DetectorWarningCodeLockfileUnsupported,
 			Source:   binary,
 			Manifest: committed,
 			Message: fmt.Sprintf("package.json pins packageManager %q, which does not read %s; CI installs with the pinned manager and resolves dependencies without this lockfile",
@@ -153,25 +156,18 @@ func lockfileWarnings(projectDir string, pinnedManager sdk.PackageManager, pinne
 // lockfileUnread reports whether the manager is documented not to read the given
 // lockfile. Unknown combinations return false, so an undocumented migration path
 // is never reported as a mismatch.
-func lockfileUnread(manager sdk.PackageManager, file string) bool {
-	for _, name := range consumedLockfiles[manager] {
-		if name == file {
-			return false
-		}
+func lockfileUnread(manager model.PackageManager, file string) bool {
+	if slices.Contains(consumedLockfiles[manager], file) {
+		return false
 	}
-	for _, name := range unreadLockfiles[manager] {
-		if name == file {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(unreadLockfiles[manager], file)
 }
 
 // lockfileFormatWarning compares the committed lockfile's format version with
 // the package-manager version the project pins. A pin below the format's range
 // cannot read the lockfile; a pin above it migrates the lockfile on install,
 // which fails a frozen-lockfile CI step.
-func lockfileFormatWarning(pinnedManager sdk.PackageManager, pinnedVersion string, lockfile LockfileFormat, binary string) []sdk.DetectorWarning {
+func lockfileFormatWarning(pinnedManager model.PackageManager, pinnedVersion string, lockfile LockfileFormat, binary string) []plugin.DetectorWarning {
 	if lockfile.File == "" || lockfile.Version == "" || pinnedVersion == "" {
 		return nil
 	}
@@ -187,9 +183,9 @@ func lockfileFormatWarning(pinnedManager sdk.PackageManager, pinnedVersion strin
 		return nil
 	}
 	minMajor, maxMajor := managerRangeForFormat(pinnedManager, formatMajor)
-	warning := sdk.DetectorWarning{
-		Type:     sdk.DetectorWarningPackageManager,
-		Code:     sdk.DetectorWarningCodeLockfileFormat,
+	warning := plugin.DetectorWarning{
+		Type:     plugin.DetectorWarningPackageManager,
+		Code:     plugin.DetectorWarningCodeLockfileFormat,
 		Source:   binary,
 		Manifest: lockfile.File,
 	}
@@ -203,12 +199,12 @@ func lockfileFormatWarning(pinnedManager sdk.PackageManager, pinnedVersion strin
 	default:
 		return nil
 	}
-	return []sdk.DetectorWarning{warning}
+	return []plugin.DetectorWarning{warning}
 }
 
 // enginesWarning reports a project that contradicts itself: the engines
 // constraint CI enforces excludes the very version packageManager pins.
-func enginesWarning(pkg *packageJSONConfig, pinnedManager sdk.PackageManager, pinnedVersion string) []sdk.DetectorWarning {
+func enginesWarning(pkg *packageJSONConfig, pinnedManager model.PackageManager, pinnedVersion string) []plugin.DetectorWarning {
 	if pkg == nil || pinnedVersion == "" || len(pkg.Engines) == 0 {
 		return nil
 	}
@@ -225,9 +221,9 @@ func enginesWarning(pkg *packageJSONConfig, pinnedManager sdk.PackageManager, pi
 	if err != nil || constraint.Check(version) {
 		return nil
 	}
-	return []sdk.DetectorWarning{{
-		Type:     sdk.DetectorWarningPackageManager,
-		Code:     sdk.DetectorWarningCodeEnginesConstraint,
+	return []plugin.DetectorWarning{{
+		Type:     plugin.DetectorWarningPackageManager,
+		Code:     plugin.DetectorWarningCodeEnginesConstraint,
 		Source:   binary,
 		Manifest: "package.json",
 		Message: fmt.Sprintf("package.json pins %s@%s but requires engines.%s %q; the pinned manager cannot satisfy the project's own constraint",
@@ -248,26 +244,26 @@ func enginesWarning(pkg *packageJSONConfig, pinnedManager sdk.PackageManager, pi
 //     minimum-release-age key there is not treated as an active gate.
 //   - npm reads min-release-age (days) and before (a date) from .npmrc.
 //   - Yarn and Bun have no equivalent committed gate Bomly models.
-func installGateWarnings(projectDir string, manager sdk.PackageManager) []sdk.DetectorWarning {
+func installGateWarnings(projectDir string, manager model.PackageManager) []plugin.DetectorWarning {
 	switch manager {
-	case sdk.PackageManagerPNPM:
+	case model.PackageManagerPNPM:
 		minutes, ok := workspaceMinimumReleaseAge(projectDir)
 		if !ok {
 			return nil
 		}
-		return []sdk.DetectorWarning{releaseAgeWarning("pnpm", "pnpm-workspace.yaml",
+		return []plugin.DetectorWarning{releaseAgeWarning("pnpm", "pnpm-workspace.yaml",
 			fmt.Sprintf("pnpm-workspace.yaml sets minimumReleaseAge=%d (%s)", minutes, formatMinutes(minutes)))}
-	case sdk.PackageManagerNPM:
-		var warnings []sdk.DetectorWarning
+	case model.PackageManagerNPM:
+		var warnings []plugin.DetectorWarning
 		npmrc := readNpmrc(projectDir)
 		if days, ok := npmrcInt(npmrc, "min-release-age"); ok {
 			warnings = append(warnings, releaseAgeWarning("npm", ".npmrc",
 				fmt.Sprintf(".npmrc sets min-release-age=%d (%s)", days, formatDays(days))))
 		}
 		if before := strings.TrimSpace(npmrc["before"]); before != "" {
-			warnings = append(warnings, sdk.DetectorWarning{
-				Type:     sdk.DetectorWarningPackageManager,
-				Code:     sdk.DetectorWarningCodeInstallGate,
+			warnings = append(warnings, plugin.DetectorWarning{
+				Type:     plugin.DetectorWarningPackageManager,
+				Code:     plugin.DetectorWarningCodeInstallGate,
 				Source:   "npm",
 				Manifest: ".npmrc",
 				Message: fmt.Sprintf(".npmrc sets before=%s; versions published after that date are not installable, so a newer fixed version is rejected in CI",
@@ -280,10 +276,10 @@ func installGateWarnings(projectDir string, manager sdk.PackageManager) []sdk.De
 	}
 }
 
-func releaseAgeWarning(source, manifest, setting string) sdk.DetectorWarning {
-	return sdk.DetectorWarning{
-		Type:     sdk.DetectorWarningPackageManager,
-		Code:     sdk.DetectorWarningCodeInstallGate,
+func releaseAgeWarning(source, manifest, setting string) plugin.DetectorWarning {
+	return plugin.DetectorWarning{
+		Type:     plugin.DetectorWarningPackageManager,
+		Code:     plugin.DetectorWarningCodeInstallGate,
 		Source:   source,
 		Manifest: manifest,
 		Message: fmt.Sprintf("%s; versions published inside that window are rejected at install, so a freshly published fix version fails CI until it ages out",
@@ -308,18 +304,18 @@ func committedLockfiles(projectDir string, lockfile LockfileFormat) []string {
 	return files
 }
 
-func lockfileManager(file string) sdk.PackageManager {
+func lockfileManager(file string) model.PackageManager {
 	switch file {
 	case "package-lock.json", "npm-shrinkwrap.json":
-		return sdk.PackageManagerNPM
+		return model.PackageManagerNPM
 	case "pnpm-lock.yaml":
-		return sdk.PackageManagerPNPM
+		return model.PackageManagerPNPM
 	case "yarn.lock":
-		return sdk.PackageManagerYarn
+		return model.PackageManagerYarn
 	case "bun.lock", "bun.lockb":
-		return sdk.PackageManagerBun
+		return model.PackageManagerBun
 	default:
-		return sdk.PackageManagerUnknown
+		return model.PackageManagerUnknown
 	}
 }
 
@@ -332,9 +328,9 @@ func lockfileManager(file string) sdk.PackageManager {
 //   - npm: lockfileVersion 2 and 3 were introduced by npm 7; version 1 is read
 //     by every npm.
 //   - yarn: format 1 is Yarn Classic; any Berry lockfile needs Yarn 2+.
-func managerRangeForFormat(manager sdk.PackageManager, formatMajor int) (minMajor, maxMajor int) {
+func managerRangeForFormat(manager model.PackageManager, formatMajor int) (minMajor, maxMajor int) {
 	switch manager {
-	case sdk.PackageManagerPNPM:
+	case model.PackageManagerPNPM:
 		switch {
 		case formatMajor <= 0:
 			return 0, 0
@@ -345,12 +341,12 @@ func managerRangeForFormat(manager sdk.PackageManager, formatMajor int) (minMajo
 		default:
 			return formatMajor, 0
 		}
-	case sdk.PackageManagerNPM:
+	case model.PackageManagerNPM:
 		if formatMajor >= 2 {
 			return 7, 0
 		}
 		return 0, 0
-	case sdk.PackageManagerYarn:
+	case model.PackageManagerYarn:
 		if formatMajor <= 1 {
 			return 1, 1
 		}
@@ -376,16 +372,16 @@ func readPackageJSONConfig(dir string) *packageJSONConfig {
 
 // parsePackageManagerPin splits a Corepack "packageManager" value such as
 // "pnpm@10.4.1+sha512.abc" into its manager and version.
-func parsePackageManagerPin(pin string) (sdk.PackageManager, string) {
+func parsePackageManagerPin(pin string) (model.PackageManager, string) {
 	pin = strings.TrimSpace(pin)
 	if pin == "" {
-		return sdk.PackageManagerUnknown, ""
+		return model.PackageManagerUnknown, ""
 	}
 	name, version, _ := strings.Cut(pin, "@")
 	version, _, _ = strings.Cut(version, "+")
-	manager := sdk.PackageManager(strings.ToLower(strings.TrimSpace(name)))
+	manager := model.PackageManager(strings.ToLower(strings.TrimSpace(name)))
 	if _, ok := managerBinaries[manager]; !ok {
-		return sdk.PackageManagerUnknown, ""
+		return model.PackageManagerUnknown, ""
 	}
 	return manager, strings.TrimSpace(version)
 }
@@ -417,7 +413,7 @@ func readNpmrc(dir string) map[string]string {
 		return nil
 	}
 	settings := make(map[string]string)
-	for _, line := range strings.Split(string(data), "\n") {
+	for line := range strings.SplitSeq(string(data), "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, ";") {
 			continue

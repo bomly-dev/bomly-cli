@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"sync"
 
-	plugschema "github.com/bomly-dev/bomly-sdk"
+	sdkplugin "github.com/bomly-dev/bomly-sdk/plugin"
+	"github.com/bomly-dev/bomly-sdk/runtime"
 )
 
 // pooledClient is the subset of runtimeClient the pool needs. It exists so
 // tests can substitute fakes without launching real subprocesses.
 type pooledClient interface {
-	Raw() plugschema.Client
+	Raw() runtime.Client
 	Exited() bool
 	Close()
 }
@@ -26,7 +27,7 @@ type ClientPool struct {
 	mu      sync.Mutex
 	entries map[string]*poolEntry
 	// startFn launches a subprocess; overridable in tests.
-	startFn func(ctx context.Context, executable, pluginID string, kind plugschema.PluginKind) (pooledClient, error)
+	startFn func(ctx context.Context, executable, pluginID string, kind sdkplugin.PluginKind) (pooledClient, error)
 }
 
 type poolEntry struct {
@@ -40,7 +41,7 @@ type poolEntry struct {
 func NewClientPool() *ClientPool {
 	return &ClientPool{
 		entries: make(map[string]*poolEntry),
-		startFn: func(ctx context.Context, executable, pluginID string, kind plugschema.PluginKind) (pooledClient, error) {
+		startFn: func(ctx context.Context, executable, pluginID string, kind sdkplugin.PluginKind) (pooledClient, error) {
 			return startPlugin(ctx, executable, pluginID, kind)
 		},
 	}
@@ -50,7 +51,7 @@ func NewClientPool() *ClientPool {
 // first use and restarting it at most once per pool lifetime when it died.
 // The returned client is shared: callers must not close it; the pool owns the
 // subprocess until Shutdown.
-func (p *ClientPool) Acquire(ctx context.Context, executable, pluginID string, kind plugschema.PluginKind) (plugschema.Client, error) {
+func (p *ClientPool) Acquire(ctx context.Context, executable, pluginID string, kind sdkplugin.PluginKind) (runtime.Client, error) {
 	if p == nil {
 		return nil, fmt.Errorf("plugin client pool is nil")
 	}

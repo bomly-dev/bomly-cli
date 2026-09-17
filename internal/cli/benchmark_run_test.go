@@ -5,13 +5,15 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/benchmark"
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestBenchmarkSubprocessStderrForwardsOnlyAtDebug(t *testing.T) {
@@ -50,7 +52,7 @@ func TestBenchmarkNativeScannerUsesBomlyNativeDetector(t *testing.T) {
 		CheckoutDir: projectDir,
 		Repository:  "https://github.com/acme/demo",
 		Revision:    "abc123",
-		Ecosystem:   sdk.EcosystemNPM,
+		Ecosystem:   model.EcosystemNPM,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -69,10 +71,5 @@ func TestBenchmarkNativeScannerUsesBomlyNativeDetector(t *testing.T) {
 }
 
 func benchmarkContainsString(values []string, target string) bool {
-	for _, value := range values {
-		if value == target {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(values, target)
 }

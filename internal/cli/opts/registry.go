@@ -3,7 +3,8 @@ package opts
 import (
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // RegistryConfigsFromResolved converts resolved CLI configuration into scan registry wiring.
@@ -11,7 +12,7 @@ import (
 // drop parse errors and keep only the valid constraints so secondary
 // callers (tests, plugin adapters) stay functional.
 func RegistryConfigsFromResolved(cfg config.Resolved) engine.RegistryConfigs {
-	failOn, _ := sdk.ParseFailOnList(cfg.FailOn)
+	failOn, _ := model.ParseFailOnList(cfg.FailOn)
 	return engine.RegistryConfigs{
 		FailOn:                failOn,
 		AllowVulnerabilityIDs: append([]string(nil), cfg.AllowVulnerabilityIDs...),

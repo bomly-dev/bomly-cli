@@ -5,7 +5,9 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/output"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // Text-formatting helpers live in internal/cli/render. Thin shims keep
@@ -34,7 +36,7 @@ func nonEmptyStrings(values []string) []string {
 	return out
 }
 
-func exploitabilityLine(kev bool, known []sdk.KnownExploited, risk float64) string {
+func exploitabilityLine(kev bool, known []model.KnownExploited, risk float64) string {
 	parts := make([]string, 0, 2)
 	if kev || len(known) > 0 {
 		parts = append(parts, "known exploited")
@@ -60,10 +62,7 @@ func boxView(title string, content []string, width, height int, color string) []
 			topLabel = truncateToWidth(topLabel, inner)
 		}
 	}
-	topFill := inner - len(render.StripANSI(topLabel))
-	if topFill < 0 {
-		topFill = 0
-	}
+	topFill := max(inner-len(render.StripANSI(topLabel)), 0)
 	border := func(value string) string {
 		if color == "" {
 			return render.Style(value, render.Dim, render.Gray)
@@ -80,7 +79,7 @@ func boxView(title string, content []string, width, height int, color string) []
 	}
 	leftPad := strings.Repeat(" ", horizontalPadding)
 	rightPad := strings.Repeat(" ", horizontalPadding)
-	for idx := 0; idx < contentHeight; idx++ {
+	for idx := range contentHeight {
 		line := ""
 		if idx < len(content) {
 			line = content[idx]
@@ -116,12 +115,9 @@ func centerLine(value string, width int) string {
 }
 
 func joinColumns(left, right []string, leftWidth, rightWidth int) []string {
-	height := len(left)
-	if len(right) > height {
-		height = len(right)
-	}
+	height := max(len(right), len(left))
 	out := make([]string, 0, height)
-	for idx := 0; idx < height; idx++ {
+	for idx := range height {
 		l := ""
 		if idx < len(left) {
 			l = left[idx]
@@ -298,31 +294,13 @@ func nextSeverityFilter(current string) string {
 	return nextFilterValue(current, values)
 }
 
-// vulnsForDependency returns the matching-stage vulnerabilities for a
-// dependency by resolving its PURL against the registry. Returns nil when
-// either input is nil or the registry has no entry for the PURL.
-func vulnsForDependency(registry *sdk.PackageRegistry, dep *sdk.Dependency) []sdk.Vulnerability {
-	if registry == nil || dep == nil || dep.PURL == "" {
-		return nil
-	}
-	pkg, ok := registry.Get(dep.PURL)
-	if !ok || pkg == nil {
-		return nil
-	}
-	return pkg.Vulnerabilities
-}
-
 func remediationForPURL(
-	registry *sdk.PackageRegistry,
+	registry *model.PackageRegistry,
 	purl string,
 	dependencyRefs ...string,
-) *sdk.PackageRemediation {
-	purl = strings.TrimSpace(purl)
-	if registry == nil || purl == "" {
-		return nil
-	}
-	pkg, ok := registry.Get(purl)
-	if !ok || pkg == nil {
+) *model.PackageRemediation {
+	pkg := output.RegistryPackage(registry, purl)
+	if pkg == nil {
 		return nil
 	}
 	remediation := pkg.Remediation.Clone()
@@ -335,7 +313,7 @@ func remediationForPURL(
 			allowed[ref] = struct{}{}
 		}
 	}
-	filtered := make([]sdk.PackageRemediationSuggestion, 0, len(remediation.Suggestions))
+	filtered := make([]model.PackageRemediationSuggestion, 0, len(remediation.Suggestions))
 	for _, suggestion := range remediation.Suggestions {
 		include := false
 		for _, ref := range suggestion.AffectedDependencyRefs {
@@ -352,7 +330,7 @@ func remediationForPURL(
 	return remediation
 }
 
-func remediationSectionLines(remediation *sdk.PackageRemediation) []string {
+func remediationSectionLines(remediation *model.PackageRemediation) []string {
 	if remediation == nil {
 		return nil
 	}
@@ -384,7 +362,7 @@ func remediationSectionLines(remediation *sdk.PackageRemediation) []string {
 	return lines
 }
 
-func remediationActionLabel(action sdk.RemediationAction) string {
+func remediationActionLabel(action model.RemediationAction) string {
 	value := strings.ReplaceAll(strings.TrimSpace(string(action)), "-", " ")
 	if value == "" {
 		return "-"
@@ -392,33 +370,21 @@ func remediationActionLabel(action sdk.RemediationAction) string {
 	return strings.ToUpper(value[:1]) + value[1:]
 }
 
-// licensesForDependency returns the matching-stage licenses for a dependency
-// when the registry has them; otherwise it falls back to the detection-time
-// licenses stashed on the dependency.
-func licensesForDependency(registry *sdk.PackageRegistry, dep *sdk.Dependency) []sdk.PackageLicense {
-	if registry != nil && dep != nil && dep.PURL != "" {
-		if pkg, ok := registry.Get(dep.PURL); ok && pkg != nil && len(pkg.Licenses) > 0 {
-			return pkg.Licenses
-		}
-	}
-	return sdk.DetectionLicenses(dep)
-}
-
 // maxVulnerabilitySeverityByPkgID returns a map from package ID to the
 // highest severity found across that package's enriched vulnerabilities.
-func maxVulnerabilitySeverityByPkgID(graphValue *sdk.Graph, registry *sdk.PackageRegistry) map[string]string {
+func maxVulnerabilitySeverityByPkgID(graphValue *model.Graph, registry *model.PackageRegistry) map[string]string {
 	result := make(map[string]string)
 	if graphValue == nil {
 		return result
 	}
-	for _, pkg := range graphValue.Nodes() {
+	for _, pkg := range graphValue.DependencyNodes() {
 		if pkg == nil {
 			continue
 		}
-		for _, vulnerability := range vulnsForDependency(registry, pkg) {
-			current := result[pkg.ID]
+		for _, vulnerability := range output.NodeVulnerabilities(registry, pkg) {
+			current := result[pkg.NodeID()]
 			if severityRank(string(vulnerability.ParsedSeverity)) < severityRank(current) {
-				result[pkg.ID] = string(vulnerability.ParsedSeverity)
+				result[pkg.NodeID()] = string(vulnerability.ParsedSeverity)
 			}
 		}
 	}
@@ -457,7 +423,7 @@ func filterPackageRows(rows []listPackageRow, relationshipFilter, scopeFilter st
 	return filtered
 }
 
-func explainRelationships(graphValue *sdk.Graph, targetID string) (map[string]string, map[string]int) {
+func explainRelationships(graphValue *model.Graph, targetID string) (map[string]string, map[string]int) {
 	labels := make(map[string]string)
 	counts := map[string]int{
 		"self":     0,
@@ -476,37 +442,43 @@ func explainRelationships(graphValue *sdk.Graph, targetID string) (map[string]st
 	rootIDs := make(map[string]struct{})
 	for _, pkg := range graphValue.Roots() {
 		if pkg != nil {
-			rootIDs[pkg.ID] = struct{}{}
+			rootIDs[pkg.NodeID()] = struct{}{}
 		}
 	}
 	parents, _ := graphValue.Dependents(targetID)
 	parentIDs := make(map[string]struct{}, len(parents))
 	for _, pkg := range parents {
-		if pkg == nil || pkg.ID == targetID {
+		if pkg == nil || pkg.NodeID() == targetID {
 			continue
 		}
-		parentIDs[pkg.ID] = struct{}{}
-		if _, isRoot := rootIDs[pkg.ID]; isRoot {
-			labels[pkg.ID] = "root"
+		parentIDs[pkg.NodeID()] = struct{}{}
+		if _, isRoot := rootIDs[pkg.NodeID()]; isRoot {
+			labels[pkg.NodeID()] = "root"
 			counts["root"]++
 			continue
 		}
-		labels[pkg.ID] = "parent"
+		labels[pkg.NodeID()] = "parent"
 		counts["parent"]++
 	}
+	// The whole node union, not just dependencies. A normal graph's root is a
+	// module node now, and for a transitive target it is not a direct parent
+	// -- so it fell through to this loop and was skipped, leaving the
+	// explanation with no project context and a header reporting "Roots: 0"
+	// for a scan that plainly has one. Nested workspace modules were hidden
+	// the same way.
 	for _, pkg := range graphValue.Nodes() {
-		if pkg == nil || pkg.ID == targetID {
+		if model.IsNilNode(pkg) || pkg.NodeID() == targetID {
 			continue
 		}
-		if _, ok := labels[pkg.ID]; ok {
+		if _, ok := labels[pkg.NodeID()]; ok {
 			continue
 		}
-		if _, isRoot := rootIDs[pkg.ID]; isRoot {
-			labels[pkg.ID] = "root"
+		if _, isRoot := rootIDs[pkg.NodeID()]; isRoot {
+			labels[pkg.NodeID()] = "root"
 			counts["root"]++
 			continue
 		}
-		labels[pkg.ID] = "ancestor"
+		labels[pkg.NodeID()] = "ancestor"
 		counts["ancestor"]++
 	}
 	return labels, counts

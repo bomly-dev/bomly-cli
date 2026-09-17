@@ -6,8 +6,10 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // Detector is the merged npm detector. It owns an internal ordered strategy
@@ -20,26 +22,26 @@ type Detector struct {
 }
 
 // Descriptor describes the merged npm detector.
-func (d Detector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d Detector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		IgnoredDirectories:      []string{"node_modules", "dist"},
 		Name:                    detectors.NameNPM,
 		RemediationCapabilities: npmLockfileRemediationCapabilities(),
-		Technique:               sdk.MultipleTechnique,
-		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemNPM},
-		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerNPM},
+		Technique:               plugin.MultipleTechnique,
+		SupportedEcosystems:     []model.Ecosystem{model.EcosystemNPM},
+		SupportedManagers:       []model.PackageManager{model.PackageManagerNPM},
 		Tags:                    []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
 		SupportsInstallFirst:    true,
-		ConfigSchema:            sdk.MustConfigSchemaFor(node.StrategyConfig{}),
+		ConfigSchema:            plugin.MustConfigSchemaFor(node.StrategyConfig{}),
 	}
 }
 
 // PackageManagerSupport returns npm package-manager discovery metadata for
 // every internal strategy: lockfile evidence plus the manifest the CLI
 // strategy can resolve from.
-func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
+func (d Detector) PackageManagerSupport() []plugin.PackageManagerSupport {
 	patterns := append(append([]string(nil), npmEvidencePatterns...), "package.json")
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerNPM, patterns...).WithMultiModule()}
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerNPM, patterns...).WithMultiModule()}
 }
 
 func (d Detector) strategies() ([]node.Strategy, error) {
@@ -54,13 +56,13 @@ func (d Detector) strategies() ([]node.Strategy, error) {
 			strategies = append(strategies, node.Strategy{
 				Name:      name,
 				Detector:  LockfileDetector{Logger: d.Logger, WorkingDir: d.WorkingDir},
-				Technique: sdk.LockfileTechnique,
+				Technique: plugin.LockfileTechnique,
 			})
 		case node.StrategyBuildTool:
 			strategies = append(strategies, node.Strategy{
 				Name:      name,
 				Detector:  NativeDetector{Logger: d.Logger, WorkingDir: d.WorkingDir},
-				Technique: sdk.BuildToolTechnique,
+				Technique: plugin.BuildToolTechnique,
 			})
 		}
 	}
@@ -68,7 +70,7 @@ func (d Detector) strategies() ([]node.Strategy, error) {
 }
 
 // Ready reports whether any configured strategy can run.
-func (d Detector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
+func (d Detector) Ready(ctx context.Context, req plugin.DetectionRequest) error {
 	strategies, err := d.strategies()
 	if err != nil {
 		return err
@@ -77,7 +79,7 @@ func (d Detector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
 }
 
 // Applicable reports whether any configured strategy applies to the request.
-func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	strategies, err := d.strategies()
 	if err != nil {
 		return false, err
@@ -87,17 +89,17 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 
 // ResolveGraph runs the configured strategies in order and returns the first
 // successful graph.
-func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d Detector) ResolveGraph(ctx context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	strategies, err := d.strategies()
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	return node.RunStrategies(ctx, req, detectors.NameNPM, strategies, d.Logger)
 }
 
 // Install prepares npm dependencies before graph resolution, unless the
 // detector's configuration opted out of install-first execution.
-func (d Detector) Install(ctx context.Context, req sdk.DetectionRequest) error {
+func (d Detector) Install(ctx context.Context, req plugin.DetectionRequest) error {
 	if !d.Config.InstallFirstEnabled() {
 		req.DetectorLogger(d.Logger).Info("npm detector: install-first disabled by configuration; skipping install")
 		return nil
@@ -106,6 +108,6 @@ func (d Detector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 }
 
 // RemediationHints provides npm-specific remediation guidance.
-func (d Detector) RemediationHints(ctx context.Context, request sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
+func (d Detector) RemediationHints(ctx context.Context, request plugin.RemediationHintRequest) (plugin.RemediationHintResponse, error) {
 	return LockfileDetector{Logger: d.Logger, WorkingDir: d.WorkingDir}.RemediationHints(ctx, request)
 }

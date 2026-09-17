@@ -3,13 +3,16 @@ package remediation
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 const (
@@ -22,10 +25,10 @@ const (
 // derive canonical package remediation context.
 type Input struct {
 	ProjectPath string
-	Registry    *sdk.PackageRegistry
-	Manifests   []sdk.ConsolidatedManifest
-	Detections  []sdk.DetectionResult
-	Detectors   map[string]sdk.Detector
+	Registry    *model.PackageRegistry
+	Manifests   []plugin.ConsolidatedManifest
+	Detections  []plugin.DetectionResult
+	Detectors   map[string]plugin.Detector
 }
 
 // Warning reports a detector remediation provider failure or rejected hint.
@@ -46,12 +49,12 @@ type validatedHint struct {
 	sourceDependencyRef string
 	dependencyRef       string
 	manifestPath        string
-	strategies          map[sdk.RemediationAction]string
+	strategies          map[model.RemediationAction]string
 }
 
 type detectedOccurrence struct {
 	manifestPath string
-	manager      sdk.PackageManager
+	manager      model.PackageManager
 	canonicalRef string
 }
 
@@ -113,13 +116,13 @@ func Derive(ctx context.Context, in Input) []Warning {
 	return warnings
 }
 
-func derivePackageSummaries(registry *sdk.PackageRegistry) {
+func derivePackageSummaries(registry *model.PackageRegistry) {
 	for _, pkg := range registry.All() {
 		pkg.Remediation = derivePackageRemediation(pkg.Version, pkg.Vulnerabilities)
 	}
 }
 
-func derivePackageRemediation(currentVersion string, vulnerabilities []sdk.Vulnerability) *sdk.PackageRemediation {
+func derivePackageRemediation(currentVersion string, vulnerabilities []model.Vulnerability) *model.PackageRemediation {
 	if len(vulnerabilities) == 0 {
 		return nil
 	}
@@ -136,44 +139,44 @@ func derivePackageRemediation(currentVersion string, vulnerabilities []sdk.Vulne
 		hasFixEvidence = hasFixEvidence || item.hasFixEvidence
 		allUnavailable = allUnavailable && item.unavailable
 		if item.contradictory {
-			return &sdk.PackageRemediation{Status: sdk.PackageRemediationUnknown}
+			return &model.PackageRemediation{Status: model.PackageRemediationUnknown}
 		}
 	}
 
 	if allUnavailable {
-		return &sdk.PackageRemediation{Status: sdk.PackageRemediationUnavailable}
+		return &model.PackageRemediation{Status: model.PackageRemediationUnavailable}
 	}
 	if !hasFixEvidence {
-		return &sdk.PackageRemediation{Status: sdk.PackageRemediationUnknown}
+		return &model.PackageRemediation{Status: model.PackageRemediationUnknown}
 	}
 	if !currentComparable {
-		return &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial}
+		return &model.PackageRemediation{Status: model.PackageRemediationPartial}
 	}
 
 	versions := make([]string, 0, len(evidence))
 	for _, item := range evidence {
 		if item.version == "" {
-			return &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial}
+			return &model.PackageRemediation{Status: model.PackageRemediationPartial}
 		}
 		versions = append(versions, item.version)
 	}
 	recommended, comparable := highestComparableVersion(versions)
 	if !comparable {
-		return &sdk.PackageRemediation{Status: sdk.PackageRemediationPartial}
+		return &model.PackageRemediation{Status: model.PackageRemediationPartial}
 	}
-	return &sdk.PackageRemediation{
-		Status:             sdk.PackageRemediationComplete,
+	return &model.PackageRemediation{
+		Status:             model.PackageRemediationComplete,
 		RecommendedVersion: recommended,
 	}
 }
 
 func remediationEvidenceForVulnerability(
-	vulnerability sdk.Vulnerability,
+	vulnerability model.Vulnerability,
 	current *semver.Version,
 ) vulnerabilityEvidence {
 	values := preferredFixVersions(vulnerability)
-	explicitlyUnavailable := vulnerability.FixState == sdk.FixStateNotFixed ||
-		vulnerability.FixState == sdk.FixStateWontFix
+	explicitlyUnavailable := vulnerability.FixState == model.FixStateNotFixed ||
+		vulnerability.FixState == model.FixStateWontFix
 	if len(values) == 0 {
 		return vulnerabilityEvidence{unavailable: explicitlyUnavailable}
 	}
@@ -205,7 +208,7 @@ func remediationEvidenceForVulnerability(
 	}
 }
 
-func preferredFixVersions(vulnerability sdk.Vulnerability) []string {
+func preferredFixVersions(vulnerability model.Vulnerability) []string {
 	if value := strings.TrimSpace(vulnerability.FixedIn); value != "" {
 		return []string{value}
 	}
@@ -318,7 +321,7 @@ func collectHints(ctx context.Context, in Input) ([]validatedHint, []Warning) {
 		if len(descriptor.RemediationCapabilities) == 0 {
 			continue
 		}
-		provider, ok := detector.(sdk.DetectorRemediationProvider)
+		provider, ok := detector.(plugin.DetectorRemediationProvider)
 		if !ok {
 			warnings.add(
 				detection.DetectorName,
@@ -326,7 +329,7 @@ func collectHints(ctx context.Context, in Input) ([]validatedHint, []Warning) {
 			)
 			continue
 		}
-		response, err := provider.RemediationHints(ctx, sdk.RemediationHintRequest{
+		response, err := provider.RemediationHints(ctx, plugin.RemediationHintRequest{
 			ProjectPath: in.ProjectPath,
 			Detection:   cloneDetectionResult(detection),
 			Registry:    cloneRegistry(in.Registry),
@@ -376,9 +379,9 @@ func collectHints(ctx context.Context, in Input) ([]validatedHint, []Warning) {
 }
 
 func validateHints(
-	detection sdk.DetectionResult,
-	descriptor sdk.DetectorDescriptor,
-	raw []sdk.RemediationHint,
+	detection plugin.DetectionResult,
+	descriptor plugin.DetectorDescriptor,
+	raw []plugin.RemediationHint,
 ) ([]validatedHint, []string) {
 	occurrences := detectionOccurrences(detection, descriptor)
 	var valid []validatedHint
@@ -406,16 +409,16 @@ func validateHints(
 		}
 
 		advertised := advertisedActions(descriptor.RemediationCapabilities, detected[0].manager)
-		strategies := map[sdk.RemediationAction]string{}
+		strategies := map[model.RemediationAction]string{}
 		for _, strategy := range hint.Strategies {
 			if _, ok := advertised[strategy.Action]; !ok {
 				rejected = append(rejected, fmt.Sprintf("ignored unadvertised remediation action %q for dependency %q", strategy.Action, dependencyRef))
 				continue
 			}
 			switch strategy.Action {
-			case sdk.RemediationActionDirectBump,
-				sdk.RemediationActionTransitiveOverride,
-				sdk.RemediationActionLockfileRefresh:
+			case model.RemediationActionDirectBump,
+				model.RemediationActionTransitiveOverride,
+				model.RemediationActionLockfileRefresh:
 				strategies[strategy.Action] = sanitizeProviderText(strategy.Advice, maxDetectorAdviceRunes)
 			default:
 				rejected = append(rejected, fmt.Sprintf("ignored detector-owned remediation decision %q for dependency %q", strategy.Action, dependencyRef))
@@ -449,8 +452,8 @@ func sanitizeProviderText(value string, maxRunes int) string {
 }
 
 func detectionOccurrences(
-	detection sdk.DetectionResult,
-	descriptor sdk.DetectorDescriptor,
+	detection plugin.DetectionResult,
+	descriptor plugin.DetectorDescriptor,
 ) map[string][]detectedOccurrence {
 	result := map[string][]detectedOccurrence{}
 	if detection.Graphs == nil {
@@ -461,12 +464,12 @@ func detectionOccurrences(
 			continue
 		}
 		path := strings.TrimSpace(entry.Manifest.Path)
-		for _, dependency := range entry.Graph.Nodes() {
-			if dependency == nil || dependency.ID == "" {
+		for _, dependency := range entry.Graph.DependencyNodes() {
+			if dependency == nil || dependency.NodeID() == "" {
 				continue
 			}
 			manager := dependency.PackageManager
-			if manager == sdk.PackageManagerUnknown {
+			if manager == model.PackageManagerUnknown {
 				manager = detectedManager(detection.SubprojectInfo, descriptor)
 			}
 			occurrence := detectedOccurrence{
@@ -474,16 +477,16 @@ func detectionOccurrences(
 				manager:      manager,
 				canonicalRef: canonicalDependencyRef(dependency),
 			}
-			result[dependency.ID] = append(result[dependency.ID], occurrence)
+			result[dependency.NodeID()] = append(result[dependency.NodeID()], occurrence)
 		}
 	}
 	return result
 }
 
 func detectedManager(
-	subproject sdk.Subproject,
-	descriptor sdk.DetectorDescriptor,
-) sdk.PackageManager {
+	subproject plugin.Subproject,
+	descriptor plugin.DetectorDescriptor,
+) model.PackageManager {
 	for _, detected := range subproject.DetectedPackageManagers {
 		if containsManager(descriptor.SupportedManagers, detected) {
 			return detected
@@ -492,22 +495,22 @@ func detectedManager(
 	if len(descriptor.SupportedManagers) == 1 {
 		return descriptor.SupportedManagers[0]
 	}
-	return sdk.PackageManagerUnknown
+	return model.PackageManagerUnknown
 }
 
-func canonicalDependencyRef(dependency *sdk.Dependency) string {
+func canonicalDependencyRef(dependency *model.DependencyNode) string {
 	if dependency == nil {
 		return ""
 	}
-	if purl := sdk.CanonicalPackageURLFromDependency(dependency); purl != "" {
+	if purl := dependency.NodeID(); purl != "" {
 		return purl
 	}
-	return dependency.ID
+	return dependency.NodeID()
 }
 
 func selectedOccurrence(
 	projectPath string,
-	manifests []sdk.ConsolidatedManifest,
+	manifests []plugin.ConsolidatedManifest,
 	detectorName string,
 	rawManifestPath string,
 	dependencyRef string,
@@ -538,7 +541,7 @@ func selectedOccurrence(
 
 func selectedManifestForDependency(
 	projectPath string,
-	manifests []sdk.ConsolidatedManifest,
+	manifests []plugin.ConsolidatedManifest,
 	detectorName string,
 	rawManifestPath string,
 	dependencyRef string,
@@ -586,10 +589,10 @@ func occurrenceForManifest(occurrences []detectedOccurrence, manifestPath string
 }
 
 func advertisedActions(
-	capabilities []sdk.RemediationCapability,
-	manager sdk.PackageManager,
-) map[sdk.RemediationAction]struct{} {
-	result := map[sdk.RemediationAction]struct{}{}
+	capabilities []plugin.RemediationCapability,
+	manager model.PackageManager,
+) map[model.RemediationAction]struct{} {
+	result := map[model.RemediationAction]struct{}{}
 	for _, capability := range capabilities {
 		if !containsManager(capability.SupportedManagers, manager) {
 			continue
@@ -601,18 +604,13 @@ func advertisedActions(
 	return result
 }
 
-func containsManager(managers []sdk.PackageManager, target sdk.PackageManager) bool {
-	for _, manager := range managers {
-		if manager == target {
-			return true
-		}
-	}
-	return false
+func containsManager(managers []model.PackageManager, target model.PackageManager) bool {
+	return slices.Contains(managers, target)
 }
 
 func deriveSuggestions(
-	registry *sdk.PackageRegistry,
-	manifests []sdk.ConsolidatedManifest,
+	registry *model.PackageRegistry,
+	manifests []plugin.ConsolidatedManifest,
 	hints []validatedHint,
 ) {
 	hintsByOccurrence := map[string]validatedHint{}
@@ -625,7 +623,7 @@ func deriveSuggestions(
 		packageRef string
 		targetRef  string
 		manifest   string
-		action     sdk.RemediationAction
+		action     model.RemediationAction
 		advice     string
 	}
 	grouped := map[suggestionKey]map[string]struct{}{}
@@ -635,7 +633,7 @@ func deriveSuggestions(
 			continue
 		}
 		manifestPath := strings.TrimSpace(manifest.Entry.Manifest.Path)
-		for _, dependency := range graph.Nodes() {
+		for _, dependency := range graph.DependencyNodes() {
 			if dependency == nil || dependency.PackageRef == "" {
 				continue
 			}
@@ -643,7 +641,7 @@ func deriveSuggestions(
 			if !ok || pkg == nil || pkg.Remediation == nil {
 				continue
 			}
-			hintKey := manifest.DetectorName + "\x00" + manifestPath + "\x00" + dependency.ID
+			hintKey := manifest.DetectorName + "\x00" + manifestPath + "\x00" + dependency.NodeID()
 			hint := hintsByOccurrence[hintKey]
 			action, targetRef, advice := selectAction(graph, dependency, pkg.Remediation, hint)
 			key := suggestionKey{
@@ -656,7 +654,7 @@ func deriveSuggestions(
 			if grouped[key] == nil {
 				grouped[key] = map[string]struct{}{}
 			}
-			grouped[key][dependency.ID] = struct{}{}
+			grouped[key][dependency.NodeID()] = struct{}{}
 		}
 	}
 
@@ -694,7 +692,7 @@ func deriveSuggestions(
 			refs = append(refs, ref)
 		}
 		sort.Strings(refs)
-		pkg.Remediation.Suggestions = append(pkg.Remediation.Suggestions, sdk.PackageRemediationSuggestion{
+		pkg.Remediation.Suggestions = append(pkg.Remediation.Suggestions, model.PackageRemediationSuggestion{
 			AffectedDependencyRefs:       refs,
 			SuggestedActionDependencyRef: key.targetRef,
 			ManifestPath:                 key.manifest,
@@ -705,67 +703,67 @@ func deriveSuggestions(
 }
 
 func selectAction(
-	graph *sdk.Graph,
-	dependency *sdk.Dependency,
-	remediation *sdk.PackageRemediation,
+	graph *model.Graph,
+	dependency *model.DependencyNode,
+	remediation *model.PackageRemediation,
 	hint validatedHint,
-) (sdk.RemediationAction, string, string) {
-	targetRef := dependency.ID
+) (model.RemediationAction, string, string) {
+	targetRef := dependency.NodeID()
 	relationship := dependency.Relationship
 	if relationship == "" {
 		var ok bool
-		relationship, targetRef, ok = inferredPlacement(graph, dependency.ID)
+		relationship, targetRef, ok = inferredPlacement(graph, dependency.NodeID())
 		if !ok {
-			relationship = sdk.DependencyRelationshipUnknown
-			targetRef = dependency.ID
+			relationship = model.DependencyRelationshipUnknown
+			targetRef = dependency.NodeID()
 		}
 	}
-	if remediation.Status == sdk.PackageRemediationUnavailable {
-		return sdk.RemediationActionNoFixUpstream, targetRef, ""
+	if remediation.Status == model.PackageRemediationUnavailable {
+		return model.RemediationActionNoFixUpstream, targetRef, ""
 	}
-	if remediation.Status != sdk.PackageRemediationComplete ||
+	if remediation.Status != model.PackageRemediationComplete ||
 		!dependency.RegistryMatchEligible() ||
-		relationship == sdk.DependencyRelationshipUnknown {
-		return sdk.RemediationActionManualReview, targetRef, ""
+		relationship == model.DependencyRelationshipUnknown {
+		return model.RemediationActionManualReview, targetRef, ""
 	}
 
 	switch relationship {
-	case sdk.DependencyRelationshipDirect:
-		if _, ok := hint.strategies[sdk.RemediationActionDirectBump]; ok {
-			return sdk.RemediationActionDirectBump, targetRef, ""
+	case model.DependencyRelationshipDirect:
+		if _, ok := hint.strategies[model.RemediationActionDirectBump]; ok {
+			return model.RemediationActionDirectBump, targetRef, ""
 		}
-	case sdk.DependencyRelationshipTransitive:
-		if dependency.Relationship == sdk.DependencyRelationshipTransitive {
+	case model.DependencyRelationshipTransitive:
+		if dependency.Relationship == model.DependencyRelationshipTransitive {
 			var ok bool
-			_, targetRef, ok = inferredPlacement(graph, dependency.ID)
+			_, targetRef, ok = inferredPlacement(graph, dependency.NodeID())
 			if !ok {
-				return sdk.RemediationActionManualReview, dependency.ID, ""
+				return model.RemediationActionManualReview, dependency.NodeID(), ""
 			}
 		}
-		if targetRef == dependency.ID {
-			return sdk.RemediationActionManualReview, dependency.ID, ""
+		if targetRef == dependency.NodeID() {
+			return model.RemediationActionManualReview, dependency.NodeID(), ""
 		}
-		if advice, ok := hint.strategies[sdk.RemediationActionTransitiveOverride]; ok {
-			return sdk.RemediationActionTransitiveOverride, targetRef, advice
+		if advice, ok := hint.strategies[model.RemediationActionTransitiveOverride]; ok {
+			return model.RemediationActionTransitiveOverride, targetRef, advice
 		}
-		if advice, ok := hint.strategies[sdk.RemediationActionLockfileRefresh]; ok {
-			return sdk.RemediationActionLockfileRefresh, targetRef, advice
+		if advice, ok := hint.strategies[model.RemediationActionLockfileRefresh]; ok {
+			return model.RemediationActionLockfileRefresh, targetRef, advice
 		}
 	default:
-		return sdk.RemediationActionManualReview, targetRef, ""
+		return model.RemediationActionManualReview, targetRef, ""
 	}
-	return sdk.RemediationActionManualReview, targetRef, ""
+	return model.RemediationActionManualReview, targetRef, ""
 }
 
 func inferredPlacement(
-	graph *sdk.Graph,
+	graph *model.Graph,
 	dependencyID string,
-) (sdk.DependencyRelationship, string, bool) {
+) (model.DependencyRelationship, string, bool) {
 	if graph == nil {
-		return sdk.DependencyRelationshipUnknown, dependencyID, false
+		return model.DependencyRelationshipUnknown, dependencyID, false
 	}
 	if _, ok := graph.Node(dependencyID); !ok {
-		return sdk.DependencyRelationshipUnknown, dependencyID, false
+		return model.DependencyRelationshipUnknown, dependencyID, false
 	}
 
 	currentLayer := map[string][]string{dependencyID: {dependencyID}}
@@ -786,11 +784,11 @@ func inferredPlacement(
 			}
 			root, _ := graph.Node(nodeID)
 			path := currentLayer[nodeID]
-			if executableRoot(root) && len(path) >= 2 {
+			if executableRootOf(root) && len(path) >= 2 {
 				if len(path) == 2 {
-					return sdk.DependencyRelationshipDirect, dependencyID, true
+					return model.DependencyRelationshipDirect, dependencyID, true
 				}
-				return sdk.DependencyRelationshipTransitive, path[len(path)-2], true
+				return model.DependencyRelationshipTransitive, path[len(path)-2], true
 			}
 		}
 
@@ -805,20 +803,20 @@ func inferredPlacement(
 					continue
 				}
 				nextDistance := distance + 1
-				if previous, seen := bestDistance[parent.ID]; seen && previous < nextDistance {
+				if previous, seen := bestDistance[parent.NodeID()]; seen && previous < nextDistance {
 					continue
 				}
-				candidatePath := append(append([]string(nil), currentLayer[nodeID]...), parent.ID)
-				if existing, ok := nextLayer[parent.ID]; ok && !pathLess(candidatePath, existing) {
+				candidatePath := append(append([]string(nil), currentLayer[nodeID]...), parent.NodeID())
+				if existing, ok := nextLayer[parent.NodeID()]; ok && !pathLess(candidatePath, existing) {
 					continue
 				}
-				bestDistance[parent.ID] = nextDistance
-				nextLayer[parent.ID] = candidatePath
+				bestDistance[parent.NodeID()] = nextDistance
+				nextLayer[parent.NodeID()] = candidatePath
 			}
 		}
 		currentLayer = nextLayer
 	}
-	return sdk.DependencyRelationshipUnknown, dependencyID, false
+	return model.DependencyRelationshipUnknown, dependencyID, false
 }
 
 func pathLess(left, right []string) bool {
@@ -830,30 +828,29 @@ func pathLess(left, right []string) bool {
 	return len(left) < len(right)
 }
 
-func executableRoot(dependency *sdk.Dependency) bool {
-	if dependency == nil || dependency.Type == sdk.PackageTypeManifest {
+func executableRoot(dependency *model.DependencyNode) bool {
+	if dependency == nil || dependency.Type == model.PackageTypeManifest {
 		return false
 	}
-	return dependency.FirstParty ||
-		dependency.Source == sdk.DependencySourceProject ||
-		dependency.Type == sdk.PackageTypeApplication
+	return dependency.Source == model.DependencySourceProject ||
+		dependency.Type == model.PackageTypeApplication
 }
 
-func cloneRegistry(registry *sdk.PackageRegistry) *sdk.PackageRegistry {
+func cloneRegistry(registry *model.PackageRegistry) *model.PackageRegistry {
 	if registry == nil {
 		return nil
 	}
-	clone := sdk.NewPackageRegistry()
+	clone := model.NewPackageRegistry()
 	for _, pkg := range registry.All() {
 		clone.Add(pkg.Clone())
 	}
 	return clone
 }
 
-func cloneDetectionResult(result sdk.DetectionResult) sdk.DetectionResult {
+func cloneDetectionResult(result plugin.DetectionResult) plugin.DetectionResult {
 	clone := result
 	clone.SubprojectInfo.DetectedPackageManagers = append(
-		[]sdk.PackageManager(nil),
+		[]model.PackageManager(nil),
 		result.SubprojectInfo.DetectedPackageManagers...,
 	)
 	clone.SubprojectInfo.PlannedDetectors = append(
@@ -863,7 +860,7 @@ func cloneDetectionResult(result sdk.DetectionResult) sdk.DetectionResult {
 	if result.Graphs == nil {
 		return clone
 	}
-	clone.Graphs = &sdk.GraphContainer{Entries: make([]sdk.GraphEntry, 0, len(result.Graphs.Entries))}
+	clone.Graphs = &model.GraphContainer{Entries: make([]model.GraphEntry, 0, len(result.Graphs.Entries))}
 	for _, entry := range result.Graphs.Entries {
 		entryClone := entry
 		entryClone.Graph = cloneGraph(entry.Graph)
@@ -877,7 +874,7 @@ func cloneDetectionResult(result sdk.DetectionResult) sdk.DetectionResult {
 			entryClone.Manifest.Resolution = &resolution
 		}
 		if len(entry.Packages) > 0 {
-			entryClone.Packages = make([]*sdk.Package, 0, len(entry.Packages))
+			entryClone.Packages = make([]*model.Package, 0, len(entry.Packages))
 			for _, pkg := range entry.Packages {
 				entryClone.Packages = append(entryClone.Packages, pkg.Clone())
 			}
@@ -887,22 +884,56 @@ func cloneDetectionResult(result sdk.DetectionResult) sdk.DetectionResult {
 	return clone
 }
 
-func cloneGraph(graph *sdk.Graph) *sdk.Graph {
+// cloneGraph copies a graph so a remediation provider cannot mutate the
+// detection it was handed.
+//
+// Every node kind is copied, not just dependencies. Providers may inspect
+// RemediationHintRequest.Detection, so the clone is part of the plugin
+// contract: a copy holding only dependency nodes drops the module roots a
+// normal graph now has, and with them every module-to-dependency edge, so a
+// provider sees a disconnected rubble of orphans rather than the project it
+// was asked about. Edge kinds are copied too -- a structural
+// manifest-to-module edge must not arrive as a depends-on claim.
+func cloneGraph(graph *model.Graph) *model.Graph {
 	if graph == nil {
 		return nil
 	}
-	clone := sdk.NewWithCapacity(graph.Size())
-	for _, dependency := range graph.Nodes() {
-		_ = clone.AddNode(dependency.Clone())
-	}
-	for _, dependency := range graph.Nodes() {
-		children, err := graph.DirectDependencies(dependency.ID)
-		if err != nil {
-			continue
-		}
-		for _, child := range children {
-			_ = clone.AddEdge(dependency.ID, child.ID)
-		}
+	clone := model.NewWithCapacity(graph.Size())
+	graph.WalkNodes(func(node model.GraphNode) bool {
+		_, _ = clone.InsertNode(node.CloneNode())
+		return true
+	})
+	// A copy failure here would mean the clone disagrees with the detection it
+	// stands for, which is worse for a provider than no isolation: return the
+	// original rather than a structurally different graph.
+	if err := model.CopyEdgesInto(clone, graph, nil); err != nil {
+		return graph
 	}
 	return clone
+}
+
+// executableRootOf reports whether a graph root is something a remediation can
+// be applied to: the scanned project's own artifact.
+//
+// A module node always is -- that is what the kind means under ADR-0041, and
+// after the migration it is what a normal root actually is. Reading only
+// dependency nodes here is what made every module-rooted graph look rootless:
+// inferredPlacement walked up, found no root, and every dependency whose
+// detector left Relationship unset degraded to manual review. Detectors do
+// generally leave it unset and rely on graph placement, so that was most of a
+// normal scan.
+//
+// A dependency node still qualifies when it stands for the project: an
+// application-typed root the detector has not promoted yet, or one a detector
+// marked as the project's own source. A manifest never does -- it is a file,
+// and nothing can be bumped in it that is not a module's dependency.
+func executableRootOf(node model.GraphNode) bool {
+	switch typed := node.(type) {
+	case *model.ModuleNode:
+		return typed != nil
+	case *model.DependencyNode:
+		return executableRoot(typed)
+	default:
+		return false
+	}
 }

@@ -5,20 +5,25 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.Dependency) sdk.DependencyOrigin {
-	if dep == nil {
-		return sdk.DependencyOrigin{}
+func originOf(node model.GraphNode) model.DependencyOrigin {
+	dep, ok := node.(*model.DependencyNode)
+	if !ok || dep == nil {
+		return model.DependencyOrigin{}
 	}
-	if origin := dep.Origin.Normalized(); origin != nil {
-		return *origin
+	// Origins are gated on the way in, so the first entry is already
+	// publishable; these cases assert on a single asserted origin.
+	if len(dep.Origins) == 0 {
+		return model.DependencyOrigin{}
 	}
-	return sdk.DependencyOrigin{}
+	return dep.Origins[0]
 }
 
 // A pubspec.lock hosted package's description URL is the pub server, shared by
@@ -73,20 +78,20 @@ func TestPubOriginBySourceType(t *testing.T) {
 
 	cases := []struct {
 		id   string
-		want sdk.DependencyOrigin
+		want model.DependencyOrigin
 	}{
 		{id: "collection@1.18.0"},
 		// A self-hosted pub server's URL has a path, so nothing but the
 		// source kind distinguishes it from a repository URL.
 		{id: "corp_widgets@3.1.0"},
-		{id: "helper@2.0.0", want: sdk.DependencyOrigin{
+		{id: "helper@2.0.0", want: model.DependencyOrigin{
 			Repository: "https://github.com/example/helper.git",
 			Revision:   "a3b4c5d6e7f8091a2b3c4d5e6f70819213243546",
 		}},
 		{id: "local_tools@0.1.0"},
 	}
 	for _, tc := range cases {
-		node, ok := graph.Node(tc.id)
+		node, ok := testnodes.Find(graph, tc.id)
 		if !ok {
 			t.Fatalf("expected %s in graph", tc.id)
 		}
@@ -148,12 +153,12 @@ func TestPubNativeOriginIsReadFromPubspecLock(t *testing.T) {
 		t.Fatalf("nativeGraph() error = %v", err)
 	}
 
-	want := sdk.DependencyOrigin{
+	want := model.DependencyOrigin{
 		Repository: "https://github.com/example/helper.git",
 		Revision:   "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d",
 	}
 	var checked int
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		origin := originOf(dep)
 		switch dep.Name {
 		case "helper":
@@ -164,7 +169,7 @@ func TestPubNativeOriginIsReadFromPubspecLock(t *testing.T) {
 		case "collection", "local_tools":
 			checked++
 			if !origin.Empty() {
-				t.Errorf("%s asserted an origin: %+v", dep.Name, origin)
+				t.Errorf("%s asserted an origin: %+v", mustDep(t, dep).Name, origin)
 			}
 		}
 		return true
@@ -207,7 +212,7 @@ func TestPubOverriddenPackageIsNotCreditedToTheLockedRepository(t *testing.T) {
 	}
 
 	var checked int
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		if dep.Name != "helper" {
 			return true
 		}
@@ -238,7 +243,7 @@ func TestPubNativeOriginSurvivesMissingLock(t *testing.T) {
 	}
 
 	var checked int
-	g.WalkNodes(func(dep *sdk.Dependency) bool {
+	g.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		if dep.Name == "helper" {
 			checked++
 		}

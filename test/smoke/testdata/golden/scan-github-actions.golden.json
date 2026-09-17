@@ -90,6 +90,12 @@
   },
   "packages": [
     {
+      "digests": [
+        {
+          "algorithm": "sha256",
+          "value": "17e6677abf905770d4c4a4b8a06774ad075bbc7d269c0a20ec917267bcb77f45"
+        }
+      ],
       "ecosystem": "github-actions",
       "licenses": [],
       "name": ".github/actions/bomly",
@@ -98,6 +104,12 @@
       "vulnerabilities": []
     },
     {
+      "digests": [
+        {
+          "algorithm": "sha256",
+          "value": "69c307a73acec9173b377c061fd522d8e82ae92613b3312720685c7b0bffb266"
+        }
+      ],
       "ecosystem": "github-actions",
       "licenses": [],
       "name": ".github/workflows/main.yml",

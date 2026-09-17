@@ -6,7 +6,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestDiffOverviewMarkdownPersistedFailingCountsAsFailing(t *testing.T) {
@@ -14,7 +15,7 @@ func TestDiffOverviewMarkdownPersistedFailingCountsAsFailing(t *testing.T) {
 	// the Overview status must reflect it as a failure, not a softer warning.
 	payload := output.DiffResponse{
 		Audit: &output.DiffAudit{
-			Persisted: []output.AuditFinding{{ID: "CVE-PERSISTS", PolicyStatus: sdk.FindingPolicyStatusFail}},
+			Persisted: []output.AuditFinding{{ID: "CVE-PERSISTS", PolicyStatus: model.FindingPolicyStatusFail}},
 		},
 	}
 	got := strings.Join(diffOverviewMarkdown(payload), "\n")
@@ -26,7 +27,7 @@ func TestDiffOverviewMarkdownPersistedFailingCountsAsFailing(t *testing.T) {
 func TestDiffOverviewMarkdownPersistedWarningsAreWarnings(t *testing.T) {
 	payload := output.DiffResponse{
 		Audit: &output.DiffAudit{
-			Persisted: []output.AuditFinding{{ID: "license:warn", PolicyStatus: sdk.FindingPolicyStatusWarn}},
+			Persisted: []output.AuditFinding{{ID: "license:warn", PolicyStatus: model.FindingPolicyStatusWarn}},
 		},
 	}
 	got := strings.Join(diffOverviewMarkdown(payload), "\n")
@@ -47,20 +48,20 @@ func TestDiffTextAndMarkdownRenderDependencyDetailTransitions(t *testing.T) {
 					Name:             "example",
 					Version:          "1.0.0",
 					Relationship:     "direct",
-					Source:           sdk.DependencySourceRegistry,
+					Source:           model.DependencySourceRegistry,
 					RegistryEligible: true,
 				},
 				After: output.DiffDependencyTransitionState{
 					Name:             "example",
 					Version:          "1.0.0",
 					Relationship:     "transitive",
-					Source:           sdk.DependencySourceGit,
+					Source:           model.DependencySourceGit,
 					RegistryEligible: false,
 				},
-				ChangedFields: []sdk.DependencyDetailField{
-					sdk.DependencyDetailRelationship,
-					sdk.DependencyDetailSource,
-					sdk.DependencyDetailRegistryEligibility,
+				ChangedFields: []model.DependencyDetailField{
+					model.DependencyDetailRelationship,
+					model.DependencyDetailSource,
+					model.DependencyDetailRegistryEligibility,
 				},
 			}},
 		}},
@@ -85,7 +86,7 @@ func TestDiffTextAndMarkdownRenderDependencyDetailTransitions(t *testing.T) {
 		t.Fatalf("source changes must not repeat their implied coverage change:\n%s", text.String())
 	}
 	coverageOnly := payload.Results.Dependencies.Transitions[0]
-	coverageOnly.ChangedFields = []sdk.DependencyDetailField{sdk.DependencyDetailRegistryEligibility}
+	coverageOnly.ChangedFields = []model.DependencyDetailField{model.DependencyDetailRegistryEligibility}
 	if description := dependencyTransitionDescription(coverageOnly); description != "vulnerability checks: covered → not covered" {
 		t.Fatalf("independent eligibility wording = %q", description)
 	}
@@ -113,14 +114,14 @@ func TestDiffDependencyTransitionsKeepInformationalChangesNeutral(t *testing.T) 
 		Before: output.DiffDependencyTransitionState{
 			Name:         "example",
 			Version:      "1.0.0",
-			Relationship: sdk.DependencyRelationshipDirect,
+			Relationship: model.DependencyRelationshipDirect,
 		},
 		After: output.DiffDependencyTransitionState{
 			Name:         "example",
 			Version:      "1.0.0",
-			Relationship: sdk.DependencyRelationshipTransitive,
+			Relationship: model.DependencyRelationshipTransitive,
 		},
-		ChangedFields: []sdk.DependencyDetailField{sdk.DependencyDetailRelationship},
+		ChangedFields: []model.DependencyDetailField{model.DependencyDetailRelationship},
 	}
 	payload := output.DiffResponse{Results: output.DiffResults{Dependencies: output.DiffDependencyResults{
 		Transitions: []output.DiffDependencyTransition{transition},
@@ -181,7 +182,7 @@ func TestDiffVulnerabilityMarkdownPersistedMessage(t *testing.T) {
 			Vulnerabilities: output.DiffVulnerabilityResults{
 				Persisted: []output.DiffVulnerabilityChange{{
 					Package:       output.PackageRef{Name: "commons-lang3", Version: "3.18.0"},
-					Vulnerability: output.VulnerabilityRef{ID: "CVE-2025-48924", Severity: sdk.SeverityMedium},
+					Vulnerability: output.VulnerabilityRef{ID: "CVE-2025-48924", Severity: model.SeverityMedium},
 				}},
 			},
 		},
@@ -215,7 +216,7 @@ func TestDiffPostureMarkdownDoesNotConflateNoDataWithNoChange(t *testing.T) {
 	// has posture data, but buildPostureDelta drops it (no meaningful score
 	// change), so delta.isEmpty() is true here for a different reason than
 	// "scorecard found nothing" — the message must reflect that distinction.
-	card := &sdk.PackageScorecard{Repository: "github.com/example/repo", AggregateScore: 7.5}
+	card := &model.PackageScorecard{Repository: "github.com/example/repo", AggregateScore: 7.5}
 	payload := output.DiffResponse{
 		Metadata: output.Metadata{ScorecardEnabled: true},
 		Results: output.DiffResults{
@@ -243,9 +244,9 @@ func TestPersistedLicenseFindingCountDedupesByPackage(t *testing.T) {
 	pkg := output.FindingPackageRef{Purl: "pkg:npm/lib@1.0.0"}
 	audit := &output.DiffAudit{
 		Persisted: []output.AuditFinding{
-			{Kind: sdk.FindingKindLicense, Package: pkg},
-			{Kind: sdk.FindingKindLicense, Package: pkg},
-			{Kind: sdk.FindingKindVulnerability, Package: pkg},
+			{Kind: model.FindingKindLicense, Package: pkg},
+			{Kind: model.FindingKindLicense, Package: pkg},
+			{Kind: model.FindingKindVulnerability, Package: pkg},
 		},
 	}
 	if got := persistedLicenseFindingCount(audit); got != 1 {
@@ -258,10 +259,10 @@ func TestDiffMarkdownFindingsTableHasLegendNoPolicyStatus(t *testing.T) {
 		Audit: &output.DiffAudit{
 			Introduced: []output.AuditFinding{{
 				ID:           "INVALID-abcd-efgh-ijkl",
-				Kind:         sdk.FindingKindLicense,
+				Kind:         model.FindingKindLicense,
 				Auditor:      "license",
-				Severity:     sdk.SeverityWarning,
-				PolicyStatus: sdk.FindingPolicyStatusWarn,
+				Severity:     model.SeverityWarning,
+				PolicyStatus: model.FindingPolicyStatusWarn,
 				Package:      output.FindingPackageRef{Name: "junit", Version: "4.12"},
 				Title:        "Package has invalid SPDX license: non-standard",
 			}},
@@ -291,22 +292,22 @@ func TestEmphasizeFindingTitle(t *testing.T) {
 	}{
 		{
 			name:    "invalid license bolds the offending expression",
-			finding: output.AuditFinding{Kind: sdk.FindingKindLicense, Title: "Package has invalid SPDX license: non-standard"},
+			finding: output.AuditFinding{Kind: model.FindingKindLicense, Title: "Package has invalid SPDX license: non-standard"},
 			want:    "Package has invalid SPDX license: **non-standard**",
 		},
 		{
 			name:    "invalid license with multiple expressions bolds all of them",
-			finding: output.AuditFinding{Kind: sdk.FindingKindLicense, Title: "Package has invalid SPDX license: foo, bar"},
+			finding: output.AuditFinding{Kind: model.FindingKindLicense, Title: "Package has invalid SPDX license: foo, bar"},
 			want:    "Package has invalid SPDX license: **foo, bar**",
 		},
 		{
 			name:    "license title without a colon value is unchanged",
-			finding: output.AuditFinding{Kind: sdk.FindingKindLicense, Title: "Package license is unknown"},
+			finding: output.AuditFinding{Kind: model.FindingKindLicense, Title: "Package license is unknown"},
 			want:    "Package license is unknown",
 		},
 		{
 			name:    "non-license finding is never emphasized",
-			finding: output.AuditFinding{Kind: sdk.FindingKindVulnerability, Title: "Prototype pollution: critical impact"},
+			finding: output.AuditFinding{Kind: model.FindingKindVulnerability, Title: "Prototype pollution: critical impact"},
 			want:    "Prototype pollution: critical impact",
 		},
 	}

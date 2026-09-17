@@ -6,7 +6,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestNPMLockfileAcceptsUTF8BOM(t *testing.T) {
@@ -19,7 +22,7 @@ func TestNPMLockfileAcceptsUTF8BOM(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(projectDir, "package-lock.json"), lockfile, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -27,7 +30,7 @@ func TestNPMLockfileAcceptsUTF8BOM(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, ok := graph.Node("left-pad@1.3.0"); !ok {
+	if _, ok := testnodes.Find(graph, "left-pad@1.3.0"); !ok {
 		t.Fatal("expected BOM-prefixed files to resolve left-pad")
 	}
 }
@@ -49,10 +52,10 @@ func TestNPMShrinkwrapTakesPrecedence(t *testing.T) {
 	if graphs.lockfileName != "npm-shrinkwrap.json" {
 		t.Fatalf("lockfile = %q", graphs.lockfileName)
 	}
-	if _, ok := graphs.graph.Node("from-shrinkwrap@2.0.0"); !ok {
+	if _, ok := testnodes.Find(graphs.graph, "from-shrinkwrap@2.0.0"); !ok {
 		t.Fatal("expected shrinkwrap dependency")
 	}
-	if _, ok := graphs.graph.Node("from-package-lock@1.0.0"); ok {
+	if _, ok := testnodes.Find(graphs.graph, "from-package-lock@1.0.0"); ok {
 		t.Fatal("package-lock must not be combined with shrinkwrap")
 	}
 }
@@ -63,16 +66,16 @@ func TestNPMLockfileRetainsUnknownComponent(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(projectDir, "package-lock.json"), lockfile, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatal(err)
 	}
 	graph := result.Graphs.Entries[0].Graph
-	orphan, ok := graph.Node("orphan@1.0.0")
-	if !ok || orphan.Relationship != sdk.DependencyRelationshipUnknown {
+	orphan, ok := testnodes.FindDep(graph, "orphan@1.0.0")
+	if !ok || orphan.Relationship != model.DependencyRelationshipUnknown {
 		t.Fatalf("orphan = %#v", orphan)
 	}
-	child, ok := graph.Node("child@2.0.0")
+	child, ok := testnodes.FindDep(graph, "child@2.0.0")
 	if !ok || child.Relationship != "" {
 		t.Fatalf("child = %#v", child)
 	}
@@ -97,12 +100,12 @@ func TestNPMLockfilePreservesMultipleInstalledVersions(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, id := range []string{"lodash@4.17.21", "lodash@3.10.1"} {
-		if _, ok := graphs.graph.Node(id); !ok {
+		if _, ok := testnodes.Find(graphs.graph, id); !ok {
 			t.Fatalf("missing %s", id)
 		}
 	}
-	children, err := graphs.graph.DirectDependencies("legacy@1.0.0")
-	if err != nil || len(children) != 1 || children[0].ID != "lodash@3.10.1" {
+	children, err := graphs.graph.DirectDependencies(testnodes.ID(graphs.graph, "legacy@1.0.0"))
+	if err != nil || len(children) != 1 || !testnodes.Is(children[0], "lodash@3.10.1") {
 		t.Fatalf("legacy dependencies = %#v, err=%v", children, err)
 	}
 }
@@ -123,8 +126,8 @@ func TestNPMLockfileClassifiesLocalFileDependency(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	dependency, ok := graphs.graph.Node("local-lib@1.0.0")
-	if !ok || dependency.Source != sdk.DependencySourceFile || dependency.Type == sdk.PackageTypeApplication {
+	dependency, ok := testnodes.FindDep(graphs.graph, "local-lib@1.0.0")
+	if !ok || dependency.Source != model.DependencySourceFile || dependency.Type == model.PackageTypeApplication {
 		t.Fatalf("local dependency = %#v", dependency)
 	}
 }
@@ -162,11 +165,11 @@ func TestNPMLockfileParserAllowsArrayEngines(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromNPMLockfile() error = %v", err)
 	}
-	pkg, ok := graphs.graph.Node("benchmark@1.0.0")
+	pkg, ok := testnodes.FindDep(graphs.graph, "benchmark@1.0.0")
 	if !ok {
 		t.Fatalf("expected benchmark@1.0.0 package")
 	}
-	if _, ok := pkg.Metadata[sdk.MetadataKeyNPM]; ok {
+	if _, ok := pkg.Metadata[model.MetadataKeyNPM]; ok {
 		t.Fatalf("expected array engines to be ignored, got metadata: %+v", pkg.Metadata)
 	}
 }

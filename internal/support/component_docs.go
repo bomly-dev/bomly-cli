@@ -5,13 +5,16 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
 	rootdetectors "github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // proseFS holds optional handwritten prose appended to generated detector
@@ -650,7 +653,7 @@ func renderDetectorIndex(native, syftOnly []registry.PackageManagerSupport) stri
 	b.WriteString("These read a lockfile, manifest, or build tool directly and produce a full dependency graph with edges.\n\n")
 	b.WriteString("| Ecosystem | Package manager | Detector chain | Install-first support |\n")
 	b.WriteString("| --- | --- | --- | --- |\n")
-	previousEcosystem := sdk.Ecosystem("")
+	previousEcosystem := model.Ecosystem("")
 	for _, entry := range native {
 		name := entry.Manager.Name()
 		// Only label the ecosystem on its first row, so a multi-manager
@@ -723,7 +726,7 @@ func renderSyftMarkdown(entries []registry.PackageManagerSupport) string {
 	return b.String()
 }
 
-func renderPackageManagerMarkdown(ecosystem sdk.Ecosystem, entry registry.PackageManagerSupport) string {
+func renderPackageManagerMarkdown(ecosystem model.Ecosystem, entry registry.PackageManagerSupport) string {
 	name := entry.Manager.Name()
 	var b strings.Builder
 	// Plain name as the H1: it's what the landing page uses for the sidebar
@@ -751,7 +754,7 @@ func renderPackageManagerMarkdown(ecosystem sdk.Ecosystem, entry registry.Packag
 	return b.String()
 }
 
-func remediationActionsForChain(detectorNames []string, manager sdk.PackageManager, footnotes bool) string {
+func remediationActionsForChain(detectorNames []string, manager model.PackageManager, footnotes bool) string {
 	capabilities := remediationActionsForDetectorChain(detectorNames, manager)
 	if len(capabilities) == 0 {
 		return "None"
@@ -767,7 +770,7 @@ func remediationActionsForChain(detectorNames []string, manager sdk.PackageManag
 	return strings.Join(actions, ", ")
 }
 
-func remediationActionFootnotes(detectorNames []string, manager sdk.PackageManager) string {
+func remediationActionFootnotes(detectorNames []string, manager model.PackageManager) string {
 	actions := remediationActionsForDetectorChain(detectorNames, manager)
 	if len(actions) == 0 {
 		return ""
@@ -776,20 +779,20 @@ func remediationActionFootnotes(detectorNames []string, manager sdk.PackageManag
 	b.WriteString("\n")
 	for _, action := range actions {
 		switch action {
-		case sdk.RemediationActionDirectBump:
+		case model.RemediationActionDirectBump:
 			b.WriteString("[^direct-bump]: Update a package declared directly in the project.\n")
-		case sdk.RemediationActionTransitiveOverride:
+		case model.RemediationActionTransitiveOverride:
 			b.WriteString("[^transitive-override]: Pin an indirect package with the package manager's override feature.\n")
-		case sdk.RemediationActionLockfileRefresh:
+		case model.RemediationActionLockfileRefresh:
 			b.WriteString("[^lockfile-refresh]: Ask the package manager to resolve a newer indirect package version.\n")
 		}
 	}
 	return b.String()
 }
 
-func remediationActionsForDetectorChain(detectorNames []string, manager sdk.PackageManager) []sdk.RemediationAction {
+func remediationActionsForDetectorChain(detectorNames []string, manager model.PackageManager) []model.RemediationAction {
 	byName := builtinDetectorsByName()
-	seen := make(map[sdk.RemediationAction]struct{})
+	seen := make(map[model.RemediationAction]struct{})
 	for _, detectorName := range detectorNames {
 		detector, ok := byName[detectorName]
 		if !ok {
@@ -804,12 +807,12 @@ func remediationActionsForDetectorChain(detectorNames []string, manager sdk.Pack
 			}
 		}
 	}
-	ordered := []sdk.RemediationAction{
-		sdk.RemediationActionDirectBump,
-		sdk.RemediationActionTransitiveOverride,
-		sdk.RemediationActionLockfileRefresh,
+	ordered := []model.RemediationAction{
+		model.RemediationActionDirectBump,
+		model.RemediationActionTransitiveOverride,
+		model.RemediationActionLockfileRefresh,
 	}
-	result := make([]sdk.RemediationAction, 0, len(seen))
+	result := make([]model.RemediationAction, 0, len(seen))
 	for _, action := range ordered {
 		if _, ok := seen[action]; ok {
 			result = append(result, action)
@@ -818,13 +821,8 @@ func remediationActionsForDetectorChain(detectorNames []string, manager sdk.Pack
 	return result
 }
 
-func containsPackageManager(managers []sdk.PackageManager, target sdk.PackageManager) bool {
-	for _, manager := range managers {
-		if manager == target {
-			return true
-		}
-	}
-	return false
+func containsPackageManager(managers []model.PackageManager, target model.PackageManager) bool {
+	return slices.Contains(managers, target)
 }
 
 func writeMatcherDocs(outputDir string) error {
@@ -846,7 +844,7 @@ func writeMatcherDocs(outputDir string) error {
 	return writeMarkdown(filepath.Join(outputDir, "README.md"), renderMatcherIndex(descriptors))
 }
 
-func renderMatcherIndex(descriptors []sdk.MatcherDescriptor) string {
+func renderMatcherIndex(descriptors []plugin.MatcherDescriptor) string {
 	var b strings.Builder
 	b.WriteString("# Matcher Guides\n\n")
 	b.WriteString("These generated pages explain Bomly's built-in enrichment matchers.\n\n")
@@ -856,7 +854,7 @@ func renderMatcherIndex(descriptors []sdk.MatcherDescriptor) string {
 	return b.String()
 }
 
-func renderMatcherMarkdown(descriptor sdk.MatcherDescriptor) string {
+func renderMatcherMarkdown(descriptor plugin.MatcherDescriptor) string {
 	behavior := matcherBehavior(descriptor.Name)
 	var b strings.Builder
 	_, _ = fmt.Fprintf(&b, "# %s\n\n", humanMatcherTitle(descriptor.Name))
@@ -905,7 +903,7 @@ func writeAuditorDocs(outputDir string) error {
 	return writeMarkdown(filepath.Join(outputDir, "README.md"), renderAuditorIndex(descriptors))
 }
 
-func renderAuditorIndex(descriptors []sdk.AuditorDescriptor) string {
+func renderAuditorIndex(descriptors []plugin.AuditorDescriptor) string {
 	var b strings.Builder
 	b.WriteString("# Auditor Guides\n\n")
 	b.WriteString("These generated pages explain Bomly's built-in policy auditors. See [AUDITORS.md](../AUDITORS.md) for the shared finding model, severity grammar, and `--fail-on` behavior.\n\n")
@@ -915,7 +913,7 @@ func renderAuditorIndex(descriptors []sdk.AuditorDescriptor) string {
 	return b.String()
 }
 
-func renderAuditorMarkdown(descriptor sdk.AuditorDescriptor) string {
+func renderAuditorMarkdown(descriptor plugin.AuditorDescriptor) string {
 	behavior := auditorBehavior(descriptor.Name)
 	var b strings.Builder
 	_, _ = fmt.Fprintf(&b, "# %s auditor\n\n", humanAuditorTitle(descriptor.Name))
@@ -1070,12 +1068,7 @@ func matcherBehavior(name string) matcherDocBehavior {
 }
 
 func chainSupportsInstallFirst(detectors []string) bool {
-	for _, detectorName := range detectors {
-		if detectorSupportsInstallFirst(detectorName) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(detectors, detectorSupportsInstallFirst)
 }
 
 func detectorSupportsInstallFirst(detectorName string) bool {
@@ -1091,9 +1084,9 @@ func detectorSupportsInstallFirst(detectorName string) bool {
 
 // builtinDetectorsByName indexes the built-in detector catalog by descriptor
 // name for chain-level aggregation of recursive-discovery metadata.
-func builtinDetectorsByName() map[string]sdk.Detector {
+func builtinDetectorsByName() map[string]plugin.Detector {
 	detectors := registry.BuiltinDetectors()
-	byName := make(map[string]sdk.Detector, len(detectors))
+	byName := make(map[string]plugin.Detector, len(detectors))
 	for _, detector := range detectors {
 		byName[detector.Descriptor().Name] = detector
 	}
@@ -1103,7 +1096,7 @@ func builtinDetectorsByName() map[string]sdk.Detector {
 // chainIgnoredDirectories unions the directory globs every detector in the
 // chain declares as skipped during recursive discovery.
 func chainIgnoredDirectories(detectors []string) []string {
-	return chainIgnoredValues(detectors, func(descriptor sdk.DetectorDescriptor) []string {
+	return chainIgnoredValues(detectors, func(descriptor plugin.DetectorDescriptor) []string {
 		return descriptor.IgnoredDirectories
 	})
 }
@@ -1111,12 +1104,12 @@ func chainIgnoredDirectories(detectors []string) []string {
 // chainIgnoredDirectoryMarkers unions the marker files every detector in the
 // chain declares as flagging an ignored directory during recursive discovery.
 func chainIgnoredDirectoryMarkers(detectors []string) []string {
-	return chainIgnoredValues(detectors, func(descriptor sdk.DetectorDescriptor) []string {
+	return chainIgnoredValues(detectors, func(descriptor plugin.DetectorDescriptor) []string {
 		return descriptor.IgnoredDirectoryMarkers
 	})
 }
 
-func chainIgnoredValues(detectors []string, values func(sdk.DetectorDescriptor) []string) []string {
+func chainIgnoredValues(detectors []string, values func(plugin.DetectorDescriptor) []string) []string {
 	byName := builtinDetectorsByName()
 	seen := make(map[string]struct{})
 	out := make([]string, 0)
@@ -1138,14 +1131,14 @@ func chainIgnoredValues(detectors []string, values func(sdk.DetectorDescriptor) 
 
 // chainSupportsMultiModule reports whether any detector in the chain declares
 // native multi-module (workspace/reactor) expansion for the package manager.
-func chainSupportsMultiModule(detectors []string, manager sdk.PackageManager) bool {
+func chainSupportsMultiModule(detectors []string, manager model.PackageManager) bool {
 	byName := builtinDetectorsByName()
 	for _, detectorName := range detectors {
 		detector, ok := byName[detectorName]
 		if !ok {
 			continue
 		}
-		supports := append(append([]sdk.PackageManagerSupport(nil), detector.Descriptor().PackageManagerSupport...), detector.PackageManagerSupport()...)
+		supports := append(append([]plugin.PackageManagerSupport(nil), detector.Descriptor().PackageManagerSupport...), detector.PackageManagerSupport()...)
 		for _, support := range supports {
 			if support.MultiModule && support.PackageManager == manager {
 				return true
@@ -1220,7 +1213,7 @@ func commandHintsForDetector(detector string) []string {
 	}
 }
 
-func ecosystemCodeList(values []sdk.Ecosystem) string {
+func ecosystemCodeList(values []model.Ecosystem) string {
 	items := make([]string, 0, len(values))
 	for _, value := range values {
 		items = append(items, string(value))

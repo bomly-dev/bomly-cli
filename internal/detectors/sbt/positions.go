@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // sbtLibraryDep matches the typical Scala SBT dependency declaration:
@@ -18,8 +19,8 @@ import (
 // The captured artifact is the second `"..."`.
 var sbtLibraryDep = regexp.MustCompile(`["']([a-zA-Z0-9][a-zA-Z0-9._-]*)["']\s*%{1,3}\s*["']([a-zA-Z0-9][a-zA-Z0-9._-]*)["']\s*%`)
 
-func sbtPositions(projectDir string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func sbtPositions(projectDir string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	files := []string{
 		"build.sbt",
 		filepath.Join("project", "build.sbt"),
@@ -40,7 +41,7 @@ func sbtPositions(projectDir string) map[string]*sdk.SourcePosition {
 			if _, exists := out[name]; exists {
 				return
 			}
-			out[name] = &sdk.SourcePosition{File: filepath.ToSlash(rel), Line: line}
+			out[name] = &model.SourcePosition{File: filepath.ToSlash(rel), Line: line}
 		})
 	}
 	return out
@@ -48,7 +49,7 @@ func sbtPositions(projectDir string) map[string]*sdk.SourcePosition {
 
 // AttachSBTPositions wires build.sbt / Dependencies.scala line
 // numbers into an SBT-resolved graph.
-func AttachSBTPositions(g *sdk.Graph, projectDir string) {
+func AttachSBTPositions(g *model.Graph, projectDir string) {
 	if g == nil || projectDir == "" {
 		return
 	}
@@ -56,7 +57,7 @@ func AttachSBTPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.Dependency) string {
+	detectors.AttachPositions(g, positions, func(pkg *model.DependencyNode) string {
 		if pkg == nil {
 			return ""
 		}

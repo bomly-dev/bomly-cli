@@ -3,10 +3,13 @@ package python
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-cli/internal/testnodes"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 const sampleRequirementsLock = `#
@@ -40,15 +43,22 @@ func writeLock(t *testing.T, body string) (string, string) {
 	return lockPath, dir
 }
 
-func directDepIDs(t *testing.T, g *sdk.Graph, id string) []string {
+func directDepIDs(t *testing.T, g *model.Graph, id string) []string {
 	t.Helper()
-	deps, err := g.DirectDependencies(id)
+	deps, err := g.DirectDependencies(testnodes.ID(g, id))
 	if err != nil {
 		t.Fatalf("direct deps of %s: %v", id, err)
 	}
+	// Labelled the way a case names a package, not by the canonical package
+	// URL an ID is now.
 	ids := make([]string, 0, len(deps))
 	for _, d := range deps {
-		ids = append(ids, d.ID)
+		name, version := model.NodeDisplayName(d), model.NodeVersion(d)
+		if version != "" {
+			ids = append(ids, name+"@"+version)
+			continue
+		}
+		ids = append(ids, name)
 	}
 	sort.Strings(ids)
 	return ids
@@ -69,7 +79,7 @@ func TestDepGraphFromRequirementsLock(t *testing.T) {
 		"urllib3@1.24.3",
 		"pytest@7.4.3",
 	} {
-		if _, ok := g.Node(want); !ok {
+		if _, ok := testnodes.Find(g, want); !ok {
 			t.Errorf("missing node %s", want)
 		}
 	}
@@ -105,21 +115,21 @@ func TestRequirementsLockScopes(t *testing.T) {
 		t.Fatalf("depGraphFromRequirementsLock: %v", err)
 	}
 	// pytest is dev-only (via requirements-dev.in).
-	pytest, ok := g.Node("pytest@7.4.3")
+	pytest, ok := testnodes.Find(g, "pytest@7.4.3")
 	if !ok {
 		t.Fatal("missing pytest node")
 	}
-	if pytest.PrimaryScope() != sdk.ScopeDevelopment {
-		t.Errorf("pytest scope = %v, want development", pytest.PrimaryScope())
+	if mustDep(t, pytest).PrimaryScope() != model.ScopeDevelopment {
+		t.Errorf("pytest scope = %v, want development", mustDep(t, pytest).PrimaryScope())
 	}
 	// urllib3 is reachable on a runtime path (requests) even though it is also
 	// listed as a direct runtime dep — runtime must win.
-	urllib3, ok := g.Node("urllib3@1.24.3")
+	urllib3, ok := testnodes.Find(g, "urllib3@1.24.3")
 	if !ok {
 		t.Fatal("missing urllib3 node")
 	}
-	if urllib3.PrimaryScope() != sdk.ScopeRuntime {
-		t.Errorf("urllib3 scope = %v, want runtime", urllib3.PrimaryScope())
+	if mustDep(t, urllib3).PrimaryScope() != model.ScopeRuntime {
+		t.Errorf("urllib3 scope = %v, want runtime", mustDep(t, urllib3).PrimaryScope())
 	}
 }
 
@@ -155,22 +165,17 @@ func TestPipLockFilePath(t *testing.T) {
 	}
 }
 
-func findRootID(t *testing.T, g *sdk.Graph) string {
+// findRootID returns the ID of the scanned project's own node: a module,
+// because ownership is the node kind now (ADR-0041).
+func findRootID(t *testing.T, g *model.Graph) string {
 	t.Helper()
-	for _, n := range g.Nodes() {
-		if n.Type == sdk.PackageTypeApplication {
-			return n.ID
-		}
+	modules := g.ModuleNodes()
+	if len(modules) == 0 {
+		t.Fatal("no module node for the scanned project")
 	}
-	t.Fatal("no application root node")
-	return ""
+	return modules[0].NodeID()
 }
 
 func contains(s []string, v string) bool {
-	for _, x := range s {
-		if x == v {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(s, v)
 }

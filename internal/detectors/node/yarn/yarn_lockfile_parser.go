@@ -10,11 +10,12 @@ import (
 	"unicode"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	"github.com/bomly-dev/bomly-sdk"
+	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"gopkg.in/yaml.v3"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // yarnLockfileHeadBytes bounds the format probe: Berry writes the __metadata
@@ -31,7 +32,7 @@ type yarnLockEntry struct {
 	Dependencies map[string]string
 }
 
-func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
+func depGraphFromYarnLockfile(projectPath string) (*model.Graph, error) {
 	raw, err := system.ReadRepositoryFile(filepath.Join(projectPath, "yarn.lock"))
 	if err != nil {
 		return nil, fmt.Errorf("read yarn.lock: %w", err)
@@ -50,8 +51,16 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		rootName = "root"
 	}
 
-	depsGraph := sdk.New()
-	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: manifest.Version, Type: sdk.PackageTypeApplication, FirstParty: true}, Source: sdk.DependencySourceProject})
+	depsGraph := model.New()
+	rootNode, err := model.NewModuleNode("package.json", model.Coordinates{
+		Ecosystem: model.EcosystemNPM,
+		Name:      rootName,
+		Version:   manifest.Version,
+		Type:      model.PackageTypeApplication,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("build yarn root module node: %w", err)
+	}
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add yarn root node: %w", err)
 	}
@@ -73,28 +82,33 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 			return id, nil
 		}
 		entry := entries[idx]
-		pkg := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+		pkg := model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM,
 			Name:    entry.Name,
 			Version: entry.Version}, Source: yarnEntrySource(entry), ResolvedURL: entry.Resolved,
 			Digests: node.ParseIntegrityDigests(entry.Integrity),
 		}
-		pkgNode := sdk.NewDependency(pkg)
-		if existing, ok := depsGraph.Node(pkgNode.ID); ok && existing.Type == sdk.PackageTypeApplication {
-			pkgNode = sdk.NewDependencyWithID(fmt.Sprintf("yarn-package:%d", idx), pkg)
+		// One identity is one node: a collision folds rather than minting a
+		// second ID for the same package, which is the occurrence machinery
+		// ADR-0041 removed.
+		pkgNode, err := model.NewDependencyNodeFrom(pkg)
+		if err != nil {
+			return "", err
 		}
 		// Yarn Classic records the tarball it fetched, with the package
 		// checksum as a URL fragment the invariant strips. Berry entries
 		// carry no resolved location, and git specs are rejected.
-		pkgNode.Origin = sdk.ArtifactOrigin(entry.Resolved)
+		if origin := model.ArtifactOrigin(entry.Resolved); origin != nil {
+			pkgNode.Origins = model.MergeOrigins(pkgNode.Origins, []model.DependencyOrigin{*origin})
+		}
 		// Two selector entries can pin one name@version to different
 		// tarballs; the shared helper keeps both as distinct occurrences,
 		// and each entry's edges attach to its own via entryNodeByIndex.
-		surviving, err := detectors.EnsureOccurrence(depsGraph, pkgNode, entry.Resolved)
+		surviving, err := detectorkit.EnsureNode(depsGraph, pkgNode)
 		if err != nil {
 			return "", err
 		}
-		entryNodeByIndex[idx] = surviving.ID
-		return surviving.ID, nil
+		entryNodeByIndex[idx] = surviving.NodeID()
+		return surviving.NodeID(), nil
 	}
 
 	// Inventory every resolved entry first. Edges and manifest roots are wired
@@ -125,12 +139,16 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 				}
 				continue
 			}
-			synthetic := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)}, Source: node.DependencySourceFromSpecifier(requested)})
+			synthetic, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)})
+			if err != nil {
+				return nil, fmt.Errorf("build dependency node: %w", err)
+			}
+			synthetic.Source = node.DependencySourceFromSpecifier(requested)
 			if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
 				return nil, err
 			}
-			if err := depsGraph.AddEdge(parentID, synthetic.ID); err != nil {
-				return nil, fmt.Errorf("add yarn synthetic dependency %q -> %q: %w", parentID, synthetic.ID, err)
+			if err := depsGraph.AddEdge(parentID, synthetic.NodeID()); err != nil {
+				return nil, fmt.Errorf("add yarn synthetic dependency %q -> %q: %w", parentID, synthetic.NodeID(), err)
 			}
 		}
 	}
@@ -140,13 +158,17 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 	for dependencyName, requested := range directDeps {
 		entryIdx, ok := selectYarnEntry(entries, entriesByName, dependencyName, requested)
 		if !ok {
-			synthetic := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)}, Source: node.DependencySourceFromSpecifier(requested)})
+			synthetic, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)})
+			if err != nil {
+				return nil, fmt.Errorf("build dependency node: %w", err)
+			}
+			synthetic.Source = node.DependencySourceFromSpecifier(requested)
 			if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
 				return nil, err
 			}
-			if rootNode.ID != synthetic.ID {
-				if err := depsGraph.AddEdge(rootNode.ID, synthetic.ID); err != nil {
-					return nil, fmt.Errorf("add yarn root dependency %q -> %q: %w", rootNode.ID, synthetic.ID, err)
+			if rootNode.NodeID() != synthetic.NodeID() {
+				if err := depsGraph.AddEdge(rootNode.NodeID(), synthetic.NodeID()); err != nil {
+					return nil, fmt.Errorf("add yarn root dependency %q -> %q: %w", rootNode.NodeID(), synthetic.NodeID(), err)
 				}
 			}
 			continue
@@ -155,15 +177,15 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		if err != nil {
 			return nil, err
 		}
-		if rootNode.ID == entryID {
+		if rootNode.NodeID() == entryID {
 			continue
 		}
-		if err := depsGraph.AddEdge(rootNode.ID, entryID); err != nil {
-			return nil, fmt.Errorf("add yarn root dependency %q -> %q: %w", rootNode.ID, entryID, err)
+		if err := depsGraph.AddEdge(rootNode.NodeID(), entryID); err != nil {
+			return nil, fmt.Errorf("add yarn root dependency %q -> %q: %w", rootNode.NodeID(), entryID, err)
 		}
 	}
 
-	node.ApplyDirectDependencyScopes(depsGraph, rootNode.ID, node.DirectDependencyScopes(manifest))
+	node.ApplyDirectDependencyScopes(depsGraph, rootNode.NodeID(), node.DirectDependencyScopes(manifest))
 	return depsGraph, nil
 }
 
@@ -211,8 +233,8 @@ func parseYarnLockEntries(content string) ([]yarnLockEntry, error) {
 		// version field: classic `version "X.Y.Z"`, Berry `version: X.Y.Z`.
 		if strings.HasPrefix(trimmed, "version ") || strings.HasPrefix(trimmed, "version: ") {
 			raw := trimmed
-			if strings.HasPrefix(raw, "version:") {
-				raw = strings.TrimPrefix(raw, "version:")
+			if after, ok := strings.CutPrefix(raw, "version:"); ok {
+				raw = after
 			} else {
 				raw = strings.TrimPrefix(raw, "version")
 			}
@@ -223,8 +245,8 @@ func parseYarnLockEntries(content string) ([]yarnLockEntry, error) {
 		// resolved field: classic `resolved "url"`, Berry `resolved: "url"`.
 		if strings.HasPrefix(trimmed, "resolved ") || strings.HasPrefix(trimmed, "resolved: ") {
 			raw := trimmed
-			if strings.HasPrefix(raw, "resolved:") {
-				raw = strings.TrimPrefix(raw, "resolved:")
+			if after, ok := strings.CutPrefix(raw, "resolved:"); ok {
+				raw = after
 			} else {
 				raw = strings.TrimPrefix(raw, "resolved")
 			}
@@ -243,8 +265,8 @@ func parseYarnLockEntries(content string) ([]yarnLockEntry, error) {
 		// integrity field: classic `integrity sha512-...`, Berry `integrity: sha512-...`.
 		if strings.HasPrefix(trimmed, "integrity ") || strings.HasPrefix(trimmed, "integrity: ") {
 			raw := trimmed
-			if strings.HasPrefix(raw, "integrity:") {
-				raw = strings.TrimPrefix(raw, "integrity:")
+			if after, ok := strings.CutPrefix(raw, "integrity:"); ok {
+				raw = after
 			} else {
 				raw = strings.TrimPrefix(raw, "integrity")
 			}
@@ -412,7 +434,7 @@ func yarnPackageNameFromResolution(resolution string) string {
 	return yarnPackageNameFromSelector(value)
 }
 
-func yarnEntrySource(entry yarnLockEntry) sdk.DependencySource {
+func yarnEntrySource(entry yarnLockEntry) model.DependencySource {
 	for _, value := range append(append([]string(nil), entry.Selectors...), entry.Resolution) {
 		lower := strings.ToLower(value)
 		for _, marker := range []string{"workspace:", "link:", "file:", "git:", "git+", "github:", "http:", "https:"} {
@@ -421,7 +443,7 @@ func yarnEntrySource(entry yarnLockEntry) sdk.DependencySource {
 			}
 		}
 	}
-	return sdk.DependencySourceRegistry
+	return model.DependencySourceRegistry
 }
 
 // yarnLockfileFormat reports the lockfile format the project committed: "1"

@@ -29,7 +29,19 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: v2.12.0
+          version: v2.13.2
+      # composition_lite.go is behind the lite build tags, which the run above
+      # does not see; the house rules in .golangci.yml must cover it too.
+      - name: Run golangci-lint under the lite build tags
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.13.2
+          args: --build-tags=bomly_external_syft,bomly_external_grype ./internal/composition/...
+          skip-cache: true
+      # The structural house rules (internal/tools/guardcheck) run as a vet
+      # tool; make lint runs the same three steps locally.
+      - name: Run house-rule analyzers
+        run: make guardcheck
 
   test:
     name: Test

@@ -6,16 +6,17 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/bomly-dev/bomly-sdk"
 	logging "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/hashicorp/go-hclog"
 	hplugin "github.com/hashicorp/go-plugin"
+
+	"github.com/bomly-dev/bomly-sdk/runtime"
 )
 
 // Client wraps one live managed plugin subprocess.
 type Client struct {
 	client *hplugin.Client
-	raw    sdk.Client
+	raw    runtime.Client
 }
 
 // Start launches a managed plugin binary and dispenses the shared client.
@@ -30,13 +31,13 @@ func Start(ctx context.Context, executable string, env []string, verbosity int) 
 		"working_dir", workingDir,
 	)
 	client := hplugin.NewClient(&hplugin.ClientConfig{
-		HandshakeConfig:  sdk.HandshakeConfig(),
+		HandshakeConfig:  runtime.HandshakeConfig(),
 		AllowedProtocols: []hplugin.Protocol{hplugin.ProtocolGRPC},
 		Cmd:              cmd,
 		// Managed plugin stderr is visible only with debug logging. The plugin
 		// owns this output, so users must treat debug logs as sensitive.
 		Logger:          pluginLogger(verbosity),
-		Plugins:         sdk.ClientPluginMap(),
+		Plugins:         runtime.ClientPluginMap(),
 		Managed:         true,
 		GRPCDialOptions: nil,
 	})
@@ -51,7 +52,7 @@ func Start(ctx context.Context, executable string, env []string, verbosity int) 
 		client.Kill()
 		return nil, fmt.Errorf("dispense plugin client: %w", err)
 	}
-	typed, ok := raw.(sdk.Client)
+	typed, ok := raw.(runtime.Client)
 	if !ok {
 		client.Kill()
 		return nil, fmt.Errorf("unexpected plugin client type %T", raw)
@@ -70,7 +71,7 @@ func pluginLogger(verbosity int) hclog.Logger {
 }
 
 // Raw returns the typed shared client.
-func (c *Client) Raw() sdk.Client {
+func (c *Client) Raw() runtime.Client {
 	if c == nil {
 		return nil
 	}

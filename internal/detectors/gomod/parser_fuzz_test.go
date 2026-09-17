@@ -5,8 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
 	testutil "github.com/bomly-dev/bomly-sdk/testkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func FuzzDepGraphFromGoList(f *testing.F) {
@@ -16,7 +17,7 @@ func FuzzDepGraphFromGoList(f *testing.F) {
 		if len(data) > testutil.MaxFuzzInputSize {
 			return
 		}
-		graph, err := depGraphFromGoListWithScope(data, "example.com/root", nil, sdk.Scope(""), nil)
+		graph, err := depGraphFromGoListWithScope(data, "example.com/root", nil, model.Scope(""), nil)
 		if err == nil {
 			testutil.RequireFuzzGraphValid(t, graph)
 		}
@@ -54,7 +55,7 @@ func FuzzParseGoSumDigests(f *testing.F) {
 			if !ok || other != digest {
 				t.Fatalf("nondeterministic digest for %q: %#v vs %#v", key, digest, other)
 			}
-			if digest.Algorithm != sdk.DigestAlgorithmSHA256 || len(digest.Value) != 64 {
+			if digest.Algorithm != model.DigestAlgorithmSHA256 || len(digest.Value) != 64 {
 				t.Fatalf("unexpected digest shape for %q: %#v", key, digest)
 			}
 		}

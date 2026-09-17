@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/nodetest"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // FuzzPackageManagerWarnings exercises the project-configuration parsers behind
@@ -36,11 +38,11 @@ func FuzzPackageManagerWarnings(f *testing.F) {
 			}
 		}
 
-		for _, manager := range []sdk.PackageManager{
-			sdk.PackageManagerNPM,
-			sdk.PackageManagerPNPM,
-			sdk.PackageManagerYarn,
-			sdk.PackageManagerBun,
+		for _, manager := range []model.PackageManager{
+			model.PackageManagerNPM,
+			model.PackageManagerPNPM,
+			model.PackageManagerYarn,
+			model.PackageManagerBun,
 		} {
 			warnings := PackageManagerWarnings(dir, manager, LockfileFormat{File: "pnpm-lock.yaml", Version: input})
 			// Parsing is deterministic for a fixed input.
@@ -48,7 +50,7 @@ func FuzzPackageManagerWarnings(f *testing.F) {
 				t.Fatalf("non-deterministic warning count for %s: %d then %d", manager, len(warnings), len(second))
 			}
 			for _, warning := range warnings {
-				if warning.Type != sdk.DetectorWarningPackageManager {
+				if warning.Type != plugin.DetectorWarningPackageManager {
 					t.Fatalf("unexpected warning type %q", warning.Type)
 				}
 				if warning.Message == "" {

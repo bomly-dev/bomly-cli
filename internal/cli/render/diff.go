@@ -8,7 +8,8 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // Diff writes the compact human-readable diff report for the diff command.
@@ -95,16 +96,16 @@ func dependencyTextSections(results output.DiffDependencyResults) []string {
 
 func dependencyTransitionDescription(transition output.DiffDependencyTransition) string {
 	parts := make([]string, 0, len(transition.ChangedFields))
-	sourceChanged := dependencyDetailFieldChanged(transition, sdk.DependencyDetailSource)
+	sourceChanged := dependencyDetailFieldChanged(transition, model.DependencyDetailSource)
 	for _, field := range transition.ChangedFields {
 		switch field {
-		case sdk.DependencyDetailRelationship:
+		case model.DependencyDetailRelationship:
 			parts = append(parts, fmt.Sprintf(
 				"relationship: %s → %s",
 				valueOrDash(string(transition.Before.Relationship)),
 				valueOrDash(string(transition.After.Relationship)),
 			))
-		case sdk.DependencyDetailSource:
+		case model.DependencyDetailSource:
 			description := fmt.Sprintf(
 				"source: %s → %s",
 				valueOrDash(string(transition.Before.Source)),
@@ -114,7 +115,7 @@ func dependencyTransitionDescription(transition output.DiffDependencyTransition)
 				description += "; registry-based vulnerability checks may no longer cover this dependency"
 			}
 			parts = append(parts, description)
-		case sdk.DependencyDetailRegistryEligibility:
+		case model.DependencyDetailRegistryEligibility:
 			if sourceChanged {
 				continue
 			}
@@ -128,7 +129,7 @@ func dependencyTransitionDescription(transition output.DiffDependencyTransition)
 	return strings.Join(parts, "; ")
 }
 
-func dependencyDetailFieldChanged(transition output.DiffDependencyTransition, wanted sdk.DependencyDetailField) bool {
+func dependencyDetailFieldChanged(transition output.DiffDependencyTransition, wanted model.DependencyDetailField) bool {
 	return slices.Contains(transition.ChangedFields, wanted)
 }
 
@@ -392,4 +393,4 @@ func diffVulnerabilityDetails(vulnerability output.VulnerabilityRef, includeReac
 }
 
 // Ensure sdk import is used (formatReachabilityCell references sdk.Reachability).
-var _ = sdk.Reachability{}
+var _ = model.Reachability{}

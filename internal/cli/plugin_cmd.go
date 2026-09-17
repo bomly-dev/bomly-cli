@@ -15,9 +15,11 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	plugschema "github.com/bomly-dev/bomly-sdk"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func newPluginCmd() *cobra.Command {
@@ -141,18 +143,18 @@ func (f pluginKindFilter) hasSelections() bool {
 	return f.detectors || f.matchers || f.auditors || f.analyzers
 }
 
-func (f pluginKindFilter) includes(kind plugschema.PluginKind) bool {
+func (f pluginKindFilter) includes(kind plugin.PluginKind) bool {
 	if !f.hasSelections() {
 		return true
 	}
 	switch kind {
-	case plugschema.PluginKindDetector:
+	case plugin.PluginKindDetector:
 		return f.detectors
-	case plugschema.PluginKindMatcher:
+	case plugin.PluginKindMatcher:
 		return f.matchers
-	case plugschema.PluginKindAuditor:
+	case plugin.PluginKindAuditor:
 		return f.auditors
-	case plugschema.PluginKindAnalyzer:
+	case plugin.PluginKindAnalyzer:
 		return f.analyzers
 	default:
 		return false
@@ -498,20 +500,20 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 
 	// Build name → instance maps for ReadyFn population.
 	detectorInstances := collectDetectorInstances(reg.AllDetectors())
-	matcherInstances := make(map[string]plugschema.Matcher)
+	matcherInstances := make(map[string]plugin.Matcher)
 	for _, m := range reg.AllMatchers() {
 		matcherInstances[m.Descriptor().Name] = m
 	}
-	auditorInstances := make(map[string]plugschema.Auditor)
+	auditorInstances := make(map[string]plugin.Auditor)
 	for _, a := range reg.AllAuditors() {
 		auditorInstances[a.Descriptor().Name] = a
 	}
-	analyzerInstances := make(map[string]plugschema.Analyzer)
+	analyzerInstances := make(map[string]plugin.Analyzer)
 	for _, a := range reg.AllAnalyzers() {
 		analyzerInstances[a.Descriptor().Name] = a
 	}
 
-	detectorByName := make(map[string]plugschema.DetectorDescriptor)
+	detectorByName := make(map[string]plugin.DetectorDescriptor)
 	registeredNames := make(map[string]struct{})
 	for _, descriptor := range reg.DetectorDescriptors() {
 		d := descriptor
@@ -521,14 +523,14 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 		if det, ok := detectorInstances[d.Name]; ok {
 			det := det
 			info.ReadyFn = func(ctx context.Context) (bool, string, error) {
-				return det.Ready(ctx, plugschema.DetectionRequest{}) == nil, "detector-ready", nil
+				return det.Ready(ctx, plugin.DetectionRequest{}) == nil, "detector-ready", nil
 			}
 		}
 		infos = append(infos, info)
 	}
 
 	seenFallbackTraversal := make(map[string]struct{})
-	for _, detector := range reg.Detectors(plugschema.DetectionRequest{}) {
+	for _, detector := range reg.Detectors(plugin.DetectionRequest{}) {
 		collectFallbackDetectorDescriptors(detector, detectorByName, seenFallbackTraversal)
 	}
 
@@ -546,7 +548,7 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 		if det, ok := detectorInstances[d.Name]; ok {
 			det := det
 			info.ReadyFn = func(ctx context.Context) (bool, string, error) {
-				return det.Ready(ctx, plugschema.DetectionRequest{}) == nil, "detector-ready", nil
+				return det.Ready(ctx, plugin.DetectionRequest{}) == nil, "detector-ready", nil
 			}
 		}
 		infos = append(infos, info)
@@ -554,33 +556,33 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 
 	for _, descriptor := range reg.MatcherDescriptors() {
 		d := descriptor
-		info := matcherPluginInfo(&d, coreVersion, reg.DefaultEnabledMatcherNames(), string(reg.ComponentOrigin(plugschema.PluginKindMatcher, d.Name)))
+		info := matcherPluginInfo(&d, coreVersion, reg.DefaultEnabledMatcherNames(), string(reg.ComponentOrigin(plugin.PluginKindMatcher, d.Name)))
 		if m, ok := matcherInstances[d.Name]; ok {
 			m := m
 			info.ReadyFn = func(ctx context.Context) (bool, string, error) {
-				return m.Ready(ctx, plugschema.MatchRequest{}) == nil, "matcher-ready", nil
+				return m.Ready(ctx, plugin.MatchRequest{}) == nil, "matcher-ready", nil
 			}
 		}
 		infos = append(infos, info)
 	}
 	for _, descriptor := range reg.AuditorDescriptors() {
 		d := descriptor
-		info := auditorPluginInfo(&d, coreVersion, reg.DefaultEnabledAuditorNames(), string(reg.ComponentOrigin(plugschema.PluginKindAuditor, d.Name)))
+		info := auditorPluginInfo(&d, coreVersion, reg.DefaultEnabledAuditorNames(), string(reg.ComponentOrigin(plugin.PluginKindAuditor, d.Name)))
 		if a, ok := auditorInstances[d.Name]; ok {
 			a := a
 			info.ReadyFn = func(ctx context.Context) (bool, string, error) {
-				return a.Ready(ctx, plugschema.AuditRequest{}) == nil, "auditor-ready", nil
+				return a.Ready(ctx, plugin.AuditRequest{}) == nil, "auditor-ready", nil
 			}
 		}
 		infos = append(infos, info)
 	}
 	for _, descriptor := range reg.AnalyzerDescriptors() {
 		d := descriptor
-		info := analyzerPluginInfo(&d, coreVersion, reg.DefaultEnabledAnalyzerNames(), string(reg.ComponentOrigin(plugschema.PluginKindAnalyzer, d.Name)))
+		info := analyzerPluginInfo(&d, coreVersion, reg.DefaultEnabledAnalyzerNames(), string(reg.ComponentOrigin(plugin.PluginKindAnalyzer, d.Name)))
 		if a, ok := analyzerInstances[d.Name]; ok {
 			a := a
 			info.ReadyFn = func(ctx context.Context) (bool, string, error) {
-				return a.Ready(ctx, plugschema.AnalyzeRequest{}) == nil, "analyzer-ready", nil
+				return a.Ready(ctx, plugin.AnalyzeRequest{}) == nil, "analyzer-ready", nil
 			}
 		}
 		infos = append(infos, info)
@@ -590,10 +592,10 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 
 // collectDetectorInstances builds a flat name→instance map that includes fallback
 // detectors reachable from the provided primary detectors.
-func collectDetectorInstances(primaries []plugschema.Detector) map[string]plugschema.Detector {
-	out := make(map[string]plugschema.Detector)
-	var walk func(d plugschema.Detector)
-	walk = func(d plugschema.Detector) {
+func collectDetectorInstances(primaries []plugin.Detector) map[string]plugin.Detector {
+	out := make(map[string]plugin.Detector)
+	var walk func(d plugin.Detector)
+	walk = func(d plugin.Detector) {
 		if d == nil {
 			return
 		}
@@ -604,7 +606,7 @@ func collectDetectorInstances(primaries []plugschema.Detector) map[string]plugsc
 			}
 		}
 		//nolint:staticcheck // deprecated interface still consulted during its one-release compatibility window
-		if fb, ok := d.(plugschema.FallbackDetector); ok {
+		if fb, ok := d.(plugin.FallbackDetector); ok {
 			walk(fb.FallbackDetector())
 		}
 	}
@@ -615,8 +617,8 @@ func collectDetectorInstances(primaries []plugschema.Detector) map[string]plugsc
 }
 
 func collectFallbackDetectorDescriptors(
-	detector plugschema.Detector,
-	detectorByName map[string]plugschema.DetectorDescriptor,
+	detector plugin.Detector,
+	detectorByName map[string]plugin.DetectorDescriptor,
 	seen map[string]struct{},
 ) {
 	if detector == nil {
@@ -630,7 +632,7 @@ func collectFallbackDetectorDescriptors(
 		seen[name] = struct{}{}
 	}
 	//nolint:staticcheck // deprecated interface still consulted during its one-release compatibility window
-	provider, ok := detector.(plugschema.FallbackDetector)
+	provider, ok := detector.(plugin.FallbackDetector)
 	if !ok {
 		return
 	}
@@ -648,16 +650,16 @@ func collectFallbackDetectorDescriptors(
 	collectFallbackDetectorDescriptors(fallback, detectorByName, seen)
 }
 
-func detectorPluginInfo(descriptor *plugschema.DetectorDescriptor, coreVersion string, defaultEnabled []string, sourceType string) managedplugin.Info {
+func detectorPluginInfo(descriptor *plugin.DetectorDescriptor, coreVersion string, defaultEnabled []string, sourceType string) managedplugin.Info {
 	return managedplugin.Info{
 		Manifest: managedplugin.Manifest{
-			SchemaVersion:    plugschema.PackageManifestSchemaVersion,
+			SchemaVersion:    plugin.PackageManifestSchemaVersion,
 			ID:               descriptor.Name,
 			Name:             descriptor.Name,
 			Version:          nonEmptyString(coreVersion, "unknown"),
-			Kind:             plugschema.PluginKindDetector,
+			Kind:             plugin.PluginKindDetector,
 			Runtime:          "builtin",
-			PluginAPIVersion: plugschema.PluginAPIVersion,
+			PluginAPIVersion: plugin.PluginAPIVersion,
 		},
 		DetectorDescriptor: cloneDetectorDescriptor(descriptor),
 		BuiltIn:            true,
@@ -666,16 +668,16 @@ func detectorPluginInfo(descriptor *plugschema.DetectorDescriptor, coreVersion s
 	}
 }
 
-func matcherPluginInfo(descriptor *plugschema.MatcherDescriptor, coreVersion string, defaultEnabled []string, sourceType string) managedplugin.Info {
+func matcherPluginInfo(descriptor *plugin.MatcherDescriptor, coreVersion string, defaultEnabled []string, sourceType string) managedplugin.Info {
 	return managedplugin.Info{
 		Manifest: managedplugin.Manifest{
-			SchemaVersion:    plugschema.PackageManifestSchemaVersion,
+			SchemaVersion:    plugin.PackageManifestSchemaVersion,
 			ID:               descriptor.Name,
 			Name:             descriptor.Name,
 			Version:          nonEmptyString(coreVersion, "unknown"),
-			Kind:             plugschema.PluginKindMatcher,
+			Kind:             plugin.PluginKindMatcher,
 			Runtime:          "builtin",
-			PluginAPIVersion: plugschema.PluginAPIVersion,
+			PluginAPIVersion: plugin.PluginAPIVersion,
 		},
 		MatcherDescriptor: cloneMatcherDescriptor(descriptor),
 		BuiltIn:           true,
@@ -684,16 +686,16 @@ func matcherPluginInfo(descriptor *plugschema.MatcherDescriptor, coreVersion str
 	}
 }
 
-func auditorPluginInfo(descriptor *plugschema.AuditorDescriptor, coreVersion string, defaultEnabled []string, sourceType string) managedplugin.Info {
+func auditorPluginInfo(descriptor *plugin.AuditorDescriptor, coreVersion string, defaultEnabled []string, sourceType string) managedplugin.Info {
 	return managedplugin.Info{
 		Manifest: managedplugin.Manifest{
-			SchemaVersion:    plugschema.PackageManifestSchemaVersion,
+			SchemaVersion:    plugin.PackageManifestSchemaVersion,
 			ID:               descriptor.Name,
 			Name:             descriptor.Name,
 			Version:          nonEmptyString(coreVersion, "unknown"),
-			Kind:             plugschema.PluginKindAuditor,
+			Kind:             plugin.PluginKindAuditor,
 			Runtime:          "builtin",
-			PluginAPIVersion: plugschema.PluginAPIVersion,
+			PluginAPIVersion: plugin.PluginAPIVersion,
 		},
 		AuditorDescriptor: cloneAuditorDescriptor(descriptor),
 		BuiltIn:           true,
@@ -702,16 +704,16 @@ func auditorPluginInfo(descriptor *plugschema.AuditorDescriptor, coreVersion str
 	}
 }
 
-func analyzerPluginInfo(descriptor *plugschema.AnalyzerDescriptor, coreVersion string, defaultEnabled []string, sourceType string) managedplugin.Info {
+func analyzerPluginInfo(descriptor *plugin.AnalyzerDescriptor, coreVersion string, defaultEnabled []string, sourceType string) managedplugin.Info {
 	return managedplugin.Info{
 		Manifest: managedplugin.Manifest{
-			SchemaVersion:    plugschema.PackageManifestSchemaVersion,
+			SchemaVersion:    plugin.PackageManifestSchemaVersion,
 			ID:               descriptor.Name,
 			Name:             descriptor.Name,
 			Version:          nonEmptyString(coreVersion, "unknown"),
-			Kind:             plugschema.PluginKindAnalyzer,
+			Kind:             plugin.PluginKindAnalyzer,
 			Runtime:          "builtin",
-			PluginAPIVersion: plugschema.PluginAPIVersion,
+			PluginAPIVersion: plugin.PluginAPIVersion,
 		},
 		AnalyzerDescriptor: cloneAnalyzerDescriptor(descriptor),
 		BuiltIn:            true,
@@ -720,7 +722,7 @@ func analyzerPluginInfo(descriptor *plugschema.AnalyzerDescriptor, coreVersion s
 	}
 }
 
-func cloneDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugschema.DetectorDescriptor {
+func cloneDetectorDescriptor(descriptor *plugin.DetectorDescriptor) *plugin.DetectorDescriptor {
 	if descriptor == nil {
 		return nil
 	}
@@ -730,9 +732,9 @@ func cloneDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugsch
 }
 
 func completeDetectorPackageManagerSupport(
-	managers []plugschema.PackageManager,
-	src []plugschema.PackageManagerSupport,
-) []plugschema.PackageManagerSupport {
+	managers []model.PackageManager,
+	src []plugin.PackageManagerSupport,
+) []plugin.PackageManagerSupport {
 	out := clonePackageManagerSupport(src)
 	for idx, entry := range out {
 		if len(entry.EvidencePatterns) == 0 {
@@ -743,13 +745,13 @@ func completeDetectorPackageManagerSupport(
 		if containsPackageManagerSupport(out, manager) {
 			continue
 		}
-		out = append(out, plugschema.Support(manager, registry.EvidencePatternsForPackageManager(manager)...))
+		out = append(out, plugin.Support(manager, registry.EvidencePatternsForPackageManager(manager)...))
 	}
 	return out
 }
 
-func clonePackageManagerSupport(src []plugschema.PackageManagerSupport) []plugschema.PackageManagerSupport {
-	out := make([]plugschema.PackageManagerSupport, len(src))
+func clonePackageManagerSupport(src []plugin.PackageManagerSupport) []plugin.PackageManagerSupport {
+	out := make([]plugin.PackageManagerSupport, len(src))
 	for i, entry := range src {
 		out[i] = entry
 		out[i].EvidencePatterns = append([]string(nil), entry.EvidencePatterns...)
@@ -757,7 +759,7 @@ func clonePackageManagerSupport(src []plugschema.PackageManagerSupport) []plugsc
 	return out
 }
 
-func containsPackageManagerSupport(values []plugschema.PackageManagerSupport, manager plugschema.PackageManager) bool {
+func containsPackageManagerSupport(values []plugin.PackageManagerSupport, manager model.PackageManager) bool {
 	for _, value := range values {
 		if value.PackageManager == manager {
 			return true
@@ -766,13 +768,13 @@ func containsPackageManagerSupport(values []plugschema.PackageManagerSupport, ma
 	return false
 }
 
-func cloneMatcherDescriptor(descriptor *plugschema.MatcherDescriptor) *plugschema.MatcherDescriptor {
+func cloneMatcherDescriptor(descriptor *plugin.MatcherDescriptor) *plugin.MatcherDescriptor {
 	if descriptor == nil {
 		return nil
 	}
 	copyValue := *descriptor
-	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
-	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
+	copyValue.SupportedEcosystems = append([]model.Ecosystem(nil), descriptor.SupportedEcosystems...)
+	copyValue.SupportedManagers = append([]model.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
 	copyValue.Tags = append([]string(nil), descriptor.Tags...)
 	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
@@ -780,26 +782,26 @@ func cloneMatcherDescriptor(descriptor *plugschema.MatcherDescriptor) *plugschem
 	return &copyValue
 }
 
-func cloneAuditorDescriptor(descriptor *plugschema.AuditorDescriptor) *plugschema.AuditorDescriptor {
+func cloneAuditorDescriptor(descriptor *plugin.AuditorDescriptor) *plugin.AuditorDescriptor {
 	if descriptor == nil {
 		return nil
 	}
 	copyValue := *descriptor
-	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
-	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
+	copyValue.SupportedEcosystems = append([]model.Ecosystem(nil), descriptor.SupportedEcosystems...)
+	copyValue.SupportedManagers = append([]model.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.ConfigSchema = append(json.RawMessage(nil), descriptor.ConfigSchema...)
 	return &copyValue
 }
 
-func cloneAnalyzerDescriptor(descriptor *plugschema.AnalyzerDescriptor) *plugschema.AnalyzerDescriptor {
+func cloneAnalyzerDescriptor(descriptor *plugin.AnalyzerDescriptor) *plugin.AnalyzerDescriptor {
 	if descriptor == nil {
 		return nil
 	}
 	copyValue := *descriptor
-	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
-	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
-	copyValue.SupportedLanguages = append([]plugschema.Language(nil), descriptor.SupportedLanguages...)
-	copyValue.SupportedTiers = append([]plugschema.ReachabilityTier(nil), descriptor.SupportedTiers...)
+	copyValue.SupportedEcosystems = append([]model.Ecosystem(nil), descriptor.SupportedEcosystems...)
+	copyValue.SupportedManagers = append([]model.PackageManager(nil), descriptor.SupportedManagers...)
+	copyValue.SupportedLanguages = append([]model.Language(nil), descriptor.SupportedLanguages...)
+	copyValue.SupportedTiers = append([]model.ReachabilityTier(nil), descriptor.SupportedTiers...)
 	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
 	copyValue.ConfigSchema = append(json.RawMessage(nil), descriptor.ConfigSchema...)
 	return &copyValue
@@ -916,7 +918,7 @@ func renderPluginConfigSchema(w io.Writer, schema []byte) error {
 }
 
 func pluginInfoRemediationCapabilities(info managedplugin.Info) []string {
-	if info.Kind != plugschema.PluginKindDetector || info.DetectorDescriptor == nil {
+	if info.Kind != plugin.PluginKindDetector || info.DetectorDescriptor == nil {
 		return nil
 	}
 	items := make([]string, 0, len(info.DetectorDescriptor.RemediationCapabilities))
@@ -937,45 +939,45 @@ func pluginInfoRemediationCapabilities(info managedplugin.Info) []string {
 	return items
 }
 
-func pluginInfoEcosystems(info managedplugin.Info) []plugschema.Ecosystem {
+func pluginInfoEcosystems(info managedplugin.Info) []model.Ecosystem {
 	switch info.Kind {
-	case plugschema.PluginKindDetector:
+	case plugin.PluginKindDetector:
 		if info.DetectorDescriptor != nil {
-			return append([]plugschema.Ecosystem(nil), info.DetectorDescriptor.SupportedEcosystems...)
+			return append([]model.Ecosystem(nil), info.DetectorDescriptor.SupportedEcosystems...)
 		}
-	case plugschema.PluginKindMatcher:
+	case plugin.PluginKindMatcher:
 		if info.MatcherDescriptor != nil {
-			return append([]plugschema.Ecosystem(nil), info.MatcherDescriptor.SupportedEcosystems...)
+			return append([]model.Ecosystem(nil), info.MatcherDescriptor.SupportedEcosystems...)
 		}
-	case plugschema.PluginKindAuditor:
+	case plugin.PluginKindAuditor:
 		if info.AuditorDescriptor != nil {
-			return append([]plugschema.Ecosystem(nil), info.AuditorDescriptor.SupportedEcosystems...)
+			return append([]model.Ecosystem(nil), info.AuditorDescriptor.SupportedEcosystems...)
 		}
-	case plugschema.PluginKindAnalyzer:
+	case plugin.PluginKindAnalyzer:
 		if info.AnalyzerDescriptor != nil {
-			return append([]plugschema.Ecosystem(nil), info.AnalyzerDescriptor.SupportedEcosystems...)
+			return append([]model.Ecosystem(nil), info.AnalyzerDescriptor.SupportedEcosystems...)
 		}
 	}
 	return nil
 }
 
-func pluginInfoPackageManagers(info managedplugin.Info) []plugschema.PackageManager {
+func pluginInfoPackageManagers(info managedplugin.Info) []model.PackageManager {
 	switch info.Kind {
-	case plugschema.PluginKindDetector:
+	case plugin.PluginKindDetector:
 		if info.DetectorDescriptor != nil {
-			return append([]plugschema.PackageManager(nil), info.DetectorDescriptor.SupportedManagers...)
+			return append([]model.PackageManager(nil), info.DetectorDescriptor.SupportedManagers...)
 		}
-	case plugschema.PluginKindMatcher:
+	case plugin.PluginKindMatcher:
 		if info.MatcherDescriptor != nil {
-			return append([]plugschema.PackageManager(nil), info.MatcherDescriptor.SupportedManagers...)
+			return append([]model.PackageManager(nil), info.MatcherDescriptor.SupportedManagers...)
 		}
-	case plugschema.PluginKindAuditor:
+	case plugin.PluginKindAuditor:
 		if info.AuditorDescriptor != nil {
-			return append([]plugschema.PackageManager(nil), info.AuditorDescriptor.SupportedManagers...)
+			return append([]model.PackageManager(nil), info.AuditorDescriptor.SupportedManagers...)
 		}
-	case plugschema.PluginKindAnalyzer:
+	case plugin.PluginKindAnalyzer:
 		if info.AnalyzerDescriptor != nil {
-			return append([]plugschema.PackageManager(nil), info.AnalyzerDescriptor.SupportedManagers...)
+			return append([]model.PackageManager(nil), info.AnalyzerDescriptor.SupportedManagers...)
 		}
 	}
 	return nil
@@ -984,28 +986,28 @@ func pluginInfoPackageManagers(info managedplugin.Info) []plugschema.PackageMana
 // pluginInfoLanguages returns the SupportedLanguages list for plugin
 // kinds that carry one. Today only Analyzer plugins do; other kinds
 // return nil so `bomly plugins info` cleanly omits the Languages line.
-func pluginInfoLanguages(info managedplugin.Info) []plugschema.Language {
-	if info.Kind == plugschema.PluginKindAnalyzer && info.AnalyzerDescriptor != nil {
-		return append([]plugschema.Language(nil), info.AnalyzerDescriptor.SupportedLanguages...)
+func pluginInfoLanguages(info managedplugin.Info) []model.Language {
+	if info.Kind == plugin.PluginKindAnalyzer && info.AnalyzerDescriptor != nil {
+		return append([]model.Language(nil), info.AnalyzerDescriptor.SupportedLanguages...)
 	}
 	return nil
 }
 
 func pluginInfoTags(info managedplugin.Info) []string {
 	switch info.Kind {
-	case plugschema.PluginKindDetector:
+	case plugin.PluginKindDetector:
 		if info.DetectorDescriptor != nil {
 			return append([]string(nil), info.DetectorDescriptor.Tags...)
 		}
-	case plugschema.PluginKindMatcher:
+	case plugin.PluginKindMatcher:
 		if info.MatcherDescriptor != nil {
 			return append([]string(nil), info.MatcherDescriptor.Tags...)
 		}
-	case plugschema.PluginKindAuditor:
+	case plugin.PluginKindAuditor:
 		if info.AuditorDescriptor != nil {
 			return append([]string(nil), info.AuditorDescriptor.Tags...)
 		}
-	case plugschema.PluginKindAnalyzer:
+	case plugin.PluginKindAnalyzer:
 		if info.AnalyzerDescriptor != nil {
 			return append([]string(nil), info.AnalyzerDescriptor.Tags...)
 		}
@@ -1015,19 +1017,19 @@ func pluginInfoTags(info managedplugin.Info) []string {
 
 func pluginInfoDisplayName(info managedplugin.Info) string {
 	switch info.Kind {
-	case plugschema.PluginKindDetector:
+	case plugin.PluginKindDetector:
 		if info.DetectorDescriptor != nil {
 			return strings.TrimSpace(info.DetectorDescriptor.DisplayName)
 		}
-	case plugschema.PluginKindMatcher:
+	case plugin.PluginKindMatcher:
 		if info.MatcherDescriptor != nil {
 			return strings.TrimSpace(info.MatcherDescriptor.DisplayName)
 		}
-	case plugschema.PluginKindAuditor:
+	case plugin.PluginKindAuditor:
 		if info.AuditorDescriptor != nil {
 			return strings.TrimSpace(info.AuditorDescriptor.DisplayName)
 		}
-	case plugschema.PluginKindAnalyzer:
+	case plugin.PluginKindAnalyzer:
 		if info.AnalyzerDescriptor != nil {
 			return strings.TrimSpace(info.AnalyzerDescriptor.DisplayName)
 		}
@@ -1037,19 +1039,19 @@ func pluginInfoDisplayName(info managedplugin.Info) string {
 
 func pluginInfoAliases(info managedplugin.Info) []string {
 	switch info.Kind {
-	case plugschema.PluginKindDetector:
+	case plugin.PluginKindDetector:
 		if info.DetectorDescriptor != nil {
 			return cleanStrings(info.DetectorDescriptor.Aliases)
 		}
-	case plugschema.PluginKindMatcher:
+	case plugin.PluginKindMatcher:
 		if info.MatcherDescriptor != nil {
 			return cleanStrings(info.MatcherDescriptor.Aliases)
 		}
-	case plugschema.PluginKindAuditor:
+	case plugin.PluginKindAuditor:
 		if info.AuditorDescriptor != nil {
 			return cleanStrings(info.AuditorDescriptor.Aliases)
 		}
-	case plugschema.PluginKindAnalyzer:
+	case plugin.PluginKindAnalyzer:
 		if info.AnalyzerDescriptor != nil {
 			return cleanStrings(info.AnalyzerDescriptor.Aliases)
 		}
@@ -1080,7 +1082,7 @@ func sortPluginInfos(items []managedplugin.Info) {
 }
 
 func pluginSortEcosystem(info managedplugin.Info) string {
-	if info.Kind != plugschema.PluginKindDetector || info.DetectorDescriptor == nil {
+	if info.Kind != plugin.PluginKindDetector || info.DetectorDescriptor == nil {
 		return ""
 	}
 	items := make([]string, 0, len(info.DetectorDescriptor.SupportedEcosystems))
@@ -1097,7 +1099,7 @@ func pluginSortEcosystem(info managedplugin.Info) string {
 	return strings.Join(items, ",")
 }
 
-func joinEcosystems(values []plugschema.Ecosystem) string {
+func joinEcosystems(values []model.Ecosystem) string {
 	items := make([]string, 0, len(values))
 	for _, value := range values {
 		items = append(items, string(value))
@@ -1106,7 +1108,7 @@ func joinEcosystems(values []plugschema.Ecosystem) string {
 	return strings.Join(items, ", ")
 }
 
-func joinPackageManagers(values []plugschema.PackageManager) string {
+func joinPackageManagers(values []model.PackageManager) string {
 	items := make([]string, 0, len(values))
 	for _, value := range values {
 		items = append(items, value.Name())
@@ -1115,7 +1117,7 @@ func joinPackageManagers(values []plugschema.PackageManager) string {
 	return strings.Join(items, ", ")
 }
 
-func joinLanguages(values []plugschema.Language) string {
+func joinLanguages(values []model.Language) string {
 	items := make([]string, 0, len(values))
 	for _, value := range values {
 		v := strings.TrimSpace(string(value))
@@ -1135,13 +1137,13 @@ func renderPluginListTables(items []managedplugin.Info, kindFilter pluginKindFil
 	analyzers := make([]managedplugin.Info, 0)
 	for _, info := range items {
 		switch info.Kind {
-		case plugschema.PluginKindDetector:
+		case plugin.PluginKindDetector:
 			detectors = append(detectors, info)
-		case plugschema.PluginKindMatcher:
+		case plugin.PluginKindMatcher:
 			matchers = append(matchers, info)
-		case plugschema.PluginKindAuditor:
+		case plugin.PluginKindAuditor:
 			auditors = append(auditors, info)
-		case plugschema.PluginKindAnalyzer:
+		case plugin.PluginKindAnalyzer:
 			analyzers = append(analyzers, info)
 		}
 	}
@@ -1159,16 +1161,16 @@ func renderPluginListTables(items []managedplugin.Info, kindFilter pluginKindFil
 		b.WriteString(renderPluginListTable(headers, rows))
 	}
 
-	if kindFilter.includes(plugschema.PluginKindDetector) {
+	if kindFilter.includes(plugin.PluginKindDetector) {
 		appendTable("Detectors", []string{"ECOSYSTEMS", "PACKAGE MANAGERS", "NAME", "TYPE", "STATE"}, detectorPluginRows(detectors))
 	}
-	if kindFilter.includes(plugschema.PluginKindMatcher) {
+	if kindFilter.includes(plugin.PluginKindMatcher) {
 		appendTable("Matchers", []string{"ECOSYSTEMS", "NAME", "TYPE", "STATE"}, matcherPluginRows(matchers))
 	}
-	if kindFilter.includes(plugschema.PluginKindAuditor) {
+	if kindFilter.includes(plugin.PluginKindAuditor) {
 		appendTable("Auditors", []string{"NAME", "TYPE", "STATE"}, basicPluginRows(auditors))
 	}
-	if kindFilter.includes(plugschema.PluginKindAnalyzer) {
+	if kindFilter.includes(plugin.PluginKindAnalyzer) {
 		appendTable("Analyzers", []string{"LANGUAGES", "ECOSYSTEMS", "PACKAGE MANAGERS", "NAME", "TYPE", "STATE"}, analyzerPluginRows(analyzers))
 	}
 	if b.Len() > 0 {

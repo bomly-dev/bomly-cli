@@ -6,19 +6,19 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // The declaring manifest is the file each tool treats as the project
 // declaration, not the lock it generates.
 func TestPythonDeclaringManifest(t *testing.T) {
-	cases := map[sdk.PackageManager]string{
-		sdk.PackageManagerPipenv: "Pipfile",
-		sdk.PackageManagerPoetry: "pyproject.toml",
-		sdk.PackageManagerUV:     "pyproject.toml",
-		sdk.PackageManagerPDM:    "pyproject.toml",
-		sdk.PackageManagerPip:    "requirements.txt",
-		"":                       "requirements.txt",
+	cases := map[model.PackageManager]string{
+		model.PackageManagerPipenv: "Pipfile",
+		model.PackageManagerPoetry: "pyproject.toml",
+		model.PackageManagerUV:     "pyproject.toml",
+		model.PackageManagerPDM:    "pyproject.toml",
+		model.PackageManagerPip:    "requirements.txt",
+		"":                         "requirements.txt",
 	}
 	for manager, want := range cases {
 		if got := pythonDeclaringManifest(manager); got != want {
@@ -31,14 +31,14 @@ func TestPythonDeclaringManifest(t *testing.T) {
 // project, so two projects with equal coordinates but different declarations
 // stay distinct records.
 func TestPythonModuleRootIdentityNamesTheRealManifest(t *testing.T) {
-	pipenv, err := pythonModuleRoot(sdk.Coordinates{
-		Ecosystem: sdk.EcosystemPython, PackageManager: sdk.PackageManagerPipenv, Name: "app",
+	pipenv, err := pythonModuleRoot(model.Coordinates{
+		Ecosystem: model.EcosystemPython, PackageManager: model.PackageManagerPipenv, Name: "app",
 	})
 	if err != nil {
 		t.Fatalf("pipenv root: %v", err)
 	}
-	poetry, err := pythonModuleRoot(sdk.Coordinates{
-		Ecosystem: sdk.EcosystemPython, PackageManager: sdk.PackageManagerPoetry, Name: "app",
+	poetry, err := pythonModuleRoot(model.Coordinates{
+		Ecosystem: model.EcosystemPython, PackageManager: model.PackageManagerPoetry, Name: "app",
 	})
 	if err != nil {
 		t.Fatalf("poetry root: %v", err)
@@ -97,7 +97,7 @@ python-versions = "*"
 	assertSingleModuleDeclaredBy(t, poetryGraph, "pyproject.toml")
 }
 
-func assertSingleModuleDeclaredBy(t *testing.T, g *sdk.Graph, want string) {
+func assertSingleModuleDeclaredBy(t *testing.T, g *model.Graph, want string) {
 	t.Helper()
 	modules := g.ModuleNodes()
 	if len(modules) != 1 {
@@ -122,13 +122,13 @@ func assertSingleModuleDeclaredBy(t *testing.T, g *sdk.Graph, want string) {
 // on which strategy happened to succeed.
 func TestPythonRootIdentityAgreesAcrossResolutionStrategies(t *testing.T) {
 	cases := []struct {
-		manager sdk.PackageManager
+		manager model.PackageManager
 		want    string
 	}{
-		{sdk.PackageManagerPipenv, "Pipfile"},
-		{sdk.PackageManagerPoetry, "pyproject.toml"},
-		{sdk.PackageManagerUV, "pyproject.toml"},
-		{sdk.PackageManagerPip, "requirements.txt"},
+		{model.PackageManagerPipenv, "Pipfile"},
+		{model.PackageManagerPoetry, "pyproject.toml"},
+		{model.PackageManagerUV, "pyproject.toml"},
+		{model.PackageManagerPip, "requirements.txt"},
 	}
 	for _, tc := range cases {
 		// The pip-inspect strategy's root, as resolveGraph builds it.
@@ -137,11 +137,11 @@ func TestPythonRootIdentityAgreesAcrossResolutionStrategies(t *testing.T) {
 			t.Fatalf("pythonSyntheticRoot(%q): %v", tc.manager, err)
 		}
 		// The lockfile strategy's root, as every parser builds it.
-		lockRoot, err := pythonModuleRoot(sdk.Coordinates{
-			Ecosystem:      sdk.EcosystemPython,
+		lockRoot, err := pythonModuleRoot(model.Coordinates{
+			Ecosystem:      model.EcosystemPython,
 			PackageManager: tc.manager,
 			Name:           "demo",
-			Type:           sdk.PackageTypeApplication,
+			Type:           model.PackageTypeApplication,
 		})
 		if err != nil {
 			t.Fatalf("pythonModuleRoot(%q): %v", tc.manager, err)
@@ -160,13 +160,13 @@ func TestPythonRootIdentityAgreesAcrossResolutionStrategies(t *testing.T) {
 // path can name the right declaring manifest.
 func TestPythonDetectorsCarryTheirManager(t *testing.T) {
 	cases := map[string]struct {
-		got  sdk.PackageManager
-		want sdk.PackageManager
+		got  model.PackageManager
+		want model.PackageManager
 	}{
-		"pip":    {PipDetector{}.base().Manager, sdk.PackageManagerPip},
-		"poetry": {PoetryDetector{}.base().Manager, sdk.PackageManagerPoetry},
-		"uv":     {UVDetector{}.base().Manager, sdk.PackageManagerUV},
-		"pipenv": {PipenvDetector{}.base().Manager, sdk.PackageManagerPipenv},
+		"pip":    {PipDetector{}.base().Manager, model.PackageManagerPip},
+		"poetry": {PoetryDetector{}.base().Manager, model.PackageManagerPoetry},
+		"uv":     {UVDetector{}.base().Manager, model.PackageManagerUV},
+		"pipenv": {PipenvDetector{}.base().Manager, model.PackageManagerPipenv},
 	}
 	for name, tc := range cases {
 		if tc.got != tc.want {

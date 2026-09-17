@@ -3,7 +3,7 @@ package consolidation
 import (
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // rebaseGraphLocations rewrites subproject-relative PackageLocation paths so
@@ -21,7 +21,7 @@ import (
 // ""), which is every subproject today because discovery does not recurse into
 // subdirectories. It exists so a future recursive scan mode reports correct
 // locations without revisiting every detector.
-func rebaseGraphLocations(g *sdk.Graph, relativePath string) {
+func rebaseGraphLocations(g *model.Graph, relativePath string) {
 	rel := strings.Trim(strings.TrimSpace(toSlashPath(relativePath)), "/")
 	if g == nil || rel == "" || rel == "." {
 		return
@@ -32,7 +32,7 @@ func rebaseGraphLocations(g *sdk.Graph, relativePath string) {
 	// where the repository holds "apps/service/pom.xml" -- and
 	// DependenciesFromGraph publishes module locations in scan JSON, so the
 	// stale path reached the output.
-	g.WalkNodes(func(node sdk.GraphNode) bool {
+	g.WalkNodes(func(node model.GraphNode) bool {
 		for _, location := range mutableLocations(node) {
 			location.RealPath = rebaseLocationPath(location.RealPath, rel)
 			location.AccessPath = rebaseLocationPath(location.AccessPath, rel)
@@ -49,15 +49,15 @@ func rebaseGraphLocations(g *sdk.Graph, relativePath string) {
 // rewrite lands on the node rather than on a copy. A manifest node carries no
 // locations: its path is its identity, and normalizeNativeManifestPath rebases
 // that.
-func mutableLocations(node sdk.GraphNode) []*sdk.PackageLocation {
-	var locations []sdk.PackageLocation
+func mutableLocations(node model.GraphNode) []*model.PackageLocation {
+	var locations []model.PackageLocation
 	switch typed := node.(type) {
-	case *sdk.DependencyNode:
+	case *model.DependencyNode:
 		if typed == nil {
 			return nil
 		}
 		locations = typed.Locations
-	case *sdk.ModuleNode:
+	case *model.ModuleNode:
 		if typed == nil {
 			return nil
 		}
@@ -65,7 +65,7 @@ func mutableLocations(node sdk.GraphNode) []*sdk.PackageLocation {
 	default:
 		return nil
 	}
-	out := make([]*sdk.PackageLocation, 0, len(locations))
+	out := make([]*model.PackageLocation, 0, len(locations))
 	for i := range locations {
 		out = append(out, &locations[i])
 	}

@@ -7,8 +7,9 @@ import (
 	"fmt"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // Target describes one side of a diff pipeline run.
@@ -25,9 +26,9 @@ type Request struct {
 
 // Audit groups finding deltas between two audited dependency states.
 type Audit struct {
-	Introduced []sdk.Finding
-	Resolved   []sdk.Finding
-	Persisted  []sdk.Finding
+	Introduced []model.Finding
+	Resolved   []model.Finding
+	Persisted  []model.Finding
 }
 
 // Result contains fully resolved pipeline output for a dependency diff.
@@ -35,7 +36,7 @@ type Result struct {
 	Base     engine.PipelineResult
 	Head     engine.PipelineResult
 	Audit    *Audit
-	Findings []sdk.Finding
+	Findings []model.Finding
 }
 
 // diffAuditRootManifest is the synthetic manifest path the diff audit's root
@@ -69,13 +70,13 @@ func Run(ctx context.Context, req Request) (Result, error) {
 	}
 
 	if req.Base.Request.AuditEnabled || req.Head.Request.AuditEnabled {
-		graphDiff := sdk.Compare(base.Graph, head.Graph)
+		graphDiff := model.Compare(base.Graph, head.Graph)
 		baseAuditGraph, headAuditGraph, err := focusedAuditGraphs(graphDiff)
 		if err != nil {
 			return result, fmt.Errorf("focused audit graphs: %w", err)
 		}
 		req.Base.Request.DependencyDetailChanges = nil
-		req.Head.Request.DependencyDetailChanges = sdk.CloneDependencyDetailTransitions(graphDiff.Transitions)
+		req.Head.Request.DependencyDetailChanges = model.CloneDependencyDetailTransitions(graphDiff.Transitions)
 		baseAudit, baseWarnings := req.Base.Pipeline.RunAuditGraph(ctx, baseAuditGraph, base.Registry, req.Base.Request)
 		result.Base.Findings = baseAudit.Findings
 		result.Base.RiskScores = baseAudit.RiskScores
@@ -91,14 +92,14 @@ func Run(ctx context.Context, req Request) (Result, error) {
 		result.Head.AuditWarnings = append(result.Head.AuditWarnings, headWarnings...)
 
 		result.Audit = AuditSummary(result.Base.Findings, result.Head.Findings)
-		result.Findings = append(append([]sdk.Finding{}, result.Head.Findings...), result.Base.Findings...)
+		result.Findings = append(append([]model.Finding{}, result.Head.Findings...), result.Base.Findings...)
 	}
 	return result, nil
 }
 
-func focusedAuditGraphs(graphDiff sdk.Diff) (*sdk.Graph, *sdk.Graph, error) {
-	basePackages := make([]*sdk.DependencyNode, 0, len(graphDiff.Removed)+len(graphDiff.Updated))
-	headPackages := make([]*sdk.DependencyNode, 0, len(graphDiff.Added)+len(graphDiff.Updated))
+func focusedAuditGraphs(graphDiff model.Diff) (*model.Graph, *model.Graph, error) {
+	basePackages := make([]*model.DependencyNode, 0, len(graphDiff.Removed)+len(graphDiff.Updated))
+	headPackages := make([]*model.DependencyNode, 0, len(graphDiff.Added)+len(graphDiff.Updated))
 	basePackages = append(basePackages, graphDiff.Removed...)
 	headPackages = append(headPackages, graphDiff.Added...)
 	for _, change := range graphDiff.Updated {
@@ -117,8 +118,8 @@ func focusedAuditGraphs(graphDiff sdk.Diff) (*sdk.Graph, *sdk.Graph, error) {
 	return baseGraph, headGraph, nil
 }
 
-func focusedAuditGraph(packages []*sdk.DependencyNode) (*sdk.Graph, error) {
-	focused := sdk.NewWithCapacity(len(packages) + 1)
+func focusedAuditGraph(packages []*model.DependencyNode) (*model.Graph, error) {
+	focused := model.NewWithCapacity(len(packages) + 1)
 	seen := make(map[string]struct{}, len(packages))
 	for _, pkg := range packages {
 		if pkg == nil || pkg.NodeID() == "" {
@@ -130,9 +131,9 @@ func focusedAuditGraph(packages []*sdk.DependencyNode) (*sdk.Graph, error) {
 		return focused, nil
 	}
 
-	root, err := sdk.NewModuleNode(diffAuditRootManifest, sdk.Coordinates{
+	root, err := model.NewModuleNode(diffAuditRootManifest, model.Coordinates{
 		Name: "bomly-diff-audit-root",
-		Type: sdk.PackageTypeApplication,
+		Type: model.PackageTypeApplication,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build diff audit root: %w", err)
@@ -151,7 +152,7 @@ func focusedAuditGraph(packages []*sdk.DependencyNode) (*sdk.Graph, error) {
 		if _, err := detectorkit.EnsureNode(focused, pkg.Clone()); err != nil {
 			return nil, err
 		}
-		if err := focused.AddEdge(root.NodeID(), pkg.NodeID()); err != nil && !errors.Is(err, sdk.ErrSelfDependency) {
+		if err := focused.AddEdge(root.NodeID(), pkg.NodeID()); err != nil && !errors.Is(err, model.ErrSelfDependency) {
 			return nil, err
 		}
 	}
@@ -159,23 +160,23 @@ func focusedAuditGraph(packages []*sdk.DependencyNode) (*sdk.Graph, error) {
 }
 
 // AuditSummary computes introduced, resolved, and persisted findings.
-func AuditSummary(baseFindings, headFindings []sdk.Finding) *Audit {
+func AuditSummary(baseFindings, headFindings []model.Finding) *Audit {
 	introduced, resolved, persisted := diffFindingSets(baseFindings, headFindings)
 	return &Audit{Introduced: introduced, Resolved: resolved, Persisted: persisted}
 }
 
-func diffFindingSets(baseFindings, headFindings []sdk.Finding) ([]sdk.Finding, []sdk.Finding, []sdk.Finding) {
-	baseByKey := make(map[string]sdk.Finding, len(baseFindings))
-	headByKey := make(map[string]sdk.Finding, len(headFindings))
+func diffFindingSets(baseFindings, headFindings []model.Finding) ([]model.Finding, []model.Finding, []model.Finding) {
+	baseByKey := make(map[string]model.Finding, len(baseFindings))
+	headByKey := make(map[string]model.Finding, len(headFindings))
 	for _, finding := range baseFindings {
 		baseByKey[diffFindingKey(finding)] = finding
 	}
 	for _, finding := range headFindings {
 		headByKey[diffFindingKey(finding)] = finding
 	}
-	introduced := make([]sdk.Finding, 0)
-	resolved := make([]sdk.Finding, 0)
-	persisted := make([]sdk.Finding, 0)
+	introduced := make([]model.Finding, 0)
+	resolved := make([]model.Finding, 0)
+	persisted := make([]model.Finding, 0)
 	for key, finding := range headByKey {
 		if _, ok := baseByKey[key]; ok {
 			persisted = append(persisted, finding)
@@ -202,13 +203,13 @@ func diffFindingSets(baseFindings, headFindings []sdk.Finding) ([]sdk.Finding, [
 // (the id hashes the full PURL), so they instead key on the base PURL plus
 // kind+source — each auditor emits at most one such finding per package, so
 // this uniquely identifies "this package's license/policy status".
-func diffFindingKey(finding sdk.Finding) string {
-	base := sdk.PackageURLBase(finding.PackageRef)
+func diffFindingKey(finding model.Finding) string {
+	base := model.PackageURLBase(finding.PackageRef)
 	if base == "" {
 		base = finding.PackageRef
 	}
 	discriminator := ""
-	if finding.Kind == sdk.FindingKindVulnerability {
+	if finding.Kind == model.FindingKindVulnerability {
 		discriminator = finding.VulnerabilityID
 		if discriminator == "" {
 			discriminator = finding.ID

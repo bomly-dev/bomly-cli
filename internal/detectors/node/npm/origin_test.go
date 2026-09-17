@@ -6,20 +6,21 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(node sdk.GraphNode) sdk.DependencyOrigin {
-	dep, ok := node.(*sdk.DependencyNode)
+func originOf(node model.GraphNode) model.DependencyOrigin {
+	dep, ok := node.(*model.DependencyNode)
 	if !ok || dep == nil {
-		return sdk.DependencyOrigin{}
+		return model.DependencyOrigin{}
 	}
 	// Origins are gated on the way in, so the first entry is already
 	// publishable; these cases assert on a single asserted origin.
 	if len(dep.Origins) == 0 {
-		return sdk.DependencyOrigin{}
+		return model.DependencyOrigin{}
 	}
 	return dep.Origins[0]
 }
@@ -120,7 +121,7 @@ func TestNPMv1DuplicateEntriesKeepDistinctResolutions(t *testing.T) {
 		}
 		sharedNodes, agreedNodes := 0, 0
 		sharedOrigins := map[string]int{}
-		graphs.graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+		graphs.graph.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 			switch dep.Name {
 			case "shared":
 				sharedNodes++
@@ -174,7 +175,7 @@ func TestNPMv3DuplicatePathsWithDifferentTarballsFoldKeepingBothOrigins(t *testi
 
 	shared := 0
 	origins := map[string]int{}
-	graphs.graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+	graphs.graph.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		if dep.Name == "shared" {
 			shared++
 			for _, origin := range dep.Origins {
@@ -195,9 +196,9 @@ func TestNPMv3DuplicatePathsWithDifferentTarballsFoldKeepingBothOrigins(t *testi
 
 // mustDep narrows a graph node to the dependency node a case is asserting
 // about, failing rather than panicking when the graph holds something else.
-func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
 	t.Helper()
-	dep, ok := node.(*sdk.DependencyNode)
+	dep, ok := node.(*model.DependencyNode)
 	if !ok {
 		t.Fatalf("expected a dependency node, got %T", node)
 	}

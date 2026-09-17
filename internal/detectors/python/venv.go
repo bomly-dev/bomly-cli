@@ -15,10 +15,11 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	"github.com/bomly-dev/bomly-sdk"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // pythonVenvDir returns a deterministic, project-scoped virtualenv directory.
@@ -60,7 +61,7 @@ func pipInspectCommandForProject(workingDir string) ([]string, error) {
 // createPythonVenv (re)creates a clean virtualenv at venvDir using the ambient
 // interpreter and returns the path to the venv's python executable. The venv is
 // recreated from scratch so a stale environment never leaks into resolution.
-func createPythonVenv(ctx context.Context, base baseDetector, req sdk.DetectionRequest, detectorName, venvDir string) (string, error) {
+func createPythonVenv(ctx context.Context, base baseDetector, req plugin.DetectionRequest, detectorName, venvDir string) (string, error) {
 	logger := base.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -123,7 +124,7 @@ var pipVersionPattern = regexp.MustCompile(`pip\s+(\d+)\.(\d+)`)
 // doomed resolution costs nothing. The detector's fallback still produces a
 // graph; the difference is that the degradation notice now names the pip
 // version and the minimum instead of reporting "exit status 1".
-func verifyPipInspectSupport(base baseDetector, req sdk.DetectionRequest, detectorName, venvPython string) error {
+func verifyPipInspectSupport(base baseDetector, req plugin.DetectionRequest, detectorName, venvPython string) error {
 	logger := base.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -144,7 +145,7 @@ func verifyPipInspectSupport(base baseDetector, req sdk.DetectionRequest, detect
 
 // readPipVersion returns the version string reported by `python -m pip
 // --version` for the given interpreter (e.g. "21.2.4").
-func readPipVersion(base baseDetector, req sdk.DetectionRequest, detectorName, venvPython string, logger *zap.Logger) (string, error) {
+func readPipVersion(base baseDetector, req plugin.DetectionRequest, detectorName, venvPython string, logger *zap.Logger) (string, error) {
 	if logger == nil {
 		logger = zap.NewNop()
 	}

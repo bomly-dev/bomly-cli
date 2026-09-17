@@ -3,8 +3,9 @@ package cargo
 import (
 	"strings"
 
-	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // lockIndex assigns node IDs to Cargo.lock records and resolves the lockfile's
@@ -127,7 +128,7 @@ func lockDependencyRefs(pkg lockPackage) map[string]string {
 // buildLockIndex creates graph nodes for every lock record except the root
 // package's claimed record, and returns the index that resolves dependency
 // strings to them.
-func buildLockIndex(g *sdk.Graph, packages []lockPackage, rootRecord lockPackage) (*lockIndex, error) {
+func buildLockIndex(g *model.Graph, packages []lockPackage, rootRecord lockPackage) (*lockIndex, error) {
 	index := &lockIndex{nodeID: make(map[string]string, len(packages)*3)}
 	rootKey := qualifiedLockKey(rootRecord)
 	for _, pkg := range packages {

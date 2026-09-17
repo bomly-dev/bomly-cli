@@ -7,7 +7,9 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // discoveryDiagnostics explains, per probed manifest candidate, why discovery
@@ -45,7 +47,7 @@ func newDiscoveryDiagnostics(registryValue *engine.Registry, req Request) *disco
 // skipReason returns a short explanation of why the candidate manifest in dir
 // (root-relative rel, owned by manager) was not planned, or "" when the
 // diagnostics cannot attribute a reason.
-func (d *discoveryDiagnostics) skipReason(dir, rel string, manager sdk.PackageManager) string {
+func (d *discoveryDiagnostics) skipReason(dir, rel string, manager model.PackageManager) string {
 	if d == nil {
 		return ""
 	}
@@ -94,7 +96,7 @@ func (d *discoveryDiagnostics) excludedPath(rel string) (string, bool) {
 }
 
 // ecosystemSkipReason reports candidates dropped by --ecosystems.
-func (d *discoveryDiagnostics) ecosystemSkipReason(manager sdk.PackageManager) string {
+func (d *discoveryDiagnostics) ecosystemSkipReason(manager model.PackageManager) string {
 	ecosystem := manager.Ecosystem()
 	filter := d.req.EcosystemFilter
 	if len(filter.Include) > 0 && !filter.Includes(ecosystem) {
@@ -116,7 +118,7 @@ func (d *discoveryDiagnostics) ecosystemSkipReason(manager sdk.PackageManager) s
 // manifest evidence ships a detector chain — an invariant pinned by
 // registry.TestEveryDetectablePackageManagerHasADetectorChain. There is
 // therefore no "no detector registered" reason to report.
-func (d *discoveryDiagnostics) detectorSkipReason(dir string, manager sdk.PackageManager) string {
+func (d *discoveryDiagnostics) detectorSkipReason(dir string, manager model.PackageManager) string {
 	if d.planning == nil {
 		return ""
 	}
@@ -130,7 +132,7 @@ func (d *discoveryDiagnostics) detectorSkipReason(dir string, manager sdk.Packag
 		return ""
 	}
 
-	chain := expandDetectorNames(d.planning, d.planning.PlannedDetectors(sdk.DetectionRequest{
+	chain := expandDetectorNames(d.planning, d.planning.PlannedDetectors(plugin.DetectionRequest{
 		ProjectPath:     dir,
 		ExecutionTarget: d.req.ExecutionTarget,
 		Ecosystem:       manager.Ecosystem(),
@@ -145,7 +147,7 @@ func (d *discoveryDiagnostics) detectorSkipReason(dir string, manager sdk.Packag
 
 // sortedEcosystemNames renders ecosystem selectors in stable order, each
 // prefixed with the supplied string (used for the "-" exclude marker).
-func sortedEcosystemNames(ecosystems []sdk.Ecosystem, prefix string) []string {
+func sortedEcosystemNames(ecosystems []model.Ecosystem, prefix string) []string {
 	names := make([]string, 0, len(ecosystems))
 	for _, ecosystem := range ecosystems {
 		names = append(names, prefix+string(ecosystem))

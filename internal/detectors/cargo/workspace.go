@@ -8,9 +8,11 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // cargoModuleGraph identifies one workspace member for manifest-entry
@@ -193,26 +195,26 @@ func expandCargoWorkspaceMemberDirs(workingDir string, patterns []string) []stri
 // the root manifest metadata; a virtual workspace (no root package) emits
 // member entries only. Members whose root node was removed by scope
 // filtering are skipped.
-func cargoDetectionResultFromGraph(g *sdk.Graph, modules []cargoModuleGraph, rootManifest sdk.ManifestMetadata) (sdk.DetectionResult, error) {
-	entries := make([]sdk.GraphEntry, 0, len(modules))
+func cargoDetectionResultFromGraph(g *model.Graph, modules []cargoModuleGraph, rootManifest model.ManifestMetadata) (plugin.DetectionResult, error) {
+	entries := make([]model.GraphEntry, 0, len(modules))
 	for _, module := range modules {
 		if _, ok := g.Node(module.rootID); !ok {
 			continue
 		}
 		moduleGraph, err := detectorkit.SubgraphFrom(g, module.rootID)
 		if err != nil {
-			return sdk.DetectionResult{}, fmt.Errorf("extract cargo workspace member graph %q: %w", module.dir, err)
+			return plugin.DetectionResult{}, fmt.Errorf("extract cargo workspace member graph %q: %w", module.dir, err)
 		}
-		manifest := sdk.ManifestMetadata{Path: module.dir + "/Cargo.toml", Kind: sdk.ManifestKind("Cargo.toml")}
+		manifest := model.ManifestMetadata{Path: module.dir + "/Cargo.toml", Kind: model.ManifestKind("Cargo.toml")}
 		if module.dir == "." {
 			manifest = rootManifest
 		}
-		entries = append(entries, sdk.GraphEntry{Graph: moduleGraph, Manifest: manifest})
+		entries = append(entries, model.GraphEntry{Graph: moduleGraph, Manifest: manifest})
 	}
 	if len(entries) == 0 {
-		return sdk.DetectionResult{}, fmt.Errorf("cargo workspace produced no member entries")
+		return plugin.DetectionResult{}, fmt.Errorf("cargo workspace produced no member entries")
 	}
-	return detectors.Attributed(sdk.DetectionResult{Graphs: &sdk.GraphContainer{Entries: entries}}), nil
+	return detectors.Attributed(plugin.DetectionResult{Graphs: &model.GraphContainer{Entries: entries}}), nil
 }
 
 // depGraphFromLockWorkspace builds a workspace graph from Cargo.lock plus the
@@ -220,41 +222,41 @@ func cargoDetectionResultFromGraph(g *sdk.Graph, modules []cargoModuleGraph, roo
 // members become application root nodes; member manifest dependency lists
 // annotate direct-edge scopes exactly like the single-package lock path does
 // for its root.
-func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, members []cargoLockMember, scopeFilter sdk.Scope) (*sdk.Graph, []cargoModuleGraph, string, error) {
+func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, members []cargoLockMember, scopeFilter model.Scope) (*model.Graph, []cargoModuleGraph, string, error) {
 	packages := parseCargoLockPackages(string(lockRaw))
 	if len(packages) == 0 {
 		return nil, nil, "", fmt.Errorf("cargo.lock does not contain any packages")
 	}
 
-	g := sdk.New()
+	g := model.New()
 	// A workspace member is the project's own code, so it is a module node
 	// declared by its own manifest: ownership is the node kind (ADR-0041), and
 	// a module carries no origin at all -- so a lock entry that merely shares
 	// its name, an unrelated crate from a git remote, cannot be credited to
 	// it by construction rather than by a guard.
-	moduleFor := func(pkg lockPackage, manifestPath string) (*sdk.ModuleNode, error) {
-		node, err := sdk.NewModuleNode(manifestPath, sdk.Coordinates{
-			Ecosystem:      sdk.EcosystemRust,
+	moduleFor := func(pkg lockPackage, manifestPath string) (*model.ModuleNode, error) {
+		node, err := model.NewModuleNode(manifestPath, model.Coordinates{
+			Ecosystem:      model.EcosystemRust,
 			Name:           pkg.Name,
 			Version:        pkg.Version,
-			PackageManager: sdk.PackageManagerCargo,
-			Type:           sdk.PackageTypeApplication,
+			PackageManager: model.PackageManagerCargo,
+			Type:           model.PackageTypeApplication,
 			Language:       "rust",
-			PURL:           sdk.BuildPackageURLFor(sdk.EcosystemRust, sdk.PackageManagerCargo, "", pkg.Name, pkg.Version),
+			PURL:           model.BuildPackageURLFor(model.EcosystemRust, model.PackageManagerCargo, "", pkg.Name, pkg.Version),
 		})
 		if err != nil {
 			return nil, fmt.Errorf("build cargo module node %q: %w", pkg.Name, err)
 		}
 		return node, nil
 	}
-	nodeFor := func(pkg lockPackage) (*sdk.DependencyNode, error) {
-		node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
+	nodeFor := func(pkg lockPackage) (*model.DependencyNode, error) {
+		node, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemRust,
 			Name:           pkg.Name,
 			Version:        pkg.Version,
-			PackageManager: sdk.PackageManagerCargo,
-			Type:           sdk.ParsePackageType("crate"),
+			PackageManager: model.PackageManagerCargo,
+			Type:           model.ParsePackageType("crate"),
 			Language:       "rust",
-			PURL:           sdk.BuildPackageURLFor(sdk.EcosystemRust, sdk.PackageManagerCargo, "", pkg.Name, pkg.Version)})
+			PURL:           model.BuildPackageURLFor(model.EcosystemRust, model.PackageManagerCargo, "", pkg.Name, pkg.Version)})
 		if err != nil {
 			return nil, fmt.Errorf("build cargo node %q: %w", pkg.Name, err)
 		}
@@ -367,7 +369,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 	// disambiguates it; prefer that over the manifest's bare name.
 	applyManifestEdges := func(root applicationRoot) error {
 		refs := lockDependencyRefs(root.record)
-		addDirect := func(names []string, scope sdk.Scope) error {
+		addDirect := func(names []string, scope model.Scope) error {
 			for _, depName := range names {
 				ref := depName
 				if qualified, ok := refs[depName]; ok {
@@ -381,7 +383,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 					continue
 				}
 				if existingNode, ok := g.Node(childID); ok {
-					existing, _ := sdk.AsDependencyNode(existingNode)
+					existing, _ := model.AsDependencyNode(existingNode)
 					if existing != nil {
 						existing.AddScope(scope)
 					}
@@ -392,10 +394,10 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 			}
 			return nil
 		}
-		if err := addDirect(root.manifest.Dependencies, sdk.ScopeRuntime); err != nil {
+		if err := addDirect(root.manifest.Dependencies, model.ScopeRuntime); err != nil {
 			return err
 		}
-		return addDirect(root.manifest.DevDependencies, sdk.ScopeDevelopment)
+		return addDirect(root.manifest.DevDependencies, model.ScopeDevelopment)
 	}
 	for _, root := range roots {
 		if err := applyManifestEdges(root); err != nil {
@@ -404,7 +406,7 @@ func depGraphFromLockWorkspace(lockRaw []byte, rootManifest cargoManifest, membe
 	}
 
 	propagateScopesFromApplicationRoots(g)
-	filtered, err := sdk.FilterGraphByScope(g, scopeFilter)
+	filtered, err := model.FilterGraphByScope(g, scopeFilter)
 	if err != nil {
 		return nil, nil, "", err
 	}

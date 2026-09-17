@@ -7,7 +7,9 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestExplainTextAndMarkdownShowRemediationAfterVulnerabilities(t *testing.T) {
@@ -20,17 +22,17 @@ func TestExplainTextAndMarkdownShowRemediationAfterVulnerabilities(t *testing.T)
 				Licenses: []output.LicenseRef{},
 				Vulnerabilities: []output.VulnerabilityRef{{
 					ID:       "GHSA-example",
-					Severity: sdk.SeverityHigh,
+					Severity: model.SeverityHigh,
 				}},
 			},
-			Remediation: &sdk.PackageRemediation{
-				Status:             sdk.PackageRemediationComplete,
+			Remediation: &model.PackageRemediation{
+				Status:             model.PackageRemediationComplete,
 				RecommendedVersion: "9.9.9",
-				Suggestions: []sdk.PackageRemediationSuggestion{{
+				Suggestions: []model.PackageRemediationSuggestion{{
 					AffectedDependencyRefs:       []string{"example@1.0.0"},
 					SuggestedActionDependencyRef: "example@1.0.0",
 					ManifestPath:                 "package-lock.json",
-					Action:                       sdk.RemediationActionDirectBump,
+					Action:                       model.RemediationActionDirectBump,
 					OverrideAdvice:               `add "overrides": {"example": "9.9.9"} to package.json`,
 				}},
 			},
@@ -87,15 +89,15 @@ func TestExplainTextAndMarkdownShowRemediationAfterVulnerabilities(t *testing.T)
 
 func TestScanTextSummaryFollowsEnrichmentAndMarkdownShowsDetails(t *testing.T) {
 	const purl = "pkg:npm/example@1.0.0"
-	registry := sdk.NewPackageRegistry()
+	registry := model.NewPackageRegistry()
 	registry.Add(remediationTestPackage(purl))
-	graph := sdk.New()
+	graph := model.New()
 	if err := graph.AddNode(testnodes.Ref("project", "")); err != nil {
 		t.Fatalf("AddNode(project) error = %v", err)
 	}
-	dependency := testnodes.DepFrom(sdk.DependencyNode{
-		Coordinates:  sdk.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
-		Relationship: sdk.DependencyRelationshipDirect,
+	dependency := testnodes.DepFrom(model.DependencyNode{
+		Coordinates:  model.Coordinates{PURL: purl, Name: "example", Version: "1.0.0"},
+		Relationship: model.DependencyRelationshipDirect,
 	})
 	if err := graph.AddNode(dependency); err != nil {
 		t.Fatalf("AddNode() error = %v", err)
@@ -104,7 +106,7 @@ func TestScanTextSummaryFollowsEnrichmentAndMarkdownShowsDetails(t *testing.T) {
 		t.Fatalf("AddEdge() error = %v", err)
 	}
 
-	text := StripANSI(Scan(graph, registry, nil, []sdk.MatcherStats{{
+	text := StripANSI(Scan(graph, registry, nil, []plugin.MatcherStats{{
 		Name:        "example",
 		DisplayName: "Example Matcher",
 	}}, true, false, false, nil, nil, nil))
@@ -144,8 +146,8 @@ func TestDiffTextAndMarkdownShowHeadRemediationAfterFindings(t *testing.T) {
 	const purl = "pkg:npm/example@1.0.0"
 	pkg := remediationTestPackage(purl)
 	payload := output.DiffResponse{
-		Packages: output.PackagesFromRegistry(func() *sdk.PackageRegistry {
-			registry := sdk.NewPackageRegistry()
+		Packages: output.PackagesFromRegistry(func() *model.PackageRegistry {
+			registry := model.NewPackageRegistry()
 			registry.Add(pkg)
 			return registry
 		}()),
@@ -197,7 +199,7 @@ func TestRemediationOutputIsOmittedWithoutSuggestions(t *testing.T) {
 		Packages: []output.ScanPackageEntry{{
 			Purl:            "pkg:npm/example@1.0.0",
 			Vulnerabilities: []output.VulnerabilityRef{{ID: "GHSA-example"}},
-			Remediation:     &sdk.PackageRemediation{Status: sdk.PackageRemediationUnknown},
+			Remediation:     &model.PackageRemediation{Status: model.PackageRemediationUnknown},
 		}},
 	}); err != nil {
 		t.Fatalf("ScanMarkdown() error = %v", err)
@@ -208,16 +210,16 @@ func TestRemediationOutputIsOmittedWithoutSuggestions(t *testing.T) {
 }
 
 func TestRemediationTextSummarizesAllSuggestionsAndPointsToJSON(t *testing.T) {
-	pkg := output.PackagesFromRegistry(func() *sdk.PackageRegistry {
-		registry := sdk.NewPackageRegistry()
+	pkg := output.PackagesFromRegistry(func() *model.PackageRegistry {
+		registry := model.NewPackageRegistry()
 		value := remediationTestPackage("pkg:npm/example@1.0.0")
-		value.Remediation.Suggestions = make([]sdk.PackageRemediationSuggestion, 22)
+		value.Remediation.Suggestions = make([]model.PackageRemediationSuggestion, 22)
 		for idx := range value.Remediation.Suggestions {
-			value.Remediation.Suggestions[idx] = sdk.PackageRemediationSuggestion{
+			value.Remediation.Suggestions[idx] = model.PackageRemediationSuggestion{
 				AffectedDependencyRefs:       []string{"example@1.0.0"},
 				SuggestedActionDependencyRef: "example@1.0.0",
 				ManifestPath:                 "package-lock.json",
-				Action:                       sdk.RemediationActionDirectBump,
+				Action:                       model.RemediationActionDirectBump,
 			}
 		}
 		registry.Add(value)
@@ -244,23 +246,23 @@ func TestRemediationSummaryCountsOnlyConcreteFixSuggestions(t *testing.T) {
 	packages := []output.ScanPackageEntry{
 		remediationReportEntry(
 			"complete",
-			sdk.PackageRemediationComplete,
-			sdk.RemediationActionDirectBump,
+			model.PackageRemediationComplete,
+			model.RemediationActionDirectBump,
 		),
 		remediationReportEntry(
 			"partial",
-			sdk.PackageRemediationPartial,
-			sdk.RemediationActionManualReview,
+			model.PackageRemediationPartial,
+			model.RemediationActionManualReview,
 		),
 		remediationReportEntry(
 			"unavailable",
-			sdk.PackageRemediationUnavailable,
-			sdk.RemediationActionNoFixUpstream,
+			model.PackageRemediationUnavailable,
+			model.RemediationActionNoFixUpstream,
 		),
 		remediationReportEntry(
 			"unknown",
-			sdk.PackageRemediationUnknown,
-			sdk.RemediationActionManualReview,
+			model.PackageRemediationUnknown,
+			model.RemediationActionManualReview,
 		),
 	}
 
@@ -293,17 +295,17 @@ func TestRemediationSummaryCountsOnlyConcreteFixSuggestions(t *testing.T) {
 
 func remediationReportEntry(
 	name string,
-	status sdk.PackageRemediationStatus,
-	action sdk.RemediationAction,
+	status model.PackageRemediationStatus,
+	action model.RemediationAction,
 ) output.ScanPackageEntry {
 	return output.ScanPackageEntry{
 		Purl:            "pkg:npm/" + name + "@1.0.0",
 		Name:            name,
 		Version:         "1.0.0",
 		Vulnerabilities: []output.VulnerabilityRef{{ID: "GHSA-" + name}},
-		Remediation: &sdk.PackageRemediation{
+		Remediation: &model.PackageRemediation{
 			Status: status,
-			Suggestions: []sdk.PackageRemediationSuggestion{{
+			Suggestions: []model.PackageRemediationSuggestion{{
 				AffectedDependencyRefs: []string{name + "@1.0.0"},
 				Action:                 action,
 			}},
@@ -311,25 +313,25 @@ func remediationReportEntry(
 	}
 }
 
-func remediationTestPackage(purl string) *sdk.Package {
-	return &sdk.Package{
-		Coordinates: sdk.Coordinates{
+func remediationTestPackage(purl string) *model.Package {
+	return &model.Package{
+		Coordinates: model.Coordinates{
 			PURL:    purl,
 			Name:    "example",
 			Version: "1.0.0",
 		},
-		Vulnerabilities: []sdk.Vulnerability{{
+		Vulnerabilities: []model.Vulnerability{{
 			ID:             "GHSA-example",
-			ParsedSeverity: sdk.SeverityHigh,
+			ParsedSeverity: model.SeverityHigh,
 		}},
-		Remediation: &sdk.PackageRemediation{
-			Status:             sdk.PackageRemediationComplete,
+		Remediation: &model.PackageRemediation{
+			Status:             model.PackageRemediationComplete,
 			RecommendedVersion: "1.2.0",
-			Suggestions: []sdk.PackageRemediationSuggestion{{
+			Suggestions: []model.PackageRemediationSuggestion{{
 				AffectedDependencyRefs:       []string{"example@1.0.0"},
 				SuggestedActionDependencyRef: "example@1.0.0",
 				ManifestPath:                 "package-lock.json",
-				Action:                       sdk.RemediationActionDirectBump,
+				Action:                       model.RemediationActionDirectBump,
 			}},
 		},
 	}

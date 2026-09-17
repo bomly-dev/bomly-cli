@@ -36,7 +36,7 @@ import (
 // toward reporting a closure that is defined early and never called after
 // the lookup, which is the direction that gets looked at (ADR-0044).
 //
-// Taking either method as a value -- `lookup := g.Node`, `(*sdk.Graph).AddNode`
+// Taking either method as a value -- `lookup := g.Node`, `(*model.Graph).AddNode`
 // -- is reported on its own. A call through such a value names no graph, so
 // pairing it would need value tracking; the method value buys nothing a
 // direct call or detectorkit.EnsureNode does not, so the capability is
@@ -73,7 +73,7 @@ func runNodeInsert(pass *analysis.Pass) (any, error) {
 
 // reportGraphMethodValues reports Graph.Node or Graph.AddNode used as a
 // method value rather than called on its receiver, and any method expression
-// of either, called or not: `(*sdk.Graph).AddNode(g, n)` passes the graph as
+// of either, called or not: `(*model.Graph).AddNode(g, n)` passes the graph as
 // an argument, where the pairing does not look.
 func reportGraphMethodValues(pass *analysis.Pass, file *ast.File) {
 	called := map[*ast.SelectorExpr]bool{}
@@ -97,7 +97,7 @@ func reportGraphMethodValues(pass *analysis.Pass, file *ast.File) {
 			return true
 		}
 		fn, _ := selection.Obj().(*types.Func)
-		if methodOn(fn, sdkPath, "Graph", "Node") || methodOn(fn, sdkPath, "Graph", "AddNode") {
+		if methodOn(fn, modelPath, "Graph", "Node") || methodOn(fn, modelPath, "Graph", "AddNode") {
 			pass.Reportf(sel.Pos(),
 				"takes %s as a value, which hides a graph lookup or insert from the lookup-then-insert check; call it directly or use detectorkit.EnsureNode",
 				types.ExprString(sel))
@@ -134,9 +134,9 @@ func reportLookupThenInsert(pass *analysis.Pass, body *ast.BlockStmt) {
 			}
 			fn, _ := typeutil.Callee(pass.TypesInfo, call).(*types.Func)
 			switch {
-			case methodOn(fn, sdkPath, "Graph", "Node"):
+			case methodOn(fn, modelPath, "Graph", "Node"):
 				lookups = append(lookups, graphCall{aliases.identity(pass, sel.X), types.ExprString(sel.X), call, inClosure})
-			case methodOn(fn, sdkPath, "Graph", "AddNode"):
+			case methodOn(fn, modelPath, "Graph", "AddNode"):
 				inserts = append(inserts, graphCall{aliases.identity(pass, sel.X), types.ExprString(sel.X), call, inClosure})
 			}
 			return true
@@ -211,7 +211,7 @@ func (s *aliasSet) find(key string) string {
 // unite joins two graph expressions; anything that is not an SDK graph is
 // ignored, so an assignment of a node or an ID never folds two graphs.
 func (s *aliasSet) unite(pass *analysis.Pass, a, b ast.Expr) {
-	if !isNamed(pass.TypesInfo.TypeOf(a), sdkPath, "Graph") || !isNamed(pass.TypesInfo.TypeOf(b), sdkPath, "Graph") {
+	if !isNamed(pass.TypesInfo.TypeOf(a), modelPath, "Graph") || !isNamed(pass.TypesInfo.TypeOf(b), modelPath, "Graph") {
 		return
 	}
 	ra, rb := s.find(receiverIdentity(pass, a)), s.find(receiverIdentity(pass, b))

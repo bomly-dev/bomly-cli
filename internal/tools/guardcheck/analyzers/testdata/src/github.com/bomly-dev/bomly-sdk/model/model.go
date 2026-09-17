@@ -1,6 +1,6 @@
-// Package sdk is a stand-in for bomly-sdk with just the surface the analyzers
-// resolve: the graph's lookup and insert methods and the detection result.
-package sdk
+// Package model is a stand-in for bomly-sdk/model with just the surface the
+// analyzers resolve: the graph's lookup and insert methods.
+package model
 
 // GraphNode is a node of a graph.
 type GraphNode interface {
@@ -22,9 +22,3 @@ func (g *Graph) InsertNode(node GraphNode) (GraphNode, error) { return node, nil
 
 // GraphContainer carries resolved graphs.
 type GraphContainer struct{}
-
-// DetectionResult is what a detector returns.
-type DetectionResult struct {
-	DetectorName string
-	Graphs       *GraphContainer
-}

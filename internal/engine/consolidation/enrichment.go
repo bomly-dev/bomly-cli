@@ -3,7 +3,8 @@ package consolidation
 import (
 	"fmt"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // normalizeGraphPackageIdentity rebuilds a graph so one canonical identity is
@@ -19,16 +20,16 @@ import (
 //
 // Keeping any of that machinery would mean two identity systems in one
 // pipeline, disagreeing about which node a reference names.
-func normalizeGraphPackageIdentity(src *sdk.Graph) (*sdk.Graph, error) {
+func normalizeGraphPackageIdentity(src *model.Graph) (*model.Graph, error) {
 	if src == nil {
 		return nil, nil
 	}
 
-	normalized := sdk.NewWithCapacity(src.Size())
+	normalized := model.NewWithCapacity(src.Size())
 	// Every node kind is carried, not just dependencies: manifests and modules
 	// are the structure the edges hang off, and dropping them here would strip
 	// a scan of its subproject layout.
-	src.WalkNodes(func(node sdk.GraphNode) bool {
+	src.WalkNodes(func(node model.GraphNode) bool {
 		_, _ = normalized.InsertNode(node.CloneNode())
 		return true
 	})
@@ -37,7 +38,7 @@ func normalizeGraphPackageIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 	// because both ends folded into one node is dropped rather than being an
 	// error: folding two nodes into one legitimately collapses the edge
 	// between them.
-	if err := sdk.CopyEdgesInto(normalized, src, nil); err != nil {
+	if err := model.CopyEdgesInto(normalized, src, nil); err != nil {
 		return nil, fmt.Errorf("copy normalized edges: %w", err)
 	}
 	return normalized, nil
@@ -49,8 +50,8 @@ func normalizeGraphPackageIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 // detectors are lifted into the registry package. Matchers later enrich these
 // packages in place. Dependency nodes are linked to their package via
 // PackageRef.
-func BuildPackageRegistry(consolidated sdk.ConsolidatedGraph) *sdk.PackageRegistry {
-	registry := sdk.NewPackageRegistry()
+func BuildPackageRegistry(consolidated plugin.ConsolidatedGraph) *model.PackageRegistry {
+	registry := model.NewPackageRegistry()
 	if consolidated.Graphs == nil {
 		return registry
 	}
@@ -67,12 +68,12 @@ func BuildPackageRegistry(consolidated sdk.ConsolidatedGraph) *sdk.PackageRegist
 				continue
 			}
 			node.PackageRef = purl
-			pkg := registry.Add(sdk.PackageFromDependencyNode(node))
+			pkg := registry.Add(model.PackageFromDependencyNode(node))
 			if pkg == nil {
 				continue
 			}
-			if licenses := sdk.DetectionLicenses(node); len(licenses) > 0 && len(pkg.Licenses) == 0 {
-				pkg.Licenses = append([]sdk.PackageLicense(nil), licenses...)
+			if licenses := model.DetectionLicenses(node); len(licenses) > 0 && len(pkg.Licenses) == 0 {
+				pkg.Licenses = append([]model.PackageLicense(nil), licenses...)
 			}
 		}
 		// Also fold any detection-time package facts carried alongside the graph.
@@ -101,7 +102,7 @@ func BuildPackageRegistry(consolidated sdk.ConsolidatedGraph) *sdk.PackageRegist
 // origins, and merges the relationship. This used to hand-write a narrower
 // version of that -- relationship plus a single fill-gaps origin -- which lost
 // every scope and location the duplicate carried.
-func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
+func addNodeIfMissing(g *model.Graph, node *model.DependencyNode) error {
 	if node == nil {
 		return nil
 	}

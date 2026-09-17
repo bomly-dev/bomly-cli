@@ -12,10 +12,12 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/plugin"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	sdkplugin "github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestCommandContextRoundTripsThroughContext(t *testing.T) {
@@ -35,13 +37,13 @@ func TestPipelineRequestExposesSubprocessStderrOnlyAtDebug(t *testing.T) {
 	var stderr bytes.Buffer
 
 	infoOptions := Options{verbose: false}
-	info := infoOptions.PipelineRequest(sdk.ScopeUnknown, &stderr)
+	info := infoOptions.PipelineRequest(model.ScopeUnknown, &stderr)
 	if info.Stderr != nil || info.Verbose {
 		t.Fatalf("info request enabled subprocess stderr: %#v", info)
 	}
 
 	debugOptions := Options{verbose: true}
-	debug := debugOptions.PipelineRequest(sdk.ScopeUnknown, &stderr)
+	debug := debugOptions.PipelineRequest(model.ScopeUnknown, &stderr)
 	if debug.Stderr != &stderr || !debug.Verbose {
 		t.Fatalf("debug request did not enable subprocess stderr: %#v", debug)
 	}
@@ -57,7 +59,7 @@ func TestCommandContextResolveExecutionTarget_Image(t *testing.T) {
 	if cleanup != nil {
 		t.Fatal("expected no cleanup for image target")
 	}
-	if target.Kind != sdk.ExecutionTargetContainerImage {
+	if target.Kind != sdkplugin.ExecutionTargetContainerImage {
 		t.Fatalf("expected container execution target, got %#v", target)
 	}
 	if target.Location != "alpine:3.20" || location != "alpine:3.20" {
@@ -66,7 +68,7 @@ func TestCommandContextResolveExecutionTarget_Image(t *testing.T) {
 }
 
 func TestProjectDescriptor_UsesUserFacingTargetLabels(t *testing.T) {
-	containerOptions := Options{executionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetContainerImage, Location: "example/demo:1.0"}}
+	containerOptions := Options{executionTarget: sdkplugin.ExecutionTarget{Kind: sdkplugin.ExecutionTargetContainerImage, Location: "example/demo:1.0"}}
 	containerProject := containerOptions.ProjectDescriptor()
 	if containerProject.Name != "example/demo:1.0" || containerProject.Path != "example/demo:1.0" || containerProject.TargetType != "container image" {
 		t.Fatalf("unexpected container project descriptor: %#v", containerProject)
@@ -74,7 +76,7 @@ func TestProjectDescriptor_UsesUserFacingTargetLabels(t *testing.T) {
 
 	// Git repositories name themselves after the repo (last URL segment,
 	// .git trimmed); the full URL remains the descriptor's Path.
-	urlOptions := Options{executionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetGitRepository, Location: `C:\Temp\bomly-clone`, RepositoryURL: "https://github.com/acme/demo.git", Ref: "main"}}
+	urlOptions := Options{executionTarget: sdkplugin.ExecutionTarget{Kind: sdkplugin.ExecutionTargetGitRepository, Location: `C:\Temp\bomly-clone`, RepositoryURL: "https://github.com/acme/demo.git", Ref: "main"}}
 	urlProject := urlOptions.ProjectDescriptor()
 	if urlProject.Name != "demo" || urlProject.Path != "https://github.com/acme/demo.git" || urlProject.TargetType != "git repository" || urlProject.TargetRef != "main" {
 		t.Fatalf("unexpected url project descriptor: %#v", urlProject)
@@ -107,7 +109,7 @@ func TestPrepareForExecutionTargetLoadsBaselineOnlyForAudit(t *testing.T) {
 	cfg := config.Resolved{Baseline: "auto", Detectors: "npm"}
 	config.ApplyDefaults(&cfg)
 	options := Options{ResolvedConfig: cfg}
-	target := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: root}
+	target := sdkplugin.ExecutionTarget{Kind: sdkplugin.ExecutionTargetFilesystem, Location: root}
 	if _, err := options.PrepareForExecutionTarget(context.Background(), zap.NewNop(), target, nil); err != nil {
 		t.Fatalf("non-audit preparation loaded baseline: %v", err)
 	}
@@ -166,11 +168,11 @@ func TestDetectPackageManagers_FindsPythonManagers(t *testing.T) {
 		t.Fatalf("DetectPackageManagers() error = %v", err)
 	}
 
-	for _, want := range []sdk.PackageManager{
-		sdk.PackageManagerPip,
-		sdk.PackageManagerPipenv,
-		sdk.PackageManagerPoetry,
-		sdk.PackageManagerUV,
+	for _, want := range []model.PackageManager{
+		model.PackageManagerPip,
+		model.PackageManagerPipenv,
+		model.PackageManagerPoetry,
+		model.PackageManagerUV,
 	} {
 		if !containsManager(managers, want) {
 			t.Fatalf("expected package manager %q in %#v", want, managers)
@@ -182,20 +184,20 @@ func TestDetectPackageManagers_UsesPyprojectToolTables(t *testing.T) {
 	tests := []struct {
 		name    string
 		content string
-		want    sdk.PackageManager
-		block   sdk.PackageManager
+		want    model.PackageManager
+		block   model.PackageManager
 	}{
 		{
 			name:    "uv",
 			content: "[project]\nname = \"demo\"\n\n[tool.uv]\ndev-dependencies = []\n",
-			want:    sdk.PackageManagerUV,
-			block:   sdk.PackageManagerPoetry,
+			want:    model.PackageManagerUV,
+			block:   model.PackageManagerPoetry,
 		},
 		{
 			name:    "poetry",
 			content: "[tool.poetry]\nname = \"demo\"\nversion = \"1.0.0\"\n",
-			want:    sdk.PackageManagerPoetry,
-			block:   sdk.PackageManagerUV,
+			want:    model.PackageManagerPoetry,
+			block:   model.PackageManagerUV,
 		},
 	}
 
@@ -224,8 +226,8 @@ func TestDetectPackageManagers_PrefersSpecificEvidence(t *testing.T) {
 	tests := []struct {
 		name   string
 		files  map[string]string
-		want   sdk.PackageManager
-		reject []sdk.PackageManager
+		want   model.PackageManager
+		reject []model.PackageManager
 	}{
 		{
 			name: "uv lock beats pyproject",
@@ -233,8 +235,8 @@ func TestDetectPackageManagers_PrefersSpecificEvidence(t *testing.T) {
 				"pyproject.toml": "[project]\nname = \"demo\"\n",
 				"uv.lock":        "version = 1\n",
 			},
-			want:   sdk.PackageManagerUV,
-			reject: []sdk.PackageManager{sdk.PackageManagerPoetry},
+			want:   model.PackageManagerUV,
+			reject: []model.PackageManager{model.PackageManagerPoetry},
 		},
 		{
 			name: "poetry lock beats pyproject",
@@ -242,8 +244,8 @@ func TestDetectPackageManagers_PrefersSpecificEvidence(t *testing.T) {
 				"pyproject.toml": "[project]\nname = \"demo\"\n",
 				"poetry.lock":    "# lock\n",
 			},
-			want:   sdk.PackageManagerPoetry,
-			reject: []sdk.PackageManager{sdk.PackageManagerUV},
+			want:   model.PackageManagerPoetry,
+			reject: []model.PackageManager{model.PackageManagerUV},
 		},
 		{
 			name: "pnpm lock beats package json",
@@ -251,8 +253,8 @@ func TestDetectPackageManagers_PrefersSpecificEvidence(t *testing.T) {
 				"package.json":   "{}\n",
 				"pnpm-lock.yaml": "lockfileVersion: '9.0'\n",
 			},
-			want:   sdk.PackageManagerPNPM,
-			reject: []sdk.PackageManager{sdk.PackageManagerNPM, sdk.PackageManagerYarn},
+			want:   model.PackageManagerPNPM,
+			reject: []model.PackageManager{model.PackageManagerNPM, model.PackageManagerYarn},
 		},
 		{
 			name: "yarn lock beats package json",
@@ -260,8 +262,8 @@ func TestDetectPackageManagers_PrefersSpecificEvidence(t *testing.T) {
 				"package.json": "{}\n",
 				"yarn.lock":    "# yarn lock\n",
 			},
-			want:   sdk.PackageManagerYarn,
-			reject: []sdk.PackageManager{sdk.PackageManagerNPM, sdk.PackageManagerPNPM},
+			want:   model.PackageManagerYarn,
+			reject: []model.PackageManager{model.PackageManagerNPM, model.PackageManagerPNPM},
 		},
 	}
 
@@ -310,11 +312,11 @@ func TestDetectPackageManagers_FindsSyftManagers(t *testing.T) {
 		t.Fatalf("DetectPackageManagers() error = %v", err)
 	}
 
-	for _, want := range []sdk.PackageManager{
-		sdk.PackageManagerCargo,
-		sdk.PackageManagerTerraform,
-		sdk.PackageManagerComposer,
-		sdk.PackageManagerPDM,
+	for _, want := range []model.PackageManager{
+		model.PackageManagerCargo,
+		model.PackageManagerTerraform,
+		model.PackageManagerComposer,
+		model.PackageManagerPDM,
 	} {
 		if !containsManager(managers, want) {
 			t.Fatalf("expected package manager %q in %#v", want, managers)
@@ -966,7 +968,7 @@ func containsOption(values []string, target string) bool {
 	return slices.Contains(values, target)
 }
 
-func containsManager(values []sdk.PackageManager, target sdk.PackageManager) bool {
+func containsManager(values []model.PackageManager, target model.PackageManager) bool {
 	return slices.Contains(values, target)
 }
 

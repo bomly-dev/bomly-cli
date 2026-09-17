@@ -8,18 +8,20 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	sdkmodel "github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
-func NewScan(project output.ProjectDescriptor, consolidated sdk.ConsolidatedGraph, graphValue *sdk.Graph, findings []sdk.Finding) *ScanModel {
+func NewScan(project output.ProjectDescriptor, consolidated plugin.ConsolidatedGraph, graphValue *sdkmodel.Graph, findings []sdkmodel.Finding) *ScanModel {
 	return NewScanNavigator("Bomly Interactive Scan", project, consolidated, graphValue, findings)
 }
 
-func NewScanNavigator(titlePrefix string, project output.ProjectDescriptor, consolidated sdk.ConsolidatedGraph, graphValue *sdk.Graph, findings []sdk.Finding) *ScanModel {
+func NewScanNavigator(titlePrefix string, project output.ProjectDescriptor, consolidated plugin.ConsolidatedGraph, graphValue *sdkmodel.Graph, findings []sdkmodel.Finding) *ScanModel {
 	return newScanNavigator(titlePrefix, project, consolidated, graphValue, findings, "")
 }
 
-func NewExplain(project output.ProjectDescriptor, query string, consolidated sdk.ConsolidatedGraph, graphValue *sdk.Graph, findings []sdk.Finding) *ScanModel {
+func NewExplain(project output.ProjectDescriptor, query string, consolidated plugin.ConsolidatedGraph, graphValue *sdkmodel.Graph, findings []sdkmodel.Finding) *ScanModel {
 	return newScanNavigator("Bomly Interactive Explain", project, consolidated, graphValue, findings, query)
 }
 
@@ -27,7 +29,7 @@ func NewExplain(project output.ProjectDescriptor, query string, consolidated sdk
 // resolve vulnerabilities, licenses, and scorecards by reference. Must be
 // called before the model is rendered for the first time when matching-
 // stage data should be visible. Safe to pass nil.
-func (m *ScanModel) WithRegistry(registry *sdk.PackageRegistry) *ScanModel {
+func (m *ScanModel) WithRegistry(registry *sdkmodel.PackageRegistry) *ScanModel {
 	if m == nil {
 		return nil
 	}
@@ -65,7 +67,7 @@ func (m *ScanModel) WithReachabilityEnabled(enabled bool) *ScanModel {
 	return m
 }
 
-func newScanNavigator(titlePrefix string, project output.ProjectDescriptor, consolidated sdk.ConsolidatedGraph, graphValue *sdk.Graph, findings []sdk.Finding, explainQuery string) *ScanModel {
+func newScanNavigator(titlePrefix string, project output.ProjectDescriptor, consolidated plugin.ConsolidatedGraph, graphValue *sdkmodel.Graph, findings []sdkmodel.Finding, explainQuery string) *ScanModel {
 	manifests := manifestRows(consolidated)
 	manifestByID := make(map[string]listPackageRow, len(manifests))
 	for _, manifest := range manifests {
@@ -335,7 +337,7 @@ func (m *ScanModel) CycleReachabilityFilter() {
 	default:
 		return
 	}
-	m.reachabilityFilter = nextFilterValue(m.reachabilityFilter, []string{"", string(sdk.ReachabilityReachable), string(sdk.ReachabilityUnreachable)})
+	m.reachabilityFilter = nextFilterValue(m.reachabilityFilter, []string{"", string(sdkmodel.ReachabilityReachable), string(sdkmodel.ReachabilityUnreachable)})
 	m.rebuildListPreserveSelection()
 }
 
@@ -1040,7 +1042,7 @@ func (m *ScanModel) projectContentsLines() []string {
 	return lines
 }
 
-func packageCount(graphValue *sdk.Graph) int {
+func packageCount(graphValue *sdkmodel.Graph) int {
 	if graphValue == nil {
 		return 0
 	}
@@ -1049,7 +1051,7 @@ func packageCount(graphValue *sdk.Graph) int {
 
 // mergedComponentCount counts the components below a merged node, excluding
 // the absorbed root itself.
-func mergedComponentCount(graphValue *sdk.Graph, rootID string) int {
+func mergedComponentCount(graphValue *sdkmodel.Graph, rootID string) int {
 	count := manifestComponentCount(graphValue, rootID)
 	if count > 0 {
 		count--
@@ -1057,7 +1059,7 @@ func mergedComponentCount(graphValue *sdk.Graph, rootID string) int {
 	return count
 }
 
-func manifestComponentCount(graphValue *sdk.Graph, rootID string) int {
+func manifestComponentCount(graphValue *sdkmodel.Graph, rootID string) int {
 	if graphValue == nil || rootID == "" {
 		return 0
 	}
@@ -1141,7 +1143,7 @@ func (m *ScanModel) filterComponentRows(rows []listPackageRow, maxSevByID map[st
 	return kept
 }
 
-func packageMatchesReachabilityFilter(vulns []sdk.Vulnerability, filter string) bool {
+func packageMatchesReachabilityFilter(vulns []sdkmodel.Vulnerability, filter string) bool {
 	if filter == "" {
 		return true
 	}
@@ -1152,7 +1154,7 @@ func packageMatchesReachabilityFilter(vulns []sdk.Vulnerability, filter string) 
 			continue
 		}
 		status := string(v.Reachability.Status)
-		if status == string(sdk.ReachabilityReachable) {
+		if status == string(sdkmodel.ReachabilityReachable) {
 			hasReachable = true
 		}
 		if status == filter {
@@ -1160,9 +1162,9 @@ func packageMatchesReachabilityFilter(vulns []sdk.Vulnerability, filter string) 
 		}
 	}
 	switch filter {
-	case string(sdk.ReachabilityReachable):
+	case string(sdkmodel.ReachabilityReachable):
 		return hasReachable
-	case string(sdk.ReachabilityUnreachable):
+	case string(sdkmodel.ReachabilityUnreachable):
 		// Mixed packages (with at least one reachable vuln) are excluded from
 		// the unreachable filter so users can drill into truly-unreachable
 		// dependencies without noise.
@@ -1185,7 +1187,7 @@ func packageMatchesSeverityFilter(maxSeverity, filter string) bool {
 	}
 }
 
-func vulnerabilityMatchesSeverityFilter(vulnerability sdk.Vulnerability, filter string) bool {
+func vulnerabilityMatchesSeverityFilter(vulnerability sdkmodel.Vulnerability, filter string) bool {
 	switch strings.ToLower(strings.TrimSpace(filter)) {
 	case "", "any":
 		return true
@@ -1196,21 +1198,21 @@ func vulnerabilityMatchesSeverityFilter(vulnerability sdk.Vulnerability, filter 
 	}
 }
 
-func vulnerabilityReachabilityBadge(vulnerability sdk.Vulnerability) (badge, bool) {
+func vulnerabilityReachabilityBadge(vulnerability sdkmodel.Vulnerability) (badge, bool) {
 	if vulnerability.Reachability == nil {
 		return badge{}, false
 	}
 	switch vulnerability.Reachability.Status {
-	case sdk.ReachabilityReachable:
-		return badge{label: string(sdk.ReachabilityReachable), kind: "reachability-reachable"}, true
-	case sdk.ReachabilityUnreachable:
-		return badge{label: string(sdk.ReachabilityUnreachable), kind: "reachability-unreachable"}, true
+	case sdkmodel.ReachabilityReachable:
+		return badge{label: string(sdkmodel.ReachabilityReachable), kind: "reachability-reachable"}, true
+	case sdkmodel.ReachabilityUnreachable:
+		return badge{label: string(sdkmodel.ReachabilityUnreachable), kind: "reachability-unreachable"}, true
 	default:
 		return badge{}, false
 	}
 }
 
-func componentCountRows(graphValue *sdk.Graph, rootID string) []listPackageRow {
+func componentCountRows(graphValue *sdkmodel.Graph, rootID string) []listPackageRow {
 	if graphValue == nil || strings.TrimSpace(rootID) == "" {
 		return nil
 	}
@@ -1233,7 +1235,7 @@ func componentCountRows(graphValue *sdk.Graph, rootID string) []listPackageRow {
 	return rows
 }
 
-func manifestEcosystem(graphValue *sdk.Graph, row listPackageRow) string {
+func manifestEcosystem(graphValue *sdkmodel.Graph, row listPackageRow) string {
 	if graphValue == nil {
 		return "unknown"
 	}
@@ -1516,7 +1518,7 @@ func sortedVulnerabilityGroupKeys(groups map[string][]packageVulnerabilityRow) [
 	return keys
 }
 
-func sortedFindingGroupKeys(groups map[string][]sdk.Finding) []string {
+func sortedFindingGroupKeys(groups map[string][]sdkmodel.Finding) []string {
 	keys := make([]string, 0, len(groups))
 	for key := range groups {
 		keys = append(keys, key)
@@ -2023,9 +2025,9 @@ func (m *ScanModel) postureStateLine(group string, total int) string {
 		render.Style(" | Source: ", render.Dim) + render.Style("api.scorecard.dev", render.BgYellow, render.Bold)
 }
 
-func (m *ScanModel) findingItems(findings []sdk.Finding) []listItem {
+func (m *ScanModel) findingItems(findings []sdkmodel.Finding) []listItem {
 	group := valueOrDefault(m.findingGroup, "type")
-	grouped := make(map[string][]sdk.Finding)
+	grouped := make(map[string][]sdkmodel.Finding)
 	for _, finding := range findings {
 		grouped[m.findingGroupKey(finding, group)] = append(grouped[m.findingGroupKey(finding, group)], finding)
 	}
@@ -2060,7 +2062,7 @@ func (m *ScanModel) findingItems(findings []sdk.Finding) []listItem {
 	return items
 }
 
-func (m *ScanModel) findingGroupKey(finding sdk.Finding, group string) string {
+func (m *ScanModel) findingGroupKey(finding sdkmodel.Finding, group string) string {
 	switch group {
 	case "severity":
 		return titleCase(valueOrDefault(string(finding.Severity), "n/a"))
@@ -2078,14 +2080,14 @@ func (m *ScanModel) findingGroupKey(finding sdk.Finding, group string) string {
 	}
 }
 
-func (m *ScanModel) findingPackageName(finding sdk.Finding) string {
+func (m *ScanModel) findingPackageName(finding sdkmodel.Finding) string {
 	if m == nil {
 		return finding.PackageRef
 	}
 	return output.IdentifyPackageRef(m.registry, finding.PackageRef).DisplayLabel()
 }
 
-func findingGroupDetails(key, group string, findings []sdk.Finding) []string {
+func findingGroupDetails(key, group string, findings []sdkmodel.Finding) []string {
 	return []string{
 		render.Style("Finding Group", render.Bold, render.Cyan),
 		"",
@@ -2095,7 +2097,7 @@ func findingGroupDetails(key, group string, findings []sdk.Finding) []string {
 	}
 }
 
-func (m *ScanModel) findingDetails(finding sdk.Finding) []string {
+func (m *ScanModel) findingDetails(finding sdkmodel.Finding) []string {
 	pkgDisplay := m.findingPackageName(finding)
 	details := []string{
 		render.Style("Finding", render.Bold, render.Cyan),
@@ -2140,7 +2142,7 @@ func (m *ScanModel) findingDetails(finding sdk.Finding) []string {
 	return append(details, indentLines(finding.Reasons)...)
 }
 
-func findingSummaryLines(findings []sdk.Finding) []string {
+func findingSummaryLines(findings []sdkmodel.Finding) []string {
 	counts := make(map[string]int)
 	for _, finding := range findings {
 		counts[string(finding.Kind)]++
@@ -2237,7 +2239,7 @@ func (m *ScanModel) sourceSectionChildren(section, prefix string) []listItem {
 		}
 		return out
 	case "packages":
-		var pkgs []sdk.GraphNode
+		var pkgs []sdkmodel.GraphNode
 		if m.graphValue != nil {
 			pkgs = append(pkgs, toGraphNodes(m.graphValue.DependencyNodes())...)
 			sort.Slice(pkgs, func(i, j int) bool { return packageSortKey(pkgs[i]) < packageSortKey(pkgs[j]) })
@@ -2269,7 +2271,7 @@ func (m *ScanModel) sourceSectionChildren(section, prefix string) []listItem {
 	}
 }
 
-func packageRawLines(pkg *sdk.DependencyNode, registry *sdk.PackageRegistry) []string {
+func packageRawLines(pkg *sdkmodel.DependencyNode, registry *sdkmodel.PackageRegistry) []string {
 	if pkg == nil {
 		return nil
 	}
@@ -2300,7 +2302,7 @@ func packageRawLines(pkg *sdk.DependencyNode, registry *sdk.PackageRegistry) []s
 	return lines
 }
 
-func relationshipRawLines(graphValue *sdk.Graph) []string {
+func relationshipRawLines(graphValue *sdkmodel.Graph) []string {
 	if graphValue == nil {
 		return nil
 	}
@@ -2313,7 +2315,7 @@ func relationshipRawLines(graphValue *sdk.Graph) []string {
 	sort.Slice(pkgs, func(i, j int) bool { return packageSortKey(pkgs[i]) < packageSortKey(pkgs[j]) })
 	lines := make([]string, 0)
 	for _, pkg := range pkgs {
-		if sdk.IsNilNode(pkg) {
+		if sdkmodel.IsNilNode(pkg) {
 			continue
 		}
 		deps, err := graphValue.DirectDependencies(pkg.NodeID())
@@ -2369,7 +2371,7 @@ type licensePackageRef struct {
 	scope       string
 }
 
-func licenseRows(graphValue *sdk.Graph, registry *sdk.PackageRegistry) []licenseRow {
+func licenseRows(graphValue *sdkmodel.Graph, registry *sdkmodel.PackageRegistry) []licenseRow {
 	if graphValue == nil {
 		return nil
 	}
@@ -2581,7 +2583,7 @@ func (m *ScanModel) buildExplainComponentListModel(manifest listPackageRow) *lis
 		// module from the explanation -- the node that answers "which of my
 		// modules pulled this in", which is what explain is for.
 		for _, pkg := range m.graphValue.Nodes() {
-			if sdk.IsNilNode(pkg) {
+			if sdkmodel.IsNilNode(pkg) {
 				continue
 			}
 			row := packageRowFromGraph(pkg, labels[pkg.NodeID()])
@@ -2629,7 +2631,7 @@ func (m *ScanModel) buildExplainComponentListModel(manifest listPackageRow) *lis
 	}
 }
 
-func manifestRows(consolidated sdk.ConsolidatedGraph) []listPackageRow {
+func manifestRows(consolidated plugin.ConsolidatedGraph) []listPackageRow {
 	if len(consolidated.Manifests) == 0 {
 		return nil
 	}
@@ -2687,7 +2689,7 @@ func manifestRows(consolidated sdk.ConsolidatedGraph) []listPackageRow {
 	return rows
 }
 
-func manifestDetails(graphValue *sdk.Graph, row listPackageRow) []string {
+func manifestDetails(graphValue *sdkmodel.Graph, row listPackageRow) []string {
 	groups := rootDependencies(graphValue, row.rootID)
 	rootPkg, _ := graphValue.Node(row.rootID)
 	lines := []string{
@@ -2717,7 +2719,7 @@ func manifestDetails(graphValue *sdk.Graph, row listPackageRow) []string {
 	return lines
 }
 
-func packageManagersLabel(managers []sdk.PackageManager) string {
+func packageManagersLabel(managers []sdkmodel.PackageManager) string {
 	if len(managers) == 0 {
 		return ""
 	}
@@ -2728,7 +2730,7 @@ func packageManagersLabel(managers []sdk.PackageManager) string {
 	return strings.Join(labels, ", ")
 }
 
-func manifestTargetID(graphValue *sdk.Graph) string {
+func manifestTargetID(graphValue *sdkmodel.Graph) string {
 	if graphValue == nil {
 		return ""
 	}
@@ -2753,20 +2755,20 @@ func manifestTargetID(graphValue *sdk.Graph) string {
 // The TUI shows the project's own modules alongside its dependencies, and
 // under ADR-0041 those are different types -- so the rendering asks for the
 // fields rather than for a dependency.
-func nodeDisplay(node sdk.GraphNode) (name, version, scope, ecosystem string) {
+func nodeDisplay(node sdkmodel.GraphNode) (name, version, scope, ecosystem string) {
 	switch typed := node.(type) {
-	case *sdk.DependencyNode:
+	case *sdkmodel.DependencyNode:
 		return typed.DisplayName(), typed.Version, string(typed.PrimaryScope()), string(typed.Ecosystem)
-	case *sdk.ModuleNode:
+	case *sdkmodel.ModuleNode:
 		return typed.DisplayName(), typed.Version, "", string(typed.Ecosystem)
-	case *sdk.ManifestNode:
+	case *sdkmodel.ManifestNode:
 		return typed.Path, "", "", ""
 	default:
 		return "", "", "", ""
 	}
 }
 
-func packageRowFromGraph(pkg sdk.GraphNode, relationship string) listPackageRow {
+func packageRowFromGraph(pkg sdkmodel.GraphNode, relationship string) listPackageRow {
 	if pkg == nil {
 		return listPackageRow{relationship: relationship}
 	}
@@ -2813,8 +2815,8 @@ func (m *ScanModel) componentTreeRowsFrom(rootID string, includeRoot bool) []lis
 	}
 	rows := make([]listPackageRow, 0)
 	renderedSubtrees := make(map[string]struct{})
-	var walk func(pkg sdk.GraphNode, depth int, ancestors []bool, last bool, visited map[string]struct{})
-	walk = func(pkg sdk.GraphNode, depth int, ancestors []bool, last bool, visited map[string]struct{}) {
+	var walk func(pkg sdkmodel.GraphNode, depth int, ancestors []bool, last bool, visited map[string]struct{})
+	walk = func(pkg sdkmodel.GraphNode, depth int, ancestors []bool, last bool, visited map[string]struct{}) {
 		if pkg == nil {
 			return
 		}
@@ -2861,7 +2863,7 @@ func (m *ScanModel) componentTreeRowsFrom(rootID string, includeRoot bool) []lis
 			nextVisited[key] = struct{}{}
 		}
 		nextVisited[pkg.NodeID()] = struct{}{}
-		children := make([]sdk.GraphNode, 0, len(deps))
+		children := make([]sdkmodel.GraphNode, 0, len(deps))
 		for _, dep := range deps {
 			if dep == nil {
 				continue
@@ -2903,7 +2905,7 @@ func treePrefix(ancestors []bool, last bool, depth int) string {
 	return b.String()
 }
 
-func packageDisplayName(pkg sdk.GraphNode) string {
+func packageDisplayName(pkg sdkmodel.GraphNode) string {
 	if pkg == nil {
 		return "-"
 	}
@@ -2924,7 +2926,7 @@ func componentBaseName(value string) string {
 	return value
 }
 
-func componentDetails(graphValue *sdk.Graph, registry *sdk.PackageRegistry, row listPackageRow, manifest listPackageRow) []string {
+func componentDetails(graphValue *sdkmodel.Graph, registry *sdkmodel.PackageRegistry, row listPackageRow, manifest listPackageRow) []string {
 	lines := []string{
 		render.Style("Component", render.Bold, render.Cyan),
 		"",
@@ -2938,7 +2940,7 @@ func componentDetails(graphValue *sdk.Graph, registry *sdk.PackageRegistry, row 
 	}
 	lines = append(lines, "")
 
-	appendPackages := func(title string, packages []sdk.GraphNode) {
+	appendPackages := func(title string, packages []sdkmodel.GraphNode) {
 		lines = append(lines, render.Style(fmt.Sprintf("%s (%d)", title, len(packages)), render.Bold, render.Magenta), "")
 		if len(packages) == 0 {
 			lines = append(lines, render.Style("  (none)", render.Dim))
@@ -2967,7 +2969,7 @@ func componentDetails(graphValue *sdk.Graph, registry *sdk.PackageRegistry, row 
 	}
 
 	// Vulnerabilities section
-	var pkg sdk.GraphNode
+	var pkg sdkmodel.GraphNode
 	if graphValue != nil {
 		pkg, _ = graphValue.Node(row.id)
 	}
@@ -3035,11 +3037,11 @@ type scanOverviewStats struct {
 }
 
 type packageVulnerabilityRow struct {
-	pkg           *sdk.DependencyNode
-	vulnerability sdk.Vulnerability
+	pkg           *sdkmodel.DependencyNode
+	vulnerability sdkmodel.Vulnerability
 }
 
-func packageVulnerabilityRows(graphValue *sdk.Graph, registry *sdk.PackageRegistry) []packageVulnerabilityRow {
+func packageVulnerabilityRows(graphValue *sdkmodel.Graph, registry *sdkmodel.PackageRegistry) []packageVulnerabilityRow {
 	if graphValue == nil {
 		return nil
 	}
@@ -3055,7 +3057,7 @@ func packageVulnerabilityRows(graphValue *sdk.Graph, registry *sdk.PackageRegist
 	return rows
 }
 
-func scanStats(graphValue *sdk.Graph, registry *sdk.PackageRegistry) scanOverviewStats {
+func scanStats(graphValue *sdkmodel.Graph, registry *sdkmodel.PackageRegistry) scanOverviewStats {
 	stats := scanOverviewStats{ecosystems: make(map[string]int)}
 	licenseSet := make(map[string]struct{})
 	if graphValue != nil {
@@ -3100,7 +3102,7 @@ func severityDistribution(vulnerabilities []packageVulnerabilityRow) map[string]
 func reachableSeverityDistribution(vulnerabilities []packageVulnerabilityRow) map[string]int {
 	counts := map[string]int{"critical": 0, "high": 0, "medium": 0, "low": 0, "unknown": 0}
 	for _, row := range vulnerabilities {
-		if row.vulnerability.Reachability == nil || row.vulnerability.Reachability.Status != sdk.ReachabilityReachable {
+		if row.vulnerability.Reachability == nil || row.vulnerability.Reachability.Status != sdkmodel.ReachabilityReachable {
 			continue
 		}
 		severity := strings.ToLower(strings.TrimSpace(string(row.vulnerability.ParsedSeverity)))
@@ -3279,7 +3281,7 @@ func paletteColor(idx int) string {
 	return palette[idx%len(palette)]
 }
 
-func unknownLicenseCount(graphValue *sdk.Graph, registry *sdk.PackageRegistry) int {
+func unknownLicenseCount(graphValue *sdkmodel.Graph, registry *sdkmodel.PackageRegistry) int {
 	count := 0
 	for _, row := range licenseRows(graphValue, registry) {
 		if isUnknownLicense(row.license) {
@@ -3289,7 +3291,7 @@ func unknownLicenseCount(graphValue *sdk.Graph, registry *sdk.PackageRegistry) i
 	return count
 }
 
-func unrecognizedLicenseCount(graphValue *sdk.Graph, registry *sdk.PackageRegistry) int {
+func unrecognizedLicenseCount(graphValue *sdkmodel.Graph, registry *sdkmodel.PackageRegistry) int {
 	count := 0
 	for _, row := range licenseRows(graphValue, registry) {
 		if !isUnknownLicense(row.license) && !looksLikeSPDXLicense(row.license) {
@@ -3315,7 +3317,7 @@ func looksLikeSPDXLicense(value string) bool {
 	return strings.Contains(value, "-") || strings.EqualFold(value, "MIT") || strings.EqualFold(value, "ISC") || strings.EqualFold(value, "BSD")
 }
 
-func groupedLicenseCounts(graphValue *sdk.Graph, registry *sdk.PackageRegistry, limit int) map[string]int {
+func groupedLicenseCounts(graphValue *sdkmodel.Graph, registry *sdkmodel.PackageRegistry, limit int) map[string]int {
 	counts := make(map[string]int)
 	for _, row := range licenseRows(graphValue, registry) {
 		counts[row.license] = len(row.packages)
@@ -3345,7 +3347,7 @@ type componentStat struct {
 	displayPctMax int
 }
 
-func topVulnerableComponentStats(graphValue *sdk.Graph, registry *sdk.PackageRegistry, limit int) []componentStat {
+func topVulnerableComponentStats(graphValue *sdkmodel.Graph, registry *sdkmodel.PackageRegistry, limit int) []componentStat {
 	counts, severities := packageVulnerabilityStats(graphValue, registry)
 	stats := make([]componentStat, 0, len(counts))
 	for name, count := range counts {
@@ -3366,7 +3368,7 @@ func topVulnerableComponentStats(graphValue *sdk.Graph, registry *sdk.PackageReg
 	return stats
 }
 
-func topDependedOnComponentStats(graphValue *sdk.Graph, registry *sdk.PackageRegistry, limit int) []componentStat {
+func topDependedOnComponentStats(graphValue *sdkmodel.Graph, registry *sdkmodel.PackageRegistry, limit int) []componentStat {
 	vulnCounts, _ := packageVulnerabilityStats(graphValue, registry)
 	stats := make([]componentStat, 0)
 	if graphValue != nil {
@@ -3394,7 +3396,7 @@ func topDependedOnComponentStats(graphValue *sdk.Graph, registry *sdk.PackageReg
 	return stats
 }
 
-func packageVulnerabilityStats(graphValue *sdk.Graph, registry *sdk.PackageRegistry) (map[string]int, map[string]string) {
+func packageVulnerabilityStats(graphValue *sdkmodel.Graph, registry *sdkmodel.PackageRegistry) (map[string]int, map[string]string) {
 	counts := make(map[string]int)
 	severities := make(map[string]string)
 	if graphValue != nil {
@@ -3429,7 +3431,7 @@ func topVulnerableTableLines(stats []componentStat, width int) []string {
 	return lines
 }
 
-func componentsByRelationshipLines(manifests []listPackageRow, graphValue *sdk.Graph, width int) []string {
+func componentsByRelationshipLines(manifests []listPackageRow, graphValue *sdkmodel.Graph, width int) []string {
 	if len(manifests) == 0 {
 		return []string{render.Style("(none)", render.Dim)}
 	}
@@ -3456,7 +3458,7 @@ func componentsByRelationshipLines(manifests []listPackageRow, graphValue *sdk.G
 	return lines
 }
 
-func componentsByScopeLines(manifests []listPackageRow, graphValue *sdk.Graph, width int) []string {
+func componentsByScopeLines(manifests []listPackageRow, graphValue *sdkmodel.Graph, width int) []string {
 	if len(manifests) == 0 {
 		return []string{render.Style("(none)", render.Dim)}
 	}
@@ -3492,12 +3494,12 @@ func displayManifestsWithRemainder(manifests []listPackageRow, limit int) ([]lis
 	return manifests[:limit], len(manifests) - limit
 }
 
-func vulnerableComponentTotal(graphValue *sdk.Graph, registry *sdk.PackageRegistry) int {
+func vulnerableComponentTotal(graphValue *sdkmodel.Graph, registry *sdkmodel.PackageRegistry) int {
 	counts, _ := packageVulnerabilityStats(graphValue, registry)
 	return len(counts)
 }
 
-func transitiveDependentCount(graphValue *sdk.Graph, packageID string) int {
+func transitiveDependentCount(graphValue *sdkmodel.Graph, packageID string) int {
 	if graphValue == nil || strings.TrimSpace(packageID) == "" {
 		return 0
 	}
@@ -3535,7 +3537,7 @@ func stackBoxes(boxes ...[]string) []string {
 	return out
 }
 
-func licenseDistributionDetails(graphValue *sdk.Graph, registry *sdk.PackageRegistry) []string {
+func licenseDistributionDetails(graphValue *sdkmodel.Graph, registry *sdkmodel.PackageRegistry) []string {
 	counts := make(map[string]int)
 	for _, row := range licenseRows(graphValue, registry) {
 		counts[row.license] = len(row.packages)
@@ -3543,15 +3545,15 @@ func licenseDistributionDetails(graphValue *sdk.Graph, registry *sdk.PackageRegi
 	return distributionDetails("License Distribution", counts)
 }
 
-func topVulnerableComponentDetails(graphValue *sdk.Graph, registry *sdk.PackageRegistry) []string {
+func topVulnerableComponentDetails(graphValue *sdkmodel.Graph, registry *sdkmodel.PackageRegistry) []string {
 	return distributionDetails("Top Vulnerable Components", topCounts(topVulnerableCounts(graphValue, registry), 10))
 }
 
-func topDependedOnDetails(graphValue *sdk.Graph) []string {
+func topDependedOnDetails(graphValue *sdkmodel.Graph) []string {
 	return distributionDetails("Top Depended-On Components", topCounts(topDependedOnCounts(graphValue), 10))
 }
 
-func topVulnerableCounts(graphValue *sdk.Graph, registry *sdk.PackageRegistry) map[string]int {
+func topVulnerableCounts(graphValue *sdkmodel.Graph, registry *sdkmodel.PackageRegistry) map[string]int {
 	counts := make(map[string]int)
 	if graphValue == nil {
 		return counts
@@ -3566,7 +3568,7 @@ func topVulnerableCounts(graphValue *sdk.Graph, registry *sdk.PackageRegistry) m
 	return counts
 }
 
-func topDependedOnCounts(graphValue *sdk.Graph) map[string]int {
+func topDependedOnCounts(graphValue *sdkmodel.Graph) map[string]int {
 	counts := make(map[string]int)
 	if graphValue == nil {
 		return counts
@@ -3643,17 +3645,17 @@ func sourceKey(title string) string {
 	return strings.TrimSpace(title[start+1 : end])
 }
 
-func graphSize(graphValue *sdk.Graph) int {
+func graphSize(graphValue *sdkmodel.Graph) int {
 	if graphValue == nil {
 		return 0
 	}
 	return graphValue.Size()
 }
 
-func relationshipCount(graphValue *sdk.Graph) int {
+func relationshipCount(graphValue *sdkmodel.Graph) int {
 	count := 0
 	if graphValue != nil {
-		graphValue.WalkEdges(func(_, _ sdk.GraphNode) bool {
+		graphValue.WalkEdges(func(_, _ sdkmodel.GraphNode) bool {
 			count++
 			return true
 		})
@@ -3685,7 +3687,7 @@ func targetKindLabel(project output.ProjectDescriptor) string {
 	}
 }
 
-func rootDependencies(graphValue *sdk.Graph, rootID string) rootDependencyGroup {
+func rootDependencies(graphValue *sdkmodel.Graph, rootID string) rootDependencyGroup {
 	if graphValue == nil || strings.TrimSpace(rootID) == "" {
 		return rootDependencyGroup{}
 	}
@@ -3695,12 +3697,12 @@ func rootDependencies(graphValue *sdk.Graph, rootID string) rootDependencyGroup 
 		return rootDependencyGroup{}
 	}
 
-	directByID := make(map[string]sdk.GraphNode, len(direct))
+	directByID := make(map[string]sdkmodel.GraphNode, len(direct))
 	for _, pkg := range direct {
 		directByID[pkg.NodeID()] = pkg
 	}
 
-	transitiveByID := make(map[string]sdk.GraphNode)
+	transitiveByID := make(map[string]sdkmodel.GraphNode)
 	visited := make(map[string]struct{}, len(direct)+1)
 	queue := make([]string, 0, len(direct))
 	visited[rootID] = struct{}{}
@@ -3733,7 +3735,7 @@ func rootDependencies(graphValue *sdk.Graph, rootID string) rootDependencyGroup 
 		}
 	}
 
-	transitive := make([]sdk.GraphNode, 0, len(transitiveByID))
+	transitive := make([]sdkmodel.GraphNode, 0, len(transitiveByID))
 	for _, pkg := range transitiveByID {
 		transitive = append(transitive, pkg)
 	}
@@ -3747,7 +3749,7 @@ func rootDependencies(graphValue *sdk.Graph, rootID string) rootDependencyGroup 
 	return rootDependencyGroup{direct: direct, transitive: transitive}
 }
 
-func packageSortKey(pkg sdk.GraphNode) string {
+func packageSortKey(pkg sdkmodel.GraphNode) string {
 	if pkg == nil {
 		return ""
 	}
@@ -3756,8 +3758,8 @@ func packageSortKey(pkg sdk.GraphNode) string {
 }
 
 // toGraphNodes widens typed dependency nodes to the union.
-func toGraphNodes(deps []*sdk.DependencyNode) []sdk.GraphNode {
-	out := make([]sdk.GraphNode, 0, len(deps))
+func toGraphNodes(deps []*sdkmodel.DependencyNode) []sdkmodel.GraphNode {
+	out := make([]sdkmodel.GraphNode, 0, len(deps))
 	for _, dep := range deps {
 		out = append(out, dep)
 	}
@@ -3766,7 +3768,7 @@ func toGraphNodes(deps []*sdk.DependencyNode) []sdk.GraphNode {
 
 // mustDependency narrows a node for the views that only render packages.
 // A structural node yields nil, which those views already handle.
-func mustDependency(node sdk.GraphNode) *sdk.DependencyNode {
-	dep, _ := node.(*sdk.DependencyNode)
+func mustDependency(node sdkmodel.GraphNode) *sdkmodel.DependencyNode {
+	dep, _ := node.(*sdkmodel.DependencyNode)
 	return dep
 }

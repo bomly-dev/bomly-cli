@@ -38,8 +38,11 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/sbt"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/swiftpm"
 	syft "github.com/bomly-dev/bomly-plugin-syft-detector/plugin"
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/httpkit"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // Configs holds built-in registry wiring options resolved by the CLI layer.
@@ -47,7 +50,7 @@ type Configs struct {
 	// FailOn is the parsed list of --fail-on constraints. Vulnerability
 	// constraints form an AND-set; other auditors may consume independent
 	// finding-family constraints.
-	FailOn                []sdk.FailOnConstraint
+	FailOn                []model.FailOnConstraint
 	AllowVulnerabilityIDs []string
 	AllowLicenses         []string
 	DenyLicenses          []string
@@ -73,7 +76,7 @@ type Configs struct {
 	HTTPProxyUsername     string
 	HTTPProxyPassword     string
 	HTTPCACertFile        string
-	HTTPClientProvider    *sdk.HTTPClientProvider
+	HTTPClientProvider    *httpkit.ClientProvider
 	// PluginConfigs carries kind-scoped per-component configuration blocks so
 	// embedded components can decode the same block managed plugins receive.
 	PluginConfigs config.PluginConfigs
@@ -84,28 +87,28 @@ type Configs struct {
 
 // Filter narrows a registry down to the runtime-relevant selections.
 type Filter struct {
-	DetectorFilter  sdk.DetectorFilter
-	AuditorFilter   sdk.AuditorFilter
-	MatcherFilter   sdk.MatcherFilter
-	AnalyzerFilter  sdk.AnalyzerFilter
-	EcosystemFilter sdk.EcosystemFilter
+	DetectorFilter  plugin.DetectorFilter
+	AuditorFilter   plugin.AuditorFilter
+	MatcherFilter   plugin.MatcherFilter
+	AnalyzerFilter  plugin.AnalyzerFilter
+	EcosystemFilter model.EcosystemFilter
 }
 
 // DetectorDiscoveryPlan describes how one detector participates in runtime planning.
 type DetectorDiscoveryPlan struct {
-	SupportedEcosystems []sdk.Ecosystem
-	SupportedManagers   []sdk.PackageManager
+	SupportedEcosystems []model.Ecosystem
+	SupportedManagers   []model.PackageManager
 	EvidencePatterns    []string
-	TargetKinds         []sdk.ExecutionTargetKind
+	TargetKinds         []plugin.ExecutionTargetKind
 }
 
 // Clone returns a deep copy of the discovery plan.
 func (p DetectorDiscoveryPlan) Clone() DetectorDiscoveryPlan {
 	return DetectorDiscoveryPlan{
-		SupportedEcosystems: append([]sdk.Ecosystem(nil), p.SupportedEcosystems...),
-		SupportedManagers:   append([]sdk.PackageManager(nil), p.SupportedManagers...),
+		SupportedEcosystems: append([]model.Ecosystem(nil), p.SupportedEcosystems...),
+		SupportedManagers:   append([]model.PackageManager(nil), p.SupportedManagers...),
 		EvidencePatterns:    append([]string(nil), p.EvidencePatterns...),
-		TargetKinds:         append([]sdk.ExecutionTargetKind(nil), p.TargetKinds...),
+		TargetKinds:         append([]plugin.ExecutionTargetKind(nil), p.TargetKinds...),
 	}
 }
 
@@ -113,29 +116,29 @@ func (p DetectorDiscoveryPlan) Clone() DetectorDiscoveryPlan {
 type Registry struct {
 	logger           *zap.Logger
 	configs          Configs
-	detectors        []sdk.Detector
-	auditors         []sdk.Auditor
-	matchers         []sdk.Matcher
-	analyzers        []sdk.Analyzer
+	detectors        []plugin.Detector
+	auditors         []plugin.Auditor
+	matchers         []plugin.Matcher
+	analyzers        []plugin.Analyzer
 	discoveryPlans   map[string]DetectorDiscoveryPlan
 	defaultEnabled   map[string]bool
-	componentOrigins map[string]sdk.DetectorOrigin
-	httpProvider     *sdk.HTTPClientProvider
+	componentOrigins map[string]plugin.DetectorOrigin
+	httpProvider     *httpkit.ClientProvider
 }
 
 // ComponentOptions records Bomly-owned registry behavior that plugin authors
 // should not declare in public descriptors.
 type ComponentOptions struct {
 	DefaultEnabled bool
-	Origin         sdk.DetectorOrigin
+	Origin         plugin.DetectorOrigin
 }
 
 type detectorWithDescriptor struct {
-	sdk.Detector
-	descriptor sdk.DetectorDescriptor
+	plugin.Detector
+	descriptor plugin.DetectorDescriptor
 }
 
-func (d detectorWithDescriptor) Descriptor() sdk.DetectorDescriptor {
+func (d detectorWithDescriptor) Descriptor() plugin.DetectorDescriptor {
 	return d.descriptor.Clone()
 }
 
@@ -143,7 +146,7 @@ type remediationDetectorWithDescriptor struct {
 	detectorWithDescriptor
 }
 
-func (d remediationDetectorWithDescriptor) RemediationHints(ctx context.Context, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
+func (d remediationDetectorWithDescriptor) RemediationHints(ctx context.Context, req plugin.RemediationHintRequest) (plugin.RemediationHintResponse, error) {
 	return forwardRemediationHints(ctx, d.Detector, req)
 }
 
@@ -151,26 +154,26 @@ type installFirstDetectorWithDescriptor struct {
 	detectorWithDescriptor
 }
 
-func (d installFirstDetectorWithDescriptor) Install(ctx context.Context, req sdk.DetectionRequest) error {
-	return d.Detector.(sdk.InstallFirstDetector).Install(ctx, req)
+func (d installFirstDetectorWithDescriptor) Install(ctx context.Context, req plugin.DetectionRequest) error {
+	return d.Detector.(plugin.InstallFirstDetector).Install(ctx, req)
 }
 
 type installFirstRemediationDetectorWithDescriptor struct {
 	detectorWithDescriptor
 }
 
-func (d installFirstRemediationDetectorWithDescriptor) Install(ctx context.Context, req sdk.DetectionRequest) error {
-	return d.Detector.(sdk.InstallFirstDetector).Install(ctx, req)
+func (d installFirstRemediationDetectorWithDescriptor) Install(ctx context.Context, req plugin.DetectionRequest) error {
+	return d.Detector.(plugin.InstallFirstDetector).Install(ctx, req)
 }
 
-func (d installFirstRemediationDetectorWithDescriptor) RemediationHints(ctx context.Context, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
+func (d installFirstRemediationDetectorWithDescriptor) RemediationHints(ctx context.Context, req plugin.RemediationHintRequest) (plugin.RemediationHintResponse, error) {
 	return forwardRemediationHints(ctx, d.Detector, req)
 }
 
-func forwardRemediationHints(ctx context.Context, detector sdk.Detector, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
-	provider, ok := detector.(sdk.DetectorRemediationProvider)
+func forwardRemediationHints(ctx context.Context, detector plugin.Detector, req plugin.RemediationHintRequest) (plugin.RemediationHintResponse, error) {
+	provider, ok := detector.(plugin.DetectorRemediationProvider)
 	if !ok {
-		return sdk.RemediationHintResponse{}, fmt.Errorf(
+		return plugin.RemediationHintResponse{}, fmt.Errorf(
 			"detector %q does not implement remediation hints",
 			detector.Descriptor().Name,
 		)
@@ -179,20 +182,20 @@ func forwardRemediationHints(ctx context.Context, detector sdk.Detector, req sdk
 }
 
 type auditorWithDescriptor struct {
-	sdk.Auditor
-	descriptor sdk.AuditorDescriptor
+	plugin.Auditor
+	descriptor plugin.AuditorDescriptor
 }
 
-func (a auditorWithDescriptor) Descriptor() sdk.AuditorDescriptor {
+func (a auditorWithDescriptor) Descriptor() plugin.AuditorDescriptor {
 	return a.descriptor
 }
 
 type analyzerWithDescriptor struct {
-	sdk.Analyzer
-	descriptor sdk.AnalyzerDescriptor
+	plugin.Analyzer
+	descriptor plugin.AnalyzerDescriptor
 }
 
-func (a analyzerWithDescriptor) Descriptor() sdk.AnalyzerDescriptor {
+func (a analyzerWithDescriptor) Descriptor() plugin.AnalyzerDescriptor {
 	return a.descriptor
 }
 
@@ -203,7 +206,7 @@ func NewRegistry(configs Configs, logger zap.Logger) *Registry {
 		configs:          configs,
 		discoveryPlans:   make(map[string]DetectorDiscoveryPlan),
 		defaultEnabled:   make(map[string]bool),
-		componentOrigins: make(map[string]sdk.DetectorOrigin),
+		componentOrigins: make(map[string]plugin.DetectorOrigin),
 		httpProvider:     configs.HTTPClientProvider,
 	}
 }
@@ -229,7 +232,7 @@ func (r *Registry) registerDetectors() {
 // non-fatal: the detector runs with defaults and the problem is logged.
 func nodeStrategyConfigFor(logger *zap.Logger, pluginConfigs config.PluginConfigs, name string) node.StrategyConfig {
 	var cfg node.StrategyConfig
-	block := pluginConfigs.ForComponent(string(sdk.PluginKindDetector), name)
+	block := pluginConfigs.ForComponent(string(plugin.PluginKindDetector), name)
 	if len(block) == 0 {
 		return cfg
 	}
@@ -248,29 +251,29 @@ func nodeStrategyConfigFor(logger *zap.Logger, pluginConfigs config.PluginConfig
 }
 
 // RegisterDetector adds a detector to the registry.
-func (r *Registry) RegisterDetector(detector sdk.Detector) {
+func (r *Registry) RegisterDetector(detector plugin.Detector) {
 	r.RegisterDetectorWithOptions(detector, ComponentOptions{DefaultEnabled: true, Origin: detectorOriginForRegistry(detector)})
 }
 
 // RegisterDetectorWithOptions adds a detector to the registry with internal behavior metadata.
-func (r *Registry) RegisterDetectorWithOptions(detector sdk.Detector, options ComponentOptions) {
+func (r *Registry) RegisterDetectorWithOptions(detector plugin.Detector, options ComponentOptions) {
 	if detector == nil {
 		return
 	}
 	descriptor := decorateDetectorDescriptor(detector.Descriptor())
 	r.detectors = append(r.detectors, detectorWithDecoratedDescriptor(detector, descriptor))
-	r.setDefaultEnabled(sdk.PluginKindDetector, descriptor.Name, options.DefaultEnabled)
-	r.setComponentOrigin(sdk.PluginKindDetector, descriptor.Name, options.Origin)
+	r.setDefaultEnabled(plugin.PluginKindDetector, descriptor.Name, options.DefaultEnabled)
+	r.setComponentOrigin(plugin.PluginKindDetector, descriptor.Name, options.Origin)
 }
 
 func (r *Registry) registerMatchers() {
-	r.registerCompositionEntries(sdk.PluginKindMatcher)
+	r.registerCompositionEntries(plugin.PluginKindMatcher)
 }
 
 // registerAnalyzers wires the built-in reachability analyzers from the build
 // composition.
 func (r *Registry) registerAnalyzers() {
-	r.registerCompositionEntries(sdk.PluginKindAnalyzer)
+	r.registerCompositionEntries(plugin.PluginKindAnalyzer)
 }
 
 // registerCompositionEntries registers every composition entry of one kind
@@ -278,7 +281,7 @@ func (r *Registry) registerAnalyzers() {
 // default-enabled flag and origin. Construction failures are non-fatal: the
 // component is skipped with a warning, matching the historical bespoke
 // wiring.
-func (r *Registry) registerCompositionEntries(kind sdk.PluginKind) {
+func (r *Registry) registerCompositionEntries(kind plugin.PluginKind) {
 	deps := composition.Deps{
 		Logger:             r.logger,
 		HTTPClientProvider: r.httpClientProvider(),
@@ -295,7 +298,7 @@ func (r *Registry) registerCompositionEntries(kind sdk.PluginKind) {
 		if entry.Kind != kind {
 			continue
 		}
-		origin, err := entry.Origin(sdk.ExecutionEmbedded)
+		origin, err := entry.Origin(plugin.ExecutionEmbedded)
 		if err != nil {
 			r.logger.Warn("composition entry rejected", zap.String("component", entry.Name), zap.Error(err))
 			continue
@@ -306,11 +309,11 @@ func (r *Registry) registerCompositionEntries(kind sdk.PluginKind) {
 	}
 }
 
-func (r *Registry) httpClientProvider() *sdk.HTTPClientProvider {
+func (r *Registry) httpClientProvider() *httpkit.ClientProvider {
 	if r.httpProvider != nil {
 		return r.httpProvider
 	}
-	provider, err := sdk.NewHTTPClientProvider(sdk.HTTPClientConfig{
+	provider, err := httpkit.NewClientProvider(httpkit.ClientConfig{
 		ProxyURL:      r.configs.HTTPProxy,
 		NoProxy:       r.configs.HTTPNoProxy,
 		ProxyType:     r.configs.HTTPProxyType,
@@ -322,41 +325,41 @@ func (r *Registry) httpClientProvider() *sdk.HTTPClientProvider {
 	})
 	if err != nil {
 		r.logger.Warn("http client proxy configuration invalid; using environment defaults", zap.Error(err))
-		provider, _ = sdk.NewHTTPClientProvider(sdk.HTTPClientConfig{})
+		provider, _ = httpkit.NewClientProvider(httpkit.ClientConfig{})
 	}
 	r.httpProvider = provider
 	return r.httpProvider
 }
 
 // RegisterMatcher adds a matcher to the registry.
-func (r *Registry) RegisterMatcher(matcher sdk.Matcher) {
+func (r *Registry) RegisterMatcher(matcher plugin.Matcher) {
 	r.RegisterMatcherWithOptions(matcher, ComponentOptions{DefaultEnabled: true})
 }
 
 // RegisterMatcherWithOptions adds a matcher to the registry with internal behavior metadata.
-func (r *Registry) RegisterMatcherWithOptions(matcher sdk.Matcher, options ComponentOptions) {
+func (r *Registry) RegisterMatcherWithOptions(matcher plugin.Matcher, options ComponentOptions) {
 	if matcher == nil {
 		return
 	}
 	r.matchers = append(r.matchers, matcher)
-	r.setDefaultEnabled(sdk.PluginKindMatcher, matcher.Descriptor().Name, options.DefaultEnabled)
-	r.setComponentOrigin(sdk.PluginKindMatcher, matcher.Descriptor().Name, options.Origin)
+	r.setDefaultEnabled(plugin.PluginKindMatcher, matcher.Descriptor().Name, options.DefaultEnabled)
+	r.setComponentOrigin(plugin.PluginKindMatcher, matcher.Descriptor().Name, options.Origin)
 }
 
 // RegisterAnalyzer adds an analyzer to the registry.
-func (r *Registry) RegisterAnalyzer(analyzer sdk.Analyzer) {
+func (r *Registry) RegisterAnalyzer(analyzer plugin.Analyzer) {
 	r.RegisterAnalyzerWithOptions(analyzer, ComponentOptions{DefaultEnabled: true})
 }
 
 // RegisterAnalyzerWithOptions adds an analyzer to the registry with internal behavior metadata.
-func (r *Registry) RegisterAnalyzerWithOptions(analyzer sdk.Analyzer, options ComponentOptions) {
+func (r *Registry) RegisterAnalyzerWithOptions(analyzer plugin.Analyzer, options ComponentOptions) {
 	if analyzer == nil {
 		return
 	}
 	descriptor := decorateAnalyzerDescriptor(analyzer.Descriptor())
 	r.analyzers = append(r.analyzers, analyzerWithDescriptor{Analyzer: analyzer, descriptor: descriptor})
-	r.setDefaultEnabled(sdk.PluginKindAnalyzer, descriptor.Name, options.DefaultEnabled)
-	r.setComponentOrigin(sdk.PluginKindAnalyzer, descriptor.Name, options.Origin)
+	r.setDefaultEnabled(plugin.PluginKindAnalyzer, descriptor.Name, options.DefaultEnabled)
+	r.setComponentOrigin(plugin.PluginKindAnalyzer, descriptor.Name, options.Origin)
 }
 
 func (r *Registry) registerAuditors() {
@@ -364,9 +367,9 @@ func (r *Registry) registerAuditors() {
 	if threshold == 0 {
 		threshold = 0.90
 	}
-	for _, auditor := range builtInAuditors([]sdk.Auditor{
+	for _, auditor := range builtInAuditors([]plugin.Auditor{
 		vulnerability.Auditor{
-			FailOn:                append([]sdk.FailOnConstraint(nil), r.configs.FailOn...),
+			FailOn:                append([]model.FailOnConstraint(nil), r.configs.FailOn...),
 			AllowVulnerabilityIDs: append([]string(nil), r.configs.AllowVulnerabilityIDs...),
 		},
 		license.Auditor{
@@ -377,7 +380,7 @@ func (r *Registry) registerAuditors() {
 		packageauditor.Auditor{
 			DenyPackages:       append([]string(nil), r.configs.DenyPackages...),
 			DenyGroups:         append([]string(nil), r.configs.DenyGroups...),
-			FailOn:             append([]sdk.FailOnConstraint(nil), r.configs.FailOn...),
+			FailOn:             append([]model.FailOnConstraint(nil), r.configs.FailOn...),
 			ProtectedPackages:  append([]string(nil), r.configs.ProtectedPackages...),
 			TyposquatThreshold: threshold,
 			TyposquatMode:      r.configs.TyposquatMode,
@@ -388,26 +391,26 @@ func (r *Registry) registerAuditors() {
 }
 
 // RegisterAuditor adds an auditor to the registry.
-func (r *Registry) RegisterAuditor(auditor sdk.Auditor) {
+func (r *Registry) RegisterAuditor(auditor plugin.Auditor) {
 	r.RegisterAuditorWithOptions(auditor, ComponentOptions{DefaultEnabled: true})
 }
 
 // RegisterAuditorWithOptions adds an auditor to the registry with internal behavior metadata.
-func (r *Registry) RegisterAuditorWithOptions(auditor sdk.Auditor, options ComponentOptions) {
+func (r *Registry) RegisterAuditorWithOptions(auditor plugin.Auditor, options ComponentOptions) {
 	if auditor == nil {
 		return
 	}
 	descriptor := decorateAuditorDescriptor(auditor.Descriptor())
 	r.auditors = append(r.auditors, auditorWithDescriptor{Auditor: auditor, descriptor: descriptor})
-	r.setDefaultEnabled(sdk.PluginKindAuditor, descriptor.Name, options.DefaultEnabled)
-	r.setComponentOrigin(sdk.PluginKindAuditor, descriptor.Name, options.Origin)
+	r.setDefaultEnabled(plugin.PluginKindAuditor, descriptor.Name, options.DefaultEnabled)
+	r.setComponentOrigin(plugin.PluginKindAuditor, descriptor.Name, options.Origin)
 }
 
 func (r *Registry) registerDiscoveryPlans() {
 	r.RegisterDetectorDiscoveryPlan(detectors.NameSyft, DetectorDiscoveryPlan{
 		SupportedEcosystems: SupportedEcosystemsForDetector(detectors.NameSyft),
 		SupportedManagers:   SupportedPackageManagersForDetector(detectors.NameSyft),
-		TargetKinds:         []sdk.ExecutionTargetKind{sdk.ExecutionTargetContainerImage},
+		TargetKinds:         []plugin.ExecutionTargetKind{plugin.ExecutionTargetContainerImage},
 	})
 }
 
@@ -422,7 +425,7 @@ func (r *Registry) RegisterDetectorDiscoveryPlan(detectorName string, plan Detec
 	r.discoveryPlans[detectorName] = plan
 }
 
-func (r *Registry) setDefaultEnabled(kind sdk.PluginKind, name string, enabled bool) {
+func (r *Registry) setDefaultEnabled(kind plugin.PluginKind, name string, enabled bool) {
 	if r == nil || strings.TrimSpace(name) == "" {
 		return
 	}
@@ -432,7 +435,7 @@ func (r *Registry) setDefaultEnabled(kind sdk.PluginKind, name string, enabled b
 	r.defaultEnabled[componentKey(kind, name)] = enabled
 }
 
-func (r *Registry) isDefaultEnabled(kind sdk.PluginKind, name string) bool {
+func (r *Registry) isDefaultEnabled(kind plugin.PluginKind, name string) bool {
 	if r == nil {
 		return false
 	}
@@ -444,7 +447,7 @@ func (r *Registry) isDefaultEnabled(kind sdk.PluginKind, name string) bool {
 func (r *Registry) DefaultEnabledDetectorNames() []string {
 	names := make([]string, 0)
 	for _, descriptor := range r.DetectorDescriptors() {
-		if descriptor.Name != "" && r.isDefaultEnabled(sdk.PluginKindDetector, descriptor.Name) {
+		if descriptor.Name != "" && r.isDefaultEnabled(plugin.PluginKindDetector, descriptor.Name) {
 			names = append(names, descriptor.Name)
 		}
 	}
@@ -456,7 +459,7 @@ func (r *Registry) DefaultEnabledDetectorNames() []string {
 func (r *Registry) DefaultEnabledAuditorNames() []string {
 	names := make([]string, 0)
 	for _, descriptor := range r.AuditorDescriptors() {
-		if descriptor.Name != "" && r.isDefaultEnabled(sdk.PluginKindAuditor, descriptor.Name) {
+		if descriptor.Name != "" && r.isDefaultEnabled(plugin.PluginKindAuditor, descriptor.Name) {
 			names = append(names, descriptor.Name)
 		}
 	}
@@ -468,7 +471,7 @@ func (r *Registry) DefaultEnabledAuditorNames() []string {
 func (r *Registry) DefaultEnabledMatcherNames() []string {
 	names := make([]string, 0)
 	for _, descriptor := range r.MatcherDescriptors() {
-		if descriptor.Name != "" && r.isDefaultEnabled(sdk.PluginKindMatcher, descriptor.Name) {
+		if descriptor.Name != "" && r.isDefaultEnabled(plugin.PluginKindMatcher, descriptor.Name) {
 			names = append(names, descriptor.Name)
 		}
 	}
@@ -480,7 +483,7 @@ func (r *Registry) DefaultEnabledMatcherNames() []string {
 func (r *Registry) DefaultEnabledAnalyzerNames() []string {
 	names := make([]string, 0)
 	for _, descriptor := range r.AnalyzerDescriptors() {
-		if descriptor.Name != "" && r.isDefaultEnabled(sdk.PluginKindAnalyzer, descriptor.Name) {
+		if descriptor.Name != "" && r.isDefaultEnabled(plugin.PluginKindAnalyzer, descriptor.Name) {
 			names = append(names, descriptor.Name)
 		}
 	}
@@ -488,27 +491,27 @@ func (r *Registry) DefaultEnabledAnalyzerNames() []string {
 	return names
 }
 
-func (r *Registry) setComponentOrigin(kind sdk.PluginKind, name string, origin sdk.DetectorOrigin) {
+func (r *Registry) setComponentOrigin(kind plugin.PluginKind, name string, origin plugin.DetectorOrigin) {
 	if r == nil || strings.TrimSpace(name) == "" {
 		return
 	}
 	if origin == "" {
-		origin = sdk.CoreOrigin
+		origin = plugin.CoreOrigin
 	}
 	if r.componentOrigins == nil {
-		r.componentOrigins = make(map[string]sdk.DetectorOrigin)
+		r.componentOrigins = make(map[string]plugin.DetectorOrigin)
 	}
 	r.componentOrigins[componentKey(kind, name)] = origin
 }
 
 // ComponentOrigin returns Bomly-owned origin metadata for a registered component.
-func (r *Registry) ComponentOrigin(kind sdk.PluginKind, name string) sdk.DetectorOrigin {
+func (r *Registry) ComponentOrigin(kind plugin.PluginKind, name string) plugin.DetectorOrigin {
 	if r == nil {
-		return sdk.CoreOrigin
+		return plugin.CoreOrigin
 	}
 	origin := r.componentOrigins[componentKey(kind, name)]
 	if origin == "" {
-		return sdk.CoreOrigin
+		return plugin.CoreOrigin
 	}
 	return origin
 }
@@ -516,7 +519,7 @@ func (r *Registry) ComponentOrigin(kind sdk.PluginKind, name string) sdk.Detecto
 // ComponentConfig returns the resolved configuration block for a registered
 // component, or nil when none is configured. Embedded components can decode
 // the same kind-scoped block that managed plugins receive.
-func (r *Registry) ComponentConfig(kind sdk.PluginKind, name string) map[string]any {
+func (r *Registry) ComponentConfig(kind plugin.PluginKind, name string) map[string]any {
 	if r == nil {
 		return nil
 	}
@@ -524,13 +527,13 @@ func (r *Registry) ComponentConfig(kind sdk.PluginKind, name string) map[string]
 }
 
 // DetectorOrigin returns Bomly-owned origin metadata for a registered detector.
-func (r *Registry) DetectorOrigin(name string) sdk.DetectorOrigin {
-	return r.ComponentOrigin(sdk.PluginKindDetector, name)
+func (r *Registry) DetectorOrigin(name string) plugin.DetectorOrigin {
+	return r.ComponentOrigin(plugin.PluginKindDetector, name)
 }
 
 // DetectorDescriptors returns registered detector descriptors in registration order.
-func (r *Registry) DetectorDescriptors() []sdk.DetectorDescriptor {
-	descriptors := make([]sdk.DetectorDescriptor, 0, len(r.detectors))
+func (r *Registry) DetectorDescriptors() []plugin.DetectorDescriptor {
+	descriptors := make([]plugin.DetectorDescriptor, 0, len(r.detectors))
 	for _, detector := range r.detectors {
 		descriptors = append(descriptors, detector.Descriptor())
 	}
@@ -539,39 +542,39 @@ func (r *Registry) DetectorDescriptors() []sdk.DetectorDescriptor {
 
 // AllDetectors returns all registered detectors in registration order, without
 // any filtering. Intended for introspection (e.g. plugin test/doctor).
-func (r *Registry) AllDetectors() []sdk.Detector {
-	result := make([]sdk.Detector, len(r.detectors))
+func (r *Registry) AllDetectors() []plugin.Detector {
+	result := make([]plugin.Detector, len(r.detectors))
 	copy(result, r.detectors)
 	return result
 }
 
 // AllMatchers returns all registered matchers in registration order, without
 // any filtering. Intended for introspection (e.g. plugin test/doctor).
-func (r *Registry) AllMatchers() []sdk.Matcher {
-	result := make([]sdk.Matcher, len(r.matchers))
+func (r *Registry) AllMatchers() []plugin.Matcher {
+	result := make([]plugin.Matcher, len(r.matchers))
 	copy(result, r.matchers)
 	return result
 }
 
 // AllAuditors returns all registered auditors in registration order, without
 // any filtering. Intended for introspection (e.g. plugin test/doctor).
-func (r *Registry) AllAuditors() []sdk.Auditor {
-	result := make([]sdk.Auditor, len(r.auditors))
+func (r *Registry) AllAuditors() []plugin.Auditor {
+	result := make([]plugin.Auditor, len(r.auditors))
 	copy(result, r.auditors)
 	return result
 }
 
 // AllAnalyzers returns all registered analyzers in registration order, without
 // any filtering. Intended for introspection (e.g. plugin test/doctor).
-func (r *Registry) AllAnalyzers() []sdk.Analyzer {
-	result := make([]sdk.Analyzer, len(r.analyzers))
+func (r *Registry) AllAnalyzers() []plugin.Analyzer {
+	result := make([]plugin.Analyzer, len(r.analyzers))
 	copy(result, r.analyzers)
 	return result
 }
 
 // AuditorDescriptors returns registered auditor descriptors sorted by name.
-func (r *Registry) AuditorDescriptors() []sdk.AuditorDescriptor {
-	descriptors := make([]sdk.AuditorDescriptor, 0, len(r.auditors))
+func (r *Registry) AuditorDescriptors() []plugin.AuditorDescriptor {
+	descriptors := make([]plugin.AuditorDescriptor, 0, len(r.auditors))
 	for _, auditor := range r.auditors {
 		descriptors = append(descriptors, auditor.Descriptor())
 	}
@@ -582,8 +585,8 @@ func (r *Registry) AuditorDescriptors() []sdk.AuditorDescriptor {
 }
 
 // MatcherDescriptors returns registered matcher descriptors sorted by name.
-func (r *Registry) MatcherDescriptors() []sdk.MatcherDescriptor {
-	descriptors := make([]sdk.MatcherDescriptor, 0, len(r.matchers))
+func (r *Registry) MatcherDescriptors() []plugin.MatcherDescriptor {
+	descriptors := make([]plugin.MatcherDescriptor, 0, len(r.matchers))
 	for _, matcher := range r.matchers {
 		descriptors = append(descriptors, matcher.Descriptor())
 	}
@@ -594,8 +597,8 @@ func (r *Registry) MatcherDescriptors() []sdk.MatcherDescriptor {
 }
 
 // AnalyzerDescriptors returns registered analyzer descriptors sorted by name.
-func (r *Registry) AnalyzerDescriptors() []sdk.AnalyzerDescriptor {
-	descriptors := make([]sdk.AnalyzerDescriptor, 0, len(r.analyzers))
+func (r *Registry) AnalyzerDescriptors() []plugin.AnalyzerDescriptor {
+	descriptors := make([]plugin.AnalyzerDescriptor, 0, len(r.analyzers))
 	for _, analyzer := range r.analyzers {
 		descriptors = append(descriptors, analyzer.Descriptor())
 	}
@@ -606,17 +609,17 @@ func (r *Registry) AnalyzerDescriptors() []sdk.AnalyzerDescriptor {
 }
 
 // Detectors returns matching detectors in registration order.
-func (r *Registry) Detectors(req sdk.DetectionRequest) []sdk.Detector {
-	matches := make([]sdk.Detector, 0, len(r.detectors))
+func (r *Registry) Detectors(req plugin.DetectionRequest) []plugin.Detector {
+	matches := make([]plugin.Detector, 0, len(r.detectors))
 	for _, detector := range r.detectors {
 		descriptor := detector.Descriptor()
 		if !r.detectorSelected(req.DetectorFilter, descriptor) {
 			continue
 		}
-		if req.Ecosystem != sdk.EcosystemUnknown && !supportsEcosystem(descriptor.SupportedEcosystems, req.Ecosystem) {
+		if req.Ecosystem != model.EcosystemUnknown && !supportsEcosystem(descriptor.SupportedEcosystems, req.Ecosystem) {
 			continue
 		}
-		if req.PackageManager != sdk.PackageManagerUnknown && !supportsPackageManager(descriptor.SupportedManagers, req.PackageManager) {
+		if req.PackageManager != model.PackageManagerUnknown && !supportsPackageManager(descriptor.SupportedManagers, req.PackageManager) {
 			continue
 		}
 		matches = append(matches, detector)
@@ -625,12 +628,12 @@ func (r *Registry) Detectors(req sdk.DetectionRequest) []sdk.Detector {
 }
 
 // PlannedDetectors returns detectors matching the requested names in the provided order.
-func (r *Registry) PlannedDetectors(req sdk.DetectionRequest, names []string) []sdk.Detector {
+func (r *Registry) PlannedDetectors(req plugin.DetectionRequest, names []string) []plugin.Detector {
 	if len(names) == 0 {
 		return r.Detectors(req)
 	}
 
-	available := make(map[string]sdk.Detector, len(r.detectors))
+	available := make(map[string]plugin.Detector, len(r.detectors))
 	for _, detector := range r.detectors {
 		descriptor := detector.Descriptor()
 		if !r.detectorSelected(req.DetectorFilter, descriptor) {
@@ -639,7 +642,7 @@ func (r *Registry) PlannedDetectors(req sdk.DetectionRequest, names []string) []
 		available[descriptor.Name] = detector
 	}
 
-	matches := make([]sdk.Detector, 0, len(names))
+	matches := make([]plugin.Detector, 0, len(names))
 	seen := make(map[string]struct{}, len(names))
 	for _, name := range names {
 		if name == "" {
@@ -659,8 +662,8 @@ func (r *Registry) PlannedDetectors(req sdk.DetectionRequest, names []string) []
 }
 
 // Auditors returns matching auditors sorted by priority descending then name.
-func (r *Registry) Auditors(req sdk.AuditRequest) []sdk.Auditor {
-	matches := make([]sdk.Auditor, 0, len(r.auditors))
+func (r *Registry) Auditors(req plugin.AuditRequest) []plugin.Auditor {
+	matches := make([]plugin.Auditor, 0, len(r.auditors))
 	for _, auditor := range r.auditors {
 		descriptor := auditor.Descriptor()
 		if !r.auditorSelected(req.AuditorFilter, descriptor) {
@@ -680,20 +683,20 @@ func (r *Registry) Auditors(req sdk.AuditRequest) []sdk.Auditor {
 // Analyzers returns the analyzers that apply to the request, filtered by
 // include/exclude selectors, ecosystem, package manager, language, and mode.
 // Empty SupportedLanguages on a descriptor means "applies to any language".
-func (r *Registry) Analyzers(req sdk.AnalyzeRequest) []sdk.Analyzer {
-	matches := make([]sdk.Analyzer, 0, len(r.analyzers))
+func (r *Registry) Analyzers(req plugin.AnalyzeRequest) []plugin.Analyzer {
+	matches := make([]plugin.Analyzer, 0, len(r.analyzers))
 	for _, analyzer := range r.analyzers {
 		descriptor := analyzer.Descriptor()
 		if !r.analyzerSelected(req.AnalyzerFilter, descriptor) {
 			continue
 		}
-		if req.Ecosystem != sdk.EcosystemUnknown && !supportsEcosystem(descriptor.SupportedEcosystems, req.Ecosystem) {
+		if req.Ecosystem != model.EcosystemUnknown && !supportsEcosystem(descriptor.SupportedEcosystems, req.Ecosystem) {
 			continue
 		}
-		if req.PackageManager != sdk.PackageManagerUnknown && !supportsPackageManager(descriptor.SupportedManagers, req.PackageManager) {
+		if req.PackageManager != model.PackageManagerUnknown && !supportsPackageManager(descriptor.SupportedManagers, req.PackageManager) {
 			continue
 		}
-		if req.Language != sdk.LanguageUnknown && !supportsLanguage(descriptor.SupportedLanguages, req.Language) {
+		if req.Language != model.LanguageUnknown && !supportsLanguage(descriptor.SupportedLanguages, req.Language) {
 			continue
 		}
 		matches = append(matches, analyzer)
@@ -702,17 +705,17 @@ func (r *Registry) Analyzers(req sdk.AnalyzeRequest) []sdk.Analyzer {
 }
 
 // Matchers returns matching matchers sorted by priority descending then name.
-func (r *Registry) Matchers(req sdk.MatchRequest) []sdk.Matcher {
-	matches := make([]sdk.Matcher, 0, len(r.matchers))
+func (r *Registry) Matchers(req plugin.MatchRequest) []plugin.Matcher {
+	matches := make([]plugin.Matcher, 0, len(r.matchers))
 	for _, matcher := range r.matchers {
 		descriptor := matcher.Descriptor()
 		if !r.matcherSelected(req.MatcherFilter, descriptor) {
 			continue
 		}
-		if req.Ecosystem != sdk.EcosystemUnknown && !supportsEcosystem(descriptor.SupportedEcosystems, req.Ecosystem) {
+		if req.Ecosystem != model.EcosystemUnknown && !supportsEcosystem(descriptor.SupportedEcosystems, req.Ecosystem) {
 			continue
 		}
-		if req.PackageManager != sdk.PackageManagerUnknown && !supportsPackageManager(descriptor.SupportedManagers, req.PackageManager) {
+		if req.PackageManager != model.PackageManagerUnknown && !supportsPackageManager(descriptor.SupportedManagers, req.PackageManager) {
 			continue
 		}
 		matches = append(matches, matcher)
@@ -803,48 +806,48 @@ func (r *Registry) Filter(filter Filter) *Registry {
 	return filtered
 }
 
-func supportsEcosystem(supported []sdk.Ecosystem, ecosystem sdk.Ecosystem) bool {
+func supportsEcosystem(supported []model.Ecosystem, ecosystem model.Ecosystem) bool {
 	if len(supported) == 0 {
 		return true
 	}
 	return slices.Contains(supported, ecosystem)
 }
 
-func supportsLanguage(supported []sdk.Language, language sdk.Language) bool {
+func supportsLanguage(supported []model.Language, language model.Language) bool {
 	if len(supported) == 0 {
 		return true
 	}
 	return slices.Contains(supported, language)
 }
 
-func supportsPackageManager(supported []sdk.PackageManager, manager sdk.PackageManager) bool {
+func supportsPackageManager(supported []model.PackageManager, manager model.PackageManager) bool {
 	if len(supported) == 0 {
 		return true
 	}
 	return slices.Contains(supported, manager)
 }
 
-func (r *Registry) detectorSelected(filter sdk.DetectorFilter, descriptor sdk.DetectorDescriptor) bool {
+func (r *Registry) detectorSelected(filter plugin.DetectorFilter, descriptor plugin.DetectorDescriptor) bool {
 	if filter.Excludes(descriptor.Name) {
 		return false
 	}
 	if len(filter.Include) > 0 {
 		return filter.Includes(descriptor.Name)
 	}
-	return r.isDefaultEnabled(sdk.PluginKindDetector, descriptor.Name)
+	return r.isDefaultEnabled(plugin.PluginKindDetector, descriptor.Name)
 }
 
-func (r *Registry) auditorSelected(filter sdk.AuditorFilter, descriptor sdk.AuditorDescriptor) bool {
+func (r *Registry) auditorSelected(filter plugin.AuditorFilter, descriptor plugin.AuditorDescriptor) bool {
 	if filter.Excludes(descriptor.Name) {
 		return false
 	}
 	if len(filter.Include) > 0 {
 		return filter.Includes(descriptor.Name)
 	}
-	return r.isDefaultEnabled(sdk.PluginKindAuditor, descriptor.Name)
+	return r.isDefaultEnabled(plugin.PluginKindAuditor, descriptor.Name)
 }
 
-func (r *Registry) matcherSelected(filter sdk.MatcherFilter, descriptor sdk.MatcherDescriptor) bool {
+func (r *Registry) matcherSelected(filter plugin.MatcherFilter, descriptor plugin.MatcherDescriptor) bool {
 	if filter.Excludes(descriptor.Name) {
 		return false
 	}
@@ -859,25 +862,25 @@ func (r *Registry) matcherSelected(filter sdk.MatcherFilter, descriptor sdk.Matc
 	if len(filter.Exclude) > 0 {
 		return true
 	}
-	return r.isDefaultEnabled(sdk.PluginKindMatcher, descriptor.Name)
+	return r.isDefaultEnabled(plugin.PluginKindMatcher, descriptor.Name)
 }
 
-func (r *Registry) analyzerSelected(filter sdk.AnalyzerFilter, descriptor sdk.AnalyzerDescriptor) bool {
+func (r *Registry) analyzerSelected(filter plugin.AnalyzerFilter, descriptor plugin.AnalyzerDescriptor) bool {
 	if filter.Excludes(descriptor.Name) {
 		return false
 	}
 	if len(filter.Include) > 0 {
 		return filter.Includes(descriptor.Name)
 	}
-	return r.isDefaultEnabled(sdk.PluginKindAnalyzer, descriptor.Name)
+	return r.isDefaultEnabled(plugin.PluginKindAnalyzer, descriptor.Name)
 }
 
-func descriptorAllowsEcosystem(supported []sdk.Ecosystem, ecosystemFilter sdk.EcosystemFilter) bool {
-	include := make(map[sdk.Ecosystem]struct{}, len(ecosystemFilter.Include))
+func descriptorAllowsEcosystem(supported []model.Ecosystem, ecosystemFilter model.EcosystemFilter) bool {
+	include := make(map[model.Ecosystem]struct{}, len(ecosystemFilter.Include))
 	for _, ecosystem := range ecosystemFilter.Include {
 		include[ecosystem] = struct{}{}
 	}
-	exclude := make(map[sdk.Ecosystem]struct{}, len(ecosystemFilter.Exclude))
+	exclude := make(map[model.Ecosystem]struct{}, len(ecosystemFilter.Exclude))
 	for _, ecosystem := range ecosystemFilter.Exclude {
 		exclude[ecosystem] = struct{}{}
 	}
@@ -909,16 +912,16 @@ func descriptorAllowsEcosystem(supported []sdk.Ecosystem, ecosystemFilter sdk.Ec
 	return false
 }
 
-func mergeEcosystems(left, right []sdk.Ecosystem) []sdk.Ecosystem {
+func mergeEcosystems(left, right []model.Ecosystem) []model.Ecosystem {
 	if len(left) == 0 {
-		return append([]sdk.Ecosystem(nil), right...)
+		return append([]model.Ecosystem(nil), right...)
 	}
 	if len(right) == 0 {
-		return append([]sdk.Ecosystem(nil), left...)
+		return append([]model.Ecosystem(nil), left...)
 	}
 
-	merged := append([]sdk.Ecosystem(nil), left...)
-	seen := make(map[sdk.Ecosystem]struct{}, len(left)+len(right))
+	merged := append([]model.Ecosystem(nil), left...)
+	seen := make(map[model.Ecosystem]struct{}, len(left)+len(right))
 	for _, ecosystem := range left {
 		seen[ecosystem] = struct{}{}
 	}
@@ -932,9 +935,9 @@ func mergeEcosystems(left, right []sdk.Ecosystem) []sdk.Ecosystem {
 	return merged
 }
 
-func orderedBuiltInDetectors(logger *zap.Logger, pluginConfigs config.PluginConfigs) []sdk.Detector {
+func orderedBuiltInDetectors(logger *zap.Logger, pluginConfigs config.PluginConfigs) []plugin.Detector {
 	detectorsByName := builtInDetectorsByName(logger, pluginConfigs)
-	ordered := make([]sdk.Detector, 0, len(detectorsByName))
+	ordered := make([]plugin.Detector, 0, len(detectorsByName))
 	seen := make(map[string]struct{}, len(detectorsByName))
 
 	for _, manager := range SupportedPackageManagers() {
@@ -967,23 +970,23 @@ func orderedBuiltInDetectors(logger *zap.Logger, pluginConfigs config.PluginConf
 // The priority is determined first by the origin (external vs built-in) and then by the technique,
 // with lockfile and build tool techniques prioritized over manifest, SBOM, binary, and container techniques,
 // which are in turn prioritized over multiple technique and other techniques.
-func componentPriority(origin sdk.DetectorOrigin, technique sdk.DetectorTechnique) int {
-	if origin == sdk.ExternalOrigin {
+func componentPriority(origin plugin.DetectorOrigin, technique plugin.DetectorTechnique) int {
+	if origin == plugin.ExternalOrigin {
 		return 0
 	}
 	switch technique {
-	case sdk.LockfileTechnique, sdk.BuildToolTechnique:
+	case plugin.LockfileTechnique, plugin.BuildToolTechnique:
 		return 1
-	case sdk.ManifestTechnique, sdk.SBOMTechnique, sdk.BinaryTechnique, sdk.ContainerTechnique:
+	case plugin.ManifestTechnique, plugin.SBOMTechnique, plugin.BinaryTechnique, plugin.ContainerTechnique:
 		return 2
-	case sdk.MultipleTechnique:
+	case plugin.MultipleTechnique:
 		return 3
 	default:
 		return 4
 	}
 }
 
-func decorateDetectorDescriptor(descriptor sdk.DetectorDescriptor) sdk.DetectorDescriptor {
+func decorateDetectorDescriptor(descriptor plugin.DetectorDescriptor) plugin.DetectorDescriptor {
 	if aliases := builtInDetectorAliases[descriptor.Name]; len(aliases) > 0 {
 		descriptor.Aliases = appendUniqueStrings(descriptor.Aliases, aliases...)
 	}
@@ -993,10 +996,10 @@ func decorateDetectorDescriptor(descriptor sdk.DetectorDescriptor) sdk.DetectorD
 	return descriptor
 }
 
-func detectorWithDecoratedDescriptor(detector sdk.Detector, descriptor sdk.DetectorDescriptor) sdk.Detector {
+func detectorWithDecoratedDescriptor(detector plugin.Detector, descriptor plugin.DetectorDescriptor) plugin.Detector {
 	base := detectorWithDescriptor{Detector: detector, descriptor: descriptor}
-	_, hasInstall := detector.(sdk.InstallFirstDetector)
-	_, hasRemediation := detector.(sdk.DetectorRemediationProvider)
+	_, hasInstall := detector.(plugin.InstallFirstDetector)
+	_, hasRemediation := detector.(plugin.DetectorRemediationProvider)
 	switch {
 	case hasInstall && hasRemediation:
 		return installFirstRemediationDetectorWithDescriptor{detectorWithDescriptor: base}
@@ -1009,7 +1012,7 @@ func detectorWithDecoratedDescriptor(detector sdk.Detector, descriptor sdk.Detec
 	}
 }
 
-func decorateAuditorDescriptor(descriptor sdk.AuditorDescriptor) sdk.AuditorDescriptor {
+func decorateAuditorDescriptor(descriptor plugin.AuditorDescriptor) plugin.AuditorDescriptor {
 	if aliases := builtInAuditorAliases[descriptor.Name]; len(aliases) > 0 {
 		descriptor.Aliases = appendUniqueStrings(descriptor.Aliases, aliases...)
 	}
@@ -1019,7 +1022,7 @@ func decorateAuditorDescriptor(descriptor sdk.AuditorDescriptor) sdk.AuditorDesc
 	return descriptor
 }
 
-func decorateAnalyzerDescriptor(descriptor sdk.AnalyzerDescriptor) sdk.AnalyzerDescriptor {
+func decorateAnalyzerDescriptor(descriptor plugin.AnalyzerDescriptor) plugin.AnalyzerDescriptor {
 	if aliases := builtInAnalyzerAliases[descriptor.Name]; len(aliases) > 0 {
 		descriptor.Aliases = appendUniqueStrings(descriptor.Aliases, aliases...)
 	}
@@ -1111,25 +1114,25 @@ var builtInDisplayNames = map[string]string{
 	"jvmreach":                  "JVM Reachability",
 }
 
-func componentKey(kind sdk.PluginKind, name string) string {
+func componentKey(kind plugin.PluginKind, name string) string {
 	return string(kind) + ":" + strings.TrimSpace(name)
 }
 
-func detectorOriginForRegistry(detector sdk.Detector) sdk.DetectorOrigin {
+func detectorOriginForRegistry(detector plugin.Detector) plugin.DetectorOrigin {
 	if detector == nil {
-		return sdk.CoreOrigin
+		return plugin.CoreOrigin
 	}
 	name := detector.Descriptor().Name
 	if name == detectors.NameSyft {
-		return sdk.BundledOrigin
+		return plugin.BundledOrigin
 	}
 	if origin := DetectorOriginForName(name); origin != "" {
 		return origin
 	}
-	return sdk.CoreOrigin
+	return plugin.CoreOrigin
 }
 
-func builtInDetectorsByName(logger *zap.Logger, pluginConfigs config.PluginConfigs) map[string]sdk.Detector {
+func builtInDetectorsByName(logger *zap.Logger, pluginConfigs config.PluginConfigs) map[string]plugin.Detector {
 	syftPrimary := syft.Detector{
 		Logger:              logger,
 		SupportedManagers:   SupportedPackageManagersForDetector(detectors.NameSyft),
@@ -1163,7 +1166,7 @@ func builtInDetectorsByName(logger *zap.Logger, pluginConfigs config.PluginConfi
 	sbtDetector := sbt.Detector{Logger: logger}
 	sbtNativeDetector := sbt.NativeDetector{Logger: logger}
 
-	return map[string]sdk.Detector{
+	return map[string]plugin.Detector{
 		sbomDetector.Descriptor().Name:          sbomDetector,
 		npmDetector.Descriptor().Name:           npmDetector,
 		pnpmDetector.Descriptor().Name:          pnpmDetector,
@@ -1195,8 +1198,8 @@ func builtInDetectorsByName(logger *zap.Logger, pluginConfigs config.PluginConfi
 	}
 }
 
-func builtInDetectors(detectors []sdk.Detector) []sdk.Detector {
-	out := make([]sdk.Detector, 0, len(detectors))
+func builtInDetectors(detectors []plugin.Detector) []plugin.Detector {
+	out := make([]plugin.Detector, 0, len(detectors))
 	for _, detector := range detectors {
 		if detector == nil {
 			continue
@@ -1206,8 +1209,8 @@ func builtInDetectors(detectors []sdk.Detector) []sdk.Detector {
 	return out
 }
 
-func builtInMatchers(matchers []sdk.Matcher) []sdk.Matcher {
-	out := make([]sdk.Matcher, 0, len(matchers))
+func builtInMatchers(matchers []plugin.Matcher) []plugin.Matcher {
+	out := make([]plugin.Matcher, 0, len(matchers))
 	for _, matcher := range matchers {
 		if matcher == nil {
 			continue
@@ -1217,8 +1220,8 @@ func builtInMatchers(matchers []sdk.Matcher) []sdk.Matcher {
 	return out
 }
 
-func builtInAuditors(auditors []sdk.Auditor) []sdk.Auditor {
-	out := make([]sdk.Auditor, 0, len(auditors))
+func builtInAuditors(auditors []plugin.Auditor) []plugin.Auditor {
+	out := make([]plugin.Auditor, 0, len(auditors))
 	for _, auditor := range auditors {
 		if auditor == nil {
 			continue

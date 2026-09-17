@@ -9,16 +9,18 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	projectDir := filepath.Join("testdata", "project")
 	detector := Detector{}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:    projectDir,
-		PackageManager: sdk.PackageManagerSBT,
-		Ecosystem:      sdk.EcosystemScala,
+		PackageManager: model.PackageManagerSBT,
+		Ecosystem:      model.EcosystemScala,
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph returned error: %v", err)
@@ -38,7 +40,7 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected scalatest package, got %v", graph.DependencyNodes())
 	}
-	if string(scalatest.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(scalatest.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected scalatest development scope, got %q", string(scalatest.PrimaryScope()))
 	}
 }
@@ -81,7 +83,7 @@ func TestNativeDetectorApplicable_SkipsOldSBTWithoutDependencyGraphPlugin(t *tes
 		t.Fatalf("write build.properties: %v", err)
 	}
 
-	applicable, err := (NativeDetector{WorkingDir: projectDir}).Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := (NativeDetector{WorkingDir: projectDir}).Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -97,7 +99,7 @@ func TestNativeDetectorReadyRequiresJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := NativeDetector{}
-	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	err := detector.Ready(context.Background(), plugin.DetectionRequest{})
 	if err == nil {
 		t.Fatal("expected detector to be not ready without a usable Java runtime")
 	}
@@ -113,7 +115,7 @@ func TestNativeDetectorReadyRequiresSBT(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := NativeDetector{}
-	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	err := detector.Ready(context.Background(), plugin.DetectionRequest{})
 	if err == nil {
 		t.Fatal("expected detector to be not ready without sbt")
 	}
@@ -129,7 +131,7 @@ func TestNativeDetectorReadyWithSBTAndJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := NativeDetector{}
-	if err := detector.Ready(context.Background(), sdk.DetectionRequest{}); err != nil {
+	if err := detector.Ready(context.Background(), plugin.DetectionRequest{}); err != nil {
 		t.Fatalf("expected detector to be ready, got %v", err)
 	}
 }
@@ -180,7 +182,7 @@ func TestNativeDetectorApplicable_AllowsOldSBTWithDependencyGraphPlugin(t *testi
 		t.Fatalf("write plugins.sbt: %v", err)
 	}
 
-	applicable, err := (NativeDetector{WorkingDir: projectDir}).Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := (NativeDetector{WorkingDir: projectDir}).Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -201,7 +203,7 @@ func TestNativeDetectorApplicable_AllowsModernSBT(t *testing.T) {
 		t.Fatalf("write build.properties: %v", err)
 	}
 
-	applicable, err := (NativeDetector{WorkingDir: projectDir}).Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := (NativeDetector{WorkingDir: projectDir}).Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -212,9 +214,9 @@ func TestNativeDetectorApplicable_AllowsModernSBT(t *testing.T) {
 
 // mustDep narrows a graph node to the dependency node a case is asserting
 // about, failing rather than panicking when the graph holds something else.
-func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
 	t.Helper()
-	dep, ok := node.(*sdk.DependencyNode)
+	dep, ok := node.(*model.DependencyNode)
 	if !ok {
 		t.Fatalf("expected a dependency node, got %T", node)
 	}

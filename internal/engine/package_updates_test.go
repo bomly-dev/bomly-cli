@@ -4,7 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // deltaMatcher is a fake matcher whose Match behavior is fully controlled by
@@ -12,7 +13,7 @@ import (
 // full registries, or zero-value results.
 type deltaMatcher struct {
 	name  string
-	match func(req MatchRequest) (sdk.MatchResult, error)
+	match func(req MatchRequest) (plugin.MatchResult, error)
 }
 
 func (m deltaMatcher) Descriptor() MatcherDescriptor {
@@ -25,27 +26,27 @@ func (m deltaMatcher) Applicable(context.Context, MatchRequest) (bool, error) {
 	return true, nil
 }
 
-func (m deltaMatcher) Match(_ context.Context, req MatchRequest) (sdk.MatchResult, error) {
+func (m deltaMatcher) Match(_ context.Context, req MatchRequest) (plugin.MatchResult, error) {
 	return m.match(req)
 }
 
 // deltaAnalyzer is the analyzer twin of deltaMatcher.
 type deltaAnalyzer struct {
 	name    string
-	analyze func(req sdk.AnalyzeRequest) (sdk.AnalyzeResult, error)
+	analyze func(req plugin.AnalyzeRequest) (plugin.AnalyzeResult, error)
 }
 
-func (a deltaAnalyzer) Descriptor() sdk.AnalyzerDescriptor {
-	return sdk.AnalyzerDescriptor{Name: a.name}
+func (a deltaAnalyzer) Descriptor() plugin.AnalyzerDescriptor {
+	return plugin.AnalyzerDescriptor{Name: a.name}
 }
 
-func (a deltaAnalyzer) Ready(context.Context, sdk.AnalyzeRequest) error { return nil }
+func (a deltaAnalyzer) Ready(context.Context, plugin.AnalyzeRequest) error { return nil }
 
-func (a deltaAnalyzer) Applicable(context.Context, sdk.AnalyzeRequest) (bool, error) {
+func (a deltaAnalyzer) Applicable(context.Context, plugin.AnalyzeRequest) (bool, error) {
 	return true, nil
 }
 
-func (a deltaAnalyzer) Analyze(_ context.Context, req sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
+func (a deltaAnalyzer) Analyze(_ context.Context, req plugin.AnalyzeRequest) (plugin.AnalyzeResult, error) {
 	return a.analyze(req)
 }
 
@@ -56,14 +57,14 @@ func TestEngineMatch_AppliesPackageUpdateDeltas(t *testing.T) {
 	var sawAccept bool
 	registry.registerMatcher(deltaMatcher{
 		name: "delta",
-		match: func(req MatchRequest) (sdk.MatchResult, error) {
+		match: func(req MatchRequest) (plugin.MatchResult, error) {
 			sawAccept = req.AcceptPackageUpdates
-			return sdk.MatchResult{
-				PackageUpdates: []*sdk.Package{{
-					Coordinates: sdk.Coordinates{PURL: purl},
-					Licenses:    []sdk.PackageLicense{{SPDXExpression: "MIT"}},
+			return plugin.MatchResult{
+				PackageUpdates: []*model.Package{{
+					Coordinates: model.Coordinates{PURL: purl},
+					Licenses:    []model.PackageLicense{{SPDXExpression: "MIT"}},
 				}},
-				MatcherStats: sdk.MatcherStats{Licenses: 1},
+				MatcherStats: plugin.MatcherStats{Licenses: 1},
 			}, nil
 		},
 	})
@@ -71,18 +72,18 @@ func TestEngineMatch_AppliesPackageUpdateDeltas(t *testing.T) {
 	var secondSawUpdate bool
 	registry.registerMatcher(deltaMatcher{
 		name: "observer",
-		match: func(req MatchRequest) (sdk.MatchResult, error) {
+		match: func(req MatchRequest) (plugin.MatchResult, error) {
 			if pkg, ok := req.Registry.Get(purl); ok && len(pkg.Licenses) == 1 {
 				secondSawUpdate = true
 			}
 			// Zero-value result: the effective registry must be preserved.
-			return sdk.MatchResult{}, nil
+			return plugin.MatchResult{}, nil
 		},
 	})
 
 	result, err := NewEngine(registry).Match(context.Background(), MatchRequest{
-		Graph:    sdk.New(),
-		Registry: sdk.NewPackageRegistry(),
+		Graph:    model.New(),
+		Registry: model.NewPackageRegistry(),
 	})
 	if err != nil {
 		t.Fatalf("Match() error = %v", err)
@@ -113,23 +114,23 @@ func TestEngineMatch_ReturnedRegistryWinsOverPackageUpdates(t *testing.T) {
 	const ignored = "pkg:npm/ignored@1.0.0"
 	registry := newTestRegistry()
 
-	full := sdk.NewPackageRegistry()
+	full := model.NewPackageRegistry()
 	full.Ensure(kept)
 	registry.registerMatcher(deltaMatcher{
 		name: "both",
-		match: func(MatchRequest) (sdk.MatchResult, error) {
+		match: func(MatchRequest) (plugin.MatchResult, error) {
 			// Returning both mirrors nothing a well-behaved component should
 			// do, but the adapter semantics are explicit: Registry wins.
-			return sdk.MatchResult{
+			return plugin.MatchResult{
 				Registry:       full,
-				PackageUpdates: []*sdk.Package{{Coordinates: sdk.Coordinates{PURL: ignored}}},
+				PackageUpdates: []*model.Package{{Coordinates: model.Coordinates{PURL: ignored}}},
 			}, nil
 		},
 	})
 
 	result, err := NewEngine(registry).Match(context.Background(), MatchRequest{
-		Graph:    sdk.New(),
-		Registry: sdk.NewPackageRegistry(),
+		Graph:    model.New(),
+		Registry: model.NewPackageRegistry(),
 	})
 	if err != nil {
 		t.Fatalf("Match() error = %v", err)
@@ -152,11 +153,11 @@ func TestEngineAnalyze_AppliesPackageUpdateDeltas(t *testing.T) {
 	var sawAccept bool
 	registry.RegisterAnalyzer(deltaAnalyzer{
 		name: "delta",
-		analyze: func(req sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
+		analyze: func(req plugin.AnalyzeRequest) (plugin.AnalyzeResult, error) {
 			sawAccept = req.AcceptPackageUpdates
-			return sdk.AnalyzeResult{
-				PackageUpdates: []*sdk.Package{{Coordinates: sdk.Coordinates{PURL: purl}}},
-				AnalyzerStats: map[string]sdk.ReachabilityStats{
+			return plugin.AnalyzeResult{
+				PackageUpdates: []*model.Package{{Coordinates: model.Coordinates{PURL: purl}}},
+				AnalyzerStats: map[string]plugin.ReachabilityStats{
 					"delta": {Reachable: 1},
 				},
 			}, nil
@@ -166,16 +167,16 @@ func TestEngineAnalyze_AppliesPackageUpdateDeltas(t *testing.T) {
 	var secondSawUpdate bool
 	registry.RegisterAnalyzer(deltaAnalyzer{
 		name: "observer",
-		analyze: func(req sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
+		analyze: func(req plugin.AnalyzeRequest) (plugin.AnalyzeResult, error) {
 			_, secondSawUpdate = req.Registry.Get(purl)
 			// Zero-value result: the effective registry must be preserved.
-			return sdk.AnalyzeResult{}, nil
+			return plugin.AnalyzeResult{}, nil
 		},
 	})
 
-	result, err := NewEngine(registry).Analyze(context.Background(), sdk.AnalyzeRequest{
-		Graph:    sdk.New(),
-		Registry: sdk.NewPackageRegistry(),
+	result, err := NewEngine(registry).Analyze(context.Background(), plugin.AnalyzeRequest{
+		Graph:    model.New(),
+		Registry: model.NewPackageRegistry(),
 	})
 	if err != nil {
 		t.Fatalf("Analyze() error = %v", err)
@@ -202,21 +203,21 @@ func TestEngineAnalyze_ReturnedRegistryWinsOverPackageUpdates(t *testing.T) {
 	const ignored = "pkg:npm/ignored@1.0.0"
 	registry := newTestRegistry()
 
-	full := sdk.NewPackageRegistry()
+	full := model.NewPackageRegistry()
 	full.Ensure(kept)
 	registry.RegisterAnalyzer(deltaAnalyzer{
 		name: "both",
-		analyze: func(sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
-			return sdk.AnalyzeResult{
+		analyze: func(plugin.AnalyzeRequest) (plugin.AnalyzeResult, error) {
+			return plugin.AnalyzeResult{
 				Registry:       full,
-				PackageUpdates: []*sdk.Package{{Coordinates: sdk.Coordinates{PURL: ignored}}},
+				PackageUpdates: []*model.Package{{Coordinates: model.Coordinates{PURL: ignored}}},
 			}, nil
 		},
 	})
 
-	result, err := NewEngine(registry).Analyze(context.Background(), sdk.AnalyzeRequest{
-		Graph:    sdk.New(),
-		Registry: sdk.NewPackageRegistry(),
+	result, err := NewEngine(registry).Analyze(context.Background(), plugin.AnalyzeRequest{
+		Graph:    model.New(),
+		Registry: model.NewPackageRegistry(),
 	})
 	if err != nil {
 		t.Fatalf("Analyze() error = %v", err)

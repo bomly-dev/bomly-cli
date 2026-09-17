@@ -11,8 +11,9 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 type bunLockfile struct {
@@ -44,14 +45,14 @@ type bunPackageEntry struct {
 	resolved  string
 	integrity string
 	metadata  bunPackageMetadata
-	source    sdk.DependencySource
+	source    model.DependencySource
 	nodeID    string
 }
 
 type bunModuleGraph struct{ dir, rootID string }
 
 type bunLockfileGraphs struct {
-	graph   *sdk.Graph
+	graph   *model.Graph
 	rootID  string
 	modules []bunModuleGraph
 }
@@ -88,7 +89,7 @@ func depGraphFromBunLockfile(projectPath string) (bunLockfileGraphs, error) {
 			rootWorkspace.Name = "root"
 		}
 	}
-	graph := sdk.New()
+	graph := model.New()
 	root, err := bunApplicationNode("package.json", rootWorkspace.Name, rootWorkspace.Version)
 	if err != nil {
 		return bunLockfileGraphs{}, err
@@ -138,23 +139,23 @@ func depGraphFromBunLockfile(projectPath string) (bunLockfileGraphs, error) {
 		// Bun repeats workspace members in the packages table. Their canonical
 		// application nodes were already created above; ingesting the tuple as a
 		// registry package would duplicate the workspace with a path-like version.
-		if entry.source == sdk.DependencySourceWorkspace {
+		if entry.source == model.DependencySourceWorkspace {
 			if _, ok := workspaceByName[entry.name]; ok {
 				continue
 			}
 		}
-		dep := sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerBun, Name: entry.name, Version: entry.version}, Source: entry.source, ResolvedURL: entry.resolved, Digests: node.ParseIntegrityDigests(entry.integrity)}
+		dep := model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerBun, Name: entry.name, Version: entry.version}, Source: entry.source, ResolvedURL: entry.resolved, Digests: node.ParseIntegrityDigests(entry.integrity)}
 		// One identity is one node: a collision folds through the shared
 		// helper rather than minting a second ID for the same package,
 		// which is the occurrence machinery ADR-0041 removed.
-		pkgNode, err := sdk.NewDependencyNodeFrom(dep)
+		pkgNode, err := model.NewDependencyNodeFrom(dep)
 		if err != nil {
 			return bunLockfileGraphs{}, err
 		}
 		// Bun's tuple carries the registry tarball it fetched. Workspace
 		// members and git specs resolve to values the invariant rejects.
-		if origin := sdk.ArtifactOrigin(entry.resolved); origin != nil {
-			pkgNode.Origins = sdk.MergeOrigins(pkgNode.Origins, []sdk.DependencyOrigin{*origin})
+		if origin := model.ArtifactOrigin(entry.resolved); origin != nil {
+			pkgNode.Origins = model.MergeOrigins(pkgNode.Origins, []model.DependencyOrigin{*origin})
 		}
 		if err := node.AddNodeIfMissing(graph, pkgNode); err != nil {
 			return bunLockfileGraphs{}, err
@@ -261,13 +262,13 @@ func splitBunIdentity(value string) (string, string) {
 // kind now, and a forced "workspace:<dir>" ID is no longer needed to keep a
 // member distinct, because the module ID carries the declaring path
 // (ADR-0041).
-func bunApplicationNode(manifestPath, name, version string) (*sdk.ModuleNode, error) {
-	moduleNode, err := sdk.NewModuleNode(manifestPath, sdk.Coordinates{
-		Ecosystem:      sdk.EcosystemNPM,
-		PackageManager: sdk.PackageManagerBun,
+func bunApplicationNode(manifestPath, name, version string) (*model.ModuleNode, error) {
+	moduleNode, err := model.NewModuleNode(manifestPath, model.Coordinates{
+		Ecosystem:      model.EcosystemNPM,
+		PackageManager: model.PackageManagerBun,
 		Name:           name,
 		Version:        version,
-		Type:           sdk.PackageTypeApplication,
+		Type:           model.PackageTypeApplication,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build Bun module node %q: %w", name, err)
@@ -276,10 +277,10 @@ func bunApplicationNode(manifestPath, name, version string) (*sdk.ModuleNode, er
 }
 
 func resolveBunDependency(entries []bunPackageEntry, byKey map[string]int, byName map[string][]int, workspaces map[string]string, name, requested string) (string, bool) {
-	if source := node.DependencySourceFromSpecifier(requested); source == sdk.DependencySourceWorkspace {
+	if source := node.DependencySourceFromSpecifier(requested); source == model.DependencySourceWorkspace {
 		id, ok := workspaces[name]
 		return id, ok
-	} else if source != sdk.DependencySourceRegistry {
+	} else if source != model.DependencySourceRegistry {
 		return "", false
 	}
 	actualName, actualRequest := bunAliasTarget(name, requested)
@@ -332,10 +333,10 @@ func bunAliasTarget(name, requested string) (string, string) {
 	return splitBunIdentity(strings.TrimPrefix(value, "npm:"))
 }
 
-func addSyntheticBunDependency(graph *sdk.Graph, name, requested string) (string, error) {
+func addSyntheticBunDependency(graph *model.Graph, name, requested string) (string, error) {
 	actualName, version := bunAliasTarget(name, requested)
-	dep := sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerBun, Name: actualName, Version: node.NormalizeVersionToken(version)}, Source: node.DependencySourceFromSpecifier(requested)}
-	synthetic, err := sdk.NewDependencyNodeFrom(dep)
+	dep := model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerBun, Name: actualName, Version: node.NormalizeVersionToken(version)}, Source: node.DependencySourceFromSpecifier(requested)}
+	synthetic, err := model.NewDependencyNodeFrom(dep)
 	if err != nil {
 		return "", fmt.Errorf("build dependency node: %w", err)
 	}
@@ -358,14 +359,14 @@ func mergeBunDependencyMaps(maps ...map[string]string) map[string]string {
 	return out
 }
 
-func bunWorkspaceScopes(workspace bunWorkspace) map[string]sdk.Scope {
-	out := make(map[string]sdk.Scope)
+func bunWorkspaceScopes(workspace bunWorkspace) map[string]model.Scope {
+	out := make(map[string]model.Scope)
 	for name := range mergeBunDependencyMaps(workspace.Dependencies, workspace.OptionalDependencies, workspace.PeerDependencies) {
-		out[name] = sdk.ScopeRuntime
+		out[name] = model.ScopeRuntime
 	}
 	for name := range workspace.DevDependencies {
 		if _, runtime := out[name]; !runtime {
-			out[name] = sdk.ScopeDevelopment
+			out[name] = model.ScopeDevelopment
 		}
 	}
 	return out

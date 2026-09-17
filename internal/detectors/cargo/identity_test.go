@@ -8,7 +8,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // A workspace member and an unrelated crate can share a name. Membership used
@@ -48,7 +50,7 @@ source = "git+https://github.com/external/helper?rev=main#aaaabbbbccccddddeeeeff
 	root := cargoManifest{Name: "demo", Version: "0.1.0", Dependencies: []string{"consumer", "helper"}}
 	members := []cargoLockMember{{dir: "crates/helper", manifest: cargoManifest{Name: "helper", Version: "0.1.0"}}}
 
-	graph, modules, rootID, err := depGraphFromLockWorkspace(lock, root, members, sdk.Scope(""))
+	graph, modules, rootID, err := depGraphFromLockWorkspace(lock, root, members, model.Scope(""))
 	if err != nil {
 		t.Fatalf("depGraphFromLockWorkspace() error = %v", err)
 	}
@@ -62,7 +64,7 @@ source = "git+https://github.com/external/helper?rev=main#aaaabbbbccccddddeeeeff
 	if !ok {
 		t.Fatalf("expected external helper@1.0.0 in graph: %s", graph.PrettyString())
 	}
-	if external.Type == sdk.PackageTypeApplication {
+	if external.Type == model.PackageTypeApplication {
 		t.Fatal("external crate must not be typed as an application")
 	}
 	if origin := originOf(external); origin.Repository != "https://github.com/external/helper" {
@@ -101,7 +103,7 @@ source = "git+https://github.com/external/helper#aaaabbbbccccddddeeeeffff0000111
 `)
 	members := []cargoLockMember{{dir: "crates/helper", manifest: cargoManifest{Name: "helper"}}}
 
-	graph, _, _, err := depGraphFromLockWorkspace(lock, cargoManifest{}, members, sdk.Scope(""))
+	graph, _, _, err := depGraphFromLockWorkspace(lock, cargoManifest{}, members, model.Scope(""))
 	if err != nil {
 		t.Fatalf("depGraphFromLockWorkspace() error = %v", err)
 	}
@@ -146,7 +148,7 @@ name = "helper"
 version = "1.0.0"
 `)
 
-	result, err := Detector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: root})
+	result, err := Detector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: root})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -175,7 +177,7 @@ version = "0.2.0"
 `)
 	members := []cargoLockMember{{dir: "crates/helper", manifest: cargoManifest{Name: "helper"}}}
 
-	graph, modules, _, err := depGraphFromLockWorkspace(lock, cargoManifest{}, members, sdk.Scope(""))
+	graph, modules, _, err := depGraphFromLockWorkspace(lock, cargoManifest{}, members, model.Scope(""))
 	if err != nil {
 		t.Fatalf("depGraphFromLockWorkspace() error = %v", err)
 	}
@@ -231,10 +233,10 @@ serde = "1"
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
 	root, ok := testnodes.Find(graph, "app@1.2.3")
-	if !ok || !sdk.IsProjectOwned(root) {
+	if !ok || !model.IsProjectOwned(root) {
 		t.Fatalf("expected first-party root app@1.2.3: %s", graph.PrettyString())
 	}
-	if version := sdk.NodeVersion(root); version != "1.2.3" {
+	if version := model.NodeVersion(root); version != "1.2.3" {
 		t.Fatalf("root version = %q, want the inherited 1.2.3", version)
 	}
 	rootDeps := directDependencyIDs(t, graph, root.NodeID())
@@ -322,7 +324,7 @@ func TestCargoMetadataWorkspaceMemberNameCollisionKeepsBothIdentities(t *testing
 	}
 	// A module node carries no source and no origin at all, which is the
 	// stronger form of what this used to spell out.
-	if !sdk.IsProjectOwned(member) {
+	if !model.IsProjectOwned(member) {
 		t.Fatalf("member is a %s node, want the project's own module", member.Kind())
 	}
 	external, ok := testnodes.Find(graph, "helper@1.0.0")
@@ -364,7 +366,7 @@ func TestCargoMetadataExactCollisionFoldsUntilTheMemberIsPromoted(t *testing.T) 
 	}
 	helpers := 0
 	repositories := map[string]int{}
-	graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+	graph.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		if dep.Name != "helper" {
 			return true
 		}
@@ -416,7 +418,7 @@ dependencies = [
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
 	root, ok := testnodes.Find(graph, "app@0.1.0")
-	if !ok || !sdk.IsProjectOwned(root) {
+	if !ok || !model.IsProjectOwned(root) {
 		t.Fatalf("expected first-party root app@0.1.0: %s", graph.PrettyString())
 	}
 	if origin := originOf(root); !origin.Empty() {
@@ -556,7 +558,7 @@ source = "git+https://github.com/b/helper#bbbbccccddddeeeeffff000011112222333344
 }
 
 // directDependencyIDs returns the IDs a node points at, as a set.
-func directDependencyIDs(t *testing.T, g *sdk.Graph, nodeID string) map[string]bool {
+func directDependencyIDs(t *testing.T, g *model.Graph, nodeID string) map[string]bool {
 	t.Helper()
 	deps, err := g.DirectDependencies(testnodes.ID(g, nodeID))
 	if err != nil {
@@ -569,7 +571,7 @@ func directDependencyIDs(t *testing.T, g *sdk.Graph, nodeID string) map[string]b
 		if dep == nil {
 			continue
 		}
-		name, version := sdk.NodeDisplayName(dep), sdk.NodeVersion(dep)
+		name, version := model.NodeDisplayName(dep), model.NodeVersion(dep)
 		if version != "" {
 			out[name+"@"+version] = true
 			continue
@@ -581,9 +583,9 @@ func directDependencyIDs(t *testing.T, g *sdk.Graph, nodeID string) map[string]b
 
 // mustDep narrows a graph node to the dependency node a case is asserting
 // about, failing rather than panicking when the graph holds something else.
-func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
 	t.Helper()
-	dep, ok := node.(*sdk.DependencyNode)
+	dep, ok := node.(*model.DependencyNode)
 	if !ok {
 		t.Fatalf("expected a dependency node, got %T", node)
 	}
@@ -596,7 +598,7 @@ func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
 // A member is a module node under ADR-0041, so the properties this used to
 // spell out -- application type, no ResolvedURL, no origin -- hold by
 // construction: a module carries none of those fields at all.
-func requireMemberModule(t *testing.T, graph *sdk.Graph, name, version string) *sdk.ModuleNode {
+func requireMemberModule(t *testing.T, graph *model.Graph, name, version string) *model.ModuleNode {
 	t.Helper()
 	for _, module := range graph.ModuleNodes() {
 		if module.Name == name && module.Version == version {

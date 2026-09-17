@@ -16,7 +16,8 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/ruby"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/sbt"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func writeFile(t *testing.T, dir, name, body string) {
@@ -30,9 +31,9 @@ func writeFile(t *testing.T, dir, name, body string) {
 	}
 }
 
-func mustPkg(t *testing.T, g *sdk.Graph, name, version string, extra ...func(*sdk.DependencyNode)) *sdk.DependencyNode {
+func mustPkg(t *testing.T, g *model.Graph, name, version string, extra ...func(*model.DependencyNode)) *model.DependencyNode {
 	t.Helper()
-	d := sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: name, Version: version, Ecosystem: "test"}}
+	d := model.DependencyNode{Coordinates: model.Coordinates{Name: name, Version: version, Ecosystem: "test"}}
 	for _, f := range extra {
 		f(&d)
 	}
@@ -56,7 +57,7 @@ func TestRubyGemfileLockPositions(t *testing.T) {
 PLATFORMS
   ruby
 `)
-	g := sdk.New()
+	g := model.New()
 	for _, n := range []string{"activesupport", "nokogiri", "rack", "unimported"} {
 		mustPkg(t, g, n, "1.0")
 	}
@@ -101,7 +102,7 @@ func TestNpmPackageLockPositions(t *testing.T) {
   }
 }
 `)
-	g := sdk.New()
+	g := model.New()
 	mustPkg(t, g, "lodash", "4.17.21")
 	mustPkg(t, g, "@scope/pkg", "1.0.0")
 	npm.AttachPackageLockPositions(g, dir)
@@ -136,7 +137,7 @@ func TestNpmPackageLockPositionsMatchPackageVersion(t *testing.T) {
   }
 }
 `)
-	g := sdk.New()
+	g := model.New()
 	mustPkg(t, g, "lodash", "3.10.1")
 	npm.AttachPackageLockPositions(g, dir)
 	lodash := labelled(t, g, "lodash", "3.10.1")
@@ -155,7 +156,7 @@ func TestNpmPackageLockPositionsMatchColonScopedGraphName(t *testing.T) {
   }
 }
 `)
-	g := sdk.New()
+	g := model.New()
 	mustPkg(t, g, "@scope:pkg", "1.2.3")
 	npm.AttachPackageLockPositions(g, dir)
 	scoped := labelled(t, g, "@scope:pkg", "1.2.3")
@@ -184,7 +185,7 @@ packages:
   '/bar@2.0.0(peer@3.0.0)':
     resolution: {integrity: sha512-yyy}
 `)
-	g := sdk.New()
+	g := model.New()
 	mustPkg(t, g, "foo", "1.0.0")
 	mustPkg(t, g, "bar", "2.0.0")
 	pnpm.AttachPnpmLockPositions(g, dir)
@@ -210,7 +211,7 @@ func TestPnpmLockPositionsMatchPackageVersion(t *testing.T) {
   /lodash@3.10.1:
     resolution: {integrity: sha512-old}
 `)
-	g := sdk.New()
+	g := model.New()
 	mustPkg(t, g, "lodash", "3.10.1")
 	pnpm.AttachPnpmLockPositions(g, dir)
 	lodash := labelled(t, g, "lodash", "3.10.1")
@@ -225,7 +226,7 @@ func TestPnpmLockPositionsMatchColonScopedGraphName(t *testing.T) {
   /@scope/pkg@1.2.3:
     resolution: {integrity: sha512-scoped}
 `)
-	g := sdk.New()
+	g := model.New()
 	mustPkg(t, g, "@scope:pkg", "1.2.3")
 	pnpm.AttachPnpmLockPositions(g, dir)
 	scoped := labelled(t, g, "@scope:pkg", "1.2.3")
@@ -247,7 +248,7 @@ func TestYarnLockPositions(t *testing.T) {
 lodash@^4.0.0, lodash@^4.17.0:
   version "4.17.21"
 `)
-	g := sdk.New()
+	g := model.New()
 	mustPkg(t, g, "@scope/pkg", "1.0.0")
 	mustPkg(t, g, "lodash", "4.17.21")
 	yarn.AttachYarnLockPositions(g, dir)
@@ -286,10 +287,10 @@ func TestMavenPomPositions(t *testing.T) {
   </dependencies>
 </project>
 `)
-	g := sdk.New()
-	mustPkg(t, g, "jackson-databind", "2.17.0", func(p *sdk.DependencyNode) { p.Org = "com.fasterxml.jackson.core" })
-	mustPkg(t, g, "junit", "4.13.2", func(p *sdk.DependencyNode) { p.Org = "junit" })
-	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.DependencyNode) { p.Org = "org.apache.commons" })
+	g := model.New()
+	mustPkg(t, g, "jackson-databind", "2.17.0", func(p *model.DependencyNode) { p.Org = "com.fasterxml.jackson.core" })
+	mustPkg(t, g, "junit", "4.13.2", func(p *model.DependencyNode) { p.Org = "junit" })
+	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *model.DependencyNode) { p.Org = "org.apache.commons" })
 	maven.AttachPomPositions(g, dir, "pom.xml")
 	jd := labelled(t, g, "com.fasterxml.jackson.core:jackson-databind", "2.17.0")
 	if jd == nil || len(jd.Locations) == 0 || jd.Locations[0].Position.Line != 9 {
@@ -320,8 +321,8 @@ func TestMavenPomPositionsResolvePropertiesAfterDependencies(t *testing.T) {
   </properties>
 </project>
 `)
-	g := sdk.New()
-	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.DependencyNode) { p.Org = "org.apache.commons" })
+	g := model.New()
+	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *model.DependencyNode) { p.Org = "org.apache.commons" })
 	maven.AttachPomPositions(g, dir, "pom.xml")
 
 	lang3 := labelled(t, g, "org.apache.commons:commons-lang3", "3.17.0")
@@ -344,8 +345,8 @@ func TestMavenPomPositionsUseArtifactPropertyForManagedDependency(t *testing.T) 
   </dependencies>
 </project>
 `)
-	g := sdk.New()
-	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.DependencyNode) { p.Org = "org.apache.commons" })
+	g := model.New()
+	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *model.DependencyNode) { p.Org = "org.apache.commons" })
 	maven.AttachPomPositions(g, dir, "pom.xml")
 
 	lang3 := labelled(t, g, "org.apache.commons:commons-lang3", "3.17.0")
@@ -366,8 +367,8 @@ func TestMavenPomPositionsModuleRelativePath(t *testing.T) {
   </dependencies>
 </project>
 `)
-	g := sdk.New()
-	mustPkg(t, g, "commons-text", "1.9", func(p *sdk.DependencyNode) { p.Org = "org.apache.commons" })
+	g := model.New()
+	mustPkg(t, g, "commons-text", "1.9", func(p *model.DependencyNode) { p.Org = "org.apache.commons" })
 	maven.AttachPomPositions(g, dir, "core/pom.xml")
 
 	text := labelled(t, g, "org.apache.commons:commons-text", "1.9")
@@ -391,7 +392,7 @@ func TestGradlePositions(t *testing.T) {
     testImplementation group: 'junit', name: 'junit', version: '4.13.2'
 }
 `)
-	g := sdk.New()
+	g := model.New()
 	mustPkg(t, g, "jackson-databind", "2.17.0")
 	mustPkg(t, g, "spring-core", "6.0.0")
 	mustPkg(t, g, "junit", "4.13.2")
@@ -415,7 +416,7 @@ func TestGradlePositionsSubprojectRelDirPrefix(t *testing.T) {
     api 'org.slf4j:slf4j-api:2.0.12'
 }
 `)
-	g := sdk.New()
+	g := model.New()
 	mustPkg(t, g, "slf4j-api", "2.0.12")
 	gradle.AttachGradlePositions(g, dir, "lib")
 
@@ -441,7 +442,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.6.20"
 )
 `)
-	g := sdk.New()
+	g := model.New()
 	mustPkg(t, g, "scalatest_2.13", "3.2.15")
 	mustPkg(t, g, "akka-actor_2.13", "2.6.20")
 	sbt.AttachSBTPositions(g, dir)
@@ -468,7 +469,7 @@ version = "1.0.150"
 name = "tokio"
 version = "1.0.0"
 `)
-	g := sdk.New()
+	g := model.New()
 	mustPkg(t, g, "serde", "1.0.150")
 	mustPkg(t, g, "tokio", "1.0.0")
 	cargo.AttachCargoLockPositions(g, dir)
@@ -493,7 +494,7 @@ func TestPodfileLockPositions(t *testing.T) {
 DEPENDENCIES:
   - AFNetworking
 `)
-	g := sdk.New()
+	g := model.New()
 	mustPkg(t, g, "AFNetworking", "4.0.1")
 	mustPkg(t, g, "Alamofire", "5.6.4")
 	cocoapods.AttachPodfileLockPositions(g, dir)
@@ -522,9 +523,9 @@ func TestComposerLockPositions(t *testing.T) {
   ]
 }
 `)
-	g := sdk.New()
-	mustPkg(t, g, "console", "v6.0.0", func(p *sdk.DependencyNode) { p.Org = "symfony" })
-	mustPkg(t, g, "monolog", "3.0.0", func(p *sdk.DependencyNode) { p.Org = "monolog" })
+	g := model.New()
+	mustPkg(t, g, "console", "v6.0.0", func(p *model.DependencyNode) { p.Org = "symfony" })
+	mustPkg(t, g, "monolog", "3.0.0", func(p *model.DependencyNode) { p.Org = "monolog" })
 	composer.AttachComposerLockPositions(g, dir)
 	sc := labelled(t, g, "symfony:console", "v6.0.0")
 	if sc == nil || len(sc.Locations) == 0 || sc.Locations[0].Position.Line != 4 {
@@ -543,7 +544,7 @@ func TestComposerLockPositions(t *testing.T) {
 // spelling the fixture used. Node IDs are canonical package URLs now
 // (ADR-0041), so these cases can no longer look one up by the "name@version"
 // string they were built from.
-func labelled(t *testing.T, g *sdk.Graph, name, version string) *sdk.DependencyNode {
+func labelled(t *testing.T, g *model.Graph, name, version string) *model.DependencyNode {
 	t.Helper()
 	dep, ok := testnodes.FindDep(g, name+"@"+version)
 	if !ok {

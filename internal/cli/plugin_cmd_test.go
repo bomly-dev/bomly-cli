@@ -7,8 +7,10 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
-	plugschema "github.com/bomly-dev/bomly-sdk"
 	"github.com/spf13/cobra"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestPluginList_TableSectionsAndDetectorColumns(t *testing.T) {
@@ -224,16 +226,16 @@ func TestRenderPluginInfoShowsDetectorRemediationCapabilities(t *testing.T) {
 		Manifest: managedplugin.Manifest{
 			ID:      "example-detector",
 			Name:    "example-detector",
-			Kind:    plugschema.PluginKindDetector,
+			Kind:    plugin.PluginKindDetector,
 			Version: "1.0.0",
 			Runtime: "builtin",
 		},
-		DetectorDescriptor: &plugschema.DetectorDescriptor{
-			RemediationCapabilities: []plugschema.RemediationCapability{{
-				SupportedManagers: []plugschema.PackageManager{plugschema.PackageManagerNPM},
-				Actions: []plugschema.RemediationAction{
-					plugschema.RemediationActionTransitiveOverride,
-					plugschema.RemediationActionDirectBump,
+		DetectorDescriptor: &plugin.DetectorDescriptor{
+			RemediationCapabilities: []plugin.RemediationCapability{{
+				SupportedManagers: []model.PackageManager{model.PackageManagerNPM},
+				Actions: []model.RemediationAction{
+					model.RemediationActionTransitiveOverride,
+					model.RemediationActionDirectBump,
 				},
 			}},
 		},
@@ -250,24 +252,24 @@ func TestRenderPluginInfoShowsDetectorRemediationCapabilities(t *testing.T) {
 
 func TestSortPluginInfos_EnabledEcosystemThenID(t *testing.T) {
 	items := []managedplugin.Info{
-		{Manifest: managedplugin.Manifest{ID: "z-disabled", Kind: plugschema.PluginKindDetector}},
+		{Manifest: managedplugin.Manifest{ID: "z-disabled", Kind: plugin.PluginKindDetector}},
 		{
 			Manifest: managedplugin.Manifest{
 				ID:   "z-enabled-npm",
-				Kind: plugschema.PluginKindDetector,
+				Kind: plugin.PluginKindDetector,
 			},
-			DetectorDescriptor: &plugschema.DetectorDescriptor{
-				SupportedEcosystems: []plugschema.Ecosystem{plugschema.EcosystemNPM},
+			DetectorDescriptor: &plugin.DetectorDescriptor{
+				SupportedEcosystems: []model.Ecosystem{model.EcosystemNPM},
 			},
 		},
-		{Manifest: managedplugin.Manifest{ID: "b-enabled-matcher", Kind: plugschema.PluginKindMatcher}},
+		{Manifest: managedplugin.Manifest{ID: "b-enabled-matcher", Kind: plugin.PluginKindMatcher}},
 		{
 			Manifest: managedplugin.Manifest{
 				ID:   "b-enabled-go",
-				Kind: plugschema.PluginKindDetector,
+				Kind: plugin.PluginKindDetector,
 			},
-			DetectorDescriptor: &plugschema.DetectorDescriptor{
-				SupportedEcosystems: []plugschema.Ecosystem{plugschema.EcosystemGo},
+			DetectorDescriptor: &plugin.DetectorDescriptor{
+				SupportedEcosystems: []model.Ecosystem{model.EcosystemGo},
 			},
 		},
 	}

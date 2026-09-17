@@ -5,7 +5,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // TestConsolidateGraphsKeepsEachModuleRootsRecordOfOneSite pins, from the CLI
@@ -18,37 +20,37 @@ import (
 // root, declaration site), and both usages survive consolidation.
 func TestConsolidateGraphsKeepsEachModuleRootsRecordOfOneSite(t *testing.T) {
 	const site = "pnpm-lock.yaml"
-	result := func(subproject, root string, scope sdk.Scope, relationship sdk.DependencyRelationship) sdk.DetectionResult {
-		g := sdk.New()
-		pkg := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
-			Name: "left-pad", Version: "1.3.0", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/left-pad@1.3.0"}})
-		pkg.Locations = []sdk.PackageLocation{{
+	result := func(subproject, root string, scope model.Scope, relationship model.DependencyRelationship) plugin.DetectionResult {
+		g := model.New()
+		pkg := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{
+			Name: "left-pad", Version: "1.3.0", Ecosystem: model.EcosystemNPM, PURL: "pkg:npm/left-pad@1.3.0"}})
+		pkg.Locations = []model.PackageLocation{{
 			RealPath:     site,
 			AccessPath:   site,
-			Position:     &sdk.SourcePosition{File: site, Line: 42},
+			Position:     &model.SourcePosition{File: site, Line: 42},
 			ModuleRoot:   root,
-			Scopes:       []sdk.Scope{scope},
+			Scopes:       []model.Scope{scope},
 			Relationship: relationship,
 		}}
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatal(err)
 		}
-		return sdk.DetectionResult{
-			SubprojectInfo: sdk.Subproject{
-				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
+		return plugin.DetectionResult{
+			SubprojectInfo: plugin.Subproject{
+				ExecutionTarget:         plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: "/repo"},
 				RelativePath:            subproject,
 				PrimaryDetector:         "pnpm-detector",
-				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerPNPM},
-				Ecosystem:               sdk.EcosystemNPM,
+				DetectedPackageManagers: []model.PackageManager{model.PackageManagerPNPM},
+				Ecosystem:               model.EcosystemNPM,
 			},
 			DetectorName: "pnpm-detector",
-			Graphs:       sdk.SingleGraphContainer(g, sdk.ManifestMetadata{Path: subproject + "/" + site, Kind: "pnpm-lock.yaml"}),
+			Graphs:       model.SingleGraphContainer(g, model.ManifestMetadata{Path: subproject + "/" + site, Kind: "pnpm-lock.yaml"}),
 		}
 	}
 
-	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{
-		result("apps/one", "packages/a", sdk.ScopeRuntime, sdk.DependencyRelationshipDirect),
-		result("apps/two", "packages/b", sdk.ScopeDevelopment, sdk.DependencyRelationshipTransitive),
+	consolidated, err := ConsolidateGraphs([]plugin.DetectionResult{
+		result("apps/one", "packages/a", model.ScopeRuntime, model.DependencyRelationshipDirect),
+		result("apps/two", "packages/b", model.ScopeDevelopment, model.DependencyRelationshipTransitive),
 	})
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
@@ -63,17 +65,17 @@ func TestConsolidateGraphsKeepsEachModuleRootsRecordOfOneSite(t *testing.T) {
 	}
 	// Keyed by the root's last segment: whether consolidation rebased the
 	// root into repository coordinates is not what this test is about.
-	byRoot := map[string]sdk.PackageLocation{}
+	byRoot := map[string]model.PackageLocation{}
 	for _, loc := range found[0].Locations {
 		byRoot[path.Base(loc.ModuleRoot)] = loc
 	}
 	if len(byRoot) != 2 {
 		t.Fatalf("locations = %+v, want one record per module root", found[0].Locations)
 	}
-	if a := byRoot["a"]; a.Relationship != sdk.DependencyRelationshipDirect || len(a.Scopes) != 1 || a.Scopes[0] != sdk.ScopeRuntime {
+	if a := byRoot["a"]; a.Relationship != model.DependencyRelationshipDirect || len(a.Scopes) != 1 || a.Scopes[0] != model.ScopeRuntime {
 		t.Errorf("packages/a record = %+v, want runtime/direct", a)
 	}
-	if b := byRoot["b"]; b.Relationship != sdk.DependencyRelationshipTransitive || len(b.Scopes) != 1 || b.Scopes[0] != sdk.ScopeDevelopment {
+	if b := byRoot["b"]; b.Relationship != model.DependencyRelationshipTransitive || len(b.Scopes) != 1 || b.Scopes[0] != model.ScopeDevelopment {
 		t.Errorf("packages/b record = %+v, want development/transitive", b)
 	}
 }

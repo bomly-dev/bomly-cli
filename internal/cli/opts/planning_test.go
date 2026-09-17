@@ -9,8 +9,10 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestPlanSubprojectsDetectsFilesystemPackageManager(t *testing.T) {
@@ -22,7 +24,7 @@ func TestPlanSubprojectsDetectsFilesystemPackageManager(t *testing.T) {
 	reg.Build()
 
 	subprojects, err := PlanSubprojects(reg, Request{
-		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectDir},
+		ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: projectDir},
 	})
 	if err != nil {
 		t.Fatalf("PlanSubprojects() error = %v", err)
@@ -30,7 +32,7 @@ func TestPlanSubprojectsDetectsFilesystemPackageManager(t *testing.T) {
 	if len(subprojects) != 1 {
 		t.Fatalf("expected one subproject, got %#v", subprojects)
 	}
-	if got := subprojects[0].PrimaryPackageManager(); got != sdk.PackageManagerNPM {
+	if got := subprojects[0].PrimaryPackageManager(); got != model.PackageManagerNPM {
 		t.Fatalf("expected npm package manager, got %s", got)
 	}
 }
@@ -40,8 +42,8 @@ func TestPlanSubprojectsReportsActiveFilters(t *testing.T) {
 	reg.Build()
 
 	_, err := PlanSubprojects(reg, Request{
-		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: t.TempDir()},
-		DetectorFilter:  sdk.DetectorFilter{Include: []string{"missing-detector"}},
+		ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: t.TempDir()},
+		DetectorFilter:  plugin.DetectorFilter{Include: []string{"missing-detector"}},
 	})
 	if !errors.Is(err, ErrNoSubprojects) {
 		t.Fatalf("expected ErrNoSubprojects, got %v", err)
@@ -60,7 +62,7 @@ func TestPlanSubprojectsNoFilterStillReportsNothingToEvaluate(t *testing.T) {
 	// Empty directory, no filter: still "nothing to evaluate" (exit 5), per the
 	// with-or-without-filter scope.
 	_, err := PlanSubprojects(reg, Request{
-		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: t.TempDir()},
+		ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: t.TempDir()},
 	})
 	if !errors.Is(err, ErrNoSubprojects) {
 		t.Fatalf("expected ErrNoSubprojects, got %v", err)
@@ -105,8 +107,8 @@ func TestNoSubprojectsErrorIncludesDiscoveryProbe(t *testing.T) {
 	// the probe must still report the evidence that exists on disk.
 	_, err := PlanSubprojects(reg, Request{
 		Registry:        reg,
-		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectDir},
-		DetectorFilter:  sdk.DetectorFilter{Include: []string{"missing-detector"}},
+		ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: projectDir},
+		DetectorFilter:  plugin.DetectorFilter{Include: []string{"missing-detector"}},
 	})
 	if !errors.Is(err, ErrNoSubprojects) {
 		t.Fatalf("expected ErrNoSubprojects, got %v", err)
@@ -123,7 +125,7 @@ func TestNoSubprojectsErrorIncludesDiscoveryProbe(t *testing.T) {
 func TestDescribeDiscoveryReportsEmptyTarget(t *testing.T) {
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
-	lines := DescribeDiscovery(sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: t.TempDir()})
+	lines := DescribeDiscovery(plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: t.TempDir()})
 	if len(lines) != 1 || !strings.Contains(lines[0], "no known manifest files found") {
 		t.Fatalf("expected empty-target line, got %#v", lines)
 	}
@@ -132,7 +134,7 @@ func TestDescribeDiscoveryReportsEmptyTarget(t *testing.T) {
 func TestDescribeDiscoverySkipsContainerTargets(t *testing.T) {
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
-	if lines := DescribeDiscovery(sdk.ExecutionTarget{Kind: sdk.ExecutionTargetContainerImage, Location: "alpine:latest"}); lines != nil {
+	if lines := DescribeDiscovery(plugin.ExecutionTarget{Kind: plugin.ExecutionTargetContainerImage, Location: "alpine:latest"}); lines != nil {
 		t.Fatalf("expected nil for container target, got %#v", lines)
 	}
 }

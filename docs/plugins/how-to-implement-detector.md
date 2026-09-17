@@ -2,9 +2,9 @@
 
 A detector plugin turns project evidence into a Bomly dependency graph. Use a detector when Bomly needs a new way to read dependency data, such as a new package manager, a specialized manifest format, or an internal dependency source.
 
-A detector is one `sdk.Module` with `Kind: sdk.PluginKindDetector`. The same module can be compiled into a host build (embedded) or served as a managed plugin binary with `sdk.ServeModule` — you write the component once. [Plugin basics](../PLUGINS.md#write-a-plugin) covers the module model, repository contract, configuration, testing, and release flow shared by every role; this guide covers what is specific to detectors.
+A detector is one `plugin.Module` with `Kind: plugin.PluginKindDetector`. The same module can be compiled into a host build (embedded) or served as a managed plugin binary with `runtime.ServeModule` — you write the component once. [Plugin basics](../PLUGINS.md#write-a-plugin) covers the module model, repository contract, configuration, testing, and release flow shared by every role; this guide covers what is specific to detectors.
 
-The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) documents `sdk.Module`, `sdk.DetectorModule`, the `sdk.Detector` interface, `sdk.DetectionRequest`, `sdk.DetectionResult`, graph helpers, and the package-manager support types used below.
+The SDK API reference is split by package: [`plugin`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/plugin) documents `Module`, `DetectorModule`, the `Detector` interface, `DetectionRequest`, `DetectionResult`, and the package-manager support types; [`model`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/model) documents the graph and its node constructors used below; [`runtime`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/runtime) documents `ServeModule`.
 
 ## Start From The Template
 
@@ -13,7 +13,7 @@ Start from the [bomly-plugin-template](https://github.com/bomly-dev/bomly-plugin
 ```text
 plugin/                  importable package: descriptor, Config, Detector, Module()
 cmd/<binary-name>/
-  main.go                one line: sdk.ServeModule(plugin.Module())
+  main.go                one line: runtime.ServeModule(plugin.Module())
 bomly-plugin.json        package manifest ("kind": "detector")
 testdata/                fixtures for unit tests
 .github/workflows/       CI and the release workflow
@@ -31,7 +31,8 @@ import (
     "context"
     "fmt"
 
-    sdk "github.com/bomly-dev/bomly-sdk"
+    "github.com/bomly-dev/bomly-sdk/model"
+    sdkplugin "github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // Name must equal the "id" field in bomly-plugin.json.
@@ -43,15 +44,15 @@ type Config struct {
 }
 
 // Detector reads bun.lock evidence and returns a dependency graph.
-// sdk.BaseDetector supplies default Ready/Applicable implementations
+// sdkplugin.BaseDetector supplies default Ready/Applicable implementations
 // (always ready, always applicable).
 type Detector struct {
-    sdk.BaseDetector
+    sdkplugin.BaseDetector
     config Config
 }
 
-func descriptor() sdk.DetectorDescriptor {
-    return sdk.DetectorDescriptor{
+func descriptor() sdkplugin.DetectorDescriptor {
+    return sdkplugin.DetectorDescriptor{
         Name:        Name,
         DisplayName: "Bun Lock Detector",
         Aliases:     []string{"bun-lock"},
@@ -59,52 +60,55 @@ func descriptor() sdk.DetectorDescriptor {
         // Directories recursive discovery must never descend into for this
         // ecosystem (see "Discovery metadata" below).
         IgnoredDirectories: []string{"node_modules"},
-        ConfigSchema:       sdk.MustConfigSchemaFor(Config{}),
+        ConfigSchema:       sdkplugin.MustConfigSchemaFor(Config{}),
     }
 }
 
-func support() []sdk.PackageManagerSupport {
-    return []sdk.PackageManagerSupport{
-        sdk.Support(sdk.PackageManagerOther, "bun.lock", "bun.lockb", "package.json"),
+func support() []sdkplugin.PackageManagerSupport {
+    return []sdkplugin.PackageManagerSupport{
+        sdkplugin.Support(model.PackageManagerOther, "bun.lock", "bun.lockb", "package.json"),
     }
 }
 
-func (d *Detector) Descriptor() sdk.DetectorDescriptor { return descriptor() }
+func (d *Detector) Descriptor() sdkplugin.DetectorDescriptor { return descriptor() }
 
-func (d *Detector) PackageManagerSupport() []sdk.PackageManagerSupport { return support() }
+func (d *Detector) PackageManagerSupport() []sdkplugin.PackageManagerSupport { return support() }
 
 // ResolveGraph reads the request and returns one or more manifest-scoped graphs.
-func (d *Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-    graph := sdk.New()
-    dep := sdk.NewDependency(sdk.Dependency{
-        Coordinates: sdk.Coordinates{
-            Ecosystem: sdk.EcosystemNPM,
-            Name:      "is-odd",
-            Version:   "3.0.1",
-            PURL:      "pkg:npm/is-odd@3.0.1",
-        },
-        FoundBy: Name,
+func (d *Detector) ResolveGraph(ctx context.Context, req sdkplugin.DetectionRequest) (sdkplugin.DetectionResult, error) {
+    graph := model.New()
+    // The constructor is the only mint for a node's identity: it derives the
+    // ID from the canonical package URL, so never assemble one by hand.
+    dep, err := model.NewDependencyNode(model.Coordinates{
+        Ecosystem: model.EcosystemNPM,
+        Name:      "is-odd",
+        Version:   "3.0.1",
+        PURL:      "pkg:npm/is-odd@3.0.1",
     })
-    if err := graph.AddNode(dep); err != nil {
-        return sdk.DetectionResult{}, fmt.Errorf("add node: %w", err)
+    if err != nil {
+        return sdkplugin.DetectionResult{}, fmt.Errorf("build node: %w", err)
     }
-    return sdk.DetectionResult{
+    dep.FoundBy = Name
+    if err := graph.AddNode(dep); err != nil {
+        return sdkplugin.DetectionResult{}, fmt.Errorf("add node: %w", err)
+    }
+    return sdkplugin.DetectionResult{
         SubprojectInfo:      req.Subproject,
         RootExecutionTarget: req.ExecutionTarget,
-        Graphs: sdk.SingleGraphContainer(graph, sdk.ManifestMetadata{
+        Graphs: model.SingleGraphContainer(graph, model.ManifestMetadata{
             Path: "bun.lock",
         }),
     }, nil
 }
 
 // Module packages the detector for both execution modes.
-func Module() sdk.Module {
-    return sdk.Module{
-        Kind: sdk.PluginKindDetector,
-        Detector: &sdk.DetectorModule{
+func Module() sdkplugin.Module {
+    return sdkplugin.Module{
+        Kind: sdkplugin.PluginKindDetector,
+        Detector: &sdkplugin.DetectorModule{
             Descriptor: descriptor(),
             Support:    support(),
-            New: func(_ context.Context, host sdk.HostContext) (sdk.Detector, error) {
+            New: func(_ context.Context, host sdkplugin.HostContext) (sdkplugin.Detector, error) {
                 detector := &Detector{}
                 if err := host.DecodeConfig(&detector.config); err != nil {
                     return nil, fmt.Errorf("decode %s config: %w", Name, err)
@@ -122,20 +126,20 @@ The binary entrypoint stays one line:
 package main
 
 import (
-    sdk "github.com/bomly-dev/bomly-sdk"
+    "github.com/bomly-dev/bomly-sdk/runtime"
 
     "example.com/bomly-plugin-bun-lock/plugin"
 )
 
-func main() { sdk.ServeModule(plugin.Module()) }
+func main() { runtime.ServeModule(plugin.Module()) }
 ```
 
 ## What Each Part Does
 
 - `Descriptor` is the detector's static registration: name (must equal the manifest `id`), display name, aliases, tags, supported ecosystems and managers, discovery metadata, and config schema.
 - `Support` (or the `PackageManagerSupport` method) tells Bomly which package managers and evidence files can plan this detector — declared on the module so Bomly can plan without constructing the component.
-- `New` constructs the detector once per execution, with a `sdk.HostContext` for the logger, HTTP client, runtime info, and configuration.
-- `Ready(ctx, req) error` reports whether the detector can run right now. Return `nil` when ready; return an error whose message explains the reason (for example `fmt.Errorf("bun executable not found on PATH")`) when it cannot. `sdk.BaseDetector` embeds an always-ready default.
+- `New` constructs the detector once per execution, with a `plugin.HostContext` for the logger, HTTP client, runtime info, and configuration.
+- `Ready(ctx, req) error` reports whether the detector can run right now. Return `nil` when ready; return an error whose message explains the reason (for example `fmt.Errorf("bun executable not found on PATH")`) when it cannot. `plugin.BaseDetector` embeds an always-ready default.
 - `Applicable(ctx, req) (bool, error)` reports whether the detector should run for this request (right project shape, right evidence present).
 - `ResolveGraph` does the work: read evidence, build graphs, return them.
 
@@ -158,7 +162,7 @@ Detector plugins participate in subproject discovery and scan planning through d
 - `PackageManagerSupport.EvidencePatterns` — file names (such as `bun.lock`) whose presence plans this detector for a directory.
 - `DetectorDescriptor.IgnoredDirectories` — directory basename globs recursive discovery (`--recursive`) must not descend into (a Node detector declares `node_modules`, a Maven detector declares `target`).
 - `DetectorDescriptor.IgnoredDirectoryMarkers` — file names that mark a directory as ignored regardless of its name (`pyvenv.cfg` marks a Python virtualenv).
-- `sdk.Support(...).WithMultiModule()` — declares that the detector natively expands nested workspace or reactor modules from a root manifest, so recursive discovery does not scan the same modules twice.
+- `plugin.Support(...).WithMultiModule()` — declares that the detector natively expands nested workspace or reactor modules from a root manifest, so recursive discovery does not scan the same modules twice.
 
 All of these are optional; older plugins that omit them keep working.
 
@@ -167,22 +171,25 @@ All of these are optional; older plugins that omit them keep working.
 Use SDK graph helpers instead of constructing graph internals by hand:
 
 ```go
-parent := sdk.NewDependency(sdk.Dependency{
-    Coordinates: sdk.Coordinates{Name: "app", Version: "0.0.0", PURL: "pkg:generic/app@0.0.0"},
-})
-child := sdk.NewDependency(sdk.Dependency{
-    Coordinates: sdk.Coordinates{Name: "lodash", Version: "4.17.21", PURL: "pkg:npm/lodash@4.17.21"},
-})
+parent, err := model.NewDependencyNode(model.Coordinates{Name: "app", Version: "0.0.0", PURL: "pkg:generic/app@0.0.0"})
+if err != nil {
+    return sdkplugin.DetectionResult{}, err
+}
+child, err := model.NewDependencyNode(model.Coordinates{Name: "lodash", Version: "4.17.21", PURL: "pkg:npm/lodash@4.17.21"})
+if err != nil {
+    return sdkplugin.DetectionResult{}, err
+}
 
-graph := sdk.New()
+graph := model.New()
 if err := graph.AddNode(parent); err != nil {
-    return sdk.DetectionResult{}, err
+    return sdkplugin.DetectionResult{}, err
 }
 if err := graph.AddNode(child); err != nil {
-    return sdk.DetectionResult{}, err
+    return sdkplugin.DetectionResult{}, err
 }
-if err := graph.AddEdge(parent.ID, child.ID); err != nil {
-    return sdk.DetectionResult{}, err
+// Edges join node IDs, which only the constructors mint.
+if err := graph.AddEdge(parent.NodeID(), child.NodeID()); err != nil {
+    return sdkplugin.DetectionResult{}, err
 }
 ```
 
@@ -190,32 +197,32 @@ Prefer canonical PURLs and fill `Coordinates` where possible — matchers enrich
 
 ## Optional Capabilities
 
-**Install-first.** A detector that must prepare dependencies before reading them (for example, running a resolving install) implements `sdk.InstallFirstDetector` (`Install(ctx, req) error`) and sets `SupportsInstallFirst` in its descriptor. Do not install package managers themselves; Bomly assumes required package managers already exist.
+**Install-first.** A detector that must prepare dependencies before reading them (for example, running a resolving install) implements `plugin.InstallFirstDetector` (`Install(ctx, req) error`) and sets `SupportsInstallFirst` in its descriptor. Do not install package managers themselves; Bomly assumes required package managers already exist.
 
 **Remediation hints.** A detector that understands package-manager fix strategies can advertise them and contribute read-only evidence after vulnerability enrichment:
 
 ```go
 // In the descriptor:
-RemediationCapabilities: []sdk.RemediationCapability{{
-    SupportedManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-    Actions: []sdk.RemediationAction{
-        sdk.RemediationActionDirectBump,
-        sdk.RemediationActionTransitiveOverride,
+RemediationCapabilities: []sdkplugin.RemediationCapability{{
+    SupportedManagers: []model.PackageManager{model.PackageManagerNPM},
+    Actions: []model.RemediationAction{
+        model.RemediationActionDirectBump,
+        model.RemediationActionTransitiveOverride,
     },
 }},
 ```
 
-Then implement `sdk.DetectorRemediationProvider` on the detector:
+Then implement `plugin.DetectorRemediationProvider` on the detector:
 
 ```go
-func (d *Detector) RemediationHints(ctx context.Context, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error)
+func (d *Detector) RemediationHints(ctx context.Context, req sdkplugin.RemediationHintRequest) (sdkplugin.RemediationHintResponse, error)
 ```
 
 Return hints only for dependency IDs and manifest paths this detector produced. Hints may name supported strategies and give plain-language package-manager advice. They must not choose a fix version, edit files, run commands, or make network calls — Bomly validates every hint and the central remediation component chooses the final action. Detectors without the capability are simply never asked.
 
 ## Configuration
 
-Declare a typed `Config` struct with `json`, `doc:`, and `default:` tags, advertise it with `ConfigSchema: sdk.MustConfigSchemaFor(Config{})`, and decode it in `New` with `host.DecodeConfig(&cfg)`. Users set the block under `plugins.detectors.<name>`:
+Declare a typed `Config` struct with `json`, `doc:`, and `default:` tags, advertise it with `ConfigSchema: plugin.MustConfigSchemaFor(Config{})`, and decode it in `New` with `host.DecodeConfig(&cfg)`. Users set the block under `plugins.detectors.<name>`:
 
 ```yaml
 plugins:

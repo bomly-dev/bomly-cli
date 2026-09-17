@@ -10,30 +10,32 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestBuildScanResponseIncludesAuditData(t *testing.T) {
 	g := newViewTestGraph(t)
 	started := time.Now().Add(-2 * time.Second)
-	results := []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
+	results := []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
 			RelativePath:            ".",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-			Ecosystem:               sdk.EcosystemNPM,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
+			Ecosystem:               model.EcosystemNPM,
 		},
 		DetectorName: "npm",
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph:    g,
-			Manifest: sdk.ManifestMetadata{Path: "/tmp/demo/package-lock.json", Kind: "package-lock.json"},
+			Manifest: model.ManifestMetadata{Path: "/tmp/demo/package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}}
 
-	findings := []sdk.Finding{{
+	findings := []model.Finding{{
 		ID:         "OSV-1",
-		Kind:       sdk.FindingKindVulnerability,
-		Severity:   sdk.SeverityHigh,
+		Kind:       model.FindingKindVulnerability,
+		Severity:   model.SeverityHigh,
 		PackageRef: "pkg:npm/react@18.2.0",
 		Title:      "Prototype pollution",
 		Source:     "osv",
@@ -65,21 +67,21 @@ func TestBuildScanResponseIncludesAuditData(t *testing.T) {
 
 func TestBuildScanResponseIncludesResolutionMetadata(t *testing.T) {
 	g := newViewTestGraph(t)
-	results := []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
+	results := []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
 			RelativePath:            ".",
 			PrimaryDetector:         "pip-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerPip},
-			Ecosystem:               sdk.EcosystemPython,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerPip},
+			Ecosystem:               model.EcosystemPython,
 		},
 		DetectorName: "pip-detector",
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph: g,
-			Manifest: sdk.ManifestMetadata{
+			Manifest: model.ManifestMetadata{
 				Path: "requirements.txt",
-				Kind: sdk.ManifestKindRequirementsTXT,
-				Resolution: &sdk.ResolutionMetadata{
-					Method:            sdk.ResolutionMethodIsolatedInstall,
+				Kind: model.ManifestKindRequirementsTXT,
+				Resolution: &model.ResolutionMetadata{
+					Method:            model.ResolutionMethodIsolatedInstall,
 					InstallExecuted:   true,
 					InstallCommand:    []string{"/tmp/bomly-pyvenv/bin/python", "-m", "pip", "install", "-r", "requirements.txt"},
 					InstallWorkingDir: "/repo",
@@ -99,7 +101,7 @@ func TestBuildScanResponseIncludesResolutionMetadata(t *testing.T) {
 	if resolution == nil {
 		t.Fatal("expected resolution metadata")
 	}
-	if resolution.Method != sdk.ResolutionMethodIsolatedInstall || !resolution.InstallExecuted {
+	if resolution.Method != model.ResolutionMethodIsolatedInstall || !resolution.InstallExecuted {
 		t.Fatalf("unexpected resolution metadata: %#v", resolution)
 	}
 }
@@ -120,39 +122,39 @@ func TestBuildScanResponseGatesReachability(t *testing.T) {
 	if !testnodes.Is(pkg, reactPURL) {
 		t.Fatalf("react node ID = %q, want %q", pkg.NodeID(), reactPURL)
 	}
-	registry := sdk.NewPackageRegistry()
+	registry := model.NewPackageRegistry()
 	regPkg := registry.Ensure(reactPURL)
 	regPkg.Name = "react"
 	regPkg.Version = "18.2.0"
-	regPkg.Vulnerabilities = []sdk.Vulnerability{{
+	regPkg.Vulnerabilities = []model.Vulnerability{{
 		ID:     "OSV-REACH",
 		Source: "osv",
-		Reachability: &sdk.Reachability{
-			Status:   sdk.ReachabilityReachable,
-			Tier:     sdk.TierPackage,
+		Reachability: &model.Reachability{
+			Status:   model.ReachabilityReachable,
+			Tier:     model.TierPackage,
 			Analyzer: "jsreach",
 		},
 	}}
-	results := []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+	results := []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM}, Ecosystem: model.EcosystemNPM},
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph:    g,
-			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+			Manifest: model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}}
 	consolidated, err := consolidation.ConsolidateGraphs(results)
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
-	finding := sdk.Finding{
+	finding := model.Finding{
 		ID:              "OSV-REACH",
 		VulnerabilityID: "OSV-REACH",
-		Kind:            sdk.FindingKindVulnerability,
+		Kind:            model.FindingKindVulnerability,
 		PackageRef:      reactPURL,
 		Source:          "osv",
 	}
 
-	disabled := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, registry, []sdk.Finding{finding}, time.Now().Add(-time.Second))
+	disabled := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, registry, []model.Finding{finding}, time.Now().Add(-time.Second))
 	if disabled.Metadata.ReachabilityEnabled {
 		t.Fatal("reachability metadata should be omitted when disabled")
 	}
@@ -163,10 +165,10 @@ func TestBuildScanResponseGatesReachability(t *testing.T) {
 		t.Fatalf("disabled scan finding join leaked reachability: %#v", got)
 	}
 
-	enabled := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, registry, []sdk.Finding{finding}, time.Now().Add(-time.Second), output.ReportOptions{
+	enabled := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, registry, []model.Finding{finding}, time.Now().Add(-time.Second), output.ReportOptions{
 		ReachabilityEnabled: true,
 		AnalyzerRuns:        []string{"jsreach"},
-		AnalyzerStats:       map[string]sdk.ReachabilityStats{"jsreach": {Reachable: 1}},
+		AnalyzerStats:       map[string]plugin.ReachabilityStats{"jsreach": {Reachable: 1}},
 	})
 	if !enabled.Metadata.ReachabilityEnabled {
 		t.Fatal("reachability metadata should be set when enabled")
@@ -177,11 +179,11 @@ func TestBuildScanResponseGatesReachability(t *testing.T) {
 	if enabled.Metadata.AnalyzerStats["jsreach"].Reachable != 1 {
 		t.Fatalf("unexpected analyzer stats: %#v", enabled.Metadata.AnalyzerStats)
 	}
-	if got := scanPackageByName(t, enabled.Packages, "react").Vulnerabilities[0].Reachability; got == nil || got.Status != sdk.ReachabilityReachable {
+	if got := scanPackageByName(t, enabled.Packages, "react").Vulnerabilities[0].Reachability; got == nil || got.Status != model.ReachabilityReachable {
 		t.Fatalf("enabled scan package reachability missing: %#v", got)
 	}
 	joined := output.FindingVulnerabilityInPackages(enabled.Findings[0], enabled.Packages)
-	if joined == nil || joined.Reachability == nil || joined.Reachability.Status != sdk.ReachabilityReachable {
+	if joined == nil || joined.Reachability == nil || joined.Reachability.Status != model.ReachabilityReachable {
 		t.Fatalf("enabled scan finding reachability missing via join: %#v", joined)
 	}
 }
@@ -190,47 +192,47 @@ func TestBuildScanResponseDeduplicatesManifestAndPrefersNative(t *testing.T) {
 	projectRoot := "/tmp/demo"
 	manifestPath := filepath.Join(projectRoot, "package-lock.json")
 
-	syftGraph := sdk.New()
-	if err := syftGraph.AddNode(testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "demo-app",
+	syftGraph := model.New()
+	if err := syftGraph.AddNode(testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "demo-app",
 		Version:   "1.0.0",
-		Ecosystem: sdk.EcosystemNPM,
+		Ecosystem: model.EcosystemNPM,
 		PURL:      "pkg:npm/demo-app@1.0.0"},
 	})); err != nil {
 		t.Fatalf("add syft package: %v", err)
 	}
 
 	nativeGraph := newViewTestGraph(t)
-	results := []sdk.DetectionResult{
+	results := []plugin.DetectionResult{
 		{
-			SubprojectInfo: sdk.Subproject{
-				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectRoot},
+			SubprojectInfo: plugin.Subproject{
+				ExecutionTarget:         plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: projectRoot},
 				RelativePath:            ".",
 				PrimaryDetector:         "npm-detector",
-				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-				Ecosystem:               sdk.EcosystemNPM,
+				DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
+				Ecosystem:               model.EcosystemNPM,
 			},
 			DetectorName: "syft-detector",
-			Origin:       sdk.BundledOrigin,
-			Technique:    sdk.MultipleTechnique,
-			Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+			Origin:       plugin.BundledOrigin,
+			Technique:    plugin.MultipleTechnique,
+			Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 				Graph:    syftGraph,
-				Manifest: sdk.ManifestMetadata{Path: manifestPath, Kind: "package-lock.json"},
+				Manifest: model.ManifestMetadata{Path: manifestPath, Kind: "package-lock.json"},
 			}}},
 		},
 		{
-			SubprojectInfo: sdk.Subproject{
-				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectRoot},
+			SubprojectInfo: plugin.Subproject{
+				ExecutionTarget:         plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: projectRoot},
 				RelativePath:            ".",
 				PrimaryDetector:         "npm-detector",
-				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-				Ecosystem:               sdk.EcosystemNPM,
+				DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
+				Ecosystem:               model.EcosystemNPM,
 			},
 			DetectorName: "npm-detector",
-			Origin:       sdk.CoreOrigin,
-			Technique:    sdk.BuildToolTechnique,
-			Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+			Origin:       plugin.CoreOrigin,
+			Technique:    plugin.BuildToolTechnique,
+			Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 				Graph:    nativeGraph,
-				Manifest: sdk.ManifestMetadata{Path: manifestPath, Kind: "package-lock.json"},
+				Manifest: model.ManifestMetadata{Path: manifestPath, Kind: "package-lock.json"},
 			}}},
 		},
 	}
@@ -256,46 +258,46 @@ func TestBuildScanResponseDeduplicatesSameManifestWhenMetadataDiffers(t *testing
 	manifestPath := filepath.Join(projectRoot, "package-lock.json")
 
 	nativeGraph := newViewTestGraph(t)
-	syftGraph := sdk.New()
-	if err := syftGraph.AddNode(testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "demo-app",
+	syftGraph := model.New()
+	if err := syftGraph.AddNode(testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "demo-app",
 		Version:   "1.0.0",
-		Ecosystem: sdk.EcosystemNPM,
+		Ecosystem: model.EcosystemNPM,
 		PURL:      "pkg:npm/demo-app@1.0.0"},
 	})); err != nil {
 		t.Fatalf("add syft package: %v", err)
 	}
 
-	results := []sdk.DetectionResult{
+	results := []plugin.DetectionResult{
 		{
-			SubprojectInfo: sdk.Subproject{
-				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectRoot},
+			SubprojectInfo: plugin.Subproject{
+				ExecutionTarget:         plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: projectRoot},
 				RelativePath:            ".",
 				PrimaryDetector:         "npm-detector",
-				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-				Ecosystem:               sdk.EcosystemNPM,
+				DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
+				Ecosystem:               model.EcosystemNPM,
 			},
 			DetectorName: "npm-detector",
-			Origin:       sdk.CoreOrigin,
-			Technique:    sdk.BuildToolTechnique,
-			Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+			Origin:       plugin.CoreOrigin,
+			Technique:    plugin.BuildToolTechnique,
+			Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 				Graph:    nativeGraph,
-				Manifest: sdk.ManifestMetadata{Path: manifestPath, Kind: "package-lock.json"},
+				Manifest: model.ManifestMetadata{Path: manifestPath, Kind: "package-lock.json"},
 			}}},
 		},
 		{
-			SubprojectInfo: sdk.Subproject{
-				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectRoot},
+			SubprojectInfo: plugin.Subproject{
+				ExecutionTarget:         plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: projectRoot},
 				RelativePath:            ".",
 				PrimaryDetector:         "npm-detector",
-				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-				Ecosystem:               sdk.EcosystemNPM,
+				DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
+				Ecosystem:               model.EcosystemNPM,
 			},
 			DetectorName: "syft-detector",
-			Origin:       sdk.BundledOrigin,
-			Technique:    sdk.MultipleTechnique,
-			Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+			Origin:       plugin.BundledOrigin,
+			Technique:    plugin.MultipleTechnique,
+			Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 				Graph:    syftGraph,
-				Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "npm-lockfile"},
+				Manifest: model.ManifestMetadata{Path: "package-lock.json", Kind: "npm-lockfile"},
 			}}},
 		},
 	}
@@ -339,7 +341,7 @@ func TestBuildExplainResponseGatesReachability(t *testing.T) {
 			Vulnerabilities: []output.VulnerabilityRef{{
 				ID:           "OSV-REACH",
 				Source:       "osv",
-				Reachability: &sdk.Reachability{Status: sdk.ReachabilityReachable, Tier: sdk.TierPackage},
+				Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
 			}},
 		}},
 		Paths: []output.DependencyPath{{Packages: []output.PackageRef{{
@@ -348,12 +350,12 @@ func TestBuildExplainResponseGatesReachability(t *testing.T) {
 			Vulnerabilities: []output.VulnerabilityRef{{
 				ID:           "OSV-REACH",
 				Source:       "osv",
-				Reachability: &sdk.Reachability{Status: sdk.ReachabilityReachable, Tier: sdk.TierPackage},
+				Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
 			}},
 		}}}},
 		Findings: []output.AuditFinding{{
 			ID:      "OSV-REACH",
-			Kind:    sdk.FindingKindVulnerability,
+			Kind:    model.FindingKindVulnerability,
 			Package: output.FindingPackageRef{Name: "react"},
 		}},
 	}}
@@ -366,7 +368,7 @@ func TestBuildExplainResponseGatesReachability(t *testing.T) {
 	if !enabled.Metadata.ReachabilityEnabled {
 		t.Fatal("reachability metadata should be set when enabled")
 	}
-	if got := enabled.Dependency.Vulnerabilities[0].Reachability; got == nil || got.Status != sdk.ReachabilityReachable {
+	if got := enabled.Dependency.Vulnerabilities[0].Reachability; got == nil || got.Status != model.ReachabilityReachable {
 		t.Fatalf("enabled explain reachability missing: %#v", got)
 	}
 }
@@ -381,18 +383,18 @@ func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 		t.Fatalf("add dependency: %v", err)
 	}
 
-	baseResults := []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+	baseResults := []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM}, Ecosystem: model.EcosystemNPM},
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph:    baseGraph,
-			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+			Manifest: model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}}
-	headResults := []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+	headResults := []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM}, Ecosystem: model.EcosystemNPM},
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph:    headGraph,
-			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+			Manifest: model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}}
 
@@ -423,30 +425,30 @@ func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 }
 
 func TestBuildDiffResponseReportsDependencyDetailTransitions(t *testing.T) {
-	baseGraph := sdk.New()
-	headGraph := sdk.New()
-	baseRoot := testnodes.ModuleFrom("package.json", sdk.Coordinates{
-		Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM,
-		Type: sdk.PackageTypeApplication, Name: "app",
+	baseGraph := model.New()
+	headGraph := model.New()
+	baseRoot := testnodes.ModuleFrom("package.json", model.Coordinates{
+		Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM,
+		Type: model.PackageTypeApplication, Name: "app",
 	})
 	headRoot := baseRoot.Clone()
-	baseDependency := testnodes.DepFrom(sdk.DependencyNode{
-		Coordinates: sdk.Coordinates{
-			Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM,
+	baseDependency := testnodes.DepFrom(model.DependencyNode{
+		Coordinates: model.Coordinates{
+			Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM,
 			Name: "example", Version: "1.0.0", PURL: "pkg:npm/example@1.0.0",
 		},
-		Relationship: sdk.DependencyRelationshipDirect,
-		Source:       sdk.DependencySourceRegistry,
+		Relationship: model.DependencyRelationshipDirect,
+		Source:       model.DependencySourceRegistry,
 		PackageRef:   "pkg:npm/example@1.0.0",
 	})
 	headDependency := baseDependency.Clone()
-	headDependency.Relationship = sdk.DependencyRelationshipTransitive
-	headDependency.Source = sdk.DependencySourceGit
+	headDependency.Relationship = model.DependencyRelationshipTransitive
+	headDependency.Source = model.DependencySourceGit
 
 	for _, pair := range []struct {
-		graph *sdk.Graph
-		root  *sdk.ModuleNode
-		dep   *sdk.DependencyNode
+		graph *model.Graph
+		root  *model.ModuleNode
+		dep   *model.DependencyNode
 	}{
 		{graph: baseGraph, root: baseRoot, dep: baseDependency},
 		{graph: headGraph, root: headRoot, dep: headDependency},
@@ -470,9 +472,9 @@ func TestBuildDiffResponseReportsDependencyDetailTransitions(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs(head) error = %v", err)
 	}
-	headRegistry := sdk.NewPackageRegistry()
-	headRegistry.Ensure(headDependency.NodeID()).Remediation = &sdk.PackageRemediation{
-		Status:             sdk.PackageRemediationComplete,
+	headRegistry := model.NewPackageRegistry()
+	headRegistry.Ensure(headDependency.NodeID()).Remediation = &model.PackageRemediation{
+		Status:             model.PackageRemediationComplete,
 		RecommendedVersion: "1.1.0",
 	}
 	response := output.BuildDiffResponse(
@@ -491,7 +493,7 @@ func TestBuildDiffResponseReportsDependencyDetailTransitions(t *testing.T) {
 	if transition.Before.Relationship != "direct" || transition.After.Relationship != "transitive" {
 		t.Fatalf("relationship transition = %#v", transition)
 	}
-	if transition.Before.Source != sdk.DependencySourceRegistry || transition.After.Source != sdk.DependencySourceGit {
+	if transition.Before.Source != model.DependencySourceRegistry || transition.After.Source != model.DependencySourceGit {
 		t.Fatalf("source transition = %#v", transition)
 	}
 	if !transition.Before.RegistryEligible || transition.After.RegistryEligible {
@@ -515,15 +517,15 @@ func TestBuildDiffResponseReportsDependencyDetailTransitions(t *testing.T) {
 }
 
 func TestBuildDiffResponseEnrichesPackageDeltasFromRegistries(t *testing.T) {
-	baseGraph := sdk.New()
-	headGraph := sdk.New()
-	baseApp := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"}})
-	baseLodash := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "lodash", Version: "4.17.14", PURL: "pkg:npm/lodash@4.17.14"}})
-	baseRemoved := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "removed", Version: "1.0.0", PURL: "pkg:npm/removed@1.0.0"}})
-	headApp := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"}})
-	headLodash := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"}})
-	headAdded := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "added", Version: "1.0.0", PURL: "pkg:npm/added@1.0.0"}})
-	for _, pkg := range []*sdk.DependencyNode{baseApp, baseLodash, baseRemoved} {
+	baseGraph := model.New()
+	headGraph := model.New()
+	baseApp := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM, Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"}})
+	baseLodash := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM, Name: "lodash", Version: "4.17.14", PURL: "pkg:npm/lodash@4.17.14"}})
+	baseRemoved := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM, Name: "removed", Version: "1.0.0", PURL: "pkg:npm/removed@1.0.0"}})
+	headApp := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM, Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"}})
+	headLodash := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM, Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"}})
+	headAdded := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM, Name: "added", Version: "1.0.0", PURL: "pkg:npm/added@1.0.0"}})
+	for _, pkg := range []*model.DependencyNode{baseApp, baseLodash, baseRemoved} {
 		if err := baseGraph.AddNode(pkg); err != nil {
 			t.Fatalf("base AddNode(%q): %v", pkg.NodeID(), err)
 		}
@@ -534,7 +536,7 @@ func TestBuildDiffResponseEnrichesPackageDeltasFromRegistries(t *testing.T) {
 	if err := baseGraph.AddEdge(baseApp.NodeID(), baseRemoved.NodeID()); err != nil {
 		t.Fatalf("base AddEdge(removed): %v", err)
 	}
-	for _, pkg := range []*sdk.DependencyNode{headApp, headLodash, headAdded} {
+	for _, pkg := range []*model.DependencyNode{headApp, headLodash, headAdded} {
 		if err := headGraph.AddNode(pkg); err != nil {
 			t.Fatalf("head AddNode(%q): %v", pkg.NodeID(), err)
 		}
@@ -554,13 +556,13 @@ func TestBuildDiffResponseEnrichesPackageDeltasFromRegistries(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs(head) error = %v", err)
 	}
-	baseRegistry := sdk.NewPackageRegistry()
-	baseRegistry.Ensure(baseLodash.NodeID()).Vulnerabilities = []sdk.Vulnerability{{ID: "GHSA-base", Source: "osv", ParsedSeverity: sdk.SeverityHigh}}
-	baseRegistry.Ensure(baseRemoved.NodeID()).Licenses = []sdk.PackageLicense{{SPDXExpression: "BSD-2-Clause"}}
-	headRegistry := sdk.NewPackageRegistry()
-	headRegistry.Ensure(headLodash.NodeID()).Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
-	headRegistry.Ensure(headLodash.NodeID()).Vulnerabilities = []sdk.Vulnerability{{ID: "GHSA-head", Source: "osv", ParsedSeverity: sdk.SeverityMedium}}
-	headRegistry.Ensure(headAdded.NodeID()).Licenses = []sdk.PackageLicense{{SPDXExpression: "Apache-2.0"}}
+	baseRegistry := model.NewPackageRegistry()
+	baseRegistry.Ensure(baseLodash.NodeID()).Vulnerabilities = []model.Vulnerability{{ID: "GHSA-base", Source: "osv", ParsedSeverity: model.SeverityHigh}}
+	baseRegistry.Ensure(baseRemoved.NodeID()).Licenses = []model.PackageLicense{{SPDXExpression: "BSD-2-Clause"}}
+	headRegistry := model.NewPackageRegistry()
+	headRegistry.Ensure(headLodash.NodeID()).Licenses = []model.PackageLicense{{SPDXExpression: "MIT"}}
+	headRegistry.Ensure(headLodash.NodeID()).Vulnerabilities = []model.Vulnerability{{ID: "GHSA-head", Source: "osv", ParsedSeverity: model.SeverityMedium}}
+	headRegistry.Ensure(headAdded.NodeID()).Licenses = []model.PackageLicense{{SPDXExpression: "Apache-2.0"}}
 
 	response := output.BuildDiffResponse("/tmp/demo", "base", "head", baseConsolidated, headConsolidated, nil, time.Now().Add(-time.Second), output.ReportOptions{
 		BaseRegistry: baseRegistry,
@@ -601,7 +603,7 @@ func TestBuildDiffResponseGatesReachability(t *testing.T) {
 	headGraph := newViewTestGraph(t)
 	// The node's ID is minted from its coordinates, so the ecosystem has to
 	// be stated rather than assigned afterwards (ADR-0041).
-	pkg := testnodes.Dep(sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: "newpkg", Version: "1.0.0"})
+	pkg := testnodes.Dep(model.Coordinates{Ecosystem: model.EcosystemNPM, Name: "newpkg", Version: "1.0.0"})
 	if err := headGraph.AddNode(pkg); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
@@ -609,31 +611,31 @@ func TestBuildDiffResponseGatesReachability(t *testing.T) {
 		t.Fatalf("add dependency: %v", err)
 	}
 
-	baseConsolidated, err := consolidation.ConsolidateGraphs([]sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+	baseConsolidated, err := consolidation.ConsolidateGraphs([]plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM}, Ecosystem: model.EcosystemNPM},
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph:    baseGraph,
-			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+			Manifest: model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}})
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs(base) error = %v", err)
 	}
-	headConsolidated, err := consolidation.ConsolidateGraphs([]sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+	headConsolidated, err := consolidation.ConsolidateGraphs([]plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM}, Ecosystem: model.EcosystemNPM},
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph:    headGraph,
-			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+			Manifest: model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}})
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs(head) error = %v", err)
 	}
-	reachable := &sdk.Reachability{Status: sdk.ReachabilityReachable, Tier: sdk.TierPackage}
-	headRegistry := sdk.NewPackageRegistry()
-	headRegistry.Add(&sdk.Package{
-		Coordinates: sdk.Coordinates{PURL: pkg.NodeID(), Name: "newpkg", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM},
-		Vulnerabilities: []sdk.Vulnerability{{
+	reachable := &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage}
+	headRegistry := model.NewPackageRegistry()
+	headRegistry.Add(&model.Package{
+		Coordinates: model.Coordinates{PURL: pkg.NodeID(), Name: "newpkg", Version: "1.0.0", Ecosystem: model.EcosystemNPM},
+		Vulnerabilities: []model.Vulnerability{{
 			ID:           "OSV-REACH",
 			Source:       "osv",
 			Reachability: reachable,
@@ -643,7 +645,7 @@ func TestBuildDiffResponseGatesReachability(t *testing.T) {
 		Introduced: []output.AuditFinding{{
 			ID:              "OSV-REACH",
 			VulnerabilityID: "OSV-REACH",
-			Kind:            sdk.FindingKindVulnerability,
+			Kind:            model.FindingKindVulnerability,
 			Package:         output.FindingPackageRef{Name: "newpkg", Version: "1.0.0", Purl: pkg.NodeID()},
 		}},
 	}
@@ -671,18 +673,18 @@ func TestBuildDiffResponseMatchesSameManifestWhenKindDiffers(t *testing.T) {
 		t.Fatalf("add dependency: %v", err)
 	}
 
-	baseResults := []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{RelativePath: ".", PrimaryDetector: "go-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerGoMod}, Ecosystem: sdk.EcosystemGo},
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+	baseResults := []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{RelativePath: ".", PrimaryDetector: "go-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerGoMod}, Ecosystem: model.EcosystemGo},
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph:    baseGraph,
-			Manifest: sdk.ManifestMetadata{Path: "go.mod", Kind: "go-module"},
+			Manifest: model.ManifestMetadata{Path: "go.mod", Kind: "go-module"},
 		}}},
 	}}
-	headResults := []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{RelativePath: ".", PrimaryDetector: "go-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerGoMod}, Ecosystem: sdk.EcosystemGo},
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+	headResults := []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{RelativePath: ".", PrimaryDetector: "go-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerGoMod}, Ecosystem: model.EcosystemGo},
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph:    headGraph,
-			Manifest: sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"},
+			Manifest: model.ManifestMetadata{Path: "go.mod", Kind: "go.mod"},
 		}}},
 	}}
 
@@ -717,38 +719,38 @@ func TestBuildDiffResponseTreatsSBOMFilesAsSameManifestWhenOnlyEvidencePathDiffe
 		t.Fatalf("add dependency: %v", err)
 	}
 
-	baseTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/base.spdx.json"}
-	headTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/head.spdx.json"}
-	baseResults := []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
+	baseTarget := plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/tmp/base.spdx.json"}
+	headTarget := plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/tmp/head.spdx.json"}
+	baseResults := []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
 			ExecutionTarget:         baseTarget,
 			RelativePath:            "base.spdx.json",
 			PrimaryDetector:         "sbom-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerSBOM},
-			Ecosystem:               sdk.EcosystemSBOM,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerSBOM},
+			Ecosystem:               model.EcosystemSBOM,
 		},
 		DetectorName: "sbom-detector",
-		Origin:       sdk.CoreOrigin,
-		Technique:    sdk.SBOMTechnique,
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+		Origin:       plugin.CoreOrigin,
+		Technique:    plugin.SBOMTechnique,
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph:    baseGraph,
-			Manifest: sdk.ManifestMetadata{Path: baseTarget.Location, Kind: "github.spdx"},
+			Manifest: model.ManifestMetadata{Path: baseTarget.Location, Kind: "github.spdx"},
 		}}},
 	}}
-	headResults := []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
+	headResults := []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
 			ExecutionTarget:         headTarget,
 			RelativePath:            "head.spdx.json",
 			PrimaryDetector:         "sbom-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerSBOM},
-			Ecosystem:               sdk.EcosystemSBOM,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerSBOM},
+			Ecosystem:               model.EcosystemSBOM,
 		},
 		DetectorName: "sbom-detector",
-		Origin:       sdk.CoreOrigin,
-		Technique:    sdk.SBOMTechnique,
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+		Origin:       plugin.CoreOrigin,
+		Technique:    plugin.SBOMTechnique,
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph:    headGraph,
-			Manifest: sdk.ManifestMetadata{Path: headTarget.Location, Kind: "bomly.spdx"},
+			Manifest: model.ManifestMetadata{Path: headTarget.Location, Kind: "bomly.spdx"},
 		}}},
 	}}
 
@@ -771,20 +773,20 @@ func TestBuildDiffResponseTreatsSBOMFilesAsSameManifestWhenOnlyEvidencePathDiffe
 }
 
 func TestBuildDiffResponsePrunesSBOMPseudoRootPackages(t *testing.T) {
-	baseGraph := sdk.New()
-	githubRoot := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGitHub,
-		PackageManager: sdk.PackageManagerSBOM,
+	baseGraph := model.New()
+	githubRoot := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemGitHub,
+		PackageManager: model.PackageManagerSBOM,
 		Name:           "com.github.bomly-dev/example",
 		Version:        "main",
 		PURL:           "pkg:github/bomly-dev/example@main"},
 	})
-	shared := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
-		PackageManager: sdk.PackageManagerNPM,
+	shared := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM,
+		PackageManager: model.PackageManagerNPM,
 		Name:           "react",
 		Version:        "18.2.0",
 		PURL:           "pkg:npm/react@18.2.0"},
 	})
-	for _, pkg := range []*sdk.DependencyNode{githubRoot, shared} {
+	for _, pkg := range []*model.DependencyNode{githubRoot, shared} {
 		if err := baseGraph.AddNode(pkg); err != nil {
 			t.Fatalf("base add package %q: %v", pkg.NodeID(), err)
 		}
@@ -793,20 +795,20 @@ func TestBuildDiffResponsePrunesSBOMPseudoRootPackages(t *testing.T) {
 		t.Fatalf("base add dependency: %v", err)
 	}
 
-	headGraph := sdk.New()
+	headGraph := model.New()
 	// The document's own pseudo-roots -- its root component and the lockfile
 	// it described -- are manifest nodes, not packages. That is what keeps
 	// them out of a package diff now: the diff walks dependency nodes, and a
 	// manifest is not one (ADR-0041).
-	root := testnodes.Manifest("bomly.sbom.json", sdk.ManifestKindSPDX)
-	lockfile := testnodes.Manifest("package-lock.json", sdk.ManifestKindPackageLockJSON)
-	added := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
-		PackageManager: sdk.PackageManagerNPM,
+	root := testnodes.Manifest("bomly.sbom.json", model.ManifestKindSPDX)
+	lockfile := testnodes.Manifest("package-lock.json", model.ManifestKindPackageLockJSON)
+	added := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM,
+		PackageManager: model.PackageManagerNPM,
 		Name:           "zod",
 		Version:        "3.23.0",
 		PURL:           "pkg:npm/zod@3.23.0"},
 	})
-	for _, pkg := range []sdk.GraphNode{root, lockfile, shared, added} {
+	for _, pkg := range []model.GraphNode{root, lockfile, shared, added} {
 		if err := headGraph.AddNode(pkg); err != nil {
 			t.Fatalf("head add package %q: %v", pkg.NodeID(), err)
 		}
@@ -845,9 +847,9 @@ func TestBuildDiffResponsePrunesSBOMPseudoRootPackages(t *testing.T) {
 
 func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t *testing.T) {
 	projectRoot := "/tmp/demo"
-	nativeGraph := sdk.New()
-	nativeApp := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
-		PackageManager: sdk.PackageManagerNPM,
+	nativeGraph := model.New()
+	nativeApp := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM,
+		PackageManager: model.PackageManagerNPM,
 		Name:           "app",
 		Version:        "1.0.0",
 		PURL:           "pkg:npm/app@1.0.0"},
@@ -855,8 +857,8 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	if err := nativeGraph.AddNode(nativeApp); err != nil {
 		t.Fatalf("add native app: %v", err)
 	}
-	nativeReact := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
-		PackageManager: sdk.PackageManagerNPM,
+	nativeReact := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM,
+		PackageManager: model.PackageManagerNPM,
 		Name:           "react",
 		Version:        "18.2.0",
 		PURL:           "pkg:npm/react@18.2.0"},
@@ -868,17 +870,17 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 		t.Fatalf("add native dependency: %v", err)
 	}
 
-	sbomGraph := sdk.New()
-	if err := sbomGraph.AddNode(testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
-		PackageManager: sdk.PackageManagerNPM,
+	sbomGraph := model.New()
+	if err := sbomGraph.AddNode(testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM,
+		PackageManager: model.PackageManagerNPM,
 		Name:           "app",
 		Version:        "1.0.0",
 		PURL:           "pkg:npm/app@1.0.0"},
 	})); err != nil {
 		t.Fatalf("add sbom app: %v", err)
 	}
-	if err := sbomGraph.AddNode(testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
-		PackageManager: sdk.PackageManagerNPM,
+	if err := sbomGraph.AddNode(testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM,
+		PackageManager: model.PackageManagerNPM,
 		Name:           "react",
 		Version:        "18.2.0",
 		PURL:           "pkg:npm/react@18.2.0"},
@@ -891,35 +893,35 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 		t.Fatalf("add sbom dependency: %v", err)
 	}
 
-	results := []sdk.DetectionResult{
+	results := []plugin.DetectionResult{
 		{
-			SubprojectInfo: sdk.Subproject{
-				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectRoot},
+			SubprojectInfo: plugin.Subproject{
+				ExecutionTarget:         plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: projectRoot},
 				RelativePath:            ".",
 				PrimaryDetector:         "npm-detector",
-				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-				Ecosystem:               sdk.EcosystemNPM,
+				DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
+				Ecosystem:               model.EcosystemNPM,
 			},
 			DetectorName: "npm-detector",
-			Technique:    sdk.BuildToolTechnique,
-			Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+			Technique:    plugin.BuildToolTechnique,
+			Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 				Graph:    nativeGraph,
-				Manifest: sdk.ManifestMetadata{Path: filepath.Join(projectRoot, "package-lock.json"), Kind: "package-lock.json"},
+				Manifest: model.ManifestMetadata{Path: filepath.Join(projectRoot, "package-lock.json"), Kind: "package-lock.json"},
 			}}},
 		},
 		{
-			SubprojectInfo: sdk.Subproject{
-				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectRoot},
+			SubprojectInfo: plugin.Subproject{
+				ExecutionTarget:         plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: projectRoot},
 				RelativePath:            "app.spdx.json",
 				PrimaryDetector:         "sbom-detector",
-				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerSBOM},
-				Ecosystem:               sdk.EcosystemSBOM,
+				DetectedPackageManagers: []model.PackageManager{model.PackageManagerSBOM},
+				Ecosystem:               model.EcosystemSBOM,
 			},
 			DetectorName: "sbom-detector",
-			Technique:    sdk.SBOMTechnique,
-			Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+			Technique:    plugin.SBOMTechnique,
+			Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 				Graph:    sbomGraph,
-				Manifest: sdk.ManifestMetadata{Path: filepath.Join(projectRoot, "app.spdx.json"), Kind: "spdx"},
+				Manifest: model.ManifestMetadata{Path: filepath.Join(projectRoot, "app.spdx.json"), Kind: "spdx"},
 			}}},
 		},
 	}
@@ -932,10 +934,10 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	// the PURL-keyed *sdk.PackageRegistry. We seed it once and the scan
 	// response surfaces it in the deduplicated top-level packages collection;
 	// every manifest dependency references the same package by package_ref.
-	registry := sdk.NewPackageRegistry()
+	registry := model.NewPackageRegistry()
 	reactPkg := registry.Ensure("pkg:npm/react@18.2.0")
 	reactPkg.Name = "react"
-	reactPkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
+	reactPkg.Licenses = []model.PackageLicense{{SPDXExpression: "MIT"}}
 	reactPkg.Matched = true
 
 	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: projectRoot}, consolidated, registry, nil, time.Now().Add(-time.Second))
@@ -976,57 +978,57 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	}
 }
 
-func sbomDiffResults(graph *sdk.Graph, location, manifestPath string) []sdk.DetectionResult {
-	return []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
-			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: location},
+func sbomDiffResults(graph *model.Graph, location, manifestPath string) []plugin.DetectionResult {
+	return []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
+			ExecutionTarget:         plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: location},
 			RelativePath:            filepath.Base(location),
 			PrimaryDetector:         "sbom-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerSBOM},
-			Ecosystem:               sdk.EcosystemSBOM,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerSBOM},
+			Ecosystem:               model.EcosystemSBOM,
 		},
 		DetectorName: "sbom-detector",
-		Technique:    sdk.SBOMTechnique,
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+		Technique:    plugin.SBOMTechnique,
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph:    graph,
-			Manifest: sdk.ManifestMetadata{Path: manifestPath, Kind: "spdx"},
+			Manifest: model.ManifestMetadata{Path: manifestPath, Kind: "spdx"},
 		}}},
 	}}
 }
 
-func singleManifestDiffResults(graph *sdk.Graph) []sdk.DetectionResult {
-	return []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
+func singleManifestDiffResults(graph *model.Graph) []plugin.DetectionResult {
+	return []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
 			RelativePath:            ".",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-			Ecosystem:               sdk.EcosystemNPM,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
+			Ecosystem:               model.EcosystemNPM,
 		},
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph:    graph,
-			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+			Manifest: model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}}
 }
 
 func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
-	baseGraph := sdk.New()
-	headGraph := sdk.New()
+	baseGraph := model.New()
+	headGraph := model.New()
 
-	baseApp := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "app", Version: "1.0.0"}})
-	baseDep := testnodes.DepFrom(sdk.DependencyNode{
-		Coordinates:  sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "left-pad", Version: "1.0.0"},
-		Relationship: sdk.DependencyRelationshipDirect,
-		Source:       sdk.DependencySourceRegistry,
+	baseApp := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM, Name: "app", Version: "1.0.0"}})
+	baseDep := testnodes.DepFrom(model.DependencyNode{
+		Coordinates:  model.Coordinates{Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM, Name: "left-pad", Version: "1.0.0"},
+		Relationship: model.DependencyRelationshipDirect,
+		Source:       model.DependencySourceRegistry,
 	})
-	headApp := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "app", Version: "1.0.0"}})
-	headDep := testnodes.DepFrom(sdk.DependencyNode{
-		Coordinates:  sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "leftpad", Version: "1.1.0"},
-		Relationship: sdk.DependencyRelationshipTransitive,
-		Source:       sdk.DependencySourceGit,
+	headApp := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM, Name: "app", Version: "1.0.0"}})
+	headDep := testnodes.DepFrom(model.DependencyNode{
+		Coordinates:  model.Coordinates{Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM, Name: "leftpad", Version: "1.1.0"},
+		Relationship: model.DependencyRelationshipTransitive,
+		Source:       model.DependencySourceGit,
 	})
 
-	for _, pkg := range []*sdk.DependencyNode{baseApp, baseDep} {
+	for _, pkg := range []*model.DependencyNode{baseApp, baseDep} {
 		if err := baseGraph.AddNode(pkg); err != nil {
 			t.Fatalf("base AddPackage(%q) error = %v", pkg.NodeID(), err)
 		}
@@ -1034,7 +1036,7 @@ func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
 	if err := baseGraph.AddEdge(baseApp.NodeID(), baseDep.NodeID()); err != nil {
 		t.Fatalf("base AddDependency() error = %v", err)
 	}
-	for _, pkg := range []*sdk.DependencyNode{headApp, headDep} {
+	for _, pkg := range []*model.DependencyNode{headApp, headDep} {
 		if err := headGraph.AddNode(pkg); err != nil {
 			t.Fatalf("head AddPackage(%q) error = %v", pkg.NodeID(), err)
 		}
@@ -1043,30 +1045,30 @@ func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
 		t.Fatalf("head AddDependency() error = %v", err)
 	}
 
-	baseResults := []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
-			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo"},
+	baseResults := []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
+			ExecutionTarget:         plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/tmp/demo"},
 			RelativePath:            ".",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-			Ecosystem:               sdk.EcosystemNPM,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
+			Ecosystem:               model.EcosystemNPM,
 		},
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph:    baseGraph,
-			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+			Manifest: model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}}
-	headResults := []sdk.DetectionResult{{
-		SubprojectInfo: sdk.Subproject{
-			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo"},
+	headResults := []plugin.DetectionResult{{
+		SubprojectInfo: plugin.Subproject{
+			ExecutionTarget:         plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: "/tmp/demo"},
 			RelativePath:            ".",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-			Ecosystem:               sdk.EcosystemNPM,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
+			Ecosystem:               model.EcosystemNPM,
 		},
-		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
 			Graph:    headGraph,
-			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+			Manifest: model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}}
 
@@ -1097,7 +1099,7 @@ func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
 	}
 	transition := response.Results.Manifests[0].Transitions[0]
 	if transition.Before.Relationship != "direct" || transition.After.Relationship != "transitive" ||
-		transition.Before.Source != sdk.DependencySourceRegistry || transition.After.Source != sdk.DependencySourceGit {
+		transition.Before.Source != model.DependencySourceRegistry || transition.After.Source != model.DependencySourceGit {
 		t.Fatalf("unexpected fuzzy detail change: %#v", transition)
 	}
 	changed := response.Results.Manifests[0].Changed[0]
@@ -1110,16 +1112,16 @@ func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
 }
 
 func TestBuildDiffResponseKeepsDuplicateOccurrenceTransitionsPerManifest(t *testing.T) {
-	newOccurrenceGraph := func(t *testing.T, relationship sdk.DependencyRelationship, source sdk.DependencySource) *sdk.Graph {
+	newOccurrenceGraph := func(t *testing.T, relationship model.DependencyRelationship, source model.DependencySource) *model.Graph {
 		t.Helper()
-		graph := sdk.New()
-		root := testnodes.ModuleFrom("package.json", sdk.Coordinates{
-			Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM,
-			Type: sdk.PackageTypeApplication, Name: "app",
+		graph := model.New()
+		root := testnodes.ModuleFrom("package.json", model.Coordinates{
+			Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM,
+			Type: model.PackageTypeApplication, Name: "app",
 		})
-		dependency := testnodes.DepFrom(sdk.DependencyNode{
-			Coordinates: sdk.Coordinates{
-				Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM,
+		dependency := testnodes.DepFrom(model.DependencyNode{
+			Coordinates: model.Coordinates{
+				Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM,
 				Name: "shared", Version: "1.0.0", PURL: "pkg:npm/shared@1.0.0",
 			},
 			Relationship: relationship,
@@ -1137,20 +1139,20 @@ func TestBuildDiffResponseKeepsDuplicateOccurrenceTransitionsPerManifest(t *test
 		}
 		return graph
 	}
-	consolidated := func(first, second *sdk.Graph) sdk.ConsolidatedGraph {
-		return sdk.ConsolidatedGraph{Manifests: []sdk.ConsolidatedManifest{
-			{Entry: sdk.GraphEntry{Graph: first, Manifest: sdk.ManifestMetadata{Path: "apps/a/package-lock.json", Kind: "package-lock.json"}}},
-			{Entry: sdk.GraphEntry{Graph: second, Manifest: sdk.ManifestMetadata{Path: "apps/b/package-lock.json", Kind: "package-lock.json"}}},
+	consolidated := func(first, second *model.Graph) plugin.ConsolidatedGraph {
+		return plugin.ConsolidatedGraph{Manifests: []plugin.ConsolidatedManifest{
+			{Entry: model.GraphEntry{Graph: first, Manifest: model.ManifestMetadata{Path: "apps/a/package-lock.json", Kind: "package-lock.json"}}},
+			{Entry: model.GraphEntry{Graph: second, Manifest: model.ManifestMetadata{Path: "apps/b/package-lock.json", Kind: "package-lock.json"}}},
 		}}
 	}
 
 	base := consolidated(
-		newOccurrenceGraph(t, sdk.DependencyRelationshipDirect, sdk.DependencySourceRegistry),
-		newOccurrenceGraph(t, sdk.DependencyRelationshipDirect, sdk.DependencySourceRegistry),
+		newOccurrenceGraph(t, model.DependencyRelationshipDirect, model.DependencySourceRegistry),
+		newOccurrenceGraph(t, model.DependencyRelationshipDirect, model.DependencySourceRegistry),
 	)
 	head := consolidated(
-		newOccurrenceGraph(t, sdk.DependencyRelationshipTransitive, sdk.DependencySourceRegistry),
-		newOccurrenceGraph(t, sdk.DependencyRelationshipDirect, sdk.DependencySourceGit),
+		newOccurrenceGraph(t, model.DependencyRelationshipTransitive, model.DependencySourceRegistry),
+		newOccurrenceGraph(t, model.DependencyRelationshipDirect, model.DependencySourceGit),
 	)
 
 	response := output.BuildDiffResponse("/tmp/demo", "base", "head", base, head, nil, time.Now())
@@ -1167,13 +1169,13 @@ func TestBuildDiffResponseKeepsDuplicateOccurrenceTransitionsPerManifest(t *test
 	}
 }
 
-func newViewTestGraph(t *testing.T) *sdk.Graph {
+func newViewTestGraph(t *testing.T) *model.Graph {
 	t.Helper()
-	g := sdk.New()
-	npm := func(name, version string) *sdk.DependencyNode {
-		return testnodes.Dep(sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: name, Version: version})
+	g := model.New()
+	npm := func(name, version string) *model.DependencyNode {
+		return testnodes.Dep(model.Coordinates{Ecosystem: model.EcosystemNPM, Name: name, Version: version})
 	}
-	for _, pkg := range []*sdk.DependencyNode{
+	for _, pkg := range []*model.DependencyNode{
 		npm("app", "1.0.0"),
 		npm("react", "18.2.0"),
 		npm("zod", "3.23.0"),
@@ -1207,31 +1209,31 @@ func scanPackageByName(t *testing.T, packages []output.ScanPackageEntry, name st
 }
 
 func TestBuildScanResponseCarriesDetectorWarningsIntoJSON(t *testing.T) {
-	graph := sdk.New()
+	graph := model.New()
 	if err := graph.AddNode(testnodes.Ref("react", "18.2.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
-	warnings := []sdk.DetectorWarning{
+	warnings := []plugin.DetectorWarning{
 		{
-			Type:     sdk.DetectorWarningPackageManager,
-			Code:     sdk.DetectorWarningCodeLockfileFormat,
+			Type:     plugin.DetectorWarningPackageManager,
+			Code:     plugin.DetectorWarningCodeLockfileFormat,
 			Source:   "pnpm",
 			Manifest: "pnpm-lock.yaml",
 			Message:  "pnpm-lock.yaml is format version 6.0",
 		},
 		{
-			Type:       sdk.DetectorWarningResolutionFailure,
+			Type:       plugin.DetectorWarningResolutionFailure,
 			Source:     "maven-detector",
 			Subproject: "services/api",
 			Message:    "not ready: java executable not found on PATH",
 		},
 	}
-	consolidated := sdk.ConsolidatedGraph{
-		Manifests: []sdk.ConsolidatedManifest{{
+	consolidated := plugin.ConsolidatedGraph{
+		Manifests: []plugin.ConsolidatedManifest{{
 			DetectorName: "pnpm-lockfile",
-			Entry: sdk.GraphEntry{
+			Entry: model.GraphEntry{
 				Graph:    graph,
-				Manifest: sdk.ManifestMetadata{Path: "pnpm-lock.yaml", Kind: "pnpm-lock.yaml"},
+				Manifest: model.ManifestMetadata{Path: "pnpm-lock.yaml", Kind: "pnpm-lock.yaml"},
 			},
 		}},
 	}
@@ -1262,14 +1264,14 @@ func TestBuildScanResponseCarriesDetectorWarningsIntoJSON(t *testing.T) {
 }
 
 func TestBuildScanResponseOmitsWarningsWhenClean(t *testing.T) {
-	graph := sdk.New()
+	graph := model.New()
 	if err := graph.AddNode(testnodes.Ref("react", "18.2.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
-	consolidated := sdk.ConsolidatedGraph{
-		Manifests: []sdk.ConsolidatedManifest{{
+	consolidated := plugin.ConsolidatedGraph{
+		Manifests: []plugin.ConsolidatedManifest{{
 			DetectorName: "pnpm-lockfile",
-			Entry:        sdk.GraphEntry{Graph: graph, Manifest: sdk.ManifestMetadata{Path: "pnpm-lock.yaml"}},
+			Entry:        model.GraphEntry{Graph: graph, Manifest: model.ManifestMetadata{Path: "pnpm-lock.yaml"}},
 		}},
 	}
 	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, nil, nil, time.Now())

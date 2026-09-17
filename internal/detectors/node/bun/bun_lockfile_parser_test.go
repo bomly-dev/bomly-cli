@@ -6,7 +6,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestDepGraphFromBunLockfile(t *testing.T) {
@@ -37,7 +38,7 @@ func TestDepGraphFromBunLockfile(t *testing.T) {
 		t.Fatalf("expected one workspace module, got %d", len(graphs.modules))
 	}
 	realPackage := dependencyByNameVersion(graphs.graph, "real-package", "2.1.0")
-	if realPackage == nil || realPackage.Source != sdk.DependencySourceRegistry {
+	if realPackage == nil || realPackage.Source != model.DependencySourceRegistry {
 		t.Fatalf("expected mirrored registry package, got %#v", realPackage)
 	}
 	if len(realPackage.Digests) != 1 || realPackage.Digests[0].Value != "abc" {
@@ -49,7 +50,7 @@ func TestDepGraphFromBunLockfile(t *testing.T) {
 	assertEdge(t, graphs.graph, root, workspace)
 	assertEdge(t, graphs.graph, workspace, realPackage)
 	tool := dependencyByNameVersion(graphs.graph, "tool", "1.2.0")
-	if tool == nil || tool.PrimaryScope() != sdk.ScopeDevelopment {
+	if tool == nil || tool.PrimaryScope() != model.ScopeDevelopment {
 		t.Fatalf("expected exact dev dependency version and scope, got %#v", tool)
 	}
 	assertEdge(t, graphs.graph, realPackage, dependencyByNameVersion(graphs.graph, "child", "1.0.0"))
@@ -86,9 +87,9 @@ func FuzzNormalizeJSONC(f *testing.F) {
 	})
 }
 
-func dependencyByNameVersion(graph *sdk.Graph, name, version string) *sdk.DependencyNode {
-	var found *sdk.DependencyNode
-	graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+func dependencyByNameVersion(graph *model.Graph, name, version string) *model.DependencyNode {
+	var found *model.DependencyNode
+	graph.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		if dep.Name == name && dep.Version == version {
 			found = dep
 			return false
@@ -98,7 +99,7 @@ func dependencyByNameVersion(graph *sdk.Graph, name, version string) *sdk.Depend
 	return found
 }
 
-func assertEdge(t *testing.T, graph *sdk.Graph, from, to sdk.GraphNode) {
+func assertEdge(t *testing.T, graph *model.Graph, from, to model.GraphNode) {
 	t.Helper()
 	if from == nil || to == nil {
 		t.Fatalf("edge endpoint is nil: from=%#v to=%#v", from, to)
@@ -117,9 +118,9 @@ func assertEdge(t *testing.T, graph *sdk.Graph, from, to sdk.GraphNode) {
 
 // mustDep narrows a graph node to the dependency node a case is asserting
 // about, failing rather than panicking when the graph holds something else.
-func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
 	t.Helper()
-	dep, ok := node.(*sdk.DependencyNode)
+	dep, ok := node.(*model.DependencyNode)
 	if !ok {
 		t.Fatalf("expected a dependency node, got %T", node)
 	}

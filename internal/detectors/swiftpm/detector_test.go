@@ -7,16 +7,18 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	projectDir := filepath.Join("testdata", "project")
 	detector := Detector{}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:    projectDir,
-		PackageManager: sdk.PackageManagerSwiftPM,
-		Ecosystem:      sdk.EcosystemSwift,
+		PackageManager: model.PackageManagerSwiftPM,
+		Ecosystem:      model.EcosystemSwift,
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph returned error: %v", err)
@@ -35,7 +37,7 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if !testnodes.Is(pkg, "pkg:swift/github.com/apple/swift-argument-parser@1.3.0") {
 		t.Fatalf("expected SwiftPM PURL, got %q", pkg.NodeID())
 	}
-	if pkg.Source != sdk.DependencySourceGit {
+	if pkg.Source != model.DependencySourceGit {
 		t.Fatalf("expected Git source, got %q", pkg.Source)
 	}
 	if !pkg.RegistryMatchEligible() {
@@ -55,12 +57,12 @@ func TestSwiftDependencySource(t *testing.T) {
 		name     string
 		kind     string
 		location string
-		want     sdk.DependencySource
+		want     model.DependencySource
 	}{
-		{name: "registry", kind: "registry", location: "mona.LinkedList", want: sdk.DependencySourceRegistry},
-		{name: "remote source control", kind: "remoteSourceControl", location: "https://github.com/example/pkg", want: sdk.DependencySourceGit},
-		{name: "local source control", kind: "localSourceControl", location: "../pkg", want: sdk.DependencySourceFile},
-		{name: "legacy repository", location: "https://github.com/example/pkg", want: sdk.DependencySourceGit},
+		{name: "registry", kind: "registry", location: "mona.LinkedList", want: model.DependencySourceRegistry},
+		{name: "remote source control", kind: "remoteSourceControl", location: "https://github.com/example/pkg", want: model.DependencySourceGit},
+		{name: "local source control", kind: "localSourceControl", location: "../pkg", want: model.DependencySourceFile},
+		{name: "legacy repository", location: "https://github.com/example/pkg", want: model.DependencySourceGit},
 		{name: "missing evidence", want: ""},
 		{name: "unknown kind", kind: "custom", location: "https://example.test/pkg", want: ""},
 	}

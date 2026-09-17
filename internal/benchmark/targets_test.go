@@ -6,8 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestLoadTargetsUsesEmbeddedManifest(t *testing.T) {
@@ -18,7 +19,7 @@ func TestLoadTargetsUsesEmbeddedManifest(t *testing.T) {
 	if len(targets) == 0 {
 		t.Fatal("expected embedded targets")
 	}
-	if targets[0].Name != "scan-go" || targets[0].Ecosystem != sdk.EcosystemGo {
+	if targets[0].Name != "scan-go" || targets[0].Ecosystem != model.EcosystemGo {
 		t.Fatalf("unexpected first target: %#v", targets[0])
 	}
 }
@@ -59,8 +60,8 @@ func TestLoadTargetsRejectsOversizedManifest(t *testing.T) {
 }
 
 func TestFilterTargetsByEcosystem(t *testing.T) {
-	targets := []Target{{Name: "npm", Ecosystem: sdk.EcosystemNPM}, {Name: "go", Ecosystem: sdk.EcosystemGo}}
-	filtered := filterTargetsByEcosystem(targets, []sdk.Ecosystem{sdk.EcosystemNPM})
+	targets := []Target{{Name: "npm", Ecosystem: model.EcosystemNPM}, {Name: "go", Ecosystem: model.EcosystemGo}}
+	filtered := filterTargetsByEcosystem(targets, []model.Ecosystem{model.EcosystemNPM})
 	if len(filtered) != 1 || filtered[0].Name != "npm" {
 		t.Fatalf("filtered = %#v", filtered)
 	}

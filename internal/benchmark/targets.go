@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/system"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 //go:embed testdata/scan_targets.json
@@ -16,12 +17,12 @@ var embeddedTargets []byte
 
 // Target describes one repository-backed smoke and benchmark case.
 type Target struct {
-	Name      string        `json:"name"`
-	URL       string        `json:"url"`
-	Ref       string        `json:"ref"`
-	Ecosystem sdk.Ecosystem `json:"ecosystem"`
-	Args      []string      `json:"args,omitempty"`
-	Tools     []string      `json:"tools,omitempty"`
+	Name      string          `json:"name"`
+	URL       string          `json:"url"`
+	Ref       string          `json:"ref"`
+	Ecosystem model.Ecosystem `json:"ecosystem"`
+	Args      []string        `json:"args,omitempty"`
+	Tools     []string        `json:"tools,omitempty"`
 	// Detectors pins the smoke scan to the detector selector(s) whose output
 	// the golden encodes (passed as --detectors). With a pinned selector set
 	// the engine skips any fallback outside it, so a degraded environment
@@ -102,15 +103,15 @@ func validateTargets(targets []Target) error {
 		if strings.TrimSpace(target.Ref) == "" {
 			return fmt.Errorf("benchmark target %q is missing ref", target.Name)
 		}
-		ecosystem, err := sdk.ParseEcosystem(string(target.Ecosystem))
+		ecosystem, err := model.ParseEcosystem(string(target.Ecosystem))
 		if err != nil {
 			return fmt.Errorf("benchmark target %q ecosystem: %w", target.Name, err)
 		}
 		target.Ecosystem = ecosystem
 		seenRelationships := make(map[string]struct{}, len(target.AdjudicatedRelationships))
 		for _, relationship := range target.AdjudicatedRelationships {
-			from := sdk.CanonicalizePackageURL(relationship.From)
-			to := sdk.CanonicalizePackageURL(relationship.To)
+			from := model.CanonicalizePackageURL(relationship.From)
+			to := model.CanonicalizePackageURL(relationship.To)
 			if from == "" || to == "" {
 				return fmt.Errorf("benchmark target %q has invalid adjudicated relationship %q -> %q", target.Name, relationship.From, relationship.To)
 			}

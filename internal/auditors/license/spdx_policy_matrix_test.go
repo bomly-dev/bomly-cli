@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestLicenseAuditorComplexSPDXAllowMatrix(t *testing.T) {
@@ -211,8 +213,8 @@ func TestLicenseAuditorInvalidSPDXExpressionMatrix(t *testing.T) {
 					}
 					finding := findings[0]
 					if finding.RuleID != "invalid-license" ||
-						finding.PolicyStatus != sdk.FindingPolicyStatusFail ||
-						finding.Severity != sdk.SeverityWarning ||
+						finding.PolicyStatus != model.FindingPolicyStatusFail ||
+						finding.Severity != model.SeverityWarning ||
 						!strings.Contains(finding.Title, "invalid SPDX license") {
 						t.Fatalf("invalid expression finding = %#v", finding)
 					}
@@ -223,23 +225,23 @@ func TestLicenseAuditorInvalidSPDXExpressionMatrix(t *testing.T) {
 }
 
 func TestLicenseAuditorExemptionIsPackageSpecificAndVersionAgnostic(t *testing.T) {
-	graph := sdk.New()
+	graph := model.New()
 	// The scanned project's own artifact is a module node; ownership is the
 	// node kind now (ADR-0041).
-	root := testnodes.ModuleFrom("package.json", sdk.Coordinates{
-		Ecosystem: sdk.EcosystemNPM, Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication,
+	root := testnodes.ModuleFrom("package.json", model.Coordinates{
+		Ecosystem: model.EcosystemNPM, Name: "app", Version: "1.0.0", Type: model.PackageTypeApplication,
 	})
-	exempt := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
-		Ecosystem: sdk.EcosystemNPM, Name: "exempt", Version: "2.0.0",
+	exempt := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{
+		Ecosystem: model.EcosystemNPM, Name: "exempt", Version: "2.0.0",
 	}})
-	blocked := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
-		Ecosystem: sdk.EcosystemNPM, Name: "blocked", Version: "1.0.0",
+	blocked := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{
+		Ecosystem: model.EcosystemNPM, Name: "blocked", Version: "1.0.0",
 	}})
-	registry := sdk.NewPackageRegistry()
+	registry := model.NewPackageRegistry()
 	if err := graph.AddNode(root); err != nil {
 		t.Fatal(err)
 	}
-	for _, dependency := range []*sdk.DependencyNode{exempt, blocked} {
+	for _, dependency := range []*model.DependencyNode{exempt, blocked} {
 		dependency.PackageRef = dependency.NodeID()
 		if err := graph.AddNode(dependency); err != nil {
 			t.Fatal(err)
@@ -248,14 +250,14 @@ func TestLicenseAuditorExemptionIsPackageSpecificAndVersionAgnostic(t *testing.T
 			if err := graph.AddEdge(root.NodeID(), dependency.NodeID()); err != nil {
 				t.Fatal(err)
 			}
-			registry.Ensure(dependency.PackageRef).Licenses = []sdk.PackageLicense{{SPDXExpression: "GPL-3.0-only"}}
+			registry.Ensure(dependency.PackageRef).Licenses = []model.PackageLicense{{SPDXExpression: "GPL-3.0-only"}}
 		}
 	}
 
 	result, err := (Auditor{
 		DenyLicenses:   []string{"GPL-3.0-only"},
 		ExemptPackages: []string{"pkg:npm/exempt@1.0.0"},
-	}).Audit(context.Background(), sdk.AuditRequest{Graph: graph, Registry: registry})
+	}).Audit(context.Background(), plugin.AuditRequest{Graph: graph, Registry: registry})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -264,16 +266,16 @@ func TestLicenseAuditorExemptionIsPackageSpecificAndVersionAgnostic(t *testing.T
 	}
 }
 
-func auditLicenseExpressions(t *testing.T, auditor Auditor, expressions ...string) []sdk.Finding {
+func auditLicenseExpressions(t *testing.T, auditor Auditor, expressions ...string) []model.Finding {
 	t.Helper()
-	graph := sdk.New()
+	graph := model.New()
 	// The scanned project's own artifact is a module node; ownership is the
 	// node kind now (ADR-0041).
-	root := testnodes.ModuleFrom("package.json", sdk.Coordinates{
-		Ecosystem: sdk.EcosystemNPM, Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication,
+	root := testnodes.ModuleFrom("package.json", model.Coordinates{
+		Ecosystem: model.EcosystemNPM, Name: "app", Version: "1.0.0", Type: model.PackageTypeApplication,
 	})
-	dependency := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
-		Ecosystem: sdk.EcosystemNPM, Name: "library", Version: "1.0.0",
+	dependency := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{
+		Ecosystem: model.EcosystemNPM, Name: "library", Version: "1.0.0",
 	}})
 	dependency.PackageRef = dependency.NodeID()
 	if err := graph.AddNode(root); err != nil {
@@ -285,19 +287,19 @@ func auditLicenseExpressions(t *testing.T, auditor Auditor, expressions ...strin
 	if err := graph.AddEdge(root.NodeID(), dependency.NodeID()); err != nil {
 		t.Fatal(err)
 	}
-	registry := sdk.NewPackageRegistry()
+	registry := model.NewPackageRegistry()
 	pkg := registry.Ensure(dependency.PackageRef)
 	for _, expression := range expressions {
-		pkg.Licenses = append(pkg.Licenses, sdk.PackageLicense{SPDXExpression: expression})
+		pkg.Licenses = append(pkg.Licenses, model.PackageLicense{SPDXExpression: expression})
 	}
-	result, err := auditor.Audit(context.Background(), sdk.AuditRequest{Graph: graph, Registry: registry})
+	result, err := auditor.Audit(context.Background(), plugin.AuditRequest{Graph: graph, Registry: registry})
 	if err != nil {
 		t.Fatal(err)
 	}
 	return result.Findings
 }
 
-func assertLicenseRule(t *testing.T, findings []sdk.Finding, wantRule string) {
+func assertLicenseRule(t *testing.T, findings []model.Finding, wantRule string) {
 	t.Helper()
 	if wantRule == "" {
 		if len(findings) != 0 {

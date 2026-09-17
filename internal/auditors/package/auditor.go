@@ -8,8 +8,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/purlkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 const auditorName = "package"
@@ -19,13 +21,13 @@ type Auditor struct {
 	DenyPackages       []string
 	DenyGroups         []string
 	ProtectedPackages  []string
-	FailOn             []sdk.FailOnConstraint
+	FailOn             []model.FailOnConstraint
 	TyposquatThreshold float64
 	TyposquatMode      string
 }
 
-func (a Auditor) Descriptor() sdk.AuditorDescriptor {
-	return sdk.AuditorDescriptor{
+func (a Auditor) Descriptor() plugin.AuditorDescriptor {
+	return plugin.AuditorDescriptor{
 		// No SupportedEcosystems: deny rules match on package name and group,
 		// and the typosquat corpus is the baseline graph itself rather than a
 		// per-ecosystem package list.
@@ -33,11 +35,11 @@ func (a Auditor) Descriptor() sdk.AuditorDescriptor {
 	}
 }
 
-func (a Auditor) Ready(context.Context, sdk.AuditRequest) error {
+func (a Auditor) Ready(context.Context, plugin.AuditRequest) error {
 	return nil
 }
 
-func (a Auditor) Applicable(_ context.Context, req sdk.AuditRequest) (bool, error) {
+func (a Auditor) Applicable(_ context.Context, req plugin.AuditRequest) (bool, error) {
 	if req.AuditorFilter.Excludes(auditorName) {
 		return false, nil
 	}
@@ -47,14 +49,14 @@ func (a Auditor) Applicable(_ context.Context, req sdk.AuditRequest) (bool, erro
 	return true, nil
 }
 
-func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
+func (a Auditor) Audit(_ context.Context, req plugin.AuditRequest) (plugin.AuditResult, error) {
 	findings := dependencySourceChangeFindings(req.DependencyDetailChanges, a.FailOn)
 	if req.Graph == nil {
-		return sdk.AuditResult{Findings: findings}, nil
+		return plugin.AuditResult{Findings: findings}, nil
 	}
 	packages := req.Graph.DependencyNodes()
 	if req.Target != nil {
-		packages = []*sdk.DependencyNode{req.Target}
+		packages = []*model.DependencyNode{req.Target}
 	}
 	baseNames := protectedNames(req.BaselineGraph, a.ProtectedPackages)
 	baseIDs := packageIDs(req.BaselineGraph)
@@ -70,11 +72,11 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 			continue
 		}
 		if deniedPackage(pkg, a.DenyPackages) {
-			findings = append(findings, finding(pkg, "denied-package", "Package is denylisted", sdk.FindingPolicyStatusFail))
+			findings = append(findings, finding(pkg, "denied-package", "Package is denylisted", model.FindingPolicyStatusFail))
 			continue
 		}
 		if deniedGroup(pkg, a.DenyGroups) {
-			findings = append(findings, finding(pkg, "denied-group", "Package group is denylisted", sdk.FindingPolicyStatusFail))
+			findings = append(findings, finding(pkg, "denied-group", "Package group is denylisted", model.FindingPolicyStatusFail))
 			continue
 		}
 		if _, existed := baseIDs[pkg.NodeID()]; existed {
@@ -87,24 +89,24 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 			continue
 		}
 		if protected, score, ok := closestProtectedName(pkg.DisplayName(), baseNames, threshold); ok {
-			policyStatus := sdk.FindingPolicyStatusWarn
+			policyStatus := model.FindingPolicyStatusWarn
 			if strings.EqualFold(strings.TrimSpace(a.TyposquatMode), "fail") {
-				policyStatus = sdk.FindingPolicyStatusFail
+				policyStatus = model.FindingPolicyStatusFail
 			}
 			f := finding(pkg, "suspicious-package", fmt.Sprintf("Package name is %.2f similar to protected package %s", score, protected), policyStatus)
 			f.Reasons = []string{"possible-typosquat"}
 			findings = append(findings, f)
 		}
 	}
-	return sdk.AuditResult{Findings: findings}, nil
+	return plugin.AuditResult{Findings: findings}, nil
 }
 
-func dependencySourceChangeFindings(transitions []sdk.DependencyDetailTransition, constraints []sdk.FailOnConstraint) []sdk.Finding {
+func dependencySourceChangeFindings(transitions []model.DependencyDetailTransition, constraints []model.FailOnConstraint) []model.Finding {
 	type findingKey struct {
 		ruleID   string
 		identity string
 	}
-	grouped := make(map[findingKey]*sdk.Finding)
+	grouped := make(map[findingKey]*model.Finding)
 	for _, transition := range transitions {
 		if transition.After == nil {
 			continue
@@ -112,10 +114,10 @@ func dependencySourceChangeFindings(transitions []sdk.DependencyDetailTransition
 		for _, reason := range transition.ReviewReasons() {
 			var ruleID, title string
 			switch reason {
-			case sdk.DependencyDetailReviewSourceGit:
+			case model.DependencyDetailReviewSourceGit:
 				ruleID = "dependency-source-change-to-git"
 				title = "Dependency source changed to Git; registry-based vulnerability checks may no longer cover it"
-			case sdk.DependencyDetailReviewSourceURL:
+			case model.DependencyDetailReviewSourceURL:
 				ruleID = "dependency-source-change-to-url"
 				title = "Dependency source changed to a URL; registry-based vulnerability checks may no longer cover it"
 			default:
@@ -129,18 +131,18 @@ func dependencySourceChangeFindings(transitions []sdk.DependencyDetailTransition
 			if identity == "" {
 				identity = transition.After.NodeID()
 			}
-			status := sdk.FindingPolicyStatusWarn
+			status := model.FindingPolicyStatusWarn
 			if sourceChangeMatchesConstraints(constraints) {
-				status = sdk.FindingPolicyStatusFail
+				status = model.FindingPolicyStatusFail
 			}
 			key := findingKey{ruleID: ruleID, identity: identity}
 			if existing := grouped[key]; existing != nil {
 				existing.DependencyRefs = appendUniqueString(existing.DependencyRefs, transition.After.NodeID())
 				continue
 			}
-			grouped[key] = &sdk.Finding{
+			grouped[key] = &model.Finding{
 				ID:             fmt.Sprintf("%s:%s:%s", auditorName, ruleID, identity),
-				Kind:           sdk.FindingKindPackage,
+				Kind:           model.FindingKindPackage,
 				Title:          title,
 				Severity:       packageFindingSeverity(status),
 				Reasons:        []string{string(reason)},
@@ -163,7 +165,7 @@ func dependencySourceChangeFindings(transitions []sdk.DependencyDetailTransition
 		}
 		return keys[i].identity < keys[j].identity
 	})
-	findings := make([]sdk.Finding, 0, len(keys))
+	findings := make([]model.Finding, 0, len(keys))
 	for _, key := range keys {
 		finding := grouped[key]
 		sort.Strings(finding.DependencyRefs)
@@ -172,9 +174,9 @@ func dependencySourceChangeFindings(transitions []sdk.DependencyDetailTransition
 	return findings
 }
 
-func sourceChangeMatchesConstraints(constraints []sdk.FailOnConstraint) bool {
+func sourceChangeMatchesConstraints(constraints []model.FailOnConstraint) bool {
 	for _, candidate := range constraints {
-		if candidate.Kind == sdk.SourceChangeConstraint && candidate.Value == sdk.SourceChangeValue {
+		if candidate.Kind == model.SourceChangeConstraint && candidate.Value == model.SourceChangeValue {
 			return true
 		}
 	}
@@ -191,14 +193,14 @@ func appendUniqueString(values []string, value string) []string {
 	return append(values, value)
 }
 
-func finding(pkg *sdk.DependencyNode, id, title string, policyStatus sdk.FindingPolicyStatus) sdk.Finding {
+func finding(pkg *model.DependencyNode, id, title string, policyStatus model.FindingPolicyStatus) model.Finding {
 	purl := pkg.PackageRef
 	if purl == "" {
 		purl = pkg.NodeID()
 	}
-	return sdk.Finding{
+	return model.Finding{
 		ID:             fmt.Sprintf("%s:%s:%s", auditorName, id, pkg.NodeID()),
-		Kind:           sdk.FindingKindPackage,
+		Kind:           model.FindingKindPackage,
 		Title:          title,
 		Severity:       packageFindingSeverity(policyStatus),
 		Source:         auditorName,
@@ -212,14 +214,14 @@ func finding(pkg *sdk.DependencyNode, id, title string, policyStatus sdk.Finding
 
 // packageFindingSeverity maps a finding's policy status to a GitHub-aligned
 // severity: a policy failure is an Error, an advisory finding is a Warning.
-func packageFindingSeverity(policyStatus sdk.FindingPolicyStatus) sdk.SeverityLevel {
-	if policyStatus == sdk.FindingPolicyStatusWarn {
-		return sdk.SeverityWarning
+func packageFindingSeverity(policyStatus model.FindingPolicyStatus) model.SeverityLevel {
+	if policyStatus == model.FindingPolicyStatusWarn {
+		return model.SeverityWarning
 	}
-	return sdk.SeverityError
+	return model.SeverityError
 }
 
-func packageIDs(graph *sdk.Graph) map[string]struct{} {
+func packageIDs(graph *model.Graph) map[string]struct{} {
 	ids := make(map[string]struct{})
 	if graph == nil {
 		return ids
@@ -232,7 +234,7 @@ func packageIDs(graph *sdk.Graph) map[string]struct{} {
 	return ids
 }
 
-func packageDisplayNames(graph *sdk.Graph) map[string]struct{} {
+func packageDisplayNames(graph *model.Graph) map[string]struct{} {
 	names := make(map[string]struct{})
 	if graph == nil {
 		return names
@@ -245,7 +247,7 @@ func packageDisplayNames(graph *sdk.Graph) map[string]struct{} {
 	return names
 }
 
-func protectedNames(graph *sdk.Graph, configured []string) []string {
+func protectedNames(graph *model.Graph, configured []string) []string {
 	names := append([]string(nil), configured...)
 	if graph == nil {
 		return names
@@ -259,14 +261,14 @@ func protectedNames(graph *sdk.Graph, configured []string) []string {
 	return names
 }
 
-func deniedPackage(pkg *sdk.DependencyNode, denied []string) bool {
+func deniedPackage(pkg *model.DependencyNode, denied []string) bool {
 	canonical := pkg.NodeID()
-	base := sdk.PackageURLBase(canonical)
+	base := model.PackageURLBase(canonical)
 	if canonical == "" || base == "" {
 		return false
 	}
 	for _, candidate := range denied {
-		canonicalCandidate := sdk.CanonicalizePackageURL(candidate)
+		canonicalCandidate := model.CanonicalizePackageURL(candidate)
 		if canonicalCandidate == "" {
 			continue
 		}
@@ -275,20 +277,20 @@ func deniedPackage(pkg *sdk.DependencyNode, denied []string) bool {
 		if hasVersion && canonical == canonicalCandidate {
 			return true
 		}
-		if !hasVersion && base == sdk.PackageURLBase(canonicalCandidate) {
+		if !hasVersion && base == model.PackageURLBase(canonicalCandidate) {
 			return true
 		}
 	}
 	return false
 }
 
-func deniedGroup(pkg *sdk.DependencyNode, denied []string) bool {
-	base := sdk.PackageURLBase(pkg.NodeID())
+func deniedGroup(pkg *model.DependencyNode, denied []string) bool {
+	base := model.PackageURLBase(pkg.NodeID())
 	if base == "" {
 		return false
 	}
 	for _, candidate := range denied {
-		group := strings.TrimSuffix(sdk.PackageURLBase(candidate), "/")
+		group := strings.TrimSuffix(model.PackageURLBase(candidate), "/")
 		if group != "" && strings.HasPrefix(base, group+"/") {
 			return true
 		}

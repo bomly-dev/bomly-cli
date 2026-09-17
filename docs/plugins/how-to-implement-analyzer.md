@@ -2,9 +2,9 @@
 
 An analyzer plugin runs code analysis after enrichment. Use an analyzer when you want to annotate vulnerabilities with reachability data — whether the scanned project can actually reach the vulnerable package or symbol — for a language the built-in analyzers do not cover, or with a technique they do not use.
 
-An analyzer is one `sdk.Module` with `Kind: sdk.PluginKindAnalyzer`. The same module can be compiled into a host build (embedded) or served as a managed plugin binary with `sdk.ServeModule` — you write the component once. Analyzers run when a scan passes `--analyze` (which requires `--enrich`), after matchers and before auditors. [Plugin basics](../PLUGINS.md#write-a-plugin) covers the module model, repository contract, configuration, testing, and release flow shared by every role; this guide covers what is specific to analyzers.
+An analyzer is one `plugin.Module` with `Kind: plugin.PluginKindAnalyzer`. The same module can be compiled into a host build (embedded) or served as a managed plugin binary with `runtime.ServeModule` — you write the component once. Analyzers run when a scan passes `--analyze` (which requires `--enrich`), after matchers and before auditors. [Plugin basics](../PLUGINS.md#write-a-plugin) covers the module model, repository contract, configuration, testing, and release flow shared by every role; this guide covers what is specific to analyzers.
 
-The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) documents `sdk.Module`, `sdk.AnalyzerModule`, the `sdk.Analyzer` interface, `sdk.AnalyzeRequest`, `sdk.AnalyzeResult`, the PURL-keyed package registry, and the `sdk.Reachability` annotation used below.
+The SDK API reference is split by package: [`plugin`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/plugin) documents `Module`, `AnalyzerModule`, the `Analyzer` interface, `AnalyzeRequest`, and `AnalyzeResult`; [`model`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/model) documents the PURL-keyed package registry and the `Reachability` annotation used below; [`runtime`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/runtime) documents `ServeModule`.
 
 ## Start From The Template
 
@@ -13,7 +13,7 @@ Start from the [bomly-plugin-template](https://github.com/bomly-dev/bomly-plugin
 ```text
 plugin/                  importable package: descriptor, Config, Analyzer, Module()
 cmd/<binary-name>/
-  main.go                one line: sdk.ServeModule(plugin.Module())
+  main.go                one line: runtime.ServeModule(plugin.Module())
 bomly-plugin.json        package manifest ("kind": "analyzer")
 testdata/                fixtures for unit tests
 .github/workflows/       CI and the release workflow
@@ -29,7 +29,8 @@ import (
     "context"
     "fmt"
 
-    sdk "github.com/bomly-dev/bomly-sdk"
+    "github.com/bomly-dev/bomly-sdk/model"
+    sdkplugin "github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // Name must equal the "id" field in bomly-plugin.json.
@@ -40,41 +41,41 @@ type Config struct {
     MaxDepth int `json:"maxDepth" doc:"Maximum call-graph depth to explore" default:"10"`
 }
 
-// Analyzer annotates vulnerabilities with reachability. sdk.BaseAnalyzer
+// Analyzer annotates vulnerabilities with reachability. sdkplugin.BaseAnalyzer
 // supplies default Ready/Applicable implementations. Override Ready when the
 // analysis needs a toolchain that can be missing.
 type Analyzer struct {
-    sdk.BaseAnalyzer
+    sdkplugin.BaseAnalyzer
     config Config
 }
 
-func descriptor() sdk.AnalyzerDescriptor {
-    return sdk.AnalyzerDescriptor{
+func descriptor() sdkplugin.AnalyzerDescriptor {
+    return sdkplugin.AnalyzerDescriptor{
         Name:        Name,
         DisplayName: "MyReach Analyzer",
         // SupportedLanguages is the analyzer's primary dispatch axis: Bomly
         // only runs the analyzer when the request's language matches (an
         // empty list reads as "all languages").
-        SupportedLanguages: []sdk.Language{sdk.LanguageGo},
+        SupportedLanguages: []model.Language{model.LanguageGo},
         // SupportedTiers communicates the precision you can deliver:
-        // sdk.TierSymbol (call-path level) or sdk.TierPackage (import level).
-        SupportedTiers: []sdk.ReachabilityTier{sdk.TierPackage},
+        // model.TierSymbol (call-path level) or model.TierPackage (import level).
+        SupportedTiers: []model.ReachabilityTier{model.TierPackage},
         // The analyzer can return package-update deltas (see below).
-        Capabilities: []string{sdk.CapabilityPackageUpdates},
-        ConfigSchema: sdk.MustConfigSchemaFor(Config{}),
+        Capabilities: []string{sdkplugin.CapabilityPackageUpdates},
+        ConfigSchema: sdkplugin.MustConfigSchemaFor(Config{}),
     }
 }
 
-func (a *Analyzer) Descriptor() sdk.AnalyzerDescriptor { return descriptor() }
+func (a *Analyzer) Descriptor() sdkplugin.AnalyzerDescriptor { return descriptor() }
 
 // Analyze annotates registry vulnerabilities with reachability.
-func (a *Analyzer) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
-    updated := annotateReachability(ctx, req) // your analysis; returns []*sdk.Package
-    stats := map[string]sdk.ReachabilityStats{Name: {Reachable: len(updated)}}
+func (a *Analyzer) Analyze(ctx context.Context, req sdkplugin.AnalyzeRequest) (sdkplugin.AnalyzeResult, error) {
+    updated := annotateReachability(ctx, req) // your analysis; returns []*model.Package
+    stats := map[string]sdkplugin.ReachabilityStats{Name: {Reachable: len(updated)}}
 
     if req.AcceptPackageUpdates {
         // Delta path: return only the packages you touched.
-        return sdk.AnalyzeResult{
+        return sdkplugin.AnalyzeResult{
             PackageUpdates: updated,
             AnalyzerRuns:   []string{Name},
             AnalyzerStats:  stats,
@@ -82,8 +83,8 @@ func (a *Analyzer) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.Ana
     }
 
     // Baseline path (protocol v1): return the full registry.
-    registry := sdk.ApplyPackageUpdates(req.Registry, updated)
-    return sdk.AnalyzeResult{
+    registry := model.ApplyPackageUpdates(req.Registry, updated)
+    return sdkplugin.AnalyzeResult{
         Registry:      registry,
         AnalyzerRuns:  []string{Name},
         AnalyzerStats: stats,
@@ -91,12 +92,12 @@ func (a *Analyzer) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.Ana
 }
 
 // Module packages the analyzer for both execution modes.
-func Module() sdk.Module {
-    return sdk.Module{
-        Kind: sdk.PluginKindAnalyzer,
-        Analyzer: &sdk.AnalyzerModule{
+func Module() sdkplugin.Module {
+    return sdkplugin.Module{
+        Kind: sdkplugin.PluginKindAnalyzer,
+        Analyzer: &sdkplugin.AnalyzerModule{
             Descriptor: descriptor(),
-            New: func(_ context.Context, host sdk.HostContext) (sdk.Analyzer, error) {
+            New: func(_ context.Context, host sdkplugin.HostContext) (sdkplugin.Analyzer, error) {
                 analyzer := &Analyzer{}
                 if err := host.DecodeConfig(&analyzer.config); err != nil {
                     return nil, fmt.Errorf("decode %s config: %w", Name, err)
@@ -111,14 +112,14 @@ func Module() sdk.Module {
 The binary entrypoint stays one line:
 
 ```go
-func main() { sdk.ServeModule(plugin.Module()) }
+func main() { runtime.ServeModule(plugin.Module()) }
 ```
 
 ## What Each Part Does
 
 - `Descriptor` is the analyzer's static registration: name (must equal the manifest `id`), supported languages, tiers, capabilities, and config schema.
-- `New` constructs the analyzer once per execution, with a `sdk.HostContext` for the logger, HTTP client, runtime info, and configuration.
-- `Ready(ctx, req) error` reports whether the analyzer can run right now — return `nil` when ready, or an error whose message explains the reason (toolchain missing, source unreadable). `sdk.BaseAnalyzer` embeds an always-ready default.
+- `New` constructs the analyzer once per execution, with a `plugin.HostContext` for the logger, HTTP client, runtime info, and configuration.
+- `Ready(ctx, req) error` reports whether the analyzer can run right now — return `nil` when ready, or an error whose message explains the reason (toolchain missing, source unreadable). `plugin.BaseAnalyzer` embeds an always-ready default.
 - `Applicable(ctx, req) (bool, error)` reports whether the analyzer should run for this request (right language, right project shape).
 - `Analyze` does the work: run the analysis and return reachability annotations.
 
@@ -134,15 +135,15 @@ if !ok {
     return // nothing to annotate
 }
 for i := range pkg.Vulnerabilities {
-    pkg.Vulnerabilities[i].Reachability = &sdk.Reachability{
-        Status:   sdk.ReachabilityReachable,
-        Tier:     sdk.TierPackage,
+    pkg.Vulnerabilities[i].Reachability = &model.Reachability{
+        Status:   model.ReachabilityReachable,
+        Tier:     model.TierPackage,
         Analyzer: Name,
     }
 }
 ```
 
-Use the statuses honestly: `sdk.ReachabilityReachable` when you found evidence, `sdk.ReachabilityUnreachable` when the analysis completed and found none (state your tier — package-tier unreachable does not mean safe), `sdk.ReachabilityUnknown` with a `Reason` when the analysis could not complete, and leave the annotation absent when the vulnerability is outside your scope.
+Use the statuses honestly: `model.ReachabilityReachable` when you found evidence, `model.ReachabilityUnreachable` when the analysis completed and found none (state your tier — package-tier unreachable does not mean safe), `model.ReachabilityUnknown` with a `Reason` when the analysis could not complete, and leave the annotation absent when the vulnerability is outside your scope.
 
 **Never fail the scan.** Analyzer failures degrade: if your toolchain is missing, a file does not parse, or an internal step errors, report `unknown` with a reason (or return an error, which Bomly downgrades to a pipeline warning) — but prefer returning partial results over returning an error. The scan must complete either way.
 
@@ -155,15 +156,15 @@ Analyzers can respond in two shapes:
 
 The rules:
 
-1. Advertise `sdk.CapabilityPackageUpdates` (`"package-updates-v1"`) in `Descriptor.Capabilities`.
+1. Advertise `plugin.CapabilityPackageUpdates` (`"package-updates-v1"`) in `Descriptor.Capabilities`.
 2. Return `PackageUpdates` **only when** `req.AcceptPackageUpdates` is true — that is the host telling you it understands deltas. Older hosts never set it, and you must fall back to returning the full registry for them.
 3. When `Registry` is non-nil in the result, it wins and `PackageUpdates` is ignored — return one or the other.
 
-`sdk.ApplyPackageUpdates` implements the same merge the host uses, which makes the legacy fallback a one-liner (see the `Analyze` example above) and is handy in tests.
+`model.ApplyPackageUpdates` implements the same merge the host uses, which makes the legacy fallback a one-liner (see the `Analyze` example above) and is handy in tests.
 
 ## Configuration, HTTP, And Cache
 
-Declare a typed `Config` struct with `json`, `doc:`, and `default:` tags, advertise it with `ConfigSchema: sdk.MustConfigSchemaFor(Config{})`, and decode it in `New` with `host.DecodeConfig(&cfg)`. Users set the block under `plugins.analyzers.<name>`:
+Declare a typed `Config` struct with `json`, `doc:`, and `default:` tags, advertise it with `ConfigSchema: plugin.MustConfigSchemaFor(Config{})`, and decode it in `New` with `host.DecodeConfig(&cfg)`. Users set the block under `plugins.analyzers.<name>`:
 
 ```yaml
 plugins:

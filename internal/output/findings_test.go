@@ -3,25 +3,25 @@ package output
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
-func scopedNPMRegistry(t *testing.T) *sdk.PackageRegistry {
+func scopedNPMRegistry(t *testing.T) *model.PackageRegistry {
 	t.Helper()
-	registry := sdk.NewPackageRegistry()
-	registry.Add(&sdk.Package{
-		Coordinates: sdk.Coordinates{
+	registry := model.NewPackageRegistry()
+	registry.Add(&model.Package{
+		Coordinates: model.Coordinates{
 			PURL:      "pkg:npm/@tailwindcss/postcss@4.0.0",
-			Ecosystem: sdk.EcosystemNPM,
+			Ecosystem: model.EcosystemNPM,
 			Org:       "tailwindcss",
 			Name:      "postcss",
 			Version:   "4.0.0",
 		},
-		Vulnerabilities: []sdk.Vulnerability{{
+		Vulnerabilities: []model.Vulnerability{{
 			ID:             "GHSA-scoped",
 			Aliases:        []string{"CVE-2026-0001"},
 			Source:         "osv",
-			ParsedSeverity: sdk.SeverityHigh,
+			ParsedSeverity: model.SeverityHigh,
 			FixedIn:        "4.0.1",
 		}},
 	})
@@ -30,9 +30,9 @@ func scopedNPMRegistry(t *testing.T) *sdk.PackageRegistry {
 
 func TestFindingsFromScanPreservesScopedIdentity(t *testing.T) {
 	registry := scopedNPMRegistry(t)
-	findings := FindingsFromScan([]sdk.Finding{{
+	findings := FindingsFromScan([]model.Finding{{
 		ID:              "GHSA-scoped",
-		Kind:            sdk.FindingKindVulnerability,
+		Kind:            model.FindingKindVulnerability,
 		PackageRef:      "pkg:npm/@tailwindcss/postcss@4.0.0",
 		VulnerabilityID: "GHSA-scoped",
 		DependencyRefs:  []string{"tailwindcss:postcss@4.0.0"},
@@ -60,7 +60,7 @@ func TestFindingsFromScanPreservesScopedIdentity(t *testing.T) {
 	}
 	// Severity backfilled from the referenced advisory when the finding
 	// itself carries none.
-	if f.Severity != sdk.SeverityHigh {
+	if f.Severity != model.SeverityHigh {
 		t.Fatalf("severity not backfilled from advisory: got %q", f.Severity)
 	}
 	if got := f.Package.DisplayLabel(); got != "@tailwindcss/postcss@4.0.0" {
@@ -74,9 +74,9 @@ func TestFindingsFromScanPreservesScopedIdentity(t *testing.T) {
 // "pkg:npm/%40scope/deep@2.0.0" where the enriched rows say "@scope/deep" is
 // showing the reader a lookup key.
 func TestFindingsFromScanWithoutRegistryIdentifiesFromThePurl(t *testing.T) {
-	findings := FindingsFromScan([]sdk.Finding{{
+	findings := FindingsFromScan([]model.Finding{{
 		ID:         "GHSA-x",
-		Kind:       sdk.FindingKindVulnerability,
+		Kind:       model.FindingKindVulnerability,
 		PackageRef: "pkg:npm/%40scope/deep@2.0.0",
 	}}, nil)
 	got := findings[0].Package
@@ -95,9 +95,9 @@ func TestFindingsFromScanWithoutRegistryIdentifiesFromThePurl(t *testing.T) {
 // A reference that is not a package URL has nothing better behind it, so the
 // raw string stays the name. This is the case the fallback must not lose.
 func TestFindingsFromScanKeepsANonPurlReferenceVerbatim(t *testing.T) {
-	findings := FindingsFromScan([]sdk.Finding{{
+	findings := FindingsFromScan([]model.Finding{{
 		ID:         "POLICY-1",
-		Kind:       sdk.FindingKindPackage,
+		Kind:       model.FindingKindPackage,
 		PackageRef: "not-a-purl",
 	}}, nil)
 	got := findings[0].Package
@@ -111,7 +111,7 @@ func TestFindingVulnerabilityInPackagesJoinsByPurlAndAlias(t *testing.T) {
 	packages := PackagesFromRegistry(registry)
 	finding := AuditFinding{
 		ID:              "CVE-2026-0001",
-		Kind:            sdk.FindingKindVulnerability,
+		Kind:            model.FindingKindVulnerability,
 		VulnerabilityID: "CVE-2026-0001", // alias of GHSA-scoped
 		Package:         FindingPackageRef{Purl: "pkg:npm/@tailwindcss/postcss@4.0.0"},
 	}
@@ -137,8 +137,8 @@ func TestPackagesFromRegistryUsesEcosystemNativeNames(t *testing.T) {
 	if !ok {
 		t.Fatal("scoped package missing from fixture")
 	}
-	pkg.Remediation = &sdk.PackageRemediation{
-		Status:             sdk.PackageRemediationComplete,
+	pkg.Remediation = &model.PackageRemediation{
+		Status:             model.PackageRemediationComplete,
 		RecommendedVersion: "4.0.1",
 	}
 	packages := PackagesFromRegistry(registry)
@@ -149,7 +149,7 @@ func TestPackagesFromRegistryUsesEcosystemNativeNames(t *testing.T) {
 		t.Fatalf("scoped identity mangled: got name=%q org=%q", packages[0].Name, packages[0].Org)
 	}
 	if packages[0].Remediation == nil ||
-		packages[0].Remediation.Status != sdk.PackageRemediationComplete ||
+		packages[0].Remediation.Status != model.PackageRemediationComplete ||
 		packages[0].Remediation.RecommendedVersion != "4.0.1" {
 		t.Fatalf("remediation projection missing: %#v", packages[0].Remediation)
 	}
@@ -160,18 +160,18 @@ func TestPackagesFromRegistryUsesEcosystemNativeNames(t *testing.T) {
 }
 
 func TestPackagesFromRegistriesPrefersHeadAndKeepsBaseOnly(t *testing.T) {
-	base := sdk.NewPackageRegistry()
-	base.Add(&sdk.Package{
-		Coordinates:     sdk.Coordinates{PURL: "pkg:npm/shared@1.0.0", Name: "shared", Version: "1.0.0"},
-		Vulnerabilities: []sdk.Vulnerability{{ID: "GHSA-base-view", Source: "osv"}},
+	base := model.NewPackageRegistry()
+	base.Add(&model.Package{
+		Coordinates:     model.Coordinates{PURL: "pkg:npm/shared@1.0.0", Name: "shared", Version: "1.0.0"},
+		Vulnerabilities: []model.Vulnerability{{ID: "GHSA-base-view", Source: "osv"}},
 	})
-	base.Add(&sdk.Package{
-		Coordinates: sdk.Coordinates{PURL: "pkg:npm/base-only@1.0.0", Name: "base-only", Version: "1.0.0"},
+	base.Add(&model.Package{
+		Coordinates: model.Coordinates{PURL: "pkg:npm/base-only@1.0.0", Name: "base-only", Version: "1.0.0"},
 	})
-	head := sdk.NewPackageRegistry()
-	head.Add(&sdk.Package{
-		Coordinates:     sdk.Coordinates{PURL: "pkg:npm/shared@1.0.0", Name: "shared", Version: "1.0.0"},
-		Vulnerabilities: []sdk.Vulnerability{{ID: "GHSA-head-view", Source: "osv"}},
+	head := model.NewPackageRegistry()
+	head.Add(&model.Package{
+		Coordinates:     model.Coordinates{PURL: "pkg:npm/shared@1.0.0", Name: "shared", Version: "1.0.0"},
+		Vulnerabilities: []model.Vulnerability{{ID: "GHSA-head-view", Source: "osv"}},
 	})
 
 	merged := PackagesFromRegistries(base, head)

@@ -13,10 +13,12 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"gopkg.in/yaml.v3"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 type workflowDocument struct {
@@ -47,17 +49,17 @@ type Detector struct{}
 var evidencePatterns = []string{".github/workflows/*.yaml", ".github/workflows/*.yml", ".github/actions/*/action.yml", ".github/actions/*/action.yaml"}
 
 // PackageManagerSupport returns GitHub Actions package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGitHubActions, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerGitHubActions, evidencePatterns...)}
 }
 
 // Ready reports whether the detector can run in the current environment.
-func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
+func (d Detector) Ready(context.Context, plugin.DetectionRequest) error {
 	return nil
 }
 
 // Applicable reports whether GitHub workflow or local action manifests are present.
-func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	_ = ctx
 	workflowFiles, actionFiles, err := discoverManifestFiles(req.ProjectPath)
 	if err != nil {
@@ -67,21 +69,21 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 }
 
 // Descriptor describes the GitHub Actions detector.
-func (d Detector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d Detector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		Name:                detectors.NameGitHubActions,
-		Technique:           sdk.ManifestTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemGitHub},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerGitHubActions},
+		Technique:           plugin.ManifestTechnique,
+		SupportedEcosystems: []model.Ecosystem{model.EcosystemGitHub},
+		SupportedManagers:   []model.PackageManager{model.PackageManagerGitHubActions},
 		Tags:                []string{"graph-resolution", "component-targeting", "local-transitive-expansion"},
 	}
 }
 
 // ResolveGraph resolves a GitHub Actions dependency graph from workflow and action manifests.
-func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	graphs, err := depGraphContainerFromRepository(req.ProjectPath)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	if graphs != nil {
 		for i := range graphs.Entries {
@@ -93,12 +95,12 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	// only "module root" available would be ".github/workflows", a directory
 	// that declares no module and would be an invented join key. An empty
 	// module root says what is true here -- nobody attributed these sites.
-	return detectors.Unattributed(sdk.DetectionResult{
+	return detectors.Unattributed(plugin.DetectionResult{
 		Graphs: graphs,
 	}, "a workflow file is not a module; there is no module root to attribute its sites to"), nil
 }
 
-func depGraphFromRepository(projectPath string) (*sdk.Graph, error) {
+func depGraphFromRepository(projectPath string) (*model.Graph, error) {
 	container, err := depGraphContainerFromRepository(projectPath)
 	if err != nil {
 		return nil, err
@@ -106,7 +108,7 @@ func depGraphFromRepository(projectPath string) (*sdk.Graph, error) {
 	return container.ConsolidatedGraph()
 }
 
-func depGraphContainerFromRepository(projectPath string) (*sdk.GraphContainer, error) {
+func depGraphContainerFromRepository(projectPath string) (*model.GraphContainer, error) {
 	workflowFiles, actionFiles, err := discoverManifestFiles(projectPath)
 	if err != nil {
 		return nil, err
@@ -115,9 +117,9 @@ func depGraphContainerFromRepository(projectPath string) (*sdk.GraphContainer, e
 		return nil, fmt.Errorf("no GitHub Actions manifests found")
 	}
 
-	depsGraph := sdk.New()
-	workflowNodes := make(map[string]*sdk.DependencyNode, len(workflowFiles))
-	actionNodes := make(map[string]*sdk.DependencyNode, len(actionFiles))
+	depsGraph := model.New()
+	workflowNodes := make(map[string]*model.DependencyNode, len(workflowFiles))
+	actionNodes := make(map[string]*model.DependencyNode, len(actionFiles))
 
 	for _, relPath := range workflowFiles {
 		node, err := localWorkflowNode(relPath)
@@ -164,7 +166,7 @@ func depGraphContainerFromRepository(projectPath string) (*sdk.GraphContainer, e
 		}
 	}
 
-	entries := make([]sdk.GraphEntry, 0, len(workflowFiles)+len(actionFiles))
+	entries := make([]model.GraphEntry, 0, len(workflowFiles)+len(actionFiles))
 	for _, relPath := range workflowFiles {
 		rootNode, err := localWorkflowNode(relPath)
 		if err != nil {
@@ -175,9 +177,9 @@ func depGraphContainerFromRepository(projectPath string) (*sdk.GraphContainer, e
 		if err != nil {
 			return nil, err
 		}
-		entries = append(entries, sdk.GraphEntry{
+		entries = append(entries, model.GraphEntry{
 			Graph: entryGraph,
-			Manifest: sdk.ManifestMetadata{
+			Manifest: model.ManifestMetadata{
 				Path: relPath,
 				Kind: "github-actions-workflow",
 			},
@@ -194,24 +196,24 @@ func depGraphContainerFromRepository(projectPath string) (*sdk.GraphContainer, e
 		if err != nil {
 			return nil, err
 		}
-		entries = append(entries, sdk.GraphEntry{
+		entries = append(entries, model.GraphEntry{
 			Graph: entryGraph,
-			Manifest: sdk.ManifestMetadata{
+			Manifest: model.ManifestMetadata{
 				Path: relManifestPath,
 				Kind: "github-actions-action",
 			},
 		})
 	}
 
-	return &sdk.GraphContainer{Entries: entries}, nil
+	return &model.GraphContainer{Entries: entries}, nil
 }
 
-func graphReachableFromRoot(source *sdk.Graph, rootID string) (*sdk.Graph, error) {
+func graphReachableFromRoot(source *model.Graph, rootID string) (*model.Graph, error) {
 	root, ok := source.Node(rootID)
 	if !ok {
 		return nil, fmt.Errorf("github actions root %q not found", rootID)
 	}
-	out := sdk.New()
+	out := model.New()
 	if _, err := out.InsertNode(root.CloneNode()); err != nil {
 		return nil, err
 	}
@@ -221,7 +223,7 @@ func graphReachableFromRoot(source *sdk.Graph, rootID string) (*sdk.Graph, error
 		currentID := queue[0]
 		queue = queue[1:]
 		depsNodes, err := source.DirectDependencies(currentID)
-		deps := sdk.DependencyNodesOf(depsNodes)
+		deps := model.DependencyNodesOf(depsNodes)
 		if err != nil {
 			return nil, err
 		}
@@ -330,7 +332,7 @@ func parseActionRefs(path string) ([]string, error) {
 	return uniqueStrings(refs), nil
 }
 
-func addReferenceEdges(depsGraph *sdk.Graph, parent *sdk.DependencyNode, callerRelPath string, refs []string, workflowNodes map[string]*sdk.DependencyNode, actionNodes map[string]*sdk.DependencyNode) error {
+func addReferenceEdges(depsGraph *model.Graph, parent *model.DependencyNode, callerRelPath string, refs []string, workflowNodes map[string]*model.DependencyNode, actionNodes map[string]*model.DependencyNode) error {
 	for _, ref := range refs {
 		node, err := resolveReference(ref, callerRelPath, workflowNodes, actionNodes)
 		if err != nil {
@@ -349,7 +351,7 @@ func addReferenceEdges(depsGraph *sdk.Graph, parent *sdk.DependencyNode, callerR
 	return nil
 }
 
-func resolveReference(ref, callerRelPath string, workflowNodes map[string]*sdk.DependencyNode, actionNodes map[string]*sdk.DependencyNode) (*sdk.DependencyNode, error) {
+func resolveReference(ref, callerRelPath string, workflowNodes map[string]*model.DependencyNode, actionNodes map[string]*model.DependencyNode) (*model.DependencyNode, error) {
 	ref = strings.TrimSpace(ref)
 	if ref == "" || strings.HasPrefix(ref, "docker://") {
 		return nil, nil
@@ -384,22 +386,22 @@ func resolveReference(ref, callerRelPath string, workflowNodes map[string]*sdk.D
 	if strings.Contains(name, ".github/workflows/") {
 		typeName = "workflow"
 	}
-	node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemGitHub,
+	node, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemGitHub,
 		Org:     org,
 		Name:    packageName,
 		Version: version,
 
-		PackageManager: sdk.PackageManagerGitHubActions,
-		Type:           sdk.ParsePackageType(typeName),
+		PackageManager: model.PackageManagerGitHubActions,
+		Type:           model.ParsePackageType(typeName),
 		Language:       "yaml"})
 	if err != nil {
 		return nil, fmt.Errorf("build dependency node: %w", err)
 	}
-	node.Scopes = sdk.ScopesOf(sdk.ScopeRuntime)
+	node.Scopes = model.ScopesOf(model.ScopeRuntime)
 	// A SHA-pinned ref is the content-addressed identity of the action's
 	// source tree; record it so SBOM consumers can verify the pin.
 	if isGitCommitSHA(version) {
-		node.Digests = []sdk.Digest{{Algorithm: sdk.DigestAlgorithmSHA1, Value: strings.ToLower(version)}}
+		node.Digests = []model.Digest{{Algorithm: model.DigestAlgorithmSHA1, Value: strings.ToLower(version)}}
 	}
 	return node, nil
 }
@@ -440,38 +442,38 @@ func splitExternalActionName(value string) (string, string) {
 	return parts[0], strings.Join(parts[1:], "/")
 }
 
-func localWorkflowNode(relPath string) (*sdk.DependencyNode, error) {
+func localWorkflowNode(relPath string) (*model.DependencyNode, error) {
 	cleanPath := filepath.ToSlash(filepath.Clean(relPath))
-	node, err := sdk.NewDependencyNode(sdk.Coordinates{
-		Ecosystem:      sdk.EcosystemGitHub,
+	node, err := model.NewDependencyNode(model.Coordinates{
+		Ecosystem:      model.EcosystemGitHub,
 		Name:           cleanPath,
 		Version:        "local",
-		PackageManager: sdk.PackageManagerGitHubActions,
-		Type:           sdk.PackageTypeWorkflow,
+		PackageManager: model.PackageManagerGitHubActions,
+		Type:           model.PackageTypeWorkflow,
 		Language:       "yaml",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build local workflow node %q: %w", cleanPath, err)
 	}
-	node.Scopes = sdk.ScopesOf(sdk.ScopeRuntime)
+	node.Scopes = model.ScopesOf(model.ScopeRuntime)
 	return node, nil
 
 }
 
-func localActionNode(relPath string) (*sdk.DependencyNode, error) {
+func localActionNode(relPath string) (*model.DependencyNode, error) {
 	cleanPath := filepath.ToSlash(filepath.Clean(relPath))
-	node, err := sdk.NewDependencyNode(sdk.Coordinates{
-		Ecosystem:      sdk.EcosystemGitHub,
+	node, err := model.NewDependencyNode(model.Coordinates{
+		Ecosystem:      model.EcosystemGitHub,
 		Name:           cleanPath,
 		Version:        "local",
-		PackageManager: sdk.PackageManagerGitHubActions,
-		Type:           sdk.PackageTypeAction,
+		PackageManager: model.PackageManagerGitHubActions,
+		Type:           model.PackageTypeAction,
 		Language:       "yaml",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build local action node %q: %w", cleanPath, err)
 	}
-	node.Scopes = sdk.ScopesOf(sdk.ScopeRuntime)
+	node.Scopes = model.ScopesOf(model.ScopeRuntime)
 	return node, nil
 
 }
@@ -479,16 +481,16 @@ func localActionNode(relPath string) (*sdk.DependencyNode, error) {
 // manifestFileDigests hashes a workflow or action manifest file so local
 // manifest components carry verifiable integrity data. Returns nil on any
 // read failure — digests are metadata, never a resolution requirement.
-func manifestFileDigests(projectPath, relPath string) []sdk.Digest {
+func manifestFileDigests(projectPath, relPath string) []model.Digest {
 	data, err := system.ReadRepositoryFile(filepath.Join(projectPath, filepath.FromSlash(relPath)))
 	if err != nil {
 		return nil
 	}
 	sum := sha256.Sum256(data)
-	return []sdk.Digest{{Algorithm: sdk.DigestAlgorithmSHA256, Value: hex.EncodeToString(sum[:])}}
+	return []model.Digest{{Algorithm: model.DigestAlgorithmSHA256, Value: hex.EncodeToString(sum[:])}}
 }
 
-func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.DependencyNode) error {
+func addNodeIfMissing(depsGraph *model.Graph, node *model.DependencyNode) error {
 	_, err := detectorkit.EnsureNode(depsGraph, node)
 	return err
 }

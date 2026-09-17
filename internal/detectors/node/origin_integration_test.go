@@ -10,25 +10,27 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(dep *sdk.DependencyNode) sdk.DependencyOrigin {
+func originOf(dep *model.DependencyNode) model.DependencyOrigin {
 	if dep == nil {
-		return sdk.DependencyOrigin{}
+		return model.DependencyOrigin{}
 	}
 	// Origins are gated on the way in, so the first entry is already
 	// publishable; these cases assert on a single asserted origin.
 	if len(dep.Origins) == 0 {
-		return sdk.DependencyOrigin{}
+		return model.DependencyOrigin{}
 	}
 	return dep.Origins[0]
 }
 
 // requireArtifactOrigin asserts a package asserts exactly the given artifact.
-func requireArtifactOrigin(t *testing.T, g *sdk.Graph, name, version, want string) {
+func requireArtifactOrigin(t *testing.T, g *model.Graph, name, version, want string) {
 	t.Helper()
 	origin := originOf(requirePackage(t, g, name, version))
 	if origin.ArtifactURL != want {
@@ -42,7 +44,7 @@ func requireArtifactOrigin(t *testing.T, g *sdk.Graph, name, version, want strin
 // requireNoOrigin asserts a package publishes no location at all.
 // requireNoModuleOrigin asserts that the project's own module for a name
 // publishes nothing about where it came from.
-func requireNoModuleOrigin(t *testing.T, g *sdk.Graph, name string) {
+func requireNoModuleOrigin(t *testing.T, g *model.Graph, name string) {
 	t.Helper()
 	for _, module := range g.ModuleNodes() {
 		// EcosystemName, not Name: normalization splits a scoped npm name
@@ -54,7 +56,7 @@ func requireNoModuleOrigin(t *testing.T, g *sdk.Graph, name string) {
 	t.Errorf("no module node named %q; modules: %v", name, moduleLabels(g))
 }
 
-func requireNoOrigin(t *testing.T, g *sdk.Graph, name, version string) {
+func requireNoOrigin(t *testing.T, g *model.Graph, name, version string) {
 	t.Helper()
 	if origin := originOf(requirePackage(t, g, name, version)); !origin.Empty() {
 		t.Errorf("%s@%s asserted an origin it should not have: %+v", name, version, origin)
@@ -84,7 +86,7 @@ func TestNPMLockfileV1OriginIsTheRegistryTarball(t *testing.T) {
 // Workspace members are local directories. npm records that directory as the
 // member's "resolved" value, which must never reach an SBOM.
 func TestNPMWorkspaceMembersAssertNoOrigin(t *testing.T) {
-	result, err := (npm.LockfileDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: fixture("npm-v3-workspaces")})
+	result, err := (npm.LockfileDetector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: fixture("npm-v3-workspaces")})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +111,7 @@ func TestPNPMLockfileOriginIsTheResolutionTarball(t *testing.T) {
 // location, and the registry root is not this package's origin, so there is
 // nothing to assert.
 func TestPNPMIntegrityOnlyEntriesAssertNoOrigin(t *testing.T) {
-	result, err := (pnpm.LockfileDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: fixture("pnpm-v9-workspaces")})
+	result, err := (pnpm.LockfileDetector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: fixture("pnpm-v9-workspaces")})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -142,7 +144,7 @@ func TestYarnBerryAssertsNoOrigin(t *testing.T) {
 }
 
 func TestBunLockfileOriginIsTheRegistryTarball(t *testing.T) {
-	result, err := (bun.LockfileDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: fixture("bun-v1-workspaces")})
+	result, err := (bun.LockfileDetector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: fixture("bun-v1-workspaces")})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -184,7 +186,7 @@ shared@^2.0.0:
 	}
 	shared := 0
 	origins := map[string]int{}
-	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+	g.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		if dep.Name == "shared" {
 			shared++
 			for _, origin := range dep.Origins {

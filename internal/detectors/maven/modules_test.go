@@ -6,7 +6,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func writePom(t *testing.T, root, rel, content string) {
@@ -123,7 +124,7 @@ func TestMavenPerModuleEntriesFromTGF(t *testing.T) {
 	if err != nil {
 		t.Fatalf("walkPomModules() error = %v", err)
 	}
-	entries, matched := Detector{}.reactorGraphEntries(depsGraph, modules, sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}, root)
+	entries, matched := Detector{}.reactorGraphEntries(depsGraph, modules, model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}, root)
 	if matched != 3 {
 		t.Fatalf("expected 3 matched modules, got %d", matched)
 	}
@@ -132,7 +133,7 @@ func TestMavenPerModuleEntriesFromTGF(t *testing.T) {
 	if len(entries) != 3 {
 		t.Fatalf("expected 3 entries, got %d", len(entries))
 	}
-	byPath := map[string]sdk.GraphEntry{}
+	byPath := map[string]model.GraphEntry{}
 	for _, entry := range entries {
 		byPath[entry.Manifest.Path] = entry
 	}
@@ -202,11 +203,11 @@ func TestMavenPerModuleEntriesAttachModuleRelativePositions(t *testing.T) {
 	if err != nil {
 		t.Fatalf("walkPomModules() error = %v", err)
 	}
-	entries, matched := Detector{}.reactorGraphEntries(depsGraph, modules, sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}, root)
+	entries, matched := Detector{}.reactorGraphEntries(depsGraph, modules, model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}, root)
 	if matched != 3 {
 		t.Fatalf("expected 3 matched modules, got %d", matched)
 	}
-	var moduleA sdk.GraphEntry
+	var moduleA model.GraphEntry
 	for _, entry := range entries {
 		if entry.Manifest.Path == "module-a/pom.xml" {
 			moduleA = entry
@@ -259,7 +260,7 @@ func TestMavenUnmatchedTGFRootsFallBackToRootEntry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("walkPomModules() error = %v", err)
 	}
-	entries, matched := Detector{}.reactorGraphEntries(depsGraph, modules, sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}, root)
+	entries, matched := Detector{}.reactorGraphEntries(depsGraph, modules, model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}, root)
 	if matched != 1 {
 		t.Fatalf("expected 1 matched module, got %d", matched)
 	}
@@ -303,7 +304,7 @@ func TestMavenSingleModuleNoPomModulesKeepsSingleEntry(t *testing.T) {
 	}
 	// With no modules ResolveGraph keeps the single-entry path; assert the
 	// partitioning helper is a no-op here too.
-	entries, matched := Detector{}.reactorGraphEntries(depsGraph, modules, sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}, root)
+	entries, matched := Detector{}.reactorGraphEntries(depsGraph, modules, model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}, root)
 	if matched != 0 || entries != nil {
 		t.Fatalf("expected no partitioning without modules, got %d entries (matched %d)", len(entries), matched)
 	}

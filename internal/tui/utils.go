@@ -6,7 +6,8 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // Text-formatting helpers live in internal/cli/render. Thin shims keep
@@ -35,7 +36,7 @@ func nonEmptyStrings(values []string) []string {
 	return out
 }
 
-func exploitabilityLine(kev bool, known []sdk.KnownExploited, risk float64) string {
+func exploitabilityLine(kev bool, known []model.KnownExploited, risk float64) string {
 	parts := make([]string, 0, 2)
 	if kev || len(known) > 0 {
 		parts = append(parts, "known exploited")
@@ -294,10 +295,10 @@ func nextSeverityFilter(current string) string {
 }
 
 func remediationForPURL(
-	registry *sdk.PackageRegistry,
+	registry *model.PackageRegistry,
 	purl string,
 	dependencyRefs ...string,
-) *sdk.PackageRemediation {
+) *model.PackageRemediation {
 	pkg := output.RegistryPackage(registry, purl)
 	if pkg == nil {
 		return nil
@@ -312,7 +313,7 @@ func remediationForPURL(
 			allowed[ref] = struct{}{}
 		}
 	}
-	filtered := make([]sdk.PackageRemediationSuggestion, 0, len(remediation.Suggestions))
+	filtered := make([]model.PackageRemediationSuggestion, 0, len(remediation.Suggestions))
 	for _, suggestion := range remediation.Suggestions {
 		include := false
 		for _, ref := range suggestion.AffectedDependencyRefs {
@@ -329,7 +330,7 @@ func remediationForPURL(
 	return remediation
 }
 
-func remediationSectionLines(remediation *sdk.PackageRemediation) []string {
+func remediationSectionLines(remediation *model.PackageRemediation) []string {
 	if remediation == nil {
 		return nil
 	}
@@ -361,7 +362,7 @@ func remediationSectionLines(remediation *sdk.PackageRemediation) []string {
 	return lines
 }
 
-func remediationActionLabel(action sdk.RemediationAction) string {
+func remediationActionLabel(action model.RemediationAction) string {
 	value := strings.ReplaceAll(strings.TrimSpace(string(action)), "-", " ")
 	if value == "" {
 		return "-"
@@ -371,7 +372,7 @@ func remediationActionLabel(action sdk.RemediationAction) string {
 
 // maxVulnerabilitySeverityByPkgID returns a map from package ID to the
 // highest severity found across that package's enriched vulnerabilities.
-func maxVulnerabilitySeverityByPkgID(graphValue *sdk.Graph, registry *sdk.PackageRegistry) map[string]string {
+func maxVulnerabilitySeverityByPkgID(graphValue *model.Graph, registry *model.PackageRegistry) map[string]string {
 	result := make(map[string]string)
 	if graphValue == nil {
 		return result
@@ -422,7 +423,7 @@ func filterPackageRows(rows []listPackageRow, relationshipFilter, scopeFilter st
 	return filtered
 }
 
-func explainRelationships(graphValue *sdk.Graph, targetID string) (map[string]string, map[string]int) {
+func explainRelationships(graphValue *model.Graph, targetID string) (map[string]string, map[string]int) {
 	labels := make(map[string]string)
 	counts := map[string]int{
 		"self":     0,
@@ -466,7 +467,7 @@ func explainRelationships(graphValue *sdk.Graph, targetID string) (map[string]st
 	// for a scan that plainly has one. Nested workspace modules were hidden
 	// the same way.
 	for _, pkg := range graphValue.Nodes() {
-		if sdk.IsNilNode(pkg) || pkg.NodeID() == targetID {
+		if model.IsNilNode(pkg) || pkg.NodeID() == targetID {
 			continue
 		}
 		if _, ok := labels[pkg.NodeID()]; ok {

@@ -16,10 +16,11 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/mcp"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/plugin"
-	"github.com/bomly-dev/bomly-sdk"
 	mcpserver "github.com/mark3labs/mcp-go/server"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func newMcpCmd() *cobra.Command {
@@ -308,7 +309,7 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (m
 		)
 	}
 	defer func() { _ = cmdCtx.Close() }()
-	scopeFilter, err := sdk.ParseScope(req.Scope)
+	scopeFilter, err := model.ParseScope(req.Scope)
 	if err != nil {
 		return mcp.ScanRunResult{}, mcp.WrapToolError(
 			mcp.ToolErrorRequest,
@@ -326,7 +327,7 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (m
 		)
 	}
 
-	var findings []sdk.Finding
+	var findings []model.Finding
 	if cmdCtx.ResolvedConfig.Audit {
 		findings = pipeResult.Findings
 	}
@@ -417,7 +418,7 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 	pipeline := engine.NewPipeline(cmdCtx.Registry(), a.logger)
 	explainResult, err := pipeline.RunExplain(ctx, engine.ExplainRequest{
 		Query:    req.Package,
-		Pipeline: cmdCtx.PipelineRequest(sdk.ScopeUnknown, io.Discard),
+		Pipeline: cmdCtx.PipelineRequest(model.ScopeUnknown, io.Discard),
 	})
 	if err != nil {
 		return mcp.ExplainRunResult{}, mcp.WrapToolError(
@@ -427,7 +428,7 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 	}
 
 	targets := make([]output.ExplainTargetResponse, 0, len(explainResult.Targets))
-	var findings []sdk.Finding
+	var findings []model.Finding
 	for _, target := range explainResult.Targets {
 		findings = append(findings, target.Findings...)
 		targets = append(targets, output.ExplainTargetResponse{
@@ -519,11 +520,11 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (m
 	diffResult, err := diffengine.Run(ctx, diffengine.Request{
 		Base: diffengine.Target{
 			Pipeline: engine.NewPipeline(baseTarget.Context.Registry(), logger),
-			Request:  baseTarget.Context.PipelineRequest(sdk.ScopeUnknown, io.Discard),
+			Request:  baseTarget.Context.PipelineRequest(model.ScopeUnknown, io.Discard),
 		},
 		Head: diffengine.Target{
 			Pipeline: engine.NewPipeline(headTarget.Context.Registry(), logger),
-			Request:  headTarget.Context.PipelineRequest(sdk.ScopeUnknown, io.Discard),
+			Request:  headTarget.Context.PipelineRequest(model.ScopeUnknown, io.Discard),
 		},
 	})
 	if err != nil {

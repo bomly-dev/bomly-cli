@@ -4,7 +4,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // Two nested projects that share a package name must stay two nodes.
@@ -15,11 +16,11 @@ import (
 // without this rebase --recursive merged the two roots into one node holding
 // both projects' dependency edges.
 func TestRebaseModuleDeclaringPathsKeepsNestedProjectsApart(t *testing.T) {
-	build := func(rel string) *sdk.Graph {
-		g := sdk.New()
-		module := testnodes.ModuleFrom("package.json", sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0"})
-		dep := testnodes.Dep(sdk.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"})
-		for _, node := range []sdk.GraphNode{module, dep} {
+	build := func(rel string) *model.Graph {
+		g := model.New()
+		module := testnodes.ModuleFrom("package.json", model.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0"})
+		dep := testnodes.Dep(model.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.21"})
+		for _, node := range []model.GraphNode{module, dep} {
 			if _, err := g.InsertNode(node); err != nil {
 				t.Fatalf("InsertNode: %v", err)
 			}
@@ -62,8 +63,8 @@ func TestRebaseModuleDeclaringPathsKeepsNestedProjectsApart(t *testing.T) {
 // and re-minting them would churn every ID in a non-recursive scan.
 func TestRebaseModuleDeclaringPathsLeavesRootSubprojectsAlone(t *testing.T) {
 	for _, rel := range []string{"", ".", "  "} {
-		g := sdk.New()
-		module := testnodes.ModuleFrom("package.json", sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0"})
+		g := model.New()
+		module := testnodes.ModuleFrom("package.json", model.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0"})
 		if _, err := g.InsertNode(module); err != nil {
 			t.Fatalf("InsertNode: %v", err)
 		}

@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // pomDependencyArtifactID matches an `<artifactId>foo</artifactId>`
@@ -35,8 +36,8 @@ type pomPropertyPosition struct {
 // (matching how the maven detector stores Name on graph packages).
 // In multi-module projects with a single root pom, this is a
 // best-effort attribution to the parent pom.
-func pomPositions(path, relPath string) map[string][]*sdk.SourcePosition {
-	out := make(map[string][]*sdk.SourcePosition)
+func pomPositions(path, relPath string) map[string][]*model.SourcePosition {
+	out := make(map[string][]*model.SourcePosition)
 	properties := pomProperties(path)
 	insideDep := false
 	pendingGroup := ""
@@ -68,7 +69,7 @@ func pomPositions(path, relPath string) map[string][]*sdk.SourcePosition {
 						versionLine = propertyLine
 					}
 				}
-				artifactPos := &sdk.SourcePosition{File: relPath, Line: pendingArtifactLine}
+				artifactPos := &model.SourcePosition{File: relPath, Line: pendingArtifactLine}
 				detectors.AppendPosition(out, pendingArtifactName, artifactPos)
 				if pendingGroup != "" {
 					detectors.AppendPosition(out, pendingGroup+":"+pendingArtifactName, artifactPos)
@@ -76,7 +77,7 @@ func pomPositions(path, relPath string) map[string][]*sdk.SourcePosition {
 				if version != "" {
 					versionPos := artifactPos
 					if versionLine > 0 {
-						versionPos = &sdk.SourcePosition{File: relPath, Line: versionLine}
+						versionPos = &model.SourcePosition{File: relPath, Line: versionLine}
 					}
 					detectors.AppendPosition(out, pendingArtifactName+"@"+version, versionPos)
 					if pendingGroup != "" {
@@ -163,7 +164,7 @@ func pomArtifactPropertyVersion(artifact string, properties map[string]pomProper
 // (e.g. "pom.xml" for the root, "core/pom.xml" for a reactor module) stamped
 // into every recorded position, so multi-module locations stay repo-relative
 // in SARIF and diff annotations.
-func AttachPomPositions(g *sdk.Graph, projectDir, relPomPath string) {
+func AttachPomPositions(g *model.Graph, projectDir, relPomPath string) {
 	if g == nil || projectDir == "" {
 		return
 	}
@@ -174,7 +175,7 @@ func AttachPomPositions(g *sdk.Graph, projectDir, relPomPath string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositionCandidates(g, positions, func(pkg *sdk.DependencyNode) []string {
+	detectors.AttachPositionCandidates(g, positions, func(pkg *model.DependencyNode) []string {
 		if pkg == nil {
 			return nil
 		}

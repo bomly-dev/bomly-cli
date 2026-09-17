@@ -5,34 +5,38 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/httpkit"
+	sdkplugin "github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // fakeHost is a minimal sdk.HostContext for construction tests.
 type fakeHost struct{}
 
 func (fakeHost) Logger() *zap.Logger { return zap.NewNop() }
-func (fakeHost) HTTPClient() *sdk.HTTPClientProvider {
-	provider, _ := sdk.NewHTTPClientProvider(sdk.HTTPClientConfig{})
+func (fakeHost) HTTPClient() *httpkit.ClientProvider {
+	provider, _ := httpkit.NewClientProvider(httpkit.ClientConfig{})
 	return provider
 }
-func (fakeHost) Runtime() sdk.RuntimeInfo { return sdk.RuntimeInfo{Execution: sdk.ExecutionEmbedded} }
-func (fakeHost) DecodeConfig(any) error   { return nil }
+func (fakeHost) Runtime() sdkplugin.RuntimeInfo {
+	return sdkplugin.RuntimeInfo{Execution: sdkplugin.ExecutionEmbedded}
+}
+func (fakeHost) DecodeConfig(any) error { return nil }
 
 func TestEntriesShapeAndDefaults(t *testing.T) {
 	wantDefaults := map[string]struct {
-		kind           sdk.PluginKind
+		kind           sdkplugin.PluginKind
 		defaultEnabled bool
 	}{
-		"grype":                   {sdk.PluginKindMatcher, true},
-		"osv":                     {sdk.PluginKindMatcher, false},
-		"depsdev-license-matcher": {sdk.PluginKindMatcher, true},
-		"scorecard":               {sdk.PluginKindMatcher, false},
-		"govulncheck":             {sdk.PluginKindAnalyzer, true},
-		"jsreach":                 {sdk.PluginKindAnalyzer, true},
-		"pyreach":                 {sdk.PluginKindAnalyzer, true},
-		"jvmreach":                {sdk.PluginKindAnalyzer, true},
+		"grype":                   {sdkplugin.PluginKindMatcher, true},
+		"osv":                     {sdkplugin.PluginKindMatcher, false},
+		"depsdev-license-matcher": {sdkplugin.PluginKindMatcher, true},
+		"scorecard":               {sdkplugin.PluginKindMatcher, false},
+		"govulncheck":             {sdkplugin.PluginKindAnalyzer, true},
+		"jsreach":                 {sdkplugin.PluginKindAnalyzer, true},
+		"pyreach":                 {sdkplugin.PluginKindAnalyzer, true},
+		"jvmreach":                {sdkplugin.PluginKindAnalyzer, true},
 	}
 
 	entries := Entries()
@@ -69,7 +73,7 @@ func TestEntriesModulesValidateAndConstruct(t *testing.T) {
 	deps := Deps{Logger: zap.NewNop()}
 	for _, entry := range Entries() {
 		module := entry.Module(deps)
-		if err := sdk.ValidateModule(module); err != nil {
+		if err := sdkplugin.ValidateModule(module); err != nil {
 			t.Errorf("entry %q: module invalid: %v", entry.Name, err)
 			continue
 		}
@@ -77,7 +81,7 @@ func TestEntriesModulesValidateAndConstruct(t *testing.T) {
 			t.Errorf("entry %q: module kind %q != entry kind %q", entry.Name, module.Kind, entry.Kind)
 		}
 		switch module.Kind {
-		case sdk.PluginKindMatcher:
+		case sdkplugin.PluginKindMatcher:
 			if module.Matcher.Descriptor.Name != entry.Name {
 				t.Errorf("entry %q: module descriptor name %q", entry.Name, module.Matcher.Descriptor.Name)
 			}
@@ -89,7 +93,7 @@ func TestEntriesModulesValidateAndConstruct(t *testing.T) {
 			if got := matcher.Descriptor().Name; got != entry.Name {
 				t.Errorf("entry %q: constructed matcher is named %q", entry.Name, got)
 			}
-		case sdk.PluginKindAnalyzer:
+		case sdkplugin.PluginKindAnalyzer:
 			if module.Analyzer.Descriptor.Name != entry.Name {
 				t.Errorf("entry %q: module descriptor name %q", entry.Name, module.Analyzer.Descriptor.Name)
 			}
@@ -107,22 +111,22 @@ func TestEntriesModulesValidateAndConstruct(t *testing.T) {
 
 func TestOriginRejectsNativeOutsideEmbeddedExecution(t *testing.T) {
 	entry := Entry{Name: "grype", Implementation: ImplementationNative}
-	if origin, err := entry.Origin(sdk.ExecutionEmbedded); err != nil || origin != sdk.CoreOrigin {
+	if origin, err := entry.Origin(sdkplugin.ExecutionEmbedded); err != nil || origin != sdkplugin.CoreOrigin {
 		t.Fatalf("native+embedded must yield CoreOrigin, got %q / %v", origin, err)
 	}
-	for _, execution := range []sdk.ExecutionMode{sdk.ExecutionManaged, sdk.ExecutionMode("remote"), ""} {
+	for _, execution := range []sdkplugin.ExecutionMode{sdkplugin.ExecutionManaged, sdkplugin.ExecutionMode("remote"), ""} {
 		if _, err := entry.Origin(execution); err == nil || !strings.Contains(err.Error(), "must run embedded") {
 			t.Errorf("native+%q must be rejected, got %v", execution, err)
 		}
 	}
 
 	plugin := Entry{Name: "acme", Implementation: ImplementationPlugin}
-	if origin, err := plugin.Origin(sdk.ExecutionManaged); err != nil || origin != sdk.ExternalOrigin {
+	if origin, err := plugin.Origin(sdkplugin.ExecutionManaged); err != nil || origin != sdkplugin.ExternalOrigin {
 		t.Fatalf("plugin entries must yield ExternalOrigin, got %q / %v", origin, err)
 	}
 
 	bespoke := Entry{Name: "x", Implementation: "bespoke"}
-	if _, err := bespoke.Origin(sdk.ExecutionEmbedded); err == nil {
+	if _, err := bespoke.Origin(sdkplugin.ExecutionEmbedded); err == nil {
 		t.Fatal("unknown implementation must be rejected")
 	}
 }

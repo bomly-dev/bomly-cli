@@ -77,36 +77,38 @@ func fakeDetectorPluginSourceWithReady(id string, ready bool) string {
 
 import (
 	"context"
-	schemav1 "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
+	"github.com/bomly-dev/bomly-sdk/runtime"
 )
 
 type detector struct{}
 
-func (d *detector) Descriptor(context.Context) (*schemav1.DetectorDescriptor, error) {
-	return &schemav1.DetectorDescriptor{
+func (d *detector) Descriptor(context.Context) (*plugin.DetectorDescriptor, error) {
+	return &plugin.DetectorDescriptor{
 		Name:           "` + id + `",
 		Tags:   []string{"dependency-detection"},
 	}, nil
 }
 
-func (d *detector) PackageManagerSupport(context.Context) ([]schemav1.PackageManagerSupport, error) {
-	return []schemav1.PackageManagerSupport{schemav1.Support(schemav1.PackageManagerGoMod, "go.mod")}, nil
+func (d *detector) PackageManagerSupport(context.Context) ([]plugin.PackageManagerSupport, error) {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerGoMod, "go.mod")}, nil
 }
 
-func (d *detector) Ready(context.Context, *schemav1.DetectRequest) (*schemav1.ReadyResponse, error) {
-	return &schemav1.ReadyResponse{Ready: ` + readyValue + `}, nil
+func (d *detector) Ready(context.Context, *plugin.DetectRequest) (*plugin.ReadyResponse, error) {
+	return &plugin.ReadyResponse{Ready: ` + readyValue + `}, nil
 }
 
-func (d *detector) Applicable(context.Context, *schemav1.DetectRequest) (*schemav1.ApplicableResponse, error) {
-	return &schemav1.ApplicableResponse{Applicable: true}, nil
+func (d *detector) Applicable(context.Context, *plugin.DetectRequest) (*plugin.ApplicableResponse, error) {
+	return &plugin.ApplicableResponse{Applicable: true}, nil
 }
 
-func (d *detector) Detect(context.Context, *schemav1.DetectRequest) (*schemav1.DetectResponse, error) {
-	return &schemav1.DetectResponse{}, nil
+func (d *detector) Detect(context.Context, *plugin.DetectRequest) (*plugin.DetectResponse, error) {
+	return &plugin.DetectResponse{}, nil
 }
 
 func main() {
-	schemav1.ServeDetector(&detector{})
+	runtime.ServeDetector(&detector{})
 }
 `
 }

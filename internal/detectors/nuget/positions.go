@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // nugetPackageReference matches `<PackageReference Include="Foo" Version="..." />`
@@ -24,8 +25,8 @@ var nugetPackagesConfigPackage = regexp.MustCompile(`(?i)<package\b[^>]*\bid\s*=
 var nugetLockfileEntry = regexp.MustCompile(`^\s*"([A-Za-z0-9][A-Za-z0-9._-]*)"\s*:\s*\{\s*$`)
 var nugetLockResolvedLine = regexp.MustCompile(`^\s*"resolved"\s*:\s*"([^"]+)"`)
 
-func nugetPositions(projectDir string) map[string][]*sdk.SourcePosition {
-	out := make(map[string][]*sdk.SourcePosition)
+func nugetPositions(projectDir string) map[string][]*model.SourcePosition {
+	out := make(map[string][]*model.SourcePosition)
 	// 1) packages.lock.json: top-level dependency map entries.
 	pendingName := ""
 	pendingLine := 0
@@ -47,8 +48,8 @@ func nugetPositions(projectDir string) map[string][]*sdk.SourcePosition {
 			return
 		}
 		version := strings.TrimSpace(matches[1])
-		pos := &sdk.SourcePosition{File: "packages.lock.json", Line: line}
-		detectors.AppendPosition(out, pendingName, &sdk.SourcePosition{File: "packages.lock.json", Line: pendingLine})
+		pos := &model.SourcePosition{File: "packages.lock.json", Line: line}
+		detectors.AppendPosition(out, pendingName, &model.SourcePosition{File: "packages.lock.json", Line: pendingLine})
 		detectors.AppendPosition(out, pendingName+"@"+version, pos)
 		pendingName = ""
 		pendingLine = 0
@@ -61,7 +62,7 @@ func nugetPositions(projectDir string) map[string][]*sdk.SourcePosition {
 		}
 		name := strings.ToLower(strings.TrimSpace(matches[1]))
 		version := strings.TrimSpace(matches[2])
-		pos := &sdk.SourcePosition{File: "packages.config", Line: line}
+		pos := &model.SourcePosition{File: "packages.config", Line: line}
 		detectors.AppendPosition(out, name, pos)
 		detectors.AppendPosition(out, name+"@"+version, pos)
 	})
@@ -80,10 +81,10 @@ func nugetPositions(projectDir string) map[string][]*sdk.SourcePosition {
 			if refMatches != nil {
 				pendingName = strings.ToLower(strings.TrimSpace(refMatches[1]))
 				pendingLine = line
-				detectors.AppendPosition(out, pendingName, &sdk.SourcePosition{File: rel, Line: pendingLine})
+				detectors.AppendPosition(out, pendingName, &model.SourcePosition{File: rel, Line: pendingLine})
 				if versionMatches := nugetPackageReferenceVersionAttr.FindStringSubmatch(text); versionMatches != nil {
 					version := strings.TrimSpace(versionMatches[1])
-					pos := &sdk.SourcePosition{File: rel, Line: line}
+					pos := &model.SourcePosition{File: rel, Line: line}
 					detectors.AppendPosition(out, pendingName+"@"+version, pos)
 					pendingName = ""
 					pendingLine = 0
@@ -99,7 +100,7 @@ func nugetPositions(projectDir string) map[string][]*sdk.SourcePosition {
 			}
 			if versionMatches := nugetVersionElement.FindStringSubmatch(text); versionMatches != nil {
 				version := strings.TrimSpace(versionMatches[1])
-				pos := &sdk.SourcePosition{File: rel, Line: line}
+				pos := &model.SourcePosition{File: rel, Line: line}
 				detectors.AppendPosition(out, pendingName+"@"+version, pos)
 				pendingName = ""
 				pendingLine = 0
@@ -116,7 +117,7 @@ func nugetPositions(projectDir string) map[string][]*sdk.SourcePosition {
 
 // AttachNugetPositions wires .csproj / packages.lock.json line
 // numbers into a nuget-resolved graph.
-func AttachNugetPositions(g *sdk.Graph, projectDir string) {
+func AttachNugetPositions(g *model.Graph, projectDir string) {
 	if g == nil || projectDir == "" {
 		return
 	}
@@ -124,7 +125,7 @@ func AttachNugetPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositionCandidates(g, positions, func(pkg *sdk.DependencyNode) []string {
+	detectors.AttachPositionCandidates(g, positions, func(pkg *model.DependencyNode) []string {
 		if pkg == nil {
 			return nil
 		}

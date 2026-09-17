@@ -6,7 +6,8 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // postureTextSections renders the per-repository Scorecard delta between
@@ -96,12 +97,12 @@ type postureRow struct {
 // mirror case is "Removed".
 func buildPostureDelta(results output.DiffDependencyResults) postureDelta {
 	type sides struct {
-		before *sdk.PackageScorecard
-		after  *sdk.PackageScorecard
+		before *model.PackageScorecard
+		after  *model.PackageScorecard
 	}
 	byRepo := make(map[string]*sides)
 
-	record := func(repo string, before, after *sdk.PackageScorecard) {
+	record := func(repo string, before, after *model.PackageScorecard) {
 		if repo == "" {
 			return
 		}

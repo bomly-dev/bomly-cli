@@ -8,12 +8,15 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	sdkplugin "github.com/bomly-dev/bomly-sdk/plugin"
+	"github.com/bomly-dev/bomly-sdk/runtime"
 )
 
 // readyResponseError translates a plugin readiness response into the in-process
 // readiness contract: nil means ready, a non-nil error carries the reason.
-func readyResponseError(resp *sdk.ReadyResponse, err error) error {
+func readyResponseError(resp *sdkplugin.ReadyResponse, err error) error {
 	if err != nil {
 		return err
 	}
@@ -30,14 +33,14 @@ func readyResponseError(resp *sdk.ReadyResponse, err error) error {
 }
 
 type registryWriter interface {
-	RegisterDetector(sdk.Detector)
-	RegisterDetectorWithOptions(sdk.Detector, registry.ComponentOptions)
-	RegisterMatcher(sdk.Matcher)
-	RegisterMatcherWithOptions(sdk.Matcher, registry.ComponentOptions)
-	RegisterAuditor(sdk.Auditor)
-	RegisterAuditorWithOptions(sdk.Auditor, registry.ComponentOptions)
-	RegisterAnalyzer(sdk.Analyzer)
-	RegisterAnalyzerWithOptions(sdk.Analyzer, registry.ComponentOptions)
+	RegisterDetector(sdkplugin.Detector)
+	RegisterDetectorWithOptions(sdkplugin.Detector, registry.ComponentOptions)
+	RegisterMatcher(sdkplugin.Matcher)
+	RegisterMatcherWithOptions(sdkplugin.Matcher, registry.ComponentOptions)
+	RegisterAuditor(sdkplugin.Auditor)
+	RegisterAuditorWithOptions(sdkplugin.Auditor, registry.ComponentOptions)
+	RegisterAnalyzer(sdkplugin.Analyzer)
+	RegisterAnalyzerWithOptions(sdkplugin.Analyzer, registry.ComponentOptions)
 	RegisterDetectorDiscoveryPlan(string, registry.DetectorDiscoveryPlan)
 }
 
@@ -54,19 +57,19 @@ func RegisterRuntimePlugins(ctx context.Context, reg registryWriter, root string
 	if err != nil {
 		return err
 	}
-	externalOptions := registry.ComponentOptions{DefaultEnabled: true, Origin: sdk.ExternalOrigin}
+	externalOptions := registry.ComponentOptions{DefaultEnabled: true, Origin: sdkplugin.ExternalOrigin}
 	for _, info := range infos {
 		switch info.Kind {
-		case sdk.PluginKindDetector:
+		case sdkplugin.PluginKindDetector:
 			reg.RegisterDetectorWithOptions(newExternalDetector(info, ctx), externalOptions)
 			if plan, ok := detectorDiscoveryPlan(info); ok {
 				reg.RegisterDetectorDiscoveryPlan(info.ID, plan)
 			}
-		case sdk.PluginKindMatcher:
+		case sdkplugin.PluginKindMatcher:
 			reg.RegisterMatcherWithOptions(newExternalMatcher(info, ctx), externalOptions)
-		case sdk.PluginKindAuditor:
+		case sdkplugin.PluginKindAuditor:
 			reg.RegisterAuditorWithOptions(newExternalAuditor(info, ctx), externalOptions)
-		case sdk.PluginKindAnalyzer:
+		case sdkplugin.PluginKindAnalyzer:
 			reg.RegisterAnalyzerWithOptions(newExternalAnalyzer(info, ctx), externalOptions)
 		}
 	}
@@ -77,7 +80,7 @@ func RegisterRuntimePlugins(ctx context.Context, reg registryWriter, root string
 // launch options carry a ClientPool the pooled subprocess is reused and the
 // release is a no-op; otherwise a one-shot subprocess is started and release
 // terminates it.
-func acquireClient(ctx context.Context, executable, pluginID string, kind sdk.PluginKind) (sdk.Client, func(), error) {
+func acquireClient(ctx context.Context, executable, pluginID string, kind sdkplugin.PluginKind) (runtime.Client, func(), error) {
 	if options, ok := LaunchOptionsFromContext(ctx); ok && options.Pool != nil {
 		client, err := options.Pool.Acquire(ctx, executable, pluginID, kind)
 		if err != nil {
@@ -97,21 +100,21 @@ type externalDetector struct {
 	launchCtx context.Context
 }
 
-func (d externalDetector) Descriptor() sdk.DetectorDescriptor {
+func (d externalDetector) Descriptor() sdkplugin.DetectorDescriptor {
 	if d.info.DetectorDescriptor == nil {
-		return sdk.DetectorDescriptor{}
+		return sdkplugin.DetectorDescriptor{}
 	}
 	return *cloneDetectorDescriptor(d.info.DetectorDescriptor)
 }
 
-func (d externalDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
+func (d externalDetector) PackageManagerSupport() []sdkplugin.PackageManagerSupport {
 	if d.info.DetectorDescriptor == nil {
 		return nil
 	}
 	return clonePackageManagerSupport(d.info.DetectorDescriptor.PackageManagerSupport)
 }
 
-func (d externalDetector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
+func (d externalDetector) Ready(ctx context.Context, req sdkplugin.DetectionRequest) error {
 	ctx = launchContext(ctx, d.launchCtx)
 	client, release, err := acquireClient(ctx, d.info.Entrypoint, d.info.ID, d.info.Kind)
 	if err != nil {
@@ -122,7 +125,7 @@ func (d externalDetector) Ready(ctx context.Context, req sdk.DetectionRequest) e
 	return readyResponseError(resp, err)
 }
 
-func (d externalDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d externalDetector) Applicable(ctx context.Context, req sdkplugin.DetectionRequest) (bool, error) {
 	ctx = launchContext(ctx, d.launchCtx)
 	client, release, err := acquireClient(ctx, d.info.Entrypoint, d.info.ID, d.info.Kind)
 	if err != nil {
@@ -136,7 +139,7 @@ func (d externalDetector) Applicable(ctx context.Context, req sdk.DetectionReque
 	return resp != nil && resp.Applicable, nil
 }
 
-func (d externalDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
+func (d externalDetector) Install(ctx context.Context, req sdkplugin.DetectionRequest) error {
 	ctx = launchContext(ctx, d.launchCtx)
 	client, release, err := acquireClient(ctx, d.info.Entrypoint, d.info.ID, d.info.Kind)
 	if err != nil {
@@ -150,44 +153,44 @@ func (d externalDetector) Install(ctx context.Context, req sdk.DetectionRequest)
 	return nil
 }
 
-func (d externalDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d externalDetector) ResolveGraph(ctx context.Context, req sdkplugin.DetectionRequest) (sdkplugin.DetectionResult, error) {
 	ctx = launchContext(ctx, d.launchCtx)
 	client, release, err := acquireClient(ctx, d.info.Entrypoint, d.info.ID, d.info.Kind)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return sdkplugin.DetectionResult{}, err
 	}
 	defer release()
 	resp, err := client.Detect(ctx, &req)
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("run external detector %s: %w", d.info.ID, err)
+		return sdkplugin.DetectionResult{}, fmt.Errorf("run external detector %s: %w", d.info.ID, err)
 	}
 	if resp == nil {
-		return sdk.DetectionResult{}, nil
+		return sdkplugin.DetectionResult{}, nil
 	}
 	return *resp, nil
 }
 
-func (d externalDetector) RemediationHints(ctx context.Context, req sdk.RemediationHintRequest) (sdk.RemediationHintResponse, error) {
+func (d externalDetector) RemediationHints(ctx context.Context, req sdkplugin.RemediationHintRequest) (sdkplugin.RemediationHintResponse, error) {
 	if d.info.DetectorDescriptor == nil || len(d.info.DetectorDescriptor.RemediationCapabilities) == 0 {
-		return sdk.RemediationHintResponse{}, nil
+		return sdkplugin.RemediationHintResponse{}, nil
 	}
 	ctx = launchContext(ctx, d.launchCtx)
 	client, release, err := acquireClient(ctx, d.info.Entrypoint, d.info.ID, d.info.Kind)
 	if err != nil {
-		return sdk.RemediationHintResponse{}, fmt.Errorf("start external detector remediation hints %s: %w", d.info.ID, err)
+		return sdkplugin.RemediationHintResponse{}, fmt.Errorf("start external detector remediation hints %s: %w", d.info.ID, err)
 	}
 	defer release()
 	resp, err := client.DetectorRemediationHints(ctx, &req)
 	if err != nil {
-		return sdk.RemediationHintResponse{}, fmt.Errorf("run external detector remediation hints %s: %w", d.info.ID, err)
+		return sdkplugin.RemediationHintResponse{}, fmt.Errorf("run external detector remediation hints %s: %w", d.info.ID, err)
 	}
 	if resp == nil {
-		return sdk.RemediationHintResponse{}, nil
+		return sdkplugin.RemediationHintResponse{}, nil
 	}
 	return *resp, nil
 }
 
-func newExternalDetector(info Info, ctx context.Context) sdk.Detector {
+func newExternalDetector(info Info, ctx context.Context) sdkplugin.Detector {
 	return externalDetector{info: info, launchCtx: launchContext(ctx, nil)}
 }
 
@@ -196,14 +199,14 @@ type externalMatcher struct {
 	launchCtx context.Context
 }
 
-func (m externalMatcher) Descriptor() sdk.MatcherDescriptor {
+func (m externalMatcher) Descriptor() sdkplugin.MatcherDescriptor {
 	if m.info.MatcherDescriptor == nil {
-		return sdk.MatcherDescriptor{}
+		return sdkplugin.MatcherDescriptor{}
 	}
 	return *cloneMatcherDescriptor(m.info.MatcherDescriptor)
 }
 
-func (m externalMatcher) Ready(ctx context.Context, req sdk.MatchRequest) error {
+func (m externalMatcher) Ready(ctx context.Context, req sdkplugin.MatchRequest) error {
 	ctx = launchContext(ctx, m.launchCtx)
 	client, release, err := acquireClient(ctx, m.info.Entrypoint, m.info.ID, m.info.Kind)
 	if err != nil {
@@ -214,7 +217,7 @@ func (m externalMatcher) Ready(ctx context.Context, req sdk.MatchRequest) error 
 	return readyResponseError(resp, err)
 }
 
-func (m externalMatcher) Applicable(ctx context.Context, req sdk.MatchRequest) (bool, error) {
+func (m externalMatcher) Applicable(ctx context.Context, req sdkplugin.MatchRequest) (bool, error) {
 	ctx = launchContext(ctx, m.launchCtx)
 	client, release, err := acquireClient(ctx, m.info.Entrypoint, m.info.ID, m.info.Kind)
 	if err != nil {
@@ -225,26 +228,26 @@ func (m externalMatcher) Applicable(ctx context.Context, req sdk.MatchRequest) (
 	return resp != nil && resp.Applicable, err
 }
 
-func (m externalMatcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
+func (m externalMatcher) Match(ctx context.Context, req sdkplugin.MatchRequest) (sdkplugin.MatchResult, error) {
 	ctx = launchContext(ctx, m.launchCtx)
 	client, release, err := acquireClient(ctx, m.info.Entrypoint, m.info.ID, m.info.Kind)
 	if err != nil {
-		return sdk.MatchResult{}, err
+		return sdkplugin.MatchResult{}, err
 	}
 	defer release()
 	// The host understands MatchResult.PackageUpdates deltas, so advertise it.
 	req.AcceptPackageUpdates = true
 	resp, err := client.Match(ctx, &req)
 	if err != nil {
-		return sdk.MatchResult{}, fmt.Errorf("run external matcher %s: %w", m.info.ID, err)
+		return sdkplugin.MatchResult{}, fmt.Errorf("run external matcher %s: %w", m.info.ID, err)
 	}
 	if resp == nil {
-		return sdk.MatchResult{Registry: req.Registry}, nil
+		return sdkplugin.MatchResult{Registry: req.Registry}, nil
 	}
 	result := *resp
 	if result.Registry == nil {
 		if len(result.PackageUpdates) > 0 {
-			result.Registry = sdk.ApplyPackageUpdates(req.Registry, result.PackageUpdates)
+			result.Registry = model.ApplyPackageUpdates(req.Registry, result.PackageUpdates)
 		} else {
 			result.Registry = req.Registry
 		}
@@ -252,7 +255,7 @@ func (m externalMatcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.M
 	return result, nil
 }
 
-func newExternalMatcher(info Info, ctx context.Context) sdk.Matcher {
+func newExternalMatcher(info Info, ctx context.Context) sdkplugin.Matcher {
 	return externalMatcher{info: info, launchCtx: launchContext(ctx, nil)}
 }
 
@@ -261,14 +264,14 @@ type externalAuditor struct {
 	launchCtx context.Context
 }
 
-func (a externalAuditor) Descriptor() sdk.AuditorDescriptor {
+func (a externalAuditor) Descriptor() sdkplugin.AuditorDescriptor {
 	if a.info.AuditorDescriptor == nil {
-		return sdk.AuditorDescriptor{}
+		return sdkplugin.AuditorDescriptor{}
 	}
 	return *cloneAuditorDescriptor(a.info.AuditorDescriptor)
 }
 
-func (a externalAuditor) Ready(ctx context.Context, req sdk.AuditRequest) error {
+func (a externalAuditor) Ready(ctx context.Context, req sdkplugin.AuditRequest) error {
 	ctx = launchContext(ctx, a.launchCtx)
 	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID, a.info.Kind)
 	if err != nil {
@@ -279,7 +282,7 @@ func (a externalAuditor) Ready(ctx context.Context, req sdk.AuditRequest) error 
 	return readyResponseError(resp, err)
 }
 
-func (a externalAuditor) Applicable(ctx context.Context, req sdk.AuditRequest) (bool, error) {
+func (a externalAuditor) Applicable(ctx context.Context, req sdkplugin.AuditRequest) (bool, error) {
 	ctx = launchContext(ctx, a.launchCtx)
 	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID, a.info.Kind)
 	if err != nil {
@@ -290,24 +293,24 @@ func (a externalAuditor) Applicable(ctx context.Context, req sdk.AuditRequest) (
 	return resp != nil && resp.Applicable, err
 }
 
-func (a externalAuditor) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
+func (a externalAuditor) Audit(ctx context.Context, req sdkplugin.AuditRequest) (sdkplugin.AuditResult, error) {
 	ctx = launchContext(ctx, a.launchCtx)
 	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID, a.info.Kind)
 	if err != nil {
-		return sdk.AuditResult{}, err
+		return sdkplugin.AuditResult{}, err
 	}
 	defer release()
 	resp, err := client.Audit(ctx, &req)
 	if err != nil {
-		return sdk.AuditResult{}, fmt.Errorf("run external auditor %s: %w", a.info.ID, err)
+		return sdkplugin.AuditResult{}, fmt.Errorf("run external auditor %s: %w", a.info.ID, err)
 	}
 	if resp == nil {
-		return sdk.AuditResult{}, nil
+		return sdkplugin.AuditResult{}, nil
 	}
 	return *resp, nil
 }
 
-func newExternalAuditor(info Info, ctx context.Context) sdk.Auditor {
+func newExternalAuditor(info Info, ctx context.Context) sdkplugin.Auditor {
 	return externalAuditor{info: info, launchCtx: launchContext(ctx, nil)}
 }
 
@@ -316,14 +319,14 @@ type externalAnalyzer struct {
 	launchCtx context.Context
 }
 
-func (a externalAnalyzer) Descriptor() sdk.AnalyzerDescriptor {
+func (a externalAnalyzer) Descriptor() sdkplugin.AnalyzerDescriptor {
 	if a.info.AnalyzerDescriptor == nil {
-		return sdk.AnalyzerDescriptor{}
+		return sdkplugin.AnalyzerDescriptor{}
 	}
 	return *cloneAnalyzerDescriptor(a.info.AnalyzerDescriptor)
 }
 
-func (a externalAnalyzer) Ready(ctx context.Context, req sdk.AnalyzeRequest) error {
+func (a externalAnalyzer) Ready(ctx context.Context, req sdkplugin.AnalyzeRequest) error {
 	ctx = launchContext(ctx, a.launchCtx)
 	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID, a.info.Kind)
 	if err != nil {
@@ -334,7 +337,7 @@ func (a externalAnalyzer) Ready(ctx context.Context, req sdk.AnalyzeRequest) err
 	return readyResponseError(resp, err)
 }
 
-func (a externalAnalyzer) Applicable(ctx context.Context, req sdk.AnalyzeRequest) (bool, error) {
+func (a externalAnalyzer) Applicable(ctx context.Context, req sdkplugin.AnalyzeRequest) (bool, error) {
 	ctx = launchContext(ctx, a.launchCtx)
 	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID, a.info.Kind)
 	if err != nil {
@@ -345,26 +348,26 @@ func (a externalAnalyzer) Applicable(ctx context.Context, req sdk.AnalyzeRequest
 	return resp != nil && resp.Applicable, err
 }
 
-func (a externalAnalyzer) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
+func (a externalAnalyzer) Analyze(ctx context.Context, req sdkplugin.AnalyzeRequest) (sdkplugin.AnalyzeResult, error) {
 	ctx = launchContext(ctx, a.launchCtx)
 	client, release, err := acquireClient(ctx, a.info.Entrypoint, a.info.ID, a.info.Kind)
 	if err != nil {
-		return sdk.AnalyzeResult{}, err
+		return sdkplugin.AnalyzeResult{}, err
 	}
 	defer release()
 	// The host understands AnalyzeResult.PackageUpdates deltas, so advertise it.
 	req.AcceptPackageUpdates = true
 	resp, err := client.Analyze(ctx, &req)
 	if err != nil {
-		return sdk.AnalyzeResult{}, fmt.Errorf("run external analyzer %s: %w", a.info.ID, err)
+		return sdkplugin.AnalyzeResult{}, fmt.Errorf("run external analyzer %s: %w", a.info.ID, err)
 	}
 	if resp == nil {
-		return sdk.AnalyzeResult{Registry: req.Registry}, nil
+		return sdkplugin.AnalyzeResult{Registry: req.Registry}, nil
 	}
 	result := *resp
 	if result.Registry == nil {
 		if len(result.PackageUpdates) > 0 {
-			result.Registry = sdk.ApplyPackageUpdates(req.Registry, result.PackageUpdates)
+			result.Registry = model.ApplyPackageUpdates(req.Registry, result.PackageUpdates)
 		} else {
 			result.Registry = req.Registry
 		}
@@ -372,7 +375,7 @@ func (a externalAnalyzer) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (
 	return result, nil
 }
 
-func newExternalAnalyzer(info Info, ctx context.Context) sdk.Analyzer {
+func newExternalAnalyzer(info Info, ctx context.Context) sdkplugin.Analyzer {
 	return externalAnalyzer{info: info, launchCtx: launchContext(ctx, nil)}
 }
 

@@ -7,7 +7,7 @@ Bomly plugins let you extend scans without changing the Bomly binary. Today, man
 - **auditors** that turn graph and registry data into findings or risk scores
 - **analyzers** that annotate vulnerabilities with reachability data during `--analyze`
 
-Every plugin packages its component as one `sdk.Module` and serves it from `main` with `sdk.ServeModule`. The same module can also be compiled into a host build, so a component is written once and runs in both execution modes. (The low-level per-role entrypoints `sdk.ServeDetector`, `sdk.ServeMatcher`, `sdk.ServeAuditor`, and `sdk.ServeAnalyzer` remain available for advanced cases.)
+Every plugin packages its component as one `plugin.Module` and serves it from `main` with `runtime.ServeModule`. The same module can also be compiled into a host build, so a component is written once and runs in both execution modes. (The low-level per-role entrypoints `runtime.ServeDetector`, `runtime.ServeMatcher`, `runtime.ServeAuditor`, and `runtime.ServeAnalyzer` remain available for advanced cases.)
 
 ## Start Here
 
@@ -22,7 +22,7 @@ Then use the implementation guide for your role:
 - [How To Implement An Auditor Plugin](plugins/how-to-implement-auditor.md)
 - [How To Implement An Analyzer Plugin](plugins/how-to-implement-analyzer.md)
 
-Use the [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) for the Go types, runtime entrypoints, request/response payloads, graph model, package registry, and finding contract those guides use.
+The SDK API reference is split by package: [`plugin`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/plugin) for the component interfaces, descriptors, and request/response payloads; [`model`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/model) for the graph, package registry, and finding contract; [`runtime`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/runtime) for the plugin entrypoints; and [`httpkit`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/httpkit) for outbound HTTP, which a component reaches through `plugin.HostContext`.
 
 Real plugin repositories live outside this repo so each plugin type can show a realistic package, release, and README:
 
@@ -67,25 +67,25 @@ Plugins do not get install hooks, post-install scripts, or automatic execution f
 A plugin is written once as a **module** — the execution-neutral packaging of one component:
 
 ```go
-sdk.Module{
-    Kind: sdk.PluginKindMatcher, // or Detector / Auditor / Analyzer
-    Matcher: &sdk.MatcherModule{
+plugin.Module{
+    Kind: plugin.PluginKindMatcher, // or Detector / Auditor / Analyzer
+    Matcher: &plugin.MatcherModule{
         Descriptor: descriptor(), // static registration data
-        New: func(ctx context.Context, host sdk.HostContext) (sdk.Matcher, error) {
+        New: func(ctx context.Context, host plugin.HostContext) (plugin.Matcher, error) {
             // construct the component; decode config from host
         },
     },
 }
 ```
 
-The same module value can be compiled into a host build (embedded) or served as a managed plugin subprocess — the component code does not change between the two. `sdk.HostContext` is the only channel through which the component reaches host services, and both execution modes satisfy the same contract:
+The same module value can be compiled into a host build (embedded) or served as a managed plugin subprocess — the component code does not change between the two. `plugin.HostContext` is the only channel through which the component reaches host services, and both execution modes satisfy the same contract:
 
 - `Logger()` — a zap logger wired to the host's verbosity. Never log secrets.
 - `HTTPClient()` — an HTTP client provider that honors Bomly's proxy, no-proxy, and CA certificate settings.
 - `Runtime()` — the host core version and whether execution is embedded or managed.
 - `DecodeConfig(v)` — unmarshals the component's own `plugins.<kind>.<name>` configuration block (see [Configuration](#configuration-and-proxy-support)).
 
-Every role embeds a default-lifecycle helper (`sdk.BaseDetector`, `sdk.BaseMatcher`, `sdk.BaseAuditor`, `sdk.BaseAnalyzer`) that supplies always-ready, always-applicable implementations of `Ready(ctx, req) error` and `Applicable(ctx, req) (bool, error)`. Override `Ready` to report a missing prerequisite with a clear reason; override `Applicable` to skip requests the component should not handle. Honor the context everywhere.
+Every role embeds a default-lifecycle helper (`plugin.BaseDetector`, `plugin.BaseMatcher`, `plugin.BaseAuditor`, `plugin.BaseAnalyzer`) that supplies always-ready, always-applicable implementations of `Ready(ctx, req) error` and `Applicable(ctx, req) (bool, error)`. Override `Ready` to report a missing prerequisite with a clear reason; override `Applicable` to skip requests the component should not handle. Honor the context everywhere.
 
 ### Repository contract
 
@@ -94,7 +94,7 @@ Follow the [template repository's](https://github.com/bomly-dev/bomly-plugin-tem
 ```text
 plugin/                  importable package exporting Module()
 cmd/<binary-name>/
-  main.go                one line: sdk.ServeModule(plugin.Module())
+  main.go                one line: runtime.ServeModule(plugin.Module())
 bomly-plugin.json        package manifest; "id" must equal the descriptor name
 testdata/                fixtures for unit tests
 .github/workflows/       CI plus a release workflow producing platform archives
@@ -103,7 +103,7 @@ go.mod                   pins a released github.com/bomly-dev/bomly-sdk version
 
 Keeping the component in an importable `plugin/` package (not `package main`) is what makes the module reusable: the binary serves it, tests construct it directly, and a host build can embed it.
 
-`sdk.ServeModule` is the managed entrypoint. It validates the module, builds a managed `HostContext` (stderr logger, HTTP client provider from Bomly's environment, config decoding from the file the host passes), constructs the component lazily on first use, and speaks the plugin wire protocol. Only plugins that need the low-level wire surface directly should reach for the per-role `Serve<Kind>` entrypoints and `Served<Kind>` interfaces.
+`runtime.ServeModule` is the managed entrypoint. It validates the module, builds a managed `HostContext` (stderr logger, HTTP client provider from Bomly's environment, config decoding from the file the host passes), constructs the component lazily on first use, and speaks the plugin wire protocol. Only plugins that need the low-level wire surface directly should reach for the per-role `Serve<Kind>` entrypoints and `Served<Kind>` interfaces.
 
 ## Test A Plugin
 
@@ -260,7 +260,7 @@ Detector plugins can also shape recursive discovery (`--recursive`) through thre
 
 - `DetectorDescriptor.IgnoredDirectories` — directory basename globs the recursive walk must not descend into (a Node detector declares `node_modules`, a Maven detector declares `target`).
 - `DetectorDescriptor.IgnoredDirectoryMarkers` — file names whose presence marks a directory as ignored regardless of its name (the Python detectors declare `pyvenv.cfg` to skip virtualenvs).
-- `PackageManagerSupport.MultiModule` (set via `sdk.Support(...).WithMultiModule()`) — declares that the detector natively expands nested workspace/reactor modules from a root manifest, so recursive discovery prunes nested subprojects for the same package manager below a detected root instead of scanning the modules twice.
+- `PackageManagerSupport.MultiModule` (set via `plugin.Support(...).WithMultiModule()`) — declares that the detector natively expands nested workspace/reactor modules from a root manifest, so recursive discovery prunes nested subprojects for the same package manager below a detected root instead of scanning the modules twice.
 
 All three are optional and older plugins that omit them keep working unchanged.
 
@@ -268,8 +268,8 @@ All three are optional and older plugins that omit them keep working unchanged.
 
 A detector plugin may also explain which package-manager remediation strategies
 it understands. Add `RemediationCapabilities` to the detector descriptor and
-implement the optional hints provider — `sdk.DetectorRemediationProvider` on a
-module's detector, or `sdk.ServedDetectorRemediationProvider` in the low-level
+implement the optional hints provider — `plugin.DetectorRemediationProvider` on a
+module's detector, or `runtime.ServedDetectorRemediationProvider` in the low-level
 served style.
 
 The provider runs after vulnerability enrichment. It receives the detector's
@@ -314,7 +314,7 @@ win when both are present. New configuration should always use the
 kind-scoped form.
 
 Plugins that declare a `ConfigSchema` in their descriptor (build it from the
-config struct with `sdk.MustConfigSchemaFor`) get their configuration keys,
+config struct with `plugin.MustConfigSchemaFor`) get their configuration keys,
 descriptions, and defaults rendered by `bomly plugins info <plugin-id>`.
 
 A component reads only its own block, through the `HostContext` its module
@@ -325,7 +325,7 @@ type Config struct {
     APIBase string `json:"apiBase" doc:"Service endpoint override" default:"https://api.example.com"`
 }
 
-New: func(_ context.Context, host sdk.HostContext) (sdk.Matcher, error) {
+New: func(_ context.Context, host plugin.HostContext) (plugin.Matcher, error) {
     matcher := &Matcher{}
     if err := host.DecodeConfig(&matcher.config); err != nil {
         return nil, fmt.Errorf("decode config: %w", err)
@@ -338,7 +338,7 @@ New: func(_ context.Context, host sdk.HostContext) (sdk.Matcher, error) {
 execution sources the block from the host config, managed execution from the
 config file the host passes to the subprocess. (Plugins written against the
 low-level served style read the same payload with
-`sdk.DecodePluginConfigFromEnv`.)
+`runtime.DecodePluginConfigFromEnv`.)
 
 Proxy settings can be configured with a direct proxy URL:
 
@@ -367,10 +367,10 @@ Equivalent environment variables are `BOMLY_HTTP_PROXY`, `BOMLY_HTTP_NO_PROXY`, 
 
 When Bomly proxy fields are not set, Bomly's SDK HTTP client still honors standard `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY` environment variables. For compatibility with non-SDK plugin code, Bomly also forwards the effective proxy values using the standard proxy environment variable names.
 
-Plugins that make outbound HTTP calls should create one process-local provider with `sdk.NewHTTPClientProviderFromEnv()` and reuse it for timeout-specific clients:
+Plugins that make outbound HTTP calls should create one process-local provider with `httpkit.NewClientProviderFromEnv()` and reuse it for timeout-specific clients:
 
 ```go
-provider, err := sdk.NewHTTPClientProviderFromEnv()
+provider, err := httpkit.NewClientProviderFromEnv()
 if err != nil {
     return err
 }

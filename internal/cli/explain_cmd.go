@@ -10,8 +10,9 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/tui"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/spf13/cobra"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func newExplainCmd() *cobra.Command {
@@ -77,7 +78,7 @@ func newExplainCmd() *cobra.Command {
 			}
 
 			pipeline := engine.NewPipeline(context.Registry(), logger)
-			pipeReq := context.PipelineRequest(sdk.ScopeUnknown, streams.notificationWriter())
+			pipeReq := context.PipelineRequest(model.ScopeUnknown, streams.notificationWriter())
 			pipeReq.Progress = prog
 			explainResult, err := pipeline.RunExplain(cmd.Context(), engine.ExplainRequest{
 				Query:    args[0],
@@ -138,7 +139,7 @@ func newExplainCmd() *cobra.Command {
 				Text:     textRenderer,
 			}
 			sarifRenderer := func(w io.Writer) error {
-				return output.WriteSARIF(w, explainResult.Findings, explainResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: context.ResolvedConfig.Analyze, LocationGraphs: []*sdk.Graph{explainResult.FocusedGraph}})
+				return output.WriteSARIF(w, explainResult.Findings, explainResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: context.ResolvedConfig.Analyze, LocationGraphs: []*model.Graph{explainResult.FocusedGraph}})
 			}
 			if context.ResolvedConfig.Interactive {
 				prog.Stop()
@@ -183,7 +184,7 @@ func newExplainCmd() *cobra.Command {
 	return cmd
 }
 
-func explainPolicyExit(auditEnabled bool, findings []sdk.Finding) error {
+func explainPolicyExit(auditEnabled bool, findings []model.Finding) error {
 	if auditEnabled {
 		if failing := output.FailingFindingCount(findings); failing > 0 {
 			return exit.PolicyViolationFindings(failing)

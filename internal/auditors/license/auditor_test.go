@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestLicenseAuditorAllowDeny(t *testing.T) {
@@ -15,18 +17,18 @@ func TestLicenseAuditorAllowDeny(t *testing.T) {
 
 	// mkScenario builds an app→lib graph plus a registry where lib's package
 	// (keyed by its PURL) carries the given license.
-	mkScenario := func(license string) (*sdk.Graph, *sdk.PackageRegistry) {
-		g := sdk.New()
+	mkScenario := func(license string) (*model.Graph, *model.PackageRegistry) {
+		g := model.New()
 		root := testnodes.Ref("app", "1.0.0")
 		_ = g.AddNode(root)
-		dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
+		dep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM}})
 		purl := dep.NodeID()
 		dep.PackageRef = purl
 		_ = g.AddNode(dep)
 		_ = g.AddEdge(root.NodeID(), dep.NodeID())
 
-		registry := sdk.NewPackageRegistry()
-		registry.Ensure(purl).Licenses = []sdk.PackageLicense{{SPDXExpression: license}}
+		registry := model.NewPackageRegistry()
+		registry.Ensure(purl).Licenses = []model.PackageLicense{{SPDXExpression: license}}
 		return g, registry
 	}
 
@@ -45,13 +47,13 @@ func TestLicenseAuditorAllowDeny(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g, registry := mkScenario(tt.license)
-			result, err := tt.auditor.Audit(context.Background(), sdk.AuditRequest{Graph: g, Registry: registry})
+			result, err := tt.auditor.Audit(context.Background(), plugin.AuditRequest{Graph: g, Registry: registry})
 			if err != nil {
 				t.Fatalf("Audit() error = %v", err)
 			}
 			hasFinding := false
 			for _, f := range result.Findings {
-				if f.Kind == sdk.FindingKindLicense {
+				if f.Kind == model.FindingKindLicense {
 					hasFinding = true
 				}
 			}
@@ -63,22 +65,22 @@ func TestLicenseAuditorAllowDeny(t *testing.T) {
 }
 
 func TestLicenseAuditorUnknownLicenseUsesCompactFindingID(t *testing.T) {
-	g := sdk.New()
+	g := model.New()
 	root := testnodes.Ref("app", "1.0.0")
 	_ = g.AddNode(root)
-	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "very-long-package-name-with-output-hostile-length",
+	dep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "very-long-package-name-with-output-hostile-length",
 		Version:        "1.2.3",
-		Ecosystem:      sdk.EcosystemNPM,
-		PackageManager: sdk.PackageManagerNPM},
+		Ecosystem:      model.EcosystemNPM,
+		PackageManager: model.PackageManagerNPM},
 	})
 	purl := dep.NodeID()
 	dep.PackageRef = purl
 	_ = g.AddNode(dep)
 	_ = g.AddEdge(root.NodeID(), dep.NodeID())
 
-	result, err := Auditor{}.Audit(context.Background(), sdk.AuditRequest{
+	result, err := Auditor{}.Audit(context.Background(), plugin.AuditRequest{
 		Graph:    g,
-		Registry: sdk.NewPackageRegistry(),
+		Registry: model.NewPackageRegistry(),
 	})
 	if err != nil {
 		t.Fatalf("Audit() error = %v", err)
@@ -99,25 +101,25 @@ func TestLicenseAuditorUnknownLicenseUsesCompactFindingID(t *testing.T) {
 	if finding.PackageRef != purl {
 		t.Fatalf("finding package ref = %q, want %q", finding.PackageRef, purl)
 	}
-	if finding.Severity != sdk.SeverityWarning {
-		t.Fatalf("finding severity = %q, want %q", finding.Severity, sdk.SeverityWarning)
+	if finding.Severity != model.SeverityWarning {
+		t.Fatalf("finding severity = %q, want %q", finding.Severity, model.SeverityWarning)
 	}
 }
 
 func TestLicenseAuditorDeniedLicensesUseErrorSeverity(t *testing.T) {
-	g := sdk.New()
+	g := model.New()
 	root := testnodes.Ref("app", "1.0.0")
 	_ = g.AddNode(root)
-	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
+	dep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM}})
 	purl := dep.NodeID()
 	dep.PackageRef = purl
 	_ = g.AddNode(dep)
 	_ = g.AddEdge(root.NodeID(), dep.NodeID())
 
-	registry := sdk.NewPackageRegistry()
-	registry.Ensure(purl).Licenses = []sdk.PackageLicense{{SPDXExpression: "GPL-3.0-only"}}
+	registry := model.NewPackageRegistry()
+	registry.Ensure(purl).Licenses = []model.PackageLicense{{SPDXExpression: "GPL-3.0-only"}}
 
-	result, err := Auditor{AllowLicenses: []string{"MIT"}}.Audit(context.Background(), sdk.AuditRequest{
+	result, err := Auditor{AllowLicenses: []string{"MIT"}}.Audit(context.Background(), plugin.AuditRequest{
 		Graph:    g,
 		Registry: registry,
 	})
@@ -127,8 +129,8 @@ func TestLicenseAuditorDeniedLicensesUseErrorSeverity(t *testing.T) {
 	if len(result.Findings) != 1 {
 		t.Fatalf("expected 1 finding, got %#v", result.Findings)
 	}
-	if got := result.Findings[0].Severity; got != sdk.SeverityError {
-		t.Fatalf("finding severity = %q, want %q", got, sdk.SeverityError)
+	if got := result.Findings[0].Severity; got != model.SeverityError {
+		t.Fatalf("finding severity = %q, want %q", got, model.SeverityError)
 	}
 	if got := result.Findings[0].ID; !strings.HasPrefix(got, deniedLicenseFindingID+"-") {
 		t.Fatalf("finding ID = %q, want %q prefix", got, deniedLicenseFindingID+"-")
@@ -136,19 +138,19 @@ func TestLicenseAuditorDeniedLicensesUseErrorSeverity(t *testing.T) {
 }
 
 func TestLicenseAuditorUnknownLicenseIDsDifferByPackage(t *testing.T) {
-	g := sdk.New()
+	g := model.New()
 	root := testnodes.Ref("app", "1.0.0")
 	_ = g.AddNode(root)
 	for _, name := range []string{"left-pad", "is-odd"} {
-		dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: name, Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
+		dep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: name, Version: "1.0.0", Ecosystem: model.EcosystemNPM, PackageManager: model.PackageManagerNPM}})
 		dep.PackageRef = dep.NodeID()
 		_ = g.AddNode(dep)
 		_ = g.AddEdge(root.NodeID(), dep.NodeID())
 	}
 
-	result, err := Auditor{}.Audit(context.Background(), sdk.AuditRequest{
+	result, err := Auditor{}.Audit(context.Background(), plugin.AuditRequest{
 		Graph:    g,
-		Registry: sdk.NewPackageRegistry(),
+		Registry: model.NewPackageRegistry(),
 	})
 	if err != nil {
 		t.Fatalf("Audit() error = %v", err)

@@ -24,13 +24,14 @@ package testnodes
 import (
 	"fmt"
 
-	sdk "github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/testkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // Dep builds a dependency node from coordinates.
-func Dep(coords sdk.Coordinates) *sdk.DependencyNode {
-	node, err := sdk.NewDependencyNode(coords)
+func Dep(coords model.Coordinates) *model.DependencyNode {
+	node, err := model.NewDependencyNode(coords)
 	if err != nil {
 		panic(fmt.Sprintf("testnodes: build dependency node %q: %v", coords.Name, err))
 	}
@@ -45,8 +46,8 @@ func Dep(coords sdk.Coordinates) *sdk.DependencyNode {
 // coordinates, which is the whole point of the constructor. The field list is
 // the SDK's, so a field added to the model reaches these fixtures with the
 // producers rather than one release later.
-func DepFrom(proto sdk.DependencyNode) *sdk.DependencyNode {
-	node, err := sdk.NewDependencyNodeFrom(proto)
+func DepFrom(proto model.DependencyNode) *model.DependencyNode {
+	node, err := model.NewDependencyNodeFrom(proto)
 	if err != nil {
 		panic(fmt.Sprintf("testnodes: build dependency node %q: %v", proto.Name, err))
 	}
@@ -57,19 +58,19 @@ func DepFrom(proto sdk.DependencyNode) *sdk.DependencyNode {
 // no ecosystem mint a pkg:generic identity, which is what these fixtures want:
 // a node that exists and has an ID, with nothing said about where it came
 // from.
-func Ref(name, version string) *sdk.DependencyNode {
-	return Dep(sdk.Coordinates{Name: name, Version: version})
+func Ref(name, version string) *model.DependencyNode {
+	return Dep(model.Coordinates{Name: name, Version: version})
 }
 
 // Module builds a module node -- the scanned project's own artifact -- from
 // the manifest that declares it plus a bare name and version.
-func Module(manifestPath, name, version string) *sdk.ModuleNode {
-	return ModuleFrom(manifestPath, sdk.Coordinates{Name: name, Version: version})
+func Module(manifestPath, name, version string) *model.ModuleNode {
+	return ModuleFrom(manifestPath, model.Coordinates{Name: name, Version: version})
 }
 
 // ModuleFrom builds a module node from full coordinates.
-func ModuleFrom(manifestPath string, coords sdk.Coordinates) *sdk.ModuleNode {
-	node, err := sdk.NewModuleNode(manifestPath, coords)
+func ModuleFrom(manifestPath string, coords model.Coordinates) *model.ModuleNode {
+	node, err := model.NewModuleNode(manifestPath, coords)
 	if err != nil {
 		panic(fmt.Sprintf("testnodes: build module node %q: %v", coords.Name, err))
 	}
@@ -77,8 +78,8 @@ func ModuleFrom(manifestPath string, coords sdk.Coordinates) *sdk.ModuleNode {
 }
 
 // Manifest builds a manifest node.
-func Manifest(path string, kind sdk.ManifestKind) *sdk.ManifestNode {
-	node, err := sdk.NewManifestNode(path, kind)
+func Manifest(path string, kind model.ManifestKind) *model.ManifestNode {
+	node, err := model.NewManifestNode(path, kind)
 	if err != nil {
 		panic(fmt.Sprintf("testnodes: build manifest node %q: %v", path, err))
 	}
@@ -86,12 +87,12 @@ func Manifest(path string, kind sdk.ManifestKind) *sdk.ManifestNode {
 }
 
 // Find returns the node a "name@version" label names, and whether one matched.
-func Find(g *sdk.Graph, label string) (sdk.GraphNode, bool) {
+func Find(g *model.Graph, label string) (model.GraphNode, bool) {
 	return testkit.FindNode(g, label)
 }
 
 // FindDep is Find narrowed to a dependency node.
-func FindDep(g *sdk.Graph, label string) (*sdk.DependencyNode, bool) {
+func FindDep(g *model.Graph, label string) (*model.DependencyNode, bool) {
 	return testkit.FindDependencyNode(g, label)
 }
 
@@ -101,7 +102,7 @@ func FindDep(g *sdk.Graph, label string) (*sdk.DependencyNode, bool) {
 //
 // Use it where a graph method takes an ID rather than returning a node:
 // DirectDependencies, Dependents, CollectPathsTo.
-func ID(g *sdk.Graph, label string) string {
+func ID(g *model.Graph, label string) string {
 	return testkit.NodeID(g, label)
 }
 
@@ -111,6 +112,6 @@ func ID(g *sdk.Graph, label string) string {
 // It is the comparison form of Find, for the many assertions that hold a node
 // and want to know which one it is. An exact ID still matches exactly, so a
 // case that names a package URL keeps asserting on the package URL.
-func Is(node sdk.GraphNode, label string) bool {
+func Is(node model.GraphNode, label string) bool {
 	return testkit.NodeIs(node, label)
 }

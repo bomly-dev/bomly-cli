@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 var (
@@ -14,8 +15,8 @@ var (
 	cargoNameLine      = regexp.MustCompile(`^\s*name\s*=\s*"([^"]+)"\s*$`)
 )
 
-func cargoLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func cargoLockPositions(path, relPath string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	inBlock := false
 	_ = detectors.ScanLines(path, func(line int, text string) {
 		switch {
@@ -27,7 +28,7 @@ func cargoLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 				name := strings.TrimSpace(matches[1])
 				if name != "" {
 					if _, exists := out[name]; !exists {
-						out[name] = &sdk.SourcePosition{File: relPath, Line: line}
+						out[name] = &model.SourcePosition{File: relPath, Line: line}
 					}
 				}
 				inBlock = false
@@ -42,7 +43,7 @@ func cargoLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 }
 
 // AttachCargoLockPositions wires Cargo.lock line numbers into the graph.
-func AttachCargoLockPositions(g *sdk.Graph, projectDir string) {
+func AttachCargoLockPositions(g *model.Graph, projectDir string) {
 	if g == nil || projectDir == "" {
 		return
 	}
@@ -50,7 +51,7 @@ func AttachCargoLockPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.DependencyNode) string {
+	detectors.AttachPositions(g, positions, func(pkg *model.DependencyNode) string {
 		if pkg == nil {
 			return ""
 		}

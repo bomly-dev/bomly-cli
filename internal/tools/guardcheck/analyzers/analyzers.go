@@ -34,9 +34,12 @@ import (
 )
 
 const (
-	// sdkPath is the import path of the module that owns the graph and the
-	// detection result; the analyzers match on it, not on a package name.
-	sdkPath = "github.com/bomly-dev/bomly-sdk"
+	// modelPath owns the graph; pluginPath owns the detection result. Since
+	// bomly-sdk v0.13.0 those are two packages, and the analyzers match on the
+	// import path rather than on a package name, so each rule names the path
+	// that declares the type it is about.
+	modelPath  = "github.com/bomly-dev/bomly-sdk/model"
+	pluginPath = "github.com/bomly-dev/bomly-sdk/plugin"
 	// detectorsPath is where Attributed and Unattributed are defined.
 	detectorsPath = "github.com/bomly-dev/bomly-cli/internal/detectors"
 )

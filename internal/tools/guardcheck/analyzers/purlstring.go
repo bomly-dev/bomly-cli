@@ -165,7 +165,7 @@ func runPURLString(pass *analysis.Pass) (any, error) {
 			if prefixed(expr) && !reported[expr.Pos()] {
 				reported[expr.Pos()] = true
 				pass.Reportf(expr.Pos(),
-					"package URL built from a \"pkg:\" string; the specification's escaping applies to the separators too, so build it with sdk.BuildPackageURLFor in a detector or purlkit.Build elsewhere")
+					"package URL built from a \"pkg:\" string; the specification's escaping applies to the separators too, so build it with model.BuildPackageURLFor in a detector or purlkit.Build elsewhere")
 			}
 		}
 		ast.Inspect(file, func(n ast.Node) bool {

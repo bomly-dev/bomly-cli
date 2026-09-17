@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // A workspace reaches one lockfile line from several members, so the same path
@@ -13,18 +14,18 @@ import (
 // byte-identical and the reader sees one file listed twice with no way to tell
 // why -- which is what this projection produced before it carried them.
 func TestLocationRefsCarryTheAttributionThatDistinguishesThem(t *testing.T) {
-	refs := output.LocationRefsFromGraphLocations([]sdk.PackageLocation{
+	refs := output.LocationRefsFromGraphLocations([]model.PackageLocation{
 		{
 			RealPath:     "package-lock.json",
 			ModuleRoot:   "apps/web",
-			Scopes:       []sdk.Scope{sdk.ScopeDevelopment},
-			Relationship: sdk.DependencyRelationshipDirect,
+			Scopes:       []model.Scope{model.ScopeDevelopment},
+			Relationship: model.DependencyRelationshipDirect,
 		},
 		{
 			RealPath:     "package-lock.json",
 			ModuleRoot:   "packages/lib",
-			Scopes:       []sdk.Scope{sdk.ScopeRuntime},
-			Relationship: sdk.DependencyRelationshipTransitive,
+			Scopes:       []model.Scope{model.ScopeRuntime},
+			Relationship: model.DependencyRelationshipTransitive,
 		},
 	})
 	if len(refs) != 2 {
@@ -45,8 +46,8 @@ func TestLocationRefsCarryTheAttributionThatDistinguishesThem(t *testing.T) {
 // A site with no path is still worth reporting when it says which module
 // reached the package and how.
 func TestAnAttributedSiteWithNoPathIsKept(t *testing.T) {
-	refs := output.LocationRefsFromGraphLocations([]sdk.PackageLocation{
-		{ModuleRoot: "apps/web", Relationship: sdk.DependencyRelationshipDirect},
+	refs := output.LocationRefsFromGraphLocations([]model.PackageLocation{
+		{ModuleRoot: "apps/web", Relationship: model.DependencyRelationshipDirect},
 		{},
 	})
 	if len(refs) != 1 {

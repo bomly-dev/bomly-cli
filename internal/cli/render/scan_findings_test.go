@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	sdk "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // The Findings table names packages the way every other surface does. It used
@@ -13,19 +13,19 @@ import (
 // payload all said "@scope/deep@2.0.0", and a reader could not tell which of
 // two similarly named packages the advisory was about.
 func TestCompactFindingsNamePackagesTheWayEveryOtherSurfaceDoes(t *testing.T) {
-	registry := sdk.NewPackageRegistry()
-	registry.Add(&sdk.Package{Coordinates: sdk.Coordinates{
+	registry := model.NewPackageRegistry()
+	registry.Add(&model.Package{Coordinates: model.Coordinates{
 		PURL:      "pkg:npm/%40scope/deep@2.0.0",
-		Ecosystem: sdk.EcosystemNPM,
+		Ecosystem: model.EcosystemNPM,
 		Org:       "scope",
 		Name:      "deep",
 		Version:   "2.0.0",
 	}})
 
-	findings := []sdk.Finding{{
+	findings := []model.Finding{{
 		ID:         "GHSA-deep",
-		Kind:       sdk.FindingKindVulnerability,
-		Severity:   sdk.SeverityHigh,
+		Kind:       model.FindingKindVulnerability,
+		Severity:   model.SeverityHigh,
 		PackageRef: "pkg:npm/%40scope/deep@2.0.0",
 	}}
 
@@ -38,10 +38,10 @@ func TestCompactFindingsNamePackagesTheWayEveryOtherSurfaceDoes(t *testing.T) {
 // An unenriched scan has no registry entry to read the name from, and the
 // package reference is a package URL that already carries it.
 func TestCompactFindingsNameUnenrichedPackagesFromTheirReference(t *testing.T) {
-	findings := []sdk.Finding{{
+	findings := []model.Finding{{
 		ID:         "GHSA-deep",
-		Kind:       sdk.FindingKindVulnerability,
-		Severity:   sdk.SeverityHigh,
+		Kind:       model.FindingKindVulnerability,
+		Severity:   model.SeverityHigh,
 		PackageRef: "pkg:npm/%40scope/deep@2.0.0",
 	}}
 

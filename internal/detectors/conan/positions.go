@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 var conanRefLine = regexp.MustCompile(`([a-zA-Z0-9_][a-zA-Z0-9._+-]*)\s*/\s*([^@'"\s,)]+)`)
@@ -14,8 +15,8 @@ var conanPythonRequireLine = regexp.MustCompile(`(?:self\.)?(?:requires|build_re
 
 var conanSectionHeader = regexp.MustCompile(`^\s*\[\s*(requires|build_requires|tool_requires|test_requires)\s*\]\s*$`)
 
-func conanPositions(projectDir string) map[string][]*sdk.SourcePosition {
-	out := make(map[string][]*sdk.SourcePosition)
+func conanPositions(projectDir string) map[string][]*model.SourcePosition {
+	out := make(map[string][]*model.SourcePosition)
 	candidates := []string{"conanfile.txt", "conanfile.py", "conan.lock", "conaninfo.txt"}
 	for _, name := range candidates {
 		full := filepath.Join(projectDir, name)
@@ -45,7 +46,7 @@ func conanPositions(projectDir string) map[string][]*sdk.SourcePosition {
 				return
 			}
 			version := strings.TrimSpace(matches[2])
-			pos := &sdk.SourcePosition{File: name, Line: line}
+			pos := &model.SourcePosition{File: name, Line: line}
 			detectors.AppendPosition(out, pkgName, pos)
 			if version != "" {
 				detectors.AppendPosition(out, pkgName+"@"+version, pos)
@@ -56,7 +57,7 @@ func conanPositions(projectDir string) map[string][]*sdk.SourcePosition {
 }
 
 // AttachConanPositions wires conanfile.txt / conan.lock line numbers.
-func AttachConanPositions(g *sdk.Graph, projectDir string) {
+func AttachConanPositions(g *model.Graph, projectDir string) {
 	if g == nil || projectDir == "" {
 		return
 	}
@@ -64,7 +65,7 @@ func AttachConanPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositionCandidates(g, positions, func(pkg *sdk.DependencyNode) []string {
+	detectors.AttachPositionCandidates(g, positions, func(pkg *model.DependencyNode) []string {
 		if pkg == nil {
 			return nil
 		}

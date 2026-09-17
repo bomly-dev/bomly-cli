@@ -8,7 +8,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorApplicable_GoMod(t *testing.T) {
@@ -18,7 +20,7 @@ func TestDetectorApplicable_GoMod(t *testing.T) {
 	}
 
 	detector := Detector{WorkingDir: projectDir}
-	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := detector.Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -110,7 +112,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if !ok {
 		t.Fatal("expected main module root node")
 	}
-	if !sdk.IsProjectOwned(rootNode) {
+	if !model.IsProjectOwned(rootNode) {
 		t.Fatalf("main module must be first-party and not enrichable, got %#v", mustDep(t, rootNode).Coordinates)
 	}
 
@@ -118,7 +120,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if !ok {
 		t.Fatal("expected runtime dependency package")
 	}
-	if got := string(mustDep(t, uuidNode).PrimaryScope()); got != string(sdk.ScopeRuntime) {
+	if got := string(mustDep(t, uuidNode).PrimaryScope()); got != string(model.ScopeRuntime) {
 		t.Fatalf("expected runtime scope for uuid, got %q", got)
 	}
 
@@ -126,7 +128,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if !ok {
 		t.Fatal("expected transitive runtime dependency package")
 	}
-	if got := string(mustDep(t, textNode).PrimaryScope()); got != string(sdk.ScopeRuntime) {
+	if got := string(mustDep(t, textNode).PrimaryScope()); got != string(model.ScopeRuntime) {
 		t.Fatalf("expected runtime scope for golang.org/x/text, got %q", got)
 	}
 
@@ -134,7 +136,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if !ok {
 		t.Fatal("expected development dependency package")
 	}
-	if got := string(mustDep(t, testifyNode).PrimaryScope()); got != string(sdk.ScopeDevelopment) {
+	if got := string(mustDep(t, testifyNode).PrimaryScope()); got != string(model.ScopeDevelopment) {
 		t.Fatalf("expected development scope for testify, got %q", got)
 	}
 
@@ -142,7 +144,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if !ok {
 		t.Fatal("expected transitive development dependency package")
 	}
-	if got := string(mustDep(t, spewNode).PrimaryScope()); got != string(sdk.ScopeDevelopment) {
+	if got := string(mustDep(t, spewNode).PrimaryScope()); got != string(model.ScopeDevelopment) {
 		t.Fatalf("expected development scope for go-spew, got %q", got)
 	}
 
@@ -167,7 +169,7 @@ func TestDepGraphFromGoList_RuntimeScopeSkipsTestImports(t *testing.T) {
 {"ImportPath":"github.com/davecgh/go-spew/spew","Module":{"Path":"github.com/davecgh/go-spew","Version":"v1.1.1"}}
 `)
 
-	g, err := depGraphFromGoListWithScope(raw, "example.com/demo", nil, sdk.ScopeRuntime, nil)
+	g, err := depGraphFromGoListWithScope(raw, "example.com/demo", nil, model.ScopeRuntime, nil)
 	if err != nil {
 		t.Fatalf("depGraphFromGoListWithScope() error = %v", err)
 	}
@@ -190,11 +192,11 @@ func TestDepGraphFromGoList_DevelopmentScopeFiltersRuntimeImports(t *testing.T) 
 {"ImportPath":"github.com/davecgh/go-spew/spew","Module":{"Path":"github.com/davecgh/go-spew","Version":"v1.1.1"}}
 `)
 
-	g, err := depGraphFromGoListWithScope(raw, "example.com/demo", nil, sdk.ScopeDevelopment, nil)
+	g, err := depGraphFromGoListWithScope(raw, "example.com/demo", nil, model.ScopeDevelopment, nil)
 	if err != nil {
 		t.Fatalf("depGraphFromGoListWithScope() error = %v", err)
 	}
-	filtered, err := sdk.FilterGraphByScope(g, sdk.ScopeDevelopment)
+	filtered, err := model.FilterGraphByScope(g, model.ScopeDevelopment)
 	if err != nil {
 		t.Fatalf("FilterGraphByScope() error = %v", err)
 	}
@@ -225,7 +227,7 @@ func TestDepGraphFromGoList_PrefersRuntimeScope(t *testing.T) {
 	if !ok {
 		t.Fatal("expected shared dependency package")
 	}
-	if got := string(mustDep(t, shared).PrimaryScope()); got != string(sdk.ScopeRuntime) {
+	if got := string(mustDep(t, shared).PrimaryScope()); got != string(model.ScopeRuntime) {
 		t.Fatalf("expected runtime scope to win, got %q", got)
 	}
 }
@@ -365,7 +367,7 @@ malformed line
 	if !ok {
 		t.Fatalf("missing digest for github.com/google/uuid@v1.6.0: %#v", digests)
 	}
-	if digest.Algorithm != sdk.DigestAlgorithmSHA256 {
+	if digest.Algorithm != model.DigestAlgorithmSHA256 {
 		t.Fatalf("expected sha256 digest, got %q", digest.Algorithm)
 	}
 	// hex of base64 "NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0="
@@ -380,9 +382,9 @@ malformed line
 
 // mustDep narrows a graph node to the dependency node a case is asserting
 // about, failing rather than panicking when the graph holds something else.
-func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
 	t.Helper()
-	dep, ok := node.(*sdk.DependencyNode)
+	dep, ok := node.(*model.DependencyNode)
 	if !ok {
 		t.Fatalf("expected a dependency node, got %T", node)
 	}

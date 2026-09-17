@@ -12,11 +12,13 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // NativeDetector resolves SwiftPM dependency graphs by running
@@ -24,38 +26,38 @@ import (
 type NativeDetector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
+	Fallback   plugin.Detector
 }
 
 // PackageManagerSupport returns SwiftPM package-manager discovery metadata.
-func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerSwiftPM, evidencePatterns...)}
+func (d NativeDetector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerSwiftPM, evidencePatterns...)}
 }
 
 // Ready reports whether the swift binary is available.
-func (d NativeDetector) Ready(context.Context, sdk.DetectionRequest) error {
+func (d NativeDetector) Ready(context.Context, plugin.DetectionRequest) error {
 	_, err := system.LookPath("swift")
 	return detectorkit.CommandNotReadyError("swift", err)
 }
 
 // Applicable reports whether SwiftPM files are present.
-func (d NativeDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d NativeDetector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	return (Detector{WorkingDir: d.workingDir(req.ProjectPath)}).Applicable(ctx, req)
 }
 
 // Descriptor describes the SwiftPM native detector.
-func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d NativeDetector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		Name:                detectors.NameSwiftPMNative,
-		Technique:           sdk.BuildToolTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemSwift},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSwiftPM},
+		Technique:           plugin.BuildToolTechnique,
+		SupportedEcosystems: []model.Ecosystem{model.EcosystemSwift},
+		SupportedManagers:   []model.PackageManager{model.PackageManagerSwiftPM},
 		Tags:                []string{"graph-resolution", "component-targeting"},
 	}
 }
 
 // ResolveGraph resolves a SwiftPM dependency graph via swift package show-dependencies.
-func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d NativeDetector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
@@ -74,23 +76,23 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	logger.Debug("running SwiftPM native detector", logkit.CommandFields(executable, args, workingDir)...)
 	if err := cmd.Run(); err != nil {
 		logger.Debug("swift package show-dependencies failed", zap.Error(err))
-		return sdk.DetectionResult{}, fmt.Errorf("swift package show-dependencies: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("swift package show-dependencies: %w", err)
 	}
 
 	g, err := nativeGraph(out.Bytes(), workingDir, logger)
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("parse swift show-dependencies output: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("parse swift show-dependencies output: %w", err)
 	}
 	logger.Info(fmt.Sprintf("SwiftPM native detector found %d dependencies in %s", g.Size(), logging.FormatDuration(time.Since(started))))
-	return detectors.Attributed(sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns)),
+	return detectors.Attributed(plugin.DetectionResult{
+		Graphs: model.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns)),
 	}), nil
 }
 
 // nativeGraph builds the dependency graph for a native SwiftPM run: the tool's
 // own output for structure, and the committed Package.resolved for the commits
 // that output omits.
-func nativeGraph(raw []byte, workingDir string, logger *zap.Logger) (*sdk.Graph, error) {
+func nativeGraph(raw []byte, workingDir string, logger *zap.Logger) (*model.Graph, error) {
 	g, err := depGraphFromSwiftShowDeps(raw)
 	if err != nil {
 		return nil, err
@@ -106,7 +108,7 @@ func nativeGraph(raw []byte, workingDir string, logger *zap.Logger) (*sdk.Graph,
 //
 // Best effort: a project with no readable Package.resolved keeps the origins
 // the graph already carries.
-func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
+func applyResolvedOrigins(g *model.Graph, workingDir string, logger *zap.Logger) {
 	if logger == nil {
 		logger = zap.NewNop()
 	}
@@ -131,12 +133,12 @@ func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 	}
 
 	pinned := 0
-	g.WalkNodes(func(graphNode sdk.GraphNode) bool {
-		dep, isDependency := sdk.AsDependencyNode(graphNode)
+	g.WalkNodes(func(graphNode model.GraphNode) bool {
+		dep, isDependency := model.AsDependencyNode(graphNode)
 		if !isDependency {
 			return true
 		}
-		if dep.Source != sdk.DependencySourceGit {
+		if dep.Source != model.DependencySourceGit {
 			// `swift package edit` replaces a dependency with a local
 			// checkout while Package.resolved keeps the pin it replaced.
 			// What the build resolved is the truth, so a local node is left
@@ -157,11 +159,11 @@ func applyResolvedOrigins(g *sdk.Graph, workingDir string, logger *zap.Logger) {
 				return true
 			}
 		}
-		if pin.Revision == "" || swiftDependencySource(pin.SourceKind, pin.Repository) != sdk.DependencySourceGit {
+		if pin.Revision == "" || swiftDependencySource(pin.SourceKind, pin.Repository) != model.DependencySourceGit {
 			return true
 		}
-		if origin := sdk.RepositoryOrigin(pin.Repository, pin.Revision); origin != nil {
-			dep.Origins = sdk.MergeOrigins(dep.Origins, []sdk.DependencyOrigin{*origin})
+		if origin := model.RepositoryOrigin(pin.Repository, pin.Revision); origin != nil {
+			dep.Origins = model.MergeOrigins(dep.Origins, []model.DependencyOrigin{*origin})
 		}
 		pinned++
 		return true
@@ -191,7 +193,7 @@ func repositoryKey(repository string) string {
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d NativeDetector) FallbackDetector() sdk.Detector {
+func (d NativeDetector) FallbackDetector() plugin.Detector {
 	return d.Fallback
 }
 
@@ -220,7 +222,7 @@ type swiftShowDepsNode struct {
 
 // depGraphFromSwiftShowDeps parses the output of swift package show-dependencies
 // and builds a proper transitive dependency graph.
-func depGraphFromSwiftShowDeps(raw []byte) (*sdk.Graph, error) {
+func depGraphFromSwiftShowDeps(raw []byte) (*model.Graph, error) {
 	// The output may be a single JSON object (the root package) or an array.
 	// In practice swift emits a single object.
 	raw = bytes.TrimSpace(raw)
@@ -240,7 +242,7 @@ func depGraphFromSwiftShowDeps(raw []byte) (*sdk.Graph, error) {
 		tree = wrapped.Object
 	}
 
-	g := sdk.New()
+	g := model.New()
 	root, err := rootNode()
 	if err != nil {
 		return nil, err
@@ -257,7 +259,7 @@ func depGraphFromSwiftShowDeps(raw []byte) (*sdk.Graph, error) {
 	return g, nil
 }
 
-func buildSwiftDepTree(g *sdk.Graph, parentID string, deps []swiftShowDepsNode, seen map[string]bool) error {
+func buildSwiftDepTree(g *model.Graph, parentID string, deps []swiftShowDepsNode, seen map[string]bool) error {
 	for _, dep := range deps {
 		name := dep.Name
 		if name == "" {

@@ -27,38 +27,40 @@ import (
 	"path/filepath"
 	"strings"
 
-	sdk "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
+	"github.com/bomly-dev/bomly-sdk/runtime"
 )
 
 const pluginID = "bomly.example.gomod-detector"
 
 type detector struct{}
 
-func (d *detector) Descriptor(context.Context) (*sdk.DetectorDescriptor, error) {
-	return &sdk.DetectorDescriptor{
+func (d *detector) Descriptor(context.Context) (*plugin.DetectorDescriptor, error) {
+	return &plugin.DetectorDescriptor{
 		Name: pluginID,
 	}, nil
 }
 
-func (d *detector) PackageManagerSupport(context.Context) ([]sdk.PackageManagerSupport, error) {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGoMod, "go.mod")}, nil
+func (d *detector) PackageManagerSupport(context.Context) ([]plugin.PackageManagerSupport, error) {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerGoMod, "go.mod")}, nil
 }
 
-func (d *detector) Ready(context.Context, *sdk.DetectRequest) (*sdk.ReadyResponse, error) {
-	return &sdk.ReadyResponse{Ready: true}, nil
+func (d *detector) Ready(context.Context, *plugin.DetectRequest) (*plugin.ReadyResponse, error) {
+	return &plugin.ReadyResponse{Ready: true}, nil
 }
 
-func (d *detector) Applicable(context.Context, *sdk.DetectRequest) (*sdk.ApplicableResponse, error) {
-	return &sdk.ApplicableResponse{Applicable: true}, nil
+func (d *detector) Applicable(context.Context, *plugin.DetectRequest) (*plugin.ApplicableResponse, error) {
+	return &plugin.ApplicableResponse{Applicable: true}, nil
 }
 
-func (d *detector) Detect(ctx context.Context, req *sdk.DetectRequest) (*sdk.DetectResponse, error) {
+func (d *detector) Detect(ctx context.Context, req *plugin.DetectRequest) (*plugin.DetectResponse, error) {
 	moduleName, err := readModuleName(filepath.Join(req.ProjectPath, "go.mod"))
 	if err != nil {
 		return nil, err
 	}
-	pkg, err := sdk.NewDependencyNode(sdk.Coordinates{
-		Ecosystem: sdk.EcosystemGo,
+	pkg, err := model.NewDependencyNode(model.Coordinates{
+		Ecosystem: model.EcosystemGo,
 		Name:      moduleName,
 		Version:   "v0.0.0",
 		PURL:      "pkg:golang/" + moduleName + "@v0.0.0",
@@ -67,20 +69,20 @@ func (d *detector) Detect(ctx context.Context, req *sdk.DetectRequest) (*sdk.Det
 		return nil, err
 	}
 	pkg.FoundBy = pluginID
-	graph := sdk.New()
+	graph := model.New()
 	if err := graph.AddNode(pkg); err != nil {
 		return nil, err
 	}
-	return &sdk.DetectResponse{
+	return &plugin.DetectResponse{
 		SubprojectInfo:      req.Subproject,
 		RootExecutionTarget: req.ExecutionTarget,
 		DetectorName:        pluginID,
-		Origin:              sdk.ExternalOrigin,
-		Graphs: &sdk.GraphContainer{
-			Entries: []sdk.GraphEntry{{
-				Manifest: sdk.ManifestMetadata{
+		Origin:              plugin.ExternalOrigin,
+		Graphs: &model.GraphContainer{
+			Entries: []model.GraphEntry{{
+				Manifest: model.ManifestMetadata{
 					Path: filepath.Join(req.ProjectPath, "go.mod"),
-					Kind: sdk.ManifestKind("go.mod"),
+					Kind: model.ManifestKind("go.mod"),
 				},
 				Graph: graph,
 			}},
@@ -108,7 +110,7 @@ func readModuleName(path string) (string, error) {
 }
 
 func main() {
-	sdk.ServeDetector(&detector{})
+	runtime.ServeDetector(&detector{})
 }
 `
 
@@ -241,7 +243,9 @@ import (
 	"os"
 	"sort"
 
-	sdk "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
+	"github.com/bomly-dev/bomly-sdk/runtime"
 )
 
 const pluginID = "bomly.example.reach-analyzer"
@@ -255,50 +259,50 @@ type pluginConfig struct {
 
 type analyzer struct{}
 
-func (a *analyzer) Descriptor(context.Context) (*sdk.AnalyzerDescriptor, error) {
-	return &sdk.AnalyzerDescriptor{
+func (a *analyzer) Descriptor(context.Context) (*plugin.AnalyzerDescriptor, error) {
+	return &plugin.AnalyzerDescriptor{
 		Name:               pluginID,
-		SupportedLanguages: []sdk.Language{sdk.LanguageGo},
-		SupportedTiers:     []sdk.ReachabilityTier{sdk.TierPackage},
-		Capabilities:       []string{sdk.CapabilityPackageUpdates},
-		ConfigSchema:       sdk.MustConfigSchemaFor(pluginConfig{}),
+		SupportedLanguages: []model.Language{model.LanguageGo},
+		SupportedTiers:     []model.ReachabilityTier{model.TierPackage},
+		Capabilities:       []string{plugin.CapabilityPackageUpdates},
+		ConfigSchema:       plugin.MustConfigSchemaFor(pluginConfig{}),
 	}, nil
 }
 
-func (a *analyzer) Ready(context.Context, *sdk.AnalyzeRequest) (*sdk.ReadyResponse, error) {
+func (a *analyzer) Ready(context.Context, *plugin.AnalyzeRequest) (*plugin.ReadyResponse, error) {
 	recordPID()
-	return &sdk.ReadyResponse{Ready: true}, nil
+	return &plugin.ReadyResponse{Ready: true}, nil
 }
 
-func (a *analyzer) Applicable(context.Context, *sdk.AnalyzeRequest) (*sdk.ApplicableResponse, error) {
+func (a *analyzer) Applicable(context.Context, *plugin.AnalyzeRequest) (*plugin.ApplicableResponse, error) {
 	recordPID()
-	return &sdk.ApplicableResponse{Applicable: true}, nil
+	return &plugin.ApplicableResponse{Applicable: true}, nil
 }
 
-func (a *analyzer) Analyze(_ context.Context, req *sdk.AnalyzeRequest) (*sdk.AnalyzeResponse, error) {
+func (a *analyzer) Analyze(_ context.Context, req *plugin.AnalyzeRequest) (*plugin.AnalyzeResponse, error) {
 	recordPID()
 	annotated := annotatedPackage(req)
-	stats := map[string]sdk.ReachabilityStats{pluginID: {Reachable: 1}}
+	stats := map[string]plugin.ReachabilityStats{pluginID: {Reachable: 1}}
 	if req.AcceptPackageUpdates {
 		// The host understands deltas: return only the package we touched.
-		return &sdk.AnalyzeResponse{
-			PackageUpdates: []*sdk.Package{annotated},
+		return &plugin.AnalyzeResponse{
+			PackageUpdates: []*model.Package{annotated},
 			AnalyzerStats:  stats,
 		}, nil
 	}
 	// Legacy hosts expect the full registry back.
 	registry := req.Registry
 	if registry == nil {
-		registry = sdk.NewPackageRegistry()
+		registry = model.NewPackageRegistry()
 	}
-	registry = sdk.ApplyPackageUpdates(registry, []*sdk.Package{annotated})
-	return &sdk.AnalyzeResponse{Registry: registry, AnalyzerStats: stats}, nil
+	registry = model.ApplyPackageUpdates(registry, []*model.Package{annotated})
+	return &plugin.AnalyzeResponse{Registry: registry, AnalyzerStats: stats}, nil
 }
 
 // annotatedPackage marks one vulnerability reachable on the first registry
 // package (by PURL order), or on a synthetic package when the registry is
 // empty, so the workflow test can observe the annotation in scan output.
-func annotatedPackage(req *sdk.AnalyzeRequest) *sdk.Package {
+func annotatedPackage(req *plugin.AnalyzeRequest) *model.Package {
 	purl := "pkg:golang/bomly.example/synthetic@v0.0.0"
 	if req.Registry != nil {
 		purls := make([]string, 0, req.Registry.Len())
@@ -312,14 +316,14 @@ func annotatedPackage(req *sdk.AnalyzeRequest) *sdk.Package {
 			purl = purls[0]
 		}
 	}
-	return &sdk.Package{
-		Coordinates: sdk.Coordinates{PURL: purl},
-		Vulnerabilities: []sdk.Vulnerability{{
+	return &model.Package{
+		Coordinates: model.Coordinates{PURL: purl},
+		Vulnerabilities: []model.Vulnerability{{
 			ID:     "EXAMPLE-REACH-0001",
 			Source: pluginID,
-			Reachability: &sdk.Reachability{
-				Status:   sdk.ReachabilityReachable,
-				Tier:     sdk.TierPackage,
+			Reachability: &model.Reachability{
+				Status:   model.ReachabilityReachable,
+				Tier:     model.TierPackage,
 				Analyzer: pluginID,
 			},
 		}},
@@ -330,7 +334,7 @@ func annotatedPackage(req *sdk.AnalyzeRequest) *sdk.Package {
 // are ignored: recording is diagnostic and must never fail the analysis.
 func recordPID() {
 	var cfg pluginConfig
-	if err := sdk.DecodePluginConfigFromEnv(&cfg); err != nil || cfg.PIDFile == "" {
+	if err := runtime.DecodePluginConfigFromEnv(&cfg); err != nil || cfg.PIDFile == "" {
 		return
 	}
 	file, err := os.OpenFile(cfg.PIDFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
@@ -342,7 +346,7 @@ func recordPID() {
 }
 
 func main() {
-	sdk.ServeAnalyzer(&analyzer{})
+	runtime.ServeAnalyzer(&analyzer{})
 }
 `
 

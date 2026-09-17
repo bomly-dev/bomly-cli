@@ -7,9 +7,10 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // poetryLockPackage represents a single [[package]] entry in poetry.lock.
@@ -56,7 +57,7 @@ func poetryLockFilePath(projectPath string) string {
 //
 // BFS propagation ensures that a package reachable via a runtime path is
 // always marked runtime even if it is also listed in a dev group.
-func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
+func depGraphFromPoetryLock(lockPath, projectPath string) (*model.Graph, error) {
 	data, err := system.ReadRepositoryFile(lockPath)
 	if err != nil {
 		return nil, fmt.Errorf("read poetry.lock: %w", err)
@@ -74,19 +75,19 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 	mainDeps, devDeps, rootName, rootVersion := collectPoetryDepsAndRoot(projectPath)
 
 	// Build a name-indexed map of sdk.DependencyNode nodes; assign initial scope from groups.
-	nodesByName := make(map[string]*sdk.DependencyNode, len(lock.Package))
+	nodesByName := make(map[string]*model.DependencyNode, len(lock.Package))
 	for i := range lock.Package {
 		pkg := &lock.Package[i]
 		if pkg.Name == "" {
 			continue
 		}
-		node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+		node, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemPython,
 			Name:           normalizePythonName(pkg.Name),
 			Version:        pkg.Version,
-			PackageManager: sdk.PackageManagerPoetry,
+			PackageManager: model.PackageManagerPoetry,
 			Language:       "python",
-			Type:           sdk.PackageTypePackage,
-			PURL:           sdk.BuildPackageURLFor(sdk.EcosystemPython, sdk.PackageManagerPoetry, "", pkg.Name, pkg.Version)})
+			Type:           model.PackageTypePackage,
+			PURL:           model.BuildPackageURLFor(model.EcosystemPython, model.PackageManagerPoetry, "", pkg.Name, pkg.Version)})
 		if err != nil {
 			return nil, fmt.Errorf("build dependency node: %w", err)
 		}
@@ -97,9 +98,9 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 
 		for _, group := range pkg.Groups {
 			if group == "main" {
-				node.AddScope(sdk.ScopeRuntime)
+				node.AddScope(model.ScopeRuntime)
 			} else {
-				node.AddScope(sdk.ScopeDevelopment)
+				node.AddScope(model.ScopeDevelopment)
 			}
 		}
 		// poetry.lock can hold several marker-specific records for one
@@ -109,15 +110,15 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 	}
 
 	// Build the graph.
-	g := sdk.New()
+	g := model.New()
 
-	root, err := pythonModuleRoot(sdk.Coordinates{
-		Ecosystem:      sdk.EcosystemPython,
+	root, err := pythonModuleRoot(model.Coordinates{
+		Ecosystem:      model.EcosystemPython,
 		Name:           rootName,
 		Version:        rootVersion,
-		PackageManager: sdk.PackageManagerPoetry,
+		PackageManager: model.PackageManagerPoetry,
 		Language:       "python",
-		Type:           sdk.PackageTypeApplication,
+		Type:           model.PackageTypeApplication,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build root node: %w", err)
@@ -191,18 +192,18 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 	return g, nil
 }
 
-func poetryDependencySource(sourceType string) sdk.DependencySource {
+func poetryDependencySource(sourceType string) model.DependencySource {
 	switch strings.ToLower(strings.TrimSpace(sourceType)) {
 	case "":
-		return sdk.DependencySourceRegistry
+		return model.DependencySourceRegistry
 	case "legacy", "default", "supplemental":
-		return sdk.DependencySourceRegistry
+		return model.DependencySourceRegistry
 	case "git":
-		return sdk.DependencySourceGit
+		return model.DependencySourceGit
 	case "directory", "file", "path":
-		return sdk.DependencySourceFile
+		return model.DependencySourceFile
 	case "url":
-		return sdk.DependencySourceURL
+		return model.DependencySourceURL
 	default:
 		return ""
 	}

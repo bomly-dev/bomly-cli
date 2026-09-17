@@ -1,6 +1,8 @@
 package mcp
 
-import "github.com/bomly-dev/bomly-sdk"
+import (
+	"github.com/bomly-dev/bomly-sdk/model"
+)
 
 // CompactSchemaVersion tags the agent-facing MCP response shapes. It is
 // versioned independently of the CLI JSON schema: MCP responses are compact
@@ -86,11 +88,11 @@ type CompactFinding struct {
 
 // Remediation actions for RemediationGroup.Action.
 const (
-	ActionDirectBump         = string(sdk.RemediationActionDirectBump)
-	ActionTransitiveOverride = string(sdk.RemediationActionTransitiveOverride)
-	ActionLockfileRefresh    = string(sdk.RemediationActionLockfileRefresh)
-	ActionNoFixUpstream      = string(sdk.RemediationActionNoFixUpstream)
-	ActionManualReview       = string(sdk.RemediationActionManualReview)
+	ActionDirectBump         = string(model.RemediationActionDirectBump)
+	ActionTransitiveOverride = string(model.RemediationActionTransitiveOverride)
+	ActionLockfileRefresh    = string(model.RemediationActionLockfileRefresh)
+	ActionNoFixUpstream      = string(model.RemediationActionNoFixUpstream)
+	ActionManualReview       = string(model.RemediationActionManualReview)
 )
 
 // RemediationGroup is the integrated fix context: one concrete change (bump

@@ -6,47 +6,47 @@ import (
 	"strings"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-sdk"
+	sdkmodel "github.com/bomly-dev/bomly-sdk/model"
 )
 
 // fixtureRegistryWithVuln builds a single-package PURL-keyed registry where
 // `purl` carries one Vulnerability — used by SARIF reachability tests to
 // supply the data the writer now resolves through *sdk.PackageRegistry.
-func fixtureRegistryWithVuln(purl string, vuln model.Vulnerability) *model.PackageRegistry {
-	reg := model.NewPackageRegistry()
+func fixtureRegistryWithVuln(purl string, vuln sdkmodel.Vulnerability) *sdkmodel.PackageRegistry {
+	reg := sdkmodel.NewPackageRegistry()
 	pkg := reg.Ensure(purl)
-	pkg.Vulnerabilities = []model.Vulnerability{vuln}
+	pkg.Vulnerabilities = []sdkmodel.Vulnerability{vuln}
 	return reg
 }
 
 func TestWriteSARIFEmitsCodeFlowsAndPropertiesForReachableFinding(t *testing.T) {
 	const purl = "pkg:go/lib@1.0.0"
-	reg := fixtureRegistryWithVuln(purl, model.Vulnerability{
+	reg := fixtureRegistryWithVuln(purl, sdkmodel.Vulnerability{
 		ID:    "GHSA-test",
 		Title: "vuln",
-		Reachability: &model.Reachability{
-			Status:   model.ReachabilityReachable,
-			Tier:     model.TierSymbol,
+		Reachability: &sdkmodel.Reachability{
+			Status:   sdkmodel.ReachabilityReachable,
+			Tier:     sdkmodel.TierSymbol,
 			Analyzer: "govulncheck",
 			Reason:   "called-from-app",
-			CallPaths: []model.CallPath{
+			CallPaths: []sdkmodel.CallPath{
 				{
-					Sink: model.AffectedSymbol{Symbol: "Decode", Package: "lib"},
-					Frames: []model.CallFrame{
-						{Function: "main", Package: "main", Position: model.SourcePosition{File: "main.go", Line: 12, Column: 4}},
-						{Function: "Decode", Package: "lib", Position: model.SourcePosition{File: "lib/decode.go", Line: 88}},
+					Sink: sdkmodel.AffectedSymbol{Symbol: "Decode", Package: "lib"},
+					Frames: []sdkmodel.CallFrame{
+						{Function: "main", Package: "main", Position: sdkmodel.SourcePosition{File: "main.go", Line: 12, Column: 4}},
+						{Function: "Decode", Package: "lib", Position: sdkmodel.SourcePosition{File: "lib/decode.go", Line: 88}},
 					},
 				},
 			},
 		},
 	})
-	findings := []model.Finding{
+	findings := []sdkmodel.Finding{
 		{
 			ID:              "GHSA-test",
 			VulnerabilityID: "GHSA-test",
-			Kind:            model.FindingKindVulnerability,
+			Kind:            sdkmodel.FindingKindVulnerability,
 			PackageRef:      purl,
-			Severity:        model.SeverityHigh,
+			Severity:        sdkmodel.SeverityHigh,
 			Title:           "vuln",
 			Source:          "osv",
 		},
@@ -75,25 +75,25 @@ func TestWriteSARIFEmitsCodeFlowsAndPropertiesForReachableFinding(t *testing.T) 
 
 func TestWriteSARIFOmitsReachabilityWhenDisabled(t *testing.T) {
 	const purl = "pkg:go/lib@1.0.0"
-	reg := fixtureRegistryWithVuln(purl, model.Vulnerability{
+	reg := fixtureRegistryWithVuln(purl, sdkmodel.Vulnerability{
 		ID:      "GHSA-test",
 		FixedIn: "1.0.1",
-		Reachability: &model.Reachability{
-			Status: model.ReachabilityReachable,
-			Tier:   model.TierSymbol,
-			CallPaths: []model.CallPath{{
-				Sink:   model.AffectedSymbol{Symbol: "Decode", Package: "lib"},
-				Frames: []model.CallFrame{{Function: "main", Package: "main", Position: model.SourcePosition{File: "main.go", Line: 12}}},
+		Reachability: &sdkmodel.Reachability{
+			Status: sdkmodel.ReachabilityReachable,
+			Tier:   sdkmodel.TierSymbol,
+			CallPaths: []sdkmodel.CallPath{{
+				Sink:   sdkmodel.AffectedSymbol{Symbol: "Decode", Package: "lib"},
+				Frames: []sdkmodel.CallFrame{{Function: "main", Package: "main", Position: sdkmodel.SourcePosition{File: "main.go", Line: 12}}},
 			}},
 		},
 	})
-	findings := []model.Finding{
+	findings := []sdkmodel.Finding{
 		{
 			ID:              "GHSA-test",
 			VulnerabilityID: "GHSA-test",
-			Kind:            model.FindingKindVulnerability,
+			Kind:            sdkmodel.FindingKindVulnerability,
 			PackageRef:      purl,
-			Severity:        model.SeverityHigh,
+			Severity:        sdkmodel.SeverityHigh,
 			Title:           "vuln",
 			Source:          "osv",
 		},
@@ -116,9 +116,9 @@ func TestWriteSARIFOmitsReachabilityWhenDisabled(t *testing.T) {
 
 func TestWriteSARIFOmitsCodeFlowsWhenNoReachability(t *testing.T) {
 	const purl = "pkg:go/lib@1.0.0"
-	reg := fixtureRegistryWithVuln(purl, model.Vulnerability{ID: "X"})
-	findings := []model.Finding{
-		{ID: "X", VulnerabilityID: "X", Kind: model.FindingKindVulnerability, PackageRef: purl, Severity: model.SeverityHigh, Title: "x", Source: "osv"},
+	reg := fixtureRegistryWithVuln(purl, sdkmodel.Vulnerability{ID: "X"})
+	findings := []sdkmodel.Finding{
+		{ID: "X", VulnerabilityID: "X", Kind: sdkmodel.FindingKindVulnerability, PackageRef: purl, Severity: sdkmodel.SeverityHigh, Title: "x", Source: "osv"},
 	}
 	var buf bytes.Buffer
 	if err := WriteSARIF(&buf, findings, reg, "bomly", "test"); err != nil {

@@ -4,8 +4,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/purlkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // Every presentation surface -- the JSON and SARIF documents here, the scan and
@@ -35,7 +36,7 @@ import (
 // nil is the normal answer, not an error: a scan without --enrich has an empty
 // registry, and every caller here is rendering a detection-time fact that has
 // no enrichment behind it.
-func RegistryPackage(registry *sdk.PackageRegistry, packageRef string) *sdk.Package {
+func RegistryPackage(registry *model.PackageRegistry, packageRef string) *model.Package {
 	packageRef = strings.TrimSpace(packageRef)
 	if registry == nil || packageRef == "" {
 		return nil
@@ -58,8 +59,8 @@ func RegistryPackage(registry *sdk.PackageRegistry, packageRef string) *sdk.Pack
 //
 // Structural nodes -- modules and manifests -- are not packages and get "",
 // which resolves to a nil package rather than to some other node's entry.
-func NodePackageRef(node sdk.GraphNode) string {
-	dep, ok := sdk.AsDependencyNode(node)
+func NodePackageRef(node model.GraphNode) string {
+	dep, ok := model.AsDependencyNode(node)
 	if !ok {
 		return ""
 	}
@@ -71,7 +72,7 @@ func NodePackageRef(node sdk.GraphNode) string {
 
 // RegistryPackageForNode returns what the matching stage recorded for the
 // package a graph node resolved to, or nil when it recorded nothing.
-func RegistryPackageForNode(registry *sdk.PackageRegistry, node sdk.GraphNode) *sdk.Package {
+func RegistryPackageForNode(registry *model.PackageRegistry, node model.GraphNode) *model.Package {
 	return RegistryPackage(registry, NodePackageRef(node))
 }
 
@@ -81,7 +82,7 @@ func RegistryPackageForNode(registry *sdk.PackageRegistry, node sdk.GraphNode) *
 // mints one finding per advisory, but not for auditors that mint several
 // findings against one advisory; those carry it in VulnerabilityID. Every join
 // from a finding to an advisory uses this precedence.
-func FindingVulnerabilityID(f sdk.Finding) string {
+func FindingVulnerabilityID(f model.Finding) string {
 	return resolvedVulnerabilityID(f.VulnerabilityID, f.ID)
 }
 
@@ -102,7 +103,7 @@ func resolvedVulnerabilityID(vulnerabilityID, findingID string) string {
 // reported it: an OSV finding names GHSA-xxxx while the enriched advisory may
 // be stored under its CVE, and an exact-id-only match silently renders the
 // finding without severity, fix version, or KEV status.
-func PackageAdvisory(pkg *sdk.Package, vulnerabilityID string) *sdk.Vulnerability {
+func PackageAdvisory(pkg *model.Package, vulnerabilityID string) *model.Vulnerability {
 	vulnerabilityID = strings.TrimSpace(vulnerabilityID)
 	if pkg == nil || vulnerabilityID == "" {
 		return nil
@@ -123,7 +124,7 @@ func PackageAdvisory(pkg *sdk.Package, vulnerabilityID string) *sdk.Vulnerabilit
 // package it references and the advisory it names. Either may be nil: an
 // unenriched scan has neither, and a license or policy finding has a package
 // but names no advisory.
-func FindingAdvisory(registry *sdk.PackageRegistry, f sdk.Finding) (*sdk.Package, *sdk.Vulnerability) {
+func FindingAdvisory(registry *model.PackageRegistry, f model.Finding) (*model.Package, *model.Vulnerability) {
 	pkg := RegistryPackage(registry, f.PackageRef)
 	return pkg, PackageAdvisory(pkg, FindingVulnerabilityID(f))
 }
@@ -135,17 +136,17 @@ func FindingAdvisory(registry *sdk.PackageRegistry, f sdk.Finding) (*sdk.Package
 // Matching wins as a whole rather than merging, because a registry package's
 // licenses are the reconciled answer for that PURL and detection's are one
 // producer's reading of one file.
-func ResolvedLicenses(registry *sdk.PackageRegistry, node sdk.GraphNode) []sdk.PackageLicense {
+func ResolvedLicenses(registry *model.PackageRegistry, node model.GraphNode) []model.PackageLicense {
 	if pkg := RegistryPackageForNode(registry, node); pkg != nil && len(pkg.Licenses) > 0 {
 		return pkg.Licenses
 	}
-	dep, _ := sdk.AsDependencyNode(node)
-	return sdk.DetectionLicenses(dep)
+	dep, _ := model.AsDependencyNode(node)
+	return model.DetectionLicenses(dep)
 }
 
 // NodeVulnerabilities returns the advisories the matching stage recorded
 // against the package a graph node resolved to.
-func NodeVulnerabilities(registry *sdk.PackageRegistry, node sdk.GraphNode) []sdk.Vulnerability {
+func NodeVulnerabilities(registry *model.PackageRegistry, node model.GraphNode) []model.Vulnerability {
 	pkg := RegistryPackageForNode(registry, node)
 	if pkg == nil {
 		return nil
@@ -169,7 +170,7 @@ func NodeVulnerabilities(registry *sdk.PackageRegistry, node sdk.GraphNode) []sd
 //
 // The return type is FindingPackageRef because findings were the first surface
 // to need this shape; it is the presentation identity of any package reference.
-func IdentifyPackageRef(registry *sdk.PackageRegistry, packageRef string) FindingPackageRef {
+func IdentifyPackageRef(registry *model.PackageRegistry, packageRef string) FindingPackageRef {
 	packageRef = strings.TrimSpace(packageRef)
 	if pkg := RegistryPackage(registry, packageRef); pkg != nil {
 		return FindingPackageRef{
@@ -190,7 +191,7 @@ func identityFromPURL(packageRef string) FindingPackageRef {
 	if err != nil || parsed.Name == "" {
 		return FindingPackageRef{Name: packageRef, Purl: packageRef}
 	}
-	coords := sdk.Coordinates{
+	coords := model.Coordinates{
 		PURL:    packageRef,
 		Org:     parsed.Namespace,
 		Name:    parsed.Name,
@@ -202,7 +203,7 @@ func identityFromPURL(packageRef string) FindingPackageRef {
 	// Ecosystem empty, and DisplayName then falls back to its neutral spelling
 	// rather than guessing.
 	if token, ok := purlkit.CanonicalEcosystem(parsed.Type); ok {
-		if ecosystem, err := sdk.ParseEcosystem(token); err == nil {
+		if ecosystem, err := model.ParseEcosystem(token); err == nil {
 			coords.Ecosystem = ecosystem
 		}
 	}
@@ -210,7 +211,7 @@ func identityFromPURL(packageRef string) FindingPackageRef {
 	// purl namespace is not yet a Bomly org. npm's is spelled "@scope" there
 	// and "scope" on coordinates, and DisplayName re-adds the marker -- so
 	// without this the fallback renders "@@scope/deep".
-	sdk.NormalizeCoordinates(&coords)
+	model.NormalizeCoordinates(&coords)
 	return FindingPackageRef{
 		Name:      coords.DisplayName(),
 		Org:       coords.Org,

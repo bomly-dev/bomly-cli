@@ -7,16 +7,18 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	detector := Detector{WorkingDir: "testdata/project"}
-	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:     "testdata/project",
-		PackageManager:  sdk.PackageManagerNuGet,
-		Ecosystem:       sdk.EcosystemDotNet,
-		ExecutionTarget: sdk.ExecutionTarget{Location: "testdata/project"},
+		PackageManager:  model.PackageManagerNuGet,
+		Ecosystem:       model.EcosystemDotNet,
+		ExecutionTarget: plugin.ExecutionTarget{Location: "testdata/project"},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -71,7 +73,7 @@ func TestDepGraphFromLockMultiTarget(t *testing.T) {
 		t.Fatal("expected root package")
 	}
 	depsNodes, err := g.DirectDependencies(root.NodeID())
-	deps := sdk.DependencyNodesOf(depsNodes)
+	deps := model.DependencyNodesOf(depsNodes)
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}
@@ -82,7 +84,7 @@ func TestDepGraphFromLockMultiTarget(t *testing.T) {
 	if !ok {
 		t.Fatal("expected System.Text.Json package")
 	}
-	if string(mustDep(t, systemText).PrimaryScope()) != string(sdk.ScopeRuntime) {
+	if string(mustDep(t, systemText).PrimaryScope()) != string(model.ScopeRuntime) {
 		t.Fatalf("expected transitive runtime scope, got %q", string(mustDep(t, systemText).PrimaryScope()))
 	}
 }
@@ -126,7 +128,7 @@ func TestDepGraphFromProjectFiles(t *testing.T) {
 		if !ok {
 			t.Fatalf("expected package %q", want)
 		}
-		if string(mustDep(t, pkg).PrimaryScope()) != string(sdk.ScopeRuntime) {
+		if string(mustDep(t, pkg).PrimaryScope()) != string(model.ScopeRuntime) {
 			t.Fatalf("expected runtime scope for %q, got %q", want, string(mustDep(t, pkg).PrimaryScope()))
 		}
 	}
@@ -151,11 +153,11 @@ func TestDetectorResolveGraphAttachesProjectAndConfigLocations(t *testing.T) {
 		t.Fatalf("write project file: %v", err)
 	}
 
-	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := (Detector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:     projectDir,
-		PackageManager:  sdk.PackageManagerNuGet,
-		Ecosystem:       sdk.EcosystemDotNet,
-		ExecutionTarget: sdk.ExecutionTarget{Location: projectDir},
+		PackageManager:  model.PackageManagerNuGet,
+		Ecosystem:       model.EcosystemDotNet,
+		ExecutionTarget: plugin.ExecutionTarget{Location: projectDir},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -186,11 +188,11 @@ func TestDetectorResolveGraphAttachesPackagesConfigLocations(t *testing.T) {
 		t.Fatalf("write packages.config: %v", err)
 	}
 
-	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{
+	result, err := (Detector{}).ResolveGraph(context.Background(), plugin.DetectionRequest{
 		ProjectPath:     projectDir,
-		PackageManager:  sdk.PackageManagerNuGet,
-		Ecosystem:       sdk.EcosystemDotNet,
-		ExecutionTarget: sdk.ExecutionTarget{Location: projectDir},
+		PackageManager:  model.PackageManagerNuGet,
+		Ecosystem:       model.EcosystemDotNet,
+		ExecutionTarget: plugin.ExecutionTarget{Location: projectDir},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -293,7 +295,7 @@ func TestDepGraphFromDepsFiles(t *testing.T) {
 	if !ok {
 		t.Fatal("expected System.Runtime.Extensions")
 	}
-	if string(mustDep(t, runtime).PrimaryScope()) != string(sdk.ScopeRuntime) {
+	if string(mustDep(t, runtime).PrimaryScope()) != string(model.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", string(mustDep(t, runtime).PrimaryScope()))
 	}
 }
@@ -304,7 +306,7 @@ func TestDetectorApplicableWithOnlyDepsJSON(t *testing.T) {
 		t.Fatalf("write deps file: %v", err)
 	}
 
-	ok, err := (Detector{}).Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+	ok, err := (Detector{}).Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: dir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -335,9 +337,9 @@ func TestNuGetProjectFilesFindsNestedProjects(t *testing.T) {
 
 // mustDep narrows a graph node to the dependency node a case is asserting
 // about, failing rather than panicking when the graph holds something else.
-func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
 	t.Helper()
-	dep, ok := node.(*sdk.DependencyNode)
+	dep, ok := node.(*model.DependencyNode)
 	if !ok {
 		t.Fatalf("expected a dependency node, got %T", node)
 	}

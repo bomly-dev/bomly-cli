@@ -6,7 +6,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // An environment can report one distribution twice -- stale duplicate
@@ -17,17 +18,17 @@ func TestPipInspectDuplicateRecordsAreDeterministic(t *testing.T) {
 	cases := []struct {
 		name   string
 		second string
-		want   sdk.DependencyOrigin
+		want   model.DependencyOrigin
 	}{
 		{
 			name:   "records agree",
 			second: "https://public.example/helper-1.0.0.tar.gz",
-			want:   sdk.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
+			want:   model.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
 		},
 		{
 			name:   "records name different sources",
 			second: "https://mirror.corp/helper-1.0.0.tar.gz",
-			want:   sdk.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
+			want:   model.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
 		},
 	}
 
@@ -44,7 +45,7 @@ func TestPipInspectDuplicateRecordsAreDeterministic(t *testing.T) {
 			}
 
 			var checked int
-			graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+			graph.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 				if dep.Name != "helper" {
 					return true
 				}
@@ -68,17 +69,17 @@ func TestPoetryDuplicateRecordsAreDeterministic(t *testing.T) {
 	cases := []struct {
 		name   string
 		second string
-		want   sdk.DependencyOrigin
+		want   model.DependencyOrigin
 	}{
 		{
 			name:   "records agree",
 			second: "https://public.example/helper-1.0.0.tar.gz",
-			want:   sdk.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
+			want:   model.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
 		},
 		{
 			name:   "records name different sources",
 			second: "https://mirror.corp/helper-1.0.0.tar.gz",
-			want:   sdk.DependencyOrigin{ArtifactURL: "https://mirror.corp/helper-1.0.0.tar.gz"},
+			want:   model.DependencyOrigin{ArtifactURL: "https://mirror.corp/helper-1.0.0.tar.gz"},
 		},
 	}
 
@@ -112,7 +113,7 @@ url = "` + tc.second + `"
 			}
 
 			var checked int
-			graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+			graph.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 				if dep.Name != "helper" {
 					return true
 				}
@@ -136,17 +137,17 @@ func TestUVDuplicateRecordsAreDeterministic(t *testing.T) {
 	cases := []struct {
 		name   string
 		second string
-		want   sdk.DependencyOrigin
+		want   model.DependencyOrigin
 	}{
 		{
 			name:   "records agree",
 			second: "https://public.example/helper-1.0.0.tar.gz",
-			want:   sdk.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
+			want:   model.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
 		},
 		{
 			name:   "records name different sources",
 			second: "https://mirror.corp/helper-1.0.0.tar.gz",
-			want:   sdk.DependencyOrigin{ArtifactURL: "https://mirror.corp/helper-1.0.0.tar.gz"},
+			want:   model.DependencyOrigin{ArtifactURL: "https://mirror.corp/helper-1.0.0.tar.gz"},
 		},
 	}
 
@@ -181,7 +182,7 @@ source = { url = "` + tc.second + `" }
 			}
 
 			var checked int
-			graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+			graph.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 				if dep.Name != "helper" {
 					return true
 				}
@@ -206,17 +207,17 @@ func TestPipenvGroupsAreDeterministic(t *testing.T) {
 	cases := []struct {
 		name       string
 		develop    string
-		wantOrigin sdk.DependencyOrigin
+		wantOrigin model.DependencyOrigin
 	}{
 		{
 			name:       "groups agree",
 			develop:    "https://public.example/helper-1.0.0.tar.gz",
-			wantOrigin: sdk.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
+			wantOrigin: model.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
 		},
 		{
 			name:       "groups name different sources",
 			develop:    "https://mirror.corp/helper-1.0.0.tar.gz",
-			wantOrigin: sdk.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
+			wantOrigin: model.DependencyOrigin{ArtifactURL: "https://public.example/helper-1.0.0.tar.gz"},
 		},
 	}
 
@@ -239,7 +240,7 @@ func TestPipenvGroupsAreDeterministic(t *testing.T) {
 			}
 
 			var checked int
-			graph.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+			graph.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 				if dep.Name != "helper" {
 					return true
 				}
@@ -258,21 +259,21 @@ func TestPipenvGroupsAreDeterministic(t *testing.T) {
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(node sdk.GraphNode) sdk.DependencyOrigin {
-	dep, ok := node.(*sdk.DependencyNode)
+func originOf(node model.GraphNode) model.DependencyOrigin {
+	dep, ok := node.(*model.DependencyNode)
 	if !ok || dep == nil {
-		return sdk.DependencyOrigin{}
+		return model.DependencyOrigin{}
 	}
 	// Origins are gated on the way in, so the first entry is already
 	// publishable; these cases assert on a single asserted origin.
 	if len(dep.Origins) == 0 {
-		return sdk.DependencyOrigin{}
+		return model.DependencyOrigin{}
 	}
 	return dep.Origins[0]
 }
 
 // requireOrigin asserts the exact origin a named package asserts.
-func requireOrigin(t *testing.T, graph *sdk.Graph, id string, want sdk.DependencyOrigin) {
+func requireOrigin(t *testing.T, graph *model.Graph, id string, want model.DependencyOrigin) {
 	t.Helper()
 	node, ok := testnodes.Find(graph, id)
 	if !ok {
@@ -325,16 +326,16 @@ source = { path = "../vendor/from-path" }
 
 	// The fragment carries the commit uv resolved; the "rev" query carries
 	// what the manifest asked for.
-	requireOrigin(t, graph, "from-git@1.0.0", sdk.DependencyOrigin{
+	requireOrigin(t, graph, "from-git@1.0.0", model.DependencyOrigin{
 		Repository: "https://github.com/example/from-git",
 		Revision:   "9f8e7d6c5b4a3928176554433221100ffeeddcc0",
 	})
-	requireOrigin(t, graph, "from-url@2.0.0", sdk.DependencyOrigin{
+	requireOrigin(t, graph, "from-url@2.0.0", model.DependencyOrigin{
 		ArtifactURL: "https://files.pythonhosted.org/packages/ab/from_url-2.0.0-py3-none-any.whl",
 	})
 	// An index root is not this package's origin, and a path is local.
-	requireOrigin(t, graph, "from-registry@3.0.0", sdk.DependencyOrigin{})
-	requireOrigin(t, graph, "from-path@4.0.0", sdk.DependencyOrigin{})
+	requireOrigin(t, graph, "from-registry@3.0.0", model.DependencyOrigin{})
+	requireOrigin(t, graph, "from-path@4.0.0", model.DependencyOrigin{})
 }
 
 func TestPoetryLockOriginBySourceType(t *testing.T) {
@@ -385,17 +386,17 @@ url = "../vendor/from-directory"
 		t.Fatalf("depGraphFromPoetryLock() error = %v", err)
 	}
 
-	requireOrigin(t, graph, "from-pypi@1.0.0", sdk.DependencyOrigin{})
+	requireOrigin(t, graph, "from-pypi@1.0.0", model.DependencyOrigin{})
 	// resolved_reference is the commit poetry locked; reference is the branch.
-	requireOrigin(t, graph, "from-git@2.0.0", sdk.DependencyOrigin{
+	requireOrigin(t, graph, "from-git@2.0.0", model.DependencyOrigin{
 		Repository: "https://github.com/example/from-git.git",
 		Revision:   "0a1b2c3d4e5f60718293a4b5c6d7e8f901234567",
 	})
-	requireOrigin(t, graph, "from-url@3.0.0", sdk.DependencyOrigin{
+	requireOrigin(t, graph, "from-url@3.0.0", model.DependencyOrigin{
 		ArtifactURL: "https://files.pythonhosted.org/packages/cd/from_url-3.0.0.tar.gz",
 	})
-	requireOrigin(t, graph, "from-private-index@4.0.0", sdk.DependencyOrigin{})
-	requireOrigin(t, graph, "from-directory@5.0.0", sdk.DependencyOrigin{})
+	requireOrigin(t, graph, "from-private-index@4.0.0", model.DependencyOrigin{})
+	requireOrigin(t, graph, "from-directory@5.0.0", model.DependencyOrigin{})
 }
 
 func TestPipfileLockOriginBySourceType(t *testing.T) {
@@ -420,16 +421,16 @@ func TestPipfileLockOriginBySourceType(t *testing.T) {
 		t.Fatalf("depGraphFromPipfileLock() error = %v", err)
 	}
 
-	requireOrigin(t, graph, "from-pypi@1.0.0", sdk.DependencyOrigin{})
-	requireOrigin(t, graph, "from-git", sdk.DependencyOrigin{
+	requireOrigin(t, graph, "from-pypi@1.0.0", model.DependencyOrigin{})
+	requireOrigin(t, graph, "from-git", model.DependencyOrigin{
 		Repository: "https://github.com/example/from-git.git",
 		Revision:   "1f2e3d4c5b6a79880912a3b4c5d6e7f809172635",
 	})
-	requireOrigin(t, graph, "from-archive", sdk.DependencyOrigin{
+	requireOrigin(t, graph, "from-archive", model.DependencyOrigin{
 		ArtifactURL: "https://files.pythonhosted.org/packages/ef/from_archive-2.0.0.tar.gz",
 	})
-	requireOrigin(t, graph, "from-local", sdk.DependencyOrigin{})
-	requireOrigin(t, graph, "from-path", sdk.DependencyOrigin{})
+	requireOrigin(t, graph, "from-local", model.DependencyOrigin{})
+	requireOrigin(t, graph, "from-path", model.DependencyOrigin{})
 }
 
 // pip records a PEP 610 direct_url.json for anything not installed from an
@@ -438,7 +439,7 @@ func TestPipInspectOriginByDirectURLShape(t *testing.T) {
 	cases := []struct {
 		name      string
 		directURL map[string]any
-		want      sdk.DependencyOrigin
+		want      model.DependencyOrigin
 	}{
 		{name: "index install", directURL: nil},
 		{
@@ -447,12 +448,12 @@ func TestPipInspectOriginByDirectURLShape(t *testing.T) {
 				"url":      "https://github.com/example/pkg.git",
 				"vcs_info": map[string]any{"vcs": "git", "commit_id": "2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e", "requested_revision": "main"},
 			},
-			want: sdk.DependencyOrigin{Repository: "https://github.com/example/pkg.git", Revision: "2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e"},
+			want: model.DependencyOrigin{Repository: "https://github.com/example/pkg.git", Revision: "2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e"},
 		},
 		{
 			name:      "archive URL",
 			directURL: map[string]any{"url": "https://example.test/pkg-1.0.0-py3-none-any.whl", "archive_info": map[string]any{}},
-			want:      sdk.DependencyOrigin{ArtifactURL: "https://example.test/pkg-1.0.0-py3-none-any.whl"},
+			want:      model.DependencyOrigin{ArtifactURL: "https://example.test/pkg-1.0.0-py3-none-any.whl"},
 		},
 		{
 			name:      "local directory",
@@ -466,7 +467,7 @@ func TestPipInspectOriginByDirectURLShape(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			node := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Name: "pkg", Version: "1.0.0"}})
+			node := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Name: "pkg", Version: "1.0.0"}})
 			setPipInspectOrigin(node, tc.directURL)
 			if got := originOf(node); got != tc.want {
 				t.Fatalf("origin = %+v, want %+v", got, tc.want)

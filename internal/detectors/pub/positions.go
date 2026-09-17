@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // pubspecLockEntry matches a top-level entry under `packages:` in
@@ -14,8 +15,8 @@ import (
 var pubspecLockEntry = regexp.MustCompile(`^ {2}([A-Za-z_][A-Za-z0-9_]*)\s*:\s*$`)
 var pubspecLockVersion = regexp.MustCompile(`^\s*version\s*:\s*"?([^"\s]+)"?`)
 
-func pubspecLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func pubspecLockPositions(path, relPath string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	insidePackages := false
 	pendingName := ""
 	pendingLine := 0
@@ -24,7 +25,7 @@ func pubspecLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 			return
 		}
 		if _, exists := out[pendingName]; !exists {
-			out[pendingName] = &sdk.SourcePosition{File: relPath, Line: pendingLine}
+			out[pendingName] = &model.SourcePosition{File: relPath, Line: pendingLine}
 		}
 		pendingName = ""
 		pendingLine = 0
@@ -57,7 +58,7 @@ func pubspecLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 			return
 		}
 		if _, exists := out[pendingName]; !exists {
-			out[pendingName] = &sdk.SourcePosition{File: relPath, Line: line}
+			out[pendingName] = &model.SourcePosition{File: relPath, Line: line}
 		}
 		pendingName = ""
 		pendingLine = 0
@@ -67,7 +68,7 @@ func pubspecLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 }
 
 // AttachPubspecLockPositions wires pubspec.lock line numbers.
-func AttachPubspecLockPositions(g *sdk.Graph, projectDir string) {
+func AttachPubspecLockPositions(g *model.Graph, projectDir string) {
 	if g == nil || projectDir == "" {
 		return
 	}
@@ -75,7 +76,7 @@ func AttachPubspecLockPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.DependencyNode) string {
+	detectors.AttachPositions(g, positions, func(pkg *model.DependencyNode) string {
 		if pkg == nil {
 			return ""
 		}

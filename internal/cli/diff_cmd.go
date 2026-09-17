@@ -13,8 +13,10 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/git"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/tui"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/spf13/cobra"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 type diffResolvedTarget struct {
@@ -127,9 +129,9 @@ func newDiffCmd() *cobra.Command {
 
 			// Wire the engine pipeline progress reporter for both sides so the
 			// user sees Detecting/Enriching/Auditing stages live for each ref.
-			baseReq := baseTarget.Context.PipelineRequest(sdk.ScopeUnknown, streams.notificationWriter())
+			baseReq := baseTarget.Context.PipelineRequest(model.ScopeUnknown, streams.notificationWriter())
 			baseReq.Progress = prog
-			headReq := headTarget.Context.PipelineRequest(sdk.ScopeUnknown, streams.notificationWriter())
+			headReq := headTarget.Context.PipelineRequest(model.ScopeUnknown, streams.notificationWriter())
 			headReq.Progress = prog
 			diffResult, err := diffengine.Run(cmd.Context(), diffengine.Request{
 				Base: diffengine.Target{
@@ -145,7 +147,7 @@ func newDiffCmd() *cobra.Command {
 				return exit.ResolutionFailureError(err)
 			}
 
-			allResults := append(append([]sdk.DetectionResult{}, diffResult.Base.ResolveResults...), diffResult.Head.ResolveResults...)
+			allResults := append(append([]plugin.DetectionResult{}, diffResult.Base.ResolveResults...), diffResult.Head.ResolveResults...)
 			detectionChildren := detectorProgressChildren(allResults)
 			detectionChildren = append(detectionChildren, warningProgressChildren(targetWarnings)...)
 			detectionChildren = append(detectionChildren, detectorWarningProgressChildren(
@@ -186,7 +188,7 @@ func newDiffCmd() *cobra.Command {
 				Text:     textRenderer,
 			}
 			sarifRenderer := func(w io.Writer) error {
-				return output.WriteSARIF(w, diffSARIFFindings(diffResult.Audit), diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Analyze, LocationGraphs: []*sdk.Graph{diffResult.Head.Graph}, BaselineState: "new", ChangedLines: changedLines})
+				return output.WriteSARIF(w, diffSARIFFindings(diffResult.Audit), diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Analyze, LocationGraphs: []*model.Graph{diffResult.Head.Graph}, BaselineState: "new", ChangedLines: changedLines})
 			}
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -246,14 +248,14 @@ func newDiffCmd() *cobra.Command {
 // means "this exact version bump still ships a known issue" — so it must
 // fail the job under --fail-on just like an introduced finding, and must stay
 // in the uploaded SARIF so GitHub doesn't close its alert.
-func auditBlockingFindings(audit *diffengine.Audit) []sdk.Finding {
+func auditBlockingFindings(audit *diffengine.Audit) []model.Finding {
 	if audit == nil {
 		return nil
 	}
-	return append(append([]sdk.Finding(nil), audit.Introduced...), audit.Persisted...)
+	return append(append([]model.Finding(nil), audit.Introduced...), audit.Persisted...)
 }
 
-func diffSARIFFindings(audit *diffengine.Audit) []sdk.Finding {
+func diffSARIFFindings(audit *diffengine.Audit) []model.Finding {
 	return auditBlockingFindings(audit)
 }
 
@@ -309,9 +311,9 @@ func combineAuditProgress(results ...engine.PipelineResult) ([]string, map[strin
 	return runs, counts
 }
 
-func combineAnalyzerProgress(results ...engine.PipelineResult) ([]string, map[string]sdk.ReachabilityStats) {
+func combineAnalyzerProgress(results ...engine.PipelineResult) ([]string, map[string]plugin.ReachabilityStats) {
 	var runs []string
-	statsByName := make(map[string]sdk.ReachabilityStats)
+	statsByName := make(map[string]plugin.ReachabilityStats)
 	for _, result := range results {
 		runs = uniqueStrings(runs, result.AnalyzerRuns)
 		for name, stats := range result.AnalyzerStats {
@@ -326,8 +328,8 @@ func combineAnalyzerProgress(results ...engine.PipelineResult) ([]string, map[st
 	return runs, statsByName
 }
 
-func combineMatcherStats(groups ...[]sdk.MatcherStats) []sdk.MatcherStats {
-	byName := make(map[string]sdk.MatcherStats)
+func combineMatcherStats(groups ...[]plugin.MatcherStats) []plugin.MatcherStats {
+	byName := make(map[string]plugin.MatcherStats)
 	order := make([]string, 0)
 	for _, group := range groups {
 		for _, stats := range group {
@@ -351,7 +353,7 @@ func combineMatcherStats(groups ...[]sdk.MatcherStats) []sdk.MatcherStats {
 		}
 	}
 	sort.Strings(order)
-	out := make([]sdk.MatcherStats, 0, len(order))
+	out := make([]plugin.MatcherStats, 0, len(order))
 	for _, name := range order {
 		out = append(out, byName[name])
 	}

@@ -4,7 +4,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/composition"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // TestCompositionMatcherEntriesHaveProse asserts that every composed matcher
@@ -24,7 +25,7 @@ func TestCompositionMatcherEntriesHaveProse(t *testing.T) {
 		}
 	}
 	for _, entry := range composition.Entries() {
-		if entry.Kind != sdk.PluginKindMatcher {
+		if entry.Kind != plugin.PluginKindMatcher {
 			continue
 		}
 		if !documented[entry.Name] {

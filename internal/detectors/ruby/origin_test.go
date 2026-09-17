@@ -4,20 +4,21 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // originOf returns the origin a node publishes, or the zero value when it has
 // none, so cases can compare plain structs.
-func originOf(node sdk.GraphNode) sdk.DependencyOrigin {
-	dep, ok := node.(*sdk.DependencyNode)
+func originOf(node model.GraphNode) model.DependencyOrigin {
+	dep, ok := node.(*model.DependencyNode)
 	if !ok || dep == nil {
-		return sdk.DependencyOrigin{}
+		return model.DependencyOrigin{}
 	}
 	// Origins are gated on the way in, so the first entry is already
 	// publishable; these cases assert on a single asserted origin.
 	if len(dep.Origins) == 0 {
-		return sdk.DependencyOrigin{}
+		return model.DependencyOrigin{}
 	}
 	return dep.Origins[0]
 }
@@ -62,13 +63,13 @@ DEPENDENCIES
 
 	cases := []struct {
 		id   string
-		want sdk.DependencyOrigin
+		want model.DependencyOrigin
 	}{
 		{id: "rack@3.1.8"},
 		// A private gem server's remote has a path, so nothing but the
 		// section kind distinguishes it from a repository URL.
 		{id: "corp-auth@2.4.0"},
-		{id: "helper@1.0.0", want: sdk.DependencyOrigin{
+		{id: "helper@1.0.0", want: model.DependencyOrigin{
 			Repository: "https://github.com/example/helper.git",
 			Revision:   "708192a3b4c5d6e7f8091a2b3c4d5e6f70819213",
 		}},

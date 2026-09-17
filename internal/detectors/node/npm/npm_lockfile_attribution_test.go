@@ -7,7 +7,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // crossScopeFixtureDir is the workspace where one package is a direct
@@ -23,7 +25,7 @@ func crossScopeFixtureDir(t *testing.T) string {
 	return filepath.Join(filepath.Dir(here), "..", "testdata", "lockfiles", "npm-v3-workspaces-cross-scope")
 }
 
-func locationsOf(t *testing.T, graph *sdk.Graph, want string) []sdk.PackageLocation {
+func locationsOf(t *testing.T, graph *model.Graph, want string) []model.PackageLocation {
 	t.Helper()
 	dep, ok := testnodes.FindDep(graph, want)
 	if !ok {
@@ -33,11 +35,11 @@ func locationsOf(t *testing.T, graph *sdk.Graph, want string) []sdk.PackageLocat
 }
 
 func TestNPMLockfileWorkspaceRecordsOneLocationPerModuleUsage(t *testing.T) {
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: crossScopeFixtureDir(t)})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: crossScopeFixtureDir(t)})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
-	var member *sdk.Graph
+	var member *model.Graph
 	for _, entry := range result.Graphs.Entries {
 		if filepath.ToSlash(entry.Manifest.Path) == "apps/web/package.json" {
 			member = entry.Graph
@@ -48,7 +50,7 @@ func TestNPMLockfileWorkspaceRecordsOneLocationPerModuleUsage(t *testing.T) {
 	}
 
 	locations := locationsOf(t, member, "shared-tool@1.0.0")
-	byRoot := map[string]sdk.PackageLocation{}
+	byRoot := map[string]model.PackageLocation{}
 	for _, location := range locations {
 		if _, duplicate := byRoot[location.ModuleRoot]; duplicate {
 			t.Fatalf("two records for module root %q: %+v", location.ModuleRoot, locations)
@@ -60,10 +62,10 @@ func TestNPMLockfileWorkspaceRecordsOneLocationPerModuleUsage(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected a record attributed to apps/web, got %+v", locations)
 	}
-	if web.Relationship != sdk.DependencyRelationshipDirect {
+	if web.Relationship != model.DependencyRelationshipDirect {
 		t.Fatalf("apps/web declares shared-tool itself: want direct, got %q", web.Relationship)
 	}
-	if len(web.Scopes) != 1 || web.Scopes[0] != sdk.ScopeDevelopment {
+	if len(web.Scopes) != 1 || web.Scopes[0] != model.ScopeDevelopment {
 		t.Fatalf("apps/web declares shared-tool under devDependencies: want [development], got %v", web.Scopes)
 	}
 
@@ -71,10 +73,10 @@ func TestNPMLockfileWorkspaceRecordsOneLocationPerModuleUsage(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected a record attributed to packages/lib, got %+v", locations)
 	}
-	if lib.Relationship != sdk.DependencyRelationshipTransitive {
+	if lib.Relationship != model.DependencyRelationshipTransitive {
 		t.Fatalf("packages/lib reaches shared-tool through runtime-dep: want transitive, got %q", lib.Relationship)
 	}
-	if len(lib.Scopes) != 1 || lib.Scopes[0] != sdk.ScopeRuntime {
+	if len(lib.Scopes) != 1 || lib.Scopes[0] != model.ScopeRuntime {
 		t.Fatalf("packages/lib reaches shared-tool at runtime: want [runtime], got %v", lib.Scopes)
 	}
 
@@ -91,7 +93,7 @@ func TestNPMLockfileWorkspaceRecordsOneLocationPerModuleUsage(t *testing.T) {
 }
 
 func TestNPMLockfileWorkspaceAttributesEachMemberEntry(t *testing.T) {
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: workspacesFixtureDir(t)})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: workspacesFixtureDir(t)})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}

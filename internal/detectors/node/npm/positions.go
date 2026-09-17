@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // npmLockKeyLine matches a "packages" entry key in package-lock.json
@@ -20,8 +21,8 @@ var npmLockVersionLine = regexp.MustCompile(`^\s*"version"\s*:\s*"([^"]+)"`)
 // packageLockPositions returns lookup keys for every node_modules/... key in
 // package-lock.json. Exact name@version keys point at the version line, while
 // name-only fallback keys point at the package block key.
-func packageLockPositions(path, relPath string) map[string][]*sdk.SourcePosition {
-	out := make(map[string][]*sdk.SourcePosition)
+func packageLockPositions(path, relPath string) map[string][]*model.SourcePosition {
+	out := make(map[string][]*model.SourcePosition)
 	var currentName string
 	var currentLine int
 	_ = detectors.ScanLines(path, func(line int, text string) {
@@ -38,11 +39,11 @@ func packageLockPositions(path, relPath string) map[string][]*sdk.SourcePosition
 			return
 		}
 		version := strings.TrimSpace(matches[1])
-		pos := &sdk.SourcePosition{File: relPath, Line: line}
+		pos := &model.SourcePosition{File: relPath, Line: line}
 		if version != "" {
 			detectors.AppendPosition(out, currentName+"@"+version, pos)
 		}
-		detectors.AppendPosition(out, currentName, &sdk.SourcePosition{File: relPath, Line: currentLine})
+		detectors.AppendPosition(out, currentName, &model.SourcePosition{File: relPath, Line: currentLine})
 		currentName = ""
 		currentLine = 0
 	})
@@ -71,12 +72,12 @@ func finalNPMPathSegment(p string) string {
 // AttachPackageLockPositions populates Position on graph packages
 // for every package whose name matches a node_modules/... key in
 // package-lock.json.
-func AttachPackageLockPositions(g *sdk.Graph, projectDir string) {
+func AttachPackageLockPositions(g *model.Graph, projectDir string) {
 	AttachPackageLockPositionsForName(g, projectDir, "package-lock.json")
 }
 
 // AttachPackageLockPositionsForName populates positions from the selected npm lockfile.
-func AttachPackageLockPositionsForName(g *sdk.Graph, projectDir, lockfileName string) {
+func AttachPackageLockPositionsForName(g *model.Graph, projectDir, lockfileName string) {
 	if g == nil || projectDir == "" {
 		return
 	}
@@ -86,7 +87,7 @@ func AttachPackageLockPositionsForName(g *sdk.Graph, projectDir, lockfileName st
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositionCandidates(g, positions, func(pkg *sdk.DependencyNode) []string {
+	detectors.AttachPositionCandidates(g, positions, func(pkg *model.DependencyNode) []string {
 		if pkg == nil {
 			return nil
 		}

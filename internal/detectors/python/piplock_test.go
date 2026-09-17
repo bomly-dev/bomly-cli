@@ -8,7 +8,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 const sampleRequirementsLock = `#
@@ -42,7 +43,7 @@ func writeLock(t *testing.T, body string) (string, string) {
 	return lockPath, dir
 }
 
-func directDepIDs(t *testing.T, g *sdk.Graph, id string) []string {
+func directDepIDs(t *testing.T, g *model.Graph, id string) []string {
 	t.Helper()
 	deps, err := g.DirectDependencies(testnodes.ID(g, id))
 	if err != nil {
@@ -52,7 +53,7 @@ func directDepIDs(t *testing.T, g *sdk.Graph, id string) []string {
 	// URL an ID is now.
 	ids := make([]string, 0, len(deps))
 	for _, d := range deps {
-		name, version := sdk.NodeDisplayName(d), sdk.NodeVersion(d)
+		name, version := model.NodeDisplayName(d), model.NodeVersion(d)
 		if version != "" {
 			ids = append(ids, name+"@"+version)
 			continue
@@ -118,7 +119,7 @@ func TestRequirementsLockScopes(t *testing.T) {
 	if !ok {
 		t.Fatal("missing pytest node")
 	}
-	if mustDep(t, pytest).PrimaryScope() != sdk.ScopeDevelopment {
+	if mustDep(t, pytest).PrimaryScope() != model.ScopeDevelopment {
 		t.Errorf("pytest scope = %v, want development", mustDep(t, pytest).PrimaryScope())
 	}
 	// urllib3 is reachable on a runtime path (requests) even though it is also
@@ -127,7 +128,7 @@ func TestRequirementsLockScopes(t *testing.T) {
 	if !ok {
 		t.Fatal("missing urllib3 node")
 	}
-	if mustDep(t, urllib3).PrimaryScope() != sdk.ScopeRuntime {
+	if mustDep(t, urllib3).PrimaryScope() != model.ScopeRuntime {
 		t.Errorf("urllib3 scope = %v, want runtime", mustDep(t, urllib3).PrimaryScope())
 	}
 }
@@ -166,7 +167,7 @@ func TestPipLockFilePath(t *testing.T) {
 
 // findRootID returns the ID of the scanned project's own node: a module,
 // because ownership is the node kind now (ADR-0041).
-func findRootID(t *testing.T, g *sdk.Graph) string {
+func findRootID(t *testing.T, g *model.Graph) string {
 	t.Helper()
 	modules := g.ModuleNodes()
 	if len(modules) == 0 {

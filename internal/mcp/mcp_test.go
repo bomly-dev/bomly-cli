@@ -12,11 +12,12 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/mcp"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/mark3labs/mcp-go/client"
 	mcplib "github.com/mark3labs/mcp-go/mcp"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // mockAdapter is a test double for OptionsAdapter.
@@ -522,9 +523,9 @@ func TestDiffTool_ReturnsCompactJSONResult(t *testing.T) {
 				Command:    "diff",
 				Comparison: output.DiffComparison{Base: "main", Head: "HEAD"},
 			},
-			Resolved: []sdk.Finding{{
+			Resolved: []model.Finding{{
 				ID: "GHSA-fixed", VulnerabilityID: "GHSA-fixed",
-				Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityHigh,
+				Kind: model.FindingKindVulnerability, Severity: model.SeverityHigh,
 				PackageRef: "pkg:npm/lib@1.0.0",
 			}},
 			AuditRan: true,

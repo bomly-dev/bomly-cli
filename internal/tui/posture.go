@@ -7,7 +7,8 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // posturePackageRef is the per-package back-pointer attached to each
@@ -26,7 +27,7 @@ type posturePackageRef struct {
 // so the details pane can render the affected component list.
 type postureRow struct {
 	repository string
-	card       *sdk.PackageScorecard
+	card       *model.PackageScorecard
 	packages   []posturePackageRef
 }
 
@@ -36,7 +37,7 @@ type postureRow struct {
 // text report's Project Posture section behaves). Scorecard data lives on
 // the PURL-keyed registry; the graph dependencies provide the display
 // labels.
-func postureRowsFromGraph(graphValue *sdk.Graph, registry *sdk.PackageRegistry) []postureRow {
+func postureRowsFromGraph(graphValue *model.Graph, registry *model.PackageRegistry) []postureRow {
 	if graphValue == nil || registry == nil {
 		return nil
 	}
@@ -329,7 +330,7 @@ func postureRowDetails(row postureRow) []string {
 	}
 
 	lines = append(lines, "", render.Style(fmt.Sprintf("Checks (%d)", len(row.card.Checks)), render.Bold, render.Magenta), "")
-	checks := make([]sdk.PackageScorecardCheck, len(row.card.Checks))
+	checks := make([]model.PackageScorecardCheck, len(row.card.Checks))
 	copy(checks, row.card.Checks)
 	sort.SliceStable(checks, func(i, j int) bool {
 		li := normalizedPostureCheckScore(checks[i].Score)

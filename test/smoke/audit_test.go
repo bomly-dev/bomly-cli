@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	sdk "github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // diffDocument decodes the subset of the diff JSON document this test
@@ -20,8 +20,8 @@ import (
 type diffDocument struct {
 	Audit struct {
 		Introduced []struct {
-			RuleID       string                  `json:"rule_id"`
-			PolicyStatus sdk.FindingPolicyStatus `json:"policy_status"`
+			RuleID       string                    `json:"rule_id"`
+			PolicyStatus model.FindingPolicyStatus `json:"policy_status"`
 		} `json:"introduced"`
 	} `json:"audit"`
 }
@@ -326,11 +326,11 @@ func TestDependencyDetailRiskPolicy(t *testing.T) {
 	if err := json.Unmarshal([]byte(auditedJSON), &audited); err != nil {
 		t.Fatalf("decode audited diff: %v", err)
 	}
-	statusByRule := make(map[string]sdk.FindingPolicyStatus)
+	statusByRule := make(map[string]model.FindingPolicyStatus)
 	for _, finding := range audited.Audit.Introduced {
 		statusByRule[finding.RuleID] = finding.PolicyStatus
 	}
-	if statusByRule["dependency-source-change-to-git"] != sdk.FindingPolicyStatusWarn {
+	if statusByRule["dependency-source-change-to-git"] != model.FindingPolicyStatusWarn {
 		t.Fatalf("default source-change status = %q, findings: %#v", statusByRule["dependency-source-change-to-git"], audited.Audit.Introduced)
 	}
 
@@ -359,7 +359,7 @@ func TestDependencyDetailRiskPolicy(t *testing.T) {
 	foundWarnOnlySource := false
 	for _, finding := range warnOnly.Audit.Introduced {
 		if finding.RuleID == "dependency-source-change-to-git" &&
-			finding.PolicyStatus == sdk.FindingPolicyStatusWarn {
+			finding.PolicyStatus == model.FindingPolicyStatusWarn {
 			foundWarnOnlySource = true
 		}
 	}

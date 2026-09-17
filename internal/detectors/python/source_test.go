@@ -3,20 +3,20 @@ package python
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestPipInspectDependencySource(t *testing.T) {
 	tests := []struct {
 		name      string
 		directURL map[string]any
-		want      sdk.DependencySource
+		want      model.DependencySource
 	}{
-		{name: "registry", want: sdk.DependencySourceRegistry},
-		{name: "git", directURL: map[string]any{"url": "https://github.com/example/pkg.git", "vcs_info": map[string]any{"vcs": "git"}}, want: sdk.DependencySourceGit},
-		{name: "other source control", directURL: map[string]any{"url": "https://example.test/pkg", "vcs_info": map[string]any{"vcs": "hg"}}, want: sdk.DependencySourceURL},
-		{name: "archive URL", directURL: map[string]any{"url": "https://example.test/pkg.whl", "archive_info": map[string]any{}}, want: sdk.DependencySourceURL},
-		{name: "local directory", directURL: map[string]any{"url": "file:///workspace/pkg", "dir_info": map[string]any{}}, want: sdk.DependencySourceFile},
+		{name: "registry", want: model.DependencySourceRegistry},
+		{name: "git", directURL: map[string]any{"url": "https://github.com/example/pkg.git", "vcs_info": map[string]any{"vcs": "git"}}, want: model.DependencySourceGit},
+		{name: "other source control", directURL: map[string]any{"url": "https://example.test/pkg", "vcs_info": map[string]any{"vcs": "hg"}}, want: model.DependencySourceURL},
+		{name: "archive URL", directURL: map[string]any{"url": "https://example.test/pkg.whl", "archive_info": map[string]any{}}, want: model.DependencySourceURL},
+		{name: "local directory", directURL: map[string]any{"url": "file:///workspace/pkg", "dir_info": map[string]any{}}, want: model.DependencySourceFile},
 		{name: "missing evidence", directURL: map[string]any{"archive_info": map[string]any{}}, want: ""},
 	}
 	for _, tt := range tests {
@@ -44,13 +44,13 @@ func TestUVDependencySource(t *testing.T) {
 	tests := []struct {
 		name   string
 		source uvLockSource
-		want   sdk.DependencySource
+		want   model.DependencySource
 	}{
-		{name: "registry", source: uvLockSource{Registry: "https://pypi.org/simple"}, want: sdk.DependencySourceRegistry},
-		{name: "git", source: uvLockSource{Git: "https://github.com/example/pkg"}, want: sdk.DependencySourceGit},
-		{name: "URL", source: uvLockSource{URL: "https://example.test/pkg.whl"}, want: sdk.DependencySourceURL},
-		{name: "editable", source: uvLockSource{Editable: "."}, want: sdk.DependencySourceFile},
-		{name: "path", source: uvLockSource{Path: "../pkg"}, want: sdk.DependencySourceFile},
+		{name: "registry", source: uvLockSource{Registry: "https://pypi.org/simple"}, want: model.DependencySourceRegistry},
+		{name: "git", source: uvLockSource{Git: "https://github.com/example/pkg"}, want: model.DependencySourceGit},
+		{name: "URL", source: uvLockSource{URL: "https://example.test/pkg.whl"}, want: model.DependencySourceURL},
+		{name: "editable", source: uvLockSource{Editable: "."}, want: model.DependencySourceFile},
+		{name: "path", source: uvLockSource{Path: "../pkg"}, want: model.DependencySourceFile},
 		{name: "missing evidence", want: ""},
 	}
 	for _, tt := range tests {
@@ -79,13 +79,13 @@ func TestUVSourceRevisionFallsBackToRequestedReference(t *testing.T) {
 func TestPoetryDependencySource(t *testing.T) {
 	tests := []struct {
 		sourceType string
-		want       sdk.DependencySource
+		want       model.DependencySource
 	}{
-		{sourceType: "", want: sdk.DependencySourceRegistry},
-		{sourceType: "legacy", want: sdk.DependencySourceRegistry},
-		{sourceType: "git", want: sdk.DependencySourceGit},
-		{sourceType: "directory", want: sdk.DependencySourceFile},
-		{sourceType: "url", want: sdk.DependencySourceURL},
+		{sourceType: "", want: model.DependencySourceRegistry},
+		{sourceType: "legacy", want: model.DependencySourceRegistry},
+		{sourceType: "git", want: model.DependencySourceGit},
+		{sourceType: "directory", want: model.DependencySourceFile},
+		{sourceType: "url", want: model.DependencySourceURL},
 		{sourceType: "custom", want: ""},
 	}
 	for _, tt := range tests {
@@ -99,15 +99,15 @@ func TestPipfileDependencySource(t *testing.T) {
 	tests := []struct {
 		name string
 		pkg  pipfileLockPackage
-		want sdk.DependencySource
+		want model.DependencySource
 	}{
-		{name: "registry version", pkg: pipfileLockPackage{Version: "==1.0.0"}, want: sdk.DependencySourceRegistry},
-		{name: "named index", pkg: pipfileLockPackage{Index: "private"}, want: sdk.DependencySourceRegistry},
-		{name: "git", pkg: pipfileLockPackage{Git: "https://github.com/example/pkg"}, want: sdk.DependencySourceGit},
-		{name: "path", pkg: pipfileLockPackage{Path: "../pkg"}, want: sdk.DependencySourceFile},
-		{name: "file URL", pkg: pipfileLockPackage{File: "file:///workspace/pkg.whl"}, want: sdk.DependencySourceFile},
-		{name: "local file", pkg: pipfileLockPackage{File: "./pkg.whl"}, want: sdk.DependencySourceFile},
-		{name: "archive URL", pkg: pipfileLockPackage{File: "https://example.test/pkg.whl"}, want: sdk.DependencySourceURL},
+		{name: "registry version", pkg: pipfileLockPackage{Version: "==1.0.0"}, want: model.DependencySourceRegistry},
+		{name: "named index", pkg: pipfileLockPackage{Index: "private"}, want: model.DependencySourceRegistry},
+		{name: "git", pkg: pipfileLockPackage{Git: "https://github.com/example/pkg"}, want: model.DependencySourceGit},
+		{name: "path", pkg: pipfileLockPackage{Path: "../pkg"}, want: model.DependencySourceFile},
+		{name: "file URL", pkg: pipfileLockPackage{File: "file:///workspace/pkg.whl"}, want: model.DependencySourceFile},
+		{name: "local file", pkg: pipfileLockPackage{File: "./pkg.whl"}, want: model.DependencySourceFile},
+		{name: "archive URL", pkg: pipfileLockPackage{File: "https://example.test/pkg.whl"}, want: model.DependencySourceURL},
 		{name: "missing evidence", want: ""},
 	}
 	for _, tt := range tests {

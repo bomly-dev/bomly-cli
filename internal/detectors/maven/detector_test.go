@@ -10,7 +10,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestDepGraphFromMavenTGF(t *testing.T) {
@@ -44,10 +46,10 @@ func TestDepGraphFromMavenTGF(t *testing.T) {
 	// The TGF block root is the project's own artifact: first-party, so
 	// enrichment never queries it; its dependencies stay enrichable.
 	rootNode, _ := testnodes.Find(g, "com.example:demo-app@1.0.0")
-	if !sdk.IsProjectOwned(rootNode) {
+	if !model.IsProjectOwned(rootNode) {
 		t.Fatalf("project artifact must be first-party and not enrichable, got %#v", mustDep(t, rootNode).Coordinates)
 	}
-	if dep, isDep := sdk.AsDependencyNode(rootDeps[0]); !isDep || !dep.RegistryMatchEligible() {
+	if dep, isDep := model.AsDependencyNode(rootDeps[0]); !isDep || !dep.RegistryMatchEligible() {
 		t.Fatalf("fetched dependency must stay enrichable, got %#v", mustDep(t, rootDeps[0]).Coordinates)
 	}
 
@@ -181,7 +183,7 @@ func TestNodeFromMavenCoords_WithClassifier(t *testing.T) {
 	if !testnodes.Is(node, "com.example:demo-artifact:sources@1.0.0") {
 		t.Fatalf("unexpected package id %q", node.NodeID())
 	}
-	if string(node.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+	if string(node.PrimaryScope()) != string(model.ScopeDevelopment) {
 		t.Fatalf("expected development scope, got %q", string(node.PrimaryScope()))
 	}
 }
@@ -193,7 +195,7 @@ func TestMavenDetectorApplicable(t *testing.T) {
 	}
 
 	detector := Detector{WorkingDir: projectDir}
-	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := detector.Applicable(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -209,7 +211,7 @@ func TestMavenDetectorReadyRequiresJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	err := detector.Ready(context.Background(), plugin.DetectionRequest{})
 	if err == nil {
 		t.Fatal("expected detector to be not ready without a usable Java runtime")
 	}
@@ -225,7 +227,7 @@ func TestMavenDetectorReadyRequiresMavenRunner(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	err := detector.Ready(context.Background(), plugin.DetectionRequest{})
 	if err == nil {
 		t.Fatal("expected detector to be not ready without mvn")
 	}
@@ -242,7 +244,7 @@ func TestMavenDetectorReadyWithWrapperAndJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	if err := detector.Ready(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir}); err != nil {
+	if err := detector.Ready(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir}); err != nil {
 		t.Fatalf("expected detector to be ready, got %v", err)
 	}
 }
@@ -251,25 +253,25 @@ func TestMavenDependencyTreeArgsScopeFilter(t *testing.T) {
 	tests := []struct {
 		name      string
 		prefix    []string
-		scope     sdk.Scope
+		scope     model.Scope
 		want      []string
 		unchanged []string
 	}{
 		{
 			name:  "unknown resolves full tree",
-			scope: sdk.ScopeUnknown,
+			scope: model.ScopeUnknown,
 			want:  []string{"-B", "dependency:tree", "-DoutputType=tgf"},
 		},
 		{
 			name:   "runtime selects runtime scope",
 			prefix: []string{"./mvnw"},
-			scope:  sdk.ScopeRuntime,
+			scope:  model.ScopeRuntime,
 			want:   []string{"./mvnw", "-B", "dependency:tree", "-DoutputType=tgf", "-Dscope=runtime"},
 		},
 		{
 			name:      "development selects test scope",
 			prefix:    []string{"-f", "demo/pom.xml"},
-			scope:     sdk.ScopeDevelopment,
+			scope:     model.ScopeDevelopment,
 			want:      []string{"-f", "demo/pom.xml", "-B", "dependency:tree", "-DoutputType=tgf", "-Dscope=test"},
 			unchanged: []string{"-f", "demo/pom.xml"},
 		},
@@ -408,9 +410,9 @@ func TestMavenDetectorResolveRunner_FallsBackToInstalledMaven(t *testing.T) {
 
 // mustDep narrows a graph node to the dependency node a case is asserting
 // about, failing rather than panicking when the graph holds something else.
-func mustDep(t testing.TB, node sdk.GraphNode) *sdk.DependencyNode {
+func mustDep(t testing.TB, node model.GraphNode) *model.DependencyNode {
 	t.Helper()
-	dep, ok := node.(*sdk.DependencyNode)
+	dep, ok := node.(*model.DependencyNode)
 	if !ok {
 		t.Fatalf("expected a dependency node, got %T", node)
 	}

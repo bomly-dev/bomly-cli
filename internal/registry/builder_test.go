@@ -7,10 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestBuildScanRegistryRegistersDetectorForEveryPackageManager(t *testing.T) {
@@ -18,7 +20,7 @@ func TestBuildScanRegistryRegistersDetectorForEveryPackageManager(t *testing.T) 
 	builtins.Build()
 
 	for _, packageManager := range SupportedPackageManagers() {
-		detectorChain := builtins.Detectors(sdk.DetectionRequest{
+		detectorChain := builtins.Detectors(plugin.DetectionRequest{
 			Ecosystem:      packageManager.Ecosystem(),
 			PackageManager: packageManager,
 		})
@@ -32,15 +34,15 @@ func TestBuildScanRegistryUsesSyftForUnclaimedManagers(t *testing.T) {
 	builtins := NewRegistry(Configs{}, *zap.NewNop())
 	builtins.Build()
 
-	detectorChain := builtins.Detectors(sdk.DetectionRequest{
-		Ecosystem:      sdk.PackageManagerTerraform.Ecosystem(),
-		PackageManager: sdk.PackageManagerTerraform,
+	detectorChain := builtins.Detectors(plugin.DetectionRequest{
+		Ecosystem:      model.PackageManagerTerraform.Ecosystem(),
+		PackageManager: model.PackageManagerTerraform,
 	})
 	if len(detectorChain) != 1 {
-		t.Fatalf("expected a single detector for %q, got %d", sdk.PackageManagerTerraform.Name(), len(detectorChain))
+		t.Fatalf("expected a single detector for %q, got %d", model.PackageManagerTerraform.Name(), len(detectorChain))
 	}
 	if got := detectorChain[0].Descriptor().Name; got != "syft-detector" {
-		t.Fatalf("expected syft detector for %q, got %q", sdk.PackageManagerTerraform.Name(), got)
+		t.Fatalf("expected syft detector for %q, got %q", model.PackageManagerTerraform.Name(), got)
 	}
 }
 
@@ -49,25 +51,25 @@ func TestBuildScanRegistryKeepsNativeDetectorFirstForNativeManagers(t *testing.T
 	builtins.Build()
 
 	testCases := []struct {
-		manager      sdk.PackageManager
+		manager      model.PackageManager
 		detectorName string
 	}{
-		{manager: sdk.PackageManagerNPM, detectorName: "npm"},
-		{manager: sdk.PackageManagerComposer, detectorName: "composer-detector"},
-		{manager: sdk.PackageManagerBundler, detectorName: "bundler-detector"},
-		{manager: sdk.PackageManagerGitHubActions, detectorName: "github-actions-detector"},
-		{manager: sdk.PackageManagerNuGet, detectorName: "nuget-detector"},
-		{manager: sdk.PackageManagerCargo, detectorName: "cargo-detector"},
-		{manager: sdk.PackageManagerPub, detectorName: "pub-native-detector"},
-		{manager: sdk.PackageManagerCocoaPods, detectorName: "cocoapods-detector"},
-		{manager: sdk.PackageManagerSwiftPM, detectorName: "swiftpm-native-detector"},
-		{manager: sdk.PackageManagerMix, detectorName: "mix-detector"},
-		{manager: sdk.PackageManagerConan, detectorName: "conan-detector"},
-		{manager: sdk.PackageManagerSBT, detectorName: "sbt-native-detector"},
+		{manager: model.PackageManagerNPM, detectorName: "npm"},
+		{manager: model.PackageManagerComposer, detectorName: "composer-detector"},
+		{manager: model.PackageManagerBundler, detectorName: "bundler-detector"},
+		{manager: model.PackageManagerGitHubActions, detectorName: "github-actions-detector"},
+		{manager: model.PackageManagerNuGet, detectorName: "nuget-detector"},
+		{manager: model.PackageManagerCargo, detectorName: "cargo-detector"},
+		{manager: model.PackageManagerPub, detectorName: "pub-native-detector"},
+		{manager: model.PackageManagerCocoaPods, detectorName: "cocoapods-detector"},
+		{manager: model.PackageManagerSwiftPM, detectorName: "swiftpm-native-detector"},
+		{manager: model.PackageManagerMix, detectorName: "mix-detector"},
+		{manager: model.PackageManagerConan, detectorName: "conan-detector"},
+		{manager: model.PackageManagerSBT, detectorName: "sbt-native-detector"},
 	}
 
 	for _, tc := range testCases {
-		detectorChain := builtins.Detectors(sdk.DetectionRequest{
+		detectorChain := builtins.Detectors(plugin.DetectionRequest{
 			Ecosystem:      tc.manager.Ecosystem(),
 			PackageManager: tc.manager,
 		})
@@ -84,9 +86,9 @@ func TestBuildScanRegistryAdvertisesBuiltInRemediationCapabilities(t *testing.T)
 	builtins := NewRegistry(Configs{}, *zap.NewNop())
 	builtins.Build()
 
-	detectors := builtins.Detectors(sdk.DetectionRequest{
-		Ecosystem:      sdk.EcosystemNPM,
-		PackageManager: sdk.PackageManagerNPM,
+	detectors := builtins.Detectors(plugin.DetectionRequest{
+		Ecosystem:      model.EcosystemNPM,
+		PackageManager: model.PackageManagerNPM,
 	})
 	if len(detectors) == 0 {
 		t.Fatal("expected npm detector")
@@ -95,13 +97,13 @@ func TestBuildScanRegistryAdvertisesBuiltInRemediationCapabilities(t *testing.T)
 	if len(capabilities) == 0 {
 		t.Fatal("npm detector did not advertise remediation capabilities")
 	}
-	if !slices.Contains(capabilities[0].Actions, sdk.RemediationActionDirectBump) ||
-		!slices.Contains(capabilities[0].Actions, sdk.RemediationActionTransitiveOverride) {
+	if !slices.Contains(capabilities[0].Actions, model.RemediationActionDirectBump) ||
+		!slices.Contains(capabilities[0].Actions, model.RemediationActionTransitiveOverride) {
 		t.Fatalf("npm remediation capabilities = %#v", capabilities)
 	}
-	capabilities[0].Actions[0] = sdk.RemediationActionLockfileRefresh
+	capabilities[0].Actions[0] = model.RemediationActionLockfileRefresh
 	fresh := detectors[0].Descriptor().RemediationCapabilities
-	if len(fresh) == 0 || fresh[0].Actions[0] == sdk.RemediationActionLockfileRefresh {
+	if len(fresh) == 0 || fresh[0].Actions[0] == model.RemediationActionLockfileRefresh {
 		t.Fatalf("detector descriptor shared remediation capability slices: %#v", fresh)
 	}
 }
@@ -114,7 +116,7 @@ func TestBuildScanRegistryRegistersContainerDiscoveryPlanForSyft(t *testing.T) {
 	if !ok {
 		t.Fatal("expected syft discovery plan to be registered")
 	}
-	if len(plan.TargetKinds) != 1 || plan.TargetKinds[0] != sdk.ExecutionTargetContainerImage {
+	if len(plan.TargetKinds) != 1 || plan.TargetKinds[0] != plugin.ExecutionTargetContainerImage {
 		t.Fatalf("expected syft container discovery plan, got %#v", plan.TargetKinds)
 	}
 }
@@ -166,7 +168,7 @@ func TestRegisterScorecardMatcherDoesNotLogEndpointCredentials(t *testing.T) {
 		ScorecardAPIBase: "https://agent:super-secret@scorecard.example/api",
 	}, *zap.New(core))
 
-	builtins.registerCompositionEntries(sdk.PluginKindMatcher)
+	builtins.registerCompositionEntries(plugin.PluginKindMatcher)
 
 	entries := logs.FilterMessage("scorecard matcher configured").All()
 	if len(entries) != 1 {
@@ -188,53 +190,53 @@ func TestComponentOriginRecordsAllKinds(t *testing.T) {
 	builtins := NewRegistry(Configs{}, *zap.NewNop())
 	builtins.Build()
 
-	if origin := builtins.ComponentOrigin(sdk.PluginKindDetector, "go.mod"); origin != sdk.CoreOrigin {
+	if origin := builtins.ComponentOrigin(plugin.PluginKindDetector, "go.mod"); origin != plugin.CoreOrigin {
 		t.Fatalf("go.mod detector origin = %q, want core", origin)
 	}
-	if origin := builtins.DetectorOrigin("syft-detector"); origin != sdk.BundledOrigin {
+	if origin := builtins.DetectorOrigin("syft-detector"); origin != plugin.BundledOrigin {
 		t.Fatalf("syft detector origin = %q, want bundled (via DetectorOrigin delegate)", origin)
 	}
-	if origin := builtins.ComponentOrigin(sdk.PluginKindAuditor, "license"); origin != sdk.CoreOrigin {
+	if origin := builtins.ComponentOrigin(plugin.PluginKindAuditor, "license"); origin != plugin.CoreOrigin {
 		t.Fatalf("license auditor origin = %q, want core", origin)
 	}
 
-	builtins.RegisterMatcherWithOptions(externalOriginMatcher{}, ComponentOptions{DefaultEnabled: true, Origin: sdk.ExternalOrigin})
-	builtins.RegisterAnalyzerWithOptions(externalOriginAnalyzer{}, ComponentOptions{DefaultEnabled: true, Origin: sdk.ExternalOrigin})
-	if origin := builtins.ComponentOrigin(sdk.PluginKindMatcher, "acme.matcher"); origin != sdk.ExternalOrigin {
+	builtins.RegisterMatcherWithOptions(externalOriginMatcher{}, ComponentOptions{DefaultEnabled: true, Origin: plugin.ExternalOrigin})
+	builtins.RegisterAnalyzerWithOptions(externalOriginAnalyzer{}, ComponentOptions{DefaultEnabled: true, Origin: plugin.ExternalOrigin})
+	if origin := builtins.ComponentOrigin(plugin.PluginKindMatcher, "acme.matcher"); origin != plugin.ExternalOrigin {
 		t.Fatalf("external matcher origin = %q, want external", origin)
 	}
-	if origin := builtins.ComponentOrigin(sdk.PluginKindAnalyzer, "acme.analyzer"); origin != sdk.ExternalOrigin {
+	if origin := builtins.ComponentOrigin(plugin.PluginKindAnalyzer, "acme.analyzer"); origin != plugin.ExternalOrigin {
 		t.Fatalf("external analyzer origin = %q, want external", origin)
 	}
 
 	filtered := builtins.Filter(Filter{})
-	if origin := filtered.ComponentOrigin(sdk.PluginKindMatcher, "acme.matcher"); origin != sdk.ExternalOrigin {
+	if origin := filtered.ComponentOrigin(plugin.PluginKindMatcher, "acme.matcher"); origin != plugin.ExternalOrigin {
 		t.Fatalf("filtered matcher origin = %q, want external", origin)
 	}
 }
 
 type externalOriginMatcher struct{}
 
-func (externalOriginMatcher) Descriptor() sdk.MatcherDescriptor {
-	return sdk.MatcherDescriptor{Name: "acme.matcher"}
+func (externalOriginMatcher) Descriptor() plugin.MatcherDescriptor {
+	return plugin.MatcherDescriptor{Name: "acme.matcher"}
 }
-func (externalOriginMatcher) Ready(context.Context, sdk.MatchRequest) error { return nil }
-func (externalOriginMatcher) Applicable(context.Context, sdk.MatchRequest) (bool, error) {
+func (externalOriginMatcher) Ready(context.Context, plugin.MatchRequest) error { return nil }
+func (externalOriginMatcher) Applicable(context.Context, plugin.MatchRequest) (bool, error) {
 	return true, nil
 }
-func (externalOriginMatcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
-	return sdk.MatchResult{Registry: req.Registry}, nil
+func (externalOriginMatcher) Match(_ context.Context, req plugin.MatchRequest) (plugin.MatchResult, error) {
+	return plugin.MatchResult{Registry: req.Registry}, nil
 }
 
 type externalOriginAnalyzer struct{}
 
-func (externalOriginAnalyzer) Descriptor() sdk.AnalyzerDescriptor {
-	return sdk.AnalyzerDescriptor{Name: "acme.analyzer"}
+func (externalOriginAnalyzer) Descriptor() plugin.AnalyzerDescriptor {
+	return plugin.AnalyzerDescriptor{Name: "acme.analyzer"}
 }
-func (externalOriginAnalyzer) Ready(context.Context, sdk.AnalyzeRequest) error { return nil }
-func (externalOriginAnalyzer) Applicable(context.Context, sdk.AnalyzeRequest) (bool, error) {
+func (externalOriginAnalyzer) Ready(context.Context, plugin.AnalyzeRequest) error { return nil }
+func (externalOriginAnalyzer) Applicable(context.Context, plugin.AnalyzeRequest) (bool, error) {
 	return true, nil
 }
-func (externalOriginAnalyzer) Analyze(_ context.Context, req sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
-	return sdk.AnalyzeResult{Registry: req.Registry}, nil
+func (externalOriginAnalyzer) Analyze(_ context.Context, req plugin.AnalyzeRequest) (plugin.AnalyzeResult, error) {
+	return plugin.AnalyzeResult{Registry: req.Registry}, nil
 }

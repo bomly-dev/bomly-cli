@@ -4,7 +4,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // This file used to pin the occurrence machinery: a package resolved from two
@@ -19,55 +21,55 @@ import (
 
 // artifactOrigins builds the origin list an artifact URL asserts, or nothing
 // when the URL is not one the publication gates accept.
-func artifactOrigins(artifactURL string) []sdk.DependencyOrigin {
-	origin := sdk.ArtifactOrigin(artifactURL)
+func artifactOrigins(artifactURL string) []model.DependencyOrigin {
+	origin := model.ArtifactOrigin(artifactURL)
 	if origin == nil {
 		return nil
 	}
-	return []sdk.DependencyOrigin{*origin}
+	return []model.DependencyOrigin{*origin}
 }
 
 // repositoryOrigins builds the origin list a repository and revision assert,
 // or nothing when they are not a pair the publication gates accept.
-func repositoryOrigins(repository, revision string) []sdk.DependencyOrigin {
-	origin := sdk.RepositoryOrigin(repository, revision)
+func repositoryOrigins(repository, revision string) []model.DependencyOrigin {
+	origin := model.RepositoryOrigin(repository, revision)
 	if origin == nil {
 		return nil
 	}
-	return []sdk.DependencyOrigin{*origin}
+	return []model.DependencyOrigin{*origin}
 }
 
 // subprojectResult builds one manifest's detection result carrying a single
 // package whose origin the caller chooses.
-func subprojectResult(t *testing.T, relativePath, manifest, artifactURL string) sdk.DetectionResult {
+func subprojectResult(t *testing.T, relativePath, manifest, artifactURL string) plugin.DetectionResult {
 	t.Helper()
 
-	g := sdk.New()
-	pkg := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
-		Name: "lodash", Version: "4.17.21", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lodash@4.17.21"}})
+	g := model.New()
+	pkg := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{
+		Name: "lodash", Version: "4.17.21", Ecosystem: model.EcosystemNPM, PURL: "pkg:npm/lodash@4.17.21"}})
 	if artifactURL != "" {
-		pkg.Origins = sdk.MergeOrigins(nil, artifactOrigins(artifactURL))
+		pkg.Origins = model.MergeOrigins(nil, artifactOrigins(artifactURL))
 	}
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}
-	return sdk.DetectionResult{
-		SubprojectInfo: sdk.Subproject{
-			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
+	return plugin.DetectionResult{
+		SubprojectInfo: plugin.Subproject{
+			ExecutionTarget:         plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: "/repo"},
 			RelativePath:            relativePath,
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
-			Ecosystem:               sdk.EcosystemNPM,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
+			Ecosystem:               model.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Graphs:       sdk.SingleGraphContainer(g, sdk.ManifestMetadata{Path: manifest, Kind: "package-lock.json"}),
+		Graphs:       model.SingleGraphContainer(g, model.ManifestMetadata{Path: manifest, Kind: "package-lock.json"}),
 	}
 }
 
 // graphIDs lists node ids for failure messages.
-func graphIDs(g *sdk.Graph) []string {
+func graphIDs(g *model.Graph) []string {
 	var ids []string
-	g.WalkNodes(func(node sdk.GraphNode) bool {
+	g.WalkNodes(func(node model.GraphNode) bool {
 		ids = append(ids, node.NodeID())
 		return true
 	})
@@ -75,9 +77,9 @@ func graphIDs(g *sdk.Graph) []string {
 }
 
 // nodesNamed returns every dependency node with a given name.
-func nodesNamed(g *sdk.Graph, name string) []*sdk.DependencyNode {
-	var found []*sdk.DependencyNode
-	g.WalkDependencyNodes(func(dep *sdk.DependencyNode) bool {
+func nodesNamed(g *model.Graph, name string) []*model.DependencyNode {
+	var found []*model.DependencyNode
+	g.WalkDependencyNodes(func(dep *model.DependencyNode) bool {
 		if dep.Name == name {
 			found = append(found, dep)
 		}
@@ -87,7 +89,7 @@ func nodesNamed(g *sdk.Graph, name string) []*sdk.DependencyNode {
 }
 
 // artifactURLs lists the artifact URLs a node's origins assert.
-func artifactURLs(dep *sdk.DependencyNode) map[string]int {
+func artifactURLs(dep *model.DependencyNode) map[string]int {
 	urls := map[string]int{}
 	for _, origin := range dep.Origins {
 		urls[origin.ArtifactURL]++
@@ -105,7 +107,7 @@ func TestConsolidateGraphsFoldsContradictingResolutionsKeepingBoth(t *testing.T)
 		b = "https://npm.corp/mirror/lodash/-/lodash-4.17.21.tgz"
 	)
 
-	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{
+	consolidated, err := ConsolidateGraphs([]plugin.DetectionResult{
 		subprojectResult(t, "apps/one", "apps/one/package-lock.json", a),
 		subprojectResult(t, "apps/two", "apps/two/package-lock.json", b),
 	})
@@ -140,7 +142,7 @@ func TestConsolidateGraphsFoldIsOrderFreeAndDeduplicated(t *testing.T) {
 
 	for _, order := range [][3]string{{a, b, b}, {b, a, b}, {b, b, a}} {
 		t.Run(order[0][8:16]+"-first", func(t *testing.T) {
-			consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{
+			consolidated, err := ConsolidateGraphs([]plugin.DetectionResult{
 				subprojectResult(t, "apps/one", "apps/one/package-lock.json", order[0]),
 				subprojectResult(t, "apps/two", "apps/two/package-lock.json", order[1]),
 				subprojectResult(t, "apps/three", "apps/three/package-lock.json", order[2]),
@@ -172,7 +174,7 @@ func TestConsolidateGraphsFoldIsOrderFreeAndDeduplicated(t *testing.T) {
 func TestConsolidateGraphsOriginFreeRecordKeepsTheAssertedOrigin(t *testing.T) {
 	const artifact = "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
 
-	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{
+	consolidated, err := ConsolidateGraphs([]plugin.DetectionResult{
 		subprojectResult(t, "apps/one", "apps/one/package-lock.json", ""),
 		subprojectResult(t, "apps/two", "apps/two/package-lock.json", artifact),
 	})
@@ -201,42 +203,42 @@ func TestConsolidateGraphsOriginFreeRecordKeepsTheAssertedOrigin(t *testing.T) {
 func TestProjectRecordsNeverFoldWithMatchingExternalResolutions(t *testing.T) {
 	const purl = "pkg:pypi/helper@1.0.0"
 
-	projectGraph := sdk.New()
-	projectRoot := testnodes.ModuleFrom("pyproject.toml", sdk.Coordinates{
-		Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemPython,
-		PURL: purl, Type: sdk.PackageTypeApplication,
+	projectGraph := model.New()
+	projectRoot := testnodes.ModuleFrom("pyproject.toml", model.Coordinates{
+		Name: "helper", Version: "1.0.0", Ecosystem: model.EcosystemPython,
+		PURL: purl, Type: model.PackageTypeApplication,
 	})
 	if err := projectGraph.AddNode(projectRoot); err != nil {
 		t.Fatal(err)
 	}
 
-	externalGraph := sdk.New()
-	external := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
-		Name: "helper", Version: "1.0.0", Ecosystem: sdk.EcosystemPython, PURL: purl}})
-	external.Origins = sdk.MergeOrigins(nil, repositoryOrigins(
+	externalGraph := model.New()
+	external := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{
+		Name: "helper", Version: "1.0.0", Ecosystem: model.EcosystemPython, PURL: purl}})
+	external.Origins = model.MergeOrigins(nil, repositoryOrigins(
 		"https://github.com/other/helper", "aaaabbbbccccddddeeeeffff0000111122223333"))
 	if err := externalGraph.AddNode(external); err != nil {
 		t.Fatal(err)
 	}
 
-	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{
+	consolidated, err := ConsolidateGraphs([]plugin.DetectionResult{
 		{
-			SubprojectInfo: sdk.Subproject{
-				ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
-				RelativePath:    "helper", Ecosystem: sdk.EcosystemPython,
+			SubprojectInfo: plugin.Subproject{
+				ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: "/repo"},
+				RelativePath:    "helper", Ecosystem: model.EcosystemPython,
 			},
 			DetectorName: "uv-detector",
-			Graphs: sdk.SingleGraphContainer(projectGraph,
-				sdk.ManifestMetadata{Path: "helper/pyproject.toml", Kind: "pyproject.toml"}),
+			Graphs: model.SingleGraphContainer(projectGraph,
+				model.ManifestMetadata{Path: "helper/pyproject.toml", Kind: "pyproject.toml"}),
 		},
 		{
-			SubprojectInfo: sdk.Subproject{
-				ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
-				RelativePath:    "consumer", Ecosystem: sdk.EcosystemPython,
+			SubprojectInfo: plugin.Subproject{
+				ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetWorkingDirectory, Location: "/repo"},
+				RelativePath:    "consumer", Ecosystem: model.EcosystemPython,
 			},
 			DetectorName: "uv-detector",
-			Graphs: sdk.SingleGraphContainer(externalGraph,
-				sdk.ManifestMetadata{Path: "consumer/uv.lock", Kind: "uv.lock"}),
+			Graphs: model.SingleGraphContainer(externalGraph,
+				model.ManifestMetadata{Path: "consumer/uv.lock", Kind: "uv.lock"}),
 		},
 	})
 	if err != nil {
@@ -248,17 +250,17 @@ func TestProjectRecordsNeverFoldWithMatchingExternalResolutions(t *testing.T) {
 	}
 
 	var projectNodes, externalNodes int
-	merged.WalkNodes(func(node sdk.GraphNode) bool {
-		name := sdk.NodeDisplayName(node)
+	merged.WalkNodes(func(node model.GraphNode) bool {
+		name := model.NodeDisplayName(node)
 		if name != "helper" {
 			return true
 		}
-		if sdk.IsProjectOwned(node) {
+		if model.IsProjectOwned(node) {
 			projectNodes++
 			return true
 		}
 		externalNodes++
-		dep, _ := sdk.AsDependencyNode(node)
+		dep, _ := model.AsDependencyNode(node)
 		if dep == nil || len(dep.Origins) == 0 {
 			t.Errorf("the external record lost the repository it resolved from")
 		}
@@ -277,24 +279,24 @@ func TestProjectRecordsNeverFoldWithMatchingExternalResolutions(t *testing.T) {
 func TestConsolidateGraphsFoldedWitnessesKeepUsageFacts(t *testing.T) {
 	const artifact = "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
 
-	record := func(t *testing.T, relativePath, manifest string, scope sdk.Scope,
-		relationship sdk.DependencyRelationship, location string) sdk.DetectionResult {
+	record := func(t *testing.T, relativePath, manifest string, scope model.Scope,
+		relationship model.DependencyRelationship, location string) plugin.DetectionResult {
 		t.Helper()
 		result := subprojectResult(t, relativePath, manifest, artifact)
 		graph := result.Graphs.Entries[0].Graph
 		for _, dep := range graph.DependencyNodes() {
 			dep.AddScope(scope)
 			dep.Relationship = relationship
-			dep.Locations = []sdk.PackageLocation{{RealPath: location, AccessPath: location}}
+			dep.Locations = []model.PackageLocation{{RealPath: location, AccessPath: location}}
 		}
 		return result
 	}
 
-	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{
+	consolidated, err := ConsolidateGraphs([]plugin.DetectionResult{
 		record(t, "apps/one", "apps/one/package-lock.json",
-			sdk.ScopeDevelopment, sdk.DependencyRelationshipTransitive, "apps/one/package-lock.json"),
+			model.ScopeDevelopment, model.DependencyRelationshipTransitive, "apps/one/package-lock.json"),
 		record(t, "apps/two", "apps/two/package-lock.json",
-			sdk.ScopeRuntime, sdk.DependencyRelationshipDirect, "apps/two/package-lock.json"),
+			model.ScopeRuntime, model.DependencyRelationshipDirect, "apps/two/package-lock.json"),
 	})
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
@@ -309,10 +311,10 @@ func TestConsolidateGraphsFoldedWitnessesKeepUsageFacts(t *testing.T) {
 		t.Fatalf("lodash nodes = %d (%v), want one", len(found), graphIDs(merged))
 	}
 	survivor := found[0]
-	if !survivor.HasScope(sdk.ScopeRuntime) || !survivor.HasScope(sdk.ScopeDevelopment) {
+	if !survivor.HasScope(model.ScopeRuntime) || !survivor.HasScope(model.ScopeDevelopment) {
 		t.Errorf("scopes = %v, want the union of both witnesses", survivor.Scopes)
 	}
-	if survivor.Relationship != sdk.DependencyRelationshipDirect {
+	if survivor.Relationship != model.DependencyRelationshipDirect {
 		t.Errorf("relationship = %q, want the stronger claim to survive", survivor.Relationship)
 	}
 	if len(survivor.Locations) != 2 {
@@ -329,11 +331,11 @@ func TestConsolidateGraphsFoldsDuplicatesWithinOneManifest(t *testing.T) {
 		b = "https://npm.corp/mirror/lodash/-/lodash-4.17.21.tgz"
 	)
 
-	g := sdk.New()
+	g := model.New()
 	for _, url := range []string{a, b} {
-		pkg := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
-			Name: "lodash", Version: "4.17.21", Ecosystem: sdk.EcosystemNPM, PURL: "pkg:npm/lodash@4.17.21"}})
-		pkg.Origins = sdk.MergeOrigins(nil, artifactOrigins(url))
+		pkg := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{
+			Name: "lodash", Version: "4.17.21", Ecosystem: model.EcosystemNPM, PURL: "pkg:npm/lodash@4.17.21"}})
+		pkg.Origins = model.MergeOrigins(nil, artifactOrigins(url))
 		if _, err := g.InsertNode(pkg); err != nil {
 			t.Fatal(err)
 		}

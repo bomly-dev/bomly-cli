@@ -7,7 +7,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 func TestYarnLockfileParserRetainsUnreferencedEntries(t *testing.T) {
@@ -33,7 +35,7 @@ tweetnacl@^0.14.0:
 		t.Fatalf("write yarn.lock: %v", err)
 	}
 
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
 	}
@@ -41,10 +43,10 @@ tweetnacl@^0.14.0:
 	if graph.Size() != 4 {
 		t.Fatalf("expected root plus every lockfile package, got %d", graph.Size())
 	}
-	if dependency, ok := testnodes.FindDep(graph, "bcrypt-pbkdf@1.0.2"); !ok || dependency.Relationship != sdk.DependencyRelationshipUnknown {
+	if dependency, ok := testnodes.FindDep(graph, "bcrypt-pbkdf@1.0.2"); !ok || dependency.Relationship != model.DependencyRelationshipUnknown {
 		t.Fatalf("expected unreferenced bcrypt-pbkdf entry with unknown relationship, got %#v", dependency)
 	}
-	if dependency, ok := testnodes.FindDep(graph, "tweetnacl@0.14.5"); !ok || dependency.Relationship != sdk.DependencyRelationshipUnknown {
+	if dependency, ok := testnodes.FindDep(graph, "tweetnacl@0.14.5"); !ok || dependency.Relationship != model.DependencyRelationshipUnknown {
 		t.Fatalf("expected unreferenced tweetnacl entry with unknown relationship, got %#v", dependency)
 	}
 	roots := graph.Roots()
@@ -78,13 +80,13 @@ func TestYarnBerryParsesQuotedNamesAliasesAndDependencies(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(projectDir, "yarn.lock"), lockfile, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatal(err)
 	}
 	graph := result.Graphs.Entries[0].Graph
 	realPackage, ok := testnodes.FindDep(graph, "real-package@1.2.3")
-	if !ok || realPackage.Source != sdk.DependencySourceRegistry {
+	if !ok || realPackage.Source != model.DependencySourceRegistry {
 		t.Fatalf("real package = %#v", realPackage)
 	}
 	esbuild, ok := testnodes.Find(graph, "@esbuild/aix-ppc64@0.25.0")
@@ -115,7 +117,7 @@ lodash@4.17.21:
 `), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -167,7 +169,7 @@ request@^2.70.0, request@^2.72.0:
 		t.Fatal(err)
 	}
 
-	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), plugin.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatal(err)
 	}

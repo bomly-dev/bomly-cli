@@ -5,27 +5,28 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // lookupRegistry is one enriched package: scoped npm coordinates, an advisory
 // stored under its CVE with the GHSA as an alias, and matching-stage licenses.
-func lookupRegistry(t *testing.T) *sdk.PackageRegistry {
+func lookupRegistry(t *testing.T) *model.PackageRegistry {
 	t.Helper()
-	registry := &sdk.PackageRegistry{}
-	registry.Add(&sdk.Package{
-		Coordinates: sdk.Coordinates{
+	registry := &model.PackageRegistry{}
+	registry.Add(&model.Package{
+		Coordinates: model.Coordinates{
 			PURL:      "pkg:npm/%40scope/deep@2.0.0",
-			Ecosystem: sdk.EcosystemNPM,
+			Ecosystem: model.EcosystemNPM,
 			Org:       "scope",
 			Name:      "deep",
 			Version:   "2.0.0",
 		},
-		Licenses: []sdk.PackageLicense{{Value: "Apache-2.0"}},
-		Vulnerabilities: []sdk.Vulnerability{{
+		Licenses: []model.PackageLicense{{Value: "Apache-2.0"}},
+		Vulnerabilities: []model.Vulnerability{{
 			ID:             "CVE-2026-0001",
 			Aliases:        []string{"GHSA-deep"},
-			ParsedSeverity: sdk.SeverityHigh,
+			ParsedSeverity: model.SeverityHigh,
 		}},
 	})
 	return registry
@@ -48,8 +49,8 @@ func TestRegistryPackageTrimsTheReferenceOnEverySurface(t *testing.T) {
 }
 
 func TestNodePackageRefIsThePackageNotTheNode(t *testing.T) {
-	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
-		Ecosystem: sdk.EcosystemNPM, Name: "left-pad", Version: "1.3.0",
+	dep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{
+		Ecosystem: model.EcosystemNPM, Name: "left-pad", Version: "1.3.0",
 	}})
 	if got := output.NodePackageRef(dep); got != dep.PackageRef {
 		t.Fatalf("dependency node key: got %q, want its PackageRef %q", got, dep.PackageRef)
@@ -69,8 +70,8 @@ func TestNodePackageRefIsThePackageNotTheNode(t *testing.T) {
 
 func TestRegistryPackageForNodeResolvesThroughThePackageRef(t *testing.T) {
 	registry := lookupRegistry(t)
-	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
-		Ecosystem: sdk.EcosystemNPM, Org: "scope", Name: "deep", Version: "2.0.0",
+	dep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{
+		Ecosystem: model.EcosystemNPM, Org: "scope", Name: "deep", Version: "2.0.0",
 	}})
 	pkg := output.RegistryPackageForNode(registry, dep)
 	if pkg == nil {
@@ -114,20 +115,20 @@ func TestFindingVulnerabilityIDPrefersTheExplicitField(t *testing.T) {
 	// One auditor mints one finding per advisory and lets the ids coincide;
 	// another mints several against one advisory and can only say which in
 	// VulnerabilityID. The explicit field wins.
-	if got := output.FindingVulnerabilityID(sdk.Finding{ID: "policy-1", VulnerabilityID: "CVE-2026-0001"}); got != "CVE-2026-0001" {
+	if got := output.FindingVulnerabilityID(model.Finding{ID: "policy-1", VulnerabilityID: "CVE-2026-0001"}); got != "CVE-2026-0001" {
 		t.Fatalf("explicit vulnerability id ignored: got %q", got)
 	}
-	if got := output.FindingVulnerabilityID(sdk.Finding{ID: "CVE-2026-0001"}); got != "CVE-2026-0001" {
+	if got := output.FindingVulnerabilityID(model.Finding{ID: "CVE-2026-0001"}); got != "CVE-2026-0001" {
 		t.Fatalf("finding id should stand in when no advisory id is set: got %q", got)
 	}
-	if got := output.FindingVulnerabilityID(sdk.Finding{}); got != "" {
+	if got := output.FindingVulnerabilityID(model.Finding{}); got != "" {
 		t.Fatalf("a finding naming no advisory: got %q, want empty", got)
 	}
 }
 
 func TestFindingAdvisoryJoinsPackageAndAdvisory(t *testing.T) {
 	registry := lookupRegistry(t)
-	pkg, vuln := output.FindingAdvisory(registry, sdk.Finding{
+	pkg, vuln := output.FindingAdvisory(registry, model.Finding{
 		ID:         "GHSA-deep",
 		PackageRef: "pkg:npm/%40scope/deep@2.0.0",
 	})
@@ -140,8 +141,8 @@ func TestFindingAdvisoryJoinsPackageAndAdvisory(t *testing.T) {
 
 	// A license or policy finding has a package and names no advisory. Both
 	// halves are independently optional.
-	pkg, vuln = output.FindingAdvisory(registry, sdk.Finding{
-		Kind:       sdk.FindingKindLicense,
+	pkg, vuln = output.FindingAdvisory(registry, model.Finding{
+		Kind:       model.FindingKindLicense,
 		PackageRef: "pkg:npm/%40scope/deep@2.0.0",
 	})
 	if pkg == nil {
@@ -154,11 +155,11 @@ func TestFindingAdvisoryJoinsPackageAndAdvisory(t *testing.T) {
 
 func TestResolvedLicensesPrefersMatchingOverDetection(t *testing.T) {
 	registry := lookupRegistry(t)
-	coords := sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Org: "scope", Name: "deep", Version: "2.0.0"}
+	coords := model.Coordinates{Ecosystem: model.EcosystemNPM, Org: "scope", Name: "deep", Version: "2.0.0"}
 
-	enriched := testnodes.DepFrom(sdk.DependencyNode{
+	enriched := testnodes.DepFrom(model.DependencyNode{
 		Coordinates: coords,
-		Licenses:    []sdk.PackageLicense{{Value: "MIT"}},
+		Licenses:    []model.PackageLicense{{Value: "MIT"}},
 	})
 	got := output.ResolvedLicenses(registry, enriched)
 	// Matching's answer is the reconciled one for that PURL; detection's is one
@@ -167,9 +168,9 @@ func TestResolvedLicensesPrefersMatchingOverDetection(t *testing.T) {
 		t.Fatalf("matching licenses should win: got %#v", got)
 	}
 
-	unmatched := testnodes.DepFrom(sdk.DependencyNode{
-		Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: "unmatched", Version: "1.0.0"},
-		Licenses:    []sdk.PackageLicense{{Value: "MIT"}},
+	unmatched := testnodes.DepFrom(model.DependencyNode{
+		Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM, Name: "unmatched", Version: "1.0.0"},
+		Licenses:    []model.PackageLicense{{Value: "MIT"}},
 	})
 	got = output.ResolvedLicenses(registry, unmatched)
 	if len(got) != 1 || got[0].Value != "MIT" {
@@ -182,8 +183,8 @@ func TestResolvedLicensesPrefersMatchingOverDetection(t *testing.T) {
 
 func TestNodeVulnerabilitiesReadsThroughTheRegistry(t *testing.T) {
 	registry := lookupRegistry(t)
-	dep := testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{
-		Ecosystem: sdk.EcosystemNPM, Org: "scope", Name: "deep", Version: "2.0.0",
+	dep := testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{
+		Ecosystem: model.EcosystemNPM, Org: "scope", Name: "deep", Version: "2.0.0",
 	}})
 	if got := output.NodeVulnerabilities(registry, dep); len(got) != 1 || got[0].ID != "CVE-2026-0001" {
 		t.Fatalf("node advisories: got %#v", got)

@@ -9,18 +9,20 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // Detector resolves CocoaPods dependency graphs from Podfile.lock.
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
+	Fallback   plugin.Detector
 }
 
 var evidencePatterns = []string{"Podfile.lock", "Podfile"}
@@ -40,55 +42,55 @@ type podSpec struct {
 var podLinePattern = regexp.MustCompile(`^\s*([^()\s][^()]*)\s*(?:\(([^()]*)\))?\s*$`)
 
 // PackageManagerSupport returns CocoaPods package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerCocoaPods, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerCocoaPods, evidencePatterns...)}
 }
 
 // Ready reports whether committed Podfile.lock files can be parsed.
-func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
+func (d Detector) Ready(context.Context, plugin.DetectionRequest) error {
 	return nil
 }
 
 // Applicable reports whether Podfile.lock is present.
-func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	_ = ctx
 	return system.FileExists(filepath.Join(d.workingDir(req.ProjectPath), "Podfile.lock"))
 }
 
 // Descriptor describes the CocoaPods detector.
-func (d Detector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d Detector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		Name:                detectors.NameCocoaPods,
-		Technique:           sdk.LockfileTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemSwift},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerCocoaPods},
+		Technique:           plugin.LockfileTechnique,
+		SupportedEcosystems: []model.Ecosystem{model.EcosystemSwift},
+		SupportedManagers:   []model.PackageManager{model.PackageManagerCocoaPods},
 		Tags:                []string{"graph-resolution", "component-targeting", "lockfile-parsing"},
 	}
 }
 
 // ResolveGraph resolves a CocoaPods dependency graph.
-func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
 	workingDir := d.workingDir(req.ProjectPath)
 	raw, err := system.ReadRepositoryFile(filepath.Join(workingDir, "Podfile.lock"))
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("read Podfile.lock: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("read Podfile.lock: %w", err)
 	}
 	// Optionally parse the Podfile to identify pods that belong only to test
 	// targets, so they can be annotated as development-scope.
 	testPods := parsePodfileTestTargets(filepath.Join(workingDir, "Podfile"))
 	g, err := depGraphFromLock(raw, testPods)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	AttachPodfileLockPositions(g, workingDir)
-	return detectors.Attributed(sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns))}), nil
+	return detectors.Attributed(plugin.DetectionResult{Graphs: model.SingleGraphContainer(g, detectorkit.InferManifestMetadata(req, evidencePatterns))}), nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() sdk.Detector {
+func (d Detector) FallbackDetector() plugin.Detector {
 	return d.Fallback
 }
 
@@ -102,7 +104,7 @@ func (d Detector) workingDir(projectPath string) string {
 // depGraphFromLock builds a dependency graph from Podfile.lock.
 // testPods is the set of pod root-names that appear ONLY in test targets in the
 // Podfile; they are annotated as ScopeDevelopment. If nil, all pods are runtime.
-func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) {
+func depGraphFromLock(raw []byte, testPods map[string]bool) (*model.Graph, error) {
 	var lock podLock
 	if err := yaml.Unmarshal(raw, &lock); err != nil {
 		return nil, fmt.Errorf("parse Podfile.lock: %w", err)
@@ -111,7 +113,7 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 	if len(specs) == 0 {
 		return nil, fmt.Errorf("podfile.lock does not contain any pods")
 	}
-	g := sdk.New()
+	g := model.New()
 	root, err := rootNode()
 	if err != nil {
 		return nil, err
@@ -159,12 +161,12 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 		if err != nil {
 			return nil, err
 		}
-		scope := sdk.ScopeRuntime
+		scope := model.ScopeRuntime
 		if testPods[rootPodName(dep)] {
-			scope = sdk.ScopeDevelopment
+			scope = model.ScopeDevelopment
 		}
 		if existingNode, ok := g.Node(node.NodeID()); ok {
-			if existing, isDep := sdk.AsDependencyNode(existingNode); isDep {
+			if existing, isDep := model.AsDependencyNode(existingNode); isDep {
 				existing.AddScope(scope)
 			}
 		}
@@ -174,18 +176,18 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 	}
 	// BFS scope propagation: runtime always beats development.
 	directDepNodes, _ := g.DirectDependencies(root.NodeID())
-	directDeps := sdk.DependencyNodesOf(directDepNodes)
-	propagated := make(map[string]sdk.Scope, g.Size())
-	queue := make([]*sdk.DependencyNode, 0, len(directDeps))
+	directDeps := model.DependencyNodesOf(directDepNodes)
+	propagated := make(map[string]model.Scope, g.Size())
+	queue := make([]*model.DependencyNode, 0, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
 		}
 		scope := dep.PrimaryScope()
-		if scope == sdk.ScopeUnknown {
-			scope = sdk.ScopeRuntime
+		if scope == model.ScopeUnknown {
+			scope = model.ScopeRuntime
 		}
-		propagated[dep.NodeID()] = sdk.MergeScope(propagated[dep.NodeID()], scope)
+		propagated[dep.NodeID()] = model.MergeScope(propagated[dep.NodeID()], scope)
 		dep.AddScope(propagated[dep.NodeID()])
 		queue = append(queue, dep)
 	}
@@ -193,19 +195,19 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 		current := queue[0]
 		queue = queue[1:]
 		scope := propagated[current.NodeID()]
-		if scope == sdk.ScopeUnknown {
+		if scope == model.ScopeUnknown {
 			continue
 		}
 		childNodes, err := g.DirectDependencies(current.NodeID())
 		if err != nil {
 			continue
 		}
-		children := sdk.DependencyNodesOf(childNodes)
+		children := model.DependencyNodesOf(childNodes)
 		for _, child := range children {
 			if child == nil || child.NodeID() == root.NodeID() {
 				continue
 			}
-			next := sdk.MergeScope(propagated[child.NodeID()], scope)
+			next := model.MergeScope(propagated[child.NodeID()], scope)
 			if next == propagated[child.NodeID()] && child.PrimaryScope() == next {
 				continue
 			}
@@ -216,8 +218,8 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 	}
 	// Any pods still without scope default to runtime.
 	for _, pkg := range g.DependencyNodes() {
-		if pkg != nil && pkg.NodeID() != root.NodeID() && pkg.PrimaryScope() == sdk.ScopeUnknown {
-			pkg.AddScope(sdk.ScopeRuntime)
+		if pkg != nil && pkg.NodeID() != root.NodeID() && pkg.PrimaryScope() == model.ScopeUnknown {
+			pkg.AddScope(model.ScopeRuntime)
 		}
 	}
 	return g, nil
@@ -334,31 +336,31 @@ func rootDependencies(values []string) []string {
 
 // rootNode is the scanned project's own artifact, so it is a module node:
 // ADR-0041 made ownership the node kind rather than a FirstParty flag.
-func rootNode() (*sdk.ModuleNode, error) {
-	return sdk.NewModuleNode("Podfile", sdk.Coordinates{
-		Ecosystem:      sdk.EcosystemSwift,
+func rootNode() (*model.ModuleNode, error) {
+	return model.NewModuleNode("Podfile", model.Coordinates{
+		Ecosystem:      model.EcosystemSwift,
 		Name:           "root",
-		PackageManager: sdk.PackageManagerCocoaPods,
-		Type:           sdk.PackageTypeApplication,
+		PackageManager: model.PackageManagerCocoaPods,
+		Type:           model.PackageTypeApplication,
 		Language:       "swift",
 	})
 }
 
-func packageNode(name, version, checksum string) (*sdk.DependencyNode, error) {
-	node, err := sdk.NewDependencyNode(sdk.Coordinates{
-		Ecosystem:      sdk.EcosystemSwift,
+func packageNode(name, version, checksum string) (*model.DependencyNode, error) {
+	node, err := model.NewDependencyNode(model.Coordinates{
+		Ecosystem:      model.EcosystemSwift,
 		Name:           name,
 		Version:        strings.TrimSpace(version),
-		PackageManager: sdk.PackageManagerCocoaPods,
+		PackageManager: model.PackageManagerCocoaPods,
 		Type:           "pod",
 		Language:       "swift",
-		PURL:           sdk.BuildPackageURLFor(sdk.EcosystemSwift, sdk.PackageManagerCocoaPods, "", name, version),
+		PURL:           model.BuildPackageURLFor(model.EcosystemSwift, model.PackageManagerCocoaPods, "", name, version),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build pod node %q: %w", name, err)
 	}
 	if strings.TrimSpace(checksum) != "" {
-		node.Digests = append(node.Digests, sdk.Digest{Algorithm: "podspec-checksum", Value: strings.TrimSpace(checksum)})
+		node.Digests = append(node.Digests, model.Digest{Algorithm: "podspec-checksum", Value: strings.TrimSpace(checksum)})
 	}
 	return node, nil
 }
@@ -393,7 +395,7 @@ func sortedPodNames(specs map[string]podSpec) []string {
 	return values
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.DependencyNode) error {
+func addNodeIfMissing(g *model.Graph, node *model.DependencyNode) error {
 	_, err := detectorkit.EnsureNode(g, node)
 	return err
 }

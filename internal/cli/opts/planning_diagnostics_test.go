@@ -7,8 +7,10 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	"github.com/bomly-dev/bomly-sdk"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // probeErrorFor runs discovery against root with the supplied request tweaks
@@ -20,7 +22,7 @@ func probeErrorFor(t *testing.T, root string, mutate func(*Request)) string {
 
 	req := Request{
 		Registry:        reg,
-		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: root},
+		ExecutionTarget: plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: root},
 	}
 	if mutate != nil {
 		mutate(&req)
@@ -38,9 +40,9 @@ func TestDiscoveryProbeExplainsEcosystemIncludeSkip(t *testing.T) {
 	writeEvidenceFile(t, root, "package.json")
 
 	msg := probeErrorFor(t, root, func(req *Request) {
-		req.EcosystemFilter = sdk.EcosystemFilter{Include: []sdk.Ecosystem{sdk.EcosystemGo}}
+		req.EcosystemFilter = model.EcosystemFilter{Include: []model.Ecosystem{model.EcosystemGo}}
 	})
-	want := fmt.Sprintf("skipped: excluded by --ecosystems %s", sdk.EcosystemGo)
+	want := fmt.Sprintf("skipped: excluded by --ecosystems %s", model.EcosystemGo)
 	if !strings.Contains(msg, want) {
 		t.Fatalf("expected %q in error, got %q", want, msg)
 	}
@@ -50,9 +52,9 @@ func TestDiscoveryProbeExplainsEcosystemExcludeSkip(t *testing.T) {
 	root := t.TempDir()
 	writeEvidenceFile(t, root, "package.json")
 
-	ecosystem := sdk.PackageManagerNPM.Ecosystem()
+	ecosystem := model.PackageManagerNPM.Ecosystem()
 	msg := probeErrorFor(t, root, func(req *Request) {
-		req.EcosystemFilter = sdk.EcosystemFilter{Exclude: []sdk.Ecosystem{ecosystem}}
+		req.EcosystemFilter = model.EcosystemFilter{Exclude: []model.Ecosystem{ecosystem}}
 	})
 	want := fmt.Sprintf("skipped: excluded by --ecosystems -%s", ecosystem)
 	if !strings.Contains(msg, want) {
@@ -65,9 +67,9 @@ func TestDiscoveryProbeExplainsDetectorFilterSkip(t *testing.T) {
 	writeEvidenceFile(t, root, "package.json")
 
 	msg := probeErrorFor(t, root, func(req *Request) {
-		req.DetectorFilter = sdk.DetectorFilter{Include: []string{"gomod"}}
+		req.DetectorFilter = plugin.DetectorFilter{Include: []string{"gomod"}}
 	})
-	want := fmt.Sprintf("skipped: detector filter excludes every %s detector", sdk.PackageManagerNPM.Name())
+	want := fmt.Sprintf("skipped: detector filter excludes every %s detector", model.PackageManagerNPM.Name())
 	if !strings.Contains(msg, want) {
 		t.Fatalf("expected %q in error, got %q", want, msg)
 	}
@@ -94,12 +96,12 @@ func TestDiscoveryProbeKeepsPerCandidateReasonsWhenTheyDiffer(t *testing.T) {
 	writeEvidenceFile(t, root, "web/package.json")
 
 	msg := probeErrorFor(t, root, func(req *Request) {
-		req.EcosystemFilter = sdk.EcosystemFilter{Exclude: []sdk.Ecosystem{sdk.EcosystemGo}}
+		req.EcosystemFilter = model.EcosystemFilter{Exclude: []model.Ecosystem{model.EcosystemGo}}
 	})
 	if strings.Contains(msg, "all skipped:") {
 		t.Fatalf("expected per-candidate reasons when they differ, got %q", msg)
 	}
-	if !strings.Contains(msg, fmt.Sprintf("- go.mod (gomod) — skipped: excluded by --ecosystems -%s", sdk.EcosystemGo)) {
+	if !strings.Contains(msg, fmt.Sprintf("- go.mod (gomod) — skipped: excluded by --ecosystems -%s", model.EcosystemGo)) {
 		t.Fatalf("expected ecosystem reason on the root candidate, got %q", msg)
 	}
 	if !strings.Contains(msg, "- web/package.json (npm) — skipped: not scanned without --recursive") {
@@ -115,7 +117,7 @@ func TestNoSubprojectsErrorReportsWhatWasSearched(t *testing.T) {
 		req.Recursive = true
 		req.MaxDepth = 2
 		req.ExcludeGlobs = []string{"web"}
-		req.DetectorFilter = sdk.DetectorFilter{Include: []string{"gomod"}}
+		req.DetectorFilter = plugin.DetectorFilter{Include: []string{"gomod"}}
 	})
 	for _, want := range []string{
 		"\n  target: " + root,
@@ -162,7 +164,7 @@ func TestDescribeDiscoveryOmitsSkipReasons(t *testing.T) {
 	root := t.TempDir()
 	writeEvidenceFile(t, root, "web/package.json")
 
-	lines := DescribeDiscovery(sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: root})
+	lines := DescribeDiscovery(plugin.ExecutionTarget{Kind: plugin.ExecutionTargetFilesystem, Location: root})
 	joined := strings.Join(lines, "\n")
 	if !strings.Contains(joined, "web/package.json (npm)") {
 		t.Fatalf("expected probe evidence, got %q", joined)

@@ -3,20 +3,22 @@ package python
 import (
 	"fmt"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logging "github.com/bomly-dev/bomly-sdk/logkit"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
-func manifestWithResolution(req sdk.DetectionRequest, patterns []string, resolution *sdk.ResolutionMetadata) sdk.ManifestMetadata {
+func manifestWithResolution(req plugin.DetectionRequest, patterns []string, resolution *model.ResolutionMetadata) model.ManifestMetadata {
 	manifest := detectors.InferManifestMetadata(req, patterns)
 	manifest.Resolution = resolution
 	return manifest
 }
 
-func resolutionMetadata(method sdk.ResolutionMethod, installExecuted bool, installCommand []string, workingDir string) *sdk.ResolutionMetadata {
-	out := &sdk.ResolutionMetadata{
+func resolutionMetadata(method model.ResolutionMethod, installExecuted bool, installCommand []string, workingDir string) *model.ResolutionMetadata {
+	out := &model.ResolutionMetadata{
 		Method:          method,
 		InstallExecuted: installExecuted,
 	}
@@ -27,7 +29,7 @@ func resolutionMetadata(method sdk.ResolutionMethod, installExecuted bool, insta
 	return out
 }
 
-func logResolution(logger *zap.Logger, detectorName string, workingDir string, resolution *sdk.ResolutionMetadata) {
+func logResolution(logger *zap.Logger, detectorName string, workingDir string, resolution *model.ResolutionMetadata) {
 	if logger == nil {
 		logger = zap.NewNop()
 	}

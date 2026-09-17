@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bomly-dev/bomly-sdk"
 	detectors "github.com/bomly-dev/bomly-sdk/detectorkit"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // mixLockEntry matches a `"foo": {:hex, ...},` entry inside mix.lock.
@@ -14,8 +15,8 @@ import (
 // names.
 var mixLockEntry = regexp.MustCompile(`^\s*"([a-zA-Z_][a-zA-Z0-9_]*)"\s*:\s*\{`)
 
-func mixLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func mixLockPositions(path, relPath string) map[string]*model.SourcePosition {
+	out := make(map[string]*model.SourcePosition)
 	_ = detectors.ScanLines(path, func(line int, text string) {
 		matches := mixLockEntry.FindStringSubmatch(text)
 		if matches == nil {
@@ -28,13 +29,13 @@ func mixLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 		if _, exists := out[name]; exists {
 			return
 		}
-		out[name] = &sdk.SourcePosition{File: relPath, Line: line}
+		out[name] = &model.SourcePosition{File: relPath, Line: line}
 	})
 	return out
 }
 
 // AttachMixLockPositions wires mix.lock line numbers.
-func AttachMixLockPositions(g *sdk.Graph, projectDir string) {
+func AttachMixLockPositions(g *model.Graph, projectDir string) {
 	if g == nil || projectDir == "" {
 		return
 	}
@@ -42,7 +43,7 @@ func AttachMixLockPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.DependencyNode) string {
+	detectors.AttachPositions(g, positions, func(pkg *model.DependencyNode) string {
 		if pkg == nil {
 			return ""
 		}

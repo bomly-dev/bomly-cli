@@ -12,11 +12,13 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	logkit "github.com/bomly-dev/bomly-sdk/logkit"
 	"github.com/bomly-dev/bomly-sdk/system"
 	"go.uber.org/zap"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 var gemDeclarationPattern = regexp.MustCompile(`\bgem\s+["']([^"']+)["']`)
@@ -26,7 +28,7 @@ var symbolPattern = regexp.MustCompile(`:([A-Za-z0-9_]+)`)
 type lockSpec struct {
 	Name         string
 	Version      string
-	Source       sdk.DependencySource
+	Source       model.DependencySource
 	ResolvedURL  string
 	Revision     string
 	Dependencies []string
@@ -36,23 +38,23 @@ type lockSpec struct {
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   sdk.Detector
+	Fallback   plugin.Detector
 }
 
 var evidencePatterns = []string{"Gemfile.lock", "Gemfile.next.lock"}
 
 // PackageManagerSupport returns Bundler package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerBundler, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []plugin.PackageManagerSupport {
+	return []plugin.PackageManagerSupport{plugin.Support(model.PackageManagerBundler, evidencePatterns...)}
 }
 
 // Ready reports whether the detector can run in the current environment.
-func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
+func (d Detector) Ready(context.Context, plugin.DetectionRequest) error {
 	return nil
 }
 
 // Applicable reports whether a Bundler lockfile is present.
-func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req plugin.DetectionRequest) (bool, error) {
 	_ = ctx
 	for _, name := range []string{"Gemfile.lock", "Gemfile.next.lock"} {
 		exists, err := system.FileExists(filepath.Join(d.workingDir(req.ProjectPath), name))
@@ -67,58 +69,58 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 }
 
 // Descriptor describes the Bundler detector.
-func (d Detector) Descriptor() sdk.DetectorDescriptor {
-	return sdk.DetectorDescriptor{
+func (d Detector) Descriptor() plugin.DetectorDescriptor {
+	return plugin.DetectorDescriptor{
 		IgnoredDirectories:      []string{"vendor"},
 		Name:                    detectors.NameBundler,
 		RemediationCapabilities: bundlerRemediationCapabilities(),
-		Technique:               sdk.LockfileTechnique,
-		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemRuby},
-		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerBundler},
+		Technique:               plugin.LockfileTechnique,
+		SupportedEcosystems:     []model.Ecosystem{model.EcosystemRuby},
+		SupportedManagers:       []model.PackageManager{model.PackageManagerBundler},
 		Tags:                    []string{"graph-resolution", "component-targeting", "lockfile-parsing", "best-effort-scope"},
 		SupportsInstallFirst:    true,
 	}
 }
 
 // ResolveGraph resolves a Bundler dependency graph from Gemfile.lock.
-func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req plugin.DetectionRequest) (plugin.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
 	workingDir := d.workingDir(req.ProjectPath)
 	lockPath, err := findBundlerLockfile(workingDir)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 	data, err := system.ReadRepositoryFile(lockPath)
 	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("read bundler lockfile: %w", err)
+		return plugin.DetectionResult{}, fmt.Errorf("read bundler lockfile: %w", err)
 	}
 
 	directScopes, err := parseGemfileScopes(filepath.Join(workingDir, "Gemfile"))
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 
 	depsGraph, err := depGraphFromLock(data, directScopes)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return plugin.DetectionResult{}, err
 	}
 
 	AttachGemfileLockPositions(depsGraph, lockPath, workingDir)
 
-	return detectors.Attributed(sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns)),
+	return detectors.Attributed(plugin.DetectionResult{
+		Graphs: model.SingleGraphContainer(depsGraph, detectorkit.InferManifestMetadata(req, evidencePatterns)),
 	}), nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() sdk.Detector {
+func (d Detector) FallbackDetector() plugin.Detector {
 	return d.Fallback
 }
 
 // Install prepares Bundler dependencies before graph resolution.
-func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
+func (d Detector) Install(_ context.Context, req plugin.DetectionRequest) error {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -171,7 +173,7 @@ func findBundlerLockfile(projectPath string) (string, error) {
 	return "", fmt.Errorf("no supported Bundler lockfile found")
 }
 
-func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph, error) {
+func depGraphFromLock(raw []byte, directScopes map[string]model.Scope) (*model.Graph, error) {
 	specs, directDependencies, err := parseBundlerLockfile(string(raw))
 	if err != nil {
 		return nil, err
@@ -180,11 +182,11 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 		return nil, fmt.Errorf("bundler lockfile does not contain any specs")
 	}
 
-	depsGraph := sdk.New()
-	rootNode, err := sdk.NewModuleNode("Gemfile", sdk.Coordinates{Ecosystem: sdk.EcosystemRuby,
+	depsGraph := model.New()
+	rootNode, err := model.NewModuleNode("Gemfile", model.Coordinates{Ecosystem: model.EcosystemRuby,
 		Name:           "root",
-		PackageManager: sdk.PackageManagerBundler,
-		Type:           sdk.PackageTypeApplication,
+		PackageManager: model.PackageManagerBundler,
+		Type:           model.PackageTypeApplication,
 		Language:       "ruby"})
 	if err != nil {
 		return nil, fmt.Errorf("build root node: %w", err)
@@ -241,11 +243,11 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 			return nil, err
 		}
 		scope := directScopes[dependencyName]
-		if scope == sdk.ScopeUnknown {
-			scope = sdk.ScopeRuntime
+		if scope == model.ScopeUnknown {
+			scope = model.ScopeRuntime
 		}
 		if existingNode, ok := depsGraph.Node(node.NodeID()); ok {
-			if existing, isDep := sdk.AsDependencyNode(existingNode); isDep {
+			if existing, isDep := model.AsDependencyNode(existingNode); isDep {
 				existing.AddScope(scope)
 			}
 		}
@@ -256,8 +258,8 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 
 	for _, dependencyName := range directDependencies {
 		visited := make(map[string]struct{}, len(specs))
-		var walk func(string, sdk.Scope)
-		walk = func(name string, scope sdk.Scope) {
+		var walk func(string, model.Scope)
+		walk = func(name string, scope model.Scope) {
 			if _, ok := visited[name]; ok {
 				return
 			}
@@ -275,7 +277,7 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 				return
 			}
 			if existingNode, ok := depsGraph.Node(node.NodeID()); ok {
-				if existing, isDep := sdk.AsDependencyNode(existingNode); isDep {
+				if existing, isDep := model.AsDependencyNode(existingNode); isDep {
 					existing.AddScope(scope)
 				}
 			}
@@ -285,8 +287,8 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 		}
 
 		scope := directScopes[dependencyName]
-		if scope == sdk.ScopeUnknown {
-			scope = sdk.ScopeRuntime
+		if scope == model.ScopeUnknown {
+			scope = model.ScopeRuntime
 		}
 		walk(dependencyName, scope)
 	}
@@ -300,7 +302,7 @@ func parseBundlerLockfile(raw string) (map[string]lockSpec, []string, error) {
 	section := ""
 	inSpecs := false
 	currentName := ""
-	sectionSource := sdk.DependencySource("")
+	sectionSource := model.DependencySource("")
 	sectionRemote := ""
 	sectionRevision := ""
 
@@ -380,14 +382,14 @@ func parseBundlerLockfile(raw string) (map[string]lockSpec, []string, error) {
 	return specs, directDependencies, nil
 }
 
-func bundlerSectionSource(section string) sdk.DependencySource {
+func bundlerSectionSource(section string) model.DependencySource {
 	switch section {
 	case "GEM":
-		return sdk.DependencySourceRegistry
+		return model.DependencySourceRegistry
 	case "GIT":
-		return sdk.DependencySourceGit
+		return model.DependencySourceGit
 	case "PATH":
-		return sdk.DependencySourceFile
+		return model.DependencySourceFile
 	default:
 		return ""
 	}
@@ -414,8 +416,8 @@ func parseDependencyName(value string) string {
 	return strings.TrimSpace(fields[0])
 }
 
-func parseGemfileScopes(path string) (map[string]sdk.Scope, error) {
-	scopes := make(map[string]sdk.Scope)
+func parseGemfileScopes(path string) (map[string]model.Scope, error) {
+	scopes := make(map[string]model.Scope)
 	exists, err := system.FileExists(path)
 	if err != nil {
 		return nil, err
@@ -429,7 +431,7 @@ func parseGemfileScopes(path string) (map[string]sdk.Scope, error) {
 		return nil, fmt.Errorf("read Gemfile: %w", err)
 	}
 
-	groupStack := make([]sdk.Scope, 0, 4)
+	groupStack := make([]model.Scope, 0, 4)
 	scanner := bufio.NewScanner(strings.NewReader(strings.ReplaceAll(string(data), "\r\n", "\n")))
 	for scanner.Scan() {
 		line := stripGemfileComment(scanner.Text())
@@ -461,14 +463,14 @@ func parseGemfileScopes(path string) (map[string]sdk.Scope, error) {
 		}
 
 		labels := extractSymbols(trimmed)
-		scope := sdk.ScopeUnknown
+		scope := model.ScopeUnknown
 		if strings.Contains(trimmed, "group:") || strings.Contains(trimmed, "groups:") {
 			scope = scopeForGroupLabels(labels)
 		} else if len(groupStack) > 0 {
 			scope = groupStack[len(groupStack)-1]
 		}
-		if scope == sdk.ScopeUnknown {
-			scope = sdk.ScopeRuntime
+		if scope == model.ScopeUnknown {
+			scope = model.ScopeRuntime
 		}
 		scopes[gemName] = scope
 	}
@@ -497,28 +499,28 @@ func extractSymbols(value string) []string {
 	return labels
 }
 
-func scopeForGroupLabels(labels []string) sdk.Scope {
+func scopeForGroupLabels(labels []string) model.Scope {
 	if len(labels) == 0 {
-		return sdk.ScopeUnknown
+		return model.ScopeUnknown
 	}
 	for _, label := range labels {
 		switch label {
 		case "default", "production", "runtime":
-			return sdk.ScopeRuntime
+			return model.ScopeRuntime
 		}
 	}
-	return sdk.ScopeDevelopment
+	return model.ScopeDevelopment
 }
 
-func gemNode(spec lockSpec) (*sdk.DependencyNode, error) {
+func gemNode(spec lockSpec) (*model.DependencyNode, error) {
 	var metadata map[string]any
 	if revision := strings.TrimSpace(spec.Revision); revision != "" {
 		metadata = map[string]any{"source_revision": revision}
 	}
-	node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemRuby,
+	node, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemRuby,
 		Name:           strings.TrimSpace(spec.Name),
 		Version:        strings.TrimSpace(spec.Version),
-		PackageManager: sdk.PackageManagerBundler,
+		PackageManager: model.PackageManagerBundler,
 		Type:           "gem",
 		Language:       "ruby"})
 	if err != nil {
@@ -527,17 +529,17 @@ func gemNode(spec lockSpec) (*sdk.DependencyNode, error) {
 	node.Source = spec.Source
 	node.ResolvedURL = strings.TrimSpace(spec.ResolvedURL)
 	node.Metadata = metadata
-	if spec.Source == sdk.DependencySourceGit {
+	if spec.Source == model.DependencySourceGit {
 		// A GIT section names the repository and the commit Bundler locked.
 		// A GEM section's remote is the gem server, and PATH is local.
-		if origin := sdk.RepositoryOrigin(spec.ResolvedURL, spec.Revision); origin != nil {
-			node.Origins = sdk.MergeOrigins(node.Origins, []sdk.DependencyOrigin{*origin})
+		if origin := model.RepositoryOrigin(spec.ResolvedURL, spec.Revision); origin != nil {
+			node.Origins = model.MergeOrigins(node.Origins, []model.DependencyOrigin{*origin})
 		}
 	}
 	return node, nil
 }
 
-func addGemNodeIfMissing(depsGraph *sdk.Graph, node *sdk.DependencyNode) error {
+func addGemNodeIfMissing(depsGraph *model.Graph, node *model.DependencyNode) error {
 	_, err := detectorkit.EnsureNode(depsGraph, node)
 	return err
 }

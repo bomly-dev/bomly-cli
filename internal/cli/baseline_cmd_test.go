@@ -13,13 +13,14 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/baseline"
 	"github.com/bomly-dev/bomly-cli/internal/config"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestBaselineInspectJSON(t *testing.T) {
 	project := t.TempDir()
 	path := project + "/.bomly/baseline.json"
-	document := baseline.NewDocument([]sdk.Finding{{ID: "rule", Kind: sdk.FindingKindPackage, Auditor: "package", RuleID: "rule", PackageRef: "pkg:npm/example@1.0.0"}}, nil)
+	document := baseline.NewDocument([]model.Finding{{ID: "rule", Kind: model.FindingKindPackage, Auditor: "package", RuleID: "rule", PackageRef: "pkg:npm/example@1.0.0"}}, nil)
 	if err := baseline.WriteAtomic(path, document, false); err != nil {
 		t.Fatal(err)
 	}

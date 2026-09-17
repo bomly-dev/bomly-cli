@@ -10,7 +10,9 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 type detectorOptionRow struct {
@@ -123,32 +125,32 @@ func buildEcosystemSelectorCatalog() catalog {
 	}
 }
 
-func resolveEcosystemFilter(raw string) (sdk.EcosystemFilter, error) {
+func resolveEcosystemFilter(raw string) (model.EcosystemFilter, error) {
 	catalog := buildEcosystemSelectorCatalog()
 	defaults := append([]string(nil), catalog.Available...)
 	includeNames, excludeNames, err := resolveSelector(raw, defaults, catalog, true)
 	if err != nil {
-		return sdk.EcosystemFilter{}, err
+		return model.EcosystemFilter{}, err
 	}
 	include, err := ecosystemStringSliceToValues(includeNames)
 	if err != nil {
-		return sdk.EcosystemFilter{}, err
+		return model.EcosystemFilter{}, err
 	}
 	exclude, err := ecosystemStringSliceToValues(excludeNames)
 	if err != nil {
-		return sdk.EcosystemFilter{}, err
+		return model.EcosystemFilter{}, err
 	}
-	return sdk.EcosystemFilter{Include: include, Exclude: exclude}, nil
+	return model.EcosystemFilter{Include: include, Exclude: exclude}, nil
 }
 
-func ecosystemStringSliceToValues(items []string) ([]sdk.Ecosystem, error) {
+func ecosystemStringSliceToValues(items []string) ([]model.Ecosystem, error) {
 	if len(items) == 0 {
 		return nil, nil
 	}
-	values := make([]sdk.Ecosystem, 0, len(items))
-	seen := make(map[sdk.Ecosystem]struct{}, len(items))
+	values := make([]model.Ecosystem, 0, len(items))
+	seen := make(map[model.Ecosystem]struct{}, len(items))
 	for _, name := range items {
-		eco, err := sdk.ParseEcosystem(name)
+		eco, err := model.ParseEcosystem(name)
 		if err != nil {
 			return nil, err
 		}
@@ -228,43 +230,43 @@ func resolveSelector(raw string, defaults []string, catalog catalog, implicitAll
 	return nil, nil, err
 }
 
-func resolveDetectorFilter(raw string, reg *engine.Registry) (sdk.DetectorFilter, error) {
+func resolveDetectorFilter(raw string, reg *engine.Registry) (plugin.DetectorFilter, error) {
 	catalog := buildDetectorSelectorCatalog(reg)
 	defaultSet := defaultEnabledDetectorNames(reg)
 	include, exclude, err := resolveSelector(raw, defaultSet, catalog, true)
 	if err != nil {
-		return sdk.DetectorFilter{}, err
+		return plugin.DetectorFilter{}, err
 	}
-	return sdk.DetectorFilter{Include: include, Exclude: exclude}, nil
+	return plugin.DetectorFilter{Include: include, Exclude: exclude}, nil
 }
 
-func ResolveAuditorFilter(raw string, reg *engine.Registry) (sdk.AuditorFilter, error) {
+func ResolveAuditorFilter(raw string, reg *engine.Registry) (plugin.AuditorFilter, error) {
 	if strings.TrimSpace(raw) == "" {
-		return sdk.AuditorFilter{}, nil
+		return plugin.AuditorFilter{}, nil
 	}
 	catalog := buildAuditorSelectorCatalog(reg)
 	defaultSet := defaultEnabledAuditorNames(reg)
 	include, exclude, err := resolveSelector(raw, defaultSet, catalog, false)
 	if err != nil {
-		return sdk.AuditorFilter{}, err
+		return plugin.AuditorFilter{}, err
 	}
-	return sdk.AuditorFilter{Include: include, Exclude: exclude}, nil
+	return plugin.AuditorFilter{Include: include, Exclude: exclude}, nil
 }
 
-func ResolveMatcherFilter(raw string, reg *engine.Registry) (sdk.MatcherFilter, error) {
+func ResolveMatcherFilter(raw string, reg *engine.Registry) (plugin.MatcherFilter, error) {
 	if strings.TrimSpace(raw) == "" {
-		return sdk.MatcherFilter{}, nil
+		return plugin.MatcherFilter{}, nil
 	}
 	catalog := buildMatcherSelectorCatalog(reg)
 	defaultSet := defaultEnabledMatcherNames(reg)
 	include, exclude, err := resolveSelector(raw, defaultSet, catalog, false)
 	if err != nil {
-		return sdk.MatcherFilter{}, err
+		return plugin.MatcherFilter{}, err
 	}
-	return sdk.MatcherFilter{Include: include, Exclude: exclude}, nil
+	return plugin.MatcherFilter{Include: include, Exclude: exclude}, nil
 }
 
-func resolveMatcherFilter(raw string, reg *engine.Registry) (sdk.MatcherFilter, error) {
+func resolveMatcherFilter(raw string, reg *engine.Registry) (plugin.MatcherFilter, error) {
 	return ResolveMatcherFilter(raw, reg)
 }
 
@@ -321,17 +323,17 @@ func appendAliases(dst []string, aliases ...string) []string {
 // ResolveAnalyzerFilter parses --analyzers and returns an AnalyzerFilter.
 // Empty input yields an empty filter so the registry's default-enabled set
 // applies.
-func ResolveAnalyzerFilter(raw string, reg *engine.Registry) (sdk.AnalyzerFilter, error) {
+func ResolveAnalyzerFilter(raw string, reg *engine.Registry) (plugin.AnalyzerFilter, error) {
 	if strings.TrimSpace(raw) == "" {
-		return sdk.AnalyzerFilter{}, nil
+		return plugin.AnalyzerFilter{}, nil
 	}
 	catalog := buildAnalyzerSelectorCatalog(reg)
 	defaultSet := defaultEnabledAnalyzerNames(reg)
 	include, exclude, err := resolveSelector(raw, defaultSet, catalog, false)
 	if err != nil {
-		return sdk.AnalyzerFilter{}, err
+		return plugin.AnalyzerFilter{}, err
 	}
-	return sdk.AnalyzerFilter{Include: include, Exclude: exclude}, nil
+	return plugin.AnalyzerFilter{Include: include, Exclude: exclude}, nil
 }
 
 func defaultEnabledAnalyzerNames(reg *engine.Registry) []string {
@@ -351,7 +353,7 @@ func filterAllowsName(include, exclude []string, name string) bool {
 	return true
 }
 
-func selectedDetectorNames(filter sdk.DetectorFilter, reg *engine.Registry) []string {
+func selectedDetectorNames(filter plugin.DetectorFilter, reg *engine.Registry) []string {
 	names := make([]string, 0)
 	for _, descriptor := range reg.DetectorDescriptors() {
 		if descriptor.Name == "" {

@@ -3,24 +3,25 @@ package engine
 import (
 	"io"
 
-	"github.com/bomly-dev/bomly-sdk"
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // PipelineRequest defines input for a full pipeline run.
 type PipelineRequest struct {
 	ProjectPath                string
-	ExecutionTarget            sdk.ExecutionTarget
-	Subprojects                []sdk.Subproject
+	ExecutionTarget            plugin.ExecutionTarget
+	Subprojects                []plugin.Subproject
 	EnrichEnabled              bool
 	MatchEnabled               bool
 	AuditEnabled               bool
 	AnalyzeReachabilityEnabled bool
-	ScopeFilter                sdk.Scope
-	AuditorFilter              sdk.AuditorFilter
-	MatcherFilter              sdk.MatcherFilter
-	AnalyzerFilter             sdk.AnalyzerFilter
-	DetectorFilter             sdk.DetectorFilter
-	FailOn                     []sdk.FailOnConstraint
+	ScopeFilter                model.Scope
+	AuditorFilter              plugin.AuditorFilter
+	MatcherFilter              plugin.MatcherFilter
+	AnalyzerFilter             plugin.AnalyzerFilter
+	DetectorFilter             plugin.DetectorFilter
+	FailOn                     []model.FailOnConstraint
 	AllowVulnerabilityIDs      []string
 	AllowLicenses              []string
 	DenyLicenses               []string
@@ -31,10 +32,10 @@ type PipelineRequest struct {
 	TyposquatThreshold         float64
 	TyposquatMode              string
 	WarnOnly                   bool
-	DependencyDetailChanges    []sdk.DependencyDetailTransition
-	FindingPolicyResolvers     []sdk.FindingPolicyResolver
+	DependencyDetailChanges    []model.DependencyDetailTransition
+	FindingPolicyResolvers     []model.FindingPolicyResolver
 	BaselineEvaluation         *BaselineEvaluation
-	BaselineGraph              *sdk.Graph
+	BaselineGraph              *model.Graph
 	InstallFirst               bool
 	InstallArgs                []string
 	CoreVersion                string
@@ -72,25 +73,25 @@ type PipelineWarning struct {
 
 // PipelineResult contains the full output of a pipeline run.
 type PipelineResult struct {
-	ResolveResults []sdk.DetectionResult
-	Consolidated   sdk.ConsolidatedGraph
-	Graph          *sdk.Graph
-	Registry       *sdk.PackageRegistry
-	Findings       []sdk.Finding
-	RiskScores     []sdk.RiskScore
+	ResolveResults []plugin.DetectionResult
+	Consolidated   plugin.ConsolidatedGraph
+	Graph          *model.Graph
+	Registry       *model.PackageRegistry
+	Findings       []model.Finding
+	RiskScores     []model.RiskScore
 	// DetectorWarnings are every non-fatal detection problem in one list:
 	// resolution failures and detector fallbacks the engine observed, plus the
 	// package-manager warnings detectors reported alongside their graphs. Each
 	// carries a type, so consumers that care only about degraded coverage filter
 	// on DetectorWarning.DegradesCoverage rather than on the list being empty.
-	DetectorWarnings []sdk.DetectorWarning
+	DetectorWarnings []plugin.DetectorWarning
 	AuditWarnings    []PipelineWarning
 	MatchWarnings    []PipelineWarning
 	AnalyzeWarnings  []PipelineWarning
-	MatcherStats     []sdk.MatcherStats
+	MatcherStats     []plugin.MatcherStats
 	AuditorRuns      []string
 	AnalyzerRuns     []string
 	AuditorFindings  map[string]int
-	AnalyzerStats    map[string]sdk.ReachabilityStats
+	AnalyzerStats    map[string]plugin.ReachabilityStats
 	PartialErrors    error
 }

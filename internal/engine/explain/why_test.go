@@ -4,16 +4,17 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 func TestFindWhy_MarksCyclicPaths(t *testing.T) {
-	deps := sdk.New()
+	deps := model.New()
 	app := testnodes.Ref("app", "")
 	b := testnodes.Ref("b", "")
 	c := testnodes.Ref("c", "")
 
-	for _, pkg := range []*sdk.DependencyNode{app, b, c} {
+	for _, pkg := range []*model.DependencyNode{app, b, c} {
 		if err := deps.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.NodeID(), err)
 		}
@@ -50,8 +51,8 @@ func TestFindWhy_MarksCyclicPaths(t *testing.T) {
 }
 
 func TestFindWhy_ReturnsAllPathsInDeterministicOrder(t *testing.T) {
-	deps := sdk.New()
-	nodes := []*sdk.DependencyNode{
+	deps := model.New()
+	nodes := []*model.DependencyNode{
 		testnodes.Ref("root-b", ""),
 		testnodes.Ref("middle", ""),
 		testnodes.Ref("target", ""),

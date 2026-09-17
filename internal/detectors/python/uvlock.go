@@ -8,9 +8,10 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	sdk "github.com/bomly-dev/bomly-sdk"
 	detectorkit "github.com/bomly-dev/bomly-sdk/detectorkit"
 	"github.com/bomly-dev/bomly-sdk/system"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // uvLockDep is a dependency reference in uv.lock.
@@ -47,7 +48,7 @@ type uvLockFile struct {
 
 // depGraphFromUVLock parses a uv.lock file and builds a dependency graph with
 // proper runtime / development scope annotations.
-func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
+func depGraphFromUVLock(uvLockPath string) (*model.Graph, error) {
 	data, err := system.ReadRepositoryFile(uvLockPath)
 	if err != nil {
 		return nil, fmt.Errorf("read uv.lock: %w", err)
@@ -62,13 +63,13 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 	}
 
 	// Index all packages by normalized name.
-	nodesByName := make(map[string]sdk.GraphNode, len(lock.Package))
+	nodesByName := make(map[string]model.GraphNode, len(lock.Package))
 	for i := range lock.Package {
 		pkg := &lock.Package[i]
 		if pkg.Name == "" {
 			continue
 		}
-		node, err := sdk.NewDependencyNode(sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+		node, err := model.NewDependencyNode(model.Coordinates{Ecosystem: model.EcosystemPython,
 			Name:    normalizePythonName(pkg.Name),
 			Version: pkg.Version})
 		if err != nil {
@@ -98,7 +99,7 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 		return nil, fmt.Errorf("uv.lock has no editable package entry")
 	}
 
-	depsGraph := sdk.New()
+	depsGraph := model.New()
 
 	// The editable package is the scanned project itself, so it is a module
 	// node: ownership is the node kind now, not a flag set on a dependency
@@ -108,12 +109,12 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 	if _, indexed := nodesByName[rootName]; !indexed {
 		return nil, fmt.Errorf("uv.lock editable package %q not found in package index", editablePkg.Name)
 	}
-	rootNode, err := pythonModuleRoot(sdk.Coordinates{
-		Ecosystem:      sdk.EcosystemPython,
-		PackageManager: sdk.PackageManagerUV,
+	rootNode, err := pythonModuleRoot(model.Coordinates{
+		Ecosystem:      model.EcosystemPython,
+		PackageManager: model.PackageManagerUV,
 		Name:           rootName,
 		Version:        editablePkg.Version,
-		Type:           sdk.PackageTypeApplication,
+		Type:           model.PackageTypeApplication,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build root node: %w", err)
@@ -139,8 +140,8 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 		if child == nil {
 			continue
 		}
-		if dependency, ok := sdk.AsDependencyNode(child); ok {
-			dependency.AddScope(sdk.ScopeRuntime)
+		if dependency, ok := model.AsDependencyNode(child); ok {
+			dependency.AddScope(model.ScopeRuntime)
 		}
 		if err := depsGraph.AddEdge(rootNode.NodeID(), child.NodeID()); err != nil {
 			return nil, fmt.Errorf("add runtime dep %q: %w", dep.Name, err)
@@ -155,8 +156,8 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 				continue
 			}
 			// Runtime wins if this package is also a runtime dep.
-			if dependency, ok := sdk.AsDependencyNode(child); ok {
-				dependency.AddScope(sdk.ScopeDevelopment)
+			if dependency, ok := model.AsDependencyNode(child); ok {
+				dependency.AddScope(model.ScopeDevelopment)
 			}
 			if err := depsGraph.AddEdge(rootNode.NodeID(), child.NodeID()); err != nil {
 				return nil, fmt.Errorf("add dev dep %q: %w", dep.Name, err)
@@ -191,16 +192,16 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 	return depsGraph, nil
 }
 
-func uvDependencySource(source uvLockSource) sdk.DependencySource {
+func uvDependencySource(source uvLockSource) model.DependencySource {
 	switch {
 	case source.Editable != "" || source.Path != "":
-		return sdk.DependencySourceFile
+		return model.DependencySourceFile
 	case source.Git != "":
-		return sdk.DependencySourceGit
+		return model.DependencySourceGit
 	case source.URL != "":
-		return sdk.DependencySourceURL
+		return model.DependencySourceURL
 	case source.Registry != "":
-		return sdk.DependencySourceRegistry
+		return model.DependencySourceRegistry
 	default:
 		return ""
 	}

@@ -8,8 +8,10 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-sdk"
 	"github.com/bomly-dev/bomly-sdk/graphview"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 // componentsGroup names the cycling-axis for the Components tab. "status"
@@ -39,11 +41,11 @@ type DiffModel struct {
 	*shellModel
 
 	payload   output.DiffResponse
-	baseGraph sdk.ConsolidatedGraph
-	headGraph sdk.ConsolidatedGraph
+	baseGraph plugin.ConsolidatedGraph
+	headGraph plugin.ConsolidatedGraph
 
-	baseRegistry *sdk.PackageRegistry
-	headRegistry *sdk.PackageRegistry
+	baseRegistry *model.PackageRegistry
+	headRegistry *model.PackageRegistry
 
 	enrichEnabled bool
 
@@ -73,7 +75,7 @@ type DiffModel struct {
 
 // NewDiff constructs the diff TUI model. baseGraph and headGraph are the
 // consolidated graphs from the two pipeline runs; they feed the Source tab.
-func NewDiff(payload output.DiffResponse, baseGraph, headGraph sdk.ConsolidatedGraph) *DiffModel {
+func NewDiff(payload output.DiffResponse, baseGraph, headGraph plugin.ConsolidatedGraph) *DiffModel {
 	m := &DiffModel{
 		payload:            payload,
 		baseGraph:          baseGraph,
@@ -112,7 +114,7 @@ func NewDiff(payload output.DiffResponse, baseGraph, headGraph sdk.ConsolidatedG
 
 // WithRegistry attaches the base/head package registries so source-tree package
 // details can show matcher and analyzer enrichment by PURL.
-func (m *DiffModel) WithRegistry(base, head *sdk.PackageRegistry) *DiffModel {
+func (m *DiffModel) WithRegistry(base, head *model.PackageRegistry) *DiffModel {
 	if m == nil {
 		return nil
 	}
@@ -910,7 +912,7 @@ func isFuzzyReconciled(pkg output.PackageRef) bool {
 // classifyRelationships labels every package in a graph as root, direct, or
 // transitive. Roots are packages with no incoming edges; direct dependencies
 // are immediate children of any root; everything else is transitive.
-func classifyRelationships(g *sdk.Graph) map[string]string {
+func classifyRelationships(g *model.Graph) map[string]string {
 	out := make(map[string]string)
 	if g == nil {
 		return out
@@ -1358,7 +1360,7 @@ type flatComponentChange struct {
 	afterVer     string
 	maxSeverity  string // worst severity across pkgRef.Vulnerabilities
 	relationship string // root/direct/transitive — looked up in head/base graph
-	remediation  *sdk.PackageRemediation
+	remediation  *model.PackageRemediation
 	transition   *output.DiffDependencyTransition
 }
 
@@ -1467,10 +1469,10 @@ func packageRefFromTransitionState(state output.DiffDependencyTransitionState) o
 		Vulnerabilities: []output.VulnerabilityRef{},
 	}
 	switch state.Relationship {
-	case sdk.DependencyRelationshipDirect:
+	case model.DependencyRelationshipDirect:
 		direct := true
 		ref.Direct = &direct
-	case sdk.DependencyRelationshipTransitive:
+	case model.DependencyRelationshipTransitive:
 		direct := false
 		ref.Direct = &direct
 	}
@@ -1784,7 +1786,7 @@ func (m *DiffModel) detectorForManifest(mf output.DiffManifestResult) string {
 	return ""
 }
 
-func lookupDetector(consolidated sdk.ConsolidatedGraph, mf output.DiffManifestResult) string {
+func lookupDetector(consolidated plugin.ConsolidatedGraph, mf output.DiffManifestResult) string {
 	for _, cm := range consolidated.Manifests {
 		if cm.Entry.Manifest.Path == mf.Path && cm.Subproject.RelativePath == mf.Subproject {
 			return cm.DetectorName
@@ -1860,28 +1862,28 @@ func renderDependencyDetailTransition(transition output.DiffDependencyTransition
 	for _, reason := range output.DependencyDetailReviewReasons(transition) {
 		var message string
 		switch reason {
-		case sdk.DependencyDetailReviewSourceGit:
+		case model.DependencyDetailReviewSourceGit:
 			message = "Dependency source changed to Git. Registry-based vulnerability checks may no longer cover it."
-		case sdk.DependencyDetailReviewSourceURL:
+		case model.DependencyDetailReviewSourceURL:
 			message = "Dependency source changed to a URL. Registry-based vulnerability checks may no longer cover it."
 		default:
 			continue
 		}
 		lines = append(lines, render.Style("  Review: ", render.Yellow, render.Bold)+message)
 	}
-	sourceChanged := dependencyDetailFieldChangedForTUI(transition, sdk.DependencyDetailSource)
+	sourceChanged := dependencyDetailFieldChangedForTUI(transition, model.DependencyDetailSource)
 	for _, field := range transition.ChangedFields {
 		var label, before, after string
 		switch field {
-		case sdk.DependencyDetailRelationship:
+		case model.DependencyDetailRelationship:
 			label = "Relationship"
 			before = valueOrDash(string(transition.Before.Relationship))
 			after = valueOrDash(string(transition.After.Relationship))
-		case sdk.DependencyDetailSource:
+		case model.DependencyDetailSource:
 			label = "Source"
 			before = valueOrDash(string(transition.Before.Source))
 			after = valueOrDash(string(transition.After.Source))
-		case sdk.DependencyDetailRegistryEligibility:
+		case model.DependencyDetailRegistryEligibility:
 			if sourceChanged {
 				continue
 			}
@@ -1898,7 +1900,7 @@ func renderDependencyDetailTransition(transition output.DiffDependencyTransition
 	return lines
 }
 
-func dependencyDetailFieldChangedForTUI(transition output.DiffDependencyTransition, wanted sdk.DependencyDetailField) bool {
+func dependencyDetailFieldChangedForTUI(transition output.DiffDependencyTransition, wanted model.DependencyDetailField) bool {
 	return slices.Contains(transition.ChangedFields, wanted)
 }
 
@@ -2220,16 +2222,16 @@ func (m *DiffModel) auditVerdict() auditVerdict {
 	// stays consistent with the rows it's actually showing.
 	for _, f := range m.payload.Audit.Introduced {
 		switch f.PolicyStatus {
-		case "", sdk.FindingPolicyStatusFail:
+		case "", model.FindingPolicyStatusFail:
 			v.FailingIntroduced++
 			if isVulnerabilityFinding(f) {
 				v.FailingIntroducedVuln++
 			} else {
 				v.FailingIntroducedNonVuln++
 			}
-		case sdk.FindingPolicyStatusWarn:
+		case model.FindingPolicyStatusWarn:
 			v.WarnIntroduced++
-		case sdk.FindingPolicyStatusSuppressed:
+		case model.FindingPolicyStatusSuppressed:
 			v.SuppressedIntroduced++
 			if isVulnerabilityFinding(f) {
 				v.SuppressedIntroducedVuln++
@@ -3193,7 +3195,7 @@ func sourceItemPlain(it listItem) string {
 	return it.tree + marker + it.title
 }
 
-func diffSourceItems(consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRegistry, expanded map[string]bool, sidePrefix string) []listItem {
+func diffSourceItems(consolidated plugin.ConsolidatedGraph, registry *model.PackageRegistry, expanded map[string]bool, sidePrefix string) []listItem {
 	items := []listItem{sourceNode(fmt.Sprintf("%s: {}", sidePrefix), "root", "", 0, true, expandedValue(expanded, "root", true))}
 	if !expandedValue(expanded, "root", true) {
 		return items
@@ -3300,7 +3302,7 @@ func diffSourceItems(consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRe
 	return items
 }
 
-func graphFromConsolidated(c sdk.ConsolidatedGraph) (*sdk.Graph, error) {
+func graphFromConsolidated(c plugin.ConsolidatedGraph) (*model.Graph, error) {
 	if c.Graphs == nil {
 		return nil, nil
 	}

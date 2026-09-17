@@ -20,9 +20,12 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/plugin/runtime/hashicorp"
-	plugschema "github.com/bomly-dev/bomly-sdk"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/bomly-dev/bomly-sdk/httpkit"
+	sdkplugin "github.com/bomly-dev/bomly-sdk/plugin"
+	sdkruntime "github.com/bomly-dev/bomly-sdk/runtime"
 )
 
 const (
@@ -758,7 +761,7 @@ func discoverRuntimeSnapshot(ctx context.Context, executable string) (RuntimeDes
 	}
 }
 
-func fetchRuntimeSnapshot(ctx context.Context, executable string, kind plugschema.PluginKind, pluginID ...string) (RuntimeDescriptorSnapshot, error) {
+func fetchRuntimeSnapshot(ctx context.Context, executable string, kind sdkplugin.PluginKind, pluginID ...string) (RuntimeDescriptorSnapshot, error) {
 	client, err := startPlugin(ctx, executable, firstString(pluginID), kind)
 	if err != nil {
 		return RuntimeDescriptorSnapshot{}, err
@@ -766,20 +769,20 @@ func fetchRuntimeSnapshot(ctx context.Context, executable string, kind plugschem
 	defer client.Close()
 
 	switch kind {
-	case plugschema.PluginKindDetector:
+	case sdkplugin.PluginKindDetector:
 		return detectorSnapshot(ctx, client.Raw())
-	case plugschema.PluginKindMatcher:
+	case sdkplugin.PluginKindMatcher:
 		return matcherSnapshot(ctx, client.Raw())
-	case plugschema.PluginKindAuditor:
+	case sdkplugin.PluginKindAuditor:
 		return auditorSnapshot(ctx, client.Raw())
-	case plugschema.PluginKindAnalyzer:
+	case sdkplugin.PluginKindAnalyzer:
 		return analyzerSnapshot(ctx, client.Raw())
 	default:
 		return RuntimeDescriptorSnapshot{}, fmt.Errorf("unsupported plugin kind %q", kind)
 	}
 }
 
-func detectorSnapshot(ctx context.Context, client plugschema.Client) (RuntimeDescriptorSnapshot, error) {
+func detectorSnapshot(ctx context.Context, client sdkruntime.Client) (RuntimeDescriptorSnapshot, error) {
 	descriptor, err := client.DetectorDescriptor(ctx)
 	if err != nil {
 		return RuntimeDescriptorSnapshot{}, err
@@ -793,15 +796,15 @@ func detectorSnapshot(ctx context.Context, client plugschema.Client) (RuntimeDes
 		return RuntimeDescriptorSnapshot{}, fmt.Errorf("detector plugin returned an empty descriptor")
 	}
 	return normalizeRuntimeSnapshot(RuntimeDescriptorSnapshot{
-		SchemaVersion:      plugschema.RuntimeDescriptorSnapshotSchemaVersion,
+		SchemaVersion:      sdkplugin.RuntimeDescriptorSnapshotSchemaVersion,
 		ID:                 descriptor.Name,
-		Kind:               plugschema.PluginKindDetector,
-		PluginAPIVersion:   plugschema.PluginAPIVersion,
+		Kind:               sdkplugin.PluginKindDetector,
+		PluginAPIVersion:   sdkplugin.PluginAPIVersion,
 		DetectorDescriptor: descriptor,
 	}), nil
 }
 
-func matcherSnapshot(ctx context.Context, client plugschema.Client) (RuntimeDescriptorSnapshot, error) {
+func matcherSnapshot(ctx context.Context, client sdkruntime.Client) (RuntimeDescriptorSnapshot, error) {
 	descriptor, err := client.MatcherDescriptor(ctx)
 	if err != nil {
 		return RuntimeDescriptorSnapshot{}, err
@@ -810,15 +813,15 @@ func matcherSnapshot(ctx context.Context, client plugschema.Client) (RuntimeDesc
 		return RuntimeDescriptorSnapshot{}, fmt.Errorf("matcher plugin returned an empty descriptor")
 	}
 	return normalizeRuntimeSnapshot(RuntimeDescriptorSnapshot{
-		SchemaVersion:     plugschema.RuntimeDescriptorSnapshotSchemaVersion,
+		SchemaVersion:     sdkplugin.RuntimeDescriptorSnapshotSchemaVersion,
 		ID:                descriptor.Name,
-		Kind:              plugschema.PluginKindMatcher,
-		PluginAPIVersion:  plugschema.PluginAPIVersion,
+		Kind:              sdkplugin.PluginKindMatcher,
+		PluginAPIVersion:  sdkplugin.PluginAPIVersion,
 		MatcherDescriptor: cloneMatcherDescriptor(descriptor),
 	}), nil
 }
 
-func auditorSnapshot(ctx context.Context, client plugschema.Client) (RuntimeDescriptorSnapshot, error) {
+func auditorSnapshot(ctx context.Context, client sdkruntime.Client) (RuntimeDescriptorSnapshot, error) {
 	descriptor, err := client.AuditorDescriptor(ctx)
 	if err != nil {
 		return RuntimeDescriptorSnapshot{}, err
@@ -827,15 +830,15 @@ func auditorSnapshot(ctx context.Context, client plugschema.Client) (RuntimeDesc
 		return RuntimeDescriptorSnapshot{}, fmt.Errorf("auditor plugin returned an empty descriptor")
 	}
 	return normalizeRuntimeSnapshot(RuntimeDescriptorSnapshot{
-		SchemaVersion:     plugschema.RuntimeDescriptorSnapshotSchemaVersion,
+		SchemaVersion:     sdkplugin.RuntimeDescriptorSnapshotSchemaVersion,
 		ID:                descriptor.Name,
-		Kind:              plugschema.PluginKindAuditor,
-		PluginAPIVersion:  plugschema.PluginAPIVersion,
+		Kind:              sdkplugin.PluginKindAuditor,
+		PluginAPIVersion:  sdkplugin.PluginAPIVersion,
 		AuditorDescriptor: cloneAuditorDescriptor(descriptor),
 	}), nil
 }
 
-func analyzerSnapshot(ctx context.Context, client plugschema.Client) (RuntimeDescriptorSnapshot, error) {
+func analyzerSnapshot(ctx context.Context, client sdkruntime.Client) (RuntimeDescriptorSnapshot, error) {
 	descriptor, err := client.AnalyzerDescriptor(ctx)
 	if err != nil {
 		return RuntimeDescriptorSnapshot{}, err
@@ -844,10 +847,10 @@ func analyzerSnapshot(ctx context.Context, client plugschema.Client) (RuntimeDes
 		return RuntimeDescriptorSnapshot{}, fmt.Errorf("analyzer plugin returned an empty descriptor")
 	}
 	return normalizeRuntimeSnapshot(RuntimeDescriptorSnapshot{
-		SchemaVersion:      plugschema.RuntimeDescriptorSnapshotSchemaVersion,
+		SchemaVersion:      sdkplugin.RuntimeDescriptorSnapshotSchemaVersion,
 		ID:                 descriptor.Name,
-		Kind:               plugschema.PluginKindAnalyzer,
-		PluginAPIVersion:   plugschema.PluginAPIVersion,
+		Kind:               sdkplugin.PluginKindAnalyzer,
+		PluginAPIVersion:   sdkplugin.PluginAPIVersion,
 		AnalyzerDescriptor: cloneAnalyzerDescriptor(descriptor),
 	}), nil
 }
@@ -861,7 +864,7 @@ type runtimeClient struct {
 	cleanup func()
 }
 
-func (c *runtimeClient) Raw() plugschema.Client {
+func (c *runtimeClient) Raw() sdkruntime.Client {
 	if c == nil || c.client == nil {
 		return nil
 	}
@@ -888,7 +891,7 @@ func (c *runtimeClient) Close() {
 	}
 }
 
-func startPlugin(ctx context.Context, executable, pluginID string, kind plugschema.PluginKind) (*runtimeClient, error) {
+func startPlugin(ctx context.Context, executable, pluginID string, kind sdkplugin.PluginKind) (*runtimeClient, error) {
 	options, _ := LaunchOptionsFromContext(ctx)
 	env, cleanup, err := pluginEnv(options, pluginID, kind)
 	if err != nil {
@@ -902,13 +905,13 @@ func startPlugin(ctx context.Context, executable, pluginID string, kind plugsche
 	return &runtimeClient{client: client, cleanup: cleanup}, nil
 }
 
-func pluginEnv(options LaunchOptions, pluginID string, kind plugschema.PluginKind) ([]string, func(), error) {
+func pluginEnv(options LaunchOptions, pluginID string, kind sdkplugin.PluginKind) ([]string, func(), error) {
 	env := []string{
-		EnvPluginAPIVersion + "=" + plugschema.PluginAPIVersion,
+		EnvPluginAPIVersion + "=" + sdkplugin.PluginAPIVersion,
 		EnvPluginConfig + "=" + strings.TrimSpace(options.ConfigPath),
 	}
 	if strings.TrimSpace(pluginID) != "" {
-		env = append(env, plugschema.EnvPluginID+"="+strings.TrimSpace(pluginID))
+		env = append(env, sdkruntime.EnvPluginID+"="+strings.TrimSpace(pluginID))
 	}
 	env = append(env, proxyEnv(options)...)
 	cleanup := func() {}
@@ -924,7 +927,7 @@ func pluginEnv(options LaunchOptions, pluginID string, kind plugschema.PluginKin
 			return nil, cleanup, err
 		}
 		cleanup = remove
-		env = append(env, plugschema.EnvPluginConfigFile+"="+path)
+		env = append(env, sdkruntime.EnvPluginConfigFile+"="+path)
 	}
 	return env, cleanup, nil
 }
@@ -935,7 +938,7 @@ func proxyEnv(options LaunchOptions) []string {
 	proxy, err := proxyConfig.EffectiveProxyURL()
 	if err == nil && strings.TrimSpace(proxy) != "" {
 		env = append(env,
-			plugschema.EnvHTTPProxy+"="+proxy,
+			httpkit.EnvHTTPProxy+"="+proxy,
 			"HTTP_PROXY="+proxy,
 			"HTTPS_PROXY="+proxy,
 			"http_proxy="+proxy,
@@ -946,7 +949,7 @@ func proxyEnv(options LaunchOptions) []string {
 	}
 	if noProxy := strings.TrimSpace(proxyConfig.NoProxy); noProxy != "" {
 		env = append(env,
-			plugschema.EnvHTTPNoProxy+"="+noProxy,
+			httpkit.EnvHTTPNoProxy+"="+noProxy,
 			"NO_PROXY="+noProxy,
 			"no_proxy="+noProxy,
 		)
@@ -959,22 +962,22 @@ func proxyEnv(options LaunchOptions) []string {
 
 func appendProxyConfigEnv(env []string, options LaunchOptions) []string {
 	if value := strings.TrimSpace(options.HTTPProxyType); value != "" {
-		env = append(env, plugschema.EnvHTTPProxyType+"="+value)
+		env = append(env, httpkit.EnvHTTPProxyType+"="+value)
 	}
 	if value := strings.TrimSpace(options.HTTPProxyHost); value != "" {
-		env = append(env, plugschema.EnvHTTPProxyHost+"="+value)
+		env = append(env, httpkit.EnvHTTPProxyHost+"="+value)
 	}
 	if options.HTTPProxyPort > 0 {
-		env = append(env, plugschema.EnvHTTPProxyPort+"="+strconv.Itoa(options.HTTPProxyPort))
+		env = append(env, httpkit.EnvHTTPProxyPort+"="+strconv.Itoa(options.HTTPProxyPort))
 	}
 	if value := strings.TrimSpace(options.HTTPProxyUsername); value != "" {
-		env = append(env, plugschema.EnvHTTPProxyUsername+"="+value)
+		env = append(env, httpkit.EnvHTTPProxyUsername+"="+value)
 	}
 	if options.HTTPProxyPassword != "" {
-		env = append(env, plugschema.EnvHTTPProxyPassword+"="+options.HTTPProxyPassword)
+		env = append(env, httpkit.EnvHTTPProxyPassword+"="+options.HTTPProxyPassword)
 	}
 	if value := strings.TrimSpace(options.HTTPCACertFile); value != "" {
-		env = append(env, plugschema.EnvHTTPCACertFile+"="+value)
+		env = append(env, httpkit.EnvHTTPCACertFile+"="+value)
 	}
 	return env
 }
@@ -1016,15 +1019,15 @@ func httpClientFromLaunchContext(ctx context.Context, timeout time.Duration) (*h
 	if options.HTTPClientProvider != nil {
 		return options.HTTPClientProvider.Client(timeout), nil
 	}
-	provider, err := plugschema.NewHTTPClientProvider(launchHTTPConfig(options, 0))
+	provider, err := httpkit.NewClientProvider(launchHTTPConfig(options, 0))
 	if err != nil {
 		return nil, err
 	}
 	return provider.Client(timeout), nil
 }
 
-func launchHTTPConfig(options LaunchOptions, timeout time.Duration) plugschema.HTTPClientConfig {
-	return plugschema.HTTPClientConfig{
+func launchHTTPConfig(options LaunchOptions, timeout time.Duration) httpkit.ClientConfig {
+	return httpkit.ClientConfig{
 		ProxyURL:      options.HTTPProxy,
 		NoProxy:       options.HTTPNoProxy,
 		ProxyType:     options.HTTPProxyType,

@@ -5,80 +5,82 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	sdk "github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
+	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
 type eligibilityCapturingMatcher struct {
 	calls    int
-	graph    *sdk.Graph
-	registry *sdk.PackageRegistry
-	target   *sdk.DependencyNode
+	graph    *model.Graph
+	registry *model.PackageRegistry
+	target   *model.DependencyNode
 }
 
-func (m *eligibilityCapturingMatcher) Descriptor() sdk.MatcherDescriptor {
-	return sdk.MatcherDescriptor{Name: "eligibility-capture"}
+func (m *eligibilityCapturingMatcher) Descriptor() plugin.MatcherDescriptor {
+	return plugin.MatcherDescriptor{Name: "eligibility-capture"}
 }
 
-func (m *eligibilityCapturingMatcher) Ready(context.Context, sdk.MatchRequest) error { return nil }
+func (m *eligibilityCapturingMatcher) Ready(context.Context, plugin.MatchRequest) error { return nil }
 
-func (m *eligibilityCapturingMatcher) Applicable(context.Context, sdk.MatchRequest) (bool, error) {
+func (m *eligibilityCapturingMatcher) Applicable(context.Context, plugin.MatchRequest) (bool, error) {
 	return true, nil
 }
 
-func (m *eligibilityCapturingMatcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
+func (m *eligibilityCapturingMatcher) Match(_ context.Context, req plugin.MatchRequest) (plugin.MatchResult, error) {
 	m.calls++
 	m.graph, m.registry, m.target = req.Graph, req.Registry, req.Target
-	return sdk.MatchResult{Registry: req.Registry}, nil
+	return plugin.MatchResult{Registry: req.Registry}, nil
 }
 
 type graphSizeAuditor struct{ size int }
 
-func (a *graphSizeAuditor) Descriptor() sdk.AuditorDescriptor {
-	return sdk.AuditorDescriptor{Name: "graph-size"}
+func (a *graphSizeAuditor) Descriptor() plugin.AuditorDescriptor {
+	return plugin.AuditorDescriptor{Name: "graph-size"}
 }
 
-func (a *graphSizeAuditor) Ready(context.Context, sdk.AuditRequest) error { return nil }
+func (a *graphSizeAuditor) Ready(context.Context, plugin.AuditRequest) error { return nil }
 
-func (a *graphSizeAuditor) Applicable(context.Context, sdk.AuditRequest) (bool, error) {
+func (a *graphSizeAuditor) Applicable(context.Context, plugin.AuditRequest) (bool, error) {
 	return true, nil
 }
 
-func (a *graphSizeAuditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
+func (a *graphSizeAuditor) Audit(_ context.Context, req plugin.AuditRequest) (plugin.AuditResult, error) {
 	if req.Graph != nil {
 		a.size = req.Graph.Size()
 	}
-	return sdk.AuditResult{}, nil
+	return plugin.AuditResult{}, nil
 }
 
 func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T) {
-	graph := sdk.New()
-	app := testnodes.ModuleFrom("package.json", sdk.Coordinates{
-		Ecosystem: sdk.EcosystemNPM, Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication,
+	graph := model.New()
+	app := testnodes.ModuleFrom("package.json", model.Coordinates{
+		Ecosystem: model.EcosystemNPM, Name: "app", Version: "1.0.0", Type: model.PackageTypeApplication,
 	})
 	// A manifest is a manifest node now; there is no dependency node typed
 	// "manifest" for a matcher to consider (ADR-0041).
-	manifest := testnodes.Manifest("package.json", sdk.ManifestKindPackageJSON)
-	registryRelease := matchTestDependency("registry-package", "1.0.0", "", sdk.DependencySourceRegistry)
-	registryRelease.Relationship = sdk.DependencyRelationshipUnknown
+	manifest := testnodes.Manifest("package.json", model.ManifestKindPackageJSON)
+	registryRelease := matchTestDependency("registry-package", "1.0.0", "", model.DependencySourceRegistry)
+	registryRelease.Relationship = model.DependencyRelationshipUnknown
 	legacy := matchTestDependency("legacy-package", "1.0.0", "", "")
-	legacy.Source = sdk.DependencySource("plugin-defined")
-	mirror := matchTestDependency("mirror-package", "1.0.0", "", sdk.DependencySourceRegistry)
+	legacy.Source = model.DependencySource("plugin-defined")
+	mirror := matchTestDependency("mirror-package", "1.0.0", "", model.DependencySourceRegistry)
 	mirror.ResolvedURL = "https://mirror.example.test/mirror-package.tgz"
-	workspace := matchTestDependency("shared", "1.0.0", sdk.PackageTypeApplication, sdk.DependencySourceWorkspace)
-	externalShared := matchTestDependency("shared", "2.0.0", "", sdk.DependencySourceRegistry)
-	project := matchTestDependency("project-package", "1.0.0", "", sdk.DependencySourceProject)
-	file := matchTestDependency("file-package", "1.0.0", "", sdk.DependencySourceFile)
-	git := matchTestDependency("git-package", "1.0.0", "", sdk.DependencySourceGit)
-	url := matchTestDependency("url-package", "1.0.0", "", sdk.DependencySourceURL)
+	workspace := matchTestDependency("shared", "1.0.0", model.PackageTypeApplication, model.DependencySourceWorkspace)
+	externalShared := matchTestDependency("shared", "2.0.0", "", model.DependencySourceRegistry)
+	project := matchTestDependency("project-package", "1.0.0", "", model.DependencySourceProject)
+	file := matchTestDependency("file-package", "1.0.0", "", model.DependencySourceFile)
+	git := matchTestDependency("git-package", "1.0.0", "", model.DependencySourceGit)
+	url := matchTestDependency("url-package", "1.0.0", "", model.DependencySourceURL)
 
-	all := []sdk.GraphNode{app, manifest, registryRelease, legacy, mirror, workspace, externalShared, project, file, git, url}
-	registry := sdk.NewPackageRegistry()
+	all := []model.GraphNode{app, manifest, registryRelease, legacy, mirror, workspace, externalShared, project, file, git, url}
+	registry := model.NewPackageRegistry()
 	for _, dependency := range all {
 		if err := graph.AddNode(dependency); err != nil {
 			t.Fatal(err)
 		}
-		if dep, ok := sdk.AsDependencyNode(dependency); ok {
-			registry.Add(sdk.PackageFromDependencyNode(dep))
+		if dep, ok := model.AsDependencyNode(dependency); ok {
+			registry.Add(model.PackageFromDependencyNode(dep))
 		}
 	}
 	for _, dependency := range all[2:] {
@@ -97,7 +99,7 @@ func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T)
 	components.registerAuditor(auditor)
 	engine := NewEngine(components)
 
-	result, err := engine.Match(context.Background(), sdk.MatchRequest{Graph: graph, Registry: registry})
+	result, err := engine.Match(context.Background(), plugin.MatchRequest{Graph: graph, Registry: registry})
 	if err != nil {
 		t.Fatalf("Match() error = %v", err)
 	}
@@ -123,7 +125,7 @@ func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T)
 	if graph.Size() != len(all) {
 		t.Fatalf("complete graph was mutated: size=%d want=%d", graph.Size(), len(all))
 	}
-	if _, err := engine.Audit(context.Background(), sdk.AuditRequest{Graph: graph, Registry: registry}); err != nil {
+	if _, err := engine.Audit(context.Background(), plugin.AuditRequest{Graph: graph, Registry: registry}); err != nil {
 		t.Fatalf("Audit() error = %v", err)
 	}
 	if auditor.size != len(all) {
@@ -132,9 +134,9 @@ func TestEngineMatchFiltersOccurrencesButPreservesGraphAndRegistry(t *testing.T)
 }
 
 func TestEngineMatchDoesNotWidenIneligibleTarget(t *testing.T) {
-	graph := sdk.New()
-	workspace := matchTestDependency("workspace", "1.0.0", sdk.PackageTypeApplication, sdk.DependencySourceWorkspace)
-	external := matchTestDependency("external", "1.0.0", "", sdk.DependencySourceRegistry)
+	graph := model.New()
+	workspace := matchTestDependency("workspace", "1.0.0", model.PackageTypeApplication, model.DependencySourceWorkspace)
+	external := matchTestDependency("external", "1.0.0", "", model.DependencySourceRegistry)
 	if err := graph.AddNode(workspace); err != nil {
 		t.Fatal(err)
 	}
@@ -146,14 +148,14 @@ func TestEngineMatchDoesNotWidenIneligibleTarget(t *testing.T) {
 	components.registerMatcher(matcher)
 	engine := NewEngine(components)
 
-	if _, err := engine.Match(context.Background(), sdk.MatchRequest{Graph: graph, Registry: sdk.NewPackageRegistry(), Target: workspace}); err != nil {
+	if _, err := engine.Match(context.Background(), plugin.MatchRequest{Graph: graph, Registry: model.NewPackageRegistry(), Target: workspace}); err != nil {
 		t.Fatalf("Match() error = %v", err)
 	}
 	if matcher.calls != 0 {
 		t.Fatalf("expected no matcher call for ineligible target, got %d", matcher.calls)
 	}
 
-	if _, err := engine.Match(context.Background(), sdk.MatchRequest{Graph: graph, Registry: sdk.NewPackageRegistry(), Target: external}); err != nil {
+	if _, err := engine.Match(context.Background(), plugin.MatchRequest{Graph: graph, Registry: model.NewPackageRegistry(), Target: external}); err != nil {
 		t.Fatalf("Match() eligible target error = %v", err)
 	}
 	if matcher.calls != 1 || matcher.target == nil || !testnodes.Is(matcher.target, external.NodeID()) {
@@ -161,6 +163,6 @@ func TestEngineMatchDoesNotWidenIneligibleTarget(t *testing.T) {
 	}
 }
 
-func matchTestDependency(name, version string, typ sdk.PackageType, source sdk.DependencySource) *sdk.DependencyNode {
-	return testnodes.DepFrom(sdk.DependencyNode{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: name, Version: version, Type: typ}, Source: source})
+func matchTestDependency(name, version string, typ model.PackageType, source model.DependencySource) *model.DependencyNode {
+	return testnodes.DepFrom(model.DependencyNode{Coordinates: model.Coordinates{Ecosystem: model.EcosystemNPM, Name: name, Version: version, Type: typ}, Source: source})
 }

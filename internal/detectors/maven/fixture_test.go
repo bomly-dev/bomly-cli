@@ -6,7 +6,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testnodes"
-	"github.com/bomly-dev/bomly-sdk"
+
+	"github.com/bomly-dev/bomly-sdk/model"
 )
 
 // TestMavenTGFMultiModule verifies the parser handles a multi-module reactor,
@@ -47,8 +48,8 @@ func TestMavenTGFMultiModule(t *testing.T) {
 	requireMavenEdge(t, g, "com.bomly:module-c@1.0.0", "junit:junit@4.13.2")
 	requireMavenEdge(t, g, "junit:junit@4.13.2", "org.hamcrest:hamcrest-core@1.3")
 
-	requireMavenScope(t, g, "org.yaml:snakeyaml@1.30", sdk.ScopeRuntime)
-	requireMavenScope(t, g, "junit:junit@4.13.2", sdk.ScopeDevelopment)
+	requireMavenScope(t, g, "org.yaml:snakeyaml@1.30", model.ScopeRuntime)
+	requireMavenScope(t, g, "junit:junit@4.13.2", model.ScopeDevelopment)
 
 	// Each reactor module is the scopeless root of its block, so all three
 	// module artifacts land in the graph as roots (no incoming edges).
@@ -82,7 +83,7 @@ func TestMavenTGFInterModuleAndSharedScopes(t *testing.T) {
 	if !ok {
 		t.Fatalf("missing shared node")
 	}
-	if !mustDep(t, shared).HasScope(sdk.ScopeRuntime) || !mustDep(t, shared).HasScope(sdk.ScopeDevelopment) {
+	if !mustDep(t, shared).HasScope(model.ScopeRuntime) || !mustDep(t, shared).HasScope(model.ScopeDevelopment) {
 		t.Errorf("commons-lang3 scopes = %v, want both runtime and development", mustDep(t, shared).Scopes)
 	}
 }
@@ -121,13 +122,13 @@ func TestMavenTGFFixture(t *testing.T) {
 	requireMavenEdge(t, g, "junit:junit@4.13.2", "org.hamcrest:hamcrest-core@1.3")
 
 	// compile → runtime, test → development.
-	requireMavenScope(t, g, "org.springframework:spring-web@5.3.30", sdk.ScopeRuntime)
-	requireMavenScope(t, g, "commons-io:commons-io@2.11.0", sdk.ScopeRuntime)
-	requireMavenScope(t, g, "junit:junit@4.13.2", sdk.ScopeDevelopment)
-	requireMavenScope(t, g, "org.hamcrest:hamcrest-core@1.3", sdk.ScopeDevelopment)
+	requireMavenScope(t, g, "org.springframework:spring-web@5.3.30", model.ScopeRuntime)
+	requireMavenScope(t, g, "commons-io:commons-io@2.11.0", model.ScopeRuntime)
+	requireMavenScope(t, g, "junit:junit@4.13.2", model.ScopeDevelopment)
+	requireMavenScope(t, g, "org.hamcrest:hamcrest-core@1.3", model.ScopeDevelopment)
 }
 
-func requireMavenEdge(t *testing.T, g *sdk.Graph, fromID, toID string) {
+func requireMavenEdge(t *testing.T, g *model.Graph, fromID, toID string) {
 	t.Helper()
 	deps, err := g.DirectDependencies(testnodes.ID(g, fromID))
 	if err != nil {
@@ -141,7 +142,7 @@ func requireMavenEdge(t *testing.T, g *sdk.Graph, fromID, toID string) {
 	t.Errorf("expected edge %s → %s", fromID, toID)
 }
 
-func requireMavenRoots(t *testing.T, g *sdk.Graph, want ...string) {
+func requireMavenRoots(t *testing.T, g *model.Graph, want ...string) {
 	t.Helper()
 	roots := g.Roots()
 	got := make([]string, 0, len(roots))
@@ -164,7 +165,7 @@ func requireMavenRoots(t *testing.T, g *sdk.Graph, want ...string) {
 	}
 }
 
-func requireMavenScope(t *testing.T, g *sdk.Graph, id string, scope sdk.Scope) {
+func requireMavenScope(t *testing.T, g *model.Graph, id string, scope model.Scope) {
 	t.Helper()
 	n, ok := testnodes.Find(g, id)
 	if !ok {

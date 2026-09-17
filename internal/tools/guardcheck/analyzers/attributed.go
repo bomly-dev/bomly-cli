@@ -82,7 +82,7 @@ func runAttributed(pass *analysis.Pass) (any, error) {
 	return nil, nil
 }
 
-// detectionResultWithGraphs returns expr when it is an sdk.DetectionResult
+// detectionResultWithGraphs returns expr when it is a plugin.DetectionResult
 // literal that names Graphs, and nil otherwise.
 func detectionResultWithGraphs(pass *analysis.Pass, expr ast.Expr) *ast.CompositeLit {
 	lit, ok := ast.Unparen(expr).(*ast.CompositeLit)

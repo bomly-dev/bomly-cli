@@ -203,7 +203,7 @@ Prefer canonical PURLs and fill `Coordinates` where possible — matchers enrich
 
 ```go
 // In the descriptor:
-RemediationCapabilities: []plugin.RemediationCapability{{
+RemediationCapabilities: []sdkplugin.RemediationCapability{{
     SupportedManagers: []model.PackageManager{model.PackageManagerNPM},
     Actions: []model.RemediationAction{
         model.RemediationActionDirectBump,
@@ -215,7 +215,7 @@ RemediationCapabilities: []plugin.RemediationCapability{{
 Then implement `plugin.DetectorRemediationProvider` on the detector:
 
 ```go
-func (d *Detector) RemediationHints(ctx context.Context, req plugin.RemediationHintRequest) (plugin.RemediationHintResponse, error)
+func (d *Detector) RemediationHints(ctx context.Context, req sdkplugin.RemediationHintRequest) (sdkplugin.RemediationHintResponse, error)
 ```
 
 Return hints only for dependency IDs and manifest paths this detector produced. Hints may name supported strategies and give plain-language package-manager advice. They must not choose a fix version, edit files, run commands, or make network calls — Bomly validates every hint and the central remediation component chooses the final action. Detectors without the capability are simply never asked.

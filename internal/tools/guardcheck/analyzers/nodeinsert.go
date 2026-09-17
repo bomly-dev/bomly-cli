@@ -36,7 +36,7 @@ import (
 // toward reporting a closure that is defined early and never called after
 // the lookup, which is the direction that gets looked at (ADR-0044).
 //
-// Taking either method as a value -- `lookup := g.Node`, `(*sdk.Graph).AddNode`
+// Taking either method as a value -- `lookup := g.Node`, `(*model.Graph).AddNode`
 // -- is reported on its own. A call through such a value names no graph, so
 // pairing it would need value tracking; the method value buys nothing a
 // direct call or detectorkit.EnsureNode does not, so the capability is
@@ -73,7 +73,7 @@ func runNodeInsert(pass *analysis.Pass) (any, error) {
 
 // reportGraphMethodValues reports Graph.Node or Graph.AddNode used as a
 // method value rather than called on its receiver, and any method expression
-// of either, called or not: `(*sdk.Graph).AddNode(g, n)` passes the graph as
+// of either, called or not: `(*model.Graph).AddNode(g, n)` passes the graph as
 // an argument, where the pairing does not look.
 func reportGraphMethodValues(pass *analysis.Pass, file *ast.File) {
 	called := map[*ast.SelectorExpr]bool{}

@@ -74,7 +74,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*model.Graph, error) 
 	// Collect direct deps and root identity from pyproject.toml.
 	mainDeps, devDeps, rootName, rootVersion := collectPoetryDepsAndRoot(projectPath)
 
-	// Build a name-indexed map of sdk.DependencyNode nodes; assign initial scope from groups.
+	// Build a name-indexed map of model.DependencyNode nodes; assign initial scope from groups.
 	nodesByName := make(map[string]*model.DependencyNode, len(lock.Package))
 	for i := range lock.Package {
 		pkg := &lock.Package[i]

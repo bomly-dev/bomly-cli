@@ -11,7 +11,7 @@ import (
 	"github.com/bomly-dev/bomly-sdk/plugin"
 )
 
-// embeddedHostContext implements sdk.HostContext for components registered
+// embeddedHostContext implements plugin.HostContext for components registered
 // in-process. It hands components the registry's logger, shared HTTP client
 // provider, and the same kind-scoped configuration block a managed plugin
 // would receive.

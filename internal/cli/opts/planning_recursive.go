@@ -22,9 +22,9 @@ import (
 // directory as ignored (e.g. pyvenv.cfg), and package managers whose
 // detectors natively expand nested workspace/reactor modules from a root
 // manifest. Each detector owns its ecosystem's rules via
-// sdk.DetectorDescriptor.IgnoredDirectories /
+// plugin.DetectorDescriptor.IgnoredDirectories /
 // IgnoredDirectoryMarkers and
-// sdk.PackageManagerSupport.MultiModule, so external detector plugins
+// plugin.PackageManagerSupport.MultiModule, so external detector plugins
 // contribute rules the same way built-ins do. Directories whose name starts
 // with a dot are always skipped, independent of detector declarations.
 type discoveryRules struct {

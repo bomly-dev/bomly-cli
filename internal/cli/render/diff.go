@@ -392,5 +392,5 @@ func diffVulnerabilityDetails(vulnerability output.VulnerabilityRef, includeReac
 	return " [" + "reachability " + formatReachabilityCell(vulnerability.Reachability) + "]"
 }
 
-// Ensure sdk import is used (formatReachabilityCell references sdk.Reachability).
+// Ensure the model import is used (formatReachabilityCell references model.Reachability).
 var _ = model.Reachability{}

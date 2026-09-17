@@ -931,7 +931,7 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
 	// In the registry-mode model, matcher-supplied license data lives on
-	// the PURL-keyed *sdk.PackageRegistry. We seed it once and the scan
+	// the PURL-keyed *model.PackageRegistry. We seed it once and the scan
 	// response surfaces it in the deduplicated top-level packages collection;
 	// every manifest dependency references the same package by package_ref.
 	registry := model.NewPackageRegistry()

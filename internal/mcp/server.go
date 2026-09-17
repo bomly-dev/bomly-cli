@@ -124,7 +124,7 @@ type ExplainRunResult struct {
 }
 
 // DiffRunResult carries a diff run's output plus the audit delta buckets
-// ([]sdk.Finding per bucket, computed version-independently by advisory id)
+// ([]model.Finding per bucket, computed version-independently by advisory id)
 // and the head-side domain data used to build remediation context for what
 // remains after merge.
 type DiffRunResult struct {

@@ -215,7 +215,7 @@ func entryModuleRoots(g *model.Graph) []*model.ModuleNode {
 // to it, and the scope propagated from its own declarations.
 //
 // The relationship is derived from this root's edges rather than read off
-// sdk.RelationshipForPath, which prefers a node's stored Relationship — the
+// model.RelationshipForPath, which prefers a node's stored Relationship — the
 // merged scalar that cannot tell one root's direct declaration from another
 // root's transitive path, and so cannot answer the per-site question. A node
 // the detector explicitly marked unknown keeps unknown: its parent was never

@@ -1,0 +1,22 @@
+{
+  "schema_version": "bomly.assurance-check/v1",
+  "runner": {
+    "os": "linux",
+    "arch": "amd64",
+    "go_version": "go1.26.3"
+  },
+  "id": "smoke",
+  "instance": "node",
+  "stage": "prerequisites",
+  "level": "gate",
+  "status": "pass",
+  "duration_ms": 95000,
+  "run_url": "https://github.com/bomly-dev/bomly-cli/actions/runs/1",
+  "summary": "24 of 24 tests passed.",
+  "metrics": {
+    "tests_total": 24,
+    "tests_passed": 24,
+    "tests_failed": 0,
+    "tests_skipped": 0
+  }
+}

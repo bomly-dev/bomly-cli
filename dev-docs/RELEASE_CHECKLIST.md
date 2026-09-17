@@ -5,14 +5,16 @@ Use this checklist when publishing a tagged Bomly CLI release.
 ## Before tagging
 
 - Confirm `main` is green for required checks.
-- Run the smoke workflow (or confirm its latest scheduled smoke result is healthy).
-- Confirm `cmd/bomly/main.go` contains the intended version after the `Auto Version` workflow.
 - Confirm release publishing credentials are configured in GitHub Actions.
+- `Auto Version` runs the `Release prerequisites` stage (smoke, platform stability, cross-builds, fuzz, catalog) on the commit it is about to tag and refuses to tag when it fails, so there is no separate smoke run to start by hand. To pre-flight without tagging: `gh workflow run assurance-prerequisites.yml -f ref=main`.
+- If the stage fails, fix the cause on `main` — for stale golden files, run `Update Smoke Goldens` and merge its PR — then start `Auto Version` again. No tag and no release exist yet.
 
 ## Release workflow
 
 - Run `Auto Version` from `main`, choosing `patch`, `minor`, or `major`.
-- Wait for `Release` to finish.
+- Wait for `Release` to finish. It builds the draft release, then runs the final pre-release checks against the draft (asset completeness, checksums on three platforms, cosign signature, SLSA provenance, and the released binaries) and only publishes when they pass.
+- If the pre-release gate fails, nothing is published. Fix the cause, delete the tag and the draft release, then tag again. Deleting a draft does not trigger the yanking workflow.
+- Confirm `cmd/bomly/main.go` contains the intended version.
 - Review the published GitHub release:
   - `bomly` archives exist for Linux, macOS, and Windows on `amd64` and `arm64`.
   - `bomly-lite` archives exist for the same platforms.
@@ -21,9 +23,16 @@ Use this checklist when publishing a tagged Bomly CLI release.
   - Homebrew, Scoop, and WinGet manifest PRs were opened or updated.
   - The landing-page sync PR updates `/install.sh` and `/install.ps1` from this tag when those scripts changed.
 
+## After publishing
+
+- `Release assessment` starts automatically once the release is published: it runs the install scripts on all three operating systems, re-downloads the public files, scans real projects with the released binary, validates its SBOM output with the official tools, and records repeated-scan timings.
+- Read the report it publishes at [bomly.dev/assurance](https://bomly.dev/assurance), or the JSON it commits to `docs/assurance/reports/<tag>.json`.
+- If it opens a `Release assurance: <tag>` issue, triage it: the release is already live, so the fix is a follow-up release, not an edit to this one.
+
 ## Verification
 
-Run the checks against the published release tag. Replace `VERSION` in the examples below with the actual release tag, such as `v0.2.0`.
+The assessment runs these automatically. Run them by hand when investigating a
+report, replacing `VERSION` with the release tag, such as `v0.2.0`.
 
 ```bash
 gh release download VERSION --pattern SHA256SUMS --pattern 'bomly_VERSION_linux_amd64.tar.gz'

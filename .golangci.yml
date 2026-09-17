@@ -53,6 +53,21 @@ linters:
               desc: strict JSON parsing is scoped to SBOM ingest in bomly-sdk/sbom (ADR-0039, ADR-0045)
             - pkg: encoding/json/jsontext
               desc: strict JSON parsing is scoped to SBOM ingest in bomly-sdk/sbom (ADR-0039, ADR-0045)
+        # Release assurance is repository tooling: it reads repository files,
+        # downloads validators, and runs released binaries, none of which
+        # shipped code may do. Keeping it out of everything the CLI ships is
+        # what lets it hold those capabilities at all (ADR-0046). The package
+        # itself and the tooling beside it are the only importers.
+        assurance-is-not-shipped:
+          list-mode: lax
+          files:
+            - "**/cmd/bomly/**"
+            - "**/internal/**"
+            - "!**/internal/assurance/**"
+            - "!**/internal/tools/**"
+          deny:
+            - pkg: github.com/bomly-dev/bomly-cli/internal/assurance
+              desc: release assurance is repository tooling, not shipped CLI behavior; nothing the binary ships may import it (ADR-0046)
         # testnodes panics on a fixture it cannot build, which is right for a
         # test and wrong for a scan.
         testnodes-tests-only:

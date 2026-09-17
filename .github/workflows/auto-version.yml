@@ -11,6 +11,11 @@ on:
           - patch
           - minor
           - major
+      skip_prerequisites:
+        description: Tag without running the release prerequisites stage (emergency use).
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -20,7 +25,20 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Stage 1 of release assurance, on the commit that is about to be tagged.
+  # Running it before the tag exists means a stale golden file or an
+  # intermittent failure is fixed by a normal pull request instead of leaving a
+  # broken release behind.
+  prerequisites:
+    name: Release prerequisites
+    if: ${{ !inputs.skip_prerequisites }}
+    uses: ./.github/workflows/assurance-prerequisites.yml
+    with:
+      ref: ${{ github.sha }}
+
   bump-tag-and-release:
+    needs: prerequisites
+    if: ${{ always() && (needs.prerequisites.result == 'success' || inputs.skip_prerequisites) }}
     runs-on: ubuntu-latest
     environment: release
 
@@ -40,6 +58,16 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
           persist-credentials: true
+
+      - name: Require the prerequisites stage to have run on this commit
+        shell: bash
+        env:
+          SKIPPED: ${{ inputs.skip_prerequisites }}
+        run: |
+          set -euo pipefail
+          if [[ "${SKIPPED}" == "true" ]]; then
+            echo "::warning::Release prerequisites were skipped for this tag. The release report will show every prerequisite check as missing."
+          fi
 
       - name: Require main branch
         shell: bash

@@ -10,6 +10,9 @@
 # Ignore generated SBOM files
 /sboms
 
+# Ignore local assurance report previews
+/.assurance
+
 # Ignore local dependency graph benchmark artifacts
 /.benchmark-runs
 

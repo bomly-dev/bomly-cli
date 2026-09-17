@@ -1,0 +1,1690 @@
+{
+  "schema_version": "bomly.assurance-catalog/v1",
+  "areas": [
+    {
+      "id": "end-to-end",
+      "title": "Scanning real projects",
+      "description": "Running the real command line against pinned example projects and comparing the entire result with a recorded one."
+    },
+    {
+      "id": "dependency-graph",
+      "title": "Dependency graphs",
+      "description": "Working out which packages a project depends on, and how each one got there."
+    },
+    {
+      "id": "policy",
+      "title": "Policy decisions",
+      "description": "Deciding what counts as a problem: licences, vulnerabilities, baselines, and packages that change where they come from."
+    },
+    {
+      "id": "reachability",
+      "title": "Reachability",
+      "description": "Judging whether a vulnerable package is actually used by the code that depends on it."
+    },
+    {
+      "id": "remediation",
+      "title": "Upgrade guidance",
+      "description": "The fixes Bomly recommends, worked out without changing anything in your project."
+    },
+    {
+      "id": "diff",
+      "title": "Comparing two scans",
+      "description": "Telling what genuinely changed between two scans, and what only looks new."
+    },
+    {
+      "id": "targets",
+      "title": "Other scan targets",
+      "description": "Scanning things that are not a local source tree, such as container images."
+    },
+    {
+      "id": "sbom",
+      "title": "SBOM compatibility",
+      "description": "Reading SBOM documents other tools produce, and writing ones they accept."
+    },
+    {
+      "id": "stability",
+      "title": "Running everywhere",
+      "description": "Behaving the same on Linux, macOS, and Windows, and building for every processor a release supports."
+    },
+    {
+      "id": "parsers",
+      "title": "Handling broken input",
+      "description": "Reading damaged or hostile project, configuration, and SBOM files without crashing."
+    },
+    {
+      "id": "performance",
+      "title": "Speed and repeatability",
+      "description": "How long a repeated scan takes, and whether it returns the same answer every time."
+    },
+    {
+      "id": "release-integrity",
+      "title": "What you download",
+      "description": "Whether the published files are complete, unaltered, and signed by this project's release pipeline."
+    },
+    {
+      "id": "installation",
+      "title": "Installing it",
+      "description": "Whether the documented ways of installing this release actually work."
+    },
+    {
+      "id": "framework",
+      "title": "This report itself",
+      "description": "The catalog and contracts the report is built from, and the check that keeps them honest."
+    }
+  ],
+  "checks": [
+    {
+      "id": "catalog-valid",
+      "title": "Assurance catalog is valid",
+      "area": "framework",
+      "stage": "prerequisites",
+      "level": "gate",
+      "description": "Validates this catalog and confirms every fixture and golden file it points at still has the recorded checksum.",
+      "source": {
+        "workflow": "assurance-prerequisites.yml",
+        "job": "catalog"
+      },
+      "reproduce": [
+        [
+          "make",
+          "assurance-catalog"
+        ]
+      ],
+      "proves": [
+        "Every claim in this report points at a real check and at repository files that have not changed since the claim was written."
+      ],
+      "limitations": [
+        "A valid catalog says the paperwork is consistent; the checks themselves decide whether the software works."
+      ]
+    },
+    {
+      "id": "cross-build",
+      "title": "Release binaries build for every target",
+      "area": "stability",
+      "stage": "prerequisites",
+      "level": "gate",
+      "description": "Cross-compiles the full and lite binaries for every supported operating system and processor from the same source tree.",
+      "source": {
+        "workflow": "portable-assurance.yml",
+        "job": "linux-stability"
+      },
+      "reproduce": [
+        [
+          "gh",
+          "workflow",
+          "run",
+          "assurance-prerequisites.yml",
+          "-f",
+          "ref=main"
+        ]
+      ],
+      "proves": [
+        "The source tree compiles into both binaries for every Linux, macOS, and Windows target a release ships."
+      ],
+      "limitations": [
+        "A successful build is not a test: it does not run the binary or check what it produces."
+      ]
+    },
+    {
+      "id": "fuzz",
+      "title": "Parsers survive malformed input",
+      "area": "parsers",
+      "stage": "prerequisites",
+      "level": "advisory",
+      "description": "Runs every registered Go fuzz target against the parsers that read untrusted project, configuration, baseline, SBOM, and plugin data.",
+      "source": {
+        "workflow": "fuzz.yml",
+        "job": "fuzz"
+      },
+      "reproduce": [
+        [
+          "make",
+          "fuzz",
+          "FUZZTIME=60s"
+        ]
+      ],
+      "proves": [
+        "Each registered parser handled its seed corpus and newly generated inputs without crashing during the time budget of this run."
+      ],
+      "limitations": [
+        "Fuzzing explores a limited time budget. A clean run is evidence of robustness, not proof that no malformed input can cause a failure.",
+        "Parsers that are command-backed or handled entirely by the standard library are excluded and listed in test/assurance/PARSER_FUZZING.md."
+      ]
+    },
+    {
+      "id": "install-script",
+      "title": "Install scripts install the release",
+      "area": "installation",
+      "stage": "post-release",
+      "level": "gate",
+      "description": "Runs the published install script on each operating system against this release and asks the installed binary for its version.",
+      "source": {
+        "workflow": "assurance-assessment.yml",
+        "job": "install-scripts"
+      },
+      "expected_instances": [
+        {
+          "name": "ubuntu",
+          "platform": "linux"
+        },
+        {
+          "name": "macos",
+          "platform": "darwin"
+        },
+        {
+          "name": "windows",
+          "platform": "windows"
+        }
+      ],
+      "reproduce": [
+        [
+          "sh",
+          "-c",
+          "BOMLY_VERSION=\u003ctag\u003e BOMLY_INSTALL_DIR=$PWD/bin sh scripts/install.sh"
+        ]
+      ],
+      "proves": [
+        "The documented one-line install works on Linux, macOS, and Windows for this exact release, and the installed binary reports this version."
+      ],
+      "limitations": [
+        "This installs into a temporary directory on a clean runner. It does not cover every shell, proxy, or locked-down corporate environment."
+      ]
+    },
+    {
+      "id": "perf-samples",
+      "title": "Repeated scan speed and stability",
+      "area": "performance",
+      "stage": "post-release",
+      "level": "advisory",
+      "description": "Runs the same offline scan with the released binary several times with a cold cache and several times with a warm cache, and records timing, memory, and output stability.",
+      "source": {
+        "workflow": "assurance-assessment.yml",
+        "job": "perf-samples"
+      },
+      "reproduce": [
+        [
+          "make",
+          "benchmark-samples"
+        ]
+      ],
+      "proves": [
+        "Repeated runs of the same scan produced identical normalized output, and the recorded timings show how long that scan took on this machine."
+      ],
+      "limitations": [
+        "Timing and memory are observations from one CI machine, not limits. Comparing them across releases is only meaningful because the case and the machine class stay the same."
+      ]
+    },
+    {
+      "id": "public-download",
+      "title": "Published files download and match",
+      "area": "release-integrity",
+      "stage": "post-release",
+      "level": "gate",
+      "description": "Downloads every published file from its public URL, without credentials, verifies the signature on the published checksum list, and checks each file against it.",
+      "source": {
+        "workflow": "assurance-assessment.yml",
+        "job": "public-download"
+      },
+      "reproduce": [
+        [
+          "gh",
+          "release",
+          "download",
+          "\u003ctag\u003e",
+          "--repo",
+          "bomly-dev/bomly-cli"
+        ]
+      ],
+      "proves": [
+        "Every file a user downloads from the public release page is present, reachable without credentials, and matches a checksum list signed by this repository's release workflow."
+      ],
+      "limitations": [
+        "This checks availability and integrity at one moment from one network location.",
+        "It confirms the published files match the signed list; it does not re-check the provenance attestation, which is verified before publication.",
+        "Whether each archive contains a working binary is checked separately, against the draft release and by the install scripts."
+      ]
+    },
+    {
+      "id": "release-assets",
+      "title": "Every release file is attached",
+      "area": "release-integrity",
+      "stage": "pre-release",
+      "level": "gate",
+      "description": "Compares the files attached to the draft release against the full list a release is required to ship.",
+      "source": {
+        "workflow": "release.yml",
+        "job": "verify-draft"
+      },
+      "reproduce": [
+        [
+          "go",
+          "run",
+          "./internal/assurance/cmd",
+          "verify-release",
+          "--dir",
+          "assets",
+          "--version",
+          "\u003cversion\u003e"
+        ]
+      ],
+      "proves": [
+        "The release carries an archive for every supported platform, both binaries, every Linux package format, the checksum list, its signature, and the provenance file."
+      ],
+      "limitations": [
+        "This counts files. Whether each archive contains a working binary is checked separately."
+      ]
+    },
+    {
+      "id": "release-binaries",
+      "title": "Released binaries report this version",
+      "area": "release-integrity",
+      "stage": "pre-release",
+      "level": "gate",
+      "description": "Extracts the archives built for each operating system and runs the binaries inside them.",
+      "source": {
+        "workflow": "release.yml",
+        "job": "verify-draft"
+      },
+      "expected_instances": [
+        {
+          "name": "linux-amd64",
+          "platform": "linux"
+        },
+        {
+          "name": "darwin-arm64",
+          "platform": "darwin"
+        },
+        {
+          "name": "windows-amd64",
+          "platform": "windows"
+        }
+      ],
+      "reproduce": [
+        [
+          "go",
+          "run",
+          "./internal/assurance/cmd",
+          "verify-release",
+          "--dir",
+          "assets",
+          "--version",
+          "\u003cversion\u003e",
+          "--scope",
+          "native"
+        ]
+      ],
+      "proves": [
+        "Both the full and lite binaries start on Linux, macOS, and Windows and report the version that is being released."
+      ],
+      "limitations": [
+        "Only the architecture of the CI runner is executed for each operating system; other architectures are verified by checksum and build only."
+      ]
+    },
+    {
+      "id": "release-checksums",
+      "title": "Release files match their checksums",
+      "area": "release-integrity",
+      "stage": "pre-release",
+      "level": "gate",
+      "description": "Hashes every release file each platform downloads and compares it with the published SHA256SUMS list.",
+      "source": {
+        "workflow": "release.yml",
+        "job": "verify-draft"
+      },
+      "expected_instances": [
+        {
+          "name": "linux-amd64",
+          "platform": "linux"
+        },
+        {
+          "name": "darwin-arm64",
+          "platform": "darwin"
+        },
+        {
+          "name": "windows-amd64",
+          "platform": "windows"
+        }
+      ],
+      "reproduce": [
+        [
+          "sha256sum",
+          "--check",
+          "SHA256SUMS"
+        ]
+      ],
+      "proves": [
+        "Every file the release ships hashes to exactly the value recorded in the checksum list, and the list covers every file."
+      ],
+      "limitations": [
+        "Checksums prove the files were not altered after they were built; the signature and provenance checks prove who built them."
+      ]
+    },
+    {
+      "id": "release-provenance",
+      "title": "Build provenance verifies",
+      "area": "release-integrity",
+      "stage": "pre-release",
+      "level": "gate",
+      "description": "Verifies the SLSA build provenance attached to the release with slsa-verifier.",
+      "source": {
+        "workflow": "release.yml",
+        "job": "verify-draft"
+      },
+      "reproduce": [
+        [
+          "slsa-verifier",
+          "verify-artifact",
+          "\u003carchive\u003e",
+          "--provenance-path",
+          "multiple.intoto.jsonl",
+          "--source-uri",
+          "github.com/bomly-dev/bomly-cli"
+        ]
+      ],
+      "proves": [
+        "The release archives were produced by this repository's tagged release workflow, as recorded in signed build provenance."
+      ],
+      "limitations": [
+        "Provenance describes how and where the files were built. It does not review what the source code does."
+      ]
+    },
+    {
+      "id": "release-signature",
+      "title": "Checksum list is signed",
+      "area": "release-integrity",
+      "stage": "pre-release",
+      "level": "gate",
+      "description": "Verifies the Sigstore signature over the release checksum list with cosign.",
+      "source": {
+        "workflow": "release.yml",
+        "job": "verify-draft"
+      },
+      "reproduce": [
+        [
+          "cosign",
+          "verify-blob",
+          "SHA256SUMS",
+          "--bundle",
+          "SHA256SUMS.sigstore.json",
+          "--certificate-oidc-issuer",
+          "https://token.actions.githubusercontent.com",
+          "--certificate-identity-regexp",
+          "^https://github.com/bomly-dev/bomly-cli/"
+        ]
+      ],
+      "proves": [
+        "The checksum list carries a valid Sigstore signature issued to this repository's release workflow, so the checksums themselves can be trusted."
+      ],
+      "limitations": [
+        "The signature covers the checksum list. Individual files are tied to it through their checksums."
+      ]
+    },
+    {
+      "id": "released-scan",
+      "title": "The released binary scans real projects",
+      "area": "end-to-end",
+      "stage": "post-release",
+      "level": "gate",
+      "description": "Runs scan, diff, and explain with the binary from the published release against pinned example repositories and checks the results against the same golden files the source-tree smoke tests use.",
+      "source": {
+        "workflow": "assurance-assessment.yml",
+        "job": "released-scan"
+      },
+      "expected_instances": [
+        {
+          "name": "go",
+          "ecosystems": [
+            "Go"
+          ]
+        },
+        {
+          "name": "node",
+          "ecosystems": [
+            "JavaScript"
+          ]
+        },
+        {
+          "name": "sbom",
+          "ecosystems": [
+            "SBOM documents"
+          ]
+        }
+      ],
+      "reproduce": [
+        [
+          "sh",
+          "-c",
+          "BOMLY_SMOKE_BINARY=$PWD/bin/bomly go test -tags smoke ./test/smoke/ -run 'TestScan$/scan-go$'"
+        ]
+      ],
+      "proves": [
+        "The binary users actually download produces the same dependency graphs as the source tree it was built from."
+      ],
+      "limitations": [
+        "A representative subset of ecosystems runs against the released binary; the full ecosystem matrix runs on the source tree before the release is tagged."
+      ]
+    },
+    {
+      "id": "sbom-interoperability",
+      "title": "Official validators accept our SBOMs",
+      "area": "sbom",
+      "stage": "post-release",
+      "level": "gate",
+      "description": "Generates SPDX 2.3 and CycloneDX 1.7 documents with the released binary — one pair from a single input and one pair merged from two source documents — and validates all four with checksum-pinned official SPDX and CycloneDX tools.",
+      "source": {
+        "workflow": "sbom-interoperability.yml",
+        "job": "validate"
+      },
+      "reproduce": [
+        [
+          "go",
+          "run",
+          "./internal/assurance/sbominterop",
+          "-bomly",
+          "./bin/bomly"
+        ]
+      ],
+      "proves": [
+        "The SBOM documents this release writes are accepted by the official SPDX and CycloneDX validators, at the exact validator versions recorded in the result.",
+        "A document merged from two sources states its own identity and links both sources, rather than adopting one of them."
+      ],
+      "limitations": [
+        "Validators check that a document is well formed against its specification. They do not check that every receiving tool interprets it the same way.",
+        "The merge case uses two checked-in fixtures; it does not cover every combination of source formats."
+      ]
+    },
+    {
+      "id": "smoke",
+      "title": "End-to-end scans of real projects",
+      "area": "end-to-end",
+      "stage": "prerequisites",
+      "level": "gate",
+      "description": "Runs scan, diff, and explain against pinned public repositories, one slice per ecosystem, and compares the whole result with checked-in golden files.",
+      "source": {
+        "workflow": "smoke.yml",
+        "job": "smoke"
+      },
+      "expected_instances": [
+        {
+          "name": "go",
+          "ecosystems": [
+            "Go"
+          ]
+        },
+        {
+          "name": "go-reachability",
+          "ecosystems": [
+            "Go"
+          ]
+        },
+        {
+          "name": "node",
+          "ecosystems": [
+            "JavaScript"
+          ]
+        },
+        {
+          "name": "node-detail-policy",
+          "ecosystems": [
+            "JavaScript"
+          ]
+        },
+        {
+          "name": "node-reachability",
+          "ecosystems": [
+            "JavaScript"
+          ]
+        },
+        {
+          "name": "java",
+          "ecosystems": [
+            "Java"
+          ]
+        },
+        {
+          "name": "java-reachability",
+          "ecosystems": [
+            "Java"
+          ]
+        },
+        {
+          "name": "python",
+          "ecosystems": [
+            "Python"
+          ]
+        },
+        {
+          "name": "python-reachability",
+          "ecosystems": [
+            "Python"
+          ]
+        },
+        {
+          "name": "uv",
+          "ecosystems": [
+            "Python"
+          ]
+        },
+        {
+          "name": "php",
+          "ecosystems": [
+            "PHP"
+          ]
+        },
+        {
+          "name": "ruby",
+          "ecosystems": [
+            "Ruby"
+          ]
+        },
+        {
+          "name": "sbom",
+          "ecosystems": [
+            "SBOM documents"
+          ]
+        },
+        {
+          "name": "dotnet",
+          "ecosystems": [
+            ".NET"
+          ]
+        },
+        {
+          "name": "rust",
+          "ecosystems": [
+            "Rust"
+          ]
+        },
+        {
+          "name": "dart",
+          "ecosystems": [
+            "Dart"
+          ]
+        },
+        {
+          "name": "swift",
+          "ecosystems": [
+            "Swift"
+          ]
+        },
+        {
+          "name": "elixir",
+          "ecosystems": [
+            "Elixir"
+          ]
+        },
+        {
+          "name": "scala",
+          "ecosystems": [
+            "Scala"
+          ]
+        },
+        {
+          "name": "cpp",
+          "ecosystems": [
+            "C and C++"
+          ]
+        },
+        {
+          "name": "container",
+          "ecosystems": [
+            "Container images"
+          ]
+        },
+        {
+          "name": "plugin",
+          "ecosystems": [
+            "Plugins"
+          ]
+        }
+      ],
+      "reproduce": [
+        [
+          "make",
+          "smoke"
+        ]
+      ],
+      "proves": [
+        "For every supported ecosystem, the command line produces exactly the dependency graph, policy result, and output shape recorded in the golden files."
+      ],
+      "limitations": [
+        "Golden files pin one revision of one example project per ecosystem. They do not cover every project layout or every version of a package manager.",
+        "Cases that reach live advisory services can change when upstream data changes."
+      ]
+    },
+    {
+      "id": "unit-portable",
+      "title": "Unit tests pass on every platform",
+      "area": "stability",
+      "stage": "prerequisites",
+      "level": "gate",
+      "description": "Runs the full Go unit test suite twice on Linux, macOS, and Windows, so a pass is never a single lucky run.",
+      "source": {
+        "workflow": "portable-assurance.yml",
+        "job": "portable"
+      },
+      "expected_instances": [
+        {
+          "name": "ubuntu-latest",
+          "platform": "linux"
+        },
+        {
+          "name": "macos-latest",
+          "platform": "darwin"
+        },
+        {
+          "name": "windows-latest",
+          "platform": "windows"
+        }
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./...",
+          "-count=1"
+        ]
+      ],
+      "proves": [
+        "Every unit test passes on all three supported operating systems, twice in a row, so a pass is not a one-off."
+      ],
+      "limitations": [
+        "Unit tests run in process against fixtures. They do not download repositories or call external services."
+      ]
+    },
+    {
+      "id": "unit-repeat-java",
+      "title": "Java detector tests are stable",
+      "area": "stability",
+      "stage": "prerequisites",
+      "level": "gate",
+      "description": "Runs the Gradle, Maven, and sbt detector test suites ten times, because build-tool-backed detectors are where intermittent failures have actually appeared.",
+      "source": {
+        "workflow": "portable-assurance.yml",
+        "job": "linux-stability"
+      },
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/detectors/gradle",
+          "./internal/detectors/maven",
+          "./internal/detectors/sbt",
+          "-count=10"
+        ]
+      ],
+      "proves": [
+        "The build-tool-backed Java detector suites passed ten consecutive times."
+      ],
+      "limitations": [
+        "This exercises the detectors against local fixtures with the toolchain installed on the runner."
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "baseline-policy",
+      "title": "Finding baseline lifecycle",
+      "area": "policy",
+      "description": "Records a package finding in a project baseline, then scans again and compares the whole result with a recorded one.",
+      "evidence_level": "deterministic",
+      "check_id": "smoke",
+      "instance": "go",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-go-gomod",
+          "ref": "v1.0.0",
+          "revision": "0f2103c7e671653e519cf5edb0d3e86020202ecf"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestFindingBaselineWorkflow$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/finding-baseline-workflow.golden.json",
+          "sha256": "fd6a432ac3e48bf46bdb19db672b686b30a50f5779934bbb40674bc859fb8209"
+        }
+      ],
+      "proves": [
+        "A project baseline can keep a denied package finding visible with suppressed policy status."
+      ],
+      "limitations": [
+        "The local matcher fixture is deterministic but does not measure advisory freshness."
+      ]
+    },
+    {
+      "id": "container-inventory",
+      "title": "Container package inventory",
+      "area": "targets",
+      "description": "Scans a public container image and compares the operating-system packages found with a recorded inventory.",
+      "evidence_level": "snapshot",
+      "check_id": "smoke",
+      "instance": "container",
+      "inputs": [
+        {
+          "kind": "container",
+          "location": "Docker Hub",
+          "ref": "alpine:3.20"
+        }
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestContainerScan/container-scan-alpine$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/container-scan-alpine.golden.json",
+          "sha256": "de799fc179af5bd9d578e77ce21b4e0b225746cad422b194c5d21a20b22d2903"
+        }
+      ],
+      "proves": [
+        "Bomly can inventory the operating-system packages in the checked Alpine image."
+      ],
+      "limitations": [
+        "The upstream image tag can move; the checked-in golden is a snapshot, not an immutable image claim."
+      ]
+    },
+    {
+      "id": "degraded-detector-fallback",
+      "title": "Visible detector fallback",
+      "area": "dependency-graph",
+      "description": "Forces a detector to fall back to a second technique and checks that the result says so instead of hiding it.",
+      "evidence_level": "deterministic",
+      "check_id": "unit-portable",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "internal/engine/pipeline_fallback_test.go",
+          "sha256": "c8c189a7eeb7ec13e647c33746deac0aae99238be0e57d0cadfdbef0dee5d140"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/engine",
+          "-run",
+          "TestPipeline_RunRecordsFallbackWarning|TestPipeline_Run_TypesFallbackWarningsAsDegradedCoverage",
+          "-count=1"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "internal/engine/pipeline_fallback_test.go",
+          "sha256": "c8c189a7eeb7ec13e647c33746deac0aae99238be0e57d0cadfdbef0dee5d140"
+        }
+      ],
+      "proves": [
+        "A detector fallback preserves its origin and produces a typed degraded-coverage warning."
+      ],
+      "limitations": [
+        "The synthetic detector case proves orchestration behavior, not the fidelity of every concrete fallback."
+      ]
+    },
+    {
+      "id": "graph-bun",
+      "title": "Bun lockfile graph",
+      "area": "dependency-graph",
+      "description": "Scans a pinned Bun example project and compares the whole dependency graph with a recorded one.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "node",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-bun",
+          "ref": "v1.0.0",
+          "revision": "358a2a920fe9c2f7e596c514f36df1c30c1ab185"
+        }
+      ],
+      "required_tools": [
+        "git"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-bun$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-bun.golden.json",
+          "sha256": "7d4a0ca909c6ecdf5647adca072ba9aa885efd36d5e2f94b70fc4228af7c5d6e"
+        }
+      ],
+      "proves": [
+        "The native Bun detector preserves the package inventory and dependency placement represented by the pinned lockfile."
+      ],
+      "limitations": [
+        "This is one Bun lockfile shape and does not prove behavior for every historical Bun format."
+      ]
+    },
+    {
+      "id": "graph-go",
+      "title": "Go module graph",
+      "area": "dependency-graph",
+      "description": "Scans a pinned Go example project and compares the whole dependency graph with a recorded one.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "go",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-go-gomod",
+          "ref": "v1.0.0",
+          "revision": "0f2103c7e671653e519cf5edb0d3e86020202ecf"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-go$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-go.golden.json",
+          "sha256": "0124e1b56bd757a02948afcd8f858c291856d1794390cc4e5101dd7a8439e67a"
+        }
+      ],
+      "proves": [
+        "The Go detector resolves a build-tool-backed module graph for the pinned repository."
+      ],
+      "limitations": [
+        "The result depends on a compatible Go toolchain and the evidence available from that toolchain."
+      ]
+    },
+    {
+      "id": "graph-maven",
+      "title": "Maven dependency graph",
+      "area": "dependency-graph",
+      "description": "Scans a pinned Maven example project and compares the whole dependency graph with a recorded one.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "java",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-java-maven",
+          "ref": "v1.0.0",
+          "revision": "93bb3aae614e2f2c6cb65f5ea2315846f5234150"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "java",
+        "mvn"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-maven$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-maven.golden.json",
+          "sha256": "68cebc156a16a6bb6d4335226ace018836cddc0b45f7de02fcf439db3ea4c40b"
+        }
+      ],
+      "proves": [
+        "The Maven detector resolves a build-tool-backed dependency graph for the pinned repository."
+      ],
+      "limitations": [
+        "Artifact resolution depends on Maven repositories and a compatible Java and Maven installation."
+      ]
+    },
+    {
+      "id": "graph-npm",
+      "title": "npm lockfile graph",
+      "area": "dependency-graph",
+      "description": "Scans a pinned npm example project and compares the whole dependency graph with a recorded one.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "node",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-npm",
+          "ref": "v1.0.0",
+          "revision": "559a762aeef68b0e5c818f62dfba67abc369912f"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "npm"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-npm$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-npm.golden.json",
+          "sha256": "864d2cb68f03bbb3d8fdd60f61ec90be64a39076d556d4049ff0b7f859ed6905"
+        }
+      ],
+      "proves": [
+        "The npm detector preserves lockfile package inventory, versions, scopes, and dependency placement."
+      ],
+      "limitations": [
+        "This case covers the lockfile versions present in one pinned repository."
+      ]
+    },
+    {
+      "id": "graph-pnpm",
+      "title": "pnpm lockfile graph",
+      "area": "dependency-graph",
+      "description": "Scans a pinned pnpm example project and compares the whole dependency graph with a recorded one.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "node",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-pnpm",
+          "ref": "v1.0.0",
+          "revision": "f1b0959f916dfb91db70c54a75b15e5b7f3d16af"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "npm"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-pnpm$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-pnpm.golden.json",
+          "sha256": "d5ebf6fa56ebff04a6f357a7667ef93616d3737c5d0258778a0eadb51cc26478"
+        }
+      ],
+      "proves": [
+        "The pnpm detector preserves lockfile package inventory and dependency placement."
+      ],
+      "limitations": [
+        "This case does not cover every pnpm lockfile generation."
+      ]
+    },
+    {
+      "id": "graph-python",
+      "title": "Python requirements graph",
+      "area": "dependency-graph",
+      "description": "Scans a pinned Python example project and compares the whole dependency graph with a recorded one.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "python",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-python-pip",
+          "revision": "fe04c758134b95dab102e1fce10275f7d18c0cf2"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "pip"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-python-pip$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-python-pip.golden.json",
+          "sha256": "f58992458ec67f81353e61898664d586d89b23c59c3bb383abb001081e9392cb"
+        }
+      ],
+      "proves": [
+        "The pip detector reads the pinned requirements lock and preserves the resolved Python package graph."
+      ],
+      "limitations": [
+        "Unpinned requirements and environment inspection have different fidelity and are not proven by this case."
+      ]
+    },
+    {
+      "id": "graph-yarn",
+      "title": "Yarn lockfile graph",
+      "area": "dependency-graph",
+      "description": "Scans a pinned Yarn example project and compares the whole dependency graph with a recorded one.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "node",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-yarn",
+          "ref": "v1.0.0",
+          "revision": "c84017b43bf0f6ea74281f4174a0c89b88b8cddf"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "npm"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-yarn$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-yarn.golden.json",
+          "sha256": "9ebd76c1a08409adbaeec07874bd7c13994792652d24bb891685a9dc47d0c40a"
+        }
+      ],
+      "proves": [
+        "The Yarn detector preserves package inventory and dependency placement represented by the pinned lockfile."
+      ],
+      "limitations": [
+        "This case covers one Yarn lockfile family; fallback behavior is documented separately."
+      ]
+    },
+    {
+      "id": "license-policy",
+      "title": "Complex and invalid SPDX policy",
+      "area": "policy",
+      "description": "Evaluates licence policy against a matrix of SPDX expressions, including combined, nested, exception, custom, and invalid ones.",
+      "evidence_level": "deterministic",
+      "check_id": "unit-portable",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "internal/auditors/license/spdx_policy_matrix_test.go",
+          "sha256": "846bc1cbff37531829124935192034c3cfdc9267c226ccd5144355d0dceec33b"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/auditors/license",
+          "-run",
+          "TestLicenseAuditorComplexSPDX|TestLicenseAuditorInvalidSPDXExpressionMatrix",
+          "-count=1"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "internal/auditors/license/spdx_policy_matrix_test.go",
+          "sha256": "846bc1cbff37531829124935192034c3cfdc9267c226ccd5144355d0dceec33b"
+        }
+      ],
+      "proves": [
+        "The license auditor evaluates AND, OR, nested, exception, custom-reference, and invalid SPDX expressions under allow and deny policy."
+      ],
+      "limitations": [
+        "The tests prove policy evaluation after license data is present; they do not prove the accuracy of every upstream license source."
+      ]
+    },
+    {
+      "id": "persisted-risk",
+      "title": "Risk that persists across a version change",
+      "area": "diff",
+      "description": "Compares two scans across a package version change and checks how a finding that survives the change is classified.",
+      "evidence_level": "deterministic",
+      "check_id": "unit-portable",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "internal/engine/diff/diff_test.go",
+          "sha256": "b2f8300336868c2af153d7c77b88ced45955b7b17a0da09c1d3ba08e72a7af73"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/engine/diff",
+          "-run",
+          "TestRun_SameVulnerabilityAcrossVersionBumpPersists|TestRun_SameLicenseIssueAcrossVersionBumpPersists",
+          "-count=1"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "internal/engine/diff/diff_test.go",
+          "sha256": "b2f8300336868c2af153d7c77b88ced45955b7b17a0da09c1d3ba08e72a7af73"
+        }
+      ],
+      "proves": [
+        "A vulnerability or license finding that remains across a package version change is classified as persisted instead of one resolved and one introduced finding."
+      ],
+      "limitations": [
+        "Persistence uses the canonical package-finding identity; a genuinely different advisory or rule remains a distinct finding."
+      ]
+    },
+    {
+      "id": "reachability-go",
+      "title": "Go vulnerability reachability",
+      "area": "reachability",
+      "description": "Analyses a pinned Go project and checks the reachability evidence attached to each matched vulnerability.",
+      "evidence_level": "live-service",
+      "check_id": "smoke",
+      "instance": "go-reachability",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-go-gomod",
+          "ref": "v1.0.0",
+          "revision": "0f2103c7e671653e519cf5edb0d3e86020202ecf"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-go-reachability$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-go-reachability.golden.json",
+          "sha256": "c59680936c14bd1a2834a9278328cc71563823edd469d355b4be7426bb0473bc"
+        }
+      ],
+      "proves": [
+        "The Go analyzer attaches named analyzer, tier, status, and reason evidence to matched vulnerabilities."
+      ],
+      "limitations": [
+        "Advisories come from live services and may change; an unreachable result is not proof that a package is safe."
+      ]
+    },
+    {
+      "id": "reachability-java",
+      "title": "Java package reachability",
+      "area": "reachability",
+      "description": "Analyses a pinned Java project and checks the reachability evidence attached to each matched vulnerability.",
+      "evidence_level": "live-service",
+      "check_id": "smoke",
+      "instance": "java-reachability",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-java-maven",
+          "ref": "v1.0.0",
+          "revision": "93bb3aae614e2f2c6cb65f5ea2315846f5234150"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "java",
+        "mvn"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-java-maven-reachability$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-java-maven-reachability.golden.json",
+          "sha256": "8afa5c942576315db8e0256f77751d012fc342bd17b1f7b7d26472d023df6fc7"
+        }
+      ],
+      "proves": [
+        "The Java analyzer separates package-reachable and package-unreachable vulnerability evidence."
+      ],
+      "limitations": [
+        "This is package-tier evidence, not symbol-level proof, and live advisory results may change."
+      ]
+    },
+    {
+      "id": "reachability-node",
+      "title": "JavaScript package reachability",
+      "area": "reachability",
+      "description": "Analyses a pinned JavaScript project and checks the reachability evidence attached to each matched vulnerability.",
+      "evidence_level": "live-service",
+      "check_id": "smoke",
+      "instance": "node-reachability",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-npm",
+          "ref": "v1.0.0",
+          "revision": "559a762aeef68b0e5c818f62dfba67abc369912f"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "npm"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-npm-reachability$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-npm-reachability.golden.json",
+          "sha256": "5b39568467b6a9a60c62a07b52750c99e632786d011f83765b72bb8b9c5ff727"
+        }
+      ],
+      "proves": [
+        "The JavaScript analyzer separates package-reachable and package-unreachable vulnerability evidence."
+      ],
+      "limitations": [
+        "This is package-tier evidence, dynamic loading can reduce confidence, and live advisory results may change."
+      ]
+    },
+    {
+      "id": "reachability-python",
+      "title": "Python package reachability",
+      "area": "reachability",
+      "description": "Analyses a pinned Python project and checks the reachability evidence attached to each matched vulnerability.",
+      "evidence_level": "live-service",
+      "check_id": "smoke",
+      "instance": "python-reachability",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-python-pip",
+          "revision": "fe04c758134b95dab102e1fce10275f7d18c0cf2"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "pip"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-python-pip-reachability$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-python-pip-reachability.golden.json",
+          "sha256": "7928b4f38d6aff12f58e3ba7ee8ee687b1c9f32e0945a6325f40777785bf7168"
+        }
+      ],
+      "proves": [
+        "The Python analyzer separates package-reachable and package-unreachable vulnerability evidence."
+      ],
+      "limitations": [
+        "This is package-tier evidence, reflective imports can reduce confidence, and live advisory results may change."
+      ]
+    },
+    {
+      "id": "remediation-read-only",
+      "title": "Canonical read-only remediation guidance",
+      "area": "remediation",
+      "description": "Derives upgrade guidance for a set of findings and checks the fix status, versions, and per-occurrence advice it produces.",
+      "evidence_level": "deterministic",
+      "check_id": "unit-portable",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "internal/remediation/derive_test.go",
+          "sha256": "0be22480c9395c834dbcc23f015629cc837a51d5e122eaac36b520b43d1759ed"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/remediation",
+          "-run",
+          "TestDerivePackageRemediation|TestDeriveBuildsCanonicalOccurrenceSuggestions",
+          "-count=1"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "internal/remediation/derive_test.go",
+          "sha256": "0be22480c9395c834dbcc23f015629cc837a51d5e122eaac36b520b43d1759ed"
+        }
+      ],
+      "proves": [
+        "One central component derives fix status, recommended versions, occurrence actions, and detector advice without applying changes."
+      ],
+      "limitations": [
+        "Suggestions are read-only evidence and are not guaranteed to work in every checkout."
+      ]
+    },
+    {
+      "id": "sbom-cyclonedx-ingest",
+      "title": "CycloneDX 1.6 ingestion",
+      "area": "sbom",
+      "description": "Reads a checked-in CycloneDX document and compares the dependency graph it produces with a recorded one.",
+      "evidence_level": "deterministic",
+      "check_id": "smoke",
+      "instance": "sbom",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "test/smoke/testdata/sboms/go.cdx.json",
+          "sha256": "78454a7207f98ba0c8d35df8a257f9185c313d22691cc90a06f11809021bed93"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-sbom-cyclonedx$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-sbom-cyclonedx.golden.json",
+          "sha256": "d4ccc0060c6d5a1bb6ca59643074bab0a6c9abdad2500e9566826e482952fe55"
+        }
+      ],
+      "proves": [
+        "Bomly ingests the checked CycloneDX 1.6 dependency graph."
+      ],
+      "limitations": [
+        "The fixture covers one document shape and does not imply lossless conversion from every producer."
+      ]
+    },
+    {
+      "id": "sbom-spdx-ingest",
+      "title": "SPDX 2.3 ingestion",
+      "area": "sbom",
+      "description": "Reads a checked-in SPDX document and compares the dependency graph it produces with a recorded one.",
+      "evidence_level": "deterministic",
+      "check_id": "smoke",
+      "instance": "sbom",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "test/smoke/testdata/sboms/go.spdx.json",
+          "sha256": "99bd846daec887cfcb61d6d5384ccff91c6045482652f4719fab8b312192fe0e"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestScan$/scan-sbom-spdx$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/testdata/golden/scan-sbom-spdx.golden.json",
+          "sha256": "c64358425f3ac5136fd0d11827de16988612ded3bd208de4e4dffe4b0571a16c"
+        }
+      ],
+      "proves": [
+        "Bomly ingests the checked SPDX 2.3 dependency graph."
+      ],
+      "limitations": [
+        "The fixture covers one document shape and does not imply lossless conversion from every producer."
+      ]
+    },
+    {
+      "id": "source-change-policy",
+      "title": "Registry-to-Git source-change review",
+      "area": "policy",
+      "description": "Compares two scans of the same project where one package moved from a registry to a Git source, and checks how that is flagged.",
+      "evidence_level": "pinned-input",
+      "check_id": "smoke",
+      "instance": "node-detail-policy",
+      "inputs": [
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-npm",
+          "ref": "assurance/dependency-source-registry-v1",
+          "revision": "f6127099dad7f8b6fbaa7ed1ceb8e7b0d1e8c864"
+        },
+        {
+          "kind": "git",
+          "location": "https://github.com/bomly-dev/example-javascript-npm",
+          "ref": "assurance/dependency-source-git-v1",
+          "revision": "96ffda21548628ce36201741b56164ca5c4405b6"
+        }
+      ],
+      "required_tools": [
+        "git",
+        "npm"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "-tags",
+          "smoke",
+          "./test/smoke/",
+          "-v",
+          "-count=1",
+          "-timeout",
+          "15m",
+          "-run",
+          "TestDependencyDetailRiskPolicy$"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "test/smoke/audit_test.go",
+          "sha256": "d0d49980d6d4a5fd3cc67ac1ca39d5aa4f17bd378faac7831f11f02d3271a1a6"
+        }
+      ],
+      "proves": [
+        "Diff marks a same-version registry-to-Git move for review and the package auditor can fail it when source-change policy is enabled."
+      ],
+      "limitations": [
+        "A source change is a review signal, not proof of malicious intent, and unknown source evidence cannot be classified."
+      ]
+    },
+    {
+      "id": "vulnerability-policy",
+      "title": "Vulnerability policy constraints",
+      "area": "policy",
+      "description": "Evaluates vulnerability policy against a matrix of severities, reachability tiers, known exploitation, and advisory allowlists.",
+      "evidence_level": "deterministic",
+      "check_id": "unit-portable",
+      "inputs": [
+        {
+          "kind": "fixture",
+          "location": "internal/auditors/vulnerability/policy_matrix_test.go",
+          "sha256": "3bc30277032a8a1159e5f1a5d9b4697c0be914368a7946d69a2480754937283b"
+        }
+      ],
+      "required_tools": [
+        "go"
+      ],
+      "reproduce": [
+        [
+          "go",
+          "test",
+          "./internal/auditors/vulnerability",
+          "-run",
+          "TestAuditorSeverityReachabilityExploitabilityAndAllowlistMatrix",
+          "-count=1"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "internal/auditors/vulnerability/policy_matrix_test.go",
+          "sha256": "3bc30277032a8a1159e5f1a5d9b4697c0be914368a7946d69a2480754937283b"
+        }
+      ],
+      "proves": [
+        "The vulnerability auditor composes severity, reachability, known exploitation, and advisory allowlists with the documented repeated-constraint behavior."
+      ],
+      "limitations": [
+        "Policy can only evaluate vulnerability, reachability, and exploitation evidence that is present in the registry."
+      ]
+    }
+  ]
+}

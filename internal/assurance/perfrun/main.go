@@ -1,4 +1,4 @@
-// Command benchmarkrun repeatedly executes one deterministic assurance case
+// Command perfrun repeatedly executes one deterministic assurance case
 // and records cold/warm samples in a versioned machine-readable manifest.
 package main
 
@@ -124,7 +124,7 @@ func main() {
 	flag.Parse()
 	command := flag.Args()
 	if len(command) == 0 {
-		fmt.Fprintln(os.Stderr, "benchmarkrun requires a command after --")
+		fmt.Fprintln(os.Stderr, "perfrun requires a command after --")
 		os.Exit(2)
 	}
 	if samples < 1 {

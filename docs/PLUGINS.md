@@ -22,7 +22,7 @@ Then use the implementation guide for your role:
 - [How To Implement An Auditor Plugin](plugins/how-to-implement-auditor.md)
 - [How To Implement An Analyzer Plugin](plugins/how-to-implement-analyzer.md)
 
-Use the [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) for the Go types, runtime entrypoints, request/response payloads, graph model, package registry, and finding contract those guides use.
+The SDK API reference is split by package: [`plugin`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/plugin) for the component interfaces, descriptors, and request/response payloads; [`model`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/model) for the graph, package registry, and finding contract; [`runtime`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/runtime) for the plugin entrypoints; and [`httpkit`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/httpkit) for outbound HTTP, which a component reaches through `plugin.HostContext`.
 
 Real plugin repositories live outside this repo so each plugin type can show a realistic package, release, and README:
 

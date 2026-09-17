@@ -4,7 +4,7 @@ A matcher plugin enriches packages after detection. Use a matcher when you want 
 
 A matcher is one `plugin.Module` with `Kind: plugin.PluginKindMatcher`. The same module can be compiled into a host build (embedded) or served as a managed plugin binary with `runtime.ServeModule` — you write the component once. [Plugin basics](../PLUGINS.md#write-a-plugin) covers the module model, repository contract, configuration, testing, and release flow shared by every role; this guide covers what is specific to matchers.
 
-The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) documents `plugin.Module`, `plugin.MatcherModule`, the `plugin.Matcher` interface, `plugin.MatchRequest`, `plugin.MatchResult`, the PURL-keyed package registry, and the enrichment types used below.
+The SDK API reference is split by package: [`plugin`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/plugin) documents `Module`, `MatcherModule`, the `Matcher` interface, `MatchRequest`, and `MatchResult`; [`model`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/model) documents the PURL-keyed package registry and the enrichment types used below; [`runtime`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/runtime) documents `ServeModule`.
 
 ## Start From The Template
 

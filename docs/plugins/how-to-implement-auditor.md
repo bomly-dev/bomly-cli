@@ -4,7 +4,7 @@ An auditor plugin evaluates the dependency graph and package registry after dete
 
 An auditor is one `plugin.Module` with `Kind: plugin.PluginKindAuditor`. The same module can be compiled into a host build (embedded) or served as a managed plugin binary with `runtime.ServeModule` — you write the component once. [Plugin basics](../PLUGINS.md#write-a-plugin) covers the module model, repository contract, configuration, testing, and release flow shared by every role; this guide covers what is specific to auditors.
 
-The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) documents `plugin.Module`, `plugin.AuditorModule`, the `plugin.Auditor` interface, `plugin.AuditRequest`, `plugin.AuditResult`, reference-style findings, and the risk-score types used below.
+The SDK API reference is split by package: [`plugin`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/plugin) documents `Module`, `AuditorModule`, the `Auditor` interface, `AuditRequest`, and `AuditResult`; [`model`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/model) documents the reference-style findings and risk-score types used below; [`runtime`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/runtime) documents `ServeModule`.
 
 ## Start From The Template
 

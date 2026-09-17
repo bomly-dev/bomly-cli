@@ -4,7 +4,7 @@ An analyzer plugin runs code analysis after enrichment. Use an analyzer when you
 
 An analyzer is one `plugin.Module` with `Kind: plugin.PluginKindAnalyzer`. The same module can be compiled into a host build (embedded) or served as a managed plugin binary with `runtime.ServeModule` — you write the component once. Analyzers run when a scan passes `--analyze` (which requires `--enrich`), after matchers and before auditors. [Plugin basics](../PLUGINS.md#write-a-plugin) covers the module model, repository contract, configuration, testing, and release flow shared by every role; this guide covers what is specific to analyzers.
 
-The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) documents `plugin.Module`, `plugin.AnalyzerModule`, the `plugin.Analyzer` interface, `plugin.AnalyzeRequest`, `plugin.AnalyzeResult`, the PURL-keyed package registry, and the `model.Reachability` annotation used below.
+The SDK API reference is split by package: [`plugin`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/plugin) documents `Module`, `AnalyzerModule`, the `Analyzer` interface, `AnalyzeRequest`, and `AnalyzeResult`; [`model`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/model) documents the PURL-keyed package registry and the `Reachability` annotation used below; [`runtime`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/runtime) documents `ServeModule`.
 
 ## Start From The Template
 

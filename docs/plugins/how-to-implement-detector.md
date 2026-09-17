@@ -4,7 +4,7 @@ A detector plugin turns project evidence into a Bomly dependency graph. Use a de
 
 A detector is one `plugin.Module` with `Kind: plugin.PluginKindDetector`. The same module can be compiled into a host build (embedded) or served as a managed plugin binary with `runtime.ServeModule` — you write the component once. [Plugin basics](../PLUGINS.md#write-a-plugin) covers the module model, repository contract, configuration, testing, and release flow shared by every role; this guide covers what is specific to detectors.
 
-The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk) documents `plugin.Module`, `plugin.DetectorModule`, the `plugin.Detector` interface, `plugin.DetectionRequest`, `plugin.DetectionResult`, graph helpers, and the package-manager support types used below.
+The SDK API reference is split by package: [`plugin`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/plugin) documents `Module`, `DetectorModule`, the `Detector` interface, `DetectionRequest`, `DetectionResult`, and the package-manager support types; [`model`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/model) documents the graph and its node constructors used below; [`runtime`](https://pkg.go.dev/github.com/bomly-dev/bomly-sdk/runtime) documents `ServeModule`.
 
 ## Start From The Template
 

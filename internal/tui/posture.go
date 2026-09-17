@@ -23,7 +23,7 @@ type posturePackageRef struct {
 // postureRow aggregates a single source repository's Scorecard run
 // alongside the packages that resolved to it. The matcher dedupes by repo
 // while attaching `pkg.Scorecard`, so multiple packages can carry the same
-// underlying *sdk.PackageScorecard; we collect every distinct package here
+// underlying *model.PackageScorecard; we collect every distinct package here
 // so the details pane can render the affected component list.
 type postureRow struct {
 	repository string

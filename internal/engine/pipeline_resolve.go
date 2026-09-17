@@ -361,7 +361,7 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req plugin.DetectionRequ
 	// Warn is the default level, so this reaches the user without being asked
 	// for.
 	//
-	// Deliberately not an sdk.DetectorWarning. Every DetectorWarningType means
+	// Deliberately not an plugin.DetectorWarning. Every DetectorWarningType means
 	// something about the run that this does not, and two of the three make
 	// DegradesCoverage report true, which gates finding baselines. Nothing
 	// here is missing from the graph; it is the narrowing that did not happen.

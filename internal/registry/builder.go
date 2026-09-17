@@ -81,7 +81,7 @@ type Configs struct {
 	// embedded components can decode the same block managed plugins receive.
 	PluginConfigs config.PluginConfigs
 	// CoreVersion is the running bomly core version, surfaced to embedded
-	// components through sdk.HostContext.Runtime(). Empty when unknown.
+	// components through plugin.HostContext.Runtime(). Empty when unknown.
 	CoreVersion string
 }
 

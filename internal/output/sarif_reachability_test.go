@@ -11,7 +11,7 @@ import (
 
 // fixtureRegistryWithVuln builds a single-package PURL-keyed registry where
 // `purl` carries one Vulnerability — used by SARIF reachability tests to
-// supply the data the writer now resolves through *sdk.PackageRegistry.
+// supply the data the writer now resolves through *model.PackageRegistry.
 func fixtureRegistryWithVuln(purl string, vuln sdkmodel.Vulnerability) *sdkmodel.PackageRegistry {
 	reg := sdkmodel.NewPackageRegistry()
 	pkg := reg.Ensure(purl)

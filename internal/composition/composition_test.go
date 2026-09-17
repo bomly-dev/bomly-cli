@@ -11,7 +11,7 @@ import (
 	sdkplugin "github.com/bomly-dev/bomly-sdk/plugin"
 )
 
-// fakeHost is a minimal sdk.HostContext for construction tests.
+// fakeHost is a minimal plugin.HostContext for construction tests.
 type fakeHost struct{}
 
 func (fakeHost) Logger() *zap.Logger { return zap.NewNop() }

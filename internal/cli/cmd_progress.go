@@ -97,7 +97,7 @@ func subprojectProgressChildren(results []plugin.DetectionResult) []progress.Chi
 }
 
 // plannedSubprojectChildren is the indexing-time variant of
-// subprojectProgressChildren: it reads from the planned []sdk.Subproject so
+// subprojectProgressChildren: it reads from the planned []plugin.Subproject so
 // the "Indexed subprojects" step can be promoted right after Prepare returns,
 // before the detection pipeline starts.
 func plannedSubprojectChildren(subprojects []plugin.Subproject) []progress.Child {

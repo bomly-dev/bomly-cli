@@ -1,5 +1,5 @@
 // Package composition declares the build-time composition of Bomly's
-// embedded (native) components as execution-neutral sdk.Module entries. The
+// embedded (native) components as execution-neutral plugin.Module entries. The
 // registry consumes Entries() and registers each module through
 // Registry.RegisterModule instead of bespoke per-component wiring. Build-tag
 // variants (composition_full.go / composition_lite.go) decide which

@@ -161,7 +161,7 @@ type LocationRef struct {
 	Relationship string   `json:"relationship,omitempty"`
 }
 
-// PositionRef is the JSON shape of sdk.SourcePosition.
+// PositionRef is the JSON shape of model.SourcePosition.
 type PositionRef struct {
 	File    string `json:"file,omitempty"`
 	Line    int    `json:"line,omitempty"`
@@ -429,7 +429,7 @@ func (p FindingPackageRef) DisplayLabel() string {
 }
 
 // AuditFinding is the serialized form of one normalized scan finding. It
-// mirrors sdk.Finding's three-collection shape: the package is referenced by
+// mirrors model.Finding's three-collection shape: the package is referenced by
 // identity (join to packages[] via purl), the advisory by vulnerability_id
 // (join to packages[].vulnerabilities), and the introducing graph nodes by
 // dependency_refs (join to manifests[].dependencies ids).
@@ -571,7 +571,7 @@ type ScanTargetResponse struct {
 }
 
 // ScanDependency is one detection-stage dependency node in a manifest. It is a
-// lean projection of sdk.DependencyNode: identity, scopes, edges, detection-time
+// lean projection of model.DependencyNode: identity, scopes, edges, detection-time
 // licenses, and a package_ref (PURL) link into the top-level packages
 // collection. Matching-stage enrichment (vulnerabilities, scorecard, EOL,
 // licenses learned during matching) is NOT carried here — it lives on the
@@ -590,7 +590,7 @@ type ScanDependency struct {
 }
 
 // PrimaryScope returns the merged precedence scope across the dependency's
-// recorded scopes, mirroring sdk.DependencyNode.PrimaryScope so text/markdown
+// recorded scopes, mirroring model.DependencyNode.PrimaryScope so text/markdown
 // renderers reproduce the same scope label as before the model split.
 func (d ScanDependency) PrimaryScope() string {
 	result := model.ScopeUnknown
@@ -601,7 +601,7 @@ func (d ScanDependency) PrimaryScope() string {
 }
 
 // ScanPackageEntry is one matching-stage artifact in the top-level packages
-// collection: a PURL-keyed, deduplicated projection of sdk.Package carrying the
+// collection: a PURL-keyed, deduplicated projection of model.Package carrying the
 // enrichment (licenses, vulnerabilities, scorecard, EOL, CPEs, digests) that
 // manifest dependencies reference by package_ref.
 type ScanPackageEntry struct {

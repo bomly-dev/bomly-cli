@@ -180,7 +180,7 @@ type SARIFLineRange struct {
 // WriteSARIF writes findings as a SARIF 2.1.0 document to w.
 // toolName and toolVersion are used to populate the driver section.
 // registry, when non-nil, is used to resolve f.PackageRef →
-// *sdk.Package and f.VulnerabilityID → *sdk.Vulnerability so each result
+// *model.Package and f.VulnerabilityID → *model.Vulnerability so each result
 // carries the rich properties (CVSS / EPSS / KEV / CWE / fix state /
 // reachability call paths) as SARIF `properties` / `codeFlows`.
 func WriteSARIF(w io.Writer, findings []model.Finding, registry *model.PackageRegistry, toolName, toolVersion string, options ...SARIFOptions) error {

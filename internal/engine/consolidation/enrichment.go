@@ -76,14 +76,12 @@ func BuildPackageRegistry(consolidated plugin.ConsolidatedGraph) *model.PackageR
 				pkg.Licenses = append([]model.PackageLicense(nil), licenses...)
 			}
 		}
-		// Also fold any detection-time package facts carried alongside the graph.
-		for _, pkg := range entry.Packages {
-			if pkg == nil || pkg.PURL == "" {
-				continue
-			}
-			registry.Add(pkg)
-		}
 	}
+	// The detection-time package facts carried alongside each graph -- a
+	// lockfile's digests, an ingested document's advisories and end-of-life
+	// records -- fold in through the SDK's one door, after the nodes have
+	// seeded their packages, so they land on those packages.
+	registry.AddEntryPackages(consolidated.Graphs.Entries)
 	return registry
 }
 

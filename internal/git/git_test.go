@@ -41,6 +41,12 @@ func TestCloneTempMaterializesRequestedCommitWithoutChangingSource(t *testing.T)
 	if got := runGitCommand(t, materialized, "rev-parse", "HEAD"); got != featureSHA {
 		t.Fatalf("materialized HEAD = %q, want %q", got, featureSHA)
 	}
+	if got := HeadCommit(context.Background(), nil, materialized); got != featureSHA {
+		t.Fatalf("HeadCommit(materialized) = %q, want %q", got, featureSHA)
+	}
+	if got := HeadCommit(context.Background(), nil, t.TempDir()); got != "" {
+		t.Fatalf("HeadCommit(plain directory) = %q, want empty", got)
+	}
 	if _, err := os.Stat(filepath.Join(materialized, "feature.txt")); err != nil {
 		t.Fatalf("materialized feature file: %v", err)
 	}

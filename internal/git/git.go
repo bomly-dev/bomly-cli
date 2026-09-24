@@ -77,6 +77,34 @@ func cloneTemp(ctx context.Context, logger *zap.Logger, repoURL, ref, tempRoot s
 	return tempDir, nil
 }
 
+// HeadCommit returns the commit path's checkout is at, or "" when path is
+// not inside a git repository, git is not available, or HEAD does not
+// resolve -- a scan of a plain directory has no commit to record, and that
+// is not an error. The value is what a scan record names as the commit it
+// ran against: for a clone, the commit CloneTemp checked out; for a local
+// path, whatever the working tree is at, which is the best a scan can say.
+func HeadCommit(ctx context.Context, logger *zap.Logger, path string) string {
+	return headCommitWithRunner(ctx, logger, path, runGitContext)
+}
+
+func headCommitWithRunner(ctx context.Context, logger *zap.Logger, path string, runner gitContextRunner) string {
+	if ensureGitAvailable() != nil {
+		return ""
+	}
+	if path == "" {
+		path = "."
+	}
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return ""
+	}
+	stdout, err := runner(ctx, logger, absPath, "rev-parse", "--verify", "HEAD^{commit}")
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(stdout)
+}
+
 // FindRepoRoot resolves the git repository root for path.
 func FindRepoRoot(logger *zap.Logger, path string) (string, error) {
 	return findRepoRootWithRunner(context.Background(), logger, path, runGitContext)
